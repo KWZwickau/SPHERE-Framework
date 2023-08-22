@@ -117,10 +117,6 @@ class SerialLetterForm extends Extension
 
         $FormGroup = array();
         $FormGroup[] = (new SerialLetterForm())->formSerialLetterStandardGroup();
-        $GroupList = array();
-        if(($tblGroup = Group::useService()->getGroupByMetaTable('STUDENT'))) {
-            $GroupList[] = $tblGroup;
-        }
 
         $MaxFieldNumber = 0;
         if ($tblSerialLetter != null) {
@@ -144,12 +140,10 @@ class SerialLetterForm extends Extension
                 }
             }
         } else {
-            // POST StandardGroup (first Visit)
+            // POST Student createSite
             $Global = $this->getGlobal();
-            if (!isset($Global->POST['Filter']['TblYear_Id'][$MaxFieldNumber])) {
-                if (!isset($Global->POST['Filter']['TblYear_Id'][$MaxFieldNumber])) {
-                    $Global->POST['Filter']['TblYear_Id'][$MaxFieldNumber] = $tblGroup->getId();
-                }
+            if(($tblYearList = Term::useService()->getYearByNow())){
+                $Global->POST['Filter']['TblYear_Id'][0] = current($tblYearList)->getId();
                 $Global->savePost();
             }
         }

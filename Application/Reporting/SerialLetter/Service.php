@@ -380,28 +380,16 @@ class Service extends AbstractService
     /**
      * @param IFormInterface|null  $Stage
      * @param array|null           $SerialLetter
-     * @param null                 $FilterGroup
-     * @param null                 $FilterPerson
-     * @param null                 $FilterStudent
-     * @param null                 $FilterYear
-     * @param null                 $FilterProspect
-     * @param null                 $FilterCompany
-     * @param null                 $FilterRelationship
-     * @param null                 $FilterCategory
+     * @param array|null          $Filter
+     * @param array|null          $FilterCategory
      *
      * @return IFormInterface|string
      */
     public function createSerialLetter(
         IFormInterface $Stage = null,
         ?array $SerialLetter = array(),
-        $FilterGroup = null,
-        $FilterPerson = null,
-        $FilterStudent = null,
-        $FilterYear = null,
-        $FilterProspect = null,
-        $FilterCompany = null,
-        $FilterRelationship = null,
-        $FilterCategory = null
+        ?array $Filter = array(),
+        ?int $FilterCategory = null
     ) {
 
         /**
@@ -426,13 +414,13 @@ class Service extends AbstractService
             $FilterCateory = $tblFilterCategory->getName();
             if($FilterCateory === TblFilterCategory::IDENTIFIER_PERSON_GROUP
             || $FilterCateory === TblFilterCategory::IDENTIFIER_COMPANY) {
-                if(isset($FilterGroup['TblGroup_Id'][0]) && $FilterGroup['TblGroup_Id'][0] == 0) {
+                if(isset($Filter['TblGroup_Id'][0]) && $Filter['TblGroup_Id'][0] == 0) {
                     $Stage->setError('FilterGroup[TblGroup_Id][0]', 'Bitte geben Sie eine Gruppe an');
                     $Error = true;
                 }
             }
             if($FilterCateory === TblFilterCategory::IDENTIFIER_PERSON_GROUP_PROSPECT) {
-                if(isset($FilterGroup['TblGroup_Id'][0]) && $FilterGroup['TblGroup_Id'][0] == 0) {
+                if(isset($Filter['TblGroup_Id'][0]) && $Filter['TblGroup_Id'][0] == 0) {
                     $Stage->setError('FilterGroup[TblGroup_Id][0]', 'Benutzen Sie bitte die Gruppe "Interessent" zur Filterung');
                     $Error = true;
                 }
@@ -453,67 +441,12 @@ class Service extends AbstractService
                     $SerialLetter['Name'],
                     $SerialLetter['Description'],
                     $tblFilterCategory
-
                 );
 
                 if ($tblFilterCategory) {
                     // save Group Field
-                    if (isset($FilterGroup) && !empty($FilterGroup)) {
-                        foreach ($FilterGroup as $FieldName => $FilterList) {
-                            foreach ($FilterList as $FilterNumber => $Value) {
-                                ( new Data($this->getBinding()) )->createFilterField($tblSerialLetter, $tblFilterCategory,
-                                    $FieldName, $Value, $FilterNumber);
-                            }
-                        }
-                    }
-                    // save Person Field
-                    if (isset($FilterPerson) && !empty($FilterPerson)) {
-                        foreach ($FilterPerson as $FieldName => $FilterList) {
-                            foreach ($FilterList as $FilterNumber => $Value) {
-                                ( new Data($this->getBinding()) )->createFilterField($tblSerialLetter, $tblFilterCategory,
-                                    $FieldName, $Value, $FilterNumber);
-                            }
-                        }
-                    }
-                    // save Student Field
-                    if (isset($FilterStudent) && !empty($FilterStudent)) {
-                        foreach ($FilterStudent as $FieldName => $FilterList) {
-                            foreach ($FilterList as $FilterNumber => $Value) {
-                                ( new Data($this->getBinding()) )->createFilterField($tblSerialLetter, $tblFilterCategory,
-                                    $FieldName, $Value, $FilterNumber);
-                            }
-                        }
-                    }
-                    // save Year Field
-                    if (isset($FilterYear) && !empty($FilterYear)) {
-                        foreach ($FilterYear as $FieldName => $FilterList) {
-                            foreach ($FilterList as $FilterNumber => $Value) {
-                                ( new Data($this->getBinding()) )->createFilterField($tblSerialLetter, $tblFilterCategory,
-                                    $FieldName, $Value, $FilterNumber);
-                            }
-                        }
-                    }
-                    // save Prospect Field
-                    if (isset($FilterProspect) && !empty($FilterProspect)) {
-                        foreach ($FilterProspect as $FieldName => $FilterList) {
-                            foreach ($FilterList as $FilterNumber => $Value) {
-                                ( new Data($this->getBinding()) )->createFilterField($tblSerialLetter, $tblFilterCategory,
-                                    $FieldName, $Value, $FilterNumber);
-                            }
-                        }
-                    }
-                    // save Company Field
-                    if (isset($FilterCompany) && !empty($FilterCompany)) {
-                        foreach ($FilterCompany as $FieldName => $FilterList) {
-                            foreach ($FilterList as $FilterNumber => $Value) {
-                                ( new Data($this->getBinding()) )->createFilterField($tblSerialLetter, $tblFilterCategory,
-                                    $FieldName, $Value, $FilterNumber);
-                            }
-                        }
-                    }
-                    // save Prospect Field
-                    if (isset($FilterRelationship) && !empty($FilterRelationship)) {
-                        foreach ($FilterRelationship as $FieldName => $FilterList) {
+                    if (isset($Filter) && !empty($Filter)) {
+                        foreach ($Filter as $FieldName => $FilterList) {
                             foreach ($FilterList as $FilterNumber => $Value) {
                                 ( new Data($this->getBinding()) )->createFilterField($tblSerialLetter, $tblFilterCategory,
                                     $FieldName, $Value, $FilterNumber);
@@ -524,25 +457,21 @@ class Service extends AbstractService
                     if ($tblFilterCategory) {
                         if ($tblFilterCategory->getName() === TblFilterCategory::IDENTIFIER_PERSON_GROUP) {
                             $TableResult = (new SerialLetterFilter())->getGroupFilterResultListBySerialLetter($tblSerialLetter);
-//                            $tblPersonSearchList = (new SerialLetterFilter())->getPersonListByResult($tblSerialLetter, $Result);
                             SerialLetter::useService()->updateDynamicSerialPerson($tblSerialLetter, $TableResult);
                             $TabActive = 'PERSONGROUP';
                         }
                         if ($tblFilterCategory->getName() === TblFilterCategory::IDENTIFIER_PERSON_GROUP_STUDENT) {
                             $TableResult = (new SerialLetterFilter())->getStudentFilterResultListBySerialLetter($tblSerialLetter);
-//                            $tblPersonSearchList = (new SerialLetterFilter())->getPersonListByResult($tblSerialLetter, $Result);
                             SerialLetter::useService()->updateDynamicSerialPerson($tblSerialLetter, $TableResult);
                             $TabActive = 'STUDENT';
                         }
                         if ($tblFilterCategory->getName() === TblFilterCategory::IDENTIFIER_PERSON_GROUP_PROSPECT) {
                             $TableResult = (new SerialLetterFilter())->getProspectFilterResultListBySerialLetter($tblSerialLetter);
-//                            $tblPersonSearchList = (new SerialLetterFilter())->getPersonListByResult($tblSerialLetter, $Result);
                             SerialLetter::useService()->updateDynamicSerialPerson($tblSerialLetter, $TableResult);
                             $TabActive = 'PROSPECT';
                         }
                         if ($tblFilterCategory->getName() === TblFilterCategory::IDENTIFIER_COMPANY_GROUP) {
                             $TableResult = (new SerialLetterFilter())->getCompanyFilterResultListBySerialLetter($tblSerialLetter);
-//                            $tblCompanySearchList = (new SerialLetterFilter())->getCompanyListByResult($Result);
                             SerialLetter::useService()->updateDynamicSerialCompany($tblSerialLetter, $TableResult);
                             $TabActive = 'COMPANY';
                         }

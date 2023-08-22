@@ -89,28 +89,16 @@ class Frontend extends Extension implements IFrontendInterface
 {
 
     /**
-     * @param null   $SerialLetter
-     * @param string $TabActive
-     * @param null   $FilterGroup
-     * @param null   $FilterPerson
-     * @param null   $FilterStudent
-     * @param null   $FilterYear
-     * @param null   $FilterProspect
-     * @param null   $FilterCompany
-     * @param null   $FilterRelationship
+     * @param null       $SerialLetter
+     * @param string     $TabActive
+     * @param array|null $Filter
      *
      * @return Stage
      */
     public function frontendSerialLetter(
         $SerialLetter = null,
         $TabActive = 'STUDENT',
-        $FilterGroup = null,
-        $FilterPerson = null,
-        $FilterStudent = null,
-        $FilterYear = null,
-        $FilterProspect = null,
-        $FilterCompany = null,
-        $FilterRelationship = null
+        $Filter = null
     ) {
 
 //        ini_set('memory_limit', '1G');
@@ -206,7 +194,7 @@ class Frontend extends Extension implements IFrontendInterface
                             new LayoutColumn(
                                 new Panel(new PlusSign().' Serienbrief anlegen '
                                     , array(new Well(SerialLetter::useService()->createSerialLetter($FormSerialLetterDynamic,
-                                        $SerialLetter, $FilterGroup, null, null, null, null, null, null, $tblFilterCategory->getId())))
+                                        $SerialLetter, $Filter, $tblFilterCategory->getId())))
                                     , Panel::PANEL_TYPE_INFO)
                             )
                         )
@@ -219,18 +207,13 @@ class Frontend extends Extension implements IFrontendInterface
                 $FormSerialLetterDynamic
                     ->appendFormButton(new Primary('Speichern', new Save()))
                     ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
-
-                if(($tblYearList = Term::useService()->getYearByNow())){
-                    $_POST['FilterYear']['TblYear_Id'][0] = current($tblYearList)->getId();
-                }
-
                 $MetaTable = new Layout(
                     new LayoutGroup(
                         new LayoutRow(
                             new LayoutColumn(
                                 new Panel(new PlusSign().' Serienbrief anlegen '
-                                    , array(new Well(SerialLetter::useService()->createSerialLetter($FormSerialLetterDynamic
-                                        , $SerialLetter, $FilterGroup, $FilterPerson, $FilterStudent, $FilterYear, null, null, null, $tblFilterCategory->getId())))
+                                    , array(new Well(SerialLetter::useService()->createSerialLetter($FormSerialLetterDynamic,
+                                        $SerialLetter, $Filter, $tblFilterCategory->getId())))
                                     , Panel::PANEL_TYPE_INFO)
                             )
                         )
@@ -251,7 +234,7 @@ class Frontend extends Extension implements IFrontendInterface
                             new LayoutColumn(
                                 new Panel(new PlusSign().' Serienbrief anlegen '
                                     , array(new Well(SerialLetter::useService()->createSerialLetter($FormSerialLetterDynamic,
-                                        $SerialLetter, $FilterGroup, null, null, null, $FilterProspect, null, null, $tblFilterCategory->getId())))
+                                        $SerialLetter, $Filter, $tblFilterCategory->getId())))
                                     , Panel::PANEL_TYPE_INFO)
                             )
                         )
@@ -273,7 +256,7 @@ class Frontend extends Extension implements IFrontendInterface
                             new LayoutColumn(
                                 new Panel(new PlusSign().' Serienbrief anlegen '
                                     , array(new Well(SerialLetter::useService()->createSerialLetter($FormSerialLetterDynamic,
-                                        $SerialLetter, $FilterGroup, null, null, null, null, $FilterCompany, $FilterRelationship, $tblFilterCategory->getId())))
+                                        $SerialLetter, $Filter, $tblFilterCategory->getId())))
                                     , Panel::PANEL_TYPE_INFO)
                             )
                         )

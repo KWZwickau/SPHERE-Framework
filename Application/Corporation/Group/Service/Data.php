@@ -267,15 +267,11 @@ class Data extends AbstractData
                 if($FilterName == 'TblGroup_Id'){
                     $query->andWhere($queryBuilder->expr()->eq('tM.tblGroup', '?'.$ParameterCount))
                         ->setParameter($ParameterCount++, $FilterValue);
-                    if(!empty($CompanyResult)){
-                        $query->expr()->in('tM.serviceTblCompany', $CompanyResult);
-                    }
                 }
             }
         }
-        if($ParameterCount == 1){
-            $query->andWhere($queryBuilder->expr()->eq('tM.tblGroup', '?'.$ParameterCount))
-                ->setParameter($ParameterCount, 1);
+        if(!empty($CompanyResult)){
+            $query->andWhere($query->expr()->in('tM.serviceTblCompany', implode(', ', $CompanyResult)));
         }
         $query = $query->getQuery();
         $result = array();
