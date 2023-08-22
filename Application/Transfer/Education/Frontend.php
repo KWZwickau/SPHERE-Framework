@@ -374,6 +374,7 @@ class Frontend extends FrontendStudentCourse
         $divisionNameList = array();
         $importDivisionCourseList = array();
         $missingDivisionCourseList = array();
+        $checkForDeleteDivisionCourseList = array();
 
         $teacherAcronymList = array();
         $importTeacherList = array();
@@ -525,27 +526,30 @@ class Frontend extends FrontendStudentCourse
                                     = TblTeacherLectureship::withParameter($tblPerson, $tblYear, $tblDivisionCourse, $tblSubject, $subjectGroup);
                             }
                         }
+
+                        // zum Prüfen welche Lehraufträge gelöscht werden sollen
+                        if ($tblDivisionCourse && !isset($checkForDeleteDivisionCourseList[$tblDivisionCourse->getId()])) {
+                            $checkForDeleteDivisionCourseList[$tblDivisionCourse->getId()] = $tblDivisionCourse;
+                        }
                     }
                 }
             }
 
             // prüfen welche Lehraufträge gelöscht werden
-            foreach ($divisionNameList as $tblDivisionCourseTemp) {
-                if ($tblDivisionCourseTemp instanceof TblDivisionCourse) {
-                    if (($tblTeacherLectureshipListByDivisionCourse = DivisionCourse::useService()->getTeacherLectureshipListBy(
-                        $tblYear, null, $tblDivisionCourseTemp
-                    ))) {
-                        foreach ($tblTeacherLectureshipListByDivisionCourse as $tblTemp) {
-                            if (!isset($existsTeacherLectureshipList[$tblTemp->getId()])
-                                && ($tblPersonTemp = $tblTemp->getServiceTblPerson())
-                                && ($tblSubjectTemp = $tblTemp->getServiceTblSubject())
-                            ) {
-                                if ($IsPreview) {
-                                    $previewDeleteTeacherLectureshipList[$tblTemp->getId()] = $tblDivisionCourseTemp->getName()
-                                        . ' - ' . $tblSubjectTemp->getAcronym() . ' - ' . $tblPersonTemp->getFullName();
-                                } else {
-                                    $saveDeleteTeacherLectureshipList[$tblTemp->getId()] = $tblTemp;
-                                }
+            foreach ($checkForDeleteDivisionCourseList as $tblDivisionCourseTemp) {
+                if (($tblTeacherLectureshipListByDivisionCourse = DivisionCourse::useService()->getTeacherLectureshipListBy(
+                    $tblYear, null, $tblDivisionCourseTemp
+                ))) {
+                    foreach ($tblTeacherLectureshipListByDivisionCourse as $tblTemp) {
+                        if (!isset($existsTeacherLectureshipList[$tblTemp->getId()])
+                            && ($tblPersonTemp = $tblTemp->getServiceTblPerson())
+                            && ($tblSubjectTemp = $tblTemp->getServiceTblSubject())
+                        ) {
+                            if ($IsPreview) {
+                                $previewDeleteTeacherLectureshipList[$tblTemp->getId()] = $tblDivisionCourseTemp->getName()
+                                    . ' - ' . $tblSubjectTemp->getAcronym() . ' - ' . $tblPersonTemp->getFullName();
+                            } else {
+                                $saveDeleteTeacherLectureshipList[$tblTemp->getId()] = $tblTemp;
                             }
                         }
                     }
