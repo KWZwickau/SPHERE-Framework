@@ -150,7 +150,7 @@ class FrontendMinimumGradeCount extends FrontendGradeType
         $courseList[] = new SelectBoxItem(SelectBoxItem::COURSE_BASIC, 'Grundkurs');
 
         $schoolTypeList = array();
-        if (($tblSchoolTypeListFromConsumer = School::useService()->getConsumerSchoolTypeCommonAll())) {
+        if (($tblSchoolTypeListFromConsumer = School::useService()->getConsumerSchoolTypeAll())) {
             foreach ($tblSchoolTypeListFromConsumer as $tblSchoolType) {
                 $minLevel = $tblSchoolType->getMinLevel();
                 $maxLevel = $tblSchoolType->getMaxLevel();

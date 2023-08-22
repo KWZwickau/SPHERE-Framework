@@ -124,7 +124,7 @@ abstract class FrontendScoreType extends FrontendScoreRule
      */
     public function formScoreType(TblScoreType $tblScoreType, $Data = null): Form
     {
-        $tblSchoolTypeList = School::useService()->getConsumerSchoolTypeCommonAll();
+        $tblSchoolTypeList = School::useService()->getConsumerSchoolTypeAll();
 
         return new Form(new FormGroup(array(
             new FormRow(array(

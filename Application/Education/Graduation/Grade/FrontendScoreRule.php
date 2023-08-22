@@ -533,7 +533,7 @@ abstract class FrontendScoreRule extends FrontendScoreGroup
      */
     public function formScoreRuleSubject(TblScoreRule $tblScoreRule, $Data = null): Form
     {
-        $tblSchoolTypeList = School::useService()->getConsumerSchoolTypeCommonAll();
+        $tblSchoolTypeList = School::useService()->getConsumerSchoolTypeAll();
 
         return new Form(new FormGroup(array(
             new FormRow(array(
@@ -671,7 +671,7 @@ abstract class FrontendScoreRule extends FrontendScoreGroup
      */
     public function formScoreRuleSubjectDivisionCourse(TblScoreRule $tblScoreRule, $Data = null): Form
     {
-        $tblSchoolTypeList = School::useService()->getConsumerSchoolTypeCommonAll();
+        $tblSchoolTypeList = School::useService()->getConsumerSchoolTypeAll();
 
         return new Form(new FormGroup(array(
             new FormRow(array(
