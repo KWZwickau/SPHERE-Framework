@@ -639,6 +639,11 @@ abstract class ServiceStudentSubject extends ServiceCourseSystem
                     if (($tblSubject = DivisionCourse::useService()->getSubjectFromStudentMetaIdentifier($tblSubjectTable, $tblPerson))
                         && !isset($tblSubjectList[$tblSubject->getId()])
                     ) {
+                        // Benotung
+                        if ($hasGrading && !$tblSubjectTable->getHasGrading()) {
+                            continue;
+                        }
+
                         $tblSubjectList[$tblSubject->getId()] = $tblSubject;
                     }
                 }
