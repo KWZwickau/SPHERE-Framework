@@ -5,6 +5,7 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
+use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -18,6 +19,7 @@ class TblSubject extends Element
     const ATTR_ACRONYM = 'Acronym';
     const ATTR_NAME = 'Name';
     const ATTR_DESCRIPTION = 'Description';
+    const ATTR_IS_ACTIVE = 'IsActive';
 
     const PSEUDO_ORIENTATION_ID = -1;
     const PSEUDO_PROFILE_ID = -2;
@@ -34,6 +36,10 @@ class TblSubject extends Element
      * @Column(type="string")
      */
     protected $Description;
+    /**
+     * @Column(type="boolean")
+     */
+    protected bool $IsActive;
 
     /**
      * @param int $id
@@ -108,6 +114,22 @@ class TblSubject extends Element
     }
 
     /**
+     * @return bool
+     */
+    public function getIsActive(): bool
+    {
+        return $this->IsActive;
+    }
+
+    /**
+     * @param bool $IsActive
+     */
+    public function setIsActive(bool $IsActive): void
+    {
+        $this->IsActive = $IsActive;
+    }
+
+    /**
      * Acronym-Name
      * @return string
      */
@@ -141,5 +163,13 @@ class TblSubject extends Element
 
         // fallback
         return $this->getAcronym();
+    }
+
+    /**
+     * @return bool
+     */
+    public function getIsUsed(): bool
+    {
+        return Subject::useService()->getIsSubjectUsed($this);
     }
 }

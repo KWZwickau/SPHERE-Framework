@@ -28,6 +28,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Enable;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Filter;
 use SPHERE\Common\Frontend\Icon\Repository\ListingTable;
+use SPHERE\Common\Frontend\Icon\Repository\MinusSign;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
 use SPHERE\Common\Frontend\Icon\Repository\PersonGroup;
@@ -35,6 +36,7 @@ use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
 use SPHERE\Common\Frontend\Icon\Repository\Question;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
+use SPHERE\Common\Frontend\Icon\Repository\Success as SuccessIcon;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Headline;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
@@ -46,6 +48,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
+use SPHERE\Common\Frontend\Message\Repository\Success as SuccessMessage;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
@@ -72,22 +75,30 @@ class Frontend extends Extension implements IFrontendInterface
      */
     public function frontendCreateSubject($Subject = null)
     {
-
         $Stage = new Stage('Fächer', 'Übersicht');
         $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Subject', new ChevronLeft()));
 
-        $tblSubjectAll = Subject::useService()->getSubjectAll();
+        $tblSubjectAll = Subject::useService()->getSubjectAll(true);
         $TableContent = array();
         if ($tblSubjectAll) {
             array_walk($tblSubjectAll, function (TblSubject &$tblSubject) use (&$TableContent) {
 
+                $Temp['Status'] = $tblSubject->getIsActive()
+                    ? new Success(new PlusSign().' aktiv')
+                    : new \SPHERE\Common\Frontend\Text\Repository\Warning(new MinusSign() . ' inaktiv');
                 $Temp['Acronym'] = $tblSubject->getAcronym();
                 $Temp['Name'] = $tblSubject->getName();
                 $Temp['Description'] = $tblSubject->getDescription();
-                $Temp['Option'] = (new Standard('', '/Education/Lesson/Subject/Change/Subject', new Pencil(),
-                        array('Id' => $tblSubject->getId())))
-                    . (new Standard('', '/Education/Lesson/Subject/Destroy/Subject', new Remove(),
-                        array('Id' => $tblSubject->getId())));
+                $Temp['Option'] = (new Standard('', '/Education/Lesson/Subject/Change/Subject', new Pencil(), array('Id' => $tblSubject->getId()), 'Fach bearbeiten'))
+                    . ($tblSubject->getIsActive()
+                        ? (new Standard('', '/Education/Lesson/Subject/Activate/Subject', new MinusSign(),
+                            array('Id' => $tblSubject->getId()), 'Fach deaktivieren'))
+                        : (new Standard('', '/Education/Lesson/Subject/Activate/Subject', new PlusSign(),
+                            array('Id' => $tblSubject->getId()), 'Fach aktivieren')))
+                    . ($tblSubject->getIsUsed()
+                        ? ''
+                        : (new Standard('', '/Education/Lesson/Subject/Destroy/Subject', new Remove(), array('Id' => $tblSubject->getId()), 'Fach löschen'))
+                    );
                 array_push($TableContent, $Temp);
             });
         }
@@ -98,10 +109,19 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutRow(
                         new LayoutColumn(
                             new TableData($TableContent, null, array(
+                                'Status' => 'Status',
                                 'Acronym' => 'Kürzel',
                                 'Name' => 'Name',
                                 'Description' => 'Beschreibung',
                                 'Option' => '',
+                            ), array(
+                                'order' => array(
+                                    array('0', 'asc'),
+                                    array('1', 'asc'),
+                                ),
+                                'columnDefs' => array(
+                                    array('orderable' => false, 'targets' => -1),
+                                ),
                             ))
                         )
                     ), new Title(new ListingTable() . ' Übersicht')
@@ -978,19 +998,23 @@ class Frontend extends Extension implements IFrontendInterface
      */
     public function formLinkSubject(TblCategory $tblCategory = null)
     {
+        $tblSubjectAllAvailable = Subject::useService()->getSubjectAll();
 
         $tblSubjectAllSelected = $tblCategory->getTblSubjectAll();
         if ($tblSubjectAllSelected) {
             $Global = $this->getGlobal();
-            array_walk($tblSubjectAllSelected, function (TblSubject &$tblSubject) use (&$Global) {
+            array_walk($tblSubjectAllSelected, function (TblSubject &$tblSubject) use (&$Global, &$tblSubjectAllAvailable) {
 
                 $Global->POST['Subject'][$tblSubject->getId()] = $tblSubject->getId();
+
+                if (!$tblSubject->getIsActive()) {
+                    $tblSubjectAllAvailable[] = $tblSubject;
+                }
             });
             $Global->savePost();
         }
 
-        $tblSubjectAllAvailable = Subject::useService()->getSubjectAll();
-        $tblSubjectAllAvailable = $this->getSorter($tblSubjectAllAvailable)->sortObjectBy('Name');
+        $tblSubjectAllAvailable = $this->getSorter($tblSubjectAllAvailable)->sortObjectBy('DisplayName');
         array_walk($tblSubjectAllAvailable, function (TblSubject &$tblSubject) {
 
             $tblSubject = new CheckBox(
@@ -1137,5 +1161,36 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         return $Stage;
+    }
+
+    /**
+     * @param null $Id
+     *
+     * @return string
+     */
+    public function frontendActivateSubject($Id = null): string
+    {
+        $Route = '/Education/Lesson/Subject/Create/Subject';
+
+        $Stage = new Stage('Fach', 'Aktivieren/Deaktivieren');
+        $Stage->addButton(
+            new Standard('Zur&uuml;ck', $Route, new ChevronLeft())
+        );
+
+        if (($tblSubject = Subject::useService()->getSubjectById($Id))) {
+            $IsActive = !$tblSubject->getIsActive();
+            if ((Subject::useService()->updateSubjectActive($tblSubject, $IsActive))) {
+
+                return $Stage . new SuccessMessage('Das Fach wurde ' . ($IsActive ? 'aktiviert.' : 'deaktiviert.'), new SuccessIcon())
+                    . new Redirect($Route, Redirect::TIMEOUT_SUCCESS);
+            } else {
+
+                return $Stage . new Danger('Das Fach konnte nicht ' . ($IsActive ? 'aktiviert' : 'deaktiviert') . ' werden.', new Ban())
+                    . new Redirect($Route, Redirect::TIMEOUT_ERROR);
+            }
+        } else {
+            return $Stage . new Danger('Das Fach nicht gefunden.', new Ban())
+                . new Redirect($Route, Redirect::TIMEOUT_ERROR);
+        }
     }
 }

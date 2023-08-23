@@ -5,6 +5,7 @@ namespace SPHERE\Application\Education\Graduation\Grade;
 use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Graduation\Grade\Service\Data;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblGradeType;
+use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
@@ -77,6 +78,16 @@ abstract class ServiceGradeType extends AbstractService
         }
 
         return false;
+    }
+
+    /**
+     * @param TblSubject $tblSubject
+     *
+     * @return bool
+     */
+    public function getIsSubjectUsedInGradeBook(TblSubject $tblSubject): bool
+    {
+        return (new Data($this->getBinding()))->getIsSubjectUsedInGradeBook($tblSubject);
     }
 
     /**

@@ -27,6 +27,7 @@ use SPHERE\System\Database\Fitting\Element;
 class TblTest extends Element
 {
     const ATTR_TBL_GRADE_TYPE = 'tblGraduationGradeType';
+    const ATTR_SERVICE_TBL_SUBJECT = 'serviceTblSubject';
 
     /**
      * @Column(type="bigint")

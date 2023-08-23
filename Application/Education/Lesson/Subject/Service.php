@@ -1,6 +1,8 @@
 <?php
 namespace SPHERE\Application\Education\Lesson\Subject;
 
+use SPHERE\Application\Education\ClassRegister\Digital\Digital;
+use SPHERE\Application\Education\Graduation\Grade\Grade;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Subject\Service\Data;
@@ -50,10 +52,9 @@ class Service extends AbstractService
     /**
      * @return bool|TblSubject[]
      */
-    public function getSubjectAll()
+    public function getSubjectAll(bool $withInActive = false)
     {
-
-        return (new Data($this->getBinding()))->getSubjectAll();
+        return (new Data($this->getBinding()))->getSubjectAll($withInActive);
     }
 
     /**
@@ -1155,5 +1156,36 @@ class Service extends AbstractService
         }
 
         return $tblSubject;
+    }
+
+    /**
+     * @param TblSubject $tblSubject
+     * @param bool $isActive
+     *
+     * @return bool
+     */
+    public function updateSubjectActive(TblSubject $tblSubject, bool $isActive): bool
+    {
+        return (new Data($this->getBinding()))->updateSubjectActive($tblSubject, $isActive);
+    }
+
+    /**
+     * @param TblSubject $tblSubject
+     *
+     * @return bool
+     */
+    public function getIsSubjectUsed(TblSubject $tblSubject): bool
+    {
+        // Notenbuch
+        if (Grade::useService()->getIsSubjectUsedInGradeBook($tblSubject)) {
+            return true;
+        }
+
+        // Klassenbuch
+        if (Digital::useService()->getIsSubjectUsedInDigital($tblSubject)) {
+            return true;
+        }
+
+        return false;
     }
 }
