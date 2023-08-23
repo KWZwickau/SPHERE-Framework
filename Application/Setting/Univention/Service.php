@@ -333,7 +333,7 @@ class Service extends AbstractService
             foreach($tblTeacherLectureshipList as $tblTeacherLectureship){
                 $tblPersonTeacher = $tblTeacherLectureship->getServiceTblPerson();
                 $tblDivisionCourse = $tblTeacherLectureship->getTblDivisionCourse();
-                if($tblDivisionCourse->getTypeIdentifier() == TblDivisionCourseType::TYPE_DIVISION){
+                if($tblPersonTeacher && $tblDivisionCourse && $tblDivisionCourse->getTypeIdentifier() == TblDivisionCourseType::TYPE_DIVISION){
                     $ClassName = $this->getCorrectionClassNameByDivision($tblDivisionCourse);
                     $TeacherClasses[$tblPersonTeacher->getId()][$Acronym][$tblDivisionCourse->getId()] = $ClassName;
                 }
