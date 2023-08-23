@@ -211,8 +211,20 @@ abstract class ServiceStudentOverview extends ServiceScoreCalc
                 $countColumns[1] = 0;
                 $countColumns[2] = 0;
 
-                if ($tblDivisionCourseList) {
-                    foreach ($tblDivisionCourseList as $tblDivisionCourse) {
+                // SEKII
+                if (DivisionCourse::useService()->getIsCourseSystemByStudentEducation($tblStudentEducation)
+                    && ($tblStudentSubject = DivisionCourse::useService()->getStudentSubjectByPersonAndYearAndSubjectForCourseSystem($tblPerson, $tblYear, $tblSubject))
+                ) {
+                    $tblDivisionCourseTempList = array();
+                    if ($tblStudentSubject->getTblDivisionCourse()) {
+                        $tblDivisionCourseTempList[] = $tblStudentSubject->getTblDivisionCourse();
+                    }
+                } else {
+                    $tblDivisionCourseTempList = $tblDivisionCourseList;
+                }
+
+                if ($tblDivisionCourseTempList) {
+                    foreach ($tblDivisionCourseTempList as $tblDivisionCourse) {
                         if (($tblTestList = Grade::useService()->getTestListByDivisionCourseAndSubject($tblDivisionCourse, $tblSubject))) {
                             foreach ($tblTestList as $tblTest) {
                                 $tblTestGrade = Grade::useService()->getTestGradeByTestAndPerson($tblTest, $tblPerson);
