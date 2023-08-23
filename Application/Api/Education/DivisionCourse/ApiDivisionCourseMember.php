@@ -535,7 +535,7 @@ class ApiDivisionCourseMember extends Extension implements IApiInterface
             return new Danger('Mitglieds-Typ nicht gefunden', new Exclamation());
         }
 
-        $button = (new Standard('Ja', '/Education/Lesson/Division/Sort/Alphabetically', new Ok(), array('DivisionCourseId' => $DivisionCourseId)))
+        $button = (new Standard('Ja', self::getEndpoint(), new Ok(), array('DivisionCourseId' => $DivisionCourseId)))
             ->ajaxPipelineOnClick(self::pipelineSaveSortMemberModal($DivisionCourseId, $MemberTypeIdentifier, $sortType));
 
         if ($MemberTypeIdentifier == TblDivisionCourseMemberType::TYPE_DIVISION_TEACHER) {
