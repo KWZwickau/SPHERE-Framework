@@ -116,7 +116,7 @@ abstract class FrontendGradeBookSelect extends FrontendBasic
                         continue;
                     }
 
-                    $this->setDivisionCourseSelectDataList($dataList, $tblDivisionCourse, $tblYear, null, $Filter);
+                    $this->setDivisionCourseSelectDataList($dataList, $tblDivisionCourse, $tblYear, null, null, $Filter);
                 }
             }
 
@@ -173,16 +173,17 @@ abstract class FrontendGradeBookSelect extends FrontendBasic
         if (($tblPersonLogin = Account::useService()->getPersonByLogin())
             && ($tblTeacherLectureshipList = DivisionCourse::useService()->getTeacherLectureshipListBy($tblYear, $tblPersonLogin))
         ) {
+            $divisionCourseSubjectList = array();
             $dataList = array();
             // Lehraufträge
             foreach ($tblTeacherLectureshipList as $tblTeacherLectureship) {
-                $this->setTeacherLectureshipSelectData($dataList, $tblTeacherLectureship);
+                $this->setTeacherLectureshipSelectData($dataList, $tblTeacherLectureship, $divisionCourseSubjectList);
             }
 
             // Klassenlehrer aus den Lehraufträgen der Lehrer
             if (($tblDivisionCourseList = DivisionCourse::useService()->getDivisionCourseListByDivisionTeacher($tblPersonLogin, $tblYear, true))) {
                 foreach ($tblDivisionCourseList as $tblDivisionCourse) {
-                    $this->setDivisionCourseSelectDataList($dataList, $tblDivisionCourse, $tblYear, $tblPersonLogin);
+                    $this->setDivisionCourseSelectDataList($dataList, $tblDivisionCourse, $tblYear, $tblPersonLogin, $divisionCourseSubjectList);
                 }
             }
 
@@ -199,24 +200,31 @@ abstract class FrontendGradeBookSelect extends FrontendBasic
     /**
      * @param array $dataList
      * @param TblTeacherLectureship $tblTeacherLectureship
+     * @param $divisionCourseSubjectList
      * @param null $Filter
      */
-    private function setTeacherLectureshipSelectData(array &$dataList, TblTeacherLectureship $tblTeacherLectureship, $Filter = null)
+    private function setTeacherLectureshipSelectData(array &$dataList, TblTeacherLectureship $tblTeacherLectureship, &$divisionCourseSubjectList, $Filter = null)
     {
         if (($tblDivisionCourse = $tblTeacherLectureship->getTblDivisionCourse())
             && ($tblSubject = $tblTeacherLectureship->getServiceTblSubject())
         ) {
-            $key = $tblDivisionCourse->getId() . '_' . $tblSubject->getId();
-            if (!isset($dataList[$key])) {
-                $dataList[$key] = array(
-                    'Year' => $tblTeacherLectureship->getYearName(),
-                    'DivisionCourse' => $tblTeacherLectureship->getCourseName(),
-                    'CourseType' => $tblDivisionCourse->getTypeName(),
-                    'Subject' => $tblTeacherLectureship->getSubjectName(),
-                    'SubjectTeachers' => $tblTeacherLectureship->getSubjectTeachers(),
-                    'Option' => (new Standard("", ApiGradeBook::getEndpoint(), new Check(), array(), "Auswählen"))
-                        ->ajaxPipelineOnClick(ApiGradeBook::pipelineLoadViewGradeBookContent($tblDivisionCourse->getId(), $tblSubject->getId(), $Filter))
-                );
+            // prüfen, ob ein Schüler überhaupt das Fach mit Benotung hat nicht bei Schulleitung aus Performance gründen
+            if (is_array($divisionCourseSubjectList) && !isset($divisionCourseSubjectList[$tblDivisionCourse->getId()])) {
+                $divisionCourseSubjectList[$tblDivisionCourse->getId()] = DivisionCourse::useService()->getSubjectListByDivisionCourse($tblDivisionCourse);
+            }
+            if ($divisionCourseSubjectList == null || isset($divisionCourseSubjectList[$tblDivisionCourse->getId()][$tblSubject->getId()])) {
+                $key = $tblDivisionCourse->getId() . '_' . $tblSubject->getId();
+                if (!isset($dataList[$key])) {
+                    $dataList[$key] = array(
+                        'Year' => $tblTeacherLectureship->getYearName(),
+                        'DivisionCourse' => $tblTeacherLectureship->getCourseName(),
+                        'CourseType' => $tblDivisionCourse->getTypeName(),
+                        'Subject' => $tblTeacherLectureship->getSubjectName(),
+                        'SubjectTeachers' => $tblTeacherLectureship->getSubjectTeachers(),
+                        'Option' => (new Standard("", ApiGradeBook::getEndpoint(), new Check(), array(), "Auswählen"))
+                            ->ajaxPipelineOnClick(ApiGradeBook::pipelineLoadViewGradeBookContent($tblDivisionCourse->getId(), $tblSubject->getId(), $Filter))
+                    );
+                }
             }
         }
     }
@@ -252,9 +260,14 @@ abstract class FrontendGradeBookSelect extends FrontendBasic
      *
      * @return void
      */
-    private function setDivisionCourseSelectDataList(array &$dataList, TblDivisionCourse $tblDivisionCourse, TblYear $tblYear, ?TblPerson $tblPerson = null,
-        $Filter = null)
-    {
+    private function setDivisionCourseSelectDataList(
+        array &$dataList,
+        TblDivisionCourse $tblDivisionCourse,
+        TblYear $tblYear,
+        ?TblPerson $tblPerson = null,
+        $divisionCourseSubjectList = null,
+        $Filter = null
+    ) {
         // Lerngruppe oder SekII-Kurs
         if (($tblSubject = $tblDivisionCourse->getServiceTblSubject())) {
             $this->setDivisionCourseSelectData($dataList, $tblDivisionCourse, $tblSubject, $Filter);
@@ -268,7 +281,7 @@ abstract class FrontendGradeBookSelect extends FrontendBasic
                     continue;
                 }
 
-                $this->setTeacherLectureshipSelectData($dataList, $tblTeacherLectureship, $Filter);
+                $this->setTeacherLectureshipSelectData($dataList, $tblTeacherLectureship, $divisionCourseSubjectList, $Filter);
             }
         }
     }
