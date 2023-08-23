@@ -115,7 +115,7 @@ class Task implements IModuleInterface
 
                 foreach ($tableHeader as $SubjectKey => $Value) {
                     if (strpos($SubjectKey, 'Subject') !== false) {
-                        if (isset($tableRow[$SubjectKey . 'Grade'])) {
+                        if (isset($tableRow[$SubjectKey . 'Grade']) && $tableRow[$SubjectKey . 'Grade'] != 'f') {
                             $export->setValue($export->getCell($Column, $Row), $tableRow[$SubjectKey . 'Grade']);
                         }
                         // Trennstrich pro Fach
