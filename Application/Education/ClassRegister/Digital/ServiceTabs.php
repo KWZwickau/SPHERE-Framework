@@ -141,8 +141,11 @@ abstract class ServiceTabs extends ServiceCourseContent
                 $date = $date->sub(new DateInterval('P1Y'));
                 if (($tblLastYearList = Term::useService()->getYearAllByDate($date))) {
                     foreach ($tblLastYearList as $tblLastYear) {
-                        if (!isset($tblYearList[$tblLastYear->getId()])) {
-                            $tblYearList[$tblLastYear->getId()] = $tblLastYear;
+                        if ($tblYear && $tblYear->getId() == $tblLastYear->getId()) {
+                            $buttonList[] = (new Standard(new Info(new Bold($tblLastYear->getDisplayName())), $Route, new Edit(), array('YearId' => $tblLastYear->getId())));
+                            $yearFilterList[$tblLastYear->getId()] = $tblLastYear;
+                        } else {
+                            $buttonList[] = (new Standard($tblLastYear->getDisplayName(), $Route, null, array('YearId' => $tblLastYear->getId())));
                         }
                     }
                 }
