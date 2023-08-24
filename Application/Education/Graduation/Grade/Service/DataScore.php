@@ -621,6 +621,41 @@ abstract class DataScore extends DataMinimumGradeCount
 
     /**
      * @param TblScoreCondition $tblScoreCondition
+     *
+     * @return bool
+     */
+    public function destroyScoreCondition(TblScoreCondition $tblScoreCondition): bool
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblScoreCondition $Entity */
+        $Entity = $Manager->getEntityById('TblScoreCondition', $tblScoreCondition->getId());
+        if (null !== $Entity) {
+            if (($list = $this->getScoreConditionGradeTypeListByCondition($tblScoreCondition))) {
+                foreach ($list as $item) {
+                    $this->removeScoreConditionGradeTypeList($item);
+                }
+            }
+            if (($list = $this->getScoreConditionGroupListByCondition($tblScoreCondition))) {
+                foreach ($list as $item) {
+                    $this->removeScoreConditionGroupList($item);
+                }
+            }
+            if (($list = $this->getScoreConditionGroupRequirementAllByCondition($tblScoreCondition))) {
+                foreach ($list as $item) {
+                    $this->removeScoreConditionGroupRequirement($item);
+                }
+            }
+
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
+            $Manager->killEntity($Entity);
+
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblScoreCondition $tblScoreCondition
      * @param TblScoreGroup $tblScoreGroup
      *
      * @return TblScoreConditionGroupList

@@ -16,6 +16,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
+use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Equalizer;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
@@ -23,9 +24,11 @@ use SPHERE\Common\Frontend\Icon\Repository\Listing;
 use SPHERE\Common\Frontend\Icon\Repository\ListingTable;
 use SPHERE\Common\Frontend\Icon\Repository\Minus;
 use SPHERE\Common\Frontend\Icon\Repository\MinusSign;
+use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
 use SPHERE\Common\Frontend\Icon\Repository\Quantity;
+use SPHERE\Common\Frontend\Icon\Repository\Question;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
@@ -678,5 +681,61 @@ abstract class FrontendScoreCondition extends FrontendMinimumGradeCount
         }
 
         return $Stage;
+    }
+
+    /**
+     * @param null $Id
+     * @param bool|false $Confirm
+     *
+     * @return Stage|string
+     */
+    public function frontendDestroyScoreCondition($Id = null, bool $Confirm = false)
+    {
+        $Stage = new Stage('Berechnungsvariante', 'Löschen');
+        $Stage->addButton(
+            new Standard('Zur&uuml;ck', '/Education/Graduation/Grade/ScoreRule/Condition', new ChevronLeft())
+        );
+
+        if (($tblScoreCondition = Grade::useService()->getScoreConditionById($Id))) {
+            if (!$Confirm) {
+                $Stage->setContent(
+                    new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(array(
+                        new Panel('Berechnungsvariante',
+                            $tblScoreCondition->getName(),
+                            Panel::PANEL_TYPE_INFO),
+                        new Panel(new Question() . ' Diese Berechnungsvariante wirklich löschen?', array(
+                            $tblScoreCondition->getName()
+                        ),
+                            Panel::PANEL_TYPE_DANGER,
+                            new Standard(
+                                'Ja', '/Education/Graduation/Grade/ScoreRule/Condition/Destroy', new Ok(),
+                                array('Id' => $Id, 'Confirm' => true)
+                            )
+                            . new Standard(
+                                'Nein', '/Education/Graduation/Grade/ScoreRule/Condition', new Disable())
+                        )
+                    )))))
+                );
+            } else {
+                $Stage->setContent(
+                    new Layout(new LayoutGroup(array(
+                        new LayoutRow(new LayoutColumn(array(
+                            (Grade::useService()->destroyScoreCondition($tblScoreCondition)
+                                ? new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success()
+                                    . ' Die Berechnungsvariante wurde gelöscht')
+                                : new Danger(new Ban() . ' Die Berechnungsvariante konnte nicht gelöscht werden')
+                            ),
+                            new Redirect('/Education/Graduation/Grade/ScoreRule/Condition', Redirect::TIMEOUT_SUCCESS)
+                        )))
+                    )))
+                );
+            }
+
+            return $Stage;
+
+        } else {
+            return $Stage . new Danger('Berechnungsvariante nicht gefunden.', new Ban())
+                . new Redirect('/Education/Graduation/Grade/ScoreRule/Condition', Redirect::TIMEOUT_ERROR);
+        }
     }
 }

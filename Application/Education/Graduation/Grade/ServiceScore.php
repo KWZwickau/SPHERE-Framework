@@ -767,6 +767,16 @@ abstract class ServiceScore extends ServiceMinimumGradeCount
 
     /**
      * @param TblScoreCondition $tblScoreCondition
+     *
+     * @return bool
+     */
+    public function destroyScoreCondition(TblScoreCondition $tblScoreCondition): bool
+    {
+        return (new Data($this->getBinding()))->destroyScoreCondition($tblScoreCondition);
+    }
+
+    /**
+     * @param TblScoreCondition $tblScoreCondition
      * @param bool $IsActive
      *
      * @return bool
