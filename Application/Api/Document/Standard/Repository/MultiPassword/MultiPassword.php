@@ -507,12 +507,12 @@ class MultiPassword extends AbstractDocument
                         , '4%'
                     )
                     ->addElementColumn((new Element())
-                        ->setContent('Der Betrieb der Software erfolgt in einem zertifizierten deutschen Rechenzentrum und wird durch die dortigen Mitarbeiter,
+                        ->setContent('Der Betrieb der Software erfolgt in einem zertifizierten deutschen Rechenzentrum und wird durch die dortigen Mitarbeiter
                         sowie durch die mit der Entwicklung beauftragten Firma permanent überwacht und gewartet, um sie vor Cyberangriffen zu schützen. Da hier
                         personenbezogene vertrauliche Daten verarbeitet werden, gelten vergleichbar hohe Sicherheitsanforderungen, wie beim Onlinebanking.
                         Beispielsweise sind Änderungen an Stammdaten oder die Eintragung von Benotungen nur für Mitarbeiter der Schule möglich, die über
                         die entsprechenden Zugriffsberechtigungen verfügen und sich per Zweifaktor-Authentifizierung (Name, Passwort und Security-Token)
-                        anmelden sein müssen. Für die elektronische Notenübersicht reicht hingegen die Anmeldung mit Namen und Passwort aus.')
+                        anmelden müssen. Für die elektronische Notenübersicht reicht hingegen die Anmeldung mit Namen und Passwort aus.')
                         ->stylePaddingTop(self::BLOCK_SPACE)
                         ->styleAlignJustify()
                     )
@@ -594,7 +594,7 @@ class MultiPassword extends AbstractDocument
                     ->addElementColumn((new Element())
                         ->setContent('Die Entwicklung der Softwarelösung erfolgte in enger Abstimmung mit dem Datenschutzbeauftragten der Ev.-Luth. Landeskirche
                          Sachsens. Er hat die elektronische Notenübersicht datenschutzrechtlich überprüft und zur Nutzung freigegeben. Der Betrieb der 
-                         Softwarelösung erfolgt in einem zertifizierten deutschen Rechenzentrum und wird durch die dortigen Mitarbeiter, sowie durch die mit der
+                         Softwarelösung erfolgt in einem zertifizierten deutschen Rechenzentrum und wird durch die dortigen Mitarbeiter sowie durch die mit der
                          Entwicklung beauftragten Firma permanent überwacht und gewartet, um sie vor Cyberangriffen zu schützen. Die Kommunikation zwischen 
                          Eurem Internetbrowser und der Schulsoftware erfolgt ausschließlich über eine verschlüsselte HTTPS-Verbindung.')
                         ->stylePaddingTop(self::BLOCK_SPACE)
