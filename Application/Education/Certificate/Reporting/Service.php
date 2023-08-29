@@ -334,7 +334,8 @@ class Service extends Extension
                             }
 
                             $gradeList = array();
-                            if (($tblTask = $tblPrepareDiploma->getServiceTblAppointedDateTask())
+                            if ($tblPrepareDiploma
+                                && ($tblTask = $tblPrepareDiploma->getServiceTblAppointedDateTask())
                                 && ($tblTaskGradeList = Grade::useService()->getTaskGradeListByTaskAndPerson($tblTask, $tblPerson))
                             ) {
                                 foreach ($tblTaskGradeList as $tblTaskGrade) {
@@ -347,7 +348,7 @@ class Service extends Extension
                             }
 
                             if (isset($gradeList)) {
-                                $this->setGradesForStatistic($content, $gradeList, $tblPerson, $tblPrepareDiploma, $isMainCourse);
+                                $this->setGradesForStatistic($content, $gradeList, $tblPerson, $tblPrepareDiploma ?: null, $isMainCourse);
                             }
                         }
                     }
