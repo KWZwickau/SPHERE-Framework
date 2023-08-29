@@ -3,6 +3,7 @@
 namespace SPHERE\Application\Transfer\Education;
 
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblStudentSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
@@ -299,6 +300,10 @@ class FrontendStudentCourse extends Extension implements IFrontendInterface
             }
             if (($tblDivisionCourseListBasicCourse = DivisionCourse::useService()->getDivisionCourseListBy($tblYear, TblDivisionCourseType::TYPE_BASIC_COURSE))) {
                 $tblDivisionCourseList = array_merge($tblDivisionCourseList, $tblDivisionCourseListBasicCourse);
+            }
+            // bei leeren Select-Boxen ist dann Data['Select'] nicht gesetzt
+            if (empty($tblDivisionCourseList)) {
+                $tblDivisionCourseList[] = new TblDivisionCourse();
             }
 
             $global = $this->getGlobal();
