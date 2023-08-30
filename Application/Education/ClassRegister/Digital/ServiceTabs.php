@@ -428,7 +428,8 @@ abstract class ServiceTabs extends ServiceCourseContent
         } else {
             $teacher = $tblPerson->getLastName();
             if (strlen($teacher) > 5) {
-                $teacher = substr($teacher, 0, 5) . '.';
+                // bei normalen substr können Umlaute getrennt werden, wodurch dann z.B. die DataTable leer bleibt
+                $teacher = mb_substr($teacher, 0, 5) . '.';
             }
         }
 
