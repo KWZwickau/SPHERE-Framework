@@ -138,11 +138,18 @@ class FrontendStudentSubject extends FrontendStudent
         if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))
             && ($tblDivisionCourse->getServiceTblYear())
         ) {
+            $tblSubjectList = Subject::useService()->getSubjectAll();
+
             if ($SubjectId) {
                 $global = $this->getGlobal();
                 $global->POST['Data']['Subject'] = $SubjectId;
                 $Data['Subject'] = $SubjectId;
                 $global->savePost();
+
+                // deaktiviertes Fach hinzufügen
+                if (($tblSubject = Subject::useService()->getSubjectById($SubjectId)) && !$tblSubject->getIsActive()) {
+                    $tblSubjectList[] = $tblSubject;
+                }
             }
 
             $text = $tblDivisionCourse->getTypeName() . ' ' . new Bold($tblDivisionCourse->getName());
@@ -157,7 +164,7 @@ class FrontendStudentSubject extends FrontendStudent
                         new FormRow(array(
                             new FormColumn(new Panel(
                                 'Fach',
-                                (new SelectBox('Data[Subject]', '', array('{{ Acronym }}-{{ Name }}' => Subject::useService()->getSubjectAll())))
+                                (new SelectBox('Data[Subject]', '', array('{{ Acronym }}-{{ Name }}' => $tblSubjectList)))
                                     ->setRequired()
                                     ->ajaxPipelineOnChange(ApiStudentSubject::pipelineLoadCheckSubjectsContent($DivisionCourseId)),
                                 Panel::PANEL_TYPE_INFO

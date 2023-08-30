@@ -960,4 +960,14 @@ class Service extends ServiceTabs
     {
         return (new Data($this->getBinding()))->getFullTimeContentListByDivisionCourseAndDate($tblDivisionCourse, $date);
     }
+
+    /**
+     * @param TblSubject $tblSubject
+     *
+     * @return bool
+     */
+    public function getIsSubjectUsedInDigital(TblSubject $tblSubject): bool
+    {
+        return (new Data($this->getBinding()))->getIsSubjectUsedInDigital($tblSubject);
+    }
 }

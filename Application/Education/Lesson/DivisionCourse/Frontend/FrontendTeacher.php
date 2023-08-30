@@ -264,6 +264,8 @@ class FrontendTeacher extends FrontendSubjectTable
         $stage = new Stage('Lehrauftrag', 'Bearbeiten');
         $stage->addButton((new Standard('Zurück', '/Education/Lesson/TeacherLectureship', new ChevronLeft(), array('Filter' => $Filter))));
 
+        $tblSubjectList = Subject::useService()->getSubjectAll();
+
         $tblYearList = false;
         $tblSelectedYear = false;
         if (isset($Filter['Year'])) {
@@ -279,6 +281,11 @@ class FrontendTeacher extends FrontendSubjectTable
             $global->POST['Data']['Subject'] = $SubjectId;
             $Data['Subject'] = $SubjectId;
             $global->savePost();
+
+            // deaktiviertes Fach hinzufügen
+            if (($tblSubject = Subject::useService()->getSubjectById($SubjectId)) && !$tblSubject->getIsActive()) {
+                $tblSubjectList[] = $tblSubject;
+            }
         }
 
         if (!empty($tblYearList) && ($tblPerson = Person::useService()->getPersonById($PersonId))) {
@@ -297,7 +304,7 @@ class FrontendTeacher extends FrontendSubjectTable
                         new FormRow(array(
                             new FormColumn(new Panel(
                                 'Fach',
-                                (new SelectBox('Data[Subject]', '', array('{{ Acronym }}-{{ Name }}' => Subject::useService()->getSubjectAll())))
+                                (new SelectBox('Data[Subject]', '', array('{{ Acronym }}-{{ Name }}' => $tblSubjectList)))
                                     ->setRequired()
                                     ->ajaxPipelineOnChange(ApiTeacherLectureship::pipelineLoadCheckCoursesContent($Filter, $PersonId)),
                                 Panel::PANEL_TYPE_INFO

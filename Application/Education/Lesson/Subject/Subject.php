@@ -72,6 +72,9 @@ class Subject implements IModuleInterface
             __NAMESPACE__.'/Create/Subject', __NAMESPACE__.'\Frontend::frontendCreateSubject'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Activate/Subject', __NAMESPACE__.'\Frontend::frontendActivateSubject'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/Change/Subject', __NAMESPACE__.'\Frontend::frontendChangeSubject'
         )->setParameterDefault('Id', null)
             ->setParameterDefault('Subject', null)

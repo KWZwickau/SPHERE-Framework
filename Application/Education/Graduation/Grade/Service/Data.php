@@ -345,6 +345,28 @@ class Data extends DataTask
     }
 
     /**
+     * @param TblSubject $tblSubject
+     *
+     * @return bool
+     */
+    public function getIsSubjectUsedInGradeBook(TblSubject $tblSubject): bool
+    {
+        if ($this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblTest',
+            array(TblTest::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId()))
+        ) {
+            return true;
+        }
+
+//        if ($this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblTaskGrade',
+//            array(TblTaskGrade::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId()))
+//        ) {
+//            return true;
+//        }
+
+        return false;
+    }
+
+    /**
      * @param TblYear $tblYear
      * @param TblSubject $tblSubject
      * @param TblGradeType $tblGradeType

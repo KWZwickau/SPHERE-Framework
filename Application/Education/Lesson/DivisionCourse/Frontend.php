@@ -308,6 +308,7 @@ class Frontend extends FrontendYearChange
     public function formDivisionCourse($DivisionCourseId = null, $Filter = null, bool $setPost = false, $Data = null): Form
     {
         $Error = '';
+        $tblSubjectList = Subject::useService()->getSubjectAll();
 
         // beim Checken der Input-Felder darf der Post nicht gesetzt werden
         $tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId);
@@ -320,6 +321,11 @@ class Frontend extends FrontendYearChange
             $Global->POST['Data']['IsReporting'] = $tblDivisionCourse->getIsReporting();
 //            $Global->POST['Data']['IsUcs'] = $tblDivisionCourse->getIsUcs();
             $Global->savePost();
+
+            // deaktiviertes Fach hinzufügen
+            if ($tblDivisionCourse->getServiceTblSubject() && !$tblDivisionCourse->getServiceTblSubject()->getIsActive()) {
+                $tblSubjectList[] = $tblDivisionCourse->getServiceTblSubject();
+            }
         } elseif (!$tblDivisionCourse) {
             if ($setPost) {
                 $Global = $this->getGlobal();
@@ -377,7 +383,7 @@ class Frontend extends FrontendYearChange
             if ($tblDivisionCourse->getType()->getIsCourseSystem()) {
                 $formRows[] = new FormRow(array(
                     new FormColumn(array(
-                        (new SelectBox('Data[Subject]', 'Fach', array('{{ Acronym }}-{{ Name }}' => Subject::useService()->getSubjectAll())))
+                        (new SelectBox('Data[Subject]', 'Fach', array('{{ Acronym }}-{{ Name }}' => $tblSubjectList)))
                             ->setRequired()
                     ), 6),
                 ));

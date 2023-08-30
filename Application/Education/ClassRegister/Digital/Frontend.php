@@ -1000,6 +1000,8 @@ class Frontend extends FrontendTabs
         $isAutoTimeTable = ($tblSetting = Consumer::useService()->getSetting('Education', 'ClassRegister', 'LessonContent', 'IsAutoTimeTable'))
             && $tblSetting->getValue();
 
+        $tblSubjectList = Subject::useService()->getSubjectAll();
+
         $tblSubject = false;
         // beim Checken der Input-Felder darf der Post nicht gesetzt werden
         if ($setPost && $LessonContentId
@@ -1018,6 +1020,11 @@ class Frontend extends FrontendTabs
             $Global->POST['Data']['Room'] = $tblLessonContent->getRoom();
 
             $Global->savePost();
+
+            // deaktiviertes Fach hinzufügen
+            if ($tblSubject && !$tblSubject->getIsActive()) {
+                $tblSubjectList[] = $tblSubject;
+            }
         } elseif ($Date || $Lesson) {
             // hinzufügen mit Startwerten
             $Global = $this->getGlobal();
@@ -1070,8 +1077,6 @@ class Frontend extends FrontendTabs
         $buttonList[] = $saveButton;
 
 //        $tblTeacherList = Group::useService()->getPersonAllByGroup(Group::useService()->getGroupByMetaTable('TEACHER'));
-
-        $tblSubjectList = Subject::useService()->getSubjectAll();
 
         if (($tblSetting = Consumer::useService()->getSetting('Education', 'ClassRegister', 'LessonContent', 'StartsLessonContentWithZeroLesson'))
             && $tblSetting->getValue()

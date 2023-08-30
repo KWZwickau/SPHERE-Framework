@@ -98,6 +98,8 @@ class Setup  extends AbstractSetup
 
         $this->createColumn($table, 'serviceTblPersonTeacher', self::FIELD_TYPE_BIGINT, true);
 
+        $this->createIndex($table, array('serviceTblSubject'), false);
+
         return $table;
     }
 

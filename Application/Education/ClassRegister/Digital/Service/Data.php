@@ -858,4 +858,20 @@ class Data  extends AbstractData
 
         return empty($resultList) ? false : $resultList;
     }
+
+    /**
+     * @param TblSubject $tblSubject
+     *
+     * @return bool
+     */
+    public function getIsSubjectUsedInDigital(TblSubject $tblSubject): bool
+    {
+        if ($this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblLessonContent',
+            array(TblLessonContent::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId()))
+        ) {
+            return true;
+        }
+
+        return false;
+    }
 }

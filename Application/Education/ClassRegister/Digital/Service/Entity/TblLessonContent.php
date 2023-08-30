@@ -25,6 +25,7 @@ use SPHERE\System\Database\Fitting\Element;
 class TblLessonContent extends Element
 {
     const ATTR_SERVICE_TBL_DIVISION_COURSE = 'serviceTblDivision';
+    const ATTR_SERVICE_TBL_SUBJECT = 'serviceTblSubject';
     const ATTR_DATE = 'Date';
     const ATTR_LESSON = 'Lesson';
 
