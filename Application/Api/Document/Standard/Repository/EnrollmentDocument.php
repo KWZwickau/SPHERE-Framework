@@ -8,8 +8,8 @@ use SPHERE\Application\Document\Generator\Repository\Frame;
 use SPHERE\Application\Document\Generator\Repository\Page;
 use SPHERE\Application\Document\Generator\Repository\Section;
 use SPHERE\Application\Document\Generator\Repository\Slice;
-use SPHERE\Application\People\Meta\Common\Common;
-use SPHERE\Application\People\Person\Person;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 
 /**
  * Class EnrollmentDocument
@@ -43,37 +43,37 @@ class EnrollmentDocument extends AbstractDocument
     private function setFieldValue($DataPost)
     {
 
-        //getPerson
-        $this->FieldValue['PersonId'] = $PersonId = (isset($DataPost['PersonId']) && $DataPost['PersonId'] != '' ? $DataPost['PersonId'] : false);
-        $this->FieldValue['Gender'] = false;
-        if ($PersonId) {
-            if (($tblPerson = Person::useService()->getPersonById($PersonId))) {
-                //get Gender
-                if (($tblCommon = Common::useService()->getCommonByPerson($tblPerson))) {
-                    if (($tblCommonBirthDates = $tblCommon->getTblCommonBirthDates())) {
-                        if (($tblCommonGender = $tblCommonBirthDates->getTblCommonGender())) {
-                            $this->FieldValue['Gender'] = $tblCommonGender->getName();
-                        }
-                    }
-                }
-            }
+        $isEKBO = false;
+        if(Consumer::useService()->getConsumerBySessionIsConsumerType(TblConsumer::TYPE_BERLIN)){
+            // Berlin
+            $isEKBO = true;
         }
-
+//        //getPerson
+//        $this->FieldValue['PersonId'] = $PersonId = (isset($DataPost['PersonId']) && $DataPost['PersonId'] != '' ? $DataPost['PersonId'] : false);
+//        $this->FieldValue['SchoolId'] = $CompanyId = (isset($DataPost['SchoolId']) && $DataPost['SchoolId'] != '' ? $DataPost['SchoolId'] : false);
         // school
         $this->FieldValue['School'] = (isset($DataPost['School']) && $DataPost['School'] != '' ? $DataPost['School'] : '&nbsp;');
         $this->FieldValue['SchoolExtended'] = (isset($DataPost['SchoolExtended']) && $DataPost['SchoolExtended'] != '' ? $DataPost['SchoolExtended'] : '&nbsp;');
         $this->FieldValue['SchoolAddressDistrict'] = (isset($DataPost['SchoolAddressDistrict']) && $DataPost['SchoolAddressDistrict'] != '' ? $DataPost['SchoolAddressDistrict'] : '&nbsp;');
         $this->FieldValue['SchoolAddressStreet'] = (isset($DataPost['SchoolAddressStreet']) && $DataPost['SchoolAddressStreet'] != '' ? $DataPost['SchoolAddressStreet'] : '&nbsp;');
         $this->FieldValue['SchoolAddressCity'] = (isset($DataPost['SchoolAddressCity']) && $DataPost['SchoolAddressCity'] != '' ? $DataPost['SchoolAddressCity'] : '&nbsp;');
-
+        // school EKBO extended
+        if($isEKBO){
+            $this->FieldValue['CompanySchoolLeader'] = (isset($DataPost['CompanySchoolLeader']) && $DataPost['CompanySchoolLeader'] != '' ? $DataPost['CompanySchoolLeader'] : '&nbsp;');
+            $this->FieldValue['CompanySecretary'] = (isset($DataPost['CompanySecretary']) && $DataPost['CompanySecretary'] != '' ? $DataPost['CompanySecretary'] : '&nbsp;');
+            $this->FieldValue['CompanyPhone'] = (isset($DataPost['CompanyPhone']) && $DataPost['CompanyPhone'] != '' ? $DataPost['CompanyPhone'] : '&nbsp;');
+            $this->FieldValue['CompanyFax'] = (isset($DataPost['CompanyFax']) && $DataPost['CompanyFax'] != '' ? $DataPost['CompanyFax'] : '&nbsp;');
+            $this->FieldValue['CompanyMail'] = (isset($DataPost['CompanyMail']) && $DataPost['CompanyMail'] != '' ? $DataPost['CompanyMail'] : '&nbsp;');
+            $this->FieldValue['CompanyWeb'] = (isset($DataPost['CompanyWeb']) && $DataPost['CompanyWeb'] != '' ? $DataPost['CompanyWeb'] : '&nbsp;');
+        }
         // student
         $this->FieldValue['FirstLastName'] = (isset($DataPost['FirstLastName']) && $DataPost['FirstLastName'] != '' ? $DataPost['FirstLastName'] : '&nbsp;');
+        $this->FieldValue['Gender'] = (isset($DataPost['Gender']) && $DataPost['Gender'] != '' ? $DataPost['Gender'] : '&nbsp;');
         $this->FieldValue['Birthday'] = (isset($DataPost['Birthday']) && $DataPost['Birthday'] != '' ? $DataPost['Birthday'] : '&nbsp;');
         $this->FieldValue['AddressDistrict'] = (isset($DataPost['AddressDistrict']) && $DataPost['AddressDistrict'] != '' ? $DataPost['AddressDistrict'] : '&nbsp;');
         $this->FieldValue['AddressStreet'] = (isset($DataPost['AddressStreet']) && $DataPost['AddressStreet'] != '' ? $DataPost['AddressStreet'] : '&nbsp;');
         $this->FieldValue['AddressPLZ'] = (isset($DataPost['AddressPLZ']) && $DataPost['AddressPLZ'] != '' ? $DataPost['AddressPLZ'] : '&nbsp;');
         $this->FieldValue['AddressCity'] = (isset($DataPost['AddressCity']) && $DataPost['AddressCity'] != '' ? $DataPost['AddressCity'] : '&nbsp;');
-        $this->FieldValue['Birthday'] = (isset($DataPost['Birthday']) && $DataPost['Birthday'] != '' ? $DataPost['Birthday'] : '&nbsp;');
         $this->FieldValue['Birthplace'] = (isset($DataPost['Birthplace']) && $DataPost['Birthplace'] != '' ? $DataPost['Birthplace'] : '&nbsp;');
 
         // set position for address
@@ -121,6 +121,200 @@ class EnrollmentDocument extends AbstractDocument
      * @return Frame
      */
     public function buildDocument($pageList = array(), $Part = '0')
+    {
+
+        if(Consumer::useService()->getConsumerBySessionIsConsumerType(TblConsumer::TYPE_BERLIN)){
+            // Berlin
+            return $this->getDefaultEKBOPage();
+        } else {
+            // Sachsen
+            return $this->getDefaultPage();
+        }
+    }
+
+    private function getDefaultEKBOPage()
+    {
+        return (new Frame())->addDocument((new Document())
+            ->addPage((new Page())
+                ->addSlice((new Slice())
+                    ->addSection((new Section())
+                        ->addElementColumn((new Element())
+                            ->setContent('&nbsp;'),'7%'
+                        )
+                        ->addSliceColumn((new Slice())
+                            ->addSection((new Section())
+                                ->addSliceColumn((new Slice())
+                                    ->addElement((new Element())
+                                        ->setContent($this->FieldValue['School']
+                                            .($this->FieldValue['SchoolExtended'] != '&nbsp;' ? ' '.$this->FieldValue['SchoolExtended'] : '')
+                                            .($this->FieldValue['SchoolAddressDistrict'] != '&nbsp;' ? ' '.$this->FieldValue['SchoolAddressDistrict'] : '')
+                                            .($this->FieldValue['SchoolAddressStreet'] != '&nbsp;' ? ' | '.$this->FieldValue['SchoolAddressStreet'] : '')
+                                            .($this->FieldValue['SchoolAddressCity'] != '&nbsp;' ? ' | '.$this->FieldValue['SchoolAddressCity'] : ''))
+                                        ->styleMarginTop('127px')
+                                        ->styleHeight('310px')
+                                        ->styleTextSize('11px')
+                                    )
+                                , '70%')
+                                ->addSliceColumn((new Slice())
+                                    ->addSection((new Section())
+                                        ->addElementColumn($this->getPictureEnrollmentDocument()
+//                                            ->styleAlignRight()
+                                            ->styleHeight('127px')
+                                        )
+                                    )
+                                    ->addElement((new Element())
+                                        ->setContent($this->FieldValue['School'])
+                                        ->styleTextSize('11px')
+                                        ->styleTextBold()
+                                    )
+                                    ->addElement((new Element())
+                                        ->setContent($this->FieldValue['SchoolAddressStreet'])
+                                        ->styleTextSize('11px')
+                                        ->stylePaddingTop('8px')
+                                    )
+                                    ->addElement((new Element())
+                                        ->setContent($this->FieldValue['SchoolAddressCity'])
+                                        ->styleTextSize('11px')
+                                    )
+                                    ->addElement((new Element())
+                                        ->setContent('Schulleiter')
+                                        ->styleTextSize('11px')
+                                        ->stylePaddingTop('8px')
+                                        ->styleTextBold()
+                                    )
+                                    ->addElement((new Element())
+                                        ->setContent($this->FieldValue['CompanySchoolLeader'])
+                                        ->styleTextSize('11px')
+                                    )
+                                    ->addElement((new Element())
+                                        ->setContent('Sekretariat')
+                                        ->styleTextSize('11px')
+                                        ->stylePaddingTop('8px')
+                                        ->styleTextBold()
+                                    )
+                                    ->addElement((new Element())
+                                        ->setContent($this->FieldValue['CompanySecretary'])
+                                        ->styleTextSize('11px')
+                                    )
+                                    ->addElement((new Element())
+                                        ->setContent('Telefon &nbsp;&nbsp;&nbsp;'.$this->FieldValue['CompanyPhone'])
+                                        ->styleTextSize('11px')
+                                        ->stylePaddingTop('8px')
+                                    )
+                                    ->addElement((new Element())
+                                        ->setContent('Fax &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'.$this->FieldValue['CompanyFax'])
+                                        ->styleTextSize('11px')
+                                    )
+                                    ->addElement((new Element())
+                                        ->setContent($this->FieldValue['CompanyMail'])
+                                        ->styleTextSize('11px')
+                                        ->stylePaddingTop('8px')
+                                    )
+                                    ->addElement((new Element())
+                                        ->setContent($this->FieldValue['CompanyWeb'])
+                                        ->styleTextSize('11px')
+                                    )
+                                , '30%')
+                            )
+
+                            ->addSection((new Section())
+                                ->addElementColumn((new Element())
+                                    ->setContent('Schulbescheinigung')
+                                    ->styleTextSize('18px')
+                                    ->styleTextBold()
+                                )
+                            )
+                            ->addElement((new Element())
+                                ->setContent('
+                                    {% if '.$this->FieldValue['Female'].' == "true" %}
+                                        Die Schülerin
+                                    {% else %}
+                                        {% if '.$this->FieldValue['Male'].' == "true" %}
+                                            Der Schüler
+                                        {% else %}
+                                            Der Schüler/die Schülerin
+                                        {% endif %}
+                                    {% endif %}')
+                                ->stylePaddingTop('78px')
+                                ->styleTextSize('17px')
+                            )
+                            ->addElement((new Element())
+                                ->setContent($this->FieldValue['FirstLastName'])
+                                ->stylePaddingTop('50px')
+                                ->styleTextSize('17px')
+                                ->styleTextBold()
+                            )
+                            ->addElement((new Element())
+                                ->setContent('geboren am '.$this->FieldValue['Birthday'].' besucht zur Zeit die Klasse '.$this->FieldValue['Division'].' und
+                                wird voraussichtlich')
+                                ->stylePaddingTop('47px')
+                                ->styleTextSize('17px')
+                            )
+                            ->addElement((new Element())
+                                ->setContent('noch bis zum '.$this->FieldValue['LeaveDate'].' diese Schule besuchen')
+                                ->stylePaddingTop('12px')
+                                ->styleTextSize('19px')
+                            )
+                        )
+//                        ->addElementColumn((new Element())
+//                            ->setContent('&nbsp;'),'3%'
+//                        )
+                    )
+                )
+                ->addSlice((new Slice())
+                    ->addElement((new Element())
+                        ->setContent($this->FieldValue['SchoolAddressCity'].', den '.$this->FieldValue['Date'])
+                        ->stylePaddingTop('92px')
+                        ->styleAlignCenter()
+                        ->styleTextSize('12px')
+                    )
+                    ->addElement((new Element())
+                        ->setContent('Schulleiter')
+                        ->stylePaddingTop('67px')
+                        ->styleAlignCenter()
+                        ->styleTextSize('12px')
+                    )
+                )
+                // save if Slice is too long for Page
+                ->addSlice((new Slice())
+                    ->addElement((new Element())
+                        ->setContent('&nbsp;')
+                        ->stylePaddingTop('60px')
+                    )
+                    ->addSection((new Section())
+                        ->addElementColumn((new Element())
+                            ->setContent('&nbsp;')
+                        , '7%')
+                        ->addElementColumn((new Element())
+                            ->setContent('
+                                Vorsitzender des Kuratoriums:<br/>
+                                Jost Arnsperger<br/>
+                                Vorstand: Frank Olie (Vorsitzender), Chstina Lier')
+                            ->styleTextSize('9px')
+                            ->styleHeight('10px')
+                            , '31%')
+                        ->addElementColumn((new Element())
+                            ->setContent('
+                                Bankverbindung:<br/>
+                                IBAN: DE26 5206 0410 1503 9073 25<br/>
+                                BIC: GENODE1EK1')
+                            ->styleTextSize('9px')
+                            ->styleHeight('10px')
+                            , '31%')
+                        ->addElementColumn((new Element())
+                            ->setContent('
+                                Eine Stiftung der Evangelischen Kirche<br/>
+                                Berlin-Brandenburg-schlesische Oberlausitz')
+                            ->styleTextSize('9px')
+                            ->styleHeight('10px')
+                            , '31%')
+                    )
+                )
+            )
+        );
+    }
+
+    private function getDefaultPage()
     {
         return (new Frame())->addDocument((new Document())
             ->addPage((new Page())

@@ -378,6 +378,22 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblCompany $tblCompany
+     *
+     * @return TblToCompany[]|false
+     */
+    public function getRelationshipToCompanyByCompany(TblCompany $tblCompany)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblToCompany[] $EntityList */
+        $EntityList = $this->getCachedEntityListBy(__METHOD__, $Manager, 'TblToCompany', array(
+            TblToCompany::SERVICE_TBL_COMPANY => $tblCompany->getId()
+        ));
+        return $EntityList;
+    }
+
+    /**
      * @param TblPerson $tblPerson
      * @param TblType|null $tblType
      * @param bool $isForced
