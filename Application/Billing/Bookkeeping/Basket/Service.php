@@ -23,7 +23,7 @@ use SPHERE\Application\Billing\Inventory\Setting\Service\Entity\TblSetting;
 use SPHERE\Application\Billing\Inventory\Setting\Setting;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
-use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseMemberType;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
@@ -636,8 +636,20 @@ class Service extends AbstractService
         $resultPersonList = array();
         if(!empty($tblPersonList)){
             foreach($tblPersonList as $tblPerson){
-                $tblDivisionCourseMemberType = DivisionCourse::useService()->getDivisionCourseMemberTypeByIdentifier(TblDivisionCourseMemberType::TYPE_STUDENT);
-                if(DivisionCourse::useService()->getDivisionCourseMemberByPerson($tblDivisionCourse, $tblDivisionCourseMemberType, $tblPerson)){
+                $CompareId = '';
+                if(($tblYear = $tblDivisionCourse->getServiceTblYear())
+                && ($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))){
+                    if($tblDivisionCourse->getTypeIdentifier() == TblDivisionCourseType::TYPE_DIVISION){
+                        if(($tblDivisionCourseD =  $tblStudentEducation->getTblDivision())){
+                            $CompareId = $tblDivisionCourseD->getId();
+                        }
+                    }elseif($tblDivisionCourse->getTypeIdentifier() == TblDivisionCourseType::TYPE_CORE_GROUP){
+                        if(($tblDivisionCourseC = $tblStudentEducation->getTblCoreGroup())){
+                            $CompareId = $tblDivisionCourseC->getId();
+                        }
+                    }
+                }
+                if($tblDivisionCourse->getId() == $CompareId){
                     $resultPersonList[] = $tblPerson;
                 }
             }

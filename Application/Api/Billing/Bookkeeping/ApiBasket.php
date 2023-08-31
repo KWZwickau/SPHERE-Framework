@@ -1057,12 +1057,13 @@ class ApiBasket extends Extension implements IApiInterface
                 if(($tblDivisionCourseTempList = DivisionCourse::useService()->getDivisionCourseListBy($tblYear, 'Stammgruppe'))){
                     $tblDivisionCourseList = array_merge($tblDivisionCourseList, $tblDivisionCourseTempList);
                 }
-                if(($tblDivisionCourseTempList = DivisionCourse::useService()->getDivisionCourseListBy($tblYear, 'BASIC_COURSE'))){
-                    $tblDivisionCourseList = array_merge($tblDivisionCourseList, $tblDivisionCourseTempList);
-                }
-                if(($tblDivisionCourseTempList = DivisionCourse::useService()->getDivisionCourseListBy($tblYear, 'ADVANCED_COURSE'))){
-                    $tblDivisionCourseList = array_merge($tblDivisionCourseList, $tblDivisionCourseTempList);
-                }
+                // Filterung dazu würde ganz anders funktionieren, erstmal deaktiviert.
+//                if(($tblDivisionCourseTempList = DivisionCourse::useService()->getDivisionCourseListBy($tblYear, 'BASIC_COURSE'))){
+//                    $tblDivisionCourseList = array_merge($tblDivisionCourseList, $tblDivisionCourseTempList);
+//                }
+//                if(($tblDivisionCourseTempList = DivisionCourse::useService()->getDivisionCourseListBy($tblYear, 'ADVANCED_COURSE'))){
+//                    $tblDivisionCourseList = array_merge($tblDivisionCourseList, $tblDivisionCourseTempList);
+//                }
             }
         }
         return new SelectBox('Basket[DivisionCourse]', 'Klasse / Stammgruppe / Kurs', array('{{ DisplayName }}' => $tblDivisionCourseList));
