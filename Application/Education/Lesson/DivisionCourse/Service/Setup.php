@@ -4,6 +4,8 @@ namespace SPHERE\Application\Education\Lesson\DivisionCourse\Service;
 
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblStudentSubject;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblTeacherLectureship;
 use SPHERE\System\Database\Binding\AbstractSetup;
 
 class Setup extends AbstractSetup
@@ -83,6 +85,10 @@ class Setup extends AbstractSetup
 
         $this->createForeignKey($table, $tblType);
 
+        $this->createIndex($table, array('serviceTblYear'), false);
+        $this->createIndex($table, array('serviceTblYear', 'tbLessonDivisionCourseType'), false);
+        $this->createIndex($table, array('serviceTblYear', 'Name'), false);
+
         return $table;
     }
 
@@ -117,6 +123,8 @@ class Setup extends AbstractSetup
 
         $this->createForeignKey($table, $tblDivisionCourse);
         $this->createForeignKey($table, $tblMemberType);
+
+        $this->createIndex($table, array('tblLessonDivisionCourse', 'tblLessonDivisionCourseMemberType'), false);
     }
 
     /**
@@ -143,7 +151,8 @@ class Setup extends AbstractSetup
 
         $this->createForeignKey($table, $tblDivisionCourse);
 
-//        $this->createIndex($table, array(TblTeacherLectureship::ATTR_SERVICE_TBL_PERSON, TblTeacherLectureship::ATTR_SERVICE_TBL_YEAR));
+        $this->createIndex($table, array(TblTeacherLectureship::ATTR_SERVICE_TBL_YEAR), false);
+        $this->createIndex($table, array(TblTeacherLectureship::ATTR_SERVICE_TBL_PERSON, TblTeacherLectureship::ATTR_SERVICE_TBL_YEAR), false);
     }
 
     /**
@@ -162,6 +171,9 @@ class Setup extends AbstractSetup
         $this->createColumn($table, 'PeriodIdentifier', self::FIELD_TYPE_STRING, true);
 
         $this->createForeignKey($table, $tblDivisionCourse, true);
+
+        $this->createIndex($table, array(TblStudentSubject::ATTR_SERVICE_TBL_PERSON, TblStudentSubject::ATTR_SERVICE_TBL_YEAR), false);
+        $this->createIndex($table, array(TblStudentSubject::ATTR_SERVICE_TBL_PERSON, TblStudentSubject::ATTR_SERVICE_TBL_YEAR, TblStudentSubject::ATTR_SERVICE_TBL_SUBJECT), false);
     }
 
     /**
@@ -185,6 +197,8 @@ class Setup extends AbstractSetup
         $this->createColumn($table, 'tblCoreGroup', self::FIELD_TYPE_BIGINT, true);
         $this->createColumn($table, 'CoreGroupSortOrder', self::FIELD_TYPE_INTEGER, true);
         $this->createColumn($table, 'LeaveDate', self::FIELD_TYPE_DATETIME, true);
+
+        $this->createIndex($table, array('serviceTblPerson', 'serviceTblYear'), false);
     }
 
     /**

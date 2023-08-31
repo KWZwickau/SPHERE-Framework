@@ -28,6 +28,7 @@ class TblTest extends Element
 {
     const ATTR_TBL_GRADE_TYPE = 'tblGraduationGradeType';
     const ATTR_SERVICE_TBL_SUBJECT = 'serviceTblSubject';
+    const ATTR_SERVICE_TBL_YEAR = 'serviceTblYear';
 
     /**
      * @Column(type="bigint")
