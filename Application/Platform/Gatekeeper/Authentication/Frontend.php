@@ -8,6 +8,7 @@ use MOC\V\Core\FileSystem\FileSystem;
 use SPHERE\Application\Education\ClassRegister\Digital\Digital;
 use SPHERE\Application\Education\ClassRegister\Timetable\Timetable;
 use SPHERE\Application\Education\Graduation\Grade\Grade;
+use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\ParentStudentAccess\OnlineAbsence\OnlineAbsence;
 use SPHERE\Application\ParentStudentAccess\OnlineContactDetails\OnlineContactDetails;
 use SPHERE\Application\ParentStudentAccess\OnlineGradebook\OnlineGradebook;
@@ -110,6 +111,7 @@ class Frontend extends Extension implements IFrontendInterface
         $maintenanceMessage = '';
         $contentTeacherWelcome = false;
         $contentSecretariatWelcome = false;
+        $contentMissingTimeSpan = false;
         $IsChangePassword = false;
         $IsNavigationAssistance = false;
         $IsStudentAccount = false;
@@ -209,6 +211,9 @@ class Frontend extends Extension implements IFrontendInterface
         if (Access::useService()->hasAuthorization('/People/ContactDetails')) {
             $contentSecretariatWelcome = ContactDetails::useFrontend()->getWelcome();
         }
+        if (Access::useService()->hasAuthorization('/Education/Lesson/Term/Create/Year')) {
+            $contentMissingTimeSpan = Term::useFrontend()->getWelcome();
+        }
 
         $Stage->setContent(
             new Layout(
@@ -233,6 +238,7 @@ class Frontend extends Extension implements IFrontendInterface
             )
             . ($contentTeacherWelcome ?: '')
             . ($contentSecretariatWelcome ?: '')
+            . ($contentMissingTimeSpan ?: '')
             . $this->getCleanLocalStorage()
         );
 
