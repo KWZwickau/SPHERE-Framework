@@ -626,7 +626,7 @@ abstract class ServiceMinimumGradeCount extends ServiceGradeType
                 }
             }
 
-            $tblDivisionCourseList = empty($tempDivisionList) ? false : $tempDivisionList;
+            $tblDivisionCourseList = $tempDivisionList;
         }
 
         return  $tblDivisionCourseList;
