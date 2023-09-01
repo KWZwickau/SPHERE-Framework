@@ -981,10 +981,22 @@ class FrontendStudent extends FrontendMember
                                 $item['Company'] = $isInActive ? new Strikethrough($company) : $company;
                                 $item['Level'] = $isInActive ? new Strikethrough($level) : $level;
                                 $item['Course'] = $isInActive ? new Strikethrough($course) : $course;
-                                $item['Option'] = $isInActive ? ''
-                                    : (new Link('Bearbeiten', ApiDivisionCourseStudent::getEndpoint(), new Pen()))
+
+                                if ($isInActive) {
+                                    $item['Option'] = '';
+                                } elseif ($tblStudentEducation) {
+                                    $item['Option'] = (new Link('Bearbeiten', ApiDivisionCourseStudent::getEndpoint(), new Pen()))
                                         ->ajaxPipelineOnClick(ApiDivisionCourseStudent::pipelineEditDivisionCourseStudentContent(
-                                            $tblStudentEducation->getId(), $tblPerson->getId(), $DivisionCourseId));
+                                            $tblStudentEducation->getId(), $tblPerson->getId(), $DivisionCourseId
+                                        ));
+                                } else {
+                                    $item['Option'] = '';
+//                                    $item['Option'] = (new Link('Bearbeiten', ApiDivisionCourseStudent::getEndpoint(), new Pen()))
+//                                        ->ajaxPipelineOnClick(ApiDivisionCourseStudent::pipelineOpenCreateStudentEducationModal(
+//                                            $tblPerson->getId()
+//                                        ));
+                                }
+
 
                                 $studentList[] = $item;
                             }
