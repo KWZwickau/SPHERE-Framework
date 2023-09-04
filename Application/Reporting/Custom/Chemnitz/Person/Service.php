@@ -15,7 +15,6 @@ use SPHERE\Application\Document\Storage\FilePointer;
 use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
-use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseMemberType;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType as TblTypeSchool;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Meta\Common\Common;
@@ -778,6 +777,7 @@ class Service extends Extension
                 $item['ExcelElective'] = array();
                 $item['Integration'] = '';
                 $item['French'] = '';
+                $item['tblType'] = false;
                 $father = null;
                 $mother = null;
                 $fatherPhoneList = false;
@@ -794,8 +794,10 @@ class Service extends Extension
                 }
                 $tblType = false;
                 if(($tblYear = $tblDivisionCourse->getServiceTblYear())
-                    && ($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))) {
+                    && ($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))
+                ) {
                     $tblType = $tblStudentEducation->getServiceTblSchoolType();
+                    $item['tblType'] = $tblType;
                 }
                 $Sibling = array();
                 $guardianList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson);
@@ -1118,11 +1120,6 @@ class Service extends Extension
                     $teacherList[] = trim($tblPerson->getSalutation() . ' ' . $tblPerson->getLastName());
                 }
             }
-            $tblType = false;
-            if(($tblYear = $tblDivisionCourse->getServiceTblYear())
-                && ($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))) {
-                $tblType = $tblStudentEducation->getServiceTblSchoolType();
-            }
             $column = $row = 0;
             $export->setStyle($export->getCell($column, $row), $export->getCell(7, $row))->setFontBold();
             $export->setValue($export->getCell($column, $row++),
@@ -1182,7 +1179,7 @@ class Service extends Extension
                 $export->setValue($export->getCell(1, $row), $PersonData['Birthday']);
                 $export->setValue($export->getCell(4, $row), $PersonData['Group']);
                 $export->setValue($export->getCell(5, $row), $PersonData['Orientation']);
-                if($tblType && $tblType->getName() == TblTypeSchool::IDENT_OBER_SCHULE) {
+                if($PersonData['tblType'] && $PersonData['tblType']->getName() == TblTypeSchool::IDENT_OBER_SCHULE) {
                     $export->setValue($export->getCell(5, $row + 1), $PersonData['French']);
                 } elseif($PersonData['Advanced']) {
                     $export->setValue($export->getCell(5, $row + 1), $PersonData['Advanced']);
