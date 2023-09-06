@@ -925,6 +925,60 @@ class FrontendStudent extends FrontendMember
                             }
                         }
                     }
+                } elseif ($tblDivisionCourse->getTypeIdentifier() == TblDivisionCourseType::TYPE_TEACHER_GROUP) {
+                    if (($tblStudentMemberList = DivisionCourse::useService()->getDivisionCourseMemberListBy($tblDivisionCourseItem, TblDivisionCourseMemberType::TYPE_STUDENT))) {
+                        $count = 0;
+                        foreach ($tblStudentMemberList as $tblPerson) {
+                            $fullName = $tblPerson->getLastFirstName();
+                            $division = '';
+                            $coreGroup = '';
+                            if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))) {
+                                $level = $tblStudentEducation->getLevel() ?: new WarningText('Keine Klassenstufe hinterlegt');
+                                $schoolType = ($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())
+                                    ? $tblSchoolType->getName() : new WarningText('Keine Schulart hinterlegt');
+
+                                $warningCourse = '';
+                                if ($tblSchoolType && $tblSchoolType->getShortName() == 'OS' && (!($level instanceof WarningText) && intval($level) > 6)) {
+                                    $warningCourse = new WarningText('Keine Bildungsgang hinterlegt');
+                                }
+                                $course = ($tblCourse = $tblStudentEducation->getServiceTblCourse()) ? $tblCourse->getName() : $warningCourse;
+                                if (($tblDivision = $tblStudentEducation->getTblDivision())) {
+                                    $division = $tblDivision->getName();
+                                }
+                                if (($tblCoreGroup = $tblStudentEducation->getTblCoreGroup())) {
+                                    $coreGroup = $tblCoreGroup->getName();
+                                }
+                            } else {
+                                $level = new WarningText('Keine Klassenstufe hinterlegt');
+                                $schoolType = new WarningText('Keine Schulart hinterlegt');
+                                $course = '';
+                            }
+
+                            $birthday = '';
+                            $gender = '';
+                            if (($tblCommon = Common::useService()->getCommonByPerson($tblPerson))) {
+                                if ($tblCommon->getTblCommonBirthDates()) {
+                                    $birthday = $tblCommon->getTblCommonBirthDates()->getBirthday();
+                                    if ($tblGender = $tblCommon->getTblCommonBirthDates()->getTblCommonGender()) {
+                                        $gender = $tblGender->getShortName();
+                                    }
+                                }
+                            }
+
+                            $item['Number'] = ++$count;
+                            $item['FullName'] = $fullName;
+                            $item['Gender'] = $gender;
+                            $item['Birthday'] = $birthday;
+                            $item['SchoolType'] = $schoolType;
+                            $item['Level'] = $level;
+                            $item['Course'] = $course;
+                            $item['Division'] = $division;
+                            $item['CoreGroup'] = $coreGroup;
+                            $item['Subject'] = $tblDivisionCourse->getSubjectName();
+
+                            $studentList[] = $item;
+                        }
+                    }
                 } else {
                     if (($tblStudentMemberList = DivisionCourse::useService()->getDivisionCourseMemberListBy($tblDivisionCourseItem,
                         TblDivisionCourseMemberType::TYPE_STUDENT, true, false))
@@ -945,8 +999,7 @@ class FrontendStudent extends FrontendMember
                                         ? $tblSchoolType->getName() : new WarningText('Keine Schulart hinterlegt');
 
                                     $warningCourse = '';
-                                    if ($tblSchoolType && $tblSchoolType->getShortName() == 'OS' && (!($level instanceof WarningText) && intval($level) > 6)
-                                    ) {
+                                    if ($tblSchoolType && $tblSchoolType->getShortName() == 'OS' && (!($level instanceof WarningText) && intval($level) > 6)) {
                                         $warningCourse = new WarningText('Keine Bildungsgang hinterlegt');
                                     }
                                     $course = ($tblCourse = $tblStudentEducation->getServiceTblCourse()) ? $tblCourse->getName() : $warningCourse;
@@ -1023,6 +1076,17 @@ class FrontendStudent extends FrontendMember
                 $headerStudentColumnList[] = $this->getTableHeaderColumn('Schüler', $backgroundColor);
                 $headerStudentColumnList[] = $this->getTableHeaderColumn('1. Halbjahr', $backgroundColor);
                 $headerStudentColumnList[] = $this->getTableHeaderColumn('2. Halbjahr', $backgroundColor);
+            } elseif ($tblDivisionCourse->getTypeIdentifier() == TblDivisionCourseType::TYPE_TEACHER_GROUP) {
+                $headerStudentColumnList[] = $this->getTableHeaderColumn('#', $backgroundColor);
+                $headerStudentColumnList[] = $this->getTableHeaderColumn('Schüler', $backgroundColor);
+                $headerStudentColumnList[] = $this->getTableHeaderColumn('Ge&shy;schlecht', $backgroundColor);
+                $headerStudentColumnList[] = $this->getTableHeaderColumn('Geburts&shy;datum', $backgroundColor);
+                $headerStudentColumnList[] = $this->getTableHeaderColumn('Schul&shy;art', $backgroundColor);
+                $headerStudentColumnList[] = $this->getTableHeaderColumn('Klassen&shy;stufe', $backgroundColor);
+                $headerStudentColumnList[] = $this->getTableHeaderColumn('Bildungs&shy;gang', $backgroundColor);
+                $headerStudentColumnList[] = $this->getTableHeaderColumn('Klasse', $backgroundColor);
+                $headerStudentColumnList[] = $this->getTableHeaderColumn('Stammgruppe', $backgroundColor);
+                $headerStudentColumnList[] = $this->getTableHeaderColumn('Fach', $backgroundColor);
             } else {
                 $headerStudentColumnList[] = $this->getTableHeaderColumn('#', $backgroundColor);
                 $headerStudentColumnList[] = $this->getTableHeaderColumn('Schüler', $backgroundColor);

@@ -364,6 +364,14 @@ class Service extends ServiceYearChange
     }
 
     /**
+     * @return false|TblDivisionCourseType[]
+     */
+    public function getDivisionCourseTypeAll()
+    {
+        return (new Data($this->getBinding()))->getDivisionCourseTypeAll();
+    }
+
+    /**
      * @param $Id
      *
      * @return false|TblDivisionCourseMemberType
@@ -610,7 +618,7 @@ class Service extends ServiceYearChange
             }
         }
 
-        if ($tblType && $tblType->getIsCourseSystem()) {
+        if ($tblType && ($tblType->getIsCourseSystem() || $tblType->getIdentifier() == TblDivisionCourseType::TYPE_TEACHER_GROUP)) {
             if (!isset($Data['Subject']) || !(Subject::useService()->getSubjectById($Data['Subject']))) {
                 $form->setError('Data[Subject]', 'Bitte wählen Sie ein Fach aus');
                 $error = true;
@@ -1231,10 +1239,15 @@ class Service extends ServiceYearChange
      */
     public function getDivisionCourseHeader(TblDivisionCourse $tblDivisionCourse): string
     {
+        $content[] = $tblDivisionCourse->getName() . ' ' . new Small(new Muted($tblDivisionCourse->getTypeName()));
+        if ($tblDivisionCourse->getType()->getIsCourseSystem() || $tblDivisionCourse->getTypeIdentifier() == TblDivisionCourseType::TYPE_TEACHER_GROUP) {
+            $content[] = $tblDivisionCourse->getSubjectName();
+        }
+
         return new Layout(new LayoutGroup(array(
             new LayoutRow(array(
                 new LayoutColumn(
-                    new Panel('Kurs', $tblDivisionCourse->getName() . ' ' . new Small(new Muted($tblDivisionCourse->getTypeName())), Panel::PANEL_TYPE_INFO)
+                    new Panel('Kurs', $content, Panel::PANEL_TYPE_INFO)
                     , 6),
                 new LayoutColumn(
                     new Panel('Schuljahr', $tblDivisionCourse->getYearName(), Panel::PANEL_TYPE_INFO)
