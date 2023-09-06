@@ -108,8 +108,8 @@ class Frontend extends Extension implements IFrontendInterface
         ) {
             foreach ($yearFilterList as $tblYear) {
                 // Klassenlehrer und Tutoren
-                if (($tblDivisionCourseList = DivisionCourse::useService()->getDivisionCourseListByDivisionTeacher($tblPerson, $tblYear))) {
-                    foreach ($tblDivisionCourseList as $tblDivisionCourse) {
+                if (($tblDivisionCourseTempList = DivisionCourse::useService()->getDivisionCourseListByDivisionTeacher($tblPerson, $tblYear))) {
+                    foreach ($tblDivisionCourseTempList as $tblDivisionCourse) {
                         if (!isset($tblDivisionCourseList[$tblDivisionCourse->getId()])
                             && $tblDivisionCourse->getIsDivisionOrCoreGroup()
                         ) {
