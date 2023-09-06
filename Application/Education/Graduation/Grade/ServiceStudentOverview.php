@@ -10,7 +10,6 @@ use SPHERE\Application\Education\Graduation\Grade\Service\VirtualTestTask;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblStudentEducation;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
-use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -298,143 +297,140 @@ abstract class ServiceStudentOverview extends ServiceScoreCalc
             }
         }
 
+        if ($tblSubjectList) {
+            foreach ($tblSubjectList as $tblSubject) {
+                $tblScoreRule = Grade::useService()->getScoreRuleByPersonAndYearAndSubject($tblPerson, $tblYear, $tblSubject);
+                $tblScoreType = Grade::useService()->getScoreTypeByPersonAndYearAndSubject($tblPerson, $tblYear, $tblSubject);
 
-        if (!empty($virtualTestTaskList)) {
-            foreach($virtualTestTaskList as $subjectId => $list) {
-                if (($tblSubject = Subject::useService()->getSubjectById($subjectId))) {
-                    $tblScoreRule = Grade::useService()->getScoreRuleByPersonAndYearAndSubject($tblPerson, $tblYear, $tblSubject);
-                    $tblScoreType = Grade::useService()->getScoreTypeByPersonAndYearAndSubject($tblPerson, $tblYear, $tblSubject);
+                $data = array();
+                $dataPdfSection = new Section();
 
-                    $data = array();
-                    $dataPdfSection = new Section();
+                $data['Subject'] = $frontend->getTableColumnBody(
+                    new Bold($tblSubject->getName())
+                    . ($isScoreRuleShown && $tblScoreRule
+                        ? (new Link('', ApiOnlineGradebook::getEndpoint(), new Info(), array(),
+                            'Berechnungsvorschrift für dieses Fach anzeigen'))
+                            ->ajaxPipelineOnClick(ApiOnlineGradebook::pipelineOpenScoreRuleModal($tblScoreRule->getId()))
+                        : ''),
+                    $frontend::BACKGROUND_COLOR, $widthSubject
+                );
+                $dataPdfSection->addElementColumn(GradebookOverview::getHeaderElement($tblSubject->getAcronym(), true), $widthSubject);
 
-                    $data['Subject'] = $frontend->getTableColumnBody(
-                        new Bold($tblSubject->getName())
-                        . ($isScoreRuleShown && $tblScoreRule
-                            ? (new Link('', ApiOnlineGradebook::getEndpoint(), new Info(), array(),
-                                'Berechnungsvorschrift für dieses Fach anzeigen'))
-                                ->ajaxPipelineOnClick(ApiOnlineGradebook::pipelineOpenScoreRuleModal($tblScoreRule->getId()))
-                            : ''),
-                        $frontend::BACKGROUND_COLOR, $widthSubject
-                    );
-                    $dataPdfSection->addElementColumn(GradebookOverview::getHeaderElement($tblSubject->getAcronym(), true), $widthSubject);
+                $testGrades = array();
+                $testGrades['All'] = array();
 
-                    $testGrades = array();
-                    $testGrades['All'] = array();
-
-                    for ($i = 1; $i < 3; $i++) {
-                        $count = 0;
-                        if (isset($list[$i])) {
-                            $tempList = $this->getSorter($list[$i])->sortObjectBy('Date', new DateTimeSorter());
-                            /** @var VirtualTestTask $virtualTestTask */
-                            foreach ($tempList as $virtualTestTask) {
-                                $count++;
-                                switch ($virtualTestTask->getType()) {
-                                    case VirtualTestTask::TYPE_TEST:
-                                        $tblTest = $virtualTestTask->getTblTest();
-                                        $testId = $tblTest->getId();
-                                        $tblTestGrade = $tblTestGradeList[$testId] ?? null;
-                                        $dateItem = $tblTestGrade && $tblTestGrade->getDate() ? $tblTestGrade->getDate() : $virtualTestTask->getDate();
-                                        $isBold = $tblTest->getTblGradeType()->getIsHighlighted();
-                                        $toolTip = '';
-                                        if (!$IsPdf) {
-                                            if ($tblTest->getDescription()) {
-                                                $toolTip .= 'Thema: ' . $tblTest->getDescription();
-                                            }
-                                            if (!isset($hideTestInfoList[$testId])) {
-                                                if ($isShownGradeMirror && $tblScoreType
-                                                    && ($gradeMirror = Grade::useService()->getGradeMirrorForToolTipByTest($tblTest, $tblScoreType))
-                                                ) {
-                                                    $toolTip .= ($toolTip ? '<br />' : '') . $gradeMirror;
-                                                }
-                                                if ($isShownDivisionSubjectScore && ($averageTest = Grade::useService()->getGradeAverageByTest($tblTest))) {
-                                                    $toolTip .= ($toolTip ? '<br />' : '') . '&#216; ' . $averageTest;
-                                                }
-                                            }
-                                        }
-                                        $contentTemp = $virtualTestTask->getTblTest()->getTblGradeType()->getCode() . '<br>'
-                                            . ($tblTestGrade ? $tblTestGrade->getGrade() : '&nbsp;');
-                                        $contentTest = ($dateItem ? $dateItem->format('d.m.') : '&nbsp;') . '<br>'
-                                            . ($isBold ? new Bold($contentTemp) : $contentTemp);
-
-                                        $publicComment = $tblTestGrade && $tblTestGrade->getPublicComment() ? $tblTestGrade->getPublicComment() : '';
-
-                                        $data[] = $frontend->getTableColumnBody(
-                                            ($toolTip ? (new ToolTip($contentTest, htmlspecialchars($toolTip)))->enableHtml() : $contentTest)
-                                                . ($publicComment ?  ' ' . new ToolTip(new Info(), $publicComment) : ''),
-                                            null,
-                                            $widthGrade
-                                        );
-                                        $dataPdfSection->addElementColumn(GradebookOverview::getBodyElement($contentTest), $widthGrade);
-
-                                        if ($tblTestGrade) {
-                                            $testGrades[$i][] = $tblTestGrade;
-                                        }
-                                        break;
-                                    case VirtualTestTask::TYPE_TASK:
-                                        $contentTask = $virtualTestTask->getDate()->format('d.m.') . '<br>'
-                                            . 'SN' . '<br>'
-                                            . (($tblTaskGrade = Grade::useService()->getTaskGradeByPersonAndTaskAndSubject($tblPerson, $virtualTestTask->getTblTask(), $tblSubject))
-                                                && $tblTaskGrade->getGrade() ? $tblTaskGrade->getGrade() : '&nbsp;');
-
-                                        $data[] = $frontend->getTableColumnBody(new Bold($contentTask), $frontend::BACKGROUND_COLOR, $widthGrade);
-                                        $dataPdfSection->addElementColumn(GradebookOverview::getBodyElement($contentTask, true, true), $widthGrade);
-                                }
-                            }
-                        }
-
-                        // leere Spalten
-                        while ($count < $countMaxColumn - ($isShownAverage ? 1 : 0)) {
+                for ($i = 1; $i < 3; $i++) {
+                    $count = 0;
+                    if (isset($virtualTestTaskList[$tblSubject->getId()][$i])) {
+                        $tempList = $this->getSorter($virtualTestTaskList[$tblSubject->getId()][$i])->sortObjectBy('Date', new DateTimeSorter());
+                        /** @var VirtualTestTask $virtualTestTask */
+                        foreach ($tempList as $virtualTestTask) {
                             $count++;
+                            switch ($virtualTestTask->getType()) {
+                                case VirtualTestTask::TYPE_TEST:
+                                    $tblTest = $virtualTestTask->getTblTest();
+                                    $testId = $tblTest->getId();
+                                    $tblTestGrade = $tblTestGradeList[$testId] ?? null;
+                                    $dateItem = $tblTestGrade && $tblTestGrade->getDate() ? $tblTestGrade->getDate() : $virtualTestTask->getDate();
+                                    $isBold = $tblTest->getTblGradeType()->getIsHighlighted();
+                                    $toolTip = '';
+                                    if (!$IsPdf) {
+                                        if ($tblTest->getDescription()) {
+                                            $toolTip .= 'Thema: ' . $tblTest->getDescription();
+                                        }
+                                        if (!isset($hideTestInfoList[$testId])) {
+                                            if ($isShownGradeMirror && $tblScoreType
+                                                && ($gradeMirror = Grade::useService()->getGradeMirrorForToolTipByTest($tblTest, $tblScoreType))
+                                            ) {
+                                                $toolTip .= ($toolTip ? '<br />' : '') . $gradeMirror;
+                                            }
+                                            if ($isShownDivisionSubjectScore && ($averageTest = Grade::useService()->getGradeAverageByTest($tblTest))) {
+                                                $toolTip .= ($toolTip ? '<br />' : '') . '&#216; ' . $averageTest;
+                                            }
+                                        }
+                                    }
+                                    $contentTemp = $virtualTestTask->getTblTest()->getTblGradeType()->getCode() . '<br>'
+                                        . ($tblTestGrade ? $tblTestGrade->getGrade() : '&nbsp;');
+                                    $contentTest = ($dateItem ? $dateItem->format('d.m.') : '&nbsp;') . '<br>'
+                                        . ($isBold ? new Bold($contentTemp) : $contentTemp);
 
-                            $data[] = $frontend->getTableColumnBody('&nbsp;');
-                            $dataPdfSection->addElementColumn(GradebookOverview::getBodyElement('&nbsp;<br>&nbsp;<br>&nbsp;'), $widthGrade);
-                        }
+                                    $publicComment = $tblTestGrade && $tblTestGrade->getPublicComment() ? $tblTestGrade->getPublicComment() : '';
 
-                        // Notendurchschnitt pro Halbjahr
-                        if ($isShownAverage) {
-                            if (isset($testGrades[$i])) {
-                                list ($average, $scoreRuleText, $error) = Grade::useService()->getCalcStudentAverage($tblPerson, $tblYear, $testGrades[$i],
-                                    $tblScoreRule ?: null);
-                                $toolTip = Grade::useService()->getCalcStudentAverageToolTipByAverage($average, $scoreRuleText, $error);
+                                    $data[] = $frontend->getTableColumnBody(
+                                        ($toolTip ? (new ToolTip($contentTest, htmlspecialchars($toolTip)))->enableHtml() : $contentTest)
+                                        . ($publicComment ?  ' ' . new ToolTip(new Info(), $publicComment) : ''),
+                                        null,
+                                        $widthGrade
+                                    );
+                                    $dataPdfSection->addElementColumn(GradebookOverview::getBodyElement($contentTest), $widthGrade);
 
-                                $testGrades['All'] = array_merge($testGrades['All'], $testGrades[$i]);
-                            } else {
-                                $average = '&nbsp;';
-                                $toolTip = '';
+                                    if ($tblTestGrade) {
+                                        $testGrades[$i][] = $tblTestGrade;
+                                    }
+                                    break;
+                                case VirtualTestTask::TYPE_TASK:
+                                    $contentTask = $virtualTestTask->getDate()->format('d.m.') . '<br>'
+                                        . 'SN' . '<br>'
+                                        . (($tblTaskGrade = Grade::useService()->getTaskGradeByPersonAndTaskAndSubject($tblPerson, $virtualTestTask->getTblTask(), $tblSubject))
+                                        && $tblTaskGrade->getGrade() ? $tblTaskGrade->getGrade() : '&nbsp;');
+
+                                    $data[] = $frontend->getTableColumnBody(new Bold($contentTask), $frontend::BACKGROUND_COLOR, $widthGrade);
+                                    $dataPdfSection->addElementColumn(GradebookOverview::getBodyElement($contentTask, true, true), $widthGrade);
                             }
-
-                            $data[] = $frontend->getTableColumnBody(
-                                new Bold('&nbsp;' . '<br>' . '&#216;' . '<br>' . $toolTip),
-                                $frontend::BACKGROUND_COLOR,
-                                $widthGrade
-                            );
-                            $dataPdfSection->addElementColumn(GradebookOverview::getBodyElement('&nbsp;' . '<br>' . '&#216;' . '<br>' . $average, true, true), $widthGrade);
                         }
                     }
 
-                    // Gesamt-Notendurchschnitt
+                    // leere Spalten
+                    while ($count < $countMaxColumn - ($isShownAverage ? 1 : 0)) {
+                        $count++;
+
+                        $data[] = $frontend->getTableColumnBody('&nbsp;');
+                        $dataPdfSection->addElementColumn(GradebookOverview::getBodyElement('&nbsp;<br>&nbsp;<br>&nbsp;'), $widthGrade);
+                    }
+
+                    // Notendurchschnitt pro Halbjahr
                     if ($isShownAverage) {
-                        if (!empty($testGrades['All'])) {
-                            list ($average, $scoreRuleText, $error) = Grade::useService()->getCalcStudentAverage($tblPerson, $tblYear, $testGrades['All'],
+                        if (isset($testGrades[$i])) {
+                            list ($average, $scoreRuleText, $error) = Grade::useService()->getCalcStudentAverage($tblPerson, $tblYear, $testGrades[$i],
                                 $tblScoreRule ?: null);
                             $toolTip = Grade::useService()->getCalcStudentAverageToolTipByAverage($average, $scoreRuleText, $error);
+
+                            $testGrades['All'] = array_merge($testGrades['All'], $testGrades[$i]);
                         } else {
                             $average = '&nbsp;';
                             $toolTip = '';
                         }
 
                         $data[] = $frontend->getTableColumnBody(
-                            new Bold('&nbsp;' . '<br>' . '&nbsp;' . '<br>' . $toolTip),
+                            new Bold('&nbsp;' . '<br>' . '&#216;' . '<br>' . $toolTip),
                             $frontend::BACKGROUND_COLOR,
                             $widthGrade
                         );
-                        $dataPdfSection->addElementColumn(GradebookOverview::getBodyElement('&nbsp;' . '<br>' . '&nbsp;' . '<br>' . $average, true, true), $widthGrade);
+                        $dataPdfSection->addElementColumn(GradebookOverview::getBodyElement('&nbsp;' . '<br>' . '&#216;' . '<br>' . $average, true, true), $widthGrade);
+                    }
+                }
+
+                // Gesamt-Notendurchschnitt
+                if ($isShownAverage) {
+                    if (!empty($testGrades['All'])) {
+                        list ($average, $scoreRuleText, $error) = Grade::useService()->getCalcStudentAverage($tblPerson, $tblYear, $testGrades['All'],
+                            $tblScoreRule ?: null);
+                        $toolTip = Grade::useService()->getCalcStudentAverageToolTipByAverage($average, $scoreRuleText, $error);
+                    } else {
+                        $average = '&nbsp;';
+                        $toolTip = '';
                     }
 
-                    $bodyList[] = $data;
-                    $bodyPdfSectionList[] = $dataPdfSection;
+                    $data[] = $frontend->getTableColumnBody(
+                        new Bold('&nbsp;' . '<br>' . '&nbsp;' . '<br>' . $toolTip),
+                        $frontend::BACKGROUND_COLOR,
+                        $widthGrade
+                    );
+                    $dataPdfSection->addElementColumn(GradebookOverview::getBodyElement('&nbsp;' . '<br>' . '&nbsp;' . '<br>' . $average, true, true), $widthGrade);
                 }
+
+                $bodyList[] = $data;
+                $bodyPdfSectionList[] = $dataPdfSection;
             }
         }
 
