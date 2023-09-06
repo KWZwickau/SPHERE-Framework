@@ -14,6 +14,7 @@ use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblStudent
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblTeacherLectureship;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
+use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
@@ -479,8 +480,13 @@ abstract class ServiceYearChange extends ServiceTeacher
     private function getFutureDivisionCourseName(TblDivisionCourse $tblDivisionCourse): string {
         $newName = $tblDivisionCourse->getName();
 
-        // Stammgruppen sollen nicht hochgezählt werden
-        if ($tblDivisionCourse->getTypeIdentifier() == TblDivisionCourseType::TYPE_CORE_GROUP) {
+        // Mandanteneinstellung Klassen, Stammgruppen, Unterrichtsgruppen sollen nicht hochgezählt werden
+        if (($tblSetting = Consumer::useService()->getSetting(
+                'Education', 'Lesson', 'DivisionCourse', 'NotIncrementNumericDivisionCourseName'
+            ))
+            && $tblSetting->getValue()
+            && ($tblDivisionCourse->getIsDivisionOrCoreGroup() || $tblDivisionCourse->getTypeIdentifier() == TblDivisionCourseType::TYPE_TEACHING_GROUP)
+        ) {
             return $newName;
         }
 
