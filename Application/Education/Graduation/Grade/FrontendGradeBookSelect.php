@@ -5,6 +5,7 @@ namespace SPHERE\Application\Education\Graduation\Grade;
 use SPHERE\Application\Api\Education\Graduation\Grade\ApiGradeBook;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblTeacherLectureship;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
@@ -183,7 +184,21 @@ abstract class FrontendGradeBookSelect extends FrontendBasic
             // Klassenlehrer aus den Lehraufträgen der Lehrer
             if (($tblDivisionCourseList = DivisionCourse::useService()->getDivisionCourseListByDivisionTeacher($tblPersonLogin, $tblYear, true))) {
                 foreach ($tblDivisionCourseList as $tblDivisionCourse) {
-                    $this->setDivisionCourseSelectDataList($dataList, $tblDivisionCourse, $tblYear, $tblPersonLogin, $divisionCourseSubjectList);
+                    if (DivisionCourse::useService()->getIsCourseSystemByStudentsInDivisionCourse($tblDivisionCourse)) {
+                        // SekII
+                        if (($tblStudentSubjectList = DivisionCourse::useService()->getStudentSubjectListByStudentDivisionCourseAndPeriod($tblDivisionCourse, 1))) {
+                            foreach ($tblStudentSubjectList as $tblStudentSubject) {
+                                if (($tblDivisionCourseSubject = $tblStudentSubject->getTblDivisionCourse())
+                                    && !isset($divisionCourseSubjectList[$tblDivisionCourseSubject->getId()])
+                                ) {
+                                    $this->setDivisionCourseSelectDataList($dataList, $tblDivisionCourseSubject, $tblYear, $tblPersonLogin, $divisionCourseSubjectList);
+                                }
+                            }
+                        }
+                    } else {
+                        // SekI
+                        $this->setDivisionCourseSelectDataList($dataList, $tblDivisionCourse, $tblYear, $tblPersonLogin, $divisionCourseSubjectList);
+                    }
                 }
             }
 
@@ -268,8 +283,10 @@ abstract class FrontendGradeBookSelect extends FrontendBasic
         $divisionCourseSubjectList = null,
         $Filter = null
     ) {
-        // Lerngruppe oder SekII-Kurs
-        if (($tblSubject = $tblDivisionCourse->getServiceTblSubject())) {
+        // Lerngruppe
+        if (($tblSubject = $tblDivisionCourse->getServiceTblSubject())
+            && $tblDivisionCourse->getTypeIdentifier() == TblDivisionCourseType::TYPE_TEACHER_GROUP
+        ) {
             $this->setDivisionCourseSelectData($dataList, $tblDivisionCourse, $tblSubject, $Filter);
             // alle Lehraufträge des Kurses
         } elseif (($tblTeacherLectureshipList = DivisionCourse::useService()->getTeacherLectureshipListBy($tblYear, null, $tblDivisionCourse))) {
