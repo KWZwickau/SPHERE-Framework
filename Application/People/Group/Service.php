@@ -324,27 +324,25 @@ class Service extends AbstractService
                 $Form->setError('Group[Name]', 'Bitte geben Sie einen eineindeutigen Namen für die Gruppe an');
                 $Error = true;
             }
-            // ist ein UCS Mandant?
-            $IsUCSMandant = false;
-            if(($tblConsumer = ConsumerGatekeeper::useService()->getConsumerBySession())){
-                if(ConsumerGatekeeper::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_UCS)){
-                    $IsUCSMandant = true;
-                }
-            }
-            // Gruppen Zeicheneingrenzung nur für UCS Mandanten
-            if (isset($Group['Name']) && $Group['Name'] != '' && $IsUCSMandant) {
-                if(!preg_match('!^[\w]+[\w -_]*[\w]+$!', $Group['Name'])){ // muss mit Buchstaben/Zahl anfangen und Aufhören + mindestens 2 Zeichen
-                    $Form->setError('Group[Name]', 'Erlaubte Zeichen [a-zA-Z0-9 -_]');
-                    $Error = true;
-                }
-            }
+
+            // Stammgruppen werden jetzt als Kurse in der Bildung gepflegt und nicht mehr als Personengruppen
+//            // ist ein UCS Mandant?
+//            $IsUCSMandant = false;
+//            if(($tblConsumer = ConsumerGatekeeper::useService()->getConsumerBySession())){
+//                if(ConsumerGatekeeper::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_UCS)){
+//                    $IsUCSMandant = true;
+//                }
+//            }
+//            // Gruppen Zeicheneingrenzung nur für UCS Mandanten
+//            if (isset($Group['Name']) && $Group['Name'] != '' && $IsUCSMandant) {
+//                if(!preg_match('!^[\w]+[\w -_]*[\w]+$!', $Group['Name'])){ // muss mit Buchstaben/Zahl anfangen und Aufhören + mindestens 2 Zeichen
+//                    $Form->setError('Group[Name]', 'Erlaubte Zeichen [a-zA-Z0-9 -_]');
+//                    $Error = true;
+//                }
+//            }
         }
 
         if (!$Error) {
-//            $isCoreGroup = false;
-//            if(isset($Group['IsCoreGroup'])){
-//                $isCoreGroup = true;
-//            }
             if ((new Data($this->getBinding()))->updateGroup(
                 $tblGroup, $Group['Name'], $Group['Description'], $Group['Remark']
             )
