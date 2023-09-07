@@ -171,7 +171,7 @@ class Frontend extends Extension implements IFrontendInterface
                     $Person[ViewPerson::TBL_PERSON_FIRST_NAME], '',
                     $Person[ViewPerson::TBL_PERSON_LAST_NAME],
                     array(
-                        0 => Group::useService()->getGroupByMetaTable('COMMON'),
+                        0 => \SPHERE\Application\People\Group\Group::useService()->getGroupByMetaTable('COMMON'),
                         1 => $tblGroup
                     )
                 );
