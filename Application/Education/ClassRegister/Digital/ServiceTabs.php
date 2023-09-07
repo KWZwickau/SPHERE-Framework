@@ -111,6 +111,7 @@ abstract class ServiceTabs extends ServiceCourseContent
      * @param $HasAllYears
      * @param $HasCurrentYears
      * @param $yearFilterList
+     * @param bool $hasLastYearsTemp
      *
      * @return array
      */
@@ -454,11 +455,41 @@ abstract class ServiceTabs extends ServiceCourseContent
             $studentTable = array();
             $count = 0;
             $hasColumnCourse = false;
+            $hasDivision = false;
+            $hasCoreGroup = false;
+            $hasSchoolAttendanceYear = false;
             foreach ($tblPersonList as $tblPerson) {
+                $schoolType = '';
+                $level = '';
+                $divisionName = '';
+                $divisionTeacher = '';
+                $coreGroupName = '';
+                $coreGroupTeacher = '';
+                $schoolAttendanceYear = '';
+                $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
+
                 if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))) {
                     $tblCompany = $tblStudentEducation->getServiceTblCompany();
-                    $tblSchoolType = $tblStudentEducation->getServiceTblSchoolType();
+                    if (($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())) {
+                        $schoolType = $tblSchoolType->getShortName();
+                        // Schulbesuchsjahr bei Förderschulen anzeigen
+                        if ($tblSchoolType->getShortName() == 'FöS') {
+                            $hasSchoolAttendanceYear = true;
+                            $schoolAttendanceYear = $tblStudent->getSchoolAttendanceYear(false);
+                        }
+                    }
                     $tblCourse = $tblStudentEducation->getServiceTblCourse();
+                    $level = $tblStudentEducation->getLevel();
+                    if (($tblDivision = $tblStudentEducation->getTblDivision())) {
+                        $hasDivision = true;
+                        $divisionName = $tblDivision->getName();
+                        $divisionTeacher = $tblDivision->getDivisionTeacherNameListString(', ');
+                    }
+                    if (($tblCoreGroup = $tblStudentEducation->getTblDivision())) {
+                        $hasCoreGroup = true;
+                        $coreGroupName = $tblCoreGroup->getName();
+                        $coreGroupTeacher = $tblCoreGroup->getDivisionTeacherNameListString(', ');
+                    }
                 } else {
                     $tblCompany = false;
                     $tblSchoolType = false;
@@ -495,7 +526,7 @@ abstract class ServiceTabs extends ServiceCourseContent
                 $agreement = '';
                 $integration = '';
 
-                if (($tblStudent = Student::useService()->getStudentByPerson($tblPerson))) {
+                if ($tblStudent) {
                     if (($tblMedicalRecord = $tblStudent->getTblStudentMedicalRecord())
                         && ($tblMedicalRecord->getDisease()
                             || $tblMedicalRecord->getMedication()
@@ -534,7 +565,8 @@ abstract class ServiceTabs extends ServiceCourseContent
 
                 $studentTable[] = array(
                     'Number'        => ++$count,
-                    'Name'          => $tblPerson->getLastFirstNameWithCallNameUnderline(),
+                    'Name'          => new Bold($tblPerson->getLastFirstNameWithCallNameUnderline()),
+                    'NameSecond'    => new Bold($tblPerson->getLastFirstNameWithCallNameUnderline()),
                     'Picture'       => $PersonPicture,
                     'Info'          => $integration . $medicalRecord . $agreement,
                     'Gender'        => $Gender,
@@ -542,7 +574,14 @@ abstract class ServiceTabs extends ServiceCourseContent
                     'Phone'         => $contacts['PhoneFixed'] ?? '',
                     'Mail'          => $contacts['MailFrontendListFixed'] ?? '',
                     'Birthday'      => $birthday,
+                    'SchoolType'    => $schoolType,
+                    'Level'         => $level,
                     'Course'        => $courseName,
+                    'DivisionName'  => $divisionName,
+                    'DivisionTeacher' => $divisionTeacher,
+                    'CoreGroupName' => $coreGroupName,
+                    'CoreGroupTeacher' => $coreGroupTeacher,
+                    'SchoolAttendanceYear' => $schoolAttendanceYear,
                     'AbsenceDays'   => $absenceDays,
                     'AbsenceLessons'=> $absenceLessons,
                     'Option'        =>
@@ -572,12 +611,27 @@ abstract class ServiceTabs extends ServiceCourseContent
             $columns['Number'] = '#';
             $columns['Name'] = 'Name';
             $columns['Picture'] = 'Foto';
-            if ($hasColumnCourse) {
-                $columns['Course'] = 'Bildungs&shy;gang';
-            }
             $columns['Info'] = 'Info';
             $columns['Gender'] = 'Ge&shy;schlecht';
             $columns['Birthday'] = 'Geburts&shy;datum';
+            $columns['SchoolType'] = 'Schul&shy;art';
+            $columns['Level'] = 'Klassen&shy;stufe';
+            if ($hasColumnCourse) {
+                $columns['Course'] = 'Bildungs&shy;gang';
+            }
+            if ($hasDivision) {
+                $columns['DivisionName'] = 'Klasse';
+                $columns['DivisionTeacher'] = 'Klassen&shy;lehrer';
+            }
+            if ($hasCoreGroup) {
+                $columns['CoreGroupName'] = 'Stamm&shy;gruppe';
+                $columns['CoreGroupTeacher'] = 'Tutor';
+            }
+            if ($hasSchoolAttendanceYear) {
+                $columns['SchoolAttendanceYear'] = 'SBJ';
+            }
+
+            $columns['NameSecond'] = 'Name';
             $columns['Address'] = 'Adresse';
             $columns['Phone'] = new ToolTip('Telefon '. new InfoIcon(), 'p=Privat; g=Geschäftlich; n=Notfall; f=Fax; Bev.=Bevollmächtigt; Vorm.=Vormund; NK=Notfallkontakt');
             $columns['Mail'] = 'E-Mail';
@@ -595,8 +649,8 @@ abstract class ServiceTabs extends ServiceCourseContent
                     array(
                         'paging' => false,
                         'columnDefs' => array(
-                            array('type'  => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
-                            array('width' => '60px', 'targets' => $hasColumnCourse ? 4 : 3),
+                            array('type'  => Consumer::useService()->getGermanSortBySetting(), 'targets' => array(1, -7)),
+                            array('width' => '60px', 'targets' => 3),
                             array('width' => '60px', 'targets' => -2),
                             array('width' => '60px', 'targets' => -3),
                             array('width' => '180px', 'targets' => -6),
