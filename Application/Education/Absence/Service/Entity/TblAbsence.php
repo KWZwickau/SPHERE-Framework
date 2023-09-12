@@ -243,7 +243,7 @@ class TblAbsence extends Element
         $countDays = 0;
         $lessons = Absence::useService()->getLessonAllByAbsence($this);
 
-        $fromDate = $this->getFromDateTime();
+        $fromDate = new DateTime($this->getFromDate());
         if ($tillDate === null) {
             if ($this->getToDateTime()) {
                 $toDate = $this->getToDateTime();
