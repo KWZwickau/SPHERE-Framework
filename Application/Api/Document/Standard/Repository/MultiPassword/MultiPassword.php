@@ -474,7 +474,7 @@ class MultiPassword extends AbstractDocument
                     )
                     ->addElementColumn((new Element())
                         ->setContent('Die Schulsoftware bietet eine elektronische Notenübersicht für alle Schüler und deren Sorgeberechtigte, zu deren Nutzung
-                            Sie hiermit die notwendigen Sicherheitsinformationen und Zugangsdaten erhalten. Zur Nutzung der Software erfolgt über einen gängigen
+                            Sie hiermit die notwendigen Sicherheitsinformationen und Zugangsdaten erhalten. Die Nutzung der Software erfolgt über einen gängigen
                             Webbrowser.')
                         ->stylePaddingTop(self::BLOCK_SPACE)
                         ->styleAlignJustify()
@@ -509,7 +509,7 @@ class MultiPassword extends AbstractDocument
                     ->addElementColumn((new Element())
                         ->setContent('Der Betrieb der Software erfolgt in einem zertifizierten deutschen Rechenzentrum und wird durch die dortigen Mitarbeiter
                         sowie durch die mit der Entwicklung beauftragten Firma permanent überwacht und gewartet, um sie vor Cyberangriffen zu schützen. Da hier
-                        personenbezogene vertrauliche Daten verarbeitet werden, gelten vergleichbar hohe Sicherheitsanforderungen, wie beim Onlinebanking.
+                        personenbezogene vertrauliche Daten verarbeitet werden, gelten vergleichbar hohe Sicherheitsanforderungen wie beim Onlinebanking.
                         Beispielsweise sind Änderungen an Stammdaten oder die Eintragung von Benotungen nur für Mitarbeiter der Schule möglich, die über
                         die entsprechenden Zugriffsberechtigungen verfügen und sich per Zweifaktor-Authentifizierung (Name, Passwort und Security-Token)
                         anmelden müssen. Für die elektronische Notenübersicht reicht hingegen die Anmeldung mit Namen und Passwort aus.')
@@ -857,7 +857,7 @@ class MultiPassword extends AbstractDocument
                 )
                 ->addElementColumn((new Element())
                     ->setContent('und <b>bewahren Sie bitte den Brief an sicherer Stelle und leicht zu finden auf</b>, 
-                    damit ihre Zugangsdaten verfügbar bleiben!')
+                    damit Ihre Zugangsdaten verfügbar bleiben!')
                     ->stylePaddingTop(self::BLOCK_SPACE)
                     ->styleAlignJustify()
                 )
