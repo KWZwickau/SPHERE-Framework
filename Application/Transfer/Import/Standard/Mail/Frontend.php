@@ -66,7 +66,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 'Excel-Header',
                                 array(
                                     0 => "Pflichtfelder: Vorname, Nachname",
-                                    1 => "Wahlpflichtfelder (1 Feld): E-Mail-Adresse, Benutzer-Alias-Mail, Recovery-Mail",
+                                    1 => "Wahlpflichtfelder (1 Feld): Emailadresse, Benutzer-Alias-Mail, Recovery-Mail",
                                     2 => "optionales Feld für besser Personenerkennung: Geburtsdatum",
                                     3 => "optionales Feld vorhandener Inhalt setzt die Schülernummer: Schülernummer"
                                 ),
