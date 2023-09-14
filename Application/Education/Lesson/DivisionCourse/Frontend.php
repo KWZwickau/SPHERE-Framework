@@ -139,10 +139,10 @@ class Frontend extends FrontendYearChange
             $showExtraInfo = isset($Filter['ShowExtraInfo']);
             /** @var TblDivisionCourse $tblDivisionCourse */
             foreach ($tblDivisionCourseList as $tblDivisionCourse) {
-                // Lerngruppen der Lehrer überspringen
-                if ($tblDivisionCourse->getTypeIdentifier() == TblDivisionCourseType::TYPE_TEACHER_GROUP) {
-                    continue;
-                }
+//                // Lerngruppen der Lehrer überspringen
+//                if ($tblDivisionCourse->getTypeIdentifier() == TblDivisionCourseType::TYPE_TEACHER_GROUP) {
+//                    continue;
+//                }
 
                 $optionSubCourse = !$tblDivisionCourse->getIsDivisionOrCoreGroup()
                     ? (new Standard('', ApiDivisionCourse::getEndpoint(), new LinkIcon(), array(), 'Unter-Kurse verknüpfen'))
@@ -267,7 +267,7 @@ class Frontend extends FrontendYearChange
      */
     public function formFilter(): Form
     {
-        $tblTypeAll = DivisionCourse::useService()->getDivisionCourseTypeListWithoutTeacherGroup();
+        $tblTypeAll = DivisionCourse::useService()->getDivisionCourseTypeAll();
         $tblYearAll = Term::useService()->getYearAll();
         if ($tblYearAll && Term::useService()->getYearByNow()) {
             $tblYearAll[] = new SelectBoxItem(-1, 'Aktuelle Übersicht');
@@ -357,7 +357,7 @@ class Frontend extends FrontendYearChange
                 }
             });
         }
-        $tblTypeAll = DivisionCourse::useService()->getDivisionCourseTypeListWithoutTeacherGroup();
+        $tblTypeAll = DivisionCourse::useService()->getDivisionCourseTypeAll();
 
         $formRows[] = new FormRow(array(
             new FormColumn($tblDivisionCourse
@@ -380,7 +380,7 @@ class Frontend extends FrontendYearChange
                 , 6),
         ));
         if ($tblDivisionCourse) {
-            if ($tblDivisionCourse->getType()->getIsCourseSystem()) {
+            if ($tblDivisionCourse->getType()->getIsCourseSystem() || $tblDivisionCourse->getTypeIdentifier() == TblDivisionCourseType::TYPE_TEACHER_GROUP) {
                 $formRows[] = new FormRow(array(
                     new FormColumn(array(
                         (new SelectBox('Data[Subject]', 'Fach', array('{{ Acronym }}-{{ Name }}' => $tblSubjectList)))
@@ -424,7 +424,7 @@ class Frontend extends FrontendYearChange
     public function loadSubjectSelectBox($Error, $Data): ?SelectBox
     {
         if (isset($Data['Type']) && ($tblType = DivisionCourse::useService()->getDivisionCourseTypeById($Data['Type']))) {
-            if ($tblType->getIsCourseSystem()) {
+            if ($tblType->getIsCourseSystem() || $tblType->getIdentifier() == TblDivisionCourseType::TYPE_TEACHER_GROUP) {
                 if (isset($Data['Subject'])) {
                     $global = $this->getGlobal();
                     $global->POST['Data']['Subject'] = $Data['Subject'];
@@ -593,69 +593,79 @@ class Frontend extends FrontendYearChange
             $headerMemberColumnList[] = $this->getTableHeaderColumn('Name', $backgroundColor, '30%');
             $headerMemberColumnList[] = $this->getTableHeaderColumn('Beschreibung', $backgroundColor, '70%');
 
+            $layoutGroupList[] =  new LayoutGroup(array(
+                new LayoutRow(new LayoutColumn(
+                    ApiDivisionCourseStudent::receiverBlock($this->loadDivisionCourseStudentContent($DivisionCourseId), 'DivisionCourseStudentContent')
+                ))
+            ), new \SPHERE\Common\Frontend\Layout\Repository\Title(new PersonGroup() . ' Schüler ' . $text .
+                ($tblDivisionCourse->getType()->getIsCourseSystem()
+                    ? ''
+                    : new Link('Bearbeiten', '/Education/Lesson/DivisionCourse/Student', new Pen(), array('DivisionCourseId' => $tblDivisionCourse->getId(), 'Filter' => $Filter))
+                    . ' | '
+                    . new Link('Sortieren', '/Education/Lesson/DivisionCourse/Member/Sort', new ResizeVertical(),
+                        array('DivisionCourseId' => $tblDivisionCourse->getId(), 'MemberTypeIdentifier' => TblDivisionCourseMemberType::TYPE_STUDENT, 'Filter' => $Filter))
+                )
+            ));
+
+            $isSekIICourseOrTeacherGroup = $tblDivisionCourse->getType()->getIsCourseSystem() || $tblDivisionCourse->getTypeIdentifier() == TblDivisionCourseType::TYPE_TEACHER_GROUP;
+            if (!$isSekIICourseOrTeacherGroup) {
+                $layoutGroupList[] = new LayoutGroup(array(
+                    new LayoutRow(new LayoutColumn(
+                        ApiDivisionCourseStudent::receiverBlock($this->loadStudentSubjectContent($DivisionCourseId), 'StudentSubjectContent')
+                    ))
+                ));
+            }
+
+            $layoutGroupList[] = new LayoutGroup(array(
+                new LayoutRow(new LayoutColumn(
+                    empty($divisionTeacherList)
+                        ? new Warning('Keine ' . $tblDivisionCourse->getDivisionTeacherName() . ' dem Kurs zugewiesen')
+                        : $this->getTableCustom($headerMemberColumnList, $divisionTeacherList)
+                ))
+            ), new \SPHERE\Common\Frontend\Layout\Repository\Title(new Person() . ' ' . $tblDivisionCourse->getDivisionTeacherName() . ' ' . $text
+                . new Link('Bearbeiten', '/Education/Lesson/DivisionCourse/DivisionTeacher', new Pen(), array('DivisionCourseId' => $tblDivisionCourse->getId(), 'Filter' => $Filter))
+                . ' | '
+                . new Link('Sortieren', '/Education/Lesson/DivisionCourse/Member/Sort', new ResizeVertical(),
+                    array('DivisionCourseId' => $tblDivisionCourse->getId(), 'MemberTypeIdentifier' => TblDivisionCourseMemberType::TYPE_DIVISION_TEACHER, 'Filter' => $Filter))
+            ));
+
+            if (!$isSekIICourseOrTeacherGroup) {
+                $layoutGroupList[] = new LayoutGroup(array(
+                    new LayoutRow(new LayoutColumn(
+                        empty($representativeList)
+                            ? new Warning('Keine Schülersprecher dem Kurs zugewiesen')
+                            : $this->getTableCustom($headerMemberColumnList, $representativeList)
+                    ))
+                ), new \SPHERE\Common\Frontend\Layout\Repository\Title(new PersonGroup() . ' Schülersprecher ' . $text
+                    . new Link('Bearbeiten', '/Education/Lesson/DivisionCourse/Representative', new Pen(), array('DivisionCourseId' => $tblDivisionCourse->getId(), 'Filter' => $Filter))
+                    . ' | '
+                    . new Link('Sortieren', '/Education/Lesson/DivisionCourse/Member/Sort', new ResizeVertical(),
+                        array('DivisionCourseId' => $tblDivisionCourse->getId(), 'MemberTypeIdentifier' => TblDivisionCourseMemberType::TYPE_REPRESENTATIVE, 'Filter' => $Filter))
+                ));
+
+                $layoutGroupList[] = new LayoutGroup(array(
+                    new LayoutRow(new LayoutColumn(
+                        empty($custodyList)
+                            ? new Warning('Keine Elternvertreter dem Kurs zugewiesen')
+                            : $this->getTableCustom($headerMemberColumnList, $custodyList)
+                    ))
+                ), new \SPHERE\Common\Frontend\Layout\Repository\Title(new PersonParent() . ' Elternvertreter ' . $text
+                    . new Link('Bearbeiten', '/Education/Lesson/DivisionCourse/Custody', new Pen(), array('DivisionCourseId' => $tblDivisionCourse->getId(), 'Filter' => $Filter))
+                    . ' | '
+                    . new Link('Sortieren', '/Education/Lesson/DivisionCourse/Member/Sort', new ResizeVertical(),
+                        array('DivisionCourseId' => $tblDivisionCourse->getId(), 'MemberTypeIdentifier' => TblDivisionCourseMemberType::TYPE_CUSTODY, 'Filter' => $Filter))
+                ));
+            }
+
             $stage->setContent(
                 ApiDivisionCourseStudent::receiverModal()
                 . DivisionCourse::useService()->getDivisionCourseHeader($tblDivisionCourse)
-                . new Layout(array(
-                    new LayoutGroup(array(
-                        new LayoutRow(new LayoutColumn(
-                            ApiDivisionCourseStudent::receiverBlock($this->loadDivisionCourseStudentContent($DivisionCourseId), 'DivisionCourseStudentContent')
-                        ))
-                    ), new \SPHERE\Common\Frontend\Layout\Repository\Title(new PersonGroup() . ' Schüler ' . $text .
-                        ($tblDivisionCourse->getType()->getIsCourseSystem()
-                            ? ''
-                            : new Link('Bearbeiten', '/Education/Lesson/DivisionCourse/Student', new Pen(), array('DivisionCourseId' => $tblDivisionCourse->getId(), 'Filter' => $Filter))
-                                . ' | '
-                                . new Link('Sortieren', '/Education/Lesson/DivisionCourse/Member/Sort', new ResizeVertical(),
-                                    array('DivisionCourseId' => $tblDivisionCourse->getId(), 'MemberTypeIdentifier' => TblDivisionCourseMemberType::TYPE_STUDENT, 'Filter' => $Filter))
-                        )
-                    )),
-
-                    new LayoutGroup(array(
-                        new LayoutRow(new LayoutColumn(
-                            ApiDivisionCourseStudent::receiverBlock($this->loadStudentSubjectContent($DivisionCourseId), 'StudentSubjectContent')
-                        ))
-                    )),
-
-                    new LayoutGroup(array(
-                        new LayoutRow(new LayoutColumn(
-                            empty($divisionTeacherList)
-                                ? new Warning('Keine ' . $tblDivisionCourse->getDivisionTeacherName() . ' dem Kurs zugewiesen')
-                                : $this->getTableCustom($headerMemberColumnList, $divisionTeacherList)
-                        ))
-                    ), new \SPHERE\Common\Frontend\Layout\Repository\Title(new Person() . ' ' . $tblDivisionCourse->getDivisionTeacherName() . ' ' . $text
-                        . new Link('Bearbeiten', '/Education/Lesson/DivisionCourse/DivisionTeacher', new Pen(), array('DivisionCourseId' => $tblDivisionCourse->getId(), 'Filter' => $Filter))
-                        . ' | '
-                        . new Link('Sortieren', '/Education/Lesson/DivisionCourse/Member/Sort', new ResizeVertical(),
-                            array('DivisionCourseId' => $tblDivisionCourse->getId(), 'MemberTypeIdentifier' => TblDivisionCourseMemberType::TYPE_DIVISION_TEACHER, 'Filter' => $Filter))
-                    )),
-
-                    new LayoutGroup(array(
-                        new LayoutRow(new LayoutColumn(
-                            empty($representativeList)
-                                ? new Warning('Keine Schülersprecher dem Kurs zugewiesen')
-                                : $this->getTableCustom($headerMemberColumnList, $representativeList)
-                        ))
-                    ), new \SPHERE\Common\Frontend\Layout\Repository\Title(new PersonGroup() . ' Schülersprecher ' . $text
-                        . new Link('Bearbeiten', '/Education/Lesson/DivisionCourse/Representative', new Pen(), array('DivisionCourseId' => $tblDivisionCourse->getId(), 'Filter' => $Filter))
-                        . ' | '
-                        . new Link('Sortieren', '/Education/Lesson/DivisionCourse/Member/Sort', new ResizeVertical(),
-                            array('DivisionCourseId' => $tblDivisionCourse->getId(), 'MemberTypeIdentifier' => TblDivisionCourseMemberType::TYPE_REPRESENTATIVE, 'Filter' => $Filter))
-                    )),
-
-                    new LayoutGroup(array(
-                        new LayoutRow(new LayoutColumn(
-                            empty($custodyList)
-                                ? new Warning('Keine Elternvertreter dem Kurs zugewiesen')
-                                : $this->getTableCustom($headerMemberColumnList, $custodyList)
-                        ))
-                    ), new \SPHERE\Common\Frontend\Layout\Repository\Title(new PersonParent() . ' Elternvertreter ' . $text
-                        . new Link('Bearbeiten', '/Education/Lesson/DivisionCourse/Custody', new Pen(), array('DivisionCourseId' => $tblDivisionCourse->getId(), 'Filter' => $Filter))
-                        . ' | '
-                        . new Link('Sortieren', '/Education/Lesson/DivisionCourse/Member/Sort', new ResizeVertical(),
-                            array('DivisionCourseId' => $tblDivisionCourse->getId(), 'MemberTypeIdentifier' => TblDivisionCourseMemberType::TYPE_CUSTODY, 'Filter' => $Filter))
-                    )),
-                ))
+                . ($tblDivisionCourse->getTypeIdentifier() == TblDivisionCourseType::TYPE_TEACHER_GROUP
+                    ? new Warning('Bei Lerngruppen (im Gegensatz zu den anderen Kurs-Typen) besitzt der hier eingestellte Fachlehrer (Gruppenleiter) automatisch
+                        den Lehrauftrag für diese Lerngruppe. Weiterhin können die Fachlehrer selbst Ihre Lerngruppen zusammenstellen und bearbeiten.', new \SPHERE\Common\Frontend\Icon\Repository\Info())
+                    : ''
+                )
+                . new Layout($layoutGroupList)
             );
 
 

@@ -2,6 +2,7 @@
 namespace SPHERE\Application\Education\Lesson\DivisionCourse\Frontend;
 
 use SPHERE\Application\Api\Education\DivisionCourse\ApiTeacherLectureship;
+use SPHERE\Application\Education\Graduation\Grade\Grade;
 use SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount\SelectBoxItem;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
@@ -38,6 +39,7 @@ use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
+use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Stage;
 
 class FrontendTeacher extends FrontendSubjectTable
@@ -75,6 +77,7 @@ class FrontendTeacher extends FrontendSubjectTable
     public function loadTeacherLectureshipTable($Filter = null): string
     {
         $hasFilter = false;
+        $tblYearList = false;
         $tblSubjectFilter = Subject::useService()->getSubjectById($Filter['Subject']);
         $tblTeacherFilter = Person::useService()->getPersonById($Filter['Teacher']);
 
@@ -143,7 +146,6 @@ class FrontendTeacher extends FrontendSubjectTable
             }
         // kein Filter, dann alle Lehrer anzeigen
         } else {
-            $tblYearList = false;
             if (isset($Filter['Year']) && $Filter['Year'] == -1) {
                 $tblYearList = Term::useService()->getYearByNow();
             } elseif (isset($Filter['Year']) && ($tblYearFilter = Term::useService()->getYearById($Filter['Year']))) {
@@ -195,11 +197,46 @@ class FrontendTeacher extends FrontendSubjectTable
                             }
                         }
                     }
-                    if (empty($layoutColumns)) {
-                        $layoutColumns = new LayoutColumn(new Warning('Keine Lehraufträge vorhanden', new Exclamation()));
+
+                    // Lerngruppen
+                    $tempList = array();
+                    if ($tblYearList) {
+                        foreach ($tblYearList as $tblYearTemp) {
+                            if (($tblDivisionCourseTempList = DivisionCourse::useService()->getDivisionCourseListByDivisionTeacher($tblPerson, $tblYearTemp, true))) {
+                                foreach ($tblDivisionCourseTempList as $tblDivisionCourseTemp) {
+                                    if ($tblDivisionCourseTemp->getTypeIdentifier() == TblDivisionCourseType::TYPE_TEACHER_GROUP
+                                        && ($tblSubjectTemp = $tblDivisionCourseTemp->getServiceTblSubject())
+                                    ) {
+                                        // bei gefilterten Fach herausfiltern
+                                        if ($tblSubjectFilter && $tblSubjectFilter->getId() != $tblSubjectTemp->getId()) {
+                                            continue;
+                                        }
+
+                                        $tempList[$tblSubjectTemp->getId()][$tblDivisionCourseTemp->getId()] = $tblDivisionCourseTemp->getName();
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    foreach ($tempList as $subjectTempId => $list) {
+                        if (($tblSubjectItem = Subject::useService()->getSubjectById($subjectTempId))) {
+                            $layoutColumns[] = new LayoutColumn(
+                                new Panel(
+                                    new ToolTip($tblSubjectItem->getDisplayName() . ' (Lerngruppen)', 'Für Lerngruppen können keine Lehraufträge gesetzt werden, 
+                                        der Gruppenleiter (Fachlehrer) besitzt den Lehrauftrag automatisch.'),
+                                    implode(', ', $list),
+                                    Panel::PANEL_TYPE_DEFAULT)
+                                , 3);
+                        }
                     }
 
-                    $layoutGroups[] = new LayoutGroup(new LayoutRow($layoutColumns), new Title(
+                    if (empty($layoutColumns)) {
+                        $layoutRows = new LayoutRow(new LayoutColumn(new Warning('Keine Lehraufträge vorhanden', new Exclamation())));
+                    } else {
+                        $layoutRows = Grade::useService()->getLayoutRowsByLayoutColumnList($layoutColumns, 3);
+                    }
+
+                    $layoutGroups[] = new LayoutGroup($layoutRows, new Title(
                         $tblPerson->getLastFirstName()
                         . (($tblTeacher = Teacher::useService()->getTeacherByPerson($tblPerson)) ? ' (' . $tblTeacher->getAcronym() . ')' : '')
                         . new Link('Bearbeiten', '/Education/Lesson/TeacherLectureship/Edit', new Pen(), array('PersonId' => $tblPerson->getId(), 'Filter' => $Filter))
