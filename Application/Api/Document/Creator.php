@@ -1163,10 +1163,10 @@ class Creator extends Extension
             header("Content-Type: application/pdf");
             header("Content-Disposition: attachment; filename=Zeugnisdruck_A3.pdf");
             header("Content-Length: ".filesize($file));
-        } elseif($Select == 'ESDi') {
+        } elseif($Select == 'Leistungsbeschreibung') {
             $file = "Common/Style/Resource/Document/Manual/SSW_ESDiLeistungsbeschreibung.pdf";
             header("Content-Type: application/pdf");
-            header("Content-Disposition: attachment; filename=ESDi_Leistungsbeschreibung_16.01.2023.pdf");
+            header("Content-Disposition: attachment; filename=Schulsoftware_Leistungsbeschreibung_26.01.2023.pdf");
             header("Content-Length: ".filesize($file));
         } elseif($Select == 'Indiware') {
             $file = "Common/Style/Resource/Document/Manual/Indiware_Leitfaden.pdf";
