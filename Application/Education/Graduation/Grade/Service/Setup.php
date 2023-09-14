@@ -4,6 +4,14 @@ namespace SPHERE\Application\Education\Graduation\Grade\Service;
 
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblMinimumGradeCountLevelLink;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblMinimumGradeCountSubjectLink;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreRuleSubject;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreRuleSubjectDivisionCourse;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreTypeSubject;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTask;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTest;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTestGrade;
 use SPHERE\System\Database\Binding\AbstractSetup;
 
 class Setup  extends AbstractSetup
@@ -20,7 +28,6 @@ class Setup  extends AbstractSetup
          * Table
          */
         $schema = clone $this->getConnection()->getSchema();
-        // todo indexe
         $tblGradeType = $this->setTableGradeType($schema);
         $tblTest = $this->setTableTest($schema, $tblGradeType);
         $this->setTableTestGrade($schema, $tblTest);
@@ -98,7 +105,8 @@ class Setup  extends AbstractSetup
 
         $this->createColumn($table, 'serviceTblPersonTeacher', self::FIELD_TYPE_BIGINT, true);
 
-        $this->createIndex($table, array('serviceTblSubject'), false);
+        $this->createIndex($table, array(TblTest::ATTR_SERVICE_TBL_SUBJECT), false);
+        $this->createIndex($table, array(TblTest::ATTR_SERVICE_TBL_YEAR, TblTest::ATTR_SERVICE_TBL_SUBJECT), false);
 
         return $table;
     }
@@ -117,6 +125,8 @@ class Setup  extends AbstractSetup
         $this->createColumn($table, 'PublicComment', self::FIELD_TYPE_STRING, true);
 
         $this->createColumn($table, 'serviceTblPersonTeacher', self::FIELD_TYPE_BIGINT, true);
+
+        $this->createIndex($table, array(TblTestGrade::ATTR_TBL_TEST, TblTestGrade::ATTR_SERVICE_TBL_PERSON), false);
     }
 
     private function setTableTestCourseLink(Schema &$schema, Table $tblTest)
@@ -151,6 +161,8 @@ class Setup  extends AbstractSetup
 
         $this->createForeignKey($table, $tblScoreType, true);
 
+        $this->createIndex($table, array(TblTask::ATTR_SERVICE_TBL_YEAR), false);
+
         return $table;
     }
 
@@ -169,8 +181,7 @@ class Setup  extends AbstractSetup
         $this->createColumn($table, 'serviceTblPersonTeacher', self::FIELD_TYPE_BIGINT, true);
 
         $this->createIndex($table, array('tblGraduationTask', 'serviceTblPerson'), false);
-//        $this->createIndex($table, array('tblGraduationTask', 'serviceTblPerson', 'serviceTblSubject'), false);
-//        $this->createIndex($table, array('tblGraduationTask', 'serviceTblPerson', 'serviceTblSubject', 'tblGraduationGradeType'), false);
+        $this->createIndex($table, array('tblGraduationTask', 'serviceTblPerson', 'serviceTblSubject'), false);
     }
 
     private function setTableTaskCourseLink(Schema &$schema, Table $tblTask)
@@ -220,6 +231,9 @@ class Setup  extends AbstractSetup
         $this->createColumn($table, 'Level', self::FIELD_TYPE_INTEGER);
         $this->createColumn($table, 'serviceTblSubject', self::FIELD_TYPE_BIGINT);
         $this->createForeignKey($table, $tblScoreType);
+
+        $this->createIndex($table, array(TblScoreTypeSubject::ATTR_TBL_SCORE_TYPE, TblScoreTypeSubject::ATTR_SERVICE_TBL_SCHOOL_TYPE), false);
+        $this->createIndex($table, array(TblScoreTypeSubject::ATTR_SERVICE_TBL_SCHOOL_TYPE, TblScoreTypeSubject::ATTR_LEVEL, TblScoreTypeSubject::ATTR_SERVICE_TBL_SUBJECT), false);
     }
 
     private function setTableScoreGroup(Schema &$schema): Table
@@ -301,6 +315,9 @@ class Setup  extends AbstractSetup
         $this->createColumn($table, 'Level', self::FIELD_TYPE_INTEGER);
         $this->createColumn($table, 'serviceTblSubject', self::FIELD_TYPE_BIGINT);
         $this->createForeignKey($table, $tblScoreRule);
+
+        $this->createIndex($table, array(TblScoreRuleSubject::ATTR_TBL_SCORE_RULE, TblScoreRuleSubject::ATTR_SERVICE_TBL_SCHOOL_TYPE), false);
+        $this->createIndex($table, array(TblScoreRuleSubject::ATTR_SERVICE_TBL_SCHOOL_TYPE, TblScoreRuleSubject::ATTR_LEVEL, TblScoreRuleSubject::ATTR_SERVICE_TBL_SUBJECT), false);
     }
 
     private function setTableScoreRuleSubjectDivisionCourse(Schema &$schema, Table $tblScoreRule)
@@ -309,6 +326,8 @@ class Setup  extends AbstractSetup
         $this->createColumn($table, 'serviceTblDivisionCourse', self::FIELD_TYPE_BIGINT);
         $this->createColumn($table, 'serviceTblSubject', self::FIELD_TYPE_BIGINT);
         $this->createForeignKey($table, $tblScoreRule);
+
+        $this->createIndex($table, array(TblScoreRuleSubjectDivisionCourse::ATTR_SERVICE_TBL_DIVISION_COURSE, TblScoreRuleSubjectDivisionCourse::ATTR_SERVICE_TBL_SUBJECT), false);
     }
 
     private function setTableMinimumGradeCount(Schema $schema, Table $tblGradeType): Table
@@ -329,6 +348,8 @@ class Setup  extends AbstractSetup
         $this->createForeignKey($table, $tblMinimumGradeCount);
         $this->createColumn($table, 'serviceTblSchoolType', self::FIELD_TYPE_BIGINT);
         $this->createColumn($table, 'Level', self::FIELD_TYPE_INTEGER);
+
+        $this->createIndex($table, array(TblMinimumGradeCountLevelLink::ATTR_SERVICE_TBL_SCHOOL_TYPE, TblMinimumGradeCountLevelLink::ATTR_LEVEL), false);
     }
 
     private function setTableMinimumGradeCountSubjectLink(Schema $schema, Table $tblMinimumGradeCount)
@@ -336,6 +357,8 @@ class Setup  extends AbstractSetup
         $table = $this->createTable($schema, 'tblGraduationMinimumGradeCountSubjectLink');
         $this->createForeignKey($table, $tblMinimumGradeCount);
         $this->createColumn($table, 'serviceTblSubject', self::FIELD_TYPE_BIGINT);
+
+        $this->createIndex($table, array(TblMinimumGradeCountSubjectLink::ATTR_TBL_MINIMUM_GRADE_COUNT, TblMinimumGradeCountSubjectLink::ATTR_TBL_SERVICE_TBL_SUBJECT), false);
     }
 
     /**
