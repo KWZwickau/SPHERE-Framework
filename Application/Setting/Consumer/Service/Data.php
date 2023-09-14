@@ -64,6 +64,8 @@ class Data extends AbstractData
         $this->createSetting('People', 'Meta', 'Child', 'AuthorizedToCollectGroups', TblSetting::TYPE_STRING, '', 'Allgemein',
             'Für folgende zusätzliche Personengruppen (mit Komma getrennt) wird der Block Abholberechtigte mit angezeigt. [Standard: ]',
             true);
+        $this->createSetting('Education', 'Lesson', 'DivisionCourse', 'NotIncrementNumericDivisionCourseName', TblSetting::TYPE_BOOLEAN, '0',
+            'Allgemein', 'Beim Schuljahreswechsel werden Klassen, Stammgruppen und Unterrichtsgruppen nicht hochgezählt, wenn diese mit einer Zahl beginnen.', true);
 
         // Indiware non-public
         if (($tblSetting = $this->getSetting('Transfer', 'Indiware', 'Import', 'Lectureship_ConvertDivisionLatinToGreek'))) {
