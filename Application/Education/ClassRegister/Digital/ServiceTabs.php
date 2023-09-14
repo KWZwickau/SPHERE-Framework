@@ -485,7 +485,7 @@ abstract class ServiceTabs extends ServiceCourseContent
                         $divisionName = $tblDivision->getName();
                         $divisionTeacher = $tblDivision->getDivisionTeacherNameListString(', ');
                     }
-                    if (($tblCoreGroup = $tblStudentEducation->getTblDivision())) {
+                    if (($tblCoreGroup = $tblStudentEducation->getTblCoreGroup())) {
                         $hasCoreGroup = true;
                         $coreGroupName = $tblCoreGroup->getName();
                         $coreGroupTeacher = $tblCoreGroup->getDivisionTeacherNameListString(', ');
