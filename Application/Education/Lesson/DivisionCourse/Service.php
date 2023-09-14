@@ -1477,15 +1477,45 @@ class Service extends ServiceYearChange
     /**
      * @param TblPerson $tblPerson
      * @param string $date
+     * @param bool $showTeacherGroups Unterrichtsgruppen mit Anzeigen
      *
      * @return string
      */
-    public function getCurrentMainCoursesByPersonAndDate(TblPerson $tblPerson, string $date = 'now'): string
+    public function getCurrentMainCoursesByPersonAndDate(TblPerson $tblPerson, string $date = 'now', bool $showTeacherGroups = false): string
     {
         $result = '';
         if (($tblStudentEducation = $this->getStudentEducationByPersonAndDate($tblPerson, $date)))
         {
             $result = $this->getCurrentMainCoursesByStudentEducation($tblStudentEducation);
+
+            if ($showTeacherGroups
+                && ($tblYear = $tblStudentEducation->getServiceTblYear())
+                && ($tblDivisionCourseList = $this->getDivisionCourseListByStudentAndYear($tblPerson, $tblYear))
+            ) {
+                $teachingGroups = array();
+                foreach ($tblDivisionCourseList as $tblDivisionCourse) {
+                    if ($tblDivisionCourse->getTypeIdentifier() == TblDivisionCourseType::TYPE_TEACHING_GROUP
+                        && $tblDivisionCourse->getIsShownInPersonData()
+                    ) {
+                        $teachingGroups[$tblDivisionCourse->getId()] = $tblDivisionCourse->getName();
+                    }
+
+                    // Subkurse
+                    if (($tblAboveDivisionCourseList = $this->getAboveDivisionCourseListBySubDivisionCourse($tblDivisionCourse))) {
+                        foreach ($tblAboveDivisionCourseList as $tblAboveDivisionCourse) {
+                            if ($tblAboveDivisionCourse->getTypeIdentifier() == TblDivisionCourseType::TYPE_TEACHING_GROUP
+                                && $tblAboveDivisionCourse->getIsShownInPersonData()
+                            ) {
+                                $teachingGroups[$tblAboveDivisionCourse->getId()] = $tblAboveDivisionCourse->getName();
+                            }
+                        }
+                    }
+                }
+
+                if (!empty($teachingGroups)) {
+                    $result .= ($result ? ', ' : '') . (count($teachingGroups) > 1 ? 'Unterrichtsgruppen: ' : 'Unterrichtsgruppe: ') . implode(', ', $teachingGroups);
+                }
+            }
         }
 
         return $result;
