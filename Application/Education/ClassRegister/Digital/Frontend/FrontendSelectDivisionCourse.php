@@ -9,8 +9,7 @@ use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisio
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
-use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
-use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
+use SPHERE\Application\Setting\Consumer\Consumer as ConsumerSetting;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Select;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
@@ -54,7 +53,8 @@ class FrontendSelectDivisionCourse extends FrontendCourseContent
     {
         $Stage = new Stage('Digitales Klassenbuch', 'Kurs auswählen');
 
-        $hasLastYearsTemp = Consumer::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'HOGA');
+        $hasLastYearsTemp = ($tblSetting = ConsumerSetting::useService()->getSetting('Education', 'ClassRegister', 'LessonContent', 'HasTeacherAccessToLastYearDigital'))
+            && $tblSetting->getValue();
 
         Digital::useService()->setHeaderButtonList($Stage, View::TEACHER, self::BASE_ROUTE);
         $yearFilterList = array();
@@ -174,7 +174,8 @@ class FrontendSelectDivisionCourse extends FrontendCourseContent
         $Stage = new Stage('Digitales Klassenbuch', 'Kurs auswählen');
         Digital::useService()->setHeaderButtonList($Stage, View::HEADMASTER, self::BASE_ROUTE);
 
-        $hasLastYearsTemp = Consumer::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'HOGA');
+        $hasLastYearsTemp = ($tblSetting = ConsumerSetting::useService()->getSetting('Education', 'ClassRegister', 'LessonContent', 'HasTeacherAccessToLastYearDigital'))
+            && $tblSetting->getValue();
 
         $yearFilterList = array();
         // nur Schulleitung darf History (Alle Schuljahre) sehen
