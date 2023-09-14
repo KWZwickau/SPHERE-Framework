@@ -47,6 +47,9 @@ class Data extends AbstractData
         $this->createType('Berufsschule', 'BS', $tblCategoryTechnical, true);
         $this->createType('Fachoberschule', 'FOS', $tblCategoryTechnical, true);
         $this->createType('Fachschule', 'FS', $tblCategoryTechnical, true);
+        $this->createType('Berufsgrundbildungsjahr', 'BGJ', $tblCategoryTechnical, true);
+        $this->createType('Berufsvorbereitungsjahr', 'BVJ', $tblCategoryTechnical, true);
+        $this->createType('Vorbereitungsklasse mit beruflichem Aspekt', 'VKlbA', $tblCategoryTechnical, true);
 
         // zweiter Bildungsweg
         $this->createType('Abendoberschule', '', $tblCategorySecondCourse, true);
@@ -60,13 +63,7 @@ class Data extends AbstractData
         $this->createType('Freie Waldorfschule', '', $tblCategoryCommon, false);
 
         $this->createType('Berufsschule (berufsbildende Förderschule)', '', $tblCategoryTechnical, false);
-        if (($tblType = $this->createType('Berufsgrundbildungsjahr', 'BGJ', $tblCategoryTechnical, true))) {
-            $this->updateTypeOnce($tblType, 'BGJ', $tblCategoryTechnical, true);
-        }
         $this->createType('Berufsgrundbildungsjahr (berufsbildende Förderschule)', '', $tblCategoryTechnical, false);
-        if (($tblType = $this->createType('Berufsvorbereitungsjahr', 'BVJ', $tblCategoryTechnical, true))) {
-            $this->updateTypeOnce($tblType, 'BVJ', $tblCategoryTechnical, true);
-        }
         $this->createType('Berufsvorbereitungsjahr (berufsbildende Förderschule)', '', $tblCategoryTechnical, false);
         $this->createType('BvB', '', $tblCategoryTechnical, false);
         $this->createType('BvB – rehaspezifisch', '', $tblCategoryTechnical, false);
