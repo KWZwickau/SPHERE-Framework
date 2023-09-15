@@ -662,7 +662,8 @@ class Frontend extends FrontendYearChange
                 . DivisionCourse::useService()->getDivisionCourseHeader($tblDivisionCourse)
                 . ($tblDivisionCourse->getTypeIdentifier() == TblDivisionCourseType::TYPE_TEACHER_GROUP
                     ? new Warning('Bei Lerngruppen (im Gegensatz zu den anderen Kurs-Typen) besitzt der hier eingestellte Fachlehrer (Gruppenleiter) automatisch
-                        den Lehrauftrag für diese Lerngruppe. Weiterhin können die Fachlehrer selbst Ihre Lerngruppen zusammenstellen und bearbeiten.', new \SPHERE\Common\Frontend\Icon\Repository\Info())
+                        den Lehrauftrag für diese Lerngruppe. Weiterhin können die Fachlehrer selbst Lerngruppen im Notenbuch zusammenstellen und bearbeiten.',
+                        new \SPHERE\Common\Frontend\Icon\Repository\Info())
                     : ''
                 )
                 . new Layout($layoutGroupList)
