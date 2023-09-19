@@ -96,7 +96,8 @@ class Service extends Extension
                 }
             }
             $row = 0;
-            $TypeWorksheet = str_replace('/', '-', $Type);
+            // Maximum 31 characters allowed in work sheet title
+            $TypeWorksheet = str_replace('/', '-', $Type == 'Vorbereitungsklasse mit beruflichem Aspekt' ? 'VKlbA' : $Type);
             // choose/create Page
             if($IsFirstTab === true) {
                 $export->renameWorksheet($TypeWorksheet);
