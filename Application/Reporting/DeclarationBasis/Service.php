@@ -425,7 +425,7 @@ Förderschwerpunktes (FSP) ist der Meldung zusätzlich beizufügen.');
             foreach ($DataFocus as $TypeIntegrativeList => $LevelList) {
                 $row = 0;
                 // create Page
-                $CourseTypeName = str_replace('/', '-', $TypeIntegrativeList);
+                $CourseTypeName = str_replace('/', '-', $TypeIntegrativeList == 'Vorbereitungsklasse mit beruflichem Aspekt' ? 'VKlbA' : $TypeIntegrativeList);
                 $PageTitle = substr('Namensliste '.$CourseTypeName, 0, 30);
                 $export->createWorksheet($PageTitle);
                 // set Page Options
