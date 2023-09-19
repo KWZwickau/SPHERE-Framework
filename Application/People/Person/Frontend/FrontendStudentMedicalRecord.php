@@ -255,6 +255,11 @@ class FrontendStudentMedicalRecord extends FrontendReadOnly
 
         // Document
         $tblStudentMasernInfoDocumentList = Student::useService()->getStudentMasernInfoByType(TblStudentMasernInfo::TYPE_DOCUMENT);
+        foreach($tblStudentMasernInfoDocumentList as $Key => $tblStudentMasernInfoDocument){
+            if($tblStudentMasernInfoDocument->getTextShort() == 'Kein Nachweis notwendig'){
+                unset($tblStudentMasernInfoDocumentList[$Key]);
+            }
+        }
 
         $Field = new SelectBox('Meta[MedicalRecord][Masern][DocumentType]', 'Art der Bescheinigung', array('TextLong' => $tblStudentMasernInfoDocumentList));
         $PanelContentArray[] =
