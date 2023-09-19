@@ -45,13 +45,11 @@ class FoesAbsGeistigeEntwicklung extends Certificate
             $showPictureOnSecondPage = $tblSetting->getValue();
         }
 
-        $Header = $this->getHead($this->isSample());
-
 //        // leere Seite
 //        $pageList[] = new Page();
 
         $pageList[] = (new Page())
-            ->addSlice($Header)
+            ->addSlice($this->getHeadForDiploma($this->isSample(), !$showPictureOnSecondPage))
             ->addSlice((new Slice())
                 ->addElement((new Element())
                     ->setContent('ABSCHLUSSZEUGNIS')
