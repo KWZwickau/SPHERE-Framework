@@ -7,6 +7,7 @@ use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseMemberType;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblStudentSubject;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblSubjectTable;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
@@ -17,6 +18,7 @@ use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
+use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\Check;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Education;
@@ -168,12 +170,7 @@ class FrontendStudentSubject extends FrontendStudent
                                     ->setRequired()
                                     ->ajaxPipelineOnChange(ApiStudentSubject::pipelineLoadCheckSubjectsContent($DivisionCourseId)),
                                 Panel::PANEL_TYPE_INFO
-                            ), 6),
-                            new FormColumn(new Panel(
-                                'Benotung',
-                                new CheckBox('Data[HasGrading]', 'Benotung', 1),
-                                Panel::PANEL_TYPE_INFO
-                            ), 6)
+                            ), 12),
                         )),
                         new FormRow(new FormColumn(
                             ApiStudentSubject::receiverBlock($SubjectId
@@ -204,11 +201,10 @@ class FrontendStudentSubject extends FrontendStudent
             $subjectTableVariableList = array();
             $tblStudentList = DivisionCourse::useService()->getStudentListBy($tblDivisionCourse);
 
+            $hasGrading = true;
             if (isset($Data['Subject']) && ($tblSubject = Subject::useService()->getSubjectById($Data['Subject']))) {
                 $global = $this->getGlobal();
                 $global->POST['Data']['StudentList'] = null;
-
-                $hasGrading = true;
                 if (($tblStudentList)) {
                     foreach ($tblStudentList as $tblPerson) {
                         // SekII überspringen
@@ -258,9 +254,8 @@ class FrontendStudentSubject extends FrontendStudent
                         }
                     }
                 }
-                if ($hasGrading) {
-                    $global->POST['Data']['HasGrading'] = 1;
-                }
+
+                $global->POST['Data']['HasGrading'] = $hasGrading ? 1 : 0;
                 $global->savePost();
             } else {
                 return new Warning('Bitte wählen Sie zunächst ein Fach aus.');
@@ -290,7 +285,12 @@ class FrontendStudentSubject extends FrontendStudent
 
             if ($dataList) {
                 $panel = new Panel('Schüler', $dataList, Panel::PANEL_TYPE_INFO);
-                return new ToggleSelective( 'Alle wählen/abwählen', $toggleList)
+                return new Panel(
+                        'Benotung',
+                        new CheckBox('Data[HasGrading]', 'Benotung', 1),
+                        Panel::PANEL_TYPE_INFO
+                    )
+                    . new ToggleSelective( 'Alle wählen/abwählen', $toggleList)
                     . new Container('&nbsp;')
                     . $panel
                     . (new Primary('Speichern', ApiStudentSubject::getEndpoint(), new Save()))
@@ -477,7 +477,8 @@ class FrontendStudentSubject extends FrontendStudent
                                     ->ajaxPipelineOnClick(ApiStudentSubject::pipelineEditStudentSubjectContent($DivisionCourseId, $tblSubject->getId()))
                                 )));
                         }
-                        $item[$tblSubject->getId()] = new ToolTip(new Muted('ST'), 'Stundentafel');
+                        $item[$tblSubject->getId()] = new ToolTip(new Muted('ST'), 'Stundentafel')
+                            . (!$tblSubjectTable->getHasGrading() ? ' ' . new ToolTip(new Muted(new Ban()), 'Keine Benotung') : '');
                         // variable Fächer der Stundentafel und Schülerakte
                     } else {
                         $tblSubject = false;
@@ -488,10 +489,12 @@ class FrontendStudentSubject extends FrontendStudent
                                     $tblPerson, $tblYear, $tblSubjectTable))
                                 && ($tblSubject = $tblStudentSubjectTemp->getServiceTblSubject())
                             ) {
-                                $item[$tblSubject->getId()] = new Check();
+                                $item[$tblSubject->getId()] = new Check()
+                                    . (!$tblStudentSubjectTemp->getHasGrading() ? ' ' . new ToolTip(new Muted(new Ban()), 'Keine Benotung') : '');
                                 // nicht gespeichertes Fach aus der Schülerakte
                             } elseif (($tblSubject = DivisionCourse::useService()->getSubjectFromStudentMetaIdentifier($tblSubjectTable, $tblPerson))) {
-                                $item[$tblSubject->getId()] = new ToolTip(new Muted('ST-SA'), 'Stundentafel-Schülerakte');
+                                $item[$tblSubject->getId()] = new ToolTip(new Muted('ST-SA'), 'Stundentafel-Schülerakte')
+                                    . (!$tblSubjectTable->getHasGrading() ? ' ' . new ToolTip(new Muted(new Ban()), 'Keine Benotung') : '');
                             }
                             // Fach nicht aus der Schülerakte, aber individuell am Schüler
                         } elseif (($tblSubjectFromSubjectTable = $tblSubjectTable->getServiceTblSubject())) {
@@ -499,7 +502,8 @@ class FrontendStudentSubject extends FrontendStudent
                                 $tblPerson, $tblYear, $tblSubjectFromSubjectTable
                             )) {
                                 $tblSubject = $tblSubjectFromSubjectTable;
-                                $item[$tblSubject->getId()] = new Check();
+                                $item[$tblSubject->getId()] = new Check()
+                                    . (!$tblSubjectTable->getHasGrading() ? ' ' . new ToolTip(new Muted(new Ban()), 'Keine Benotung') : '');
                             }
                         }
 
@@ -544,10 +548,12 @@ class FrontendStudentSubject extends FrontendStudent
             if (($tblStudentSubjectList = DivisionCourse::useService()->getStudentSubjectListByPersonAndYear($tblPerson, $tblYear))) {
                 // Sortierung der Fächer
                 $tblStudentSubjectList = $this->getSorter($tblStudentSubjectList)->sortObjectBy('Sort');
+                /** @var TblStudentSubject $tblStudentSubject */
                 foreach ($tblStudentSubjectList as $tblStudentSubject) {
                     if (($tblSubjectItem = $tblStudentSubject->getServiceTblSubject())) {
                         if (!isset($item[$tblSubjectItem->getId()])) {
-                            $item[$tblSubjectItem->getId()] = new Check();
+                            $item[$tblSubjectItem->getId()] = new Check()
+                                . (!$tblStudentSubject->getHasGrading() ? ' ' . new ToolTip(new Muted(new Ban()), 'Keine Benotung') : '');
                         }
 
                         if (!isset($subjectList[$tblSubjectItem->getId()])) {
