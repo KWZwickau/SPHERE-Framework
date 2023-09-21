@@ -6,7 +6,6 @@ use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisio
 use SPHERE\Application\People\Group\Service\Data;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Group\Service\Entity\TblMember;
-use SPHERE\Application\People\Group\Service\Entity\ViewPeopleGroupMember;
 use SPHERE\Application\People\Group\Service\Setup;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
@@ -30,15 +29,6 @@ use SPHERE\System\Extension\Repository\Sorter;
  */
 class Service extends AbstractService
 {
-
-    /**
-     * @return false|ViewPeopleGroupMember[]
-     */
-    public function viewPeopleGroupMember()
-    {
-
-        return (new Data($this->getBinding()))->viewPeopleGroupMember();
-    }
 
     /**
      * @param bool $doSimulation

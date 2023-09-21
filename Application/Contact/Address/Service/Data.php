@@ -8,8 +8,6 @@ use SPHERE\Application\Contact\Address\Service\Entity\TblState;
 use SPHERE\Application\Contact\Address\Service\Entity\TblToCompany;
 use SPHERE\Application\Contact\Address\Service\Entity\TblToPerson;
 use SPHERE\Application\Contact\Address\Service\Entity\TblType;
-use SPHERE\Application\Contact\Address\Service\Entity\ViewAddressToCompany;
-use SPHERE\Application\Contact\Address\Service\Entity\ViewAddressToPerson;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
@@ -25,28 +23,6 @@ use SPHERE\System\Database\Fitting\IdHydrator;
  */
 class Data extends AbstractData
 {
-
-    /**
-     * @return false|ViewAddressToPerson[]
-     */
-    public function viewAddressToPersonAll()
-    {
-
-        return $this->getCachedEntityList(
-            __METHOD__, $this->getConnection()->getEntityManager(), 'ViewAddressToPerson'
-        );
-    }
-
-    /**
-     * @return false|ViewAddressToCompany[]
-     */
-    public function viewAddressToCompanyAll()
-    {
-
-        return $this->getCachedEntityList(
-            __METHOD__, $this->getConnection()->getEntityManager(), 'ViewAddressToCompany'
-        );
-    }
 
     /**
      * @return void
@@ -341,21 +317,36 @@ class Data extends AbstractData
     }
 
     /**
-     * @return false|ViewAddressToPerson[]
+     * Array include:
+     * [StreetName],
+     * [County],
+     * [Nation],
+     * [Code],
+     * [Name],
+     * [District]
+     * <br/> distinct & only with existing Usage
+     * @return bool|TblAddress[]
      */
-    public function getViewAddressToPersonAll()
+    public function getAddressAllForAutoCompleter()
     {
 
-        return $this->getCachedEntityList(__METHOD__, $this->getEntityManager(), 'ViewAddressToPerson');
-    }
+        $Manager = $this->getConnection()->getEntityManager();
 
-    /**
-     * @return false|ViewAddressToCompany[]
-     */
-    public function getViewAddressToCompanyAll()
-    {
+        $Builder = $Manager->getQueryBuilder();
+        $tblToPerson = new TblToPerson();
+        $tblAddress = new TblAddress();
+        $tblCity = new TblCity();
+        $Query = $Builder->select('tA.StreetName, tA.County, tA.Nation, tC.Code, tC.Name, tC.District')
+            ->from($tblToPerson->getEntityFullName(), 'tTP')
+            ->leftJoin($tblAddress->getEntityFullName(), 'tA', 'WITH', 'tA.Id = tTP.tblAddress')
+            ->leftJoin($tblCity->getEntityFullName(), 'tC', 'WITH', 'tC.Id = tA.tblCity')
+            ->where($Builder->expr()->isNull('tTP.EntityRemove'))
+            ->distinct()
+            ->getQuery();
 
-        return $this->getCachedEntityList(__METHOD__, $this->getEntityManager(), 'ViewAddressToCompany');
+        $resultList = $Query->getResult();
+        return $resultList;
+
     }
 
     /**

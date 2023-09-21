@@ -9,7 +9,6 @@ use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Phone\Phone;
 use SPHERE\Application\Contact\Web\Web;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
-use SPHERE\Application\Education\Lesson\Term\Service\Entity\ViewYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Group\Group;
@@ -141,8 +140,10 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage('Schüler-Accounts', 'Erstellen');
 
-        if(($tblYearList = Term::useService()->getYearByNow())){
-            $_POST['Data']['Year'] = current($tblYearList)->getId();
+        if(!isset($Data['Year'])){
+            if(($tblYearList = Term::useService()->getYearByNow())){
+                $_POST['Data']['Year'] = current($tblYearList)->getId();
+            }
         }
 
         $form = $this->getStudentFilterForm();
@@ -176,7 +177,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         //get ErrorMessage by Filter
         $formResult = new Form(new FormGroup(new FormRow(new FormColumn(
-            (isset($Year[ViewYear::TBL_YEAR_ID]) && $Year[ViewYear::TBL_YEAR_ID] != 0
+            (isset($Data['Year']) && $Data['Year'] != 0
                 ? new Warning(new Container('Filterung findet keine Personen (ohne Account)'))
                 : new Warning('Die Filterung benötigt ein Schuljahr'))
         ))));
@@ -268,8 +269,10 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Sorgeberechtigten-Accounts', 'Erstellen');
-        if(($tblYearList = Term::useService()->getYearByNow())){
-            $_POST['Data']['Year'] = current($tblYearList)->getId();
+        if(!isset($Data['Year'])){
+            if(($tblYearList = Term::useService()->getYearByNow())){
+                $_POST['Data']['Year'] = current($tblYearList)->getId();
+            }
         }
         $form = $this->getCustodyFilterForm();
         $tblStudentEducationList = Account::useService()->getStudentFilterResult($Data);
@@ -306,7 +309,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         //get ErrorMessage by Filter
         $formResult = new Form(new FormGroup(new FormRow(new FormColumn(
-            (isset($Year[ViewYear::TBL_YEAR_ID]) && $Year[ViewYear::TBL_YEAR_ID] != 0
+            (isset($Data['Year']) && $Data['Year'] != 0
                 ? new Warning(new Container('Filterung findet keine Personen (ohne Account)')
                 // SSW-1625 keine Einschränkung durch die Mandanten Einstellung
 //                    .($tblSchoolTypeList

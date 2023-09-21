@@ -9,8 +9,6 @@ use SPHERE\Application\Contact\Address\Service\Entity\TblState;
 use SPHERE\Application\Contact\Address\Service\Entity\TblToCompany;
 use SPHERE\Application\Contact\Address\Service\Entity\TblToPerson;
 use SPHERE\Application\Contact\Address\Service\Entity\TblType;
-use SPHERE\Application\Contact\Address\Service\Entity\ViewAddressToCompany;
-use SPHERE\Application\Contact\Address\Service\Entity\ViewAddressToPerson;
 use SPHERE\Application\Contact\Address\Service\Setup;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -24,24 +22,6 @@ use SPHERE\System\Database\Binding\AbstractService;
  */
 class Service extends AbstractService
 {
-
-    /**
-     * @return false|ViewAddressToPerson[]
-     */
-    public function viewAddressToPersonAll()
-    {
-
-        return (new Data($this->getBinding()))->viewAddressToPersonAll();
-    }
-
-    /**
-     * @return false|ViewAddressToCompany[]
-     */
-    public function viewAddressToCompanyAll()
-    {
-
-        return (new Data($this->getBinding()))->viewAddressToCompanyAll();
-    }
 
     /**
      * @param bool $doSimulation
@@ -179,21 +159,41 @@ class Service extends AbstractService
     }
 
     /**
-     * @return false|ViewAddressToPerson[]
+     * distinct & only with existing Usage
+     * @return array[$StreetNameList, $CountyList, $NationList, $CityList, $CodeList, $DistrictList]
      */
-    public function getViewAddressToPersonAll()
+    public function getAddressForAutoCompleter()
     {
 
-        return (new Data($this->getBinding()))->getViewAddressToPersonAll();
-    }
-
-    /**
-     * @return false|ViewAddressToCompany[]
-     */
-    public function getViewAddressToCompanyAll()
-    {
-
-        return (new Data($this->getBinding()))->getViewAddressToCompanyAll();
+        $AddressArray = (new Data($this->getBinding()))->getAddressAllForAutoCompleter();;
+        $StreetNameList = $CountyList = $NationList = $CityList = $CodeList = $DistrictList = array();
+        if(is_array($AddressArray) && !empty($AddressArray)){
+            foreach($AddressArray as $Address){
+                foreach($Address as $key => $value){
+                    switch ($key) {
+                        case TblAddress::ATTR_STREET_NAME:
+                            $StreetNameList[] = $value;
+                            break;
+                        case TblAddress::ATTR_COUNTY:
+                            $CountyList[] = $value;
+                            break;
+                        case TblAddress::ATTR_NATION:
+                            $NationList[] = $value;
+                            break;
+                        case TblCity::ATTR_NAME:
+                            $CityList[] = $value;
+                            break;
+                        case TblCity::ATTR_CODE:
+                            $CodeList[] = $value;
+                            break;
+                        case TblCity::ATTR_DISTRICT:
+                            $DistrictList[] = $value;
+                            break;
+                    }
+                }
+            }
+        }
+        return array($StreetNameList, $CountyList, $NationList, $CityList, $CodeList, $DistrictList);
     }
 
     /**

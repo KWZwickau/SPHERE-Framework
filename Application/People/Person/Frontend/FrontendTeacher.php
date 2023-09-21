@@ -33,7 +33,6 @@ use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Frontend\Link\Repository\Link;
-use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class FrontendTeacher

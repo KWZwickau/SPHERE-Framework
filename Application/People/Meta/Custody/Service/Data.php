@@ -2,7 +2,6 @@
 namespace SPHERE\Application\People\Meta\Custody\Service;
 
 use SPHERE\Application\People\Meta\Custody\Service\Entity\TblCustody;
-use SPHERE\Application\People\Meta\Custody\Service\Entity\ViewPeopleMetaCustody;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Database\Binding\AbstractData;
@@ -14,17 +13,6 @@ use SPHERE\System\Database\Binding\AbstractData;
  */
 class Data extends AbstractData
 {
-
-    /**
-     * @return false|ViewPeopleMetaCustody[]
-     */
-    public function viewPeopleMetaCustody()
-    {
-
-        return $this->getCachedEntityList(
-            __METHOD__, $this->getConnection()->getEntityManager(), 'ViewPeopleMetaCustody'
-        );
-    }
 
     public function setupDatabaseContent()
     {

@@ -3,7 +3,7 @@ SELECT
 -- PersonId to match with all View's // TblPerson
     tP.Id AS TblPerson_Id,
     concat(
-        tP.LastName, ' ', tP.FirstName,
+        tP.LastName, ', ', tP.FirstName,
         IF(tP.SecondName = '', '', ' '), tP.SecondName
     ) AS TblPerson_LastFirstName,
 --     tG.Id AS TblGroup_Id,

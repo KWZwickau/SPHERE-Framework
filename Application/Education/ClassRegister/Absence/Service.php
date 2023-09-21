@@ -1,21 +1,11 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: Kauschke
- * Date: 08.07.2016
- * Time: 09:05
- */
-
 namespace SPHERE\Application\Education\ClassRegister\Absence;
 
 use DateTime;
-use phpDocumentor\Reflection\Types\Array_;
-use SPHERE\Application\Api\Education\ClassRegister\ApiAbsence;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Education\ClassRegister\Absence\Service\Data;
 use SPHERE\Application\Education\ClassRegister\Absence\Service\Entity\TblAbsence;
 use SPHERE\Application\Education\ClassRegister\Absence\Service\Entity\TblAbsenceLesson;
-use SPHERE\Application\Education\ClassRegister\Absence\Service\Entity\ViewAbsence;
 use SPHERE\Application\Education\ClassRegister\Absence\Service\Setup;
 use SPHERE\Application\Education\ClassRegister\Digital\Digital;
 use SPHERE\Application\Education\Lesson\Division\Division;
@@ -31,33 +21,9 @@ use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\Structure\Form;
-use SPHERE\Common\Frontend\Icon\Repository\Calendar;
-use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
-use SPHERE\Common\Frontend\Icon\Repository\ChevronRight;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
-use SPHERE\Common\Frontend\Icon\Repository\PersonGroup;
-use SPHERE\Common\Frontend\Icon\Repository\Plus;
-use SPHERE\Common\Frontend\Layout\Repository\Container;
-use SPHERE\Common\Frontend\Layout\Repository\Panel;
-use SPHERE\Common\Frontend\Layout\Repository\PullRight;
-use SPHERE\Common\Frontend\Layout\Structure\Layout;
-use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
-use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
-use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
-use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
-use SPHERE\Common\Frontend\Table\Structure\Table;
-use SPHERE\Common\Frontend\Table\Structure\TableBody;
-use SPHERE\Common\Frontend\Table\Structure\TableColumn;
-use SPHERE\Common\Frontend\Table\Structure\TableHead;
-use SPHERE\Common\Frontend\Table\Structure\TableRow;
-use SPHERE\Common\Frontend\Text\Repository\Bold;
-use SPHERE\Common\Frontend\Text\Repository\Center;
-use SPHERE\Common\Frontend\Text\Repository\Muted;
-use SPHERE\Common\Frontend\Text\Repository\Small;
-use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\System\Database\Binding\AbstractService;
-use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * @deprecated
@@ -68,14 +34,6 @@ use SPHERE\System\Extension\Repository\Debugger;
  */
 class Service extends AbstractService
 {
-    /**
-     * @return false|ViewAbsence[]
-     */
-    public function viewAbsence()
-    {
-
-        return ( new Data($this->getBinding()) )->viewAbsence();
-    }
 
     /**
      * @param bool $doSimulation
