@@ -6,6 +6,7 @@ use MOC\V\Component\Document\Component\Parameter\Repository\FileParameter;
 use MOC\V\Component\Document\Document;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Mail\Mail;
+use SPHERE\Application\Contact\Mail\Service\Entity\TblType as TblTypeMail;
 use SPHERE\Application\Contact\Phone\Phone;
 use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
@@ -377,12 +378,15 @@ class Service extends Extension
                                     $item['EmergencyMobileS'.$Number] = implode('; ', $phoneEM);
                                 }
                             }
-                            if(($tblMailList = Mail::useService()->getMailAllByPerson($tblPersonS))){
-                                if(isset($tblMailList[0]) && ($tblMail = $tblMailList[0]->getTblMail())){
-                                    $item['MailS'.$Number] = $tblMail->getAddress();
-                                }
-                                if(isset($tblMailList[1]) && ($tblMail = $tblMailList[1]->getTblMail())){
-                                    $item['Mail2S'.$Number] = $tblMail->getAddress();
+                            if(($tblToPersonMailList = Mail::useService()->getMailAllByPerson($tblPersonS))){
+                                foreach($tblToPersonMailList as $tblToPersonMail){
+                                    $tblType = $tblToPersonMail->getTblType();
+                                    $tblMail = $tblToPersonMail->getTblMail();
+                                    if($tblType->getName() == TblTypeMail::VALUE_PRIVATE) {
+                                        $item['MailS'.$Number] = $tblMail->getAddress();
+                                    }elseif($tblType->getName() == TblTypeMail::VALUE_BUSINESS) {
+                                        $item['Mail2S'.$Number] = $tblMail->getAddress();
+                                    }
                                 }
                             }
                             // Elternvertreter
