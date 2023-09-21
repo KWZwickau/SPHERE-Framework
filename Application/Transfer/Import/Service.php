@@ -141,4 +141,26 @@ class Service
 
         return '';
     }
+
+    /**
+     * @param string $date
+     *
+     * @return false|string
+     */
+    public static function getFormatDateString(string $date)
+    {
+        $len = strlen($date);
+        switch ($len) {
+            case 5:
+                return date('d.m.Y', \PHPExcel_Shared_Date::ExcelToPHP($date));
+            case 6:
+                return substr($date, 0, 2) . '.' . substr($date, 2, 2) . '.' . substr($date, 4, 2);
+            case 7:
+                $date = '0' . $date;
+            case 8:
+               return substr($date, 0, 2) . '.' . substr($date, 2, 2) . '.' . substr($date, 4, 4);
+            default:
+                return '';
+        }
+    }
 }
