@@ -362,11 +362,44 @@ class TblDivisionCourse extends Element
     {
         if ($this->getTypeIdentifier() == TblDivisionCourseType::TYPE_ADVANCED_COURSE || $this->getTypeIdentifier() == TblDivisionCourseType::TYPE_BASIC_COURSE) {
             $tblPersonList = array();
-            if (($tblStudentSubjectList = DivisionCourse::useService()->getStudentSubjectListBySubjectDivisionCourse($this))) {
+            if (($tblStudentSubjectList = DivisionCourse::useService()->getStudentSubjectListBySubjectDivisionCourse($this))
+                && ($tblYear = $this->getServiceTblYear())
+            ) {
+                $hasDivisionSort = false;
+                $divisionSortList = array();
+
                 foreach ($tblStudentSubjectList as $tblStudentSubject) {
                     if (($tblPersonTemp = $tblStudentSubject->getServiceTblPerson())) {
+                        if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPersonTemp, $tblYear))) {
+                           if ($tblStudentEducation->getDivisionSortOrder()) {
+                               $hasDivisionSort = true;
+                               $divisionSortList[$tblPersonTemp->getId()] = $tblStudentEducation->getDivisionSortOrder();
+                           }
+                        }
+
                         $tblPersonList[$tblPersonTemp->getId()] = $tblPersonTemp;
                     }
+                }
+
+                // Sortierung wie in der Klasse
+                if ($hasDivisionSort) {
+                    $tempList = array();
+                    foreach ($tblPersonList as $tblPerson) {
+                        if (isset($divisionSortList[$tblPerson->getId()])) {
+                            $sortNumber = $divisionSortList[$tblPerson->getId()] * 100;
+                        } else {
+                            $sortNumber = 10000;
+                        }
+
+                        while (isset($tempList[$sortNumber])) {
+                            $sortNumber++;
+                        }
+                        $tempList[$sortNumber] = $tblPerson;
+                    }
+
+                    ksort($tempList);
+
+                    return empty($tempList) ? false : $tempList;
                 }
             }
 
