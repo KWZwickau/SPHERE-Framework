@@ -14,6 +14,7 @@ use SPHERE\Application\People\Meta\Common\Service\Entity\TblCommon;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudent;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
+use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Text\Repository\Underline;
 use SPHERE\System\Database\Fitting\Element;
 
@@ -257,9 +258,16 @@ class TblPerson extends Element
     public function getLastFirstNameWithCallNameUnderline(): string
     {
         if (preg_match('![a-zA-Z]!s', $this->FirstName)) {
+            $isDisplayCallNameAndLastName = ($tblSetting = Consumer::useService()->getSetting('People', 'Person', 'Student', 'DisplayCallNameAndLastName'))
+                && $tblSetting->getValue();
             $firstSecondName = trim($this->FirstName . ' ' . $this->SecondName);
-            if ($this->CallName && $this->CallName != $firstSecondName && ($pos = strpos($firstSecondName, $this->CallName)) !== null) {
-                return trim($this->LastName . ', ' . substr($firstSecondName, 0, $pos) . new Underline($this->CallName) . substr($firstSecondName, $pos + strlen($this->CallName)));
+            if ($isDisplayCallNameAndLastName) {
+                return ($this->CallName ?: $firstSecondName) . ' ' . $this->LastName;
+            } else {
+                if ($this->CallName && $this->CallName != $firstSecondName && ($pos = strpos($firstSecondName, $this->CallName)) !== null) {
+                    return trim($this->LastName . ', ' . substr($firstSecondName, 0, $pos) . new Underline($this->CallName) . substr($firstSecondName,
+                            $pos + strlen($this->CallName)));
+                }
             }
 
             return trim($this->LastName.', '. $firstSecondName);
