@@ -587,7 +587,8 @@ Förderschwerpunktes (FSP) ist der Meldung zusätzlich beizufügen.');
     {
         $level = $tblStudentEducation->getLevel();
         $Type = '';
-        if ($level) {
+        // StudentEducation muss eine aktive Klasse/Stammgruppe haben
+        if ($level && ($tblStudentEducation->getTblDivision() || $tblStudentEducation->getTblCoreGroup())) {
             if (($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())) {
                 $Type = $tblSchoolType->getName();
             }
@@ -625,6 +626,8 @@ Förderschwerpunktes (FSP) ist der Meldung zusätzlich beizufügen.');
             $Type = $tblSchoolType->getName();
         }
         if($tblPerson
+            // StudentEducation muss eine aktive Klasse/Stammgruppe haben
+            && ($tblStudentEducation->getTblDivision() || $tblStudentEducation->getTblCoreGroup())
             && ($tblSupport = Student::useService()->getSupportForReportingByPerson($tblPerson, $date))
             && ($tblSupportFocus = Student::useService()->getSupportPrimaryFocusBySupport($tblSupport))
             && ($tblSupportFocusType = $tblSupportFocus->getTblSupportFocusType())
