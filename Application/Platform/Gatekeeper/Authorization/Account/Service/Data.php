@@ -881,34 +881,53 @@ class Data extends AbstractData
                 array(
                     TblSession::ATTR_SESSION => $Session
                 ));
-
-            if ($Entity) {
-                $Account = $Entity->getTblAccount();
-                // Reset Timeout on Current Session (within time)
-                $Type = $this->getAuthenticationByAccount($Account)->getTblIdentification()->getName();
-                switch (strtoupper($Type)) {
-                    case 'SYSTEM':
-                        $Timeout = ( 60 * 60 * 4 );
-                        break;
-                    case 'AUTHENTICATORAPP':
-                    case 'TOKEN':
-                        $Timeout = ( 60 * 60 );
-                        break;
-                    case 'CREDENTIAL':
-                        $Timeout = ( 60 * 30 );
-                        break;
-                    case 'USERCREDENTIAL':
-                        $Timeout = ( 60 * 30 );
-                        break;
-                    default:
-                        $Timeout = ( 60 * 10 );
-                }
-                $this->changeTimeout($Entity, $Timeout);
-                $Entity = $Account;
+            if($Entity){
+                $Entity = $Entity->getTblAccount();
+                $Memory->setValue($Session, $Entity, 0, __METHOD__);
             }
-            $Memory->setValue($Session, $Entity, 0, __METHOD__);
         }
         return ( $Entity ? $Entity : false );
+    }
+
+    /**
+     * @param $Session
+     *
+     * @return void
+     * @throws \Exception
+     */
+    public function refreshSession($Session)
+    {
+        if (null === $Session) {
+            $Session = session_id();
+        }
+
+        /** @var false|TblSession $Entity */
+        $Entity = $this->getForceEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblSession',
+            array(
+                TblSession::ATTR_SESSION => $Session
+            ));
+
+        if ($Entity) {
+            $Account = $Entity->getTblAccount();
+            // Reset Timeout on Current Session (within time)
+            $Type = $this->getAuthenticationByAccount($Account)->getTblIdentification()->getName();
+            switch (strtoupper($Type)) {
+                case 'SYSTEM':
+                    $Timeout = ( 60 * 60 * 4 );
+                    break;
+                case 'AUTHENTICATORAPP':
+                case 'TOKEN':
+                    $Timeout = ( 60 * 60 );
+                    break;
+                case 'CREDENTIAL':
+                case 'USERCREDENTIAL':
+                    $Timeout = ( 60 * 30 );
+                    break;
+                default:
+                    $Timeout = ( 60 * 10 );
+            }
+            $this->changeTimeout($Entity, $Timeout);
+        }
     }
 
     private function removeSessionByTimeout()
