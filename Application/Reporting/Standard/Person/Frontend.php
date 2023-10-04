@@ -161,7 +161,8 @@ class Frontend extends Extension implements IFrontendInterface
             }
             $TableContent = array();
             if (($tblYear = $tblDivisionCourse->getServiceTblYear())) {
-                $TableContent = Person::useService()->createClassList($tblPersonList, $tblYear);
+                $hasSchoolAttendanceYear = false;
+                $TableContent = Person::useService()->createClassList($tblDivisionCourse, $tblPersonList, $tblYear, $hasSchoolAttendanceYear);
             }
             if (!empty($TableContent)) {
                 $Stage->addButton(
@@ -180,14 +181,21 @@ class Frontend extends Extension implements IFrontendInterface
                 'Birthday'         => 'Geburtsdatum',
                 'Birthplace'       => 'Geburtsort',
                 'Address'          => 'Adresse',
-                'Phone'            => new ToolTip('Telefon ' . new Info(),
+                'Phone'            => new ToolTip('Telefon '.new Info(),
                     'p=Privat; g=Geschäftlich; n=Notfall; f=Fax; Bev.=Bevollmächtigt; Vorm.=Vormund; NK=Notfallkontakt'),
-                'Mail'             => 'E-Mail',
+                'Level'            => 'Stufe',
+                'Division'         => 'Klasse',
+                'DivisionTeacher'  => 'Klassenlehrer',
+                'CoreGroup'        => 'Stammgruppe',
+                'Tudor'            => 'Tutor',
                 'ForeignLanguage1' => 'Fremdsprache 1',
                 'ForeignLanguage2' => 'Fremdsprache 2',
                 'ForeignLanguage3' => 'Fremdsprache 3',
                 'Religion'         => 'Religion',
             );
+            if($hasSchoolAttendanceYear){
+                $HeadList['SBJ'] = 'SBJ';
+            }
             $LevelList = array();
             foreach($tblPersonList as $tblPerson){
                 if($tblYear = $tblDivisionCourse->getServiceTblYear()){
