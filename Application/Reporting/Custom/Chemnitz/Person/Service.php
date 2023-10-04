@@ -793,11 +793,13 @@ class Service extends Extension
                     $item['Group2'] = true;
                 }
                 $tblType = false;
+                $level = null;
                 if(($tblYear = $tblDivisionCourse->getServiceTblYear())
                     && ($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))
                 ) {
                     $tblType = $tblStudentEducation->getServiceTblSchoolType();
                     $item['tblType'] = $tblType;
+                    $level = $tblStudentEducation->getLevel();
                 }
                 $Sibling = array();
                 $guardianList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson);
@@ -941,8 +943,16 @@ class Service extends Extension
                     $tblStudentSubject = Student::useService()->getStudentSubjectByStudentAndSubjectAndSubjectRanking(
                         $tblStudent, $tblStudentSubjectType, $tblStudentSubjectRanking);
                     if($tblStudentSubject) {
-                        if($tblStudentSubject->getServiceTblSubject() && $tblStudentSubject->getServiceTblSubject()->getAcronym() == 'FR') {
-                            $item['French'] = 'FR';
+                        // Klassenstufe prüfen
+                        if ($level
+                            && (($tblStudentSubject->getLevelFrom() && $tblStudentSubject->getLevelFrom() > $level)
+                                || ($tblStudentSubject->getLevelTill() && $tblStudentSubject->getLevelTill() < $level))
+                        ) {
+
+                        } else {
+                            if ($tblStudentSubject->getServiceTblSubject() && $tblStudentSubject->getServiceTblSubject()->getAcronym() == 'FR') {
+                                $item['French'] = 'FR';
+                            }
                         }
                     }
                     $isSet = false;
