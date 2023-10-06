@@ -40,7 +40,7 @@ class Service extends Extension
             $item['Consumer'] = $Consumer->getName();
         }
         if($tblYear = $tblDivisionCourse->getServiceTblYear()) {
-            $item['DivisionYear'] = $tblYear->getDisplayName();
+            $item['DivisionYear'] = $tblYear->getDisplayName(false);
         }
         $TeacherList = array();
         if(($tblTeacherList = $tblDivisionCourse->getDivisionTeacherList())) {
