@@ -139,7 +139,9 @@ class Get extends Extension implements ITypeInterface
     protected function trimInput(&$Value)
     {
 
-        $Value = trim($Value);
+        if(null !== $Value) {
+            $Value = trim($Value);
+        }
     }
 
     /**
@@ -148,6 +150,9 @@ class Get extends Extension implements ITypeInterface
     protected function preventXSS(&$Value)
     {
 
-        $Value = strip_tags($Value);
+        if(null !== $Value){
+            $Value = strip_tags($Value);
+        }
+
     }
 }

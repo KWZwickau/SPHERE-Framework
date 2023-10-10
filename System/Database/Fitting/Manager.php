@@ -272,7 +272,7 @@ class Manager extends Extension
      * @param bool $updateLifeCycle
      * @return Element
      */
-    final private function prepareEntity( $Entity, $updateLifeCycle = false ) {
+    private function prepareEntity( $Entity, $updateLifeCycle = false ) {
 
         if( !$this->EntityManager->contains( $Entity ) ) {
             /** @var Element $Entity */

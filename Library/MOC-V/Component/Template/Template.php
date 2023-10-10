@@ -109,11 +109,23 @@ class Template implements IVendorInterface
     public static function getTwigTemplateString($String)
     {
 
+        // toDO SR
+//        Debugger::screenDump((Debugger::getCallingFunctionName()));
+
         $Template = new Template(
             new Vendor(
                 new TwigTemplate()
             )
         );
+
+//        if(strpos($String, 'jQuery().ModAjax') !== false){
+//            $String = '/var/www/Common/Frontend/Ajax/Receiver';
+//        }
+//        if($String == '{{ Name }}'){
+//            $String = '/var/www/Common/Frontend/Form/Repository/Field';
+//        }
+
+//        Debugger::screenDump($String);
         $Template->getBridgeInterface()->loadString($String, true);
 
         return $Template->getBridgeInterface();

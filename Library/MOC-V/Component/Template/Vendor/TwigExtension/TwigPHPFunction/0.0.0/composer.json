@@ -21,8 +21,6 @@
         "bin-dir": "bin"
     },
     "autoload": {
-        "psr-0": {
-            "Umpirsky\\": "src/"
-        }
+        "psr-0": { "Umpirsky\\": "src/" }
     }
 }

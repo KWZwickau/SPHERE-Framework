@@ -238,8 +238,8 @@ class Setup extends AbstractSetup
     {
 
         $Table = $this->getConnection()->createTable($Schema, 'tblPersonPicture');
-        $this->createColumn($Table, 'serviceTblPerson', Type::BIGINT);
-        $this->createColumn($Table, 'Picture', Type::BLOB);
+        $this->createColumn($Table, 'serviceTblPerson', self::FIELD_TYPE_BIGINT);
+        $this->createColumn($Table, 'Picture', self::FIELD_TYPE_BINARY); // Type::BLOB
 
         return $Table;
     }

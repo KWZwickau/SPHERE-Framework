@@ -10,5 +10,5 @@ $loader = new Twig_Loader_Array(array(
 $twig = new Twig_Environment($loader);
 $twig->addExtension(new Umpirsky\Twig\Extension\PhpFunctionExtension());
 
-echo $twig->render('uniqid').PHP_EOL;
-echo $twig->render('floor').PHP_EOL;
+echo $twig->render('uniqid') . PHP_EOL;
+echo $twig->render('floor') . PHP_EOL;

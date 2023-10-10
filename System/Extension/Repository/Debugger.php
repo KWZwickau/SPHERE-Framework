@@ -103,7 +103,7 @@ class Debugger
      *
      * @return string
      */
-    final private static function splitNamespace($Value)
+    private static function splitNamespace($Value)
     {
 
         return str_replace(array('\\', '/'), array('\\&shy;', '/&shy;'), $Value);
@@ -208,7 +208,7 @@ class Debugger
      * @param bool|false $completeTrace
      * @return string
      */
-    private static function getCallingFunctionName($completeTrace = false)
+    public static function getCallingFunctionName($completeTrace = false)
     {
         if (function_exists('debug_backtrace')) {
             $BackTrace = debug_backtrace();
@@ -218,6 +218,9 @@ class Debugger
                     $Result .= " -- Called by [{$Caller['function']}]";
                     if (isset($Caller['class'])) {
                         $Result .= " from Class [{$Caller['class']}]";
+                    }
+                    if(isset( $Caller['line'] )) {
+                        $Result .= " at Line [{$Caller['line']}]";
                     }
                     $Result .= "\n";
                 }

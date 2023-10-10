@@ -283,6 +283,20 @@ class Pipeline implements IFrontendInterface
                     $Template = Template::getTwigTemplateString($Template->getContent());
                 }
 
+                // toDO SR
+//                /** @var IBridgeInterface $Template */
+//                if (!isset($Template)) {
+//                    $Template = Template::getTwigTemplate(__DIR__.'/Receiver/ModalReceiver.twig');
+//                    $Template->setVariable('Callback',
+//                        'function(){ jQuery().ModAjax({ Sync: '.($this->Sync ? 'true' : 'false').', Receiver: {{ Receiver }}, Notify: { Hash: {{ Hash }}, ' . $this->getNotifyMessage($Emitter) . ' } }).loadAjax( {{ Method }}, {{ Url }} , {{ Data }}, {{ Callback }} ); }'
+//                    );
+//                } else {
+//                    $Template->setVariable('Callback',
+//                        'function(){ jQuery().ModAjax({ Sync: '.($this->Sync ? 'true' : 'false').', Receiver: {{ Receiver }}, Notify: { Hash: {{ Hash }}, ' . $this->getNotifyMessage($Emitter) . ' } }).loadAjax( {{ Method }}, {{ Url }} , {{ Data }}, {{ Callback }} ); }'
+//                    );
+//                    $Template = Template::getTwigTemplateString($Template->getContent());
+//                }
+
                 $Template->setVariable('Method', json_encode($Method));
                 $Template->setVariable('Url', json_encode($Url));
                 $Template->setVariable('Data', json_encode($Data));

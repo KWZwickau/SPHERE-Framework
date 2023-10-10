@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\Setting\Consumer\School;
 
+use Dompdf\Exception;
 use SPHERE\Application\Corporation\Company\Company;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
@@ -161,7 +162,7 @@ class Service extends AbstractService
      *
      * @return IFormInterface|string
      */
-    public function updateSchool(IFormInterface $Form, TblSchool $tblSchool, $CompanyNumber = '', $School)
+    public function updateSchool(IFormInterface $Form, TblSchool $tblSchool, string $CompanyNumber = '', array $School = array())
     {
         /**
          * Skip to Frontend

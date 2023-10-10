@@ -3,6 +3,7 @@
 namespace SPHERE\Application\Education\Graduation\Grade\Service;
 
 use DateTime;
+use SPHERE\Application\Education\Graduation\Grade\Grade;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblGradeText;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblGradeType;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblMinimumGradeCount;
@@ -32,7 +33,7 @@ class Data extends DataTask
         $this->createScoreType('Verbale Bewertung', 'VERBAL', '');
 
         if (!$this->getGradeTypeAll(true)) {
-            if (Gradebook::useService()->getGradeTypeAll()) {
+            if (Grade::useService()->getGradeTypeAll()) {
                 // alte Daten migrieren
                 $this->migrateTblGradeType();
             } else {

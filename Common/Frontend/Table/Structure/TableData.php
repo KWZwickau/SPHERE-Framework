@@ -101,9 +101,10 @@ class TableData extends Table
                     /**
                      * With Object, use getter instead of property (if available)
                      */
-                    if (is_object($Column) && method_exists($Row, 'get'.substr(trim($Index), 2))) {
-                        $Column = $Row->{'get'.substr(trim($Index), 2)}();
-                    }
+                    //ToDO SR Wozu war das gut?
+//                    if (is_object($Column) && method_exists($Row, 'get'.substr(trim($Index), 2))) {
+//                        $Column = $Row->{'get'.substr(trim($Index), 2)}();
+//                    }
                     /**
                      * Other values
                      */
