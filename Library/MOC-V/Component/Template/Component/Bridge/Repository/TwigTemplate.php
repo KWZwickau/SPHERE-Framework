@@ -69,7 +69,8 @@ class TwigTemplate extends Bridge implements IBridgeInterface
         // toDO SR
 //        Debugger::screenDump(Debugger::getCallingFunctionName(true));
 //        Debugger::screenDump($String);
-        $this->Loader = new FilesystemLoader($String);
+//        $this->Loader = new FilesystemLoader($String);
+        $this->Loader = new ArrayLoader();
 //        $this->Loader = new FilesystemLoader('');
 
 
@@ -77,15 +78,15 @@ class TwigTemplate extends Bridge implements IBridgeInterface
 //        $this->Template = $this->Instance->loadTemplate($String);
         $this->createInstance($Reload);
 
-        if($String == '/var/www/Common/Frontend/Ajax/Receiver'){
-            $String = 'ModalReceiver.twig';
-        }
+//        if($String == '/var/www/Common/Frontend/Ajax/Receiver'){
+//            $String = 'ModalReceiver.twig';
+//        }
+//
+//        if($String == '/var/www/Common/Frontend/Form/Repository/Field'){
+//            $String = 'SelectBox.twig';
+//        }
 
-        if($String == '/var/www/Common/Frontend/Form/Repository/Field'){
-            $String = 'SelectBox.twig';
-        }
-
-        $this->Template = $this->Instance->load($String);
+        $this->Template = $this->Instance->createTemplate($String);
         return $this;
     }
 

@@ -47,9 +47,9 @@
             'dev_requirement' => false,
         ),
         'doctrine/dbal' => array(
-            'pretty_version' => '3.7.0',
-            'version' => '3.7.0.0',
-            'reference' => '00d03067f07482f025d41ab55e4ba0db5eca2cdf',
+            'pretty_version' => '3.7.1',
+            'version' => '3.7.1.0',
+            'reference' => '5b7bd66c9ff58c04c5474ab85edce442f8081cb2',
             'type' => 'library',
             'install_path' => __DIR__ . '/../doctrine/dbal',
             'aliases' => array(),
@@ -165,6 +165,15 @@
             'provided' => array(
                 0 => '1.0|2.0|3.0',
             ),
+        ),
+        'smarty/smarty' => array(
+            'pretty_version' => 'v4.3.4',
+            'version' => '4.3.4.0',
+            'reference' => '3931d8f54b8f7a4ffab538582d34d4397ba8daa5',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../smarty/smarty',
+            'aliases' => array(),
+            'dev_requirement' => false,
         ),
         'sphere-framework/schulsoftware' => array(
             'pretty_version' => '1.0.0+no-version-set',

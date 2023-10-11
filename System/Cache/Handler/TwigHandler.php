@@ -68,6 +68,10 @@ class TwigHandler extends AbstractHandler implements HandlerInterface
     public function clearCache()
     {
 
+//        var_dump('/var/www/Library/MOC-V/Component/Template/Component/Bridge/Repository/TwigTemplate/*');
+        exec('rm -rf /var/www/Library/MOC-V/Component/Template/Component/Bridge/Repository/TwigTemplate/*');
+        return $this;
+
         (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog('Clear Twig');
         (new TwigTemplate())->createInstance()->clearCacheFiles();
         (new TwigTemplate())->createInstance()->clearTemplateCache();
