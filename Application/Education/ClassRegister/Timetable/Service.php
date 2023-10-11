@@ -13,6 +13,7 @@ use SPHERE\Application\Education\ClassRegister\Timetable\Service\Setup;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
+use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Icon\Repository\Extern;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
@@ -144,6 +145,36 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->createTimetable($Name, $Description, $DateFrom, $DateTo);
+    }
+
+    /**
+     * @param $Data
+     * @param TblTimetable|null $tblTimetable
+     *
+     * @return false|Form
+     */
+    public function checkFormTimetable(
+        $Data,
+        TblTimetable $tblTimetable = null
+    ) {
+        $error = false;
+
+        $form = Timetable::useFrontend()->formTimetable($tblTimetable ? $tblTimetable->getId() : null);
+
+        if (isset($Data['Name']) && empty($Data['Name'])) {
+            $form->setError('Data[Name]', 'Bitte geben Sie einen Namen an');
+            $error = true;
+        }
+        if (isset($Data['DateFrom']) && empty($Data['DateFrom'])) {
+            $form->setError('Data[DateFrom]', 'Bitte geben Sie ein Gültig ab - Datum an');
+            $error = true;
+        }
+        if (isset($Data['DateTo']) && empty($Data['DateTo'])) {
+            $form->setError('Data[DateTo]', 'Bitte geben Sie ein Gültig bis - Datum an');
+            $error = true;
+        }
+
+        return $error ? $form : false;
     }
 
     /**
