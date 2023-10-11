@@ -5,9 +5,7 @@ use SPHERE\Application\Corporation\Company\Company;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Group\Group;
-use SPHERE\Application\People\Group\Service\Entity\ViewPeopleGroupMember;
 use SPHERE\Application\People\Meta\Prospect\Prospect;
-use SPHERE\Application\People\Person\Service\Entity\ViewPerson;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\Reporting\SerialLetter\Service\Entity\TblSerialLetter;
 use SPHERE\Application\Setting\Consumer\School\School;
@@ -373,13 +371,13 @@ class SerialLetterForm extends Extension
                 new FormGroup(
                     new FormRow(array(
                         new FormColumn(array(
-                            new SelectBox('Filter['.ViewPeopleGroupMember::TBL_GROUP_ID.']', 'Gruppe: Name', array('Name' => Group::useService()->getGroupAll())),
+                            new SelectBox('Filter[TblGroup_Id]', 'Gruppe: Name', array('Name' => Group::useService()->getGroupAll())),
                         ), 4),
                         new FormColumn(array(
-                            new TextField('Filter['.ViewPerson::TBL_PERSON_FIRST_NAME.']', 'Person: Vorname', 'Person: Vorname')
+                            new TextField('Filter[TblPerson_FirstName]', 'Person: Vorname', 'Person: Vorname')
                         ), 4),
                         new FormColumn(array(
-                            new TextField('Filter['.ViewPerson::TBL_PERSON_LAST_NAME.']', 'Person: Nachname', 'Person: Nachname')
+                            new TextField('Filter[TblPerson_LastName]', 'Person: Nachname', 'Person: Nachname')
                         ), 4)
                     ))
                 )

@@ -30,7 +30,6 @@ class Reporting implements IClusterInterface
         CustomEKBO::registerApplication();
         CheckList::registerApplication();
         SerialLetter::registerApplication();
-//        Dynamic::registerApplication();
         KamenzReport::registerApplication();
         Individual::registerApplication();
         DeclarationBasis::registerApplication();

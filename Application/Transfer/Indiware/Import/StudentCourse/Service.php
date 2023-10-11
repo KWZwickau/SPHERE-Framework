@@ -138,8 +138,11 @@ class Service
             for ($RunY = 1; $RunY < $Y; $RunY++) {
                 $FirstName = trim($Document->getValue($Document->getCell($Location['Vorname'], $RunY)));
                 $LastName = trim($Document->getValue($Document->getCell($Location['Name'], $RunY)));
-                if (($Birthday = trim($Document->getValue($Document->getCell($Location['Geburtsdatum'], $RunY))))) {
-                    $Birthday = new DateTime($Birthday);
+                $Birthday = null;
+                if (($BirthdayString = trim($Document->getValue($Document->getCell($Location['Geburtsdatum'], $RunY))))
+                    && ($BirthdayString = \SPHERE\Application\Transfer\Import\Service::getFormatDateString($BirthdayString))
+                ) {
+                    $Birthday = new DateTime($BirthdayString);
                 }
                 $GenderAcronym = trim($Document->getValue($Document->getCell($Location['Geschlecht'], $RunY)));
                 $DivisionName = trim($Document->getValue($Document->getCell($Location['Klasse'], $RunY)));

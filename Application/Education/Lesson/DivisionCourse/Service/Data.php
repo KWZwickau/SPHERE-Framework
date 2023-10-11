@@ -417,7 +417,7 @@ class Data extends DataTeacher
                     $query->andWhere($queryBuilder->expr()->eq('tES.serviceTblYear', '?'.$ParameterCount))
                     ->setParameter($ParameterCount++, $FilterValue);
                 }
-                if($FilterName == 'TblSchoolType_Id'){
+                if($FilterName == 'TblSchoolType_Id' && $FilterValue != 0){
                     $query->andWhere($queryBuilder->expr()->eq('tES.serviceTblSchoolType', '?'.$ParameterCount))
                         ->setParameter($ParameterCount++, $FilterValue);
                 }

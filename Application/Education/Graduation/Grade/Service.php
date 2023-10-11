@@ -654,7 +654,7 @@ class Service extends ServiceTask
                         $date = $tblTest->getFinishDate() ?: $tblTest->getDate();
                         $hasPeriodFound = false;
                         $count = 0;
-                        if ($date) {
+                        if ($date && isset($averagePeriodList['Periods'])) {
                             foreach ($averagePeriodList['Periods'] as $periodId => $count) {
                                 if (($tblPeriod = Term::useService()->getPeriodById($periodId)) && $date <= $tblPeriod->getToDateTime()) {
                                     $hasPeriodFound = true;
@@ -676,7 +676,7 @@ class Service extends ServiceTask
                         $date = $tblTask->getDate();
                         $hasPeriodFound = false;
                         $count = 0;
-                        if ($date) {
+                        if ($date && isset($averagePeriodList['Periods'])) {
                             foreach ($averagePeriodList['Periods'] as $periodId => $count) {
                                 if (($tblPeriod = Term::useService()->getPeriodById($periodId)) && $date <= $tblPeriod->getToDateTime()) {
                                     $hasPeriodFound = true;
@@ -693,10 +693,12 @@ class Service extends ServiceTask
                         $tblPeriod = $virtualTestTask->getTblPeriod();
                         $hasPeriodFound = false;
                         $count = 0;
-                        foreach ($averagePeriodList['Periods'] as $periodId => $count) {
-                            if ($tblPeriod->getId() == $periodId) {
-                                $hasPeriodFound = true;
-                                break;
+                        if (isset($averagePeriodList['Periods'])) {
+                            foreach ($averagePeriodList['Periods'] as $periodId => $count) {
+                                if ($tblPeriod->getId() == $periodId) {
+                                    $hasPeriodFound = true;
+                                    break;
+                                }
                             }
                         }
                         if (!$hasPeriodFound) {

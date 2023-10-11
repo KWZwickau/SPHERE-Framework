@@ -176,7 +176,13 @@ class FrontendPersonMasern extends FrontendReadOnly
 
         // Document
         $tblStudentMasernInfoDocumentList = Student::useService()->getStudentMasernInfoByType(TblStudentMasernInfo::TYPE_DOCUMENT);
-        $FieldDocumentType = new SelectBox('Meta[Masern][DocumentType]', 'Art der Bescheinigung', array('TextLong' => $tblStudentMasernInfoDocumentList));
+        foreach($tblStudentMasernInfoDocumentList as $Key => $tblStudentMasernInfoDocument){
+            if($tblStudentMasernInfoDocument->getTextShort() == 'Kein Nachweis notwendig') {
+                $tblStudentMasernInfoDocumentList[999] = $tblStudentMasernInfoDocument;
+                unset($tblStudentMasernInfoDocumentList[$Key]);
+            }
+        }
+        $FieldDocumentType = new SelectBox('Meta[Masern][DocumentType]', 'Art der Bescheinigung', array('TextLong' => $tblStudentMasernInfoDocumentList), null, true, null);
 
         // Creator
         $tblStudentMasernInfoProofList = Student::useService()->getStudentMasernInfoByType(TblStudentMasernInfo::TYPE_CREATOR);

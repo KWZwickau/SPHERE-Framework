@@ -9,8 +9,6 @@ use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblPeriod;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYearHoliday;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYearPeriod;
-use SPHERE\Application\Education\Lesson\Term\Service\Entity\ViewYear;
-use SPHERE\Application\Education\Lesson\Term\Service\Entity\ViewYearPeriod;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Database\Binding\AbstractData;
@@ -24,28 +22,6 @@ use SPHERE\System\Extension\Repository\Sorter\DateTimeSorter;
  */
 class Data extends AbstractData
 {
-
-    /**
-     * @return false|ViewYear[]
-     */
-    public function viewYear()
-    {
-
-        return $this->getCachedEntityList(
-            __METHOD__, $this->getConnection()->getEntityManager(), 'ViewYear'
-        );
-    }
-
-    /**
-     * @return false|ViewYearPeriod[]
-     */
-    public function viewYearPeriod()
-    {
-
-        return $this->getCachedEntityList(
-            __METHOD__, $this->getConnection()->getEntityManager(), 'ViewYearPeriod'
-        );
-    }
 
     public function setupDatabaseContent()
     {

@@ -119,7 +119,7 @@ class FrontendStudentProcess extends FrontendReadOnly
             $headerColumnList[] = $divisionCourseFrontend->getTableHeaderColumn('Klassen&shy;stufe', $backgroundColor);
             $headerColumnList[] = $divisionCourseFrontend->getTableHeaderColumn('Bildungs&shy;gang', $backgroundColor);
             $headerColumnList[] = $divisionCourseFrontend->getTableHeaderColumn('Klasse', $backgroundColor);
-            $headerColumnList[] = $divisionCourseFrontend->getTableHeaderColumn('Klasse&shy;lehrer', $backgroundColor);
+            $headerColumnList[] = $divisionCourseFrontend->getTableHeaderColumn('Klassen&shy;lehrer', $backgroundColor);
             $headerColumnList[] = $divisionCourseFrontend->getTableHeaderColumn('Stamm&shy;gruppe', $backgroundColor);
             $headerColumnList[] = $divisionCourseFrontend->getTableHeaderColumn('Tutor', $backgroundColor);
             if ($AllowEdit) {

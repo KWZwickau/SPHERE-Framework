@@ -255,6 +255,8 @@ class Data extends Support
             , 'ärztliches Zeugnis über die Immunität gegen Masern');
         $this->createStudentMasernInfo(TblStudentMasernInfo::DOCUMENT_CANT_VACCINATION, TblStudentMasernInfo::TYPE_DOCUMENT, 'keine Schutzimpfung möglich'
             , 'ärztliches Zeugnis, dass das Kind nicht an einer Schutzimpfung (Kontraindikation) oder anderen Maßnahmen zur spezifischen Prophylaxe teilnehmen kann');
+        $this->createStudentMasernInfo(TblStudentMasernInfo::DOCUMENT_NOT_NECESSARY, TblStudentMasernInfo::TYPE_DOCUMENT, 'Kein Nachweis notwendig'
+            , 'Kein Nachweis notwendig (vor 1971 geboren)');
 
         $this->createStudentMasernInfo(TblStudentMasernInfo::CREATOR_STATE, TblStudentMasernInfo::TYPE_CREATOR, 'Staatlich'
             , 'staatliche Stelle');

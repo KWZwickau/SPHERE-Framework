@@ -394,21 +394,19 @@ class TblTest extends Element
             if ($this->getReturnDate() <= $today) {
                 $isAddTest = true;
             }
-        // automatische Bekanntgabe durch den Stichtagsnotenauftrag
-        } elseif ($taskDate) {
+        } else {
+            // automatische Bekanntgabe durch den Stichtagsnotenauftrag
             if ($taskDate <= $today
                 && $this->getDate()
                 && $this->getDate() <= $taskDate
             ) {
                 $isAddTest = true;
-            }
-        }
-
-        // automatische Bekanntgabe nach X Tagen
-        if (!$isAddTest && $this->getDate()) {
-            $autoReturnDate = (new DateTime($this->getDateString()))->add(new DateInterval('P' . $AutoPublicationOfTestsAfterXDays . 'D'));
-            if ($autoReturnDate <= $today) {
-                $isAddTest = true;
+            } elseif ($this->getDate()) {
+                // automatische Bekanntgabe nach X Tagen
+                $autoReturnDate = (new DateTime($this->getDateString()))->add(new DateInterval('P' . $AutoPublicationOfTestsAfterXDays . 'D'));
+                if ($autoReturnDate <= $today) {
+                    $isAddTest = true;
+                }
             }
         }
 

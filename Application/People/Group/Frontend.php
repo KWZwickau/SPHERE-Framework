@@ -60,7 +60,6 @@ use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
-use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Frontend
@@ -362,8 +361,6 @@ class Frontend extends Extension implements IFrontendInterface
 
             $tblFilterGroup = Group::useService()->getGroupById($FilterGroupId);
             $tblFilterDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($FilterDivisionCourseId);
-
-            Debugger::screenDump($tblFilterDivisionCourse);
 
             // Set Filter Post
             if ($Filter == null && ($tblFilterGroup || $tblFilterDivisionCourse)) {

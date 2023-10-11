@@ -55,6 +55,8 @@ class Data extends AbstractData
             Sortierung berücksichtigt [Standard: Ja]', true);
         $this->createSetting('Setting', 'Consumer', 'Service', 'EmergencyNumber', TblSetting::TYPE_BOOLEAN, '0',
             'Allgemein', 'Notfallnummer in der Stammdatenverwaltung wird am Ende der Ansichten aufgelistet. [Standard: Nein]', true);
+        $this->createSetting('People', 'Person', 'Student', 'DisplayCallNameAndLastName', TblSetting::TYPE_BOOLEAN, '0',
+            'Allgemein', 'Anzeige des Schülernamens im Klassenbuch und Notenbuch als Rufname plus Nachname statt Nachname, Vorname [Standard: Nein]', true);
         // Allgemein non-public
         $this->createSetting('People', 'Meta', 'Student', 'Automatic_StudentNumber', TblSetting::TYPE_BOOLEAN, '0',
             'Allgemein', 'Die Schülernummern werden automatisch vom System erstellt. In diesem Fall können die
