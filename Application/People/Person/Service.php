@@ -263,7 +263,11 @@ class Service extends AbstractService
             } elseif($count > 2) {
                 $FirstName = $NameList[0];
                 for($i = 1; $i < $count; $i++){
-                    $SecondName .= $NameList[$i];
+                    if($SecondName){
+                        $SecondName .= ' '.$NameList[$i];
+                    } else {
+                        $SecondName .= $NameList[$i];
+                    }
                 }
             }
             if(($tblPersonList = (new Data($this->getBinding()))->getPersonAllByFirstNameAndSecondNameAndLastName($FirstName, $SecondName, $LastName))){
@@ -288,13 +292,17 @@ class Service extends AbstractService
             $NameList = explode(' ', $FirstName);
             $count = count($NameList);
             $SecondName = '';
-            if($count ==  2){
+            if($count == 2){
                 $FirstName = $NameList[0];
                 $SecondName = $NameList[1];
             } elseif($count > 2) {
                 $FirstName = $NameList[0];
                 for($i = 1; $i < $count; $i++){
-                    $SecondName .= $NameList[$i];
+                    if($SecondName){
+                        $SecondName .= ' '.$NameList[$i];
+                    } else {
+                        $SecondName .= $NameList[$i];
+                    }
                 }
             }
 
