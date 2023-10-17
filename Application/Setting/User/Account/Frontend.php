@@ -754,12 +754,13 @@ class Frontend extends Extension implements IFrontendInterface
                     $Item['ActiveInfo'] = '<span hidden>'.$Item['Name'].'</span>'.$Item['ActiveInfo'];
 
                     $StudentList = array();
-                    $tblRelationshipType = Relationship::useService()->getTypeByName('Sorgeberechtigt');
-                    $tblRelationshipList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson,
-                        $tblRelationshipType);
+//                    $tblRelationshipType = Relationship::useService()->getTypeByName('Sorgeberechtigt');
+                    $tblRelationshipList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson);
                     if ($tblRelationshipList) {
                         foreach ($tblRelationshipList as $tblRelationship) {
-                            if ($tblRelationship->getTblType()->getName() == 'Sorgeberechtigt') {
+                            if ($tblRelationship->getTblType()->getName() == TblType::IDENTIFIER_GUARDIAN
+                             || $tblRelationship->getTblType()->getName() == TblType::IDENTIFIER_AUTHORIZED
+                             || $tblRelationship->getTblType()->getName() == TblType::IDENTIFIER_GUARDIAN_SHIP) {
                                 $tblPersonStudent = $tblRelationship->getServiceTblPersonTo();
                                 if ($tblPersonStudent && $tblPersonStudent->getId() != $tblPerson->getId()) {
                                     $StudentList[] = new Container($tblPersonStudent->getLastFirstName());

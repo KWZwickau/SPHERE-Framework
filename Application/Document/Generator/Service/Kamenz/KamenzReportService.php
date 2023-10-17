@@ -129,7 +129,7 @@ class KamenzReportService
                             self::setStudentFocus($tblPerson, $level, $Content, $gender, $hasMigrationBackground, $isInPreparationDivisionForMigrants);
 
                             self::setSchoolTypeLastYear(
-                                $Content, $tblPastYearList, $tblPerson, $tblCourse ?: null, $level, $gender, $isInPreparationDivisionForMigrants, $tblKamenzSchoolType
+                                $Content, $tblPastYearList, $tblPerson, $level, $gender, $isInPreparationDivisionForMigrants, $tblKamenzSchoolType
                             );
                         }
                     }
@@ -365,7 +365,7 @@ class KamenzReportService
 
                             // get last Level
                             self::setSchoolTypeLastYear(
-                                $Content, $tblPastYearList, $tblPerson, null, $level, $gender, $isInPreparationDivisionForMigrants, $tblKamenzSchoolType
+                                $Content, $tblPastYearList, $tblPerson, $level, $gender, $isInPreparationDivisionForMigrants, $tblKamenzSchoolType
                             );
                         }
                     }
@@ -3076,7 +3076,6 @@ class KamenzReportService
         &$Content,
         $tblPastYearList,
         TblPerson $tblPerson,
-        ?TblCourse $tblCourse,
         int $level,
         $gender,
         $isInPreparationDivisionForMigrants,
@@ -3084,11 +3083,13 @@ class KamenzReportService
     ) {
         $levelLastYear = false;
         $tblSchoolTypeLastYear = false;
+        $tblCourse = false;
         if ($tblPastYearList && is_array($tblPastYearList)) {
             foreach ($tblPastYearList as $tblPastYear) {
                 if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblPastYear))) {
                     $levelLastYear = $tblStudentEducation->getLevel();
                     $tblSchoolTypeLastYear = $tblStudentEducation->getServiceTblSchoolType();
+                    $tblCourse = $tblStudentEducation->getServiceTblCourse();
                 }
             }
         }
