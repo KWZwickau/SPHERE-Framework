@@ -156,7 +156,7 @@ class Service extends AbstractService
     {
 
         $tblUserAccountList = (new Data($this->getBinding()))->getUserAccountByTime($dateTime);
-        $UserAccountArray = false;
+        $UserAccountArray = array();
         if($tblUserAccountList){
             foreach($tblUserAccountList as $tblUserAccount){
                 $UserAccountArray[$tblUserAccount->getGroupByCount()][] = $tblUserAccount;

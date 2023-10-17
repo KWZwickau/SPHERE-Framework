@@ -821,12 +821,12 @@ class Creator extends Extension
     }
 
     /**
-     * @param $Data
+     * @param array $Data
      * @param string $paperOrientation
      * @return Stage|string
      * @throws \MOC\V\Core\FileSystem\Exception\FileSystemException
      */
-    public static function createMultiPasswordPdf($Data, $paperOrientation = Creator::PAPERORIENTATION_PORTRAIT)
+    public static function createMultiPasswordPdf(array $Data = array(), string $paperOrientation = Creator::PAPERORIENTATION_PORTRAIT): Stage|string
     {
 
         $multiPassword = new MultiPassword($Data);

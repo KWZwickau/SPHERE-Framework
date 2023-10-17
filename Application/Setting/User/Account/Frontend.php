@@ -467,7 +467,9 @@ class Frontend extends Extension implements IFrontendInterface
         if ($tblUserAccountAll) {
             $tblGroupStudent = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_STUDENT);
             array_walk($tblUserAccountAll, function (TblUserAccount $tblUserAccount) use (&$TableContent, $tblGroupStudent, $IsDeleteModal) {
-                if($IsDeleteModal){
+                if($IsDeleteModal
+                && $tblUserAccount->getServiceTblAccount()){
+                    // Account eigentlich immer vorhanden, ausnahme DEMO
                     $item['Select'] = (new CheckBox('Data['.$tblUserAccount->getId().']', '&nbsp;', $tblUserAccount->getServiceTblAccount()->getId()))->setChecked();
                 }
                 $item['Salutation'] = new Muted('-NA-');

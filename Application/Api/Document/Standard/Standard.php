@@ -241,7 +241,7 @@ class Standard extends Extension implements IModuleInterface
      *
      * @return Stage|string
      */
-    public static function createMultiPasswordPdf($Data = array(), $Redirect = true)
+    public static function createMultiPasswordPdf(array $Data = array(), bool $Redirect = true): Stage|string
     {
 
         $Post = array('Data' => $Data);

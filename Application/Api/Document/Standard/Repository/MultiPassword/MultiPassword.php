@@ -67,7 +67,8 @@ class MultiPassword extends AbstractDocument
         $this->FieldValue['GroupByTime'] = (isset($DataPost['GroupByTime']) ? $DataPost['GroupByTime'] : false);
         $this->FieldValue['GroupByCount'] = (isset($DataPost['GroupByCount']) ? $DataPost['GroupByCount'] : false);
 
-        $this->FieldValue['Gender'] = false;
+//        $this->FieldValue['Gender'] = false;
+//        $this->FieldValue['GenderC'] = array();
         $this->FieldValue['UserAccount'] = '';
 //        $this->FieldValue['Street'] = '';
 //        $this->FieldValue['District'] = '';
@@ -89,10 +90,8 @@ class MultiPassword extends AbstractDocument
         $this->FieldValue['Date'] = (isset($DataPost['Date']) && $DataPost['Date'] != '' ? $DataPost['Date'] : '&nbsp;');
 
         if($this->FieldValue['GroupByTime'] && $this->FieldValue['GroupByCount']){
-
             if(($tblUserAccountList = Account::useService()->getUserAccountByTimeAndCount(
                 new DateTime($this->FieldValue['GroupByTime']), $this->FieldValue['GroupByCount']))){
-
                 foreach($tblUserAccountList as $tblUserAccount){
                     /** @var TblAccount $tblAccount */
                     if(($tblAccount = $tblUserAccount->getServiceTblAccount())){
@@ -109,9 +108,7 @@ class MultiPassword extends AbstractDocument
                         $this->FieldValue['Street'][$tblAccount->getId()] = '';
                         $this->FieldValue['District'][$tblAccount->getId()] = '';
                         $this->FieldValue['City'][$tblAccount->getId()] = '';
-
-                        $this->FieldValue['Gender'][$tblAccount->getId()] = false;
-
+                        $this->FieldValue['GenderC'][$tblAccount->getId()] = false;
                         $this->FieldValue['tblAccountList'][] = $tblAccount->getId();
                         $this->FieldValue['UserAccountNameList'][$tblAccount->getId()] = $tblAccount->getUsername();
                         $this->FieldValue['Password'][$tblAccount->getId()] = $tblUserAccount->getUserPassword();
