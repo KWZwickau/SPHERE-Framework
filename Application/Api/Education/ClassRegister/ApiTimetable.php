@@ -6,6 +6,7 @@ use DateTime;
 use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\Education\ClassRegister\Timetable\Timetable;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\IApiInterface;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
@@ -30,6 +31,7 @@ use SPHERE\Common\Frontend\Link\Repository\Danger as DangerLink;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
+use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Extension\Extension;
 
 class ApiTimetable extends Extension implements IApiInterface
@@ -53,7 +55,8 @@ class ApiTimetable extends Extension implements IApiInterface
         $Dispatcher->registerMethod('openDeleteTimetableModal');
         $Dispatcher->registerMethod('saveDeleteTimetableModal');
 
-        $Dispatcher->registerMethod('loadTimetableContent');
+        $Dispatcher->registerMethod('loadTimetableForm');
+        $Dispatcher->registerMethod('saveTimetableForm');
 
         return $Dispatcher->callMethod($Method);
     }
@@ -378,15 +381,69 @@ class ApiTimetable extends Extension implements IApiInterface
      * @param string|null $TimetableId
      * @param string|null $DivisionCourseId
      * @param string|null $Day
+     * @param string|null $AddKey
+     * @param string|null $SubKey
+     * @param null $Data
      *
      * @return Pipeline
      */
-    public static function pipelineLoadTimetableContent(string $TimetableId = null, string $DivisionCourseId = null, string $Day = null): Pipeline
-    {
+    public static function pipelineLoadTimetableForm(
+        string $TimetableId = null, string $DivisionCourseId = null, string $Day = null, string $AddKey = null, string $SubKey = null, $Data = null
+    ): Pipeline {
         $Pipeline = new Pipeline(false);
-        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'TimetableContent'), self::getEndpoint());
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'TimetableForm'), self::getEndpoint());
         $ModalEmitter->setGetPayload(array(
-            self::API_TARGET => 'loadTimetableContent',
+            self::API_TARGET => 'loadTimetableForm',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'DivisionCourseId' => $DivisionCourseId,
+            'TimetableId' => $TimetableId,
+            'Day' => $Day,
+            'AddKey' => $AddKey,
+            'SubKey' => $SubKey,
+            'Data' => $Data
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param string|null $TimetableId
+     * @param string|null $DivisionCourseId
+     * @param string|null $Day
+     * @param string|null $AddKey
+     * @param string|null $SubKey
+     * @param null $Data
+     *
+     * @return string
+     */
+    public function loadTimetableForm(
+        string $TimetableId = null, string $DivisionCourseId = null, string $Day = null, string $AddKey = null, string $SubKey = null, $Data = null
+    ) : string {
+        if (!($tblTimetable = Timetable::useService()->getTimetableById($TimetableId))) {
+            return new Danger('Der Stundenplan wurde nicht gefunden', new Exclamation());
+        }
+        if (!($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
+            return new Danger('Der Kurs wurde nicht gefunden', new Exclamation());
+        }
+
+        return Timetable::useFrontend()->getTimeTableDayForm($tblTimetable, $tblDivisionCourse, $Day, $AddKey, $SubKey, $Data);
+    }
+
+    /**
+     * @param string|null $TimetableId
+     * @param string|null $DivisionCourseId
+     * @param string|null $Day
+     *
+     * @return Pipeline
+     */
+    public static function pipelineSaveTimetableForm(string $TimetableId = null, string $DivisionCourseId = null, string $Day = null): Pipeline
+    {
+        $Pipeline = new Pipeline();
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'TimetableForm'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'saveTimetableForm'
         ));
         $ModalEmitter->setPostPayload(array(
             'DivisionCourseId' => $DivisionCourseId,
@@ -402,11 +459,27 @@ class ApiTimetable extends Extension implements IApiInterface
      * @param string|null $TimetableId
      * @param string|null $DivisionCourseId
      * @param string|null $Day
+     * @param null $Data
      *
      * @return string
      */
-    public function loadTimetableContent(string $TimetableId = null, string $DivisionCourseId = null, string $Day = null) : string
+    public function saveTimetableForm(string $TimetableId = null, string $DivisionCourseId = null, string $Day = null, $Data = null): string
     {
-        return Timetable::useFrontend()->loadTimetableContent($TimetableId, $DivisionCourseId, $Day);
+        if (!($tblTimetable = Timetable::useService()->getTimetableById($TimetableId))) {
+            return new Danger('Der Stundenplan wurde nicht gefunden', new Exclamation());
+        }
+        if (!($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
+            return new Danger('Der Kurs wurde nicht gefunden', new Exclamation());
+        }
+
+        if (Timetable::useService()->updateTimetableDay($tblTimetable, $tblDivisionCourse, $Day, $Data)) {
+            return new Success('Der Stundenplan wurde erfolgreich gespeichert.')
+                . new Redirect('/Education/ClassRegister/Digital/Timetable/Show', Redirect::TIMEOUT_SUCCESS,
+                    array('TimetableId' => $TimetableId, 'DivisionCourseId' => $DivisionCourseId));
+        } else {
+            return new Danger('Der Stundenplan konnte nicht gespeichert werden.')
+                . new Redirect('/Education/ClassRegister/Digital/Timetable/Show', Redirect::TIMEOUT_ERROR,
+                    array('TimetableId' => $TimetableId, 'DivisionCourseId' => $DivisionCourseId));
+        }
     }
 }

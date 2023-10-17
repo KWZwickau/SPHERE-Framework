@@ -11,6 +11,8 @@ use SPHERE\Application\Education\ClassRegister\Timetable\Service\Entity\TblTimet
 use SPHERE\Application\Education\ClassRegister\Timetable\Service\Entity\TblTimetableWeek;
 use SPHERE\Application\Education\ClassRegister\Timetable\Service\Setup;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
+use SPHERE\Application\Education\Lesson\Subject\Subject;
+use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Common\Frontend\Form\Structure\Form;
@@ -365,6 +367,31 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblTimetable $tblTimetable
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param int $day
+     * @param int|null $lesson
+     *
+     * @return false|TblTimetableNode[]
+     */
+    public function getTimetableNodeListByTimetableAndDivisionCourseAndDay(
+        TblTimetable $tblTimetable, TblDivisionCourse $tblDivisionCourse, int $day, ?int $lesson = null
+    ) {
+        return (new Data($this->getBinding()))->getTimetableNodeListBy($tblTimetable, $tblDivisionCourse, $day, $lesson, null);
+    }
+
+    /**
+     * @param TblTimetable $tblTimetable
+     * @param TblDivisionCourse $tblDivisionCourse
+     *
+     * @return false|TblTimetableNode[]
+     */
+    public function getTimetableNodeListByTimetableAndDivisionCourse(TblTimetable $tblTimetable, TblDivisionCourse $tblDivisionCourse)
+    {
+        return (new Data($this->getBinding()))->getTimetableNodeListByTimetableAndDivisionCourse($tblTimetable, $tblDivisionCourse);
+    }
+
+    /**
      * @param TblDivisionCourse $tblDivisionCourse
      * @param DateTime $dateTime
      * @param Int $lesson
@@ -578,5 +605,74 @@ class Service extends AbstractService
     public function destroyTimetableReplacementBulk($RemoveList): bool
     {
         return (new Data($this->getBinding()))->destroyTimetableReplacementBulk($RemoveList);
+    }
+
+    /**
+     * @param TblTimetable $tblTimetable
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param $Day
+     * @param $Data
+     *
+     * @return bool
+     */
+    public function updateTimetableDay(TblTimetable $tblTimetable, TblDivisionCourse $tblDivisionCourse, $Day, $Data): bool
+    {
+        if (($tblTimetableNodeList = Timetable::useService()->getTimetableNodeListByTimetableAndDivisionCourseAndDay($tblTimetable, $tblDivisionCourse, $Day))) {
+            $deleteBulkList = array();
+            foreach ($tblTimetableNodeList as $tblTimetableNode) {
+                $deleteBulkList[] = $tblTimetableNode;
+            }
+            $this->deleteEntityListBulk($deleteBulkList);
+        }
+
+        if ($Data) {
+            $createBulkList = array();
+            foreach ($Data as $index => $list) {
+                if (isset($list['serviceTblSubject']) && ($tblSubject = Subject::useService()->getSubjectById($list['serviceTblSubject']))) {
+                    $entity = new TblTimetableNode();
+                    $entity->setTblTimetable($tblTimetable);
+                    $entity->setServiceTblCourse($tblDivisionCourse);
+                    $entity->setDay($Day);
+                    $entity->setHour(intval($index / 100));
+                    $entity->setSubjectGroup('');
+                    $entity->setLevel('');
+
+                    $entity->setServiceTblSubject($tblSubject);
+                    if (isset($list['serviceTblPerson']) && ($tblPerson = Person::useService()->getPersonById($list['serviceTblPerson']))) {
+                        $entity->setServiceTblPerson($tblPerson);
+                    }
+                    $entity->setRoom($list['Room'] ?? '');
+                    $entity->setWeek($list['Week'] ?? '');
+
+                    $createBulkList[] = $entity;
+                }
+            }
+
+            if (!empty($createBulkList)) {
+                $this->createEntityListBulk($createBulkList);
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * @param array $tblEntityList
+     *
+     * @return bool
+     */
+    public function createEntityListBulk(array $tblEntityList): bool
+    {
+        return (new Data($this->getBinding()))->createEntityListBulk($tblEntityList);
+    }
+
+    /**
+     * @param array $tblEntityList
+     *
+     * @return bool
+     */
+    public function deleteEntityListBulk(array $tblEntityList): bool
+    {
+        return (new Data($this->getBinding()))->deleteEntityListBulk($tblEntityList);
     }
 }

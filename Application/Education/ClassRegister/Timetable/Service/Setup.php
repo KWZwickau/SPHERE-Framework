@@ -82,7 +82,7 @@ class Setup extends AbstractSetup
         $this->createColumn($Table, 'Level', self::FIELD_TYPE_STRING);  // Stufe
         $this->createColumn($Table, 'serviceTblCourse', self::FIELD_TYPE_BIGINT);
         $this->createColumn($Table, 'serviceTblSubject', self::FIELD_TYPE_BIGINT);
-        $this->createColumn($Table, 'serviceTblPerson', self::FIELD_TYPE_BIGINT);
+        $this->createColumn($Table, 'serviceTblPerson', self::FIELD_TYPE_BIGINT, true);
 
         $this->createForeignKey($Table, $tblTimeTable);
 

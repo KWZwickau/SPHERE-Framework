@@ -76,7 +76,7 @@ class TblTimetableNode extends Element
     /**
      * @Column(type="bigint")
      */
-    protected int $serviceTblPerson;
+    protected ?int $serviceTblPerson = null;
     /**
      * @Column(type="bigint")
      */
@@ -159,7 +159,7 @@ class TblTimetableNode extends Element
     public function setWeek(string $Week): void
     {
 
-        $this->Week = $Week;
+        $this->Week = strtoupper($Week);
     }
 
     /**

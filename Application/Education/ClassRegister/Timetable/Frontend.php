@@ -9,6 +9,10 @@ use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisio
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\People\Group\Group;
+use SPHERE\Application\People\Meta\Teacher\Teacher;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
@@ -44,6 +48,7 @@ use SPHERE\Common\Frontend\Table\Structure\TableColumn;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Table\Structure\TableHead;
 use SPHERE\Common\Frontend\Table\Structure\TableRow;
+use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Center;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Stage;
@@ -62,11 +67,15 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendTimetable(): Stage
     {
         $stage = new Stage('Stundenplan', 'Übersicht');
+        $hasRightHeadmaster = Access::useService()->hasAuthorization('/Education/ClassRegister/Digital/Instruction/Setting');
 
         $stage->setContent(
             ApiTimetable::receiverModal()
-            . (new Primary(new Plus() . ' Stundenplan hinzufügen', ApiTimetable::getEndpoint()))
-                ->ajaxPipelineOnClick(ApiTimetable::pipelineOpenCreateTimetableModal())
+            . ($hasRightHeadmaster
+                ? (new Primary(new Plus() . ' Stundenplan hinzufügen', ApiTimetable::getEndpoint()))
+                    ->ajaxPipelineOnClick(ApiTimetable::pipelineOpenCreateTimetableModal())
+                : ''
+            )
             . ApiTimetable::receiverBlock($this->loadTimetable(), 'Timetable')
         );
 
@@ -78,6 +87,7 @@ class Frontend extends Extension implements IFrontendInterface
      */
     public function loadTimetable(): string
     {
+        $hasRightHeadmaster = Access::useService()->hasAuthorization('/Education/ClassRegister/Digital/Instruction/Setting');
         $dataList = array();
         if (($tblTimeTableList = Timetable::useService()->getTimetableAll())) {
             foreach ($tblTimeTableList as $tblTimetable) {
@@ -87,13 +97,15 @@ class Frontend extends Extension implements IFrontendInterface
                     'DateFrom' => $tblTimetable->getDateFrom(),
                     'DateTo' => $tblTimetable->getDateTo(),
                     'Option' =>
-                        // todo rechte abhängig
                         (new Standard('', '/Education/ClassRegister/Digital/Timetable/Select', new EyeOpen(), array('TimetableId' => $tblTimetable->getId()),
                             'Inhalt des Stundenplans bearbeiten'))
-                        . (new Standard('', ApiTimetable::getEndpoint(), new Edit(), array(), 'Grunddaten des Stundenplans bearbeiten'))
-                            ->ajaxPipelineOnClick(ApiTimetable::pipelineOpenEditTimetableModal($tblTimetable->getId()))
-                        . (new Standard('', ApiTimetable::getEndpoint(), new Remove(), array(), 'Stundenplan löschen'))
-                            ->ajaxPipelineOnClick(ApiTimetable::pipelineOpenDeleteTimetableModal($tblTimetable->getId()))
+                        . ($hasRightHeadmaster
+                            ? (new Standard('', ApiTimetable::getEndpoint(), new Edit(), array(), 'Grunddaten des Stundenplans bearbeiten'))
+                                ->ajaxPipelineOnClick(ApiTimetable::pipelineOpenEditTimetableModal($tblTimetable->getId()))
+                                . (new Standard('', ApiTimetable::getEndpoint(), new Remove(), array(), 'Stundenplan löschen'))
+                                    ->ajaxPipelineOnClick(ApiTimetable::pipelineOpenDeleteTimetableModal($tblTimetable->getId()))
+                            : ''
+                        )
                 );
             }
         }
@@ -180,7 +192,8 @@ class Frontend extends Extension implements IFrontendInterface
         $stage = new Stage('Stundenplan', 'Kurs auswählen');
         $stage->addButton((new Standard('Zurück', '/Education/ClassRegister/Digital/Timetable', new ChevronLeft())));
 
-        // todo Klassenlehrer vs Schulleitung
+        $hasRightHeadmaster = Access::useService()->hasAuthorization('/Education/ClassRegister/Digital/Instruction/Setting');
+        $tblPerson = Account::useService()->getPersonByLogin();
 
         if (($tblTimetable = Timetable::useService()->getTimetableById($TimetableId))) {
             $array[] = $tblTimetable->getName();
@@ -192,29 +205,47 @@ class Frontend extends Extension implements IFrontendInterface
             $dataList = array();
             if (($tblYearList = Term::useService()->getYearAllByDate($tblTimetable->getDateFrom(true)))) {
                 foreach ($tblYearList as $tblYear) {
-                    if (($tblDivisionCourseListDivision = DivisionCourse::useService()->getDivisionCourseListBy($tblYear,
-                        TblDivisionCourseType::TYPE_DIVISION))) {
-                        $tblDivisionCourseList = $tblDivisionCourseListDivision;
-                    }
-                    if (($tblDivisionCourseListCoreGroup = DivisionCourse::useService()->getDivisionCourseListBy($tblYear,
-                        TblDivisionCourseType::TYPE_CORE_GROUP))) {
-                        $tblDivisionCourseList = array_merge($tblDivisionCourseList, $tblDivisionCourseListCoreGroup);
+                    // Schulleitung
+                    if ($hasRightHeadmaster) {
+                        if (($tblDivisionCourseListDivision = DivisionCourse::useService()->getDivisionCourseListBy($tblYear,
+                            TblDivisionCourseType::TYPE_DIVISION))) {
+                            $tblDivisionCourseList = $tblDivisionCourseListDivision;
+                        }
+                        if (($tblDivisionCourseListCoreGroup = DivisionCourse::useService()->getDivisionCourseListBy($tblYear,
+                            TblDivisionCourseType::TYPE_CORE_GROUP))) {
+                            $tblDivisionCourseList = array_merge($tblDivisionCourseList, $tblDivisionCourseListCoreGroup);
+                        }
+                    // Klassenlehrer
+                    } else {
+                        if ($tblPerson
+                            && ($tblTempList = DivisionCourse::useService()->getDivisionCourseListByDivisionTeacher($tblPerson, $tblYear))
+                        ) {
+                            foreach ($tblTempList as $tblTemp) {
+                                if ($tblTemp->getIsDivisionOrCoreGroup()) {
+                                    $tblDivisionCourseList[] = $tblTemp;
+                                }
+                            }
+                        }
                     }
                 }
             }
 
             /** @var TblDivisionCourse $tblDivisionCourse */
             foreach ($tblDivisionCourseList as $tblDivisionCourse) {
+                $count = 0;
+                if (($tblTimetableNodeList = Timetable::useService()->getTimetableNodeListByTimetableAndDivisionCourse($tblTimetable, $tblDivisionCourse))) {
+                    $count = count($tblTimetableNodeList);
+                }
+
                 $dataList[] = array(
                     'Year' => $tblDivisionCourse->getYearName(),
                     'DivisionCourse' => $tblDivisionCourse->getDisplayName(),
                     'DivisionCourseType' => $tblDivisionCourse->getTypeName(),
                     'SchoolTypes' => $tblDivisionCourse->getSchoolTypeListFromStudents(true),
-// todo anzahl stundenplan einträge
-
+                    'Count' => $count,
                     'Option' => new Standard(
                         '',
-                        '/Education/ClassRegister/Digital/Timetable/Edit',
+                        '/Education/ClassRegister/Digital/Timetable/Show',
                         new Select(),
                         array(
                             'TimetableId' => $tblTimetable->getId(),
@@ -230,6 +261,7 @@ class Frontend extends Extension implements IFrontendInterface
                 'DivisionCourse' => 'Kurs',
                 'DivisionCourseType' => 'Kurs-Typ',
                 'SchoolTypes' => 'Schularten',
+                'Count' => 'Anzahl Einträge',
                 'Option' => ''
             ), array(
                 'order' => array(
@@ -272,7 +304,7 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return string
      */
-    public function frontendEditTimetable($TimetableId = null, $DivisionCourseId = null): string
+    public function frontendShowTimetable($TimetableId = null, $DivisionCourseId = null): string
     {
         $stage = new Stage('Stundenplan', 'Bearbeiten');
         $stage->addButton((new Standard('Zurück', '/Education/ClassRegister/Digital/Timetable/Select', new ChevronLeft(), array('TimetableId' => $TimetableId))));
@@ -288,37 +320,6 @@ class Frontend extends Extension implements IFrontendInterface
         if ($tblTimetable->getDescription()) {
             $array[] = $tblTimetable->getDescription();
             $array[] = 'Gültigkeit: ' . $tblTimetable->getDateFrom() . ' - ' . $tblTimetable->getDateTo();
-        }
-
-        $stage->setContent(
-            new Layout(new LayoutGroup(array(
-                new LayoutRow(array(
-                    new LayoutColumn(
-                        new Panel($tblDivisionCourse->getTypeName(), $tblDivisionCourse->getDisplayName(), Panel::PANEL_TYPE_INFO)
-                        , 6),
-                    new LayoutColumn(
-                        new Panel('Stundenplan', $array, Panel::PANEL_TYPE_INFO)
-                        , 6)
-                )),
-                new LayoutRow(array(
-                    new LayoutColumn(
-                        ApiTimetable::receiverBlock($this->loadTimeTableContent($TimetableId, $DivisionCourseId), 'TimetableContent')
-                    )
-                ))
-            )))
-
-        );
-
-        return $stage;
-    }
-
-    public function loadTimeTableContent($TimetableId, $DivisionCourseId, $DayNumber = null): string
-    {
-        if (!($tblTimetable = Timetable::useService()->getTimetableById($TimetableId))) {
-            return new Danger('Der Stundenplan wurde nicht gefunden', new Exclamation());
-        }
-        if (!($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
-            return new Danger('Der Kurs wurde nicht gefunden', new Exclamation());
         }
 
         $maxLesson = 12;
@@ -340,25 +341,14 @@ class Frontend extends Extension implements IFrontendInterface
             '6' => 'Samstag',
         );
 
-        if ($DayNumber) {
-            return $this->getTimetableEditDay($tblTimetable, $tblDivisionCourse, $dayNames, $minLesson, $maxLesson, $DayNumber);
-        } else {
-            return $this->getTimetableWeek($tblTimetable, $tblDivisionCourse, $dayNames, $minLesson, $maxLesson);
-        }
-    }
-
-    private function getTimetableWeek(TblTimetable $tblTimetable, TblDivisionCourse $tblDivisionCourse, array $dayNames, int $minLesson, int $maxLesson): string
-    {
-        if (($hasSaturdayLessons = $tblDivisionCourse->getHasSaturdayLessons())) {
+        if ($tblDivisionCourse->getHasSaturdayLessons()) {
             $daysInWeek = 6;
             $widthLesson =  '4%';
-            $widthDay = '8%';
-            $widthDayEdit = '48%';
+            $widthDay = '16%';
         } else {
             $daysInWeek = 5;
-            $widthLesson = '4%';
-            $widthDay = '8%';
-            $widthDayEdit = '56%';
+            $widthLesson =  '5%';
+            $widthDay = '19%';
         }
 
         $headerList = array();
@@ -366,12 +356,21 @@ class Frontend extends Extension implements IFrontendInterface
         $bodyList = array();
 
         for ($day = 1; $day <= $daysInWeek; $day++) {
-            $contentHeader = ' ' . (new Link($dayNames[$day] . ' ' . new Pen(), ApiTimetable::getEndpoint()))
-                ->ajaxPipelineOnClick(ApiTimetable::pipelineLoadTimeTableContent($tblTimetable->getId(), $tblDivisionCourse->getId(), $day));
+            $contentHeader = ' ' . (new Link($dayNames[$day] . ' ' . new Pen(), '/Education/ClassRegister/Digital/Timetable/Edit', null, array(
+                    'TimetableId' => $tblTimetable->getId(),
+                    'DivisionCourseId' => $tblDivisionCourse->getId(),
+                    'DayNumber' => $day
+                )));
 
             $headerList[$day] = Digital::useFrontend()->getTableHeadColumn($contentHeader, $widthDay);
 
-            $this->setBodyListForDay($bodyList, $day);
+            if (($tblTimetableNodeList = Timetable::useService()->getTimetableNodeListByTimetableAndDivisionCourseAndDay($tblTimetable, $tblDivisionCourse, $day))) {
+                foreach ($tblTimetableNodeList as $tblTimetableNode) {
+                    $bodyList[$tblTimetableNode->getHour()][$day]
+                        = (isset($bodyList[$tblTimetableNode->getHour()][$day]) ? $bodyList[$tblTimetableNode->getHour()][$day] . ', ' : '')
+                            . (($tblSubject = $tblTimetableNode->getServiceTblSubject()) ? $tblSubject->getAcronym() : '');
+                }
+            }
         }
         $tableHead = new TableHead(new TableRow($headerList));
 
@@ -399,45 +398,223 @@ class Frontend extends Extension implements IFrontendInterface
         $tableBody = new TableBody($rows);
 //        $table = new Table($tableHead, $tableBody, null, false, null, 'TableData');
 
-        return new Table($tableHead, $tableBody, null, false, null, 'TableCustom');
+        $table = new Table($tableHead, $tableBody, null, false, null, 'TableCustom');
+
+        $stage->setContent(
+            new Layout(new LayoutGroup(array(
+                new LayoutRow(array(
+                    new LayoutColumn(
+                        new Panel($tblDivisionCourse->getTypeName(), $tblDivisionCourse->getDisplayName(), Panel::PANEL_TYPE_INFO)
+                        , 6),
+                    new LayoutColumn(
+                        new Panel('Stundenplan', $array, Panel::PANEL_TYPE_INFO)
+                        , 6)
+                )),
+                new LayoutRow(array(
+                    new LayoutColumn(
+                        $table
+                    )
+                ))
+            )))
+
+        );
+
+        return $stage;
     }
 
-    private function getTimetableEditDay(TblTimetable $tblTimetable, TblDivisionCourse $tblDivisionCourse, array $dayNames, int $minLesson, int $maxLesson,
-        $DayNumber): string
+    /**
+     * @param null $TimetableId
+     * @param null $DivisionCourseId
+     * @param null $DayNumber
+     *
+     * @return string
+     */
+    public function frontendEditTimetable($TimetableId = null, $DivisionCourseId = null, $DayNumber = null): string
     {
-        $tblSubjectList = Subject::useService()->getSubjectAll();
-        // todo teacherList
+        $stage = new Stage('Stundenplan', 'Bearbeiten');
+        $stage->addButton((new Standard(
+            'Zurück', '/Education/ClassRegister/Digital/Timetable/Show', new ChevronLeft(),
+            array('TimetableId' => $TimetableId, 'DivisionCourseId' => $DivisionCourseId))
+        ));
 
-        // todo Anzeige ohne Api laden
-        $formRows = array();
-        for ($i = $minLesson; $i <= $maxLesson; $i++) {
-            $formRows[] = new FormRow(array(
-                new FormColumn(
-                    (new SelectBox('Data[serviceTblSubject]', '', array('{{ Acronym }}' => $tblSubjectList)))->setRequired()
-                , 3),
-                new FormColumn(
-                    new SelectBox('Data[serviceTblPerson]', '', array('{{ Acronym }}' => $tblSubjectList))
-                    , 3),
-                new FormColumn(
-                    new TextField('Data[Room]', 'Raum')
-                    , 3),
-                new FormColumn(
-                    new TextField('Data[Week]', 'Woche')
-                    , 3),
-            ));
+        if (!($tblTimetable = Timetable::useService()->getTimetableById($TimetableId))) {
+            return $stage . new Danger('Der Stundenplan wurde nicht gefunden', new Exclamation());
+        }
+        if (!($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
+            return $stage . new Danger('Der Kurs wurde nicht gefunden', new Exclamation());
         }
 
-        return new Title($dayNames[$DayNumber] . ' bearbeiten')
-            . new Form(new FormGroup($formRows));
+        $array[] = $tblTimetable->getName();
+        if ($tblTimetable->getDescription()) {
+            $array[] = $tblTimetable->getDescription();
+            $array[] = 'Gültigkeit: ' . $tblTimetable->getDateFrom() . ' - ' . $tblTimetable->getDateTo();
+        }
+
+        $dayNames = array(
+            '0' => 'Sonntag',
+            '1' => 'Montag',
+            '2' => 'Dienstag',
+            '3' => 'Mittwoch',
+            '4' => 'Donnerstag',
+            '5' => 'Freitag',
+            '6' => 'Samstag',
+        );
+
+        $stage->setContent(
+            new Layout(new LayoutGroup(array(
+                new LayoutRow(array(
+                    new LayoutColumn(
+                        new Panel($tblDivisionCourse->getTypeName(), $tblDivisionCourse->getDisplayName(), Panel::PANEL_TYPE_INFO)
+                        , 6),
+                    new LayoutColumn(
+                        new Panel('Stundenplan', $array, Panel::PANEL_TYPE_INFO)
+                        , 6)
+                )),
+                new LayoutRow(array(
+                    new LayoutColumn(new Panel(
+                        new Edit() . ' ' . $dayNames[$DayNumber] . ' bearbeiten',
+                        new Title(
+                            new Layout(new LayoutGroup(new LayoutRow(array(
+                                new LayoutColumn(new Bold('UE'), 1),
+                                new LayoutColumn(new Bold('Fach'), 3),
+                                new LayoutColumn(new Bold('Lehrer'), 3),
+                                new LayoutColumn(new Bold('Raum'), 2),
+                                new LayoutColumn(new Bold('Woche'), 2),
+                                new LayoutColumn(new Bold(''), 1),
+                            ))))
+                        )
+                        . ApiTimetable::receiverBlock($this->getTimeTableDayForm($tblTimetable, $tblDivisionCourse, $DayNumber), 'TimetableForm'),
+                        Panel::PANEL_TYPE_PRIMARY
+                    ))
+                ))
+            )))
+
+        );
+
+        return $stage;
     }
 
-    private function setBodyListForDay(&$bodyList, $day)
-    {
-        $bodyList[1][$day] = 'Ma'; //. new PullRight('DF');
-        $bodyList[2][$day] = 'Ma'; //. new PullRight('DF');
-        $bodyList[3][$day] = 'FR'; //. new PullRight('RS');
-        $bodyList[4][$day] = 'LA'; //. new PullRight('AK');
-        $bodyList[5][$day] = 'DE'; //. new PullRight('SE');
-        $bodyList[6][$day] = 'KU'; //. new PullRight('EH');
+    /**
+     * @param TblTimetable $tblTimetable
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param $DayNumber
+     * @param null $AddKey
+     * @param null $SubKey
+     * @param null $Data
+     *
+     * @return Form
+     */
+    public function getTimeTableDayForm(
+        TblTimetable $tblTimetable, TblDivisionCourse $tblDivisionCourse, $DayNumber, $AddKey = null, $SubKey = null, $Data = null
+    ): Form {
+        $maxLesson = 12;
+        if (($tblSetting = Consumer::useService()->getSetting('Education', 'ClassRegister', 'LessonContent', 'StartsLessonContentWithZeroLesson'))
+            && $tblSetting->getValue()
+        ) {
+            $minLesson = 0;
+        } else {
+            $minLesson = 1;
+        }
+
+        $tblSubjectList = Subject::useService()->getSubjectAll();
+        $tblTeacherList = array();
+        if (($tblGroup = Group::useService()->getGroupByMetaTable('TEACHER'))
+            && ($tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup))
+        ) {
+            foreach ($tblPersonList as $tblPerson) {
+                if (($tblTeacher = Teacher::useService()->getTeacherByPerson($tblPerson))
+                    && ($acronym = $tblTeacher->getAcronym())
+                ) {
+
+                } else {
+                    $acronym = '-NA-';
+                }
+
+                $tblTeacherList[$tblPerson->getId()] = $acronym . ' - ' . $tblPerson->getFullName();
+            }
+        }
+
+        if ($AddKey) {
+            $Data[$AddKey] = array();
+        }
+        if ($SubKey) {
+            unset($Data[$SubKey]);
+            if ($SubKey % 100 == 0) {
+                $Data[$SubKey] = array();
+            }
+        }
+
+        if ($Data == null) {
+            for ($i = $minLesson; $i <= $maxLesson; $i++) {
+                $key = $i * 100;
+
+                if (($tblTimetableNodeList = Timetable::useService()->getTimetableNodeListByTimetableAndDivisionCourseAndDay(
+                    $tblTimetable, $tblDivisionCourse, $DayNumber, $i
+                ))) {
+                    foreach ($tblTimetableNodeList as $tblTimetableNode) {
+                        $Data[$key] = array(
+                            'serviceTblSubject' => ($tblSubject = $tblTimetableNode->getServiceTblSubject()) ? $tblSubject->getId() : 0,
+                            'serviceTblPerson' => ($tblPerson = $tblTimetableNode->getServiceTblPerson()) ? $tblPerson->getId() : 0,
+                            'Room' => $tblTimetableNode->getRoom(),
+                            'Week' => $tblTimetableNode->getWeek()
+                        );
+                        $key += 10;
+                    }
+                } else {
+                    $Data[$key] = array();
+                }
+            }
+        }
+
+        ksort($Data);
+        $formRows = array();
+        if ($Data) {
+            $global = $this->getGlobal();
+            foreach ($Data as $index => $list) {
+                $global->POST['Data'][$index]['serviceTblSubject'] = $list['serviceTblSubject'] ?? 0;
+                $global->POST['Data'][$index]['serviceTblPerson'] = $list['serviceTblPerson'] ?? 0;
+                $global->POST['Data'][$index]['Room'] = $list['Room'] ?? '';
+                $global->POST['Data'][$index]['Week'] = $list['Week'] ?? '';
+                $global->savePost();
+
+                $formRows[] = new FormRow(array(
+                    new FormColumn(
+                        (new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(new Bold(intval($index / 100) . '. UE'))))))
+                    , 1),
+                    new FormColumn(
+                        (new SelectBox('Data[' . $index . '][serviceTblSubject]', '', array('{{ DisplayName }}' => $tblSubjectList)))->setRequired()
+                    , 3),
+                    new FormColumn(
+                        new SelectBox('Data[' . $index . '][serviceTblPerson]', '', $tblTeacherList)
+                    , 3),
+                    new FormColumn(
+                        new TextField('Data[' . $index . '][Room]', 'Raum')
+                    , 2),
+                    new FormColumn(
+                        new TextField('Data[' . $index . '][Week]', 'Woche')
+                    , 2),
+                    new FormColumn(
+                        (new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
+                            (new Standard('', ApiTimetable::getEndpoint(), new Plus()))
+                                ->ajaxPipelineOnClick(ApiTimetable::pipelineLoadTimetableForm(
+                                    $tblTimetable->getId(), $tblDivisionCourse->getId(), $DayNumber, $index + 1, null, $Data
+                                ))
+                            . (new Standard('', ApiTimetable::getEndpoint(), new Remove()))
+                                ->ajaxPipelineOnClick(ApiTimetable::pipelineLoadTimetableForm(
+                                    $tblTimetable->getId(), $tblDivisionCourse->getId(), $DayNumber, null, $index, $Data
+                                ))
+                        )))))
+                    , 1),
+                ));
+            }
+        }
+        $formRows[] = new FormRow(new FormColumn(array(
+            (new Primary('Speichern', ApiTimetable::getEndpoint(), new Save()))
+                ->ajaxPipelineOnClick(ApiTimetable::pipelineSaveTimetableForm($tblTimetable->getId(), $tblDivisionCourse->getId(), $DayNumber)),
+            (new Standard('Abbrechen', '/Education/ClassRegister/Digital/Timetable/Show', new Remove(),
+                array('TimetableId' => $tblTimetable->getId(), 'DivisionCourseId' => $tblDivisionCourse->getId())))
+        )));
+
+        return new Form(new FormGroup($formRows));
     }
 }
