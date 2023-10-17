@@ -224,7 +224,7 @@ class ImportGateway extends AbstractConverter
             'IBAN'                   => $Result['IBAN'],
             'BIC'                    => $Result['BIC'],
             'Bank'                   => $Result['Bank'],
-            'IsYear'                 => ($Result['IsYear'] ?: ''),
+            'IsYear'                 => (isset($Result['IsYear']) ?$Result['IsYear']: ''),
         );
 
         $Birthday = '';
