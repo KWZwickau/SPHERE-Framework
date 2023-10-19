@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\Education\ClassRegister\Timetable;
 
+use DateInterval;
 use SPHERE\Application\Api\Education\ClassRegister\ApiTimetable;
 use SPHERE\Application\Education\ClassRegister\Digital\Digital;
 use SPHERE\Application\Education\ClassRegister\Timetable\Service\Entity\TblTimetable;
@@ -14,6 +15,7 @@ use SPHERE\Application\People\Meta\Teacher\Teacher;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Setting\Consumer\Consumer;
+use SPHERE\Common\Frontend\Form\Repository\Field\AutoCompleter;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
@@ -21,6 +23,7 @@ use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
+use SPHERE\Common\Frontend\Icon\Repository\Calendar;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Clock;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
@@ -34,6 +37,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Select;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
+use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
@@ -100,8 +104,10 @@ class Frontend extends Extension implements IFrontendInterface
                         (new Standard('', '/Education/ClassRegister/Digital/Timetable/Select', new EyeOpen(), array('TimetableId' => $tblTimetable->getId()),
                             'Inhalt des Stundenplans bearbeiten'))
                         . ($hasRightHeadmaster
-                            ? (new Standard('', ApiTimetable::getEndpoint(), new Edit(), array(), 'Grunddaten des Stundenplans bearbeiten'))
-                                ->ajaxPipelineOnClick(ApiTimetable::pipelineOpenEditTimetableModal($tblTimetable->getId()))
+                            ? (new Standard('', '/Education/ClassRegister/Digital/Timetable/Week', new Calendar(), array('TimetableId' => $tblTimetable->getId()),
+                                'Wochen des Stundenplans bearbeiten'))
+                                . (new Standard('', ApiTimetable::getEndpoint(), new Edit(), array(), 'Grunddaten des Stundenplans bearbeiten'))
+                                    ->ajaxPipelineOnClick(ApiTimetable::pipelineOpenEditTimetableModal($tblTimetable->getId()))
                                 . (new Standard('', ApiTimetable::getEndpoint(), new Remove(), array(), 'Stundenplan löschen'))
                                     ->ajaxPipelineOnClick(ApiTimetable::pipelineOpenDeleteTimetableModal($tblTimetable->getId()))
                             : ''
@@ -121,7 +127,7 @@ class Frontend extends Extension implements IFrontendInterface
                 'Option' => '',
             ),
             array(
-                'columnDefs' => array(array('width' => '100px', "targets" => -1),
+                'columnDefs' => array(array('width' => '140px', "targets" => -1),
             ),
         ));
     }
@@ -533,6 +539,12 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblTeacherList[$tblPerson->getId()] = $acronym . ' - ' . $tblPerson->getFullName();
             }
         }
+        $weekNameList = array();
+        if (($tblTimetableWeekList = Timetable::useService()->getTimetableWeekListByTimetable($tblTimetable))) {
+            foreach ($tblTimetableWeekList as $tblTimetableWeek) {
+                $weekNameList[$tblTimetableWeek->getWeek()] = $tblTimetableWeek->getWeek();
+            }
+        }
 
         if ($AddKey) {
             $Data[$AddKey] = array();
@@ -591,7 +603,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new TextField('Data[' . $index . '][Room]', 'Raum')
                     , 2),
                     new FormColumn(
-                        new TextField('Data[' . $index . '][Week]', 'Woche')
+                        new AutoCompleter('Data[' . $index . '][Week]', '', 'Woche', $weekNameList)
                     , 2),
                     new FormColumn(
                         (new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
@@ -616,5 +628,86 @@ class Frontend extends Extension implements IFrontendInterface
         )));
 
         return new Form(new FormGroup($formRows));
+    }
+
+    /**
+     * @param null $TimetableId
+     * @param null $Data
+     *
+     * @return Stage|string
+     */
+    public function frontendTimetableWeek($TimetableId = null, $Data = null)
+    {
+        $stage = new Stage('Stundenplan', 'Wochen bearbeiten');
+        $stage->addButton((new Standard('Zurück', '/Education/ClassRegister/Digital/Timetable', new ChevronLeft())));
+
+        if (($tblTimetable = Timetable::useService()->getTimetableById($TimetableId))) {
+            if ($Data == null
+                && ($tblTimetableWeekList = Timetable::useService()->getTimetableWeekListByTimetable($tblTimetable))
+            ) {
+                $global = $this->getGlobal();
+                foreach ($tblTimetableWeekList as $tblTimetableWeek) {
+                    $global->POST['Data'][$tblTimetableWeek->getDate()] = $tblTimetableWeek->getWeek();
+                }
+
+                $global->savePost();
+            }
+
+            $array[] = $tblTimetable->getName();
+            if ($tblTimetable->getDescription()) {
+                $array[] = $tblTimetable->getDescription();
+                $array[] = 'Gültigkeit: ' . $tblTimetable->getDateFrom() . ' - ' . $tblTimetable->getDateTo();
+            }
+
+            $columns = array();
+            if (($fromDateTime = $tblTimetable->getDateFrom(true)) && ($toDateTime = $tblTimetable->getDateTo(true))
+                && $toDateTime > $fromDateTime
+            ) {
+                while ($fromDateTime <= $toDateTime) {
+                    // montag
+                    $startDate = Timetable::useService()->getStartDateOfWeek($fromDateTime);
+                    $columns[] = new FormColumn(
+                       new Layout(new LayoutGroup(new LayoutRow(array(
+                           new LayoutColumn($startDate->format('d.m.Y'), 4),
+                           new LayoutColumn(new TextField('Data[' . $startDate->format('d.m.Y') . ']'), 8),
+                       ))))
+                    , 3);
+
+                    $fromDateTime->add(new DateInterval('P7D'));
+                }
+            }
+
+            $form = new Form(new FormGroup(array(
+                new FormRow($columns),
+                new FormRow(array(
+                    new FormColumn(array(
+                        new \SPHERE\Common\Frontend\Form\Repository\Button\Primary('Speichern', new Save()),
+                        new Standard('Abbrechen', '/Education/ClassRegister/Digital/Timetable', new Remove())
+                    ))
+                ))
+            )));
+
+            $stage->setContent(
+                new Layout(new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            new Panel('Stundenplan', $array, Panel::PANEL_TYPE_INFO)
+                            , 6),
+                        new LayoutColumn(
+                            new Panel('Gültigkeit', $tblTimetable->getDateFrom() . ' - ' . $tblTimetable->getDateTo(), Panel::PANEL_TYPE_INFO)
+                            , 6)
+                    )),
+                    new LayoutRow(array(
+                        new LayoutColumn(new Well(
+                            Timetable::useService()->updateTimetableWeek($form, $tblTimetable, $Data)
+                        ))
+                    )),
+                )))
+            );
+
+            return $stage;
+        } else {
+            return $stage . (new Danger('Der Stundenplan wurde nicht gefunden', new Exclamation()));
+        }
     }
 }

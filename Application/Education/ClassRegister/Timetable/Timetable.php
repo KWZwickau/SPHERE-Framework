@@ -38,6 +38,9 @@ class Timetable extends Extension implements IModuleInterface
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(self::BASIC_ROUTE . '\Edit', __NAMESPACE__ . '\Frontend::frontendEditTimetable')
         );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(self::BASIC_ROUTE . '\Week', __NAMESPACE__ . '\Frontend::frontendTimetableWeek')
+        );
     }
 
     /**

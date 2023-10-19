@@ -92,6 +92,7 @@ class Setup extends AbstractSetup
             TblTimetableNode::ATTR_TBL_CLASS_REGISTER_TIMETABLE), false);
         $this->createIndex($Table, array(TblTimetableNode::ATTR_DAY, TblTimetableNode::ATTR_SERVICE_TBL_PERSON,
             TblTimetableNode::ATTR_TBL_CLASS_REGISTER_TIMETABLE), false);
+        $this->createIndex($Table, array(TblTimetableNode::ATTR_TBL_CLASS_REGISTER_TIMETABLE, TblTimetableNode::ATTR_DAY), false);
 
         return $Table;
     }

@@ -15,11 +15,14 @@ use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
+use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Icon\Repository\Extern;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
+use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
+use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
 
 /**
@@ -103,7 +106,8 @@ class Service extends AbstractService
 
     /**
      * @param TblTimetable $tblTimetable
-     * @return mixed
+     *
+     * @return TblTimetableWeek[]|null
      */
     public function getTimetableWeekListByTimetable(TblTimetable $tblTimetable)
     {
@@ -617,7 +621,7 @@ class Service extends AbstractService
      */
     public function updateTimetableDay(TblTimetable $tblTimetable, TblDivisionCourse $tblDivisionCourse, $Day, $Data): bool
     {
-        if (($tblTimetableNodeList = Timetable::useService()->getTimetableNodeListByTimetableAndDivisionCourseAndDay($tblTimetable, $tblDivisionCourse, $Day))) {
+        if (($tblTimetableNodeList = $this->getTimetableNodeListByTimetableAndDivisionCourseAndDay($tblTimetable, $tblDivisionCourse, $Day))) {
             $deleteBulkList = array();
             foreach ($tblTimetableNodeList as $tblTimetableNode) {
                 $deleteBulkList[] = $tblTimetableNode;
@@ -654,6 +658,57 @@ class Service extends AbstractService
         }
 
         return true;
+    }
+
+    /**
+     * @param IFormInterface $form
+     * @param TblTimetable $tblTimetable
+     * @param $Data
+     *
+     * @return IFormInterface|string
+     */
+    public function updateTimetableWeek(
+        IFormInterface $form,
+        TblTimetable $tblTimetable,
+        $Data
+    ) {
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $Data) {
+            return $form;
+        }
+
+        if (($tblTimetableWeekList = $this->getTimetableWeekListByTimetable($tblTimetable))) {
+            $deleteBulkList = array();
+            foreach ($tblTimetableWeekList as $tblTimetableWeek) {
+                $deleteBulkList[] = $tblTimetableWeek;
+            }
+            $this->deleteEntityListBulk($deleteBulkList);
+        }
+
+        if ($Data) {
+            $createBulkList = array();
+            foreach ($Data as $date => $week) {
+                if ($week) {
+                    $entity = new TblTimetableWeek();
+                    $entity->setTblTimetable($tblTimetable);
+                    $entity->setDate(new DateTime($date));
+                    $entity->setWeek(strtoupper($week));
+                    $entity->setNumber('');
+
+                    $createBulkList[] = $entity;
+                }
+            }
+
+            if (!empty($createBulkList)) {
+                $this->createEntityListBulk($createBulkList);
+            }
+        }
+
+        return new Success('Die Wochen wurden erfolgreich gespeichert')
+            . new Redirect('/Education/ClassRegister/Digital/Timetable', Redirect::TIMEOUT_SUCCESS);
     }
 
     /**
