@@ -452,7 +452,7 @@ class EzshGymAbg extends EzshStyle
                     )
                     ->addSection((new Section())
                         ->addSliceColumn(
-                            self::getEZSHSubjectLanes($personId, true, array('Lane' => 1, 'Rank' => 3), false, true, false)
+                            self::getEZSHSubjectLanes($personId, true, array('Lane' => 1, 'Rank' => 3), false, false, false)
 //                                ->styleHeight('360px')
                         )
                     )
