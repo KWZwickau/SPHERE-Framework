@@ -144,7 +144,7 @@ class Main extends Extension
                  */
                 self::registerApiPlatform();
 
-                $excludeSession = array(
+                $excludeSessionAPI = array(
                     '/Api/Reporting/CustomEKBO/BerlinZentrum/SuSList/Download',
                     '/Api/Reporting/CustomEKBO/BerlinZentrum/KuKList/Download',
                 );
@@ -154,7 +154,7 @@ class Main extends Extension
                         if (!Access::useService()->hasAuthorization($this->getRequest()->getPathInfo())) {
                             header('HTTP/1.0 403 Forbidden: '.$this->getRequest()->getPathInfo());
                         } else {
-                            if(!in_array($this->getRequest()->getPathInfo(), ($excludeSession))){
+                            if(!in_array($this->getRequest()->getPathInfo(), ($excludeSessionAPI))){
                                 Account::useService()->refreshSession();
                             }
                             echo self::getDispatcher()->fetchRoute(
@@ -196,7 +196,13 @@ class Main extends Extension
              * Execute Request
              */
             if ($this->runAuthenticator()) {
-                Account::useService()->refreshSession();
+                $excludeSession = array(
+                    '/Reporting/Custom/SuSList',
+                    '/Reporting/Custom/KuKList',
+                );
+                if(!in_array($this->getRequest()->getPathInfo(), ($excludeSession))){
+                    Account::useService()->refreshSession();
+                }
                 self::getDisplay()->setContent(
                     self::getDispatcher()->fetchRoute(
                         $this->getRequest()->getPathInfo()
