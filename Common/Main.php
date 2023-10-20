@@ -22,6 +22,7 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Platform\Platform;
 use SPHERE\Application\Platform\System;
 use SPHERE\Application\Reporting\Reporting;
+use SPHERE\Application\Setting\Authorization\Account\Account;
 use SPHERE\Application\Setting\Setting;
 use SPHERE\Application\Transfer\Transfer;
 use SPHERE\Common\Frontend\Icon\Repository\HazardSign;
@@ -143,11 +144,19 @@ class Main extends Extension
                  */
                 self::registerApiPlatform();
 
+                $excludeSession = array(
+                    '/Api/Reporting/CustomEKBO/BerlinZentrum/SuSList/Download',
+                    '/Api/Reporting/CustomEKBO/BerlinZentrum/KuKList/Download',
+                );
+
                 if ($this->runAuthenticator()) {
                     if (Access::useService()->existsRightByName($this->getRequest()->getPathInfo())) {
                         if (!Access::useService()->hasAuthorization($this->getRequest()->getPathInfo())) {
                             header('HTTP/1.0 403 Forbidden: '.$this->getRequest()->getPathInfo());
                         } else {
+                            if(!in_array($this->getRequest()->getPathInfo(), ($excludeSession))){
+                                Account::useService()->refreshSession();
+                            }
                             echo self::getDispatcher()->fetchRoute(
                                 $this->getRequest()->getPathInfo()
                             );
@@ -187,6 +196,7 @@ class Main extends Extension
              * Execute Request
              */
             if ($this->runAuthenticator()) {
+                Account::useService()->refreshSession();
                 self::getDisplay()->setContent(
                     self::getDispatcher()->fetchRoute(
                         $this->getRequest()->getPathInfo()

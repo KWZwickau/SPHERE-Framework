@@ -117,6 +117,18 @@ class Service extends AbstractService
     }
 
     /**
+     * @param $Session
+     *
+     * @return void
+     * @throws \Exception
+     */
+    public function refreshSession($Session = null)
+    {
+
+        (new Data($this->getBinding()))->refreshSession($Session);
+    }
+
+    /**
      * @return bool|string
      */
     public function getMandantAcronym()
