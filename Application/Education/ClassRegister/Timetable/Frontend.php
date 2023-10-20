@@ -46,6 +46,7 @@ use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
+use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\Table;
 use SPHERE\Common\Frontend\Table\Structure\TableBody;
 use SPHERE\Common\Frontend\Table\Structure\TableColumn;
@@ -54,6 +55,7 @@ use SPHERE\Common\Frontend\Table\Structure\TableHead;
 use SPHERE\Common\Frontend\Table\Structure\TableRow;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Center;
+use SPHERE\Common\Frontend\Text\Repository\Sup;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
@@ -221,14 +223,32 @@ class Frontend extends Extension implements IFrontendInterface
                             TblDivisionCourseType::TYPE_CORE_GROUP))) {
                             $tblDivisionCourseList = array_merge($tblDivisionCourseList, $tblDivisionCourseListCoreGroup);
                         }
-                    // Klassenlehrer
-                    } else {
-                        if ($tblPerson
-                            && ($tblTempList = DivisionCourse::useService()->getDivisionCourseListByDivisionTeacher($tblPerson, $tblYear))
-                        ) {
+                        if (($tblDivisionCourseListAdvancedCourse = DivisionCourse::useService()->getDivisionCourseListBy($tblYear,
+                            TblDivisionCourseType::TYPE_ADVANCED_COURSE))) {
+                            $tblDivisionCourseList = array_merge($tblDivisionCourseList, $tblDivisionCourseListAdvancedCourse);
+                        }
+                        if (($tblDivisionCourseListBasicCourse = DivisionCourse::useService()->getDivisionCourseListBy($tblYear,
+                            TblDivisionCourseType::TYPE_BASIC_COURSE))) {
+                            $tblDivisionCourseList = array_merge($tblDivisionCourseList, $tblDivisionCourseListBasicCourse);
+                        }
+                        // Klassenlehrer oder SekII-Kurse mit Lehrauftrag
+                    } elseif ($tblPerson) {
+                        // Klassenlehrer
+                        if (($tblTempList = DivisionCourse::useService()->getDivisionCourseListByDivisionTeacher($tblPerson, $tblYear))) {
                             foreach ($tblTempList as $tblTemp) {
                                 if ($tblTemp->getIsDivisionOrCoreGroup()) {
                                     $tblDivisionCourseList[] = $tblTemp;
+                                }
+
+                            }
+                        }
+                        // SekII-Kurse -> Fachlehrer
+                        if (($tblTeacherLectureshipList = DivisionCourse::useService()->getTeacherLectureshipListBy($tblYear, $tblPerson))) {
+                            foreach ($tblTeacherLectureshipList as $tblTeacherLectureship) {
+                                if (($tblDivisionCourseTemp = $tblTeacherLectureship->getTblDivisionCourse())
+                                    && $tblDivisionCourseTemp->getType()->getIsCourseSystem()
+                                ) {
+                                    $tblDivisionCourseList[] = $tblDivisionCourseTemp;
                                 }
                             }
                         }
@@ -238,6 +258,13 @@ class Frontend extends Extension implements IFrontendInterface
 
             /** @var TblDivisionCourse $tblDivisionCourse */
             foreach ($tblDivisionCourseList as $tblDivisionCourse) {
+                // Klassen und Stammgruppen der SekII überspringen
+                if ($tblDivisionCourse->getIsDivisionOrCoreGroup()
+                    && DivisionCourse::useService()->getIsCourseSystemByStudentsInDivisionCourse($tblDivisionCourse)
+                ) {
+                    continue;
+                }
+
                 $count = 0;
                 if (($tblTimetableNodeList = Timetable::useService()->getTimetableNodeListByTimetableAndDivisionCourse($tblTimetable, $tblDivisionCourse))) {
                     $count = count($tblTimetableNodeList);
@@ -251,7 +278,7 @@ class Frontend extends Extension implements IFrontendInterface
                     'Count' => $count,
                     'Option' => new Standard(
                         '',
-                        '/Education/ClassRegister/Digital/Timetable/Show',
+                        $tblDivisionCourse->getIsDivisionOrCoreGroup() ? '/Education/ClassRegister/Digital/Timetable/Show' : '/Education/ClassRegister/Digital/Timetable/Edit',
                         new Select(),
                         array(
                             'TimetableId' => $tblTimetable->getId(),
@@ -262,23 +289,27 @@ class Frontend extends Extension implements IFrontendInterface
                 );
             }
 
-            $table = new TableData($dataList, null, array(
-                'Year' => 'Schuljahr',
-                'DivisionCourse' => 'Kurs',
-                'DivisionCourseType' => 'Kurs-Typ',
-                'SchoolTypes' => 'Schularten',
-                'Count' => 'Anzahl Einträge',
-                'Option' => ''
-            ), array(
-                'order' => array(
-                    array('0', 'desc'),
-                    array('1', 'asc'),
-                ),
-                'columnDefs' => array(
-                    array('type' => 'natural', 'targets' => 1),
-                    array('orderable' => false, 'width' => '1%', 'targets' => -1)
-                ),
-            ));
+            if (!$hasRightHeadmaster && empty($dataList)) {
+                $content = new Warning('Es können nur Klassenlehrer/Tutoren und Fachlehrer von SekII-Kursen den Stundenplan einsehen und bearbeiten.' , new Exclamation());
+            } else {
+                $content = new TableData($dataList, null, array(
+                    'Year' => 'Schuljahr',
+                    'DivisionCourse' => 'Kurs',
+                    'DivisionCourseType' => 'Kurs-Typ',
+                    'SchoolTypes' => 'Schularten',
+                    'Count' => 'Anzahl Einträge',
+                    'Option' => ''
+                ), array(
+                    'order' => array(
+                        array('0', 'desc'),
+                        array('1', 'asc'),
+                    ),
+                    'columnDefs' => array(
+                        array('type' => 'natural', 'targets' => 1),
+                        array('orderable' => false, 'width' => '1%', 'targets' => -1)
+                    ),
+                ));
+            }
 
             $stage->setContent(
                 new Layout(new LayoutGroup(array(
@@ -292,7 +323,7 @@ class Frontend extends Extension implements IFrontendInterface
                     )),
                     new LayoutRow(array(
                         new LayoutColumn(
-                            $table
+                            $content
                         )
                     ))
                 )))
@@ -438,10 +469,6 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendEditTimetable($TimetableId = null, $DivisionCourseId = null, $DayNumber = null): string
     {
         $stage = new Stage('Stundenplan', 'Bearbeiten');
-        $stage->addButton((new Standard(
-            'Zurück', '/Education/ClassRegister/Digital/Timetable/Show', new ChevronLeft(),
-            array('TimetableId' => $TimetableId, 'DivisionCourseId' => $DivisionCourseId))
-        ));
 
         if (!($tblTimetable = Timetable::useService()->getTimetableById($TimetableId))) {
             return $stage . new Danger('Der Stundenplan wurde nicht gefunden', new Exclamation());
@@ -456,42 +483,74 @@ class Frontend extends Extension implements IFrontendInterface
             $array[] = 'Gültigkeit: ' . $tblTimetable->getDateFrom() . ' - ' . $tblTimetable->getDateTo();
         }
 
-        $dayNames = array(
-            '0' => 'Sonntag',
-            '1' => 'Montag',
-            '2' => 'Dienstag',
-            '3' => 'Mittwoch',
-            '4' => 'Donnerstag',
-            '5' => 'Freitag',
-            '6' => 'Samstag',
-        );
+        // SekI
+        if ($tblDivisionCourse->getIsDivisionOrCoreGroup()) {
+            $stage->addButton((new Standard(
+                'Zurück', '/Education/ClassRegister/Digital/Timetable/Show', new ChevronLeft(),
+                array('TimetableId' => $TimetableId, 'DivisionCourseId' => $DivisionCourseId))
+            ));
+
+            $contentCoursePanel = $tblDivisionCourse->getDisplayName();
+
+            $dayNames = array(
+                '0' => 'Sonntag',
+                '1' => 'Montag',
+                '2' => 'Dienstag',
+                '3' => 'Mittwoch',
+                '4' => 'Donnerstag',
+                '5' => 'Freitag',
+                '6' => 'Samstag',
+            );
+            $content = new Panel(
+                new Edit() . ' ' . $dayNames[$DayNumber] . ' bearbeiten',
+                new Title(
+                    new Layout(new LayoutGroup(new LayoutRow(array(
+                        new LayoutColumn(new Bold('UE'), 1),
+                        new LayoutColumn(new Bold('Fach') . new Sup(new \SPHERE\Common\Frontend\Text\Repository\Danger('*')), 3),
+                        new LayoutColumn(new Bold('Lehrer'), 3),
+                        new LayoutColumn(new Bold('Raum'), 2),
+                        new LayoutColumn(new Bold('Woche'), 2),
+                        new LayoutColumn(new Bold(''), 1),
+                    ))))
+                )
+                . ApiTimetable::receiverBlock($this->getTimeTableDayForm($tblTimetable, $tblDivisionCourse, $DayNumber), 'TimetableForm'),
+                Panel::PANEL_TYPE_PRIMARY
+            );
+        // SekII
+        } else {
+            $stage->addButton((new Standard(
+                'Zurück', '/Education/ClassRegister/Digital/Timetable/Select', new ChevronLeft(),
+                array('TimetableId' => $TimetableId))
+            ));
+
+            $contentCoursePanel[] = $tblDivisionCourse->getDisplayName();
+            $contentCoursePanel[] = ($tblSubject = $tblDivisionCourse->getServiceTblSubject()) ? $tblSubject->getDisplayName() : '';
+
+            $content = new Title(new Well(
+                new Layout(new LayoutGroup(new LayoutRow(array(
+                    new LayoutColumn(new Bold('Tag') . new Sup(new \SPHERE\Common\Frontend\Text\Repository\Danger('*')), 2),
+                    new LayoutColumn(new Bold('UE') . new Sup(new \SPHERE\Common\Frontend\Text\Repository\Danger('*')), 2),
+                    new LayoutColumn(new Bold('Lehrer'), 3),
+                    new LayoutColumn(new Bold('Raum'), 2),
+                    new LayoutColumn(new Bold('Woche'), 2),
+                    new LayoutColumn(new Bold(''), 1),
+                ))))
+                . ApiTimetable::receiverBlock($this->getTimeTableCourseSystemForm($tblTimetable, $tblDivisionCourse), 'TimetableCourseSystemForm')
+            ));
+        }
 
         $stage->setContent(
             new Layout(new LayoutGroup(array(
                 new LayoutRow(array(
                     new LayoutColumn(
-                        new Panel($tblDivisionCourse->getTypeName(), $tblDivisionCourse->getDisplayName(), Panel::PANEL_TYPE_INFO)
+                        new Panel($tblDivisionCourse->getTypeName(), $contentCoursePanel, Panel::PANEL_TYPE_INFO)
                         , 6),
                     new LayoutColumn(
                         new Panel('Stundenplan', $array, Panel::PANEL_TYPE_INFO)
                         , 6)
                 )),
                 new LayoutRow(array(
-                    new LayoutColumn(new Panel(
-                        new Edit() . ' ' . $dayNames[$DayNumber] . ' bearbeiten',
-                        new Title(
-                            new Layout(new LayoutGroup(new LayoutRow(array(
-                                new LayoutColumn(new Bold('UE'), 1),
-                                new LayoutColumn(new Bold('Fach'), 3),
-                                new LayoutColumn(new Bold('Lehrer'), 3),
-                                new LayoutColumn(new Bold('Raum'), 2),
-                                new LayoutColumn(new Bold('Woche'), 2),
-                                new LayoutColumn(new Bold(''), 1),
-                            ))))
-                        )
-                        . ApiTimetable::receiverBlock($this->getTimeTableDayForm($tblTimetable, $tblDivisionCourse, $DayNumber), 'TimetableForm'),
-                        Panel::PANEL_TYPE_PRIMARY
-                    ))
+                    new LayoutColumn($content)
                 ))
             )))
 
@@ -523,7 +582,7 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $tblSubjectList = Subject::useService()->getSubjectAll();
-        $tblTeacherList = array();
+        $tblTeacherList[] = '';
         if (($tblGroup = Group::useService()->getGroupByMetaTable('TEACHER'))
             && ($tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup))
         ) {
@@ -625,6 +684,148 @@ class Frontend extends Extension implements IFrontendInterface
                 ->ajaxPipelineOnClick(ApiTimetable::pipelineSaveTimetableForm($tblTimetable->getId(), $tblDivisionCourse->getId(), $DayNumber)),
             (new Standard('Abbrechen', '/Education/ClassRegister/Digital/Timetable/Show', new Remove(),
                 array('TimetableId' => $tblTimetable->getId(), 'DivisionCourseId' => $tblDivisionCourse->getId())))
+        )));
+
+        return new Form(new FormGroup($formRows));
+    }
+
+    /**
+     * @param TblTimetable $tblTimetable
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param $AddKey
+     * @param $SubKey
+     * @param $Data
+     *
+     * @return Form
+     */
+    public function getTimeTableCourseSystemForm(
+        TblTimetable $tblTimetable, TblDivisionCourse $tblDivisionCourse, $AddKey = null, $SubKey = null, $Data = null
+    ): Form {
+        $maxLesson = 12;
+        if (($tblSetting = Consumer::useService()->getSetting('Education', 'ClassRegister', 'LessonContent', 'StartsLessonContentWithZeroLesson'))
+            && $tblSetting->getValue()
+        ) {
+            $minLesson = 0;
+        } else {
+            $minLesson = 1;
+        }
+
+        $tblTeacherList[] = '';
+        if (($tblGroup = Group::useService()->getGroupByMetaTable('TEACHER'))
+            && ($tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup))
+        ) {
+            foreach ($tblPersonList as $tblPerson) {
+                if (($tblTeacher = Teacher::useService()->getTeacherByPerson($tblPerson))
+                    && ($acronym = $tblTeacher->getAcronym())
+                ) {
+
+                } else {
+                    $acronym = '-NA-';
+                }
+
+                $tblTeacherList[$tblPerson->getId()] = $acronym . ' - ' . $tblPerson->getFullName();
+            }
+        }
+        $weekNameList = array();
+        if (($tblTimetableWeekList = Timetable::useService()->getTimetableWeekListByTimetable($tblTimetable))) {
+            foreach ($tblTimetableWeekList as $tblTimetableWeek) {
+                $weekNameList[$tblTimetableWeek->getWeek()] = $tblTimetableWeek->getWeek();
+            }
+        }
+        $lessonList = array();
+        for ($i = $minLesson; $i <= $maxLesson; $i++) {
+            $lessonList[$i] = $i . '.UE';
+        }
+        $dayNameList = array();
+        $dayNameList['1'] = 'Montag';
+        $dayNameList['2'] = 'Dienstag';
+        $dayNameList['3'] = 'Mittwoch';
+        $dayNameList['4'] = 'Donnerstag';
+        $dayNameList['5'] = 'Freitag';
+        $dayNameList['6'] = 'Samstag';
+
+        if ($AddKey) {
+            $Data[$AddKey] = array();
+        }
+        if ($SubKey) {
+            unset($Data[$SubKey]);
+            if ($SubKey % 10 == 0) {
+                $Data[$SubKey] = array();
+            }
+        }
+
+        if ($Data == null) {
+            $i = 1;
+            if (($tblTimetableNodeList = Timetable::useService()->getTimetableNodeListByTimetableAndDivisionCourse($tblTimetable, $tblDivisionCourse))) {
+                $key = $i * 10;
+                foreach ($tblTimetableNodeList as $tblTimetableNode) {
+                    $Data[$key] = array(
+                        'Day' => $tblTimetableNode->getDay(),
+                        'Hour' => $tblTimetableNode->getHour(),
+                        'serviceTblPerson' => ($tblPerson = $tblTimetableNode->getServiceTblPerson()) ? $tblPerson->getId() : 0,
+                        'Room' => $tblTimetableNode->getRoom(),
+                        'Week' => $tblTimetableNode->getWeek()
+                    );
+                    $key += 10;
+                    $i++;
+                }
+            }
+
+            for (; $i <= 10; $i++) {
+                $key = $i * 10;
+                $Data[$key] = array();
+            }
+        }
+
+        ksort($Data);
+
+        $formRows = array();
+        if ($Data) {
+            $global = $this->getGlobal();
+            foreach ($Data as $index => $list) {
+                $global->POST['Data'][$index]['Day'] = $list['Day'] ?? 0;
+                $global->POST['Data'][$index]['Hour'] = $list['Hour'] ?? 0;
+                $global->POST['Data'][$index]['serviceTblPerson'] = $list['serviceTblPerson'] ?? 0;
+                $global->POST['Data'][$index]['Room'] = $list['Room'] ?? '';
+                $global->POST['Data'][$index]['Week'] = $list['Week'] ?? '';
+                $global->savePost();
+
+                $formRows[] = new FormRow(array(
+                    new FormColumn(
+                        (new SelectBox('Data[' . $index . '][Day]', '', $dayNameList, null, false, null))
+                        , 2),
+                    new FormColumn(
+                        new SelectBox('Data[' . $index . '][Hour]', '', $lessonList)
+                        , 2),
+                    new FormColumn(
+                        new SelectBox('Data[' . $index . '][serviceTblPerson]', '', $tblTeacherList)
+                        , 3),
+                    new FormColumn(
+                        new TextField('Data[' . $index . '][Room]', 'Raum')
+                        , 2),
+                    new FormColumn(
+                        new AutoCompleter('Data[' . $index . '][Week]', '', 'Woche', $weekNameList)
+                        , 2),
+                    new FormColumn(
+                        (new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
+                            (new Standard('', ApiTimetable::getEndpoint(), new Plus()))
+                                ->ajaxPipelineOnClick(ApiTimetable::pipelineLoadTimetableCourseSystemForm(
+                                    $tblTimetable->getId(), $tblDivisionCourse->getId(), $index + 1, null, $Data
+                                ))
+                            . (new Standard('', ApiTimetable::getEndpoint(), new Remove()))
+                                ->ajaxPipelineOnClick(ApiTimetable::pipelineLoadTimetableCourseSystemForm(
+                                    $tblTimetable->getId(), $tblDivisionCourse->getId(), null, $index, $Data
+                                ))
+                        )))))
+                        , 1),
+                ));
+            }
+        }
+        $formRows[] = new FormRow(new FormColumn(array(
+            (new Primary('Speichern', ApiTimetable::getEndpoint(), new Save()))
+                ->ajaxPipelineOnClick(ApiTimetable::pipelineSaveTimetableCourseSystemForm($tblTimetable->getId(), $tblDivisionCourse->getId())),
+            (new Standard('Abbrechen', '/Education/ClassRegister/Digital/Timetable/Select', new Remove(),
+                array('TimetableId' => $tblTimetable->getId())))
         )));
 
         return new Form(new FormGroup($formRows));

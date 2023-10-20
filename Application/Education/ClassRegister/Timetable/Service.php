@@ -661,6 +661,54 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblTimetable $tblTimetable
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param $Data
+     *
+     * @return bool
+     */
+    public function updateTimetableCourseSystem(TblTimetable $tblTimetable, TblDivisionCourse $tblDivisionCourse, $Data): bool
+    {
+        if (($tblTimetableNodeList = $this->getTimetableNodeListByTimetableAndDivisionCourse($tblTimetable, $tblDivisionCourse))) {
+            $deleteBulkList = array();
+            foreach ($tblTimetableNodeList as $tblTimetableNode) {
+                $deleteBulkList[] = $tblTimetableNode;
+            }
+            $this->deleteEntityListBulk($deleteBulkList);
+        }
+
+        if ($Data && ($tblSubject = $tblDivisionCourse->getServiceTblSubject())) {
+            $createBulkList = array();
+            foreach ($Data as $list) {
+                if (isset($list['Day']) && $list['Day'] > 0) {
+                    $entity = new TblTimetableNode();
+                    $entity->setTblTimetable($tblTimetable);
+                    $entity->setServiceTblCourse($tblDivisionCourse);
+                    $entity->setServiceTblSubject($tblSubject);
+                    $entity->setSubjectGroup('');
+                    $entity->setLevel('');
+
+                    $entity->setDay($list['Day'] ?? 0);
+                    $entity->setHour($list['Hour'] ?? 0);
+                    if (isset($list['serviceTblPerson']) && ($tblPerson = Person::useService()->getPersonById($list['serviceTblPerson']))) {
+                        $entity->setServiceTblPerson($tblPerson);
+                    }
+                    $entity->setRoom($list['Room'] ?? '');
+                    $entity->setWeek($list['Week'] ?? '');
+
+                    $createBulkList[] = $entity;
+                }
+            }
+
+            if (!empty($createBulkList)) {
+                $this->createEntityListBulk($createBulkList);
+            }
+        }
+
+        return true;
+    }
+
+    /**
      * @param IFormInterface $form
      * @param TblTimetable $tblTimetable
      * @param $Data

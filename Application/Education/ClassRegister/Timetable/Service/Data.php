@@ -175,6 +175,9 @@ class Data extends AbstractData
         return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblTimetableNode', array(
             TblTimetableNode::ATTR_TBL_CLASS_REGISTER_TIMETABLE => $tblTimetable->getId(),
             TblTimetableNode::ATTR_SERVICE_TBL_COURSE => $tblDivisionCourse->getId(),
+        ), array(
+            TblTimetableNode::ATTR_DAY => self::ORDER_ASC,
+            TblTimetableNode::ATTR_HOUR => self::ORDER_ASC
         ));
     }
 

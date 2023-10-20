@@ -58,6 +58,9 @@ class ApiTimetable extends Extension implements IApiInterface
         $Dispatcher->registerMethod('loadTimetableForm');
         $Dispatcher->registerMethod('saveTimetableForm');
 
+        $Dispatcher->registerMethod('loadTimetableCourseSystemForm');
+        $Dispatcher->registerMethod('saveTimetableCourseSystemForm');
+
         return $Dispatcher->callMethod($Method);
     }
 
@@ -480,6 +483,104 @@ class ApiTimetable extends Extension implements IApiInterface
             return new Danger('Der Stundenplan konnte nicht gespeichert werden.')
                 . new Redirect('/Education/ClassRegister/Digital/Timetable/Show', Redirect::TIMEOUT_ERROR,
                     array('TimetableId' => $TimetableId, 'DivisionCourseId' => $DivisionCourseId));
+        }
+    }
+
+    /**
+     * @param string|null $TimetableId
+     * @param string|null $DivisionCourseId
+     * @param string|null $AddKey
+     * @param string|null $SubKey
+     * @param $Data
+     *
+     * @return Pipeline
+     */
+    public static function pipelineLoadTimetableCourseSystemForm(
+        string $TimetableId = null, string $DivisionCourseId = null, string $AddKey = null, string $SubKey = null, $Data = null
+    ): Pipeline {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'TimetableCourseSystemForm'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'loadTimetableCourseSystemForm',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'TimetableId' => $TimetableId,
+            'DivisionCourseId' => $DivisionCourseId,
+            'AddKey' => $AddKey,
+            'SubKey' => $SubKey,
+            'Data' => $Data
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param string|null $TimetableId
+     * @param string|null $DivisionCourseId
+     * @param string|null $AddKey
+     * @param string|null $SubKey
+     * @param null $Data
+     *
+     * @return string
+     */
+    public function loadTimetableCourseSystemForm(
+        string $TimetableId = null, string $DivisionCourseId = null, string $AddKey = null, string $SubKey = null, $Data = null
+    ) : string {
+        if (!($tblTimetable = Timetable::useService()->getTimetableById($TimetableId))) {
+            return new Danger('Der Stundenplan wurde nicht gefunden', new Exclamation());
+        }
+        if (!($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
+            return new Danger('Der Kurs wurde nicht gefunden', new Exclamation());
+        }
+
+        return Timetable::useFrontend()->getTimeTableCourseSystemForm($tblTimetable, $tblDivisionCourse, $AddKey, $SubKey, $Data);
+    }
+
+    /**
+     * @param string|null $TimetableId
+     * @param string|null $DivisionCourseId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineSaveTimetableCourseSystemForm(string $TimetableId = null, string $DivisionCourseId = null): Pipeline
+    {
+        $Pipeline = new Pipeline();
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'TimetableCourseSystemForm'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'saveTimetableCourseSystemForm'
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'DivisionCourseId' => $DivisionCourseId,
+            'TimetableId' => $TimetableId,
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param string|null $TimetableId
+     * @param string|null $DivisionCourseId
+     * @param null $Data
+     *
+     * @return string
+     */
+    public function saveTimetableCourseSystemForm(string $TimetableId = null, string $DivisionCourseId = null, $Data = null): string
+    {
+        if (!($tblTimetable = Timetable::useService()->getTimetableById($TimetableId))) {
+            return new Danger('Der Stundenplan wurde nicht gefunden', new Exclamation());
+        }
+        if (!($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
+            return new Danger('Der Kurs wurde nicht gefunden', new Exclamation());
+        }
+
+        if (Timetable::useService()->updateTimetableCourseSystem($tblTimetable, $tblDivisionCourse, $Data)) {
+            return new Success('Der Stundenplan wurde erfolgreich gespeichert.')
+                . new Redirect('/Education/ClassRegister/Digital/Timetable/Select', Redirect::TIMEOUT_SUCCESS, array('TimetableId' => $TimetableId));
+        } else {
+            return new Danger('Der Stundenplan konnte nicht gespeichert werden.')
+                . new Redirect('/Education/ClassRegister/Digital/Timetable/Select', Redirect::TIMEOUT_ERROR, array('TimetableId' => $TimetableId));
         }
     }
 }
