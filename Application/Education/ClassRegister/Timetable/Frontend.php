@@ -163,31 +163,40 @@ class Frontend extends Extension implements IFrontendInterface
                 ->ajaxPipelineOnClick(ApiTimetable::pipelineCreateTimetableSave());
         }
 
-        return (new Form(
-            new FormGroup(array(
-                new FormRow(array(
-                    new FormColumn(
-                        (new TextField('Data[Name]', '', 'Name'))->setRequired()
-                    , 4),
-                    new FormColumn(array(
-                        (new DatePicker('Data[DateFrom]', '', 'Gültig ab', new Clock()))->setRequired()
-                    ), 4),
-                    new FormColumn(array(
-                        (new DatePicker('Data[DateTo]', '', 'Gültig bis', new Clock()))->setRequired()
-                    ), 4),
-                )),
-                new FormRow(array(
-                    new FormColumn(
-                        new TextField('Data[Description]', '', 'Beschreibung')
-                    )
-                )),
-                new FormRow(array(
-                    new FormColumn(
-                        $saveButton
-                    )
-                )),
-            ))
-        ))->disableSubmitAction();
+        $formRows[] = new FormRow(array(
+            new FormColumn(
+                (new TextField('Data[Name]', '', 'Name'))->setRequired()
+                , 4),
+            new FormColumn(array(
+                (new DatePicker('Data[DateFrom]', '', 'Gültig ab', new Clock()))->setRequired()
+            ), 4),
+            new FormColumn(array(
+                (new DatePicker('Data[DateTo]', '', 'Gültig bis', new Clock()))->setRequired()
+            ), 4),
+        ));
+        $formRows[] = new FormRow(array(
+            new FormColumn(
+                new TextField('Data[Description]', '', 'Beschreibung')
+            )
+        ));
+        if ($TimeTableId == null && ($tblTimeTableList = Timetable::useService()->getTimetableAll())) {
+            $timeTableList[] = '';
+            foreach ($tblTimeTableList as $tblTemp) {
+                $timeTableList[] = $tblTemp->getName() . ' (' . $tblTemp->getDateFrom() . ' - ' . $tblTemp->getDateTo() . ')';
+            }
+            $formRows[] = new FormRow(array(
+                new FormColumn(
+                    new SelectBox('Data[CopyTimeTable]', 'Alle Einträge aus einem alten Stundenplan in neuen Stundenplan kopieren', $timeTableList)
+                )
+            ));
+        }
+        $formRows[] = new FormRow(array(
+            new FormColumn(
+                $saveButton
+            )
+        ));
+
+        return (new Form(new FormGroup($formRows)))->disableSubmitAction();
     }
 
     /**
@@ -405,7 +414,8 @@ class Frontend extends Extension implements IFrontendInterface
                 foreach ($tblTimetableNodeList as $tblTimetableNode) {
                     $bodyList[$tblTimetableNode->getHour()][$day]
                         = (isset($bodyList[$tblTimetableNode->getHour()][$day]) ? $bodyList[$tblTimetableNode->getHour()][$day] . ', ' : '')
-                            . (($tblSubject = $tblTimetableNode->getServiceTblSubject()) ? $tblSubject->getAcronym() : '');
+                            . (($tblSubject = $tblTimetableNode->getServiceTblSubject()) ? $tblSubject->getAcronym() : '')
+                            . ($tblTimetableNode->getWeek() ? ' (' . $tblTimetableNode->getWeek() . ')' : '');
                 }
             }
         }

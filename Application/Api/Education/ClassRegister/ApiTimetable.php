@@ -195,7 +195,12 @@ class ApiTimetable extends Extension implements IApiInterface
             return $this->getTimetableModal($form);
         }
 
-        if (Timetable::useService()->createTimetable($Data['Name'], $Data['Description'], new DateTime($Data['DateFrom']), new DateTime($Data['DateTo']))) {
+        if (($tblTimetable = Timetable::useService()->createTimetable($Data['Name'], $Data['Description'], new DateTime($Data['DateFrom']), new DateTime($Data['DateTo'])))) {
+            // kopieren des Inhalts von einem alten Stundenplan
+            if (isset($Data['CopyTimeTable']) && ($tblTimetableCopy = Timetable::useService()->getTimetableById($Data['CopyTimeTable']))) {
+                Timetable::useService()->copyContentFromOldTimetable($tblTimetable, $tblTimetableCopy);
+            }
+
             return new Success('Der Stundenplan wurde erfolgreich gespeichert.')
                 . self::pipelineLoadTimetable()
                 . self::pipelineClose();

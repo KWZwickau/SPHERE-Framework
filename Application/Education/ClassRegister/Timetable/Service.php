@@ -258,6 +258,55 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblTimetable $tblTimetableNew
+     * @param TblTimetable $tblTimetableOld
+     */
+    public function copyContentFromOldTimetable(TblTimetable $tblTimetableNew, TblTimetable $tblTimetableOld)
+    {
+        $createTimetableNodeList = array();
+        if (($tblTimetableNodeList = $this->getTimetableNodeListByTimetable($tblTimetableOld))) {
+            foreach ($tblTimetableNodeList as $tblTimetableNode) {
+                if (($tblDivisionCourse = $tblTimetableNode->getServiceTblCourse()) && ($tblSubject = $tblTimetableNode->getServiceTblSubject())) {
+                    $entity = new TblTimetableNode();
+                    $entity->setTblTimetable($tblTimetableNew);
+                    $entity->setHour($tblTimetableNode->getHour());
+                    $entity->setDay($tblTimetableNode->getDay());
+                    $entity->setWeek($tblTimetableNode->getWeek());
+                    $entity->setRoom($tblTimetableNode->getRoom());
+                    $entity->setSubjectGroup($tblTimetableNode->getSubjectGroup());
+                    $entity->setLevel($tblTimetableNode->getLevel());
+                    $entity->setServiceTblCourse($tblDivisionCourse);
+                    $entity->setServiceTblSubject($tblSubject);
+                    if (($tblPerson = $tblTimetableNode->getServiceTblPerson())) {
+                        $entity->setServiceTblPerson($tblPerson);
+                    }
+
+                    $createTimetableNodeList[] = $entity;
+                }
+            }
+        }
+        $createTimetableWeekList = array();
+        if (($tblTimetableWeekList = $this->getTimetableWeekListByTimetable($tblTimetableOld))) {
+            foreach ($tblTimetableWeekList as $tblTimetableWeek) {
+                $entity = new TblTimetableWeek();
+                $entity->setTblTimetable($tblTimetableNew);
+                $entity->setNumber($tblTimetableWeek->getNumber());
+                $entity->setWeek($tblTimetableWeek->getWeek());
+                $entity->setDate($tblTimetableWeek->getDate(true));
+
+                $createTimetableWeekList[] = $entity;
+            }
+        }
+
+        if (!empty($createTimetableNodeList)) {
+            $this->createEntityListBulk($createTimetableNodeList);
+        }
+        if (!empty($createTimetableWeekList)) {
+            $this->createEntityListBulk($createTimetableWeekList);
+        }
+    }
+
+    /**
      * @param TblTimetable $tblTimetable
      * @return bool
      */
