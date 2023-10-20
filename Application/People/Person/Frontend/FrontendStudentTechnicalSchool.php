@@ -109,7 +109,7 @@ class FrontendStudentTechnicalSchool extends FrontendReadOnly
                 new LayoutRow(array(
                     new LayoutColumn(array(
                         FrontendReadOnly::getSubContent(
-                            'Schüler - Aufname (für Kamenz-Statistik)',
+                            'Schüler - Aufnahme (für Kamenz-Statistik)',
                             new Layout(new LayoutGroup(array(
                                 new LayoutRow(array(
                                     self::getLayoutColumnLabel('Allgemeinbildender Abschluss', 3),
@@ -289,7 +289,7 @@ class FrontendStudentTechnicalSchool extends FrontendReadOnly
         }
 
         $panelArrive = new Panel(
-            'Schüler - Aufname',
+            'Schüler - Aufnahme',
             new Layout(new LayoutGroup(array(
                 new LayoutRow(array(
                     new LayoutColumn(
