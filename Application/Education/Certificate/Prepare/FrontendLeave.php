@@ -220,7 +220,7 @@ class FrontendLeave extends FrontendDiplomaTechnicalSchool
                         } elseif ($tblType->getName() == 'Gymnasium') {
                             // Herrnhut hat ein individuelles Abgangszeugnis
                             if ($tblConsumer && $tblConsumer->isConsumer(TblConsumer::TYPE_SACHSEN, 'EZSH')
-                                && $level == 10
+                                && $level <= 10
                             ) {
                                 $tblCertificate = Generator::useService()->getCertificateByCertificateClassName('EZSH\EzshGymAbg');
                             } elseif ($tblConsumer && $tblConsumer->isConsumer(TblConsumer::TYPE_SACHSEN, 'HOGA')

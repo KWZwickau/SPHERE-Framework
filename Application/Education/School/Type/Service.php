@@ -164,6 +164,12 @@ class Service extends AbstractService
             case 'Gy': return 12;
 
             case 'BGy': return 13;
+            case 'FOS': return 12;
+            case 'BFS': return 3;
+            case 'BGJ':
+            case 'BVJ':
+            case 'VKlbA': return 1;
+
             default: return 4;
         }
     }
@@ -180,7 +186,8 @@ class Service extends AbstractService
             case 'OS':
             case 'Gy': return 5;
 
-            case 'BGy': return 11;
+            case 'BGy':
+            case 'FOS': return 11;
             default: return 1;
         }
     }
