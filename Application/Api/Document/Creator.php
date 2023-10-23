@@ -1146,7 +1146,7 @@ class Creator extends Extension
         } elseif($Select == 'UserRole') {
             $file = "Common/Style/Resource/Document/Manual/SSWUserRole.pdf";
             header("Content-Type: application/pdf");
-            header("Content-Disposition: attachment; filename=Benutzerrechte_Schulsoftware.pdf");
+            header("Content-Disposition: attachment; filename=Benutzerrechte_Schulsoftware_19.10.2023.pdf");
             header("Content-Length: ".filesize($file));
         } elseif($Select == 'DigitalClassBook') {
             $file = "Common/Style/Resource/Document/Manual/SSWDigitalClassBook.pdf";
@@ -1166,7 +1166,7 @@ class Creator extends Extension
         } elseif($Select == 'Leistungsbeschreibung') {
             $file = "Common/Style/Resource/Document/Manual/SSW_ESDiLeistungsbeschreibung.pdf";
             header("Content-Type: application/pdf");
-            header("Content-Disposition: attachment; filename=Schulsoftware_Leistungsbeschreibung_26.01.2023.pdf");
+            header("Content-Disposition: attachment; filename=Schulsoftware_Leistungsbeschreibung_19.10.2023.pdf");
             header("Content-Length: ".filesize($file));
         } elseif($Select == 'Indiware') {
             $file = "Common/Style/Resource/Document/Manual/Indiware_Leitfaden.pdf";
