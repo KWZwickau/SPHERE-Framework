@@ -252,7 +252,8 @@ class Frontend extends FrontendYearChange
                         array('orderable' => false, 'width' => '140px', 'targets' => -1),
                     ),
                     'order'      => array(array(0, 'asc'), array(1, 'asc')),
-                    'responsive' => false
+                    'responsive' => false,
+                    'destroy' => true
                 )
             );
         }
