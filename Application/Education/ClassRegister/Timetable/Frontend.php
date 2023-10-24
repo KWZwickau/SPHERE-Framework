@@ -35,6 +35,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Select;
 use SPHERE\Common\Frontend\IFrontendInterface;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
@@ -77,6 +78,13 @@ class Frontend extends Extension implements IFrontendInterface
 
         $stage->setContent(
             ApiTimetable::receiverModal()
+            . new Warning(
+                'Ablauf Stundenplan Eingabe:'
+                . new Container('1. Die Schulleitung legt einen neuen Stundenplan an')
+                . new Container('2. Die Schulleitung legt fest wann A-Woche bzw. B-Woche ist (falls erforderlich)')
+                . new Container('3. SekI: Klassenlehrer/Tutoren können den Basis-Stundenplan für Ihre Klassen/Stammgruppen eingeben')
+                . new Container('&nbsp;&nbsp;&nbsp;&nbsp;SekII: Fachlehrer (Lehrauftrag) können den Basis-Stundenplan für Ihre SekII-Kurse eingeben')
+            )
             . ($hasRightHeadmaster
                 ? (new Primary(new Plus() . ' Stundenplan hinzufügen', ApiTimetable::getEndpoint()))
                     ->ajaxPipelineOnClick(ApiTimetable::pipelineOpenCreateTimetableModal())
