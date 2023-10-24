@@ -208,9 +208,12 @@ class Service extends AbstractService
             $export->setValue($export->getCell("1", "0"), "Name");
             $export->setValue($export->getCell("2", "0"), "Vorname");
 
-
             for ($i = 1; $i <= 17; $i++) {
-                $export->setValue($export->getCell(($i + 2), "0"), 'Punkte'.$Period.$i);
+                if ($Period >= 5) {
+                    $export->setValue($export->getCell(($i + 2), "0"), 'EinfNote' . ($Period == 5 ? '1' : '2') . $i);
+                } else {
+                    $export->setValue($export->getCell(($i + 2), "0"), 'Punkte' . $Period . $i);
+                }
             }
 
             $Row = 1;
