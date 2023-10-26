@@ -391,10 +391,12 @@ abstract class AbstractView extends Element
             $Data = array_combine($Data, $Data);
         }
         // Add "ALL" Option
-        if( $PropertyCount == 1) {
-            $Data[''] = '-[ Alle ]-';
-        } else {
-            $Data[''] = '-[ Oder ]-';
+        if(!empty($Data)){
+            if( $PropertyCount == 1) {
+                $Data[''] = '-[ Alle ]-';
+            } else {
+                $Data[''] = '-[ Oder ]-';
+            }
         }
 //        following part destroy IdKeys
 //        // Add "ALL" Option
