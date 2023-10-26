@@ -65,7 +65,7 @@ class Person extends Extension
         } else {return false;}
         if (($tblPersonList = $tblDivisionCourse->getStudents())
             && ($tblYear = $tblDivisionCourse->getServiceTblYear())
-            && ($dataList = ReportingPerson::useService()->createClassList($tblPersonList, $tblYear))
+            && ($dataList = ReportingPerson::useService()->createClassList($tblDivisionCourse, $tblPersonList, $tblYear))
         ) {
             $fileLocation = ReportingPerson::useService()->createClassListExcel($dataList, $tblPersonList, $tblDivisionCourse);
             return FileSystem::getDownload($fileLocation->getRealPath(), $name . '_' . date("Y-m-d").".xlsx")->__toString();
