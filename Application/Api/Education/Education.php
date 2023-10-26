@@ -10,6 +10,7 @@ use SPHERE\Application\Api\Education\ClassRegister\ApiDigital;
 use SPHERE\Application\Api\Education\ClassRegister\ApiInstructionItem;
 use SPHERE\Application\Api\Education\ClassRegister\ApiInstructionSetting;
 use SPHERE\Application\Api\Education\ClassRegister\ApiSortDivision;
+use SPHERE\Application\Api\Education\ClassRegister\ApiTimetable;
 use SPHERE\Application\Api\Education\ClassRegister\ClassRegister;
 use SPHERE\Application\Api\Education\Division\AddDivision;
 use SPHERE\Application\Api\Education\Division\DivisionCustody;
@@ -84,6 +85,7 @@ class Education implements IApplicationInterface
         ApiCourse::registerApi();
         ApiGradesAllYears::registerApi();
         ApiDigital::registerApi();
+        ApiTimetable::registerApi();
         ApiInstructionSetting::registerApi();
         ApiInstructionItem::registerApi();
         ApiDivisionCourse::registerApi();

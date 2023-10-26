@@ -963,7 +963,7 @@ class Frontend extends FrontendTabs
      *
      * @return TableColumn
      */
-    private function getTableHeadColumn(string $name, string $width = 'auto', string $backgroundColor = '#E0F0FF'): TableColumn
+    public function getTableHeadColumn(string $name, string $width = 'auto', string $backgroundColor = '#E0F0FF'): TableColumn
     {
         $size = 1;
         return (new TableColumn(new Center(new Bold($name)), $size, $width))
@@ -979,7 +979,7 @@ class Frontend extends FrontendTabs
      *
      * @return string
      */
-    private function getTextColor(string $content, string $color): string
+    public function getTextColor(string $content, string $color): string
     {
         return '<span style="color: ' . $color . ';">' . $content . '</span>';
     }
