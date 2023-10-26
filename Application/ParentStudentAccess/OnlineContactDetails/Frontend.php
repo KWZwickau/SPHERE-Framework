@@ -11,6 +11,7 @@ use SPHERE\Application\Contact\Phone\Phone;
 use SPHERE\Application\Contact\Phone\Service\Entity\TblToPerson as TblPhoneToPerson;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\ParentStudentAccess\OnlineContactDetails\Service\Entity\TblOnlineContact;
+use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
@@ -568,9 +569,17 @@ class Frontend extends Extension implements IFrontendInterface
      */
     private function getMailPanel(TblPerson $tblPerson, TblMailToPerson $tblMailToPerson, array $personIdList): Panel
     {
-        $editLink = (new Link(new Edit() . ' Bearbeiten', ApiOnlineContactDetails::getEndpoint(), null, array(), 'Änderungswunsch für diese E-Mail-Adresse abgeben'))
-            ->ajaxPipelineOnClick(ApiOnlineContactDetails::pipelineOpenCreateMailModal(
-                $tblPerson->getId(), $tblMailToPerson->getId(), $personIdList));
+        // Schüler mit geschäftlicher E-Mail-Adresse nicht bearbeiten
+        $editLink = '';
+        if (!(
+            $tblMailToPerson->getTblType()->getName() == 'Geschäftlich'
+            && Group::useService()->existsGroupPerson(Group::useService()->getGroupByMetaTable('STUDENT'), $tblPerson)
+        )) {
+            $editLink = (new Link(new Edit() . ' Bearbeiten', ApiOnlineContactDetails::getEndpoint(), null, array(),
+                'Änderungswunsch für diese E-Mail-Adresse abgeben'))
+                ->ajaxPipelineOnClick(ApiOnlineContactDetails::pipelineOpenCreateMailModal(
+                    $tblPerson->getId(), $tblMailToPerson->getId(), $personIdList));
+        }
         $content[] = $tblMailToPerson->getTblMail()->getAddress() . new PullRight($editLink);
 
         $hasOnlineContacts = false;
