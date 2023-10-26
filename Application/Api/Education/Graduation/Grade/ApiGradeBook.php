@@ -1233,9 +1233,9 @@ class ApiGradeBook extends Extension implements IApiInterface
      *
      * @return String
      */
-    public function openGradeMirrorModal($TestId): string
+    public function openGradeMirrorModal($TestId, $Data = null): string
     {
-        return (new Frontend())->openGradeMirrorModal($TestId);
+        return (new Frontend())->openGradeMirrorModal($TestId, $Data);
     }
 
     /**

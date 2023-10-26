@@ -359,6 +359,7 @@ class Frontend extends FrontendTestPlanning
             . new Container('&nbsp;')
             . ApiSupportReadOnly::receiverOverViewModal()
             . ApiPersonPicture::receiverModal()
+            . ApiGradeBook::receiverModal()
             . $content;
     }
 
@@ -374,7 +375,13 @@ class Frontend extends FrontendTestPlanning
             elseif (strpos($key, 'Test') !== false) {
                 $testId = str_replace('Test', '', $key);
                 if (isset($averageTestSumList[$testId]) && isset($averageTestCountList[$testId])) {
-                    $contentTemp = new Muted(Grade::useService()->getGradeAverage($averageTestSumList[$testId], $averageTestCountList[$testId]));
+                    $contentTemp =
+                        (new Link(
+                            Grade::useService()->getGradeAverage($averageTestSumList[$testId], $averageTestCountList[$testId]),
+                            ApiGradeBook::getEndpoint(),
+                            null, array(), 'Notenspiegel anzeigen'
+                        ))
+                            ->ajaxPipelineOnClick(ApiGradeBook::pipelineOpenGradeMirrorModal($testId));
                 }
             }
             $data[$key] = $this->getTableColumnBody($contentTemp);
