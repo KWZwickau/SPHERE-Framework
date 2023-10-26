@@ -1,5 +1,4 @@
 <?php
-
 namespace SPHERE\Application\Reporting\Individual\Service\Entity;
 
 use Doctrine\ORM\Mapping\Cache;
@@ -25,10 +24,6 @@ class ViewGroupStudentTransfer extends AbstractView
     // Sortierung beeinflusst die Gruppenreihenfolge im Frontend
     const TBL_PERSON_ID = 'TblPerson_Id';
     const TBL_STUDENT_ID = 'TblStudent_Id';
-    // Aktuelle Schule
-    const TBL_COMPANY_PROCESS_NAME = 'TblCompanyProcess_Name';
-    const TBL_STUDENT_TRANSFER_PROCESS_COURSE = 'TblStudentTransferProcess_Course';
-    const TBL_STUDENT_TRANSFER_PROCESS_REMARK = 'TblStudentTransferProcess_Remark';
     // Ersteinschulung
     const TBL_COMPANY_ENROLLMENT_NAME = 'TblCompanyEnrollment_Name';
     const TBL_STUDENT_TRANSFER_ENROLLMENT_TYPE = 'TblStudentTransferEnrollment_Type';
@@ -135,18 +130,6 @@ class ViewGroupStudentTransfer extends AbstractView
      * @Column(type="string")
      */
     protected $TblStudentTransferLeave_Remark;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblCompanyProcess_Name;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblStudentTransferProcess_Course;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblStudentTransferProcess_Remark;
 
     /**
      * Use this method to set PropertyName to DisplayName conversions with "setNameDefinition()"
@@ -157,10 +140,6 @@ class ViewGroupStudentTransfer extends AbstractView
     {
 
 //        //NameDefinition
-        $this->setNameDefinition(self::TBL_COMPANY_PROCESS_NAME, 'Aktuell: Schule');
-        $this->setNameDefinition(self::TBL_STUDENT_TRANSFER_PROCESS_COURSE, 'Aktuell: Bildungsgang');
-        $this->setNameDefinition(self::TBL_STUDENT_TRANSFER_PROCESS_REMARK, 'Aktuell: Bemerkungen');
-
         $this->setNameDefinition(self::TBL_COMPANY_ENROLLMENT_NAME, 'Einschulung: Schule');
         $this->setNameDefinition(self::TBL_STUDENT_TRANSFER_ENROLLMENT_TYPE, 'Einschulung: Schulart');
         $this->setNameDefinition(self::TBL_STUDENT_SCHOOL_ENROLLMENT_TYPE_NAME, 'Einschulung: Einschulungsart');
@@ -180,12 +159,6 @@ class ViewGroupStudentTransfer extends AbstractView
         $this->setNameDefinition(self::TBL_STUDENT_TRANSFER_LEAVE_COURSE, 'Abgabe: Letzter Bildungsgang');
         $this->setNameDefinition(self::TBL_STUDENT_TRANSFER_LEAVE_TRANSFER_DATE, 'Abgabe: Datum');
         $this->setNameDefinition(self::TBL_STUDENT_TRANSFER_LEAVE_REMARK, 'Abgabe: Bemerkungen');
-
-        $this->setGroupDefinition('Schulverlauf', array(
-            self::TBL_COMPANY_PROCESS_NAME,
-            self::TBL_STUDENT_TRANSFER_PROCESS_COURSE,
-            self::TBL_STUDENT_TRANSFER_PROCESS_REMARK
-        ));
 
         $this->setGroupDefinition('Einschulung', array(
             self::TBL_COMPANY_ENROLLMENT_NAME,
