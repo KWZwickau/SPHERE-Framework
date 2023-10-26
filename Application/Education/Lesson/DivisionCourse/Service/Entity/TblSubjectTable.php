@@ -260,7 +260,7 @@ class TblSubjectTable extends Element
     public function getSubjectName(): string
     {
         if (($tblSubject = $this->getServiceTblSubject())) {
-            return $tblSubject->getName();
+            return $tblSubject->getDisplayName();
         }
 
         switch ($this->getStudentMetaIdentifier()) {
