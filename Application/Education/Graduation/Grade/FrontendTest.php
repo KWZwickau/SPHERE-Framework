@@ -20,6 +20,7 @@ use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Meta\Teacher\Teacher;
+use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
@@ -539,27 +540,10 @@ abstract class FrontendTest extends FrontendTeacherGroup
             $textSubject = new Bold($tblSubject->getDisplayName());
         }
 
-        if (($tblTest = Grade::useService()->getTestById($TestId))
+        if (Grade::useService()->getTestById($TestId)
             && $tblSubject
         ) {
-            $content = new Layout(new LayoutGroup(array(
-                    new LayoutRow(array(
-                        new LayoutColumn(
-                            new Panel('Zensuren-Typ', $tblTest->getGradeTypeDisplayName(), Panel::PANEL_TYPE_INFO)
-                            , 3),
-                        new LayoutColumn(
-                            new Panel('Beschreibung', $tblTest->getDescription(), Panel::PANEL_TYPE_INFO)
-                            , 6),
-                        new LayoutColumn(
-                            new Panel(
-                                'Notenspiegel',
-                                (new Link('Notenspiegel anzeigen', ApiGradeBook::getEndpoint()))
-                                    ->ajaxPipelineOnClick(ApiGradeBook::pipelineOpenGradeMirrorModal($TestId)),
-                                Panel::PANEL_TYPE_INFO)
-                            , 3),
-                    ))
-                )))
-                . $form;
+            $content = $form;
         } else {
             $content = new Danger("Leistungsüberprüfung nicht gefunden.", new Exclamation());
         }
@@ -700,6 +684,17 @@ abstract class FrontendTest extends FrontendTeacherGroup
             }
         }
 
+        $formRows[] = new FormRow(array(
+            new FormColumn(new Panel('Zensuren-Typ', $tblTest->getGradeTypeDisplayName(), Panel::PANEL_TYPE_INFO), 3),
+            new FormColumn(new Panel('Beschreibung', $tblTest->getDescription(), Panel::PANEL_TYPE_INFO), 6),
+            new FormColumn(new Panel(
+                'Notenspiegel',
+                (new Link('Notenspiegel anzeigen', ApiGradeBook::getEndpoint()))
+                    ->ajaxPipelineOnClick(ApiGradeBook::pipelineOpenGradeMirrorModal($tblTest->getId())),
+                Panel::PANEL_TYPE_INFO)
+            , 3)
+        ));
+
         $formRows[] = new FormRow(new FormColumn(
             $this->getTableCustom($headerList, $bodyList)
         ));
@@ -712,7 +707,9 @@ abstract class FrontendTest extends FrontendTeacherGroup
             (new Primary('Speichern', ApiGradeBook::getEndpoint(), new Save()))
                 ->ajaxPipelineOnClick(ApiGradeBook::pipelineSaveTestGradeEdit($DivisionCourseId, $tblSubject->getId(), $Filter, $tblTest->getId())),
             (new Standard('Abbrechen', ApiGradeBook::getEndpoint(), new Disable()))
-                ->ajaxPipelineOnClick(ApiGradeBook::pipelineLoadViewGradeBookContent($DivisionCourseId, $tblSubject->getId(), $Filter))
+                ->ajaxPipelineOnClick(ApiGradeBook::pipelineLoadViewGradeBookContent($DivisionCourseId, $tblSubject->getId(), $Filter)),
+            (new Standard('Notenspiegel anzeigen', ApiGradeBook::getEndpoint()))
+                ->ajaxPipelineOnClick(ApiGradeBook::pipelineOpenGradeMirrorModal($tblTest->getId()))
         )));
 
         return (new Form(new FormGroup($formRows)))->disableSubmitAction();
@@ -818,7 +815,7 @@ abstract class FrontendTest extends FrontendTeacherGroup
      *
      * @return string
      */
-    public function openGradeMirrorModal($TestId): string
+    public function openGradeMirrorModal($TestId, $Data): string
     {
         if (!($tblTest = Grade::useService()->getTestById($TestId))) {
             return new Danger('Die Leistungsüberprüfung wurde nicht gefunden', new Exclamation());
@@ -831,7 +828,31 @@ abstract class FrontendTest extends FrontendTeacherGroup
         }
 
         $gradeList = array();
-        if (($tblTestGradeList = $tblTest->getGrades())) {
+        if ($Data) {
+            foreach ($Data as $personId => $item) {
+                if (!isset($item['Attendance'])
+                    && isset($item['Grade'])
+                    && $item['Grade'] !== ''
+                    && ($tblPerson = Person::useService()->getPersonById($personId))
+                    && ($tblScoreType = Grade::useService()->getScoreTypeByPersonAndYearAndSubject($tblPerson, $tblYear, $tblSubject))
+                ) {
+                    // auf ganze Note runden
+                    $gradeValue = intval(round($item['Grade']));
+
+                    if (!isset($gradeList[$tblScoreType->getId()])) {
+                        $gradeList[$tblScoreType->getId()]['Sum'] = 0;
+                        $gradeList[$tblScoreType->getId()]['Count'] = 0;
+                    }
+                    if (!isset($gradeList[$tblScoreType->getId()]['Mirror'][$gradeValue])) {
+                        $gradeList[$tblScoreType->getId()]['Mirror'][$gradeValue] = 0;
+                    }
+
+                    $gradeList[$tblScoreType->getId()]['Sum'] += $gradeValue;
+                    $gradeList[$tblScoreType->getId()]['Count']++;
+                    $gradeList[$tblScoreType->getId()]['Mirror'][$gradeValue]++;
+                }
+            }
+        } elseif ($tblTestGradeList = $tblTest->getGrades()) {
             foreach ($tblTestGradeList as $tblTestGrade) {
                 if (($tblPerson = $tblTestGrade->getServiceTblPerson())
                     && ($gradeValue = $tblTestGrade->getGradeNumberValue()) !== null
