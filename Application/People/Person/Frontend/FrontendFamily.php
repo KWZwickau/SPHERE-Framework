@@ -9,6 +9,7 @@ use SPHERE\Application\Contact\Phone\Phone;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Common\Service\Entity\TblCommonBirthDates;
+use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\FrontendReadOnly;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblSalutation;
@@ -514,6 +515,15 @@ class FrontendFamily extends FrontendReadOnly
             if (($tblPerson = Person::useService()->getPersonById($Id))) {
                 if (Group::useService()->existsGroupPerson(Group::useService()->getGroupByMetaTable('STUDENT'), $tblPerson)) {
                     $title = 'Schüler';
+                    // fallback: wiederholte Schülernummergenerierung, wenn diese nicht vorhanden ist
+                    if(!($tblStudent = $tblPerson->getStudent()) ||
+                        $tblStudent->getIdentifier() == ''){
+                        $tblSetting = Consumer::useService()->getSetting('People', 'Meta', 'Student', 'Automatic_StudentNumber');
+                        if($tblSetting && $tblSetting->getValue()) {
+                            $MaxIdentifier = Student::useService()->getStudentMaxIdentifier();
+                            Group::useService()->setAutoStudentNumber($tblPerson, $MaxIdentifier);
+                        }
+                    }
                 } elseif (Group::useService()->existsGroupPerson(Group::useService()->getGroupByMetaTable('PROSPECT'), $tblPerson)) {
                     $title = 'Interessent';
                 } else {

@@ -491,7 +491,7 @@ class Service extends AbstractService
      *
      * @return int
      */
-    private function setAutoStudentNumber(TblPerson $tblPerson, $MaxIdentifier = 0)
+    public function setAutoStudentNumber(TblPerson $tblPerson, $MaxIdentifier = 0)
     {
 
         $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
