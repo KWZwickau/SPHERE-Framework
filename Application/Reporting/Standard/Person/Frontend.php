@@ -1318,7 +1318,7 @@ class Frontend extends Extension implements IFrontendInterface
             }
             if(!empty($RepresentationArray)){
                 $RowList[] = new LayoutRow(array(
-                    new LayoutColumn(new Bold('Schülersprecher:'), 3),
+                    new LayoutColumn(new Bold('Klassensprecher:'), 3),
                     new LayoutColumn(implode(', ', $RepresentationArray), 9),
                 ));
             }
@@ -1334,7 +1334,7 @@ class Frontend extends Extension implements IFrontendInterface
             }
             if(!empty($CustodyArray)){
                 $RowList[] = new LayoutRow(array(
-                    new LayoutColumn(new Bold('Elternvertreter:'), 3),
+                    new LayoutColumn(new Bold('Elternsprecher:'), 3),
                     new LayoutColumn(implode(', ', $CustodyArray), 9),
                 ));
             }

@@ -560,7 +560,7 @@ class Frontend extends FrontendYearChange
                 }
             }
 
-            // Schülersprecher
+            // Klassensprecher
             $representativeList = array();
             if (($tblRepresentativeMemberList = DivisionCourse::useService()->getDivisionCourseMemberListBy($tblDivisionCourse,
                 TblDivisionCourseMemberType::TYPE_REPRESENTATIVE, false, false))
@@ -575,7 +575,7 @@ class Frontend extends FrontendYearChange
                 }
             }
 
-            // Elternvertreter
+            // Elternsprecher
             $custodyList = array();
             if (($tblCustodyMemberList = DivisionCourse::useService()->getDivisionCourseMemberListBy($tblDivisionCourse,
                 TblDivisionCourseMemberType::TYPE_CUSTODY, false, false))
@@ -634,10 +634,10 @@ class Frontend extends FrontendYearChange
                 $layoutGroupList[] = new LayoutGroup(array(
                     new LayoutRow(new LayoutColumn(
                         empty($representativeList)
-                            ? new Warning('Keine Schülersprecher dem Kurs zugewiesen')
+                            ? new Warning('Keine Klassensprecher dem Kurs zugewiesen')
                             : $this->getTableCustom($headerMemberColumnList, $representativeList)
                     ))
-                ), new \SPHERE\Common\Frontend\Layout\Repository\Title(new PersonGroup() . ' Schülersprecher ' . $text
+                ), new \SPHERE\Common\Frontend\Layout\Repository\Title(new PersonGroup() . ' Klassensprecher ' . $text
                     . new Link('Bearbeiten', '/Education/Lesson/DivisionCourse/Representative', new Pen(), array('DivisionCourseId' => $tblDivisionCourse->getId(), 'Filter' => $Filter))
                     . ' | '
                     . new Link('Sortieren', '/Education/Lesson/DivisionCourse/Member/Sort', new ResizeVertical(),
@@ -647,10 +647,10 @@ class Frontend extends FrontendYearChange
                 $layoutGroupList[] = new LayoutGroup(array(
                     new LayoutRow(new LayoutColumn(
                         empty($custodyList)
-                            ? new Warning('Keine Elternvertreter dem Kurs zugewiesen')
+                            ? new Warning('Keine Elternsprecher dem Kurs zugewiesen')
                             : $this->getTableCustom($headerMemberColumnList, $custodyList)
                     ))
-                ), new \SPHERE\Common\Frontend\Layout\Repository\Title(new PersonParent() . ' Elternvertreter ' . $text
+                ), new \SPHERE\Common\Frontend\Layout\Repository\Title(new PersonParent() . ' Elternsprecher ' . $text
                     . new Link('Bearbeiten', '/Education/Lesson/DivisionCourse/Custody', new Pen(), array('DivisionCourseId' => $tblDivisionCourse->getId(), 'Filter' => $Filter))
                     . ' | '
                     . new Link('Sortieren', '/Education/Lesson/DivisionCourse/Member/Sort', new ResizeVertical(),

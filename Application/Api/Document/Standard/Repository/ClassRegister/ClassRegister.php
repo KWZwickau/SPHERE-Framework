@@ -544,7 +544,7 @@ class ClassRegister extends AbstractDocument
 
         $sliceList[] = (new Slice())
             ->addElement((new Element())
-                ->setContent('Elternvertreter / Klassensprecher')
+                ->setContent('Elternsprecher / Klassensprecher')
                 ->styleTextBold()
                 ->styleTextSize('18px')
             );
@@ -575,7 +575,7 @@ class ClassRegister extends AbstractDocument
                     , $width[2])
             );
 
-        // Elternvertreter
+        // Elternsprecher
         $custodyList = array();
         if (($tblCustodyMemberList = DivisionCourse::useService()->getDivisionCourseMemberListBy(
             $this->tblDivisionCourse, TblDivisionCourseMemberType::TYPE_CUSTODY, false, false
@@ -629,7 +629,7 @@ class ClassRegister extends AbstractDocument
         $slice
             ->addSection((new Section())
                 ->addElementColumn((new Element())
-                    ->setContent('Elternvertreter/in')
+                    ->setContent('Elternsprecher/in')
                     ->stylePaddingLeft('5px')
                     ->stylePaddingTop('5px')
                     ->styleBorderBottom()

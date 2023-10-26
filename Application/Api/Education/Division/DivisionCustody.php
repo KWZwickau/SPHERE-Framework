@@ -191,7 +191,7 @@ class DivisionCustody extends Extension implements IApiInterface
                     );
                 }
                 // Anzeige
-                $left = (new TableData($Table, new Title('Ausgewählte', 'Elternvertreter'), array(
+                $left = (new TableData($Table, new Title('Ausgewählte', 'Elternsprecher'), array(
                     'Name' => 'Name',
                     'Address'     => 'Adresse',
                     'Description' => 'Beschreibung',
@@ -206,7 +206,7 @@ class DivisionCustody extends Extension implements IApiInterface
                     )
                 ))->setHash(__NAMESPACE__ . 'DivisionCustodySelect' . 'Selected');
             } else {
-                $left = new Info('Keine Elternvertreter ausgewählt');
+                $left = new Info('Keine Elternsprecher ausgewählt');
             }
         } else {
             $left = new Warning('Klasse nicht gefunden');
@@ -236,7 +236,7 @@ class DivisionCustody extends Extension implements IApiInterface
                     );
                 }
                 // Anzeige
-                $right = (new TableData($TableAvailable, new Title('Verfügbare', 'Elternvertreter'), array(
+                $right = (new TableData($TableAvailable, new Title('Verfügbare', 'Elternsprecher'), array(
                     'Name' => 'Name',
                     'Address'     => 'Adresse',
                     'Option'     => 'Beschreibung'
@@ -250,7 +250,7 @@ class DivisionCustody extends Extension implements IApiInterface
                     )
                 ))->setHash(__NAMESPACE__ . 'DivisionCustodySelect' . 'Available');
             } else {
-                $right = new Info('Keine weiteren Elternvertreter verfügbar');
+                $right = new Info('Keine weiteren Elternsprecher verfügbar');
             }
         } else {
             $right = new Warning('Klasse nicht gefunden');
