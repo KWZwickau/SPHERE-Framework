@@ -500,10 +500,10 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
             case 'Bildung: Klassenbuch (Lehrer mit Lehrauftrag)':  return $this->setToolTip('Digitales Klassenbuch für Lehrer mit Lehrauftrag und
                 Klassenlehrer');
             case 'Bildung: Klassenbuch (Alle Klassenbücher)': return $this->setToolTip('Digitales Klassenbuch aller Klassen');
-            case 'Bildung: Klassenbuch (Integrationsbeauftragte)': return $this->setToolTip('Digitales Klassenbuch und Integration aller Klassen');
-            case 'Bildung: Klassenbuch (Schulleitung)':return $this->setToolTip('Digitales Klassenbuch, Integration und inkl. Verwaltung und Auswertung von
+            case 'Bildung: Klassenbuch (Inklusionsbeauftragte)': return $this->setToolTip('Digitales Klassenbuch und Inklusion aller Klassen');
+            case 'Bildung: Klassenbuch (Schulleitung)':return $this->setToolTip('Digitales Klassenbuch, Inklusion und inkl. Verwaltung und Auswertung von
                 Belehrungen aller Klassen');
-            case 'Bildung: Notenbuch (Integrationsbeauftragte)':return $this->setToolTip('Notenbuch aller Schüler');
+            case 'Bildung: Notenbuch (Inklusionsbeauftragte)':return $this->setToolTip('Notenbuch aller Schüler');
             case 'Bildung: pädagogisches Tagebuch (Klassenlehrer)':return $this->setToolTip('pädagogisches Tagebuch (Klassenlehrer mit eigener Klasse)');
             case 'Bildung: pädagogisches Tagebuch (Schulleitung)':return $this->setToolTip('pädagogisches Tagebuch (alle Klassen)');
             case 'Bildung: Unterrichtsverwaltung':return $this->setToolTip('Fächer-, Schuljahr- und Klassenverwaltung, Sortierung aller Klassen');

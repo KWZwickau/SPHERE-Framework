@@ -125,7 +125,7 @@ abstract class FrontendLeaveSekTwoBGy extends FrontendLeaveSekTwo
                     )
                     , 3),
                 ($support
-                    ? new LayoutColumn(new Panel('Integration', $support, Panel::PANEL_TYPE_INFO))
+                    ? new LayoutColumn(new Panel('Inklusion', $support, Panel::PANEL_TYPE_INFO))
                     : null
                 ),
             )),
@@ -416,7 +416,7 @@ abstract class FrontendLeaveSekTwoBGy extends FrontendLeaveSekTwo
                         )
                         , 3),
                     ($support
-                        ? new LayoutColumn(new Panel('Integration', $support, Panel::PANEL_TYPE_INFO))
+                        ? new LayoutColumn(new Panel('Inklusion', $support, Panel::PANEL_TYPE_INFO))
                         : null
                     )
                 )),

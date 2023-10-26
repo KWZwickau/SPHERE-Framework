@@ -178,7 +178,7 @@ class ApiSupportReadOnly extends Extension implements IApiInterface
             }
         }
 
-        return ($showPersonPanel ? new Title('Integration') : '')
+        return ($showPersonPanel ? new Title('Inklusion') : '')
             . new Layout(
                 new LayoutGroup(array(
                     new LayoutRow(array(

@@ -101,7 +101,7 @@ abstract class FrontendPreview extends FrontendLeaveTechnicalSchool
                 $columnTable = array(
                     'Number' => '#',
                     'Name' => 'Name',
-                    'IntegrationButton' => 'Inte&shy;gra&shy;tion',
+                    'IntegrationButton' => 'In&shy;klu&shy;si&shy;on',
                     'Course' => 'Bildungs&shy;gang',
                     'SubjectGrades' => 'Fachnoten'
                 );
@@ -109,7 +109,7 @@ abstract class FrontendPreview extends FrontendLeaveTechnicalSchool
                 $columnTable = array(
                     'Number' => '#',
                     'Name' => 'Name',
-                    'IntegrationButton' => 'Inte&shy;gra&shy;tion',
+                    'IntegrationButton' => 'In&shy;klu&shy;si&shy;on',
                     'Course' => 'Bildungs&shy;gang',
                     'ExcusedAbsence' => 'E-FZ', //'ent&shy;schuld&shy;igte FZ',
                     'UnexcusedAbsence' => 'U-FZ', // 'unent&shy;schuld&shy;igte FZ',

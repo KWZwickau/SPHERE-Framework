@@ -758,7 +758,7 @@ class Frontend extends FrontendScoreRule
         $columnDefinition['Number'] = '#';
         $columnDefinition['Student'] = "Schüler";
         $columnDefinition['Picture'] = "Foto";
-        $columnDefinition['Integration'] = "Integration";
+        $columnDefinition['Integration'] = "Inklusion";
         if ($showCourse) {
             $columnDefinition['Course'] = new ToolTip('Bg', 'Bildungsgang');
         }
@@ -2461,7 +2461,7 @@ class Frontend extends FrontendScoreRule
             $tableHeaderList['Number'] = 'Nummer';
             $tableHeaderList['Name'] = 'Name';
             $tableHeaderList['Picture'] = 'Foto';
-            $tableHeaderList['Integration'] = 'Integration';
+            $tableHeaderList['Integration'] = 'Inklusion';
             $tblDivisionList = array();
             $sumSubjectAverage = array();
             $countSubjectAverage = array();
@@ -2877,7 +2877,7 @@ class Frontend extends FrontendScoreRule
         // Button's nur anzeigen, wenn Integrationen hinterlegt sind
         $tblPerson = Person::useService()->getPersonById($PersonId);
         if($tblPerson && Student::useService()->getIsSupportByPerson($tblPerson)) {
-            $Stage->addButton((new Standard('Integration', ApiSupportReadOnly::getEndpoint(), new EyeOpen()))
+            $Stage->addButton((new Standard('Inklusion', ApiSupportReadOnly::getEndpoint(), new EyeOpen()))
                 ->ajaxPipelineOnClick(ApiSupportReadOnly::pipelineOpenOverViewModal($tblPerson->getId())));
         }
 

@@ -410,7 +410,7 @@ class FrontendLeave extends FrontendDiplomaTechnicalSchool
                                 , 4),
                         )),
                         ($support
-                            ? new LayoutRow(new LayoutColumn(new Panel('Integration', $support, Panel::PANEL_TYPE_INFO)))
+                            ? new LayoutRow(new LayoutColumn(new Panel('Inklusion', $support, Panel::PANEL_TYPE_INFO)))
                             : null
                         ),
                     )),
@@ -734,7 +734,7 @@ class FrontendLeave extends FrontendDiplomaTechnicalSchool
                     , 3)
             )),
             ($support
-                ? new LayoutRow(new LayoutColumn(new Panel('Integration', $support, Panel::PANEL_TYPE_INFO)))
+                ? new LayoutRow(new LayoutColumn(new Panel('Inklusion', $support, Panel::PANEL_TYPE_INFO)))
                 : null
             ),
             ($hasCertificateGrades && $hasMissingSubjects

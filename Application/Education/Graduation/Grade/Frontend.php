@@ -119,7 +119,7 @@ class Frontend extends FrontendTestPlanning
         } elseif ($hasAllReadonlyRole && $hasTeacherRole) {
             $roleChange =
                 (new Form(new FormGroup(new FormRow(new FormColumn(
-                    (new CheckBox('Data[IsAllReadonly]', new Bold('Integrationsbeauftragter'), 1))
+                    (new CheckBox('Data[IsAllReadonly]', new Bold('Inklusionsbeauftragter'), 1))
                         ->ajaxPipelineOnChange(array(ApiGradeBook::pipelineChangeRole()))
                 )))))->disableSubmitAction();
         }
