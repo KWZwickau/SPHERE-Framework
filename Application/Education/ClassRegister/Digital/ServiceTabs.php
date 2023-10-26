@@ -231,7 +231,7 @@ abstract class ServiceTabs extends ServiceCourseContent
             $content[] = $tblDivisionCourse->getDivisionTeacherName() . ': ' . implode(', ', $divisionTeacherList);
         }
 
-        // Elternvertreter
+        // Elternsprecher
         $custodyList = array();
         if (($tblCustodyMemberList = DivisionCourse::useService()->getDivisionCourseMemberListBy(
             $tblDivisionCourse, TblDivisionCourseMemberType::TYPE_CUSTODY, false, false
@@ -245,10 +245,10 @@ abstract class ServiceTabs extends ServiceCourseContent
             }
         }
         if ($custodyList) {
-            $content[] = 'Elternvertreter: ' . implode(', ', $custodyList);
+            $content[] = 'Elternsprecher: ' . implode(', ', $custodyList);
         }
 
-        // Schülersprecher
+        // Klassensprecher
         $representativeList = array();
         if (($tblRepresentativeMemberList = DivisionCourse::useService()->getDivisionCourseMemberListBy(
             $tblDivisionCourse, TblDivisionCourseMemberType::TYPE_REPRESENTATIVE, false, false
@@ -262,7 +262,7 @@ abstract class ServiceTabs extends ServiceCourseContent
             }
         }
         if ($representativeList) {
-            $content[] = 'Schülersprecher: ' . implode(', ', $representativeList);
+            $content[] = 'Klassensprecher: ' . implode(', ', $representativeList);
         }
 
         return new LayoutRow(array(

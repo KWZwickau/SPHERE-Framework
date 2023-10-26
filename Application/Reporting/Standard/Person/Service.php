@@ -480,7 +480,7 @@ class Service extends Extension
         $export->setValue($export->getCell("2", $row), $TeacherNameListString);
 
         $row++;
-        $export->setValue($export->getCell("0", $row), 'Schülersprecher:');
+        $export->setValue($export->getCell("0", $row), 'Klassensprecher:');
         if (($tblDivisionRepresentationList = DivisionCourse::useService()->getDivisionCourseMemberListBy($tblDivisionCourse, TblDivisionCourseMemberType::TYPE_REPRESENTATIVE, false, false))) {
             $Representation = array();
             foreach ($tblDivisionRepresentationList as $tblDivisionRepresentation) {
@@ -494,7 +494,7 @@ class Service extends Extension
         }
 
         $row++;
-        $export->setValue($export->getCell("0", $row), 'Elternvertreter:');
+        $export->setValue($export->getCell("0", $row), 'Elternsprecher:');
         if (($tblDivisionCustodyList = DivisionCourse::useService()->getDivisionCourseMemberListBy($tblDivisionCourse, TblDivisionCourseMemberType::TYPE_CUSTODY, false, false))) {
             $Custody = array();
             foreach ($tblDivisionCustodyList as $tblDivisionCustody) {
@@ -4311,8 +4311,8 @@ class Service extends Extension
             $headers['DivisionCourseRepresentative'.$l.'Name'] = 'Klassensprecher&nbsp;'.$l.' Nachname';
         }
         for ($j = 1; $j <= $maxCountCustody; $j++){
-            $headers['DivisionCourseCustody'.$j.'FirstName'] = 'Elternvertreter&nbsp;'.$j.' - Vorname';
-            $headers['DivisionCourseCustody'.$j.'Name'] = 'Elternvertreter&nbsp;'.$j.' - Nachname';
+            $headers['DivisionCourseCustody'.$j.'FirstName'] = 'Elternsprecher&nbsp;'.$j.' - Vorname';
+            $headers['DivisionCourseCustody'.$j.'Name'] = 'Elternsprecher&nbsp;'.$j.' - Nachname';
         }
         foreach($TableContent as &$contentItem) {
             foreach ($headers as $key => $header) {

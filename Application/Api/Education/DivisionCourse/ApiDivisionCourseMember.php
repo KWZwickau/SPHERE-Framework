@@ -281,17 +281,17 @@ class ApiDivisionCourseMember extends Extension implements IApiInterface
             return new Danger('Kurs wurde nicht gefunden', new Exclamation());
         }
         if (!($tblPerson = Person::useService()->getPersonById($PersonId))) {
-            return new Danger('Schülersprecher wurde nicht gefunden', new Exclamation());
+            return new Danger('Klassensprecher wurde nicht gefunden', new Exclamation());
         }
         if (!($tblMemberType = DivisionCourse::useService()->getDivisionCourseMemberTypeByIdentifier(TblDivisionCourseMemberType::TYPE_REPRESENTATIVE))) {
-            return new Danger('Typ: Schülersprecher wurde nicht gefunden', new Exclamation());
+            return new Danger('Typ: Klassensprecher wurde nicht gefunden', new Exclamation());
         }
 
         if (DivisionCourse::useService()->addDivisionCourseMemberToDivisionCourse($tblDivisionCourse, $tblMemberType, $tblPerson, $Data['Description'])) {
-            return new Success('Schülersprecher wurde erfolgreich hinzugefügt.')
+            return new Success('Klassensprecher wurde erfolgreich hinzugefügt.')
                 . self::pipelineLoadRepresentativeContent($DivisionCourseId);
         } else {
-            return new Danger('Schülersprecher konnte nicht hinzugefügt werden.');
+            return new Danger('Klassensprecher konnte nicht hinzugefügt werden.');
         }
     }
 
@@ -327,14 +327,14 @@ class ApiDivisionCourseMember extends Extension implements IApiInterface
     public function removeRepresentative($DivisionCourseId, $MemberId)
     {
         if (!($tblDivisionCourseMember = DivisionCourse::useService()->getDivisionCourseMemberById($MemberId))) {
-            return new Danger('Schülersprecher wurde nicht gefunden', new Exclamation());
+            return new Danger('Klassensprecher wurde nicht gefunden', new Exclamation());
         }
 
         if (DivisionCourse::useService()->removeDivisionCourseMemberFromDivisionCourse($tblDivisionCourseMember)) {
-            return new Success('Schülersprecher wurde erfolgreich entfernt.')
+            return new Success('Klassensprecher wurde erfolgreich entfernt.')
                 . self::pipelineLoadRepresentativeContent($DivisionCourseId);
         } else {
-            return new Danger('Schülersprecher konnte nicht entfernt werden.');
+            return new Danger('Klassensprecher konnte nicht entfernt werden.');
         }
     }
 
@@ -404,17 +404,17 @@ class ApiDivisionCourseMember extends Extension implements IApiInterface
             return new Danger('Kurs wurde nicht gefunden', new Exclamation());
         }
         if (!($tblPerson = Person::useService()->getPersonById($PersonId))) {
-            return new Danger('Elternvertreter wurde nicht gefunden', new Exclamation());
+            return new Danger('Elternsprecher wurde nicht gefunden', new Exclamation());
         }
         if (!($tblMemberType = DivisionCourse::useService()->getDivisionCourseMemberTypeByIdentifier(TblDivisionCourseMemberType::TYPE_CUSTODY))) {
-            return new Danger('Typ: Elternvertreter wurde nicht gefunden', new Exclamation());
+            return new Danger('Typ: Elternsprecher wurde nicht gefunden', new Exclamation());
         }
 
         if (DivisionCourse::useService()->addDivisionCourseMemberToDivisionCourse($tblDivisionCourse, $tblMemberType, $tblPerson, $Data['Description'])) {
-            return new Success('Elternvertreter wurde erfolgreich hinzugefügt.')
+            return new Success('Elternsprecher wurde erfolgreich hinzugefügt.')
                 . self::pipelineLoadCustodyContent($DivisionCourseId);
         } else {
-            return new Danger('Elternvertreter konnte nicht hinzugefügt werden.');
+            return new Danger('Elternsprecher konnte nicht hinzugefügt werden.');
         }
     }
 
@@ -450,14 +450,14 @@ class ApiDivisionCourseMember extends Extension implements IApiInterface
     public function removeCustody($DivisionCourseId, $MemberId)
     {
         if (!($tblDivisionCourseMember = DivisionCourse::useService()->getDivisionCourseMemberById($MemberId))) {
-            return new Danger('Elternvertreter wurde nicht gefunden', new Exclamation());
+            return new Danger('Elternsprecher wurde nicht gefunden', new Exclamation());
         }
 
         if (DivisionCourse::useService()->removeDivisionCourseMemberFromDivisionCourse($tblDivisionCourseMember)) {
-            return new Success('Elternvertreter wurde erfolgreich entfernt.')
+            return new Success('Elternsprecher wurde erfolgreich entfernt.')
                 . self::pipelineLoadCustodyContent($DivisionCourseId);
         } else {
-            return new Danger('Elternvertreter konnte nicht entfernt werden.');
+            return new Danger('Elternsprecher konnte nicht entfernt werden.');
         }
     }
 

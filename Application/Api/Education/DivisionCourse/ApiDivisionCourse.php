@@ -411,8 +411,8 @@ class ApiDivisionCourse extends Extension implements IApiInterface
                                     'Schüler: ' . ($countStudents ? new \SPHERE\Common\Frontend\Text\Repository\Danger($countStudents) : '0'),
                                     $tblDivisionCourse->getDivisionTeacherName()  .  ': '
                                         . ($countDivisionTeachers ? new \SPHERE\Common\Frontend\Text\Repository\Danger($countDivisionTeachers) : '0'),
-                                    'Elternvertreter: ' . ($countCustodyList ? new \SPHERE\Common\Frontend\Text\Repository\Danger($countCustodyList) : '0'),
-                                    'Schülersprecher: ' . ($countRepresentatives ? new \SPHERE\Common\Frontend\Text\Repository\Danger($countRepresentatives) : '0'),
+                                    'Elternsprecher: ' . ($countCustodyList ? new \SPHERE\Common\Frontend\Text\Repository\Danger($countCustodyList) : '0'),
+                                    'Klassensprecher: ' . ($countRepresentatives ? new \SPHERE\Common\Frontend\Text\Repository\Danger($countRepresentatives) : '0'),
                                 ),
                                 Panel::PANEL_TYPE_DANGER
                             )
