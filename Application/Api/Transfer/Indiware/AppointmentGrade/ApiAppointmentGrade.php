@@ -90,13 +90,14 @@ class ApiAppointmentGrade extends Extension implements IApiInterface
      */
     public function reloadTaskSelect($YearId = null): SelectBox
     {
+        $tblTaskList = array();
         if($YearId === null){
             return (new SelectBox('TaskId', 'Auswahl Notenauftrag '.new ToolTip(new Info(),
                 'Aus welchem Notenauftrag sollen die Noten ausgelesen werden?'), array()))->setRequired();
         }
         if(($tblYear = Term::useService()->getYearById($YearId))){
-            if (($tblTaskList = Grade::useService()->getAppointedDateTaskListByYear($tblYear))) {
-                foreach ($tblTaskList as $tblTask) {
+            if (($tblTempList = Grade::useService()->getAppointedDateTaskListByYear($tblYear))) {
+                foreach ($tblTempList as $tblTask) {
                     $tblTaskList[$tblTask->getId()] = $tblTask->getDateString() . ' ' . $tblTask->getName();
                 }
             }
@@ -132,7 +133,9 @@ class ApiAppointmentGrade extends Extension implements IApiInterface
                 1 => 'Stufe 12 - 1.Halbjahr',
                 2 => 'Stufe 12 - 2.Halbjahr',
                 3 => 'Stufe 13 - 1.Halbjahr',
-                4 => 'Stufe 13 - 2.Halbjahr'
+                4 => 'Stufe 13 - 2.Halbjahr',
+                5 => 'Stufe 11 - 1.Halbjahr',
+                6 => 'Stufe 11 - 2.Halbjahr'
             );
         }else {
             $PeriodList = array(
@@ -140,10 +143,12 @@ class ApiAppointmentGrade extends Extension implements IApiInterface
                 1 => 'Stufe 11 - 1.Halbjahr',
                 2 => 'Stufe 11 - 2.Halbjahr',
                 3 => 'Stufe 12 - 1.Halbjahr',
-                4 => 'Stufe 12 - 2.Halbjahr'
+                4 => 'Stufe 12 - 2.Halbjahr',
+                5 => 'Stufe 10 - 1.Halbjahr',
+                6 => 'Stufe 10 - 2.Halbjahr'
             );
         }
-        return (new SelectBox('Data[Period]',
+        return (new SelectBox('Period',
             'Auswahl Schulhalbjahr '.new ToolTip(new Info(),
                 'Indiware benötigt diese Information um den Export zuweisen zu können'),
             $PeriodList
