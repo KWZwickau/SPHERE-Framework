@@ -90,8 +90,8 @@ class Frontend extends Extension implements IFrontendInterface
         $ReceiverAppointmentTask = ApiAppointmentGrade::receiverFormSelect((new ApiAppointmentGrade())->reloadTaskSelect($YearId), 'AppointmentTask');
         $ReceiverPeriod = ApiAppointmentGrade::receiverFormSelect((new ApiAppointmentGrade())->reloadPeriodSelect($PreselectId), 'Period');
 
-        // Anzeige nur für alle aktuellen Jahre + das letzte Schuljahr
-        $tblYearList = Term::useService()->getYearAllSinceYears(1);
+        // Anzeige nur für alle aktuellen Jahre + die letzten beiden Schuljahre
+        $tblYearList = Term::useService()->getYearAllSinceYears(2);
 
         $Stage->setContent(
             new Layout(
