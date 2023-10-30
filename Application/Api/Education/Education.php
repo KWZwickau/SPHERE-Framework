@@ -36,6 +36,7 @@ use SPHERE\Application\Api\Education\Graduation\Grade\ApiScoreType;
 use SPHERE\Application\Api\Education\Graduation\Grade\ApiStudentOverview;
 use SPHERE\Application\Api\Education\Graduation\Grade\ApiTask;
 use SPHERE\Application\Api\Education\Graduation\Grade\ApiTeacherGroup;
+use SPHERE\Application\Api\Education\Graduation\Grade\Gradebook;
 use SPHERE\Application\Api\Education\Graduation\Grade\Task;
 use SPHERE\Application\Api\Education\Graduation\Gradebook\ApiGradebookOld;
 use SPHERE\Application\Api\Education\Graduation\Gradebook\ApiGradesAllYears;
@@ -102,5 +103,6 @@ class Education implements IApplicationInterface
         Task::registerModule();
         ApiScoreType::registerApi();
         ApiScoreRule::registerApi();
+        Gradebook::registerModule();
     }
 }
