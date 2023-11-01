@@ -483,136 +483,101 @@ abstract class CmsStyle extends Certificate
             $paddingBottomShrinking = '6px';
         }
 
-        if ($tblPerson
-            && ($tblStudent = Student::useService()->getStudentByPerson($tblPerson))
-        ) {
-
+        if ($tblPerson) {
             // Neigungskurs
-            if (($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('ORIENTATION'))
-                && ($tblSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType($tblStudent,
-                    $tblStudentSubjectType))
-            ) {
-                /** @var TblStudentSubject $tblStudentSubject */
-                $tblStudentSubject = current($tblSubjectList);
-                if (($tblSubject = $tblStudentSubject->getServiceTblSubject())) {
+            if (($tblSubject = $this->getOrientationSubject())) {
+                $subjectAcronymForGrade = $tblSubject->getAcronym();
+                $elementOrientationName = new Element();
+                $elementOrientationName
+                    ->setContent($tblSubject->getName())
+                    ->stylePaddingTop('0px')
+                    ->stylePaddingBottom('0px')
+                    ->styleMarginTop('7px')
+                    ->styleTextSize($TextSize);
 
-                    if (($tblSetting = Consumer::useService()->getSetting('Api', 'Education', 'Certificate',
-                            'OrientationAcronym'))
-                        && ($value = $tblSetting->getValue())
-                    ) {
-                        $subjectAcronymForGrade = $value;
-                    } else {
-                        $subjectAcronymForGrade = $tblSubject->getAcronym();
-                    }
-
-                    $elementOrientationName = new Element();
-                    $elementOrientationName
-                        ->setContent('
-                            {% if(Content.P'.$personId.'.Student.Orientation["'.$tblSubject->getAcronym().'"] is not empty) %}
-                                 {{ Content.P'.$personId.'.Student.Orientation["'.$tblSubject->getAcronym().'"].Name'.' }}
-                            {% else %}
-                                 &nbsp;
-                            {% endif %}')
-                        ->stylePaddingTop('0px')
-                        ->stylePaddingBottom('0px')
-                        ->styleMarginTop('7px')
-                        ->styleTextSize($TextSize);
-
-                    $elementOrientationGrade = new Element();
-                    $elementOrientationGrade
-                        ->setContent('
-                            {% if(Content.P'.$personId.'.Grade.Data["'.$subjectAcronymForGrade.'"] is not empty) %}
-                                {{ Content.P'.$personId.'.Grade.Data["'.$subjectAcronymForGrade.'"] }}
-                            {% else %}
-                                &ndash;
-                            {% endif %}')
-                        ->styleAlignCenter()
-                        ->styleBackgroundColor(self::BACKGROUND_COLOR)
-                        ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', '#000')
-                        ->stylePaddingTop(
-                            '{% if(Content.P'.$personId.'.Grade.Data.IsShrinkSize["'.$subjectAcronymForGrade.'"] is not empty) %}
-                                 '.$paddingTopShrinking.' 
-                             {% else %}
-                                 2px
-                             {% endif %}'
-                        )
-                        ->stylePaddingBottom(
-                            '{% if(Content.P'.$personId.'.Grade.Data.IsShrinkSize["'.$subjectAcronymForGrade.'"] is not empty) %}
-                                  '.$paddingBottomShrinking.' 
-                             {% else %}
-                                 2px
-                             {% endif %}'
-                        )
-                        ->styleTextSize(
-                            '{% if(Content.P'.$personId.'.Grade.Data.IsShrinkSize["'.$subjectAcronymForGrade.'"] is not empty) %}
-                                 '.$TextSizeSmall.'
-                             {% else %}
-                                 '.$TextSize.'
-                             {% endif %}'
-                        )
-                        ->styleMarginTop($marginTop);
-                }
+                $elementOrientationGrade = new Element();
+                $elementOrientationGrade
+                    ->setContent('
+                        {% if(Content.P'.$personId.'.Grade.Data["'.$subjectAcronymForGrade.'"] is not empty) %}
+                            {{ Content.P'.$personId.'.Grade.Data["'.$subjectAcronymForGrade.'"] }}
+                        {% else %}
+                            &ndash;
+                        {% endif %}')
+                    ->styleAlignCenter()
+                    ->styleBackgroundColor(self::BACKGROUND_COLOR)
+                    ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', '#000')
+                    ->stylePaddingTop(
+                        '{% if(Content.P'.$personId.'.Grade.Data.IsShrinkSize["'.$subjectAcronymForGrade.'"] is not empty) %}
+                             '.$paddingTopShrinking.' 
+                         {% else %}
+                             2px
+                         {% endif %}'
+                    )
+                    ->stylePaddingBottom(
+                        '{% if(Content.P'.$personId.'.Grade.Data.IsShrinkSize["'.$subjectAcronymForGrade.'"] is not empty) %}
+                              '.$paddingBottomShrinking.' 
+                         {% else %}
+                             2px
+                         {% endif %}'
+                    )
+                    ->styleTextSize(
+                        '{% if(Content.P'.$personId.'.Grade.Data.IsShrinkSize["'.$subjectAcronymForGrade.'"] is not empty) %}
+                             '.$TextSizeSmall.'
+                         {% else %}
+                             '.$TextSize.'
+                         {% endif %}'
+                    )
+                    ->styleMarginTop($marginTop);
             }
 
             // 2. Fremdsprache
-            if (($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('FOREIGN_LANGUAGE'))
-                && ($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType($tblStudent,
-                    $tblStudentSubjectType))
-            ) {
-                /** @var TblStudentSubject $tblStudentSubject */
-                foreach ($tblStudentSubjectList as $tblStudentSubject) {
-                    if ($tblStudentSubject->getTblStudentSubjectRanking()
-                        && $tblStudentSubject->getTblStudentSubjectRanking()->getIdentifier() == '2'
-                        && ($tblSubject = $tblStudentSubject->getServiceTblSubject())
-                    ) {
-                        $elementForeignLanguageName = new Element();
-                        $elementForeignLanguageName
-                            ->setContent('
-                            {% if(Content.P'.$personId.'.Student.ForeignLanguage["'.$tblSubject->getAcronym().'"] is not empty) %}
-                                 {{ Content.P'.$personId.'.Student.ForeignLanguage["'.$tblSubject->getAcronym().'"].Name'.' }}
-                            {% else %}
-                                 &nbsp;
-                            {% endif %}')
-                            ->stylePaddingTop('0px')
-                            ->stylePaddingBottom('0px')
-                            ->styleMarginTop('7px')
-                            ->styleTextSize($TextSize);
+            if (($tblSubject = $this->getForeignLanguageSubject(2))) {
+                $elementForeignLanguageName = new Element();
+                $elementForeignLanguageName
+                    ->setContent('
+                    {% if(Content.P'.$personId.'.Student.ForeignLanguage["'.$tblSubject->getAcronym().'"] is not empty) %}
+                         {{ Content.P'.$personId.'.Student.ForeignLanguage["'.$tblSubject->getAcronym().'"].Name'.' }}
+                    {% else %}
+                         &nbsp;
+                    {% endif %}')
+                    ->stylePaddingTop('0px')
+                    ->stylePaddingBottom('0px')
+                    ->styleMarginTop('7px')
+                    ->styleTextSize($TextSize);
 
-                        $elementForeignLanguageGrade = new Element();
-                        $elementForeignLanguageGrade
-                            ->setContent('
-                            {% if(Content.P'.$personId.'.Grade.Data["'.$tblSubject->getAcronym().'"] is not empty) %}
-                                {{ Content.P'.$personId.'.Grade.Data["'.$tblSubject->getAcronym().'"] }}
-                            {% else %}
-                                &ndash;
-                            {% endif %}')
-                            ->styleAlignCenter()
-                            ->styleBackgroundColor(self::BACKGROUND_COLOR)
-                            ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', '#000')
-                            ->stylePaddingTop(
-                                '{% if(Content.P'.$personId.'.Grade.Data.IsShrinkSize["'.$tblSubject->getAcronym().'"] is not empty) %}
-                                 '.$paddingTopShrinking.' 
-                             {% else %}
-                                 2px
-                             {% endif %}'
-                            )
-                            ->stylePaddingBottom(
-                                '{% if(Content.P'.$personId.'.Grade.Data.IsShrinkSize["'.$tblSubject->getAcronym().'"] is not empty) %}
-                                  '.$paddingBottomShrinking.' 
-                             {% else %}
-                                 2px
-                             {% endif %}'
-                            )
-                            ->styleTextSize(
-                                '{% if(Content.P'.$personId.'.Grade.Data.IsShrinkSize["'.$tblSubject->getAcronym().'"] is not empty) %}
-                                 '.$TextSizeSmall.'
-                             {% else %}
-                                 '.$TextSize.'
-                             {% endif %}'
-                            )
-                            ->styleMarginTop($marginTop);
-                    }
-                }
+                $elementForeignLanguageGrade = new Element();
+                $elementForeignLanguageGrade
+                    ->setContent('
+                    {% if(Content.P'.$personId.'.Grade.Data["'.$tblSubject->getAcronym().'"] is not empty) %}
+                        {{ Content.P'.$personId.'.Grade.Data["'.$tblSubject->getAcronym().'"] }}
+                    {% else %}
+                        &ndash;
+                    {% endif %}')
+                    ->styleAlignCenter()
+                    ->styleBackgroundColor(self::BACKGROUND_COLOR)
+                    ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', '#000')
+                    ->stylePaddingTop(
+                        '{% if(Content.P'.$personId.'.Grade.Data.IsShrinkSize["'.$tblSubject->getAcronym().'"] is not empty) %}
+                         '.$paddingTopShrinking.' 
+                     {% else %}
+                         2px
+                     {% endif %}'
+                    )
+                    ->stylePaddingBottom(
+                        '{% if(Content.P'.$personId.'.Grade.Data.IsShrinkSize["'.$tblSubject->getAcronym().'"] is not empty) %}
+                          '.$paddingBottomShrinking.' 
+                     {% else %}
+                         2px
+                     {% endif %}'
+                    )
+                    ->styleTextSize(
+                        '{% if(Content.P'.$personId.'.Grade.Data.IsShrinkSize["'.$tblSubject->getAcronym().'"] is not empty) %}
+                         '.$TextSizeSmall.'
+                     {% else %}
+                         '.$TextSize.'
+                     {% endif %}'
+                    )
+                    ->styleMarginTop($marginTop);
             }
 
             // aktuell immer anzeigen

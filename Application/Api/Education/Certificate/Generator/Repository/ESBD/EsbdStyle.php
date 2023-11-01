@@ -954,16 +954,7 @@ abstract class EsbdStyle extends Certificate
         }
 
         // Profil
-        if ($tblPerson
-            && ($tblStudent = Student::useService()->getStudentByPerson($tblPerson))
-            && ($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('PROFILE'))
-            && ($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType($tblStudent,
-                $tblStudentSubjectType))
-        ) {
-            /** @var TblStudentSubject $tblStudentSubject */
-            $tblStudentSubject = current($tblStudentSubjectList);
-            $tblSubjectProfile = $tblStudentSubject->getServiceTblSubject();
-        }
+        $tblSubjectProfile = $this->getProfilSubject();
 
         if ($tblSubjectProfile) {
             if (($tblSetting = Consumer::useService()->getSetting('Api', 'Education', 'Certificate', 'ProfileAcronym'))
@@ -979,15 +970,7 @@ abstract class EsbdStyle extends Certificate
 
         if ($tblSubjectProfile) {
             $elementName = (new Element())
-                // Profilname aus der Schülerakte
-                // bei einem Leerzeichen im Acronymn stürzt das TWIG ab
-                ->setContent('
-                   {% if(Content.P' . $personId . '.Student.Profile["' . $tblSubjectProfile->getAcronym() . '"] is not empty) %}
-                       {{ Content.P' . $personId . '.Student.Profile["' . $tblSubjectProfile->getAcronym() . '"].Name' . ' }}
-                   {% else %}
-                        &nbsp;
-                   {% endif %}
-                ')
+                ->setContent($tblSubjectProfile->getName())
                 ->styleAlignCenter()
                 ->styleBorderBottom()
                 ->stylePaddingTop($paddingTop)

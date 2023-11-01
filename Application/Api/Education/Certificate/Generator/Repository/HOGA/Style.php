@@ -1074,7 +1074,7 @@ abstract class Style extends Certificate
             $tblSecondForeignLanguageDiploma = false;
             $tblSecondForeignLanguageSecondarySchool = false;
 
-            // add SecondLanguageField, Fach wird aus der Schüleraktte des Schülers ermittelt
+            // add SecondLanguageField
             $tblSecondForeignLanguage = false;
             if (!empty($languagesWithStartLevel)) {
                 if (isset($languagesWithStartLevel['Lane']) && isset($languagesWithStartLevel['Rank'])) {
@@ -1082,73 +1082,24 @@ abstract class Style extends Certificate
                     [$languagesWithStartLevel['Lane']]['SubjectAcronym'] = 'Empty';
                     $SubjectStructure[$languagesWithStartLevel['Rank']]
                     [$languagesWithStartLevel['Lane']]['SubjectName'] = '&nbsp;';
-                    if ($tblPerson
-                        && ($tblStudent = Student::useService()->getStudentByPerson($tblPerson))
-                    ) {
-                        if (($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('FOREIGN_LANGUAGE'))
-                            && ($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType($tblStudent,
-                                $tblStudentSubjectType))
-                        ) {
-                            /** @var TblStudentSubject $tblStudentSubject */
-                            foreach ($tblStudentSubjectList as $tblStudentSubject) {
-                                if ($tblStudentSubject->getTblStudentSubjectRanking()
-                                    && $tblStudentSubject->getTblStudentSubjectRanking()->getIdentifier() == '2'
-                                    && ($tblSubjectForeignLanguage = $tblStudentSubject->getServiceTblSubject())
-                                ) {
-                                    $tblSecondForeignLanguage = $tblSubjectForeignLanguage;
-                                    $SubjectStructure[$languagesWithStartLevel['Rank']]
-                                    [$languagesWithStartLevel['Lane']]['SubjectAcronym'] = $tblSubjectForeignLanguage->getAcronym();
-                                    $SubjectStructure[$languagesWithStartLevel['Rank']]
-                                    [$languagesWithStartLevel['Lane']]['SubjectName'] = $tblSubjectForeignLanguage->getName();
-                                }
-                            }
-                        }
+                    if (($tblSubjectForeignLanguage = $this->getForeignLanguageSubject(2))) {
+                        $tblSecondForeignLanguage = $tblSubjectForeignLanguage;
+                        $SubjectStructure[$languagesWithStartLevel['Rank']]
+                        [$languagesWithStartLevel['Lane']]['SubjectAcronym'] = $tblSubjectForeignLanguage->getAcronym();
+                        $SubjectStructure[$languagesWithStartLevel['Rank']]
+                        [$languagesWithStartLevel['Lane']]['SubjectName'] = $tblSubjectForeignLanguage->getName();
                     }
                 }
             } else {
                 if (($hasSecondLanguageDiploma || $hasSecondLanguageSecondarySchool)
-                    && $tblPerson
-                    && ($tblStudent = Student::useService()->getStudentByPerson($tblPerson))
+                    && ($tblSubjectForeignLanguage = $this->getForeignLanguageSubject(2))
                 ) {
-                    if (($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('FOREIGN_LANGUAGE'))
-                        && ($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType($tblStudent,
-                            $tblStudentSubjectType))
-                    ) {
-                        /** @var TblStudentSubject $tblStudentSubject */
-                        foreach ($tblStudentSubjectList as $tblStudentSubject) {
-                            if ($tblStudentSubject->getTblStudentSubjectRanking()
-                                && $tblStudentSubject->getTblStudentSubjectRanking()->getIdentifier() == '2'
-                                && ($tblSubjectForeignLanguage = $tblStudentSubject->getServiceTblSubject())
-                            ) {
-                                if ($hasSecondLanguageDiploma) {
-                                    $tblSecondForeignLanguageDiploma = $tblSubjectForeignLanguage;
-                                }
-
-                                // Mittelschulzeugnisse
-                                if ($hasSecondLanguageSecondarySchool)  {
-                                    // SSW-484
-                                    $tillLevel = $tblStudentSubject->getLevelTill();
-                                    $fromLevel = $tblStudentSubject->getLevelFrom();
-                                    $level = $this->getLevel();
-
-                                    if ($tillLevel && $fromLevel) {
-                                        if ($fromLevel <= $level && $tillLevel >= $level) {
-                                            $tblSecondForeignLanguageSecondarySchool = $tblSubjectForeignLanguage;
-                                        }
-                                    } elseif ($tillLevel) {
-                                        if ($tillLevel >= $level) {
-                                            $tblSecondForeignLanguageSecondarySchool = $tblSubjectForeignLanguage;
-                                        }
-                                    } elseif ($fromLevel) {
-                                        if ($fromLevel <= $level) {
-                                            $tblSecondForeignLanguageSecondarySchool = $tblSubjectForeignLanguage;
-                                        }
-                                    } else {
-                                        $tblSecondForeignLanguageSecondarySchool = $tblSubjectForeignLanguage;
-                                    }
-                                }
-                            }
-                        }
+                    if ($hasSecondLanguageDiploma) {
+                        $tblSecondForeignLanguageDiploma = $tblSubjectForeignLanguage;
+                    }
+                    // Mittelschulzeugnisse
+                    if ($hasSecondLanguageSecondarySchool)  {
+                        $tblSecondForeignLanguageSecondarySchool = $tblSubjectForeignLanguage;
                     }
                 }
             }
@@ -1287,10 +1238,10 @@ abstract class Style extends Certificate
                     $content = $hasSecondLanguageSecondarySchool
                         ? $hasAdditionalLine['Ranking'] . '. Fremdsprache (abschlussorientiert)'
                         : $hasAdditionalLine['Ranking'] . '. Fremdsprache (ab Klassenstufe ' .
-                            '{% if(Content.P' . $personId . '.Subject.Level["' . $hasAdditionalLine['SubjectAcronym'] . '"] is not empty) %}
-                                {{ Content.P' . $personId . '.Subject.Level["' . $hasAdditionalLine['SubjectAcronym'] . '"] }})
+                            '{% if(Content.P' . $personId . '.Subject.Level.2 is not empty) %}
+                                {{ Content.P' . $personId . '.Subject.Level.2 }})
                             {% else %}
-                               &ndash;)
+                                &ndash;)
                             {% endif %}';
 
                     $SubjectSection->addElementColumn((new Element())
@@ -1644,37 +1595,10 @@ abstract class Style extends Certificate
         $slice = new Slice();
         $sectionList = array();
 
-        $tblSubjectProfile = false;
-        $tblSubjectForeign = false;
-
         // Profil
-        if ($tblPerson
-            && ($tblStudent = Student::useService()->getStudentByPerson($tblPerson))
-            && ($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('PROFILE'))
-            && ($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType($tblStudent,
-                $tblStudentSubjectType))
-        ) {
-            /** @var TblStudentSubject $tblStudentSubject */
-            $tblStudentSubject = current($tblStudentSubjectList);
-            $tblSubjectProfile = $tblStudentSubject->getServiceTblSubject();
-        }
-
+        $tblSubjectProfile = $this->getProfilSubject();
         // 3. Fremdsprache
-        if ($tblPerson
-            && ($tblStudent = $tblPerson->getStudent())
-            && ($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('FOREIGN_LANGUAGE'))
-            && ($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType($tblStudent,
-                $tblStudentSubjectType))
-        ) {
-            /** @var TblStudentSubject $tblStudentSubject */
-            foreach ($tblStudentSubjectList as $tblStudentSubject) {
-                if ($tblStudentSubject->getTblStudentSubjectRanking()
-                    && $tblStudentSubject->getTblStudentSubjectRanking()->getIdentifier() == '3'
-                ) {
-                    $tblSubjectForeign = $tblStudentSubject->getServiceTblSubject();
-                }
-            }
-        }
+        $tblSubjectForeign = $this->getForeignLanguageSubject(3);
 
         $section = new Section();
         $section

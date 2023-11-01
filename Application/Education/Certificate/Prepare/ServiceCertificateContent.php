@@ -169,16 +169,17 @@ abstract class ServiceCertificateContent extends ServiceAbitur
             }
         }
 
-        // Fremdsprache ab Klassenstufe
+        // Fremdsprache ab Klassenstufen anzeigen
         if ($tblStudent
             && ($tblSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('FOREIGN_LANGUAGE'))
             && ($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType($tblStudent, $tblSubjectType))
         ) {
             foreach ($tblStudentSubjectList as $tblStudentSubject) {
-                if (($tblSubject = $tblStudentSubject->getServiceTblSubject())
+                if ($tblStudentSubject->getServiceTblSubject()
                     && ($levelFrom = $tblStudentSubject->getLevelFrom())
+                    && ($tblStudentSubjectRanking = $tblStudentSubject->getTblStudentSubjectRanking())
                 ) {
-                    $Content['P' . $personId]['Subject']['Level'][$tblSubject->getAcronym()] = $levelFrom;
+                    $Content['P' . $personId]['Subject']['Level'][$tblStudentSubjectRanking->getIdentifier()] = $levelFrom;
                 }
             }
         }
@@ -782,74 +783,6 @@ abstract class ServiceCertificateContent extends ServiceAbitur
                 $average = $this->calcSubjectGradesAverageOthers($tblPrepareStudent);
                 if ($average) {
                     $Content['P' . $personId]['Grade']['Data']['AverageOthers'] = number_format($average, 1, ',', '.');
-                }
-            }
-        }
-
-        // Wahlpflichtbereich
-        if ($tblStudent) {
-
-            // Vertiefungskurs
-            if (($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('ADVANCED'))
-                && ($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType($tblStudent,
-                    $tblStudentSubjectType))
-            ) {
-                /** @var TblStudentSubject $tblStudentSubject */
-                $tblStudentSubject = current($tblStudentSubjectList);
-                if (($tblSubjectAdvanced = $tblStudentSubject->getServiceTblSubject())) {
-                    $Content['P' . $personId]['Student']['Advanced'][$tblSubjectAdvanced->getAcronym()]['Name'] = $tblSubjectAdvanced->getName();
-                }
-            }
-
-            // Neigungskurs
-            if (($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('ORIENTATION'))
-                && ($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType($tblStudent,
-                    $tblStudentSubjectType))
-            ) {
-                /** @var TblStudentSubject $tblStudentSubject */
-                $tblStudentSubject = current($tblStudentSubjectList);
-                if (($tblSubjectOrientation = $tblStudentSubject->getServiceTblSubject())) {
-                    $Content['P' . $personId]['Student']['Orientation'][
-                    $tblSubjectOrientation->getAcronym()]['Name'] = $tblSubjectOrientation->getName();
-                }
-            }
-
-            // 2. Fremdsprache
-            if (($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('FOREIGN_LANGUAGE'))
-                && ($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType($tblStudent,
-                    $tblStudentSubjectType))
-            ) {
-                /** @var TblStudentSubject $tblStudentSubject */
-                foreach ($tblStudentSubjectList as $tblStudentSubject) {
-                    if ($tblStudentSubject->getTblStudentSubjectRanking()
-                        && $tblStudentSubject->getTblStudentSubjectRanking()->getIdentifier() == '2'
-                        && ($tblSubjectForeignLanguage = $tblStudentSubject->getServiceTblSubject())
-                    ) {
-                        $Content['P' . $personId]['Student']['ForeignLanguage'][
-                        $tblSubjectForeignLanguage->getAcronym()]['Name'] = $tblSubjectForeignLanguage->getName();
-                    }
-                }
-            }
-
-            // Profil
-            if (($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('PROFILE'))
-                && ($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType($tblStudent,
-                    $tblStudentSubjectType))
-            ) {
-                /** @var TblStudentSubject $tblStudentSubject */
-                $tblStudentSubject = current($tblStudentSubjectList);
-                if (($tblSubjectProfile = $tblStudentSubject->getServiceTblSubject())) {
-                    $Content['P' . $personId]['Student']['Profile'][$tblSubjectProfile->getAcronym()]['Name']
-//                        = str_replace('Profil', '', $tblSubjectProfile->getName());
-                        = $tblSubjectProfile->getName();
-
-                    // für Herrnhut EZSH Anpassung des Profilnamens
-                    $profile = $tblSubjectProfile->getName();
-                    $profile = str_replace('gesellschaftswissenschaftliches Profil /', '', $profile);
-                    $profile = str_replace('naturwissenschaftlich-mathematisches Profil /', '', $profile);
-                    $profile = trim(str_replace('"', '', $profile));
-                    $Content['P' . $personId]['Student']['ProfileEZSH'][$tblSubjectProfile->getAcronym()]['Name']
-                        = $profile;
                 }
             }
         }
