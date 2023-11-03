@@ -1204,9 +1204,10 @@ class Service extends ServiceTemplateInformation
      *
      * @return TblPrepareStudent[]|false
      */
-    public function getPrepareStudentListByPersonAndCertificateTypeAndYear(TblPerson $tblPerson, TblCertificateType $tblCertificateType, TblYear $tblYear)
-    {
-        return (new Data($this->getBinding()))->getPrepareStudentListByPersonAndCertificateTypeAndYear($tblPerson, $tblCertificateType, $tblYear);
+    public function getPrepareStudentListByPersonAndCertificateTypeAndYear(
+        TblPerson $tblPerson, TblCertificateType $tblCertificateType, TblYear $tblYear, $sort = 'DESC'
+    ) {
+        return (new Data($this->getBinding()))->getPrepareStudentListByPersonAndCertificateTypeAndYear($tblPerson, $tblCertificateType, $tblYear, $sort);
     }
 
     /**
