@@ -48,6 +48,10 @@ class TblGradeType extends Element
     /**
      * @Column(type="boolean")
      */
+    protected bool $IsIgnoredByScoreRule = false;
+    /**
+     * @Column(type="boolean")
+     */
     protected bool $IsActive;
 
     /**
@@ -69,7 +73,7 @@ class TblGradeType extends Element
      * @param int|null $id
      */
     public function __construct(string $code, string $name, string $description,
-        bool $isTypeBehavior, bool $isHighlighted, bool $isPartGrade, bool $isActive, ?int $id = null)
+        bool $isTypeBehavior, bool $isHighlighted, bool $isPartGrade, bool $isIgnoredByScoreRule, bool $isActive, ?int $id = null)
     {
         $this->Code = $code;
         $this->Name = $name;
@@ -78,6 +82,7 @@ class TblGradeType extends Element
         $this->IsHighlighted = $isHighlighted;
         $this->IsPartGrade = $isPartGrade;
         $this->IsActive = $isActive;
+        $this->IsIgnoredByScoreRule = $isIgnoredByScoreRule;
         if ($id) {
             $this->Id = $id;
         }
@@ -169,6 +174,22 @@ class TblGradeType extends Element
     public function setIsPartGrade(bool $IsPartGrade): void
     {
         $this->IsPartGrade = $IsPartGrade;
+    }
+
+    /**
+     * @return bool
+     */
+    public function getIsIgnoredByScoreRule(): bool
+    {
+        return $this->IsIgnoredByScoreRule;
+    }
+
+    /**
+     * @param bool $IsIgnoredByScoreRule
+     */
+    public function setIsIgnoredByScoreRule(bool $IsIgnoredByScoreRule): void
+    {
+        $this->IsIgnoredByScoreRule = $IsIgnoredByScoreRule;
     }
 
     /**

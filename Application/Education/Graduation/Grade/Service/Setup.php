@@ -81,6 +81,7 @@ class Setup  extends AbstractSetup
         $this->createColumn($table, 'IsTypeBehavior', self::FIELD_TYPE_BOOLEAN);
         $this->createColumn($table, 'IsHighlighted', self::FIELD_TYPE_BOOLEAN);
         $this->createColumn($table, 'IsPartGrade', self::FIELD_TYPE_BOOLEAN);
+        $this->createColumn($table, 'IsIgnoredByScoreRule', self::FIELD_TYPE_BOOLEAN, false, 0);
         $this->createColumn($table, 'IsActive', self::FIELD_TYPE_BOOLEAN);
 
         return $table;
