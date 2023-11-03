@@ -41,7 +41,9 @@ use SPHERE\Application\Reporting\Individual\Service\Entity\ViewPersonContact;
 use SPHERE\Application\Reporting\Individual\Service\Entity\ViewProspectCustody;
 use SPHERE\Application\Reporting\Individual\Service\Entity\ViewStudent;
 use SPHERE\Application\Reporting\Individual\Service\Entity\ViewStudentAuthorized;
-use SPHERE\Application\Reporting\Individual\Service\Entity\ViewStudentCustody;
+use SPHERE\Application\Reporting\Individual\Service\Entity\ViewStudentCustodyS1;
+use SPHERE\Application\Reporting\Individual\Service\Entity\ViewStudentCustodyS2;
+use SPHERE\Application\Reporting\Individual\Service\Entity\ViewStudentCustodyS3;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Application\Setting\Consumer\School\School;
 use SPHERE\Common\Frontend\Ajax\Emitter\ClientEmitter;
@@ -1910,6 +1912,32 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
             if( !empty($tblWorkspaceAll) ) {
                 $ViewList = array();
                 $ParameterList = array();
+                // Schülerauswertung: ehemalige Schüler werden nicht gezogen
+                $extendStudentToArchive = false;
+                // Filter Preload um Jahresfilter zu ziehen
+                $FilterPre = $this->getGlobal()->POST;
+                // Logik für ehemalige Schüler
+                // Ist die Jahresabfrage der Bildung enthalten?
+                foreach ($tblWorkspaceAll as $tblWorkSpace) {
+                    if($tblWorkSpace->getField() == 'TblYear_Year'){
+                        // Wird der Jahresfilter verwendet?
+                        if(isset($FilterPre['TblYear_Year'])){
+                            // entspricht der Jahresfilter dem aktuellen Jahr?
+                            if(($tblYearList = Term::useService()->getYearByNow())){
+                                $tblYear = current($tblYearList);
+                                // Schuljahr entspricht nicht dem aktuellen Jahr -> ehemalige Schüler werden angezeigt.
+                                if($tblYear->getYear() != current($FilterPre['TblYear_Year'])){
+                                    $extendStudentToArchive = true;
+                                    break;
+                                }
+                            } else {
+                                // Kein Jahr -> ehemalige Schüler werden angezeigt.
+                                $extendStudentToArchive = true;
+                                break;
+                            }
+                        }
+                    }
+                }
 
                 /** @var TblWorkSpace $tblWorkSpace */
                 foreach ($tblWorkspaceAll as $Index => $tblWorkSpace) {
@@ -1920,7 +1948,7 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
 
                         if($Index == 0 ) {
                             // Eingrenzen der zur Verfügung stehenden Personen durch die spezifische Auswertung
-                            $Builder = $this->setInitialView($Builder, $ViewType, $ViewList, $ParameterList);
+                            $Builder = $this->setInitialView($Builder, $ViewType, $ViewList, $ParameterList, $extendStudentToArchive);
                         }
 
                         if (empty($ViewList)) {
@@ -1940,19 +1968,20 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                     // Add Field to Select
                     $ViewClass = $this->instanceView( $tblWorkSpace );
                     $Alias = $this->encodeField( $ViewClass->getNameDefinition($tblWorkSpace->getField()) );
-
                     $FieldName = $tblWorkSpace->getField();
                     if(in_array($tblWorkSpace->getField(), $this->IdSearchList)) {
                         $FieldName = str_replace('_Id', '_Name', $tblWorkSpace->getField());
                     }
-                     $Builder->addSelect($tblWorkSpace->getView() . '.' . $FieldName
-//                    $Builder->addSelect($tblWorkSpace->getView() . '.' . $tblWorkSpace->getField()
-                        . ' AS ' . $Alias
+                     $Builder->addSelect($tblWorkSpace->getView().'.'.$FieldName.' AS '.$Alias
                     );
 
-                    // Add Field to Sort
-                    $Builder->addOrderBy( $tblWorkSpace->getView() . '.' . $FieldName );
-//                    $Builder->addOrderBy( $tblWorkSpace->getView() . '.' . $tblWorkSpace->getField() );
+                    // Add Field to Sort except: (incompatible with Distinct)
+                    if($FieldName != 'TblStudentTechnicalSchool_HasFinancialAid'
+                    && $FieldName != 'TblStudent_SchoolAttendanceStartDate'
+                    && $FieldName != 'TblStudent_HasMigrationBackground'
+                    ) {
+                        $Builder->addOrderBy($tblWorkSpace->getView().'.'.$FieldName);
+                    }
 
                     // Add Condition to Parameter (if exists and is not empty)
                     $Filter = $this->getGlobal()->POST;
@@ -2081,11 +2110,11 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                             }
                         }
                     }
-                    // Add Field to "Group By" to prevent duplicates
-                    //ToDO distinct as an option?
-                    if(isset($Filter['isDistinct']) && $Filter['isDistinct'] == 1){
-                        $Builder->distinct( true );
-                    }
+//                    // Add Field to "Group By" to prevent duplicates
+//                    //ToDO distinct as an option?
+//                    if(isset($Filter['isDistinct']) && $Filter['isDistinct'] == 1){
+//                        $Builder->distinct();
+//                    }
                 }
 
                 // Bind Parameter to Query
@@ -2122,19 +2151,34 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
      *
      * @return QueryBuilder
      */
-    private function setInitialView(QueryBuilder $Builder, $ViewType, &$ViewList = array(), &$ParameterList = array())
+    private function setInitialView(QueryBuilder $Builder, $ViewType, &$ViewList = array(), &$ParameterList = array(), $extendStudentToArchive = false)
     {
         switch ($ViewType) {
             case TblWorkSpace::VIEW_TYPE_STUDENT:
                 $viewGroup = new ViewGroup();
-                $Parameter = ':Filter'.'Initial'.'Value'.'MetaTable';
                 $Builder->from($viewGroup->getEntityFullName(),
                     $viewGroup->getViewObjectName());
-                $Builder->andWhere(
-                    $Builder->expr()->eq('ViewGroup.TblGroup_MetaTable',
-                        $Parameter)
-                );
+                $Parameter = ':Filter'.'Initial'.'Value'.'MetaTable';
                 $ParameterList[$Parameter] = TblGroup::META_TABLE_STUDENT;
+                if($extendStudentToArchive){
+                    $Builder->distinct();
+                    $Parameter1 = ':Filter'.'Initial'.'Value'.'MetaTable1';
+                    $ParameterList[$Parameter1] = TblGroup::META_TABLE_ARCHIVE;
+
+                    $orStudent = $Builder->expr()->orX($Builder->expr()->eq('ViewGroup.TblGroup_MetaTable', $Parameter));
+                    $orArchive = $Builder->expr()->orX($Builder->expr()->eq('ViewGroup.TblGroup_MetaTable', $Parameter1));
+//                    $orAll = $Builder->expr()->orX();
+//                    $orAll->add($Builder->expr()->eq('ViewGroup.TblGroup_MetaTable', $Parameter));
+//                    $orAll->add($Builder->expr()->eq('ViewGroup.TblGroup_MetaTable', $Parameter1));
+//                    $Builder->andWhere(
+//                    );
+                    $Builder->orWhere($orStudent, $orArchive);
+                } else {
+                    $Builder->andWhere(
+                        $Builder->expr()->eq('ViewGroup.TblGroup_MetaTable',
+                            $Parameter)
+                    );
+                }
                 $ViewList[] = 'ViewGroup';
                 break;
             case TblWorkSpace::VIEW_TYPE_PROSPECT:
@@ -2296,6 +2340,7 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
     public function getSearchResult($ViewType = TblWorkSpace::VIEW_TYPE_ALL)
     {
 
+//        $ShowSQL = true;
         $ShowSQL = false;
         $Query = $this->buildSearchQuery($ViewType, true, $ShowSQL);
 
