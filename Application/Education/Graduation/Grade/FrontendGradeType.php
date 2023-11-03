@@ -16,6 +16,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
+use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\ListingTable;
 use SPHERE\Common\Frontend\Icon\Repository\MinusSign;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
@@ -40,6 +41,7 @@ use SPHERE\Common\Frontend\Text\Repository\Italic;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\Success as SuccessText;
+use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Frontend\Text\Repository\Warning;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
@@ -61,6 +63,13 @@ abstract class FrontendGradeType extends FrontendGradeBookSelect
         $dataList = array();
         if (($tblGradeTypeAll = Grade::useService()->getGradeTypeAll(true))) {
             array_walk($tblGradeTypeAll, function (TblGradeType $tblGradeType) use (&$dataList) {
+                $extendDescription = '';
+                if ($tblGradeType->getIsIgnoredByScoreRule()) {
+                    $extendDescription = new Italic(' (Zensuren-Typ wird bei Berechnungsvorschriften nicht mit berechnet)');
+                } elseif ($tblGradeType->getIsPartGrade()) {
+                    $extendDescription = new Italic(' (Teilnote)');
+                }
+
                 $item['DisplayName'] = $tblGradeType->getIsHighlighted() ? new Bold($tblGradeType->getName()) : $tblGradeType->getName();
                 $item['DisplayCode'] = $tblGradeType->getIsHighlighted() ? new Bold($tblGradeType->getCode()) : $tblGradeType->getCode();
                 $category = $tblGradeType->getIsTypeBehavior() ? 'Kopfnote' : 'Leistungsüberprüfung';
@@ -69,8 +78,7 @@ abstract class FrontendGradeType extends FrontendGradeBookSelect
                 $item['Status'] = $tblGradeType->getIsActive()
                     ? new SuccessText(new PlusSign().' aktiv')
                     : new Warning(new MinusSign() . ' inaktiv');
-                $item['Description'] = trim($tblGradeType->getDescription()
-                    . ($tblGradeType->getIsPartGrade() ? new Italic(' (Teilnote)') : ''));
+                $item['Description'] = trim($tblGradeType->getDescription() . $extendDescription);
                 $item['Option'] =
                     (new Standard('', '/Education/Graduation/Grade/GradeType/Edit', new Edit(), array(
                         'Id' => $tblGradeType->getId()
@@ -161,7 +169,10 @@ abstract class FrontendGradeType extends FrontendGradeBookSelect
                     new CheckBox('GradeType[IsHighlighted]', 'Fett markiert', 1), 3
                 ),
                 new FormColumn(
-                    new CheckBox('GradeType[IsPartGrade]', 'Teilnote (wird zu einer Note zusammengefasst)', 1), 9
+                    new CheckBox('GradeType[IsPartGrade]', 'Teilnote (wird zu einer Note zusammengefasst)', 1), 3
+                ),
+                new FormColumn(
+                    new CheckBox('GradeType[IsIgnoredByScoreRule]', new ToolTip(new Exclamation() . ' Zensuren-Typ wird bei Berechnungsvorschriften nicht mit berechnet', 'Zum Beispiel für Sport Blocknoten'), 1), 5
                 )
             )),
         )));
@@ -200,6 +211,7 @@ abstract class FrontendGradeType extends FrontendGradeBookSelect
             $Global->POST['GradeType']['IsHighlighted'] = $tblGradeType->getIsHighlighted();
             $Global->POST['GradeType']['Description'] = $tblGradeType->getDescription();
             $Global->POST['GradeType']['IsPartGrade'] = $tblGradeType->getIsPartGrade();
+            $Global->POST['GradeType']['IsIgnoredByScoreRule'] = $tblGradeType->getIsIgnoredByScoreRule();
 
             $Global->savePost();
         }

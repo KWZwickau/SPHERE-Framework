@@ -24,9 +24,11 @@ use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Icon\Repository\Ban;
+use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
+use SPHERE\Common\Frontend\Text\Repository\Italic;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Window\Redirect;
 
@@ -518,16 +520,21 @@ abstract class ServiceScore extends ServiceMinimumGradeCount
                             . ($tblScoreConditionGroupList->getTblScoreGroup()->getIsEveryGradeASingleGroup()
                                 ? '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' . 'Noten einzeln ' : '');
 
-                        $tblGradeTypeList = Grade::useService()->getScoreGroupGradeTypeListByGroup(
+                        $tblScoreGroupGradeTypeList = Grade::useService()->getScoreGroupGradeTypeListByGroup(
                             $tblScoreConditionGroupList->getTblScoreGroup()
                         );
-                        if ($tblGradeTypeList) {
-                            foreach ($tblGradeTypeList as $tblGradeType) {
-                                $structure[] = '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#9702;&nbsp;&nbsp;'
-                                    . 'Zensuren-Typ: '
-                                    . ($tblGradeType->getTblGradeType() ? $tblGradeType->getTblGradeType()->getDisplayName() : '')
-                                    . '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' . 'Faktor: '
-                                    . $tblGradeType->getDisplayMultiplier();
+                        if ($tblScoreGroupGradeTypeList) {
+                            foreach ($tblScoreGroupGradeTypeList as $tblScoreGroupGradeType) {
+                                if (($tblGradeType = $tblScoreGroupGradeType->getTblGradeType())) {
+                                    $structure[] = '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#9702;&nbsp;&nbsp;'
+                                        . 'Zensuren-Typ: ' . $tblScoreGroupGradeType->getTblGradeType()->getDisplayName()
+                                        . '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'
+                                        . ($tblGradeType->getIsIgnoredByScoreRule()
+                                            ? new Italic(new Exclamation() . ' Keine Berechnung')
+                                            : 'Faktor: ' . $tblScoreGroupGradeType->getDisplayMultiplier()
+                                                . ($tblGradeType->getIsPartGrade() ? new Italic(' (Teilnote)') : '')
+                                        );
+                                }
                             }
                         } else {
                             $structure[] = new Warning('Kein Zenuren-Typ hinterlegt.', new Ban());

@@ -58,15 +58,18 @@ abstract class ServiceScoreCalc extends ServiceScore
                         foreach ($tblScoreConditionGroupListByCondition as $tblScoreGroup) {
                             if (($tblScoreGroupGradeTypeListByGroup = Grade::useService()->getScoreGroupGradeTypeListByGroup($tblScoreGroup->getTblScoreGroup()))) {
                                 foreach ($tblScoreGroupGradeTypeListByGroup as $tblScoreGroupGradeTypeList) {
-                                    if ($tblGrade->getTblGradeType() && $tblScoreGroupGradeTypeList->getTblGradeType()
-                                        && $tblGrade->getTblGradeType()->getId() === $tblScoreGroupGradeTypeList->getTblGradeType()->getId()
+                                    if (($tblGradeType = $tblGrade->getTblGradeType())
+                                        && $tblScoreGroupGradeTypeList->getTblGradeType()
+                                        && $tblGradeType->getId() === $tblScoreGroupGradeTypeList->getTblGradeType()->getId()
                                     ) {
                                         $hasFoundGradeType = true;
                                         if ($tblGrade->getIsGradeNumeric()) {
+                                            // Zensur wird nicht mit in der Berechnungsvorschrift berücksichtigt
+                                            if ($tblGradeType->getIsIgnoredByScoreRule()) {
+                                                continue;
+                                            }
                                             // für Teilnoten Extra-Liste
-                                            if (($tblGradeType = $tblGrade->getTblGradeType())
-                                                && $tblGradeType->getIsPartGrade()
-                                            ) {
+                                            if ($tblGradeType->getIsPartGrade()) {
                                                 if (isset($subResult[$tblGradeType->getId()])) {
                                                     $subResult[$tblGradeType->getId()]['SubCount']++;
                                                     $subResult[$tblGradeType->getId()]['SubValue'] += $tblGrade->getGradeNumberValue();
