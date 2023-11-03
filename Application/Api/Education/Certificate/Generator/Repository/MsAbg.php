@@ -13,6 +13,8 @@ use SPHERE\Application\Education\Certificate\Generator\Repository\Element;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Page;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Section;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
+use SPHERE\Application\Education\Certificate\Prepare\Prepare;
+use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 
@@ -133,80 +135,7 @@ class MsAbg extends Certificate
                     ->styleAlignCenter()
                 )->styleMarginTop('60px')
             )
-            ->addSlice((new Slice())
-                ->addSection((new Section())
-                    ->addSliceColumn(
-                        $this->setCheckBox(
-                            '{% if(Content.P' . $personId . '.Input.EqualGraduation.HS is not empty) %}
-                                X
-                            {% else %}
-                                &nbsp;
-                            {% endif %}'
-                        )
-                        , '4%')
-                    ->addElementColumn((new Element())
-                        ->setContent('
-                            <u> {{ Content.P' . $personId . '.Person.Data.Name.First }} {{ Content.P' . $personId . '.Person.Data.Name.Last }} </u> hat
-                            gemäß § 6 Absatz 1 Satz 7 des Sächsischen Schulgesetzes mit der Versetzung in die Klassenstufe 10
-                            des Realschulbildungsganges einen dem Hauptschulabschluss gleichgestellten Abschluss erworben.¹')
-                        ->stylePaddingBottom()
-                    )
-                )->styleMarginTop('45px')
-            )
-            ->addSlice((new Slice())
-                ->addSection((new Section())
-                    ->addSliceColumn(
-                        $this->setCheckBox(
-                            '{% if(Content.P' . $personId . '.Input.EqualGraduation.HSQ is not empty) %}
-                                X
-                            {% else %}
-                                &nbsp;
-                            {% endif %}'
-                        )
-                        , '4%')
-                    ->addElementColumn((new Element())
-                        ->setContent('
-                            <u> {{ Content.P' . $personId . '.Person.Data.Name.First }} {{ Content.P' . $personId . '.Person.Data.Name.Last }} </u> hat 
-                            gemäß § 27 Absatz 9 Satz 2 Nummer 2 der Schulordnung Ober- und Abendoberschulen mit der Versetzung in die Klassenstufe 10 des
-                            Realschulbildungsganges und der erfolgreichen Teilnahme an der Prüfung zum Erwerb des Hauptschulabschlusses den qualifizierenden 
-                            Hauptschulabschluss erworben.¹')
-                        ->stylePaddingBottom()
-                    )
-                )->styleMarginTop('15px')
-            )
-            ->addSlice((new Slice())
-                ->addSection((new Section())
-                    ->addSliceColumn(
-                        $this->setCheckBox(
-                            '{% if(Content.P' . $personId . '.Input.EqualGraduation.LERNEN is not empty) %}
-                                X
-                            {% else %}
-                                &nbsp;
-                            {% endif %}'
-                        )
-                        , '4%')
-                    ->addElementColumn((new Element())
-                        ->setContent('
-                             <u> {{ Content.P' . $personId . '.Person.Data.Name.First }} {{ Content.P' . $personId . '.Person.Data.Name.Last }} </u> hat
-                            gemäß § 63 Absatz 3 Nummer 3 der Schulordnung Ober- und Abendoberschulen einen dem Abschluss im Förderschwerpunkt Lernen gemäß 
-                            § 34a Absatz 1 der Schulordnung Förderschulen gleichgestellten Abschluss erworben.¹')
-                        ->stylePaddingBottom()
-                    )
-                )->styleMarginTop('15px')
-            )
-            ->addSlice((new Slice())
-                ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        ->styleBorderBottom()
-                        , '30%')
-                    ->addElementColumn((new Element()))
-                )
-                ->addElement((new Element())
-                    ->setContent('¹ Zutreffendes ist anzukreuzen sowie Vorname und Name einzutragen.')
-                    ->styleTextSize('9.5px')
-                )
-                ->styleMarginTop('330px')
-            );
+            ->addSliceArray($this->getSliceListEqualGraduation($personId));
 
         $pageList[] = (new Page())
             ->addSlice((new Slice())
@@ -252,5 +181,99 @@ class MsAbg extends Certificate
             ));
 
         return $pageList;
+    }
+
+    /**
+     * @param $personId
+     *
+     * @return array
+     */
+    private function getSliceListEqualGraduation($personId): array
+    {
+        if (($tblYear = $this->getYear())
+            && ($tblPerson = Person::useService()->getPersonById($personId))
+            && ($tblLeaveStudent = Prepare::useService()->getLeaveStudentBy($tblPerson, $tblYear))
+            && ($tblLeaveInformationEqualGraduation = Prepare::useService()->getLeaveInformationBy($tblLeaveStudent, 'EqualGraduation'))
+            && $tblLeaveInformationEqualGraduation->getValue() != GymAbgSekI::COURSE_EQUAL_NO
+        ) {
+            $sliceList[] = (new Slice())
+                ->styleMarginTop('45px')
+                ->addSection((new Section())
+                    ->addSliceColumn(
+                        $this->setCheckBox(
+                            '{% if(Content.P' . $personId . '.Input.EqualGraduation.HS is not empty) %}
+                                X
+                            {% else %}
+                                &nbsp;
+                            {% endif %}'
+                        )
+                        , '4%')
+                    ->addElementColumn((new Element())
+                        ->setContent('
+                            <u> {{ Content.P' . $personId . '.Person.Data.Name.First }} {{ Content.P' . $personId . '.Person.Data.Name.Last }} </u> hat
+                            gemäß § 6 Absatz 1 Satz 7 des Sächsischen Schulgesetzes mit der Versetzung in die Klassenstufe 10
+                            des Realschulbildungsganges einen dem Hauptschulabschluss gleichgestellten Abschluss erworben.¹')
+                        ->stylePaddingBottom()
+                    )
+                );
+
+            $sliceList[] = (new Slice())
+                ->addSection((new Section())
+                    ->addSliceColumn(
+                        $this->setCheckBox(
+                            '{% if(Content.P' . $personId . '.Input.EqualGraduation.HSQ is not empty) %}
+                                X
+                            {% else %}
+                                &nbsp;
+                            {% endif %}'
+                        )
+                        , '4%')
+                    ->addElementColumn((new Element())
+                        ->setContent('
+                            <u> {{ Content.P' . $personId . '.Person.Data.Name.First }} {{ Content.P' . $personId . '.Person.Data.Name.Last }} </u> hat 
+                            gemäß § 27 Absatz 9 Satz 2 Nummer 2 der Schulordnung Ober- und Abendoberschulen mit der Versetzung in die Klassenstufe 10 des
+                            Realschulbildungsganges und der erfolgreichen Teilnahme an der Prüfung zum Erwerb des Hauptschulabschlusses den qualifizierenden 
+                            Hauptschulabschluss erworben.¹')
+                        ->stylePaddingBottom()
+                    )
+                )->styleMarginTop('15px');
+
+            $sliceList[] = (new Slice())
+                ->addSection((new Section())
+                    ->addSliceColumn(
+                        $this->setCheckBox(
+                            '{% if(Content.P' . $personId . '.Input.EqualGraduation.LERNEN is not empty) %}
+                                X
+                            {% else %}
+                                &nbsp;
+                            {% endif %}'
+                        )
+                        , '4%')
+                    ->addElementColumn((new Element())
+                        ->setContent('
+                             <u> {{ Content.P' . $personId . '.Person.Data.Name.First }} {{ Content.P' . $personId . '.Person.Data.Name.Last }} </u> hat
+                            gemäß § 63 Absatz 3 Nummer 3 der Schulordnung Ober- und Abendoberschulen einen dem Abschluss im Förderschwerpunkt Lernen gemäß 
+                            § 34a Absatz 1 der Schulordnung Förderschulen gleichgestellten Abschluss erworben.¹')
+                        ->stylePaddingBottom()
+                    )
+                )->styleMarginTop('15px');
+
+            $sliceList[] = (new Slice())
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->styleBorderBottom()
+                        , '30%')
+                    ->addElementColumn((new Element()))
+                )
+                ->addElement((new Element())
+                    ->setContent('¹ Zutreffendes ist anzukreuzen sowie Vorname und Name einzutragen.')
+                    ->styleTextSize('9.5px')
+                )
+                ->styleMarginTop('330px');
+
+            return $sliceList;
+        } else {
+            return array((new Slice())->addElement((new Element())->setContent('&nbsp;')));
+        }
     }
 }
