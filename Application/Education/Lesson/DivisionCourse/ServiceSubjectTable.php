@@ -37,6 +37,18 @@ abstract class ServiceSubjectTable extends ServiceStudentSubject
     }
 
     /**
+     * @param TblType $tblSchoolType
+     * @param int $level
+     * @param string $studentMetaIdentifier
+     *
+     * @return false|TblSubjectTable
+     */
+    public function getSubjectTableByStudentMetaIdentifier(TblType $tblSchoolType, int $level, string $studentMetaIdentifier)
+    {
+        return (new Data($this->getBinding()))->getSubjectTableByStudentMetaIdentifier($tblSchoolType, $level, $studentMetaIdentifier);
+    }
+
+    /**
      * @param TblPerson $tblPerson
      * @param TblYear $tblYear
      * @param TblSubject $tblSubject
