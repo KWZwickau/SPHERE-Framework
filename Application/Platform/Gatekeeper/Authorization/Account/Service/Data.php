@@ -23,6 +23,7 @@ use SPHERE\System\Cache\Handler\MemcachedHandler;
 use SPHERE\System\Cache\Handler\MemoryHandler;
 use SPHERE\System\Database\Binding\AbstractData;
 use SPHERE\System\Database\Fitting\ColumnHydrator;
+use SPHERE\System\Database\Fitting\Element;
 use SPHERE\System\Debugger\DebuggerFactory;
 use SPHERE\System\Debugger\Logger\CacheLogger;
 
@@ -614,11 +615,20 @@ class Data extends AbstractData
             return false;
         }
 
-        $tblAuthentication = $this->getConnection()->getEntityManager()->getEntity('TblAuthentication')
-            ->findOneBy(array(
-                TblAuthentication::ATTR_TBL_ACCOUNT        => $tblAccount->getId(),
-                TblAuthentication::ATTR_TBL_IDENTIFICATION => $tblIdentification->getId()
-            ));
+        if ($tblIdentification) {
+            $tblAuthentication = $this->getConnection()->getEntityManager()->getEntity('TblAuthentication')
+                ->findOneBy(array(
+                    TblAuthentication::ATTR_TBL_ACCOUNT        => $tblAccount->getId(),
+                    TblAuthentication::ATTR_TBL_IDENTIFICATION => $tblIdentification->getId()
+                ));
+        } else {
+            // der Account muss eine Identification haben
+            $tblAuthentication = $this->getConnection()->getEntityManager()->getEntity('TblAuthentication')
+                ->findOneBy(array(
+                    TblAuthentication::ATTR_TBL_ACCOUNT        => $tblAccount->getId(),
+                ));
+        }
+
         // Identification not valid
         if (null === $tblAuthentication) {
             return false;
@@ -787,12 +797,13 @@ class Data extends AbstractData
                 }
             }
             // Remove Identification
-            $tblAuthentication = $this->getAuthenticationByAccount( $Entity );
-            if( $tblAuthentication ) {
-                if( $tblAuthentication->getTblAccount() && $tblAuthentication->getTblIdentification() ) {
-                    $this->removeAccountAuthentication(
-                        $tblAuthentication->getTblAccount(), $tblAuthentication->getTblIdentification()
-                    );
+            if (($tblAuthenticationList = $this->getAuthenticationListByAccount($tblAccount))) {
+                foreach ($tblAuthenticationList as $tblAuthentication) {
+                    if ($tblAuthentication->getTblAccount() && $tblAuthentication->getTblIdentification()) {
+                        $this->removeAccountAuthentication(
+                            $tblAuthentication->getTblAccount(), $tblAuthentication->getTblIdentification()
+                        );
+                    }
                 }
             }
             Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
@@ -910,22 +921,8 @@ class Data extends AbstractData
         if ($Entity) {
             $Account = $Entity->getTblAccount();
             // Reset Timeout on Current Session (within time)
-            $Type = $this->getAuthenticationByAccount($Account)->getTblIdentification()->getName();
-            switch (strtoupper($Type)) {
-                case 'SYSTEM':
-                    $Timeout = ( 60 * 60 * 4 );
-                    break;
-                case 'AUTHENTICATORAPP':
-                case 'TOKEN':
-                    $Timeout = ( 60 * 60 );
-                    break;
-                case 'CREDENTIAL':
-                case 'USERCREDENTIAL':
-                    $Timeout = ( 60 * 30 );
-                    break;
-                default:
-                    $Timeout = ( 60 * 10 );
-            }
+            $Timeout = $Account->getSessionTimeOut();
+
             $this->changeTimeout($Entity, $Timeout);
         }
     }
@@ -963,16 +960,32 @@ class Data extends AbstractData
     /**
      * @param TblAccount $tblAccount
      *
-     * @return bool|TblAuthentication
+     * @return bool|TblAuthentication[]
      */
-    public function getAuthenticationByAccount(TblAccount $tblAccount)
+    public function getAuthenticationListByAccount(TblAccount $tblAccount)
     {
-
-        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblAuthentication',
-            array(
-                TblAuthentication::ATTR_TBL_ACCOUNT => $tblAccount->getId()
-            )
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblAuthentication',
+            array(TblAuthentication::ATTR_TBL_ACCOUNT => $tblAccount->getId()),
+            array(Element::ENTITY_CREATE => self::ORDER_ASC)
         );
+    }
+
+    /**
+     * @param TblAccount $tblAccount
+     * @param string $IdentificationName
+     *
+     * @return bool
+     */
+    public function getHasAuthenticationByAccountAndIdentificationName(TblAccount $tblAccount, string $IdentificationName): bool
+    {
+        if (($tblIdentification = $this->getIdentificationByName($IdentificationName))) {
+            return (bool) $this->getCachedEntityBy(__METHOD__, $this->getEntityManager() , 'TblAuthentication', array(
+                TblAuthentication::ATTR_TBL_ACCOUNT => $tblAccount->getId(),
+                TblAuthentication::ATTR_TBL_IDENTIFICATION => $tblIdentification->getId()
+            ));
+        }
+
+        return false;
     }
 
     /**
@@ -1142,9 +1155,7 @@ class Data extends AbstractData
                 $tblAccount = $Entity->getTblAccount();
                 if ($tblAccount && $tblAccount->getServiceTblConsumer()) {
                     // ignor System Accounts (support etc.)
-                    if (($tblIdentification = $tblAccount->getServiceTblIdentification())
-                        && $tblIdentification->getName() != 'System'
-                    ) {
+                    if (!$tblAccount->getHasAuthentication(TblIdentification::NAME_SYSTEM)) {
                         if ($tblAccount->getServiceTblConsumer()->getId() == $tblConsumer->getId()) {
                             $tblAccountList[] = $tblAccount;
                         }

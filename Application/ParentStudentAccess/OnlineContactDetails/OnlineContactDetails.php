@@ -5,6 +5,7 @@ namespace SPHERE\Application\ParentStudentAccess\OnlineContactDetails;
 use SPHERE\Application\IApplicationInterface;
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblIdentification;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Setting\User\Account\Account as UserAccount;
 use SPHERE\Application\Setting\User\Account\Service\Entity\TblUserAccount;
@@ -29,7 +30,7 @@ class OnlineContactDetails extends Extension implements IApplicationInterface, I
 
         $isRegistered = false;
         if (($tblAccount = Account::useService()->getAccountBySession())) {
-            if (($tblIdentification = $tblAccount->getServiceTblIdentification()) && $tblIdentification->getName() == 'System') {
+            if ($tblAccount->getHasAuthentication(TblIdentification::NAME_SYSTEM)) {
                 // System-Account
                 $isRegistered = true;
             } elseif (($tblUserAccount = UserAccount::useService()->getUserAccountByAccount($tblAccount))

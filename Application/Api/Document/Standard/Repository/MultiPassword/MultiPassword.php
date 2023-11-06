@@ -14,6 +14,7 @@ use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\People\Relationship\Service\Entity\TblType;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account as AccountGatekeeper;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblIdentification;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer as GatekeeperConsumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Setting\Consumer\Consumer;
@@ -153,8 +154,9 @@ class MultiPassword extends AbstractDocument
                 // set flag IsExport
                 $isExportFlag = true;
                 // IsExport only by non System Accounts (Support) soll keine einträge
-                $tblAccount = AccountGatekeeper::useService()->getAccountBySession();
-                if($tblAccount->getServiceTblIdentification() && $tblAccount->getServiceTblIdentification()->getName() == 'System'){
+                if (($tblAccount = AccountGatekeeper::useService()->getAccountBySession())
+                    && (AccountGatekeeper::useService()->getHasAuthenticationByAccountAndIdentificationName($tblAccount, TblIdentification::NAME_SYSTEM))
+                ) {
                     $isExportFlag = false;
                 }
                 if($isExportFlag){

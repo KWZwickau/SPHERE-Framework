@@ -4,6 +4,7 @@ namespace SPHERE\Application\Platform\System\Session;
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\IServiceInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblIdentification;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblSession;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\Application\Platform\System\Protocol\Service\Entity\TblProtocol;
@@ -101,87 +102,71 @@ class Session extends Extension implements IModuleInterface
         $tblSessionAll = Account::useService()->getSessionAll();
         if ($tblSessionAll) {
             array_walk($tblSessionAll, function (TblSession $tblSession) use (&$Result) {
+                if (($tblAccount = $tblSession->getTblAccount())) {
+                    $loginTime = $tblAccount->getSessionTimeOut();
 
-                $tblAccount = $tblSession->getTblAccount();
-                $tblIdentification = $tblAccount->getServiceTblIdentification();
-                $loginTime = 60 * 10;
-                switch ($tblIdentification->getName()) {
-                    case 'System':
-                        $loginTime = (60 * 60 * 4);
-                        break;
-                    case 'AuthenticatorApp':
-                    case 'Token':
-                        $loginTime = (60 * 60);
-                        break;
-                    case 'Credential':
-                        $loginTime = (60 * 30);
-                        break;
-                    case 'UserCredential':
-                        $loginTime = (60 * 30);
-                        break;
-                }
+                    $Activity = gmdate("H:i:s", $loginTime - ($tblSession->getTimeout() - time()));
 
-                $Activity = gmdate("H:i:s", $loginTime - ($tblSession->getTimeout() - time()));
-
-                if ($tblSession->getEntityUpdate() && $tblSession->getEntityCreate()) {
-                    $Interval = $tblSession->getEntityUpdate()->getTimestamp() - $tblSession->getEntityCreate()->getTimestamp();
-                } else {
-                    if (!$tblSession->getEntityUpdate() && $tblSession->getEntityCreate()) {
-                        $Interval = time() - $tblSession->getEntityCreate()->getTimestamp();
+                    if ($tblSession->getEntityUpdate() && $tblSession->getEntityCreate()) {
+                        $Interval = $tblSession->getEntityUpdate()->getTimestamp() - $tblSession->getEntityCreate()->getTimestamp();
                     } else {
-                        $Interval = 0;
+                        if (!$tblSession->getEntityUpdate() && $tblSession->getEntityCreate()) {
+                            $Interval = time() - $tblSession->getEntityCreate()->getTimestamp();
+                        } else {
+                            $Interval = 0;
+                        }
                     }
-                }
 
-                // need to much time and info is not necessary
+                    // need to much time and info is not necessary
 //                if (($Activity = Protocol::useService()->getProtocolLastActivity($tblAccount))) {
 //                    $Activity = current($Activity)->getEntityCreate();
 //                } else {
 //                    $Activity = '-NA-';
 //                }
 
-                if ($tblAccount && $tblAccount->getServiceTblIdentification()
-                    && $tblAccount->getServiceTblIdentification()->getName() == 'System') {
-                    $UserName = new Info($UserNamePrepare = $tblAccount->getUsername());
-                    $AccountType = new ToolTip('A '.new Key(), 'Admin');
-                } elseif ($tblAccount && $tblAccount->getServiceTblIdentification()
-                    && ($tblAccount->getServiceTblIdentification()->getName() == 'Token'
-                        || $tblAccount->getServiceTblIdentification()->getName() == 'AuthenticatorApp')
-                ) {
-                    $UserNamePrepare = $tblAccount->getUsername();
-                    $separatorStringPos = strpos($UserNamePrepare, '-');
-                    $UserNameBuild = new Success(substr($UserNamePrepare, 0, $separatorStringPos));
-                    $UserNameBuild .= substr($UserNamePrepare, $separatorStringPos);
-                    $UserName = new Bold($UserNameBuild);
-                    $AccountType = new ToolTip('M '
-                        . ($tblAccount->getServiceTblIdentification()->getName() == 'Token' ? new Key() : new PhoneMobil())
-                        , 'Mitarbeiter');
-                } elseif ($tblAccount) {
-                    $UserName = $tblAccount->getUsername();
-                    $AccountType = new ToolTip('S &nbsp;'.new Family(), 'Sorgeberechtigte / Schüler');
-                } else {
-                    $UserName = '-NA-';
-                    $AccountType = '-NA-';
-                }
+                    if (Account::useService()->getHasAuthenticationByAccountAndIdentificationName($tblAccount, TblIdentification::NAME_SYSTEM)) {
+                        $UserName = new Info($tblAccount->getUsername());
+                        $AccountType = new ToolTip('A ' . new Key(), 'Admin');
+                    } elseif (Account::useService()->getHasAuthenticationByAccountAndIdentificationName($tblAccount, TblIdentification::NAME_TOKEN)
+                        || Account::useService()->getHasAuthenticationByAccountAndIdentificationName($tblAccount, TblIdentification::NAME_AUTHENTICATOR_APP)
+                    ) {
+                        $UserNamePrepare = $tblAccount->getUsername();
+                        $separatorStringPos = strpos($UserNamePrepare, '-');
+                        $UserNameBuild = new Success(substr($UserNamePrepare, 0, $separatorStringPos));
+                        $UserNameBuild .= substr($UserNamePrepare, $separatorStringPos);
+                        $UserName = new Bold($UserNameBuild);
+                        $AccountType = new ToolTip('M '
+                            . (Account::useService()->getHasAuthenticationByAccountAndIdentificationName($tblAccount, TblIdentification::NAME_TOKEN) ? new Key() : '')
+                            . (Account::useService()->getHasAuthenticationByAccountAndIdentificationName($tblAccount, TblIdentification::NAME_AUTHENTICATOR_APP) ? new PhoneMobil() : ''),
+                            'Mitarbeiter'
+                        );
+                    } elseif (Account::useService()->getHasAuthenticationByAccountAndIdentificationName($tblAccount, TblIdentification::NAME_USER_CREDENTIAL)) {
+                        $UserName = $tblAccount->getUsername();
+                        $AccountType = new ToolTip('S &nbsp;' . new Family(), 'Sorgeberechtigte / Schüler');
+                    } else {
+                        $UserName = '-NA-';
+                        $AccountType = '-NA-';
+                    }
 
-                array_push($Result, array(
-                    'Id' => $tblSession->getId(),
-                    'Consumer' => ($tblAccount->getServiceTblConsumer() ?
-                        $tblAccount->getServiceTblConsumer()->getAcronym()
-                        . '&nbsp;' . new Muted($tblAccount->getServiceTblConsumer()->getName())
-                        : '-NA-'
-                    ),
-                    'Account' => $UserName,
-                    'AccountType' => $AccountType,
-                    'TTL' => gmdate("H:i:s", $tblSession->getTimeout() - time()),
-                    'ActiveTime' => gmdate('H:i:s', $Interval),
-                    'LoginTime' => $tblSession->getEntityCreate(),
-                    'LastAction' => $Activity,
-                    'Identifier' => strtoupper($tblSession->getSession()),
-                    'Option' => new Danger('', new Link\Route(__NAMESPACE__), new Off(), array(
-                        'Id' => $tblSession->getId()
-                    ))
-                ));
+                    $Result[] = array(
+                        'Id' => $tblSession->getId(),
+                        'Consumer' => ($tblAccount->getServiceTblConsumer() ?
+                            $tblAccount->getServiceTblConsumer()->getAcronym()
+                            . '&nbsp;' . new Muted($tblAccount->getServiceTblConsumer()->getName())
+                            : '-NA-'
+                        ),
+                        'Account' => $UserName,
+                        'AccountType' => $AccountType,
+                        'TTL' => gmdate("H:i:s", $tblSession->getTimeout() - time()),
+                        'ActiveTime' => gmdate('H:i:s', $Interval),
+                        'LoginTime' => $tblSession->getEntityCreate(),
+                        'LastAction' => $Activity,
+                        'Identifier' => strtoupper($tblSession->getSession()),
+                        'Option' => new Danger('', new Link\Route(__NAMESPACE__), new Off(), array(
+                            'Id' => $tblSession->getId()
+                        ))
+                    );
+                }
             });
         }
 

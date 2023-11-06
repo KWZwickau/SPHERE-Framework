@@ -2,6 +2,7 @@
 namespace SPHERE\Application\Setting\Univention;
 
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblIdentification;
 use SPHERE\Application\Setting\Univention\Service\Entity\TblUnivention;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
@@ -186,8 +187,8 @@ class UniventionUser
             return $Error;
         }
         if($Error !== null
-        && ($tblAccount = Account::useService()->getAccountBySession())
-        && $tblAccount->getServiceTblIdentification()->getName() == 'System'
+            && ($tblAccount = Account::useService()->getAccountBySession())
+            && $tblAccount->getHasAuthentication(TblIdentification::NAME_SYSTEM)
         ) {
             $Error .= '<pre>'.print_r($UserData, true).'</pre>';
         } elseif($Error !== null) {
@@ -326,8 +327,8 @@ class UniventionUser
             return $Error;
         }
         if($Error !== null
-        && ($tblAccount = Account::useService()->getAccountBySession())
-        && $tblAccount->getServiceTblIdentification()->getName() == 'System'
+            && ($tblAccount = Account::useService()->getAccountBySession())
+            && $tblAccount->getHasAuthentication(TblIdentification::NAME_SYSTEM)
         ) {
             $Error .= '<pre>'.print_r($UserData, true).'</pre>';
         } elseif($Error !== null) {
