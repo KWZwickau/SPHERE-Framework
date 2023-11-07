@@ -62,8 +62,8 @@ class Database extends Extension implements IModuleInterface
 
         $Result = array();
         if ($Consumer) {
-            // Warte 0,5 Sekunden
-            usleep(500000);
+//            // Warte 0,5 Sekunden
+//            usleep(500000);
 //            sleep(1);
             $tblConsumer = Consumer::useService()->getConsumerByAcronym($Consumer);
             if ($tblConsumer) {
