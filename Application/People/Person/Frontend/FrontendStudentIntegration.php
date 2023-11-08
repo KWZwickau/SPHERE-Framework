@@ -40,7 +40,7 @@ use SPHERE\Common\Frontend\Link\Repository\Link;
  */
 class FrontendStudentIntegration extends FrontendReadOnly
 {
-    const TITLE = 'Integration - Daten';
+    const TITLE = 'Inklusion - Daten';
 
     /**
      * @param null $PersonId
@@ -59,7 +59,7 @@ class FrontendStudentIntegration extends FrontendReadOnly
 
             return TemplateReadOnly::getContent(
                 self::TITLE,
-                new Info('Die Integrations-Daten sind ausgeblendet. Bitte klicken Sie auf Anzeigen.'),
+                new Info('Die Inklusions-Daten sind ausgeblendet. Bitte klicken Sie auf Anzeigen.'),
                 array($showLink),
                 'der Person ' . new Bold(new Success($tblPerson->getFullName())).$DivisionString,
                 new Tag(),

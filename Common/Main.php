@@ -145,6 +145,7 @@ class Main extends Extension
                 self::registerApiPlatform();
 
                 $excludeSessionAPI = array(
+                    '/Api/Platform/Database/Upgrade',
                     '/Api/Reporting/CustomEKBO/BerlinZentrum/SuSList/Download',
                     '/Api/Reporting/CustomEKBO/BerlinZentrum/KuKList/Download',
                 );

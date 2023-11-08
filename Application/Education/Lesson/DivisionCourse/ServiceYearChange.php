@@ -429,7 +429,7 @@ abstract class ServiceYearChange extends ServiceTeacher
             $this->copyMembers($tblDivisionCourse, $tblDivisionCourseFuture, TblDivisionCourseMemberType::TYPE_DIVISION_TEACHER, $createMemberList);
             // Elternsprecher übertragen
             $this->copyMembers($tblDivisionCourse, $tblDivisionCourseFuture, TblDivisionCourseMemberType::TYPE_CUSTODY, $createMemberList);
-            // Schülersprecher übertragen
+            // Klassensprecher übertragen
             $this->copyMembers($tblDivisionCourse, $tblDivisionCourseFuture, TblDivisionCourseMemberType::TYPE_REPRESENTATIVE, $createMemberList);
 
             // pädagogisches Tagebuch verknüpfen

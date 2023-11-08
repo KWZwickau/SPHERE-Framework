@@ -51,7 +51,7 @@ abstract class DataMigrate extends AbstractData
                 $isTypeBehavior = ($tblTestType = $item->getServiceTblTestType()) && $tblTestType->getIdentifier() == 'BEHAVIOR';
                 $tblGradeType = new TblGradeType(
                     $item->getCode(), $item->getName(), $item->getDescription(),
-                    $isTypeBehavior, $item->isHighlighted(), $item->isPartGrade(), $item->isActive(), $item->getId()
+                    $isTypeBehavior, $item->isHighlighted(), $item->isPartGrade(), false, $item->isActive(), $item->getId()
                 );
                 // beim Speichern mit vorgegebener Id ist kein bulkSave möglich
                 $Manager->saveEntityWithSetId($tblGradeType);

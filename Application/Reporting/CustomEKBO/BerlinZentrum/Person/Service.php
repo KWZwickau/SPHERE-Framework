@@ -389,7 +389,7 @@ class Service extends Extension
                                     }
                                 }
                             }
-                            // Elternvertreter
+                            // Elternsprecher
                             if($tblDivision && ($tblPersonCustodyList = $tblDivision->getCustody())){
                                 foreach($tblPersonCustodyList as $tblPersonCustody){
                                     if($tblPersonCustody->getId() == $tblPersonS->getId()){

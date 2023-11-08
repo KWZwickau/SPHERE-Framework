@@ -43,7 +43,7 @@ class DeclarationBasis implements IModuleInterface
             $date = new DateTime($Date);
             if (Term::useService()->getYearAllByDate($date)) {
                 $fileLocation = \SPHERE\Application\Reporting\DeclarationBasis\DeclarationBasis::useService()->createDivisionReportExcel($date);
-                return FileSystem::getDownload($fileLocation->getRealPath(), "Stichtagsmeldung Integrationsschüler"
+                return FileSystem::getDownload($fileLocation->getRealPath(), "Stichtagsmeldung Inklusionsschüler"
                         . (Consumer::useService()->getConsumerBySessionIsConsumerType(TblConsumer::TYPE_SACHSEN) ? " SBA " : " ")
                         . $date->format('Y-m-d') . ".xlsx")->__toString();
             } else {

@@ -129,7 +129,28 @@ class StudentCardNew extends AbstractDocument
                                         {% endif %}')
                                 ->stylePaddingLeft('5px')
                                 ->stylePaddingBottom('5px')
-                            ,'92%')
+                                ,'41%')
+                            ->addElementColumn((new Element())
+                                ->setContent('Telefonnummer:<br>Email-Adresse:')
+                                ->stylePaddingLeft('5px')
+                                ->stylePaddingBottom('5px')
+                                , '12%')
+                            ->addElementColumn((new Element())
+                                ->setContent('
+                                    {% if(Content.Person.Contact.Phone.SinglePrivateNumber is not empty) %}
+                                        {{ Content.Person.Contact.Phone.SinglePrivateNumber }}
+                                    {% else %}
+                                        &nbsp;
+                                    {% endif %}
+                                    <br>
+                                    {% if(Content.Person.Contact.SinglePrivateMail is not empty) %}
+                                        {{ Content.Person.Contact.SinglePrivateMail }}
+                                    {% else %}
+                                        &nbsp;
+                                    {% endif %}
+                                ')
+                                ->stylePaddingLeft('5px')
+                                , '39%')
                             )
                         ->addSection((new Section())
                             ->addElementColumn((new Element())

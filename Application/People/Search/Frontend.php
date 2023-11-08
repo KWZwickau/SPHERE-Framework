@@ -277,6 +277,9 @@ class Frontend extends Extension implements IFrontendInterface
                 }
                 $columnList['Option'] = '';
 
+                // https://datatables.net/manual/tech-notes/3
+                // 'destroy' => true
+
                 $result = new TableData(
                     $resultList,
                     null,
@@ -290,7 +293,8 @@ class Frontend extends Extension implements IFrontendInterface
                         'paging' => false,
                         'info' => false,
                         'searching' => false,
-                        'responsive' => false
+                        'responsive' => false,
+                        'destroy' => true
                     )
                 );
             }
@@ -422,7 +426,7 @@ class Frontend extends Extension implements IFrontendInterface
         $columnDefs[] = array('orderable' => false, 'width' => '60px', 'targets' => -1);
 
         return new Title('Verfügbare Personen ' . new Small(new Muted('im Kurs: ')) . (new Bold($tblDivisionCourse->getDisplayName())))
-            . new TableData($tableContent, null, $columnList, array('columnDefs' => $columnDefs, 'order' => array(0, 'asc')));
+            . new TableData($tableContent, null, $columnList, array('columnDefs' => $columnDefs, 'order' => array(0, 'asc'), 'destroy' => true));
     }
 
     /**
@@ -653,7 +657,7 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         return new Title('Verfügbare Personen ' . new Small(new Muted('in der Gruppe: ')) . (new Bold($tblGroup->getName())))
-            . new TableData($tableContent, null, $ColumnArray, array('columnDefs' => $columnDefs, 'order' => $orderByColumn));
+            . new TableData($tableContent, null, $ColumnArray, array('columnDefs' => $columnDefs, 'order' => $orderByColumn, 'destroy' => true));
     }
 
     /**

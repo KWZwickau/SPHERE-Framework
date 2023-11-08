@@ -90,8 +90,8 @@ class Frontend extends Extension implements IFrontendInterface
         $ReceiverAppointmentTask = ApiAppointmentGrade::receiverFormSelect((new ApiAppointmentGrade())->reloadTaskSelect($YearId), 'AppointmentTask');
         $ReceiverPeriod = ApiAppointmentGrade::receiverFormSelect((new ApiAppointmentGrade())->reloadPeriodSelect($PreselectId), 'Period');
 
-        // Anzeige nur für alle aktuellen Jahre + das letzte Schuljahr
-        $tblYearList = Term::useService()->getYearAllSinceYears(1);
+        // Anzeige nur für alle aktuellen Jahre + die letzten beiden Schuljahre
+        $tblYearList = Term::useService()->getYearAllSinceYears(2);
 
         $Stage->setContent(
             new Layout(
@@ -256,7 +256,7 @@ class Frontend extends Extension implements IFrontendInterface
             }
 
             // add import
-            $Gateway = new AppointmentGradeGateway($Payload->getRealPath(), $Control);
+            $Gateway = new AppointmentGradeGateway($Payload->getRealPath(), $Control, $Period >= 5);
 
             $ImportList = $Gateway->getImportList();
             if(!empty($ImportList)){
@@ -279,7 +279,6 @@ class Frontend extends Extension implements IFrontendInterface
      */
     public function frontendExport(string $SchoolTypeId = null): Stage
     {
-
         $Stage = new Stage('Export', 'Stichtagsnoten eines Halbjahres');
 
         $IndiwareStudentSubjectOrderAll = AppointmentGrade::useService()->getIndiwareStudentSubjectOrderAll();
@@ -378,10 +377,16 @@ class Frontend extends Extension implements IFrontendInterface
                 $PeriodString = new Bold('Stufe '.$Grade.' 2. Halbjahr');
                 break;
             case 3:
-                $PeriodString = new Bold('Stufe '.++$Grade.' 1. Halbjahr');
+                $PeriodString = new Bold('Stufe '. ($Grade + 1) .' 1. Halbjahr');
                 break;
             case 4:
-                $PeriodString = new Bold('Stufe '.++$Grade.' 2. Halbjahr');
+                $PeriodString = new Bold('Stufe '. ($Grade + 1) .' 2. Halbjahr');
+                break;
+            case 5:
+                $PeriodString = new Bold('Stufe '. ($Grade - 1) .' 1. Halbjahr');
+                break;
+            case 6:
+                $PeriodString = new Bold('Stufe '. ($Grade - 1) .' 2. Halbjahr');
                 break;
         }
 

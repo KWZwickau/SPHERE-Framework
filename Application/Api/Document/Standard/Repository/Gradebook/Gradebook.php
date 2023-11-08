@@ -895,7 +895,7 @@ class Gradebook extends AbstractDocument
      *
      * @return array
      */
-    public function sortTestList($tblTestList): array
+    public static function sortTestList($tblTestList): array
     {
         if (($tblSetting = Consumer::useService()->getSetting(
                 'Education', 'Graduation', 'Gradebook', 'SortHighlighted'

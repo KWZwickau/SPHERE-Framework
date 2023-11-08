@@ -166,7 +166,7 @@ class TblAccount extends Element
      */
     public function getUserAlias()
     {
-        return $this->UserAlias;
+        return strtolower($this->UserAlias);
     }
 
     /**
@@ -174,7 +174,7 @@ class TblAccount extends Element
      */
     public function setUserAlias($UserAlias)
     {
-        $this->UserAlias = $UserAlias;
+        $this->UserAlias = strtolower($UserAlias);
     }
 
     /**
@@ -182,7 +182,7 @@ class TblAccount extends Element
      */
     public function getRecoveryMail()
     {
-        return $this->BackupMail;
+        return strtolower($this->BackupMail);
     }
 
     /**
@@ -190,7 +190,7 @@ class TblAccount extends Element
      */
     public function setRecoveryMail($RecoveryMail)
     {
-        $this->BackupMail = $RecoveryMail;
+        $this->BackupMail = strtolower($RecoveryMail);
     }
 
     /**

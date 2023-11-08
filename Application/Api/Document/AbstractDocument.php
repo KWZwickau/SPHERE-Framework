@@ -524,15 +524,18 @@ abstract class AbstractDocument
     {
 
         if ($this->getTblPerson()) {
+            $hasPrivateSingleMail = false;
             if (($tblMailList = Mail::useService()->getMailAllByPerson($this->getTblPerson()))) {
-                if ($tblMailList) {
-                    $list = array();
-                    foreach ($tblMailList as $tblMailToPerson) {
-                        $list[] = $tblMailToPerson->getTblMail()->getAddress();
+                $list = array();
+                foreach ($tblMailList as $tblMailToPerson) {
+                    $list[] = $tblMailToPerson->getTblMail()->getAddress();
+                    if (!$hasPrivateSingleMail && $tblMailToPerson->getTblType()->getName() == 'Privat') {
+                        $hasPrivateSingleMail = true;
+                        $Data['Person']['Contact']['SinglePrivateMail'] = $tblMailToPerson->getTblMail()->getAddress();
                     }
-                    if (!empty($list)) {
-                        $Data['Person']['Contact']['Mail'] = implode(', ', $list);
-                    }
+                }
+                if (!empty($list)) {
+                    $Data['Person']['Contact']['Mail'] = implode(', ', $list);
                 }
             }
         }
@@ -709,6 +712,27 @@ abstract class AbstractDocument
 
             }
             $Data['Person']['Contact']['Phone']['Number'] = $phone;
+
+            $phoneNumber = '';
+            $mobilPhoneNumber = '';
+            if (($tblPhoneList = Phone::useService()->getPhoneAllByPerson($tblPerson))){
+                foreach($tblPhoneList as $tblToPersonPhone) {
+                    if ($tblToPersonPhone->getTblType()->getName() == 'Privat') {
+                        if (!$phoneNumber && $tblToPersonPhone->getTblType()->getDescription() == 'Festnetz') {
+                            $phoneNumber = $tblToPersonPhone->getTblPhone()->getNumber();
+                        }
+                        if (!$mobilPhoneNumber && $tblToPersonPhone->getTblType()->getDescription() == 'Mobil') {
+                            $mobilPhoneNumber = $tblToPersonPhone->getTblPhone()->getNumber();
+                        }
+                    }
+                }
+            }
+
+            if ($mobilPhoneNumber) {
+                $Data['Person']['Contact']['Phone']['SinglePrivateNumber'] = $mobilPhoneNumber;
+            } elseif ($phoneNumber) {
+                $Data['Person']['Contact']['Phone']['SinglePrivateNumber'] = $phoneNumber;
+            }
         }
 
         return $Data;

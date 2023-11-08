@@ -108,19 +108,19 @@ class ViewGroupStudentIntegration extends AbstractView
     {
 
 //        //NameDefinition
-        $this->setNameDefinition(self::TBL_STUDENT_FOCUS_TYPE_MAIN_FOCUS, 'Integration: Hauptschwerpunkt');
-        $this->setNameDefinition(self::TBL_STUDENT_FOCUS_TYPE_NAME_LIST, 'Integration: Schwerpunkte');
-        $this->setNameDefinition(self::TBL_STUDENT_DISORDER_TYPE_NAME_LIST, 'Integration: Teilleistungsstörungen');
+        $this->setNameDefinition(self::TBL_STUDENT_FOCUS_TYPE_MAIN_FOCUS, 'Inklusion: Hauptschwerpunkt');
+        $this->setNameDefinition(self::TBL_STUDENT_FOCUS_TYPE_NAME_LIST, 'Inklusion: Schwerpunkte');
+        $this->setNameDefinition(self::TBL_STUDENT_DISORDER_TYPE_NAME_LIST, 'Inklusion: Teilleistungsstörungen');
 
-        $this->setNameDefinition(self::TBL_STUDENT_INTEGRATION_COACHING_REQUEST_DATE, 'Integration: Datum Förderantrag Beratung');
-        $this->setNameDefinition(self::TBL_STUDENT_INTEGRATION_COACHING_COUNSEL_DATE, 'Integration: Datum Förderantrag');
-        $this->setNameDefinition(self::TBL_STUDENT_INTEGRATION_COACHING_DECISION_DATE, 'Integration: Datum Förderbescheid SBA');
+        $this->setNameDefinition(self::TBL_STUDENT_INTEGRATION_COACHING_REQUEST_DATE, 'Inklusion: Datum Förderantrag Beratung');
+        $this->setNameDefinition(self::TBL_STUDENT_INTEGRATION_COACHING_COUNSEL_DATE, 'Inklusion: Datum Förderantrag');
+        $this->setNameDefinition(self::TBL_STUDENT_INTEGRATION_COACHING_DECISION_DATE, 'Inklusion: Datum Förderbescheid SBA');
 
-        $this->setNameDefinition(self::TBL_STUDENT_INTEGRATION_COACHING_REQUIRED, 'Integration: Förderbedarf');
-        $this->setNameDefinition(self::TBL_STUDENT_INTEGRATION_COACHING_TIME, 'Integration: Stundenbedarf pro Woche');
-        $this->setNameDefinition(self::TBL_STUDENT_INTEGRATION_COACHING_REMARK, 'Integration: Bemerkung');
+        $this->setNameDefinition(self::TBL_STUDENT_INTEGRATION_COACHING_REQUIRED, 'Inklusion: Förderbedarf');
+        $this->setNameDefinition(self::TBL_STUDENT_INTEGRATION_COACHING_TIME, 'Inklusion: Stundenbedarf pro Woche');
+        $this->setNameDefinition(self::TBL_STUDENT_INTEGRATION_COACHING_REMARK, 'Inklusion: Bemerkung');
 //        $this->setNameDefinition(self::TBL_SALUTATION_SALUTATION_COACH, 'Integration: Anrede Schulbegleitung');
-        $this->setNameDefinition(self::TBL_PERSON_COACH, 'Integration: Schulbegleitung');
+        $this->setNameDefinition(self::TBL_PERSON_COACH, 'Inklusion: Schulbegleitung');
 
 //        //GroupDefinition
         $this->setGroupDefinition('&nbsp;', array(

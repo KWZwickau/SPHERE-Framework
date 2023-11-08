@@ -561,7 +561,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         $tblDivision = $Id === null ? false : Division::useService()->getDivisionById($Id);
         if (!$tblDivision) {
-            $Stage = new Stage('Elternvertreter', 'hinzufügen');
+            $Stage = new Stage('Elternsprecher', 'hinzufügen');
             $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Division', new ChevronLeft()));
             $Stage->setContent(new Warning('Klasse nicht gefunden'));
             return $Stage.new Redirect('/Education/Lesson/Division', Redirect::TIMEOUT_ERROR);
@@ -569,7 +569,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Title = 'der Klasse '.new Bold($tblDivision->getDisplayName());
 
-        $Stage = new Stage('Elternvertreter', $Title);
+        $Stage = new Stage('Elternsprecher', $Title);
         $Stage->setMessage('');
         $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Division/Show', new ChevronLeft(),
             array('Id' => $tblDivision->getId())));
@@ -1304,7 +1304,7 @@ class Frontend extends Extension implements IFrontendInterface
                 new Person(), array('Id' => $tblDivision->getId()), 'Auswählen'));
             $Stage->addButton(new Standard('Klassensprecher', '/Education/Lesson/Division/ClassRepresentative/Add',
                 new Person(), array('Id' => $tblDivision->getId()), 'Auswählen'));
-            $Stage->addButton(new Standard('Elternvertreter', '/Education/Lesson/Division/Custody/Add',
+            $Stage->addButton(new Standard('Elternsprecher', '/Education/Lesson/Division/Custody/Add',
                 new Person(), array('Id' => $tblDivision->getId()), 'Auswählen'));
             $Stage->addButton(new Standard('Schüler', '/Education/Lesson/Division/Student/Add',
                 new \SPHERE\Common\Frontend\Icon\Repository\Group(), array('Id' => $tblDivision->getId()),
@@ -1354,9 +1354,9 @@ class Frontend extends Extension implements IFrontendInterface
                         $tblPerson)->getDescription();
                     $CustodyList[] = $tblPerson->getFullName().' '.new Muted($Description);
                 }
-                $tblCustodyList = new Panel('Elternvertreter', $CustodyList, Panel::PANEL_TYPE_INFO);
+                $tblCustodyList = new Panel('Elternsprecher', $CustodyList, Panel::PANEL_TYPE_INFO);
             } else {
-                $tblCustodyList = new Warning('Kein Elternvertreter festgelegt');
+                $tblCustodyList = new Warning('Kein Elternsprecher festgelegt');
             }
 
             if (($tblDivisionSubjectList = Division::useService()->getDivisionSubjectByDivision($tblDivision))) {
@@ -1884,7 +1884,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $Content[] = 'Beschreibung: '.new Bold($tblDivision->getDescription());
                 $Content2[] = 'Schüler: '.new Bold($StudentInt);
                 $Content2[] = 'Klassenlehrer: '.new Bold($TeacherInt);
-                $Content2[] = 'Elternvertreter: '.new Bold($CustodyInt);
+                $Content2[] = 'Elternsprecher: '.new Bold($CustodyInt);
                 $Content2[] = 'Fächer: '.new Bold(Division::useService()->countDivisionSubjectAllByDivision($tblDivision));
 
                 $Stage->setContent(
@@ -1970,7 +1970,7 @@ class Frontend extends Extension implements IFrontendInterface
         $Content1[] = 'Beschreibung: '.new Bold($tblDivision->getDescription());
         $Content2[] = 'Schüler: '.new Bold(Division::useService()->countDivisionStudentAllByDivision($tblDivision));
         $Content2[] = 'Klassenlehrer: '.new Bold(Division::useService()->countDivisionTeacherAllByDivision($tblDivision));
-        $Content2[] = 'Elternvertreter: '.new Bold(Division::useService()->countDivisionCustodyAllByDivision($tblDivision));
+        $Content2[] = 'Elternsprecher: '.new Bold(Division::useService()->countDivisionCustodyAllByDivision($tblDivision));
         $Content2[] = 'Fächer: '.new Bold(Division::useService()->countDivisionSubjectAllByDivision($tblDivision));
 
         $copyDiary = true;

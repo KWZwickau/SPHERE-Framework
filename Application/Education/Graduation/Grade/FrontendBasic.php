@@ -204,7 +204,7 @@ abstract class FrontendBasic extends Extension implements IFrontendInterface
             $headerList['Picture'] = $this->getTableColumnHead('Fo&shy;to');
         }
         if ($hasIntegration) {
-            $headerList['Integration'] = $this->getTableColumnHead('Inte&shy;gra&shy;tion');
+            $headerList['Integration'] = $this->getTableColumnHead('In&shy;klu&shy;si&shy;on');
         }
         if ($hasCourse) {
             $headerList['Course'] = $this->getTableColumnHead(new ToolTip('BG', 'Bildungsgang'));

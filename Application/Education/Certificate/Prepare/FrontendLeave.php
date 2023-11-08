@@ -410,7 +410,7 @@ class FrontendLeave extends FrontendDiplomaTechnicalSchool
                                 , 4),
                         )),
                         ($support
-                            ? new LayoutRow(new LayoutColumn(new Panel('Integration', $support, Panel::PANEL_TYPE_INFO)))
+                            ? new LayoutRow(new LayoutColumn(new Panel('Inklusion', $support, Panel::PANEL_TYPE_INFO)))
                             : null
                         ),
                     )),
@@ -734,7 +734,7 @@ class FrontendLeave extends FrontendDiplomaTechnicalSchool
                     , 3)
             )),
             ($support
-                ? new LayoutRow(new LayoutColumn(new Panel('Integration', $support, Panel::PANEL_TYPE_INFO)))
+                ? new LayoutRow(new LayoutColumn(new Panel('Inklusion', $support, Panel::PANEL_TYPE_INFO)))
                 : null
             ),
             ($hasCertificateGrades && $hasMissingSubjects
@@ -873,13 +873,19 @@ class FrontendLeave extends FrontendDiplomaTechnicalSchool
                      Klassenstufe 10 des Gymnasiums einen dem Hauptschulabschluss gleichgestellten Schulabschluss erworben.',
                     GymAbgSekI::COURSE_HS
                 ));
+                $radio3 = (new RadioBox(
+                    'Data[InformationList][EqualGraduation]',
+                    'kein gleichgestellter Schulabschluss',
+                    GymAbgSekI::COURSE_EQUAL_NO
+                ));
                 if ($isApproved) {
                     $radio1->setDisabled();
                     $radio2->setDisabled();
+                    $radio3->setDisabled();
                 }
                 $otherInformationList[] = new Panel(
                     'Gleichgestellter Schulabschluss',
-                    array($radio1, $radio2),
+                    array($radio1, $radio2, $radio3),
                     Panel::PANEL_TYPE_DEFAULT
                 );
             } elseif ($tblCertificate->getCertificate() == 'MsAbg'
@@ -905,14 +911,20 @@ class FrontendLeave extends FrontendDiplomaTechnicalSchool
                      § 34a Absatz 1 der Schulordnung Förderschulen gleichgestellten Abschluss erworben.',
                     GymAbgSekI::COURSE_LERNEN
                 ));
+                $radio4 = (new RadioBox(
+                    'Data[InformationList][EqualGraduation]',
+                    'kein gleichgestellter Schulabschluss',
+                    GymAbgSekI::COURSE_EQUAL_NO
+                ));
                 if ($isApproved) {
                     $radio1->setDisabled();
                     $radio2->setDisabled();
                     $radio3->setDisabled();
+                    $radio4->setDisabled();
                 }
                 $otherInformationList[] = new Panel(
                     'Gleichgestellter Schulabschluss',
-                    array($radio1, $radio2, $radio3),
+                    array($radio1, $radio2, $radio3, $radio4),
                     Panel::PANEL_TYPE_DEFAULT
                 );
             }

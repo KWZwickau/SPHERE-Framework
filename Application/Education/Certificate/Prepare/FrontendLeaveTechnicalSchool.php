@@ -351,7 +351,7 @@ abstract class FrontendLeaveTechnicalSchool extends FrontendLeaveSekTwoBGy
                     , 3)
             )),
             ($support
-                ? new LayoutRow(new LayoutColumn(new Panel('Integration', $support, Panel::PANEL_TYPE_INFO)))
+                ? new LayoutRow(new LayoutColumn(new Panel('Inklusion', $support, Panel::PANEL_TYPE_INFO)))
                 : null
             ),
             ($hasMissingSubjects

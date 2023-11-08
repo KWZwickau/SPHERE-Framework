@@ -122,6 +122,8 @@ class Session extends Extension implements IModuleInterface
                 }
 
                 $Activity = gmdate("H:i:s", $loginTime - ($tblSession->getTimeout() - time()));
+                // create sort string with 5 digits -> last activity with leading 0
+                $lastActivity = str_pad($loginTime - ($tblSession->getTimeout() - time()), 5, 0, STR_PAD_LEFT);
 
                 if ($tblSession->getEntityUpdate() && $tblSession->getEntityCreate()) {
                     $Interval = $tblSession->getEntityUpdate()->getTimestamp() - $tblSession->getEntityCreate()->getTimestamp();
@@ -143,7 +145,7 @@ class Session extends Extension implements IModuleInterface
                 if ($tblAccount && $tblAccount->getServiceTblIdentification()
                     && $tblAccount->getServiceTblIdentification()->getName() == 'System') {
                     $UserName = new Info($UserNamePrepare = $tblAccount->getUsername());
-                    $AccountType = new ToolTip('A '.new Key(), 'Admin');
+                    $AccountType = new ToolTip('A<span hidden>'.$lastActivity.'</span> '.new Key(), 'Admin');
                 } elseif ($tblAccount && $tblAccount->getServiceTblIdentification()
                     && ($tblAccount->getServiceTblIdentification()->getName() == 'Token'
                         || $tblAccount->getServiceTblIdentification()->getName() == 'AuthenticatorApp')
@@ -153,12 +155,12 @@ class Session extends Extension implements IModuleInterface
                     $UserNameBuild = new Success(substr($UserNamePrepare, 0, $separatorStringPos));
                     $UserNameBuild .= substr($UserNamePrepare, $separatorStringPos);
                     $UserName = new Bold($UserNameBuild);
-                    $AccountType = new ToolTip('M '
+                    $AccountType = new ToolTip('M<span hidden>'.$lastActivity.'</span> '
                         . ($tblAccount->getServiceTblIdentification()->getName() == 'Token' ? new Key() : new PhoneMobil())
                         , 'Mitarbeiter');
                 } elseif ($tblAccount) {
                     $UserName = $tblAccount->getUsername();
-                    $AccountType = new ToolTip('S &nbsp;'.new Family(), 'Sorgeberechtigte / Schüler');
+                    $AccountType = new ToolTip('S<span hidden>'.$lastActivity.'</span> &nbsp;'.new Family(), 'Sorgeberechtigte / Schüler');
                 } else {
                     $UserName = '-NA-';
                     $AccountType = '-NA-';
@@ -203,11 +205,11 @@ class Session extends Extension implements IModuleInterface
                                 'Option' => ''
                             ), array(
                                 'order' => array(
-                                    array(3, 'asc'),
-                                    array(0, 'desc')
+                                    array(3, 'asc')
                                 ),
                                 'columnDefs' => array(
-                                    array('width' => '1%', 'orderable' => false, 'targets' => -1)
+                                    array('width' => '1%', 'orderable' => false, 'targets' => -1),
+                                    array('type' => 'de_date', 'targets' => 4, 5, 6, 7)
                                 )
                             ), true),
                             new Redirect(

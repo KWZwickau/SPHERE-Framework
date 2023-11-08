@@ -18,7 +18,7 @@ class AppointmentGradeGateway extends AbstractConverter
      * @param string                  $File SpUnterricht.csv
      * @param AppointmentGradeControl $Control
      */
-    public function __construct($File, AppointmentGradeControl $Control)
+    public function __construct($File, AppointmentGradeControl $Control, $isSekI)
     {
         $this->loadFile($File);
 
@@ -27,25 +27,21 @@ class AppointmentGradeGateway extends AbstractConverter
 
         $this->addSanitizer(array($this, 'sanitizeFullTrim'));
 
+        $maxCount = 17;
+        if ($isSekI) {
+            $identifier = 'EinfFach';
+//            $maxCount = 26;
+        } else {
+            $identifier = 'Fach';
+
+        }
+
         // Fächerangabe
         $SubjectList = array();
-        $SubjectList[1] = $ColumnList['Fach1'];
-        $SubjectList[2] = $ColumnList['Fach2'];
-        $SubjectList[3] = $ColumnList['Fach3'];
-        $SubjectList[4] = $ColumnList['Fach4'];
-        $SubjectList[5] = $ColumnList['Fach5'];
-        $SubjectList[6] = $ColumnList['Fach6'];
-        $SubjectList[7] = $ColumnList['Fach7'];
-        $SubjectList[8] = $ColumnList['Fach8'];
-        $SubjectList[9] = $ColumnList['Fach9'];
-        $SubjectList[10] = $ColumnList['Fach10'];
-        $SubjectList[11] = $ColumnList['Fach11'];
-        $SubjectList[12] = $ColumnList['Fach12'];
-        $SubjectList[13] = $ColumnList['Fach13'];
-        $SubjectList[14] = $ColumnList['Fach14'];
-        $SubjectList[15] = $ColumnList['Fach15'];
-        $SubjectList[16] = $ColumnList['Fach16'];
-        $SubjectList[17] = $ColumnList['Fach17'];
+        for ($i = 1; $i <= $maxCount; $i++) {
+            $SubjectList[$i] = $ColumnList[$identifier . $i];
+        }
+
         foreach ($SubjectList as $Key => $FieldPosition) {
             $this->setPointer(new FieldPointer($FieldPosition, 'FileSubject'.$Key));
         }

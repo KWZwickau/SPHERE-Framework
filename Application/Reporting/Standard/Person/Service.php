@@ -106,17 +106,20 @@ class Service extends Extension
     }
 
     /**
+     * @param TblDivisionCourse $tblDivisionCourse
      * @param false|array $tblPersonList
      * @param TblYear $tblYear
+     * @param bool $hasSchoolAttendanceYear
      *
      * @return array
      */
-    public function createClassList($tblPersonList, TblYear $tblYear): array
+    public function createClassList(TblDivisionCourse $tblDivisionCourse, $tblPersonList, TblYear $tblYear, bool &$hasSchoolAttendanceYear = false): array
     {
         $TableContent = array();
+
         if ($tblPersonList) {
             $count = 1;
-            array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$TableContent, &$count, $tblYear) {
+            array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$TableContent, &$count, $tblYear, $tblDivisionCourse, &$hasSchoolAttendanceYear) {
                 $item['Number'] = $count++;
                 $this->setPersonData('', $item, $tblPerson);
                 $item['Gender'] = $tblPerson->getGenderString();
@@ -125,6 +128,10 @@ class Service extends Extension
                 $item['Birthplace'] = $tblPerson->getBirthplaceString();
                 $item['StreetName'] = $item['StreetNumber'] = $item['Code'] = $item['City'] = $item['District'] = '';
                 $item['Address'] = '';
+                $item['Level'] = $item['SBJ'] = '';
+                $item['DivisionTeacher'] = $item['Tudor'] = '';
+                $item['DivisionTeacherExcel'] = $item['TudorExcel'] = '';
+                $item['Division'] = $item['CoreGroup'] = '';
                 $item['ForeignLanguage1'] = $item['ForeignLanguage2'] = $item['ForeignLanguage3'] = '';
                 $item['Profile'] = $item['Religion'] = $item['Orientation'] = $item['Elective'] = '';
                 $item['ExcelElective'] = array();
@@ -136,7 +143,43 @@ class Service extends Extension
                 $level = null;
                 if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))) {
                     $level = $tblStudentEducation->getLevel();
+                    $item['Level'] = $level;
                 }
+
+                // Klasse/Stammgruppe vervollständigen
+                if($tblDivisionCourse->getTypeIdentifier() == 'Klasse') {
+                    $tblDivision = $tblDivisionCourse;
+                    $tblCoreGroup = false;
+                    if($tblStudentEducation){
+                        $tblCoreGroup = $tblStudentEducation->getTblCoreGroup();
+                    }
+
+                } elseif($tblDivisionCourse->getTypeIdentifier() == 'Klasse') {
+                    $tblCoreGroup = $tblDivisionCourse;
+                    $tblDivision = false;
+                    if($tblStudentEducation){
+                        $tblDivision = $tblStudentEducation->getTblDivision();
+                    }
+                } else {
+                    // Klasse & Stammgruppe holen
+                    $tblCoreGroup = $tblDivision = false;
+                    if($tblStudentEducation){
+                        $tblCoreGroup = $tblStudentEducation->getTblCoreGroup();
+                        $tblDivision = $tblStudentEducation->getTblDivision();
+                    }
+                }
+
+                if($tblDivision){
+                    $item['DivisionTeacher'] = $tblDivision->getDivisionTeacherNameListString();
+                    $item['DivisionTeacherExcel'] = $tblDivision->getDivisionTeacherNameListString(', ');
+                    $item['Division'] = $tblDivision->getDisplayName();
+                }
+                if($tblCoreGroup){
+                    $item['Tudor'] = $tblCoreGroup->getDivisionTeacherNameListString();
+                    $item['TudorExcel'] = $tblCoreGroup->getDivisionTeacherNameListString(', ');
+                    $item['CoreGroup'] = $tblCoreGroup->getDisplayName();
+                }
+
 
                 $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
                 // NK/Profil
@@ -214,6 +257,13 @@ class Service extends Extension
                             }
                         }
                     }
+                    if (($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())) {
+                        // Schulbesuchsjahr bei Förderschulen anzeigen
+                        if ($tblSchoolType->getShortName() == 'FöS') {
+                            $hasSchoolAttendanceYear = true;
+                            $item['SBJ'] = $tblStudent->getSchoolAttendanceYear(false);
+                        }
+                    }
                 }
                 array_push($TableContent, $item);
             });
@@ -236,6 +286,7 @@ class Service extends Extension
         $isOrientation = false;
         $isElective = false;
         $LevelList = array();
+        $hasSchoolAttendanceYear = false;
         foreach($tblPersonList as $tblPerson){
             if($tblYear = $tblDivisionCourse->getServiceTblYear()){
                 $tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear);
@@ -268,6 +319,10 @@ class Service extends Extension
         ){
             $isElective = true;
         }
+        // SBJ
+        if(isset($dataList[0]['SBJ'])){
+            $hasSchoolAttendanceYear = true;
+        }
         // create File
         $fileLocation = Storage::createFilePointer('xlsx');
         $row = 0;
@@ -290,6 +345,11 @@ class Service extends Extension
         $export->setValue($export->getCell($Column++, $row), "E-Mail");
         $export->setValue($export->getCell($Column++, $row), "E-Mail Privat");
         $export->setValue($export->getCell($Column++, $row), "E-Mail Geschäftlich");
+        $export->setValue($export->getCell($Column++, $row), "Stufe");
+        $export->setValue($export->getCell($Column++, $row), "Klasse");
+        $export->setValue($export->getCell($Column++, $row), "Klassenlehrer");
+        $export->setValue($export->getCell($Column++, $row), "Stammgruppe");
+        $export->setValue($export->getCell($Column++, $row), "Tutor");
         $export->setValue($export->getCell($Column++, $row), "FS 1");
         $export->setValue($export->getCell($Column++, $row), "FS 2");
         $export->setValue($export->getCell($Column++, $row), "FS 3");
@@ -302,6 +362,9 @@ class Service extends Extension
         }
         if($isElective){
             $export->setValue($export->getCell(++$Column, $row), "Wahlfächer");
+        }
+        if($hasSchoolAttendanceYear){
+            $export->setValue($export->getCell(++$Column, $row), "SBJ");
         }
         $export->setStyle($export->getCell(0, $row), $export->getCell($Column, $row))
             // Header Fett
@@ -338,6 +401,11 @@ class Service extends Extension
             $Column++;
             $export->setValue($export->getCell($Column++, $row), $PersonData['ExcelMailPrivate']);
             $export->setValue($export->getCell($Column++, $row), $PersonData['ExcelMailBusiness']);
+            $export->setValue($export->getCell($Column++, $row), $PersonData['Level']);
+            $export->setValue($export->getCell($Column++, $row), $PersonData['Division']);
+            $export->setValue($export->getCell($Column++, $row), $PersonData['DivisionTeacherExcel']);
+            $export->setValue($export->getCell($Column++, $row), $PersonData['CoreGroup']);
+            $export->setValue($export->getCell($Column++, $row), $PersonData['TudorExcel']);
             $export->setValue($export->getCell($Column++, $row), $PersonData['ForeignLanguage1']);
             $export->setValue($export->getCell($Column++, $row), $PersonData['ForeignLanguage2']);
             $export->setValue($export->getCell($Column++, $row), $PersonData['ForeignLanguage3']);
@@ -352,6 +420,9 @@ class Service extends Extension
                 $export->setValue($export->getCell(++$Column, $row), (is_array($PersonData['ExcelElective'])
                     ? implode(', ', $PersonData['ExcelElective'])
                     : '') );
+            }
+            if($hasSchoolAttendanceYear){
+                $export->setValue($export->getCell(++$Column, $row), $PersonData['SBJ']);
             }
             // get row to the same high as highest PhoneRow or MailRow
             if ($row < ($phoneRow - 1)) {
@@ -409,7 +480,7 @@ class Service extends Extension
         $export->setValue($export->getCell("2", $row), $TeacherNameListString);
 
         $row++;
-        $export->setValue($export->getCell("0", $row), 'Schülersprecher:');
+        $export->setValue($export->getCell("0", $row), 'Klassensprecher:');
         if (($tblDivisionRepresentationList = DivisionCourse::useService()->getDivisionCourseMemberListBy($tblDivisionCourse, TblDivisionCourseMemberType::TYPE_REPRESENTATIVE, false, false))) {
             $Representation = array();
             foreach ($tblDivisionRepresentationList as $tblDivisionRepresentation) {
@@ -423,7 +494,7 @@ class Service extends Extension
         }
 
         $row++;
-        $export->setValue($export->getCell("0", $row), 'Elternvertreter:');
+        $export->setValue($export->getCell("0", $row), 'Elternsprecher:');
         if (($tblDivisionCustodyList = DivisionCourse::useService()->getDivisionCourseMemberListBy($tblDivisionCourse, TblDivisionCourseMemberType::TYPE_CUSTODY, false, false))) {
             $Custody = array();
             foreach ($tblDivisionCustodyList as $tblDivisionCustody) {
@@ -3868,7 +3939,6 @@ class Service extends Extension
             ksort($tblPhoneListFixed);
             $item['PhoneFixed'] = $item['PhoneFixed'] . implode('<br>', $tblPhoneListFixed);
         }
-        #var_dump($tblMailFrontendListFixed);
         // Insert MailList
         if (!empty($tblMailList)) {
             ksort($tblMailList);
@@ -4241,8 +4311,8 @@ class Service extends Extension
             $headers['DivisionCourseRepresentative'.$l.'Name'] = 'Klassensprecher&nbsp;'.$l.' Nachname';
         }
         for ($j = 1; $j <= $maxCountCustody; $j++){
-            $headers['DivisionCourseCustody'.$j.'FirstName'] = 'Elternvertreter&nbsp;'.$j.' - Vorname';
-            $headers['DivisionCourseCustody'.$j.'Name'] = 'Elternvertreter&nbsp;'.$j.' - Nachname';
+            $headers['DivisionCourseCustody'.$j.'FirstName'] = 'Elternsprecher&nbsp;'.$j.' - Vorname';
+            $headers['DivisionCourseCustody'.$j.'Name'] = 'Elternsprecher&nbsp;'.$j.' - Nachname';
         }
         foreach($TableContent as &$contentItem) {
             foreach ($headers as $key => $header) {

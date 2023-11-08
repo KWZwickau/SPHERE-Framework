@@ -37,10 +37,10 @@ class Data extends DataTask
                 // alte Daten migrieren
                 $this->migrateTblGradeType();
             } else {
-                $this->createGradeType('Betragen', 'KBE', 'Kopfnote Betragen', true, false, false, true);
-                $this->createGradeType('Fleiß', 'KFL', 'Kopfnote Fleiß', true, false, false, true);
-                $this->createGradeType('Mitarbeit', 'KMI', 'Kopfnote Mitarbeit', true, false, false, true);
-                $this->createGradeType('Ordnung', 'KOR', 'Kopfnote Ordnung', true, false, false, true);
+                $this->createGradeType('Betragen', 'KBE', 'Kopfnote Betragen', true, false, false, false, true);
+                $this->createGradeType('Fleiß', 'KFL', 'Kopfnote Fleiß', true, false, false, false, true);
+                $this->createGradeType('Mitarbeit', 'KMI', 'Kopfnote Mitarbeit', true, false, false, false, true);
+                $this->createGradeType('Ordnung', 'KOR', 'Kopfnote Ordnung', true, false, false, false, true);
             }
         }
 
@@ -222,13 +222,13 @@ class Data extends DataTask
      * @return TblGradeType
      */
     public function createGradeType(string $code, string $name, string $description,
-        bool $isTypeBehavior, bool $isHighlighted, bool $isPartGrade, bool $isActive, ?int $id = null): TblGradeType
+        bool $isTypeBehavior, bool $isHighlighted, bool $isPartGrade, bool $isIgnoredByScoreRule, bool $isActive, ?int $id = null): TblGradeType
     {
         $Manager = $this->getEntityManager();
         $code = strtoupper($code);
         $Entity = $Manager->getEntity('TblGradeType')->findOneBy(array(TblGradeType::ATTR_CODE => $code));
         if (null === $Entity) {
-            $Entity = new TblGradeType($code, $name, $description, $isTypeBehavior, $isHighlighted, $isPartGrade, $isActive, $id);
+            $Entity = new TblGradeType($code, $name, $description, $isTypeBehavior, $isHighlighted, $isPartGrade, $isIgnoredByScoreRule, $isActive, $id);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
@@ -250,7 +250,7 @@ class Data extends DataTask
      * @return bool
      */
     public function updateGradeType(TblGradeType $tblGradeType, string $code, string $name, string $description,
-        bool $isTypeBehavior, bool $isHighlighted, bool $isPartGrade, bool $isActive): bool
+        bool $isTypeBehavior, bool $isHighlighted, bool $isPartGrade, bool $isIgnoredByScoreRule, bool $isActive): bool
     {
         $Manager = $this->getEntityManager();
         /** @var TblGradeType $Entity */
@@ -264,6 +264,7 @@ class Data extends DataTask
             $Entity->setIsHighlighted($isHighlighted);
             $Entity->setIsPartGrade($isPartGrade);
             $Entity->setIsActive($isActive);
+            $Entity->setIsIgnoredByScoreRule($isIgnoredByScoreRule);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);

@@ -119,7 +119,7 @@ class Frontend extends FrontendTestPlanning
         } elseif ($hasAllReadonlyRole && $hasTeacherRole) {
             $roleChange =
                 (new Form(new FormGroup(new FormRow(new FormColumn(
-                    (new CheckBox('Data[IsAllReadonly]', new Bold('Integrationsbeauftragter'), 1))
+                    (new CheckBox('Data[IsAllReadonly]', new Bold('Inklusionsbeauftragter'), 1))
                         ->ajaxPipelineOnChange(array(ApiGradeBook::pipelineChangeRole()))
                 )))))->disableSubmitAction();
         }
@@ -306,15 +306,25 @@ class Frontend extends FrontendTestPlanning
             $content = new Danger("Kurse oder Fach nicht gefunden.", new Exclamation());
         }
 
-        $externalDownloadSingleGradeBook = new External(
-            'Notenbuch herunterladen',
+        $externalDownloadSingleGradeBookPdf = new External(
+            'PDF',
             '/Api/Document/Standard/Gradebook/Create',
             new Download(),
             array(
                 'DivisionCourseId' => $DivisionCourseId,
                 'SubjectId' => $SubjectId
             ),
-            false
+            'Notenbuch als PDF herunterladen'
+        );
+        $externalDownloadSingleGradeBookExcel = new External(
+            'Excel',
+            '/Api/Education/Graduation/Grade/Gradebook/Download',
+            new Download(),
+            array(
+                'DivisionCourseId' => $DivisionCourseId,
+                'SubjectId' => $SubjectId
+            ),
+            'Notenbuch als Excel herunterladen'
         );
 
         // Download alle Klassenbücher nicht für Lehrer
@@ -328,13 +338,13 @@ class Frontend extends FrontendTestPlanning
             )
         ) {
             $externalDownloadAllGradeBooks = new External(
-                'Alle Notenbücher dieses Kurses herunterladen',
+                'Alle Notenbücher - PDF',
                 '/Api/Document/Standard/MultiGradebook/Create',
                 new Download(),
                 array(
                     'DivisionCourseId' => $DivisionCourseId,
                 ),
-                false
+                'Alle Notenbücher dieses Kurses als PDF herunterladen',
             );
         }
 
@@ -345,7 +355,7 @@ class Frontend extends FrontendTestPlanning
                 . "&nbsp;&nbsp;&nbsp;Notenbuch"
                 . new Muted(new Small(" für Kurs: ")) . $textCourse
                 . new Muted(new Small(" im Fach: ")) . $textSubject
-                . new PullRight($externalDownloadSingleGradeBook . $externalDownloadAllGradeBooks)
+                . new PullRight($externalDownloadSingleGradeBookExcel . $externalDownloadSingleGradeBookPdf . $externalDownloadAllGradeBooks)
             )
             . new PullClear(new Container(
                  ($isEdit
@@ -359,6 +369,7 @@ class Frontend extends FrontendTestPlanning
             . new Container('&nbsp;')
             . ApiSupportReadOnly::receiverOverViewModal()
             . ApiPersonPicture::receiverModal()
+            . ApiGradeBook::receiverModal()
             . $content;
     }
 
@@ -374,7 +385,13 @@ class Frontend extends FrontendTestPlanning
             elseif (strpos($key, 'Test') !== false) {
                 $testId = str_replace('Test', '', $key);
                 if (isset($averageTestSumList[$testId]) && isset($averageTestCountList[$testId])) {
-                    $contentTemp = new Muted(Grade::useService()->getGradeAverage($averageTestSumList[$testId], $averageTestCountList[$testId]));
+                    $contentTemp =
+                        (new Link(
+                            Grade::useService()->getGradeAverage($averageTestSumList[$testId], $averageTestCountList[$testId]),
+                            ApiGradeBook::getEndpoint(),
+                            null, array(), 'Notenspiegel anzeigen'
+                        ))
+                            ->ajaxPipelineOnClick(ApiGradeBook::pipelineOpenGradeMirrorModal($testId));
                 }
             }
             $data[$key] = $this->getTableColumnBody($contentTemp);

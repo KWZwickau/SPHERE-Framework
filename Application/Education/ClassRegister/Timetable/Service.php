@@ -11,12 +11,18 @@ use SPHERE\Application\Education\ClassRegister\Timetable\Service\Entity\TblTimet
 use SPHERE\Application\Education\ClassRegister\Timetable\Service\Entity\TblTimetableWeek;
 use SPHERE\Application\Education\ClassRegister\Timetable\Service\Setup;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
+use SPHERE\Application\Education\Lesson\Subject\Subject;
+use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
+use SPHERE\Common\Frontend\Form\IFormInterface;
+use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Icon\Repository\Extern;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
+use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
+use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
 
 /**
@@ -100,7 +106,8 @@ class Service extends AbstractService
 
     /**
      * @param TblTimetable $tblTimetable
-     * @return mixed
+     *
+     * @return TblTimetableWeek[]|null
      */
     public function getTimetableWeekListByTimetable(TblTimetable $tblTimetable)
     {
@@ -144,6 +151,36 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->createTimetable($Name, $Description, $DateFrom, $DateTo);
+    }
+
+    /**
+     * @param $Data
+     * @param TblTimetable|null $tblTimetable
+     *
+     * @return false|Form
+     */
+    public function checkFormTimetable(
+        $Data,
+        TblTimetable $tblTimetable = null
+    ) {
+        $error = false;
+
+        $form = Timetable::useFrontend()->formTimetable($tblTimetable ? $tblTimetable->getId() : null);
+
+        if (isset($Data['Name']) && empty($Data['Name'])) {
+            $form->setError('Data[Name]', 'Bitte geben Sie einen Namen an');
+            $error = true;
+        }
+        if (isset($Data['DateFrom']) && empty($Data['DateFrom'])) {
+            $form->setError('Data[DateFrom]', 'Bitte geben Sie ein Gültig ab - Datum an');
+            $error = true;
+        }
+        if (isset($Data['DateTo']) && empty($Data['DateTo'])) {
+            $form->setError('Data[DateTo]', 'Bitte geben Sie ein Gültig bis - Datum an');
+            $error = true;
+        }
+
+        return $error ? $form : false;
     }
 
     /**
@@ -218,6 +255,55 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->updateTimetable($tblTimeTable, $Name, $Description, $DateFrom, $DateTo);
+    }
+
+    /**
+     * @param TblTimetable $tblTimetableNew
+     * @param TblTimetable $tblTimetableOld
+     */
+    public function copyContentFromOldTimetable(TblTimetable $tblTimetableNew, TblTimetable $tblTimetableOld)
+    {
+        $createTimetableNodeList = array();
+        if (($tblTimetableNodeList = $this->getTimetableNodeListByTimetable($tblTimetableOld))) {
+            foreach ($tblTimetableNodeList as $tblTimetableNode) {
+                if (($tblDivisionCourse = $tblTimetableNode->getServiceTblCourse()) && ($tblSubject = $tblTimetableNode->getServiceTblSubject())) {
+                    $entity = new TblTimetableNode();
+                    $entity->setTblTimetable($tblTimetableNew);
+                    $entity->setHour($tblTimetableNode->getHour());
+                    $entity->setDay($tblTimetableNode->getDay());
+                    $entity->setWeek($tblTimetableNode->getWeek());
+                    $entity->setRoom($tblTimetableNode->getRoom());
+                    $entity->setSubjectGroup($tblTimetableNode->getSubjectGroup());
+                    $entity->setLevel($tblTimetableNode->getLevel());
+                    $entity->setServiceTblCourse($tblDivisionCourse);
+                    $entity->setServiceTblSubject($tblSubject);
+                    if (($tblPerson = $tblTimetableNode->getServiceTblPerson())) {
+                        $entity->setServiceTblPerson($tblPerson);
+                    }
+
+                    $createTimetableNodeList[] = $entity;
+                }
+            }
+        }
+        $createTimetableWeekList = array();
+        if (($tblTimetableWeekList = $this->getTimetableWeekListByTimetable($tblTimetableOld))) {
+            foreach ($tblTimetableWeekList as $tblTimetableWeek) {
+                $entity = new TblTimetableWeek();
+                $entity->setTblTimetable($tblTimetableNew);
+                $entity->setNumber($tblTimetableWeek->getNumber());
+                $entity->setWeek($tblTimetableWeek->getWeek());
+                $entity->setDate($tblTimetableWeek->getDate(true));
+
+                $createTimetableWeekList[] = $entity;
+            }
+        }
+
+        if (!empty($createTimetableNodeList)) {
+            $this->createEntityListBulk($createTimetableNodeList);
+        }
+        if (!empty($createTimetableWeekList)) {
+            $this->createEntityListBulk($createTimetableWeekList);
+        }
     }
 
     /**
@@ -334,6 +420,31 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblTimetable $tblTimetable
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param int $day
+     * @param int|null $lesson
+     *
+     * @return false|TblTimetableNode[]
+     */
+    public function getTimetableNodeListByTimetableAndDivisionCourseAndDay(
+        TblTimetable $tblTimetable, TblDivisionCourse $tblDivisionCourse, int $day, ?int $lesson = null
+    ) {
+        return (new Data($this->getBinding()))->getTimetableNodeListBy($tblTimetable, $tblDivisionCourse, $day, $lesson, null);
+    }
+
+    /**
+     * @param TblTimetable $tblTimetable
+     * @param TblDivisionCourse $tblDivisionCourse
+     *
+     * @return false|TblTimetableNode[]
+     */
+    public function getTimetableNodeListByTimetableAndDivisionCourse(TblTimetable $tblTimetable, TblDivisionCourse $tblDivisionCourse)
+    {
+        return (new Data($this->getBinding()))->getTimetableNodeListByTimetableAndDivisionCourse($tblTimetable, $tblDivisionCourse);
+    }
+
+    /**
      * @param TblDivisionCourse $tblDivisionCourse
      * @param DateTime $dateTime
      * @param Int $lesson
@@ -352,6 +463,7 @@ class Service extends AbstractService
 //        }
 
         if ($replacementList) {
+            $subjectList = array();
             // Vertretungsplan gefunden
             foreach ($replacementList as $tblTimetableReplacement) {
                 $tblLessonContent = new TblLessonContent();
@@ -368,6 +480,27 @@ class Service extends AbstractService
                 $tblLessonContent->setIsCanceled($tblTimetableReplacement->getIsCanceled());
 
                 $resultList[] = $tblLessonContent;
+
+                if ($tblTimetableReplacement->getServiceTblSubject()) {
+                    $subjectList[$tblTimetableReplacement->getServiceTblSubject()->getId()] = true;
+                }
+                if ($tblTimetableReplacement->getServiceTblSubstituteSubject()) {
+                    $subjectList[$tblTimetableReplacement->getServiceTblSubstituteSubject()->getId()] = true;
+                }
+            }
+
+            // es kann trotz einem Vertretungsfall oder Ausfall noch weitere Fächer im normalen Stundenplan geben
+            if (($tblTimeTableNodeList = $this->getTimeTableNodeListBy($tblDivisionCourse, $dateTime, $lesson))
+                && count($tblTimeTableNodeList) > count($replacementList)
+            ) {
+                foreach ($tblTimeTableNodeList as $tblTimetableNode) {
+                    if ($tblTimetableNode->getServiceTblSubject() && !isset($subjectList[$tblTimetableNode->getServiceTblSubject()->getId()])) {
+                        $tblLessonContent = new TblLessonContent();
+                        $tblLessonContent->setServiceTblSubject($tblTimetableNode->getServiceTblSubject() ?: null);
+                        $tblLessonContent->setRoom($tblTimetableNode->getRoom());
+                        $resultList[] = $tblLessonContent;
+                    }
+                }
             }
         } else {
             // kein Vertretungsplan -> normaler Stundenplan
@@ -547,5 +680,173 @@ class Service extends AbstractService
     public function destroyTimetableReplacementBulk($RemoveList): bool
     {
         return (new Data($this->getBinding()))->destroyTimetableReplacementBulk($RemoveList);
+    }
+
+    /**
+     * @param TblTimetable $tblTimetable
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param $Day
+     * @param $Data
+     *
+     * @return bool
+     */
+    public function updateTimetableDay(TblTimetable $tblTimetable, TblDivisionCourse $tblDivisionCourse, $Day, $Data): bool
+    {
+        if (($tblTimetableNodeList = $this->getTimetableNodeListByTimetableAndDivisionCourseAndDay($tblTimetable, $tblDivisionCourse, $Day))) {
+            $deleteBulkList = array();
+            foreach ($tblTimetableNodeList as $tblTimetableNode) {
+                $deleteBulkList[] = $tblTimetableNode;
+            }
+            $this->deleteEntityListBulk($deleteBulkList);
+        }
+
+        if ($Data) {
+            $createBulkList = array();
+            foreach ($Data as $index => $list) {
+                if (isset($list['serviceTblSubject']) && ($tblSubject = Subject::useService()->getSubjectById($list['serviceTblSubject']))) {
+                    $entity = new TblTimetableNode();
+                    $entity->setTblTimetable($tblTimetable);
+                    $entity->setServiceTblCourse($tblDivisionCourse);
+                    $entity->setDay($Day);
+                    $entity->setHour(intval($index / 100));
+                    $entity->setSubjectGroup('');
+                    $entity->setLevel('');
+
+                    $entity->setServiceTblSubject($tblSubject);
+                    if (isset($list['serviceTblPerson']) && ($tblPerson = Person::useService()->getPersonById($list['serviceTblPerson']))) {
+                        $entity->setServiceTblPerson($tblPerson);
+                    }
+                    $entity->setRoom($list['Room'] ?? '');
+                    $entity->setWeek($list['Week'] ?? '');
+
+                    $createBulkList[] = $entity;
+                }
+            }
+
+            if (!empty($createBulkList)) {
+                $this->createEntityListBulk($createBulkList);
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * @param TblTimetable $tblTimetable
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param $Data
+     *
+     * @return bool
+     */
+    public function updateTimetableCourseSystem(TblTimetable $tblTimetable, TblDivisionCourse $tblDivisionCourse, $Data): bool
+    {
+        if (($tblTimetableNodeList = $this->getTimetableNodeListByTimetableAndDivisionCourse($tblTimetable, $tblDivisionCourse))) {
+            $deleteBulkList = array();
+            foreach ($tblTimetableNodeList as $tblTimetableNode) {
+                $deleteBulkList[] = $tblTimetableNode;
+            }
+            $this->deleteEntityListBulk($deleteBulkList);
+        }
+
+        if ($Data && ($tblSubject = $tblDivisionCourse->getServiceTblSubject())) {
+            $createBulkList = array();
+            foreach ($Data as $list) {
+                if (isset($list['Day']) && $list['Day'] > 0) {
+                    $entity = new TblTimetableNode();
+                    $entity->setTblTimetable($tblTimetable);
+                    $entity->setServiceTblCourse($tblDivisionCourse);
+                    $entity->setServiceTblSubject($tblSubject);
+                    $entity->setSubjectGroup('');
+                    $entity->setLevel('');
+
+                    $entity->setDay($list['Day'] ?? 0);
+                    $entity->setHour($list['Hour'] ?? 0);
+                    if (isset($list['serviceTblPerson']) && ($tblPerson = Person::useService()->getPersonById($list['serviceTblPerson']))) {
+                        $entity->setServiceTblPerson($tblPerson);
+                    }
+                    $entity->setRoom($list['Room'] ?? '');
+                    $entity->setWeek($list['Week'] ?? '');
+
+                    $createBulkList[] = $entity;
+                }
+            }
+
+            if (!empty($createBulkList)) {
+                $this->createEntityListBulk($createBulkList);
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * @param IFormInterface $form
+     * @param TblTimetable $tblTimetable
+     * @param $Data
+     *
+     * @return IFormInterface|string
+     */
+    public function updateTimetableWeek(
+        IFormInterface $form,
+        TblTimetable $tblTimetable,
+        $Data
+    ) {
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $Data) {
+            return $form;
+        }
+
+        if (($tblTimetableWeekList = $this->getTimetableWeekListByTimetable($tblTimetable))) {
+            $deleteBulkList = array();
+            foreach ($tblTimetableWeekList as $tblTimetableWeek) {
+                $deleteBulkList[] = $tblTimetableWeek;
+            }
+            $this->deleteEntityListBulk($deleteBulkList);
+        }
+
+        if ($Data) {
+            $createBulkList = array();
+            foreach ($Data as $date => $week) {
+                if ($week) {
+                    $entity = new TblTimetableWeek();
+                    $entity->setTblTimetable($tblTimetable);
+                    $entity->setDate(new DateTime($date));
+                    $entity->setWeek(strtoupper($week));
+                    $entity->setNumber('');
+
+                    $createBulkList[] = $entity;
+                }
+            }
+
+            if (!empty($createBulkList)) {
+                $this->createEntityListBulk($createBulkList);
+            }
+        }
+
+        return new Success('Die Wochen wurden erfolgreich gespeichert')
+            . new Redirect('/Education/ClassRegister/Digital/Timetable', Redirect::TIMEOUT_SUCCESS);
+    }
+
+    /**
+     * @param array $tblEntityList
+     *
+     * @return bool
+     */
+    public function createEntityListBulk(array $tblEntityList): bool
+    {
+        return (new Data($this->getBinding()))->createEntityListBulk($tblEntityList);
+    }
+
+    /**
+     * @param array $tblEntityList
+     *
+     * @return bool
+     */
+    public function deleteEntityListBulk(array $tblEntityList): bool
+    {
+        return (new Data($this->getBinding()))->deleteEntityListBulk($tblEntityList);
     }
 }

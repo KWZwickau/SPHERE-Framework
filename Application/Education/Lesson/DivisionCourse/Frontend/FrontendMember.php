@@ -187,7 +187,7 @@ class FrontendMember extends Extension implements IFrontendInterface
      */
     public function frontendDivisionCourseRepresentative($DivisionCourseId = null, $Filter = null): Stage
     {
-        $stage = new Stage('Schülersprecher', '');
+        $stage = new Stage('Klassensprecher', '');
         if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
             $stage->addButton((new Standard('Zurück', '/Education/Lesson/DivisionCourse/Show', new ChevronLeft(),
                 array('DivisionCourseId' => $tblDivisionCourse->getId(), 'Filter' => $Filter))));
@@ -217,7 +217,7 @@ class FrontendMember extends Extension implements IFrontendInterface
     public function loadRepresentativeContent($DivisionCourseId): string
     {
         if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
-            $text = 'Schülersprecher';
+            $text = 'Klassensprecher';
             $selectedList = array();
             if (($tblMemberList = DivisionCourse::useService()->getDivisionCourseMemberListBy($tblDivisionCourse,
                 TblDivisionCourseMemberType::TYPE_REPRESENTATIVE, false, false))
@@ -297,7 +297,7 @@ class FrontendMember extends Extension implements IFrontendInterface
      */
     public function frontendDivisionCourseCustody($DivisionCourseId = null, $Filter = null): Stage
     {
-        $stage = new Stage('Elternvertreter', '');
+        $stage = new Stage('Elternsprecher', '');
         if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
             $stage->addButton((new Standard('Zurück', '/Education/Lesson/DivisionCourse/Show', new ChevronLeft(),
                 array('DivisionCourseId' => $tblDivisionCourse->getId(), 'Filter' => $Filter))));
@@ -327,7 +327,7 @@ class FrontendMember extends Extension implements IFrontendInterface
     public function loadCustodyContent($DivisionCourseId): string
     {
         if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
-            $text = 'Elternvertreter';
+            $text = 'Elternsprecher';
             $selectedList = array();
             if (($tblMemberList = DivisionCourse::useService()->getDivisionCourseMemberListBy($tblDivisionCourse,
                 TblDivisionCourseMemberType::TYPE_CUSTODY, false, false))

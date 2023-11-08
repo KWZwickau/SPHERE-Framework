@@ -32,8 +32,18 @@ class Data extends DataTeacher
 
         $this->createDivisionCourseMemberType('Schüler', TblDivisionCourseMemberType::TYPE_STUDENT);
         $this->createDivisionCourseMemberType('Gruppenleiter', TblDivisionCourseMemberType::TYPE_DIVISION_TEACHER);
-        $this->createDivisionCourseMemberType('Elternvertreter', TblDivisionCourseMemberType::TYPE_CUSTODY);
-        $this->createDivisionCourseMemberType('Schülersprecher', TblDivisionCourseMemberType::TYPE_REPRESENTATIVE);
+        // rename
+        if (($tblTemp = $this->createDivisionCourseMemberType('Elternsprecher', TblDivisionCourseMemberType::TYPE_CUSTODY))
+            && $tblTemp->getName() != 'Elternsprecher'
+        ) {
+            $this->updateDivisionCourseMemberType($tblTemp, 'Elternsprecher');
+        }
+        // rename
+        if (($tblTemp = $this->createDivisionCourseMemberType('Klassensprecher', TblDivisionCourseMemberType::TYPE_REPRESENTATIVE))
+            && $tblTemp->getName() != 'Klassensprecher'
+        ) {
+            $this->updateDivisionCourseMemberType($tblTemp, 'Klassensprecher');
+        }
 
         /*
          * Stundentafel
@@ -94,6 +104,30 @@ class Data extends DataTeacher
         }
 
         return $Entity;
+    }
+
+    /**
+     * @param TblDivisionCourseMemberType $tblDivisionCourseMemberType
+     * @param string $name
+     *
+     * @return bool
+     */
+    public function updateDivisionCourseMemberType(TblDivisionCourseMemberType $tblDivisionCourseMemberType, string $name): bool
+    {
+        $Manager = $this->getEntityManager();
+        /** @var TblDivisionCourseMemberType $Entity */
+        $Entity = $Manager->getEntityById('TblDivisionCourseMemberType', $tblDivisionCourseMemberType->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setName($name);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+
+            return true;
+        }
+
+        return false;
     }
 
     /**

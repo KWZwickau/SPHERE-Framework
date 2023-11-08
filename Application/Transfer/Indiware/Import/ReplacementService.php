@@ -8,8 +8,7 @@ use MOC\V\Component\Document\Exception\DocumentTypeException as DocumentTypeExce
 use MOC\V\Component\Document\Vendor\UniversalXml\Source\Node;
 use SPHERE\Application\Education\ClassRegister\Timetable\Service\Entity\TblTimetableNode;
 use SPHERE\Application\Education\ClassRegister\Timetable\Timetable as TimetableClassRegister;
-use SPHERE\Application\Education\Lesson\Division\Division;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Meta\Teacher\Teacher;
@@ -28,7 +27,7 @@ class ReplacementService
     private array $UploadList = array();
     private array $WarningList = array();
     private array $DateList = array();
-    /* @var TblDivision[] $CourseList */
+    /* @var TblDivisionCourse[] $CourseList */
     private array $CourseList = array();
     private array $CountImport = array();
 
@@ -217,7 +216,20 @@ class ReplacementService
                         }
                         $this->DateList[$Day - $Difference] = $item['Date'];
 
-                        array_push($ImportList, $item);
+                        $ImportList[] = $item;
+
+                        if ($item['Course']) {
+                            for ($j = 1; $j < 10; $j++) {
+                                if (($temp = $Pl->getChild('pl_klasse', null, $j))
+                                    && method_exists($temp, 'getContent')
+                                    && ($division = utf8_encode($temp->getContent()))
+                                ) {
+                                    $addItem = $item;
+                                    $addItem['Course'] = $division;
+                                    $ImportList[] = $addItem;
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -277,7 +289,6 @@ class ReplacementService
      */
     public function getReplacementResult(array $result)
     {
-
         $tblYearList = Term::useService()->getYearByNow();
         foreach($result as $Row){
             $Row['tblPerson'] = $Row['tblCourse'] = $Row['tblSubstituteSubject'] = false;
@@ -372,6 +383,7 @@ class ReplacementService
             $CourseId = (string)$ImportRow['CourseId'];
             $ReplaceList[$Day][$Hour][$CourseId][] = $ImportRow;
         }
+
         $TimeTableList = array();
         if(($tblTimeTableList = TimetableClassRegister::useService()->getTimetableListByDateTime(new DateTime()))){
             foreach($tblTimeTableList as $tblTimeTable){
@@ -397,18 +409,29 @@ class ReplacementService
                 foreach($tblCourseList as $CourseId => $tblCourse){
                     if(isset($TimeTableList[$DayCount][$HourCount][$CourseId])
                     && isset($ReplaceList[$DayCount][$HourCount][$CourseId])){
+                        $tempSubjectListTimeTable = array();
+                        $tempSubjectListReplacement = array();
                         // Vergleich der 2 Unterrichtseinträge (beides Listen)
                         /** @var TblTimetableNode $tblTimeTableNode */
                         foreach($TimeTableList[$DayCount][$HourCount][$CourseId] as $tblTimeTableNode){
+                            $tempSubjectListTimeTable[$tblTimeTableNode->getServiceTblSubject()->getId()] = $tblTimeTableNode;
                             foreach($ReplaceList[$DayCount][$HourCount][$CourseId] as &$Row) {
-                                if($Row['Date'] == $DayList[$tblTimeTableNode->getDay()]
-                                && $Row['Room'] == $tblTimeTableNode->getRoom()
-                                && $Row['SubjectGroup'] == $tblTimeTableNode->getSubjectGroup()
-                                && $Row['tblSubstituteSubject']->getId() == $tblTimeTableNode->getServiceTblSubject()->getId()
-                                && $Row['tblCourse']->getId() == $tblTimeTableNode->getServiceTblCourse()->getId()
-                                && $Row['tblPerson']->getId() == $tblTimeTableNode->getServiceTblPerson()->getId()){
+                                if ($Row['Date'] == $DayList[$tblTimeTableNode->getDay()]
+//                                && $Row['Room'] == $tblTimeTableNode->getRoom()
+                                    && $Row['SubjectGroup'] == $tblTimeTableNode->getSubjectGroup()
+                                    && $Row['tblSubstituteSubject']->getId() == $tblTimeTableNode->getServiceTblSubject()->getId()
+                                    && $Row['tblCourse']->getId() == $tblTimeTableNode->getServiceTblCourse()->getId()
+                                    && $Row['tblPerson']->getId() == $tblTimeTableNode->getServiceTblPerson()->getId()
+                                ){
                                     $Row['found'] = true;
                                 }
+
+                                if ($Row['Date'] == $DayList[$tblTimeTableNode->getDay()]
+                                    && $Row['tblSubstituteSubject']->getId() == $tblTimeTableNode->getServiceTblSubject()->getId()
+                                ) {
+                                    $tempSubjectListReplacement[$tblTimeTableNode->getServiceTblSubject()->getId()] = true;
+                                }
+
                                 // Vorhandenes Fach anfügen, wenn eindeutig
                                 if(count($TimeTableList[$DayCount][$HourCount][$CourseId]) == 1
                                 && count($ReplaceList[$DayCount][$HourCount][$CourseId]) == 1){
@@ -417,9 +440,30 @@ class ReplacementService
                             }
                         }
 
+                        $hasFound = true;
                         foreach($ReplaceList[$DayCount][$HourCount][$CourseId] as $Row) {
                             if(!isset($Row['found'])){
+                                $hasFound = false;
                                 $DifferenceList[] = $Row;
+                            }
+                        }
+
+                        // es gibt mehrere Stundenplaneinträge zu einer UE und es fällt z.B. ein Fach davon aus
+                        if ($hasFound && count($tempSubjectListTimeTable) > count($tempSubjectListReplacement)) {
+                            foreach ($tempSubjectListTimeTable as $subjectId => $tblTimeTableNodeTemp) {
+                                if (!isset($tempSubjectListReplacement[$subjectId])) {
+                                    $item = array();
+                                    $item['Date'] = $DayList[$tblTimeTableNodeTemp->getDay()];
+                                    $item['Hour'] = $tblTimeTableNodeTemp->getHour();
+                                    $item['Room'] = $tblTimeTableNodeTemp->getRoom();
+                                    $item['SubjectGroup'] = $tblTimeTableNodeTemp->getSubjectGroup();
+                                    $item['tblSubject'] = false;
+                                    $item['tblSubstituteSubject'] = $tblTimeTableNodeTemp->getServiceTblSubject();
+                                    $item['tblCourse'] = $tblTimeTableNodeTemp->getServiceTblCourse();
+                                    $item['tblPerson'] = $tblTimeTableNodeTemp->getServiceTblPerson();
+                                    $item['IsCanceled'] = true;
+                                    $DifferenceList[] = $item;
+                                }
                             }
                         }
 

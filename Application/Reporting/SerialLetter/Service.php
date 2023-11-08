@@ -1221,13 +1221,24 @@ class Service extends AbstractService
                 $Item['FirstName'] = '';
 //                $Item['SecondName'] = '';
                 $Item['LastName'] = '';
-
+                $Item['MailBusiness'] = '';
+                $tblMailList = array();
                 if(($tblPerson = $tblSerialCompany->getServiceTblPerson())) {
                     $Item['Salutation'] = $tblPerson->getSalutation();
                     $Item['Title'] = $tblPerson->getTitle();
                     $Item['FirstName'] = str_replace('.', '', $tblPerson->getFirstName());
 //                    $Item['SecondName'] = $tblPerson->getSecondName();
                     $Item['LastName'] = $tblPerson->getLastName();
+                    if(($tblToPersonMailList = Mail::useService()->getMailAllByPerson($tblPerson))){
+                        foreach($tblToPersonMailList as $tblToPersonMail){
+                            if(($tblTypeMail = $tblToPersonMail->getTblType()) && $tblTypeMail->getName() == 'Geschäftlich' && ($tblMail = $tblToPersonMail->getTblMail())){
+                                $tblMailList[] = $tblMail->getAddress();
+                            }
+                        }
+                    }
+                    if(!empty($tblMailList)){
+                        $Item['MailBusiness'] = implode('; ', $tblMailList);
+                    }
                 }
 
                 // company values
@@ -1311,6 +1322,7 @@ class Service extends AbstractService
             $export->setValue($export->getCell($column++, $row), "Vorname");
 //            $export->setValue($export->getCell($column++, $row), "Zweiter Vorname");
             $export->setValue($export->getCell($column++, $row), "Nachname");
+            $export->setValue($export->getCell($column++, $row), "E-Mail Geschäftlich");
 
             $export->setValue($export->getCell($column++, $row), "Ortsteil");
             $export->setValue($export->getCell($column++, $row), "Straße");
@@ -1336,6 +1348,7 @@ class Service extends AbstractService
                 $export->setValue($export->getCell($column++, $row), $Export['FirstName']);
 //                $export->setValue($export->getCell($column++, $row), $Export['SecondName']);
                 $export->setValue($export->getCell($column++, $row), $Export['LastName']);
+                $export->setValue($export->getCell($column++, $row), $Export['MailBusiness']);
                 // company columns
                 $export->setValue($export->getCell($column++, $row), $Export['District']);
                 $export->setValue($export->getCell($column++, $row), $Export['Street']);

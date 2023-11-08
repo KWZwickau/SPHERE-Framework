@@ -1311,8 +1311,9 @@ class Data extends DataLeave
      *
      * @return TblPrepareStudent[]|false
      */
-    public function getPrepareStudentListByPersonAndCertificateTypeAndYear(TblPerson $tblPerson, TblCertificateType $tblCertificateType, TblYear $tblYear)
-    {
+    public function getPrepareStudentListByPersonAndCertificateTypeAndYear(
+        TblPerson $tblPerson, TblCertificateType $tblCertificateType, TblYear $tblYear, $sort
+    ) {
         $Manager = $this->getEntityManager();
         $queryBuilder = $Manager->getQueryBuilder();
 
@@ -1330,7 +1331,7 @@ class Data extends DataLeave
             ->setParameter(1, $tblPerson->getId())
             ->setParameter(2, $tblCertificateType->getId())
             ->setParameter(3, $tblYear->getId())
-            ->orderBy('gc.Date', 'DESC')
+            ->orderBy('gc.Date', $sort)
             ->getQuery();
 
         $resultList = $query->getResult();

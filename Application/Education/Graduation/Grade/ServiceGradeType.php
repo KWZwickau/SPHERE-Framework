@@ -127,6 +127,7 @@ abstract class ServiceGradeType extends AbstractService
                 $GradeType['Type'] == 2,
                 isset($GradeType['IsHighlighted']),
                 isset($GradeType['IsPartGrade']),
+                isset($GradeType['IsIgnoredByScoreRule']),
                 true
             );
 
@@ -183,6 +184,7 @@ abstract class ServiceGradeType extends AbstractService
                 $GradeType['Type'] == 2,
                 isset($GradeType['IsHighlighted']),
                 isset($GradeType['IsPartGrade']),
+                isset($GradeType['IsIgnoredByScoreRule']),
                 $tblGradeType->getIsActive()
             );
             return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Der Zensuren-Typ ist erfolgreich gespeichert worden')
@@ -218,6 +220,7 @@ abstract class ServiceGradeType extends AbstractService
             $tblGradeType->getIsTypeBehavior(),
             $tblGradeType->getIsHighlighted(),
             $tblGradeType->getIsPartGrade(),
+            $tblGradeType->getIsIgnoredByScoreRule(),
             $IsActive
         );
     }
