@@ -463,6 +463,7 @@ class Service extends AbstractService
 //        }
 
         if ($replacementList) {
+            $subjectList = array();
             // Vertretungsplan gefunden
             foreach ($replacementList as $tblTimetableReplacement) {
                 $tblLessonContent = new TblLessonContent();
@@ -479,6 +480,27 @@ class Service extends AbstractService
                 $tblLessonContent->setIsCanceled($tblTimetableReplacement->getIsCanceled());
 
                 $resultList[] = $tblLessonContent;
+
+                if ($tblTimetableReplacement->getServiceTblSubject()) {
+                    $subjectList[$tblTimetableReplacement->getServiceTblSubject()->getId()] = true;
+                }
+                if ($tblTimetableReplacement->getServiceTblSubstituteSubject()) {
+                    $subjectList[$tblTimetableReplacement->getServiceTblSubstituteSubject()->getId()] = true;
+                }
+            }
+
+            // es kann trotz einem Vertretungsfall oder Ausfall noch weitere Fächer im normalen Stundenplan geben
+            if (($tblTimeTableNodeList = $this->getTimeTableNodeListBy($tblDivisionCourse, $dateTime, $lesson))
+                && count($tblTimeTableNodeList) > count($replacementList)
+            ) {
+                foreach ($tblTimeTableNodeList as $tblTimetableNode) {
+                    if ($tblTimetableNode->getServiceTblSubject() && !isset($subjectList[$tblTimetableNode->getServiceTblSubject()->getId()])) {
+                        $tblLessonContent = new TblLessonContent();
+                        $tblLessonContent->setServiceTblSubject($tblTimetableNode->getServiceTblSubject() ?: null);
+                        $tblLessonContent->setRoom($tblTimetableNode->getRoom());
+                        $resultList[] = $tblLessonContent;
+                    }
+                }
             }
         } else {
             // kein Vertretungsplan -> normaler Stundenplan
