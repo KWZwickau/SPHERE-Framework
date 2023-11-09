@@ -690,6 +690,7 @@ abstract class ServiceTask extends ServiceStudentOverview
         $tblSettingBehaviorHasGrading = ($tblSetting = Consumer::useService()->getSetting('Education', 'Graduation', 'Evaluation', 'HasBehaviorGradesForSubjectsWithNoGrading'))
             && $tblSetting->getValue();
         $now = new DateTime('now');
+        $future = (new DateTime('now'))->add(new DateInterval('P7D'));
 
         if (($tblYearList = Term::useService()->getYearByNow())) {
             foreach ($tblYearList as $tblYear) {
@@ -714,7 +715,7 @@ abstract class ServiceTask extends ServiceStudentOverview
                                         }
                                     }
                                 // future task
-                                } elseif ($now < $tblTask->getFromDate() && $now > ($tblTask->getFromDate()->sub(new DateInterval('P7D')))) {
+                                } elseif ($now < $tblTask->getFromDate() && $future > $tblTask->getFromDate()) {
                                     if ($tblTask->getIsTypeBehavior()) {
                                         $futureBehaviorTaskList[$tblTask->getId()] = $tblTask;
                                     } else {
