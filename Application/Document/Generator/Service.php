@@ -21,6 +21,7 @@ use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
+use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Meta\Common\Common;
@@ -786,6 +787,91 @@ class Service extends AbstractService
                     }
                 }
             }
+        }
+
+        return $Data;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblYear|null $tblYear
+     *
+     * @return array
+     */
+    public function getSignOutCertificateData(TblPerson $tblPerson, ?TblYear $tblYear = null): array
+    {
+//        $Data['PersonId'] = $tblPerson->getId();
+        $Data['FirstLastName'] = $tblPerson->getFirstSecondName().' '.$tblPerson->getLastName();
+        $Data['Date'] = (new DateTime())->format('d.m.Y');
+        $Data['BirthDate'] = '';
+        $Data['BirthPlace'] = '';
+        $Data['AddressStreet'] = '';
+        $Data['SchoolCity'] = '';
+        $tblCommon = Common::useService()->getCommonByPerson($tblPerson);
+        if ($tblCommon) {
+            if (($tblCommonBirthdate = $tblCommon->getTblCommonBirthDates())) {
+                $Data['BirthDate'] = $tblCommonBirthdate->getBirthday();
+                $Data['BirthPlace'] = $tblCommonBirthdate->getBirthplace();
+            }
+        }
+        $tblAddress = Address::useService()->getAddressByPerson($tblPerson);
+        if ($tblAddress) {
+            $Data['AddressStreet'] = $tblAddress->getStreetName().' '.$tblAddress->getStreetNumber();
+            if (($tblCity = $tblAddress->getTblCity())) {
+                $Data['AddressCity'] = $tblCity->getCode().' '.$tblCity->getDisplayName();
+            }
+        }
+
+        if ($tblYear) {
+            $tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear);
+        } else {
+            $tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndDate($tblPerson);
+            if ($tblStudentEducation) {
+                $tblYear = $tblStudentEducation->getServiceTblYear();
+            }
+        }
+
+        if ($tblStudentEducation) {
+            if (($tblCompanySchool = $tblStudentEducation->getServiceTblCompany())) {
+                $Data['School1'] = $tblCompanySchool->getName();
+                $Data['School2'] = $tblCompanySchool->getExtendedName();
+                $tblAddressSchool = Address::useService()->getAddressByCompany($tblCompanySchool);
+                if ($tblAddressSchool) {
+                    $Data['SchoolAddressStreet'] = $tblAddressSchool->getStreetName().' '.$tblAddressSchool->getStreetNumber();
+                    $tblCitySchool = $tblAddressSchool->getTblCity();
+                    if ($tblCitySchool) {
+                        $Data['SchoolAddressCity'] = $tblCitySchool->getCode().' '.$tblCitySchool->getName();
+                        $Data['SchoolCity'] = $tblCitySchool->getName().', ';
+                    }
+                }
+            }
+
+            if ($tblYear) {
+                list($startDate, $endDate) = Term::useService()->getStartDateAndEndDateOfYear($tblYear);
+                // Letztes Datum des aktuellen Schuljahres
+                /** @var DateTime $endDate */
+                if ($endDate) {
+                    $Data['SchoolUntil'] = $endDate->format('d.m.Y');
+                }
+            }
+        }
+
+        if (($tblStudent = Student::useService()->getStudentByPerson($tblPerson))) {
+            // Datum Aufnahme
+            $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('ARRIVE');
+            $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent, $tblStudentTransferType);
+            if ($tblStudentTransfer) {
+                $EntryDate = $tblStudentTransfer->getTransferDate();
+                $Data['SchoolEntry'] = $EntryDate;
+            }
+        }
+
+        $Data['PlaceDate'] = $Data['SchoolCity'] . $Data['Date'];
+
+        // Hauptadresse Schüler
+        $tblAddress = Address::useService()->getAddressByPerson($tblPerson);
+        if ($tblAddress) {
+            $Data['MainAddress'] = $tblAddress->getGuiString();
         }
 
         return $Data;

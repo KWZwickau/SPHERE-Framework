@@ -84,7 +84,7 @@ class Frontend extends Extension implements IFrontendInterface
                     )),
                     new LayoutRow(array(
                         new LayoutColumn(
-                            self::loadDivisionTable($filterYearList)
+                            EnrollmentDocument::useFrontend()->loadDivisionTable($filterYearList, 'EnrollmentDocument')
                         )
                     )), new Title(new Listing() . ' Übersicht')
                 ))
@@ -98,8 +98,14 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return TableData
      */
-    public static function loadDivisionTable(array $filterYearList): TableData
+    public function loadDivisionTable(array $filterYearList, string $documentType = 'EnrollmentDocument'): TableData
     {
+        switch ($documentType) {
+            case 'EnrollmentDocument': $documentName = 'Schulbescheinigungen'; break;
+            case 'SignOutCertificate': $documentName = 'Abmeldebescheinigung'; break;
+            default: $documentName = 'Dokument';
+        }
+
         $dataList = array();
         $tblDivisionCourseList = array();
         if ($filterYearList) {
@@ -133,12 +139,12 @@ class Frontend extends Extension implements IFrontendInterface
                 'Option' => $count > 0
                     ? (new External(
                         '',
-                        '/Api/Document/Standard/EnrollmentDocument/CreateMulti',
+                        '/Api/Document/Standard/' . $documentType .'/CreateMulti',
                         new Download(),
                         array(
                             'DivisionCourseId' => $tblDivisionCourse->getId()
                         ),
-                        'Schulbescheinigungen herunterladen'
+                        $documentName . ' herunterladen'
                     ))->__toString()
                     : ''
             );
