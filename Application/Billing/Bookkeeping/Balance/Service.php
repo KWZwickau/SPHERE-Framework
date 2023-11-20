@@ -344,7 +344,6 @@ class Service extends AbstractService
      * @return bool|FilePointer
      * @throws DocumentTypeException
      * @throws TypeFileException
-     * @throws \PHPExcel_Reader_Exception
      */
     public function createBalanceListExcel($PriceList, $tblItemList = array())
     {

@@ -107,11 +107,11 @@ class AccountApp extends AccountDocument
                         der Schulsoftware in das Feld: "Authenticator App" ein.')
                     ->styleMarginTop('15px')
                 )
-                ->addElement((new Element\Image('/Common/Style/Resource/Document/login_app.png')))
+//                ->addElement((new Element\Image('/Common/Style/Resource/Document/login_app.png')))
                 ->addElement((new Element())
                     ->setContent('Benötigen Sie Hilfe, wenden Sie sich bitte an den schulinternen Ansprechpartner der 
                         Schulsoftware.')
-                    ->styleMarginTop('15px')
+//                    ->styleMarginTop('15px')
                 )
             );
     }

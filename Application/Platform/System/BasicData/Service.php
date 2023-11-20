@@ -4,6 +4,7 @@ namespace SPHERE\Application\Platform\System\BasicData;
 
 use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel;
 use MOC\V\Component\Document\Document;
+use PhpOffice\PhpSpreadsheet\Shared\Date;
 use SPHERE\Application\Platform\System\BasicData\Service\Data;
 use SPHERE\Application\Platform\System\BasicData\Service\Entity\TblHoliday;
 use SPHERE\Application\Platform\System\BasicData\Service\Entity\TblHolidayType;
@@ -208,9 +209,9 @@ class Service extends AbstractService
                         $type = trim($Document->getValue($Document->getCell($Location['Typ'], $RunY)));
                         if (($tblHolidayType = BasicData::useService()->getHolidayTypeByName($type))) {
                             if (($fromDate = (trim($Document->getValue($Document->getCell($Location['Datum von'], $RunY))))) != '') {
-                                $fromDate = date('Y-m-d', \PHPExcel_Shared_Date::ExcelToPHP($fromDate));
+                                $fromDate = date('Y-m-d', Date::excelToTimestamp($fromDate));
                                 if (($toDate = (trim($Document->getValue($Document->getCell($Location['Datum bis'], $RunY))))) != '') {
-                                    $toDate = date('Y-m-d', \PHPExcel_Shared_Date::ExcelToPHP($toDate));
+                                    $toDate = date('Y-m-d', Date::excelToTimestamp($toDate));
                                 }
                                 $tblState = null;
                                 if (($state = (trim($Document->getValue($Document->getCell($Location['Optional Bundesland'], $RunY))))) != '') {

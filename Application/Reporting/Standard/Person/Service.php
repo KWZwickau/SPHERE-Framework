@@ -9,7 +9,9 @@ use MOC\V\Component\Document\Component\Parameter\Repository\PaperSizeParameter;
 use MOC\V\Component\Document\Document;
 use MOC\V\Component\Document\Exception\DocumentTypeException;
 use MOC\V\Core\FileSystem\Component\Exception\Repository\TypeFileException;
-use PHPExcel_Cell_DataType;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Mail\Mail;
 use SPHERE\Application\Contact\Mail\Service\Entity\TblType as TblTypeMail;
@@ -41,8 +43,13 @@ use SPHERE\Application\People\Relationship\Service\Entity\TblToPerson as TblToPe
 use SPHERE\Application\People\Relationship\Service\Entity\TblType;
 use SPHERE\Common\Frontend\Link\Repository\Mailto;
 use SPHERE\System\Extension\Extension;
+use SPHERE\System\Extension\Repository\Debugger;
 use SPHERE\System\Extension\Repository\Sorter\StringGermanOrderSorter;
 use SPHERE\System\Extension\Repository\Sorter\StringNaturalOrderSorter;
+
+require_once(__DIR__.DIRECTORY_SEPARATOR.'../../../../Library/MOC-V/Component/Document/Vendor/PhpSpreadSheet/1.29.0/vendor/autoload.php');
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 /**
  * Class Service
@@ -290,7 +297,7 @@ class Service extends Extension
         foreach($tblPersonList as $tblPerson){
             if($tblYear = $tblDivisionCourse->getServiceTblYear()){
                 $tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear);
-                if(($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())){
+                if($tblStudentEducation && ($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())){
                     $LevelList[$tblSchoolType->getName()][$tblStudentEducation->getLevel()] = $tblStudentEducation->getLevel();
                 }
             }
@@ -327,7 +334,6 @@ class Service extends Extension
         $fileLocation = Storage::createFilePointer('xlsx');
         $row = 0;
         $Column = 0;
-        /** @var PhpExcel $export */
         $export = Document::getDocument($fileLocation->getFileLocation());
         $export->setValue($export->getCell($Column++, $row), "lfd.Nr.");
         $export->setValue($export->getCell($Column++, $row), "Name");
@@ -1943,7 +1949,7 @@ class Service extends Extension
                         // don't display if empty
                         if ($PersonData[$Key] != '') {
                             $export->setValue($export->getCell($Column, $Row), $PersonData[$Key],
-                                PHPExcel_Cell_DataType::TYPE_NUMERIC);
+                                DataType::TYPE_NUMERIC);
                         }
                     } else {
                         $export->setValue($export->getCell($Column, $Row), $PersonData[$Key]);
@@ -4061,16 +4067,16 @@ class Service extends Extension
             $export->setStyle($export->getCell($AbsenceDays++, 0), $export->getCell($AbsenceDays, 0))->mergeCells();
             $export->setStyle($export->getCell($AbsenceUE++, 0), $export->getCell($AbsenceUE, 0))->mergeCells();
             // with and type of cells
-            $export->setStyle($export->getCell($column, 2), $export->getCell($column++, $row))->setColumnWidth(5)->setCellType(\PHPExcel_Cell_DataType::TYPE_NUMERIC);
+            $export->setStyle($export->getCell($column, 2), $export->getCell($column++, $row))->setColumnWidth(5)->setCellType(DataType::TYPE_NUMERIC);
             $export->setStyle($export->getCell($column, 2), $export->getCell($column++, $row))->setColumnWidth(13);
             $export->setStyle($export->getCell($column, 2), $export->getCell($column++, $row))->setColumnWidth(13);
 //            $export->setStyle($export->getCell($column, 2), $export->getCell($column++, $row))->setColumnWidth(30);
             $export->setStyle($export->getCell($column, 2), $export->getCell($column++, $row))->setColumnWidth(13);
             $export->setStyle($export->getCell($column, 2), $export->getCell($column++, $row))->setColumnWidth(13);
-            $export->setStyle($export->getCell($column, 2), $export->getCell($column++, $row))->setColumnWidth(14)->setCellType(\PHPExcel_Cell_DataType::TYPE_NUMERIC);
-            $export->setStyle($export->getCell($column, 2), $export->getCell($column++, $row))->setColumnWidth(15)->setCellType(\PHPExcel_Cell_DataType::TYPE_NUMERIC);
-            $export->setStyle($export->getCell($column, 2), $export->getCell($column++, $row))->setColumnWidth(14)->setCellType(\PHPExcel_Cell_DataType::TYPE_NUMERIC);
-            $export->setStyle($export->getCell($column, 2), $export->getCell($column, $row))->setColumnWidth(15)->setCellType(\PHPExcel_Cell_DataType::TYPE_NUMERIC);
+            $export->setStyle($export->getCell($column, 2), $export->getCell($column++, $row))->setColumnWidth(14)->setCellType(DataType::TYPE_NUMERIC);
+            $export->setStyle($export->getCell($column, 2), $export->getCell($column++, $row))->setColumnWidth(15)->setCellType(DataType::TYPE_NUMERIC);
+            $export->setStyle($export->getCell($column, 2), $export->getCell($column++, $row))->setColumnWidth(14)->setCellType(DataType::TYPE_NUMERIC);
+            $export->setStyle($export->getCell($column, 2), $export->getCell($column, $row))->setColumnWidth(15)->setCellType(DataType::TYPE_NUMERIC);
 
             $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
 
@@ -4199,9 +4205,9 @@ class Service extends Extension
                         $export->setValue($export->getCell(39, $rowStudents), $totalCountList[$tblPerson->getId()]['Lessons']['U']);
 
                         for ($columnCount = 1; $columnCount < 40; $columnCount++) {
-                            $columnLetter = \PHPExcel_Cell::stringFromColumnIndex($columnCount);
+                            $columnLetter = Coordinate::stringFromColumnIndex($columnCount);
                             $export->getActiveSheet()->getStyle($columnLetter . $rowStudents)->getAlignment()
-                                ->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+                                ->setHorizontal(Alignment::HORIZONTAL_CENTER);
                             $export->setStyle($export->getCell($columnCount, $rowStudents), $export->getCell($columnCount, $rowStudents))
                                 ->setBorderOutline();
                         }
@@ -4209,10 +4215,10 @@ class Service extends Extension
                     }
                     // Center Data
                     for ($maxColumn = 1; $maxColumn < 40; $maxColumn++) {
-                        $columnLetter = \PHPExcel_Cell::stringFromColumnIndex($maxColumn);
-                        $export->getActiveSheet()->getStyle($columnLetter . 3)->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+                        $columnLetter = Coordinate::stringFromColumnIndex($maxColumn);
+                        $export->getActiveSheet()->getStyle($columnLetter . 3)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
                         $export->getActiveSheet()->getStyle($columnLetter . $rowStudents)->getAlignment()
-                            ->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+                            ->setHorizontal(Alignment::HORIZONTAL_CENTER);
                         $export->setStyle($export->getCell($maxColumn, 0))->setColumnWidth(2.6);
                         $export->setStyle($export->getCell($maxColumn, $row), $export->getCell($maxColumn, $row));
                     }

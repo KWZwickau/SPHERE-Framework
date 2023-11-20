@@ -11,6 +11,7 @@ use MOC\V\Component\Document\Component\IVendorInterface;
 use MOC\V\Component\Document\Component\Parameter\Repository\FileParameter;
 use MOC\V\Component\Document\Exception\DocumentTypeException;
 use MOC\V\Component\Document\Vendor\Vendor;
+use PhpOffice\PhpSpreadsheet\IOFactory;
 
 /**
  * Class Document
@@ -50,6 +51,7 @@ class Document implements IVendorInterface
             case 'txt':
             case 'xls':
             case 'xlsx': {
+//                return IOFactory::load($inputFileName);
                 return self::getExcelDocument($Location);
             }
             case 'doc':

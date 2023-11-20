@@ -305,8 +305,6 @@ class Environment
      */
     public function load($name): TemplateWrapper
     {
-
-
         if ($name instanceof TemplateWrapper) {
             return $name;
         }

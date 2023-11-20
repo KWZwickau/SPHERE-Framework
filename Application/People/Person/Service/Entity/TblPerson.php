@@ -42,19 +42,19 @@ class TblPerson extends Element
     /**
      * @Column(type="string")
      */
-    protected $FirstName;
+    protected $FirstName = '';
     /**
      * @Column(type="string")
      */
-    protected $SecondName;
+    protected $SecondName = '';
     /**
      * @Column(type="string")
      */
-    protected $CallName;
+    protected $CallName = '';
     /**
      * @Column(type="string")
      */
-    protected $LastName;
+    protected $LastName = '';
     /**
      * @Column(type="string")
      */

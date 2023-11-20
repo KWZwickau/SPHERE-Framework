@@ -2,10 +2,9 @@
 namespace SPHERE\Application\Transfer\Import\Standard;
 
 use DateTime;
-use Exception;
 use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel;
 use MOC\V\Component\Document\Document;
-use PHPExcel_Shared_Date;
+use PhpOffice\PhpSpreadsheet\Shared\Date;
 use SPHERE\Application\Billing\Accounting\Debtor\Debtor;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Mail\Mail;
@@ -2100,7 +2099,7 @@ class Service
             $len = strlen($Date);
             switch ($len) {
                 case 5:
-                    $result = date('d.m.Y', \PHPExcel_Shared_Date::ExcelToPHP($Date));
+                    $result = date('d.m.Y', Date::excelToTimestamp($Date));
                     break;
                 case 6:
                     $result = substr($Date, 0, 2).'.'.substr($Date, 2, 2).'.'.substr($Date, 4, 2);

@@ -72,6 +72,7 @@ class FilesystemLoader implements LoaderInterface
         if (!\is_array($paths)) {
             $paths = [$paths];
         }
+
         $this->paths[$namespace] = [];
         foreach ($paths as $path) {
             $this->addPath($path, $namespace);
