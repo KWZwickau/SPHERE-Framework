@@ -2452,13 +2452,13 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
      * @return null|FilePointer
      * @throws \MOC\V\Component\Document\Component\Exception\Repository\TypeFileException
      * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
-     * @throws \PHPExcel_Reader_Exception
      */
     private function buildExcelFile($ViewType = TblWorkSpace::VIEW_TYPE_ALL)
     {
-        $Query = $this->buildSearchQuery($ViewType);
-        $Result = $Query->getResult();
-
+        $Result = array();
+        if(($Query = $this->buildSearchQuery($ViewType))) {
+            $Result = $Query->getResult();
+        }
         if(!empty($Result)) {
             $ColumnDTNames = array();
             $ColumnDBNames = array_keys(current($Result));
@@ -2506,6 +2506,9 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
     public function downloadFile($ViewType = TblWorkSpace::VIEW_TYPE_ALL)
     {
         $File = $this->buildExcelFile($ViewType);
+        if(!$File){
+            return 'Download der Auswertung konnte nicht erstellt werden, prüfen Sie Ihre Filterung';
+        }
 
 //        /** @var PhpExcel $Document */
 //        $Document = Document::getDocument( $File->getFileLocation() );
