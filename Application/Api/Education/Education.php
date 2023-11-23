@@ -44,6 +44,7 @@ use SPHERE\Application\Api\Education\Graduation\Gradebook\ApiMinimumGradeCount;
 use SPHERE\Application\Api\Education\Prepare\ApiPrepare;
 use SPHERE\Application\Api\Education\Prepare\Prepare;
 use SPHERE\Application\Api\Education\School\ApiCourse;
+use SPHERE\Application\Api\Education\Term\ApiYear;
 use SPHERE\Application\Api\Education\Term\YearHoliday;
 use SPHERE\Application\Api\Education\Term\YearPeriod;
 use SPHERE\Application\IApplicationInterface;
@@ -104,5 +105,6 @@ class Education implements IApplicationInterface
         ApiScoreType::registerApi();
         ApiScoreRule::registerApi();
         Gradebook::registerModule();
+        ApiYear::registerApi();
     }
 }

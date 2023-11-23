@@ -135,6 +135,28 @@ class Service extends AbstractService
     }
 
     /**
+     * @param string $name
+     * @param string $year
+     * @param TblState $tblState
+     *
+     * @return false|TblHoliday
+     */
+    public function getHolidayByNameAndYearAndState(string $name, string $year, TblState $tblState)
+    {
+        if (($tblHolidayList = (new Data($this->getBinding()))->getHolidayListByNameAndState($name, $tblState))) {
+            foreach ($tblHolidayList as $tblHoliday) {
+                if (($fromDate = $tblHoliday->getFromDateTime())
+                    && $fromDate->format('Y') == $year
+                ) {
+                    return $tblHoliday;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * @param IFormInterface|null $Form
      * @param UploadedFile|null $File
      *
