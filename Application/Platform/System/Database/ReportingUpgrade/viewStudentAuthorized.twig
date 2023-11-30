@@ -151,14 +151,14 @@ select
     (select group_concat(concat(vCP.TblPhone_Number) separator ';\n')
         from {{ ConsumerAcronym }}_SettingConsumer.viewContactPhone vCP
         WHERE vCP.TblPerson_Id = TblPerson_Authorized_Id
-        and vCP.TblType_Name = 'Notfall'
+        and vCP.TblType_Is_Emergency_Contact = 1
         and vCP.TblType_Description = 'Festnetz'
     ) TblPhone_Number_NF_Bev,
 
     (select group_concat(concat(vCP.TblPhone_Number) separator ';\n')
         from {{ ConsumerAcronym }}_SettingConsumer.viewContactPhone vCP
         WHERE vCP.TblPerson_Id = TblPerson_Authorized_Id
-        and vCP.TblType_Name = 'Notfall'
+        and vCP.TblType_Is_Emergency_Contact = 1
         and vCP.TblType_Description = 'Mobil'
     ) TblPhone_Number_NM_Bev,
 

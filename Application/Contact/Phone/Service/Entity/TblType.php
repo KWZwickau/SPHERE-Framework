@@ -20,7 +20,6 @@ class TblType extends Element
 
     const VALUE_NAME_PRIVATE = 'Privat';
     const VALUE_NAME_BUSINESS = 'Geschäftlich';
-    const VALUE_NAME_EMERCENCY = 'Notfall';
     const VALUE_NAME_FAX = 'Fax';
 
     const VALUE_DESCRIPTION_PHONE = 'Festnetz';

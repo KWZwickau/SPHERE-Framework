@@ -1918,12 +1918,12 @@ class Service
 
         // phone/mobile
         if($emergencyPhone){
-            $tblType = Phone::useService()->getTypeByNameAndDescription(TblTypePhone::VALUE_NAME_EMERCENCY, TblTypePhone::VALUE_DESCRIPTION_PHONE);
-            Phone::useService()->insertPhoneToPerson($tblPerson, $emergencyPhone, $tblType, '');
+            $tblType = Phone::useService()->getTypeByNameAndDescription(TblTypePhone::VALUE_NAME_PRIVATE, TblTypePhone::VALUE_DESCRIPTION_PHONE);
+            Phone::useService()->insertPhoneToPerson($tblPerson, $emergencyPhone, $tblType, '', true);
         }
         if($emergencyMobile){
-            $tblType = Phone::useService()->getTypeByNameAndDescription(TblTypePhone::VALUE_NAME_EMERCENCY, TblTypePhone::VALUE_DESCRIPTION_MOBILE);
-            Phone::useService()->insertPhoneToPerson($tblPerson, $emergencyMobile, $tblType, '');
+            $tblType = Phone::useService()->getTypeByNameAndDescription(TblTypePhone::VALUE_NAME_PRIVATE, TblTypePhone::VALUE_DESCRIPTION_MOBILE);
+            Phone::useService()->insertPhoneToPerson($tblPerson, $emergencyMobile, $tblType, '', true);
         }
         if($privatePhone){
             $tblType = Phone::useService()->getTypeByNameAndDescription(TblTypePhone::VALUE_NAME_PRIVATE, TblTypePhone::VALUE_DESCRIPTION_PHONE);

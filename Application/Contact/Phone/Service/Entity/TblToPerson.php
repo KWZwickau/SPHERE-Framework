@@ -21,6 +21,7 @@ class TblToPerson extends Element
     const ATT_TBL_TYPE = 'tblType';
     const ATT_TBL_PHONE = 'tblPhone';
     const SERVICE_TBL_PERSON = 'serviceTblPerson';
+    const ATTR_IS_EMERGENCY_CONTACT = 'IsEmergencyContact';
 
     /**
      * @Column(type="text")
@@ -38,6 +39,10 @@ class TblToPerson extends Element
      * @Column(type="bigint")
      */
     protected $tblPhone;
+    /**
+     * @Column(type="boolean")
+     */
+    protected $IsEmergencyContact;
 
     /**
      * @return bool|TblPerson
@@ -121,5 +126,21 @@ class TblToPerson extends Element
     {
 
         $this->tblPhone = ( null === $tblPhone ? null : $tblPhone->getId() );
+    }
+
+    /**
+     * @return bool
+     */
+    public function getIsEmergencyContact(): bool
+    {
+        return $this->IsEmergencyContact;
+    }
+
+    /**
+     * @param bool $IsEmergencyContact
+     */
+    public function setIsEmergencyContact(bool $IsEmergencyContact): void
+    {
+        $this->IsEmergencyContact = $IsEmergencyContact;
     }
 }

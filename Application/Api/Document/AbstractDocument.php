@@ -746,17 +746,19 @@ abstract class AbstractDocument
      */
     private function setPhoneNumbersByTypeName(TblPerson $tblPerson, $TypeName = 'Privat')
     {
-
+        $phoneNumberList = array();
         $IsRemark = false;
         if($TypeName == 'Notfall'){
             $IsRemark = true;
-        }
-        $phoneNumberList = array();
-        if (($tblPhoneType = Phone::useService()->getTypeByNameAndDescription($TypeName, 'Festnetz'))) {
-            $this->getPhoneNumbers($tblPerson, $tblPhoneType, $phoneNumberList, $IsRemark);
-        }
-        if (($tblPhoneType = Phone::useService()->getTypeByNameAndDescription($TypeName, 'Mobil'))) {
-            $this->getPhoneNumbers($tblPerson, $tblPhoneType, $phoneNumberList, $IsRemark);
+            $tblPhoneToPersonList = Phone::useService()->getPhoneToPersonAllEmergencyContactByPerson($tblPerson);
+            $this->getPhoneNumbersByList($tblPhoneToPersonList, $phoneNumberList, $IsRemark);
+        } else {
+            if (($tblPhoneType = Phone::useService()->getTypeByNameAndDescription($TypeName, 'Festnetz'))) {
+                $this->getPhoneNumbersByType($tblPerson, $tblPhoneType, $phoneNumberList, $IsRemark);
+            }
+            if (($tblPhoneType = Phone::useService()->getTypeByNameAndDescription($TypeName, 'Mobil'))) {
+                $this->getPhoneNumbersByType($tblPerson, $tblPhoneType, $phoneNumberList, $IsRemark);
+            }
         }
 
         // Telefonnummern der Sorgeberechtigten mit Anzeigen
@@ -772,21 +774,27 @@ abstract class AbstractDocument
                         && ($tblPersonTo = $tblRelationship->getServiceTblPersonTo())
                         && $tblPerson->getId() == $tblPersonTo->getId()
                     ) {
-
-                        if (($tblPhoneType = Phone::useService()->getTypeByNameAndDescription($TypeName,
-                            'Festnetz'))
-                        ) {
-                            if ($tblPersonFrom->getSalutation() == 'Frau') {
-                                $this->getPhoneNumbers($tblPersonFrom, $tblPhoneType, $phoneNumberMotherList, $IsRemark);
-                            } else {
-                                $this->getPhoneNumbers($tblPersonFrom, $tblPhoneType, $phoneNumberFatherList, $IsRemark);
+                        if ($TypeName == 'Notfall') {
+                            $tblPhoneToPersonList = Phone::useService()->getPhoneToPersonAllEmergencyContactByPerson($tblPerson);
+                            $this->getPhoneNumbersByList(
+                                $tblPhoneToPersonList, $tblPersonFrom->getSalutation() == 'Frau' ? $phoneNumberMotherList : $phoneNumberFatherList, $IsRemark
+                            );
+                        } else {
+                            if (($tblPhoneType = Phone::useService()->getTypeByNameAndDescription($TypeName,
+                                'Festnetz'))
+                            ) {
+                                if ($tblPersonFrom->getSalutation() == 'Frau') {
+                                    $this->getPhoneNumbersByType($tblPersonFrom, $tblPhoneType, $phoneNumberMotherList, $IsRemark);
+                                } else {
+                                    $this->getPhoneNumbersByType($tblPersonFrom, $tblPhoneType, $phoneNumberFatherList, $IsRemark);
+                                }
                             }
-                        }
-                        if (($tblPhoneType = Phone::useService()->getTypeByNameAndDescription($TypeName, 'Mobil'))) {
-                            if ($tblPersonFrom->getSalutation() == 'Frau') {
-                                $this->getPhoneNumbers($tblPersonFrom, $tblPhoneType, $phoneNumberMotherList, $IsRemark);
-                            } else {
-                                $this->getPhoneNumbers($tblPersonFrom, $tblPhoneType, $phoneNumberFatherList, $IsRemark);
+                            if (($tblPhoneType = Phone::useService()->getTypeByNameAndDescription($TypeName, 'Mobil'))) {
+                                if ($tblPersonFrom->getSalutation() == 'Frau') {
+                                    $this->getPhoneNumbersByType($tblPersonFrom, $tblPhoneType, $phoneNumberMotherList, $IsRemark);
+                                } else {
+                                    $this->getPhoneNumbersByType($tblPersonFrom, $tblPhoneType, $phoneNumberFatherList, $IsRemark);
+                                }
                             }
                         }
                     }
@@ -823,8 +831,20 @@ abstract class AbstractDocument
      * @param array     $phoneNumberList
      * @param bool      $IsRemark
      */
-    private function getPhoneNumbers(TblPerson $tblPerson, TblType $tblType, &$phoneNumberList, $IsRemark = false) {
+    private function getPhoneNumbersByType(TblPerson $tblPerson, TblType $tblType, &$phoneNumberList, $IsRemark = false) {
         if (($tblPhoneToPersonList = Phone::useService()->getPhoneToPersonAllBy($tblPerson, $tblType))) {
+            $this->getPhoneNumbersByList($tblPhoneToPersonList, $phoneNumberList, $IsRemark);
+        }
+    }
+
+    /**
+     * @param $tblPhoneToPersonList
+     * @param $phoneNumberList
+     * @param bool $IsRemark
+     */
+    private function getPhoneNumbersByList($tblPhoneToPersonList, &$phoneNumberList, bool $IsRemark = false)
+    {
+        if ($tblPhoneToPersonList) {
             foreach ($tblPhoneToPersonList as $tblPhoneToPerson) {
                 if (($tblPhone = $tblPhoneToPerson->getTblPhone())) {
                     if($IsRemark){
@@ -929,7 +949,7 @@ abstract class AbstractDocument
             if (($tblPhoneList = Phone::useService()->getPhoneAllByPerson($this->getTblPerson()))) {
                 if ($tblPhoneList) {
                     foreach ($tblPhoneList as $tblPhoneToPerson) {
-                        if ($tblPhoneToPerson->getTblType()->getName() == 'Notfall') {
+                        if ($tblPhoneToPerson->getIsEmergencyContact()) {
                             $countNumbers++;
                             if ($countNumbers == 1) {
                                 $slice
