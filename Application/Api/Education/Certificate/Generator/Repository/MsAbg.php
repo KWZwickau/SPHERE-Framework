@@ -253,7 +253,7 @@ class MsAbg extends Certificate
                         ->setContent('
                              <u> {{ Content.P' . $personId . '.Person.Data.Name.First }} {{ Content.P' . $personId . '.Person.Data.Name.Last }} </u> hat
                             gemäß § 63 Absatz 3 Nummer 3 der Schulordnung Ober- und Abendoberschulen einen dem Abschluss im Förderschwerpunkt Lernen gemäß 
-                            § 34a Absatz 1 der Schulordnung Förderschulen gleichgestellten Abschluss erworben.¹')
+                            § 34b Absatz 1 der Schulordnung Förderschulen gleichgestellten Abschluss erworben.¹')
                         ->stylePaddingBottom()
                     )
                 )->styleMarginTop('15px');

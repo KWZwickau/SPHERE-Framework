@@ -316,14 +316,11 @@ abstract class FsStyle extends Certificate
         );
 
         $Slice->addElement((new Element())
-            ->setContent('
-            {% if(Content.P'.$personId.'.Person.Data.Name.Salutation is not empty) %}
+            ->setContent('      
                 {{ Content.P'.$personId.'.Person.Data.Name.Salutation }}
-            {% else %}
-                Frau/Herr
-            {% endif %}
-            {{ Content.P' . $personId . '.Person.Data.Name.First }}
-            {{ Content.P' . $personId . '.Person.Data.Name.Last }}')
+                {{ Content.P' . $personId . '.Person.Data.Name.First }}
+                {{ Content.P' . $personId . '.Person.Data.Name.Last }}
+            ')
             ->styleBorderBottom('0.5px')
             ->styleAlignCenter()
             ->styleTextSize('26px')
@@ -374,14 +371,11 @@ abstract class FsStyle extends Certificate
         $Slice->stylePaddingTop('30px');
 
         $Slice->addElement((new Element())
-            ->setContent('
-            {% if(Content.P'.$personId.'.Person.Data.Name.Salutation is not empty) %}
+            ->setContent('      
                 {{ Content.P'.$personId.'.Person.Data.Name.Salutation }}
-            {% else %}
-                Frau/Herr
-            {% endif %}
-            {{ Content.P' . $personId . '.Person.Data.Name.First }}
-            {{ Content.P' . $personId . '.Person.Data.Name.Last }}')
+                {{ Content.P' . $personId . '.Person.Data.Name.First }}
+                {{ Content.P' . $personId . '.Person.Data.Name.Last }}
+            ')
             ->styleBorderBottom('0.5px')
             ->styleAlignCenter()
             ->styleTextSize('26px')
@@ -451,7 +445,7 @@ abstract class FsStyle extends Certificate
             ->styleTextBold()
             ->stylePaddingTop('2px')
         );
-        $GenderString = 'Er/Sie';
+        $GenderString = '{{ Content.P' . $personId . '.Person.Data.Name.First }} {{ Content.P' . $personId . '.Person.Data.Name.Last }}';
         if(($tblPerson = Person::useService()->getPersonById($personId))){
             if(($tblGender = $tblPerson->getGender())){
                 if($tblGender->getName() == 'Männlich'){
@@ -504,11 +498,7 @@ abstract class FsStyle extends Certificate
         } else {
             $Slice->addElement((new Element())
                 ->setContent('zu führen.
-                {% if(Content.P'.$personId.'.Person.Data.Name.Salutation is not empty) %}
                 {{ Content.P'.$personId.'.Person.Data.Name.Salutation }}
-                {% else %}
-                    Frau/Herr
-                {% endif %}
                 {{ Content.P' . $personId . '.Person.Data.Name.First }}
                 {{ Content.P' . $personId . '.Person.Data.Name.Last }}
                  hat die Prüfung zum' )
@@ -620,14 +610,11 @@ abstract class FsStyle extends Certificate
         $Slice->stylePaddingTop('20px');
 
         $Slice->addElement((new Element())
-            ->setContent('
-            {% if(Content.P'.$personId.'.Person.Data.Name.Salutation is not empty) %}
+            ->setContent('      
                 {{ Content.P'.$personId.'.Person.Data.Name.Salutation }}
-            {% else %}
-                Frau/Herr
-            {% endif %}
-            {{ Content.P' . $personId . '.Person.Data.Name.First }}
-            {{ Content.P' . $personId . '.Person.Data.Name.Last }}')
+                {{ Content.P' . $personId . '.Person.Data.Name.First }}
+                {{ Content.P' . $personId . '.Person.Data.Name.Last }}
+            ')
             ->styleBorderBottom('0.5px')
             ->styleAlignCenter()
             ->styleTextSize('26px')
@@ -1022,19 +1009,18 @@ abstract class FsStyle extends Certificate
         if($isChangeableCertificateName){
             $Slice->addElement((new Element())
                 ->setContent('
-                {% if(Content.P' . $personId . '.Input.CertificateName is not empty) %}
-                    {{ Content.P' . $personId . '.Input.CertificateName }}
-                {% else %}
-                '.$CertificateName.'
-                {% endif %}' . ' für ' .
-            '{% if(Content.P'.$personId.'.Person.Data.Name.Salutation is not empty) %}
-                {{ Content.P'.$personId.'.Person.Data.Name.Salutation }}
-            {% else %}
-                Frau/Herr
-            {% endif %}'
-            .'{{ Content.P' . $personId . '.Person.Data.Name.First }}
-            {{ Content.P' . $personId . '.Person.Data.Name.Last }},
-            geboren am {{ Content.P' . $personId . '.Person.Common.BirthDates.Birthday }} - 2. Seite')
+                    {% if(Content.P' . $personId . '.Input.CertificateName is not empty) %}
+                        {{ Content.P' . $personId . '.Input.CertificateName }}
+                    {% else %}
+                    '.$CertificateName.'
+                    {% endif %}' . ' für ' .
+                    '{% if(Content.P'.$personId.'.Person.Data.Name.Salutation == "Herr") %}
+                        Herrn
+                    {% else %}
+                        {{ Content.P'.$personId.'.Person.Data.Name.Salutation }}
+                    {% endif %}
+                    {{ Content.P' . $personId . '.Person.Data.Name.First }} {{ Content.P' . $personId . '.Person.Data.Name.Last }},
+                    geboren am {{ Content.P' . $personId . '.Person.Common.BirthDates.Birthday }} - 2. Seite')
                 ->styleAlignCenter()
 //            ->styleTextSize('16px')
                 ->stylePaddingTop('20px')
@@ -1044,12 +1030,7 @@ abstract class FsStyle extends Certificate
             $Slice->addElement((new Element())
                 ->setContent($CertificateName.
                 ' für '.
-                '{% if(Content.P'.$personId.'.Person.Data.Name.Salutation is not empty) %}
-                    {{ Content.P'.$personId.'.Person.Data.Name.Salutation }}
-                {% else %}
-                    Frau/Herr
-                {% endif %}'.
-                '{{ Content.P' . $personId . '.Person.Data.Name.First }}
+                '{{ Content.P'.$personId.'.Person.Data.Name.Salutation }} {{ Content.P' . $personId . '.Person.Data.Name.First }}
                 {{ Content.P' . $personId . '.Person.Data.Name.Last }},
                 geboren am {{ Content.P' . $personId . '.Person.Common.BirthDates.Birthday }} - ' . $page . '. Seite')
                 ->styleAlignCenter()
@@ -1058,8 +1039,6 @@ abstract class FsStyle extends Certificate
                 ->styleBorderBottom('0.5px')
             );
         }
-
-
 
         return $Slice;
     }
@@ -1849,14 +1828,10 @@ abstract class FsStyle extends Certificate
             $postText = '
             {% if(Content.P' . $personId . '.Input.AdditionalRemarkFhr is not empty) %}
                 <br />
-                {% if(Content.P'.$personId.'.Person.Data.Name.Salutation is not empty) %}
-                    {{ Content.P'.$personId.'.Person.Data.Name.Salutation }}
-                {% else %}
-                    Frau/Herr
-                {% endif %}
-            {{ Content.P' . $personId . '.Person.Data.Name.First }}
-            {{ Content.P' . $personId . '.Person.Data.Name.Last }}
-            {{ Content.P'.$personId.'.Input.AdditionalRemarkFhr }}
+                {{ Content.P' . $personId . '.Person.Data.Name.Salutation }}
+                {{ Content.P' . $personId . '.Person.Data.Name.First }}
+                {{ Content.P' . $personId . '.Person.Data.Name.Last }}
+                {{ Content.P' . $personId . '.Input.AdditionalRemarkFhr }}
             {% endif %}';
         } else {
             $postText = '';
@@ -1895,11 +1870,7 @@ abstract class FsStyle extends Certificate
 
         $Slice->addElement((new Element())
             ->setContent('Aufgrund des erfolgreichen Fachschulabschlusses<br/>wird 
-             {% if(Content.P'.$personId.'.Person.Data.Name.Salutation is not empty) %}
-                {{ Content.P'.$personId.'.Person.Data.Name.Salutation }}
-            {% else %}
-                Frau/Herr
-            {% endif %}
+            {{ Content.P'.$personId.'.Person.Data.Name.Salutation }}
             {{ Content.P' . $personId . '.Person.Data.Name.First }}
             {{ Content.P' . $personId . '.Person.Data.Name.Last }}
              der')
@@ -2250,12 +2221,8 @@ abstract class FsStyle extends Certificate
                 , '25%')
             ->addElementColumn((new Element())
                 ->setContent('
-                    {% if(Content.P'.$personId.'.Person.Data.Name.Salutation is not empty) %}
-                        {{ Content.P'.$personId.'.Person.Data.Name.Salutation }}
-                    {% else %}
-                        Frau/Herr
-                    {% endif %}
                     {% if(Content.P' . $personId . '.Input.Transfer) %}
+                        {{ Content.P'.$personId.'.Person.Data.Name.Salutation }}
                         {{ Content.P' . $personId . '.Input.Transfer }}.
                     {% else %}
                           &nbsp;

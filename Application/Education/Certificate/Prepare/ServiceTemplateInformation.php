@@ -414,7 +414,7 @@ abstract class ServiceTemplateInformation extends ServiceLeave
                         && $level == 3
                     ) {
                         $Global->POST['Data'][$tblPrepareStudent->getId()]['RemarkWithoutTeam'] = $tblPerson->getFullName()
-                            . ' ' . ' hat regelmässig am theoretischen und praktischen Unterricht sowie der praktischen Ausbildung in den Klassenstufen 1 bis 3 teilgenommen.';
+                            . ' ' . ' hat regelmässig am theoretischen und praktischen Unterricht sowie der praktischen Ausbildung teilgenommen.';
                     }
                     if ($Page == 2
                         && $tblCertificate->getName() == 'Berufsfachschule Jahreszeugnis'

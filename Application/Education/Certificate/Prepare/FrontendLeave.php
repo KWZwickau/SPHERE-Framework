@@ -900,7 +900,7 @@ class FrontendLeave extends FrontendDiplomaTechnicalSchool
                 ));
                 $radio2 = (new RadioBox(
                     'Data[InformationList][EqualGraduation]',
-                    'gemäß § 27 Absatz 9 Satz 3 der Schulordnung Ober- und Abendoberschulen mit der Versetzung in die
+                    'gemäß § 27 Absatz 9 Satz 2 Nummer 2 der Schulordnung Ober- und Abendoberschulen mit der Versetzung in die
                      Klassenstufe 10 des Realschulbildungsganges und der erfolgreichen Teilnahme an der Prüfung zum Erwerb des Hauptschulabschlusses
                      den qualifizierenden Hauptschulabschluss erworben.',
                     GymAbgSekI::COURSE_HSQ
@@ -908,7 +908,7 @@ class FrontendLeave extends FrontendDiplomaTechnicalSchool
                 $radio3 = (new RadioBox(
                     'Data[InformationList][EqualGraduation]',
                     'gemäß § 63 Absatz 3 Nummer 3 der Schulordnung Ober- und Abendoberschulen einen dem Abschluss im Förderschwerpunkt Lernen gemäß 
-                     § 34a Absatz 1 der Schulordnung Förderschulen gleichgestellten Abschluss erworben.',
+                     § 34b Absatz 1 der Schulordnung Förderschulen gleichgestellten Abschluss erworben.',
                     GymAbgSekI::COURSE_LERNEN
                 ));
                 $radio4 = (new RadioBox(

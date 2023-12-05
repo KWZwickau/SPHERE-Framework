@@ -14,7 +14,6 @@ use SPHERE\Application\Education\Graduation\Grade\Grade;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Meta\Common\Common;
-use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubject;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -598,7 +597,13 @@ abstract class ServiceCertificateContent extends ServiceAbitur
                             if ($tblSchoolType->getShortName() == 'FOS' && $tblPrepareAdditionalGrade->getGrade()
                                 && intval($tblPrepareAdditionalGrade->getGrade())
                             ) {
-                                if (strpos($tblSubject->getName(), 'Sport') === false && strpos($tblSubject->getName(), 'Facharbeit') === false) {
+                                if ($tblConsumer && $tblConsumer->isConsumer(TblConsumer::TYPE_SACHSEN, 'HOGA')) {
+                                    // Sport und die Facharbeit werden bei der Berechnung der Durchschnittsnote nicht berücksichtigt
+                                    if (strpos($tblSubject->getName(), 'Sport') === false && strpos($tblSubject->getName(), 'Facharbeit') === false) {
+                                        $gradeListFOS[] = $tblPrepareAdditionalGrade->getGrade();
+                                    }
+                                } else {
+                                    // die Fussnote bei C.01.09 hat sich geändert, es werden jetzt alle Fächer berücksichtigt
                                     $gradeListFOS[] = $tblPrepareAdditionalGrade->getGrade();
                                 }
                             }

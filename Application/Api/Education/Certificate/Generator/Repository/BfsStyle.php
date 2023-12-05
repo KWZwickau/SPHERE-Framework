@@ -224,14 +224,11 @@ abstract class BfsStyle extends Certificate
         );
 
         $Slice->addElement((new Element())
-            ->setContent('
-            {% if(Content.P'.$personId.'.Person.Data.Name.Salutation is not empty) %}
+            ->setContent('      
                 {{ Content.P'.$personId.'.Person.Data.Name.Salutation }}
-            {% else %}
-                Frau/Herr
-            {% endif %}
-            {{ Content.P' . $personId . '.Person.Data.Name.First }}
-            {{ Content.P' . $personId . '.Person.Data.Name.Last }}')
+                {{ Content.P' . $personId . '.Person.Data.Name.First }}
+                {{ Content.P' . $personId . '.Person.Data.Name.Last }}
+            ')
             ->styleBorderBottom($isPersonNameUnderlined ? '0.5px' : '0px')
             ->styleAlignCenter()
             ->styleTextSize('26px')
@@ -281,14 +278,11 @@ abstract class BfsStyle extends Certificate
         $Slice->stylePaddingTop('20px');
 
         $Slice->addElement((new Element())
-            ->setContent('
-            {% if(Content.P'.$personId.'.Person.Data.Name.Salutation is not empty) %}
+            ->setContent('      
                 {{ Content.P'.$personId.'.Person.Data.Name.Salutation }}
-            {% else %}
-                Frau/Herr
-            {% endif %}
-            {{ Content.P' . $personId . '.Person.Data.Name.First }}
-            {{ Content.P' . $personId . '.Person.Data.Name.Last }}')
+                {{ Content.P' . $personId . '.Person.Data.Name.First }}
+                {{ Content.P' . $personId . '.Person.Data.Name.Last }}
+            ')
             ->styleBorderBottom('0.5px')
             ->styleAlignCenter()
             ->styleTextSize('26px')
@@ -342,7 +336,7 @@ abstract class BfsStyle extends Certificate
             ->styleTextBold()
             ->stylePaddingTop('10px')
         );
-        $GenderString = 'Er/Sie';
+        $GenderString = '{{ Content.P' . $personId . '.Person.Data.Name.First }} {{ Content.P' . $personId . '.Person.Data.Name.Last }}';
         if(($tblPerson = Person::useService()->getPersonById($personId))){
             if(($tblGender = $tblPerson->getGender())){
                 if($tblGender->getName() == 'Männlich'){
@@ -404,14 +398,11 @@ abstract class BfsStyle extends Certificate
         $Slice->stylePaddingTop('20px');
 
         $Slice->addElement((new Element())
-            ->setContent('
-            {% if(Content.P'.$personId.'.Person.Data.Name.Salutation is not empty) %}
+            ->setContent('      
                 {{ Content.P'.$personId.'.Person.Data.Name.Salutation }}
-            {% else %}
-                Frau/Herr
-            {% endif %}
-            {{ Content.P' . $personId . '.Person.Data.Name.First }}
-            {{ Content.P' . $personId . '.Person.Data.Name.Last }}')
+                {{ Content.P' . $personId . '.Person.Data.Name.First }}
+                {{ Content.P' . $personId . '.Person.Data.Name.Last }}
+            ')
             ->styleBorderBottom('0.5px')
             ->styleAlignCenter()
             ->styleTextSize('26px')
@@ -1161,25 +1152,25 @@ abstract class BfsStyle extends Certificate
      */
     protected function getSecondPageHead($personId, $CertificateName = 'Halbjahresinformation', $isChangeableCertificateName = false)
     {
-
         $Slice = new Slice();
 
         if($isChangeableCertificateName){
             $Slice->addElement((new Element())
                 ->setContent('
-                {% if(Content.P' . $personId . '.Input.CertificateName is not empty) %}
-                    {{ Content.P' . $personId . '.Input.CertificateName }}
-                {% else %}
-                '.$CertificateName.'
-                {% endif %}' . ' für ' .
-//            {% if(Content.P'.$personId.'.Person.Data.Name.Salutation is not empty) %}
-//                {{ Content.P'.$personId.'.Person.Data.Name.Salutation }}
-//            {% else %}
-//                Frau/Herr
-//            {% endif %}
-                    '{{ Content.P' . $personId . '.Person.Data.Name.First }}
-            {{ Content.P' . $personId . '.Person.Data.Name.Last }},
-            geboren am {{ Content.P' . $personId . '.Person.Common.BirthDates.Birthday }} - 2. Seite')
+                    {% if(Content.P' . $personId . '.Input.CertificateName is not empty) %}
+                        {{ Content.P' . $personId . '.Input.CertificateName }}
+                    {% else %}
+                        ' . $CertificateName . '
+                    {% endif %}' . ' für ' .
+                    '{% if(Content.P'.$personId.'.Person.Data.Name.Salutation == "Herr") %}
+                        Herrn
+                    {% else %}
+                        {{ Content.P'.$personId.'.Person.Data.Name.Salutation }}
+                    {% endif %}
+                    {{ Content.P' . $personId . '.Person.Data.Name.First }}
+                    {{ Content.P' . $personId . '.Person.Data.Name.Last }},
+                    geboren am {{ Content.P' . $personId . '.Person.Common.BirthDates.Birthday }} - 2. Seite
+                ')
                 ->styleAlignCenter()
 //            ->styleTextSize('16px')
                 ->stylePaddingTop('20px')
@@ -1188,9 +1179,15 @@ abstract class BfsStyle extends Certificate
         } else {
             $Slice->addElement((new Element())
                 ->setContent($CertificateName.
-                ' für {{ Content.P' . $personId . '.Person.Data.Name.First }}
-                {{ Content.P' . $personId . '.Person.Data.Name.Last }},
-                geboren am {{ Content.P' . $personId . '.Person.Common.BirthDates.Birthday }} - 2. Seite')
+                    ' für 
+                    {% if(Content.P'.$personId.'.Person.Data.Name.Salutation == "Herr") %}
+                        Herrn
+                    {% else %}
+                        {{ Content.P'.$personId.'.Person.Data.Name.Salutation }}
+                    {% endif %} 
+                    {{ Content.P' . $personId . '.Person.Data.Name.First }} {{ Content.P' . $personId . '.Person.Data.Name.Last }},
+                    geboren am {{ Content.P' . $personId . '.Person.Common.BirthDates.Birthday }} - 2. Seite
+                ')
                 ->styleAlignCenter()
 //            ->styleTextSize('16px')
                 ->stylePaddingTop('20px')
@@ -1764,7 +1761,7 @@ abstract class BfsStyle extends Certificate
         if($IsAbsence) {
             $Slice->addElement((new Element())
                 ->setContent('Fehlzeiten Unterricht entschuldigt: {% if(Content.P' . $personId . '.Input.Missing is not empty) %}
-                    {{ Content.P' . $personId . '.Input.Missing }} Stunden
+                    {{ Content.P' . $personId . '.Input.Missing }} Tage
                 {% else %}
                     &nbsp;
                 {% endif %}')
@@ -1772,7 +1769,7 @@ abstract class BfsStyle extends Certificate
             );
             $Slice->addElement((new Element())
                 ->setContent('Fehlzeiten Unterricht unentschuldigt: {% if(Content.P' . $personId . '.Input.Bad.Missing is not empty) %}
-                    {{ Content.P' . $personId . '.Input.Bad.Missing }} Stunden
+                    {{ Content.P' . $personId . '.Input.Bad.Missing }} Tage
                 {% else %}
                     &nbsp;
                 {% endif %}')
@@ -2172,12 +2169,8 @@ abstract class BfsStyle extends Certificate
                 , '25%')
             ->addElementColumn((new Element())
                 ->setContent('
-                    {% if(Content.P'.$personId.'.Person.Data.Name.Salutation is not empty) %}
-                        {{ Content.P'.$personId.'.Person.Data.Name.Salutation }}
-                    {% else %}
-                        Frau/Herr
-                    {% endif %}
                     {% if(Content.P' . $personId . '.Input.Transfer) %}
+                        {{ Content.P'.$personId.'.Person.Data.Name.Salutation }}
                         {{ Content.P' . $personId . '.Input.Transfer }}.
                     {% else %}
                           &nbsp;
@@ -2503,7 +2496,7 @@ abstract class BfsStyle extends Certificate
                                 {% else %}
                                     &lt;X&gt;
                                 {% endif %}
-                                Stunden
+                                Tage
                             {% else %}
                                 &nbsp;
                             {% endif %}
@@ -2517,7 +2510,7 @@ abstract class BfsStyle extends Certificate
                             {% if(Content.P' . $personId . '.Input.SubareaTimeHDone' . $i . ' is not empty) %}
                                 davon anwesend
                                 {{ Content.P' . $personId . '.Input.SubareaTimeHDone' . $i . ' }}
-                                Stunden
+                                Tage
                             {% else %}
                                 &nbsp;
                             {% endif %}
