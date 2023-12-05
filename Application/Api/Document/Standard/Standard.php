@@ -150,14 +150,15 @@ class Standard extends Extension implements IModuleInterface
     }
 
     /**
-     * @param null $PersonId
-     * @param null $YearId
+     * @param $PersonId
+     * @param $YearId
+     * @param string $View
      *
      * @return Stage|string
      */
-    public static function createGradebookOverviewPdf($PersonId = null, $YearId = null)
+    public static function createGradebookOverviewPdf($PersonId = null, $YearId = null, string $View = 'Parent')
     {
-        return Creator::createGradebookOverviewPdf($PersonId, $YearId);
+        return Creator::createGradebookOverviewPdf($PersonId, $YearId, $View);
     }
 
     /**

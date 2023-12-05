@@ -112,17 +112,18 @@ class Creator extends Extension
     /**
      * @param $PersonId
      * @param $YearId
+     * @param string $View
      * @param string $paperOrientation
      *
      * @return Stage|string
      */
-    public static function createGradebookOverviewPdf($PersonId, $YearId, string $paperOrientation = Creator::PAPERORIENTATION_LANDSCAPE)
+    public static function createGradebookOverviewPdf($PersonId, $YearId, string $View = 'Parent', string $paperOrientation = Creator::PAPERORIENTATION_LANDSCAPE)
     {
         if (($tblPerson = Person::useService()->getPersonById($PersonId))
             && ($tblYear = Term::useService()->getYearById($YearId))
         ) {
             $Document = new GradebookOverview\GradebookOverview();
-            $pageList[] = $Document->buildPage($tblPerson, $tblYear);
+            $pageList[] = $Document->buildPage($tblPerson, $tblYear, $View);
 
             $File = self::buildDummyFile($Document, array(), $pageList, $paperOrientation);
 
@@ -165,7 +166,7 @@ class Creator extends Extension
                     $Document = new GradebookOverview\GradebookOverview();
                     $documentName = $Document->getName();
 
-                    $pageList[] = $Document->buildPage($tblPerson, $tblYear);
+                    $pageList[] = $Document->buildPage($tblPerson, $tblYear, 'All');
                 }
 
                 if(!empty($pageList)){
