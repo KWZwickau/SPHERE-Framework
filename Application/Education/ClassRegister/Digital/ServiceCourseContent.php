@@ -102,7 +102,7 @@ abstract class ServiceCourseContent extends AbstractService
             $Data['Homework'],
             $Data['Remark'],
             $Data['Room'],
-            isset($Data['IsDoubleLesson']),
+            isset($Data['IsTrippleLesson']) ? 2 : (isset($Data['IsDoubleLesson']) ? 1 : 0),
             ($tblPerson = Account::useService()->getPersonByLogin()) ? $tblPerson : null
         );
 
@@ -131,7 +131,7 @@ abstract class ServiceCourseContent extends AbstractService
             $Data['Homework'],
             $Data['Remark'],
             $Data['Room'],
-            isset($Data['IsDoubleLesson']),
+            isset($Data['IsTrippleLesson']) ? 2 : (isset($Data['IsDoubleLesson']) ? 1 : 0),
             ($tblPerson = Account::useService()->getPersonByLogin()) ? $tblPerson : null
         );
     }
