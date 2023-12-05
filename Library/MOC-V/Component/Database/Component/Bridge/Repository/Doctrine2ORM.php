@@ -18,7 +18,7 @@ class Doctrine2ORM extends Doctrine2DBAL implements IBridgeInterface
     public function __construct()
     {
 
-        require_once(__DIR__.'/../../../../../Php8Combined/vendor/autoload.php');
+        require_once(__DIR__.DIRECTORY_SEPARATOR.'../../../../../Php8Combined/vendor/autoload.php');
 ////        AutoLoader::getNamespaceAutoLoader('Doctrine\ORM', __DIR__.'/../../../Vendor/Doctrine2ORM/2.5.0/lib');
 //        require_once(__DIR__.'/../../../Vendor/Doctrine2ORM/2.16.1/autoload.php');
 //        AutoLoader::getNamespaceAutoLoader('Doctrine\Common\Cache',

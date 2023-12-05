@@ -32,14 +32,14 @@ class Script extends Extension
             "'undefined' !== typeof jQuery.deparam"
         );
 
-//        $this->setSource(
-//            'jQuery', '/Library/jQuery/1.11.3/jquery-1.11.3.min.js',
-//            "'undefined' !== typeof jQuery"
-//        );
         $this->setSource(
-            'jQuery', '/Library/jQuery/3.7.1/jquery-3.7.1.min.js',
+            'jQuery', '/Library/jQuery/1.11.3/jquery-1.11.3.min.js',
             "'undefined' !== typeof jQuery"
         );
+//        $this->setSource(
+//            'jQuery', '/Library/jQuery/3.7.1/jquery-3.7.1.min.js',
+//            "'undefined' !== typeof jQuery"
+//        );
         $this->setSource(
             'jQuery.Ui', '/Library/jQuery.Ui/1.11.4/jquery-ui.min.js',
             "'undefined' !== typeof jQuery.ui"

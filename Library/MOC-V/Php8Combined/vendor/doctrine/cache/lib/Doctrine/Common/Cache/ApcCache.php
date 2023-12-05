@@ -2,13 +2,13 @@
 
 namespace Doctrine\Common\Cache;
 
-use function apc_cache_info;
-use function apc_clear_cache;
-use function apc_delete;
-use function apc_exists;
-use function apc_fetch;
-use function apc_sma_info;
-use function apc_store;
+use function apcu_cache_info;
+use function apcu_clear_cache;
+use function apcu_delete;
+use function apcu_exists;
+use function apcu_fetch;
+use function apcu_sma_info;
+use function apcu_store;
 
 use const PHP_VERSION_ID;
 
@@ -26,7 +26,7 @@ class ApcCache extends CacheProvider
      */
     protected function doFetch($id)
     {
-        return apc_fetch($id);
+        return apcu_fetch($id);
     }
 
     /**
@@ -34,7 +34,7 @@ class ApcCache extends CacheProvider
      */
     protected function doContains($id)
     {
-        return apc_exists($id);
+        return apcu_exists($id);
     }
 
     /**
@@ -42,7 +42,7 @@ class ApcCache extends CacheProvider
      */
     protected function doSave($id, $data, $lifeTime = 0)
     {
-        return apc_store($id, $data, $lifeTime);
+        return apcu_store($id, $data, $lifeTime);
     }
 
     /**
@@ -50,8 +50,8 @@ class ApcCache extends CacheProvider
      */
     protected function doDelete($id)
     {
-        // apc_delete returns false if the id does not exist
-        return apc_delete($id) || ! apc_exists($id);
+        // apcu_delete returns false if the id does not exist
+        return apcu_delete($id) || ! apcu_exists($id);
     }
 
     /**
@@ -59,7 +59,7 @@ class ApcCache extends CacheProvider
      */
     protected function doFlush()
     {
-        return apc_clear_cache() && apc_clear_cache('user');
+        return apcu_clear_cache() && apcu_clear_cache('user');
     }
 
     /**
@@ -67,7 +67,7 @@ class ApcCache extends CacheProvider
      */
     protected function doFetchMultiple(array $keys)
     {
-        return apc_fetch($keys) ?: [];
+        return apcu_fetch($keys) ?: [];
     }
 
     /**
@@ -75,7 +75,7 @@ class ApcCache extends CacheProvider
      */
     protected function doSaveMultiple(array $keysAndValues, $lifetime = 0)
     {
-        $result = apc_store($keysAndValues, null, $lifetime);
+        $result = apcu_store($keysAndValues, null, $lifetime);
 
         return empty($result);
     }
@@ -85,8 +85,8 @@ class ApcCache extends CacheProvider
      */
     protected function doGetStats()
     {
-        $info = apc_cache_info('', true);
-        $sma  = apc_sma_info();
+        $info = apcu_cache_info('', true);
+        $sma  = apcu_sma_info();
 
         // @TODO - Temporary fix @see https://github.com/krakjoe/apcu/pull/42
         if (PHP_VERSION_ID >= 50500) {
