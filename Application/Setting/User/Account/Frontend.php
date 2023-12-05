@@ -481,10 +481,8 @@ class Frontend extends Extension implements IFrontendInterface
                 $item['ActiveInfo'] = new Center(new ToolTip(new InfoIcon(), 'Aktuell kein Schüler'));
                 $item['IsInfo'] = true;
                 if(!$IsDeleteModal){
-                    $item['GroupByTime'] = ($tblUserAccount->getAccountCreator()
-                            ? ''.$tblUserAccount->getAccountCreator().' - '
-                            : new Muted('-NA-  ')
-                        ).$tblUserAccount->getGroupByTime('d.m.Y');
+                    $item['Creator'] = $tblUserAccount->getAccountCreator() ?: new Muted('-NA-');
+                    $item['CreateDate'] = $tblUserAccount->getGroupByTime('d.m.Y');
                     $item['LastUpdate'] = '';
                     $item['Option'] =
                         new Standard('', '/Setting/User/Account/Password/Generation', new Mail(),
@@ -602,16 +600,18 @@ class Frontend extends Extension implements IFrontendInterface
                         'DivisionCourseD'   => 'aktuelle Klasse',
                         'DivisionCourseC'   => 'aktuelle Stammgruppe',
                         'ActiveInfo'        => 'Info',
-                        'GroupByTime'       => new ToolTip('Erstellung '.new InfoIcon(),'Benutzer - Datum'),
+                        'Creator'           => 'Ersteller',
+                        'CreateDate'        => 'Erstell&shy;datum',
                         'LastUpdate'        => new ToolTip('Passwort bearbeitet '.new InfoIcon(), 'Art - Benutzer - Datum'),
                         'Option'            => ''
                     ), array(
                         'order'      => array(
-                            array(6, 'asc'),
+                            array(7, 'asc'),
 
                         ),
                         'columnDefs' => array(
                             array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
+                            array('type' => 'de_date', 'targets' => 9),
                             array('width' => '142px', 'orderable' => false, 'targets' => -1)
                         )
                     )
@@ -712,10 +712,8 @@ class Frontend extends Extension implements IFrontendInterface
                 $Item['ActiveInfo'] = new ToolTip(new InfoIcon(), 'keine aktiven Schüler');
                 $Item['IsInfo'] = true;
                 if(!$IsDeleteModal){
-                    $Item['GroupByTime'] = ($tblUserAccount->getAccountCreator()
-                            ? ''.$tblUserAccount->getAccountCreator().' - '
-                            : new Muted('-NA-  ')
-                        ).$tblUserAccount->getGroupByTime('d.m.Y');
+                    $Item['Creator'] = $tblUserAccount->getAccountCreator() ?: new Muted('-NA-');
+                    $Item['CreateDate'] = $tblUserAccount->getGroupByTime('d.m.Y');
                     $Item['LastUpdate'] = '';
                     $Item['Option'] =
                         new Standard('', '/Setting/User/Account/Password/Generation', new Mail(),
@@ -820,13 +818,15 @@ class Frontend extends Extension implements IFrontendInterface
                         'Address'           => 'Adresse',
                         'PersonListStudent' => 'Sorgeberechtigt für',
                         'ActiveInfo'        => 'Info',
-                        'GroupByTime'       => new ToolTip('Erstellung '.new InfoIcon(),'Benutzer - Datum'),
+                        'Creator'           => 'Ersteller',
+                        'CreateDate'        => 'Erstell&shy;datum',
                         'LastUpdate'        => new ToolTip('Passwort bearbeitet '.new InfoIcon(), 'Art - Benutzer - Datum'),
                         'Option'            => ''
                     ), array(
                         'order'      => array(array(5, 'asc')),
                         'columnDefs' => array(
                             array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
+                            array('type' => 'de_date', 'targets' => 7),
                             array('width' => '142px', 'orderable' => false, 'targets' => -1)
                         )
                     )
