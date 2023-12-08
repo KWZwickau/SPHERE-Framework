@@ -342,7 +342,7 @@ class Data  extends AbstractData
      * @param $Homework
      * @param $Remark
      * @param $Room
-     * @param $IsDoubleLesson
+     * @param $countLessons
      * @param TblPerson|null $tblPerson
      *
      * @return TblCourseContent
@@ -355,7 +355,7 @@ class Data  extends AbstractData
         $Homework,
         $Remark,
         $Room,
-        $IsDoubleLesson,
+        $countLessons,
         TblPerson $tblPerson = null
     ): TblCourseContent {
         $Manager = $this->getEntityManager();
@@ -369,7 +369,7 @@ class Data  extends AbstractData
         $Entity->setHomework($Homework);
         $Entity->setRemark($Remark);
         $Entity->setRoom($Room);
-        $Entity->setIsDoubleLesson($IsDoubleLesson);
+        $Entity->setCountLessons($countLessons);
 
         $Manager->saveEntity($Entity);
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
@@ -385,7 +385,7 @@ class Data  extends AbstractData
      * @param $Homework
      * @param $Remark
      * @param $Room
-     * @param $IsDoubleLesson
+     * @param $countLessons
      * @param TblPerson|null $tblPerson
      *
      * @return bool
@@ -398,7 +398,7 @@ class Data  extends AbstractData
         $Homework,
         $Remark,
         $Room,
-        $IsDoubleLesson,
+        $countLessons,
         TblPerson $tblPerson = null
     ): bool {
         $Manager = $this->getConnection()->getEntityManager();
@@ -412,7 +412,7 @@ class Data  extends AbstractData
             $Entity->setHomework($Homework);
             $Entity->setRemark($Remark);
             $Entity->setRoom($Room);
-            $Entity->setIsDoubleLesson($IsDoubleLesson);
+            $Entity->setCountLessons($countLessons);
             $Entity->setServiceTblPerson($tblPerson);
 
             $Manager->saveEntity($Entity);

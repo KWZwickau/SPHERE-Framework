@@ -256,7 +256,7 @@ class FrontendCourseContent extends Extension implements IFrontendInterface
                 $lessonArray = array();
                 $lesson = $tblCourseContent->getLesson();
                 $lessonArray[$lesson] = $lesson;
-                if ($tblCourseContent->getIsDoubleLesson()) {
+                for ($i = 1; $i < $tblCourseContent->getCountLessons(); $i++) {
                     $lesson++;
                     $lessonArray[$lesson] = $lesson;
                 }
@@ -302,7 +302,7 @@ class FrontendCourseContent extends Extension implements IFrontendInterface
                 $dataList[] = array(
                     'Date' => $tblCourseContent->getDate(),
                     'Lesson' => new Center(implode(', ', $lessonArray)),
-                    'IsDoubleLesson' => new Center($tblCourseContent->getIsDoubleLesson() ? 'X' : ''),
+                    'CountLessons' => new Center($tblCourseContent->getCountLessons()),
                     'Content' => $tblCourseContent->getContent(),
                     'Homework' => $tblCourseContent->getHomework(),
                     'Remark' => $tblCourseContent->getRemark(),
@@ -335,7 +335,7 @@ class FrontendCourseContent extends Extension implements IFrontendInterface
             $columns = array(
                 'Date' => 'Datum',
                 'Lesson' => new ToolTip('UE', 'Unterrichtseinheit'),
-                'IsDoubleLesson' => 'Doppel&shy;stunde',
+                'CountLessons' => 'Anzahl UEs',
                 'Room' => 'Raum',
                 'Content' => 'Thema',
                 'Homework' => 'Hausaufgaben',
@@ -348,7 +348,7 @@ class FrontendCourseContent extends Extension implements IFrontendInterface
             $columns = array(
                 'Date' => 'Datum',
                 'Lesson' => new ToolTip('UE', 'Unterrichtseinheit'),
-                'IsDoubleLesson' => 'Doppel&shy;stunde',
+                'CountLessons' => 'Anzahl UEs',
                 'Room' => 'Raum',
                 'Content' => 'Thema',
                 'Homework' => 'Hausaufgaben',
@@ -406,7 +406,8 @@ class FrontendCourseContent extends Extension implements IFrontendInterface
             $Global->POST['Data']['Homework'] = $tblCourseContent->getHomework();
             $Global->POST['Data']['Remark'] = $tblCourseContent->getRemark();
             $Global->POST['Data']['Room'] = $tblCourseContent->getRoom();
-            $Global->POST['Data']['IsDoubleLesson'] = $tblCourseContent->getIsDoubleLesson() ? 1 : 0;
+            $Global->POST['Data']['IsDoubleLesson'] = $tblCourseContent->getCountLessons() == 2;
+            $Global->POST['Data']['IsTrippleLesson'] = $tblCourseContent->getCountLessons() == 3;
 
             $Global->savePost();
         }
@@ -414,6 +415,7 @@ class FrontendCourseContent extends Extension implements IFrontendInterface
         if ($setPost && !$CourseContentId) {
             $Global = $this->getGlobal();
             $Global->POST['Data']['Date'] = (new DateTime('today'))->format('d.m.Y');
+            $Global->POST['Data']['IsDoubleLesson'] = 1;
             $Global->savePost();
         }
 
@@ -464,7 +466,10 @@ class FrontendCourseContent extends Extension implements IFrontendInterface
                 new FormRow(array(
                     new FormColumn(
                         new CheckBox('Data[IsDoubleLesson]', 'Doppelstunde', 1)
-                    ),
+                    , 6),
+                    new FormColumn(
+                        new CheckBox('Data[IsTrippleLesson]', 'Dreifachstunde', 1)
+                    , 6),
                 )),
                 new FormRow(array(
                     new FormColumn(
