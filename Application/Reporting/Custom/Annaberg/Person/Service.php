@@ -209,12 +209,12 @@ class Service extends Extension
             foreach($tblToPersonList as $tblToPerson) {
                 if(($tblType = $tblToPerson->getTblType())
                 && ($tblPhone = $tblToPerson->getTblPhone())) {
-                    if($tblType->getName() == 'Privat') {
+                    if ($tblToPerson->getIsEmergencyContact()) {
+                        $secureList[] = $tblPhone->getNumber().($getArray ? ' ' : '&nbsp;').$this->getShortTypeByTblToPersonPhone($tblToPerson);
+                    } elseif($tblType->getName() == 'Privat') {
                         $privateList[] = $tblPhone->getNumber().($getArray ? ' ' : '&nbsp;').$this->getShortTypeByTblToPersonPhone($tblToPerson);
                     } elseif($tblType->getName() == 'Geschäftlich') {
                         $companyList[] = $tblPhone->getNumber().($getArray ? ' ' : '&nbsp;').$this->getShortTypeByTblToPersonPhone($tblToPerson);
-                    } elseif($tblType->getName() == 'Notfall') {
-                        $secureList[] = $tblPhone->getNumber().($getArray ? ' ' : '&nbsp;').$this->getShortTypeByTblToPersonPhone($tblToPerson);
                     } elseif($tblType->getName() == 'Fax') {
                         $faxList[] = $tblPhone->getNumber().($getArray ? ' ' : '&nbsp;').$this->getShortTypeByTblToPersonPhone($tblToPerson);
                     }
@@ -241,6 +241,10 @@ class Service extends Extension
     {
 
         $result = '';
+        if ($tblToPerson->getIsEmergencyContact()) {
+            $result = 'n';
+        }
+
         if(($tblType = $tblToPerson->getTblType())) {
             switch ($tblType->getName()) {
                 case 'Privat':
@@ -248,9 +252,6 @@ class Service extends Extension
                     break;
                 case 'Geschäftlich':
                     $result = 'g';
-                    break;
-                case 'Notfall':
-                    $result = 'n';
                     break;
                 case 'Fax':
                     $result = 'f';

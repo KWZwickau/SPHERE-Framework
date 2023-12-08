@@ -292,8 +292,10 @@ class Service extends AbstractService
 
             $tblPhoneType = isset($Data['Type']) && ($tblPhoneType = Phone::useService()->getTypeById($Data['Type'])) ? $tblPhoneType : null;
 
+            $isEmergencyContact = isset($Data['IsEmergencyContact']);
+
             (new Data($this->getBinding()))->createOnlineContact(TblOnlineContact::VALUE_TYPE_PHONE, $tblToPerson ?: null, $tblPhone, $tblPerson,
-                $Data['Remark'], $tblPersonLogin, $tblPhoneType);
+                $Data['Remark'], $tblPersonLogin, $tblPhoneType, $isEmergencyContact);
 
             if (isset($Data['PersonList'])) {
                 foreach ($Data['PersonList'] as $personId => $value) {
@@ -305,7 +307,7 @@ class Service extends AbstractService
                         }
 
                         (new Data($this->getBinding()))->createOnlineContact(TblOnlineContact::VALUE_TYPE_PHONE, $tblToPersonTemp ?: null, $tblPhone, $tblPersonItem,
-                            $Data['Remark'], $tblPersonLogin, $tblPhoneType);
+                            $Data['Remark'], $tblPersonLogin, $tblPhoneType, $isEmergencyContact);
                     }
                 }
             }

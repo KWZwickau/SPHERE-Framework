@@ -79,6 +79,11 @@ class TblOnlineContact extends Element
     protected $serviceTblPersonCreator;
 
     /**
+     * @Column(type="boolean")
+     */
+    protected $IsEmergencyContact;
+
+    /**
      * @return string
      */
     public function getContactType(): string
@@ -304,5 +309,21 @@ class TblOnlineContact extends Element
         } else {
             $this->serviceTblNewContactType = null;
         }
+    }
+
+    /**
+     * @return bool
+     */
+    public function getIsEmergencyContact(): bool
+    {
+        return $this->IsEmergencyContact;
+    }
+
+    /**
+     * @param bool $IsEmergencyContact
+     */
+    public function setIsEmergencyContact(bool $IsEmergencyContact): void
+    {
+        $this->IsEmergencyContact = $IsEmergencyContact;
     }
 }

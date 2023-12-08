@@ -37,6 +37,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Map;
 use SPHERE\Common\Frontend\Icon\Repository\MapMarker;
 use SPHERE\Common\Frontend\Icon\Repository\Nameplate;
+use SPHERE\Common\Frontend\Icon\Repository\Phone as PhoneIcon;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\TempleChurch;
@@ -588,7 +589,7 @@ class FrontendFamily extends FrontendReadOnly
                     // Telefonnummern
                     if ($ranking == 1) {
                         $formRows[] = new FormRow(new FormColumn(
-                            new \SPHERE\Common\Frontend\Form\Repository\Title(new \SPHERE\Common\Frontend\Icon\Repository\Phone() . ' Telefonnummern')
+                            new \SPHERE\Common\Frontend\Form\Repository\Title(new PhoneIcon() . ' Telefonnummern')
                         ));
                     }
                     $formRows[] = new FormRow(new FormColumn(
@@ -619,7 +620,7 @@ class FrontendFamily extends FrontendReadOnly
             ));
 
             $formRows[] = new FormRow(new FormColumn(
-                new \SPHERE\Common\Frontend\Form\Repository\Title(new \SPHERE\Common\Frontend\Icon\Repository\Phone() . ' Telefonnummern')
+                new \SPHERE\Common\Frontend\Form\Repository\Title(new PhoneIcon() . ' Telefonnummern')
             ));
             $formRows[] = new FormRow(new FormColumn(
                 ApiFamilyEdit::receiverBlock($this->getPhoneContent(1, $PersonIdList, $Data, $Errors), 'PhoneContent_1')
@@ -766,13 +767,12 @@ class FrontendFamily extends FrontendReadOnly
         return new Panel(
             'Neue Telefonnummer',
             new Layout(new LayoutGroup(new LayoutRow(array(
+                new LayoutColumn(array(
+                    $this->getInputField('SelectBox', $key, 'Type', 'Typ', '', true, $Errors, array('{{ Name }} {{ Description }}' => $tblTypeAll), new TileBig()),
+                    $this->getInputField('CheckBox', $key, 'IsEmergencyContact', 'Notfallnummer', '', false, $Errors)
+                ), 3),
                 new LayoutColumn(
-                    $this->getInputField('SelectBox', $key, 'Type', 'Typ', '', true, $Errors,
-                        array('{{ Name }} {{ Description }}' => $tblTypeAll), new TileBig())
-                    , 3),
-                new LayoutColumn(
-                    $this->getInputField('TextField', $key, 'Number', 'Telefonnummer', 'Telefonnummer', true, $Errors,
-                       array(), new \SPHERE\Common\Frontend\Icon\Repository\Phone())
+                    $this->getInputField('TextField', $key, 'Number', 'Telefonnummer', 'Telefonnummer', true, $Errors, array(), new PhoneIcon())
                     , 3),
                 new LayoutColumn(
                     $this->getPersonOptions('Data[P' . $Ranking . '][PersonList]', $PersonIdList)
@@ -905,6 +905,8 @@ class FrontendFamily extends FrontendReadOnly
                 break;
             case 'MailField': $inputField = new MailField('Data[' . $key . '][' . $identifier . ']', $placeholder,
                 $label . ($isRequired ? ' ' . new DangerText('*') : ''), $icon);
+                break;
+            case 'CheckBox': $inputField = new CheckBox('Data[' . $key . '][' . $identifier . ']', $label, 1);
                 break;
             case 'TextField':
             default: $inputField = new TextField('Data[' . $key . '][' . $identifier . ']', $placeholder,

@@ -218,23 +218,26 @@ class Service extends Extension
                     $PhoneNumber = $tblToPersonPhone->getTblPhone()->getNumber();
                     $TypeName = $tblToPersonPhone->getTblType()->getName();
                     $TypeDescription = $tblToPersonPhone->getTblType()->getDescription();
-                    if($TypeDescription == 'Festnetz' && $TypeName == 'Privat'){
-                        $phoneFP[] = $PhoneNumber;
-                    }
-                    if($TypeDescription == 'Mobil' && $TypeName == 'Privat'){
-                        $phoneMP[] = $PhoneNumber;
-                    }
-                    if($TypeDescription == 'Festnetz' && $TypeName == 'Geschäftlich'){
-                        $phoneFB[] = $PhoneNumber;
-                    }
-                    if($TypeDescription == 'Mobil' && $TypeName == 'Geschäftlich'){
-                        $phoneMB[] = $PhoneNumber;
-                    }
-                    if($TypeName == 'Notfall' && $TypeDescription == 'Festnetz'){
-                        $phoneEP[] = $PhoneNumber;
-                    }
-                    if($TypeName == 'Notfall' && $TypeDescription == 'Mobil'){
-                        $phoneEM[] = $PhoneNumber;
+                    if ($tblToPersonPhone->getIsEmergencyContact()) {
+                        if ($TypeDescription == 'Festnetz') {
+                            $phoneEP[] = $PhoneNumber;
+                        }
+                        if ($TypeDescription == 'Mobil') {
+                            $phoneEM[] = $PhoneNumber;
+                        }
+                    } else {
+                        if ($TypeDescription == 'Festnetz' && $TypeName == 'Privat') {
+                            $phoneFP[] = $PhoneNumber;
+                        }
+                        if ($TypeDescription == 'Mobil' && $TypeName == 'Privat') {
+                            $phoneMP[] = $PhoneNumber;
+                        }
+                        if ($TypeDescription == 'Festnetz' && $TypeName == 'Geschäftlich') {
+                            $phoneFB[] = $PhoneNumber;
+                        }
+                        if ($TypeDescription == 'Mobil' && $TypeName == 'Geschäftlich') {
+                            $phoneMB[] = $PhoneNumber;
+                        }
                     }
                 }
                 if(!empty($phoneFP)){
@@ -340,23 +343,26 @@ class Service extends Extension
                                     $PhoneNumber = $tblToPersonPhone->getTblPhone()->getNumber();
                                     $TypeName = $tblToPersonPhone->getTblType()->getName();
                                     $TypeDescription = $tblToPersonPhone->getTblType()->getDescription();
-                                    if($TypeDescription == 'Festnetz' && $TypeName == 'Privat'){
-                                        $phoneFP[] = $PhoneNumber;
-                                    }
-                                    if($TypeDescription == 'Mobil' && $TypeName == 'Privat'){
-                                        $phoneMP[] = $PhoneNumber;
-                                    }
-                                    if($TypeDescription == 'Festnetz' && $TypeName == 'Geschäftlich'){
-                                        $phoneFB[] = $PhoneNumber;
-                                    }
-                                    if($TypeDescription == 'Mobil' && $TypeName == 'Geschäftlich'){
-                                        $phoneMB[] = $PhoneNumber;
-                                    }
-                                    if($TypeName == 'Notfall' && $TypeDescription == 'Festnetz'){
-                                        $phoneEP[] = $PhoneNumber;
-                                    }
-                                    if($TypeName == 'Notfall' && $TypeDescription == 'Mobil'){
-                                        $phoneEM[] = $PhoneNumber;
+                                    if ($tblToPersonPhone->getIsEmergencyContact()) {
+                                        if ($TypeDescription == 'Festnetz') {
+                                            $phoneEP[] = $PhoneNumber;
+                                        }
+                                        if ($TypeDescription == 'Mobil') {
+                                            $phoneEM[] = $PhoneNumber;
+                                        }
+                                    } else {
+                                        if ($TypeDescription == 'Festnetz' && $TypeName == 'Privat') {
+                                            $phoneFP[] = $PhoneNumber;
+                                        }
+                                        if ($TypeDescription == 'Mobil' && $TypeName == 'Privat') {
+                                            $phoneMP[] = $PhoneNumber;
+                                        }
+                                        if ($TypeDescription == 'Festnetz' && $TypeName == 'Geschäftlich') {
+                                            $phoneFB[] = $PhoneNumber;
+                                        }
+                                        if ($TypeDescription == 'Mobil' && $TypeName == 'Geschäftlich') {
+                                            $phoneMB[] = $PhoneNumber;
+                                        }
                                     }
                                 }
                                 if(!empty($phoneFP)){

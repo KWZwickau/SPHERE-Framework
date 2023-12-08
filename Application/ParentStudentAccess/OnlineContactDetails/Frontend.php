@@ -294,6 +294,7 @@ class Frontend extends Extension implements IFrontendInterface
             $inputList[] = (new SelectBox('Data[Type]', 'Typ', array('{{ Name }} {{ Description }}' => Phone::useService()->getTypeAll()), new TileBig()))->setRequired();
         }
         $inputList[] = (new TextField('Data[Number]', 'Telefonnummer', 'Telefonnummer', new PhoneIcon()))->setRequired();
+        $inputList[] = new CheckBox('Data[IsEmergencyContact]', 'Notfallnummer', 1);
         $inputList[] = new TextArea('Data[Remark]', $remarkLabel, $remarkLabel, new Comment());
 
         $rows[] = new FormRow(array(
@@ -477,7 +478,8 @@ class Frontend extends Extension implements IFrontendInterface
         $content[] = $tblOnlineContact->getContactContent();
         $content[] = $tblOnlineContact->getContactCreate();
         return new Panel(
-            $tblOnlineContact->getContactTypeIcon() . $tblOnlineContact->getContactTypeName(),
+            $tblOnlineContact->getContactTypeIcon() . $tblOnlineContact->getContactTypeName()
+                . ($tblOnlineContact->getIsEmergencyContact() ? ' (Notfall)' : ''),
             $content,
             Panel::PANEL_TYPE_DEFAULT
         );
@@ -523,7 +525,7 @@ class Frontend extends Extension implements IFrontendInterface
 //        }
 
         return new Panel(
-            $icon . ' Telefonnummer',
+            $icon . ' Telefonnummer' . ($tblPhoneToPerson->getIsEmergencyContact() ? ' (Notfall)' : ''),
             $content,
             $hasOnlineContacts ? Panel::PANEL_TYPE_WARNING : Panel::PANEL_TYPE_INFO,
             !empty($personIdList) ? 'weitere Personen: ' . implode(', ' , OnlineContactDetails::useService()->getNameListFromPersonIdList($personIdList)) : null
