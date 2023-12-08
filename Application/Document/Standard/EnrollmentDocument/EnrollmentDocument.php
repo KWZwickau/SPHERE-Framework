@@ -45,7 +45,7 @@ class EnrollmentDocument extends Extension implements IModuleInterface
     /**
      * @return IFrontendInterface
      */
-    public static function useFrontend(): IFrontendInterface
+    public static function useFrontend(): Frontend
     {
         return new Frontend();
     }

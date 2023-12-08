@@ -1253,6 +1253,67 @@ class Creator extends Extension
     }
 
     /**
+     * @param string $DivisionCourseId
+     * @param bool $Redirect
+     *
+     * @return string
+     */
+    public static function createMultiSignOutCertificatePdf(string $DivisionCourseId, bool $Redirect): string
+    {
+        if ($Redirect) {
+            return \SPHERE\Application\Api\Education\Certificate\Generator\Creator::displayWaitingPage(
+                '/Api/Document/Standard/SignOutCertificate/CreateMulti',
+                array(
+                    'DivisionCourseId' => $DivisionCourseId,
+                    'Redirect' => 0
+                )
+            );
+        }
+
+        if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))
+            && ($tblYear = $tblDivisionCourse->getServiceTblYear())
+        ) {
+            // Filepointer auf dem der Merge durchgeführt wird, (download)
+            $MergeFile = Storage::createFilePointer('pdf');
+            $PdfMerger = new PdfMerge();
+
+            if(($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses())){
+                $FileList = array();
+                foreach ($tblPersonList as $tblPerson) {
+                    set_time_limit(300);
+
+                    $Document = new SignOutCertificate(\SPHERE\Application\Document\Standard\SignOutCertificate\SignOutCertificate::useService()
+                        ->getSignOutCertificateData($tblPerson, $tblYear));
+                    $File = self::buildDummyFile($Document, array(), array());
+
+                    // hinzufügen für das mergen
+                    $PdfMerger->addPdf($File);
+                    // speichern der Files zum nachträglichem bereinigen
+                    $FileList[] = $File;
+                }
+
+                // mergen aller hinzugefügten PDF-Datein
+                $PdfMerger->mergePdf($MergeFile);
+                if(!empty($FileList)){
+                    // aufräumen der Temp-Files
+                    /** @var FilePointer $File */
+                    foreach($FileList as $File){
+                        $File->setDestruct();
+                    }
+                }
+
+                if (!empty($FileList)) {
+                    $FileName = 'Abmeldebescheinigung Kurs ' . $tblDivisionCourse->getName() . ' ' . date("Y-m-d") . ".pdf";
+
+                    return self::buildDownloadFile($MergeFile, $FileName);
+                }
+            }
+        }
+
+        return "Keine Abmeldebescheinigung vorhanden!";
+    }
+
+    /**
      * @param $DivisionCourseId
      * @param $Redirect
      *
