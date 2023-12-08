@@ -354,9 +354,11 @@ abstract class FrontendStudentOverview extends FrontendScoreType
                     ->ajaxPipelineOnClick(ApiStudentOverview::pipelineLoadViewStudentOverviewStudentContent($DivisionCourseId, $PersonId, $Filter, 'Parent'))
                 . $supportButton
                 . new PullRight(new External(
-                    'Schülerübersicht herunterladen', 'SPHERE\Application\Api\Document\Standard\GradebookOverview\Create',
-                    new Download(), array('PersonId' => $PersonId, 'YearId' => $tblYear->getId(), 'Notenübersicht herunterladen')
-                    , false
+                    'Schülerübersicht herunterladen',
+                    'SPHERE\Application\Api\Document\Standard\GradebookOverview\Create',
+                    new Download(),
+                    array('PersonId' => $PersonId, 'YearId' => $tblYear->getId(), 'View' => $View),
+                    'Schülerübersicht herunterladen'
                 ))
                 . new Title($tblPerson->getLastFirstName() . " " . new Muted(new Small($textCourse)))
                 . ApiOnlineGradebook::receiverModal()

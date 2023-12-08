@@ -26,18 +26,22 @@ use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
+use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\EyeMinus;
 use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\PullClear;
+use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\External;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
@@ -213,10 +217,16 @@ class Frontend extends Extension implements IFrontendInterface
                     foreach ($data[$tblYear->getId()] as $personId => $tblStudentEducation) {
                         if ($tblPerson = Person::useService()->getPersonById($personId)) {
                             $courses = DivisionCourse::useService()->getCurrentMainCoursesByStudentEducation($tblStudentEducation);
+                            $button = new External(
+                                'Notenübersicht herunterladen',
+                                'SPHERE\Application\Api\Document\Standard\GradebookOverview\Create',
+                                new Download(),
+                                array('PersonId' => $personId, 'YearId' => $tblYear->getId(), 'View' => 'Parent'),
+                                'Notenübersicht herunterladen'
+                            );
                             $rowList[] = new LayoutRow(new LayoutColumn(new Title(
-                                $tblPerson->getLastFirstName() . ' ' . new Small(new Muted($courses))),
-                                12
-                            ));
+                                new PullClear($tblPerson->getLastFirstName() . ' ' . new Muted(new Small($courses)) . new PullRight($button)),
+                            )));
 
                             $rowList[] = new LayoutRow(new LayoutColumn(
                                 Grade::useService()->getStudentOverviewDataByPerson($tblPerson, $tblYear, $tblStudentEducation, true, false)
