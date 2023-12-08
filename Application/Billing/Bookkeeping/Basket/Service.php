@@ -31,6 +31,7 @@ use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblIdentification;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
@@ -778,7 +779,7 @@ class Service extends AbstractService
         $IsRegularChangeBasket = true;
         $PersonName = 'Person nicht hinterlegt!';
         if(($tblAccount = Account::useService()->getAccountBySession())){
-            if($tblAccount->getServiceTblIdentification()->getName() == 'System'){
+            if ($tblAccount->getHasAuthentication(TblIdentification::NAME_SYSTEM)) {
                 $IsRegularChangeBasket = false;
             }
 
@@ -805,7 +806,7 @@ class Service extends AbstractService
         $IsRegularChangeBasket = true;
         $PersonName = 'Person nicht hinterlegt!';
         if(($tblAccount = Account::useService()->getAccountBySession())){
-            if($tblAccount->getServiceTblIdentification()->getName() == 'System'){
+            if ($tblAccount->getHasAuthentication(TblIdentification::NAME_SYSTEM)) {
                 $IsRegularChangeBasket = false;
             }
             if(($tblPersonList = Account::useService()->getPersonAllByAccount($tblAccount))){

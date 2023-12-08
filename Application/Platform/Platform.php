@@ -4,6 +4,7 @@ namespace SPHERE\Application\Platform;
 use SPHERE\Application\IClusterInterface;
 use SPHERE\Application\Platform\Assistance\Assistance;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblIdentification;
 use SPHERE\Application\Platform\Gatekeeper\Gatekeeper;
 use SPHERE\Application\Platform\Roadmap\Roadmap;
 use SPHERE\Application\Platform\System\System;
@@ -26,8 +27,7 @@ class Platform implements IClusterInterface
     {
 
         $tblAccount = Account::useService()->getAccountBySession();
-        $tblIdentification = Account::useService()->getIdentificationByName('System');
-        if ($tblAccount && $tblIdentification) {
+        if ($tblAccount && $tblAccount->getHasAuthentication(TblIdentification::NAME_SYSTEM)) {
             $LabelColor = Label::LABEL_TYPE_DANGER;
             if($tblAccount->getServiceTblConsumer()){
                 $Acronym = $tblAccount->getServiceTblConsumer()->getAcronym();
@@ -35,20 +35,17 @@ class Platform implements IClusterInterface
                     $LabelColor = Label::LABEL_TYPE_DEFAULT;
                 }
             }
-            if ($tblAccount->getServiceTblIdentification()
-                && $tblAccount->getServiceTblIdentification()->getId() == $tblIdentification->getId()) {
-                Main::getDisplay()->addServiceNavigation(
-                    new Link(
-                        new Link\Route('/Setting/MyAccount/Consumer'),
-                        new Link\Name(
-                            new Bold( new Label(
-                                'Mandant '
-                                . ($tblAccount->getServiceTblConsumer()?$tblAccount->getServiceTblConsumer()->getAcronym() : '')
+            Main::getDisplay()->addServiceNavigation(
+                new Link(
+                    new Link\Route('/Setting/MyAccount/Consumer'),
+                    new Link\Name(
+                        new Bold( new Label(
+                            'Mandant '
+                            . ($tblAccount->getServiceTblConsumer()?$tblAccount->getServiceTblConsumer()->getAcronym() : '')
                             , $LabelColor) )
-                        )
                     )
-                );
-            }
+                )
+            );
         }
 
         /**

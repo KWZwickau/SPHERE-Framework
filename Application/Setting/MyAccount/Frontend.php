@@ -189,8 +189,16 @@ class Frontend extends Extension implements IFrontendInterface
             ( !empty( $tblPersonAll ) ? new Listing($tblPersonAll) : new Danger(new Exclamation().new Small(' Keine Person angeben')) )
         );
 
+        $Content = array();
+        if (($tblAuthenticationList = Account::useService()->getAuthenticationListByAccount($tblAccount))) {
+            foreach ($tblAuthenticationList as $tblAuthentication) {
+                if (($tblIdentification = $tblAuthentication->getTblIdentification())) {
+                    $Content[] = $tblIdentification->getDescription();
+                }
+            }
+        }
         $Authentication = new Panel('Authentication',
-            ( $tblAccount->getServiceTblIdentification() ? $tblAccount->getServiceTblIdentification()->getDescription() : '' )
+            $Content
         );
 
         $Authorization = new Panel('Berechtigungen',

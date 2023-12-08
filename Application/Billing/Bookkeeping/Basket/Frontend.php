@@ -214,15 +214,11 @@ class Frontend extends Extension implements IFrontendInterface
                         $Buttons .= (new Standard('', ApiBasket::getEndpoint(), new Repeat(), array(), 'Abrechnung aus dem Archiv holen'))
                             ->ajaxPipelineOnClick(ApiBasket::pipelineBasketArchive($tblBasket->getId(), $IsArchive));
                     }
-                    if(($tblAccount = Account::useService()->getAccountBySession())){
-                        if(($tblIdentification = $tblAccount->getServiceTblIdentification())){
-                            if($tblIdentification->getName() == TblIdentification::NAME_SYSTEM){
-                                $Buttons .= (new DangerLink('', ApiBasket::getEndpoint(), new Remove(), array(),
-                                    'Abrechnung entfernen nur für Systemaccounts verfügbar'))
-                                    ->ajaxPipelineOnClick(ApiBasket::pipelineOpenDeleteBasketModal('deleteBasket',
-                                        $tblBasket->getId()));
-                            }
-                        }
+                    if (($tblAccount = Account::useService()->getAccountBySession())
+                        && $tblAccount->getHasAuthentication(TblIdentification::NAME_SYSTEM)
+                    ){
+                        $Buttons .= (new DangerLink('', ApiBasket::getEndpoint(), new Remove(), array(), 'Abrechnung entfernen nur für Systemaccounts verfügbar'))
+                            ->ajaxPipelineOnClick(ApiBasket::pipelineOpenDeleteBasketModal('deleteBasket', $tblBasket->getId()));
                     }
 
                     $Item['Option'] = $Buttons;

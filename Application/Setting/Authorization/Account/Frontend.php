@@ -40,6 +40,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Pencil;
 use SPHERE\Common\Frontend\Icon\Repository\Person;
 use SPHERE\Common\Frontend\Icon\Repository\PersonKey;
 use SPHERE\Common\Frontend\Icon\Repository\PersonParent;
+use SPHERE\Common\Frontend\Icon\Repository\PhoneMobil;
 use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
 use SPHERE\Common\Frontend\Icon\Repository\QrCode;
 use SPHERE\Common\Frontend\Icon\Repository\Question;
@@ -140,16 +141,28 @@ class Frontend extends Extension implements IFrontendInterface
                     }
                 }
 
-                $tblIdentification = $tblAccount->getServiceTblIdentification();
+                $authentication = array();
+                $hasToken = false;
+                $hasApp = false;
+                if (($tblAuthenticationList = Account::useService()->getAuthenticationListByAccount($tblAccount))) {
+                    foreach ($tblAuthenticationList as $tblAuthentication) {
+                        if (($tblIdentification = $tblAuthentication->getTblIdentification())) {
+                            $authentication[] = $tblIdentification->getDescription();
+                            if ($tblIdentification->getName() == TblIdentification::NAME_TOKEN) {
+                                $hasToken = true;
+                            }
+                            if ($tblIdentification->getName() == TblIdentification::NAME_AUTHENTICATOR_APP) {
+                                $hasApp = true;
+                            }
+                        }
+                    }
+                }
 
                 $Item['Username'] = new Listing(array($tblAccount->getUsername()));
                 $Item['Person'] = new Listing(!empty( $PersonList )
                     ? $PersonList
                     : array(new Danger(new Exclamation().new Small(' Keine Person angeben'))));
-                $Item['Authentication'] = new Listing(array($tblIdentification
-                    ? $tblIdentification->getDescription()
-                    : '')
-                );
+                $Item['Authentication'] = new Listing($authentication ?: '');
 
                 $isEmpty = false;
                 if(empty($AuthorizationList)){
@@ -177,13 +190,25 @@ class Frontend extends Extension implements IFrontendInterface
                         new Remove(), array('Id' => $tblAccount->getId()),
                         'Benutzer '.$tblAccount->getUsername().' löschen'
                     ))
-                    . (new External('',
-                        'SPHERE\Application\Api\Document\Standard\Account\Create',
-                        new Download(),
-                        array('AccountId' => $tblAccount->getId()),
-                        'Download PDF-Anschreiben'
-                    ))
-                    . ($tblIdentification && $tblIdentification->getName() == TblIdentification::NAME_AUTHENTICATOR_APP
+                    . ($hasToken
+                        ? new External(new Key(),
+                            'SPHERE\Application\Api\Document\Standard\Account\Create',
+                            new Download(),
+                            array('AccountId' => $tblAccount->getId(), 'IdentificationName' => TblIdentification::NAME_TOKEN),
+                            'Download Hardware-Schüssel PDF-Anschreiben'
+                        )
+                        : ''
+                    )
+                    . ($hasApp
+                        ? new External(new PhoneMobil(),
+                            'SPHERE\Application\Api\Document\Standard\Account\Create',
+                            new Download(),
+                            array('AccountId' => $tblAccount->getId(), 'IdentificationName' => TblIdentification::NAME_AUTHENTICATOR_APP),
+                            'Download Authenticator App PDF-Anschreiben'
+                        )
+                        : ''
+                    )
+                    . (Account::useService()->getHasAuthenticationByAccountAndIdentificationName($tblAccount, TblIdentification::NAME_AUTHENTICATOR_APP)
                         ? (new Standard(
                             '', ApiAuthenticatorApp::getEndpoint(), new Repeat(), array(), 'QR-Code neu erstellen'
                         ))->ajaxPipelineOnClick(ApiAuthenticatorApp::pipelineOpenResetQrCodeModal($tblAccount->getId()))
@@ -192,7 +217,7 @@ class Frontend extends Extension implements IFrontendInterface
                         ))->ajaxPipelineOnClick(ApiAuthenticatorApp::pipelineOpenShowQrCodeModal($tblAccount->getId()))
                         : ''
                     );
-                array_push($TableContent, $Item);
+                $TableContent[$tblAccount->getId()] = $Item;
             });
         }
 
@@ -269,8 +294,6 @@ class Frontend extends Extension implements IFrontendInterface
      */
     private function formAccount(TblAccount $tblAccount = null)
     {
-        $tblConsumer = Consumer::useService()->getConsumerBySession();
-
         $tblRoleAll = Account::useService()->getRoleCheckBoxList('Account[Role]');
 
         // Token
@@ -312,7 +335,7 @@ class Frontend extends Extension implements IFrontendInterface
         );
 
         // Authenticator App
-        $tblTokenAll[] = new RadioBox('Account[Token]', 'Authenticator App', -1);
+        $tblTokenAll[] = new CheckBox('Account[IsAuthenticatorApp]', 'Authenticator App', 1);
 
         // Token Panel
         if ($tblToken){
@@ -324,7 +347,7 @@ class Frontend extends Extension implements IFrontendInterface
             array_unshift($tblTokenAll, new Danger('AKTUELL hinterlegter Hardware-Schlüssel, '));
         }
 
-        $PanelToken = new Panel(new Person() . ' mit folgender Authentifizierungsmethode anmelden', $tblTokenAll, Panel::PANEL_TYPE_INFO);
+        $PanelToken = new Panel(new Person() . ' mit folgenden Authentifizierungsmethoden anmelden', $tblTokenAll, Panel::PANEL_TYPE_INFO);
 
         // Person
         if ($tblAccount){
@@ -343,7 +366,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblPersonAll = Group::useService()->getPersonAllByGroup($tblGroup);
             }
             if ($tblPersonAll){
-                array_walk($tblPersonAll, function(TblPerson &$tblPersonItem) use ($tblPerson, $Global){
+                array_walk($tblPersonAll, function(TblPerson &$tblPersonItem) use ($tblPerson){
                     if($tblPersonItem){
                         $PersonId = $tblPersonItem->getId();
                         $PersonColumn = '<span hidden>'.$tblPersonItem->getLastFirstName().'</span>'
@@ -358,7 +381,7 @@ class Frontend extends Extension implements IFrontendInterface
                     if(($tblAccountList = \SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account::useService()->getAccountAllByPerson($tblPersonItem))) {
                         foreach($tblAccountList as $tempAccount){
                             $Icon = new PersonKey();
-                            if($tempAccount->getServiceTblIdentification()->getName() == TblIdentification::NAME_USER_CREDENTIAL){
+                            if($tempAccount->getHasAuthentication(TblIdentification::NAME_USER_CREDENTIAL)){
                                 $Icon = new PersonParent();
                             }
                             $tblUserNameList[] = '<span hidden>'.$tempAccount->getUsername().'</span> '.$Icon.' '.$tempAccount->getUsername();
@@ -492,16 +515,11 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->addButton(new Standard('Zurück', '/Setting/Authorization/Account', new ChevronLeft()));
         $tblAccount = Account::useService()->getAccountById($Id);
         if ($tblAccount) {
-            $tblIdentification = $tblAccount->getServiceTblIdentification();
             $Global = $this->getGlobal();
             if (!$Global->POST) {
-//                $Global->POST['Account']['Identification'] = $tblAccount->getServiceTblIdentification()
-//                    ? $tblAccount->getServiceTblIdentification()->getId() : 0;
-                $Global->POST['Account']['Token'] = (
-                $tblAccount->getServiceTblToken()
-                    ? $tblAccount->getServiceTblToken()->getId()
-                    : ($tblIdentification && $tblIdentification->getName() == TblIdentification::NAME_AUTHENTICATOR_APP
-                        ? -1 : 0)
+                $Global->POST['Account']['Token'] = $tblAccount->getServiceTblToken() ? $tblAccount->getServiceTblToken()->getId() : 0;
+                $Global->POST['Account']['IsAuthenticatorApp'] =  Account::useService()->getHasAuthenticationByAccountAndIdentificationName(
+                    $tblAccount, TblIdentification::NAME_AUTHENTICATOR_APP
                 );
                 $User = Account::useService()->getUserAllByAccount($tblAccount);
                 if ($User) {
@@ -526,13 +544,11 @@ class Frontend extends Extension implements IFrontendInterface
             $Global->savePost();
 
             $extraButton = '';
-            if($tblSessionAccount = \SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account::useService()->getAccountBySession()){
-                if(($tblIdentificationSession = $tblSessionAccount->getServiceTblIdentification())){
-                    if($tblIdentificationSession->getName() == 'System'){
-                        if(isset($_POST['Account']['Identification'])){
-                            $extraButton = new Center(new ToggleCheckbox('Alles auswählen/abwählen', $this->formAccount($tblAccount)));
-                        }
-                    }
+            if(($tblSessionAccount = \SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account::useService()->getAccountBySession())
+                && (Account::useService()->getHasAuthenticationByAccountAndIdentificationName($tblSessionAccount, TblIdentification::NAME_SYSTEM))
+            ){
+                if(isset($_POST['Account']['Identification'])){
+                    $extraButton = new Center(new ToggleCheckbox('Alles auswählen/abwählen', $this->formAccount($tblAccount)));
                 }
             }
 
@@ -611,12 +627,17 @@ class Frontend extends Extension implements IFrontendInterface
         if ($Id) {
             $tblAccount = Account::useService()->getAccountById($Id);
             if (!$Confirm) {
-
-                $Content = array(
-                    $tblAccount->getUsername(),
-                    ( $tblAccount->getServiceTblIdentification() ? new Lock().' '.$tblAccount->getServiceTblIdentification()->getDescription() : '' )
-                    .( $tblAccount->getServiceTblToken() ? ' '.new Key().' '.$tblAccount->getServiceTblToken()->getSerial() : '' )
-                );
+                $Content[] = $tblAccount->getUsername();
+                if (($tblAuthenticationList = Account::useService()->getAuthenticationListByAccount($tblAccount))) {
+                    foreach ($tblAuthenticationList as $tblAuthentication) {
+                        if (($tblIdentification = $tblAuthentication->getTblIdentification())) {
+                            $Content[] = new Lock() . ' ' . $tblIdentification->getDescription();
+                        }
+                    }
+                }
+                if ($tblAccount->getServiceTblToken()) {
+                    $Content[] = new Key() . ' ' . $tblAccount->getServiceTblToken()->getSerial();
+                }
 
                 $tblPersonAll = Account::useService()->getPersonAllByAccount($tblAccount);
                 if ($tblPersonAll) {

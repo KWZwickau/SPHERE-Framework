@@ -1094,33 +1094,31 @@ class Creator extends Extension
      *
      * @return Stage|string
      */
-    public static function createAccountPdf($AccountId = null, $Redirect = true)
+    public static function createAccountPdf($AccountId = null, $IdentificationName = null, $Redirect = true)
     {
         if ($Redirect) {
             return \SPHERE\Application\Api\Education\Certificate\Generator\Creator::displayWaitingPage(
                 '/Api/Document/Standard/Account/Create',
                 array(
                     'AccountId' => $AccountId,
+                    'IdentificationName' => $IdentificationName,
                     'Redirect' => 0
                 )
             );
         }
 
-        if (($tblAccount = GatekeeperAccount::useService()->getAccountById($AccountId))
-            && ($tblIdentification = $tblAccount->getServiceTblIdentification())
-        ) {
+        if (($tblAccount = GatekeeperAccount::useService()->getAccountById($AccountId))) {
             if (($tblPersonAllByAccount = GatekeeperAccount::useService()->getPersonAllByAccount($tblAccount))) {
                 $tblPerson = $tblPersonAllByAccount[0];
             } else {
                 return "Das Benutzerkonto ist keiner Person zugeordnet.";
             }
 
-            if ($tblIdentification->getName() == TblIdentification::NAME_AUTHENTICATOR_APP) {
+            if ($IdentificationName == TblIdentification::NAME_AUTHENTICATOR_APP) {
                 $Document = new AccountApp($tblAccount, $tblPerson);
             } else {
                 $Document = new AccountToken($tblAccount, $tblPerson);
             }
-
 
             $File = self::buildDummyFile($Document, array(), array());
 
