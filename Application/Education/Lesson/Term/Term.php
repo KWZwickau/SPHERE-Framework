@@ -11,6 +11,7 @@ use SPHERE\Application\Setting\Consumer\School\School;
 use SPHERE\Common\Frontend\Icon\Repository\Calendar;
 use SPHERE\Common\Frontend\Icon\Repository\Clock;
 use SPHERE\Common\Frontend\Icon\Repository\Holiday;
+use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\Time;
 use SPHERE\Common\Frontend\Layout\Repository\Headline;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
@@ -47,6 +48,9 @@ class Term extends Extension implements IModuleInterface
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '/Create/Year', __NAMESPACE__ . '\Frontend::frontendCreateYear'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '/Create/WizardYear', __NAMESPACE__ . '\Frontend::frontendWizardYear'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '/Edit/Year', __NAMESPACE__ . '\Frontend::frontendEditYear'
@@ -102,6 +106,8 @@ class Term extends Extension implements IModuleInterface
 
         $Stage = new Stage('Schuljahr', 'Dashboard');
 
+        $Stage->addButton(new Standard('Schuljahr mit Zeiträumen', __NAMESPACE__ . '\Create\WizardYear', new Plus(), null,
+            'Schuljahr mit Zeiträumen und Ferien erstellen'));
         $Stage->addButton(new Standard('Schuljahr', __NAMESPACE__ . '\Create\Year', new Calendar(), null,
             'Erstellen/Bearbeiten'));
         $Stage->addButton(new Standard('Zeitraum', __NAMESPACE__ . '\Create\Period', new Time(), null,
