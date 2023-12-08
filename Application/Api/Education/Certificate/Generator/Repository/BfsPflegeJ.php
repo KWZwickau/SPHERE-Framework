@@ -22,17 +22,17 @@ class BfsPflegeJ extends BfsStyle
     {
         return array(
             'Subarea1'            => 'Teilbereich 1',
-            'SubareaTimeH1'       => 'Teilbereich 1 Dauer der Ausbildung (h)',
-            'SubareaTimeHDone1'   => 'Teilbereich 1 Davon anwesend (h)',
+            'SubareaTimeH1'       => 'Teilbereich 1 Dauer der Ausbildung (Tage)',
+            'SubareaTimeHDone1'   => 'Teilbereich 1 Davon anwesend (Tage)',
             'Subarea2'            => 'Teilbereich 2',
-            'SubareaTimeH2'       => 'Teilbereich 2 Dauer der Ausbildung (h)',
-            'SubareaTimeHDone2'   => 'Teilbereich 2 Davon anwesend (h)',
+            'SubareaTimeH2'       => 'Teilbereich 2 Dauer der Ausbildung (Tage)',
+            'SubareaTimeHDone2'   => 'Teilbereich 2 Davon anwesend (Tage)',
             'Subarea3'            => 'Teilbereich 3',
-            'SubareaTimeH3'       => 'Teilbereich 3 Dauer der Ausbildung (h)',
-            'SubareaTimeHDone3'   => 'Teilbereich 3 Davon anwesend (h)',
+            'SubareaTimeH3'       => 'Teilbereich 3 Dauer der Ausbildung (Tage)',
+            'SubareaTimeHDone3'   => 'Teilbereich 3 Davon anwesend (Tage)',
             'Subarea4'            => 'Teilbereich 4',
-            'SubareaTimeH4'       => 'Teilbereich 4 Dauer der Ausbildung (h)',
-            'SubareaTimeHDone4'   => 'Teilbereich 4 Davon anwesend (h)',
+            'SubareaTimeH4'       => 'Teilbereich 4 Dauer der Ausbildung (Tage)',
+            'SubareaTimeHDone4'   => 'Teilbereich 4 Davon anwesend (Tage)',
         );
     }
 

@@ -252,8 +252,6 @@ class EzshGymAbg extends EzshStyle
                                         {% else %}
                                             {% if Content.P' . $personId . '.Person.Common.BirthDates.Gender == 1 %}
                                                 Herr
-                                            {% else %}
-                                                Frau/Herr
                                             {% endif %}
                                         {% endif %}
                                     ')
@@ -330,8 +328,6 @@ class EzshGymAbg extends EzshStyle
                                         {% else %}
                                             {% if Content.P' . $personId . '.Person.Common.BirthDates.Gender == 1 %}
                                                 Herr
-                                            {% else %}
-                                                Frau/Herr
                                             {% endif %}
                                         {% endif %}
                                     ')

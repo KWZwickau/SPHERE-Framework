@@ -105,8 +105,6 @@ class GymAbgSekI extends Style
                             {% else %}
                                 {% if Content.P' . $personId . '.Person.Common.BirthDates.Gender == 1 %}
                                     Herr
-                                {% else %}
-                                    Frau/Herr
                                 {% endif %}
                             {% endif %}
                             {{ Content.P' . $personId . '.Person.Data.Name.First }} {{ Content.P' . $personId . '.Person.Data.Name.Last }}
@@ -136,8 +134,6 @@ class GymAbgSekI extends Style
                             {% else %}
                                 {% if Content.P' . $personId . '.Person.Common.BirthDates.Gender == 1 %}
                                     Herr
-                                {% else %}
-                                    Frau/Herr
                                 {% endif %}
                             {% endif %}
                             {{ Content.P' . $personId . '.Person.Data.Name.First }} {{ Content.P' . $personId . '.Person.Data.Name.Last }}

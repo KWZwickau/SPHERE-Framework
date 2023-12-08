@@ -295,8 +295,6 @@ abstract class Style extends Certificate
                 ->addElementColumn($this->getElement('
                     {% if(Content.P'.$personId.'.Person.Data.Name.Salutation is not empty) %}
                         {{ Content.P'.$personId.'.Person.Data.Name.Salutation }}
-                    {% else %}
-                        Frau/Herr
                     {% endif %}
                     {{ Content.P'.$personId.'.Person.Data.Name.First }} {{ Content.P'.$personId.'.Person.Data.Name.Last }}'
                     , self::TEXT_SIZE_NORMAL)->styleTextBold()

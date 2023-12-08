@@ -75,11 +75,11 @@ class BGymAbitur extends BGymDiplomaStyle
                     ->setContent('Zeugnis der allgemeinen Hochschulreife')
                     ->styleTextSize('28px')
                     ->styleMarginTop('15px')
-                    ->styleMarginBottom('-5px')
+                    ->styleMarginBottom('30px')
                     ->styleAlignCenter()
                 )
             )
-            ->addSlice($this->getStudentLeaveDiploma($personId))
+            ->addSlice($this->getStudentLeaveDiploma($personId, '20px'))
             ->addSlice((new Slice())
                 ->addElement((new Element())
                     ->setContent('hat vom 
@@ -90,10 +90,10 @@ class BGymAbitur extends BGymDiplomaStyle
                         '{% endif %}
                     bis ' . $certificateDate . ' das')
                     ->styleAlignCenter()
-                    ->styleMarginTop('10px')
+                    ->styleMarginTop('85px')
                 )
             )
-            ->addSlice($this->getSubjectAreaDiploma($personId))
+            ->addSlice($this->getSubjectAreaDiploma($personId, '50px'))
             ->addSlice((new Slice())
                 ->addElement((new Element())
                     ->setContent(
@@ -104,17 +104,17 @@ class BGymAbitur extends BGymDiplomaStyle
                                 {% if Content.P' . $personId . '.Person.Common.BirthDates.Gender == 1 %}
                                     Er
                                 {% else %}
-                                    Er/Sie
+                                    {{ Content.P' . $personId . '.Person.Data.Name.First }} {{ Content.P' . $personId . '.Person.Data.Name.Last }}
                                 {% endif %}
                             {% endif %}
                          hat damit die Berechtigung zum'
                         . new Container('Studium an einer Hochschule in der Bundesrepublik Deutschland erworben.' . $this->setSup('1)'))
                     )
-                    ->styleMarginTop('10px')
+                    ->styleMarginTop('50px')
                     ->styleAlignCenter()
                 )
             )
-            ->addSlice($this->getSignPartBGymDiploma($personId));
+            ->addSlice($this->getSignPartBGymDiploma($personId, '270px'));
 
         $pageList[] = (new Page())
             ->addSlice($this->getPageHeader($personId, 2))
@@ -375,7 +375,7 @@ class BGymAbitur extends BGymDiplomaStyle
                     , '40%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('Punktzahlen in einfacher Wertung')
+                    ->setContent('Ergebnisse in einfacher Wertung')
                     ->styleTextBold()
                     ->styleAlignCenter()
                     , '40%'
@@ -451,6 +451,7 @@ class BGymAbitur extends BGymDiplomaStyle
             ->styleMarginTop('15px')
             ->addElement((new Element())
                 ->setContent('Leistungen in der Abiturprüfung')
+                ->styleTextSize('17px')
                 ->styleAlignCenter()
                 ->styleTextBold()
                 ->styleMarginBottom('10px')
@@ -954,9 +955,10 @@ class BGymAbitur extends BGymDiplomaStyle
         return (new Slice)
             ->addElement((new Element())
                 ->setContent('Besondere Lernleistung')
+                ->styleTextSize('17px')
                 ->styleTextBold()
                 ->styleAlignCenter()
-                ->styleMarginTop('20px')
+                ->styleMarginTop('70px')
                 ->styleMarginBottom('10px')
             )
             ->addSection((new Section())
@@ -1039,9 +1041,10 @@ class BGymAbitur extends BGymDiplomaStyle
         return (new Slice)
             ->addElement((new Element())
                 ->setContent('Gesamtqualifikation und Durchschnittsnote')
+                ->styleTextSize('17px')
                 ->styleTextBold()
                 ->styleAlignCenter()
-                ->styleMarginTop('20px')
+                ->styleMarginTop('70px')
                 ->styleMarginBottom('10px')
             )
             ->addSection((new Section())

@@ -614,12 +614,8 @@ abstract class BGymStyle extends Certificate
                     , '25%')
                 ->addElementColumn((new Element())
                     ->setContent('
-                        {% if(Content.P'.$personId.'.Person.Data.Name.Salutation is not empty) %}
-                            {{ Content.P'.$personId.'.Person.Data.Name.Salutation }}
-                        {% else %}
-                            Frau/Herr
-                        {% endif %}
                         {% if(Content.P' . $personId . '.Input.Transfer) %}
+                            {{ Content.P'.$personId.'.Person.Data.Name.Salutation }}
                             {{ Content.P' . $personId . '.Input.Transfer }}.
                         {% else %}
                               &nbsp;
