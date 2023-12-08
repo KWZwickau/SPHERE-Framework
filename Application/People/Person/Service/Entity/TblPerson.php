@@ -264,7 +264,7 @@ class TblPerson extends Element
             if ($isDisplayCallNameAndLastName) {
                 return ($this->CallName ?: $firstSecondName) . ' ' . $this->LastName;
             } else {
-                if ($this->CallName && $this->CallName != $firstSecondName && ($pos = strpos($firstSecondName, $this->CallName)) !== null) {
+                if ($this->CallName && ($this->CallName != $firstSecondName) && (($pos = strpos($firstSecondName, $this->CallName)) !== false)) {
                     return trim($this->LastName . ', ' . substr($firstSecondName, 0, $pos) . new Underline($this->CallName) . substr($firstSecondName,
                             $pos + strlen($this->CallName)));
                 }

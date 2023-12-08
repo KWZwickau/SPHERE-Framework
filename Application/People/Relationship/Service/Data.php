@@ -59,7 +59,7 @@ class Data extends AbstractData
         $this->updateType($tblType, true);
 
         $tblType = $this->createType('Beitragszahler', 'z.B. Großeltern / Amt', $tblGroupPerson);
-        $this->updateType($tblType, true);
+        $this->updateType($tblType, false);
 
         $this->createType('Notfallkontakt', 'z.B. Elternteil ohne Sorgerecht', $tblGroupPerson, false, false);
 

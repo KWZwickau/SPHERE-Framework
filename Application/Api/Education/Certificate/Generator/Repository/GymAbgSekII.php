@@ -238,7 +238,7 @@ class GymAbgSekII extends Certificate
                                 {% if Content.P' . $personId . '.Person.Common.BirthDates.Gender == 1 %}
                                     Er
                                 {% else %}
-                                    Sie/Er
+                                    {{ Content.P' . $personId . '.Person.Data.Name.First }} {{ Content.P' . $personId . '.Person.Data.Name.Last }}
                                 {% endif %}
                             {% endif %}
                             hat die Vollzeitschulpflicht gemäß § 28 Absatz 1 Nummer 1, Absatz 2 des Sächsischen
@@ -257,8 +257,6 @@ class GymAbgSekII extends Certificate
                             {% else %}
                                 {% if Content.P' . $personId . '.Person.Common.BirthDates.Gender == 1 %}
                                     Herr
-                                {% else %}
-                                    Frau/Herr
                                 {% endif %}
                             {% endif %}
                             <u>&nbsp;&nbsp;&nbsp;&nbsp; {{ Content.P' . $personId . '.Person.Data.Name.First }} {{ Content.P' . $personId . '.Person.Data.Name.Last }} &nbsp;&nbsp;&nbsp;&nbsp;</u>

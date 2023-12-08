@@ -71,7 +71,8 @@ class KamenzReportService
                     foreach ($tblStudentEducationList as $tblStudentEducation) {
                         if (($tblPerson = $tblStudentEducation->getServiceTblPerson())
                             && ($level = $tblStudentEducation->getLevel())
-                            && ($tblDivision = $tblStudentEducation->getTblDivision())
+                            && (($tblDivision = $tblStudentEducation->getTblDivision())
+                                || ($tblDivision = $tblStudentEducation->getTblCoreGroup()))
                         ) {
                             if (isset($countDivisionStudentArray[$tblDivision->getId()][$level])) {
                                 $countDivisionStudentArray[$tblDivision->getId()][$level]++;
@@ -180,7 +181,8 @@ class KamenzReportService
                     foreach ($tblStudentEducationList as $tblStudentEducation) {
                         if (($tblPerson = $tblStudentEducation->getServiceTblPerson())
                             && ($level = $tblStudentEducation->getLevel())
-                            && ($tblDivision = $tblStudentEducation->getTblDivision())
+                            && (($tblDivision = $tblStudentEducation->getTblDivision())
+                                || ($tblDivision = $tblStudentEducation->getTblCoreGroup()))
                         ) {
                             $countDivisionByLevelArray[$level][$tblDivision->getId()] = 1;
 
@@ -300,7 +302,8 @@ class KamenzReportService
                     foreach ($tblStudentEducationList as $tblStudentEducation) {
                         if (($tblPerson = $tblStudentEducation->getServiceTblPerson())
                             && ($level = $tblStudentEducation->getLevel())
-                            && ($tblDivision = $tblStudentEducation->getTblDivision())
+                            && (($tblDivision = $tblStudentEducation->getTblDivision())
+                                || ($tblDivision = $tblStudentEducation->getTblCoreGroup()))
                         ) {
                             $countDivisionByLevelArray[$level][$tblDivision->getId()] = 1;
 

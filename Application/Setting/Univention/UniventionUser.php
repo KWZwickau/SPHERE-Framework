@@ -86,7 +86,7 @@ class UniventionUser
         $PersonContent = array(
             'name' => $name,
 //            'mailPrimaryAddress' => $email,
-            'email' => $email,
+            'email' => $email?: null,
             'firstname' => $firstname,
             'lastname' => $lastname,
             // AccountId
@@ -94,7 +94,7 @@ class UniventionUser
             'roles' => $roles,
             'schools' => $schools,
             'school_classes' => $school_classes,
-            'udm_properties' => array("PasswordRecoveryEmail" => $recoveryMail)
+            'udm_properties' => array("PasswordRecoveryEmail" => $recoveryMail?: null)
 //            'udm_properties' => array('pwdChangeNextLogin' => true),
 //            'kelvin_password_hashes' => array(
 //                'user_password' => array($password),
@@ -230,7 +230,7 @@ class UniventionUser
         // keine reaktion der API auf dieses Feld
 //            'mailPrimaryAddress' => $email,
         // letze Info email = mailPrimaryAddress,
-            'email' => $email,
+            'email' => $email?: null,
             // Weiteres E-Mail feld, welches als UDM Propertie zurück kommt ("e-mail") ist aber ein Array und für unsere Zwecke nicht zu verwenden
 //            'mail' => $email,
             'firstname' => $firstname,
@@ -243,7 +243,7 @@ class UniventionUser
             'school' => $school, // one school
             'schools' => $schools, // array school
             'school_classes' => $school_classes,
-            'udm_properties' => array("PasswordRecoveryEmail" => $recoveryMail)
+            'udm_properties' => array("PasswordRecoveryEmail" => $recoveryMail?: null)
             // Mandant + AccountId to human resolve problems?
 //            'source_uid' => $source_uid
         );
@@ -254,6 +254,7 @@ class UniventionUser
         $PersonContent = json_encode($PersonContent);
 //        $PersonContent = http_build_query($PersonContent);
 
+//        if('REF-Lehrer1' != $name)
 //        Debugger::devDump($PersonContent);
 
         curl_setopt_array($this->curlhandle, array(

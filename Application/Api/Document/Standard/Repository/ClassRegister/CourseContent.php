@@ -295,7 +295,7 @@ class CourseContent extends ClassRegister
                 $lessonArray = array();
                 $lesson = $tblCourseContent->getLesson();
                 $lessonArray[$lesson] = $lesson;
-                if ($tblCourseContent->getIsDoubleLesson()) {
+                for ($i = 1; $i < $tblCourseContent->getCountLessons(); $i++) {
                     $lesson++;
                     $lessonArray[$lesson] = $lesson;
                 }
@@ -415,7 +415,7 @@ class CourseContent extends ClassRegister
             ->styleBorderLeft()
             ->addSection((new Section())
                 ->addElementColumn($this->getElement($tblCourseContent->getDate(), true), $width[1])
-                ->addElementColumn($this->getElement($tblCourseContent->getIsDoubleLesson() ? '2' : '1', true), $width[2])
+                ->addElementColumn($this->getElement($tblCourseContent->getCountLessons(), true), $width[2])
                 ->addElementColumn($this->getElement($tblCourseContent->getContent()), $width[3])
                 ->addElementColumn($this->getElement($tblCourseContent->getHomework()), $width[4])
                 ->addElementColumn($this->getElement($missingString), $width[5])

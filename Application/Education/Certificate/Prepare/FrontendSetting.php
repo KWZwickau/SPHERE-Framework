@@ -634,21 +634,26 @@ abstract class FrontendSetting extends FrontendSelect
         $isAbsenceHour = false;
         $tblPersonList = false;
         $tblYear = false;
-        if (($tblDivisionCourse = $tblPrepare->getServiceTblDivision())
-            && ($tblYear = $tblDivisionCourse->getServiceTblYear())
-            && ($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses())
-        ) {
-            foreach ($tblPersonList as $tblPerson) {
-                if (($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare, $tblPerson))
-                    && ($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())
-                ) {
-                    if ($tblCertificate->getName() == 'Berufsfachschule Jahreszeugnis' && $tblCertificate->getDescription() == 'Generalistik') {
-                        $isAbsenceHour = true;
-                        break;
-                    }
-                }
-            }
+        if (($tblDivisionCourse = $tblPrepare->getServiceTblDivision())) {
+            $tblYear = $tblDivisionCourse->getServiceTblYear();
+            $tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses();
         }
+        // Auf dem BFS Jahreszeugnis für Pflege sind jetzt auch die Fehlzeiten in Tagen und nicht mehr in Stunden
+//        if ($tblDivisionCourse
+//            && ($tblYear = $tblDivisionCourse->getServiceTblYear())
+//            && ($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses())
+//        ) {
+//            foreach ($tblPersonList as $tblPerson) {
+//                if (($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare, $tblPerson))
+//                    && ($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())
+//                ) {
+//                    if ($tblCertificate->getName() == 'Berufsfachschule Jahreszeugnis' && $tblCertificate->getDescription() == 'Generalistik') {
+//                        $isAbsenceHour = true;
+//                        break;
+//                    }
+//                }
+//            }
+//        }
 
         $headTableColumnList[] = new TableColumn('Schüler', 4);
         if($isAbsenceHour){
@@ -924,8 +929,8 @@ abstract class FrontendSetting extends FrontendSelect
                         ), 6),
                         new LayoutColumn(array(
                             new Panel(
-                                $tblDivisionCourse->getTypeName(),
-                                $tblDivisionCourse->getDisplayName(),
+                                $tblDivisionCourse ? $tblDivisionCourse->getTypeName() : '',
+                                $tblDivisionCourse ? $tblDivisionCourse->getDisplayName() : '',
                                 Panel::PANEL_TYPE_INFO
                             ),
                         ), 6),

@@ -92,7 +92,7 @@ class TblCourseContent extends Element
     protected string $Room;
 
     /**
-     * @Column(type="boolean")
+     * @Column(type="smallint")
      */
     protected $IsDoubleLesson;
 
@@ -312,19 +312,21 @@ class TblCourseContent extends Element
     }
 
     /**
-     * @return bool
+     * @return int
      */
-    public function getIsDoubleLesson() : bool
+    public function getCountLessons() : int
     {
-        return (bool) $this->IsDoubleLesson;
+        return $this->IsDoubleLesson + 1;
     }
 
     /**
-     * @param bool $IsDoubleLesson
+     * @param int $countLessons
+     *
+     * @return void
      */
-    public function setIsDoubleLesson(bool $IsDoubleLesson): void
+    public function setCountLessons(int $countLessons): void
     {
-        $this->IsDoubleLesson = $IsDoubleLesson;
+        $this->IsDoubleLesson = $countLessons;
     }
 
     /**

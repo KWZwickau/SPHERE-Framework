@@ -322,7 +322,7 @@ abstract class ServiceStudentOverview extends ServiceScoreCalc
                 for ($i = 1; $i < 3; $i++) {
                     $count = 0;
                     if (isset($virtualTestTaskList[$tblSubject->getId()][$i])) {
-                        $tempList = $this->getSorter($virtualTestTaskList[$tblSubject->getId()][$i])->sortObjectBy('Date', new DateTimeSorter());
+                        $tempList = $this->getVirtualTestTaskListSorted($virtualTestTaskList[$tblSubject->getId()][$i]);
                         /** @var VirtualTestTask $virtualTestTask */
                         foreach ($tempList as $virtualTestTask) {
                             $count++;
@@ -443,6 +443,78 @@ abstract class ServiceStudentOverview extends ServiceScoreCalc
             return $slice->styleBorderBottom();
         } else {
             return ($frontend->getTableCustom($headerList, $bodyList))->__toString();
+        }
+    }
+
+    /**
+     * @param array $virtualTestTaskList
+     *
+     * @return array
+     */
+    private function getVirtualTestTaskListSorted(array $virtualTestTaskList): array
+    {
+        $isSortedByHighlighted = ($tblSetting = Consumer::useService()->getSetting('Education', 'Graduation', 'Gradebook', 'SortHighlighted'))
+            && $tblSetting->getValue();
+        $isSortedToRight = ($tblSetting = Consumer::useService()->getSetting('Education', 'Graduation', 'Gradebook', 'IsHighlightedSortedRight'))
+            && $tblSetting->getValue();
+        if ($isSortedByHighlighted) {
+            $tempList = array();
+            $resultList = array();
+            /** @var VirtualTestTask $virtualTestTask */
+            foreach ($virtualTestTaskList as $virtualTestTask) {
+                switch ($virtualTestTask->getType()) {
+                    case VirtualTestTask::TYPE_TEST:
+                        $tblTest = $virtualTestTask->getTblTest();
+                        if (($tblGradeType = $tblTest->getTblGradeType()) && $tblGradeType->getIsHighlighted()) {
+                            $tempList['Highlighted'][] = $virtualTestTask;
+                        } else {
+                            $tempList['NotHighlighted'][] = $virtualTestTask;
+                        }
+                        break;
+                    case VirtualTestTask::TYPE_TASK:
+                        $tempList['Default'][] = $virtualTestTask;
+                        break;
+                    case VirtualTestTask::TYPE_PERIOD:
+                        $tempList['Default'][] = $virtualTestTask;
+                }
+            }
+
+            $highlightedList = array();
+            if (isset($tempList['Highlighted'])) {
+                $highlightedList = $this->getSorter($tempList['Highlighted'])->sortObjectBy('Date', new DateTimeSorter());
+            }
+            $notHighlightedList = array();
+            if (isset($tempList['NotHighlighted'])) {
+                $notHighlightedList = $this->getSorter($tempList['NotHighlighted'])->sortObjectBy('Date', new DateTimeSorter());
+            }
+            $defaultList = array();
+            if (isset($tempList['Default'])) {
+                $defaultList = $this->getSorter($tempList['Default'])->sortObjectBy('Date', new DateTimeSorter());
+            }
+
+            if ($isSortedToRight) {
+                if (!empty($notHighlightedList)) {
+                    $resultList = array_merge($resultList, $notHighlightedList);
+                }
+                if (!empty($highlightedList)) {
+                    $resultList = array_merge($resultList, $highlightedList);
+                }
+            } else {
+                if (!empty($highlightedList)) {
+                    $resultList = array_merge($resultList, $highlightedList);
+                }
+                if (!empty($notHighlightedList)) {
+                    $resultList = array_merge($resultList, $notHighlightedList);
+                }
+            }
+
+            if (!empty($defaultList)) {
+                $resultList = array_merge($resultList, $defaultList);
+            }
+
+            return $resultList;
+        } else {
+            return $this->getSorter($virtualTestTaskList)->sortObjectBy('Date', new DateTimeSorter());
         }
     }
 }

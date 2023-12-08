@@ -85,7 +85,7 @@ class FsAbsFhr extends FsStyle
                 in der jeweils geltenden Fassung - berechtigt dieses Zeugnis in allen Ländern der Bundesrepublik Deutschland
                 zum Studium an Fachhochschulen.')))
             ->addSlice($this->getFsInfoExtended('10px', '3)', new Container('Die Durchschnittsnote ergibt sich aus allen
-                Zeugnisnoten mit Ausnahme der Fächer Sport, Religion und Ethik.')))
+                Zeugnisnoten.')))
             ->addSlice($this->getFsInfoExtended('10px', '4)', new Container('Das Fach war Gegenstand des Erwerbs der
                 Fachhochschulreife.')))
             ->addSlice($this->getFsInfoExtended('10px', '5)', new Container('Das Thema der Facharbeit und die Note werden

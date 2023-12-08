@@ -162,8 +162,6 @@ class GymAbitur extends Certificate
                             {% else %}
                                 {% if Content.P' . $personId . '.Person.Common.BirthDates.Gender == 1 %}
                                     Herr
-                                {% else %}
-                                    Frau/Herr²
                                 {% endif %}
                             {% endif %}
                             <u>&nbsp;&nbsp;&nbsp;&nbsp; {{ Content.P' . $personId . '.Person.Data.Name.First }} {{ Content.P' . $personId . '.Person.Data.Name.Last }} &nbsp;&nbsp;&nbsp;&nbsp;</u> 
