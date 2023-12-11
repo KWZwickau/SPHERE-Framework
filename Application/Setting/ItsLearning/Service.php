@@ -54,6 +54,7 @@ class Service extends Extension
                 $Division = '';
                 $DivisionDisplay = '';
                 $SchoolType = '';
+                $BusinessMail = '';
 
                 if(($tblYear = Term::useService()->getYearById($YearId))
                 && ($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))){
@@ -69,6 +70,19 @@ class Service extends Extension
                         $DivisionDisplay = $tblDivisionCourse->getDisplayName();
                     }
                 }
+                $tblMailList = array();
+                if(($tblToPersonList = Mail::useService()->getMailAllByPerson($tblPerson))){
+                    foreach($tblToPersonList as $tblToPerson){
+                        if(($tblMail = $tblToPerson->getTblMail())
+                        && ($tblTypeMail = $tblToPerson->getTblType())
+                        && $tblTypeMail->getName() == 'Geschäftlich'){
+                            $tblMailList[] = $tblMail->getAddress();
+                        }
+                    }
+                }
+                if(!empty($tblMailList)){
+                    $BusinessMail = implode(',', $tblMailList);
+                }
 
                 $PersonAccountList[$tblPerson->getId()]['Level'] = $level;
                 $PersonAccountList[$tblPerson->getId()]['Division'] = $Division;
@@ -77,6 +91,7 @@ class Service extends Extension
                 if(($tblStudent = Student::useService()->getStudentByPerson($tblPerson))){
                     $PersonAccountList[$tblPerson->getId()]['Identification'] = $tblStudent->getIdentifierComplete();
                 }
+                $PersonAccountList[$tblPerson->getId()]['BusinessMail'] = $BusinessMail;
 
                 // Sorgeberechtigte, Bevollmächtigte, Vormund
                 $tblTypeList = array();
@@ -179,6 +194,7 @@ class Service extends Extension
                 $item['Division'] = $StudentData['Division'];
                 $item['DivisionDisplay'] = $StudentData['DivisionDisplay'];
                 $item['SchoolType'] = $StudentData['SchoolType'];
+                $item['BusinessMail'] = $StudentData['BusinessMail'];
 
                 if(isset($StudentData['Custody'])){
                     if(count($StudentData['Custody']) > $countCustody){
@@ -221,6 +237,7 @@ class Service extends Extension
             $export->setValue($export->getCell($column++, $row), "Klasse");
             $export->setValue($export->getCell($column++, $row), "Klasse mit Beschreibung");
             $export->setValue($export->getCell($column++, $row), "Schulart");
+            $export->setValue($export->getCell($column++, $row), "Schüler: Geschäftliche E-Mail");
             for($i = 1; $i <= $countCustody; $i++){
                 $number = $i;
                 if($i == 1){
@@ -245,6 +262,7 @@ class Service extends Extension
                 $export->setValue($export->getCell($column++, $row), $Upload['Division']);
                 $export->setValue($export->getCell($column++, $row), $Upload['DivisionDisplay']);
                 $export->setValue($export->getCell($column++, $row), $Upload['SchoolType']);
+                $export->setValue($export->getCell($column++, $row), $Upload['BusinessMail']);
                 for($j = 1; $j <= $countCustody; $j++) {
                     $export->setValue($export->getCell($column++, $row), (isset($Upload['Sibling'.$j]) ? $Upload['Sibling'.$j] : ''));
                     $export->setValue($export->getCell($column++, $row), (isset($Upload['IdS'.$j]) ? $Upload['IdS'.$j] : ''));
