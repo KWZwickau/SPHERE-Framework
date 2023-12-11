@@ -84,8 +84,7 @@ class Session extends Extension implements IModuleInterface
     {
 
         $Stage = new Stage('Active Session', 'der aktuell angemeldete Benutzer');
-//        $Stage->addButton(new External('Login History', __NAMESPACE__.'/History', null, array(), false));
-        $Stage->addButton(new Standard('Login History', __NAMESPACE__.'/History'));
+//        $Stage->addButton(new Standard('Login History', __NAMESPACE__.'/History'));
 
         if ($Id) {
             $tblSessionAll = Account::useService()->getSessionAll();
@@ -100,8 +99,14 @@ class Session extends Extension implements IModuleInterface
         $Result = array();
 
         $tblSessionAll = Account::useService()->getSessionAll();
+        $countArray = array(
+            'tokenLogin' => 0,
+            'appLogin' => 0,
+            'combinedLogin' => 0,
+            'studentCustody' => 0,
+        );
         if ($tblSessionAll) {
-            array_walk($tblSessionAll, function (TblSession $tblSession) use (&$Result) {
+            array_walk($tblSessionAll, function (TblSession $tblSession) use (&$Result, &$countArray) {
                 if (($tblAccount = $tblSession->getTblAccount())) {
                     $loginTime = $tblAccount->getSessionTimeOut();
 
@@ -168,14 +173,34 @@ class Session extends Extension implements IModuleInterface
                             'Id' => $tblSession->getId()
                         ))
                     );
+                    if($tblAccount->getServiceTblToken() && $tblAccount->getAuthenticatorAppSecret()){
+                        $countArray['combinedLogin']++;
+                    } elseif ($tblAccount->getServiceTblToken()) {
+                        $countArray['tokenLogin']++;
+                    } elseif ($tblAccount->getAuthenticatorAppSecret()) {
+                        $countArray['appLogin']++;
+                    } else {
+                        $countArray['studentCustody']++;
+                    }
                 }
             });
         }
 
+        $space = '&nbsp;&nbsp;&nbsp;&nbsp;';
+        $Stage->setDescription(
+            'der aktuell angemeldete Benutzer'.$space
+            .new Bold('Token und App: ').$countArray['combinedLogin'].$space
+            .new Bold('Token: ').$countArray['tokenLogin'].$space
+            .new Bold('App: ').$countArray['combinedLogin'].$space
+            .new Bold('Gesammt: ').$countArray['combinedLogin']+$countArray['tokenLogin']+$countArray['combinedLogin'].$space
+            .new Bold('Schüler/Eltern: ').$countArray['studentCustody']
+        );
+
         $Stage->setContent(
             new Layout(
                 new LayoutGroup(
-                    new LayoutRow(
+                    new LayoutRow(array(
+                        new LayoutColumn(new Standard('Login History', __NAMESPACE__.'/History').'<div style="height: 8px">&nbsp;</div>'),
                         new LayoutColumn(array(
                             new TableData($Result, null, array(
                                 'Id' => '#',
@@ -201,7 +226,7 @@ class Session extends Extension implements IModuleInterface
                                 '/Platform/System/Session', 60
                             )
                         ))
-                    ), new Title('Aktive Benutzer')
+                    )), new Title('Aktive Benutzer')
                 )
             )
         );
