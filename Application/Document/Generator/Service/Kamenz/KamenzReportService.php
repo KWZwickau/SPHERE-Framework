@@ -2894,11 +2894,15 @@ class KamenzReportService
                     ) {
                         if ($tblStudentSubject->getIsAdvancedCourse()) {
                             $countAdvancedCourseArray[$tblSubject->getAcronym()][$level][$tblDivisionCourse->getId()] = 1;
-
+                            // mehr als 2 Leistungskurse möglich, deswegen muss das Array die Zählung übernehmen.
+                            // Platz 0 wird für Deutsch/Mathe reserviert.
+                            if(!isset($personAdvancedCourseList[$level][$tblPerson->getId()][0])){
+                                $personAdvancedCourseList[$level][$tblPerson->getId()][0] = '';
+                            }
                             if ($tblSubject->getName() == 'Deutsch' || $tblSubject->getName() == 'Mathematik') {
                                 $personAdvancedCourseList[$level][$tblPerson->getId()][0] = $tblSubject->getAcronym();
                             } else {
-                                $personAdvancedCourseList[$level][$tblPerson->getId()][1] = $tblSubject->getAcronym();
+                                $personAdvancedCourseList[$level][$tblPerson->getId()][] = $tblSubject->getAcronym();
                             }
                         } else {
                             $countBasicCourseArray[$tblSubject->getAcronym()][$level]['CoursesCount'][$tblDivisionCourse->getId()] = 1;
