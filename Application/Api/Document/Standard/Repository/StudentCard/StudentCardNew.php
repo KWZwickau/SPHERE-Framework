@@ -131,7 +131,7 @@ class StudentCardNew extends AbstractDocument
                                 ->stylePaddingBottom('5px')
                                 ,'41%')
                             ->addElementColumn((new Element())
-                                ->setContent('Telefonnummer:<br>Email-Adresse:')
+                                ->setContent('Telefonnummer:<br>E-Mail Adresse:')
                                 ->stylePaddingLeft('5px')
                                 ->stylePaddingBottom('5px')
                                 , '12%')
