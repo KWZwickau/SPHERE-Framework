@@ -624,11 +624,16 @@ class Frontend extends Extension implements IFrontendInterface
         $tblYearList = Term::useService()->getYearAllSinceYears(1);
         if ($tblYearList) {
             foreach ($tblYearList as $tblYear) {
+                $tblDivisionCourseYearList = array();
                 if (($tblDivisionCourseListDivision = DivisionCourse::useService()->getDivisionCourseListBy($tblYear, TblDivisionCourseType::TYPE_DIVISION))) {
-                    $tblDivisionCourseList = array_merge($tblDivisionCourseList, $tblDivisionCourseListDivision);
+                    $tblDivisionCourseYearList = array_merge($tblDivisionCourseYearList, $tblDivisionCourseListDivision);
                 }
                 if (($tblDivisionCourseListCoreGroup = DivisionCourse::useService()->getDivisionCourseListBy($tblYear, TblDivisionCourseType::TYPE_CORE_GROUP))) {
-                    $tblDivisionCourseList = array_merge($tblDivisionCourseList, $tblDivisionCourseListCoreGroup);
+                    $tblDivisionCourseYearList = array_merge($tblDivisionCourseYearList, $tblDivisionCourseListCoreGroup);
+                }
+                if ($tblDivisionCourseYearList) {
+                    $tblDivisionCourseYearList = $this->getSorter($tblDivisionCourseYearList)->sortObjectBy('Name');
+                    $tblDivisionCourseList = array_merge($tblDivisionCourseList, $tblDivisionCourseYearList);
                 }
             }
         }
@@ -640,7 +645,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new SelectBox('Filter[Group]', 'Gruppe', array('Name' => $tblGroupAll)), 6
                     ),
                     new FormColumn(
-                        new SelectBox('Filter[Division]', 'Kurs', array('{{ YearName}} - {{ Name }}' => $tblDivisionCourseList)), 6
+                        new SelectBox('Filter[Division]', 'Kurs', array('{{ YearName}} - {{ Name }}' => $tblDivisionCourseList), null, true, null), 6
                     ),
                     new FormColumn(
                         new Primary('Suchen', new Filter())
