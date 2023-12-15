@@ -19,7 +19,6 @@ use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisio
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
-use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\System\Database\Binding\AbstractService;
 
 /**
@@ -200,8 +199,8 @@ class Service extends AbstractService
                             foreach($tblYearList as $tblYear){
                                 if(($tblDivisionCourseList = DivisionCourse::useService()->getDivisionCourseListByStudentAndYear($tblPersonCauser, $tblYear))){
                                     foreach($tblDivisionCourseList as $tblDivisionCourse){
-                                        if($tblDivisionCourse->getType() == TblDivisionCourseType::TYPE_DIVISION
-                                        || $tblDivisionCourse->getType() == TblDivisionCourseType::TYPE_CORE_GROUP)
+                                        if($tblDivisionCourse->getType()->getIdentifier() == TblDivisionCourseType::TYPE_DIVISION
+                                        || $tblDivisionCourse->getType()->getIdentifier() == TblDivisionCourseType::TYPE_CORE_GROUP)
                                         $DivisionNameList[] = $tblDivisionCourse->getDisplayName();
                                     }
                                 }

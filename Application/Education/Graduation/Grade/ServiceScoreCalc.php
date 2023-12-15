@@ -7,6 +7,7 @@ use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreRule;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTestGrade;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblStudentSubject;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblPeriod;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
@@ -344,6 +345,18 @@ abstract class ServiceScoreCalc extends ServiceScore
     public function getScoreRuleByPersonAndYearAndSubject(TblPerson $tblPerson, TblYear $tblYear, TblSubject $tblSubject,
         ?TblDivisionCourse $tblDivisionCourseItem = null)
     {
+        // SekII-Kurse wenn man nicht direkt im SekII-Kurs ist sondern z.B. in der Schülerübersicht oder in der Zensurenübersicht für Notenaufträge
+        if (DivisionCourse::useService()->getIsCourseSystemByPersonAndYear($tblPerson, $tblYear)
+            && ($tblStudentSubject = DivisionCourse::useService()->getStudentSubjectByPersonAndYearAndSubjectForCourseSystem($tblPerson, $tblYear, $tblSubject))
+        ) {
+            if (($tblDivisionCourseTemp = $tblStudentSubject->getTblDivisionCourse())
+                && ($temp = $this->getScoreRuleSubjectDivisionCourseByDivisionCourseAndSubject($tblDivisionCourseTemp, $tblSubject))
+                && ($tblScoreRule = $temp->getTblScoreRule())
+            ) {
+                return $tblScoreRule;
+            }
+        }
+
         // SekII-Kurse
         if ($tblDivisionCourseItem
             && ($temp = $this->getScoreRuleSubjectDivisionCourseByDivisionCourseAndSubject($tblDivisionCourseItem, $tblSubject))

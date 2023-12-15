@@ -190,14 +190,13 @@ class Service extends AbstractService
      *
      * @return bool|FilePointer
      */
-    public function createGradeListCsv($Period, $TaskId)
+    public function createGradeListCsv(int $Period, int $TaskId)
     {
-        $tblPersonList = $this->getStudentExistInTaskList($TaskId);
 
+        $tblPersonList = $this->getStudentExistInTaskList($TaskId);
         $PeopleGradeList = $this->getStudentGradeList($TaskId, $tblPersonList);
 
         if (!empty($PeopleGradeList)) {
-
             $fileLocation = Storage::createFilePointer('csv');
             /** @var PhpExcel $export */
             $export = Document::getDocument($fileLocation->getFileLocation());
@@ -218,7 +217,6 @@ class Service extends AbstractService
 
             $Row = 1;
             foreach ($PeopleGradeList as $Data) {
-
                 $export->setValue($export->getCell("0", $Row), $Data['Birthday']);
                 $export->setValue($export->getCell("1", $Row), $Data['LastName']);
                 $export->setValue($export->getCell("2", $Row), $Data['FirstName']);
@@ -229,9 +227,7 @@ class Service extends AbstractService
                 }
                 $Row++;
             }
-
             $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
-
             return $fileLocation;
         }
 
