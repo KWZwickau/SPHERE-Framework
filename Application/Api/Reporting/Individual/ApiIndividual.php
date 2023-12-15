@@ -1868,6 +1868,8 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
             '!-!s' => '_HY_',
             '!/!s' => '_DASH_',
             '! !s' => '_',
+//            '! !s' => '',
+            '!:!s' => 'Doppelpunkt',
 
         );
         return preg_replace(array_keys( $EncoderPattern ), array_values( $EncoderPattern ), $Name );
@@ -1889,6 +1891,7 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
             '!_HY_!s' => '-',
             '!_DASH_!s' => '/',
             '!_!s' => ' ',
+            '!Doppelpunkt!s' => ':',
         );
         return preg_replace(array_keys( $DecoderPattern ), array_values( $DecoderPattern ), $Name );
     }
@@ -2341,7 +2344,6 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
     public function getSearchResult($ViewType = TblWorkSpace::VIEW_TYPE_ALL)
     {
 
-//        $ShowSQL = true;
         $ShowSQL = false;
         $Query = $this->buildSearchQuery($ViewType, true, $ShowSQL);
 
