@@ -266,12 +266,15 @@ class Gradebook implements IModuleInterface
                             ) {
                                 $countTemp = 0;
                                 foreach ($tblPrepareStudentList as $tblPrepareStudent) {
-                                    if (($tblPrepare = $tblPrepareStudent->getTblPrepareCertificate())
-                                        && ($tblTask = $tblPrepare->getServiceTblAppointedDateTask())
-                                    ) {
+                                    if (($tblPrepare = $tblPrepareStudent->getTblPrepareCertificate())) {
                                         $countTemp++;
-                                        if (!$countPeriods || $countTemp == $countPeriods) {
+                                        if ($isSekTwo && (!$countPeriods || $countTemp == $countPeriods)) {
                                             $tblCertificate = $tblPrepareStudent->getServiceTblCertificate();
+                                            $tblTask = $tblPrepare->getServiceTblAppointedDateTask();
+                                            break;
+                                        } elseif (!$isSekTwo) {
+                                            $tblCertificate = $tblPrepareStudent->getServiceTblCertificate();
+                                            $tblTask = $tblPrepare->getServiceTblAppointedDateTask();
                                             break;
                                         }
                                     }

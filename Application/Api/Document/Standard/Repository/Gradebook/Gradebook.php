@@ -103,7 +103,7 @@ class Gradebook extends AbstractDocument
                 $count++;
                 $isLastPeriod = $count == count($tblPeriodList);
 
-                $pageList[] = $this->buildPage($tblDivisionCourse, $tblSubject, $tblPeriod, $tblYear, $isLastPeriod, $isSekTwo, $showCourse);
+                $pageList[] = $this->buildPage($tblDivisionCourse, $tblSubject, $tblPeriod, $tblYear, $isLastPeriod, $isSekTwo, $showCourse, $count);
             }
         }
 
@@ -141,6 +141,8 @@ class Gradebook extends AbstractDocument
      * @param bool $isLastPeriod
      * @param bool $isSekTwo
      * @param bool $showCourse
+     * @param int $countPeriods
+     *
      * @return Page
      */
     public function buildPage(
@@ -150,7 +152,8 @@ class Gradebook extends AbstractDocument
         TblYear $tblYear,
         bool $isLastPeriod,
         bool $isSekTwo,
-        bool $showCourse
+        bool $showCourse,
+        int $countPeriods
     ): Page {
         $tblTeacherList = array();
         if (($tblTeacherLectureshipList = DivisionCourse::useService()->getTeacherLectureshipListBy(null, null, $tblDivisionCourse, $tblSubject))) {
@@ -195,7 +198,8 @@ class Gradebook extends AbstractDocument
                     $tblYear,
                     $isLastPeriod,
                     $isSekTwo,
-                    $showCourse
+                    $showCourse,
+                    $countPeriods
                 )
             );
     }
@@ -208,6 +212,8 @@ class Gradebook extends AbstractDocument
      * @param bool $isLastPeriod
      * @param bool $isSekTwo
      * @param bool $showCourse
+     * @param int $countPeriods
+     *
      * @return Slice
      */
     private function setContent(
@@ -217,7 +223,8 @@ class Gradebook extends AbstractDocument
         TblYear $tblYear,
         bool $isLastPeriod,
         bool $isSekTwo,
-        bool $showCourse
+        bool $showCourse,
+        int $countPeriods
     ): Slice {
 
         $slice = new Slice();
@@ -502,15 +509,22 @@ class Gradebook extends AbstractDocument
                 $tblCertificate = false;
                 if ($showCertificateGrade
                     && ($tblPrepareStudentList = Prepare::useService()->getPrepareStudentListByPersonAndCertificateTypeAndYear(
-                        $tblPerson, $tblCertificateType, $tblYear
+                        $tblPerson, $tblCertificateType, $tblYear, 'ASC'
                     ))
                 ) {
+                    $countTemp = 0;
                     foreach ($tblPrepareStudentList as $tblPrepareStudent) {
-                        if (($tblPrepare = $tblPrepareStudent->getTblPrepareCertificate())
-                            && ($tblTask = $tblPrepare->getServiceTblAppointedDateTask())
-                        ) {
-                            $tblCertificate = $tblPrepareStudent->getServiceTblCertificate();
-                            break;
+                        if (($tblPrepare = $tblPrepareStudent->getTblPrepareCertificate())) {
+                            $countTemp++;
+                            if ($isSekTwo && (!$countPeriods || $countTemp == $countPeriods)) {
+                                $tblCertificate = $tblPrepareStudent->getServiceTblCertificate();
+                                $tblTask = $tblPrepare->getServiceTblAppointedDateTask();
+                                break;
+                            } elseif (!$isSekTwo) {
+                                $tblCertificate = $tblPrepareStudent->getServiceTblCertificate();
+                                $tblTask = $tblPrepare->getServiceTblAppointedDateTask();
+                                break;
+                            }
                         }
                     }
                 }
