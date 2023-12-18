@@ -454,9 +454,9 @@ class Service extends AbstractService
                 $ratio = $width / $height;
                 if($ratio > 1){
                     $newWidth = $maxDim;
-                    $newHeight = $maxDim / $ratio;
+                    $newHeight = (int)($maxDim / $ratio);
                 } else {
-                    $newWidth = $maxDim * $ratio;
+                    $newWidth = (int)($maxDim * $ratio);
                     $newHeight = $maxDim;
                 }
             } else {
