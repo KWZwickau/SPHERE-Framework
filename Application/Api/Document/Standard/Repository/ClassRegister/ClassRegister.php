@@ -141,6 +141,7 @@ class ClassRegister extends AbstractDocument
      */
     public function getPageList(): array
     {
+        $pageList = array();
         $pageList[] = $this->getCoverSheet();
         $pageList[] = new Page();
         $pageList[] = $this->getFirstPage();
@@ -754,8 +755,8 @@ class ClassRegister extends AbstractDocument
     {
         if ($this->tblYear) {
             list($startDate, $endDate) = Term::useService()->getStartDateAndEndDateOfYear($this->tblYear);
-//            $startDate = new DateTime('10.11.2022');
-//            $endDate = new DateTime('20.11.2022');
+//            $startDate = new DateTime('01.12.2023');
+//            $endDate = new DateTime('20.12.2023');
             if ($startDate && $endDate) {
                 $dayOfWeek = $startDate->format('w');
 
@@ -975,7 +976,7 @@ class ClassRegister extends AbstractDocument
                     ->styleBorderLeft()
                     ->styleBorderTop()
                     ->addElement((new Element())
-                        ->setContent($this->setRotatedContent($this->dayName[$dayOfWeek]))
+                        ->setContent($this->setRotatedContent($this->dayName[$dayOfWeek], ($count * 28) / 2 . 'px'))
                         ->styleHeight(($count * 28) . 'px')
                         ->styleBorderBottom()
                         ->styleBackgroundColor($isHoliday ? '#EEE' : '#FFF')
@@ -1179,20 +1180,23 @@ class ClassRegister extends AbstractDocument
 
     /**
      * @param string $text
+     * @param string $height
      * @param string $paddingTop
      * @param string $paddingLeft
-     * @param string $paddingRight
      *
      * @return string
      */
-    protected function setRotatedContent(string $text = '&nbsp;', string $paddingTop = '-45px', string $paddingLeft = '-90px', string $paddingRight = ''): string
+    protected function setRotatedContent(string $text = '&nbsp;', string $height = 'auto', string $paddingTop = '22px', string $paddingLeft = '0px'): string
     {
         return
-            '<div style="padding-top: ' . $paddingTop . '!important;'
+            '<div style="'
+            . 'position: absolute;'
+            . 'transform: rotate(270deg)!important;'
+            . 'transform-origin: left bottom 0;'
+            . 'top: ' . $height . ';'
+            . 'padding-top: ' . $paddingTop . '!important;'
             . 'padding-left: ' . $paddingLeft . '!important;'
-            . ($paddingRight ? 'padding-right: ' . $paddingRight . '!important;' : '')
-            . 'white-space: nowrap;'
-            . 'transform: rotate(-90deg)!important;'
+            . 'white-space: nowrap!important;'
             . '">'
             . $text
             . '</div>';

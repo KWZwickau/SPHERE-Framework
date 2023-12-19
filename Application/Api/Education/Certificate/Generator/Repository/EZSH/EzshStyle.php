@@ -439,7 +439,7 @@ abstract class EzshStyle extends Certificate
                 $SubjectSlice->addSection($HeaderSectionTwo);
             }
 
-            $hasAdditionalLine = false;
+            $hasAdditionalLine = array();
             $isShrinkMarginTop = false;
 
             $subjectWidth = 30;
@@ -612,7 +612,7 @@ abstract class EzshStyle extends Certificate
                         $SubjectSection->addElementColumn((new Element()), '53%');
                     }
 
-                    $hasAdditionalLine = false;
+                    $hasAdditionalLine = array();
 
                     // es wird abstand gelassen, einkommentieren für keinen extra Abstand der nächsten Zeile
 //                    $isShrinkMarginTop = true;

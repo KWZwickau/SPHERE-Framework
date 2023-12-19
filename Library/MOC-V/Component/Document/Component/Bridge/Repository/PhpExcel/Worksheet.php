@@ -73,7 +73,7 @@ abstract class Worksheet extends File
     public function setWorksheetFitToPage()
     {
 
-        $this->Source->getActiveSheet()->getPageSetup()->setFitToPage();
+        $this->Source->getActiveSheet()->getPageSetup()->setFitToPage(true);
         return $this;
     }
 

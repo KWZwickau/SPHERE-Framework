@@ -776,9 +776,11 @@ abstract class AbstractDocument
                     ) {
                         if ($TypeName == 'Notfall') {
                             $tblPhoneToPersonList = Phone::useService()->getPhoneToPersonAllEmergencyContactByPerson($tblPerson);
-                            $this->getPhoneNumbersByList(
-                                $tblPhoneToPersonList, $tblPersonFrom->getSalutation() == 'Frau' ? $phoneNumberMotherList : $phoneNumberFatherList, $IsRemark
-                            );
+                            if ($tblPersonFrom->getSalutation() == 'Frau') {
+                                $this->getPhoneNumbersByList($tblPhoneToPersonList, $phoneNumberMotherList, $IsRemark);
+                            } else {
+                                $this->getPhoneNumbersByList($tblPhoneToPersonList, $phoneNumberFatherList, $IsRemark);
+                            }
                         } else {
                             if (($tblPhoneType = Phone::useService()->getTypeByNameAndDescription($TypeName,
                                 'Festnetz'))
