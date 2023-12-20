@@ -286,7 +286,7 @@ class TblBasket extends Element
             $BillTime = $this->BillTime;
             if($BillTime instanceof \DateTime){
                 if($IsMaxMonthDay){
-                    $TimeLong = mktime(null, null, null, $BillTime->format('m'), $BillTime->format('d'), $BillTime->format('Y'));
+                    $TimeLong = mktime(0, null, null, $BillTime->format('m'), $BillTime->format('d'), $BillTime->format('Y'));
                     $Day = date('t', $TimeLong);
                     return $BillTime->format('Ym').$Day;
                 } else {
@@ -301,7 +301,7 @@ class TblBasket extends Element
             $TargetTime = $this->TargetTime;
             if ($TargetTime instanceof \DateTime){
                 if ($IsMaxMonthDay){
-                    $TimeLong = mktime(null, null, null, $TargetTime->format('m'), $TargetTime->format('d'),
+                    $TimeLong = mktime(0, null, null, $TargetTime->format('m'), $TargetTime->format('d'),
                         $TargetTime->format('Y'));
                     $Day = date('t', $TimeLong);
                     return $TargetTime->format('Ym').$Day;
@@ -315,7 +315,7 @@ class TblBasket extends Element
         // Fehlendes Rechnungsdatum, fehlende Fälligkeit -> aktuelles Datum
         $Now = new \DateTime();
         if($IsMaxMonthDay){
-            $TimeLong = mktime(null, null, null, $Now->format('m'), $Now->format('d'), $Now->format('Y'));
+            $TimeLong = mktime(0, null, null, $Now->format('m'), $Now->format('d'), $Now->format('Y'));
             $Day = date('t', $TimeLong);
             return $Now->format('Ym').$Day;
         } else {
