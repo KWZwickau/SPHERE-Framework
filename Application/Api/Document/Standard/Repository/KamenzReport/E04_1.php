@@ -37,6 +37,7 @@ class E04_1
             ->addSection((new Section())
                 ->addElementColumn((new Element())
                     ->setContent('Anzahl der<br/>Fremdsprachen')
+                    ->styleAlignCenter()
                     ->styleBorderRight()
                     ->stylePaddingTop('8.6px')
                     ->stylePaddingBottom('8.5px'), '20%'
@@ -45,6 +46,7 @@ class E04_1
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('Klassenstufe')
+                            ->styleAlignCenter()
                             ->styleBorderRight()
                             , '100%'
                         )
@@ -52,36 +54,42 @@ class E04_1
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('5')
+                            ->styleAlignCenter()
                             ->styleBorderRight()
                             ->stylePaddingTop('8.6px')
                             ->stylePaddingBottom('8.5px'), '10%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('6')
+                            ->styleAlignCenter()
                             ->styleBorderRight()
                             ->stylePaddingTop('8.6px')
                             ->stylePaddingBottom('8.5px'), '10%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('7')
+                            ->styleAlignCenter()
                             ->styleBorderRight()
                             ->stylePaddingTop('8.6px')
                             ->stylePaddingBottom('8.5px'), '10%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('8')
+                            ->styleAlignCenter()
                             ->styleBorderRight()
                             ->stylePaddingTop('8.6px')
                             ->stylePaddingBottom('8.5px'), '10%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('9')
+                            ->styleAlignCenter()
                             ->styleBorderRight()
                             ->stylePaddingTop('8.6px')
                             ->stylePaddingBottom('8.5px'), '10%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('10')
+                            ->styleAlignCenter()
                             ->styleBorderRight()
                             ->stylePaddingTop('8.6px')
                             ->stylePaddingBottom('8.5px'), '10%'
@@ -94,6 +102,7 @@ class E04_1
 //                )
                 ->addElementColumn((new Element())
                     ->setContent('Sonderkl.')
+                    ->styleAlignCenter()
                     ->stylePaddingTop('17.1px')
                     ->stylePaddingBottom('17.1px')
                     ->styleBorderRight()
@@ -101,6 +110,7 @@ class E04_1
                 )
                 ->addElementColumn((new Element())
                     ->setContent('Insgesamt')
+                    ->styleAlignCenter()
                     ->styleTextBold()
                     ->stylePaddingTop('17.1px')
                     ->stylePaddingBottom('17.1px')
@@ -123,6 +133,7 @@ class E04_1
             $section
                 ->addElementColumn((new Element())
                     ->setContent($text)
+                    ->styleAlignCenter()
                     ->styleBackgroundColor('lightgrey')
                     ->styleBorderRight(), '20%'
                 );
@@ -137,6 +148,7 @@ class E04_1
                                 &nbsp;
                             {% endif %}
                         ')
+                        ->styleAlignCenter()
                         ->styleBorderRight(), '10%'
                     );
             }
@@ -144,6 +156,7 @@ class E04_1
             $section
                 ->addElementColumn((new Element())
                     ->setContent('&nbsp;')
+                    ->styleAlignCenter()
 //                    ->setContent('
 //                        {% if (Content.E04_1.F' . $i . '.Migration is not empty) %}
 //                            {{ Content.E04_1.F' . $i . '.Migration }}
@@ -162,6 +175,7 @@ class E04_1
                                 &nbsp;
                             {% endif %}
                         ')
+                    ->styleAlignCenter()
                     ->styleTextBold()
                     ->styleBackgroundColor('lightgrey'), '10%'
                 );
@@ -182,6 +196,7 @@ class E04_1
         $section
             ->addElementColumn((new Element())
                 ->setContent('Insgesamt')
+                ->styleAlignCenter()
                 ->styleBackgroundColor('lightgrey')
                 ->styleBorderRight(), '20%'
             );
@@ -196,6 +211,7 @@ class E04_1
                                 &nbsp;
                             {% endif %}
                         ')
+                    ->styleAlignCenter()
                     ->styleBorderRight(), '10%'
                 );
         }
@@ -203,6 +219,7 @@ class E04_1
         $section
             ->addElementColumn((new Element())
                 ->setContent('&nbsp;')
+                ->styleAlignCenter()
 //                ->setContent('
 //                    {% if (Content.E04_1.TotalCount.Migration is not empty) %}
 //                        {{ Content.E04_1.TotalCount.Migration }}
@@ -215,6 +232,7 @@ class E04_1
             )
             ->addElementColumn((new Element())
                 ->setContent('&nbsp;')
+                ->styleAlignCenter()
                 ->styleBackgroundColor('lightgrey'), '10%'
             );
 

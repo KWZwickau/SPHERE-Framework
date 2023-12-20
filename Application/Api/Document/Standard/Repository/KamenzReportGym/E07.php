@@ -43,6 +43,7 @@ class E07
             ->addSection((new Section())
                 ->addElementColumn((new Element())
                     ->setContent('Im verg. Schuljahr besuchte Schulart')
+                    ->styleAlignCenter()
                     ->styleBorderRight()
                     ->stylePaddingTop('9.3px')
                     ->stylePaddingBottom('9.3px'), '20%'
@@ -51,47 +52,56 @@ class E07
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('Klassenstufen bzw. Jahrgangsstufe')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '1&nbsp;%'
                         )
                     )
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('5')
+                            ->styleAlignCenter()
                             ->styleBorderBottom()
                             ->styleBorderRight(), '12.5%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('6')
+                            ->styleAlignCenter()
                             ->styleBorderBottom()
                             ->styleBorderRight(), '12.5%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('7')
+                            ->styleAlignCenter()
                             ->styleBorderBottom()
                             ->styleBorderRight(), '12.5%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('8')
+                            ->styleAlignCenter()
                             ->styleBorderBottom()
                             ->styleBorderRight(), '12.5%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('9')
+                            ->styleAlignCenter()
                             ->styleBorderBottom()
                             ->styleBorderRight(), '12.5%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('10')
+                            ->styleAlignCenter()
                             ->styleBorderBottom()
                             ->styleBorderRight(), '12.5%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('11')
+                            ->styleAlignCenter()
                             ->styleBorderBottom()
                             ->styleBorderRight(), '12.5%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('12')
+                            ->styleAlignCenter()
                             ->styleBorderBottom()
                             ->styleBorderRight(), '12.5%'
                         )
@@ -99,66 +109,82 @@ class E07
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('m')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '6.25%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('w')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '6.25%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('m')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '6.25%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('w')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '6.25%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('m')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '6.25%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('w')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '6.25%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('m')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '6.25%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('w')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '6.25%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('m')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '6.25%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('w')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '6.25%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('m')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '6.25%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('w')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '6.25%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('m')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '6.25%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('w')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '6.25%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('m')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '6.25%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('w')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '6.25%'
                         )
                     ), '70%'
@@ -168,6 +194,7 @@ class E07
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('Insgesamt')
+                            ->styleAlignCenter()
                             ->styleBorderBottom()
                             ->stylePaddingTop('8.6px')
                             ->stylePaddingBottom('8.6px')
@@ -176,10 +203,12 @@ class E07
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('m')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '50%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('w')
+                            ->styleAlignCenter()
                             , '50%'
                         )
                     ), '10%'

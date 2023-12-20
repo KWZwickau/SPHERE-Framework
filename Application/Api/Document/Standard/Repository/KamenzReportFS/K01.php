@@ -45,6 +45,7 @@ class K01
             ->addSection((new Section())
                 ->addElementColumn((new Element())
                     ->setContent('Ausbildungsstatus')
+                    ->styleAlignCenter()
                     ->styleBorderRight()
                     ->stylePaddingTop('26.5px')
                     ->stylePaddingBottom('27.7px')
@@ -53,6 +54,7 @@ class K01
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('Vollzeit')
+                            ->styleAlignCenter()
                             ->styleBorderBottom()
                             ->styleBorderRight()
                         )
@@ -60,24 +62,28 @@ class K01
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('&nbsp;')
+                            ->styleAlignCenter()
                             ->styleBorderBottom()
                         )
                     )
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('1')
+                            ->styleAlignCenter()
                             ->stylePaddingTop('9px')
                             ->stylePaddingBottom('9px')
                             ->styleBorderRight(), '33.333%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('2')
+                            ->styleAlignCenter()
                             ->stylePaddingTop('9px')
                             ->stylePaddingBottom('9px')
                             ->styleBorderRight(), '33.333%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('3')
+                            ->styleAlignCenter()
                             ->stylePaddingTop('9px')
                             ->stylePaddingBottom('9px')
                             ->styleBorderRight(), '33.333%'
@@ -88,6 +94,7 @@ class K01
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('Teilzeit')
+                            ->styleAlignCenter()
                             ->styleBorderBottom()
                             ->styleBorderRight()
                         )
@@ -95,6 +102,7 @@ class K01
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('Klassenstufe')
+                            ->styleAlignCenter()
                             ->styleAlignLeft()
                             ->stylePaddingLeft('2px')
                             ->styleBorderBottom()
@@ -106,6 +114,7 @@ class K01
                             ->addSection((new Section())
                                 ->addElementColumn((new Element())
                                     ->setContent('1')
+                                    ->styleAlignCenter()
                                     ->styleBorderRight()
                                     ->styleBorderBottom()
                                 )
@@ -113,10 +122,12 @@ class K01
                             ->addSection((new Section())
                                 ->addElementColumn((new Element())
                                     ->setContent('1. AJ')
+                                    ->styleAlignCenter()
                                     ->styleBorderRight(), '50%'
                                 )
                                 ->addElementColumn((new Element())
                                     ->setContent('2. AJ')
+                                    ->styleAlignCenter()
                                     ->styleBorderRight(), '50%'
                                 )
                             )
@@ -125,6 +136,7 @@ class K01
                             ->addSection((new Section())
                                 ->addElementColumn((new Element())
                                     ->setContent('2')
+                                    ->styleAlignCenter()
                                     ->styleBorderRight()
                                     ->styleBorderBottom()
                                 )
@@ -132,10 +144,12 @@ class K01
                             ->addSection((new Section())
                                 ->addElementColumn((new Element())
                                     ->setContent('3. AJ')
+                                    ->styleAlignCenter()
                                     ->styleBorderRight(), '50%'
                                 )
                                 ->addElementColumn((new Element())
                                     ->setContent('4. AJ')
+                                    ->styleAlignCenter()
                                     ->styleBorderRight(), '50%'
                                 )
                             )
@@ -143,6 +157,7 @@ class K01
                     ), $width[2])
                 ->addElementColumn((new Element())
                     ->setContent('Insgesamt')
+                    ->styleAlignCenter()
                     ->stylePaddingTop('26.5px')
                     ->stylePaddingBottom('26.7px')
                     ->styleTextBold()
@@ -176,6 +191,7 @@ class K01
             $section
                 ->addElementColumn((new Element())
                     ->setContent($text)
+                    ->styleAlignCenter()
                     ->styleBackgroundColor('lightgrey')
                     ->styleBorderRight()
                     , $width[0]);
@@ -191,6 +207,7 @@ class K01
                                 &nbsp;
                             {% endif %}
                         ')
+                        ->styleAlignCenter()
                         ->styleBackgroundColor($isGrey ? 'lightgrey' : 'white')
                         ->styleBorderRight()
                         , $width['level']);
@@ -207,6 +224,7 @@ class K01
                                 &nbsp;
                             {% endif %}
                         ')
+                        ->styleAlignCenter()
                         ->styleBackgroundColor($isGrey ? 'lightgrey' : 'white')
                         ->styleBorderRight()
                         , $width['level']);
@@ -222,6 +240,7 @@ class K01
                                 &nbsp;
                             {% endif %}
                         ')
+                    ->styleAlignCenter()
                     ->styleBackgroundColor('lightgrey')
                     ->styleTextBold()
                     , $width['level']);

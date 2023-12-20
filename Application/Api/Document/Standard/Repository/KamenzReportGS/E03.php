@@ -47,6 +47,7 @@ class E03
             ->addSection((new Section())
                 ->addElementColumn((new Element())
                     ->setContent('Land der <br/> Staatsangehörigkeit')
+                    ->styleAlignCenter()
                     ->styleBorderRight()
                     ->stylePaddingTop('26.1px')
                     ->stylePaddingBottom('26.1px'), $left
@@ -55,6 +56,7 @@ class E03
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('Klassenstufe')
+                            ->styleAlignCenter()
                             ->styleBorderRight()
                             , '40%'
                         )
@@ -62,6 +64,7 @@ class E03
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('1')
+                            ->styleAlignCenter()
                             ->styleBorderBottom()
                             ->styleBorderRight()
                             ->stylePaddingTop('17.1px')
@@ -69,6 +72,7 @@ class E03
                         )
                         ->addElementColumn((new Element())
                             ->setContent('2')
+                            ->styleAlignCenter()
                             ->styleBorderBottom()
                             ->styleBorderRight()
                             ->stylePaddingTop('17.1px')
@@ -76,6 +80,7 @@ class E03
                         )
                         ->addElementColumn((new Element())
                             ->setContent('3')
+                            ->styleAlignCenter()
                             ->styleBorderBottom()
                             ->styleBorderRight()
                             ->stylePaddingTop('17.1px')
@@ -83,6 +88,7 @@ class E03
                         )
                         ->addElementColumn((new Element())
                             ->setContent('4')
+                            ->styleAlignCenter()
                             ->styleBorderBottom()
                             ->styleBorderRight()
                             ->stylePaddingTop('17.1px')
@@ -92,34 +98,42 @@ class E03
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('m')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), $width
                         )
                         ->addElementColumn((new Element())
                             ->setContent('w')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), $width
                         )
                         ->addElementColumn((new Element())
                             ->setContent('m')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), $width
                         )
                         ->addElementColumn((new Element())
                             ->setContent('w')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), $width
                         )
                         ->addElementColumn((new Element())
                             ->setContent('m')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), $width
                         )
                         ->addElementColumn((new Element())
                             ->setContent('w')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), $width
                         )
                         ->addElementColumn((new Element())
                             ->setContent('m')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), $width
                         )
                         ->addElementColumn((new Element())
                             ->setContent('w')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), $width
                         )
                     )
@@ -129,6 +143,7 @@ class E03
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('Insgesamt')
+                            ->styleAlignCenter()
                             ->styleBorderBottom()
                             ->stylePaddingTop('25.7px')
                             ->stylePaddingBottom('25.6px'), '100%'
@@ -137,10 +152,12 @@ class E03
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('m')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '50%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('w')
+                            ->styleAlignCenter()
                             ->styleBorderRight()
                             , '50%'
                         )
@@ -163,6 +180,7 @@ class E03
                                 &nbsp;
                             {% endif %}
                         ')
+                        ->styleAlignCenter()
                         ->styleBorderRight(), $left
                     )
                     ->addElementColumn((new Element())
@@ -173,6 +191,7 @@ class E03
                                 &nbsp;
                             {% endif %}
                         ')
+                        ->styleAlignCenter()
                         ->styleBorderRight(), $width
                     )
                     ->addElementColumn((new Element())
@@ -183,6 +202,7 @@ class E03
                                 &nbsp;
                             {% endif %}
                         ')
+                        ->styleAlignCenter()
                         ->styleBorderRight(), $width
                     )
                     ->addElementColumn((new Element())
@@ -193,6 +213,7 @@ class E03
                                 &nbsp;
                             {% endif %}
                         ')
+                        ->styleAlignCenter()
                         ->styleBorderRight(), $width
                     )
                     ->addElementColumn((new Element())
@@ -203,6 +224,7 @@ class E03
                                 &nbsp;
                             {% endif %}
                         ')
+                        ->styleAlignCenter()
                         ->styleBorderRight(), $width
                     )
                     ->addElementColumn((new Element())
@@ -213,6 +235,7 @@ class E03
                                 &nbsp;
                             {% endif %}
                         ')
+                        ->styleAlignCenter()
                         ->styleBorderRight(), $width
                     )
                     ->addElementColumn((new Element())
@@ -223,6 +246,7 @@ class E03
                                 &nbsp;
                             {% endif %}
                         ')
+                        ->styleAlignCenter()
                         ->styleBorderRight(), $width
                     )
                     ->addElementColumn((new Element())
@@ -233,6 +257,7 @@ class E03
                                 &nbsp;
                             {% endif %}
                         ')
+                        ->styleAlignCenter()
                         ->styleBorderRight(), $width
                     )
                     ->addElementColumn((new Element())
@@ -243,6 +268,7 @@ class E03
                                 &nbsp;
                             {% endif %}
                         ')
+                        ->styleAlignCenter()
                         ->styleBorderRight(), $width
                     )
                     ->addElementColumn((new Element())
@@ -253,6 +279,7 @@ class E03
                                 &nbsp;
                             {% endif %}
                         ')
+                        ->styleAlignCenter()
                         ->styleBackgroundColor('lightgrey')
                         ->styleBorderRight(), $width
                     )
@@ -264,6 +291,7 @@ class E03
                                 &nbsp;
                             {% endif %}
                         ')
+                        ->styleAlignCenter()
                         ->styleBackgroundColor('lightgrey'), $width
                     )
                 );
@@ -279,6 +307,7 @@ class E03
             ->addSection((new Section())
                 ->addElementColumn((new Element())
                     ->setContent('Insgesamt')
+                    ->styleAlignCenter()
                     ->styleBorderRight(), $left
                 )
                 ->addElementColumn((new Element())
@@ -289,6 +318,7 @@ class E03
                                 &nbsp;
                             {% endif %}
                         ')
+                    ->styleAlignCenter()
                     ->styleBorderRight(), $width
                 )
                 ->addElementColumn((new Element())
@@ -299,6 +329,7 @@ class E03
                                 &nbsp;
                             {% endif %}
                         ')
+                    ->styleAlignCenter()
                     ->styleBorderRight(), $width
                 )
                 ->addElementColumn((new Element())
@@ -309,6 +340,7 @@ class E03
                                 &nbsp;
                             {% endif %}
                         ')
+                    ->styleAlignCenter()
                     ->styleBorderRight(), $width
                 )
                 ->addElementColumn((new Element())
@@ -319,6 +351,7 @@ class E03
                                 &nbsp;
                             {% endif %}
                         ')
+                    ->styleAlignCenter()
                     ->styleBorderRight(), $width
                 )
                 ->addElementColumn((new Element())
@@ -329,6 +362,7 @@ class E03
                                 &nbsp;
                             {% endif %}
                         ')
+                    ->styleAlignCenter()
                     ->styleBorderRight(), $width
                 )
                 ->addElementColumn((new Element())
@@ -339,6 +373,7 @@ class E03
                                 &nbsp;
                             {% endif %}
                         ')
+                    ->styleAlignCenter()
                     ->styleBorderRight(), $width
                 )
                 ->addElementColumn((new Element())
@@ -349,6 +384,7 @@ class E03
                                 &nbsp;
                             {% endif %}
                         ')
+                    ->styleAlignCenter()
                     ->styleBorderRight(), $width
                 )
                 ->addElementColumn((new Element())
@@ -359,6 +395,7 @@ class E03
                                 &nbsp;
                             {% endif %}
                         ')
+                    ->styleAlignCenter()
                     ->styleBorderRight(), $width
                 )
                 ->addElementColumn((new Element())
@@ -369,6 +406,7 @@ class E03
                                 &nbsp;
                             {% endif %}
                         ')
+                    ->styleAlignCenter()
                     ->styleBorderRight(), $width
                 )
                 ->addElementColumn((new Element())
@@ -378,7 +416,9 @@ class E03
                             {% else %}
                                 &nbsp;
                             {% endif %}
-                        '), $width
+                        ')
+                    ->styleAlignCenter()
+                    , $width
                 )
             );
 

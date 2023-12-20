@@ -33,6 +33,7 @@ class E12
             ->addSection((new Section())
                 ->addElementColumn((new Element())
                     ->setContent('Merkmal')
+                    ->styleAlignCenter()
                     ->styleBorderRight()
                     ->stylePaddingTop('17.2px')
                     ->stylePaddingBottom('17.1px'), '40%'
@@ -41,46 +42,56 @@ class E12
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('Klassenstufe')
+                            ->styleAlignCenter()
                             ->styleBorderRight()
                         )
                     )
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('8')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '33.33%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('9')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '33.33%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('10')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '33.34%'
                         )
                     )
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('m')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '16.66%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('w')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '16.67%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('m')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '16.66%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('w')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '16.67%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('m')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '16.67%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('w')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '16.67%'
                         )
                     ), '45%'
@@ -90,6 +101,7 @@ class E12
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('Insgesamt')
+                            ->styleAlignCenter()
                             ->stylePaddingTop('8.6px')
                             ->stylePaddingBottom('8.5px')
                         )
@@ -97,10 +109,12 @@ class E12
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('m')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '50%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('w'), '50%'
+                            ->setContent('w')
+                            ->styleAlignCenter(), '50%'
                         )
                     ), '15%'
                 )
@@ -117,6 +131,7 @@ class E12
                                 &nbsp;
                             {% endif %}
                         ')
+                    ->styleAlignCenter()
                     ->styleBorderRight()
                     , '40%'
                 );
@@ -131,6 +146,7 @@ class E12
                                 &nbsp;
                             {% endif %}
                         ')
+                        ->styleAlignCenter()
                         ->styleBorderRight()
                         , '7.5%'
                     );
@@ -143,6 +159,7 @@ class E12
                                 &nbsp;
                             {% endif %}
                         ')
+                        ->styleAlignCenter()
                         ->styleBorderRight()
                         , '7.5%'
                     );
@@ -156,6 +173,7 @@ class E12
                                 &nbsp;
                             {% endif %}
                         ')
+                    ->styleAlignCenter()
                     ->styleBackgroundColor('lightgrey')
                     ->styleBorderRight()
                     ->styleTextBold(), '7.5%'
@@ -168,6 +186,7 @@ class E12
                                     &nbsp;
                                 {% endif %}
                             ')
+                    ->styleAlignCenter()
                     ->styleBackgroundColor('lightgrey')
                     ->styleTextBold(), '7.5%'
                 );

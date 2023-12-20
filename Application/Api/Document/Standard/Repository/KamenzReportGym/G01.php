@@ -41,6 +41,7 @@ class G01
             ->addSection((new Section())
                 ->addElementColumn((new Element())
                     ->setContent('Klasse')
+                    ->styleAlignCenter()
                     ->styleBorderRight()
                     ->stylePaddingTop('8.6px')
                     ->stylePaddingBottom('8.5px'), '40%'
@@ -49,31 +50,38 @@ class G01
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('Klassenstufen')
+                            ->styleAlignCenter()
                         )
                     )
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('5')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '16.67%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('6')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '16.66%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('7')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '16.67%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('8')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '16.67%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('9')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '16.66%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('10'), '16.67%'
+                            ->setContent('10')
+                            ->styleAlignCenter(), '16.67%'
                         )
                     ), '60%'
                 )
@@ -84,6 +92,7 @@ class G01
             $section
                 ->addElementColumn((new Element())
                     ->setContent($i . '. Klasse')
+                    ->styleAlignCenter()
                     ->styleBackgroundColor('lightgrey')
                     ->styleBorderRight(),
                     '40%'
@@ -98,6 +107,7 @@ class G01
                                 &nbsp;
                             {% endif %}
                         ')
+                        ->styleAlignCenter()
                         ->styleBorderRight(), '10%'
                     );
             }
@@ -117,6 +127,7 @@ class G01
         $section
             ->addElementColumn((new Element())
                 ->setContent('Insgesamt')
+                ->styleAlignCenter()
                 ->styleBorderRight(), '40%'
             );
 
@@ -130,6 +141,7 @@ class G01
                                 &nbsp;
                             {% endif %}
                         ')
+                    ->styleAlignCenter()
                     ->styleBorderRight(), '10%'
                 );
         }
