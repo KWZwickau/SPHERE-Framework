@@ -16,34 +16,38 @@ class NumberToWord
     public static function float2Text($fNumber, $IsMoney = false)
     {
 
-        // Zahl mit korrektem Trennzeichen
-        $fNumber = str_replace(',', '.', $fNumber);
-        // Zahl auf 2 Nachkommastellen runden (wenn zu lang)
-        $fNumber = round($fNumber, 2);
-        $positionC = strpos($fNumber, '.');
-        if($positionC){
-            $numberInt = substr($fNumber, 0, $positionC);
-            $numberFloat = substr($fNumber, $positionC + 1);
-            // abgeschnittene Nullen auffüllen (0.6 -> 0.60 -> 60 "Cent")
-            if(strlen($numberFloat) < 2){
-                $numberFloat = str_pad($numberFloat, 2 ,'0', STR_PAD_RIGHT);
+        if($fNumber != ''){
+            $fNumber = str_replace('€', '', $fNumber);
+            $fNumber = (int)str_replace(',', '.', $fNumber);
+            // Zahl mit korrektem Trennzeichen
+            // Zahl auf 2 Nachkommastellen runden (wenn zu lang)
+            $fNumber = round($fNumber, 2);
+            $positionC = strpos($fNumber, '.');
+            if($positionC){
+                $numberInt = substr($fNumber, 0, $positionC);
+                $numberFloat = substr($fNumber, $positionC + 1);
+                // abgeschnittene Nullen auffüllen (0.6 -> 0.60 -> 60 "Cent")
+                if(strlen($numberFloat) < 2){
+                    $numberFloat = str_pad($numberFloat, 2 ,'0', STR_PAD_RIGHT);
+                }
+            } else {
+                $numberInt = $fNumber;
+                $numberFloat = '00';
             }
-        } else {
-            $numberInt = $fNumber;
-            $numberFloat = '00';
-        }
-
-        // Nachkommastelle wird ignoriert.
-        if($numberFloat == '00'){
+            // Nachkommastelle wird ignoriert.
+            if($numberFloat == '00'){
+                if($IsMoney){
+                    return self::num2text($numberInt).' Euro';
+                }
+                return self::num2text($numberInt);
+            }
             if($IsMoney){
-                return self::num2text($numberInt).' Euro';
+                return self::num2text($numberInt).' Euro und '.self::num2text($numberFloat).' Cent';
             }
-            return self::num2text($numberInt);
+
+            return self::num2text($numberInt).' und '.self::num2text($numberFloat);
         }
-        if($IsMoney){
-            return self::num2text($numberInt).' Euro und '.self::num2text($numberFloat).' Cent';
-        }
-        return self::num2text($numberInt).' und '.self::num2text($numberFloat);
+        return self::num2text(0).' Euro';
     }
 
     /**

@@ -192,12 +192,12 @@ class Billing extends AbstractDocument
         $Birthday = '';
         if(($tblCommon = $tblPersonCauser->getCommon())){
             if(($tblCommonBirthDates = $tblCommon->getTblCommonBirthDates())){
-                $Birthday = $tblCommonBirthDates->getBirthday();
+                $Birthday = $tblCommonBirthDates->getBirthday()?: '';
             }
         }
         $StudentIdentifier = '';
         if(($tblStudent = Student::useService()->getStudentByPerson($tblPersonCauser))){
-            $StudentIdentifier = $tblStudent->getIdentifier();
+            $StudentIdentifier = $tblStudent->getIdentifier()?: '';
         }
 
         // Umgang mit nicht gefüllten Werten
@@ -209,8 +209,6 @@ class Billing extends AbstractDocument
         $CauserFirstName = $this->setEmptyString($CauserFirstName);
         $CauserLastName = $this->setEmptyString($CauserLastName);
         $Birthday = $this->setEmptyString($Birthday);
-
-
 
         $Subject = $this->setPlaceholders($Subject, $ItemName, $InvoiceNumber, $Year, $TotalPrice, $DebtorSalutation, $DebtorFirstName,
             $DebtorLastName, $CauserSalutation, $CauserFirstName, $CauserLastName, $Birthday, $From, $To, $Date,
