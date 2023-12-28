@@ -81,6 +81,8 @@ abstract class File extends Config
                  * Find CSV Delimiter
                  */
                 $Reader = new Csv();
+                // auto_detect_line_endings is deprecated
+                $Reader->setTestAutoDetect(false);
                 if( $this->delimiter === null ) {
                     $Result = $this->getDelimiterType();
                 } else {
