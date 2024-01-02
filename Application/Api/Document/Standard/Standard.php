@@ -90,6 +90,9 @@ class Standard extends Extension implements IModuleInterface
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '/CourseContent/Create', __CLASS__ . '::createCourseContentPdf'
         ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '/ClassRegister/AbsenceStudent/Create', __CLASS__ . '::createAbsenceStudentPdf'
+        ));
     }
 
     /**
@@ -298,6 +301,18 @@ class Standard extends Extension implements IModuleInterface
     public static function createCourseContentPdf($DivisionCourseId = null, bool $Redirect = true): string
     {
         return Creator::createCourseContentPdf($DivisionCourseId, $Redirect);
+    }
+
+    /**
+     * @param null $PersonId
+     * @param null $YearId
+     * @param bool $Redirect
+     *
+     * @return string
+     */
+    public static function createAbsenceStudentPdf($PersonId = null, $YearId = null, bool $Redirect = true): string
+    {
+        return Creator::createAbsenceStudentPdf($PersonId, $YearId, $Redirect);
     }
 
     /**

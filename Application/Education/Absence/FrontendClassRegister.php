@@ -16,6 +16,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\Calendar;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronRight;
+use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\PersonGroup;
@@ -31,6 +32,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\AbstractLink;
+use SPHERE\Common\Frontend\Link\Repository\External;
 use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Link\Repository\Primary as PrimaryLink;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
@@ -76,6 +78,32 @@ class FrontendClassRegister extends Extension implements IFrontendInterface
         if (($tblPerson = Person::useService()->getPersonById($PersonId))
             && ($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))
         ) {
+            if (($tblYear = $tblDivisionCourse->getServiceTblYear())) {
+                $externalDownloadPdf = new External(
+                    'PDF',
+                    '/Api/Document/Standard/ClassRegister/AbsenceStudent/Create',
+                    new Download(),
+                    array(
+                        'PersonId' => $PersonId,
+                        'YearId' => $tblYear->getId()
+                    ),
+                    'Fehlzeiten Übersicht des Schülers (Ansicht: Eltern-Schüler-Zugang) als PDF herunterladen'
+                );
+                $externalDownloadExcel = new External(
+                    'Excel',
+                    '/Api/Reporting/Standard/Person/ClassRegister/AbsenceStudent/Download',
+                    new Download(),
+                    array(
+                        'PersonId' => $PersonId,
+                        'YearId' => $tblYear->getId()
+                    ),
+                    'Fehlzeiten Übersicht des Schülers (Ansicht: Eltern-Schüler-Zugang) als Excel herunterladen'
+                );
+            } else {
+                $externalDownloadPdf = '';
+                $externalDownloadExcel = '';
+            }
+
             $Stage->setContent(
                 new Layout(array(
                         new LayoutGroup(array(
@@ -103,7 +131,8 @@ class FrontendClassRegister extends Extension implements IFrontendInterface
                                     . (new PrimaryLink(
                                         new Plus() . ' Fehlzeit hinzufügen',
                                         ApiAbsence::getEndpoint()
-                                    ))->ajaxPipelineOnClick(ApiAbsence::pipelineOpenCreateAbsenceModal($PersonId, $DivisionCourseId)),
+                                    ))->ajaxPipelineOnClick(ApiAbsence::pipelineOpenCreateAbsenceModal($PersonId, $DivisionCourseId))
+                                    . new PullRight($externalDownloadExcel . ' ' . $externalDownloadPdf),
                                     new Container('&nbsp;')
                                 ))
                             ))
@@ -246,11 +275,11 @@ class FrontendClassRegister extends Extension implements IFrontendInterface
                 ),
                 'responsive' => false,
 //                'ExtensionColVisibility' => array('Enabled' => true),
-                'ExtensionDownloadExcel' => array(
-                    'Enabled' => true,
-                    'FileName' => $FileName,
-                    'Columns' => '0,1,2,3,4,5,6,7,8',
-                )
+//                'ExtensionDownloadExcel' => array(
+//                    'Enabled' => true,
+//                    'FileName' => $FileName,
+//                    'Columns' => '0,1,2,3,4,5,6,7,8',
+//                )
             )
         );
     }
