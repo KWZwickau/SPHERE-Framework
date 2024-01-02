@@ -919,6 +919,7 @@ class Creator extends Extension
                     $BasketTypeId
                 );
                 // Summe berechnen
+                $PriceList = Balance::useService()->getItemPriceForMonth($PriceList);
                 $PriceList = Balance::useService()->getSummaryByItemPrice($PriceList);
             } else {
                 $BasketTypeId = $Data['BasketType'];
@@ -931,6 +932,7 @@ class Creator extends Extension
                     isset($Data['DivisionCourse']) ? $Data['DivisionCourse'] : '0',
                     isset($Data['Group']) ? $Data['Group'] : '0'
                 );
+                $PriceList = Balance::useService()->getItemPriceForMonth($PriceList);
             }
 
             if (!empty($PriceList)) {
@@ -975,8 +977,8 @@ class Creator extends Extension
                                     if(isset($Value['InvoiceNumber'])){
                                         $InvoiceNumber = $Value['InvoiceNumber'];
                                     }
-
-                                    $pageList[] = $template->buildPage($tblPersonDebtor, $tblPersonCauser, $TotalPrice, $InvoiceNumber);
+                                    $PriceTable = $Value['PriceTableString']??'';
+                                    $pageList[] = $template->buildPage($tblPersonDebtor, $tblPersonCauser, $TotalPrice, $InvoiceNumber, $PriceTable);
                                 }
                             }
                         }

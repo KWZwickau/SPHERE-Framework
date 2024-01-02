@@ -154,14 +154,23 @@ class Service extends AbstractService
                 $PersonDebtorId = isset($RowContent['PersonDebtorId']) ? $RowContent['PersonDebtorId'] : false;
                 $PersonCauserId = isset($RowContent['PeronCauserId']) ? $RowContent['PeronCauserId'] : false;
                 $timeString = isset($RowContent['Year']) && isset($RowContent['Month']) ? $RowContent['Year'].'/'.$RowContent['Month'] : false;
+                $BillTimeString = isset($RowContent['BillTime'])?$RowContent['BillTime']->format('d.m.Y'): '';
                 if($PersonDebtorId && $PersonCauserId && $timeString){
                     if(isset($RowContent['IsPaid']) && $RowContent['IsPaid'] && $BasketTypeId != '-1'){
                         $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['Sum'][] = $RowContent['Value'];
                         $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['Price'][$timeString] = $RowContent['Value'];
+                        // Preisliste mit Datum BillTime
+                        $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['PriceTable'][] = $BillTimeString.
+                            ' &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; '
+                            . $this->getPriceString($RowContent['Value']);
                     } elseif(isset($RowContent['IsPaid']) && $RowContent['IsPaid'] && $BasketTypeId == '-1') {
                         if($RowContent['BasketTypeId'] == $tblBasketTypeA->getId()){
                             $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['Sum'][] = $RowContent['Value'];
                             $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['Price'][$timeString] = $RowContent['Value'];
+                            // Preisliste mit Datum BillTime
+                            $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['PriceTable'][] = $BillTimeString.
+                                ' &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; '
+                                . $this->getPriceString($RowContent['Value']);
                         }
                         if($RowContent['BasketTypeId'] == $tblBasketTypeB->getId()){
                             $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['Sum'][] = $RowContent['Value'] * -1;
@@ -338,7 +347,7 @@ class Service extends AbstractService
     }
 
     /**
-     * @param array $PriceList
+     * @param array $PriceSum
      * @param array TblItem[] $tblItemList
      *
      * @return bool|FilePointer
@@ -346,12 +355,12 @@ class Service extends AbstractService
      * @throws TypeFileException
      * @throws \PHPExcel_Reader_Exception
      */
-    public function createBalanceListExcel($PriceList, $tblItemList = array())
+    public function createBalanceListExcel($PriceSum, $tblItemList = array())
     {
 
         $PersonList = array();
-        if(!empty($PriceList)){
-            foreach($PriceList as $DebtorId => $CauserList) {
+        if(!empty($PriceSum)){
+            foreach($PriceSum as $DebtorId => $CauserList) {
                 if(($tblPersonDebtor = Person::useService()->getPersonById($DebtorId))){
                     $MailListDebtor = array();
                     if(($tblToPersonList = Mail::useService()->getMailAllByPerson($tblPersonDebtor))){
@@ -540,7 +549,7 @@ class Service extends AbstractService
             $tblPerson, $BasketTypeId);
         $tblBasketTypeA = Basket::useService()->getBasketTypeByName(TblBasketType::IDENT_ABRECHNUNG);
         $tblBasketTypeB = Basket::useService()->getBasketTypeByName(TblBasketType::IDENT_GUTSCHRIFT);
-
+        $BillTimeString = $RowContent['BillTime']?? '';
         if ($ResultList){
             foreach ($ResultList as $Key => $RowContent) {
                 $PersonDebtorId = isset($RowContent['PersonDebtorId']) ? $RowContent['PersonDebtorId'] : false;
@@ -550,10 +559,18 @@ class Service extends AbstractService
                     if (isset($RowContent['IsPaid']) && $RowContent['IsPaid'] && $BasketTypeId != '-1'){
                         $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['Sum'][] = $RowContent['Value'];
                         $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['Price'][$timeString] = $RowContent['Value'];
+                        // Preisliste mit Datum BillTime
+                        $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['PriceTable'][] = $BillTimeString.
+                            ' &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; '
+                            . $this->getPriceString($RowContent['Value']);
                     } elseif (isset($RowContent['IsPaid']) && $RowContent['IsPaid'] && $BasketTypeId == '-1') {
                         if ($RowContent['BasketTypeId'] == $tblBasketTypeA->getId()){
                             $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['Sum'][] = $RowContent['Value'];
                             $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['Price'][$timeString] = $RowContent['Value'];
+                            // Preisliste mit Datum BillTime
+                            $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['PriceTable'][] = $BillTimeString.
+                                ' &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; '
+                                . $this->getPriceString($RowContent['Value']);
                         }
                         if ($RowContent['BasketTypeId'] == $tblBasketTypeB->getId()){
                             $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['Sum'][] = $RowContent['Value'] * -1;
@@ -595,6 +612,37 @@ class Service extends AbstractService
                 }
             }
         }
+        return $PriceList;
+    }
+
+    /**
+     * @param array $PriceList
+     *
+     * @return array
+     */
+    public function getItemPriceForMonth(array $PriceList)
+    {
+
+        $spaceLeft = '100px';
+        if(!empty($PriceList)){
+            foreach($PriceList as &$DebtorContent) {
+                foreach($DebtorContent as &$CauserContent) {
+                    foreach($CauserContent as &$ItemContent) {
+                        // convert to Output
+                        if(!empty($ItemContent['PriceTable'])){
+                            $content = '<table><tbody>';
+                            $content.= '<tr><th style="width: '.$spaceLeft.'"></th><th>Rechnungsdatum &nbsp; Preis</th></tr>';
+                            foreach($ItemContent['PriceTable'] as $Price){
+                                $content.= '<tr><td style="width: '.$spaceLeft.'">&nbsp;</td><td>'.$Price.'</td></tr>';
+                            }
+                            $content.= '</tbody></table>';
+                            $ItemContent['PriceTableString'] = $content;
+                        }
+                    }
+                }
+            }
+        }
+
         return $PriceList;
     }
 
