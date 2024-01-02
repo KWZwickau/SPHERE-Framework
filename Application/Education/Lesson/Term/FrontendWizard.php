@@ -20,6 +20,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Calendar;
+use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Select;
@@ -30,6 +31,7 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 
@@ -43,6 +45,7 @@ class FrontendWizard extends Extension implements IFrontendInterface
     public function frontendWizardYear($Data = null): Stage
     {
         $stage = new Stage('Schuljahr mit Zeiträumen und Ferien', 'Erstellen');
+        $stage->addButton(new Standard('Zurück', '/Education/Lesson/Term', new ChevronLeft()));
 
         $YearList = array();
         for ($i = -2; $i < 5; $i++) {
@@ -174,11 +177,12 @@ class FrontendWizard extends Extension implements IFrontendInterface
         if (isset($Data['YearName']) && $Data['YearName']) {
             if (strlen($Data['YearName']) >= 4) {
                 $year = substr($Data['YearName'], 0, 4);
+                $nextYear = (int) $year + 1;
 
                 $dateChristmas = new DateTime('31.12.' . $year);
-                $dateChristmasNextDay = new DateTime('01.01.' . ($year + 1));
-                $dateWinter = new DateTime('31.01.' . ($year + 1));
-                $dateWinterNextDay = new DateTime('01.02.' . ($year + 1));
+                $dateChristmasNextDay = new DateTime('01.01.' . $nextYear);
+                $dateWinter = new DateTime('31.01.' . $nextYear);
+                $dateWinterNextDay = new DateTime('01.02.' . $nextYear);
                 if (($tblState = BasicData::useService()->getStateById($Data['State'] ?? 0))) {
                     if (($tblHolidayChristmas = BasicData::useService()->getHolidayByNameAndYearAndState('Weihnachtsferien', $year, $tblState))
                         && ($fromDateChristmas = $tblHolidayChristmas->getFromDate())
@@ -186,7 +190,7 @@ class FrontendWizard extends Extension implements IFrontendInterface
                         $dateChristmas = (new DateTime($fromDateChristmas))->sub(new DateInterval('P1D'));
                         $dateChristmasNextDay = (new DateTime($fromDateChristmas));
                     }
-                    if (($tblHolidayWinter = BasicData::useService()->getHolidayByNameAndYearAndState('Winterferien', ($year + 1), $tblState))
+                    if (($tblHolidayWinter = BasicData::useService()->getHolidayByNameAndYearAndState('Winterferien', $nextYear, $tblState))
                         && ($fromDateWinter = $tblHolidayWinter->getFromDate())
                     ) {
                         $dateWinter = (new DateTime($fromDateWinter))->sub(new DateInterval('P1D'));
@@ -207,7 +211,7 @@ class FrontendWizard extends Extension implements IFrontendInterface
                         case 1: $post = $dateWinter->format('d.m.Y'); break;
                         case 3: $post = $dateChristmas->format('d.m.Y'); break;
                         case 2:
-                        case 4: $post = '31.07.' . ($year + 1); break;
+                        case 4: $post = '31.07.' . $nextYear; break;
                     }
                 }
 
