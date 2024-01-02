@@ -912,8 +912,8 @@ class Service extends AbstractService
         }
 
         foreach ($VerificationList as $VerificationId) {
-            $tblBasketVerifivation = Basket::useService()->getBasketVerificationById($VerificationId);
-            Basket::useService()->destroyBasketVerification($tblBasketVerifivation);
+            $tblBasketVerification = Basket::useService()->getBasketVerificationById($VerificationId);
+            Basket::useService()->destroyBasketVerification($tblBasketVerification);
         }
         return new Success('Zahlungen wurden erfolgreich entfernt.')
             .new Redirect('/Billing/Bookkeeping/Basket/View', Redirect::TIMEOUT_SUCCESS, array('BasketId' => $tblBasket->getId()));

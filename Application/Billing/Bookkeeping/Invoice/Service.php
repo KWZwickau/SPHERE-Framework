@@ -155,6 +155,43 @@ class Service extends AbstractService
      * @param TblPerson $tblPerson
      * @param TblItem   $tblItem
      * @param string    $Year
+     * @param string    $Month
+     *
+     * @return TblInvoice|null $tblInvoice
+     */
+    public function getInvoiceObjectByPersonCauserAndItemAndYearAndMonth(
+        TblBasket $tblBasket,
+        TblPerson $tblPerson,
+        TblItem $tblItem,
+        string $Year,
+        string $Month
+    ): ?TblInvoice{
+        $tblInvoice = null;
+        if(($tblInvoiceList = $this->getInvoiceAllByPersonCauserAndYearAndMonth($tblPerson, $Year, $Month))) {
+            foreach ($tblInvoiceList as $tempTblInvoice) {
+                if(($tblInvoiceItemDebtorList = Invoice::useService()->getInvoiceItemDebtorByInvoice($tempTblInvoice))) {
+                    foreach ($tblInvoiceItemDebtorList as $tempTblInvoiceItemDebtor) {
+                        $tblInvoiceItem = $tempTblInvoiceItemDebtor->getServiceTblItem();
+                        if(($tempTblBasket = $tempTblInvoice->getServiceTblBasket())
+                            && $tempTblBasket->getId() == $tblBasket->getId()
+                            && $tblInvoiceItem
+                            && $tblInvoiceItem->getId() == $tblItem->getId()
+                        ) {
+                            $tblInvoice = $tempTblInvoice;
+                        }
+                    }
+                }
+            }
+        }
+
+        return $tblInvoice;
+    }
+
+    /**
+     * @param TblBasket $tblBasket
+     * @param TblPerson $tblPerson
+     * @param TblItem   $tblItem
+     * @param string    $Year
      *
      * @return TblInvoice[]|bool
      */
@@ -1149,5 +1186,33 @@ class Service extends AbstractService
         (new Data($this->getBinding()))->destroyInvoiceItemDebtorBulk($InvoiceItemDebtorIdList);
         // tblInvoice
         (new Data($this->getBinding()))->destroyInvoiceBulk($InvoiceIdList);
+    }
+
+    /**
+     * @param TblInvoice $tblInvoice
+     * @param TblItem    $tblItem
+     *
+     * @return void
+     */
+    public function destroyInvoiceByInvoiceAndItem(TblInvoice $tblInvoice, TblItem $tblItem)
+    {
+
+        $InvoiceItemDebtorIdList = array();
+        $countItemDebtor = 0;
+        if(($tblInvoiceItemDebtorList = Invoice::useService()->getInvoiceItemDebtorByInvoice($tblInvoice))){
+            $countItemDebtor = count($tblInvoiceItemDebtorList);
+            foreach($tblInvoiceItemDebtorList as $tblInvoiceItemDebtor){
+                if(($tblInvoiceItem = $tblInvoiceItemDebtor->getServiceTblItem())
+                && $tblInvoiceItem->getId() == $tblItem->getId()){
+                    $InvoiceItemDebtorIdList[] = $tblInvoiceItemDebtor->getId();
+                }
+            }
+        }
+        // tblInvoiceItemDebtor
+        (new Data($this->getBinding()))->destroyInvoiceItemDebtorBulk($InvoiceItemDebtorIdList);
+        // tblInvoice
+        if($countItemDebtor == count($InvoiceItemDebtorIdList)){
+            (new Data($this->getBinding()))->destroyInvoiceBulk(array($tblInvoice));
+        }
     }
 }
