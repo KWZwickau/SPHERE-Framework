@@ -159,10 +159,6 @@ class Service extends AbstractService
                     if(isset($RowContent['IsPaid']) && $RowContent['IsPaid'] && $BasketTypeId != '-1'){
                         $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['Sum'][] = $RowContent['Value'];
                         $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['Price'][$timeString] = $RowContent['Value'];
-                        // Preisliste mit Datum BillTime
-                        $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['PriceTable'][] = $BillTimeString.
-                            ' &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; '
-                            . $this->getPriceString($RowContent['Value']);
                     } elseif(isset($RowContent['IsPaid']) && $RowContent['IsPaid'] && $BasketTypeId == '-1') {
                         if($RowContent['BasketTypeId'] == $tblBasketTypeA->getId()){
                             $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['Sum'][] = $RowContent['Value'];
@@ -175,6 +171,10 @@ class Service extends AbstractService
                         if($RowContent['BasketTypeId'] == $tblBasketTypeB->getId()){
                             $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['Sum'][] = $RowContent['Value'] * -1;
                             $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['PriceSub'][$timeString] = $RowContent['Value'];
+                            // Preisliste mit Datum BillTime
+                            $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['PriceTable'][] = $BillTimeString.
+                                ' &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; '
+                                . '-'.$this->getPriceString($RowContent['Value']);
                         }
                     } else {
                         $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['PriceMissing'][$timeString] = $RowContent['Value'];
@@ -355,7 +355,7 @@ class Service extends AbstractService
      * @throws TypeFileException
      * @throws \PHPExcel_Reader_Exception
      */
-    public function createBalanceListExcel($PriceSum, $tblItemList = array())
+    public function createBalanceListExcel($PriceSum, $tblItemList = array(), $From = 1, $To = 12, $isMonthly = false)
     {
 
         $PersonList = array();
@@ -419,13 +419,33 @@ class Service extends AbstractService
 
                             // Gesamt
                             $Summary = 0;
+                            $Item['PaymentList'] = array();
                             foreach($ItemContent as $ItemId => $value){
                                 if(($tblItem = Item::useService()->getItemById($ItemId))){
                                     $Item['Id'.$tblItem->getId()] = Balance::useService()->getPriceString($value['Sum']);
                                     // Gesammt addieren
                                     $Summary += $value['Sum'];
+                                    if($isMonthly && !empty($value['Price'])){
+                                        foreach($value['Price'] as $BillTime => $Price){
+                                            $Month = substr($BillTime, 5,2);
+//                                            $Month = (int)(new \DateTime($Key))->format('m');
+                                            $Item['PaymentList']['Id'.$tblItem->getId()][$Month] = $Price;
+                                        }
+                                        if(isset($value['PriceSub'])){
+                                            foreach($value['PriceSub'] as $BillTime2 => $PriceSub){
+                                                $Month = substr($BillTime2, 5,2);
+                                                if(isset($Item['PaymentList']['Id'.$tblItem->getId()][$Month])) {
+                                                    $Item['PaymentList']['Id'.$tblItem->getId()][$Month] =
+                                                        $Item['PaymentList']['Id'.$tblItem->getId()][$Month] - $PriceSub;
+                                                } else {
+                                                    $Item['PaymentList']['Id'.$tblItem->getId()][$Month] = $PriceSub * -1;
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
                             }
+
                             $Summary = Balance::useService()->getPriceString($Summary);
                             $Item['Summary'] = $Summary;
 
@@ -465,6 +485,11 @@ class Service extends AbstractService
             $export->setValue($export->getCell($column++, $row), "Stadt");
             $export->setValue($export->getCell($column++, $row), "Ortsteil");
             foreach($tblItemList as $tblItem){
+                if(!empty(current($PersonList)['PaymentList'])){
+                    for($i = $From; $i <= $To; $i++){
+                        $export->setValue($export->getCell($column++, $row), $tblItem->getName().'_'.$i);
+                    }
+                }
                 $export->setValue($export->getCell($column++, $row), $tblItem->getName());
             }
             $export->setValue($export->getCell($column++, $row), "Gesamt");
@@ -491,8 +516,28 @@ class Service extends AbstractService
 
                 foreach($tblItemList as $tblItem){
                     if(isset($PersonData['Id'.$tblItem->getId()])){
+                        if($isMonthly){
+                            for($j = $From; $j <= $To; $j++){
+                                // Monthly columns (can be unset)
+                                if(isset($PersonData['PaymentList']['Id'.$tblItem->getId()][$j])
+                                && ($TempPrice = $PersonData['PaymentList']['Id'.$tblItem->getId()][$j])){
+                                    $TempPrice = $this->getPriceString($TempPrice);
+                                    $export->setValue($export->getCell($column++, $row), $TempPrice);
+                                }  else {
+                                    $export->setValue($export->getCell($column++, $row), '');
+                                }
+                            }
+                        }
+                        // Summary
                         $export->setValue($export->getCell($column++, $row), $PersonData['Id'.$tblItem->getId()]);
                     } else {
+                        if($isMonthly){
+                            for($j = $From; $j <= $To; $j++){
+                                // Monthly columns
+                                $export->setValue($export->getCell($column++, $row), '');
+                            }
+                        }
+                        // Summary
                         $export->setValue($export->getCell($column++, $row), '');
                     }
                 }
@@ -549,9 +594,10 @@ class Service extends AbstractService
             $tblPerson, $BasketTypeId);
         $tblBasketTypeA = Basket::useService()->getBasketTypeByName(TblBasketType::IDENT_ABRECHNUNG);
         $tblBasketTypeB = Basket::useService()->getBasketTypeByName(TblBasketType::IDENT_GUTSCHRIFT);
-        $BillTimeString = $RowContent['BillTime']?? '';
+
         if ($ResultList){
             foreach ($ResultList as $Key => $RowContent) {
+                $BillTimeString = isset($RowContent['BillTime'])?$RowContent['BillTime']->format('d.m.Y'): '';
                 $PersonDebtorId = isset($RowContent['PersonDebtorId']) ? $RowContent['PersonDebtorId'] : false;
                 $PersonCauserId = isset($RowContent['PeronCauserId']) ? $RowContent['PeronCauserId'] : false;
                 $timeString = isset($RowContent['Year']) && isset($RowContent['Month']) ? $RowContent['Year'].'/'.$RowContent['Month'] : false;
@@ -559,10 +605,6 @@ class Service extends AbstractService
                     if (isset($RowContent['IsPaid']) && $RowContent['IsPaid'] && $BasketTypeId != '-1'){
                         $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['Sum'][] = $RowContent['Value'];
                         $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['Price'][$timeString] = $RowContent['Value'];
-                        // Preisliste mit Datum BillTime
-                        $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['PriceTable'][] = $BillTimeString.
-                            ' &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; '
-                            . $this->getPriceString($RowContent['Value']);
                     } elseif (isset($RowContent['IsPaid']) && $RowContent['IsPaid'] && $BasketTypeId == '-1') {
                         if ($RowContent['BasketTypeId'] == $tblBasketTypeA->getId()){
                             $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['Sum'][] = $RowContent['Value'];
@@ -575,6 +617,10 @@ class Service extends AbstractService
                         if ($RowContent['BasketTypeId'] == $tblBasketTypeB->getId()){
                             $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['Sum'][] = $RowContent['Value'] * -1;
                             $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['PriceSub'][$timeString] = $RowContent['Value'];
+                            // Preisliste mit Datum BillTime
+                            $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['PriceTable'][] = $BillTimeString.
+                                ' &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; '
+                                .'-'.$this->getPriceString($RowContent['Value']);
                         }
                     } else {
                         $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['PriceMissing'][$timeString] = $RowContent['Value'];
