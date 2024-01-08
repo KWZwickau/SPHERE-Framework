@@ -365,8 +365,9 @@ class Service extends AbstractService
                         $tblPersonTeacher = $tblTeacherLectureship->getServiceTblPerson();
                         $tblDivisionCourse = $tblTeacherLectureship->getTblDivisionCourse();
                         $ClassName = $this->getCorrectionClassNameByDivision($tblDivisionCourse);
-                        $tblSubject = $tblTeacherLectureship->getServiceTblSubject();
-                        $TeacherClasses[$tblPersonTeacher->getId()][$tblDivisionCourse->getId()] = $tblSubject->getAcronym().'-'.$ClassName;
+                        if(($tblSubject = $tblTeacherLectureship->getServiceTblSubject())){
+                            $TeacherClasses[$tblPersonTeacher->getId()][$tblDivisionCourse->getId()] = $tblSubject->getAcronym().'-'.$ClassName;
+                        }
                     }
                 }
             }

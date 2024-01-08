@@ -646,11 +646,11 @@ class Frontend extends FrontendTestPlanning
                         $taskId = $virtualTestTask->getTblTask()->getId();
                         $isEditTask = false;
                         if ($isEdit) {
-                            $now = new DateTime('now');
+                            $today = new DateTime('today');
                             if ($isRoleHeadmaster) {
-                                $isEditTask = $virtualTestTask->getTblTask()->getFromDate() <= $now;
+                                $isEditTask = $virtualTestTask->getTblTask()->getFromDate() <= $today;
                             } else {
-                                $isEditTask = $virtualTestTask->getTblTask()->getFromDate() <= $now && $now <= $virtualTestTask->getTblTask()->getToDate();
+                                $isEditTask = $virtualTestTask->getTblTask()->getFromDate() <= $today && $today <= $virtualTestTask->getTblTask()->getToDate();
                             }
                         }
                         $taskListIsEdit[$taskId] = $isEditTask;

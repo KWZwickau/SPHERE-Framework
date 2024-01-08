@@ -2,6 +2,7 @@
 
 namespace SPHERE\Application\Billing\Inventory\Item;
 
+use SPHERE\Application\Billing\Accounting\Debtor\Debtor;
 use SPHERE\Application\Billing\Inventory\Item\Service\Data;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItemCalculation;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItem;
@@ -440,6 +441,12 @@ class Service extends AbstractService
         if(($tblItemVariantList = $this->getItemVariantByItem($tblItem))){
             foreach($tblItemVariantList as $tblItemVariant) {
                 $this->removeItemVariant($tblItemVariant);
+            }
+        }
+        // remove tblItemVariant
+        if(($tblDebtorSelectionList = Debtor::useService()->getDebtorSelectionByItem($tblItem))){
+            foreach($tblDebtorSelectionList as $tblDebtorSelection) {
+                Debtor::useService()->removeDebtorSelection($tblDebtorSelection);
             }
         }
         // remove tblItem

@@ -27,9 +27,10 @@ abstract class ServiceCourseSystem extends AbstractService
                 ) {
                     foreach ($tblStudentSubjectList as $tblStudentSubject) {
                         if (($tblSubject = $tblStudentSubject->getServiceTblSubject())) {
-                            if ($tblSubject->getAcronym() == 'EN2') {
-                                $tblSubject = Subject::useService()->getSubjectByAcronym('EN');
-                            }
+                            // SSW-2351 Fehlerbehebung Kurshalbjahreszeugnisse GY
+//                            if ($tblSubject->getAcronym() == 'EN2') {
+//                                $tblSubject = Subject::useService()->getSubjectByAcronym('EN');
+//                            }
                             if ($tblSubject) {
                                 if ($tblStudentSubject->getIsAdvancedCourse()) {
                                     $advancedCourses[$tblSubject->getId()] = $tblSubject;

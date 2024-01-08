@@ -689,20 +689,30 @@ abstract class ServiceTask extends ServiceStudentOverview
 
         $tblSettingBehaviorHasGrading = ($tblSetting = Consumer::useService()->getSetting('Education', 'Graduation', 'Evaluation', 'HasBehaviorGradesForSubjectsWithNoGrading'))
             && $tblSetting->getValue();
-        $now = new DateTime('now');
-        $future = (new DateTime('now'))->add(new DateInterval('P7D'));
+        $today = new DateTime('today');
+        $future = (new DateTime('today'))->add(new DateInterval('P7D'));
 
         if (($tblYearList = Term::useService()->getYearByNow())) {
             foreach ($tblYearList as $tblYear) {
                 if (($tblTeacherLectureshipList = DivisionCourse::useService()->getTeacherLectureshipListBy($tblYear, $tblPersonLogin))) {
                     foreach ($tblTeacherLectureshipList as $tblTeacherLectureship) {
+                        $tblTaskList = false;
+                        $tblSubject = false;
                         if (($tblDivisionCourse = $tblTeacherLectureship->getTblDivisionCourse())
-                            && ($tblSubject = $tblTeacherLectureship->getServiceTblSubject())
-                            && ($tblTaskList = $this->getTaskListByDivisionCourse($tblDivisionCourse))
+                            && $tblDivisionCourse->getType()->getIsCourseSystem()
+                            && ($tblSubject = $tblDivisionCourse->getServiceTblSubject())
                         ) {
+                            $tblTaskList = Grade::useService()->getTaskListByStudentsInDivisionCourse($tblDivisionCourse);
+                        } elseif ($tblDivisionCourse
+                            && ($tblSubject = $tblTeacherLectureship->getServiceTblSubject())
+                        ) {
+                            $tblTaskList = $this->getTaskListByDivisionCourse($tblDivisionCourse);
+                        }
+
+                        if ($tblTaskList && $tblSubject) {
                             foreach ($tblTaskList as $tblTask) {
                                 // current task
-                                if ($now > $tblTask->getFromDate() && $now <= $tblTask->getToDate()) {
+                                if ($today > $tblTask->getFromDate() && $today <= $tblTask->getToDate()) {
                                     if ($this->setCurrentTask($tblDivisionCourse, $tblSubject, $tblYear, $tblTask, $dataList, $tblSettingBehaviorHasGrading)) {
                                         if ($tblTask->getIsTypeBehavior()) {
                                             if (!isset($behaviorTaskList[$tblTask->getId()])) {
@@ -714,8 +724,8 @@ abstract class ServiceTask extends ServiceStudentOverview
                                             }
                                         }
                                     }
-                                // future task
-                                } elseif ($now < $tblTask->getFromDate() && $future > $tblTask->getFromDate()) {
+                                    // future task
+                                } elseif ($today < $tblTask->getFromDate() && $future > $tblTask->getFromDate()) {
                                     if ($tblTask->getIsTypeBehavior()) {
                                         $futureBehaviorTaskList[$tblTask->getId()] = $tblTask;
                                     } else {

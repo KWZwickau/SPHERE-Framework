@@ -224,6 +224,7 @@ class Creator extends Extension
      */
     public function downloadHistoryZip($PrepareId = null, string $Name = 'Zeugnis')
     {
+        ini_set('memory_limit', '2G');
         if (($tblPrepare = Prepare::useService()->getPrepareById($PrepareId))
             && ($tblDivisionCourse = $tblPrepare->getServiceTblDivision())
             && ($tblPrepareStudentList = Prepare::useService()->getPrepareStudentAllByPrepare($tblPrepare))
