@@ -578,13 +578,12 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param int         $tblAccount
-     * @param int         $tblIdentification
-     * @param null|string $CredentialKey
+     * @param null|string $otpCredentialKey
      * @param bool        $isCookieAvailable
      *
      * @return Stage
      */
-    public function frontendIdentificationToken($tblAccount, $CredentialKey = null, $isCookieAvailable = false)
+    public function frontendIdentificationToken($tblAccount, $otpCredentialKey = null, $isCookieAvailable = false)
     {
         $View = new Stage(new YubiKey() . ' Anmelden', '', $this->getIdentificationEnvironment());
 
@@ -601,24 +600,27 @@ class Frontend extends Extension implements IFrontendInterface
             && ($tblAccount->getHasAuthentication(TblIdentification::NAME_SYSTEM) || $tblAccount->getHasAuthentication(TblIdentification::NAME_TOKEN))
         ) {
             // SSW-2129 OTP direkt aus Passwort-Manager funktioniert nicht in diesem Fall (beide Authentifizierungsverfahren aktiv)
-            $CredentialKeyField = (new PasswordField('CredentialKey', '', 'YubiKey oder Authenticator App'))->setRequired()->setAutoFocus();
+            $otpCredentialKeyField = (new PasswordField('otpCredentialKey', '', 'YubiKey oder Authenticator App'))->setRequired()->setAutoFocus();
         } elseif ($tblAccount->getHasAuthentication(TblIdentification::NAME_AUTHENTICATOR_APP)) {
             // Field Definition
             // SSW-2129 OTP direkt aus Passwort-Manager
-            $CredentialKeyField = (new TextField('CredentialKey', '', 'Authenticator App'))->setRequired()->setAutoFocus();
+            $otpCredentialKeyField = (new TextField('otpCredentialKey', '', 'Authenticator App'))
+                ->setRequired()
+                ->setAutoFocus()
+                ->setFieldTel();
         } else {
             // Field Definition
-            $CredentialKeyField = (new PasswordField('CredentialKey', 'YubiKey', 'YubiKey', new YubiKey()))->setRequired()->setAutoFocus();
+            $otpCredentialKeyField = (new PasswordField('otpCredentialKey', 'YubiKey', 'YubiKey', new YubiKey()))->setRequired()->setAutoFocus();
         }
 
         $FormError = new Container('');
-        if ($CredentialKey) {
+        if ($otpCredentialKey) {
             // App ist immer 6-stellig
-            if ($tblAccount->getHasAuthentication(TblIdentification::NAME_AUTHENTICATOR_APP) && strlen($CredentialKey) == 6) {
+            if ($tblAccount->getHasAuthentication(TblIdentification::NAME_AUTHENTICATOR_APP) && strlen($otpCredentialKey) == 6) {
                 // Credential correct, OTP correct -> LOGIN
                 try {
                     $twoFactorApp = new TwoFactorApp();
-                    if ($twoFactorApp->verifyCode($tblAccount->getAuthenticatorAppSecret(), $CredentialKey)) {
+                    if ($twoFactorApp->verifyCode($tblAccount->getAuthenticatorAppSecret(), $otpCredentialKey)) {
                         if (session_status() == PHP_SESSION_ACTIVE) {
                             session_regenerate_id();
                         }
@@ -633,7 +635,7 @@ class Frontend extends Extension implements IFrontendInterface
                         return $View;
                     } else {
                         // Error OTP APP invalid
-                        $CredentialKeyField->setError('');
+                        $otpCredentialKeyField->setError('');
                         $FormError = new Listing(array(new Danger(new Exclamation() . ' Die eingegebenen Zugangsdaten sind nicht gültig')));
                     }
                 } catch (Exception $Exception) {
@@ -642,12 +644,12 @@ class Frontend extends Extension implements IFrontendInterface
                     (new DebuggerFactory())->createLogger(new FileLogger())->addLog('Authenticator App Error: ' . $Exception->getMessage());
 
                     // Error OTP APP Error
-                    $CredentialKeyField->setError('');
+                    $otpCredentialKeyField->setError('');
                     $FormError = new Listing(array(new Danger(new Exclamation() . ' Die eingegebenen Zugangsdaten sind nicht gültig')));
                 }
             } else {
                 // Search for matching Token
-                $Identifier = $this->getModHex($CredentialKey)->getIdentifier();
+                $Identifier = $this->getModHex($otpCredentialKey)->getIdentifier();
                 $tblToken = Token::useService()->getTokenByIdentifier($Identifier);
                 if (
                     $tblToken
@@ -656,7 +658,7 @@ class Frontend extends Extension implements IFrontendInterface
                 ) {
                     // Credential correct, Token correct -> LOGIN
                     try {
-                        if (Token::useService()->isTokenValid($CredentialKey)) {
+                        if (Token::useService()->isTokenValid($otpCredentialKey)) {
                             if (session_status() == PHP_SESSION_ACTIVE) {
                                 session_regenerate_id();
                             }
@@ -671,7 +673,7 @@ class Frontend extends Extension implements IFrontendInterface
                             return $View;
                         } else {
                             // Error Token invalid
-                            $CredentialKeyField->setError('');
+                            $otpCredentialKeyField->setError('');
                             $FormError = new Listing(array(new Danger(new Exclamation() . ' Die eingegebenen Zugangsdaten sind nicht gültig')));
                         }
                     } catch (Exception $Exception) {
@@ -680,12 +682,12 @@ class Frontend extends Extension implements IFrontendInterface
                         (new DebuggerFactory())->createLogger(new FileLogger())->addLog('YubiKey-Api Error: ' . $Exception->getMessage());
 
                         // Error Token API Error
-                        $CredentialKeyField->setError('');
+                        $otpCredentialKeyField->setError('');
                         $FormError = new Listing(array(new Danger(new Exclamation() . ' Die eingegebenen Zugangsdaten sind nicht gültig')));
                     }
                 } else {
                     // Error Token not registered
-                    $CredentialKeyField->setError('');
+                    $otpCredentialKeyField->setError('');
                     $FormError = new Listing(array(new Danger(new Exclamation() . ' Die eingegebenen Zugangsdaten sind nicht gültig')));
                 }
             }
@@ -722,7 +724,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 new Ruler(),
                                 new Listing($FormInformation),
                                 new Listing(array(
-                                    new Container($CredentialKeyField)
+                                    new Container($otpCredentialKeyField)
                                 )),
                                 $FormError
                             ))

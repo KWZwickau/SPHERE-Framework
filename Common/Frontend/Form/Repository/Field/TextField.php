@@ -48,6 +48,7 @@ class TextField extends AbstractTextField implements IFieldInterface
             $this->Template->setVariable('ElementMask', $Mask);
         }
         $this->Template->setVariable('ElementMaxLength', $MaxLength);
+        $this->Template->setVariable('ElementType', 'text');
     }
 
     /**
@@ -62,6 +63,15 @@ class TextField extends AbstractTextField implements IFieldInterface
         } else {
             $this->Template->setVariable('ElementCase', 'lower');
         }
+        return $this;
+    }
+
+    /**
+     * @return $this
+     */
+    public function setFieldTel(){
+
+        $this->Template->setVariable('ElementType', 'tel');
         return $this;
     }
 
