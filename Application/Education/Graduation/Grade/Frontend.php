@@ -187,6 +187,12 @@ class Frontend extends FrontendTestPlanning
             && ($tblSubject = Subject::useService()->getSubjectById($SubjectId))
             && ($tblYear = $tblDivisionCourse->getServiceTblYear())
         ) {
+            $hasBehaviorTaskSetting = ($tblSetting = ConsumerSetting::useService()->getSetting(
+                    'Education', 'Graduation', 'Evaluation', 'HasBehaviorGradesForSubjectsWithNoGrading'
+                ))
+                && $tblSetting->getValue()
+                && Grade::useService()->getBehaviorTaskListByDivisionCourse($tblDivisionCourse);
+
             $textCourse = new Bold($tblDivisionCourse->getDisplayName());
             $textSubject = new Bold($tblSubject->getDisplayName());
             $tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses();
@@ -201,7 +207,7 @@ class Frontend extends FrontendTestPlanning
             }
 
             list($testGradeList, $taskGradeList, $tblTestListNoTeacherLectureship, $integrationList, $pictureList, $courseList, $averagePeriodList,
-                $averagePersonList, $scoreRulePersonList, $averageTestSumList, $averageTestCountList)
+                $averagePersonList, $scoreRulePersonList, $averageTestSumList, $averageTestCountList, $hasStudents)
                 = $this->getTestGradeListAndTestListByPersonListAndSubject(
                     $tblPersonList, $tblYear, $tblSubject, $tblDivisionCourse, $Filter, $tblTestList, $isEdit, $isCheckTeacherLectureship
                 );
@@ -212,13 +218,13 @@ class Frontend extends FrontendTestPlanning
             $headerList = $this->getGradeBookPreHeaderList($hasPicture, $hasIntegration, $hasCourse);
             $taskListIsEdit = array();
             $this->setGradeBookHeaderList($headerList, $taskListIsEdit, $tblTestListNoTeacherLectureship,
-                $tblDivisionCourse, $tblTestList, $isEdit, $isCheckTeacherLectureship, $SubjectId, $Filter, $averagePeriodList);
+                $tblDivisionCourse, $tblTestList, $isEdit, $isCheckTeacherLectureship, $SubjectId, $Filter, $averagePeriodList, $hasStudents);
 
             $count = 0;
             if ($tblPersonList) {
                 foreach ($tblPersonList as $tblPerson) {
                     if (($tblVirtualSubject = DivisionCourse::useService()->getVirtualSubjectFromRealAndVirtualByPersonAndYearAndSubject($tblPerson, $tblYear, $tblSubject))
-                        && $tblVirtualSubject->getHasGrading()
+                        && ($tblVirtualSubject->getHasGrading() || $hasBehaviorTaskSetting)
                     ) {
 //                        $bodyList[$tblPerson->getId()]['Number'] = ($this->getTableColumnBody(++$count))->setClass("tableFixFirstColumn");
                         $bodyList[$tblPerson->getId()] = $this->getGradeBookPreBodyList($tblPerson, ++$count, $hasPicture, $hasIntegration, $hasCourse,
@@ -444,6 +450,8 @@ class Frontend extends FrontendTestPlanning
         $averageTestSumList = array();
         $averageTestCountList = array();
 
+        $hasStudents = false;
+
         if (($tblPeriodList = $tblYear->getPeriodList(false, true))) {
             foreach($tblPeriodList as $tblPeriod) {
                 if ($tblPeriod->isLevel12()) {
@@ -455,10 +463,20 @@ class Frontend extends FrontendTestPlanning
         }
 
         if ($tblPersonList) {
+            // Mandanten-Einstellung: Bei Kopfnotenaufträgen können auch Kopfnoten für Fächer vergeben werden, welche nicht benotet werden
+            $hasBehaviorTaskSetting = ($tblSetting = ConsumerSetting::useService()->getSetting(
+                    'Education', 'Graduation', 'Evaluation', 'HasBehaviorGradesForSubjectsWithNoGrading'
+                ))
+                && $tblSetting->getValue()
+                && Grade::useService()->getBehaviorTaskListByDivisionCourse($tblDivisionCourse);
             foreach ($tblPersonList as $tblPerson) {
                 if (($tblVirtualSubject = DivisionCourse::useService()->getVirtualSubjectFromRealAndVirtualByPersonAndYearAndSubject($tblPerson, $tblYear, $tblSubject))
-                    && $tblVirtualSubject->getHasGrading()
+                    && ($tblVirtualSubject->getHasGrading() || $hasBehaviorTaskSetting)
                 ) {
+                    if ($tblVirtualSubject->getHasGrading()) {
+                        $hasStudents = true;
+                    }
+
                     // Zensuren - Leistungsüberprüfungen
                     if (($tblTestGradeList = Grade::useService()->getTestGradeListByPersonAndYearAndSubject($tblPerson, $tblYear, $tblSubject))) {
                         foreach ($tblTestGradeList as $tblTestGrade) {
@@ -595,11 +613,11 @@ class Frontend extends FrontendTestPlanning
         }
 
         return array($testGradeList, $taskGradeList, $tblTestListNoTeacherLectureship, $integrationList, $pictureList, $courseList,
-            $averagePeriodList, $averagePersonList, $scoreRulePersonList, $averageTestSumList, $averageTestCountList);
+            $averagePeriodList, $averagePersonList, $scoreRulePersonList, $averageTestSumList, $averageTestCountList, $hasStudents);
     }
 
     private function setGradeBookHeaderList(array &$headerList, array &$taskListIsEdit, array $tblTestListNoTeacherLectureship,
-        TblDivisionCourse $tblDivisionCourse, $tblTestList, bool $isEdit, bool $isCheckTeacherLectureship, $SubjectId, $Filter, $averagePeriodList)
+        TblDivisionCourse $tblDivisionCourse, $tblTestList, bool $isEdit, bool $isCheckTeacherLectureship, $SubjectId, $Filter, $averagePeriodList, $hasStudents)
     {
         $isRoleHeadmaster = Grade::useService()->getRole() == 'Headmaster';
         if ($tblTestList) {
@@ -609,6 +627,11 @@ class Frontend extends FrontendTestPlanning
         }
         if (($tblTaskList = Grade::useService()->getTaskListByStudentsInDivisionCourse($tblDivisionCourse))) {
             foreach ($tblTaskList as $tblTask) {
+                // bei keiner Benotung keine Stichtagsnotenaufträge anzeigen
+                if (!$tblTask->getIsTypeBehavior() && !$hasStudents) {
+                    continue;
+                }
+
                 $virtualTestTaskList[] = new VirtualTestTask($tblTask->getDate(), null, $tblTask);
             }
         }
@@ -878,11 +901,15 @@ class Frontend extends FrontendTestPlanning
                 $hasTaskThisDivisionCourse = isset($tblDivisionCourseListFromTask[$DivisionCourseId]);
             }
 
+            $hasBehaviorTaskSetting = $tblTask->getIsTypeBehavior()
+                && ($tblSetting = ConsumerSetting::useService()->getSetting('Education', 'Graduation', 'Evaluation', 'HasBehaviorGradesForSubjectsWithNoGrading'))
+                && $tblSetting->getValue();
+
             foreach ($tempPersons as $tblPersonTemp) {
                 if (($tblVirtualSubject = DivisionCourse::useService()->getVirtualSubjectFromRealAndVirtualByPersonAndYearAndSubject(
                         $tblPersonTemp, $tblYear, $tblSubject
                     ))
-                    && $tblVirtualSubject->getHasGrading()
+                    && ($tblVirtualSubject->getHasGrading() || $hasBehaviorTaskSetting)
                     && !isset($tblPersonList[$tblPersonTemp->getId()])
                 ) {
                     $hasTask = $hasTaskThisDivisionCourse;

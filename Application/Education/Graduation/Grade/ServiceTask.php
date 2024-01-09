@@ -1056,6 +1056,11 @@ abstract class ServiceTask extends ServiceStudentOverview
      */
     public function getBehaviorTaskGradesViewData(TblTask $tblTask, TblDivisionCourse $tblDivisionCourse): array
     {
+        $hasBehaviorTaskSetting = ($tblSetting = Consumer::useService()->getSetting(
+                'Education', 'Graduation', 'Evaluation', 'HasBehaviorGradesForSubjectsWithNoGrading'
+            ))
+            && $tblSetting->getValue();
+
         $tblGradeTypeList = $tblTask->getGradeTypes();
         $headerList['Number'] = '#';
         $headerList['FirstName'] = 'Vorname';
@@ -1077,7 +1082,7 @@ abstract class ServiceTask extends ServiceStudentOverview
                 $bodyList[$tblPerson->getId()]['FirstName'] = $tblPerson->getFirstSecondName();
                 $bodyList[$tblPerson->getId()]['LastName'] = $tblPerson->getLastName();
 
-                if (($tblSubjectList = DivisionCourse::useService()->getSubjectListByStudentAndYear($tblPerson, $tblYear))) {
+                if (($tblSubjectList = DivisionCourse::useService()->getSubjectListByStudentAndYear($tblPerson, $tblYear, !$hasBehaviorTaskSetting))) {
                     $tblSubjectList = $this->getSorter($tblSubjectList)->sortObjectBy('Name');
                 }
                 $tblTaskGradeList = array();

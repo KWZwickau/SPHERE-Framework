@@ -12,6 +12,7 @@ use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
+use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Application\Setting\Consumer\School\School;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Structure\Form;
@@ -227,7 +228,16 @@ abstract class FrontendGradeBookSelect extends FrontendBasic
             if (is_array($divisionCourseSubjectList) && !isset($divisionCourseSubjectList[$tblDivisionCourse->getId()])) {
                 $divisionCourseSubjectList[$tblDivisionCourse->getId()] = DivisionCourse::useService()->getSubjectListByDivisionCourse($tblDivisionCourse);
             }
-            if ($divisionCourseSubjectList == null || isset($divisionCourseSubjectList[$tblDivisionCourse->getId()][$tblSubject->getId()])) {
+            if ($divisionCourseSubjectList == null
+                || isset($divisionCourseSubjectList[$tblDivisionCourse->getId()][$tblSubject->getId()])
+                // Mandanten-Einstellung: Bei Kopfnotenaufträgen können auch Kopfnoten für Fächer vergeben werden, welche nicht benotet werden
+                || (($tblSetting = Consumer::useService()->getSetting(
+                        'Education', 'Graduation', 'Evaluation', 'HasBehaviorGradesForSubjectsWithNoGrading'
+                    ))
+                    && $tblSetting->getValue()
+                    && Grade::useService()->getBehaviorTaskListByDivisionCourse($tblDivisionCourse)
+                )
+            ) {
                 $key = $tblDivisionCourse->getId() . '_' . $tblSubject->getId();
                 if (!isset($dataList[$key])) {
                     $dataList[$key] = array(
