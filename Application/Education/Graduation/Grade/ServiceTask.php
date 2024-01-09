@@ -712,7 +712,7 @@ abstract class ServiceTask extends ServiceStudentOverview
                         if ($tblTaskList && $tblSubject) {
                             foreach ($tblTaskList as $tblTask) {
                                 // current task
-                                if ($today > $tblTask->getFromDate() && $today <= $tblTask->getToDate()) {
+                                if ($today >= $tblTask->getFromDate() && $today <= $tblTask->getToDate()) {
                                     if ($this->setCurrentTask($tblDivisionCourse, $tblSubject, $tblYear, $tblTask, $dataList, $tblSettingBehaviorHasGrading)) {
                                         if ($tblTask->getIsTypeBehavior()) {
                                             if (!isset($behaviorTaskList[$tblTask->getId()])) {
