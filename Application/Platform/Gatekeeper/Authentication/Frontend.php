@@ -604,10 +604,11 @@ class Frontend extends Extension implements IFrontendInterface
         } elseif ($tblAccount->getHasAuthentication(TblIdentification::NAME_AUTHENTICATOR_APP)) {
             // Field Definition
             // SSW-2129 OTP direkt aus Passwort-Manager
+            // Lable, Name und AutoComplete wird von verschiedenen Anwendungen (Browser/Handy) unterschiedlich ausgelesen, deswegen alle 3 Varianten integriert
             $otpCredentialKeyField = (new TextField('otpCredentialKey', '', 'Authenticator App'))
                 ->setRequired()
                 ->setAutoFocus()
-                ->setFieldTel();
+                ->setAutoComplete();
         } else {
             // Field Definition
             $otpCredentialKeyField = (new PasswordField('otpCredentialKey', 'YubiKey', 'YubiKey', new YubiKey()))->setRequired()->setAutoFocus();

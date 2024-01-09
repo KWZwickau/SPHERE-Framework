@@ -69,9 +69,19 @@ class TextField extends AbstractTextField implements IFieldInterface
     /**
      * @return $this
      */
-    public function setFieldTel(){
+    public function setFieldType($value = 'tel'){
 
-        $this->Template->setVariable('ElementType', 'tel');
+        $this->Template->setVariable('ElementType', $value);
+        return $this;
+    }
+
+    /**
+     * @return $this
+     */
+    public function setAutoComplete($value = 'one-time-code'){
+        // Muss mit einem anderen Typ als password, text, number erfolgen -> wird sonst auf "off" gestellt
+        $this->setFieldType();
+        $this->Template->setVariable('ElementAutoComplete', $value);
         return $this;
     }
 

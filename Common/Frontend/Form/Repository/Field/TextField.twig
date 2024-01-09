@@ -15,7 +15,11 @@
                 </span>
         {% endif %}
     {% endif %}
-        <input type="{{ ElementType }}" class="form-control{% if( ElementClass is not empty ) %} {{ ElementClass }}{% endif %}" name="{{ ElementName }}" placeholder="{{ ElementPlaceholder }}" maxlength="{{ ElementMaxLength }}"
+        <input type="{{ ElementType }}" class="form-control{% if( ElementClass is not empty ) %} {{ ElementClass }}{% endif %}"
+           name="{{ ElementName }}" placeholder="{{ ElementPlaceholder }}" maxlength="{{ ElementMaxLength }}"
+                {% if( ElementAutoComplete is not empty ) %}
+                    autocomplete="{{ ElementAutoComplete }}"
+                {% endif %}
             {% if( ElementCase is not empty ) %}
                 {% if( ElementCase == "upper" ) %}
                     style="text-transform: uppercase;"
