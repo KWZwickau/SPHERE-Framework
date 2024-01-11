@@ -939,7 +939,12 @@ abstract class Certificate extends Extension
                 ->setContent('{{ Content.P' . $personId . '.Person.Data.Name.First }}
                               {{ Content.P' . $personId . '.Person.Data.Name.Last }}')
                 ->styleBorderBottom()
-                , '79%')
+                ->styleAlignCenter()
+            )
+            ->addElementColumn((new Element())
+                ->setContent('&nbsp;')
+                ->styleBorderBottom()
+                , '21%')
         )->styleMarginTop($MarginTop);
         return $StudentSlice;
     }
