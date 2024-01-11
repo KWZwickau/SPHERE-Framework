@@ -31,6 +31,7 @@ class TblInvoiceItemDebtor extends Element
     const ATTR_VALUE = 'Value';
     const ATTR_QUANTITY = 'Quantity';
     const ATTR_IS_PAID = 'IsPaid';
+    const ATTR_IS_HISTORY = 'IsHistory';
     const ATTR_SERVICE_TBL_PERSON_DEBTOR = 'serviceTblPersonDebtor';
     const ATTR_SERVICE_TBL_BANKING_REFERENCE = 'serviceTblBankReference';
     const ATTR_SERVICE_TBL_PAYMENT_TYPE = 'serviceTblPaymentType';
@@ -84,6 +85,10 @@ class TblInvoiceItemDebtor extends Element
      * @Column(type="boolean")
      */
     protected $IsPaid;
+    /**
+     * @Column(type="boolean")
+     */
+    protected $IsHistory;
     /**
      * @Column(type="bigint")
      */
@@ -345,6 +350,24 @@ class TblInvoiceItemDebtor extends Element
     {
 
         $this->IsPaid = $isPaid;
+    }
+
+    /**
+     * @return boolean
+     */
+    public function getIsHistory()
+    {
+
+        return $this->IsHistory;
+    }
+
+    /**
+     * @param boolean $IsHistory
+     */
+    public function setIsHistory($IsHistory)
+    {
+
+        $this->IsHistory = $IsHistory;
     }
 
     /**

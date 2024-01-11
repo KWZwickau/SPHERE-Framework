@@ -2,6 +2,7 @@
 
 namespace SPHERE\Application\Billing\Bookkeeping\Invoice;
 
+use SPHERE\Application\Api\Billing\Invoice\ApiInvoiceIsHistory;
 use SPHERE\Application\Api\Billing\Invoice\ApiInvoiceIsPaid;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Basket;
 use SPHERE\Application\Billing\Inventory\Item\Item;
@@ -14,7 +15,9 @@ use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
+use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
+use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
 use SPHERE\Common\Frontend\Icon\Repository\Filter;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
@@ -22,6 +25,8 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\Primary as PrimaryLink;
+use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Stage;
@@ -65,7 +70,7 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutColumn($this->formInvoiceFilter())
                 ),
                 empty($TableContent) ? null : new LayoutRow(new LayoutColumn(
-                    new \SPHERE\Common\Frontend\Link\Repository\Primary('Herunterladen', '/Api/Billing/Invoice/Debtor/Download',
+                    new PrimaryLink('Herunterladen', '/Api/Billing/Invoice/Debtor/Download',
                         new Download(), array(
                             'Year'   => $Invoice['Year'],
                             'Month'   => $Invoice['Month'],
@@ -148,7 +153,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutColumn($this->formInvoiceFilter(true))
                     ),
                     empty($TableContent) ? null : new LayoutRow(new LayoutColumn(
-                        new \SPHERE\Common\Frontend\Link\Repository\Primary('Herunterladen', '/Api/Billing/Invoice/Causer/Download',
+                        new PrimaryLink('Herunterladen', '/Api/Billing/Invoice/Causer/Download',
                             new Download(), array(
                                 'Year'   => $Invoice['Year'],
                                 'Month'   => $Invoice['Month'],
@@ -252,44 +257,75 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage('Offene Posten', 'Übersicht');
         $TableContent = Invoice::useService()->getInvoiceUnPaidList();
+        if(!empty($TableContent)){
+            $Stage->addButton(new PrimaryLink('Herunterladen', '/Api/Billing/Invoice/UnPaid/Download', new Download()));
+        }
+        $Stage->addButton(new Standard('Archiv', '/Billing/Bookkeeping/Invoice/UnPaid/History', new EyeOpen()));
+
+        $Stage->setContent(ApiInvoiceIsPaid::receiverService()
+            .new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
+                ApiInvoiceIsPaid::receiverIsPaid($this->getIsPaidTable(), 'table')
+            )))
+        ));
+
+        return $Stage;
+    }
+
+    /**
+     * @return TableData
+     */
+    public function getIsPaidTable($isHistory = false): TableData
+    {
+
+        $TableContent = Invoice::useService()->getInvoiceUnPaidList($isHistory);
+        return new TableData($TableContent, null, array(
+            'InvoiceNumber' => 'Rechnungsnummer',
+            'Time'          => 'Abrechnungs&shy;zeitraum',
+            'BasketName'    => 'Name der Abrechnung',
+            'CauserPerson'  => 'Beitragsverursacher',
+            'DebtorPerson'  => 'Beitragszahler',
+            'Item'          => 'Beitragsart',
+            'PaymentType'   => 'Zahlungsart',
+            'ItemQuantity'  => 'Anzahl',
+            'ItemPrice'     => 'Einzelpreis',
+            'ItemSumPrice'  => 'Gesamtpreis',
+            'IsPaid'        => $isHistory ? '' : 'Offene&nbsp;Posten',
+        ), array(
+            'columnDefs' => array(
+                array('type' => 'natural', 'targets' => array(0, 7, 8, 9)),
+                array('type' => 'natural', 'targets' => array(0, 7, 8, 9)),
+//                array('type' => 'de_date', 'targets' => array(2)),
+                array("orderable" => false, "targets"   => -1),
+                array('width' => '130px', 'targets' => -1),
+            ),
+            'order'      => array(
+//                array(1, 'desc'),
+                array(0, 'desc')
+            ),
+            'responsive' => false,
+        ));
+    }
+
+    /**
+     * @return Stage
+     */
+    public function frontendHistory()
+    {
+
+        $Stage = new Stage('Offene Posten', 'Archiv');
+        $Stage->setMessage('Posten im Archiv werden nicht mehr für den SEPA-Download vorgeschlagen');
+        $Stage->addButton((new Standard('Zurück', '/Billing/Bookkeeping/Invoice/UnPaid', new ChevronLeft())));
 
         $Stage->setContent(ApiInvoiceIsPaid::receiverService()
             .new Layout(
-            new LayoutGroup(array(
-                empty($TableContent) ? null : new LayoutRow(new LayoutColumn(
-                    new \SPHERE\Common\Frontend\Link\Repository\Primary('Herunterladen', '/Api/Billing/Invoice/UnPaid/Download',
-                        new Download())
-                )),
-                new LayoutRow(
-                    new LayoutColumn(
-                        new TableData($TableContent, null, array(
-                            'InvoiceNumber' => 'Rechnungsnummer',
-                            'Time'          => 'Abrechnungs&shy;zeitraum',
-                            'BasketName'    => 'Name der Abrechnung',
-                            'CauserPerson'  => 'Beitragsverursacher',
-                            'DebtorPerson'  => 'Beitragszahler',
-                            'Item'          => 'Beitragsart',
-                            'PaymentType'   => 'Zahlungsart',
-                            'ItemQuantity'  => 'Anzahl',
-                            'ItemPrice'     => 'Einzelpreis',
-                            'ItemSumPrice'  => 'Gesamtpreis',
-                            'IsPaid'        => 'Offene&nbsp;Posten'
-                        ), array(
-                            'columnDefs' => array(
-                                array('type' => 'natural', 'targets' => array(0, 6, 7, 8)),
-//                                array('type' => 'de_date', 'targets' => array(2)),
-//                                array("orderable" => false, "targets"   => -1),
-                            ),
-                            'order'      => array(
-//                            array(1, 'desc'),
-                                array(0, 'desc')
-                            ),
-                            'responsive' => false,
-                        ))
+                new LayoutGroup(array(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            ApiInvoiceIsHistory::receiverIsHistory($this->getIsPaidTable(true), 'table')
+                        )
                     )
-                )
-            ))
-        ));
+                ))
+            ));
 
         return $Stage;
     }
