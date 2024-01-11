@@ -8,7 +8,6 @@ use SPHERE\Application\Api\ParentStudentAccess\ApiOnlineAbsence;
 use SPHERE\Application\Education\Absence\Absence;
 use SPHERE\Application\Education\Absence\Service\Entity\TblAbsence;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
-use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Setting\User\Account\Account as UserAccount;
@@ -32,10 +31,8 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Primary as PrimaryLink;
 use SPHERE\Common\Frontend\Message\IMessageInterface;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
-use SPHERE\Common\Frontend\Text\Repository\Danger;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
-use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 
@@ -110,44 +107,8 @@ class Frontend extends Extension implements IFrontendInterface
     {
         $hasAbsenceTypeOptions = false;
         $tableData = array();
-        if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndDate($tblPerson))
-            && ($tblYear = $tblStudentEducation->getServiceTblYear())
-        ) {
-            $tblSchoolType = $tblStudentEducation->getServiceTblSchoolType();
-            $tblCompany = $tblStudentEducation->getServiceTblCompany();
-            $hasAbsenceTypeOptions = $tblSchoolType && $tblSchoolType->isTechnical();
-
-            list($startDateAbsence, $endDateAbsence) = Term::useService()->getStartDateAndEndDateOfYear($tblYear);
-            if ($startDateAbsence && $endDateAbsence
-                && ($tblAbsenceList = Absence::useService()->getAbsenceAllBetweenByPerson($tblPerson, $startDateAbsence, $endDateAbsence))
-            ) {
-                foreach ($tblAbsenceList as $tblAbsence) {
-                    $status = '';
-                    if ($tblAbsence->getStatus() == TblAbsence::VALUE_STATUS_EXCUSED) {
-                        $status = new Success('entschuldigt');
-                    } elseif ($tblAbsence->getStatus() == TblAbsence::VALUE_STATUS_UNEXCUSED) {
-                        $status = new Danger('unentschuldigt');
-                    }
-
-                    $item = array(
-                        'FromDate' => $tblAbsence->getFromDate(),
-                        'ToDate' => $tblAbsence->getToDate(),
-                        'Days' => ($days = $tblAbsence->getDays($tblYear, null, $tblCompany ?: null, $tblSchoolType ?: null)) == 1
-                            ? $days . ' ' . new Small(new Muted($tblAbsence->getWeekDay()))
-                            : $days,
-                        'Lessons' => $tblAbsence->getLessonStringByAbsence(),
-                        'Status' => $status,
-                        'PersonCreator' => $tblAbsence->getDisplayPersonCreator(),
-                        'IsCertificateRelevant' => $tblAbsence->getIsCertificateRelevant() ? 'ja' : 'nein'
-                    );
-
-                    if ($hasAbsenceTypeOptions) {
-                        $item['Type'] = $tblAbsence->getTypeDisplayName();
-                    }
-
-                    $tableData[] = $item;
-                }
-            }
+        if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndDate($tblPerson))) {
+            $tableData = Absence::useService()->getStudentAbsenceDataForParentStudentAccess($tblPerson, $tblStudentEducation, $hasAbsenceTypeOptions);
         }
 
         if ($hasAbsenceTypeOptions) {
