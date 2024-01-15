@@ -1098,7 +1098,8 @@ class Service extends AbstractService
                 ->ajaxPipelineOnClick(ApiInvoiceIsHistory::pipelinesetIsHistory($tblInvoiceItemDebtor->getId()));
         } else {
             if($tblInvoiceItemDebtor->getIsHistory()){
-                $History = new Muted(new Small(' (Archiv)'));
+                $Content = '';
+                $History = new Muted(new Small('(offen im Archiv)'));
             }
         }
 
