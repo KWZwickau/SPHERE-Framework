@@ -481,7 +481,7 @@ class Frontend extends Extension implements IFrontendInterface
         if ($Filter) {
             $YearList = Invoice::useService()->getYearList(3, 1);
             $MonthList = Invoice::useService()->getMonthList();
-            $tblItemAll = Item::useService()->getItemAll();
+            $tblItemAll = Item::useService()->getItemAllWithPreActiveTime();
 
             // Inhalt Selectbox
             $BasketTypeSelect = array('-1' => 'Abrechnung - Gutschrift', '2' => 'Auszahlung', '3' => 'Gutschrift',);
@@ -497,7 +497,15 @@ class Frontend extends Extension implements IFrontendInterface
                 $CheckboxItemList = array();
                 if($tblItemAll){
                     foreach($tblItemAll as $tblItem){
-                        $CheckboxItemList[] = new CheckBox('Balance[ItemList]['.$tblItem->getId().']', $tblItem->getName(), $tblItem->getId());
+                        if($tblItem->getIsActive()){
+                            $CheckboxItemList[] = new CheckBox('Balance[ItemList]['.$tblItem->getId().']', $tblItem->getName(), $tblItem->getId());
+                        } else {
+                            $updateDate = $tblItem->getEntityUpdate();
+                            $updateDate->modify("+".Item::useService()::DEACTIVATE_TIME_SPAN." month");
+                            $CheckboxItemList[] = new CheckBox('Balance[ItemList]['.$tblItem->getId().']',
+                                $tblItem->getName().' (verfügbar bis '.$updateDate->format('d.m.Y').')',
+                                $tblItem->getId());
+                        }
                     }
                 }
                 $ItemSelect = array(new FormColumn(

@@ -29,35 +29,6 @@ class Data extends AbstractData
          */
         $this->createItemType(TblItemType::TYPE_SINGLE);
         $this->createItemType(TblItemType::TYPE_CROWD);
-
-//        $tblItemType = $this->createItemType(TblItemType::TYPE_SINGLE);
-//
-//        $tblItem = $this->createItem($tblItemType, 'Schulgeld');
-//        $tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_STUDENT);
-//        $this->createItemGroup($tblItem, $tblGroup);
-//
-//        $tblVariant = $this->createItemVariant($tblItem, 'Voll', 'Keine ermäßigung des Schulgeldes');
-//        $this->createItemCalculation($tblVariant, '70.00', '01.01.2018');
-//
-//        $tblVariant = $this->createItemVariant($tblItem, 'Teilermäßigung',
-//            'Ermäßigung für Geschwisterkind oder Einkommensgruppe');
-//        $this->createItemCalculation($tblVariant, '60.55', '01.01.2018');
-//
-//        $tblVariant = $this->createItemVariant($tblItem, 'Vollermäßigung',
-//            'Ermäßigung für Geschwisterkind und Einkommensgruppe');
-//        $this->createItemCalculation($tblVariant, '53.95', '01.01.2018', '31.12.2019');
-//        $this->createItemCalculation($tblVariant, '54.00', '01.01.2020');
-//
-//        $tblItem = $this->createItem($tblItemType, 'Essensgeld');
-//        $tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_STUDENT);
-//        $this->createItemGroup($tblItem, $tblGroup);
-//        $tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_STAFF);
-//        $this->createItemGroup($tblItem, $tblGroup);
-//
-//        $tblVariant = $this->createItemVariant($tblItem, 'Essen', 'Standardpreis pro Mahlzeit');
-//        $this->createItemCalculation($tblVariant, '3.40', '01.01.2018', '31.05.2018');
-//        $this->createItemCalculation($tblVariant, '3.50', '01.06.2018', '31.12.2018');
-//        $this->createItemCalculation($tblVariant, '3.55', '01.01.2019');
     }
 
     /**
@@ -248,11 +219,14 @@ class Data extends AbstractData
     /**
      * @return bool|TblItem[]
      */
-    public function getItemAll()
+    public function getItemAll($isActive = true)
     {
 
 //        $Entity = $this->getConnection()->getEntityManager()->getEntity('TblItem')->findAll();
-        return $this->getCachedEntityList(__Method__, $this->getConnection()->getEntityManager(), 'TblItem');
+        return $this->getCachedEntityListBy(__Method__, $this->getConnection()->getEntityManager(), 'TblItem',
+        array(
+            TblItem::ATTR_IS_ACTIVE => $isActive
+        ));
 
     }
 
@@ -334,6 +308,7 @@ class Data extends AbstractData
             $Entity->setKost1($Kost1);
             $Entity->setKost2($Kost2);
             $Entity->setBuKey($BuKey);
+            $Entity->setIsActive(true);
             $Manager->saveEntity($Entity);
 
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
@@ -494,6 +469,39 @@ class Data extends AbstractData
             $Entity->setKost1($Kost1);
             $Entity->setKost2($Kost2);
             $Entity->setBuKey($BuKey);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
+                $Protocol,
+                $Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblItem $tblItem
+     * @param string  $Name
+     * @param string  $Description
+     * @param string  $SepaRemark
+     * @param string  $DatevRemark
+     * @param string  $FibuAccount
+     * @param string  $FibuToAccount
+     * @param string  $Kost1
+     * @param string  $Kost2
+     * @param string  $BuKey
+     *
+     * @return bool
+     */
+    public function updateItemIsActive(TblItem $tblItem, $isActive = false)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblItem $Entity */
+        $Entity = $Manager->getEntityById('TblItem', $tblItem->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity){
+            $Entity->setIsActive($isActive);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
                 $Protocol,
