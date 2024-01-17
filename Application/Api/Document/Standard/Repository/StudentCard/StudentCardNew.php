@@ -8,6 +8,7 @@ use SPHERE\Application\Document\Generator\Repository\Frame;
 use SPHERE\Application\Document\Generator\Repository\Page;
 use SPHERE\Application\Document\Generator\Repository\Section;
 use SPHERE\Application\Document\Generator\Repository\Slice;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 
 /**
  * Class StudentCardNew
@@ -31,6 +32,13 @@ class StudentCardNew extends AbstractDocument
     {
         $OutLines = '1.2px';
         $InnerLines = '0.5px';
+
+        // besuchte Schulen
+        if (($tblPerson = $this->getTblPerson())) {
+            $attendantSchoolList = DivisionCourse::useService()->getAttendantSchoolsByPerson($tblPerson);
+        } else {
+            $attendantSchoolList = array();
+        }
 
         return (new Page())
             ->addSlice((new Slice())
@@ -546,7 +554,7 @@ class StudentCardNew extends AbstractDocument
                                 ->stylePaddingTop('5px')
                             , '27.5%')
                             ->addElementColumn((new Element())
-                                ->setContent('&nbsp;')
+                                ->setContent($attendantSchoolList[0] ?? '&nbsp;')
                                 ->styleBorderBottom($InnerLines)
                                 ->stylePaddingTop('5px')
                             , '71.5%')
@@ -559,7 +567,7 @@ class StudentCardNew extends AbstractDocument
                                 ->setContent('&nbsp;')
                                 , '1%')
                             ->addElementColumn((new Element())
-                                ->setContent('&nbsp;')
+                                ->setContent($attendantSchoolList[1] ?? '&nbsp;')
                                 ->styleBorderBottom($InnerLines)
                                 ->stylePaddingTop('5px')
                                 , '98%')
@@ -572,7 +580,7 @@ class StudentCardNew extends AbstractDocument
                                 ->setContent('&nbsp;')
                                 , '1%')
                             ->addElementColumn((new Element())
-                                ->setContent('&nbsp;')
+                                ->setContent($attendantSchoolList[2] ?? '&nbsp;')
                                 ->styleBorderBottom($InnerLines)
                                 ->stylePaddingTop('5px')
                                 , '98%')
@@ -585,7 +593,7 @@ class StudentCardNew extends AbstractDocument
                                 ->setContent('&nbsp;')
                             , '1%')
                             ->addElementColumn((new Element())
-                                ->setContent('&nbsp;')
+                                ->setContent($attendantSchoolList[3] ?? '&nbsp;')
                                 ->styleBorderBottom($InnerLines)
                                 ->stylePaddingTop('5px')
                                 , '98%')
@@ -598,7 +606,7 @@ class StudentCardNew extends AbstractDocument
                                 ->setContent('&nbsp;')
                                 , '1%')
                             ->addElementColumn((new Element())
-                                ->setContent('&nbsp;')
+                                ->setContent($attendantSchoolList[4] ?? '&nbsp;')
                                 ->styleBorderBottom($InnerLines)
                                 ->stylePaddingTop('5px')
                                 , '98%')
