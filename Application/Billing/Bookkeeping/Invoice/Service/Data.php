@@ -56,12 +56,13 @@ class Data extends AbstractData
      *
      * @return false|TblInvoiceItemDebtor[]
      */
-    public function getInvoiceItemDebtorByIsPaid($IsPaid = false)
+    public function getInvoiceItemDebtorByIsPaid($IsPaid = false, $isHistory = false)
     {
 
         return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
             'TblInvoiceItemDebtor', array(
-                TblInvoiceItemDebtor::ATTR_IS_PAID => $IsPaid
+                TblInvoiceItemDebtor::ATTR_IS_PAID => $IsPaid,
+                TblInvoiceItemDebtor::ATTR_IS_HISTORY => $isHistory
             ));
     }
 
@@ -526,6 +527,32 @@ class Data extends AbstractData
         if(null !== $Entity){
             $Entity->setIsPaid($isPaid);
 
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
+                $Protocol,
+                $Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblInvoiceItemDebtor $tblInvoiceItemDebtor
+     * @param bool                 $isHistory
+     *
+     * @return bool
+     */
+    public function changeInvoiceItemDebtorIsHistory(TblInvoiceItemDebtor $tblInvoiceItemDebtor, $isHistory = true)
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblInvoiceItemDebtor $Entity */
+        $Entity = $Manager->getEntityById('TblInvoiceItemDebtor', $tblInvoiceItemDebtor->getId());
+        $Protocol = clone $Entity;
+        if(null !== $Entity){
+            $Entity->setIsHistory($isHistory);
+            // prevent problems with Multiclick
+            $Entity->setIsPaid(false);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
                 $Protocol,
