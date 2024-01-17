@@ -335,6 +335,7 @@ class Frontend extends Extension implements IFrontendInterface
             '[Beitragsart]',
             '[Beitragssumme]',
             '[Beitragssumme als Wort]',
+            '[PreisTabelle]',
             '[Beitragszahler Anrede]',
             '[Beitragszahler Vorname]',
             '[Beitragszahler Nachname]',
