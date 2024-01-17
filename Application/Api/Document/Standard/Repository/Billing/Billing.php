@@ -3,7 +3,6 @@ namespace SPHERE\Application\Api\Document\Standard\Repository\Billing;
 
 use SPHERE\Application\Api\Document\AbstractDocument;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Invoice;
-use SPHERE\Application\Billing\Inventory\Document\Service\Entity\TblDocument;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItem;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Document\Generator\Repository\Document;
@@ -124,7 +123,7 @@ class Billing extends AbstractDocument
      *
      * @return string
      */
-    private function setPlaceholders($Text, $ItemName, $InvoiceNumber, $Year, $TotalPrice, $DebtorSalutation, $DebtorFirstName,
+    private function setPlaceholders($Text, $ItemName, $InvoiceNumber, $Year, $TotalPrice, $PriceTable, $DebtorSalutation, $DebtorFirstName,
                                      $DebtorLastName, $CauserSalutation, $CauserFirstName, $CauserLastName, $Birthday, $From, $To, $Date, $Location,
                                      $CompanyName, $CompanyExtendedName, $CompanyAddress, $StudentIdentifier)
     {
@@ -134,6 +133,7 @@ class Billing extends AbstractDocument
         $Text = str_replace('[Zeitraum bis]', $To, $Text);
         $Text = str_replace('[Beitragsart]', $ItemName, $Text);
         $Text = str_replace('[Beitragssumme]', $TotalPrice, $Text);
+        $Text = str_replace('[PreisTabelle]', $PriceTable, $Text);
         $TotalPrice2Word = NumberToWord::float2Text($TotalPrice, true);
         $Text = str_replace('[Beitragssumme als Wort]', $TotalPrice2Word, $Text);
         $Text = str_replace('[Beitragszahler Anrede]', $DebtorSalutation, $Text);
@@ -165,9 +165,11 @@ class Billing extends AbstractDocument
         TblPerson $tblPersonDebtor,
         TblPerson $tblPersonCauser,
         string $TotalPrice = '',
-        string $InvoiceNumber = ''
+        string $InvoiceNumber = '',
+        string $PriceTable = ''
     ) {
         $Data = $this->Data;
+        $PriceTable = $PriceTable??'';
         $CompanyName = $Data['CompanyName'];
         $CompanyExtendedName = $Data['CompanyExtendedName'];
         $CompanyAddress = $Data['CompanyAddress'];
@@ -210,11 +212,11 @@ class Billing extends AbstractDocument
         $CauserLastName = $this->setEmptyString($CauserLastName);
         $Birthday = $this->setEmptyString($Birthday);
 
-        $Subject = $this->setPlaceholders($Subject, $ItemName, $InvoiceNumber, $Year, $TotalPrice, $DebtorSalutation, $DebtorFirstName,
+        $Subject = $this->setPlaceholders($Subject, $ItemName, $InvoiceNumber, $Year, $TotalPrice, $PriceTable, $DebtorSalutation, $DebtorFirstName,
             $DebtorLastName, $CauserSalutation, $CauserFirstName, $CauserLastName, $Birthday, $From, $To, $Date,
             $Location, $CompanyName, $CompanyExtendedName, $CompanyAddress, $StudentIdentifier);
 
-        $Content = $this->setPlaceholders($Content, $ItemName, $InvoiceNumber, $Year, $TotalPrice, $DebtorSalutation, $DebtorFirstName,
+        $Content = $this->setPlaceholders($Content, $ItemName, $InvoiceNumber, $Year, $TotalPrice, $PriceTable, $DebtorSalutation, $DebtorFirstName,
             $DebtorLastName, $CauserSalutation, $CauserFirstName, $CauserLastName, $Birthday, $From, $To, $Date,
             $Location, $CompanyName, $CompanyExtendedName, $CompanyAddress, $StudentIdentifier);
 

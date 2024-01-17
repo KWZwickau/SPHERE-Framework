@@ -37,10 +37,10 @@ class Data extends DataTask
                 // alte Daten migrieren
                 $this->migrateTblGradeType();
             } else {
-                $this->createGradeType('Betragen', 'KBE', 'Kopfnote Betragen', true, false, false, false, true);
-                $this->createGradeType('Fleiß', 'KFL', 'Kopfnote Fleiß', true, false, false, false, true);
-                $this->createGradeType('Mitarbeit', 'KMI', 'Kopfnote Mitarbeit', true, false, false, false, true);
-                $this->createGradeType('Ordnung', 'KOR', 'Kopfnote Ordnung', true, false, false, false, true);
+                $this->createGradeType('KBE', 'Betragen', 'Kopfnote Betragen', true, false, false, false, true);
+                $this->createGradeType('KFL', 'Fleiß', 'Kopfnote Fleiß', true, false, false, false, true);
+                $this->createGradeType('KMI', 'Mitarbeit', 'Kopfnote Mitarbeit', true, false, false, false, true);
+                $this->createGradeType('KOR', 'Ordnung', 'Kopfnote Ordnung', true, false, false, false, true);
             }
         }
 

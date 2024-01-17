@@ -35,6 +35,7 @@ use SPHERE\Application\Billing\Inventory\Item\Item;
 use SPHERE\Application\Document\Generator\Generator;
 use SPHERE\Application\Document\Storage\FilePointer;
 use SPHERE\Application\Document\Storage\Storage;
+use SPHERE\Application\Education\Absence\Absence;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
@@ -920,6 +921,7 @@ class Creator extends Extension
                     $BasketTypeId
                 );
                 // Summe berechnen
+                $PriceList = Balance::useService()->getItemPriceForMonth($PriceList);
                 $PriceList = Balance::useService()->getSummaryByItemPrice($PriceList);
             } else {
                 $BasketTypeId = $Data['BasketType'];
@@ -932,6 +934,7 @@ class Creator extends Extension
                     isset($Data['DivisionCourse']) ? $Data['DivisionCourse'] : '0',
                     isset($Data['Group']) ? $Data['Group'] : '0'
                 );
+                $PriceList = Balance::useService()->getItemPriceForMonth($PriceList);
             }
 
             if (!empty($PriceList)) {
@@ -976,8 +979,8 @@ class Creator extends Extension
                                     if(isset($Value['InvoiceNumber'])){
                                         $InvoiceNumber = $Value['InvoiceNumber'];
                                     }
-
-                                    $pageList[] = $template->buildPage($tblPersonDebtor, $tblPersonCauser, $TotalPrice, $InvoiceNumber);
+                                    $PriceTable = $Value['PriceTableString']??'';
+                                    $pageList[] = $template->buildPage($tblPersonDebtor, $tblPersonCauser, $TotalPrice, $InvoiceNumber, $PriceTable);
                                 }
                             }
                         }
@@ -1433,5 +1436,80 @@ class Creator extends Extension
         }
 
         return "Keine Stammdaten vorhanden!";
+    }
+
+    /**
+     * @param $PersonId
+     * @param $YearId
+     * @param $Redirect
+     *
+     * @return string
+     */
+    public static function createAbsenceStudentPdf($PersonId, $YearId, $Redirect): string
+    {
+        if ($Redirect) {
+            return \SPHERE\Application\Api\Education\Certificate\Generator\Creator::displayWaitingPage(
+                '/Api/Document/Standard/ClassRegister/AbsenceStudent/Create',
+                array(
+                    'PersonId' => $PersonId,
+                    'YearId' => $YearId,
+                    'Redirect' => 0
+                )
+            );
+        }
+
+        if (($tblPerson = Person::useService()->getPersonById($PersonId))
+            && ($tblYear = Term::useService()->getYearById($YearId))
+            && ($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))
+        ) {
+            $hasAbsenceTypeOptions = false;
+            $dataList = Absence::useService()->getStudentAbsenceDataForParentStudentAccess($tblPerson, $tblStudentEducation, $hasAbsenceTypeOptions);
+            if ($hasAbsenceTypeOptions) {
+                $headerNameList = array(
+                    'FromDate' => 'Datum von',
+                    'ToDate' => 'Datum bis',
+                    'Days' => 'Tage',
+                    'Lessons' => 'Unterrichtseinheiten',
+                    'Type' => 'Typ',
+                    'PersonCreator' => 'Ersteller',
+                    'IsCertificateRelevant' => 'Zeugnisrelevant',
+                    'Status' => 'Status',
+                );
+            } else {
+                $headerNameList = array(
+                    'FromDate' => 'Datum von',
+                    'ToDate' => 'Datum bis',
+                    'Days' => 'Tage',
+                    'Lessons' => 'Unterrichtseinheiten',
+                    'PersonCreator' => 'Ersteller',
+                    'IsCertificateRelevant' => 'Zeugnisrelevant',
+                    'Status' => 'Status',
+                );
+            }
+
+            $headerWidthList['FromDate'] = '10%';
+            $headerWidthList['ToDate'] = '10%';
+            $headerWidthList['Days'] = '10%';
+            $headerWidthList['Lessons'] = $hasAbsenceTypeOptions ? '18%' : '28%';
+            $headerWidthList['Typ'] = '10%';
+            $headerWidthList['PersonCreator'] = '18%';
+            $headerWidthList['IsCertificateRelevant'] = '12%';
+            $headerWidthList['Status'] = '12%';
+
+            $preTextList[] = 'Fehlzeiten Übersicht für ' . $tblPerson->getLastFirstName()
+                . ' (' . DivisionCourse::useService()->getCurrentMainCoursesByStudentEducation($tblStudentEducation) . ')';
+            $preTextList[] = 'Stand: ' . (new DateTime())->format('d.m.Y');
+
+            $Document = new DocumentBuilder('Fehlzeiten ' . $tblPerson->getLastName() . ' ' . $tblPerson->getFirstName() . ' ' . (new DateTime())->format('d-m-Y'));
+            $pageList[] = $Document->getPageList($headerNameList, $headerWidthList, $dataList, $preTextList);
+
+            $File = self::buildDummyFile($Document, array(), $pageList, Creator::PAPERORIENTATION_LANDSCAPE);
+
+            $FileName = $Document->getName() . '.pdf';
+
+            return self::buildDownloadFile($File, $FileName);
+        }
+
+        return "Kein Kursheft vorhanden!";
     }
 }

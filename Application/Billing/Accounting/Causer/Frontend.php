@@ -8,6 +8,7 @@ use SPHERE\Application\Api\Billing\Invoice\ApiInvoiceIsPaid;
 use SPHERE\Application\Billing\Accounting\Debtor\Debtor;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Invoice;
 use SPHERE\Application\Billing\Inventory\Item\Item;
+use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItem;
 use SPHERE\Application\Billing\Inventory\Setting\Service\Entity\TblSetting;
 use SPHERE\Application\Billing\Inventory\Setting\Setting;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
@@ -337,12 +338,8 @@ class Frontend extends Extension implements IFrontendInterface
                         $item['Price'] = $tblInvoiceItemDebtor->getPriceString('€', true);
                         $item['Quantity'] = $tblInvoiceItemDebtor->getQuantity();
                         $item['Summary'] = $tblInvoiceItemDebtor->getSummaryPriceFrontend();
-                        $CheckBox = (new CheckBox('IsPaid', ' ', $tblInvoiceItemDebtor->getId()))->ajaxPipelineOnClick(
-                            ApiInvoiceIsPaid::pipelineChangeIsPaid($tblInvoiceItemDebtor->getId()));
-                        if(!$tblInvoiceItemDebtor->getIsPaid()){
-                            $CheckBox->setChecked();
-                        }
-                        $item['IsPaid'] = ApiInvoiceIsPaid::receiverIsPaid($CheckBox, $tblInvoiceItemDebtor->getId());
+                        $ColumnContent = Invoice::useService()->getIsPaidColumnContent($tblInvoiceItemDebtor, false);
+                        $item['IsPaid'] = ApiInvoiceIsPaid::receiverIsPaid($ColumnContent, $tblInvoiceItemDebtor->getId());
                         array_push($TableContent, $item);
                     }
                 }
@@ -424,16 +421,28 @@ class Frontend extends Extension implements IFrontendInterface
 
         if($tblItemList){
             $tblItemList = $this->getSorter($tblItemList)->sortObjectBy('Name');
+            /** @var TblItem $tblItem */
             foreach($tblItemList as $tblItem) {
+                $panelColor = Panel::PANEL_TYPE_INFO;
+                $notActiveInfo = '';
+                if(!$tblItem->getIsActive()){
+                    $panelColor = Panel::PANEL_TYPE_WARNING;
+                    $notActiveInfo = new Muted(new Small(' (deaktiviert)'));
+                }
+
                 if((Debtor::useService()->getDebtorSelectionByPersonCauserAndItem($tblPerson, $tblItem))){
-                    $ColumnList[] = new LayoutColumn(new Panel($tblItem->getName(),
+                    $ColumnList[] = new LayoutColumn(new Panel($tblItem->getName().$notActiveInfo,
                         ApiDebtorSelection::receiverPanelContent($this->getItemContent($PersonId, $tblItem->getId())
                             , $tblItem->getId())
-                        , Panel::PANEL_TYPE_INFO)
+                        , $panelColor)
                     , 3);
                 }
             }
             foreach($tblItemList as $tblItem) {
+                if(!$tblItem->getIsActive()){
+                    // deaktivierte nicht mehr auswählbar
+                    continue;
+                }
                 if(!(Debtor::useService()->getDebtorSelectionByPersonCauserAndItem($tblPerson, $tblItem))){
                     $ColumnHideList[] = new LayoutColumn(new Panel($tblItem->getName(),
                         ApiDebtorSelection::receiverPanelContent($this->getItemContent($PersonId, $tblItem->getId())

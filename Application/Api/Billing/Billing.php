@@ -18,6 +18,7 @@ use SPHERE\Application\Api\Billing\Inventory\ApiDocument;
 use SPHERE\Application\Api\Billing\Inventory\ApiItem;
 use SPHERE\Application\Api\Billing\Inventory\ApiSetting;
 use SPHERE\Application\Api\Billing\Inventory\Import;
+use SPHERE\Application\Api\Billing\Invoice\ApiInvoiceIsHistory;
 use SPHERE\Application\Api\Billing\Invoice\ApiInvoiceIsPaid;
 use SPHERE\Application\Api\Billing\Invoice\InvoiceDownload;
 use SPHERE\Application\Api\Billing\Sepa\ApiSepa;
@@ -47,6 +48,7 @@ class Billing implements IApplicationInterface
         ApiBasketRepayment::registerApi();
         ApiBasketRepaymentAddPerson::registerApi();
         ApiBasketVerification::registerApi();
+        ApiInvoiceIsHistory::registerApi();
         ApiInvoiceIsPaid::registerApi();
         BalanceDownload::registerModule();
         AccountingDownload::registerModule();

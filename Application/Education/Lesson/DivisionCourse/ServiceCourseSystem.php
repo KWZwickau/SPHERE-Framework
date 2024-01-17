@@ -19,23 +19,29 @@ abstract class ServiceCourseSystem extends AbstractService
         $advancedCourses = array();
         $basicCourses = array();
 
+        $levelList = array();
         if (($tblStudentEducationList = DivisionCourse::useService()->getStudentEducationListByPerson($tblPerson))) {
             foreach ($tblStudentEducationList as $tblStudentEducation) {
                 if (DivisionCourse::useService()->getIsCourseSystemByStudentEducation($tblStudentEducation)
                     && ($tblYear = $tblStudentEducation->getServiceTblYear())
                     && ($tblStudentSubjectList = DivisionCourse::useService()->getStudentSubjectListByPersonAndYear($tblPerson, $tblYear, true))
+                    && ($level = $tblStudentEducation->getLevel())
                 ) {
-                    foreach ($tblStudentSubjectList as $tblStudentSubject) {
-                        if (($tblSubject = $tblStudentSubject->getServiceTblSubject())) {
-                            // SSW-2351 Fehlerbehebung Kurshalbjahreszeugnisse GY
+                    // Schuljahreswiederholungen ignorieren
+                    if (!isset($levelList[$level])) {
+                        $levelList[$level] = 1;
+                        foreach ($tblStudentSubjectList as $tblStudentSubject) {
+                            if (($tblSubject = $tblStudentSubject->getServiceTblSubject())) {
+                                // SSW-2351 Fehlerbehebung Kurshalbjahreszeugnisse GY
 //                            if ($tblSubject->getAcronym() == 'EN2') {
 //                                $tblSubject = Subject::useService()->getSubjectByAcronym('EN');
 //                            }
-                            if ($tblSubject) {
-                                if ($tblStudentSubject->getIsAdvancedCourse()) {
-                                    $advancedCourses[$tblSubject->getId()] = $tblSubject;
-                                } else {
-                                    $basicCourses[$tblSubject->getId()] = $tblSubject;
+                                if ($tblSubject) {
+                                    if ($tblStudentSubject->getIsAdvancedCourse()) {
+                                        $advancedCourses[$tblSubject->getId()] = $tblSubject;
+                                    } else {
+                                        $basicCourses[$tblSubject->getId()] = $tblSubject;
+                                    }
                                 }
                             }
                         }
