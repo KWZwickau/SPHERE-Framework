@@ -57,10 +57,11 @@ class BalanceDownload implements IModuleInterface
      * @param string $GroupId
      * @param string $PersonId
      * @param string $BasketTypeId
+     * @param bool   $isMonthly
      *
      * @return bool|string
      */
-    public function downloadBalanceList($ItemIdString = '', $Year = '', $From = '', $To = '', $DivisionCourseId = '', $GroupId = '', $PersonId = '', $BasketTypeId = '', $isMonthly)
+    public function downloadBalanceList($ItemIdString = '', $Year = '', $From = '', $To = '', $DivisionCourseId = '', $GroupId = '', $PersonId = '', $BasketTypeId = '', $isMonthly = false)
     {
 
         if($ItemIdString){

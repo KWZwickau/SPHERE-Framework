@@ -116,6 +116,9 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblItemList[] = Item::useService()->getItemById($ItemId);
             }
         }
+        if(!isset($Balance['isMonthly'])){
+            $Balance['isMonthly'] = 0;
+        }
 
         $tableContent = array();
         $tblPerson = false;

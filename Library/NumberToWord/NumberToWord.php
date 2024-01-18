@@ -1,6 +1,8 @@
 <?php
 namespace SPHERE\Library\NumberToWord;
 
+use SPHERE\System\Extension\Repository\Debugger;
+
 define('NUMERAL_SIGN', 'minus');
 define('NUMERAL_HUNDREDS_SUFFIX', 'hundert');
 define('NUMERAL_INFIX', 'und');
@@ -18,7 +20,7 @@ class NumberToWord
 
         if($fNumber != ''){
             $fNumber = str_replace('€', '', $fNumber);
-            $fNumber = (int)str_replace(',', '.', $fNumber);
+            $fNumber = (float)str_replace(',', '.', $fNumber);
             // Zahl mit korrektem Trennzeichen
             // Zahl auf 2 Nachkommastellen runden (wenn zu lang)
             $fNumber = round($fNumber, 2);
