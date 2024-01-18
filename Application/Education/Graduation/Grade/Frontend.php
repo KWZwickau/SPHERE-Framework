@@ -26,6 +26,8 @@ use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Setting\Consumer\Consumer as ConsumerSetting;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
@@ -1116,12 +1118,16 @@ class Frontend extends FrontendTestPlanning
                         $selectList = $selectListGrades;
                     }
 
-                    $selectComplete = (new SelectCompleter('Data[' . $tblPerson->getId() . '][Grade]', '', '', $selectList))
-                        ->setTabIndex($tabIndex++)
-                        ->setPrefixValue($tblGrade ? $tblGrade->getDisplayTeacher() : $gradeAverageProposal);
-                    // Eingabe-Fehler anzeigen
-                    if (isset($Errors[$tblPerson->getId()]['Grade'])) {
-                        $selectComplete->setError('Bitte geben Sie eine gültige Stichtagsnote ein');
+                    if ($this->getIsOverrideScoreTypeException($tblSubject)) {
+                        $selectComplete = $this->getGradeInput($tblPerson, $tblYear, $tblSubject, null, $tabIndex, $Errors);
+                    } else {
+                        $selectComplete = (new SelectCompleter('Data[' . $tblPerson->getId() . '][Grade]', '', '', $selectList))
+                            ->setTabIndex($tabIndex++)
+                            ->setPrefixValue($tblGrade ? $tblGrade->getDisplayTeacher() : $gradeAverageProposal);
+                        // Eingabe-Fehler anzeigen
+                        if (isset($Errors[$tblPerson->getId()]['Grade'])) {
+                            $selectComplete->setError('Bitte geben Sie eine gültige Stichtagsnote ein');
+                        }
                     }
 
                     if (isset($Data[$tblPerson->getId()]['GradeText'])) {
@@ -1698,6 +1704,23 @@ class Frontend extends FrontendTestPlanning
                     ).'</div>',
                     Panel::PANEL_TYPE_INFO
                 );
+            }
+        }
+
+        return false;
+    }
+
+
+    /**
+     * @param TblSubject $tblSubject
+     *
+     * @return bool
+     */
+    public function getIsOverrideScoreTypeException(TblSubject $tblSubject): bool
+    {
+        if (Consumer::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'ESRL')) {
+            if ($tblSubject->getName() == 'Schwimmunterricht') {
+                return true;
             }
         }
 

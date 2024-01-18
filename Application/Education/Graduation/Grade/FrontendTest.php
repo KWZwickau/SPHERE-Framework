@@ -730,7 +730,17 @@ abstract class FrontendTest extends FrontendTeacherGroup
         return new CheckBox('Data[' . $personId . '][Attendance]', ' ', 1);
     }
 
-    private function getGradeInput(TblPerson $tblPerson, TblYear $tblYear, TblSubject $tblSubject, ?TblTestGrade $tblGrade, int &$tabIndex, $Errors)
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     * @param TblSubject $tblSubject
+     * @param TblTestGrade|null $tblGrade
+     * @param int $tabIndex
+     * @param $Errors
+     *
+     * @return SelectCompleter|TextField|\SPHERE\Common\Frontend\Text\Repository\Warning
+     */
+    public function getGradeInput(TblPerson $tblPerson, TblYear $tblYear, TblSubject $tblSubject, ?TblTestGrade $tblGrade, int &$tabIndex, $Errors)
     {
         if (($tblScoreType = Grade::useService()->getScoreTypeByPersonAndYearAndSubject($tblPerson, $tblYear, $tblSubject))) {
             switch ($tblScoreType->getIdentifier()) {

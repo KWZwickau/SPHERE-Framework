@@ -579,7 +579,9 @@ abstract class ServiceTask extends ServiceStudentOverview
                         }
                     // Stichtagsnoten
                     } else {
-                        if (DivisionCourse::useService()->getIsCourseSystemByPersonAndYear($tblPerson, $tblYear)) {
+                        if (Grade::useFrontend()->getIsOverrideScoreTypeException($tblSubject)) {
+                            $tblScoreType = Grade::useService()->getScoreTypeByPersonAndYearAndSubject($tblPerson, $tblYear, $tblSubject);
+                        } elseif (DivisionCourse::useService()->getIsCourseSystemByPersonAndYear($tblPerson, $tblYear)) {
                             $tblScoreType = Grade::useService()->getScoreTypeByIdentifier('POINTS');
                         } else {
                             $tblScoreType = Grade::useService()->getScoreTypeByIdentifier('GRADES');
