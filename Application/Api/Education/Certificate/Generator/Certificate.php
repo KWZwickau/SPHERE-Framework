@@ -750,10 +750,12 @@ abstract class Certificate extends Extension
      */
     public function getHeadForLeave(bool $IsSample, bool $showPicture = true): Slice
     {
-        if (!ConsumerGatekeeper::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'EVOSG')) {
-            $elementSaxonyLogo = (new Element\Image('/Common/Style/Resource/Logo/ClaimFreistaatSachsen.jpg', '214px', '66px'))->styleAlignRight();
-        } else {
+        if (($tblSetting = \SPHERE\Application\Setting\Consumer\Consumer::useService()->getSetting('Education', 'Certificate', 'Diploma', 'DoNotShowSaxonyLogo'))
+            && $tblSetting->getValue()
+        ) {
             $elementSaxonyLogo = (new Element())->setContent('&nbsp;');
+        } else {
+            $elementSaxonyLogo = (new Element\Image('/Common/Style/Resource/Logo/ClaimFreistaatSachsen.jpg', '214px', '66px'))->styleAlignRight();
         }
 
         $pictureAddress = '';
@@ -807,10 +809,12 @@ abstract class Certificate extends Extension
      */
     public function getHeadForDiploma(bool $IsSample, bool $showPicture = true): Slice
     {
-        if (!ConsumerGatekeeper::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'EVOSG')) {
-            $elementSaxonyLogo = (new Element\Image('/Common/Style/Resource/Logo/ClaimFreistaatSachsen.jpg', '214px', '66px'))->styleAlignRight();
-        } else {
+        if (($tblSetting = \SPHERE\Application\Setting\Consumer\Consumer::useService()->getSetting('Education', 'Certificate', 'Diploma', 'DoNotShowSaxonyLogo'))
+            && $tblSetting->getValue()
+        ) {
             $elementSaxonyLogo = (new Element())->setContent('&nbsp;');
+        } else {
+            $elementSaxonyLogo = (new Element\Image('/Common/Style/Resource/Logo/ClaimFreistaatSachsen.jpg', '214px', '66px'))->styleAlignRight();
         }
 
         $pictureAddress = '';
