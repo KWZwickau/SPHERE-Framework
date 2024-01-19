@@ -499,6 +499,9 @@ class Service extends AbstractService
             'Content.Input.IndustrialPlacement' => 'TextField',
             'Content.Input.IndustrialPlacementDuration' => 'TextField',
             'Content.Input.EducationDateFrom' => 'DatePicker',
+            // Vorbereitungsklasse HOGA
+            'Content.Input.PartialCourse' => 'TextField',
+            'Content.Input.PartialIntegration'  => 'TextField',
             // Förderschule
 //            'Content.Input.FoesAbsText'         => 'SelectBox', // SSW-1685 Auswahl soll aktuell nicht verfügbar sein, bis aufweiteres aufheben
         );
@@ -617,7 +620,10 @@ class Service extends AbstractService
             'Content.Input.Success'             => 'Abschluss erfolgreich',
             'Content.Input.IndustrialPlacement' => 'Betriebspraktikum',
             'Content.Input.IndustrialPlacementDuration' => 'Betriebspraktikum (Dauer in Wochen)',
-            'Content.Input.EducationDateFrom' => 'Ausbildung Datum vom',
+            'Content.Input.EducationDateFrom'   => 'Ausbildung Datum vom',
+            // Vorbereitungsklasse HOGA
+            'Content.Input.PartialCourse' => 'Teilintegration Bildungsgang',
+            'Content.Input.PartialIntegration'  => 'Teilintegration in die Berufsschule',
             // Förderschule
 //            'Content.Input.FoesAbsText' => 'Auswahltext für das Zeugnis', // SSW-1685 Auswahl soll aktuell nicht verfügbar sein, bis aufweiteres aufheben
         );

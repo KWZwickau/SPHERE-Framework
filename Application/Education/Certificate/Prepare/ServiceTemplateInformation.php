@@ -485,6 +485,14 @@ abstract class ServiceTemplateInformation extends ServiceLeave
                         $Global->POST['Data'][$tblPrepareStudent->getId()]['EducationDateFrom'] = $transferDate;
                     }
 
+                    // Vorbereitungsklasse HOGA Jahreszeugnis
+                    if (!$hasRemarkText
+                        && $Certificate->getCertificateEntity()->getCertificate() == 'HOGA\VklbaJ'
+                    ) {
+                        $Global->POST['Data'][$tblPrepareStudent->getId()]['RemarkWithoutTeam'] =
+                            'Die Beendigung der Berufsschulpflicht gemäß § 28 Absatz 5 Satz 2 SächsSchulG bleibt unberührt.';
+                    }
+
                     $Global->savePost();
                 }
 

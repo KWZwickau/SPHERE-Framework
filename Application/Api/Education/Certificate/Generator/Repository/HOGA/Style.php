@@ -2334,14 +2334,13 @@ abstract class Style extends Certificate
      * @param int $personId
      * @param string $marginTop
      * @param string $height
-     * #
+     * @param string $textSize
+     *
      * @return Slice
      */
-    public function getCustomFosRemark(int $personId, string $marginTop = '10px', string $height = '75px',
-        string $textSize = self::TEXT_SIZE_LARGE) : Slice
+    public function getCustomFosRemark(int $personId, string $marginTop = '10px', string $height = '75px', string $textSize = self::TEXT_SIZE_LARGE) : Slice
     {
-        $tblSetting = Consumer::useService()->getSetting('Education', 'Certificate', 'Generator',
-            'IsDescriptionAsJustify');
+        $tblSetting = Consumer::useService()->getSetting('Education', 'Certificate', 'Generator', 'IsDescriptionAsJustify');
         $slice = (new Slice())
             ->styleMarginTop($marginTop)
             ->styleHeight($height)
@@ -2384,7 +2383,7 @@ abstract class Style extends Certificate
             $element->styleAlignJustify();
         }
 
-        return $slice->addElement($element);
+        return $slice->addElement($element->styleMarginTop('5px'));
     }
 
     /**
@@ -3069,5 +3068,228 @@ abstract class Style extends Certificate
             }
         }
         return $SubjectLayout;
+    }
+
+//    /**
+//     * 2 spaltig
+//     *
+//     * @param int $personId
+//     * @param string $marginTop
+//     *
+//     * @return Slice
+//     */
+//    protected function getCustomSubjectLanesVklba(int $personId, string $marginTop = '28px') : Slice
+//    {
+//        $textSize = self::TEXT_SIZE_NORMAL;
+//        $textSizeGrade = self::TEXT_SIZE_NORMAL;
+//        $textSizeSubject = self::TEXT_SIZE_NORMAL;
+//
+//        $slice = (new Slice())
+//            ->styleMarginTop($marginTop)
+//            ->addElement($this->getElement('Pflichtbereich', $textSize)->styleTextBold()->styleMarginTop('5px'));
+//
+//        $tblCertificateSubjectAll = Generator::useService()->getCertificateSubjectAll($this->getCertificateEntity());
+//        $tblGradeList = $this->getGrade();
+//        if ($tblCertificateSubjectAll) {
+//            $SubjectStructure = $this->getSubjectStructure($tblCertificateSubjectAll, $tblGradeList, 1, 4);
+//            $count = 0;
+//            foreach ($SubjectStructure as $SubjectList) {
+//                $count++;
+//                // Sort Lane-Ranking (1,2...)
+//                ksort($SubjectList);
+//
+//                $SubjectSection = (new Section());
+//
+//                if (count($SubjectList) == 1 && isset($SubjectList[2])) {
+//                    $SubjectSection->addElementColumn((new Element()), 'auto');
+//                }
+//
+//                foreach ($SubjectList as $Lane => $Subject) {
+//                    // lange Fächernamen
+//                    $Subject['SubjectName'] = str_replace('/', ' / ', $Subject['SubjectName']);
+//                    if (strlen($Subject['SubjectName']) > 25) {
+//                        $marginTop = '0px';
+//                        $lineHeight = '70%';
+//                    } else {
+//                        $marginTop = self::MARGIN_TOP_GRADE_LINE;
+//                        $lineHeight = '100%';
+//                    }
+//
+//                    if ($Lane > 1) {
+//                        $SubjectSection->addElementColumn((new Element())
+//                            , '2%');
+//                    }
+//
+//                    $SubjectSection->addElementColumn($this->getElement($Subject['SubjectName'], $textSizeSubject)
+//                        ->styleMarginTop($marginTop)
+//                        ->styleLineHeight($lineHeight)
+//                        , (self::SUBJECT_WIDTH + 1) . '%');
+//
+//                    $SubjectSection->addElementColumn($this->getElement(
+//                        '{% if(Content.P' . $personId . '.Grade.Data["' . $Subject['SubjectAcronym'] . '"] is not empty) %}
+//                                {{ Content.P' . $personId . '.Grade.Data["' . $Subject['SubjectAcronym'] . '"] }}
+//                            {% else %}
+//                                &ndash;
+//                            {% endif %}',
+//                        $textSizeGrade
+//                    )
+//                        ->styleAlignCenter()
+//                        ->styleBackgroundColor(self::BACKGROUND)
+//                        ->stylePaddingTop(self::PADDING_TOP_GRADE)
+//                        ->styleMarginTop(self::MARGIN_TOP_GRADE_LINE)
+//                        , self::GRADE_WIDTH . '%');
+//                }
+//
+//                if (count($SubjectList) == 1 && isset($SubjectList[1])) {
+//                    $SubjectSection->addElementColumn((new Element()), '51%');
+//                }
+//
+//                $slice->addSection($SubjectSection);
+//            }
+//        }
+//
+//        return $slice;
+//    }
+
+    /**
+     * 1 spaltig
+     *
+     * @param int $personId
+     * @param string $marginTop
+     *
+     * @return Slice
+     */
+    protected function getCustomSubjectLanesVklba(int $personId, string $marginTop = '28px') : Slice
+    {
+        $textSize = self::TEXT_SIZE_LARGE;
+        $textSizeGrade = self::TEXT_SIZE_NORMAL;
+        $textSizeSubject = self::TEXT_SIZE_NORMAL;
+
+        $slice = (new Slice())
+            ->styleMarginTop($marginTop)
+            ->addElement($this->getElement('Pflichtbereich', $textSize)->styleTextBold()->styleMarginTop('5px'));
+
+        $tblCertificateSubjectAll = Generator::useService()->getCertificateSubjectAll($this->getCertificateEntity());
+        $tblGradeList = $this->getGrade();
+        if ($tblCertificateSubjectAll) {
+            $SubjectStructure = $this->getSubjectStructure($tblCertificateSubjectAll, $tblGradeList, 1, 10);
+            $count = 0;
+            foreach ($SubjectStructure as $SubjectList) {
+                // Sort Lane-Ranking (1,2...)
+                ksort($SubjectList);
+
+                foreach ($SubjectList as $Lane => $Subject) {
+                    $SubjectSection = (new Section());
+
+                    $marginTop = self::MARGIN_TOP_GRADE_LINE;
+                    $lineHeight = '100%';
+
+                    $SubjectSection->addElementColumn($this->getElement($Subject['SubjectName'], $textSizeSubject)
+                        ->styleMarginTop($marginTop)
+                        ->styleLineHeight($lineHeight)
+                    );
+
+                    $SubjectSection->addElementColumn($this->getElement(
+                            '{% if(Content.P' . $personId . '.Grade.Data["' . $Subject['SubjectAcronym'] . '"] is not empty) %}
+                                    {{ Content.P' . $personId . '.Grade.Data["' . $Subject['SubjectAcronym'] . '"] }}
+                                {% else %}
+                                    &ndash;
+                                {% endif %}',
+                            $textSizeGrade
+                        )
+                        ->styleAlignCenter()
+                        ->styleBackgroundColor(self::BACKGROUND)
+                        ->stylePaddingTop(self::PADDING_TOP_GRADE)
+                        ->styleMarginTop(self::MARGIN_TOP_GRADE_LINE)
+                        , self::GRADE_WIDTH . '%');
+
+                    $slice->addSection($SubjectSection);
+                }
+            }
+        }
+
+        return $slice;
+    }
+
+    /**
+     * @param $personId
+     * @param string $textSize
+     *
+     * @return Slice
+     */
+    protected function getChosenArea($personId, string $textSize = self::TEXT_SIZE_LARGE): Slice
+    {
+
+        $Slice = new Slice();
+
+        $Slice->addElement($this->getElement('Wahlbereich', $textSize)
+            ->styleTextBold()
+            ->styleMarginTop('15px')
+            ->styleMarginBottom('5px')
+        );
+
+        $Slice->addSection((new Section())
+            ->addElementColumn($this->getElement(
+                    '{% if(Content.P' . $personId . '.Input.ChosenArea1 is not empty) %}
+                        {{ Content.P' . $personId . '.Input.ChosenArea1 }}
+                    {% else %}
+                        &nbsp;
+                    {% endif %}',
+                    self::TEXT_SIZE_NORMAL
+                )
+                ->styleBorderBottom()
+                , '45%')
+            ->addElementColumn((new Element())
+                ->setContent('&nbsp;')
+                , '10%')
+            ->addElementColumn($this->getElement(
+                '{% if(Content.P' . $personId . '.Input.ChosenArea2 is not empty) %}
+                    {{ Content.P' . $personId . '.Input.ChosenArea2 }}
+                {% else %}
+                    &nbsp;
+                {% endif %}',
+                self::TEXT_SIZE_NORMAL
+            )
+                ->styleBorderBottom()
+                , '45%')
+        );
+
+        return $Slice;
+    }
+
+    /**
+     * @param int $personId
+     * @param string $marginTop
+     * @param string $textSize
+     *
+     * @return Slice
+     */
+    public function getPartialIntegration(int $personId, string $marginTop = '15px', string $textSize = self::TEXT_SIZE_NORMAL) : Slice
+    {
+        return (new Slice())
+            ->styleMarginTop($marginTop)
+            ->addElement(
+                $this->getElement('Teilintegration in die Berufsschule:', $textSize)
+                    ->styleTextUnderline()
+            )
+            ->addSection((new Section())
+                ->addElementColumn($this->getElement(
+                    '{% if(Content.P' . $personId . '.Input.PartialCourse is not empty) %}
+                        {{ Content.P' . $personId . '.Input.PartialCourse }}
+                    {% else %}
+                        &nbsp;
+                    {% endif %}',
+                    self::TEXT_SIZE_NORMAL
+                ), '50%')
+                ->addElementColumn($this->getElement(
+                    '{% if(Content.P' . $personId . '.Input.PartialIntegration is not empty) %}
+                        {{ Content.P' . $personId . '.Input.PartialIntegration }}
+                    {% else %}
+                        &nbsp;
+                    {% endif %}',
+                    self::TEXT_SIZE_NORMAL
+                )->styleAlignRight(), '50%')
+            )
+            ;
     }
 }
