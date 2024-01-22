@@ -505,6 +505,8 @@ abstract class FrontendDiploma extends Extension implements IFrontendInterface
                 $studentTable[$tblPerson->getId()] = Prepare::useFrontend()->getStudentBasicInformation($tblPerson, $tblYear, $tblPrepareStudent ?: null, $count);
                 if ($tblPrepareStudent
                     && ($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())
+                    && ($tblVirtualSubject = DivisionCourse::useService()->getVirtualSubjectFromRealAndVirtualByPersonAndYearAndSubject($tblPerson, $tblYear, $tblSubject))
+                    && $tblVirtualSubject->getHasGrading()
                 ) {
                     $gradeList = array();
                     if (($tblPrepareAdditionalGradeList = Prepare::useService()->getPrepareAdditionalGradeListBy($tblPrepare, $tblPerson))) {
