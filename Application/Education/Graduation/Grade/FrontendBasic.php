@@ -21,6 +21,7 @@ use SPHERE\Common\Frontend\Table\Structure\TableRow;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Center;
 use SPHERE\Common\Frontend\Text\Repository\Info;
+use SPHERE\Common\Frontend\Text\Repository\Strikethrough;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
@@ -226,10 +227,12 @@ abstract class FrontendBasic extends Extension implements IFrontendInterface
      * @return array
      */
     protected function getGradeBookPreBodyList(TblPerson $tblPerson, $count, bool $hasPicture, bool $hasIntegration, bool $hasCourse,
-        array $pictureList, array $integrationList, array $courseList): array
+        array $pictureList, array $integrationList, array $courseList, bool $isInactive = false): array
     {
         $result['Number'] = $this->getTableColumnBody($count);
-        $result['Person'] = $this->getTableColumnBody($tblPerson->getLastFirstNameWithCallNameUnderline());
+        $result['Person'] = $this->getTableColumnBody(
+            $isInactive ? new Strikethrough($tblPerson->getLastFirstNameWithCallNameUnderline()) : $tblPerson->getLastFirstNameWithCallNameUnderline()
+        );
 
         if ($hasPicture) {
             $result['Picture'] = $this->getTableColumnBody($pictureList[$tblPerson->getId()] ?? '&nbsp;');
