@@ -579,7 +579,9 @@ abstract class ServiceTask extends ServiceStudentOverview
                         }
                     // Stichtagsnoten
                     } else {
-                        if (DivisionCourse::useService()->getIsCourseSystemByPersonAndYear($tblPerson, $tblYear)) {
+                        if (Grade::useFrontend()->getIsOverrideScoreTypeException($tblSubject)) {
+                            $tblScoreType = Grade::useService()->getScoreTypeByPersonAndYearAndSubject($tblPerson, $tblYear, $tblSubject);
+                        } elseif (DivisionCourse::useService()->getIsCourseSystemByPersonAndYear($tblPerson, $tblYear)) {
                             $tblScoreType = Grade::useService()->getScoreTypeByIdentifier('POINTS');
                         } else {
                             $tblScoreType = Grade::useService()->getScoreTypeByIdentifier('GRADES');
@@ -712,7 +714,7 @@ abstract class ServiceTask extends ServiceStudentOverview
                         if ($tblTaskList && $tblSubject) {
                             foreach ($tblTaskList as $tblTask) {
                                 // current task
-                                if ($today > $tblTask->getFromDate() && $today <= $tblTask->getToDate()) {
+                                if ($today >= $tblTask->getFromDate() && $today <= $tblTask->getToDate()) {
                                     if ($this->setCurrentTask($tblDivisionCourse, $tblSubject, $tblYear, $tblTask, $dataList, $tblSettingBehaviorHasGrading)) {
                                         if ($tblTask->getIsTypeBehavior()) {
                                             if (!isset($behaviorTaskList[$tblTask->getId()])) {
@@ -1056,6 +1058,11 @@ abstract class ServiceTask extends ServiceStudentOverview
      */
     public function getBehaviorTaskGradesViewData(TblTask $tblTask, TblDivisionCourse $tblDivisionCourse): array
     {
+        $hasBehaviorTaskSetting = ($tblSetting = Consumer::useService()->getSetting(
+                'Education', 'Graduation', 'Evaluation', 'HasBehaviorGradesForSubjectsWithNoGrading'
+            ))
+            && $tblSetting->getValue();
+
         $tblGradeTypeList = $tblTask->getGradeTypes();
         $headerList['Number'] = '#';
         $headerList['FirstName'] = 'Vorname';
@@ -1077,7 +1084,7 @@ abstract class ServiceTask extends ServiceStudentOverview
                 $bodyList[$tblPerson->getId()]['FirstName'] = $tblPerson->getFirstSecondName();
                 $bodyList[$tblPerson->getId()]['LastName'] = $tblPerson->getLastName();
 
-                if (($tblSubjectList = DivisionCourse::useService()->getSubjectListByStudentAndYear($tblPerson, $tblYear))) {
+                if (($tblSubjectList = DivisionCourse::useService()->getSubjectListByStudentAndYear($tblPerson, $tblYear, !$hasBehaviorTaskSetting))) {
                     $tblSubjectList = $this->getSorter($tblSubjectList)->sortObjectBy('Name');
                 }
                 $tblTaskGradeList = array();

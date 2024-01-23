@@ -2,8 +2,8 @@
 namespace SPHERE\Application\Api\Reporting\Standard\Person;
 
 use DateTime;
-use MOC\V\Core\FileSystem\Exception\FileSystemException;
 use MOC\V\Core\FileSystem\FileSystem;
+use SPHERE\Application\Api\Reporting\Standard\ExcelBuilder;
 use SPHERE\Application\Education\Absence\Absence;
 use SPHERE\Application\Education\Certificate\Reporting\Reporting;
 use SPHERE\Application\Education\Certificate\Reporting\View;
@@ -522,5 +522,66 @@ class Person extends Extension
                 "Klassenlehrer ".date("Y-m-d").".xlsx")->__toString();
         }
         return false;
+    }
+
+    /**
+     * @param $PersonId
+     * @param $YearId
+     *
+     * @return false|string
+     */
+    public function downloadClassRegisterAbsenceStudent($PersonId = null, $YearId = null)
+    {
+        if (($tblPerson = \SPHERE\Application\People\Person\Person::useService()->getPersonById($PersonId))
+            && ($tblYear = Term::useService()->getYearById($YearId))
+            && ($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))
+        ) {
+            $hasAbsenceTypeOptions = false;
+            $dataList = Absence::useService()->getStudentAbsenceDataForParentStudentAccess($tblPerson, $tblStudentEducation, $hasAbsenceTypeOptions);
+            if ($hasAbsenceTypeOptions) {
+                $headerList = array(
+                    'FromDate' => 'Datum von',
+                    'ToDate' => 'Datum bis',
+                    'Days' => 'Tage',
+                    'Lessons' => 'Unterrichtseinheiten',
+                    'Type' => 'Typ',
+                    'PersonCreator' => 'Ersteller',
+                    'IsCertificateRelevant' => 'Zeugnisrelevant',
+                    'Status' => 'Status',
+                );
+            } else {
+                $headerList = array(
+                    'FromDate' => 'Datum von',
+                    'ToDate' => 'Datum bis',
+                    'Days' => 'Tage',
+                    'Lessons' => 'Unterrichtseinheiten',
+                    'PersonCreator' => 'Ersteller',
+                    'IsCertificateRelevant' => 'Zeugnisrelevant',
+                    'Status' => 'Status',
+                );
+            }
+
+            $preTextList[] = 'Fehlzeiten Übersicht für ' . $tblPerson->getLastFirstName()
+                . ' (' . DivisionCourse::useService()->getCurrentMainCoursesByStudentEducation($tblStudentEducation) . ')';
+            $preTextList[] = 'Stand: ' . (new DateTime())->format('d.m.Y');
+
+            $headerWidthList['FromDate'] = 11;
+            $headerWidthList['ToDate'] = 11;
+            $headerWidthList['Days'] = 14;
+            $headerWidthList['Lessons'] = 22;
+            $headerWidthList['PersonCreator'] = 20;
+            $headerWidthList['IsCertificateRelevant'] = 16;
+            $headerWidthList['Status'] = 16;
+
+            return ExcelBuilder::getDownloadFile(
+                'Fehlzeiten ' . $tblPerson->getLastName() . ' ' . $tblPerson->getFirstName() . ' ' . (new DateTime())->format('d-m-Y'),
+                $headerList,
+                $dataList,
+                $preTextList,
+                $headerWidthList
+            );
+        }
+
+        return 'Keine Daten vorhanden!';
     }
 }
