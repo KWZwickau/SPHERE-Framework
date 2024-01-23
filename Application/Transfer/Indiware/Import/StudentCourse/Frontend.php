@@ -224,6 +224,7 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendImportSelectedCourse($File = null, $Data = null) : Stage
     {
         $stage = new Stage('Import', 'Abitur Kurseinbringung');
+        $stage->addButton(new Standard('Zurück', '/Transfer/Indiware/Import', new ChevronLeft()));
 
         $list = array();
         $tblSchoolTypeGy = Type::useService()->getTypeByShortName('Gy');
