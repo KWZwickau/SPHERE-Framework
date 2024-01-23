@@ -268,7 +268,7 @@ class FrontendStudent extends FrontendMember
                 new FormRow(array(
                     new FormColumn(
                         (new SelectBox('Data[Company]', 'Schule', array(
-                            '{{ Name }} {{ ExtendedName }} {{ Description }}' => DivisionCourse::useService()->getSchoolListForStudentEducation()
+                            '{{ Name }} {{ ExtendedName }} {{ Description }}' => DivisionCourse::useService()->getSchoolListForStudentEducation(false)
                         )))->setRequired()
                     )
                 )),
