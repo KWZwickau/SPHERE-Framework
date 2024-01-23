@@ -23,6 +23,9 @@ use SPHERE\System\Database\Binding\AbstractService;
 class Service extends AbstractService
 {
 
+    // int in month
+    const DEACTIVATE_TIME_SPAN = 2;
+
     /**
      * @param bool $doSimulation
      * @param bool $withData
@@ -256,10 +259,35 @@ class Service extends AbstractService
     /**
      * @return bool|TblItem[]
      */
-    public function getItemAll()
+    public function getItemAll($isActive = true)
     {
 
-        return (new Data($this->getBinding()))->getItemAll();
+        return (new Data($this->getBinding()))->getItemAll($isActive);
+    }
+
+    /**
+     * @param $MonthSinceActive
+     *
+     * @return array|TblItem[]
+     */
+    public function getItemAllWithPreActiveTime($MonthSinceActive = self::DEACTIVATE_TIME_SPAN)
+    {
+
+        if(!($tblItemActiveList = (new Data($this->getBinding()))->getItemAll())){
+            $tblItemActiveList = array();
+        }
+        if(($tblItemInactiveList = (new Data($this->getBinding()))->getItemAll(false))){
+            $date = new \DateTime();
+            foreach($tblItemInactiveList as $tblItemInactive){
+                $updateDate = $tblItemInactive->getEntityUpdate();
+                $updateDate->modify("+".$MonthSinceActive." month");
+                if($updateDate > $date){
+                    array_push($tblItemActiveList, $tblItemInactive);
+                }
+            }
+        }
+
+        return $tblItemActiveList;
     }
 
     /**
@@ -407,7 +435,6 @@ class Service extends AbstractService
         return (new Data($this->getBinding()))->updateItemVariant($tblItemVariant, $Name, $Description);
     }
 
-
     /**
      * @param TblItemCalculation $tblItemCalculation
      * @param string             $Value
@@ -421,6 +448,18 @@ class Service extends AbstractService
 
         $Value = str_replace(',', '.', $Value);
         return (new Data($this->getBinding()))->updateItemCalculation($tblItemCalculation, $Value, $DateFrom, $DateTo);
+    }
+
+    /**
+     * @param TblItem $tblItem
+     * @param         $isActive
+     *
+     * @return bool
+     */
+    public function changeItemActive(TblItem $tblItem, $isActive = false)
+    {
+
+        return (new Data($this->getBinding()))->updateItemIsActive($tblItem, $isActive);
     }
 
     /**

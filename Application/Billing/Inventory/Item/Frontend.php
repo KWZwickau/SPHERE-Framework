@@ -6,7 +6,10 @@ use SPHERE\Application\Api\Billing\Inventory\ApiItem;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Basket;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItem;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItemCalculation;
+use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
+use SPHERE\Common\Frontend\Icon\Repository\EyeMinus;
+use SPHERE\Common\Frontend\Icon\Repository\FolderOpen;
 use SPHERE\Common\Frontend\Icon\Repository\ListingTable;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
@@ -22,11 +25,13 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Link\Repository\Primary;
+use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Danger as DangerText;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
+use SPHERE\Common\Frontend\Text\Repository\Warning as WarningText;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 use SPHERE\System\Extension\Repository\Sorter;
@@ -48,11 +53,13 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage('Beitragsarten', 'Übersicht');
         $Stage->addButton((new Primary('Beitragsart hinzufügen', ApiItem::getEndpoint(), new Plus()))
             ->ajaxPipelineOnClick(ApiItem::pipelineOpenAddItemModal('addItem')));
+        $Stage->addButton(new Standard('Deaktivierte Beitragsarten', '/Billing/Inventory/Item/ViewNotActive', new EyeMinus()));
 
         $Stage->setContent(
             ApiItem::receiverModal('Beitragsart hinzufügen', 'addItem')
             .ApiItem::receiverModal('Beitragsart bearbeiten', 'editItem')
             .ApiItem::receiverModal('Beitragsart entfernen', 'deleteItem')
+            .ApiItem::receiverModal('Beitragsart deaktivieren', 'deactivateItem')
             .ApiItem::receiverModal('Beitrags-Variante hinzufügen', 'addVariant')
             .ApiItem::receiverModal('Beitrags-Variante bearbeiten', 'editVariant')
             .ApiItem::receiverModal('Beitrags-Variante entfernen', 'deleteVariant')
@@ -92,8 +99,15 @@ class Frontend extends Extension implements IFrontendInterface
                 $Item['Name'] = $tblItem->getName()
                     .(new Link('', ApiItem::getEndpoint(), new Pencil(), array(), 'Beitragsart bearbeiten'))
                         ->ajaxPipelineOnClick(ApiItem::pipelineOpenEditItemModal('editItem', $tblItem->getId()));
-                // darf die Beitragsart gelöscht werden?
-                if(!(Basket::useService()->getBasketItemAllByItem($tblItem))){
+                if((Basket::useService()->getBasketItemAllByItem($tblItem))){
+                    // Beitragsart deaktivierbar
+                    $Item['Name'] .= '|'
+                        .(new Link(new WarningText(new EyeMinus()), ApiItem::getEndpoint(), null, array(),
+                            'Deaktivierung der Beitragsart'))
+                            ->ajaxPipelineOnClick(ApiItem::pipelineOpenDeactivateItemModal('deactivateItem',
+                                $tblItem->getId()));
+                } else {
+                    // Beitragsart löschbar
                     $Item['Name'] .= '|'
                         .(new Link(new DangerText(new Disable()), ApiItem::getEndpoint(), null, array(),
                             'Löschen der Beitragsart'))
@@ -239,5 +253,55 @@ class Frontend extends Extension implements IFrontendInterface
                 "info"           => false,  // Deaktivieren Such-Info
             )
         );
+    }
+
+    /**
+     * @return Stage
+     */
+    public function frontendItemNotActive()
+    {
+        $Stage = new Stage('Deaktivierte Beitragsarten');
+        $Stage->addButton(new Standard('Zurück', '/Billing/Inventory/Item', new ChevronLeft()));
+
+        $Stage->setContent(new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
+            ApiItem::receiverItemTable($this->getItemDeactiveTable())
+        )))));
+
+        return $Stage;
+    }
+
+    /**
+     * @return TableData
+     */
+    public function getItemDeactiveTable()
+    {
+
+        $TableContent = array();
+        if(($tblItemList = Item::useService()->getItemAll(false))){
+            array_walk($tblItemList, function(TblItem $tblItem) use (&$TableContent){
+                $item = array();
+                $item['name'] = $tblItem->getName();
+                $updateDate = $tblItem->getEntityUpdate();
+                $item['lastChange'] = $updateDate->format('d.m.Y');
+                $updateDate->modify("+".Item::useService()::DEACTIVATE_TIME_SPAN." month");
+                $item['lastPrint'] = $updateDate->format('d.m.Y');
+                $item['option'] = (new Standard('', '', new FolderOpen(), array(), 'Beitragsart aktivieren'))->ajaxPipelineOnClick(ApiItem::pipelineActivateItem($tblItem->getId()));
+                array_push($TableContent, $item);
+            });
+        }
+        return new TableData($TableContent, null, array(
+            'name' => 'Beitragsart',
+            'lastChange' => 'Deaktiviert am',
+            'lastPrint' => 'Druckbar bis (Schulbescheinigung)',
+            'option' => '',
+        ), array(
+            'order' => array(
+                array('1', 'desc'),
+            ),
+            'columnDefs'     => array(
+                array("orderable" => false, "targets" => array(-1)),
+                array('type' => 'de_date', 'targets' => array(1, 2)),
+            ),
+        ));
     }
 }

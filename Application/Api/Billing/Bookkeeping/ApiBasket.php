@@ -59,6 +59,7 @@ use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Danger as DangerText;
+use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Extension\Extension;
 
 /**
@@ -84,6 +85,8 @@ class ApiBasket extends Extension implements IApiInterface
         $Dispatcher->registerMethod('showDeleteBasket');
         $Dispatcher->registerMethod('deleteBasket');
         $Dispatcher->registerMethod('setArchiveBasket');
+        $Dispatcher->registerMethod('showDeleteBasketVerification');
+        $Dispatcher->registerMethod('deleteBasketVerification');
 
         $Dispatcher->registerMethod('reloadPersonFilterSelect');
 
@@ -341,6 +344,54 @@ class ApiBasket extends Extension implements IApiInterface
             'IsArchive' => $IsArchive
         ));
         $Pipeline->appendEmitter($Emitter);
+        return $Pipeline;
+    }
+
+    /**
+     * @param string     $Identifier
+     * @param int|string $BasketVerificationId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineOpenDeleteBasketVerificationModal($Identifier = '', $BasketVerificationId = '')
+    {
+
+        $Receiver = self::receiverModal(null, $Identifier);
+        $Pipeline = new Pipeline();
+        $Emitter = new ServerEmitter($Receiver, self::getEndpoint());
+        $Emitter->setGetPayload(array(
+            self::API_TARGET => 'showDeleteBasketVerification'
+        ));
+        $Emitter->setPostPayload(array(
+            'Identifier'           => $Identifier,
+            'BasketVerificationId' => $BasketVerificationId,
+        ));
+        $Pipeline->appendEmitter($Emitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param string     $Identifier
+     * @param int|string $BasketId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineDeleteBasketVerification($Identifier = '', $BasketVerificationId = '')
+    {
+
+        $Receiver = self::receiverModal(null, $Identifier);
+        $Pipeline = new Pipeline();
+        $Emitter = new ServerEmitter($Receiver, self::getEndpoint());
+        $Emitter->setGetPayload(array(
+            self::API_TARGET => 'deleteBasketVerification'
+        ));
+        $Emitter->setPostPayload(array(
+            'Identifier'           => $Identifier,
+            'BasketVerificationId' => $BasketVerificationId,
+        ));
+        $Pipeline->appendEmitter($Emitter);
+
         return $Pipeline;
     }
 
@@ -962,6 +1013,14 @@ class ApiBasket extends Extension implements IApiInterface
                 new LayoutColumn(new Bold($ItemString), 8),
             ))));
 
+            $LayoutColumnWarning = new LayoutColumn('');
+            if($tblBasket->getIsDone()){
+                $LayoutColumnWarning = new LayoutColumn(new Danger(
+                    new Container(new Bold('Achtung! ').'Eventuelle Korrekturen für SEPA oder DATEV müssen externen übernommen werden.')
+                    .new Container(new Bold('Das Löschen ist unwiderruflich!'))));
+            }
+
+
             return new Layout(
                 new LayoutGroup(
                     new LayoutRow(array(
@@ -969,6 +1028,7 @@ class ApiBasket extends Extension implements IApiInterface
                             new Panel('Soll die Abrechnung '.new Bold($tblBasket->getName()).' wirklich entfernt werden?'
                                 , $Content, Panel::PANEL_TYPE_DANGER)
                         ),
+                        $LayoutColumnWarning,
                         new LayoutColumn(
                             (new DangerLink('Ja', self::getEndpoint(), new Ok()))
                                 ->ajaxPipelineOnClick(self::pipelineDeleteBasket($Identifier, $BasketId))
@@ -1061,5 +1121,71 @@ class ApiBasket extends Extension implements IApiInterface
             }
         }
         return new SelectBox('Basket[DivisionCourse]', 'Klasse / Stammgruppe / Kurs', array('{{ DisplayName }}' => $tblDivisionCourseList));
+    }
+
+    public function showDeleteBasketVerification($Identifier, $BasketVerificationId)
+    {
+
+        if(!($tblBasketVerification = Basket::useService()->getBasketVerificationById($BasketVerificationId))){
+            return new Warning('Zahlungszuweisung wurde nicht gefunden');
+        }
+        if(!($tblBasket = $tblBasketVerification->getTblBasket())){
+            return new Warning('Abrechnung wurde nicht gefunden');
+        }
+
+        $LayoutColumnWarning = new LayoutColumn(new Danger(
+            new Container(new Bold('Achtung! ').'Eventuelle Korrekturen für SEPA oder DATEV müssen externen übernommen werden.')
+            .new Container(new Bold('Das Löschen ist unwiderruflich!'))));
+
+        $Causer = $tblBasketVerification->getServiceTblPersonCauser()->getLastFirstName();
+        $Item = $tblBasketVerification->getServiceTblItem()->getName();
+        $Price = $tblBasketVerification->getSummaryPrice();
+
+        return new Layout(new LayoutGroup(new LayoutRow(array(
+            new LayoutColumn(
+                new Panel('Soll die Rechnung '.new Bold($Causer.' "'.$Item.'": '.$Price).' wirklich entfernt werden?', '', Panel::PANEL_TYPE_DANGER)
+            ),
+            $LayoutColumnWarning,
+            new LayoutColumn(
+                (new DangerLink('Ja', self::getEndpoint(), new Ok()))
+                    ->ajaxPipelineOnClick(self::pipelineDeleteBasketVerification($Identifier, $BasketVerificationId))
+                .new Close('Nein', new Disable())
+            )
+        ))));
+    }
+
+    /**
+     * @param $Identifier
+     * @param $BasketVerificationId
+     *
+     * @return string
+     */
+    public function deleteBasketVerification($Identifier, $BasketVerificationId)
+    {
+
+        if(!($tblBasketVerification = Basket::useService()->getBasketVerificationById($BasketVerificationId))){
+            return new Warning('Zahlungszuweisung wurde nicht gefunden');
+        }
+        if(!($tblBasket = $tblBasketVerification->getTblBasket())){
+            return new Warning('Abrechnung wurde nicht gefunden');
+        }
+        $tblPersonCauser = $tblBasketVerification->getServiceTblPersonCauser();
+        $tblItem = $tblBasketVerification->getServiceTblItem();
+        $Year = $tblBasket->getYear();
+        $Month = $tblBasket->getMonth();
+        $tblInvoice = Invoice::useService()
+            ->getInvoiceObjectByPersonCauserAndItemAndYearAndMonth($tblBasket, $tblPersonCauser, $tblItem, $Year, $Month);
+        if($tblInvoice){
+            Invoice::useService()->destroyInvoiceByInvoiceAndItem($tblInvoice, $tblItem);
+        }
+        Basket::useService()->destroyBasketVerification($tblBasketVerification);
+        // table reload not as easy as expected -> reload whole page
+        if(Basket::useService()->getBasketVerificationAllByBasket($tblBasket)){
+            return new Success('Rechnung entfernt')
+                .new Redirect('/Billing/Bookkeeping/Basket/View', Redirect::TIMEOUT_SUCCESS, array('BasketId' => $tblBasket->getId()));
+        }
+        // else Basket is empty -> remove Basket
+        Basket::useService()->destroyBasket($tblBasket);
+        return new Success('Rechnung inclusive Abrechnung entfernt').new Redirect('/Billing/Bookkeeping/Basket', Redirect::TIMEOUT_SUCCESS);
     }
 }
