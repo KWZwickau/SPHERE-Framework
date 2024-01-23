@@ -200,8 +200,8 @@ abstract class FrontendSetting extends FrontendSelect
                                     foreach ($subjectTaskGradeList as $subjectAcronym => $grade) {
                                         $tblSubject = Subject::useService()->getSubjectByAcronym($subjectAcronym);
                                         if ($tblSubject) {
-                                            if ($grade->getGrade() && is_numeric($grade->getGrade())) {
-                                                $gradeList[$taskId][] = floatval($grade->getGrade());
+                                            if ($grade->getGrade() && $grade->getIsGradeNumeric()) {
+                                                $gradeList[$taskId][] = $grade->getGradeNumberValue();
                                             }
 
                                             if (empty($subString)) {
@@ -263,8 +263,8 @@ abstract class FrontendSetting extends FrontendSelect
                             foreach ($subjectGradeList as $subjectAcronym => $grade) {
                                 $tblSubject = Subject::useService()->getSubjectByAcronym($subjectAcronym);
                                 if ($tblSubject) {
-                                    if ($grade->getGrade() && is_numeric($grade->getGrade())) {
-                                        $gradeList[] = floatval($grade->getGrade());
+                                    if ($grade->getGrade() && $grade->getIsGradeNumeric()) {
+                                        $gradeList[] = $grade->getGradeNumberValue();
                                     }
                                     if (empty($gradeListString)) {
                                         $gradeListString = $tblSubject->getAcronym() . ':' . $grade->getDisplayGrade();

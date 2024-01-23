@@ -11,6 +11,7 @@ use SPHERE\Application\Education\Absence\Service\Setup;
 use SPHERE\Application\Education\ClassRegister\Digital\Digital;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblStudentEducation;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
@@ -22,7 +23,12 @@ use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
+use SPHERE\Common\Frontend\Text\Repository\Muted;
+use SPHERE\Common\Frontend\Text\Repository\Small;
+use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\System\Database\Binding\AbstractService;
+use SPHERE\System\Extension\Repository\Sorter;
+use SPHERE\System\Extension\Repository\Sorter\DateTimeSorter;
 
 class Service extends AbstractService
 {
@@ -766,5 +772,58 @@ class Service extends AbstractService
                 $countList[$month][$tblPerson->getId()][$countLessons > 0 ? 'Lessons' : 'Days'][$status] = $countLessons > 0 ? $countLessons : 1;
             }
         }
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblStudentEducation $tblStudentEducation
+     * @param bool $hasAbsenceTypeOptions
+     *
+     * @return array
+     */
+    public function getStudentAbsenceDataForParentStudentAccess(TblPerson $tblPerson, TblStudentEducation $tblStudentEducation, bool &$hasAbsenceTypeOptions): array
+    {
+        $tableData = array();
+        if (($tblYear = $tblStudentEducation->getServiceTblYear())) {
+            $tblSchoolType = $tblStudentEducation->getServiceTblSchoolType();
+            $tblCompany = $tblStudentEducation->getServiceTblCompany();
+            $hasAbsenceTypeOptions = $tblSchoolType && $tblSchoolType->isTechnical();
+
+            list($startDateAbsence, $endDateAbsence) = Term::useService()->getStartDateAndEndDateOfYear($tblYear);
+            if ($startDateAbsence && $endDateAbsence
+                && ($tblAbsenceList = Absence::useService()->getAbsenceAllBetweenByPerson($tblPerson, $startDateAbsence, $endDateAbsence))
+            ) {
+                $tblAbsenceList = $this->getSorter($tblAbsenceList)->sortObjectBy('FromDateTime', new DateTimeSorter(), Sorter::ORDER_DESC);
+                /** @var TblAbsence $tblAbsence */
+                foreach ($tblAbsenceList as $tblAbsence) {
+                    $status = '';
+                    if ($tblAbsence->getStatus() == TblAbsence::VALUE_STATUS_EXCUSED) {
+                        $status = new Success('entschuldigt');
+                    } elseif ($tblAbsence->getStatus() == TblAbsence::VALUE_STATUS_UNEXCUSED) {
+                        $status = new \SPHERE\Common\Frontend\Text\Repository\Danger('unentschuldigt');
+                    }
+
+                    $item = array(
+                        'FromDate' => $tblAbsence->getFromDate(),
+                        'ToDate' => $tblAbsence->getToDate(),
+                        'Days' => ($days = $tblAbsence->getDays($tblYear, null, $tblCompany ?: null, $tblSchoolType ?: null)) == 1
+                            ? $days . ' ' . new Small(new Muted($tblAbsence->getWeekDay()))
+                            : $days,
+                        'Lessons' => $tblAbsence->getLessonStringByAbsence(),
+                        'Status' => $status,
+                        'PersonCreator' => $tblAbsence->getDisplayPersonCreator(),
+                        'IsCertificateRelevant' => $tblAbsence->getIsCertificateRelevant() ? 'ja' : 'nein'
+                    );
+
+                    if ($hasAbsenceTypeOptions) {
+                        $item['Type'] = $tblAbsence->getTypeDisplayName();
+                    }
+
+                    $tableData[] = $item;
+                }
+            }
+        }
+
+        return $tableData;
     }
 }

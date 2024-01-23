@@ -604,6 +604,11 @@ abstract class FrontendTask extends FrontendStudentOverview
             $showProposalBehaviorGrade = false;
         }
 
+        $hasBehaviorTaskSetting = ($tblSetting = Consumer::useService()->getSetting(
+                'Education', 'Graduation', 'Evaluation', 'HasBehaviorGradesForSubjectsWithNoGrading'
+            ))
+            && $tblSetting->getValue();
+
         $tblGradeTypeList = $tblTask->getGradeTypes();
         $headerList['Number'] = $this->getTableColumnHead('#');
         $headerList['Person'] = $this->getTableColumnHead('Schüler');
@@ -623,7 +628,7 @@ abstract class FrontendTask extends FrontendStudentOverview
                 $bodyList[$tblPerson->getId()]['Number'] = $this->getTableColumnBody(++$count);
                 $bodyList[$tblPerson->getId()]['Person'] = $this->getTableColumnBody($tblPerson->getLastFirstNameWithCallNameUnderline());
 
-                if (($tblSubjectList = DivisionCourse::useService()->getSubjectListByStudentAndYear($tblPerson, $tblYear))) {
+                if (($tblSubjectList = DivisionCourse::useService()->getSubjectListByStudentAndYear($tblPerson, $tblYear, !$hasBehaviorTaskSetting))) {
                     $tblSubjectList = $this->getSorter($tblSubjectList)->sortObjectBy('Name');
                 }
                 $tblTaskGradeList = array();
