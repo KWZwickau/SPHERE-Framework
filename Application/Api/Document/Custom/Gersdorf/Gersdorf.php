@@ -32,7 +32,7 @@ class Gersdorf extends Extension implements IModuleInterface
      *
      * @return \SPHERE\Common\Window\Stage|string
      */
-    public static function createEmergencyPdf($PersonId = null, $Data)
+    public static function createEmergencyPdf($PersonId = null, $Data = array())
     {
 
         return Creator::createPdf($PersonId, __NAMESPACE__.'\Repository\Emergency', Creator::PAPERORIENTATION_PORTRAIT, $Data);
