@@ -36,6 +36,7 @@ use SPHERE\Application\Document\Generator\Generator;
 use SPHERE\Application\Document\Storage\FilePointer;
 use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Absence\Absence;
+use SPHERE\Application\Education\Graduation\Grade\Grade;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
@@ -1509,5 +1510,58 @@ class Creator extends Extension
         }
 
         return "Kein Kursheft vorhanden!";
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $Redirect
+     *
+     * @return string
+     */
+    public static function createGradeOverviewDivisionCoursePdf($DivisionCourseId, $Redirect): string
+    {
+        if ($Redirect) {
+            return \SPHERE\Application\Api\Education\Certificate\Generator\Creator::displayWaitingPage(
+                '/Api/Document/Standard/StudentOverviewCourse/Create',
+                array(
+                    'DivisionCourseId' => $DivisionCourseId,
+                    'Redirect' => 0
+                )
+            );
+        }
+
+        if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
+            list ($dataList, $headerList) = Grade::useService()->getStudentOverviewCourseData($tblDivisionCourse, array(), true);
+            unset($headerList['Picture']);
+            unset($headerList['Integration']);
+            unset($headerList['Course']);
+            unset($headerList['Option']);
+
+            $headerWidthList = array();
+            $count = count($headerList) - 2;
+            foreach ($headerList as $key => $header) {
+                if ($key == 'Number') {
+                    $headerWidthList[$key] = '5%';
+                } elseif ($key == 'Person') {
+                    $headerWidthList[$key] = '20%';
+                } else {
+                    $headerWidthList[$key] = (75 / $count) . '%';
+                }
+            }
+
+            $preTextList[] = 'Schülerübersicht für ' . $tblDivisionCourse->getDisplayName();
+            $preTextList[] = 'Stand: ' . (new DateTime())->format('d.m.Y');
+
+            $Document = new DocumentBuilder('Schülerübersicht für ' . $tblDivisionCourse->getDisplayName() . ' ' . (new DateTime())->format('d-m-Y'));
+            $pageList[] = $Document->getPageList($headerList, $headerWidthList, $dataList, $preTextList);
+
+            $File = self::buildDummyFile($Document, array(), $pageList, Creator::PAPERORIENTATION_LANDSCAPE);
+
+            $FileName = $Document->getName() . '.pdf';
+
+            return self::buildDownloadFile($File, $FileName);
+        }
+
+        return "Keine Schülerübersicht vorhanden!";
     }
 }
