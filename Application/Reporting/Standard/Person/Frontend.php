@@ -1211,6 +1211,7 @@ class Frontend extends Extension implements IFrontendInterface
                 .(new TableData($dataList, null,
                     array(
                         'LastDivisionCourse' => 'Abgangsklasse',
+                        'StudentNumber'      => 'Schüler Nr.',
                         'LastName'           => 'Name',
                         'FirstName'          => 'Vorname',
                         'Gender'             => 'Geschlecht',

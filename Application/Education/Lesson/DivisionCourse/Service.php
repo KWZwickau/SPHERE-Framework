@@ -1414,7 +1414,28 @@ class Service extends ServiceYearChange
         ) {
             foreach ($tblYearList as $tblYear) {
                 if (($tblStudentEducationList = $this->getStudentEducationListBy($tblYear))) {
-                    foreach ($tblStudentEducationList as $tblStudentEducation) {
+                    foreach ($tblStudentEducationList as &$tblStudentEducation) {
+                        // Aktuellste History der StudentEducation, wenn im aktuellen keine Klasse gepflegt ist (nur deaktivierte Schüler)
+                        if (!($tblStudentEducation->getTblDivision() || $tblStudentEducation->getTblCoreGroup())){
+                            if(($tblPersonStudentEducationList = DivisionCourse::useService()->getStudentEducationListByPersonAndYear($tblStudentEducation->getServiceTblPerson(), $tblYear))){
+                                $compare = '';
+                                $foundStudentEducationHistory = false;
+                                foreach($tblPersonStudentEducationList as $tblPersonStudentEducation){
+                                    $leaveDate = $tblPersonStudentEducation->getLeaveDateTime();
+                                    if(!$compare && $leaveDate){
+                                        $compare = $leaveDate;
+                                        $foundStudentEducationHistory = $tblPersonStudentEducation;
+                                    } elseif($compare <= $leaveDate) {
+                                        $compare = $leaveDate;
+                                        $foundStudentEducationHistory = $tblPersonStudentEducation;
+                                    }
+                                }
+                                if($foundStudentEducationHistory){
+                                    $tblStudentEducation = $foundStudentEducationHistory;
+                                }
+                            }
+                        }
+
                         if (($tblStudentEducation->getTblDivision() || $tblStudentEducation->getTblCoreGroup())
                             && ($tblPerson = $tblStudentEducation->getServiceTblPerson())
                         ) {
