@@ -5,6 +5,7 @@ use DateInterval;
 use SPHERE\Application\Api\Education\ClassRegister\ApiTimetable;
 use SPHERE\Application\Education\ClassRegister\Digital\Digital;
 use SPHERE\Application\Education\ClassRegister\Timetable\Service\Entity\TblTimetable;
+use SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount\SelectBoxItem;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
@@ -619,7 +620,7 @@ class Frontend extends Extension implements IFrontendInterface
         $weekNameList = array();
         if (($tblTimetableWeekList = Timetable::useService()->getTimetableWeekListByTimetable($tblTimetable))) {
             foreach ($tblTimetableWeekList as $tblTimetableWeek) {
-                $weekNameList[$tblTimetableWeek->getWeek()] = $tblTimetableWeek->getWeek();
+                $weekNameList[$tblTimetableWeek->getWeek()] = new SelectBoxItem($tblTimetableWeek->getWeek(), $tblTimetableWeek->getWeek());
             }
         }
 
@@ -680,7 +681,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new TextField('Data[' . $index . '][Room]', 'Raum')
                     , 2),
                     new FormColumn(
-                        new AutoCompleter('Data[' . $index . '][Week]', '', 'Woche', $weekNameList)
+                        new AutoCompleter('Data[' . $index . '][Week]', '', 'Woche', array('Name' => $weekNameList))
                     , 2),
                     new FormColumn(
                         (new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
