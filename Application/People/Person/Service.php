@@ -120,6 +120,15 @@ class Service extends AbstractService
     }
 
     /**
+     * @return array
+     */
+    public function getTitleAll()
+    {
+
+        return (new Data($this->getBinding()))->getTitleAll();
+    }
+
+    /**
      * @return false|TblPerson[]
      */
     public function getPersonAllBySoftRemove()

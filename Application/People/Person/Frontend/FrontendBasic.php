@@ -391,12 +391,13 @@ class FrontendBasic extends FrontendReadOnly
             $lastNameInput->ajaxPipelineOnKeyUp(ApiPersonEdit::pipelineLoadSimilarPersonContent());
             $salutationSelectBox->ajaxPipelineOnChange(ApiPersonEdit::pipelineChangeSelectedGender());
         }
+        $TitleAll = Person::useService()->getTitleAll();
 
         return new FormRow(array(
             new FormColumn(
                 new Panel('Anrede', array(
                     $salutationSelectBox,
-                    (new AutoCompleter('Person[Title]', 'Titel', 'Titel', array('Dipl.- Ing.'),
+                    (new AutoCompleter('Person[Title]', 'Titel', 'Titel', $TitleAll,
                         new Conversation()))->setTabIndex(4),
                 ), Panel::PANEL_TYPE_INFO), 2),
             new FormColumn(

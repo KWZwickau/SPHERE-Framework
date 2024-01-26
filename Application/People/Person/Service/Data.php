@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\People\Person\Service;
 
+use Doctrine\ORM\AbstractQuery;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Mail\Mail;
 use SPHERE\Application\Contact\Phone\Phone;
@@ -258,6 +259,30 @@ class Data extends AbstractData
     {
 
         return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPerson');
+    }
+
+    /**
+     * @return array
+     */
+    public function getTitleAll()
+    {
+
+        $queryBuilder = $this->getConnection()->getEntityManager()->getQueryBuilder();
+        $queryBuilder->select('tP.Title')
+            ->from(__NAMESPACE__ . '\Entity\TblPerson', 'tP')
+            ->groupBy('tP.Title');
+
+        $query = $queryBuilder->getQuery();
+        $resultList = $query->getResult(AbstractQuery::HYDRATE_ARRAY);
+        $result = array();
+        if($resultList){
+            foreach($resultList as $resultString){
+                if($resultString['Title']){
+                    $result[] = $resultString['Title'];
+                }
+            }
+        }
+        return $result;
     }
 
     /**
