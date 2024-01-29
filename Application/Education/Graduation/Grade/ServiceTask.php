@@ -694,7 +694,7 @@ abstract class ServiceTask extends ServiceStudentOverview
         $today = new DateTime('today');
         $future = (new DateTime('today'))->add(new DateInterval('P7D'));
 
-        $tblDivisionCourseTeacherGroupListChecked = array();
+        $tblDivisionCourseListChecked = array();
         if (($tblYearList = Term::useService()->getYearByNow())) {
             foreach ($tblYearList as $tblYear) {
                 // Lerngruppen des Lehrers
@@ -735,18 +735,21 @@ abstract class ServiceTask extends ServiceStudentOverview
                                     if (isset($subjectDivisionCourseList[$tblSubject->getId()][$tblDivisionCourse->getId()])) {
                                         /** @var TblDivisionCourse $tblDivisionCourseTeacherGroupTemp */
                                         $tblDivisionCourseTeacherGroupTemp = $subjectDivisionCourseList[$tblSubject->getId()][$tblDivisionCourse->getId()];
-                                        if (!isset($tblDivisionCourseTeacherGroupListChecked[$tblDivisionCourseTeacherGroupTemp->getId()])
+                                        if (!isset($tblDivisionCourseListChecked[$tblTask->getId()][$tblDivisionCourseTeacherGroupTemp->getId()])
                                             && $this->setCurrentTask(
                                                 $tblDivisionCourseTeacherGroupTemp, $tblSubject, $tblYear, $tblTask, $dataList, $tblSettingBehaviorHasGrading
                                             )
                                         ) {
                                             $isAddTask = true;
-                                            $tblDivisionCourseTeacherGroupListChecked[$tblDivisionCourseTeacherGroupTemp->getId()] = $tblDivisionCourseTeacherGroupTemp;
+                                            $tblDivisionCourseListChecked[$tblTask->getId()][$tblDivisionCourseTeacherGroupTemp->getId()] = $tblDivisionCourseTeacherGroupTemp;
                                         }
-                                    } elseif ($this->setCurrentTask(
-                                        $tblDivisionCourse, $tblSubject, $tblYear, $tblTask, $dataList, $tblSettingBehaviorHasGrading
-                                    )) {
+                                    } elseif (!isset($tblDivisionCourseListChecked[$tblTask->getId()][$tblDivisionCourse->getId()])
+                                        && $this->setCurrentTask(
+                                            $tblDivisionCourse, $tblSubject, $tblYear, $tblTask, $dataList, $tblSettingBehaviorHasGrading
+                                        )
+                                    ) {
                                         $isAddTask = true;
+                                        $tblDivisionCourseListChecked[$tblTask->getId()][$tblDivisionCourse->getId()] = $tblDivisionCourse;
                                     }
 
                                     if ($isAddTask) {
