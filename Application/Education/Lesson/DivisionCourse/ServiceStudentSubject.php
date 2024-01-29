@@ -71,27 +71,31 @@ abstract class ServiceStudentSubject extends ServiceCourseSystem
      */
     public function getVirtualSubjectFromRealAndVirtualByPersonAndYearAndSubject(TblPerson $tblPerson, TblYear $tblYear, TblSubject $tblSubject)
     {
-        // gespeichertes Fach - StudentSubject SEKI
-        if (($tblStudentSubject = (new Data($this->getBinding()))->getStudentSubjectByPersonAndYearAndSubject($tblPerson, $tblYear, $tblSubject))) {
-            return new VirtualSubject($tblSubject, $tblStudentSubject->getHasGrading(), null);
-        }
+        // SEKII
+        if (DivisionCourse::useService()->getIsCourseSystemByPersonAndYear($tblPerson, $tblYear)) {
+            // gespeichertes Fach - StudentSubject SEKII
+            if (($tblStudentSubject = (new Data($this->getBinding()))->getStudentSubjectByPersonAndYearAndSubjectForCourseSystem($tblPerson, $tblYear, $tblSubject))) {
+                return new VirtualSubject($tblSubject, $tblStudentSubject->getHasGrading(), null,
+                    $tblStudentSubject->getTblDivisionCourse()->getType()->getIdentifier() == TblDivisionCourseType::TYPE_ADVANCED_COURSE);
+            }
+        // SEKI
+        } else {
+            // gespeichertes Fach - StudentSubject SEKI
+            if (($tblStudentSubject = (new Data($this->getBinding()))->getStudentSubjectByPersonAndYearAndSubject($tblPerson, $tblYear, $tblSubject))) {
+                return new VirtualSubject($tblSubject, $tblStudentSubject->getHasGrading(), null);
+            }
 
-        // gespeichertes Fach - StudentSubject SEKII
-        if (($tblStudentSubject = (new Data($this->getBinding()))->getStudentSubjectByPersonAndYearAndSubjectForCourseSystem($tblPerson, $tblYear, $tblSubject))) {
-            return new VirtualSubject($tblSubject, $tblStudentSubject->getHasGrading(), null,
-                $tblStudentSubject->getTblDivisionCourse()->getType()->getIdentifier() == TblDivisionCourseType::TYPE_ADVANCED_COURSE);
-        }
+            // Stundentafel
+            if (($tblSubjectTable = DivisionCourse::useService()->getSubjectTableByPersonAndYearAndSubject($tblPerson, $tblYear, $tblSubject))
+                && $tblSubjectTable->getIsFixed()
+            ) {
+                return new VirtualSubject($tblSubject, $tblSubjectTable->getHasGrading(), $tblSubjectTable);
+            }
 
-        // Stundentafel
-        if (($tblSubjectTable = DivisionCourse::useService()->getSubjectTableByPersonAndYearAndSubject($tblPerson, $tblYear, $tblSubject))
-            && $tblSubjectTable->getIsFixed()
-        ) {
-            return new VirtualSubject($tblSubject, $tblSubjectTable->getHasGrading(), $tblSubjectTable);
-        }
-
-        // Stundentafel - Schülerakte
-        if (($tblVirtualSubjectList = $this->getVirtualSubjectListFromStudentMetaIdentifierListByPersonAndYear($tblPerson, $tblYear))) {
-            return $tblVirtualSubjectList[$tblSubject->getId()] ?? false;
+            // Stundentafel - Schülerakte
+            if (($tblVirtualSubjectList = $this->getVirtualSubjectListFromStudentMetaIdentifierListByPersonAndYear($tblPerson, $tblYear))) {
+                return $tblVirtualSubjectList[$tblSubject->getId()] ?? false;
+            }
         }
 
         return false;
@@ -667,25 +671,27 @@ abstract class ServiceStudentSubject extends ServiceCourseSystem
             && ($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())
             && ($level = $tblStudentEducation->getLevel())
         ) {
-            if (($tblSubjectTableList = DivisionCourse::useService()->getSubjectTableListBy($tblSchoolType, $level))) {
-                foreach ($tblSubjectTableList as $tblSubjectTable) {
-                    // Benotung
-                    if ($hasGrading && !$tblSubjectTable->getHasGrading()) {
-                        continue;
-                    }
-
-                    // feste Fächer der Stundentafel
-                    if ($tblSubjectTable->getIsFixed()) {
-                        if (($tblSubject = $tblSubjectTable->getServiceTblSubject()) && !isset($tblSubjectList[$tblSubject->getId()])) {
-                            $tblSubjectList[$tblSubject->getId()] = $tblSubject;
+            if (!DivisionCourse::useService()->getIsCourseSystemByPersonAndYear($tblPerson, $tblYear)) {
+                if (($tblSubjectTableList = DivisionCourse::useService()->getSubjectTableListBy($tblSchoolType, $level))) {
+                    foreach ($tblSubjectTableList as $tblSubjectTable) {
+                        // Benotung
+                        if ($hasGrading && !$tblSubjectTable->getHasGrading()) {
+                            continue;
                         }
-                        // Virtuelle Fächer der Schülerakte
-                    } else {
-                        if ($tblSubjectTable->getStudentMetaIdentifier()
-                            && ($tblSubject = DivisionCourse::useService()->getSubjectFromStudentMetaIdentifier($tblSubjectTable, $tblPerson))
-                            && !isset($tblSubjectList[$tblSubject->getId()])
-                        ) {
-                            $tblSubjectList[$tblSubject->getId()] = $tblSubject;
+
+                        // feste Fächer der Stundentafel
+                        if ($tblSubjectTable->getIsFixed()) {
+                            if (($tblSubject = $tblSubjectTable->getServiceTblSubject()) && !isset($tblSubjectList[$tblSubject->getId()])) {
+                                $tblSubjectList[$tblSubject->getId()] = $tblSubject;
+                            }
+                            // Virtuelle Fächer der Schülerakte
+                        } else {
+                            if ($tblSubjectTable->getStudentMetaIdentifier()
+                                && ($tblSubject = DivisionCourse::useService()->getSubjectFromStudentMetaIdentifier($tblSubjectTable, $tblPerson))
+                                && !isset($tblSubjectList[$tblSubject->getId()])
+                            ) {
+                                $tblSubjectList[$tblSubject->getId()] = $tblSubject;
+                            }
                         }
                     }
                 }
