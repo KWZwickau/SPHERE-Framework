@@ -260,8 +260,8 @@ class Setup extends AbstractSetup
         $this->createColumn($Table, 'IsApproved', self::FIELD_TYPE_BOOLEAN);
         $this->createColumn($Table, 'IsPrinted', self::FIELD_TYPE_BOOLEAN);
 
-        // todo drop später
-        $this->createIndex($Table, array('serviceTblPerson' , 'serviceTblDivision'));
+        // drop alter Index
+        $this->getConnection()->removeIndex($Table, array('serviceTblPerson' , 'serviceTblDivision'));
 
         $this->createIndex($Table, array('serviceTblPerson' , 'serviceTblYear'));
 
