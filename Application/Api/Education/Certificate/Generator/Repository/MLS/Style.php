@@ -369,7 +369,7 @@ abstract class Style extends Certificate
      *
      * @return Slice
      */
-    public function getCustomRemark($personId, string $Height = '260px'): Slice
+    public function getCustomRemark($personId, string $Height = '340px'): Slice
     {
         return (new Slice())
             ->styleMarginTop('15px')
