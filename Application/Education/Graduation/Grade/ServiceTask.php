@@ -735,21 +735,22 @@ abstract class ServiceTask extends ServiceStudentOverview
                                     if (isset($subjectDivisionCourseList[$tblSubject->getId()][$tblDivisionCourse->getId()])) {
                                         /** @var TblDivisionCourse $tblDivisionCourseTeacherGroupTemp */
                                         $tblDivisionCourseTeacherGroupTemp = $subjectDivisionCourseList[$tblSubject->getId()][$tblDivisionCourse->getId()];
-                                        if (!isset($tblDivisionCourseListChecked[$tblTask->getId()][$tblDivisionCourseTeacherGroupTemp->getId()])
+                                        if (!isset($tblDivisionCourseListChecked[$tblTask->getId()][$tblDivisionCourseTeacherGroupTemp->getId()][$tblSubject->getId()])
                                             && $this->setCurrentTask(
                                                 $tblDivisionCourseTeacherGroupTemp, $tblSubject, $tblYear, $tblTask, $dataList, $tblSettingBehaviorHasGrading
                                             )
                                         ) {
                                             $isAddTask = true;
-                                            $tblDivisionCourseListChecked[$tblTask->getId()][$tblDivisionCourseTeacherGroupTemp->getId()] = $tblDivisionCourseTeacherGroupTemp;
+                                            $tblDivisionCourseListChecked[$tblTask->getId()][$tblDivisionCourseTeacherGroupTemp->getId()][$tblSubject->getId()]
+                                                = $tblDivisionCourseTeacherGroupTemp;
                                         }
-                                    } elseif (!isset($tblDivisionCourseListChecked[$tblTask->getId()][$tblDivisionCourse->getId()])
+                                    } elseif (!isset($tblDivisionCourseListChecked[$tblTask->getId()][$tblDivisionCourse->getId()][$tblSubject->getId()])
                                         && $this->setCurrentTask(
                                             $tblDivisionCourse, $tblSubject, $tblYear, $tblTask, $dataList, $tblSettingBehaviorHasGrading
                                         )
                                     ) {
                                         $isAddTask = true;
-                                        $tblDivisionCourseListChecked[$tblTask->getId()][$tblDivisionCourse->getId()] = $tblDivisionCourse;
+                                        $tblDivisionCourseListChecked[$tblTask->getId()][$tblDivisionCourse->getId()][$tblSubject->getId()] = $tblDivisionCourse;
                                     }
 
                                     if ($isAddTask) {
