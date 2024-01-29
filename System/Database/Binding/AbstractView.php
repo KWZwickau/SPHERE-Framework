@@ -389,15 +389,26 @@ abstract class AbstractView extends Element
         // Make Value == Key for selecting Text-Value not Id
         if( $doKeyConvertToText ) {
             $Data = array_combine($Data, $Data);
-        }
-        // Add "ALL" Option
-        if(!empty($Data)){
+            // Add "ALL" Option
+            if(!empty($Data)){
+                if(!empty($Data)){
+                    if( $PropertyCount == 1) {
+                        $Data[0] = '-[ Alle ]-';
+                    } else {
+                        $Data[0] = '-[ Oder ]-';
+                    }
+                }
+            }
+        } else {
+            // Add "ALL" Option
+            // unshift weil es $Data[0] beim Daten holen schon gibt. -> Frontend Vorauswahl liegt aber auf 0
             if( $PropertyCount == 1) {
-                $Data[''] = '-[ Alle ]-';
+                array_unshift($Data, '-[ Alle ]-');
             } else {
-                $Data[''] = '-[ Oder ]-';
+                array_unshift($Data, '-[ Oder ]-');
             }
         }
+        // Old version broken FrontendInputPost
 //        following part destroy IdKeys
 //        // Add "ALL" Option
 //        if( $PropertyCount == 1 ) {
