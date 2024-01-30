@@ -5,6 +5,7 @@ namespace SPHERE\Application\Api\Education\Graduation\Grade;
 use DateTime;
 use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
+use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\Education\Graduation\Grade\Frontend;
 use SPHERE\Application\Education\Graduation\Grade\Grade;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblProposalBehaviorGrade;
@@ -81,6 +82,9 @@ class ApiGradeBook extends Extension implements IApiInterface
         $Dispatcher->registerMethod('openAttendanceModal');
         $Dispatcher->registerMethod('setAttendance');
         $Dispatcher->registerMethod('changeAttendance');
+
+        $Dispatcher->registerMethod('loadViewExamGradeEditContent');
+        $Dispatcher->registerMethod('saveExamGradeEdit');
 
         return $Dispatcher->callMethod($Method);
     }
@@ -1437,5 +1441,105 @@ class ApiGradeBook extends Extension implements IApiInterface
     public function changeAttendance($isAttendance, $PersonId): CheckBox
     {
         return (new Frontend())->getAttendanceCheckBox($PersonId, $isAttendance == 'true');
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $SubjectId
+     * @param $PrepareCertificateId
+     * @param $Filter
+     *
+     * @return Pipeline
+     */
+    public static function pipelineLoadViewExamGradeEditContent($DivisionCourseId, $SubjectId, $PrepareCertificateId, $Filter): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'Content'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'loadViewExamGradeEditContent',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'DivisionCourseId' => $DivisionCourseId,
+            'SubjectId' => $SubjectId,
+            'PrepareCertificateId' => $PrepareCertificateId,
+            'Filter' => $Filter,
+        ));
+        $ModalEmitter->setLoadingMessage("Daten werden geladen");
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $SubjectId
+     * @param $Filter
+     * @param $PrepareCertificateId
+     *
+     * @return string
+     */
+    public function loadViewExamGradeEditContent($DivisionCourseId, $SubjectId, $PrepareCertificateId, $Filter): string
+    {
+        return Grade::useFrontend()->loadViewExamGradeEditContent($DivisionCourseId, $SubjectId, $PrepareCertificateId, $Filter);
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $SubjectId
+     * @param $PrepareCertificateId
+     * @param $Filter
+     *
+     * @return Pipeline
+     */
+    public static function pipelineSaveExamGradeEdit($DivisionCourseId, $SubjectId, $PrepareCertificateId, $Filter): Pipeline
+    {
+        $Pipeline = new Pipeline();
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'Content'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'saveExamGradeEdit'
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'DivisionCourseId' => $DivisionCourseId,
+            'SubjectId' => $SubjectId,
+            'PrepareCertificateId' => $PrepareCertificateId,
+            'Filter' => $Filter,
+        ));
+        $ModalEmitter->setLoadingMessage("Wird bearbeitet");
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $SubjectId
+     * @param $PrepareCertificateId
+     * @param $Filter
+     * @param $Data
+     *
+     * @return string
+     */
+    public function saveExamGradeEdit($DivisionCourseId, $SubjectId, $PrepareCertificateId, $Filter, $Data): string
+    {
+        if (!($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
+            return (new Danger("Kurs wurde nicht gefunden!", new Exclamation()));
+        }
+        if (!($tblSubject = Subject::useService()->getSubjectById($SubjectId))) {
+             return (new Danger("Fach wurde nicht gefunden!", new Exclamation()));
+        }
+        if (!($tblPrepare = Prepare::useService()->getPrepareById($PrepareCertificateId))) {
+            return (new Danger("Zeugnisauftrag wurde nicht gefunden!", new Exclamation()));
+        }
+
+        if (($form = Prepare::useService()->checkFormExamGrades($Data, $tblDivisionCourse, $tblSubject, $tblPrepare, $Filter))) {
+            // display Errors on form
+            return Grade::useFrontend()->getExamGradeEditHeader($tblDivisionCourse, $tblSubject, $Filter)
+                . $form;
+        }
+
+        Prepare::useService()->saveExamGrades($Data, $tblSubject);
+
+        return new Success("Zensuren wurde erfolgreich gespeichert.")
+            . self::pipelineLoadViewGradeBookContent($DivisionCourseId, $SubjectId, $Filter);
     }
 }

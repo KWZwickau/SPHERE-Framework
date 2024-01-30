@@ -15,6 +15,7 @@ use SPHERE\Common\Frontend\Ajax\Template\CloseModal;
 use SPHERE\Common\Frontend\Form\Repository\Button\Close;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
+use SPHERE\Common\Frontend\Form\Repository\Field\SelectCompleter;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
@@ -368,7 +369,8 @@ class ApiPrepare extends Extension implements IApiInterface
      * @param $Jn
      * @param $SchoolTypeShortName
      * @param $Data
-     * @return TextField|string
+     *
+     * @return SelectCompleter|string
      */
     public function loadDiplomaAverage($PrepareStudentId, $Key, $Jn, $SchoolTypeShortName, $Data)
     {
@@ -389,8 +391,14 @@ class ApiPrepare extends Extension implements IApiInterface
         {
             return $calc;
         } else {
-            return \SPHERE\Application\Education\Certificate\Prepare\Prepare::useFrontend()->getTextFieldCertificateGrade(
-                'Data[' . $PrepareStudentId . ']', $PrepareStudentId, $calc
+            // Zensuren
+            $selectListGrades[-1] = '';
+            for ($i = 1; $i <= 6; $i++) {
+                $selectListGrades[$i] = (string)$i;
+            }
+
+            return \SPHERE\Application\Education\Certificate\Prepare\Prepare::useFrontend()->getSelectCompleterCertificateGrade(
+                'Data[' . $PrepareStudentId . ']', $PrepareStudentId, $selectListGrades, $calc
             );
         }
     }
