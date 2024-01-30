@@ -1003,7 +1003,9 @@ class Frontend extends FrontendTestPlanning
                 }
             }
             $headerList['Average'] = $this->getTableColumnHead('&#216;');
-            $headerList['Grade'] = $this->getTableColumnHead('Zensur');
+            // SSWHD-2707 bei vielen Zensuren wird das Eingabefeld für die Noten zusammen geschoben
+            // kein Zeilenbruch sonst funktioniert es nicht mehr
+            $headerList['Grade'] = $this->getTableColumnHead('Zensur&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;');
             $headerList['GradeText'] = $this->getTableColumnHead(
                 (new Link('oder Zeugnistext ' . new Edit(), ApiGradeBook::getEndpoint(), null, array(), 'Alle Zeugnistexte des Kurses auf einmal bearbeiten'))
                     ->ajaxPipelineOnClick(ApiGradeBook::pipelineOpenGradeTextModal($DivisionCourseId))
