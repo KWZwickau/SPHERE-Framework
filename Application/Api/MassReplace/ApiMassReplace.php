@@ -159,12 +159,20 @@ class ApiMassReplace extends Extension implements IApiInterface
             if ($StudentEducationId && $Data === null) {
                 $tblStudentEducation = DivisionCourse::useService()->getStudentEducationById($StudentEducationId);
             } elseif ($Id && $Data === null) {
-                if (($tblYearList = Term::useService()->getYearByNow())
-                    && ($tblPerson = Person::useService()->getPersonById($Id))
-                ) {
-                    foreach ($tblYearList as $tblYear) {
-                        if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))) {
-                            break;
+                if (($tblPerson = Person::useService()->getPersonById($Id))) {
+                    if (($tblYearList = Term::useService()->getYearByNow())) {
+                        foreach ($tblYearList as $tblYear) {
+                            if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))) {
+                                break;
+                            }
+                        }
+                    }
+                    // für Schüler die erst im nächsten Schuljahr beginnen
+                    if (!$tblStudentEducation && ($tblYearListFuture = Term::useService()->getYearAllFutureYears(1))) {
+                        foreach ($tblYearListFuture as $tblYearFuture) {
+                            if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYearFuture))) {
+                                break;
+                            }
                         }
                     }
                 }

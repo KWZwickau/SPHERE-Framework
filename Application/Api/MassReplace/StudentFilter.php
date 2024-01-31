@@ -54,11 +54,11 @@ class StudentFilter extends Extension
 
         if ($Data) {
             $global = $this->getGlobal();
-            $global->POST['Data']['Year'] = $Data['Year'];
-            $global->POST['Data']['SchoolType'] = $Data['SchoolType'];
-            $global->POST['Data']['Level'] = $Data['Level'];
-            $global->POST['Data']['Division'] = $Data['Division'];
-            $global->POST['Data']['CoreGroup'] = $Data['CoreGroup'];
+            $global->POST['Data']['Year'] = $Data['Year'] ?? 0;
+            $global->POST['Data']['SchoolType'] = $Data['SchoolType'] ?? 0;
+            $global->POST['Data']['Level'] = $Data['Level'] ?? '';
+            $global->POST['Data']['Division'] = $Data['Division'] ?? 0;
+            $global->POST['Data']['CoreGroup'] = $Data['CoreGroup'] ?? 0;
 
             $global->savePost();
         }
@@ -247,8 +247,8 @@ class StudentFilter extends Extension
                     $tblYear,
                     Type::useService()->getTypeById($Data['SchoolType']) ?: null,
                     $Data['Level'] ?: null,
-                    DivisionCourse::useService()->getDivisionCourseById($Data['Division']) ?: null,
-                    DivisionCourse::useService()->getDivisionCourseById($Data['CoreGroup']) ?: null,
+                    DivisionCourse::useService()->getDivisionCourseById($Data['Division'] ?? 0) ?: null,
+                    DivisionCourse::useService()->getDivisionCourseById($Data['CoreGroup'] ?? 0) ?: null,
                 ))
             ) {
                 foreach ($tblStudentEducationList as $tblStudentEducation) {
