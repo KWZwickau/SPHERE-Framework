@@ -4123,15 +4123,10 @@ abstract class Certificate extends Extension
             if (($tblSubject = $this->getForeignLanguageSubject(2))) {
                 $elementForeignLanguageName = new Element();
                 $elementForeignLanguageName
-                    ->setContent('
-                    {% if(Content.P' . $personId . '.Student.ForeignLanguage["' . $tblSubject->getAcronym() . '"] is not empty) %}
-                         {{ Content.P' . $personId . '.Student.ForeignLanguage["' . $tblSubject->getAcronym() . '"].Name' . ' }}
-                    {% else %}
-                         &nbsp;
-                    {% endif %}')
+                    ->setContent($tblSubject->getName())
                     ->styleFontFamily('Trebuchet MS')
                     ->styleLineHeight('85%')
-                    ->stylePaddingTop('0px')
+                    ->stylePaddingTop('2px')
                     ->stylePaddingBottom('0px')
                     ->styleMarginTop($marginTop)
                     ->styleTextSize($TextSize);
