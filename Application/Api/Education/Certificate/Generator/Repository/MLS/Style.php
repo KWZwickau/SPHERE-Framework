@@ -418,8 +418,9 @@ abstract class Style extends Certificate
                             {% else %}
                                 &nbsp;
                             {% endif %}')
+                ->styleTextSize('11pt')
                 ->styleAlignJustify()
-                ->styleMarginTop('10px')
+                ->styleMarginTop('20px')
             );
     }
 
