@@ -129,7 +129,7 @@ abstract class AbstractDocument
      *
      * @return Frame
      */
-    abstract public function buildDocument($pageList = array(), $part = '0');
+    abstract public function buildDocument(array $pageList = array(), string $part = '0'): Frame;
 
     /**
      * @param array $Data

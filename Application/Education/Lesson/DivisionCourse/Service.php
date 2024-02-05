@@ -2089,6 +2089,32 @@ class Service extends ServiceYearChange
 
     /**
      * @param TblDivisionCourse $tblDivisionCourse
+     *
+     * @return int[]|false
+     */
+    public function getLevelListByDivisionCourse(TblDivisionCourse $tblDivisionCourse)
+    {
+        $levelList = match ($tblDivisionCourse->getTypeIdentifier()) {
+            TblDivisionCourseType::TYPE_DIVISION => (new Data($this->getBinding()))->getLevelListByTypeDivision($tblDivisionCourse),
+            TblDivisionCourseType::TYPE_CORE_GROUP => (new Data($this->getBinding()))->getLevelListByTypeCoreGroup($tblDivisionCourse),
+            TblDivisionCourseType::TYPE_ADVANCED_COURSE, TblDivisionCourseType::TYPE_BASIC_COURSE => (new Data($this->getBinding()))->getLevelListByStudentSubject($tblDivisionCourse),
+            default => (new Data($this->getBinding()))->getLevelListByDivisionCourseWithMember($tblDivisionCourse),
+        };
+
+        $resultList = array();
+        if ($levelList) {
+            foreach ($levelList as $item) {
+                if (isset($item['Level'])) {
+                    $resultList[(integer) $item['Level']] = (integer) $item['Level'];
+                }
+            }
+        }
+
+        return empty($resultList) ? false : $resultList;
+    }
+
+    /**
+     * @param TblDivisionCourse $tblDivisionCourse
      * @param bool $isString
      *
      * @return Type[]|string|false

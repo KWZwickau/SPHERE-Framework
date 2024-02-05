@@ -483,6 +483,14 @@ class TblDivisionCourse extends Element
     }
 
     /**
+     * @return false|int[]
+     */
+    public function getLevelListFromStudents()
+    {
+        return DivisionCourse::useService()->getLevelListByDivisionCourse($this);
+    }
+
+    /**
      * @param bool $isString
      * @return false|Type[]|string
      */
