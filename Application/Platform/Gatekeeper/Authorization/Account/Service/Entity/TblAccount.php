@@ -152,6 +152,9 @@ class TblAccount extends Element
      */
     public function getUserAlias()
     {
+        if(!$this->UserAlias){
+            return '';
+        }
         return strtolower($this->UserAlias);
     }
 
@@ -168,6 +171,9 @@ class TblAccount extends Element
      */
     public function getRecoveryMail()
     {
+        if(!$this->BackupMail){
+            return '';
+        }
         return strtolower($this->BackupMail);
     }
 
