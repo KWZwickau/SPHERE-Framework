@@ -68,7 +68,7 @@ class ModHex
      *
      * @return bool|string
      */
-    final private function decodeString($String)
+    private function decodeString($String)
     {
 
         $Length = strlen($String);
@@ -92,7 +92,7 @@ class ModHex
      *
      * @return string
      */
-    final private function convertBase64ToHex($String)
+    private function convertBase64ToHex($String)
     {
 
         $Return = '';

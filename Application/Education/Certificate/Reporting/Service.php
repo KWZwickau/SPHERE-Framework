@@ -5,7 +5,7 @@ namespace SPHERE\Application\Education\Certificate\Reporting;
 use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel;
 use MOC\V\Component\Document\Component\Parameter\Repository\FileParameter;
 use MOC\V\Component\Document\Document;
-use PHPExcel_Style_Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use SPHERE\Application\Contact\Mail\Mail;
 use SPHERE\Application\Contact\Mail\Service\Entity\TblType as TblMailType;
 use SPHERE\Application\Document\Storage\FilePointer;
@@ -422,8 +422,8 @@ class Service extends Extension
                     $export->setStyle($export->getCell(0, $row + 1), $export->getCell(0, $row + 1))->setFontBold();
                     $export->getActiveSheet()->getStyle($export->getCell(0, $row + 1)->getCellName())->getAlignment()
                         ->setTextRotation(90)
-                        ->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER)
-                        ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+                        ->setVertical(Alignment::VERTICAL_CENTER)
+                        ->setHorizontal(Alignment::HORIZONTAL_CENTER);
                     $export->setStyle($export->getCell(0, $row + 1), $export->getCell(0, $row + 12))->mergeCells();
 
                     for ($i = 1; $i < 7; $i++) {
@@ -435,7 +435,7 @@ class Service extends Extension
                             $export->setValue($export->getCell(1, $row - 1 + 2*$j), $j);
                             $export->setStyle($export->getCell(1, $row - 1 + 2*$j), $export->getCell(1, $row - 1 + 2*$j + 1))->mergeCells()->setAlignmentCenter();
                             $export->getActiveSheet()->getStyle($export->getCell(1, $row - 1 + 2*$j)->getCellName())->getAlignment()
-                                ->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+                                ->setVertical(Alignment::VERTICAL_CENTER);
                             // Geschlecht Spalte
                             $export->setValue($export->getCell(2, $row - 1 + 2*$j), 'männlich');
                             $export->setValue($export->getCell(2, $row - 1 + 2*$j + 1), 'weiblich');

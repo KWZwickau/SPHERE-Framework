@@ -85,6 +85,9 @@ class Standard extends Extension implements IModuleInterface
             __NAMESPACE__ . '/EnrollmentDocument/CreateMulti', __CLASS__ . '::createEnrollmentDocumentMultiPdf'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '/SignOutCertificate/CreateMulti', __CLASS__ . '::createSignOutCertificateMultiPdf'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '/ClassRegister/Create', __CLASS__ . '::createClassRegisterPdf'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
@@ -153,14 +156,15 @@ class Standard extends Extension implements IModuleInterface
     }
 
     /**
-     * @param null $PersonId
-     * @param null $YearId
+     * @param $PersonId
+     * @param $YearId
+     * @param string $View
      *
      * @return Stage|string
      */
-    public static function createGradebookOverviewPdf($PersonId = null, $YearId = null)
+    public static function createGradebookOverviewPdf($PersonId = null, $YearId = null, string $View = 'Parent')
     {
-        return Creator::createGradebookOverviewPdf($PersonId, $YearId);
+        return Creator::createGradebookOverviewPdf($PersonId, $YearId, $View);
     }
 
     /**
@@ -244,7 +248,7 @@ class Standard extends Extension implements IModuleInterface
      *
      * @return Stage|string
      */
-    public static function createMultiPasswordPdf($Data = array(), $Redirect = true)
+    public static function createMultiPasswordPdf(array $Data = array(), bool $Redirect = true): Stage|string
     {
 
         $Post = array('Data' => $Data);
@@ -279,6 +283,17 @@ class Standard extends Extension implements IModuleInterface
     public static function createEnrollmentDocumentMultiPdf(string $DivisionCourseId, bool $Redirect = true): string
     {
         return Creator::createMultiEnrollmentDocumentPdf($DivisionCourseId, $Redirect);
+    }
+
+    /**
+     * @param string $DivisionCourseId
+     * @param bool $Redirect
+     *
+     * @return string
+     */
+    public static function createSignOutCertificateMultiPdf(string $DivisionCourseId, bool $Redirect = true): string
+    {
+        return Creator::createMultiSignOutCertificatePdf($DivisionCourseId, $Redirect);
     }
 
     /**

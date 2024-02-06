@@ -53,6 +53,20 @@ class WellReadOnly extends Extension implements ITemplateInterface
         return $this;
     }
 
+    public function setColor($color = '333333')
+    {
+
+        $this->Style .= 'color: #'.$color.';';
+        return $this;
+    }
+
+    public function setBackgroundColor($background = 'f2f2f2')
+    {
+
+        $this->Style .= 'background-color: #'.$background.';';
+        return $this;
+    }
+
     /**
      * @return string
      */

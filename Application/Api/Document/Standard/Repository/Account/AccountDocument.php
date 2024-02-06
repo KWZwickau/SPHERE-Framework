@@ -152,13 +152,13 @@ abstract class AccountDocument extends AbstractDocument
                 ->setContent('Die Live-Version der Schulsoftware erreichen Sie unter folgender Internetadresse: '.$Live.'<br>
                     Die Demo-Version der Schulsoftware erreichen Sie unter folgender Internetadresse: '.$Demo
                 )
-                ->styleMarginTop('25px')
+                ->styleMarginTop('15px')
             )
             ->addElement((new Element())
                 ->setContent('Sie gelangen automatisch zu folgender Anmeldeoberfläche. Bitte geben Sie im 1. Schritt
                     Ihren Benutzernamen und Ihr Passwort ein.')
                 ->styleMarginTop('15px')
-            )
-            ->addElement((new Element\Image('/Common/Style/Resource/Document/login_username.png')));
+            );
+//            ->addElement((new Element\Image('/Common/Style/Resource/Document/login_username.png')));
     }
 }

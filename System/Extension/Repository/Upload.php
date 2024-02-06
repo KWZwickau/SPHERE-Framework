@@ -74,6 +74,7 @@ class Upload
         if (!$this->isMoved) {
             return $this->File->getMimetype();
         } else {
+//            return pathinfo($this->File->getFilename(), PATHINFO_EXTENSION);
             $FileInfo = new \finfo(FILEINFO_MIME);
             $MimeType = $FileInfo->file($this->getLocation().DIRECTORY_SEPARATOR.$this->getFilename());
             $MimeTypeParts = preg_split('/\s*[;,]\s*/', $MimeType);
@@ -135,7 +136,7 @@ class Upload
     public function getSize()
     {
 
-        return $this->File->getSize();
+        return $this->File->getSplFileInfo()->getSize();
     }
 
     /**

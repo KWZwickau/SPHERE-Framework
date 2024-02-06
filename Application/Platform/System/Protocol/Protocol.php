@@ -275,7 +275,7 @@ class Protocol implements IModuleInterface
     private function convertObject($Content)
     {
 
-        if (preg_match('!^O:[0-9]+:"([a-z0-9\\\]+)":.*?$!is', $Content, $Match)) {
+        if (preg_match('!^O:[0-9]+:"([a-z0-9\\\]+)":.*?$!is', ($Content ?? ''), $Match)) {
             if (class_exists($Match[1], true)) {
                 $Object = unserialize($Content);
                 if (method_exists($Object, '__toArray')) {

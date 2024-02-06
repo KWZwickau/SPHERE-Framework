@@ -187,7 +187,7 @@ class Gersdorf extends Extension implements IModuleInterface
                     if(($tblToPersonPhoneList = Phone::useService()->getPhoneAllByPerson($tblPersonCustody))){
                         foreach($tblToPersonPhoneList as $tblToPersonPhone){
                             if(($tblToPersonPhone->getTblType()->getName() == TblTypePhone::VALUE_NAME_PRIVATE)
-                                || $tblToPersonPhone->getTblType()->getName() == TblTypePhone::VALUE_NAME_EMERCENCY){
+                                || $tblToPersonPhone->getIsEmergencyContact()){
                                 if(($tblPhone =  $tblToPersonPhone->getTblPhone())){
                                     $PhoneString .= $tblPhone->getNumber().' ';
                                 }

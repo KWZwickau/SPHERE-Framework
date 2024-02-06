@@ -37,6 +37,7 @@ class E05
             ->addSection((new Section())
                 ->addElementColumn((new Element())
                     ->setContent('Teilnahme am Unterricht im Fach')
+                    ->styleAlignCenter()
                     ->styleBorderRight()
                     ->stylePaddingTop('8.6px')
                     ->stylePaddingBottom('8.5px'), '50%'
@@ -45,6 +46,7 @@ class E05
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('Klassenstufe')
+                            ->styleAlignCenter()
                             ->styleBorderRight()
                             , '100%'
                         )
@@ -52,18 +54,22 @@ class E05
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('1')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '25%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('2')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '25%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('3')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '25%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('4')
+                            ->styleAlignCenter()
                             ->styleBorderRight()
                             , '25%'
                         )
@@ -71,6 +77,7 @@ class E05
                 )
                 ->addElementColumn((new Element())
                     ->setContent('Insgesamt')
+                    ->styleAlignCenter()
                     ->styleTextBold()
                     ->stylePaddingTop('8.6px')
                     ->stylePaddingBottom('8.5px'), '10%'
@@ -88,6 +95,7 @@ class E05
                                 &nbsp;
                             {% endif %}
                         ')
+                    ->styleAlignCenter()
                     ->styleBackgroundColor('lightgrey')
                     ->styleBorderRight(), '50%'
                 );
@@ -101,6 +109,7 @@ class E05
                                 &nbsp;
                             {% endif %}
                         ')
+                        ->styleAlignCenter()
                         ->styleBorderRight(), '10%'
                     );
             }
@@ -113,6 +122,7 @@ class E05
                                 &nbsp;
                             {% endif %}
                         ')
+                    ->styleAlignCenter()
                     ->styleBackgroundColor('lightgrey')
                     ->styleTextBold(), '10%'
                 );
@@ -133,6 +143,7 @@ class E05
         $section
             ->addElementColumn((new Element())
                 ->setContent('Insgesamt')
+                ->styleAlignCenter()
                 ->styleBackgroundColor('lightgrey')
                 ->styleBorderRight(), '50%'
             );
@@ -147,6 +158,7 @@ class E05
                                 &nbsp;
                             {% endif %}
                         ')
+                    ->styleAlignCenter()
                     ->styleBorderRight(), '10%'
                 );
         }
@@ -154,6 +166,7 @@ class E05
         $section
             ->addElementColumn((new Element())
                 ->setContent('&nbsp;')
+                ->styleAlignCenter()
                 ->styleBackgroundColor('lightgrey'), '10%'
             );
 

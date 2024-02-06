@@ -132,9 +132,7 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
         if ($tblAccount) {
-            if (($tblIdentification = $tblAccount->getServiceTblIdentification())
-                && ($tblIdentification->getName() == TblIdentification::NAME_USER_CREDENTIAL)
-            ) {
+            if ($tblAccount->getHasAuthentication(TblIdentification::NAME_USER_CREDENTIAL)) {
                 // Alle TblUserAccounts erhalten direktlink Button
                 $IsNavigationAssistance = true;
 
@@ -327,50 +325,21 @@ class Frontend extends Extension implements IFrontendInterface
 
         // Search for matching Account
         $tblAccount = null;
-        $tblIdentification = null;
         if ($CredentialName && $CredentialLock) {
-            if (!$tblAccount) {
-                // Check Credential with Token
-                $tblIdentification = Account::useService()->getIdentificationByName(TblIdentification::NAME_TOKEN);
-                $tblAccount = Account::useService()
-                    ->getAccountByCredential($CredentialName, $CredentialLock, $tblIdentification);
-            }
-            if (!$tblAccount) {
-                // Check Credential with Token (System-Admin)
-                $tblIdentification = Account::useService()->getIdentificationByName(TblIdentification::NAME_SYSTEM);
-                $tblAccount = Account::useService()
-                    ->getAccountByCredential($CredentialName, $CredentialLock, $tblIdentification);
-            }
-            if (!$tblAccount) {
-                // Check Credential with Authenticator App
-                $tblIdentification = Account::useService()->getIdentificationByName(TblIdentification::NAME_AUTHENTICATOR_APP);
-                $tblAccount = Account::useService()
-                    ->getAccountByCredential($CredentialName, $CredentialLock, $tblIdentification);
-            }
-            if (!$tblAccount) {
-                // Check Credential
-                $tblIdentification = Account::useService()->getIdentificationByName(TblIdentification::NAME_CREDENTIAL);
-                $tblAccount = Account::useService()
-                    ->getAccountByCredential($CredentialName, $CredentialLock, $tblIdentification);
-            }
-            if (!$tblAccount) {
-                // Check Credential
-                $tblIdentification = Account::useService()->getIdentificationByName(TblIdentification::NAME_USER_CREDENTIAL);
-                $tblAccount = Account::useService()
-                    ->getAccountByCredential($CredentialName, $CredentialLock, $tblIdentification);
-            }
+            $tblAccount = Account::useService()->getAccountByCredential($CredentialName, $CredentialLock);
         }
 
         // Matching Account found?
-        if ($tblAccount && $tblIdentification) {
-            switch ($tblIdentification->getName()) {
-                case TblIdentification::NAME_AUTHENTICATOR_APP:
-                case TblIdentification::NAME_TOKEN:
-                case TblIdentification::NAME_SYSTEM:
-                    return $this->frontendIdentificationToken($tblAccount->getId(), $tblIdentification->getId());
-                case TblIdentification::NAME_CREDENTIAL:
-                case TblIdentification::NAME_USER_CREDENTIAL:
-                    return $this->frontendIdentificationAgb($tblAccount->getId(), $tblIdentification->getId());
+        if ($tblAccount) {
+            if ($tblAccount->getHasAuthentication(TblIdentification::NAME_SYSTEM)
+                || $tblAccount->getHasAuthentication(TblIdentification::NAME_TOKEN)
+                || $tblAccount->getHasAuthentication(TblIdentification::NAME_AUTHENTICATOR_APP)
+            ) {
+                return $this->frontendIdentificationToken($tblAccount->getId());
+            } elseif ($tblAccount->getHasAuthentication(TblIdentification::NAME_CREDENTIAL)
+                || $tblAccount->getHasAuthentication(TblIdentification::NAME_USER_CREDENTIAL)
+            ) {
+                return $this->frontendIdentificationAgb($tblAccount->getId());
             }
         }
 
@@ -533,10 +502,8 @@ class Frontend extends Extension implements IFrontendInterface
             return $Stage;
         }
 
-        $tblIdentificationSystem = Account::useService()->getIdentificationByName(TblIdentification::NAME_SYSTEM);
         // Login block für System Accounts
-        if($tblAccount
-            && $tblAccount->getServiceTblIdentification()->getId() == $tblIdentificationSystem->getId()){
+        if ($tblAccount && $tblAccount->getHasAuthentication(TblIdentification::NAME_SYSTEM)) {
             $Stage->setContent(new Layout(new LayoutGroup(new LayoutRow(
                 new LayoutColumn(new Warning('Systemaccounts dürfen keinen SSO Login erhalten'))
             ))));
@@ -558,25 +525,19 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
-        $tblIdentification = null;
-        if($tblAccount
-            && $LoginOk
-            && ($tblAuthentication = Account::useService()->getAuthenticationByAccount($tblAccount))){
-            $tblIdentification = $tblAuthentication->getTblIdentification();
-        }
-
         // Matching Account found?
-        if ($tblAccount && $tblIdentification) {
+        if ($tblAccount && $LoginOk) {
             // Anfragen von SAML müssen Cookies aktiviert haben
             $isCookieAvailable = true;
-            switch ($tblIdentification->getName()) {
-                case TblIdentification::NAME_AUTHENTICATOR_APP:
-                case TblIdentification::NAME_TOKEN:
-                case TblIdentification::NAME_SYSTEM:
-                    return $this->frontendIdentificationToken($tblAccount->getId(), $tblIdentification->getId(), null, $isCookieAvailable);
-                case TblIdentification::NAME_CREDENTIAL:
-                case TblIdentification::NAME_USER_CREDENTIAL:
-                    return $this->frontendIdentificationAgb($tblAccount->getId(), $tblIdentification->getId(), 0, $isCookieAvailable);
+            if ($tblAccount->getHasAuthentication(TblIdentification::NAME_SYSTEM)
+                || $tblAccount->getHasAuthentication(TblIdentification::NAME_TOKEN)
+                || $tblAccount->getHasAuthentication(TblIdentification::NAME_AUTHENTICATOR_APP)
+            ) {
+                return $this->frontendIdentificationToken($tblAccount->getId(), null, $isCookieAvailable);
+            } elseif ($tblAccount->getHasAuthentication(TblIdentification::NAME_CREDENTIAL)
+                || $tblAccount->getHasAuthentication(TblIdentification::NAME_USER_CREDENTIAL)
+            ) {
+                return $this->frontendIdentificationAgb($tblAccount->getId(), 0, $isCookieAvailable);
             }
         }
 
@@ -617,46 +578,50 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param int         $tblAccount
-     * @param int         $tblIdentification
-     * @param null|string $CredentialKey
+     * @param null|string $otpCredentialKey
      * @param bool        $isCookieAvailable
      *
      * @return Stage
      */
-    public function frontendIdentificationToken($tblAccount, $tblIdentification, $CredentialKey = null, $isCookieAvailable = false)
+    public function frontendIdentificationToken($tblAccount, $otpCredentialKey = null, $isCookieAvailable = false)
     {
         $View = new Stage(new YubiKey() . ' Anmelden', '', $this->getIdentificationEnvironment());
 
         $tblAccount = Account::useService()->getAccountById($tblAccount);
-        $tblIdentification = Account::useService()->getIdentificationById($tblIdentification);
 
         // Return on Input Error
-        if (
-            !$tblAccount
-            || !$tblIdentification
-            || !$tblAccount->getServiceTblIdentification()
-            || !$tblAccount->getServiceTblIdentification()->getId() == $tblIdentification->getId()
-        ) {
+        if (!$tblAccount) {
             // Restart Identification Process
             return $this->frontendIdentificationCredential();
         }
 
-        /**
-         * Anmeldung mit Authenticator App
-         */
-        if ($tblIdentification->getName() == TblIdentification::NAME_AUTHENTICATOR_APP) {
-
+        // Token und App gleichzeitig für Benutzer möglich
+        if ($tblAccount->getHasAuthentication(TblIdentification::NAME_AUTHENTICATOR_APP)
+            && ($tblAccount->getHasAuthentication(TblIdentification::NAME_SYSTEM) || $tblAccount->getHasAuthentication(TblIdentification::NAME_TOKEN))
+        ) {
+            // SSW-2129 OTP direkt aus Passwort-Manager funktioniert nicht in diesem Fall (beide Authentifizierungsverfahren aktiv)
+            $otpCredentialKeyField = (new PasswordField('otpCredentialKey', '', 'YubiKey oder Authenticator App'))->setRequired()->setAutoFocus();
+        } elseif ($tblAccount->getHasAuthentication(TblIdentification::NAME_AUTHENTICATOR_APP)) {
             // Field Definition
             // SSW-2129 OTP direkt aus Passwort-Manager
-            $CredentialKeyField = (new TextField('CredentialKey', '', 'Authenticator App'))
-                ->setRequired()->setAutoFocus();
+            // Lable, Name und AutoComplete wird von verschiedenen Anwendungen (Browser/Handy) unterschiedlich ausgelesen, deswegen alle 3 Varianten integriert
+            $otpCredentialKeyField = (new TextField('otpCredentialKey', '', 'Authenticator App'))
+                ->setRequired()
+                ->setAutoFocus()
+                ->setAutoComplete();
+        } else {
+            // Field Definition
+            $otpCredentialKeyField = (new PasswordField('otpCredentialKey', 'YubiKey', 'YubiKey', new YubiKey()))->setRequired()->setAutoFocus();
+        }
 
-            $FormError = new Container('');
-            if ($CredentialKey) {
+        $FormError = new Container('');
+        if ($otpCredentialKey) {
+            // App ist immer 6-stellig
+            if ($tblAccount->getHasAuthentication(TblIdentification::NAME_AUTHENTICATOR_APP) && strlen($otpCredentialKey) == 6) {
                 // Credential correct, OTP correct -> LOGIN
                 try {
                     $twoFactorApp = new TwoFactorApp();
-                    if ($twoFactorApp->verifyCode($tblAccount->getAuthenticatorAppSecret(), $CredentialKey)) {
+                    if ($twoFactorApp->verifyCode($tblAccount->getAuthenticatorAppSecret(), $otpCredentialKey)) {
                         if (session_status() == PHP_SESSION_ACTIVE) {
                             session_regenerate_id();
                         }
@@ -671,7 +636,7 @@ class Frontend extends Extension implements IFrontendInterface
                         return $View;
                     } else {
                         // Error OTP APP invalid
-                        $CredentialKeyField->setError('');
+                        $otpCredentialKeyField->setError('');
                         $FormError = new Listing(array(new Danger(new Exclamation() . ' Die eingegebenen Zugangsdaten sind nicht gültig')));
                     }
                 } catch (Exception $Exception) {
@@ -680,23 +645,12 @@ class Frontend extends Extension implements IFrontendInterface
                     (new DebuggerFactory())->createLogger(new FileLogger())->addLog('Authenticator App Error: ' . $Exception->getMessage());
 
                     // Error OTP APP Error
-                    $CredentialKeyField->setError('');
+                    $otpCredentialKeyField->setError('');
                     $FormError = new Listing(array(new Danger(new Exclamation() . ' Die eingegebenen Zugangsdaten sind nicht gültig')));
                 }
-            }
-        } else {
-            /**
-             * Anmeldung mit Yubikey (Token oder System)
-             */
-
-            // Field Definition
-            $CredentialKeyField = (new PasswordField('CredentialKey', 'YubiKey', 'YubiKey', new YubiKey()))
-                ->setRequired()->setAutoFocus();
-
-            // Search for matching Token
-            $FormError = new Container('');
-            if ($CredentialKey) {
-                $Identifier = $this->getModHex($CredentialKey)->getIdentifier();
+            } else {
+                // Search for matching Token
+                $Identifier = $this->getModHex($otpCredentialKey)->getIdentifier();
                 $tblToken = Token::useService()->getTokenByIdentifier($Identifier);
                 if (
                     $tblToken
@@ -705,7 +659,7 @@ class Frontend extends Extension implements IFrontendInterface
                 ) {
                     // Credential correct, Token correct -> LOGIN
                     try {
-                        if (Token::useService()->isTokenValid($CredentialKey)) {
+                        if (Token::useService()->isTokenValid($otpCredentialKey)) {
                             if (session_status() == PHP_SESSION_ACTIVE) {
                                 session_regenerate_id();
                             }
@@ -720,7 +674,7 @@ class Frontend extends Extension implements IFrontendInterface
                             return $View;
                         } else {
                             // Error Token invalid
-                            $CredentialKeyField->setError('');
+                            $otpCredentialKeyField->setError('');
                             $FormError = new Listing(array(new Danger(new Exclamation() . ' Die eingegebenen Zugangsdaten sind nicht gültig')));
                         }
                     } catch (Exception $Exception) {
@@ -729,12 +683,12 @@ class Frontend extends Extension implements IFrontendInterface
                         (new DebuggerFactory())->createLogger(new FileLogger())->addLog('YubiKey-Api Error: ' . $Exception->getMessage());
 
                         // Error Token API Error
-                        $CredentialKeyField->setError('');
+                        $otpCredentialKeyField->setError('');
                         $FormError = new Listing(array(new Danger(new Exclamation() . ' Die eingegebenen Zugangsdaten sind nicht gültig')));
                     }
                 } else {
                     // Error Token not registered
-                    $CredentialKeyField->setError('');
+                    $otpCredentialKeyField->setError('');
                     $FormError = new Listing(array(new Danger(new Exclamation() . ' Die eingegebenen Zugangsdaten sind nicht gültig')));
                 }
             }
@@ -754,8 +708,7 @@ class Frontend extends Extension implements IFrontendInterface
 
             // ist der Mandant gelöscht werden System-Accounts auf den REF-Mandanten umgeleitet
             if (($tblConsumer = Consumer::useService()->getConsumerByAcronym('REF'))
-                && $tblAccount->getServiceTblIdentification()
-                && $tblAccount->getServiceTblIdentification()->getName() == 'System'
+                && $tblAccount->getHasAuthentication(TblIdentification::NAME_SYSTEM)
             ) {
                 $FormInformation[] = $tblConsumer->getName();
                 MyAccount::useService()->updateConsumer($tblAccount, $tblConsumer);
@@ -772,7 +725,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 new Ruler(),
                                 new Listing($FormInformation),
                                 new Listing(array(
-                                    new Container($CredentialKeyField)
+                                    new Container($otpCredentialKeyField)
                                 )),
                                 $FormError
                             ))
@@ -786,7 +739,6 @@ class Frontend extends Extension implements IFrontendInterface
                 )
                 , null, new Route(__NAMESPACE__ . '/Token'), array(
                 'tblAccount' => $tblAccount,
-                'tblIdentification' => $tblIdentification
             ));
 
             $View->setContent($this->getIdentificationLayout($Form));
@@ -855,22 +807,15 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public function frontendIdentificationAgb($tblAccount, $tblIdentification, $doAccept = 0, $isCookieAvailable = false)
+    public function frontendIdentificationAgb($tblAccount, $doAccept = 0, $isCookieAvailable = false)
     {
 
         $View = new Stage(new MoreItems().' Anmelden', '', $this->getIdentificationEnvironment());
 
         $tblAccount = Account::useService()->getAccountById($tblAccount);
-        $tblIdentification = Account::useService()->getIdentificationById($tblIdentification);
 
         // Return on Input Error
-        if (
-            !$tblAccount
-            || !$tblIdentification
-            || !$tblAccount->getServiceTblIdentification()
-            || !$tblAccount->getServiceTblIdentification()->getId() == $tblIdentification->getId()
-            || !$tblAccount->getServiceTblConsumer()
-        ) {
+        if (!$tblAccount || !$tblAccount->getServiceTblConsumer()) {
             // Restart Identification Process
             return $this->frontendIdentificationCredential();
         }
@@ -971,7 +916,6 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutColumn(array(
                             new PullLeft( new Success('Einwilligen',new Route(__NAMESPACE__ . '/Agb'), new Enable(), array(
                                 'tblAccount' => $tblAccount,
-                                'tblIdentification' => $tblIdentification,
                                 'doAccept' => 1,
                                 'isCookieAvailable' => $isCookieAvailable
                             )) ),

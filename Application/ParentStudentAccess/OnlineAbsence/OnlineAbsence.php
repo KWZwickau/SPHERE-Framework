@@ -5,6 +5,7 @@ namespace SPHERE\Application\ParentStudentAccess\OnlineAbsence;
 use SPHERE\Application\IApplicationInterface;
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblIdentification;
 use SPHERE\Application\Setting\User\Account\Account as UserAccount;
 use SPHERE\Application\Setting\User\Account\Service\Entity\TblUserAccount;
 use SPHERE\Common\Frontend\Icon\Repository\Extern;
@@ -27,7 +28,7 @@ class OnlineAbsence extends Extension implements IApplicationInterface, IModuleI
 
         $isRegistered = false;
         if (($tblAccount = Account::useService()->getAccountBySession())) {
-            if (($tblIdentification = $tblAccount->getServiceTblIdentification()) && $tblIdentification->getName() == 'System') {
+            if ($tblAccount->getHasAuthentication(TblIdentification::NAME_SYSTEM)) {
                 // System-Account
                 $isRegistered = true;
             } elseif (($tblUserAccount = UserAccount::useService()->getUserAccountByAccount($tblAccount))

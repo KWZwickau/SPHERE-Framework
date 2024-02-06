@@ -42,7 +42,7 @@ namespace Upload;
  * @since   1.0.0
  * @package Upload
  */
-class File extends \SplFileInfo
+class File // extends \SplFileInfo
 {
 
     /********************************************************************************
@@ -138,6 +138,11 @@ class File extends \SplFileInfo
     protected $errorCode;
 
     /**
+     * @var \SplFileInfo
+     */
+    protected $splFileInfo;
+
+    /**
      * Constructor
      *
      * @param  string               $key     The file's key in $_FILES superglobal
@@ -157,7 +162,8 @@ class File extends \SplFileInfo
         $this->errors = array();
         $this->originalName = $_FILES[$key]['name'];
         $this->errorCode = $_FILES[$key]['error'];
-        parent::__construct($_FILES[$key]['tmp_name']);
+//        parent::__construct($_FILES[$key]['tmp_name']);
+        $this->splFileInfo = new \SplFileInfo($_FILES[$key]['tmp_name']);
     }
 
     /**
@@ -244,8 +250,9 @@ class File extends \SplFileInfo
     {
 
         if (!isset( $this->mimeType )) {
+//            $this->mimetype = strtolower(pathinfo($this->splFileInfo->getFilename(), PATHINFO_EXTENSION));
             $finfo = new \finfo(FILEINFO_MIME);
-            $mimetype = $finfo->file($this->getPathname());
+            $mimetype = $finfo->file($this->splFileInfo->getPathname());
             $mimetypeParts = preg_split('/\s*[;,]\s*/', $mimetype);
             $this->mimetype = strtolower($mimetypeParts[0]);
             unset( $finfo );
@@ -262,7 +269,7 @@ class File extends \SplFileInfo
     public function getMd5()
     {
 
-        return md5_file($this->getPathname());
+        return md5_file($this->splFileInfo->getPathname());
     }
 
     /********************************************************************************
@@ -277,7 +284,7 @@ class File extends \SplFileInfo
     public function getDimensions()
     {
 
-        list( $width, $height ) = getimagesize($this->getPathname());
+        list( $width, $height ) = getimagesize($this->splFileInfo->getPathname());
         return array(
             'width'  => $width,
             'height' => $height
@@ -424,6 +431,12 @@ class File extends \SplFileInfo
     public function isUploadedFile()
     {
 
-        return is_uploaded_file($this->getPathname());
+        return is_uploaded_file($this->splFileInfo->getPathname());
+    }
+
+    public function getSplFileInfo()
+    {
+
+        return $this->splFileInfo;
     }
 }

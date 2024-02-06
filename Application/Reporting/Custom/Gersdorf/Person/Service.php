@@ -5,6 +5,7 @@ use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel;
 use MOC\V\Component\Document\Component\Parameter\Repository\FileParameter;
 use MOC\V\Component\Document\Component\Parameter\Repository\PaperOrientationParameter;
 use MOC\V\Component\Document\Document;
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Phone\Phone;
 use SPHERE\Application\Contact\Phone\Service\Entity\TblType;
@@ -443,7 +444,7 @@ class Service extends Extension
                     $j = 3;
                     $tblSubject = Subject::useService()->getSubjectById($SubjectId);
                     $export->setValue($export->getCell($j, $RowReference), $count);
-                    $export->setStyle($export->getCell($j++, $RowReference))->setCellType(\PHPExcel_Cell_DataType::TYPE_NUMERIC);
+                    $export->setStyle($export->getCell($j++, $RowReference))->setCellType(DataType::TYPE_NUMERIC);
                     $export->setValue($export->getCell($j++, $RowReference), $tblSubject->getAcronym());
                     $export->setValue($export->getCell($j, $RowReference++), $tblSubject->getName());
                 } else {
@@ -451,7 +452,7 @@ class Service extends Extension
                     $j = 8;
                     $tblSubject = Subject::useService()->getSubjectById($SubjectId);
                     $export->setValue($export->getCell($j, $RowReference2), $count);
-                    $export->setStyle($export->getCell($j++, $RowReference2))->setCellType(\PHPExcel_Cell_DataType::TYPE_NUMERIC);
+                    $export->setStyle($export->getCell($j++, $RowReference2))->setCellType(DataType::TYPE_NUMERIC);
                     $export->setValue($export->getCell($j++, $RowReference2), $tblSubject->getAcronym());
                     $export->setValue($export->getCell($j, $RowReference2++), $tblSubject->getName());
                 }

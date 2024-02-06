@@ -5,6 +5,7 @@ namespace SPHERE\Application\Transfer\Indiware\Import\StudentCourse;
 use DateTime;
 use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel;
 use MOC\V\Component\Document\Document;
+use PhpOffice\PhpSpreadsheet\Shared\Date;
 use SPHERE\Application\Education\Certificate\Generate\Generate;
 use SPHERE\Application\Education\Certificate\Prepare\Abitur\BlockI;
 use SPHERE\Application\Education\Certificate\Prepare\Abitur\BlockIView;
@@ -271,7 +272,7 @@ class Service
                     $birthday = trim($Document->getValue($Document->getCell($Location['Geburtsdatum'], $RunY)));
                     if ($birthday) {
                         if (strpos($birthday, '.') === false) {
-                            $birthday = date('d.m.Y', \PHPExcel_Shared_Date::ExcelToPHP($birthday));
+                            $birthday = date('d.m.Y', Date::excelToTimestamp($birthday));
                         }
                     }
 

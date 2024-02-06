@@ -14,6 +14,7 @@ use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\People\Relationship\Service\Entity\TblType;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account as AccountGatekeeper;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblIdentification;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer as GatekeeperConsumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Setting\Consumer\Consumer;
@@ -67,7 +68,8 @@ class MultiPassword extends AbstractDocument
         $this->FieldValue['GroupByTime'] = (isset($DataPost['GroupByTime']) ? $DataPost['GroupByTime'] : false);
         $this->FieldValue['GroupByCount'] = (isset($DataPost['GroupByCount']) ? $DataPost['GroupByCount'] : false);
 
-        $this->FieldValue['Gender'] = false;
+//        $this->FieldValue['Gender'] = false;
+//        $this->FieldValue['GenderC'] = array();
         $this->FieldValue['UserAccount'] = '';
 //        $this->FieldValue['Street'] = '';
 //        $this->FieldValue['District'] = '';
@@ -89,10 +91,8 @@ class MultiPassword extends AbstractDocument
         $this->FieldValue['Date'] = (isset($DataPost['Date']) && $DataPost['Date'] != '' ? $DataPost['Date'] : '&nbsp;');
 
         if($this->FieldValue['GroupByTime'] && $this->FieldValue['GroupByCount']){
-
             if(($tblUserAccountList = Account::useService()->getUserAccountByTimeAndCount(
                 new DateTime($this->FieldValue['GroupByTime']), $this->FieldValue['GroupByCount']))){
-
                 foreach($tblUserAccountList as $tblUserAccount){
                     /** @var TblAccount $tblAccount */
                     if(($tblAccount = $tblUserAccount->getServiceTblAccount())){
@@ -109,9 +109,7 @@ class MultiPassword extends AbstractDocument
                         $this->FieldValue['Street'][$tblAccount->getId()] = '';
                         $this->FieldValue['District'][$tblAccount->getId()] = '';
                         $this->FieldValue['City'][$tblAccount->getId()] = '';
-
-                        $this->FieldValue['Gender'][$tblAccount->getId()] = false;
-
+                        $this->FieldValue['GenderC'][$tblAccount->getId()] = false;
                         $this->FieldValue['tblAccountList'][] = $tblAccount->getId();
                         $this->FieldValue['UserAccountNameList'][$tblAccount->getId()] = $tblAccount->getUsername();
                         $this->FieldValue['Password'][$tblAccount->getId()] = $tblUserAccount->getUserPassword();
@@ -153,8 +151,9 @@ class MultiPassword extends AbstractDocument
                 // set flag IsExport
                 $isExportFlag = true;
                 // IsExport only by non System Accounts (Support) soll keine einträge
-                $tblAccount = AccountGatekeeper::useService()->getAccountBySession();
-                if($tblAccount->getServiceTblIdentification() && $tblAccount->getServiceTblIdentification()->getName() == 'System'){
+                if (($tblAccount = AccountGatekeeper::useService()->getAccountBySession())
+                    && (AccountGatekeeper::useService()->getHasAuthenticationByAccountAndIdentificationName($tblAccount, TblIdentification::NAME_SYSTEM))
+                ) {
                     $isExportFlag = false;
                 }
                 if($isExportFlag){

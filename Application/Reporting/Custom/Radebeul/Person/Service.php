@@ -219,16 +219,17 @@ class Service extends Extension
                 $phoneEmergencyList = array();
                 if(($tblPersonToPhoneList = Phone::useService()->getPhoneAllByPerson($tblPerson))) {
                     foreach($tblPersonToPhoneList as $tblToPerson) {
-                        if(($tblPhone = $tblToPerson->getTblPhone())
-                        && ($tblType = $tblToPerson->getTblType())
-                        && $tblType->getName() == 'Privat'
-                        && $tblType->getDescription() == 'Festnetz'
+                        if ($tblToPerson->getIsEmergencyContact()
+                            && ($tblPhone = $tblToPerson->getTblPhone())
+                        ) {
+                            $phoneEmergencyList[] = $tblToPerson->getRemark() . ($tblToPerson->getRemark() ? ' ': '') . $tblPhone->getNumber();
+                        }
+                        elseif(($tblPhone = $tblToPerson->getTblPhone())
+                            && ($tblType = $tblToPerson->getTblType())
+                            && $tblType->getName() == 'Privat'
+                            && $tblType->getDescription() == 'Festnetz'
                         ) {
                             $phoneList[] = $tblPhone->getNumber();
-                        } elseif(($tblPhone = $tblToPerson->getTblPhone())
-                        && ($tblType = $tblToPerson->getTblType())
-                        && $tblType->getName() == 'Notfall') {
-                            $phoneEmergencyList[] = $tblToPerson->getRemark().($tblToPerson->getRemark() ? ' ': '').$tblPhone->getNumber();
                         }
                     }
                 }

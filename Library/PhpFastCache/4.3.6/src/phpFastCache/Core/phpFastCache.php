@@ -164,11 +164,11 @@ class phpFastCache
 
     /**
      * @param bool $skip_create_path
-     * @param $config
+     * @param array $config
      * @return string
      * @throws \Exception
      */
-    public static function getPath($skip_create_path = false, $config)
+    public static function getPath(bool $skip_create_path = false, array $config = array())
     {
         if (!isset($config['path']) || $config['path'] == '') {
 

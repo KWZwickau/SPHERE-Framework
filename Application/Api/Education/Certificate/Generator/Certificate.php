@@ -192,8 +192,9 @@ abstract class Certificate extends Extension
             }
         } elseif ($tblConsumer && $tblConsumer->isConsumer(TblConsumer::TYPE_SACHSEN, 'HOGA')) {
             $InjectStyle = 'body { margin-bottom: -1.5cm !important; margin-left: 0.75cm !important; margin-right: 0.75cm !important; }';
-        }
-        else {
+        } elseif ($tblConsumer && $tblConsumer->isConsumer(TblConsumer::TYPE_SACHSEN, 'MLS')) {
+            $InjectStyle = 'body { margin-bottom: -1.5cm !important; margin-left: 0.75cm !important; margin-right: 0.75cm !important; }';
+        } else {
             $InjectStyle = '';
         }
 
@@ -1050,7 +1051,7 @@ abstract class Certificate extends Extension
             }
             $SubjectStructure = $SubjectLayout;
 
-            $hasAdditionalLine = false;
+            $hasAdditionalLine = array();
             $isShrinkMarginTop = false;
 
             // Abschlusszeugnis 2. Fremdsprache anfügen
@@ -1263,7 +1264,7 @@ abstract class Certificate extends Extension
                         $SubjectSection->addElementColumn((new Element()), '52%');
                     }
 
-                    $hasAdditionalLine = false;
+                    $hasAdditionalLine = array();
 
                     // es wird abstand gelassen, einkommentieren für keinen extra Abstand der nächsten Zeile
 //                    $isShrinkMarginTop = true;
@@ -1382,7 +1383,7 @@ abstract class Certificate extends Extension
             }
             $SubjectStructure = $SubjectLayout;
 
-            $hasAdditionalLine = false;
+            $hasAdditionalLine = array();
             $isShrinkMarginTop = false;
 
             // Abschlusszeugnis 2. Fremdsprache anfügen
@@ -1595,7 +1596,7 @@ abstract class Certificate extends Extension
                         $SubjectSection->addElementColumn((new Element()), '52%');
                     }
 
-                    $hasAdditionalLine = false;
+                    $hasAdditionalLine = array();
 
                     // es wird abstand gelassen, einkommentieren für keinen extra Abstand der nächsten Zeile
 //                    $isShrinkMarginTop = true;
@@ -1709,7 +1710,7 @@ abstract class Certificate extends Extension
             }
             $SubjectStructure = $SubjectLayout;
 
-            $hasAdditionalLine = false;
+            $hasAdditionalLine = array();
             $isShrinkMarginTop = false;
 
             $count = 0;
@@ -1860,7 +1861,7 @@ abstract class Certificate extends Extension
                         $SubjectSection->addElementColumn((new Element()), '52%');
                     }
 
-                    $hasAdditionalLine = false;
+                    $hasAdditionalLine = array();
 
                     // es wird abstand gelassen, einkommentieren für keinen extra Abstand der nächsten Zeile
 //                    $isShrinkMarginTop = true;
@@ -3885,7 +3886,7 @@ abstract class Certificate extends Extension
             }
             $SubjectStructure = $SubjectLayout;
 
-            $hasAdditionalLine = false;
+            $hasAdditionalLine = array();
             $isShrinkMarginTop = false;
 
             $count = 0;
@@ -4027,7 +4028,7 @@ abstract class Certificate extends Extension
                         $SubjectSection->addElementColumn((new Element()), (50) . '%');
                     }
 
-                    $hasAdditionalLine = false;
+                    $hasAdditionalLine = array();
 
                     // es wird abstand gelassen, einkommentieren für keinen extra Abstand der nächsten Zeile
 //                    $isShrinkMarginTop = true;

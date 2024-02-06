@@ -1115,7 +1115,7 @@ abstract class Style extends Certificate
             }
             $SubjectStructure = $SubjectLayout;
 
-            $hasAdditionalLine = false;
+            $hasAdditionalLine = array();
             $isShrinkMarginTop = false;
 
             // Mittelschulzeugnisse 2. Fremdsprache anfügen
@@ -1255,7 +1255,7 @@ abstract class Style extends Certificate
                         $SubjectSection->addElementColumn((new Element()), '52%');
                     }
 
-                    $hasAdditionalLine = false;
+                    $hasAdditionalLine = array();
 
                     // es wird abstand gelassen, einkommentieren für keinen extra Abstand der nächsten Zeile
 //                    $isShrinkMarginTop = true;

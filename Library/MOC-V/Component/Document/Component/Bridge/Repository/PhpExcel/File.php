@@ -4,6 +4,12 @@ namespace MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel;
 use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel;
 use MOC\V\Component\Document\Component\Exception\Repository\TypeFileException;
 use MOC\V\Component\Document\Component\Parameter\Repository\FileParameter;
+use PhpOffice\PhpSpreadsheet\Cell\IValueBinder;
+use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Reader\BaseReader;
+use PhpOffice\PhpSpreadsheet\Reader\Csv;
+use PhpOffice\PhpSpreadsheet\Reader\Xlsx;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
 
 /**
  * Class File
@@ -37,44 +43,46 @@ abstract class File extends Config
     }
 
     /**
-     * @param FileParameter               $Location
-     * @param \PHPExcel_Cell_IValueBinder $ValueBinder
+     * @param FileParameter $Location
+     * @param IValueBinder  $ValueBinder
      *
      * @return PhpExcel
      */
-    public function newFile(FileParameter $Location, \PHPExcel_Cell_IValueBinder $ValueBinder = null)
+    public function newFile(FileParameter $Location, IValueBinder $ValueBinder = null)
     {
 
         $this->setFileParameter($Location);
-        $this->setConfiguration($ValueBinder);
-        $this->Source = new \PHPExcel();
+        $this->setConfiguration();
+        $this->Source = new Spreadsheet();
         return $this;
     }
 
     /**
-     * @param FileParameter               $Location
-     * @param \PHPExcel_Cell_IValueBinder $ValueBinder
+     * @param FileParameter $Location
      *
-     * @return PhpExcel
+     * @return $this|\MOC\V\Component\Document\Component\IBridgeInterface
      * @throws TypeFileException
      * @throws \PHPExcel_Reader_Exception
      */
-    public function loadFile(FileParameter $Location, \PHPExcel_Cell_IValueBinder $ValueBinder = null)
+    public function loadFile(FileParameter $Location)
     {
 
         $this->setFileParameter($Location);
-        $this->setConfiguration($ValueBinder);
+        $this->setConfiguration();
 
         $Info = $Location->getFileInfo();
         $ReaderType = $this->getReaderType($Info);
 
         if ($ReaderType) {
-            /** @var \PHPExcel_Reader_IReader|\PHPExcel_Reader_CSV $Reader */
-            $Reader = \PHPExcel_IOFactory::createReader($ReaderType);
-            /**
-             * Find CSV Delimiter
-             */
+            /** @var BaseReader $Reader */
+            $Reader = new Xlsx();
             if ('CSV' == $ReaderType) {
+                /**
+                 * Find CSV Delimiter
+                 */
+                $Reader = new Csv();
+                // auto_detect_line_endings is deprecated
+                $Reader->setTestAutoDetect(false);
                 if( $this->delimiter === null ) {
                     $Result = $this->getDelimiterType();
                 } else {
@@ -100,7 +108,7 @@ abstract class File extends Config
     {
 
         $ReaderList = array(
-            'Excel2007'    => array(
+            'Xlsx'    => array(
                 'xlsx',
                 'xlsm',
                 'xltx',
@@ -212,7 +220,7 @@ abstract class File extends Config
         }
 
         if ($WriterType) {
-            $Writer = \PHPExcel_IOFactory::createWriter($this->Source, $WriterType);
+            $Writer = IOFactory::createWriter($this->Source, $WriterType);
 
             /**
              * Find CSV Delimiter
@@ -248,21 +256,21 @@ abstract class File extends Config
     {
 
         $WriterList = array(
-            'Excel2007' => array(
+            'Xlsx' => array(
                 'xlsx',
                 'xlsm',
                 'xltx',
                 'xltm'
             ),
-            'Excel5'    => array(
+            'Xls'  => array(
                 'xls',
                 'xlt'
             ),
-            'HTML'      => array(
+            'Html' => array(
                 'htm',
                 'html'
             ),
-            'CSV'       => array(
+            'Csv'  => array(
                 'csv'
             )
         );

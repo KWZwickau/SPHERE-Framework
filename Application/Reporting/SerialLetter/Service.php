@@ -788,7 +788,6 @@ class Service extends AbstractService
      * @return bool|\SPHERE\Application\Document\Storage\FilePointer
      * @throws \MOC\V\Component\Document\Component\Exception\Repository\TypeFileException
      * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
-     * @throws \PHPExcel_Reader_Exception
      */
     public function createSerialLetterExcel(TblSerialLetter $tblSerialLetter)
     {
@@ -1197,7 +1196,6 @@ class Service extends AbstractService
      * @return bool|\SPHERE\Application\Document\Storage\FilePointer
      * @throws \MOC\V\Component\Document\Component\Exception\Repository\TypeFileException
      * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
-     * @throws \PHPExcel_Reader_Exception
      */
     public function createSerialLetterCompanyExcel(TblSerialLetter $tblSerialLetter)
     {

@@ -200,7 +200,7 @@ class Frontend extends Extension implements IFrontendInterface
             foreach($tblPersonList as $tblPerson){
                 if($tblYear = $tblDivisionCourse->getServiceTblYear()){
                     $tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear);
-                    if(($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())){
+                    if($tblStudentEducation && ($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())){
                         $LevelList[$tblSchoolType->getName()][$tblStudentEducation->getLevel()] = $tblStudentEducation->getLevel();
                     }
                 }
@@ -1211,6 +1211,7 @@ class Frontend extends Extension implements IFrontendInterface
                 .(new TableData($dataList, null,
                     array(
                         'LastDivisionCourse' => 'Abgangsklasse',
+                        'StudentNumber'      => 'Schüler Nr.',
                         'LastName'           => 'Name',
                         'FirstName'          => 'Vorname',
                         'Gender'             => 'Geschlecht',

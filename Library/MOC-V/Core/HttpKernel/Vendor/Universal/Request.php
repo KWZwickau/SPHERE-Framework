@@ -21,7 +21,8 @@ class Request
     public function __construct()
     {
 
-        AutoLoader::getNamespaceAutoLoader('Symfony\Component', __DIR__.'/../');
+        require_once(__DIR__.'/../../../../Php8Combined/vendor/autoload.php');
+//        AutoLoader::getNamespaceAutoLoader('Symfony\Component', __DIR__.'/../');
 
         $this->SymfonyRequest = SymfonyRequest::createFromGlobals();
     }

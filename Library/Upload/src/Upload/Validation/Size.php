@@ -95,7 +95,7 @@ class Size extends \Upload\Validation\Base
     public function validate(\Upload\File $file)
     {
 
-        $fileSize = $file->getSize();
+        $fileSize = $file->getSplFileInfo()->getSize();
         $isValid = true;
 
         if ($fileSize < $this->minSize) {

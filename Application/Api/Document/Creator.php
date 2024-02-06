@@ -113,17 +113,18 @@ class Creator extends Extension
     /**
      * @param $PersonId
      * @param $YearId
+     * @param string $View
      * @param string $paperOrientation
      *
      * @return Stage|string
      */
-    public static function createGradebookOverviewPdf($PersonId, $YearId, string $paperOrientation = Creator::PAPERORIENTATION_LANDSCAPE)
+    public static function createGradebookOverviewPdf($PersonId, $YearId, string $View = 'Parent', string $paperOrientation = Creator::PAPERORIENTATION_LANDSCAPE)
     {
         if (($tblPerson = Person::useService()->getPersonById($PersonId))
             && ($tblYear = Term::useService()->getYearById($YearId))
         ) {
             $Document = new GradebookOverview\GradebookOverview();
-            $pageList[] = $Document->buildPage($tblPerson, $tblYear);
+            $pageList[] = $Document->buildPage($tblPerson, $tblYear, $View);
 
             $File = self::buildDummyFile($Document, array(), $pageList, $paperOrientation);
 
@@ -166,7 +167,7 @@ class Creator extends Extension
                     $Document = new GradebookOverview\GradebookOverview();
                     $documentName = $Document->getName();
 
-                    $pageList[] = $Document->buildPage($tblPerson, $tblYear);
+                    $pageList[] = $Document->buildPage($tblPerson, $tblYear, 'All');
                 }
 
                 if(!empty($pageList)){
@@ -822,12 +823,12 @@ class Creator extends Extension
     }
 
     /**
-     * @param $Data
+     * @param array $Data
      * @param string $paperOrientation
      * @return Stage|string
      * @throws \MOC\V\Core\FileSystem\Exception\FileSystemException
      */
-    public static function createMultiPasswordPdf($Data, $paperOrientation = Creator::PAPERORIENTATION_PORTRAIT)
+    public static function createMultiPasswordPdf(array $Data = array(), string $paperOrientation = Creator::PAPERORIENTATION_PORTRAIT): Stage|string
     {
 
         $multiPassword = new MultiPassword($Data);
@@ -920,6 +921,7 @@ class Creator extends Extension
                     $BasketTypeId
                 );
                 // Summe berechnen
+                $PriceList = Balance::useService()->getItemPriceForMonth($PriceList);
                 $PriceList = Balance::useService()->getSummaryByItemPrice($PriceList);
             } else {
                 $BasketTypeId = $Data['BasketType'];
@@ -932,6 +934,7 @@ class Creator extends Extension
                     isset($Data['DivisionCourse']) ? $Data['DivisionCourse'] : '0',
                     isset($Data['Group']) ? $Data['Group'] : '0'
                 );
+                $PriceList = Balance::useService()->getItemPriceForMonth($PriceList);
             }
 
             if (!empty($PriceList)) {
@@ -976,8 +979,8 @@ class Creator extends Extension
                                     if(isset($Value['InvoiceNumber'])){
                                         $InvoiceNumber = $Value['InvoiceNumber'];
                                     }
-
-                                    $pageList[] = $template->buildPage($tblPersonDebtor, $tblPersonCauser, $TotalPrice, $InvoiceNumber);
+                                    $PriceTable = $Value['PriceTableString']??'';
+                                    $pageList[] = $template->buildPage($tblPersonDebtor, $tblPersonCauser, $TotalPrice, $InvoiceNumber, $PriceTable);
                                 }
                             }
                         }
@@ -1095,33 +1098,31 @@ class Creator extends Extension
      *
      * @return Stage|string
      */
-    public static function createAccountPdf($AccountId = null, $Redirect = true)
+    public static function createAccountPdf($AccountId = null, $IdentificationName = null, $Redirect = true)
     {
         if ($Redirect) {
             return \SPHERE\Application\Api\Education\Certificate\Generator\Creator::displayWaitingPage(
                 '/Api/Document/Standard/Account/Create',
                 array(
                     'AccountId' => $AccountId,
+                    'IdentificationName' => $IdentificationName,
                     'Redirect' => 0
                 )
             );
         }
 
-        if (($tblAccount = GatekeeperAccount::useService()->getAccountById($AccountId))
-            && ($tblIdentification = $tblAccount->getServiceTblIdentification())
-        ) {
+        if (($tblAccount = GatekeeperAccount::useService()->getAccountById($AccountId))) {
             if (($tblPersonAllByAccount = GatekeeperAccount::useService()->getPersonAllByAccount($tblAccount))) {
                 $tblPerson = $tblPersonAllByAccount[0];
             } else {
                 return "Das Benutzerkonto ist keiner Person zugeordnet.";
             }
 
-            if ($tblIdentification->getName() == TblIdentification::NAME_AUTHENTICATOR_APP) {
+            if ($IdentificationName == TblIdentification::NAME_AUTHENTICATOR_APP) {
                 $Document = new AccountApp($tblAccount, $tblPerson);
             } else {
                 $Document = new AccountToken($tblAccount, $tblPerson);
             }
-
 
             $File = self::buildDummyFile($Document, array(), array());
 
@@ -1253,6 +1254,67 @@ class Creator extends Extension
         }
 
         return "Keine Schulbescheinigungen vorhanden!";
+    }
+
+    /**
+     * @param string $DivisionCourseId
+     * @param bool $Redirect
+     *
+     * @return string
+     */
+    public static function createMultiSignOutCertificatePdf(string $DivisionCourseId, bool $Redirect): string
+    {
+        if ($Redirect) {
+            return \SPHERE\Application\Api\Education\Certificate\Generator\Creator::displayWaitingPage(
+                '/Api/Document/Standard/SignOutCertificate/CreateMulti',
+                array(
+                    'DivisionCourseId' => $DivisionCourseId,
+                    'Redirect' => 0
+                )
+            );
+        }
+
+        if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))
+            && ($tblYear = $tblDivisionCourse->getServiceTblYear())
+        ) {
+            // Filepointer auf dem der Merge durchgeführt wird, (download)
+            $MergeFile = Storage::createFilePointer('pdf');
+            $PdfMerger = new PdfMerge();
+
+            if(($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses())){
+                $FileList = array();
+                foreach ($tblPersonList as $tblPerson) {
+                    set_time_limit(300);
+
+                    $Document = new SignOutCertificate(\SPHERE\Application\Document\Standard\SignOutCertificate\SignOutCertificate::useService()
+                        ->getSignOutCertificateData($tblPerson, $tblYear));
+                    $File = self::buildDummyFile($Document, array(), array());
+
+                    // hinzufügen für das mergen
+                    $PdfMerger->addPdf($File);
+                    // speichern der Files zum nachträglichem bereinigen
+                    $FileList[] = $File;
+                }
+
+                // mergen aller hinzugefügten PDF-Datein
+                $PdfMerger->mergePdf($MergeFile);
+                if(!empty($FileList)){
+                    // aufräumen der Temp-Files
+                    /** @var FilePointer $File */
+                    foreach($FileList as $File){
+                        $File->setDestruct();
+                    }
+                }
+
+                if (!empty($FileList)) {
+                    $FileName = 'Abmeldebescheinigung Kurs ' . $tblDivisionCourse->getName() . ' ' . date("Y-m-d") . ".pdf";
+
+                    return self::buildDownloadFile($MergeFile, $FileName);
+                }
+            }
+        }
+
+        return "Keine Abmeldebescheinigung vorhanden!";
     }
 
     /**

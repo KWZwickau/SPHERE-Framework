@@ -19,6 +19,7 @@ class TblItem extends Element
 {
 
     const ATTR_NAME = 'Name';
+    const ATTR_IS_ACTIVE = 'IsActive';
 
     /**
      * @Column(type="string")
@@ -60,6 +61,10 @@ class TblItem extends Element
      * @Column(type="string")
      */
     protected $BuKey;
+    /**
+     * @Column(type="boolean")
+     */
+    protected $IsActive;
 
     /**
      * @return string
@@ -317,5 +322,24 @@ class TblItem extends Element
     public function setBuKey($BuKey = '')
     {
         $this->BuKey = $BuKey;
+    }
+
+    /**
+     * @param bool $ignoreDefault
+     *
+     * @return string
+     */
+    public function getIsActive()
+    {
+
+        return $this->IsActive;
+    }
+
+    /**
+     * @param string $IsActive
+     */
+    public function setIsActive($IsActive = false)
+    {
+        $this->IsActive = $IsActive;
     }
 }

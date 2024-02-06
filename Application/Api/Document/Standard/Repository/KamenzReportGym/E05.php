@@ -36,6 +36,7 @@ class E05
             ->addSection((new Section())
                 ->addElementColumn((new Element())
                     ->setContent('Teilnahme am Unterricht im Fach')
+                    ->styleAlignCenter()
                     ->styleBorderRight()
                     ->stylePaddingTop('8.6px')
                     ->stylePaddingBottom('8.5px'), '30%'
@@ -44,38 +45,46 @@ class E05
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('Klassenstufe')
+                            ->styleAlignCenter()
                             ->styleBorderRight()
                         )
                     )
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('5')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '10%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('6')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '10%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('7')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '10%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('8')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '10%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('9')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '10%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('10')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '10%'
                         )
                     ), '60%'
                 )
                 ->addElementColumn((new Element())
                     ->setContent('Insgesamt')
+                    ->styleAlignCenter()
                     ->styleTextBold()
                     ->stylePaddingTop('8.6px')
                     ->stylePaddingBottom('8.5px'), '10%'
@@ -93,6 +102,7 @@ class E05
                                 &nbsp;
                             {% endif %}
                         ')
+                    ->styleAlignCenter()
                     ->styleBackgroundColor('lightgrey')
                     ->styleBorderRight(), '30%'
                 );
@@ -106,6 +116,7 @@ class E05
                                 &nbsp;
                             {% endif %}
                         ')
+                        ->styleAlignCenter()
                         ->styleBorderRight(), '10%'
                     );
             }
@@ -118,6 +129,7 @@ class E05
                                 &nbsp;
                             {% endif %}
                         ')
+                    ->styleAlignCenter()
                     ->styleBackgroundColor('lightgrey')
                     ->styleTextBold(), '10%'
                 );
@@ -138,6 +150,7 @@ class E05
         $section
             ->addElementColumn((new Element())
                 ->setContent('Insgesamt')
+                ->styleAlignCenter()
                 ->styleBackgroundColor('lightgrey')
                 ->styleBorderRight(), '30%'
             );
@@ -152,6 +165,7 @@ class E05
                                 &nbsp;
                             {% endif %}
                         ')
+                    ->styleAlignCenter()
                     ->styleBorderRight(), '10%'
                 );
         }
@@ -159,6 +173,7 @@ class E05
         $section
             ->addElementColumn((new Element())
                 ->setContent('&nbsp;')
+                ->styleAlignCenter()
                 ->styleBackgroundColor('lightgrey'), '10%'
             );
 

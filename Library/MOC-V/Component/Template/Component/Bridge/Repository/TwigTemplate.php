@@ -5,6 +5,16 @@ use MOC\V\Component\Template\Component\Bridge\Bridge;
 use MOC\V\Component\Template\Component\IBridgeInterface;
 use MOC\V\Component\Template\Component\Parameter\Repository\FileParameter;
 use MOC\V\Core\AutoLoader\AutoLoader;
+use SPHERE\System\Extension\Repository\Debugger;
+use Twig\Environment;
+use Twig\Error\LoaderError;
+use Twig\Error\RuntimeError;
+use Twig\Error\SyntaxError;
+use Twig\Extension\DebugExtension;
+use Twig\Loader\ArrayLoader;
+use Twig\Loader\FilesystemLoader;
+//use Twig\Twig_SimpleFunction;
+use Twig\TwigFilter;
 use Umpirsky\Twig\Extension\PhpFunctionExtension;
 
 /**
@@ -15,12 +25,14 @@ use Umpirsky\Twig\Extension\PhpFunctionExtension;
 class TwigTemplate extends Bridge implements IBridgeInterface
 {
 
-    /** @var null|\Twig_Environment $Instance */
-    private $Instance = null;
+    /** @var null|Environment Environment */
+    private $Environment = null;
     /** @var null|\Twig_Template $Template */
     private $Template = null;
-    /** @var null|\Twig_LoaderInterface */
+    /** @var null|FilesystemLoader */
     private $Loader = null;
+    /** @var null|ArrayLoader[] */
+    private $ArrayLoader = null;
 
     /**
      *
@@ -28,15 +40,18 @@ class TwigTemplate extends Bridge implements IBridgeInterface
     public function __construct()
     {
 
-        require_once( __DIR__.'/../../../Vendor/Twig/lib/Twig/Autoloader.php' );
-        \Twig_Autoloader::register();
+        require_once(__DIR__.'/../../../../../Php8Combined/vendor/autoload.php');
+//         require_once( __DIR__.'/../../../Vendor/Twig/3.7.0/vendor/autoload.php' );
+//        require_once( __DIR__.'/../../../Vendor/Twig/1.16.0/lib/Twig/Autoloader.php' );
+//        \Twig_Autoloader::register();
+//        $Test = new Twig_SimpleFunction('Test', true);
 
         AutoLoader::getNamespaceAutoLoader(
             'Umpirsky\Twig\Extension',
             __DIR__.'/../../../Vendor/TwigExtension/TwigPHPFunction/0.0.0/src'
         );
-
-        $this->Loader = new \Twig_Loader_String();
+//        $this->ArrayLoader = new ArrayLoader(array(__DIR__.'/TwigTemplate'));
+//        $this->Loader = new FilesystemLoader(__DIR__.'/TwigTemplate');
     }
 
     /**
@@ -44,53 +59,84 @@ class TwigTemplate extends Bridge implements IBridgeInterface
      * @param bool   $Reload
      *
      * @return IBridgeInterface
+     * @throws LoaderError
+     * @throws RuntimeError
+     * @throws SyntaxError
      */
-    public function loadString($String, $Reload = false)
+    public function loadString($String, $Reload = false):IBridgeInterface
     {
 
-        $this->Loader = new \Twig_Loader_String();
+        // toDO SR
+//        Debugger::screenDump(Debugger::getCallingFunctionName(true));
+//        Debugger::screenDump($String);
+//        $this->Loader = new FilesystemLoader($String);
+        $this->Loader = new ArrayLoader();
+//        $this->Loader = new FilesystemLoader('');
+
+
+//        $this->Loader = new ArrayLoader(array(dirname($String)));
+//        $this->Template = $this->Instance->loadTemplate($String);
         $this->createInstance($Reload);
-        $this->Template = $this->Instance->loadTemplate($String);
+
+//        if($String == '/var/www/Common/Frontend/Ajax/Receiver'){
+//            $String = 'ModalReceiver.twig';
+//        }
+//
+//        if($String == '/var/www/Common/Frontend/Form/Repository/Field'){
+//            $String = 'SelectBox.twig';
+//        }
+
+        $this->Template = $this->Instance->createTemplate($String);
         return $this;
     }
 
     /**
      * @param bool|false $Reload
      *
-     * @return \Twig_Environment
+     * @return Environment
      */
     public function createInstance($Reload = false)
     {
 
-        $this->Instance = new \Twig_Environment(
-            $this->Loader,
-            array('auto_reload' => $Reload, 'autoescape' => false, 'cache' => realpath(__DIR__.'/TwigTemplate'))
-        );
-        $this->Instance->addFilter(new \Twig_SimpleFilter('utf8_encode', 'utf8_encode'));
-        $this->Instance->addFilter(new \Twig_SimpleFilter('utf8_decode', 'utf8_decode'));
+        $this->Environment = new Environment($this->Loader, ['Cache' => __DIR__.'/TwigTemplate']);
+
+        $this->Instance = new Environment($this->Loader, [
+            'auto_reload' => $Reload,
+            'autoescape' => false,
+            'cache' => realpath(__DIR__.'/TwigTemplate'),
+        ]);
+
+        $this->Instance->addFilter(new TwigFilter('utf8_encode', 'utf8_encode'));
+        $this->Instance->addFilter(new TwigFilter('utf8_decode', 'utf8_decode'));
         $this->Instance->addExtension(new PhpFunctionExtension());
-        $this->Instance->addExtension(new \Twig_Extension_Debug());
+        $this->Instance->addExtension(new DebugExtension());
 
         return $this->Instance;
     }
 
     /**
      * @param FileParameter $Location
-     * @param bool          $Reload
+     * @param               $Reload
      *
-     * @return IBridgeInterface
+     * @return $this|IBridgeInterface
+     * @throws LoaderError
+     * @throws RuntimeError
+     * @throws SyntaxError
      */
     public function loadFile(FileParameter $Location, $Reload = false)
     {
 
-        $this->Loader = new \Twig_Loader_Filesystem(array(dirname($Location->getFile())));
+        $this->Loader = new FilesystemLoader(dirname($Location->getFile()), basename($Location->getFile()));
+//        $this->Loader = new ArrayLoader(array(basename($Location->getFile()) => $Location->getFile()));
+//        $this->Template = $this->Instance->loadTemplate(basename($Location->getFile()));
         $this->createInstance($Reload);
-        $this->Template = $this->Instance->loadTemplate(basename($Location->getFile()));
+        $this->Template = $this->Instance->load(basename($Location->getFile()));
         return $this;
     }
 
     /**
-     * @return string
+     * @return false|string
+     * @throws \Exception
      */
     public function getContent()
     {

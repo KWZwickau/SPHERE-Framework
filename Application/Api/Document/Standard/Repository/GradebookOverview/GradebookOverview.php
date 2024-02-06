@@ -31,16 +31,17 @@ class GradebookOverview extends AbstractDocument
     }
 
     /**
-     * @param TblPerson   $tblPerson
+     * @param TblPerson $tblPerson
      * @param TblYear $tblYear
+     * @param string $View
      *
      * @return Page
      */
-    public function buildPage(TblPerson $tblPerson, TblYear $tblYear): Page
+    public function buildPage(TblPerson $tblPerson, TblYear $tblYear, string $View = 'Parent'): Page
     {
         return (new Page())
             ->addSlice($this->getPageHeaderSlice($tblPerson, $tblYear))
-            ->addSlice($this->getGradebookOverviewSlice($tblPerson, $tblYear));
+            ->addSlice($this->getGradebookOverviewSlice($tblPerson, $tblYear, $View));
     }
 
     /**
@@ -115,15 +116,16 @@ class GradebookOverview extends AbstractDocument
     }
 
     /**
-     * @param TblPerson   $tblPerson
-     * @param TblYear     $tblYear
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     * @param string $View
      *
      * @return Slice
      */
-    public function getGradebookOverviewSlice(TblPerson $tblPerson, TblYear $tblYear): Slice
+    public function getGradebookOverviewSlice(TblPerson $tblPerson, TblYear $tblYear, string $View): Slice
     {
         if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))) {
-            return Grade::useService()->getStudentOverviewDataByPerson($tblPerson, $tblYear, $tblStudentEducation, false, true);
+            return Grade::useService()->getStudentOverviewDataByPerson($tblPerson, $tblYear, $tblStudentEducation, $View == 'Parent', true);
         }
 
         return new Slice();

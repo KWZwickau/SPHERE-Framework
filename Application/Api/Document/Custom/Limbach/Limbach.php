@@ -26,7 +26,7 @@ class Limbach extends Extension implements IModuleInterface
      *
      * @return \SPHERE\Common\Window\Stage|string
      */
-    public static function createSchoolContractPdf($PersonId = null, $Data)
+    public static function createSchoolContractPdf($PersonId = null, $Data = array())
     {
 
         return Creator::createPdf($PersonId, __NAMESPACE__.'\Repository\SchoolContract', Creator::PAPERORIENTATION_PORTRAIT, $Data);

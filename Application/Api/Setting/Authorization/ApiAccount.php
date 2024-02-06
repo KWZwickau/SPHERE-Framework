@@ -6,6 +6,7 @@ use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\IApiInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblIdentification;
 use SPHERE\Application\Setting\Authorization\Account\Account;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
@@ -206,28 +207,10 @@ class ApiAccount  extends Extension implements IApiInterface
                     if (($tblAccount = Account::useService()->getAccountById($AccountId))) {
                         // bei Rolle nur für Hardware-Token, Benutzerkonten ohne entsprechenden Ausfiltern
                         // wird auch schon über das Frontend ausgefiltert
-                        if ($tblRole->isSecure()
-                            && ($tblIdentification = $tblAccount->getServiceTblIdentification())
+                        if (!$tblRole->isSecure()
+                            || $tblAccount->getHasAuthentication(TblIdentification::NAME_AUTHENTICATOR_APP)
+                            || ($tblAccount->getHasAuthentication(TblIdentification::NAME_TOKEN) && $tblAccount->getServiceTblToken())
                         ) {
-                            switch ($tblIdentification->getName()) {
-                                case 'AuthenticatorApp':
-                                    $isAdd = true;
-                                    break;
-                                case 'Token':
-                                    // Token muss gesetzt sein
-                                    if ($tblAccount->getServiceTblToken()) {
-                                        $isAdd = true;
-                                    } else {
-                                        $isAdd = false;
-                                    }
-                                    break;
-                                default : $isAdd = false;
-                            }
-                        } else {
-                            $isAdd = true;
-                        }
-
-                        if ($isAdd) {
                             $tblAccountList[] = $tblAccount;
                         }
                     }

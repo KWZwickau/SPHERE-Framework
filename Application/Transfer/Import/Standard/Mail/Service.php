@@ -4,7 +4,7 @@ namespace SPHERE\Application\Transfer\Import\Standard\Mail;
 
 use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel;
 use MOC\V\Component\Document\Document;
-use PHPExcel_Shared_Date;
+use PhpOffice\PhpSpreadsheet\Shared\Date;
 use SPHERE\Application\Contact\Mail\Mail as MailAlias;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Student\Student;
@@ -150,7 +150,7 @@ class Service
                             $len = strlen($birthday);
                             switch ($len) {
                                 case 5:
-                                    $birthday = date('d.m.Y', \PHPExcel_Shared_Date::ExcelToPHP($birthday));
+                                    $birthday = date('d.m.Y', Date::excelToTimestamp($birthday));
                                     break;
                                 case 6:
                                     $birthday = substr($birthday, 0, 2).'.'.substr($birthday, 2, 2).'.'.substr($birthday, 4, 2);

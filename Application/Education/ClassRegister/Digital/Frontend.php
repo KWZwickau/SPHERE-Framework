@@ -1037,6 +1037,9 @@ class Frontend extends FrontendTabs
             $saveButton = (new Primary('Speichern', ApiDigital::getEndpoint(), new Save()))
                 ->ajaxPipelineOnClick(ApiDigital::pipelineEditLessonContentSave($LessonContentId));
         } else {
+            if(null === $Date){
+                $Date = 'now';
+            }
             // befüllen bei neuen Einträge aus dem importierten Stundenplan
             if ($Date && $Lesson
                 && ($tblLessonContentTempList = Timetable::useService()->getLessonContentListFromTimeTableNodeWithReplacementBy(

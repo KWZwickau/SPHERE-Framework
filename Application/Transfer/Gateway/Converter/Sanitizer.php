@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\Transfer\Gateway\Converter;
 
+use PhpOffice\PhpSpreadsheet\Shared\Date;
 use SPHERE\System\Extension\Extension;
 
 /**
@@ -19,7 +20,10 @@ class Sanitizer extends Extension
     protected function sanitizeFullTrim($Value)
     {
 
-        return trim($Value);
+        if(null !== $Value){
+            return trim($Value);
+        }
+        return null;
     }
 
     /**
@@ -75,7 +79,7 @@ class Sanitizer extends Extension
             throw new \Exception('Schüler: Geburtstag darf nicht leer sein');
         }
 
-        return date('d.m.Y', \PHPExcel_Shared_Date::ExcelToPHP($Value));
+        return date('d.m.Y', Date::excelToTimestamp($Value));
     }
 
     /**

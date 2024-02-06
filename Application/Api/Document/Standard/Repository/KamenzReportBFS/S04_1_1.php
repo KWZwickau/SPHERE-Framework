@@ -69,6 +69,7 @@ class S04_1_1
             $sectionLevel
                 ->addElementColumn((new Element())
                     ->setContent($i)
+                    ->styleAlignCenter()
                     ->styleBorderRight()
                     , (floatval(100) / floatval($maxLevel)) . '%' );
         }
@@ -83,12 +84,14 @@ class S04_1_1
             ->addSection((new Section())
                 ->addElementColumn((new Element())
                     ->setContent('Ausbildungsstatus')
+                    ->styleAlignCenter()
                     ->styleBorderRight()
                     ->stylePaddingTop($paddingTop)
                     ->stylePaddingBottom($paddingBottom)
                     , $width[0])
                 ->addElementColumn((new Element())
                     ->setContent('Anzahl der Fremdsprachen')
+                    ->styleAlignCenter()
                     ->styleBorderRight()
                     ->stylePaddingTop($paddingTop)
                     ->stylePaddingBottom($paddingBottom)
@@ -96,6 +99,7 @@ class S04_1_1
                 ->addSliceColumn((new Slice())
                     ->addElement((new Element())
                         ->setContent('Schüler in Klassenstufe')
+                        ->styleAlignCenter()
                         ->styleBorderRight()
                         ->styleBorderBottom()
                     )
@@ -105,6 +109,7 @@ class S04_1_1
                     ->styleTextBold()
                     ->addElement((new Element())
                         ->setContent('Insgesamt')
+                        ->styleAlignCenter()
                         ->stylePaddingTop($paddingTop)
                         ->stylePaddingBottom($paddingBottom)
                     )
@@ -134,6 +139,7 @@ class S04_1_1
         $section
             ->addElementColumn((new Element())
                 ->setContent($type == 'Student' ? 'Auszubildende/Schüler' : 'Umschüler')
+                ->styleAlignCenter()
                 ->styleBackgroundColor('lightgrey')
                 ->styleBorderBottom()
                 ->styleBorderRight()
@@ -158,6 +164,7 @@ class S04_1_1
             $sectionLine
                 ->addElementColumn((new Element())
                     ->setContent($text)
+                    ->styleAlignCenter()
                     ->styleTextBold()
                     ->styleBackgroundColor('lightgrey')
                     ->styleBorderBottom()
@@ -174,6 +181,7 @@ class S04_1_1
                                 &nbsp;
                             {% endif %}
                         ')
+                        ->styleAlignCenter()
                         ->styleTextBold($text == 'Insgesamt' ? 'bold' : 'normal')
                         ->styleBackgroundColor($text == 'Insgesamt' ? 'lightgrey' : 'white')
                         ->styleBorderRight()
@@ -190,6 +198,7 @@ class S04_1_1
                                 &nbsp;
                             {% endif %}
                         ')
+                    ->styleAlignCenter()
                     ->styleTextBold()
                     ->styleBackgroundColor('lightgrey')
                     ->styleBorderBottom()

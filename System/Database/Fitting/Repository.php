@@ -2,7 +2,7 @@
 namespace SPHERE\System\Database\Fitting;
 
 use Doctrine\Common\Collections\Selectable;
-use Doctrine\Common\Persistence\ObjectRepository;
+use Doctrine\Persistence\ObjectRepository;
 use Doctrine\ORM\EntityRepository;
 
 /**
@@ -16,7 +16,7 @@ class Repository extends EntityRepository implements ObjectRepository, Selectabl
     /**
      * @return int
      */
-    public function count()
+    public function count(array $criteria = array())
     {
 
         $Builder = $this->createQueryBuilder('e');

@@ -286,7 +286,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new Success('Import wurde erfolgreich durchgeführt.')
                     ),
                     new LayoutColumn(
-                        new Redirect('/Billing/Inventory', Redirect::TIMEOUT_SUCCESS)
+                        new Redirect('/Billing/Inventory/Import', Redirect::TIMEOUT_SUCCESS)
                     )
                 ))
             )

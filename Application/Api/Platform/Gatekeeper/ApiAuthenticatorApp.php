@@ -127,7 +127,6 @@ class ApiAuthenticatorApp extends Extension implements IApiInterface
         }
 
         $twoFactorApp = new TwoFactorApp();
-
         return
             new Title('QR-Code für ' . $tblAccount->getUsername())
 //            . new Center('<img src="' . $twoFactorApp->getQRCodeImageAsDataUri($secret) . '">');

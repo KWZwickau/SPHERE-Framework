@@ -6,6 +6,7 @@
 
 namespace SPHERE\Application\Billing\Inventory\Import;
 
+use PhpOffice\PhpSpreadsheet\Shared\Date;
 use SPHERE\Application\Billing\Accounting\Debtor\Debtor;
 use SPHERE\Application\Billing\Inventory\Item\Item;
 use SPHERE\Application\Billing\Inventory\Setting\Service\Entity\TblSetting;
@@ -469,7 +470,7 @@ class ImportGateway extends AbstractConverter
             $len = strlen($Value);
             switch ($len) {
                 case 5:
-                    $result = date('d.m.Y', \PHPExcel_Shared_Date::ExcelToPHP($Value));
+                    $result = date('d.m.Y', Date::excelToTimestamp($Value));
                     break;
                 case 6:
                     $result = substr($Value, 0, 2) . '.' . substr($Value, 2, 2) . '.' . substr($Value, 4, 2);

@@ -2,10 +2,9 @@
 namespace SPHERE\Application\Transfer\Import\Standard;
 
 use DateTime;
-use Exception;
 use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel;
 use MOC\V\Component\Document\Document;
-use PHPExcel_Shared_Date;
+use PhpOffice\PhpSpreadsheet\Shared\Date;
 use SPHERE\Application\Billing\Accounting\Debtor\Debtor;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Mail\Mail;
@@ -1918,12 +1917,12 @@ class Service
 
         // phone/mobile
         if($emergencyPhone){
-            $tblType = Phone::useService()->getTypeByNameAndDescription(TblTypePhone::VALUE_NAME_EMERCENCY, TblTypePhone::VALUE_DESCRIPTION_PHONE);
-            Phone::useService()->insertPhoneToPerson($tblPerson, $emergencyPhone, $tblType, '');
+            $tblType = Phone::useService()->getTypeByNameAndDescription(TblTypePhone::VALUE_NAME_PRIVATE, TblTypePhone::VALUE_DESCRIPTION_PHONE);
+            Phone::useService()->insertPhoneToPerson($tblPerson, $emergencyPhone, $tblType, '', true);
         }
         if($emergencyMobile){
-            $tblType = Phone::useService()->getTypeByNameAndDescription(TblTypePhone::VALUE_NAME_EMERCENCY, TblTypePhone::VALUE_DESCRIPTION_MOBILE);
-            Phone::useService()->insertPhoneToPerson($tblPerson, $emergencyMobile, $tblType, '');
+            $tblType = Phone::useService()->getTypeByNameAndDescription(TblTypePhone::VALUE_NAME_PRIVATE, TblTypePhone::VALUE_DESCRIPTION_MOBILE);
+            Phone::useService()->insertPhoneToPerson($tblPerson, $emergencyMobile, $tblType, '', true);
         }
         if($privatePhone){
             $tblType = Phone::useService()->getTypeByNameAndDescription(TblTypePhone::VALUE_NAME_PRIVATE, TblTypePhone::VALUE_DESCRIPTION_PHONE);
@@ -2100,7 +2099,7 @@ class Service
             $len = strlen($Date);
             switch ($len) {
                 case 5:
-                    $result = date('d.m.Y', \PHPExcel_Shared_Date::ExcelToPHP($Date));
+                    $result = date('d.m.Y', Date::excelToTimestamp($Date));
                     break;
                 case 6:
                     $result = substr($Date, 0, 2).'.'.substr($Date, 2, 2).'.'.substr($Date, 4, 2);

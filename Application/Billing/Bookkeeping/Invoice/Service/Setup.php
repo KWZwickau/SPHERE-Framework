@@ -112,6 +112,7 @@ class Setup extends AbstractSetup
         $this->createColumn($Table, 'IBAN', self::FIELD_TYPE_STRING);
         $this->createColumn($Table, 'BIC', self::FIELD_TYPE_STRING);
         $this->createColumn($Table, 'IsPaid', self::FIELD_TYPE_BOOLEAN);
+        $this->createColumn($Table, 'IsHistory', self::FIELD_TYPE_BOOLEAN, false, false);
         $this->createColumn($Table, 'serviceTblItem', self::FIELD_TYPE_BIGINT, true);
         $this->createColumn($Table, 'serviceTblPersonDebtor', self::FIELD_TYPE_BIGINT, true);
         $this->createColumn($Table, 'serviceTblBankReference', self::FIELD_TYPE_BIGINT, true);

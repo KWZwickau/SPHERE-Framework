@@ -4,7 +4,9 @@ namespace SPHERE\Application\Transfer\Gateway\Converter;
 use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel;
 use MOC\V\Component\Document\Document;
 use MOC\V\Component\Document\Exception\DocumentTypeException;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use SPHERE\Application\Transfer\Gateway\Structure\AbstractStructure;
+use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class AbstractConverter
@@ -75,8 +77,8 @@ abstract class AbstractConverter extends Sanitizer
         for ($RunHeight = ( 1 + $Offset ); $RunHeight <= ( $Length ? ( $Offset + $Length ) : $this->SizeHeight ); $RunHeight++) {
 
             $Payload = array();
-            for ($RunWidth = 0; $RunWidth < $this->SizeWidth; $RunWidth++) {
-                $Column = \PHPExcel_Cell::stringFromColumnIndex($RunWidth);
+            for ($RunWidth = 1; $RunWidth < $this->SizeWidth; $RunWidth++) {
+                $Column = Coordinate::stringFromColumnIndex($RunWidth);
                 $Value = $this->Document->getValue($this->Document->getCell($Column.$RunHeight));
                 if (isset( $this->FieldPointer[$Column] )) {
                     $PointerList = $this->FieldPointer[$Column];

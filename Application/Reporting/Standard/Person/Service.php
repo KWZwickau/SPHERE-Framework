@@ -9,7 +9,9 @@ use MOC\V\Component\Document\Component\Parameter\Repository\PaperSizeParameter;
 use MOC\V\Component\Document\Document;
 use MOC\V\Component\Document\Exception\DocumentTypeException;
 use MOC\V\Core\FileSystem\Component\Exception\Repository\TypeFileException;
-use PHPExcel_Cell_DataType;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Mail\Mail;
 use SPHERE\Application\Contact\Mail\Service\Entity\TblType as TblTypeMail;
@@ -41,8 +43,13 @@ use SPHERE\Application\People\Relationship\Service\Entity\TblToPerson as TblToPe
 use SPHERE\Application\People\Relationship\Service\Entity\TblType;
 use SPHERE\Common\Frontend\Link\Repository\Mailto;
 use SPHERE\System\Extension\Extension;
+use SPHERE\System\Extension\Repository\Debugger;
 use SPHERE\System\Extension\Repository\Sorter\StringGermanOrderSorter;
 use SPHERE\System\Extension\Repository\Sorter\StringNaturalOrderSorter;
+
+require_once(__DIR__.DIRECTORY_SEPARATOR.'../../../../Library/MOC-V/Component/Document/Vendor/PhpSpreadSheet/1.29.0/vendor/autoload.php');
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 /**
  * Class Service
@@ -80,19 +87,15 @@ class Service extends Extension
             $secureList = array();
             $faxList = array();
             foreach ($tblToPersonList as $tblToPerson) {
-                if($tblToPerson->getTblType()->getName() == 'Privat'){
+                if ($tblToPerson->getIsEmergencyContact()) {
+                    $secureList[] = $tblToPerson->getTblPhone()->getNumber() . ($IsExcel ? ' ' : '&nbsp;') . Phone::useService()->getPhoneTypeShort($tblToPerson);
+                } elseif ($tblToPerson->getTblType()->getName() == 'Privat') {
                     $privateList[] = $tblToPerson->getTblPhone()->getNumber().($IsExcel ? ' ' : '&nbsp;').
                         Phone::useService()->getPhoneTypeShort($tblToPerson);
-                }
-                if($tblToPerson->getTblType()->getName() == 'Geschäftlich'){
-                    $companyList[] = $tblToPerson->getTblPhone()->getNumber().($IsExcel ? ' ' : '&nbsp;').
+                } elseif($tblToPerson->getTblType()->getName() == 'Geschäftlich') {
+                    $companyList[] = $tblToPerson->getTblPhone()->getNumber() . ($IsExcel ? ' ' : '&nbsp;') .
                         Phone::useService()->getPhoneTypeShort($tblToPerson);
-                }
-                if($tblToPerson->getTblType()->getName() == 'Notfall'){
-                    $secureList[] = $tblToPerson->getTblPhone()->getNumber().($IsExcel ? ' ' : '&nbsp;').
-                        Phone::useService()->getPhoneTypeShort($tblToPerson);
-                }
-                if($tblToPerson->getTblType()->getName() == 'Fax'){
+                } elseif($tblToPerson->getTblType()->getName() == 'Fax'){
                     $faxList[] = $tblToPerson->getTblPhone()->getNumber().($IsExcel ? ' ' : '&nbsp;').
                         Phone::useService()->getPhoneTypeShort($tblToPerson);
                 }
@@ -290,7 +293,7 @@ class Service extends Extension
         foreach($tblPersonList as $tblPerson){
             if($tblYear = $tblDivisionCourse->getServiceTblYear()){
                 $tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear);
-                if(($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())){
+                if($tblStudentEducation && ($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())){
                     $LevelList[$tblSchoolType->getName()][$tblStudentEducation->getLevel()] = $tblStudentEducation->getLevel();
                 }
             }
@@ -327,7 +330,6 @@ class Service extends Extension
         $fileLocation = Storage::createFilePointer('xlsx');
         $row = 0;
         $Column = 0;
-        /** @var PhpExcel $export */
         $export = Document::getDocument($fileLocation->getFileLocation());
         $export->setValue($export->getCell($Column++, $row), "lfd.Nr.");
         $export->setValue($export->getCell($Column++, $row), "Name");
@@ -1943,7 +1945,7 @@ class Service extends Extension
                         // don't display if empty
                         if ($PersonData[$Key] != '') {
                             $export->setValue($export->getCell($Column, $Row), $PersonData[$Key],
-                                PHPExcel_Cell_DataType::TYPE_NUMERIC);
+                                DataType::TYPE_NUMERIC);
                         }
                     } else {
                         $export->setValue($export->getCell($Column, $Row), $PersonData[$Key]);
@@ -1998,46 +2000,48 @@ class Service extends Extension
                         && ($PhoneName = $tblPhoneType->getName())
                         && ($tblPhone = $tblToPhone->getTblPhone())){
                         if($PhoneDescription == 'Festnetz'){
-                            switch($PhoneName) {
-                                case 'Privat':
-                                    if($Item[$Identifier.'PhoneFixedPrivate']){
-                                        $Item[$Identifier.'PhoneFixedPrivate'] = $Item[$Identifier.'PhoneFixedPrivate'].', ';
-                                    }
-                                    $Item[$Identifier.'PhoneFixedPrivate'] = $tblPhone->getNumber();
-                                    break;
-                                case 'Geschäftlich':
-                                    if($Item[$Identifier.'PhoneFixedWork']){
-                                        $Item[$Identifier.'PhoneFixedWork'] = $Item[$Identifier.'PhoneFixedWork'].', ';
-                                    }
-                                    $Item[$Identifier.'PhoneFixedWork'] = $Item[$Identifier.'PhoneFixedWork'].$tblPhone->getNumber();
-                                    break;
-                                case 'Notfall':
-                                    if($Item[$Identifier.'PhoneFixedEmergency']){
-                                        $Item[$Identifier.'PhoneFixedEmergency'] = $Item[$Identifier.'PhoneFixedEmergency'].', ';
-                                    }
-                                    $Item[$Identifier.'PhoneFixedEmergency'] = $Item[$Identifier.'PhoneFixedEmergency'].$tblPhone->getNumber();
-                                    break;
+                            if ($tblToPhone->getIsEmergencyContact()) {
+                                if($Item[$Identifier.'PhoneFixedEmergency']){
+                                    $Item[$Identifier.'PhoneFixedEmergency'] = $Item[$Identifier.'PhoneFixedEmergency'].', ';
+                                }
+                                $Item[$Identifier.'PhoneFixedEmergency'] = $Item[$Identifier.'PhoneFixedEmergency'].$tblPhone->getNumber();
+                            } else {
+                                switch ($PhoneName) {
+                                    case 'Privat':
+                                        if ($Item[$Identifier . 'PhoneFixedPrivate']) {
+                                            $Item[$Identifier . 'PhoneFixedPrivate'] = $Item[$Identifier . 'PhoneFixedPrivate'] . ', ';
+                                        }
+                                        $Item[$Identifier . 'PhoneFixedPrivate'] = $tblPhone->getNumber();
+                                        break;
+                                    case 'Geschäftlich':
+                                        if ($Item[$Identifier . 'PhoneFixedWork']) {
+                                            $Item[$Identifier . 'PhoneFixedWork'] = $Item[$Identifier . 'PhoneFixedWork'] . ', ';
+                                        }
+                                        $Item[$Identifier . 'PhoneFixedWork'] = $Item[$Identifier . 'PhoneFixedWork'] . $tblPhone->getNumber();
+                                        break;
+                                }
                             }
                         } elseif($PhoneDescription == 'Mobil') {
-                            switch($PhoneName) {
-                                case 'Privat':
-                                    if($Item[$Identifier.'PhoneMobilePrivate']){
-                                        $Item[$Identifier.'PhoneMobilePrivate'] = $Item[$Identifier.'PhoneMobilePrivate'].', ';
-                                    }
-                                    $Item[$Identifier.'PhoneMobilePrivate'] = $Item[$Identifier.'PhoneMobilePrivate'].$tblPhone->getNumber();
-                                    break;
-                                case 'Geschäftlich':
-                                    if($Item[$Identifier.'PhoneMobileWork']){
-                                        $Item[$Identifier.'PhoneMobileWork'] = $Item[$Identifier.'PhoneMobileWork'].', ';
-                                    }
-                                    $Item[$Identifier.'PhoneMobileWork'] = $Item[$Identifier.'PhoneMobileWork'].$tblPhone->getNumber();
-                                    break;
-                                case 'Notfall':
-                                    if($Item[$Identifier.'PhoneMobileEmergency']){
-                                        $Item[$Identifier.'PhoneMobileEmergency'] = $Item[$Identifier.'PhoneMobileEmergency'].', ';
-                                    }
-                                    $Item[$Identifier.'PhoneMobileEmergency'] = $Item[$Identifier.'PhoneMobileEmergency'].$tblPhone->getNumber();
-                                    break;
+                            if ($tblToPhone->getIsEmergencyContact()) {
+                                if($Item[$Identifier.'PhoneMobileEmergency']){
+                                    $Item[$Identifier.'PhoneMobileEmergency'] = $Item[$Identifier.'PhoneMobileEmergency'].', ';
+                                }
+                                $Item[$Identifier.'PhoneMobileEmergency'] = $Item[$Identifier.'PhoneMobileEmergency'].$tblPhone->getNumber();
+                            } else {
+                                switch ($PhoneName) {
+                                    case 'Privat':
+                                        if ($Item[$Identifier . 'PhoneMobilePrivate']) {
+                                            $Item[$Identifier . 'PhoneMobilePrivate'] = $Item[$Identifier . 'PhoneMobilePrivate'] . ', ';
+                                        }
+                                        $Item[$Identifier . 'PhoneMobilePrivate'] = $Item[$Identifier . 'PhoneMobilePrivate'] . $tblPhone->getNumber();
+                                        break;
+                                    case 'Geschäftlich':
+                                        if ($Item[$Identifier . 'PhoneMobileWork']) {
+                                            $Item[$Identifier . 'PhoneMobileWork'] = $Item[$Identifier . 'PhoneMobileWork'] . ', ';
+                                        }
+                                        $Item[$Identifier . 'PhoneMobileWork'] = $Item[$Identifier . 'PhoneMobileWork'] . $tblPhone->getNumber();
+                                        break;
+                                }
                             }
                         }
                     }
@@ -2263,64 +2267,66 @@ class Service extends Extension
                     && ($PhoneName = $tblPhoneType->getName())
                     && ($tblPhone = $tblToPerson->getTblPhone())) {
                         if ($PhoneDescription == 'Festnetz') {
-                            switch ($PhoneName) {
-                                case 'Privat':
-                                    if (empty($item['PhoneFixedPrivate'])) {
-                                        $item['PhoneFixedPrivate'] = $tblPhone->getNumber()
-                                            . ($tblToPerson->getRemark() ? ' (' . $tblToPerson->getRemark() . ')' : '');
-                                    } else {
-                                        $item['PhoneFixedPrivate'] = $item['PhoneFixedPrivate'].', ' . $tblPhone->getNumber()
-                                            . ($tblToPerson->getRemark() ? ' (' . $tblToPerson->getRemark() . ')' : '');
-                                    }
-                                    break;
-                                case 'Geschäftlich':
-                                    if (empty($item['PhoneFixedWork'])) {
-                                        $item['PhoneFixedWork'] = $tblPhone->getNumber()
-                                            . ($tblToPerson->getRemark() ? ' (' . $tblToPerson->getRemark() . ')' : '');
-                                    } else {
-                                        $item['PhoneFixedWork'] = $item['PhoneFixedWork'].', ' . $tblPhone->getNumber()
-                                            . ($tblToPerson->getRemark() ? ' (' . $tblToPerson->getRemark() . ')' : '');
-                                    }
-                                    break;
-                                case 'Notfall':
-                                    if (empty($item['PhoneFixedEmergency'])) {
-                                        $item['PhoneFixedEmergency'] = $tblPhone->getNumber()
-                                            . ($tblToPerson->getRemark() ? ' (' . $tblToPerson->getRemark() . ')' : '');
-                                    } else {
-                                        $item['PhoneFixedEmergency'] = $item['PhoneFixedEmergency'].', ' . $tblPhone->getNumber()
-                                            . ($tblToPerson->getRemark() ? ' (' . $tblToPerson->getRemark() . ')' : '');
-                                    }
-                                    break;
+                            if ($tblToPerson->getIsEmergencyContact()) {
+                                if (empty($item['PhoneFixedEmergency'])) {
+                                    $item['PhoneFixedEmergency'] = $tblPhone->getNumber()
+                                        . ($tblToPerson->getRemark() ? ' (' . $tblToPerson->getRemark() . ')' : '');
+                                } else {
+                                    $item['PhoneFixedEmergency'] = $item['PhoneFixedEmergency'] . ', ' . $tblPhone->getNumber()
+                                        . ($tblToPerson->getRemark() ? ' (' . $tblToPerson->getRemark() . ')' : '');
+                                }
+                            } else {
+                                switch ($PhoneName) {
+                                    case 'Privat':
+                                        if (empty($item['PhoneFixedPrivate'])) {
+                                            $item['PhoneFixedPrivate'] = $tblPhone->getNumber()
+                                                . ($tblToPerson->getRemark() ? ' (' . $tblToPerson->getRemark() . ')' : '');
+                                        } else {
+                                            $item['PhoneFixedPrivate'] = $item['PhoneFixedPrivate'] . ', ' . $tblPhone->getNumber()
+                                                . ($tblToPerson->getRemark() ? ' (' . $tblToPerson->getRemark() . ')' : '');
+                                        }
+                                        break;
+                                    case 'Geschäftlich':
+                                        if (empty($item['PhoneFixedWork'])) {
+                                            $item['PhoneFixedWork'] = $tblPhone->getNumber()
+                                                . ($tblToPerson->getRemark() ? ' (' . $tblToPerson->getRemark() . ')' : '');
+                                        } else {
+                                            $item['PhoneFixedWork'] = $item['PhoneFixedWork'] . ', ' . $tblPhone->getNumber()
+                                                . ($tblToPerson->getRemark() ? ' (' . $tblToPerson->getRemark() . ')' : '');
+                                        }
+                                        break;
+                                }
                             }
                         } elseif ($PhoneDescription == 'Mobil') {
-                            switch ($PhoneName) {
-                                case 'Privat':
-                                    if (empty($item['PhoneMobilePrivate'])) {
-                                        $item['PhoneMobilePrivate'] = $tblPhone->getNumber()
-                                            . ($tblToPerson->getRemark() ? ' (' . $tblToPerson->getRemark() . ')' : '');
-                                    } else {
-                                        $item['PhoneMobilePrivate'] = $item['PhoneMobilePrivate'].', ' . $tblPhone->getNumber()
-                                            . ($tblToPerson->getRemark() ? ' (' . $tblToPerson->getRemark() . ')' : '');
-                                    }
-                                    break;
-                                case 'Geschäftlich':
-                                    if (empty($item['PhoneMobileWork'])) {
-                                        $item['PhoneMobileWork'] = $tblPhone->getNumber()
-                                            . ($tblToPerson->getRemark() ? ' (' . $tblToPerson->getRemark() . ')' : '');
-                                    } else {
-                                        $item['PhoneMobileWork'] = $item['PhoneMobileWork'].', ' . $tblPhone->getNumber()
-                                            . ($tblToPerson->getRemark() ? ' (' . $tblToPerson->getRemark() . ')' : '');
-                                    }
-                                    break;
-                                case 'Notfall':
-                                    if (empty($item['PhoneMobileEmergency'])) {
-                                        $item['PhoneMobileEmergency'] = $tblPhone->getNumber()
-                                            . ($tblToPerson->getRemark() ? ' (' . $tblToPerson->getRemark() . ')' : '');
-                                    } else {
-                                        $item['PhoneMobileEmergency'] = $item['PhoneMobileEmergency'].', ' . $tblPhone->getNumber()
-                                            . ($tblToPerson->getRemark() ? ' (' . $tblToPerson->getRemark() . ')' : '');
-                                    }
-                                    break;
+                            if ($tblToPerson->getIsEmergencyContact()) {
+                                if (empty($item['PhoneMobileEmergency'])) {
+                                    $item['PhoneMobileEmergency'] = $tblPhone->getNumber()
+                                        . ($tblToPerson->getRemark() ? ' (' . $tblToPerson->getRemark() . ')' : '');
+                                } else {
+                                    $item['PhoneMobileEmergency'] = $item['PhoneMobileEmergency'] . ', ' . $tblPhone->getNumber()
+                                        . ($tblToPerson->getRemark() ? ' (' . $tblToPerson->getRemark() . ')' : '');
+                                }
+                            } else {
+                                switch ($PhoneName) {
+                                    case 'Privat':
+                                        if (empty($item['PhoneMobilePrivate'])) {
+                                            $item['PhoneMobilePrivate'] = $tblPhone->getNumber()
+                                                . ($tblToPerson->getRemark() ? ' (' . $tblToPerson->getRemark() . ')' : '');
+                                        } else {
+                                            $item['PhoneMobilePrivate'] = $item['PhoneMobilePrivate'] . ', ' . $tblPhone->getNumber()
+                                                . ($tblToPerson->getRemark() ? ' (' . $tblToPerson->getRemark() . ')' : '');
+                                        }
+                                        break;
+                                    case 'Geschäftlich':
+                                        if (empty($item['PhoneMobileWork'])) {
+                                            $item['PhoneMobileWork'] = $tblPhone->getNumber()
+                                                . ($tblToPerson->getRemark() ? ' (' . $tblToPerson->getRemark() . ')' : '');
+                                        } else {
+                                            $item['PhoneMobileWork'] = $item['PhoneMobileWork'] . ', ' . $tblPhone->getNumber()
+                                                . ($tblToPerson->getRemark() ? ' (' . $tblToPerson->getRemark() . ')' : '');
+                                        }
+                                        break;
+                                }
                             }
                         }
                     }
@@ -2499,52 +2505,54 @@ class Service extends Extension
                                 && ($PhoneNameCustody = $tblPhoneTypeCustody->getName())
                                 && ($tblPhoneCustody = $tblToPersonCustody->getTblPhone())){
                                 if($PhoneDescriptionCustody == 'Festnetz'){
-                                    switch($PhoneNameCustody) {
-                                        case 'Privat':
-                                            if($item[$TypeName.$Rank.'_PhoneFixedPrivate']){
-                                                $item[$TypeName.$Rank.'_PhoneFixedPrivate'] = $item[$TypeName.$Rank.'_PhoneFixedPrivate'].', ';
-                                            }
-                                            $item[$TypeName.$Rank.'_PhoneFixedPrivate'] = $tblPhoneCustody->getNumber()
-                                                .($tblToPersonCustody->getRemark() ? ' ('.$tblToPersonCustody->getRemark().')' : '');
-                                            break;
-                                        case 'Geschäftlich':
-                                            if($item[$TypeName.$Rank.'_PhoneFixedWork']){
-                                                $item[$TypeName.$Rank.'_PhoneFixedWork'] = $item[$TypeName.$Rank.'_PhoneFixedWork'].', ';
-                                            }
-                                            $item[$TypeName.$Rank.'_PhoneFixedWork'] = $item[$TypeName.$Rank.'_PhoneFixedWork'].$tblPhoneCustody->getNumber()
-                                                .($tblToPersonCustody->getRemark() ? ' ('.$tblToPersonCustody->getRemark().')' : '');
-                                            break;
-                                        case 'Notfall':
-                                            if($item[$TypeName.$Rank.'_PhoneFixedEmergency']){
-                                                $item[$TypeName.$Rank.'_PhoneFixedEmergency'] = $item[$TypeName.$Rank.'_PhoneFixedEmergency'].', ';
-                                            }
-                                            $item[$TypeName.$Rank.'_PhoneFixedEmergency'] = $item[$TypeName.$Rank.'_PhoneFixedEmergency'].$tblPhoneCustody->getNumber()
-                                                .($tblToPersonCustody->getRemark() ? ' ('.$tblToPersonCustody->getRemark().')' : '');
-                                            break;
+                                    if ($tblToPersonCustody->getIsEmergencyContact()) {
+                                        if ($item[$TypeName . $Rank . '_PhoneFixedEmergency']) {
+                                            $item[$TypeName . $Rank . '_PhoneFixedEmergency'] = $item[$TypeName . $Rank . '_PhoneFixedEmergency'] . ', ';
+                                        }
+                                        $item[$TypeName . $Rank . '_PhoneFixedEmergency'] = $item[$TypeName . $Rank . '_PhoneFixedEmergency'] . $tblPhoneCustody->getNumber()
+                                            . ($tblToPersonCustody->getRemark() ? ' (' . $tblToPersonCustody->getRemark() . ')' : '');
+                                    } else {
+                                        switch ($PhoneNameCustody) {
+                                            case 'Privat':
+                                                if ($item[$TypeName . $Rank . '_PhoneFixedPrivate']) {
+                                                    $item[$TypeName . $Rank . '_PhoneFixedPrivate'] = $item[$TypeName . $Rank . '_PhoneFixedPrivate'] . ', ';
+                                                }
+                                                $item[$TypeName . $Rank . '_PhoneFixedPrivate'] = $tblPhoneCustody->getNumber()
+                                                    . ($tblToPersonCustody->getRemark() ? ' (' . $tblToPersonCustody->getRemark() . ')' : '');
+                                                break;
+                                            case 'Geschäftlich':
+                                                if ($item[$TypeName . $Rank . '_PhoneFixedWork']) {
+                                                    $item[$TypeName . $Rank . '_PhoneFixedWork'] = $item[$TypeName . $Rank . '_PhoneFixedWork'] . ', ';
+                                                }
+                                                $item[$TypeName . $Rank . '_PhoneFixedWork'] = $item[$TypeName . $Rank . '_PhoneFixedWork'] . $tblPhoneCustody->getNumber()
+                                                    . ($tblToPersonCustody->getRemark() ? ' (' . $tblToPersonCustody->getRemark() . ')' : '');
+                                                break;
+                                        }
                                     }
                                 } elseif($PhoneDescriptionCustody == 'Mobil') {
-                                    switch($PhoneNameCustody) {
-                                        case 'Privat':
-                                            if($item[$TypeName.$Rank.'_PhoneMobilePrivate']){
-                                                $item[$TypeName.$Rank.'_PhoneMobilePrivate'] = $item[$TypeName.$Rank.'_PhoneMobilePrivate'].', ';
-                                            }
-                                            $item[$TypeName.$Rank.'_PhoneMobilePrivate'] = $item[$TypeName.$Rank.'_PhoneMobilePrivate'].$tblPhoneCustody->getNumber()
-                                                .($tblToPersonCustody->getRemark() ? ' ('.$tblToPersonCustody->getRemark().')' : '');
-                                            break;
-                                        case 'Geschäftlich':
-                                            if($item[$TypeName.$Rank.'_PhoneMobileWork']){
-                                                $item[$TypeName.$Rank.'_PhoneMobileWork'] = $item[$TypeName.$Rank.'_PhoneMobileWork'].', ';
-                                            }
-                                            $item[$TypeName.$Rank.'_PhoneMobileWork'] = $item[$TypeName.$Rank.'_PhoneMobileWork'].$tblPhoneCustody->getNumber()
-                                                .($tblToPersonCustody->getRemark() ? ' ('.$tblToPersonCustody->getRemark().')' : '');
-                                            break;
-                                        case 'Notfall':
-                                            if($item[$TypeName.$Rank.'_PhoneMobileEmergency']){
-                                                $item[$TypeName.$Rank.'_PhoneMobileEmergency'] = ', ';
-                                            }
-                                            $item[$TypeName.$Rank.'_PhoneMobileEmergency'] = $item[$TypeName.$Rank.'_PhoneMobileEmergency'].$tblPhoneCustody->getNumber()
-                                                .($tblToPersonCustody->getRemark() ? ' ('.$tblToPersonCustody->getRemark().')' : '');
-                                            break;
+                                    if ($tblToPersonCustody->getIsEmergencyContact()) {
+                                        if ($item[$TypeName . $Rank . '_PhoneMobileEmergency']) {
+                                            $item[$TypeName . $Rank . '_PhoneMobileEmergency'] = ', ';
+                                        }
+                                        $item[$TypeName . $Rank . '_PhoneMobileEmergency'] = $item[$TypeName . $Rank . '_PhoneMobileEmergency'] . $tblPhoneCustody->getNumber()
+                                            . ($tblToPersonCustody->getRemark() ? ' (' . $tblToPersonCustody->getRemark() . ')' : '');
+                                    } else {
+                                        switch ($PhoneNameCustody) {
+                                            case 'Privat':
+                                                if ($item[$TypeName . $Rank . '_PhoneMobilePrivate']) {
+                                                    $item[$TypeName . $Rank . '_PhoneMobilePrivate'] = $item[$TypeName . $Rank . '_PhoneMobilePrivate'] . ', ';
+                                                }
+                                                $item[$TypeName . $Rank . '_PhoneMobilePrivate'] = $item[$TypeName . $Rank . '_PhoneMobilePrivate'] . $tblPhoneCustody->getNumber()
+                                                    . ($tblToPersonCustody->getRemark() ? ' (' . $tblToPersonCustody->getRemark() . ')' : '');
+                                                break;
+                                            case 'Geschäftlich':
+                                                if ($item[$TypeName . $Rank . '_PhoneMobileWork']) {
+                                                    $item[$TypeName . $Rank . '_PhoneMobileWork'] = $item[$TypeName . $Rank . '_PhoneMobileWork'] . ', ';
+                                                }
+                                                $item[$TypeName . $Rank . '_PhoneMobileWork'] = $item[$TypeName . $Rank . '_PhoneMobileWork'] . $tblPhoneCustody->getNumber()
+                                                    . ($tblToPersonCustody->getRemark() ? ' (' . $tblToPersonCustody->getRemark() . ')' : '');
+                                                break;
+                                        }
                                     }
                                 }
                             }
@@ -3561,12 +3569,17 @@ class Service extends Extension
             $tblMainAddress = $tblPerson->fetchMainAddress();
             $leaveSchool = '';
             $leaveDate = '';
-            if (($tblStudent = $tblPerson->getStudent())
-            && ($tblTransferTypeLeave = Student::useService()->getStudentTransferTypeByIdentifier('LEAVE'))
-            && ($tblTransferLeave = Student::useService()->getStudentTransferByType($tblStudent, $tblTransferTypeLeave))
-            ) {
-                $leaveSchool = $tblTransferLeave->getServiceTblCompany() ? $tblTransferLeave->getServiceTblCompany()->getDisplayName() : '';
-                $leaveDate = $tblTransferLeave->getTransferDate();
+            $studentNumber = '';
+
+            if(($tblStudent = $tblPerson->getStudent()))
+            {
+                $studentNumber = $tblStudent->getIdentifierComplete();
+                if(($tblTransferTypeLeave = Student::useService()->getStudentTransferTypeByIdentifier('LEAVE'))
+                    && ($tblTransferLeave = Student::useService()->getStudentTransferByType($tblStudent, $tblTransferTypeLeave))
+                ) {
+                    $leaveSchool = $tblTransferLeave->getServiceTblCompany() ? $tblTransferLeave->getServiceTblCompany()->getDisplayName() : '';
+                    $leaveDate = $tblTransferLeave->getTransferDate();
+                }
             }
             $custody1Salutation = '';
             $custody1FirstName = '';
@@ -3607,7 +3620,8 @@ class Service extends Extension
                 'City'                  => $tblMainAddress ? $tblMainAddress->getTblCity()->getDisplayName() : '',
                 'LastSchool'            => $lastSchool,
                 'NewSchool'             => $leaveSchool,
-                'LeaveDate'             => $leaveDate
+                'LeaveDate'             => $leaveDate,
+                'StudentNumber'         => $studentNumber
             );
         }
         $division = array();
@@ -3633,6 +3647,7 @@ class Service extends Extension
         $export = Document::getDocument($fileLocation->getFileLocation());
         $column = 0;
         $export->setValue($export->getCell($column++, 0), 'Abgangsklasse');
+        $export->setValue($export->getCell($column++, 0), 'Schülernummer');
         $export->setValue($export->getCell($column++, 0), 'Name');
         $export->setValue($export->getCell($column++, 0), 'Vorname');
         $export->setValue($export->getCell($column++, 0), 'Geschlecht');
@@ -3653,6 +3668,7 @@ class Service extends Extension
         foreach ($dataList as $PersonData) {
             $column = 0;
             $export->setValue($export->getCell($column++, $row), $PersonData['LastDivisionCourse']);
+            $export->setValue($export->getCell($column++, $row), $PersonData['StudentNumber']);
             $export->setValue($export->getCell($column++, $row), $PersonData['LastName']);
             $export->setValue($export->getCell($column++, $row), $PersonData['FirstName']);
             $export->setValue($export->getCell($column++, $row), $PersonData['Gender']);
@@ -4061,16 +4077,16 @@ class Service extends Extension
             $export->setStyle($export->getCell($AbsenceDays++, 0), $export->getCell($AbsenceDays, 0))->mergeCells();
             $export->setStyle($export->getCell($AbsenceUE++, 0), $export->getCell($AbsenceUE, 0))->mergeCells();
             // with and type of cells
-            $export->setStyle($export->getCell($column, 2), $export->getCell($column++, $row))->setColumnWidth(5)->setCellType(\PHPExcel_Cell_DataType::TYPE_NUMERIC);
+            $export->setStyle($export->getCell($column, 2), $export->getCell($column++, $row))->setColumnWidth(5)->setCellType(DataType::TYPE_NUMERIC);
             $export->setStyle($export->getCell($column, 2), $export->getCell($column++, $row))->setColumnWidth(13);
             $export->setStyle($export->getCell($column, 2), $export->getCell($column++, $row))->setColumnWidth(13);
 //            $export->setStyle($export->getCell($column, 2), $export->getCell($column++, $row))->setColumnWidth(30);
             $export->setStyle($export->getCell($column, 2), $export->getCell($column++, $row))->setColumnWidth(13);
             $export->setStyle($export->getCell($column, 2), $export->getCell($column++, $row))->setColumnWidth(13);
-            $export->setStyle($export->getCell($column, 2), $export->getCell($column++, $row))->setColumnWidth(14)->setCellType(\PHPExcel_Cell_DataType::TYPE_NUMERIC);
-            $export->setStyle($export->getCell($column, 2), $export->getCell($column++, $row))->setColumnWidth(15)->setCellType(\PHPExcel_Cell_DataType::TYPE_NUMERIC);
-            $export->setStyle($export->getCell($column, 2), $export->getCell($column++, $row))->setColumnWidth(14)->setCellType(\PHPExcel_Cell_DataType::TYPE_NUMERIC);
-            $export->setStyle($export->getCell($column, 2), $export->getCell($column, $row))->setColumnWidth(15)->setCellType(\PHPExcel_Cell_DataType::TYPE_NUMERIC);
+            $export->setStyle($export->getCell($column, 2), $export->getCell($column++, $row))->setColumnWidth(14)->setCellType(DataType::TYPE_NUMERIC);
+            $export->setStyle($export->getCell($column, 2), $export->getCell($column++, $row))->setColumnWidth(15)->setCellType(DataType::TYPE_NUMERIC);
+            $export->setStyle($export->getCell($column, 2), $export->getCell($column++, $row))->setColumnWidth(14)->setCellType(DataType::TYPE_NUMERIC);
+            $export->setStyle($export->getCell($column, 2), $export->getCell($column, $row))->setColumnWidth(15)->setCellType(DataType::TYPE_NUMERIC);
 
             $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
 
@@ -4199,9 +4215,9 @@ class Service extends Extension
                         $export->setValue($export->getCell(39, $rowStudents), $totalCountList[$tblPerson->getId()]['Lessons']['U']);
 
                         for ($columnCount = 1; $columnCount < 40; $columnCount++) {
-                            $columnLetter = \PHPExcel_Cell::stringFromColumnIndex($columnCount);
+                            $columnLetter = Coordinate::stringFromColumnIndex($columnCount);
                             $export->getActiveSheet()->getStyle($columnLetter . $rowStudents)->getAlignment()
-                                ->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+                                ->setHorizontal(Alignment::HORIZONTAL_CENTER);
                             $export->setStyle($export->getCell($columnCount, $rowStudents), $export->getCell($columnCount, $rowStudents))
                                 ->setBorderOutline();
                         }
@@ -4209,10 +4225,10 @@ class Service extends Extension
                     }
                     // Center Data
                     for ($maxColumn = 1; $maxColumn < 40; $maxColumn++) {
-                        $columnLetter = \PHPExcel_Cell::stringFromColumnIndex($maxColumn);
-                        $export->getActiveSheet()->getStyle($columnLetter . 3)->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+                        $columnLetter = Coordinate::stringFromColumnIndex($maxColumn);
+                        $export->getActiveSheet()->getStyle($columnLetter . 3)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
                         $export->getActiveSheet()->getStyle($columnLetter . $rowStudents)->getAlignment()
-                            ->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+                            ->setHorizontal(Alignment::HORIZONTAL_CENTER);
                         $export->setStyle($export->getCell($maxColumn, 0))->setColumnWidth(2.6);
                         $export->setStyle($export->getCell($maxColumn, $row), $export->getCell($maxColumn, $row));
                     }

@@ -419,11 +419,7 @@ class Frontend extends Extension implements IFrontendInterface
                 ){
                     $content = array();
 
-                    $panelType = (preg_match('!Notfall!is',
-                        $tblType->getName().' '.$tblType->getDescription())
-                        ? Panel::PANEL_TYPE_DANGER
-                        : Panel::PANEL_TYPE_SUCCESS
-                    );
+                    $panelType = Panel::PANEL_TYPE_SUCCESS;
 
                     $options =
                         (new Link(

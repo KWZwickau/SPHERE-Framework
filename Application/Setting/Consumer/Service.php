@@ -44,18 +44,18 @@ class Service extends AbstractService
     }
 
     /**
-     * @param $Cluster
-     * @param $Application
-     * @param null $Module
-     * @param $Identifier
+     * @param string $Cluster
+     * @param string $Application
+     * @param string|null $Module
+     * @param string $Identifier
      * @return false|TblSetting
      */
     public function getSetting(
-        $Cluster,
-        $Application,
-        $Module = null,
-        $Identifier
-    ) {
+        string $Cluster,
+        string $Application,
+        string $Module = null,
+        string $Identifier = ''
+    ):false|TblSetting {
 
         return (new Data($this->getBinding()))->getSetting(
             $Cluster, $Application, $Module, $Identifier
@@ -105,23 +105,23 @@ class Service extends AbstractService
     }
 
     /**
-     * @param $Cluster
-     * @param $Application
-     * @param null $Module
-     * @param $Identifier
+     * @param string $Cluster
+     * @param string $Application
+     * @param string|null $Module
+     * @param string $Identifier
      * @param string $Type
-     * @param $Value
+     * @param string $Value
      *
      * @return TblSetting
      */
     public function createSetting(
-        $Cluster,
-        $Application,
-        $Module = null,
-        $Identifier,
-        $Type = TblSetting::TYPE_BOOLEAN,
-        $Value
-    ) {
+        string $Cluster,
+        string $Application,
+        string $Module = null,
+        string $Identifier = '',
+        string $Type = TblSetting::TYPE_BOOLEAN,
+        string $Value = ''
+    ):TblSetting {
 
         return (new Data($this->getBinding()))->createSetting(
             $Cluster, $Application, $Module, $Identifier, $Type, $Value

@@ -90,7 +90,7 @@ abstract class AbstractLogic
      * @param int $Comparison
      * @return Comparison|string
      */
-    final private function getExpressionComparison($Property, $Value, $Comparison = self::COMPARISON_EXACT)
+    private function getExpressionComparison($Property, $Value, $Comparison = self::COMPARISON_EXACT)
     {
         if ($Value === null) {
             return $this->getExpressionBuilder()->isNull('E.' . $Property);

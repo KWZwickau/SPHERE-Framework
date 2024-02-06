@@ -23,7 +23,7 @@ class StringNaturalOrderSorter extends AbstractSorter
     {
 
         if ($this->isSortable($Property, $First, $Second)) {
-            return strnatcmp($this->getValue($Property, $First), $this->getValue($Property, $Second));
+            return strnatcmp((string) $this->getValue($Property, $First), (string) $this->getValue($Property, $Second));
         }
         return 0;
     }

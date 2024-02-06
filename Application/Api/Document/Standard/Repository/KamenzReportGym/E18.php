@@ -34,6 +34,7 @@ class E18
             ->addSection((new Section())
                 ->addElementColumn((new Element())
                     ->setContent('Fächerkombination')
+                    ->styleAlignCenter()
                     ->styleBorderRight()
                     ->stylePaddingTop('13.2')
                     ->stylePaddingBottom('13.1'), '80%'
@@ -42,34 +43,41 @@ class E18
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('S. in der Jgs.-stufe')
+                            ->styleAlignCenter()
                         )
                     )
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('11')
+                            ->styleAlignCenter()
                             ->styleBorderBottom()
                             ->styleBorderRight(), '50%'
                         )
                         ->addElementColumn((new Element())
                             ->styleBorderBottom()
-                            ->setContent('12'), '50%'
+                            ->setContent('12')
+                            ->styleAlignCenter(), '50%'
                         )
                     )
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('m')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '25%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('w')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '25%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('m')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '25%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('w'), '25%'
+                            ->setContent('w')
+                            ->styleAlignCenter(), '25%'
                         )
                     ), '20%'
                 )
@@ -88,6 +96,7 @@ class E18
                                 &nbsp;
                             {% endif %}
                         ')
+                        ->styleAlignCenter()
                         ->styleBorderRight(), '20%'
                     );
             }
@@ -102,6 +111,7 @@ class E18
                                 &nbsp;
                             {% endif %}
                         ')
+                        ->styleAlignCenter()
                         ->styleBorderRight(), '5%'
                     )
                     ->addElementColumn((new Element())
@@ -112,6 +122,7 @@ class E18
                                 &nbsp;
                             {% endif %}
                         ')
+                        ->styleAlignCenter()
                         ->styleBorderRight(), '5%'
                     );
             }
@@ -128,6 +139,7 @@ class E18
         $section
             ->addElementColumn((new Element())
                 ->setContent('Insgesamt')
+                ->styleAlignCenter()
                 ->styleBorderRight(), '80%'
             );
         for ($j = 11; $j < 13; $j++) {
@@ -140,6 +152,7 @@ class E18
                                 &nbsp;
                             {% endif %}
                         ')
+                    ->styleAlignCenter()
                     ->styleBorderRight(), '5%'
                 )
                 ->addElementColumn((new Element())
@@ -150,6 +163,7 @@ class E18
                                 &nbsp;
                             {% endif %}
                         ')
+                    ->styleAlignCenter()
                     ->styleBorderRight(), '5%'
                 );
         }

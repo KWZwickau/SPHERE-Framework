@@ -30,6 +30,10 @@ class Import implements IModuleInterface
             __NAMESPACE__.'/DownloadTemplateMail',
             __NAMESPACE__.'\Import::downloadTemplateMail'
         ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/DownloadTemplateHoliday',
+            __NAMESPACE__.'\Import::downloadTemplateHoliday'
+        ));
     }
 
     public static function useService()
@@ -88,6 +92,16 @@ class Import implements IModuleInterface
         $file = "Common/Style/Resource/Template/Import_Mail.xlsx";
         header("Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
         header("Content-Disposition: attachment; filename=Mail_Import.xlsx");
+        header("Content-Length: ". filesize($file));
+        readfile($file);
+    }
+
+    public function downloadTemplateHoliday()
+    {
+
+        $file = "Common/Style/Resource/Template/Import_Holiday.xlsx";
+        header("Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        header("Content-Disposition: attachment; filename=Mail_Holiday.xlsx");
         header("Content-Length: ". filesize($file));
         readfile($file);
     }

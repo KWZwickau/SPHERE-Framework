@@ -246,8 +246,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 )
                             ).' '.$tblToCompany->getTblType()->getName().' '.$tblToCompany->getTblType()->getDescription(),
                             $Panel,
-                            ( preg_match('!Notfall!is',
-                                $tblToCompany->getTblType()->getName().' '.$tblToCompany->getTblType()->getDescription())
+                            ( $tblToCompany->getIsEmergencyContact()
                                 ? Panel::PANEL_TYPE_DANGER
                                 : Panel::PANEL_TYPE_SUCCESS
                             ))

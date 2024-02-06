@@ -2,6 +2,7 @@
 namespace SPHERE\Application\Transfer\Import;
 
 use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel;
+use PhpOffice\PhpSpreadsheet\Shared\Date;
 use SPHERE\Application\Contact\Mail\Mail;
 use SPHERE\Application\Contact\Phone\Phone;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
@@ -119,7 +120,7 @@ class Service
                 $len = strlen($date);
                 switch ($len) {
                     case 5:
-                        $result = date('d.m.Y', \PHPExcel_Shared_Date::ExcelToPHP($date));
+                        $result = date('d.m.Y', Date::excelToTimestamp($date));
                         break;
                     case 6:
                         $result = substr($date, 0, 2) . '.' . substr($date, 2, 2) . '.' . substr($date, 4, 2);
@@ -152,7 +153,7 @@ class Service
         $len = strlen($date);
         switch ($len) {
             case 5:
-                return date('d.m.Y', \PHPExcel_Shared_Date::ExcelToPHP($date));
+                return date('d.m.Y', Date::excelToTimestamp($date));
             case 6:
                 return substr($date, 0, 2) . '.' . substr($date, 2, 2) . '.' . substr($date, 4, 2);
             case 7:

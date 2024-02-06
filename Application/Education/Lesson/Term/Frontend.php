@@ -36,7 +36,6 @@ use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Select;
 use SPHERE\Common\Frontend\Icon\Repository\Unchecked;
-use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Headline;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
@@ -67,7 +66,7 @@ use SPHERE\System\Extension\Repository\Sorter\DateTimeSorter;
  *
  * @package SPHERE\Application\Education\Lesson\Term
  */
-class Frontend extends Extension implements IFrontendInterface
+class Frontend extends FrontendWizard
 {
 
     public function getWelcome()
@@ -270,7 +269,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         $YearList = array();
         for ($i = -2; $i < 5; $i++) {
-            $this->addYear($YearList, $i);
+            Term::useService()->addYear($YearList, $i);
         }
 
 //        // bereits existierende Schuljahr stehen nicht zur Auswahl
@@ -314,12 +313,6 @@ class Frontend extends Extension implements IFrontendInterface
                 )),
             ))
         );
-    }
-
-    private function addYear(&$YearList, $diff)
-    {
-        $value = (date('Y') + $diff) . '/' . (date('y') + $diff + 1);
-        $YearList[$value] = $value;
     }
 
     /**

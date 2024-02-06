@@ -39,7 +39,7 @@ class Probe
      * @return $this
      * @throws \Exception
      */
-    final private function setupService(AbstractService $Service)
+    private function setupService(AbstractService $Service)
     {
 
         if ($this->isValidService($Service)) {
@@ -55,7 +55,7 @@ class Probe
      *
      * @return bool
      */
-    final private function isValidService($Class)
+    private function isValidService($Class)
     {
 
         $Service = new \ReflectionClass($Class);

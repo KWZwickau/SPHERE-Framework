@@ -49,6 +49,7 @@ use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Frontend\Text\Repository\Warning;
 use SPHERE\System\Extension\Extension;
+use SPHERE\System\Extension\Repository\Sorter;
 use SPHERE\System\Extension\Repository\Sorter\StringGermanOrderSorter;
 
 class Service extends ServiceYearChange
@@ -1414,7 +1415,28 @@ class Service extends ServiceYearChange
         ) {
             foreach ($tblYearList as $tblYear) {
                 if (($tblStudentEducationList = $this->getStudentEducationListBy($tblYear))) {
-                    foreach ($tblStudentEducationList as $tblStudentEducation) {
+                    foreach ($tblStudentEducationList as &$tblStudentEducation) {
+                        // Aktuellste History der StudentEducation, wenn im aktuellen keine Klasse gepflegt ist (nur deaktivierte Schüler)
+                        if (!($tblStudentEducation->getTblDivision() || $tblStudentEducation->getTblCoreGroup())){
+                            if(($tblPersonStudentEducationList = DivisionCourse::useService()->getStudentEducationListByPersonAndYear($tblStudentEducation->getServiceTblPerson(), $tblYear))){
+                                $compare = '';
+                                $foundStudentEducationHistory = false;
+                                foreach($tblPersonStudentEducationList as $tblPersonStudentEducation){
+                                    $leaveDate = $tblPersonStudentEducation->getLeaveDateTime();
+                                    if(!$compare && $leaveDate){
+                                        $compare = $leaveDate;
+                                        $foundStudentEducationHistory = $tblPersonStudentEducation;
+                                    } elseif($compare <= $leaveDate) {
+                                        $compare = $leaveDate;
+                                        $foundStudentEducationHistory = $tblPersonStudentEducation;
+                                    }
+                                }
+                                if($foundStudentEducationHistory){
+                                    $tblStudentEducation = $foundStudentEducationHistory;
+                                }
+                            }
+                        }
+
                         if (($tblStudentEducation->getTblDivision() || $tblStudentEducation->getTblCoreGroup())
                             && ($tblPerson = $tblStudentEducation->getServiceTblPerson())
                         ) {
@@ -1571,9 +1593,11 @@ class Service extends ServiceYearChange
     }
 
     /**
+     * @param bool $isCompanyOwn
+     *
      * @return array|bool|TblCompany[]
      */
-    public function getSchoolListForStudentEducation()
+    public function getSchoolListForStudentEducation(bool $isCompanyOwn = true)
     {
         $tblCompanyAllSchool = Group::useService()->getCompanyAllByGroup(
             Group::useService()->getGroupByMetaTable('SCHOOL')
@@ -1581,11 +1605,13 @@ class Service extends ServiceYearChange
         $tblCompanyAllOwn = array();
 
         // Normaler Inhalt
-        $tblSchoolList = School::useService()->getSchoolAll();
-        if ($tblSchoolList) {
-            foreach ($tblSchoolList as $tblSchool) {
-                if ($tblSchool->getServiceTblCompany()) {
-                    $tblCompanyAllOwn[] = $tblSchool->getServiceTblCompany();
+        if ($isCompanyOwn) {
+            $tblSchoolList = School::useService()->getSchoolAll();
+            if ($tblSchoolList) {
+                foreach ($tblSchoolList as $tblSchool) {
+                    if ($tblSchool->getServiceTblCompany()) {
+                        $tblCompanyAllOwn[] = $tblSchool->getServiceTblCompany();
+                    }
                 }
             }
         }
@@ -2211,5 +2237,48 @@ class Service extends ServiceYearChange
     public function restorePerson(TblPerson $tblPerson)
     {
         (new Data($this->getBinding()))->restorePerson($tblPerson);
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     *
+     * @return array
+     */
+    public function getAttendantSchoolsByPerson(TblPerson $tblPerson): array
+    {
+        $tempList = array();
+
+        if (($tblStudentEducationList = $this->getStudentEducationListByPerson($tblPerson))) {
+            $tblStudentEducationList = $this->getSorter($tblStudentEducationList)->sortObjectBy('YearNameForSorter', null, Sorter::ORDER_DESC);
+            /** @var TblStudentEducation $tblStudentEducation */
+            foreach ($tblStudentEducationList as $tblStudentEducation) {
+                if (($tblSchool = $tblStudentEducation->getServiceTblCompany())
+                    && ($tblYear = $tblStudentEducation->getServiceTblYear())
+                ) {
+                    list($startDate, $endDate) = Term::useService()->getStartDateAndEndDateOfYear($tblYear);
+
+                    if (isset($tempList[$tblSchool->getId()])) {
+                        $tempList[$tblSchool->getId()]['FromYear'] = $startDate ? $startDate->format('Y') : '';
+                    } else {
+                        $tempList[$tblSchool->getId()] = array(
+                            'FromYear' => $startDate ? $startDate->format('Y') : '',
+                            'ToYear' => $endDate ? $endDate->format('Y') : '',
+                            'School' => $tblSchool->getDisplayName()
+                        );
+                    }
+                }
+            }
+        }
+
+        if (empty($tempList)) {
+            return array();
+        } else {
+            $resultList = array();
+            foreach ($tempList as $item) {
+                $resultList[] = $item['FromYear'] . ' - ' . $item['ToYear'] . ' ' . $item['School'];
+            }
+
+            return $resultList;
+        }
     }
 }

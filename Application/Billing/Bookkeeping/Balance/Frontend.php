@@ -116,6 +116,9 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblItemList[] = Item::useService()->getItemById($ItemId);
             }
         }
+        if(!isset($Balance['isMonthly'])){
+            $Balance['isMonthly'] = 0;
+        }
 
         $tableContent = array();
         $tblPerson = false;
@@ -195,6 +198,7 @@ class Frontend extends Extension implements IFrontendInterface
                             $Balance['From'], $Balance['To'], $tblPerson, $BasketTypeId, $PriceList);
                     }
                 }
+
                 $PriceList = Balance::useService()->getSummaryByItemPrice($PriceList);
                 $tableContent = Balance::useService()->getTableContentByItemPriceList($PriceList);
                 if($tblDivisionCourse){
@@ -206,26 +210,29 @@ class Frontend extends Extension implements IFrontendInterface
                             'To'               => $Balance['To'],
                             'DivisionCourseId' => $Balance['DivisionCourse'],
                             'BasketTypeId'     => $Balance['BasketType'],
+                            'isMonthly'        => $Balance['isMonthly'],
                         ));
                 } elseif($tblGroup) {
                     $Download = new PrimaryLink('Herunterladen', '/Api/Billing/Balance/Balance/Print/Download',
                         new Download(), array(
                             'ItemIdString' => $ItemIdString,
-                            'Year'       => $Balance['Year'],
-                            'From'       => $Balance['From'],
-                            'To'         => $Balance['To'],
-                            'GroupId' => $Balance['Group'],
+                            'Year'         => $Balance['Year'],
+                            'From'         => $Balance['From'],
+                            'To'           => $Balance['To'],
+                            'GroupId'      => $Balance['Group'],
                             'BasketTypeId' => $Balance['BasketType'],
+                            'isMonthly'    => $Balance['isMonthly'],
                         ));
                 } elseif($tblPerson) {
                     $Download = new PrimaryLink('Herunterladen', '/Api/Billing/Balance/Balance/Print/Download',
                         new Download(), array(
                             'ItemIdString' => $ItemIdString,
-                            'Year'       => $Balance['Year'],
-                            'From'       => $Balance['From'],
-                            'To'         => $Balance['To'],
-                            'PersonId' => $Balance['PersonId'],
+                            'Year'         => $Balance['Year'],
+                            'From'         => $Balance['From'],
+                            'To'           => $Balance['To'],
+                            'PersonId'     => $Balance['PersonId'],
                             'BasketTypeId' => $Balance['BasketType'],
+                            'isMonthly'    => $Balance['isMonthly'],
                         ));
                 }
             }
@@ -481,7 +488,7 @@ class Frontend extends Extension implements IFrontendInterface
         if ($Filter) {
             $YearList = Invoice::useService()->getYearList(3, 1);
             $MonthList = Invoice::useService()->getMonthList();
-            $tblItemAll = Item::useService()->getItemAll();
+            $tblItemAll = Item::useService()->getItemAllWithPreActiveTime();
 
             // Inhalt Selectbox
             $BasketTypeSelect = array('-1' => 'Abrechnung - Gutschrift', '2' => 'Auszahlung', '3' => 'Gutschrift',);
@@ -497,7 +504,15 @@ class Frontend extends Extension implements IFrontendInterface
                 $CheckboxItemList = array();
                 if($tblItemAll){
                     foreach($tblItemAll as $tblItem){
-                        $CheckboxItemList[] = new CheckBox('Balance[ItemList]['.$tblItem->getId().']', $tblItem->getName(), $tblItem->getId());
+                        if($tblItem->getIsActive()){
+                            $CheckboxItemList[] = new CheckBox('Balance[ItemList]['.$tblItem->getId().']', $tblItem->getName(), $tblItem->getId());
+                        } else {
+                            $updateDate = $tblItem->getEntityUpdate();
+                            $updateDate->modify("+".Item::useService()::DEACTIVATE_TIME_SPAN." month");
+                            $CheckboxItemList[] = new CheckBox('Balance[ItemList]['.$tblItem->getId().']',
+                                $tblItem->getName().' (verfügbar bis '.$updateDate->format('d.m.Y').')',
+                                $tblItem->getId());
+                        }
                     }
                 }
                 $ItemSelect = array(new FormColumn(
@@ -506,7 +521,11 @@ class Frontend extends Extension implements IFrontendInterface
                     , 6),
                     new FormColumn(
                         new SelectBox('Balance[BasketType]', 'Variantenauswahl', $BasketTypeSelect)
-                    , 6));
+                    , 6),
+                    new FormColumn(
+                        new CheckBox('Balance[isMonthly]', 'Monatlich aufgeschlüsselt', 1)
+                    )
+                );
             }
 
             if(($tblYearList = Term::useService()->getYearByNow())

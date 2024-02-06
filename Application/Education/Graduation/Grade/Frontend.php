@@ -17,6 +17,7 @@ use SPHERE\Application\Education\Graduation\Grade\Service\VirtualTestTask;
 use SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount\SelectBoxItem;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseMember;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseMemberType;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
@@ -197,7 +198,17 @@ class Frontend extends FrontendTestPlanning
 
             $textCourse = new Bold($tblDivisionCourse->getDisplayName());
             $textSubject = new Bold($tblSubject->getDisplayName());
-            $tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses();
+            $tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses(true);
+
+            $inactiveStudentList = array();
+            if (($tblDivisionCourseMemberList = $tblDivisionCourse->getStudentsWithSubCourses(true, false))) {
+                /** @var TblDivisionCourseMember $tblDivisionCourseMember */
+                foreach ($tblDivisionCourseMemberList as $tblDivisionCourseMember) {
+                    if ($tblDivisionCourseMember->isInActive() && ($tblPersonTemp = $tblDivisionCourseMember->getServiceTblPerson())) {
+                        $inactiveStudentList[$tblPersonTemp->getId()] = $tblPersonTemp;
+                    }
+                }
+            }
 
             $bodyList = array();
 
@@ -230,7 +241,7 @@ class Frontend extends FrontendTestPlanning
                     ) {
 //                        $bodyList[$tblPerson->getId()]['Number'] = ($this->getTableColumnBody(++$count))->setClass("tableFixFirstColumn");
                         $bodyList[$tblPerson->getId()] = $this->getGradeBookPreBodyList($tblPerson, ++$count, $hasPicture, $hasIntegration, $hasCourse,
-                            $pictureList, $integrationList, $courseList);
+                            $pictureList, $integrationList, $courseList, isset($inactiveStudentList[$tblPerson->getId()]));
 
                         foreach ($headerList as $key => $value) {
                             // Leistungsüberprüfung
@@ -992,7 +1003,9 @@ class Frontend extends FrontendTestPlanning
                 }
             }
             $headerList['Average'] = $this->getTableColumnHead('&#216;');
-            $headerList['Grade'] = $this->getTableColumnHead('Zensur');
+            // SSWHD-2707 bei vielen Zensuren wird das Eingabefeld für die Noten zusammen geschoben
+            // kein Zeilenbruch sonst funktioniert es nicht mehr
+            $headerList['Grade'] = $this->getTableColumnHead('Zensur&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;');
             $headerList['GradeText'] = $this->getTableColumnHead(
                 (new Link('oder Zeugnistext ' . new Edit(), ApiGradeBook::getEndpoint(), null, array(), 'Alle Zeugnistexte des Kurses auf einmal bearbeiten'))
                     ->ajaxPipelineOnClick(ApiGradeBook::pipelineOpenGradeTextModal($DivisionCourseId))

@@ -220,13 +220,16 @@ class ReplacementService
 
                         if ($item['Course']) {
                             for ($j = 1; $j < 10; $j++) {
-                                if (($temp = $Pl->getChild('pl_klasse', null, $j))
-                                    && method_exists($temp, 'getContent')
-                                    && ($division = utf8_encode($temp->getContent()))
-                                ) {
-                                    $addItem = $item;
-                                    $addItem['Course'] = $division;
-                                    $ImportList[] = $addItem;
+                                $temp = $Pl->getChild('pl_klasse', null, $j);
+                                // aus getChild können integer rauskommen. Soll nur bei einem Objekt weiter machen
+                                if(is_object($temp)){
+                                    if (method_exists($temp, 'getContent') &&
+                                        ($division = utf8_encode($temp->getContent()))
+                                    ) {
+                                        $addItem = $item;
+                                        $addItem['Course'] = $division;
+                                        $ImportList[] = $addItem;
+                                    }
                                 }
                             }
                         }

@@ -526,7 +526,7 @@ class Data extends AbstractData
         $ToDate = null,
         TblPeriod $tblPeriod = null,
         TblScoreType $tblScoreType = null,
-        $IsLocked
+        $IsLocked = false
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();

@@ -49,7 +49,7 @@ class Service
                         }
                     }
                 }
-                if (($tblStudent = $tblPerson->getStudent())) {
+                if (($tblStudent = $tblPerson->getStudent()) && $tblStudent->getIdentifier()) {
                     $studentNumber = $tblStudent->getIdentifier();
                 }
 

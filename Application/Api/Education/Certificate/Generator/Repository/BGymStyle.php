@@ -981,7 +981,10 @@ abstract class BGymStyle extends Certificate
             ) {
                 $tblSubjectList[$tblSubject->getId()] = $tblSubject;
             }
-            if (($tblSubject = Subject::useService()->getSubjectByName('Gesundheit und Soziales'))) {
+            if (($tblSubject = Subject::useService()->getSubjectByName('Gesundheit und Soziales'))
+                || ($tblSubject = Subject::useService()->getSubjectByName('Gesundheit/Soziales'))
+                || ($tblSubject = Subject::useService()->getSubjectByName('Gesundheit / Soziales'))
+            ) {
                 $tblSubjectList[$tblSubject->getId()] = $tblSubject;
             }
             if (($tblSubject = Subject::useService()->getSubjectByName('Volks- und Betriebswirtschaftslehre mit Rechnungswesen'))) {
@@ -1025,7 +1028,9 @@ abstract class BGymStyle extends Certificate
             if (($tblSubject = Subject::useService()->getSubjectByName('Sport'))) {
                 $tblSubjectList[$tblSubject->getId()] = $tblSubject;
             }
-            if (($tblSubject = Subject::useService()->getSubjectByName('Evangelische Religion'))) {
+            if (($tblSubject = Subject::useService()->getSubjectByName('Evangelische Religion'))
+                || ($tblSubject = Subject::useService()->getSubjectByName('Ev. Religion'))
+            ) {
                 $tblSubjectList[$tblSubject->getId()] = $tblSubject;
             }
             if (($tblSubject = Subject::useService()->getSubjectByName('Katholische Religion'))) {

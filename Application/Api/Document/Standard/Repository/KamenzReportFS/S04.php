@@ -73,11 +73,13 @@ class S04
             $levelSectionList[] = (new Section())
                 ->addElementColumn((new Element())
                     ->setContent('1')
+                    ->styleAlignCenter()
                     ->styleBorderRight()
                     ->styleBorderBottom()
                     , '50%')
                 ->addElementColumn((new Element())
                     ->setContent('2')
+                    ->styleAlignCenter()
                     ->styleBorderRight()
                     ->styleBorderBottom()
                     , '50%');
@@ -91,12 +93,14 @@ class S04
                 $section
                     ->addElementColumn((new Element())
                         ->setContent($i . '. AJ')
+                        ->styleAlignCenter()
                         ->styleBorderRight()
                         , (floatval(100) / floatval($maxLevel)) . '%');
             } else {
                 $section
                     ->addElementColumn((new Element())
                         ->setContent($i)
+                        ->styleAlignCenter()
                         ->styleBorderRight()
                         , (floatval(100) / floatval($maxLevel)) . '%');
             }
@@ -113,6 +117,7 @@ class S04
             ->addSection((new Section())
                 ->addElementColumn((new Element())
                     ->setContent('Fremdsprache¹')
+                    ->styleAlignCenter()
                     ->styleBorderRight()
                     ->stylePaddingTop($paddingTop)
                     ->stylePaddingBottom($paddingBottom)
@@ -120,6 +125,7 @@ class S04
                 ->addSliceColumn((new Slice())
                     ->addElement((new Element())
                         ->setContent('Schüler in Klassenstufe')
+                        ->styleAlignCenter()
                         ->styleBorderRight()
                         ->styleBorderBottom()
                     )
@@ -129,6 +135,7 @@ class S04
                     ->styleTextBold()
                     ->addElement((new Element())
                         ->setContent('Insgesamt')
+                        ->styleAlignCenter()
                         ->stylePaddingTop($paddingTop)
                         ->stylePaddingBottom($paddingBottom)
                     )

@@ -1468,6 +1468,7 @@ class Service extends AbstractService
                 $tblPersonList = array();
 
                 $tblType = Phone::useService()->getTypeById($item['Type']);
+                $isEmergencyContact = isset($item['IsEmergencyContact']);
                 $address = $item['Number'];
                 $remark = $item['Remark'];
 
@@ -1497,6 +1498,7 @@ class Service extends AbstractService
                 } elseif ($isAdd) {
                     $phoneAddList[$key] = array(
                         'tblType' => $tblType,
+                        'IsEmergencyContact' => $isEmergencyContact,
                         'Number' => $address,
                         'Remark' => $remark,
                         'tblPersonList' => $tblPersonList
@@ -1619,6 +1621,7 @@ class Service extends AbstractService
                 Phone::useService()->insertPhoneToPersonList(
                     $phone['Number'],
                     $phone['tblType'],
+                    $phone['IsEmergencyContact'],
                     $phone['Remark'],
                     $phone['tblPersonList']
                 );

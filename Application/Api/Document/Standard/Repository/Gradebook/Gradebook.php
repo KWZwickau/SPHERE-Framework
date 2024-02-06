@@ -874,31 +874,33 @@ class Gradebook extends AbstractDocument
         // für Zeilenumbruch im Thema des Tests
         $height = self::HEIGHT_HEADER . 'px';
 
-        // paddingTop abhängig von der anzahl der Spalten, mehr Spalten $paddingTop = '-140px'
+        // paddingTop abhängig von der anzahl der Spalten
         if ($countHeaders < 6) {
-            $paddingTop = '-150px';
+            $paddingTop = '35px';
         } elseif ($countHeaders < 8) {
-            $paddingTop = '-140px';
+            $paddingTop = '25px';
         } elseif ($countHeaders < 10) {
-            $paddingTop = '-130px';
+            $paddingTop = '20px';
         } else {
-            $paddingTop = '-130px';
+            $paddingTop = '15px';
         }
 
-//        $paddingTop = '-150px';
-        $paddingLeft = '-260px';
+        $paddingLeft = '10px';
 
         if (strlen($text) > 90) {
             $text = substr($text, 0, 90);
         }
 
         return
-            '<div style="padding-top: ' . $paddingTop
+            '<div style="'
+            . 'position: absolute;'
+            . 'transform-origin: left bottom 0;'
+            . 'padding-top: ' . $paddingTop
             . '!important; padding-left: ' . $paddingLeft
             . '!important; transform: rotate(270deg)!important;'
             . 'max-width: ' . $height . ';'
-            // geht erst ab dompdf 0.8.1
-//            . ' white-space: nowrap!important;'
+            . 'top: ' . $height . ';'
+            . ' white-space: nowrap!important;'
             . '">'
             . $text
             . '</div>';

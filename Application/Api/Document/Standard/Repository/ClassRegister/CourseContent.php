@@ -107,6 +107,7 @@ class CourseContent extends ClassRegister
      */
     public function getPageList(): array
     {
+        $pageList = array();
         $pageList[] = $this->getCoverSheet();
         $pageList[] = new Page();
         $pageList[] = $this->getFirstPage();
@@ -379,13 +380,13 @@ class CourseContent extends ClassRegister
             ->addSection((new Section())
                 ->addElementColumn($this->getHeaderElement('Datum'), $width[1])
                 ->addElementColumn((new Element())
-                    ->setContent($this->setRotatedContent('Anzahl UEs', '-27px', '-40px', '-12px'))
+                    ->setContent($this->setRotatedContent('Anzahl UEs', '70px', '19px'))
                     ->styleBackgroundColor('#CCC')
                     , $width[2])
                 ->addElementColumn($this->getHeaderElement('Thema der Stunde')->styleBorderLeft(), $width[3])
                 ->addElementColumn($this->getHeaderElement('Hausaufgabe'), $width[4])
                 ->addElementColumn((new Element())
-                    ->setContent($this->setRotatedContent('Fehlende SuS', '-27px', '-40px', '-15px'))
+                    ->setContent($this->setRotatedContent('Fehlende SuS', '75px', '27px'))
                     ->styleBackgroundColor('#CCC')
                     , $width[5])
                 ->addElementColumn($this->getHeaderElement('Bemerkungen')->styleBorderLeft(), $width[6])

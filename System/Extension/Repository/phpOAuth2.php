@@ -118,25 +118,18 @@ lQIDAQAB
                     }
                 }
 
-                $tblIdentification = null;
-                if($tblAccount
-                    && ($tblAuthentication = Account::useService()->getAuthenticationByAccount($tblAccount))){
-                    $tblIdentification = $tblAuthentication->getTblIdentification();
-                }
+                // Anfragen von SAML müssen Cookies aktiviert haben
+                $isCookieAvailable = true;
 
-                // Matching Account found?
-                if ($tblAccount && $tblIdentification) {
-                    // Anfragen von SAML müssen Cookies aktiviert haben
-                    $isCookieAvailable = true;
-                    switch ($tblIdentification->getName()) {
-                        case TblIdentification::NAME_AUTHENTICATOR_APP:
-                        case TblIdentification::NAME_TOKEN:
-                        case TblIdentification::NAME_SYSTEM:
-                            return Authentication::useFrontend()->frontendIdentificationToken($tblAccount->getId(), $tblIdentification->getId(), null, $isCookieAvailable);
-                        case TblIdentification::NAME_CREDENTIAL:
-                        case TblIdentification::NAME_USER_CREDENTIAL:
-                            return Authentication::useFrontend()->frontendIdentificationAgb($tblAccount->getId(), $tblIdentification->getId(), 0, $isCookieAvailable);
-                    }
+                if ($tblAccount->getHasAuthentication(TblIdentification::NAME_SYSTEM)
+                    || $tblAccount->getHasAuthentication(TblIdentification::NAME_TOKEN)
+                    || $tblAccount->getHasAuthentication(TblIdentification::NAME_AUTHENTICATOR_APP)
+                ) {
+                    return Authentication::useFrontend()->frontendIdentificationToken($tblAccount->getId(), null, $isCookieAvailable);
+                } elseif ($tblAccount->getHasAuthentication(TblIdentification::NAME_CREDENTIAL)
+                    || $tblAccount->getHasAuthentication(TblIdentification::NAME_USER_CREDENTIAL)
+                ) {
+                    return Authentication::useFrontend()->frontendIdentificationAgb($tblAccount->getId(), 0, $isCookieAvailable);
                 }
             } else {
                 $AccountMessage = new Bold('"No SSW User"');

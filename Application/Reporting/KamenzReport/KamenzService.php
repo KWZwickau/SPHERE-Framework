@@ -79,6 +79,14 @@ class KamenzService
         $count['TblSchoolDiploma'] = 0;
         $count['TblSchoolType'] = 0;
 
+        $Date = Term::useService()->getYearStringAsArray();
+        //past year as string
+        $PastDisplayYear = $Date['PastDisplayYear'];
+        $tblPastYearList = array();
+        if (($temp = Term::useService()->getYearByName($PastDisplayYear))) {
+            $tblPastYearList = $temp;
+        }
+
         $studentList = array();
         if (($tblCurrentYearList = Term::useService()->getYearByNow())) {
             foreach ($tblCurrentYearList as $tblYear) {
@@ -184,6 +192,21 @@ class KamenzService
                                     'Zur Person wechseln'
                                 )
                             );
+
+                            // Schulart letztes Schuljahr
+                            if ($level > 1) {
+                                $schoolTypePastYear = new Warning('Keine Schulart', new Exclamation());
+                                foreach ($tblPastYearList as $tblPastYear) {
+                                    if (($tblStudentEducationPastYear = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblPastYear))
+                                        && ($tblSchoolTypePastYear = $tblStudentEducationPastYear->getServiceTblSchoolType())
+                                    ) {
+                                        $schoolTypePastYear = $tblSchoolTypePastYear->getShortName();
+                                    }
+                                }
+                            } else {
+                                $schoolTypePastYear = '';
+                            }
+                            $studentList[$tblPerson->getId()]['LastSchoolType'] = $schoolTypePastYear;
 
                             if ($hasOrientationSubjects) {
                                 if (($tblSchoolType->getName() == 'Mittelschule / Oberschule')) {
@@ -388,6 +411,7 @@ class KamenzService
             $columns['Profile'] = 'Profil';
         }
 
+        $columns['LastSchoolType'] = 'Schul&shy;art letztes SJ';
         $columns['Option'] = '';
 
         return new TableData(

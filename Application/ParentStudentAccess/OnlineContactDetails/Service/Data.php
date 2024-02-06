@@ -22,6 +22,8 @@ class Data extends AbstractData
      * @param TblPerson $tblPerson
      * @param string $Remark
      * @param TblPerson $tblPersonCreator
+     * @param Element|null $tblNewContactType
+     * @param bool $isEmergencyContact
      *
      * @return TblOnlineContact
      */
@@ -32,7 +34,8 @@ class Data extends AbstractData
         TblPerson $tblPerson,
         string $Remark,
         TblPerson $tblPersonCreator,
-        Element $tblNewContactType  = null
+        Element $tblNewContactType  = null,
+        bool $isEmergencyContact = false
     ): TblOnlineContact {
         $Manager = $this->getEntityManager();
 
@@ -44,6 +47,7 @@ class Data extends AbstractData
         $Entity->setRemark($Remark);
         $Entity->setServiceTblPersonCreator($tblPersonCreator);
         $Entity->setServiceTblNewContactType($tblNewContactType);
+        $Entity->setIsEmergencyContact($isEmergencyContact);
 
         $Manager->saveEntity($Entity);
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);

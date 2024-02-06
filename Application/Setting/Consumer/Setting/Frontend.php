@@ -8,6 +8,7 @@ use SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount\SelectBo
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblIdentification;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer as GatekeeperConsumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Setting\Consumer\Consumer;
@@ -61,8 +62,7 @@ class Frontend extends Extension implements IFrontendInterface
         $stage = new Stage('Mandant' , 'Einstellungen');
 
         if (($tblAccount = Account::useService()->getAccountBySession())
-            && ($tblIdentification = $tblAccount->getServiceTblIdentification())
-            && $tblIdentification->getName() == 'System'
+            && $tblAccount->getHasAuthentication(TblIdentification::NAME_SYSTEM)
         ) {
             $isSystem = true;
 
