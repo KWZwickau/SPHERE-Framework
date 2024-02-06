@@ -1,4 +1,5 @@
-<div {% if( Hash is not empty ) %}id="{{ Hash }}"{% endif %} class="panel {{ Type }}">
+<div {% if( Hash is not empty ) %}id="{{ Hash }}"{% endif %} class="panel {{ Type }}"
+style="margin-bottom: {{ MarginBottom }}">
     {% if( Title is not empty) %}
         <div class="panel-heading">
             <h6 class="panel-title">{{ Title }}</h6>
