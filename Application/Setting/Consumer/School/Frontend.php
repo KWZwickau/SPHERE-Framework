@@ -48,6 +48,7 @@ use SPHERE\Common\Frontend\Layout\Repository\PullClear;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
+use SPHERE\Common\Frontend\Layout\Repository\WellReadOnly;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
@@ -56,6 +57,7 @@ use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
+use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
@@ -99,6 +101,7 @@ class Frontend extends Extension implements IFrontendInterface
             foreach ($tblSchoolAll as $tblSchool) {
                 $tblCompany = $tblSchool->getServiceTblCompany();
                 $CompanyNumber = $tblSchool->getCompanyNumber();
+                $SchoolCode = $tblSchool->getSchoolCode();
                 $CompanyNumberStandard = '';
                 if ($CompanyNumber == '') {
                     $tblResponsibilityList = Responsibility::useService()->getResponsibilityAll();
@@ -118,10 +121,12 @@ class Frontend extends Extension implements IFrontendInterface
                             new ToolTip(new Info(),
                                 'Es wird diese Unternehmensnr. des Schulträgers verwendet, wenn bei der Schule keine hinterlegt ist.')
                             : '')),
-                    ($CompanyNumber != '' ? Panel::PANEL_TYPE_SUCCESS : Panel::PANEL_TYPE_WARNING),
-                    new PullRight(new Standard('', '/Setting/Consumer/School/Edit', new Edit(),
-                        array('Id' => $tblSchool->getId()),
-                        'Bearbeiten')));
+                    ($CompanyNumber != '' ? Panel::PANEL_TYPE_SUCCESS : Panel::PANEL_TYPE_WARNING));
+
+                $StudentCodePanel = new Panel('Dienststellenschlüssel'.new PullRight(($SchoolCode == '' ? new Bold('Notwendig!') : '')),
+                    $SchoolCode,
+                    ($SchoolCode != '' ? Panel::PANEL_TYPE_SUCCESS : Panel::PANEL_TYPE_DANGER)
+                );
 
                 if ($tblCompany) {
                     $Form .= new Layout(array(
@@ -129,11 +134,25 @@ class Frontend extends Extension implements IFrontendInterface
                             new LayoutRow(new LayoutColumn(
                                 self::frontendLayoutCombine($tblCompany)
                             )),
-                            new LayoutRow(
+                            new LayoutRow(array(
                                 new LayoutColumn(
-                                    $CompanyNumberPanel
-                                    , 3)
-                            )
+                                    new WellReadOnly(
+                                        // Bearbeiten
+                                        new Layout(new LayoutGroup(new LayoutRow(array(
+                                            new LayoutColumn(
+                                                $CompanyNumberPanel->setMarginBottom('7'), 6
+                                            ),
+                                            new LayoutColumn(
+                                                $StudentCodePanel->setMarginBottom('7'), 6
+                                            ),
+                                            new LayoutColumn(new PullRight(
+                                                new Standard('Bearbeiten','/Setting/Consumer/School/Edit', new Edit(),
+                                                    array('Id' => $tblSchool->getId()), 'Bearbeiten')
+                                            ))
+                                        ))))
+                                    )
+                                , 6),
+                            ))
                         ),
                             (new Title(new TagList().' '.
                                 new \SPHERE\Common\Frontend\Text\Repository\Warning($tblSchool->getServiceTblType()
@@ -444,15 +463,15 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param null $Id
-     * @param null $CompanyNumber
+     * @param null $Data
      * @param null $School
      *
      * @return Stage
      */
-    public function frontendSchoolEdit($Id = null, $CompanyNumber = null, $School = null)
+    public function frontendSchoolEdit($Id = null, $Data = null, $School = null)
     {
 
-        $Stage = new Stage('Unternehmensnr. des Unfallversicherungsträgers', 'Bearbeiten');
+        $Stage = new Stage('Schulinformationen', 'Bearbeiten');
         $Stage->addButton(new Standard('Zurück', '/Setting/Consumer/School', new ChevronLeft()));
         $tblSchool = School::useService()->getSchoolById($Id);
         $Type = '';
@@ -464,9 +483,15 @@ class Frontend extends Extension implements IFrontendInterface
             return $Stage->setContent(new Warning('Diese Schule wurde nicht gefunden.')
                 .new Redirect('/Setting/Consumer/School', Redirect::TIMEOUT_ERROR));
         }
-        $Form = new Form(new FormGroup(new FormRow(array(new FormColumn(
-            new Panel('Unternehmensnr. des Unfallversicherungsträgers', new TextField('CompanyNumber', '', ''),
-                Panel::PANEL_TYPE_SUCCESS)),
+        $Form = new Form(new FormGroup(new FormRow(array(
+            new FormColumn(
+                new Panel('Unternehmensnummer '.new ToolTip(new Info(),'des Unfallversicherungsträgers'),
+                    new TextField('Data[CompanyNumber]', '', ''), Panel::PANEL_TYPE_SUCCESS)
+            , 6),
+            new FormColumn(
+                new Panel('Dienststellenschlüssel '.new ToolTip(new Info(), 'Pflichtfeld zur identifikation zu anderen Systemen'), new TextField('Data[SchoolCode]', '', ''),
+                    Panel::PANEL_TYPE_SUCCESS)
+            , 6),
             new FormColumn(new HiddenField('School[IsSubmit]'))
         ))));
         $Form->appendFormButton(new Primary('Speichern', new Save()))
@@ -474,8 +499,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         $tblCompany = $tblSchool->getServiceTblCompany();
         if ($tblCompany) {
-            $PanelHead = new Panel('Institution der eine Unternehmensnr. des Unfallversicherungsträgers bearbeitet werden soll'
-                , $tblCompany->getDisplayName().' '.new Small(new Muted('('.$Type.')')), Panel::PANEL_TYPE_INFO);
+            $PanelHead = new Panel($tblCompany->getDisplayName().' '.new Small(new Muted('('.$Type.')')), '', Panel::PANEL_TYPE_INFO);
         } else {
             $PanelHead = new Panel('Institution wird nicht mehr gefunden!', '', Panel::PANEL_TYPE_DANGER);
         }
@@ -483,25 +507,22 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Global = $this->getGlobal();
         if ($tblSchool->getCompanyNumber()) {
-            $Global->POST['CompanyNumber'] = $tblSchool->getCompanyNumber();
+            $Global->POST['Data']['CompanyNumber'] = $tblSchool->getCompanyNumber();
+            $Global->POST['Data']['SchoolCode'] = $tblSchool->getSchoolCode();
             $Global->savePost();
         }
 
         $Stage->setContent(
             new Layout(
                 new LayoutGroup(array(
-                    new LayoutRow(
-                        new LayoutColumn(
-                            $PanelHead
-                            , 6)
+                    new LayoutRow(array(
+                        new LayoutColumn($PanelHead, 6),)
                     ),
-                    new LayoutRow(
-                        new LayoutColumn(
-                            new Well(School::useService()->updateSchool(
-                                $Form, $tblSchool, $CompanyNumber, $School
-                            ))
-                            , 6)
-                    )
+                    new LayoutRow(new LayoutColumn(
+                        new Well(School::useService()->updateSchool(
+                            $Form, $tblSchool, $Data, $School
+                        ))
+                    ))
                 ))
             )
         );
