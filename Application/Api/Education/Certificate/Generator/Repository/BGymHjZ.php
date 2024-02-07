@@ -23,7 +23,7 @@ class BGymHjZ extends BGymStyle
             ->addSlice($this->getLevelYearStudent($personId, '1. Schulhalbjahr'))
             ->addSlice($this->getSubjectLanesBGym($personId, '1. Schulhalbjahr'))
             ->addSlice($this->getChosenLanesBGym($personId))
-            ->addSlice($this->getRemarkBGym($personId, true))
+            ->addSlice($this->getRemarkBGym($personId, false))
             ->addSlice((new Slice())->styleHeight('20px'))
             ->addSlice($this->getSignPartBGym($personId))
             ->addSlice($this->getGradeLevel())

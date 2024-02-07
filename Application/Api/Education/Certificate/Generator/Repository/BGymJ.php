@@ -33,7 +33,7 @@ class BGymJ extends BGymStyle
             ->addSlice($this->getLevelYearStudent($personId, 'Schuljahr'))
             ->addSlice($this->getSubjectLanesBGym($personId, 'Schuljahr'))
             ->addSlice($this->getChosenLanesBGym($personId))
-            ->addSlice($this->getRemarkBGym($personId, true))
+            ->addSlice($this->getRemarkBGym($personId, false))
             ->addSlice($this->getTransferBGym($personId))
             ->addSlice($this->getSignPartBGym($personId))
             ->addSlice($this->getGradeLevel())
