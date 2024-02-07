@@ -432,7 +432,9 @@ abstract class FrontendSelect extends FrontendPreview
                             }
 
                             $linkPdf = '';
-                            if (isset($tblSchoolTypeList[$tblSchoolTypeOS->getId()]) || isset($tblSchoolTypeList[$tblSchoolTypeFOS->getId()])) {
+                            if ($tblCertificateType->getIdentifier() == 'DIPLOMA'
+                                && (isset($tblSchoolTypeList[$tblSchoolTypeOS->getId()]) || isset($tblSchoolTypeList[$tblSchoolTypeFOS->getId()]))
+                            ) {
                                 $linkPdf = new External(
                                     'Notenliste',
                                     '/Api/Document/Standard/ExamGradeList/Create',

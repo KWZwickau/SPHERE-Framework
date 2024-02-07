@@ -17,6 +17,7 @@ use SPHERE\Application\Api\Document\Standard\Repository\ClassRegister\ClassRegis
 use SPHERE\Application\Api\Document\Standard\Repository\ClassRegister\CourseContent;
 use SPHERE\Application\Api\Document\Standard\Repository\EnrollmentDocument;
 use SPHERE\Application\Api\Document\Standard\Repository\ExamGradeList\ExamGradeListOS;
+use SPHERE\Application\Api\Document\Standard\Repository\ExamGradeList\ExamGradeListTechnical;
 use SPHERE\Application\Api\Document\Standard\Repository\Gradebook\Gradebook;
 use SPHERE\Application\Api\Document\Standard\Repository\GradebookOverview;
 use SPHERE\Application\Api\Document\Standard\Repository\MultiPassword\MultiPassword;
@@ -43,6 +44,7 @@ use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account as GatekeeperAccount;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblIdentification;
@@ -1540,7 +1542,15 @@ class Creator extends Extension
         ) {
             ini_set('memory_limit', '1G');
 
-            $Document = new ExamGradeListOS($tblPrepare, $tblDivisionCourse);
+            $tblSchoolTypeList = $tblDivisionCourse->getSchoolTypeListFromStudents();
+            if (($tblSchoolTypeOS = Type::useService()->getTypeByShortName('OS'))
+                && isset($tblSchoolTypeList[$tblSchoolTypeOS->getId()])
+            ) {
+                $Document = new ExamGradeListOS($tblPrepare, $tblDivisionCourse);
+            } else {
+                $Document = new ExamGradeListTechnical($tblPrepare, $tblDivisionCourse);
+            }
+
             $pageList[] = $Document->getPageList();
             $File = self::buildDummyFile($Document, array(), $pageList, Creator::PAPERORIENTATION_LANDSCAPE, true, '0', 'A3');
             $FileName = 'Notenliste Abschlussprüfungen ' . $tblDivisionCourse->getName() . ' ' . date("Y-m-d").".pdf";
