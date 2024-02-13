@@ -107,7 +107,7 @@ class Service extends AbstractService
         bool $IsCertificateRelevant = true
     ) {
         $list = array();
-        // Fehlzeiten aus alle Klassen des Schuljahrs
+        // Fehlzeiten aus alle Klassen des Schuljahres
         if (($tblDivisionList = Division::useService()->getOtherDivisionsByStudent($tblDivision, $tblPerson, true))) {
             foreach ($tblDivisionList as $tblDivisionItem) {
                 if (($absenceList = $this->getAbsenceAllByPerson($tblPerson, $tblDivisionItem))) {
@@ -149,7 +149,7 @@ class Service extends AbstractService
         bool $IsCertificateRelevant = true
     ) {
         $list = array();
-        // Fehlzeiten aus alle Klassen des Schuljahrs
+        // Fehlzeiten aus alle Klassen des Schuljahres
         if (($tblDivisionList = Division::useService()->getOtherDivisionsByStudent($tblDivision, $tblPerson, true))) {
             foreach ($tblDivisionList as $tblDivisionItem) {
                 if (($absenceList = $this->getAbsenceAllByPerson($tblPerson, $tblDivisionItem))) {

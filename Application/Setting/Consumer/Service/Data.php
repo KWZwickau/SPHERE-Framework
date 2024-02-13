@@ -295,7 +295,7 @@ class Data extends AbstractData
         $this->createSetting('Education', 'ClassRegister', 'LessonContent', 'IsAutoTimeTable', TblSetting::TYPE_BOOLEAN, '0',
             'Klassenbücher', 'Automatische Vorbelegung des Stundenplans im digitalen Klassenbuch anhand der Einträge der Vorwochen. [Standard: Nein]', true);
         $this->createSetting('Education', 'ClassRegister', 'LessonContent', 'HasTeacherAccessToLastYearDigital', TblSetting::TYPE_BOOLEAN, '0',
-            'Klassenbücher', 'Fachlehrer können auf die Klassenbücher des letzten vergangenen Schuljahrs zugreifen [Standard: Nein]', true
+            'Klassenbücher', 'Fachlehrer können auf die Klassenbücher des letzten vergangenen Schuljahres zugreifen [Standard: Nein]', true
         );
 
         // Leistungsüberprüfungen public
