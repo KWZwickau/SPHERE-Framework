@@ -1032,7 +1032,8 @@ class Service extends AbstractService
             foreach($tblInvoiceList as $tblInvoice){
                 if(($InvoiceItemDebtorList = Invoice::useService()->getInvoiceItemDebtorByInvoice($tblInvoice))){
                     foreach($InvoiceItemDebtorList as $InvoiceItemDebtor){
-                        if($InvoiceItemDebtor->getServiceTblPaymentType()->getId() == $SepaPaymentType->getId()){
+                        if($InvoiceItemDebtor->getServiceTblPaymentType()->getId() == $SepaPaymentType->getId()
+                        && $InvoiceItemDebtor->getIsPaid()){
                             $IsSepaReady = true;
                             break;
                         }
