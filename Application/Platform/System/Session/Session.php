@@ -192,7 +192,7 @@ class Session extends Extension implements IModuleInterface
             .new Bold('Token und App: ').$countArray['combinedLogin'].$space
             .new Bold('Token: ').$countArray['tokenLogin'].$space
             .new Bold('App: ').$countArray['combinedLogin'].$space
-            .new Bold('Gesammt: ').$countArray['combinedLogin']+$countArray['tokenLogin']+$countArray['combinedLogin'].$space
+            .new Bold('Gesamt: ').$countArray['combinedLogin']+$countArray['tokenLogin']+$countArray['combinedLogin'].$space
             .new Bold('Schüler/Eltern: ').$countArray['studentCustody']
         );
 

@@ -422,7 +422,7 @@ class Service extends AbstractService
                             foreach($ItemContent as $ItemId => $value){
                                 if(($tblItem = Item::useService()->getItemById($ItemId))){
                                     $Item['Id'.$tblItem->getId()] = Balance::useService()->getPriceString($value['Sum']);
-                                    // Gesammt addieren
+                                    // Gesamt addieren
                                     $Summary += $value['Sum'];
                                     if($isMonthly && !empty($value['Price'])){
                                         foreach($value['Price'] as $BillTime => $Price){
