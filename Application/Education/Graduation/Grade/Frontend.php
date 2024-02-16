@@ -970,7 +970,7 @@ class Frontend extends FrontendTestPlanning
                                     $global->POST['Data'][$tblPerson->getId()]['Comment'] = $tblTaskGrade->getComment();
                                 }
                             } else {
-                                $gradeValue = str_replace('.', ',', $tblTaskGrade->getGrade());
+                                $gradeValue = str_replace('.', ',', $tblTaskGrade->getGrade() ?: '');
                                 $global->POST['Data'][$tblPerson->getId()]['Grade'] = $gradeValue;
                                 $global->POST['Data'][$tblPerson->getId()]['Comment'] = $tblTaskGrade->getComment();
 
