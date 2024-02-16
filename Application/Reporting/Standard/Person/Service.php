@@ -3569,12 +3569,17 @@ class Service extends Extension
             $tblMainAddress = $tblPerson->fetchMainAddress();
             $leaveSchool = '';
             $leaveDate = '';
-            if (($tblStudent = $tblPerson->getStudent())
-            && ($tblTransferTypeLeave = Student::useService()->getStudentTransferTypeByIdentifier('LEAVE'))
-            && ($tblTransferLeave = Student::useService()->getStudentTransferByType($tblStudent, $tblTransferTypeLeave))
-            ) {
-                $leaveSchool = $tblTransferLeave->getServiceTblCompany() ? $tblTransferLeave->getServiceTblCompany()->getDisplayName() : '';
-                $leaveDate = $tblTransferLeave->getTransferDate();
+            $studentNumber = '';
+
+            if(($tblStudent = $tblPerson->getStudent()))
+            {
+                $studentNumber = $tblStudent->getIdentifierComplete();
+                if(($tblTransferTypeLeave = Student::useService()->getStudentTransferTypeByIdentifier('LEAVE'))
+                    && ($tblTransferLeave = Student::useService()->getStudentTransferByType($tblStudent, $tblTransferTypeLeave))
+                ) {
+                    $leaveSchool = $tblTransferLeave->getServiceTblCompany() ? $tblTransferLeave->getServiceTblCompany()->getDisplayName() : '';
+                    $leaveDate = $tblTransferLeave->getTransferDate();
+                }
             }
             $custody1Salutation = '';
             $custody1FirstName = '';
@@ -3615,7 +3620,8 @@ class Service extends Extension
                 'City'                  => $tblMainAddress ? $tblMainAddress->getTblCity()->getDisplayName() : '',
                 'LastSchool'            => $lastSchool,
                 'NewSchool'             => $leaveSchool,
-                'LeaveDate'             => $leaveDate
+                'LeaveDate'             => $leaveDate,
+                'StudentNumber'         => $studentNumber
             );
         }
         $division = array();
@@ -3641,6 +3647,7 @@ class Service extends Extension
         $export = Document::getDocument($fileLocation->getFileLocation());
         $column = 0;
         $export->setValue($export->getCell($column++, 0), 'Abgangsklasse');
+        $export->setValue($export->getCell($column++, 0), 'Schülernummer');
         $export->setValue($export->getCell($column++, 0), 'Name');
         $export->setValue($export->getCell($column++, 0), 'Vorname');
         $export->setValue($export->getCell($column++, 0), 'Geschlecht');
@@ -3661,6 +3668,7 @@ class Service extends Extension
         foreach ($dataList as $PersonData) {
             $column = 0;
             $export->setValue($export->getCell($column++, $row), $PersonData['LastDivisionCourse']);
+            $export->setValue($export->getCell($column++, $row), $PersonData['StudentNumber']);
             $export->setValue($export->getCell($column++, $row), $PersonData['LastName']);
             $export->setValue($export->getCell($column++, $row), $PersonData['FirstName']);
             $export->setValue($export->getCell($column++, $row), $PersonData['Gender']);

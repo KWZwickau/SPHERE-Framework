@@ -112,7 +112,7 @@ class VklbaJ extends Style
             ->addSlice($this->getCustomSubjectLanesVklba($personId, '0px')->styleHeight('200px'))
             ->addSlice($this->getChosenArea($personId))
             ->addSlice($this->getPartialIntegration($personId))
-            ->addSlice($this->getCustomFosRemark($personId, '15px', '90px', self::TEXT_SIZE_NORMAL))
+            ->addSlice($this->getCustomFosRemark($personId, '15px', '110px', self::TEXT_SIZE_NORMAL))
             ->addSlice($this->getCustomSignPartBgj($personId, '5px'))
             ->addSlice($this->getCustomParentSign('10px'))
             ->addSlice($this->getCustomInfoBgj('8px'));

@@ -19,7 +19,6 @@ use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblStudent
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\School\Course\Service\Entity\TblCourse;
-use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubject;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -192,9 +191,8 @@ abstract class Certificate extends Extension
             }
         } elseif ($tblConsumer && $tblConsumer->isConsumer(TblConsumer::TYPE_SACHSEN, 'HOGA')) {
             $InjectStyle = 'body { margin-bottom: -1.5cm !important; margin-left: 0.75cm !important; margin-right: 0.75cm !important; }';
-        }
-        else {
-            $InjectStyle = '';
+        } elseif ($tblConsumer && $tblConsumer->isConsumer(TblConsumer::TYPE_SACHSEN, 'MLS')) {
+            $InjectStyle = 'body { margin-bottom: -1.5cm !important; margin-left: 0.75cm !important; margin-right: 0.75cm !important; }';
         }
 
         // Standardzeugnisse mit Breiteneinstellung
@@ -3000,6 +2998,7 @@ abstract class Certificate extends Extension
                 ->styleTextSize($TextSize);
 
             if ($tblSubjectProfile) {
+                $subjectAcronymForGrade = $tblSubjectProfile->getAcronym();
                 // SSW-493 Profil vs. 3.FS
                 $contentForeignGrade = '
                     {% if(Content.P' . $personId . '.Grade.Data["' . $tblSubjectForeign->getAcronym() . '"] is not empty) %}
@@ -4122,15 +4121,10 @@ abstract class Certificate extends Extension
             if (($tblSubject = $this->getForeignLanguageSubject(2))) {
                 $elementForeignLanguageName = new Element();
                 $elementForeignLanguageName
-                    ->setContent('
-                    {% if(Content.P' . $personId . '.Student.ForeignLanguage["' . $tblSubject->getAcronym() . '"] is not empty) %}
-                         {{ Content.P' . $personId . '.Student.ForeignLanguage["' . $tblSubject->getAcronym() . '"].Name' . ' }}
-                    {% else %}
-                         &nbsp;
-                    {% endif %}')
+                    ->setContent($tblSubject->getName())
                     ->styleFontFamily('Trebuchet MS')
                     ->styleLineHeight('85%')
-                    ->stylePaddingTop('0px')
+                    ->stylePaddingTop('2px')
                     ->stylePaddingBottom('0px')
                     ->styleMarginTop($marginTop)
                     ->styleTextSize($TextSize);

@@ -111,6 +111,7 @@ abstract class ServiceTemplateInformation extends ServiceLeave
                     $hasRemarkText = false;
                     $hasEducationDateFrom = false;
                     $isSubjectAreaSet = false;
+                    $isDivisionNameSet = false;
                     $tblStudent = $tblPerson->getStudent();
                     if ($tblPrepareInformationAll) {
                         foreach ($tblPrepareInformationAll as $tblPrepareInformation) {
@@ -128,6 +129,10 @@ abstract class ServiceTemplateInformation extends ServiceLeave
 
                             if ($tblPrepareInformation->getField() == 'SubjectArea') {
                                 $isSubjectAreaSet = true;
+                            }
+
+                            if ($tblPrepareInformation->getField() == 'DivisionName') {
+                                $isDivisionNameSet = true;
                             }
 
                             if ($tblPrepareInformation->getField() == 'SchoolType'
@@ -277,9 +282,10 @@ abstract class ServiceTemplateInformation extends ServiceLeave
                     * Individuelle Zeugnisse EVGSM Meerane Klassename vorsetzen
                     */
                     if ($Page == null
+                        && !$isDivisionNameSet
                         && strpos($Certificate->getCertificateEntity()->getCertificate(), 'EVGSM') !== false
                     ) {
-                        $Global->POST['Data'][$tblPrepareStudent->getId()]['DivisionName'] = $tblDivisionCourse->getDisplayName();
+                        $Global->POST['Data'][$tblPrepareStudent->getId()]['DivisionName'] = $tblDivisionCourse->getName();
                     }
 
                     // GTA setzen, werden in der Schülerakte als Arbeitsgemeinschaften gepflegt

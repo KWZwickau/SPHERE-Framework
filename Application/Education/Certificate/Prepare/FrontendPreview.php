@@ -68,6 +68,7 @@ abstract class FrontendPreview extends FrontendLeaveTechnicalSchool
         $countBehavior = 0;
         $tblBehaviorTask = false;
         $studentTable = array();
+        $isSekII = false;
         if (($tblPrepare = Prepare::useService()->getPrepareById($PrepareId))
             && ($tblDivisionCourse = $tblPrepare->getServiceTblDivision())
             && ($tblYear = $tblDivisionCourse->getServiceTblYear())
@@ -137,6 +138,7 @@ abstract class FrontendPreview extends FrontendLeaveTechnicalSchool
                     $tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare, $tblPerson);
                     $data = Prepare::useFrontend()->getStudentBasicInformation($tblPerson, $tblYear, $tblPrepareStudent ?: null, $count, false);
                     $tblCertificate = $tblPrepareStudent ? $tblPrepareStudent->getServiceTblCertificate() : false;
+                    $isSekII = DivisionCourse::useService()->getIsCourseSystemByPersonAndYear($tblPerson, $tblYear);
                     // Keine Zeugnisvorlage
                     if (!$tblCertificate) {
                         $studentTable[$tblPerson->getId()] = array_merge($data, array(
@@ -183,7 +185,7 @@ abstract class FrontendPreview extends FrontendLeaveTechnicalSchool
                         }
                         $behaviorGradesText = $countBehaviorGrades . ' von ' . $countBehavior; // . ' Zensuren&nbsp;';
                     } else {
-                        $behaviorGradesText = 'Kein Kopfnoten ausgewählt';
+                        $behaviorGradesText = 'Kein Kopfnoten&shy;auftrag ausgewählt';
                     }
 
                     $excusedDays = '&nbsp;';
@@ -351,6 +353,13 @@ abstract class FrontendPreview extends FrontendLeaveTechnicalSchool
                 if (!empty($droppedSubjectsCreateList)) {
                     Prepare::useService()->createEntityListBulk($droppedSubjectsCreateList);
                 }
+            }
+
+            // Sekundarstufe II besitzt keine Kopfnoten und Fehlzeiten
+            if ($isSekII) {
+                unset($columnTable['BehaviorGrades']);
+                unset($columnTable['ExcusedAbsence']);
+                unset($columnTable['UnexcusedAbsence']);
             }
 
             $columnTable['CheckSubjects'] = 'Prüfung Fächer / Zeugnis';

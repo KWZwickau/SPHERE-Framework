@@ -694,8 +694,23 @@ abstract class ServiceTask extends ServiceStudentOverview
         $today = new DateTime('today');
         $future = (new DateTime('today'))->add(new DateInterval('P7D'));
 
+        $tblDivisionCourseListChecked = array();
         if (($tblYearList = Term::useService()->getYearByNow())) {
             foreach ($tblYearList as $tblYear) {
+                // Lerngruppen des Lehrers
+                $subjectDivisionCourseList = array();
+                if ($tblDivisionCourseTeacherGroupList = DivisionCourse::useService()->getTeacherGroupListByTeacherAndYear($tblPersonLogin, $tblYear)) {
+                    foreach ($tblDivisionCourseTeacherGroupList as $tblDivisionCourseTeacherGroup) {
+                        if (($tblSubjectTemp = $tblDivisionCourseTeacherGroup->getServiceTblSubject())
+                            && ($tblDivisionCourseTempList = DivisionCourse::useService()->getDivisionCourseListByStudentsInDivisionCourse($tblDivisionCourseTeacherGroup))
+                        ) {
+                            foreach ($tblDivisionCourseTempList as $tblDivisionCourseTemp) {
+                                $subjectDivisionCourseList[$tblSubjectTemp->getId()][$tblDivisionCourseTemp->getId()] = $tblDivisionCourseTeacherGroup;
+                            }
+                        }
+                    }
+                }
+
                 if (($tblTeacherLectureshipList = DivisionCourse::useService()->getTeacherLectureshipListBy($tblYear, $tblPersonLogin))) {
                     foreach ($tblTeacherLectureshipList as $tblTeacherLectureship) {
                         $tblTaskList = false;
@@ -715,7 +730,30 @@ abstract class ServiceTask extends ServiceStudentOverview
                             foreach ($tblTaskList as $tblTask) {
                                 // current task
                                 if ($today >= $tblTask->getFromDate() && $today <= $tblTask->getToDate()) {
-                                    if ($this->setCurrentTask($tblDivisionCourse, $tblSubject, $tblYear, $tblTask, $dataList, $tblSettingBehaviorHasGrading)) {
+                                    $isAddTask = false;
+                                    // Lerngruppe setzen statt Kurs
+                                    if (isset($subjectDivisionCourseList[$tblSubject->getId()][$tblDivisionCourse->getId()])) {
+                                        /** @var TblDivisionCourse $tblDivisionCourseTeacherGroupTemp */
+                                        $tblDivisionCourseTeacherGroupTemp = $subjectDivisionCourseList[$tblSubject->getId()][$tblDivisionCourse->getId()];
+                                        if (!isset($tblDivisionCourseListChecked[$tblTask->getId()][$tblDivisionCourseTeacherGroupTemp->getId()][$tblSubject->getId()])
+                                            && $this->setCurrentTask(
+                                                $tblDivisionCourseTeacherGroupTemp, $tblSubject, $tblYear, $tblTask, $dataList, $tblSettingBehaviorHasGrading
+                                            )
+                                        ) {
+                                            $isAddTask = true;
+                                            $tblDivisionCourseListChecked[$tblTask->getId()][$tblDivisionCourseTeacherGroupTemp->getId()][$tblSubject->getId()]
+                                                = $tblDivisionCourseTeacherGroupTemp;
+                                        }
+                                    } elseif (!isset($tblDivisionCourseListChecked[$tblTask->getId()][$tblDivisionCourse->getId()][$tblSubject->getId()])
+                                        && $this->setCurrentTask(
+                                            $tblDivisionCourse, $tblSubject, $tblYear, $tblTask, $dataList, $tblSettingBehaviorHasGrading
+                                        )
+                                    ) {
+                                        $isAddTask = true;
+                                        $tblDivisionCourseListChecked[$tblTask->getId()][$tblDivisionCourse->getId()][$tblSubject->getId()] = $tblDivisionCourse;
+                                    }
+
+                                    if ($isAddTask) {
                                         if ($tblTask->getIsTypeBehavior()) {
                                             if (!isset($behaviorTaskList[$tblTask->getId()])) {
                                                 $behaviorTaskList[$tblTask->getId()] = $tblTask;
@@ -726,7 +764,8 @@ abstract class ServiceTask extends ServiceStudentOverview
                                             }
                                         }
                                     }
-                                    // future task
+
+                                // future task
                                 } elseif ($today < $tblTask->getFromDate() && $future > $tblTask->getFromDate()) {
                                     if ($tblTask->getIsTypeBehavior()) {
                                         $futureBehaviorTaskList[$tblTask->getId()] = $tblTask;
@@ -754,9 +793,9 @@ abstract class ServiceTask extends ServiceStudentOverview
         }
     }
 
-    private function setCurrentTask(TblDivisionCourse $tblDivisionCourse, TblSubject $tblSubject, TblYear $tblYear, TblTask $tblTask, array &$dataList,
-        bool $tblSettingBehaviorHasGrading): bool
-    {
+    private function setCurrentTask(
+        TblDivisionCourse $tblDivisionCourse, TblSubject $tblSubject, TblYear $tblYear, TblTask $tblTask, array &$dataList, bool $tblSettingBehaviorHasGrading
+    ): bool {
         $countPersons = 0;
         $countGrades = 0;
         if (($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses())) {
@@ -827,7 +866,6 @@ abstract class ServiceTask extends ServiceStudentOverview
                     ),
                     Panel::PANEL_TYPE_INFO
                 );
-                $columns[] = new LayoutColumn($panel, 6);
             } else {
                 $messageList = array();
                 if (isset($dataList[$tblTask->getId()])) {
@@ -844,8 +882,9 @@ abstract class ServiceTask extends ServiceStudentOverview
                     $messageList,
                     Panel::PANEL_TYPE_INFO
                 );
-                $columns[] = new LayoutColumn($panel, 6);
             }
+
+            $columns[] = new LayoutColumn($panel, 6);
         }
 
         return $columns;
