@@ -368,9 +368,9 @@ abstract class ServiceYearChange extends ServiceTeacher
                             ) {
                                 // prüfen, ob der Lehrauftrag schon existiert
                                 if (!DivisionCourse::useService()->getTeacherLectureshipListBy($tblYearTarget, $tblTeacher, $tblDivisionCourseTarget, $tblSubject)) {
-                                    $createTeacherLectureshipList[] = TblTeacherLectureship::withParameter(
-                                        $tblTeacher, $tblYearTarget, $tblDivisionCourseTarget, $tblSubject
-                                    );
+                                    // key setzen, um doppelte Lehraufträge zu verhindern
+                                    $createTeacherLectureshipList[$tblDivisionCourseTarget->getId() . '_' . $tblTeacher->getId() . '_' . $tblSubject->getId()]
+                                        = TblTeacherLectureship::withParameter($tblTeacher, $tblYearTarget, $tblDivisionCourseTarget, $tblSubject);
                                 }
                             }
                         }
