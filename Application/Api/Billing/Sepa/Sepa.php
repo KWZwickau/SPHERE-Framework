@@ -91,7 +91,14 @@ class Sepa implements IModuleInterface
             header('Content-Disposition: attachment; filename="Abrechnung_'.$name.'_'.$monthString.'_'.$year.'.xml"');
             return $directDebit->asXML();
         } else {
-            return new Warning('XML Datei enthält keine Sepa-Lastschrift');
+            return '<h1 style="color: red;">XML Datei enthält keine Sepa-Lastschrift</h1>'
+                .'<h3>Mögliche Ursachen:</h3>'
+                .'<div>- Die Abrechnung enthält keine SEPA-Lastschrift.</div>'
+                .'<div>- Die enthaltenen SEPA-Lastschriften sind alle auf "offene Posten" gesetzt.</div>'
+                .'<div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Lösung 1: Wählen Sie diese im Modal davor aus, hier sind die offenen Posten enthalten, werden aber bei
+                    Verwendung auf <b>bezahlt</b> gesetzt. </div>'
+                .'<div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Lösung 2: Gehen Sie zur Navigation "Fakturierung → Beitragsfakturierung → Offene Posten" und setzen Sie
+                     die gewünschten Einträge auf bezahlt. </div>';
         }
     }
 
