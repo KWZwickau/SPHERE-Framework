@@ -3,6 +3,7 @@
 namespace SPHERE\Application\Education\Lesson\DivisionCourse\Frontend;
 
 use SPHERE\Application\Api\Education\DivisionCourse\ApiSubjectTable;
+use SPHERE\Application\Education\Graduation\Grade\Grade;
 use SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount\SelectBoxItem;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblSubjectTable;
@@ -193,6 +194,7 @@ class FrontendSubjectTable extends FrontendStudentSubject
             $Global->POST['Data']['StudentMetaIdentifier'] = $tblSubjectTable->getStudentMetaIdentifier();
             $Global->POST['Data']['HoursPerWeek'] = $tblSubjectTable->getHoursPerWeek();
             $Global->POST['Data']['HasGrading'] = $tblSubjectTable->getHasGrading();
+            $Global->POST['Data']['GradeText'] = ($tblGradeText = $tblSubjectTable->getServiceTblGradeText()) ? $tblGradeText->getId() : 0;
             $Global->savePost();
         } elseif (!$tblSubjectTable) {
             $Global = $this->getGlobal();
@@ -254,6 +256,11 @@ class FrontendSubjectTable extends FrontendStudentSubject
                     new FormColumn(
                         new NumberField('Data[HoursPerWeek]', '', 'Wochenstunden')
                         , 6),
+                    new FormColumn(
+                        new SelectBox('Data[GradeText]', 'Standard Zeugnistext', array('{{ Name }}' => Grade::useService()->getGradeTextAll()))
+                        , 6),
+                )),
+                new FormRow(array(
                     new FormColumn(
                         new CheckBox('Data[HasGrading]', 'Benotung', 1)
                         , 6),

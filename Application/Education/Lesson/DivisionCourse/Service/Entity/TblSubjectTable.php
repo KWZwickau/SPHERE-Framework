@@ -6,6 +6,8 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
+use SPHERE\Application\Education\Graduation\Grade\Grade;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblGradeText;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
@@ -76,6 +78,11 @@ class TblSubjectTable extends Element
     protected ?int $HoursPerWeek  = null;
 
     /**
+     * @Column(type="bigint")
+     */
+    protected ?int $serviceTblGradeText = null;
+
+    /**
      * @param TblType $tblSchoolType
      * @param int $level
      * @param TblSubject|null $tblSubject
@@ -84,11 +91,12 @@ class TblSubjectTable extends Element
      * @param int|null $hoursPerWeek
      * @param string $studentMetaIdentifier
      * @param bool $hasGrading
+     * @param TblGradeText|null $tblGradeText
      *
      * @return TblSubjectTable
      */
     public static function withParameter(TblType $tblSchoolType, int $level, ?TblSubject $tblSubject, string $typeName, int $ranking, ?int $hoursPerWeek,
-        string $studentMetaIdentifier = '', bool $hasGrading = true): TblSubjectTable
+        string $studentMetaIdentifier = '', bool $hasGrading = true, ?TblGradeText $tblGradeText = null): TblSubjectTable
     {
         $instance = new self();
 
@@ -100,6 +108,7 @@ class TblSubjectTable extends Element
         $instance->setHoursPerWeek($hoursPerWeek);
         $instance->setStudentMetaIdentifier($studentMetaIdentifier);
         $instance->setHasGrading($hasGrading);
+        $instance->setServiceTblGradeText($tblGradeText);
 
         return  $instance;
     }
@@ -230,6 +239,22 @@ class TblSubjectTable extends Element
     public function setHoursPerWeek(?int $HoursPerWeek): void
     {
         $this->HoursPerWeek = $HoursPerWeek;
+    }
+
+    /**
+     * @return TblGradeText|false
+     */
+    public function getServiceTblGradeText()
+    {
+        return Grade::useService()->getGradeTextById($this->serviceTblGradeText);
+    }
+
+    /**
+     * @param ?TblGradeText $tblGradeText
+     */
+    public function setServiceTblGradeText(?TblGradeText $tblGradeText)
+    {
+        $this->serviceTblGradeText = $tblGradeText ? $tblGradeText->getId() : null;
     }
 
     /**
