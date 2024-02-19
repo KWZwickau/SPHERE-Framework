@@ -69,6 +69,7 @@ abstract class FrontendPreview extends FrontendLeaveTechnicalSchool
         $tblBehaviorTask = false;
         $studentTable = array();
         $isSekII = false;
+        $hasColumnCertificate = false;
         if (($tblPrepare = Prepare::useService()->getPrepareById($PrepareId))
             && ($tblDivisionCourse = $tblPrepare->getServiceTblDivision())
             && ($tblYear = $tblDivisionCourse->getServiceTblYear())
@@ -202,6 +203,7 @@ abstract class FrontendPreview extends FrontendLeaveTechnicalSchool
 
                         if ($hasCertificateAbsence) {
                             // Fehlzeiten nur Anzeigen, wenn Fehltage auf der Zeugnisvorlage sind
+                            $hasColumnCertificate = true;
                             $excusedDays = $tblPrepareStudent->getExcusedDays();
                             $unexcusedDays = $tblPrepareStudent->getUnexcusedDays();
                             if ($useClassRegisterForAbsence) {
@@ -358,6 +360,9 @@ abstract class FrontendPreview extends FrontendLeaveTechnicalSchool
             // Sekundarstufe II besitzt keine Kopfnoten und Fehlzeiten
             if ($isSekII) {
                 unset($columnTable['BehaviorGrades']);
+            }
+
+            if (!$hasColumnCertificate) {
                 unset($columnTable['ExcusedAbsence']);
                 unset($columnTable['UnexcusedAbsence']);
             }
