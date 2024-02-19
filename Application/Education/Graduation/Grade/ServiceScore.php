@@ -43,6 +43,10 @@ abstract class ServiceScore extends ServiceMinimumGradeCount
      */
     public function getScoreTypeById($id)
     {
+        if ($id == TblScoreType::VIRTUAL_OVERRIDE_SCORE_TYPE_EXCEPTION_ID) {
+            return TblScoreType::getVirtualOverrideScoreTypeException();
+        }
+
         return (new Data($this->getBinding()))->getScoreTypeById($id);
     }
 
@@ -95,6 +99,24 @@ abstract class ServiceScore extends ServiceMinimumGradeCount
     public function getScoreTypeSubjectBySchoolTypeAndLevelAndSubject(TblType $tblSchoolType, int $level, TblSubject $tblSubject)
     {
         return (new Data($this->getBinding()))->getScoreTypeSubjectBySchoolTypeAndLevelAndSubject($tblSchoolType, $level, $tblSubject);
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     * @param TblSubject $tblSubject
+     *
+     * @return false|TblScoreTypeSubject
+     */
+    public function getScoreTypeSubjectByPersonAndYearAndSubject(TblPerson $tblPerson, TblYear $tblYear, TblSubject $tblSubject)
+    {
+        if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))
+            && ($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())
+        ) {
+            return $this->getScoreTypeSubjectBySchoolTypeAndLevelAndSubject($tblSchoolType, $tblStudentEducation->getLevel(), $tblSubject);
+        }
+
+        return false;
     }
 
     /**

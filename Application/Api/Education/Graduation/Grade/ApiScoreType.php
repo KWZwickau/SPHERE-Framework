@@ -5,6 +5,7 @@ namespace SPHERE\Application\Api\Education\Graduation\Grade;
 use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\Education\Graduation\Grade\Grade;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreType;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreTypeSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\School\Type\Type;
@@ -124,32 +125,48 @@ class ApiScoreType extends Extension implements IApiInterface
         $removeList = array();
         $keepList = array();
 
-        if (($tblScoreTypeSubjectList = $tblScoreType->getScoreTypeSubjects($tblSchoolType))) {
-            foreach ($tblScoreTypeSubjectList as $tblScoreTypeSubject) {
-                if (($tblSubject = $tblScoreTypeSubject->getServiceTblSubject())) {
-                    // löschen
-                    if (!isset($Data['Subjects'][$tblScoreTypeSubject->getLevel()][$tblSubject->getId()])) {
-                        $removeList[] = $tblScoreTypeSubject;
-                    } else {
-                        $keepList[$tblScoreTypeSubject->getLevel()][$tblSubject->getId()] = $tblScoreTypeSubject;
+        // Sonderfall Überschreiben des Bewertungssystems bei Notenaufträgen verhindern
+        if ($tblScoreType->getId() == TblScoreType::VIRTUAL_OVERRIDE_SCORE_TYPE_EXCEPTION_ID) {
+            if (($tblScoreTypeSubjectList = Grade::useService()->getScoreTypeSubjectListBySchoolType($tblSchoolType))) {
+                foreach ($tblScoreTypeSubjectList as $tblScoreTypeSubject) {
+                    if (($tblSubject = $tblScoreTypeSubject->getServiceTblSubject())
+                        && $tblScoreTypeSubject->getIsOverrideScoreTypeException() != isset($Data['Subjects'][$tblScoreTypeSubject->getLevel()][$tblSubject->getId()])
+                    ) {
+                        // update
+                        $tblScoreTypeSubject->setIsOverrideScoreTypeException(!$tblScoreTypeSubject->getIsOverrideScoreTypeException());
+                        $updateList[] = $tblScoreTypeSubject;
                     }
                 }
             }
-        }
-
-        if (isset($Data['Subjects'])) {
-            foreach ($Data['Subjects'] as $level => $subjectList) {
-                foreach ($subjectList as $subjectId => $value) {
-                    if (($tblSubject = Subject::useService()->getSubjectById($subjectId))) {
-                        if (isset($keepList[$level][$subjectId])) {
-                            continue;
-                        // update
-                        } elseif (($tblScoreTypeSubject = Grade::useService()->getScoreTypeSubjectBySchoolTypeAndLevelAndSubject($tblSchoolType, $level, $tblSubject))) {
-                            $tblScoreTypeSubject->setTblScoreType($tblScoreType);
-                            $updateList[] = $tblScoreTypeSubject;
-                        // neu
+        } else {
+            if (($tblScoreTypeSubjectList = $tblScoreType->getScoreTypeSubjects($tblSchoolType))) {
+                foreach ($tblScoreTypeSubjectList as $tblScoreTypeSubject) {
+                    if (($tblSubject = $tblScoreTypeSubject->getServiceTblSubject())) {
+                        // löschen
+                        if (!isset($Data['Subjects'][$tblScoreTypeSubject->getLevel()][$tblSubject->getId()])) {
+                            $removeList[] = $tblScoreTypeSubject;
                         } else {
-                            $createList[] = new TblScoreTypeSubject($tblSchoolType, $level, $tblSubject, $tblScoreType);
+                            $keepList[$tblScoreTypeSubject->getLevel()][$tblSubject->getId()] = $tblScoreTypeSubject;
+                        }
+                    }
+                }
+            }
+
+            if (isset($Data['Subjects'])) {
+                foreach ($Data['Subjects'] as $level => $subjectList) {
+                    foreach ($subjectList as $subjectId => $value) {
+                        if (($tblSubject = Subject::useService()->getSubjectById($subjectId))) {
+                            if (isset($keepList[$level][$subjectId])) {
+                                continue;
+                                // update
+                            } elseif (($tblScoreTypeSubject = Grade::useService()->getScoreTypeSubjectBySchoolTypeAndLevelAndSubject($tblSchoolType, $level,
+                                $tblSubject))) {
+                                $tblScoreTypeSubject->setTblScoreType($tblScoreType);
+                                $updateList[] = $tblScoreTypeSubject;
+                                // neu
+                            } else {
+                                $createList[] = new TblScoreTypeSubject($tblSchoolType, $level, $tblSubject, $tblScoreType);
+                            }
                         }
                     }
                 }
