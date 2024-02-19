@@ -344,9 +344,9 @@ abstract class EzshStyle extends Certificate
                 }
             }
 
-            // add SecondLanguageField, Fach wird aus der Schüleraktte des Schülers ermittelt
+            // add SecondLanguageField, Fach wird aus der Schülerakte des Schülers ermittelt
             $tblSecondForeignLanguage = false;
-            $tblThirdForeignLanguage = false;
+            $rankingSecondForeignLanguage = '2';
             $tblSecondForeignLanguageSecondarySchool = false;
             if (!empty($languagesWithStartLevel)) {
                 if (isset($languagesWithStartLevel['Lane']) && isset($languagesWithStartLevel['Rank'])) {
@@ -360,6 +360,7 @@ abstract class EzshStyle extends Certificate
 
                     if ($tblThirdForeignLanguage && $showThirdForeignLanguage) {
                         $tblSecondForeignLanguage = $tblThirdForeignLanguage;
+                        $rankingSecondForeignLanguage = '3';
                     }
                     if ($tblSecondForeignLanguage) {
                         $SubjectStructure[$languagesWithStartLevel['Rank']]
@@ -591,8 +592,8 @@ abstract class EzshStyle extends Certificate
                     $content = $hasSecondLanguageSecondarySchool
                         ? $hasAdditionalLine['Ranking'] . '. Fremdsprache (abschlussorientiert)'
                         : $hasAdditionalLine['Ranking'] . '. Fremdsprache (ab Klassenstufe ' .
-                            '{% if(Content.P' . $personId . '.Subject.Level.2 is not empty) %}
-                                {{ Content.P' . $personId . '.Subject.Level.2 }})
+                            '{% if(Content.P' . $personId . '.Subject.Level.' . $rankingSecondForeignLanguage . ' is not empty) %}
+                                {{ Content.P' . $personId . '.Subject.Level.' . $rankingSecondForeignLanguage . ' }})
                             {% else %}
                                 &ndash;)
                             {% endif %}';
