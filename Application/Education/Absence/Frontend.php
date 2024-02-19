@@ -541,7 +541,7 @@ class Frontend extends FrontendClassRegister
 
         $formRows[] = new FormRow(array(
             new FormColumn(
-                new DatePicker('Data[FromDate]', '', 'Datum von', new Calendar()), 6
+                (new DatePicker('Data[FromDate]', '', 'Datum von', new Calendar()))->setRequired(), 6
             ),
             new FormColumn(
                 new DatePicker('Data[ToDate]', '', 'Datum bis', new Calendar()), 6
