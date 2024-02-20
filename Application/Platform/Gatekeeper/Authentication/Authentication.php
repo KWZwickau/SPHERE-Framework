@@ -72,10 +72,6 @@ class Authentication implements IModuleInterface
             Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
                 __NAMESPACE__.'/Saml/DLLPDemo', __NAMESPACE__.'\Frontend::frontendIdentificationSamlDLLPDemo'
             ));
-//            // EKM -> Beispiel kann für zukünftige IDP's verwendet werden
-//            Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-//                __NAMESPACE__.'/Saml/EKM', __NAMESPACE__.'\Frontend::frontendIdentificationSamlEKM'
-//            ));
             Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
                 __NAMESPACE__.'/Agb', __NAMESPACE__.'\Frontend::frontendIdentificationAgb'
             ));

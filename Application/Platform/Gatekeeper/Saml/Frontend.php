@@ -60,4 +60,24 @@ class Frontend
         $PhpSaml = new phpSaml(SamlDLLPDemo::getSAML());
         $PhpSaml->samlLogin();
     }
+
+//    /**
+//     * @return null
+//     * @throws \OneLogin_Saml2_Error
+//     */
+//    public function frontendLogoutDLLPDemo()
+//    {
+//
+//        $Stage = new Stage('Logout');
+//        Account::useService()->destroySession();
+//        $Auth = new phpSaml(SamlDLLPDemo::getSAML());
+//        // aktives Logout erzeugt ein permanentes Redirect mit DLLP
+////        $Auth->samlLogout();
+//        $Stage->setContent(new Layout(new LayoutGroup(new LayoutRow(array(
+//            new LayoutColumn('', 4),
+//            new LayoutColumn(new Info(new Center('Erfolgreich ausgeloggt')), 4),
+//            new LayoutColumn('', 4)
+//        )))));
+//        return $Stage;
+//    }
 }

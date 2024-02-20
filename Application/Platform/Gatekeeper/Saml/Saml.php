@@ -35,6 +35,16 @@ class Saml implements IModuleInterface
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/Login/DLLPDemo', __NAMESPACE__.'/Frontend::frontendLoginDLLPDemo'
         ));
+
+//        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+//            __NAMESPACE__.'/Logout/Placeholder', __NAMESPACE__.'/Frontend::frontendLogoutPlaceholder'
+//        ));
+//        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+//            __NAMESPACE__.'/Logout/DLLP', __NAMESPACE__.'/Frontend::frontendLogoutDLLP'
+//        ));
+//        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+//            __NAMESPACE__.'/Logout/DLLPDemo', __NAMESPACE__.'/Frontend::frontendLogoutDLLPDemo'
+//        ));
     }
 
     public static function useService()
