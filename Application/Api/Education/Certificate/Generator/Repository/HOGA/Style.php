@@ -351,7 +351,12 @@ abstract class Style extends Certificate
                 /** @var TblStudentSubject $tblStudentSubject */
                 $tblStudentSubject = current($tblSubjectList);
                 if (($tblSubject = $tblStudentSubject->getServiceTblSubject())) {
-                    $subjectName = $tblSubject->getName();
+                    // SSWHD-2756 bei HOGA soll der Wahlbereich nur angezeigt werden, wenn auch eine Note vergeben wurde
+                    $subjectName = '{% if(Content.P' . $personId . '.Grade.Data["' . $tblSubject->getAcronym() . '"] is not empty) %}'
+                            . $tblSubject->getName()
+                        . '{% else %}
+                            &ndash;
+                        {% endif %}';
                     $grade = '{% if(Content.P' . $personId . '.Grade.Data["' . $tblSubject->getAcronym() . '"] is not empty) %}
                             {{ Content.P' . $personId . '.Grade.Data["' . $tblSubject->getAcronym() . '"] }}
                         {% else %}

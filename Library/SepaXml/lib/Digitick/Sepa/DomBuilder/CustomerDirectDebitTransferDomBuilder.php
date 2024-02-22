@@ -196,7 +196,7 @@ class CustomerDirectDebitTransferDomBuilder extends BaseDomBuilder
         $debtorAccount->appendChild($this->getIbanElement($transactionInformation->getIban()));
         $directDebitTransactionInformation->appendChild($debtorAccount);
 
-        if (strlen($transactionInformation->getCreditorReference()) > 0)
+        if ($transactionInformation->getCreditorReference() && strlen($transactionInformation->getCreditorReference()) > 0)
         {
             $directDebitTransactionInformation->appendChild(
                 $this->getStructuredRemittanceElement($transactionInformation->getCreditorReference())

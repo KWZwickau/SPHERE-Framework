@@ -101,7 +101,7 @@ class VklbaHjInfo  extends Style
             ->addSlice($this->getCustomSubjectLanesVklba($personId, '5px')->styleHeight('200px'))
             ->addSlice($this->getChosenArea($personId))
             ->addSlice($this->getPartialIntegration($personId))
-            ->addSlice($this->getCustomFosRemark($personId, '15px', '120px', self::TEXT_SIZE_NORMAL))
+            ->addSlice($this->getCustomFosRemark($personId, '15px', '150px', self::TEXT_SIZE_NORMAL))
             ->addSlice($this->getCustomSignPartBgj($personId, '5px'))
             ->addSlice($this->getCustomParentSign('10px'))
             ->addSlice($this->getCustomInfoBgj('8px'));

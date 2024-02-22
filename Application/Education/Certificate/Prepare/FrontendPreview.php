@@ -355,9 +355,11 @@ abstract class FrontendPreview extends FrontendLeaveTechnicalSchool
                 }
             }
 
-            // Sekundarstufe II besitzt keine Kopfnoten
+            // Sekundarstufe II besitzt keine Kopfnoten und Fehlzeiten
             if ($isSekII) {
                 unset($columnTable['BehaviorGrades']);
+                unset($columnTable['ExcusedAbsence']);
+                unset($columnTable['UnexcusedAbsence']);
             }
 
             $columnTable['CheckSubjects'] = 'Prüfung Fächer / Zeugnis';

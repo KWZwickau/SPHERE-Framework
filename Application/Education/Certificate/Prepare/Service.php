@@ -25,6 +25,7 @@ use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTask;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
+use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Person\Person;
@@ -799,7 +800,6 @@ class Service extends ServiceTemplateInformation
      */
     public function getAutoDroppedSubjects(TblPerson $tblPerson, TblYear $tblYear)
     {
-        $resulList = array();
         $tblYearPrevious = false;
         if (($tblStudentEducationList = DivisionCourse::useService()->getStudentEducationListByPerson($tblPerson))) {
             foreach ($tblStudentEducationList as $tblStudentEducation) {
@@ -816,9 +816,25 @@ class Service extends ServiceTemplateInformation
             && ($tblSubjectListPrevious = DivisionCourse::useService()->getSubjectListByStudentAndYear($tblPerson, $tblYearPrevious))
             && ($tblSubjectListCurrent = DivisionCourse::useService()->getSubjectListByStudentAndYear($tblPerson, $tblYear))
         ) {
-            foreach ($tblSubjectListPrevious as $tblSubject) {
-                if (!isset($tblSubjectListCurrent[$tblSubject->getId()])) {
-                    $resulList[$tblSubject->getId()] = $tblSubject;
+            $subjectNameListCurrent = array();
+            foreach ($tblSubjectListCurrent as $tblSubjectCurrent) {
+                $subjectNameListCurrent[$tblSubjectCurrent->getName()] = $tblSubjectCurrent;
+            }
+
+            foreach ($tblSubjectListPrevious as $tblSubjectPrevious) {
+                // Wahlbereich ignorieren
+                if (Subject::useService()->isOrientation($tblSubjectPrevious)) {
+                    continue;
+                }
+
+                // Fremdsprache ignorieren
+                if (Subject::useService()->existsCategorySubject(Subject::useService()->getCategoryByIdentifier('FOREIGNLANGUAGE'), $tblSubjectPrevious)) {
+                    continue;
+                }
+
+                // SSWHD-2752 HOGA hatte in der Klasse 9 WTH (Stundentafel) und WTH1 bzw. WTH2 (individuelles Fach)
+                if (!isset($subjectNameListCurrent[$tblSubjectPrevious->getName()])) {
+                    $resulList[$tblSubjectPrevious->getName()] = $tblSubjectPrevious;
                 }
             }
         }

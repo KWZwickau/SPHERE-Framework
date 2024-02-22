@@ -462,6 +462,7 @@ abstract class ServiceCertificateContent extends ServiceAbitur
                     case 'FESH':
                     case 'ESS':
                     case 'ESBD':
+                    case 'WVSZ':
                         $Content['P' . $personId]['DivisionTeacher']['Name'] = trim($tblPersonSigner->getFirstName() . " " . $tblPersonSigner->getLastName());
                         break;
                     default:

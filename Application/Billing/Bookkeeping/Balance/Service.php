@@ -422,7 +422,7 @@ class Service extends AbstractService
                             foreach($ItemContent as $ItemId => $value){
                                 if(($tblItem = Item::useService()->getItemById($ItemId))){
                                     $Item['Id'.$tblItem->getId()] = Balance::useService()->getPriceString($value['Sum']);
-                                    // Gesammt addieren
+                                    // Gesamt addieren
                                     $Summary += $value['Sum'];
                                     if($isMonthly && !empty($value['Price'])){
                                         foreach($value['Price'] as $BillTime => $Price){
@@ -1125,7 +1125,8 @@ class Service extends AbstractService
             foreach($tblInvoiceList as $tblInvoice){
                 if(($InvoiceItemDebtorList = Invoice::useService()->getInvoiceItemDebtorByInvoice($tblInvoice))){
                     foreach($InvoiceItemDebtorList as $InvoiceItemDebtor){
-                        if($InvoiceItemDebtor->getServiceTblPaymentType()->getId() == $SepaPaymentType->getId()){
+                        if($InvoiceItemDebtor->getServiceTblPaymentType()->getId() == $SepaPaymentType->getId()
+                        && $InvoiceItemDebtor->getIsPaid()){
                             $IsSepaReady = true;
                             break;
                         }

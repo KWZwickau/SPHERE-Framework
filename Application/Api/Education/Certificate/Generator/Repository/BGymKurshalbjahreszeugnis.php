@@ -78,7 +78,7 @@ class BGymKurshalbjahreszeugnis extends BGymStyle
                 )
             )
             ->addSlice($this->getChosenSubjects())
-            ->addSlice($this->getRemarkBGym($personId, true, '45px', '10px'))
+            ->addSlice($this->getRemarkBGym($personId, false, '45px', '10px'))
             ->addSlice($this->getSignPartBGym($personId, true, '10px'))
             ->addSlice($this->getFootNotesSekII(false));
     }

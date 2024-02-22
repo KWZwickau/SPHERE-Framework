@@ -145,7 +145,7 @@ class FrontendWizard extends Extension implements IFrontendInterface
             )),
             new FormRow(array(
                 new FormColumn(
-                    new TextField('Data[YearDescription]', '', 'Beschreibung des Schuljahrs', new Pencil())
+                    new TextField('Data[YearDescription]', '', 'Beschreibung des Schuljahres', new Pencil())
                 )
             )),
             new FormRow(
