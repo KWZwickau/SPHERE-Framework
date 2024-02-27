@@ -9,6 +9,8 @@ use SPHERE\Application\Corporation\Company\Company;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Relationship\Relationship;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer as ConsumerGatekeeper;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumerLogin;
 use SPHERE\Application\Setting\Consumer\Responsibility\Responsibility;
 use SPHERE\Application\Setting\Consumer\Responsibility\Service\Entity\TblResponsibility;
 use SPHERE\Application\Setting\Consumer\School\Service\Entity\TblSchool;
@@ -57,7 +59,6 @@ use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
-use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
@@ -82,6 +83,12 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage('Schulen', 'Übersicht');
         $Stage->addButton(new Standard('Schule hinzufügen', '/Setting/Consumer/School/Create'));
+
+        $IsUCSMandant = false;
+        if(($tblConsumer = ConsumerGatekeeper::useService()->getConsumerBySession())
+        && ConsumerGatekeeper::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_UCS)){
+            $IsUCSMandant = true;
+        }
 
         $Stage->setContent(
             new Layout(
@@ -123,9 +130,13 @@ class Frontend extends Extension implements IFrontendInterface
                             : '')),
                     ($CompanyNumber != '' ? Panel::PANEL_TYPE_SUCCESS : Panel::PANEL_TYPE_WARNING));
 
-                $StudentCodePanel = new Panel('Dienststellenschlüssel'.new PullRight(($SchoolCode == '' ? new Bold('Notwendig!') : '')),
-                    $SchoolCode,
-                    ($SchoolCode != '' ? Panel::PANEL_TYPE_SUCCESS : Panel::PANEL_TYPE_DANGER)
+                $StudentCodePanel = new Panel('Dienststellenschlüssel',
+                    ($SchoolCode ?: ($IsUCSMandant ? 'Pflichtfeld im UCS' : '')),
+                    ($SchoolCode != ''
+                        ? Panel::PANEL_TYPE_SUCCESS
+                        : ($IsUCSMandant
+                            ? Panel::PANEL_TYPE_DANGER
+                            : Panel::PANEL_TYPE_WARNING))
                 );
 
                 if ($tblCompany) {
@@ -472,6 +483,13 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage('Schulinformationen', 'Bearbeiten');
         $Stage->addButton(new Standard('Zurück', '/Setting/Consumer/School', new ChevronLeft()));
+
+        $IsUCSMandant = false;
+        if(($tblConsumer = ConsumerGatekeeper::useService()->getConsumerBySession())
+            && ConsumerGatekeeper::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_UCS)){
+            $IsUCSMandant = true;
+        }
+
         $tblSchool = School::useService()->getSchoolById($Id);
         $Type = '';
         $tblType = $tblSchool->getServiceTblType();
@@ -488,7 +506,11 @@ class Frontend extends Extension implements IFrontendInterface
                     new TextField('Data[CompanyNumber]', '', ''), Panel::PANEL_TYPE_SUCCESS)
             , 6),
             new FormColumn(
-                new Panel('Dienststellenschlüssel '.new ToolTip(new Info(), 'Pflichtfeld zur identifikation zu anderen Systemen'), new TextField('Data[SchoolCode]', '', ''),
+                new Panel('Dienststellenschlüssel '.
+                    ($IsUCSMandant
+                        ? new ToolTip(new Info(), 'Pflichtfeld im UCS')
+                        : ''),
+                    new TextField('Data[SchoolCode]', '', ''),
                     Panel::PANEL_TYPE_SUCCESS)
             , 6),
             new FormColumn(new HiddenField('School[IsSubmit]'))

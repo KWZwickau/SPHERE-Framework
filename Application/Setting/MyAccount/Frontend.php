@@ -12,6 +12,7 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAuthorization;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumerLogin;
 use SPHERE\Application\Setting\Consumer\Responsibility\Responsibility;
 use SPHERE\Application\Setting\Consumer\Responsibility\Service\Entity\TblResponsibility;
 use SPHERE\Application\Setting\Consumer\School\School;
@@ -122,13 +123,14 @@ class Frontend extends Extension implements IFrontendInterface
                 $item['Alias'] = $tblConsumer->getAlias();
                 $item['Kamenz'] = '';
                 $item['UCS'] = '';
+                $item['Region'] = $tblConsumer->getType();
                 // Kamenz
                 $tblRole = Access::useService()->getRoleByName('Auswertung: Kamenz-Statistik');
                 if(Access::useService()->getRoleConsumerBy($tblRole, $tblConsumer)){
                     $item['Kamenz'] = 'Ja';
                 }
                 // UCS
-                if(($tblConsumerLogin = Consumer::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, 'Univention'))){
+                if(($tblConsumerLogin = Consumer::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_UCS))){
                     $item['UCS'] = 'API Verfügbar ';
                     if($tblConsumerLogin->getIsActiveAPI()){
                         $item['UCS'] .= new Muted(new Small('Aktiv'));
@@ -149,11 +151,13 @@ class Frontend extends Extension implements IFrontendInterface
             new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
                 new TableData($TableContent, null, array(
                     'Acronym' => 'Kürzel',
-                    'Name' => 'Name',
-                    'Alias' => 'Alias',
-                    'Kamenz' => 'verwendet Kamenz',
-                    'UCS' => 'verwendet UCS',
-                    'Option' => ''))
+                    'Name'    => 'Name',
+                    'Alias'   => 'Alias',
+                    'Kamenz'  => 'verwendet Kamenz',
+                    'UCS'     => 'verwendet UCS',
+                    'Region'  => 'Region',
+                    'Option'  => ''
+                ))
             )), new Title(new Select().' Auswahl'))));
 
         return $Stage;
