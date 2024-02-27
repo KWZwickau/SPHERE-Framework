@@ -266,13 +266,12 @@ class TblTimetableReplacement extends Element
     }
 
     /**
-     * @param TblPerson $tblPerson
+     * @param ?TblPerson $tblPerson
+     *
      * @return void
      */
-    public function setServiceTblPerson(TblPerson $tblPerson): void
+    public function setServiceTblPerson(?TblPerson $tblPerson): void
     {
-
-        $this->serviceTblPerson = $tblPerson->getId();
+        $this->serviceTblPerson = $tblPerson ? $tblPerson->getId() : null;
     }
-
 }
