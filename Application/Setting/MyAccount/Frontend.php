@@ -7,6 +7,7 @@ use SPHERE\Application\Contact\Mail\Service\Entity\TblToCompany as TblToCompanyM
 use SPHERE\Application\Contact\Phone\Phone;
 use SPHERE\Application\Contact\Phone\Service\Entity\TblToCompany as TblToCompanyPhone;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAuthorization;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
@@ -112,14 +113,33 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $tblConsumerAll = Consumer::useService()->getConsumerAll();
-        $Result = array();
+        $TableContent = array();
         if ($tblConsumerAll) {
-            array_walk($tblConsumerAll, function (TblConsumer $tblConsumer) use (&$Result) {
+            array_walk($tblConsumerAll, function (TblConsumer $tblConsumer) use (&$TableContent) {
+                $item = array();
+                $item['Acronym'] = $tblConsumer->getAcronym();
+                $item['Name'] = $tblConsumer->getName();
+                $item['Alias'] = $tblConsumer->getAlias();
+                $item['Kamenz'] = '';
+                $item['UCS'] = '';
+                // Kamenz
+                $tblRole = Access::useService()->getRoleByName('Auswertung: Kamenz-Statistik');
+                if(Access::useService()->getRoleConsumerBy($tblRole, $tblConsumer)){
+                    $item['Kamenz'] = 'Ja';
+                }
+                // UCS
+                if(($tblConsumerLogin = Consumer::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, 'Univention'))){
+                    $item['UCS'] = 'API Verfügbar ';
+                    if($tblConsumerLogin->getIsActiveAPI()){
+                        $item['UCS'] .= new Muted(new Small('Aktiv'));
+                    }
+                }
 
-                array_push($Result, array_merge($tblConsumer->__toArray(), array(
-                    'Option' => new Standard('', '/Setting/MyAccount/Consumer/Change', new Select(),
-                        array('Id' => $tblConsumer->getId()), 'Auswählen')
-                )));
+
+                $item['Option'] = new Standard('', '/Setting/MyAccount/Consumer/Change', new Select(),
+                    array('Id' => $tblConsumer->getId()), 'Auswählen');
+
+                $TableContent[] = $item;
             });
         }
 
@@ -127,7 +147,13 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->addButton(new Standard('Zurück', '/Setting/MyAccount', new ChevronLeft()));
         $Stage->setContent(
             new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
-                new TableData($Result, null, array('Acronym' => 'Kürzel', 'Name' => 'Name', 'Alias' => 'Alias', 'Option' => ''))
+                new TableData($TableContent, null, array(
+                    'Acronym' => 'Kürzel',
+                    'Name' => 'Name',
+                    'Alias' => 'Alias',
+                    'Kamenz' => 'verwendet Kamenz',
+                    'UCS' => 'verwendet UCS',
+                    'Option' => ''))
             )), new Title(new Select().' Auswahl'))));
 
         return $Stage;

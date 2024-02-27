@@ -84,7 +84,7 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage('UCS', 'Schnittstelle API');
 
         $Acronym = Account::useService()->getMandantAcronym();
-        $isLocalTest = true;
+        $isLocalTest = false;
         if($isLocalTest){
             // simuliere Rollen aus der API
             $roleList = array(

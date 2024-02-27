@@ -76,11 +76,12 @@ class UniventionUser
      * @param array  $schools
      * @param array  $school_classes
      * @param string $recoveryMail
+     * @param string $schoolCode
      *
      * @return string|null
      */
     public function createUser($name = '', $email = '', $firstname = '', $lastname = '', $record_uid = '', $roles = array(),
-        $schools = array(), $school_classes = array(), $recoveryMail = '')
+        $schools = array(), $school_classes = array(), $recoveryMail = '', $schoolCode = '')
     {
         curl_reset($this->curlhandle);
 
@@ -95,7 +96,10 @@ class UniventionUser
             'roles' => $roles,
             'schools' => $schools,
             'school_classes' => $school_classes,
-            'udm_properties' => array("PasswordRecoveryEmail" => $recoveryMail?: null)
+            'udm_properties' => array(
+                "PasswordRecoveryEmail" => $recoveryMail?: null,
+                "DllpDienststellenschluessel" => $schoolCode
+            )
 //            'udm_properties' => array('pwdChangeNextLogin' => true),
 //            'kelvin_password_hashes' => array(
 //                'user_password' => array($password),
@@ -215,11 +219,12 @@ class UniventionUser
      * @param array  $schools
      * @param array  $school_classes
      * @param string $recoveryMail
+     * @param string $schoolCode
      *
      * @return string|null
      */
     public function updateUser($name = '', $email = '', $firstname = '', $lastname = '', $record_uid = '', $roles = array(),
-        $schools = array(), $school_classes = array(), $recoveryMail = '')
+        $schools = array(), $school_classes = array(), $recoveryMail = '', $schoolCode = '')
     {
         curl_reset($this->curlhandle);
 
@@ -244,7 +249,10 @@ class UniventionUser
             'school' => $school, // one school
             'schools' => $schools, // array school
             'school_classes' => $school_classes,
-            'udm_properties' => array("PasswordRecoveryEmail" => $recoveryMail?: null)
+            'udm_properties' => array(
+                "PasswordRecoveryEmail" => $recoveryMail?: null,
+                "DllpDienststellenschluessel" => $schoolCode
+            )
             // Mandant + AccountId to human resolve problems?
 //            'source_uid' => $source_uid
         );
