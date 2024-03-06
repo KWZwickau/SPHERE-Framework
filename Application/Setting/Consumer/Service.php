@@ -5,6 +5,7 @@ use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer as GatekeeperConsumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Setting\Consumer\Service\Data;
 use SPHERE\Application\Setting\Consumer\Service\Entity\TblAccountDownloadLock;
@@ -365,4 +366,34 @@ class Service extends AbstractService
             return false;
         }
     }
+
+    /**
+     * aktuell nicht genutzte Mandanten
+     *
+     * @return array
+     */
+    public function getConsumerBlackList(): array
+    {
+        $blackList = array();
+        // aktuell nicht genutzte Mandanten in Sachsen
+        if (GatekeeperConsumer::useService()->getConsumerTypeFromServerHost() == TblConsumer::TYPE_SACHSEN) {
+            $blackList['DWO'] = 1;
+            $blackList['EMSP'] = 1;
+            $blackList['ESA'] = 1;
+            $blackList['ESL'] = 1;
+            $blackList['ESVL'] = 1;
+            $blackList['EVAP'] = 1;
+            $blackList['EVMS'] = 1;
+            $blackList['EVMSH'] = 1;
+            $blackList['EVOSG'] = 1;
+            $blackList['EVSB'] = 1;
+            $blackList['EVSL'] = 1;
+            $blackList['EWM'] = 1;
+            $blackList['EWS'] = 1;
+            $blackList['FV'] = 1;
+        }
+
+        return $blackList;
+    }
+
 }

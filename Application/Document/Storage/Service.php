@@ -16,6 +16,7 @@ use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCe
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Listing;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
@@ -136,6 +137,7 @@ class Service extends AbstractService
      * @param TblDivisionCourse $tblDivisionCourse
      * @param Certificate $Certificate
      * @param FilePointer $File
+     * @param int $fileSizeKByte
      * @param TblPrepareCertificate|null $tblPrepareCertificate
      *
      * @return bool|TblFile
@@ -145,7 +147,8 @@ class Service extends AbstractService
         TblDivisionCourse $tblDivisionCourse,
         Certificate $Certificate,
         FilePointer $File,
-        TblPrepareCertificate $tblPrepareCertificate = null
+        int $fileSizeKByte,
+        TblPrepareCertificate $tblPrepareCertificate = null,
     ) {
 
         // Load Tmp
@@ -168,7 +171,7 @@ class Service extends AbstractService
                 $tblFileType = $this->getFileTypeByMimeType($File->getMimeType());
                 if ($tblFileType && $tblDirectory) {
                     $tblFile = false;
-                    $tblBinary = $this->createBinary($File->getFileContent());
+                    $tblBinary = $this->createBinary($File->getFileContent(), $fileSizeKByte);
                     if ($tblBinary) {
                         $name = $tblYear->getYear() . ' - ' . $tblPerson->getLastFirstName() . ' - '
                             . $Certificate->getCertificateName() . ' - '
@@ -252,13 +255,13 @@ class Service extends AbstractService
 
     /**
      * @param string $BinaryBlob
+     * @param int $fileSizeKByte
      *
      * @return TblBinary
      */
-    public function createBinary($BinaryBlob)
+    public function createBinary($BinaryBlob, int $fileSizeKByte)
     {
-
-        return (new Data($this->getBinding()))->createBinary($BinaryBlob);
+        return (new Data($this->getBinding()))->createBinary($BinaryBlob, $fileSizeKByte);
     }
 
     /**
@@ -632,5 +635,34 @@ class Service extends AbstractService
         (new Data($this->getBinding()))->destroyPersonPicture($tblPersonPicture);
         return new Success('Das Foto wurde erfolgreich gelöscht')
             .new Redirect('/Platform/System/Test/TestSite', 1);
+    }
+
+    /**
+     * @return bool|array[]
+     */
+    public function getBinariesWithoutFileSize(int $maxResults, int $startId = 0): bool|array
+    {
+        return (new Data($this->getBinding()))->getBinaryIdAndFileSizeListWithoutFileSize($maxResults, $startId);
+    }
+
+    /**
+     * @param array $tblBinaryList
+     *
+     * @return float
+     */
+    public function updateFileSize(array $tblBinaryList): float
+    {
+        return (new Data($this->getBinding()))->updateFileSize($tblBinaryList);
+    }
+
+    /**
+     * @param TblConsumer $tblConsumer
+     * @param bool $isOnlyWithoutFile
+     *
+     * @return int
+     */
+    public function getFileSizeByConsumer(TblConsumer $tblConsumer, bool $isOnlyWithoutFile = false): int
+    {
+        return (new Data($this->getBinding()))->getFileSizeByConsumer($tblConsumer, $isOnlyWithoutFile);
     }
 }

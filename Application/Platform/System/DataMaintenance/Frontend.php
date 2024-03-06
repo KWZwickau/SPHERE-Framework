@@ -2,23 +2,20 @@
 
 namespace SPHERE\Application\Platform\System\DataMaintenance;
 
-use SPHERE\Application\Api\Education\Graduation\Gradebook\ApiGradeMaintenance;
+use SPHERE\Application\Api\Platform\DataMaintenance\ApiDocumentStorage;
 use SPHERE\Application\Api\Platform\DataMaintenance\ApiMigrateDivision;
 use SPHERE\Application\Contact\Address\Address;
+use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account as AccountAuthorization;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblUser;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer as GatekeeperConsumer;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Application\Setting\User\Account\Account;
 use SPHERE\Application\Setting\User\Account\Service\Entity\TblUserAccount;
-use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
-use SPHERE\Common\Frontend\Form\Structure\Form;
-use SPHERE\Common\Frontend\Form\Structure\FormColumn;
-use SPHERE\Common\Frontend\Form\Structure\FormGroup;
-use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
@@ -138,6 +135,12 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutColumn(array(
                             new TitleLayout('Migration Klassen zu Kursen'),
                             new Standard('Migration Klassen', __NAMESPACE__.'/DivisionCourse')
+                        )
+                    ),
+                    new LayoutColumn(array(
+                            new TitleLayout('Document Storage'),
+                            new Standard('Datei-Größe setzen für alte Dateien', __NAMESPACE__.'/DocumentStorage/FileSize'),
+                            new Standard('Datei-Größe aller Mandanten', __NAMESPACE__.'/DocumentStorage/AllConsumers')
                         )
                     ),
                 ))
@@ -585,6 +588,87 @@ UPDATE ".$Acronym."_SettingConsumer.tblUserAccount SET UpdateDate = date_add(Upd
                 . $content
             );
         }
+
+        return $stage;
+    }
+
+    /**
+     * @return Stage
+     */
+    public function frontendFileSize(): Stage
+    {
+        $stage = new Stage('Document Storage', 'Datei-Größe setzen für alte Dateien');
+        $stage->addButton(new Standard('Zurück', __NAMESPACE__, new ChevronLeft()));
+
+        ini_set('memory_limit', '2G');
+
+        if (Storage::useService()->getBinariesWithoutFileSize(1)) {
+            $stage->setContent(
+//                new Warning('Press F12 before', new Exclamation())
+                ApiDocumentStorage::receiverBlock(ApiDocumentStorage::pipelineStatus(ApiDocumentStorage::STATUS_BUTTON), 'Status')
+                . ApiDocumentStorage::receiverBlock('', 'FileSize_0')
+            );
+        } else {
+            $stage->setContent(new Success('Die Datei-Größen wurden bereits für alle Dateien gesetzt.'));
+        }
+
+        return $stage;
+    }
+
+    /**
+     * @return Stage
+     */
+    public function frontendAllConsumers(): Stage
+    {
+        $stage = new Stage('Document Storage', 'Datei-Größe aller Mandanten');
+        $stage->addButton(new Standard('Zurück', __NAMESPACE__, new ChevronLeft()));
+
+        ini_set('memory_limit', '2G');
+
+        $sumAllConsumer['Total'] = 0;
+        $sumAllConsumer['WithoutFile'] = 0;
+        $content = array();
+        if (($tblConsumerAll = GatekeeperConsumer::useService()->getConsumerAll())) {
+            // aktuell nicht genutzte Mandanten
+            $blackList = Consumer::useService()->getConsumerBlackList();
+            foreach ($tblConsumerAll as $tblConsumer) {
+                if (!isset($blackList[$tblConsumer->getAcronym()])) {
+                    $sumTotal = intdiv(Storage::useService()->getFileSizeByConsumer($tblConsumer), 1024);
+                    $sumWithoutFile = intdiv(Storage::useService()->getFileSizeByConsumer($tblConsumer, true), 1024);
+
+                    $sumAllConsumer['Total'] += $sumTotal;
+                    $sumAllConsumer['WithoutFile'] += $sumWithoutFile;
+
+                    $content[] = array(
+                        'Acronym' => $tblConsumer->getAcronym(),
+                        'Name' => $tblConsumer->getName(),
+                        'FileSizeTotal' => $sumTotal,
+                        'FileSizeWithoutFile' => $sumWithoutFile,
+                    );
+                }
+            }
+        }
+
+        $stage->setContent(
+            new Panel(
+                'Datei-Größe über alle Mandanten',
+                array(
+                    'Gesamt in MByte: ' . $sumAllConsumer['Total'],
+                    'Ohne File in MByte: ' . $sumAllConsumer['WithoutFile'],
+                ),
+                Panel::PANEL_TYPE_INFO
+            )
+            . new TableData(
+                $content,
+                null,
+                array(
+                    'Acronym' => 'Kürzel',
+                    'Name' => 'Name',
+                    'FileSizeTotal' => 'Gesamt in MByte',
+                    'FileSizeWithoutFile' => 'Ohne File in MByte'
+                )
+            )
+        );
 
         return $stage;
     }

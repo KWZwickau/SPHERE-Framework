@@ -10,7 +10,6 @@ use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblIdentification;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer as GatekeeperConsumer;
-use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Application\Setting\Consumer\Service\Entity\TblSetting;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
@@ -189,25 +188,8 @@ class Frontend extends Extension implements IFrontendInterface
         if (($tblSetting = Consumer::useService()->getSettingById($SettingId))) {
             $content = array();
             if (($tblConsumerAll = GatekeeperConsumer::useService()->getConsumerAll())) {
-                $blackList = array();
-                //  aktuell nicht genutzte Mandanten in Sachsen
-                if (GatekeeperConsumer::useService()->getConsumerTypeFromServerHost() == TblConsumer::TYPE_SACHSEN) {
-                    $blackList['DWO'] = 1;
-                    $blackList['EMSP'] = 1;
-                    $blackList['ESA'] = 1;
-                    $blackList['ESL'] = 1;
-                    $blackList['ESVL'] = 1;
-                    $blackList['EVAP'] = 1;
-                    $blackList['EVMS'] = 1;
-                    $blackList['EVMSH'] = 1;
-                    $blackList['EVOSG'] = 1;
-                    $blackList['EVSB'] = 1;
-                    $blackList['EVSL'] = 1;
-                    $blackList['EWM'] = 1;
-                    $blackList['EWS'] = 1;
-                    $blackList['FV'] = 1;
-                }
-
+                // aktuell nicht genutzte Mandanten
+                $blackList = Consumer::useService()->getConsumerBlackList();
                 foreach ($tblConsumerAll as $tblConsumer) {
                     if (!isset($blackList[$tblConsumer->getAcronym()])) {
                         $value =  Consumer::useService()->getSettingByConsumer($tblSetting, $tblConsumer);

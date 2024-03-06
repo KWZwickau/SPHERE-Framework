@@ -517,7 +517,13 @@ class Creator extends Extension
                             $Document->setContent($Content);
                             $Document->saveFile(new FileParameter($File->getFileLocation()));
 
-                            if (Storage::useService()->saveCertificateRevision($tblPerson, $tblDivisionCourse, $Certificate, $File, $tblPrepare)) {
+                            try {
+                                $fileSizeKiloByte = intdiv(filesize($File->getFileLocation()), 1024);
+                            } catch (\Exception $exception) {
+                                $fileSizeKiloByte = 0;
+                            }
+
+                            if (Storage::useService()->saveCertificateRevision($tblPerson, $tblDivisionCourse, $Certificate, $File, $fileSizeKiloByte, $tblPrepare)) {
                                 Prepare::useService()->updatePrepareStudentSetPrinted($tblPrepareStudent);
                             }
                         }
@@ -615,8 +621,14 @@ class Creator extends Extension
                             $Document->setContent($Content);
                             $Document->saveFile(new FileParameter($File->getFileLocation()));
 
+                            try {
+                                $fileSizeKiloByte = intdiv(filesize($File->getFileLocation()), 1024);
+                            } catch (\Exception $exception) {
+                                $fileSizeKiloByte = 0;
+                            }
+
                             // Revisionssicher speichern
-                            if (Storage::useService()->saveCertificateRevision($tblPerson, $tblDivisionCourse, $Certificate, $File)) {
+                            if (Storage::useService()->saveCertificateRevision($tblPerson, $tblDivisionCourse, $Certificate, $File, $fileSizeKiloByte)) {
                                 Prepare::useService()->updateLeaveStudent($tblLeaveStudent, true, true);
                             }
                         }
