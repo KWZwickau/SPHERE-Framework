@@ -252,8 +252,8 @@ class Frontend extends Extension implements IFrontendInterface
                         $recoveryMail = $ExistUser['udm_properties']['PasswordRecoveryEmail'];
                     }
                     $schoolCode = '';
-                    if(isset($ExistUser['udm_properties']['schoolCode'])){
-                        $schoolCode = $ExistUser['udm_properties']['schoolCode'];
+                    if(isset($ExistUser['udm_properties']['DllpDienststellenschluessel'])){
+                        $schoolCode = $ExistUser['udm_properties']['DllpDienststellenschluessel'];
                     }
                     $CompareRow['UCS']['recoveryMail'] = $recoveryMail;
                     $CompareRow['UCS']['schoolCode'] = $schoolCode;
@@ -382,7 +382,7 @@ class Frontend extends Extension implements IFrontendInterface
                         $isUpdate = true;
                         $CompareRow['SSW']['schools'] = new TextBackground($CompareRow['SSW']['schools']);
                     }
-                    if(strtolower($schoolCode) != $AccountActive['schoolCode']){
+                    if(strtolower($schoolCode) != strtolower($AccountActive['schoolCode'])){
                         $isUpdate = true;
                         $CompareRow['SSW']['schoolCode'] = new TextBackground($CompareRow['SSW']['schoolCode']);
                     }
