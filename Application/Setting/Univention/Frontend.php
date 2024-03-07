@@ -1018,7 +1018,7 @@ class Frontend extends Extension implements IFrontendInterface
                             if(!$Value['schoolCode']){
                                 $KeyReplace = 'Schlüssel:';
                                 $MouseOver = (new ToolTip(new InfoIcon(), htmlspecialchars(
-                                    'Kein Dienststellenschlüssel an der Person <br />'
+                                    'Dienststellenschlüssel nicht zugeordnet <br />'
                                     .'(Lehrauftrag / Schulverlauf / Mandant / Schule)')))->enableHtml();
                             }
                             break;
@@ -1074,7 +1074,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 $KeyReplace = 'Schlüssel:';
                                 $MouseOver = (new ToolTip(new InfoIcon(), htmlspecialchars(
 //                                    new DangerText('Fehler:').'</br>'.
-                                    'Dienststellenschlüssel ist nicht über (Lehrauftrag / Schulverlauf / Mandant / Schule) zu zuordnen'
+                                    'Dienststellenschlüssel nicht zugeordnet (Lehrauftrag / Schulverlauf / Mandant / Schule)'
                                 )))->enableHtml();
                             break;
                         }

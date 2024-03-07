@@ -142,6 +142,7 @@ class Service extends AbstractService
                 $Acronym,
                 &$activeAccountList,
                 $TeacherClasses,
+                $ClassSchoolCodeList,
                 $schoolList,
                 $roleList
             ) {
@@ -198,8 +199,9 @@ class Service extends AbstractService
                         $UploadItem['school_classes'] = $SchoolListWithClasses;
                         // SchoolCode
                         foreach($SchoolListWithClasses as $DivisionName){
-                            if(isset($ClassSchoolCodeList[$DivisionName])){
+                            if(isset($ClassSchoolCodeList[$DivisionName]) && !empty($ClassSchoolCodeList[$DivisionName])){
                                 $UploadItem['schoolCode'] = current($ClassSchoolCodeList[$DivisionName]);
+                                break;
                             }
                         }
                     }
@@ -319,18 +321,17 @@ class Service extends AbstractService
         // Lehraufträge
         $TeacherClasses = array();
         if($YearId && ($tblYear = Term::useService()->getYearById($YearId))) {
-            $this->getTeacherClassesByYear($Acronym, $tblYear, $TeacherClasses);
             $tblYearList[] = $tblYear;
-        } elseif(($tblYearList = Term::useService()->getYearByNow())) {
-            foreach($tblYearList as $tblYear) {
-                $this->getTeacherClassesByYear($Acronym, $tblYear, $TeacherClasses);
-            }
+        } else {
+            $tblYearList = Term::useService()->getYearByNow();
         }
-        // ArrayKey muss immer eine normale Zählung bei 0 beginnend ohne Lücken erhalten 0,1,2,3...
-        // Key PersonId
-        foreach($TeacherClasses as &$AcronymTemp) {
-            // Key Acronym
-            foreach($AcronymTemp as &$ClassList) {
+        if($tblYearList){
+            foreach($tblYearList as $tblYear) {
+                $this->getTeacherClassesByYear($tblYear, $TeacherClasses);
+            }
+            // ArrayKey muss immer eine normale Zählung bei 0 beginnend ohne Lücken erhalten 0,1,2,3...
+            // Key PersonId
+            foreach($TeacherClasses as &$ClassList) {
                 sort($ClassList);
             }
         }
@@ -369,7 +370,7 @@ class Service extends AbstractService
      *
      * @return void
      */
-    private function getTeacherClassesByYear($Acronym, $tblYear, &$TeacherClasses)
+    private function getTeacherClassesByYear($tblYear, &$TeacherClasses)
     {
         if(($tblTeacherLectureshipList = DivisionCourse::useService()->getTeacherLectureshipListBy($tblYear))){
             foreach($tblTeacherLectureshipList as $tblTeacherLectureship){
@@ -377,10 +378,8 @@ class Service extends AbstractService
                 $tblDivisionCourse = $tblTeacherLectureship->getTblDivisionCourse();
                 if($tblPersonTeacher && $tblDivisionCourse && $tblDivisionCourse->getTypeIdentifier() == TblDivisionCourseType::TYPE_DIVISION){
                     $ClassName = $this->getCorrectionClassNameByDivision($tblDivisionCourse);
-                    $TeacherClasses[$tblPersonTeacher->getId()][$Acronym][$tblDivisionCourse->getId()] = $ClassName;
+                    $TeacherClasses[$tblPersonTeacher->getId()][$tblDivisionCourse->getId()] = $ClassName;
                 }
-//                // doppelte werte entfernen
-//                $TeacherClasses[$tblPersonTeacher->getId()][$Acronym] = array_unique($TeacherClasses[$tblPersonTeacher->getId()][$Acronym]);
             }
         }
     }

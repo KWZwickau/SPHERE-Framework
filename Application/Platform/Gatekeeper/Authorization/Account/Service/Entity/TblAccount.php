@@ -163,7 +163,12 @@ class TblAccount extends Element
      */
     public function setUserAlias($UserAlias)
     {
-        $this->UserAlias = strtolower($UserAlias);
+        if($UserAlias){
+            $this->UserAlias = strtolower($UserAlias);
+        } else {
+            $this->UserAlias = '';
+        }
+
     }
 
     /**
@@ -182,7 +187,12 @@ class TblAccount extends Element
      */
     public function setRecoveryMail($RecoveryMail)
     {
-        $this->BackupMail = strtolower($RecoveryMail);
+
+        if($RecoveryMail){
+            $this->BackupMail = strtolower($RecoveryMail);
+        } else {
+            $this->BackupMail = '';
+        }
     }
 
     /**
