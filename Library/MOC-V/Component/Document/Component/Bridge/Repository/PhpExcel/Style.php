@@ -6,6 +6,7 @@ use PhpOffice\PhpSpreadsheet\Cell\DataType;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Color;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet as WorksheetSpreadsheet;
 
 /**
@@ -143,6 +144,19 @@ class Style
 
         $Color = new Color($Color);
         $this->Worksheet->getStyle($this->getRangeName())->getFont()->setColor($Color);
+        return $this;
+    }
+
+    /**
+     * @param string $Color "replace # with FF"
+     *
+     * @return $this
+     */
+    public function setBackgroundColor($Color = 'FFFFFFFF')
+    {
+
+        $Color = new Color($Color);
+        $this->Worksheet->getStyle($this->getRangeName())->getFill()->setFillType(Fill::FILL_SOLID)->setStartColor($Color);
         return $this;
     }
 

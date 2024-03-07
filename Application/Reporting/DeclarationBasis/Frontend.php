@@ -28,34 +28,31 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendDeclarationBasis()
     {
 
-        $form = $this->getForm();
-
-        $Stage = new Stage('Stichtagsmeldung Inklusionsschüler', 'Datum auswählen');
-        $Stage->setContent(new Well(
-            $form
-        ));
+        $Stage = new Stage('Stichtagsmeldung', 'Schülerzahlen, Inklusionsschüler');
+        $Stage->setContent(new Well($this->getForm()));
 
         return $Stage;
     }
 
     /**
-     * @param null $Date
+     * @param null $Data
      *
      * @return Form
      */
-    public function getForm($Date = null)
+    public function getForm($Data = null)
     {
-        if ($Date) {
-            $global = $this->getGlobal();
-            $global->POST['Date'] = $Date;
-            $global->savePost();
+
+        $global = $this->getGlobal();
+        if ($Data) {
+            $global->POST['Data']['Date'] = $Data['Date'];
+        } else {
+            $global->POST['Data']['Date'] = (new \DateTime())->format('d.m.Y');
         }
+        $global->savePost();
 
         return new Form(new FormGroup(array(
             new FormRow(array(
-                new FormColumn(
-                    (new DatePicker('Date', 'Stichtag', 'Stichtag', new Calendar()))->setRequired()
-                    , 3)
+                new FormColumn((new DatePicker('Data[Date]', 'Stichtag', 'Stichtag', new Calendar()))->setRequired(), 3)
             )),
         ))
         , new Primary('Herunterladen', new Download(), true), '\Api\Reporting\DeclarationBasis\Download');
