@@ -130,7 +130,7 @@ class Frontend extends Extension implements IFrontendInterface
                             : '')),
                     ($CompanyNumber != '' ? Panel::PANEL_TYPE_SUCCESS : Panel::PANEL_TYPE_WARNING));
 
-                $StudentCodePanel = new Panel('Dienststellenschlüssel',
+                $StudentCodePanel = new Panel('Dienststellenschlüssel (DISCH)',
                     ($SchoolCode ?: ($IsUCSMandant ? 'Pflichtfeld im UCS' : '')),
                     ($SchoolCode != ''
                         ? Panel::PANEL_TYPE_SUCCESS
@@ -506,7 +506,7 @@ class Frontend extends Extension implements IFrontendInterface
                     new TextField('Data[CompanyNumber]', '', ''), Panel::PANEL_TYPE_SUCCESS)
             , 6),
             new FormColumn(
-                new Panel('Dienststellenschlüssel '.
+                new Panel('Dienststellenschlüssel (DISCH) '.
                     ($IsUCSMandant
                         ? new ToolTip(new Info(), 'Pflichtfeld im UCS')
                         : ''),

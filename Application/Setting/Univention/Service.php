@@ -198,10 +198,12 @@ class Service extends AbstractService
                         asort($SchoolListWithClasses);
                         $UploadItem['school_classes'] = $SchoolListWithClasses;
                         // SchoolCode
-                        foreach($SchoolListWithClasses as $DivisionName){
-                            if(isset($ClassSchoolCodeList[$DivisionName]) && !empty($ClassSchoolCodeList[$DivisionName])){
-                                $UploadItem['schoolCode'] = current($ClassSchoolCodeList[$DivisionName]);
-                                break;
+                        foreach($SchoolListWithClasses as $currentAcronym){
+                            foreach($currentAcronym as $DivisionName) {
+                                if(isset($ClassSchoolCodeList[$DivisionName]) && !empty($ClassSchoolCodeList[$DivisionName])) {
+                                    $UploadItem['schoolCode'] = current($ClassSchoolCodeList[$DivisionName]);
+                                    break;
+                                }
                             }
                         }
                     }
@@ -327,12 +329,15 @@ class Service extends AbstractService
         }
         if($tblYearList){
             foreach($tblYearList as $tblYear) {
-                $this->getTeacherClassesByYear($tblYear, $TeacherClasses);
+                $this->getTeacherClassesByYear($Acronym, $tblYear, $TeacherClasses);
             }
             // ArrayKey muss immer eine normale Zählung bei 0 beginnend ohne Lücken erhalten 0,1,2,3...
             // Key PersonId
-            foreach($TeacherClasses as &$ClassList) {
-                sort($ClassList);
+            foreach($TeacherClasses as &$AcronymTemp) {
+                // Key Acronym
+                foreach($AcronymTemp as &$ClassList) {
+                    sort($ClassList);
+                }
             }
         }
         $ClassSchoolCodeList = array();
@@ -370,7 +375,7 @@ class Service extends AbstractService
      *
      * @return void
      */
-    private function getTeacherClassesByYear($tblYear, &$TeacherClasses)
+    private function getTeacherClassesByYear($Acronym, $tblYear, &$TeacherClasses)
     {
         if(($tblTeacherLectureshipList = DivisionCourse::useService()->getTeacherLectureshipListBy($tblYear))){
             foreach($tblTeacherLectureshipList as $tblTeacherLectureship){
@@ -378,8 +383,10 @@ class Service extends AbstractService
                 $tblDivisionCourse = $tblTeacherLectureship->getTblDivisionCourse();
                 if($tblPersonTeacher && $tblDivisionCourse && $tblDivisionCourse->getTypeIdentifier() == TblDivisionCourseType::TYPE_DIVISION){
                     $ClassName = $this->getCorrectionClassNameByDivision($tblDivisionCourse);
-                    $TeacherClasses[$tblPersonTeacher->getId()][$tblDivisionCourse->getId()] = $ClassName;
+                    $TeacherClasses[$tblPersonTeacher->getId()][$Acronym][$tblDivisionCourse->getId()] = $ClassName;
                 }
+                //                // doppelte werte entfernen
+                //                $TeacherClasses[$tblPersonTeacher->getId()][$Acronym] = array_unique($TeacherClasses[$tblPersonTeacher->getId()][$Acronym]);
             }
         }
     }

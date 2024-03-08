@@ -454,7 +454,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         new LayoutColumn($CompareRow['UCS']['school_classes'], $secondWith),
                                     )),
                                     new LayoutRow(array(
-                                        new LayoutColumn(new Bold('Schlüssel:'), $firstWith),
+                                        new LayoutColumn(new Bold('DISCH:'), $firstWith),
                                         new LayoutColumn($CompareRow['UCS']['schoolCode'], $secondWith),
                                     )),
                                 )))
@@ -490,7 +490,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         new LayoutColumn($CompareRow['SSW']['school_classes'], $secondWith),
                                     )),
                                     new LayoutRow(array(
-                                        new LayoutColumn(new Bold('Schlüssel:'), $firstWith),
+                                        new LayoutColumn(new Bold('DISCH:'), $firstWith),
                                         new LayoutColumn($CompareRow['SSW']['schoolCode'], $secondWith),
                                     )),
                                 )))
@@ -539,7 +539,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         new LayoutColumn($CompareRow['SSW']['school_classes'], $secondWith),
                                     )),
                                     new LayoutRow(array(
-                                        new LayoutColumn(new Bold('Schlüssel:'), $firstWith),
+                                        new LayoutColumn(new Bold('DISCH:'), $firstWith),
                                         new LayoutColumn($CompareRow['SSW']['schoolCode'], $secondWith),
                                     )),
                                 )))
@@ -1016,7 +1016,7 @@ class Frontend extends Extension implements IFrontendInterface
                         break;
                         case 'udm_properties':
                             if(!$Value['schoolCode']){
-                                $KeyReplace = 'Schlüssel:';
+                                $KeyReplace = 'DISCH:';
                                 $MouseOver = (new ToolTip(new InfoIcon(), htmlspecialchars(
                                     'Dienststellenschlüssel nicht zugeordnet <br />'
                                     .'(Lehrauftrag / Schulverlauf / Mandant / Schule)')))->enableHtml();
@@ -1071,11 +1071,10 @@ class Frontend extends Extension implements IFrontendInterface
                                 $MouseOver = new ToolTip(new InfoIcon(), 'Person muss mindestens einer Klasse zugewiesen sein');
                             break;
                             case 'schoolCode':
-                                $KeyReplace = 'Schlüssel:';
+                                $KeyReplace = 'DISCH:';
                                 $MouseOver = (new ToolTip(new InfoIcon(), htmlspecialchars(
-//                                    new DangerText('Fehler:').'</br>'.
-                                    'Dienststellenschlüssel nicht zugeordnet (Lehrauftrag / Schulverlauf / Mandant / Schule)'
-                                )))->enableHtml();
+                                    'Dienststellenschlüssel nicht zugeordnet <br />'
+                                    .'(Lehrauftrag / Schulverlauf / Mandant / Schule)')))->enableHtml();
                             break;
                         }
 
