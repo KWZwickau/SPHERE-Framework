@@ -527,7 +527,7 @@ class Frontend extends Extension implements IFrontendInterface
 
 
         $Global = $this->getGlobal();
-        if ($tblSchool->getCompanyNumber()) {
+        if ($Data == null) {
             $Global->POST['Data']['CompanyNumber'] = $tblSchool->getCompanyNumber();
             $Global->POST['Data']['SchoolCode'] = $tblSchool->getSchoolCode();
             $Global->savePost();
