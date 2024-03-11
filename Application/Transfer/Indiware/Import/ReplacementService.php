@@ -424,6 +424,7 @@ class ReplacementService
                                     && $Row['SubjectGroup'] == $tblTimeTableNode->getSubjectGroup()
                                     && $Row['tblSubstituteSubject']->getId() == $tblTimeTableNode->getServiceTblSubject()->getId()
                                     && $Row['tblCourse']->getId() == $tblTimeTableNode->getServiceTblCourse()->getId()
+                                    && isset($Row['tblPerson']) && $tblTimeTableNode->getServiceTblPerson()
                                     && $Row['tblPerson']->getId() == $tblTimeTableNode->getServiceTblPerson()->getId()
                                 ){
                                     $Row['found'] = true;
