@@ -23,7 +23,6 @@ use SPHERE\Application\Setting\Consumer\School\School;
 use SPHERE\Application\Setting\Consumer\School\Service\Entity\TblSchool;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
-use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Service
@@ -64,8 +63,6 @@ class Service extends Extension
         /** @var PhpExcel $export */
         $export = Document::getDocument($fileLocation->getFileLocation());
 
-
-        // ToDO hierher vielleicht den durchlauf ziehen?
         $tblSchoolList = School::useService()->getSchoolAll();
         $IsFirstTab = true;
         foreach ($DataContent as $Type => $LevelList) {
@@ -101,9 +98,7 @@ class Service extends Extension
                     $tblSchoolActive = $this->getSchoolByType($tblSchoolList, $Type);
                 }
 
-
                 // Seiten Generieren
-                //ToDO Weiter machen
                 $this->buildStudentTechnicalCountPage($export, $IsFirstTab, $Type, $SchoolCourse, $LevelList, $YearString, $tblSchoolActive, $date);
             }
         }

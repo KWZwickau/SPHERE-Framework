@@ -1,5 +1,4 @@
 <?php
-
 namespace SPHERE\Application\Api\Reporting\DeclarationBasis;
 
 use DateTime;

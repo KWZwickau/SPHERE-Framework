@@ -1,5 +1,4 @@
 <?php
-
 namespace SPHERE\Application\Reporting\DeclarationBasis;
 
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
