@@ -49,16 +49,10 @@ class Setup extends AbstractSetup
     {
 
         $Table = $this->getConnection()->createTable($Schema, 'tblSchool');
-        if (!$this->getConnection()->hasColumn('tblSchool', 'serviceTblCompany')) {
-            $Table->addColumn('serviceTblCompany', 'bigint');
-        }
-        if (!$this->getConnection()->hasColumn('tblSchool', 'serviceTblType')) {
-            $Table->addColumn('serviceTblType', 'bigint');
-        }
-        if (!$this->getConnection()->hasColumn('tblSchool', 'CompanyNumber')) {
-            $Table->addColumn('CompanyNumber', 'string');
-        }
-
+        $this->createColumn($Table, 'serviceTblCompany', self::FIELD_TYPE_BIGINT);
+        $this->createColumn($Table, 'serviceTblType', self::FIELD_TYPE_BIGINT);
+        $this->createColumn($Table, 'CompanyNumber', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'SchoolCode', self::FIELD_TYPE_STRING);
         return $Table;
     }
 }

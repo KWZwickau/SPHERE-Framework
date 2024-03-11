@@ -83,42 +83,58 @@ class Frontend extends Extension implements IFrontendInterface
         set_time_limit(900);
         $Stage = new Stage('UCS', 'Schnittstelle API');
 
-        // dynamsiche Rollenliste
-        $roleList = (new UniventionRole())->getAllRoles();
-        // Fehlerausgabe
-        if($this->errorScan($Stage, $roleList)){
-            return $Stage;
-        }
-
-        // dynamsiche Schulliste
-        $schoolList = (new UniventionSchool())->getAllSchools();
-        // Fehlerausgabe
-        if($this->errorScan($Stage, $schoolList)){
-            return $Stage;
-        }
-
-        // early break if no answer
-        if(!is_array($roleList) || !is_array($schoolList)){
-            $Stage->setContent(new Warning('UCS liefert keine Informationen'));
-            return $Stage;
-        }
         $Acronym = Account::useService()->getMandantAcronym();
-        // Mandant ist nicht in der Schulliste
-        if( !array_key_exists($Acronym, $schoolList)){
-//            if(!in_array($Acronym, $excludeList)){
+        $isLocalTest = false;
+        if($isLocalTest){
+            // simuliere Rollen aus der API
+            $roleList = array(
+                'staff' => 'STAFF',
+                'teacher' => 'TEACHER',
+                'student' => 'STUDENT',
+            );
+            // simuliere Schule/Mandant aus der API
+            $schoolList = array('REF' => 'REF');
+            // simuliere Daten aus der API
+            $UserUniventionList = array(
+                35  => array('name' => 'REF-ZaDu19', 'roles' => array(0 => 'STUDENT'), 'school_classes' => array(0 => '10OS'), 'firstname' => 'Zarik', 'lastname' => 'Dütsch', 'record_uid' => 35, 'source_uid' => 'REF-35', 'schools' => array('REF' => 'REF'), 'school_type' => 'OS', 'groupArray' => '', 'udm_properties' => array('schoolCode' => 23, 'e-mail' => array('zarik@test.de'), 'PasswordRecoveryEmail' => 'zarik@test.de')),
+                36  => array('name' => 'REF-ZiEh15', 'roles' => array(0 => 'STUFF'), 'school_classes' => array(0 => '9OS'), 'firstname' => 'Zigismun', 'lastname' => 'Ehma', 'record_uid' => 36, 'source_uid' => 'REF-36', 'schools' => array('REF' => 'REF'), 'school_type' => 'Gym', 'groupArray' => '', 'udm_properties' => array('schoolCode' => 4, 'e-mail' => array('ehms@test.de'), 'PasswordRecoveryEmail' => 'ehma@test.de')),
+                37 => array('name' => 'REF-SiMa09', 'roles' => array(0 => 'STUDENT'), 'school_classes' => array(0 => '10OS'), 'firstname' => 'Zigismund', 'lastname' => 'Ehm', 'record_uid' => 37, 'source_uid' => 'REF-37', 'schools' => array('REF' => 'REF'), 'school_type' => 'OS', 'groupArray' => '', 'udm_properties' => array('schoolCode' => '', 'e-mail' => array('ehm@test.de'), 'PasswordRecoveryEmail' => 'ehm@test.de')),
+            );
+        } else {
+            // dynamsiche Rollenliste
+            $roleList = (new UniventionRole())->getAllRoles();
+            // Fehlerausgabe
+            if($this->errorScan($Stage, $roleList)){
+                return $Stage;
+            }
+
+            // dynamsiche Schulliste
+            $schoolList = (new UniventionSchool())->getAllSchools();
+            // Fehlerausgabe
+            if($this->errorScan($Stage, $schoolList)){
+                return $Stage;
+            }
+
+            // early break if no answer
+            if(!is_array($roleList) || !is_array($schoolList)){
+                $Stage->setContent(new Warning('UCS liefert keine Informationen'));
+                return $Stage;
+            }
+            // Mandant ist nicht in der Schulliste
+            if( !array_key_exists($Acronym, $schoolList)){
+//                if(!in_array($Acronym, $excludeList)){
                 $Stage->setContent(new Warning('Ihr Schulträger ist noch nicht in UCS freigeschalten'));
                 return $Stage;
-//            }
+//                }
+            }
+            $UserUniventionList = Univention::useService()->getApiUser();
         }
-
 
         $IsActiveAPI = false;
         if(($tblConsumer = Consumer::useService()->getConsumerBySession())
          && ($tblConsumerLogin = Consumer::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_UCS))
         ){
-            if($tblConsumerLogin->getIsActiveAPI()){
-                $IsActiveAPI = true;
-            }
+            $IsActiveAPI = $tblConsumerLogin->getIsActiveAPI();
         }
 
         $YearString = '&nbsp;Aktuelles SJ';
@@ -145,8 +161,6 @@ class Frontend extends Extension implements IFrontendInterface
             $ButtonUpdate = (new Standard('Benutzer anpassen', '', new Edit()))->setDisabled();
             $ButtonDelete = (new Standard('Benutzer löschen', '', new Remove()))->setDisabled();
         }
-
-        $UserUniventionList = Univention::useService()->getApiUser();
 
         $UserSchulsoftwareList = array();
         // Vorraussetzung, es muss ein aktives Schuljahr geben.
@@ -208,6 +222,7 @@ class Frontend extends Extension implements IFrontendInterface
                             'schools' => '',
                             'school_classes' => '',
                             'recoveryMail' => '',
+                            'schoolCode' => '',
                         ),
                         'SSW' => array(
                             'firstname' => '',
@@ -217,6 +232,7 @@ class Frontend extends Extension implements IFrontendInterface
                             'schools' => '',
                             'school_classes' => '',
                             'recoveryMail' => '',
+                            'schoolCode' => '',
                         ),
                     );
 
@@ -235,15 +251,20 @@ class Frontend extends Extension implements IFrontendInterface
                     if(isset($ExistUser['udm_properties']['PasswordRecoveryEmail'])){
                         $recoveryMail = $ExistUser['udm_properties']['PasswordRecoveryEmail'];
                     }
+                    $schoolCode = '';
+                    if(isset($ExistUser['udm_properties']['DllpDienststellenschluessel'])){
+                        $schoolCode = $ExistUser['udm_properties']['DllpDienststellenschluessel'];
+                    }
                     $CompareRow['UCS']['recoveryMail'] = $recoveryMail;
+                    $CompareRow['UCS']['schoolCode'] = $schoolCode;
                     if(!empty($ExistUser['roles'])){
                         $RoleShort = array();
                         foreach($ExistUser['roles'] as $roleTemp){
-                            if(strpos($roleTemp, 'student')) {
+                            if(strpos(strtolower($roleTemp), 'student') !== false) {
                                 $RoleShort[] = 'Schüler';
-                            } elseif(strpos($roleTemp, 'teacher')) {
+                            } elseif(strpos(strtolower($roleTemp), 'teacher') !== false) {
                                 $RoleShort[] = 'Lehrer';
-                            } elseif(strpos($roleTemp, 'staff')) {
+                            } elseif(strpos(strtolower($roleTemp), 'staff') !== false) {
                                 $RoleShort[] = 'Mitarbeiter';
                             }
                         }
@@ -253,18 +274,24 @@ class Frontend extends Extension implements IFrontendInterface
                     }
                     $SchoolListUCS = array();
                     foreach($AccountActive['schools'] as $SchoolUCS){
-                        $SchoolListUCS[] = substr($SchoolUCS, (strpos($SchoolUCS, 'schools/') + 8));
+                        //ToDO wieder entfernen
+                        $SchoolListUCS[] = $SchoolUCS;
+//                        $SchoolListUCS[] = substr($SchoolUCS, (strpos($SchoolUCS, 'schools/') + 8));
                     }
                     $CompareRow['UCS']['schools'] = implode(', ', $SchoolListUCS);
                     sort($ExistUser['school_classes']);
                     if(!empty($ExistUser['school_classes'])){
                         $ClassString = '';
                         foreach($ExistUser['school_classes'] as $ClassList) {
-                            sort($ClassList);
-                            if(!$ClassString){
-                                $ClassString = implode(', ', $ClassList);
+                            if(!empty($ClassList) && is_array($ClassList)){
+                                sort($ClassList);
+                                if(!$ClassString){
+                                    $ClassString = implode(', ', $ClassList);
+                                } else {
+                                    $ClassString .= ', '.implode($ClassList);
+                                }
                             } else {
-                                $ClassString .= ', '.implode($ClassList);
+                                $ClassString = $ClassList;
                             }
                         }
                         $CompareRow['UCS']['school_classes'] = $ClassString;
@@ -276,14 +303,15 @@ class Frontend extends Extension implements IFrontendInterface
                     $CompareRow['SSW']['lastname'] = $AccountActive['lastname'];
                     $CompareRow['SSW']['email'] = $AccountActive['email'];
                     $CompareRow['SSW']['recoveryMail'] = $AccountActive['recoveryMail'];
+                    $CompareRow['SSW']['schoolCode'] = $AccountActive['schoolCode'];
                     if(!empty($AccountActive['roles'])){
                         $RoleShort = array();
                         foreach($AccountActive['roles'] as $roleTemp){
-                            if(strpos($roleTemp, 'student')) {
+                            if(strpos(strtolower($roleTemp), 'student') !== false) {
                                 $RoleShort[] = 'Schüler';
-                            } elseif(strpos($roleTemp, 'teacher')) {
+                            } elseif(strpos(strtolower($roleTemp), 'teacher') !== false) {
                                 $RoleShort[] = 'Lehrer';
-                            } elseif(strpos($roleTemp, 'staff')) {
+                            } elseif(strpos(strtolower($roleTemp), 'staff') !== false) {
                                 $RoleShort[] = 'Mitarbeiter';
                             }
                         }
@@ -293,7 +321,9 @@ class Frontend extends Extension implements IFrontendInterface
                     }
                     $SchoolListSSW = array();
                     foreach($AccountActive['schools'] as $SchoolSSW){
-                        $SchoolListSSW[] = substr($SchoolSSW, (strpos($SchoolSSW, 'schools/') + 8));
+                        //ToDO wieder entfernen
+                        $SchoolListSSW[] = $SchoolSSW;
+//                        $SchoolListSSW[] = substr($SchoolSSW, (strpos($SchoolSSW, 'schools/') + 8));
                     }
                     $CompareRow['SSW']['schools'] = implode(', ', $SchoolListSSW);
 
@@ -352,12 +382,20 @@ class Frontend extends Extension implements IFrontendInterface
                         $isUpdate = true;
                         $CompareRow['SSW']['schools'] = new TextBackground($CompareRow['SSW']['schools']);
                     }
+                    if(strtolower($schoolCode) != strtolower($AccountActive['schoolCode'])){
+                        $isUpdate = true;
+                        $CompareRow['SSW']['schoolCode'] = new TextBackground($CompareRow['SSW']['schoolCode']);
+                    }
 
                     // Vergleich der Klassen aus einem doppeltem Array
                     $SchoolExistCompareList = array();
                     foreach($ExistUser['school_classes'] as $ClassList){
-                        foreach($ClassList as $Class){
-                            $SchoolExistCompareList[] = $Class;
+                        if(!empty($ClassList) && is_array($ClassList)){
+                            foreach($ClassList as $Class){
+                                $SchoolExistCompareList[] = $Class;
+                            }
+                        } else {
+                            $SchoolExistCompareList[] = $ClassList;
                         }
                     }
                     $SchoolActiveCompareList = array();
@@ -415,6 +453,10 @@ class Frontend extends Extension implements IFrontendInterface
                                         new LayoutColumn(new Bold('Klassen:'), $firstWith),
                                         new LayoutColumn($CompareRow['UCS']['school_classes'], $secondWith),
                                     )),
+                                    new LayoutRow(array(
+                                        new LayoutColumn(new Bold('DISCH:'), $firstWith),
+                                        new LayoutColumn($CompareRow['UCS']['schoolCode'], $secondWith),
+                                    )),
                                 )))
                             );
                             $CompareRow['SSW'] = new Small(
@@ -446,6 +488,10 @@ class Frontend extends Extension implements IFrontendInterface
                                     new LayoutRow(array(
                                         new LayoutColumn(new Bold('Klassen:'), $firstWith),
                                         new LayoutColumn($CompareRow['SSW']['school_classes'], $secondWith),
+                                    )),
+                                    new LayoutRow(array(
+                                        new LayoutColumn(new Bold('DISCH:'), $firstWith),
+                                        new LayoutColumn($CompareRow['SSW']['schoolCode'], $secondWith),
                                     )),
                                 )))
                             );
@@ -491,6 +537,10 @@ class Frontend extends Extension implements IFrontendInterface
                                     new LayoutRow(array(
                                         new LayoutColumn(new Bold('Klassen:'), $firstWith),
                                         new LayoutColumn($CompareRow['SSW']['school_classes'], $secondWith),
+                                    )),
+                                    new LayoutRow(array(
+                                        new LayoutColumn(new Bold('DISCH:'), $firstWith),
+                                        new LayoutColumn($CompareRow['SSW']['schoolCode'], $secondWith),
                                     )),
                                 )))
                             );
@@ -899,7 +949,9 @@ class Frontend extends Extension implements IFrontendInterface
 //            || $Account['recoveryMail'] == ''
             || empty($Account['school_classes'])
             || empty($Account['roles'])
-            || empty($Account['schools'])) {
+            || empty($Account['schools'])
+            || $Account['schoolCode'] == ''
+        ) {
 
             $tblMember = false;
             $tblPerson = false;
@@ -962,6 +1014,14 @@ class Frontend extends Extension implements IFrontendInterface
                                 'Schüler ist keiner Klasse zugewiesen <br />'
                                 .'oder Schule fehlt in UCS')))->enableHtml();
                         break;
+                        case 'udm_properties':
+                            if(!$Value['schoolCode']){
+                                $KeyReplace = 'DISCH:';
+                                $MouseOver = (new ToolTip(new InfoIcon(), htmlspecialchars(
+                                    'Dienststellenschlüssel nicht zugeordnet <br />'
+                                    .'(Lehrauftrag / Schulverlauf / Mandant / Schule)')))->enableHtml();
+                            }
+                            break;
 
                     }
                     // Sonderregelung Schüler ohne Klasse ist ein Fehler Lehrer/Mitarbeiter nicht
@@ -1010,6 +1070,12 @@ class Frontend extends Extension implements IFrontendInterface
                                 $KeyReplace = 'Klasse:';
                                 $MouseOver = new ToolTip(new InfoIcon(), 'Person muss mindestens einer Klasse zugewiesen sein');
                             break;
+                            case 'schoolCode':
+                                $KeyReplace = 'DISCH:';
+                                $MouseOver = (new ToolTip(new InfoIcon(), htmlspecialchars(
+                                    'Dienststellenschlüssel nicht zugeordnet <br />'
+                                    .'(Lehrauftrag / Schulverlauf / Mandant / Schule)')))->enableHtml();
+                            break;
                         }
 
                         if(empty($Value)){
@@ -1021,7 +1087,6 @@ class Frontend extends Extension implements IFrontendInterface
                                 case 'recoveryMail':
                                     // Schulart ist optional (Lehrer etc.)
                                 case 'school_type':
-
                                 // no log
                                 break;
 

@@ -1,7 +1,6 @@
 <?php
 namespace SPHERE\Application\Setting\Consumer\School;
 
-use Dompdf\Exception;
 use SPHERE\Application\Corporation\Company\Company;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
@@ -157,12 +156,12 @@ class Service extends AbstractService
     /**
      * @param IFormInterface $Form
      * @param TblSchool      $tblSchool
-     * @param string         $CompanyNumber
+     * @param array          $Data
      * @param array          $School
      *
      * @return IFormInterface|string
      */
-    public function updateSchool(IFormInterface $Form, TblSchool $tblSchool, string $CompanyNumber = '', array $School = array())
+    public function updateSchool(IFormInterface $Form, TblSchool $tblSchool, $Data = array(), $School = array())
     {
         /**
          * Skip to Frontend
@@ -171,11 +170,21 @@ class Service extends AbstractService
             return $Form;
         }
 
-        if ((new Data($this->getBinding()))->updateSchool($tblSchool, $CompanyNumber)) {
-            return new Success('Die Unternehmensnr. des Unfallversicherungsträgers wurde erfolgreich gespeichert')
+        $CompanyNumber = '';
+        if(isset($Data['CompanyNumber']) && !empty($Data['CompanyNumber'])){
+            $CompanyNumber = $Data['CompanyNumber'];;
+        }
+        $SchoolCode = '';
+        if(isset($Data['CompanyNumber']) && !empty($Data['SchoolCode'])){
+            $SchoolCode = $Data['SchoolCode'];;
+        }
+
+
+        if ((new Data($this->getBinding()))->updateSchool($tblSchool, $CompanyNumber, $SchoolCode)) {
+            return new Success('Die Unternehmensnr. des Unfallversicherungsträgers sowie der Dienststellenschlüssel wurde erfolgreich gespeichert')
                 .new Redirect('/Setting/Consumer/School', Redirect::TIMEOUT_SUCCESS);
         }
-        return new Danger('Die Unternehmensnr. des Unfallversicherungsträgers konnte nicht gespeichert werden')
+        return new Danger('Die Unternehmensnr. des Unfallversicherungsträgers sowie der Dienststellenschlüssel konnte nicht gespeichert werden')
             .new Redirect('/Setting/Consumer/School', Redirect::TIMEOUT_ERROR);
     }
 

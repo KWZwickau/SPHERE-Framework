@@ -19,6 +19,7 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblIdentification;
 use SPHERE\Application\Setting\Authorization\Account\Account;
 use SPHERE\Application\Setting\Consumer\Consumer;
+use SPHERE\Application\Setting\Consumer\School\School;
 use SPHERE\Application\Setting\Univention\Service\Data;
 use SPHERE\Application\Setting\Univention\Service\Entity\TblUnivention;
 use SPHERE\Application\Setting\Univention\Service\Setup;
@@ -117,6 +118,7 @@ class Service extends AbstractService
      * @param TblYear[] $tblYear
      * @param string  $Acronym
      * @param array   $TeacherClasses
+     * @param array   $ClassSchoolCodeList
      * @param array   $schoolList
      * @param array   $roleList
      *
@@ -126,6 +128,7 @@ class Service extends AbstractService
         $tblYearList,
         $Acronym = '',
         $TeacherClasses = array(),
+        $ClassSchoolCodeList = array(),
         $schoolList = array(),
         $roleList = array()
     ) {
@@ -139,6 +142,7 @@ class Service extends AbstractService
                 $Acronym,
                 &$activeAccountList,
                 $TeacherClasses,
+                $ClassSchoolCodeList,
                 $schoolList,
                 $roleList
             ) {
@@ -157,9 +161,12 @@ class Service extends AbstractService
 //            $UploadItem['password'] = '';// no passwort transfer
                 $UploadItem['school_type'] = '';
                 $UploadItem['groupArray'] = '';
+                // Dienststellenschlüssel
+                $UploadItem['schoolCode'] = '';
 
                 $tblDivisionCourse = false;
                 $tblSchoolType = false;
+                $tblCompany = false;
                 $tblPerson = Account::useService()->getPersonAllByAccount($tblAccount);
                 if($tblPerson){
                     $tblPerson = current($tblPerson);
@@ -171,6 +178,7 @@ class Service extends AbstractService
                             if(($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))){
                                 $tblDivisionCourse = $tblStudentEducation->getTblDivision();
                                 $tblSchoolType = $tblStudentEducation->getServiceTblSchoolType();
+                                $tblCompany = $tblStudentEducation->getServiceTblCompany();
                                 if($tblDivisionCourse){
                                     break;
                                 }
@@ -179,7 +187,6 @@ class Service extends AbstractService
                     }
                 }
                 // Klasse
-
                 if($tblDivisionCourse){
                     $ClassName = $this->getCorrectionClassNameByDivision($tblDivisionCourse);
                     $UploadItem['school_classes'][$Acronym][] = $ClassName;
@@ -190,6 +197,21 @@ class Service extends AbstractService
                         $SchoolListWithClasses = $TeacherClasses[$tblPerson->getId()];
                         asort($SchoolListWithClasses);
                         $UploadItem['school_classes'] = $SchoolListWithClasses;
+                        // SchoolCode
+                        foreach($SchoolListWithClasses as $currentAcronym){
+                            foreach($currentAcronym as $DivisionName) {
+                                if(isset($ClassSchoolCodeList[$DivisionName]) && !empty($ClassSchoolCodeList[$DivisionName])) {
+                                    $UploadItem['schoolCode'] = current($ClassSchoolCodeList[$DivisionName]);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+                // Dienststellenschlüssel Schüler
+                if($tblCompany && $tblSchoolType){
+                    if(($tblSchool = School::useService()->getSchoolByCompanyAndType($tblCompany, $tblSchoolType))){
+                        $UploadItem['schoolCode'] = $tblSchool->getSchoolCode();
                     }
                 }
                 // Rollen
@@ -300,24 +322,50 @@ class Service extends AbstractService
         $Acronym = Account::useService()->getMandantAcronym();
         // Lehraufträge
         $TeacherClasses = array();
-        if($YearId && ($tblYear = Term::useService()->getYearById($YearId))){
-            $this->getTeacherClassesByYear($Acronym, $tblYear, $TeacherClasses);
+        if($YearId && ($tblYear = Term::useService()->getYearById($YearId))) {
             $tblYearList[] = $tblYear;
-        } elseif(($tblYearList = Term::useService()->getYearByNow())){
-            foreach($tblYearList as $tblYear){
+        } else {
+            $tblYearList = Term::useService()->getYearByNow();
+        }
+        if($tblYearList){
+            foreach($tblYearList as $tblYear) {
                 $this->getTeacherClassesByYear($Acronym, $tblYear, $TeacherClasses);
             }
+            // ArrayKey muss immer eine normale Zählung bei 0 beginnend ohne Lücken erhalten 0,1,2,3...
+            // Key PersonId
+            foreach($TeacherClasses as &$AcronymTemp) {
+                // Key Acronym
+                foreach($AcronymTemp as &$ClassList) {
+                    sort($ClassList);
+                }
+            }
         }
-        // ArrayKey muss immer eine normale Zählung bei 0 beginnend ohne Lücken erhalten 0,1,2,3...
-        // Key PersonId
-        foreach($TeacherClasses as &$AcronymTemp) {
-            // Key Acronym
-            foreach($AcronymTemp as &$ClassList){
-                sort($ClassList);
+        $ClassSchoolCodeList = array();
+        // Klassen Schulschlüssel liste aus Schülern ziehen
+        if(($tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_STUDENT))
+        && ($tblPersonList = $tblGroup->getPersonList())){
+            foreach($tblPersonList as $tblPerson){
+                if($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndDate($tblPerson)) {
+                    // nur Klasse
+                    $tblDivisionCourse = $tblStudentEducation->getTblDivision();
+                    $tblSchoolType = $tblStudentEducation->getServiceTblSchoolType();
+                    $tblCompany = $tblStudentEducation->getServiceTblCompany();
+                    if($tblDivisionCourse && $tblSchoolType && $tblCompany) {
+                        if(($tblSchool = School::useService()->getSchoolByCompanyAndType($tblCompany, $tblSchoolType))) {
+                            $ClassSchoolCodeList[$tblDivisionCourse->getName()][] = $tblSchool->getSchoolCode();
+                        }
+                    }
+                }
             }
         }
 
-        return Univention::useService()->getAccountActive($tblYearList, $Acronym, $TeacherClasses, $schoolList, $roleList);
+        if(!empty($ClassSchoolCodeList)){
+            foreach($ClassSchoolCodeList as &$ClassCodeList){
+                $ClassCodeList = array_unique($ClassCodeList);
+            }
+        }
+
+        return Univention::useService()->getAccountActive($tblYearList, $Acronym, $TeacherClasses, $ClassSchoolCodeList, $schoolList, $roleList);
     }
 
     /**
@@ -337,8 +385,8 @@ class Service extends AbstractService
                     $ClassName = $this->getCorrectionClassNameByDivision($tblDivisionCourse);
                     $TeacherClasses[$tblPersonTeacher->getId()][$Acronym][$tblDivisionCourse->getId()] = $ClassName;
                 }
-//                // doppelte werte entfernen
-//                $TeacherClasses[$tblPersonTeacher->getId()][$Acronym] = array_unique($TeacherClasses[$tblPersonTeacher->getId()][$Acronym]);
+                //                // doppelte werte entfernen
+                //                $TeacherClasses[$tblPersonTeacher->getId()][$Acronym] = array_unique($TeacherClasses[$tblPersonTeacher->getId()][$Acronym]);
             }
         }
     }
@@ -387,7 +435,7 @@ class Service extends AbstractService
                 $UploadItem['record_uid'] = $tblAccount->getId();
                 $UploadItem['source_uid'] = $Acronym.'-'.$tblAccount->getId();
                 $UploadItem['roles'] = '';
-                $UploadItem['schools'] = '';
+                $UploadItem['schools'] = array();
                 $UploadItem['mail'] = '';
                 $UploadItem['BackupMail'] = '';
                 $UploadItem['group'] = '';
@@ -426,7 +474,7 @@ class Service extends AbstractService
                     $Item['record_uid'] = '';
                     $Item['source_uid'] = $Acronym.'-';
                     $Item['roles'] = '';
-                    $Item['schools'] = '';
+                    $Item['schools'] = array();
                     $Item['password'] = '';
                     $Item['school_classes'] = '';
                     $Item['school_type'] = '';

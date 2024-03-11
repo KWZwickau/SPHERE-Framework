@@ -9,7 +9,6 @@ use SPHERE\Common\Frontend\Icon\IIconInterface;
  * Class HiddenField
  *
  * @package SPHERE\Common\Frontend\Form\Repository\Field
- * @deprecated
  */
 class HiddenField extends AbstractField implements IFieldInterface
 {
@@ -19,7 +18,6 @@ class HiddenField extends AbstractField implements IFieldInterface
      * @param null|string    $Placeholder
      * @param null|string    $Label
      * @param IIconInterface $Icon
-     * @deprecated
      */
     public function __construct(
         $Name,

@@ -9,6 +9,8 @@ use SPHERE\Application\Corporation\Company\Company;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Relationship\Relationship;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer as ConsumerGatekeeper;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumerLogin;
 use SPHERE\Application\Setting\Consumer\Responsibility\Responsibility;
 use SPHERE\Application\Setting\Consumer\Responsibility\Service\Entity\TblResponsibility;
 use SPHERE\Application\Setting\Consumer\School\Service\Entity\TblSchool;
@@ -48,6 +50,7 @@ use SPHERE\Common\Frontend\Layout\Repository\PullClear;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
+use SPHERE\Common\Frontend\Layout\Repository\WellReadOnly;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
@@ -81,6 +84,12 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage('Schulen', 'Übersicht');
         $Stage->addButton(new Standard('Schule hinzufügen', '/Setting/Consumer/School/Create'));
 
+        $IsUCSMandant = false;
+        if(($tblConsumer = ConsumerGatekeeper::useService()->getConsumerBySession())
+        && ConsumerGatekeeper::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_UCS)){
+            $IsUCSMandant = true;
+        }
+
         $Stage->setContent(
             new Layout(
                 new LayoutGroup(
@@ -99,6 +108,7 @@ class Frontend extends Extension implements IFrontendInterface
             foreach ($tblSchoolAll as $tblSchool) {
                 $tblCompany = $tblSchool->getServiceTblCompany();
                 $CompanyNumber = $tblSchool->getCompanyNumber();
+                $SchoolCode = $tblSchool->getSchoolCode();
                 $CompanyNumberStandard = '';
                 if ($CompanyNumber == '') {
                     $tblResponsibilityList = Responsibility::useService()->getResponsibilityAll();
@@ -118,10 +128,16 @@ class Frontend extends Extension implements IFrontendInterface
                             new ToolTip(new Info(),
                                 'Es wird diese Unternehmensnr. des Schulträgers verwendet, wenn bei der Schule keine hinterlegt ist.')
                             : '')),
-                    ($CompanyNumber != '' ? Panel::PANEL_TYPE_SUCCESS : Panel::PANEL_TYPE_WARNING),
-                    new PullRight(new Standard('', '/Setting/Consumer/School/Edit', new Edit(),
-                        array('Id' => $tblSchool->getId()),
-                        'Bearbeiten')));
+                    ($CompanyNumber != '' ? Panel::PANEL_TYPE_SUCCESS : Panel::PANEL_TYPE_WARNING));
+
+                $StudentCodePanel = new Panel('Dienststellenschlüssel (DISCH)',
+                    ($SchoolCode ?: ($IsUCSMandant ? 'Pflichtfeld im UCS' : '')),
+                    ($SchoolCode != ''
+                        ? Panel::PANEL_TYPE_SUCCESS
+                        : ($IsUCSMandant
+                            ? Panel::PANEL_TYPE_DANGER
+                            : Panel::PANEL_TYPE_WARNING))
+                );
 
                 if ($tblCompany) {
                     $Form .= new Layout(array(
@@ -129,11 +145,25 @@ class Frontend extends Extension implements IFrontendInterface
                             new LayoutRow(new LayoutColumn(
                                 self::frontendLayoutCombine($tblCompany)
                             )),
-                            new LayoutRow(
+                            new LayoutRow(array(
                                 new LayoutColumn(
-                                    $CompanyNumberPanel
-                                    , 3)
-                            )
+                                    new WellReadOnly(
+                                        // Bearbeiten
+                                        new Layout(new LayoutGroup(new LayoutRow(array(
+                                            new LayoutColumn(
+                                                $CompanyNumberPanel->setMarginBottom('7'), 6
+                                            ),
+                                            new LayoutColumn(
+                                                $StudentCodePanel->setMarginBottom('7'), 6
+                                            ),
+                                            new LayoutColumn(new PullRight(
+                                                new Standard('Bearbeiten','/Setting/Consumer/School/Edit', new Edit(),
+                                                    array('Id' => $tblSchool->getId()), 'Bearbeiten')
+                                            ))
+                                        ))))
+                                    )
+                                , 6),
+                            ))
                         ),
                             (new Title(new TagList().' '.
                                 new \SPHERE\Common\Frontend\Text\Repository\Warning($tblSchool->getServiceTblType()
@@ -443,16 +473,23 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param null $Id
-     * @param null $CompanyNumber
+     * @param null $Data
      * @param null $School
      *
      * @return Stage
      */
-    public function frontendSchoolEdit($Id = null, $CompanyNumber = null, $School = null)
+    public function frontendSchoolEdit($Id = null, $Data = null, $School = null)
     {
 
-        $Stage = new Stage('Unternehmensnr. des Unfallversicherungsträgers', 'Bearbeiten');
+        $Stage = new Stage('Schulinformationen', 'Bearbeiten');
         $Stage->addButton(new Standard('Zurück', '/Setting/Consumer/School', new ChevronLeft()));
+
+        $IsUCSMandant = false;
+        if(($tblConsumer = ConsumerGatekeeper::useService()->getConsumerBySession())
+            && ConsumerGatekeeper::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_UCS)){
+            $IsUCSMandant = true;
+        }
+
         $tblSchool = School::useService()->getSchoolById($Id);
         $Type = '';
         $tblType = $tblSchool->getServiceTblType();
@@ -463,9 +500,19 @@ class Frontend extends Extension implements IFrontendInterface
             return $Stage->setContent(new Warning('Diese Schule wurde nicht gefunden.')
                 .new Redirect('/Setting/Consumer/School', Redirect::TIMEOUT_ERROR));
         }
-        $Form = new Form(new FormGroup(new FormRow(array(new FormColumn(
-            new Panel('Unternehmensnr. des Unfallversicherungsträgers', new TextField('CompanyNumber', '', ''),
-                Panel::PANEL_TYPE_SUCCESS)),
+        $Form = new Form(new FormGroup(new FormRow(array(
+            new FormColumn(
+                new Panel('Unternehmensnummer '.new ToolTip(new Info(),'des Unfallversicherungsträgers'),
+                    new TextField('Data[CompanyNumber]', '', ''), Panel::PANEL_TYPE_SUCCESS)
+            , 6),
+            new FormColumn(
+                new Panel('Dienststellenschlüssel (DISCH) '.
+                    ($IsUCSMandant
+                        ? new ToolTip(new Info(), 'Pflichtfeld im UCS')
+                        : ''),
+                    new TextField('Data[SchoolCode]', '', ''),
+                    Panel::PANEL_TYPE_SUCCESS)
+            , 6),
             new FormColumn(new HiddenField('School[IsSubmit]'))
         ))));
         $Form->appendFormButton(new Primary('Speichern', new Save()))
@@ -473,34 +520,30 @@ class Frontend extends Extension implements IFrontendInterface
 
         $tblCompany = $tblSchool->getServiceTblCompany();
         if ($tblCompany) {
-            $PanelHead = new Panel('Institution der eine Unternehmensnr. des Unfallversicherungsträgers bearbeitet werden soll'
-                , $tblCompany->getDisplayName().' '.new Small(new Muted('('.$Type.')')), Panel::PANEL_TYPE_INFO);
+            $PanelHead = new Panel($tblCompany->getDisplayName().' '.new Small(new Muted('('.$Type.')')), '', Panel::PANEL_TYPE_INFO);
         } else {
             $PanelHead = new Panel('Institution wird nicht mehr gefunden!', '', Panel::PANEL_TYPE_DANGER);
         }
 
 
         $Global = $this->getGlobal();
-        if ($tblSchool->getCompanyNumber()) {
-            $Global->POST['CompanyNumber'] = $tblSchool->getCompanyNumber();
+        if ($Data == null) {
+            $Global->POST['Data']['CompanyNumber'] = $tblSchool->getCompanyNumber();
+            $Global->POST['Data']['SchoolCode'] = $tblSchool->getSchoolCode();
             $Global->savePost();
         }
 
         $Stage->setContent(
             new Layout(
                 new LayoutGroup(array(
-                    new LayoutRow(
-                        new LayoutColumn(
-                            $PanelHead
-                            , 6)
+                    new LayoutRow(array(
+                        new LayoutColumn($PanelHead, 6),)
                     ),
-                    new LayoutRow(
-                        new LayoutColumn(
-                            new Well(School::useService()->updateSchool(
-                                $Form, $tblSchool, $CompanyNumber, $School
-                            ))
-                            , 6)
-                    )
+                    new LayoutRow(new LayoutColumn(
+                        new Well(School::useService()->updateSchool(
+                            $Form, $tblSchool, $Data, $School
+                        ))
+                    ))
                 ))
             )
         );

@@ -114,10 +114,11 @@ class Data extends AbstractData
     /**
      * @param TblSchool $tblSchool
      * @param string    $CompanyNumber
+     * @param string    $SchoolCode
      *
      * @return bool
      */
-    public function updateSchool(TblSchool $tblSchool, $CompanyNumber = '')
+    public function updateSchool(TblSchool $tblSchool, string $CompanyNumber = '', string $SchoolCode = '')
     {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -127,6 +128,7 @@ class Data extends AbstractData
         if ($Entity) {
             $Protocol = clone $Entity;
             $Entity->setCompanyNumber($CompanyNumber);
+            $Entity->setSchoolCode($SchoolCode);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
             return true;
