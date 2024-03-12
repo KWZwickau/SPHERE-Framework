@@ -1,5 +1,4 @@
 <?php
-
 namespace SPHERE\Application\Api\Reporting\DeclarationBasis;
 
 use DateTime;
@@ -33,18 +32,18 @@ class DeclarationBasis implements IModuleInterface
     }
 
     /**
-     * @param null $Date
+     * @param null $Data
      *
      * @return string
      */
-    public function downloadDivisionReport($Date = null)
+    public function downloadDivisionReport($Data = null)
     {
-        if ($Date != null) {
-            $date = new DateTime($Date);
+        if ($Data != null) {
+            $date = new DateTime($Data['Date']);
             if (Term::useService()->getYearAllByDate($date)) {
                 $fileLocation = \SPHERE\Application\Reporting\DeclarationBasis\DeclarationBasis::useService()->createDivisionReportExcel($date);
-                return FileSystem::getDownload($fileLocation->getRealPath(), "Stichtagsmeldung Inklusionsschüler"
-                        . (Consumer::useService()->getConsumerBySessionIsConsumerType(TblConsumer::TYPE_SACHSEN) ? " SBA " : " ")
+                return FileSystem::getDownload($fileLocation->getRealPath(), "Stichtagsmeldung Schülerzahl"
+                        . (Consumer::useService()->getConsumerBySessionIsConsumerType(TblConsumer::TYPE_SACHSEN) ? " LASUB " : " ")
                         . $date->format('Y-m-d') . ".xlsx")->__toString();
             } else {
                 return 'Für den Stichtag: ' . $date->format('d.m.Y') . ' wurde kein Schuljahr gefunden.';
