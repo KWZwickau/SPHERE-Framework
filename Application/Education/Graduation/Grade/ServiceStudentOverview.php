@@ -227,9 +227,26 @@ abstract class ServiceStudentOverview extends ServiceScoreCalc
                     $tblDivisionCourseTempList = $tblDivisionCourseList;
                 }
 
+                // Tests auch von den Zensuren, wo der Schüler nicht mehr im Kurs sitzt
+                $tblTestExtraList = array();
+                if (($tblTestGradeExtraList = Grade::useService()->getTestGradeListByPersonAndYearAndSubject($tblPerson, $tblYear, $tblSubject))) {
+                    foreach ($tblTestGradeExtraList as $tblTestGradeExtra) {
+                        if ($tblTestGradeExtra->getIsGradeNumeric() && ($tblTestExtra = $tblTestGradeExtra->getTblTest())) {
+                            $tblTestExtraList[$tblTestExtra->getId()] = $tblTestExtra;
+                        }
+                    }
+                }
+
                 if ($tblDivisionCourseTempList) {
                     foreach ($tblDivisionCourseTempList as $tblDivisionCourse) {
-                        if (($tblTestList = Grade::useService()->getTestListByDivisionCourseAndSubject($tblDivisionCourse, $tblSubject))) {
+                        $tblTestList = Grade::useService()->getTestListByDivisionCourseAndSubject($tblDivisionCourse, $tblSubject, true);
+                        foreach ($tblTestExtraList as $tblTextExtra) {
+                            if (!isset($tblTestList[$tblTextExtra->getId()])) {
+                                $tblTestList[$tblTextExtra->getId()] = $tblTextExtra;
+                            }
+                        }
+
+                        if (!empty($tblTestList)) {
                             foreach ($tblTestList as $tblTest) {
                                 $tblTestGrade = Grade::useService()->getTestGradeByTestAndPerson($tblTest, $tblPerson);
                                 $isAddTest = false;

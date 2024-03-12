@@ -419,11 +419,23 @@ class Service extends ServiceTask
     /**
      * @param TblDivisionCourse $tblDivisionCourse
      * @param TblSubject $tblSubject
+     * @param bool $hasTestIdAsIndex
      *
      * @return TblTest[]|false
      */
-    public function getTestListByDivisionCourseAndSubject(TblDivisionCourse $tblDivisionCourse, TblSubject $tblSubject)
+    public function getTestListByDivisionCourseAndSubject(TblDivisionCourse $tblDivisionCourse, TblSubject $tblSubject, bool $hasTestIdAsIndex = false)
     {
+        if ($hasTestIdAsIndex) {
+            $list = array();
+            if (($tblTestList = (new Data($this->getBinding()))->getTestListByDivisionCourseAndSubject($tblDivisionCourse, $tblSubject))) {
+                foreach ($tblTestList as $tblTest) {
+                    $list[$tblTest->getId()] = $tblTest;
+                }
+            }
+
+            return $list;
+        }
+
         return (new Data($this->getBinding()))->getTestListByDivisionCourseAndSubject($tblDivisionCourse, $tblSubject);
     }
 
