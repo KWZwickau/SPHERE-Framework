@@ -112,6 +112,8 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblBinary', 'Hash')) {
             $Table->addColumn('Hash', 'string');
         }
+        $this->createColumn($Table, 'FileSizeKiloByte', self::FIELD_TYPE_INTEGER, false, 0);
+
         return $Table;
     }
 

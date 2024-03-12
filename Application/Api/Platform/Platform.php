@@ -2,6 +2,7 @@
 namespace SPHERE\Application\Api\Platform;
 
 use SPHERE\Application\Api\Platform\Database\Database;
+use SPHERE\Application\Api\Platform\DataMaintenance\ApiDocumentStorage;
 use SPHERE\Application\Api\Platform\DataMaintenance\ApiMigrateDivision;
 use SPHERE\Application\Api\Platform\Gatekeeper\ApiAuthenticatorApp;
 use SPHERE\Application\Api\Platform\Gatekeeper\ApiUserGroup;
@@ -28,5 +29,6 @@ class Platform implements IApplicationInterface
         ApiSystemTest::registerApi();
         ApiAuthenticatorApp::registerApi();
         ApiMigrateDivision::registerApi();
+        ApiDocumentStorage::registerApi();
     }
 }

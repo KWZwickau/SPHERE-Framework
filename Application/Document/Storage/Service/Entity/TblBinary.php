@@ -26,6 +26,11 @@ class TblBinary extends Element
     protected $Hash;
 
     /**
+     * @Column(type="integer")
+     */
+    protected int $FileSizeKiloByte;
+
+    /**
      * @return string|resource
      */
     public function getBinaryBlob()
@@ -53,5 +58,23 @@ class TblBinary extends Element
     {
 
         return $this->Hash;
+    }
+
+    /**
+     * @return int
+     */
+    public function getFileSizeKiloByte(): int
+    {
+        return $this->FileSizeKiloByte;
+    }
+
+    /**
+     * @param int $FileSizeKiloByte
+     *
+     * @return void
+     */
+    public function setFileSizeKiloByte(int $FileSizeKiloByte): void
+    {
+        $this->FileSizeKiloByte = $FileSizeKiloByte;
     }
 }
