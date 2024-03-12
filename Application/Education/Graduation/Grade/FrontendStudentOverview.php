@@ -202,98 +202,25 @@ abstract class FrontendStudentOverview extends FrontendScoreType
     public function loadViewStudentOverviewCourseContent($DivisionCourseId, $Filter): string
     {
         $textCourse = "";
-        if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))
-            && ($tblYear = $tblDivisionCourse->getServiceTblYear())
-        ) {
+        if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
             $textCourse = new Bold($tblDivisionCourse->getDisplayName());
 
-            $integrationList = array();
-            $pictureList = array();
-            $courseList = array();
-
-            $tblSubjectList = array();
-
-            if (($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses())) {
-                foreach ($tblPersonList as $tblPerson) {
-                    // Schüler-Informationen
-                    Grade::useService()->setStudentInfo($tblPerson, $tblYear, $integrationList, $pictureList, $courseList);
-                }
-
-                $tblSubjectList = DivisionCourse::useService()->getSubjectListByPersonListAndYear($tblPersonList, $tblYear);
-            }
-
-            $hasPicture = !empty($pictureList);
-            $hasIntegration = !empty($integrationList);
-            $hasCourse = !empty($courseList);
-            $headerList = $this->getGradeBookPreHeaderList($hasPicture, $hasIntegration, $hasCourse);
-            if ($tblSubjectList) {
-                $tblSubjectList = $this->getSorter($tblSubjectList)->sortObjectBy('DisplayName', new StringNaturalOrderSorter());
-                /** @var TblSubject $tblSubject */
-                foreach ($tblSubjectList as $tblSubject) {
-                    $headerList[$tblSubject->getId()] = $this->getTableColumnHead($tblSubject->getAcronym());
-                }
-            } else {
-                $tblSubjectList = array();
-            }
-            $headerList['Option'] = $this->getTableColumnHead('');
-
-            $bodyList = array();
-            $averageSumList = array();
-            $averageCountList = array();
-            if ($tblPersonList) {
-                $count = 0;
-                foreach ($tblPersonList as $tblPerson) {
-                    $bodyList[$tblPerson->getId()] = $this->getGradeBookPreBodyList($tblPerson, ++$count, $hasPicture, $hasIntegration, $hasCourse,
-                        $pictureList, $integrationList, $courseList);
-
-                    foreach ($tblSubjectList as $tblSubject) {
-                        // Schüler Berechnungsvorschrift ermitteln
-                        $tblScoreRule = Grade::useService()->getScoreRuleByPersonAndYearAndSubject($tblPerson, $tblYear, $tblSubject, $tblDivisionCourse);
-                        if (($tblTestGradeList = Grade::useService()->getTestGradeListByPersonAndYearAndSubject(
-                            $tblPerson, $tblYear, $tblSubject
-                        ))) {
-                            list ($average, $scoreRuleText, $error) = Grade::useService()->getCalcStudentAverage($tblPerson, $tblYear, $tblTestGradeList, $tblScoreRule ?: null);
-                            $contentSubject = '&#216; ' . Grade::useService()->getCalcStudentAverageToolTipByAverage($average, $scoreRuleText, $error);
-                            $average = Grade::useService()->getGradeNumberValue($average);
-                            if (isset($averageSumList[$tblSubject->getId()])) {
-                                $averageSumList[$tblSubject->getId()] += $average;
-                            } else {
-                                $averageSumList[$tblSubject->getId()] = $average;
-                            }
-                            if (isset($averageCountList[$tblSubject->getId()])) {
-                                $averageCountList[$tblSubject->getId()]++;
-                            } else {
-                                $averageCountList[$tblSubject->getId()] = 1;
-                            }
-                        } else {
-                            $contentSubject = '';
-                        }
-
-                        $bodyList[$tblPerson->getId()][$tblSubject->getId()] = $this->getTableColumnBody($contentSubject);
-                    }
-
-                    $bodyList[$tblPerson->getId()]['Option'] = $this->getTableColumnBody((new Standard("", ApiStudentOverview::getEndpoint(), new EyeOpen(), array(), "Schülerübersicht anzeigen"))
-                        ->ajaxPipelineOnClick(ApiStudentOverview::pipelineLoadViewStudentOverviewStudentContent($tblDivisionCourse->getId(), $tblPerson->getId(), $Filter, 'All')));
-                }
-            }
-
-            // Fach-Klassen-Durchschnitt
-            $rowDataList = array();
-            foreach ($headerList as $key => $value) {
-                $contentTemp = '';
-                if ($key == 'Person') {
-                    $contentTemp = $this->getTableColumnBody(new Muted('&#216; Fach-Klasse'));
-                } elseif (isset($averageSumList[$key])) {
-                    $contentTemp = $this->getTableColumnBody('&#216; ' . Grade::useService()->getGradeAverage($averageSumList[$key], $averageCountList[$key]));
-                }
-                $rowDataList[$key] = $contentTemp;
-            }
-            $bodyList[-1] = $rowDataList;
+            list ($bodyList, $headerList) = Grade::useService()->getStudentOverviewCourseData($tblDivisionCourse, $Filter, false);
 
             $content = $this->getTableCustom($headerList, $bodyList);
         } else {
             $content = new Danger("Der Kurs wurde nicht gefunden.", new Exclamation());
         }
+
+        $externalDownloadDivisionCoursePdf = new External(
+            'Kursansicht herunterladen',
+            '/Api/Document/Standard/StudentOverviewCourse/Create',
+            new Download(),
+            array(
+                'DivisionCourseId' => $DivisionCourseId
+            ),
+            'Kursansicht der Schülerübersicht herunterladen'
+        );
 
         return new Title(
                 (new Standard("Zurück", ApiGradeBook::getEndpoint(), new ChevronLeft()))
@@ -301,7 +228,7 @@ abstract class FrontendStudentOverview extends FrontendScoreType
                 . "&nbsp;&nbsp;&nbsp;&nbsp;Schülerübersicht"
                 . new Muted(new Small(" für Kurs: ")) . $textCourse
                 . new Muted(new Small(" Schüler auswählen"))
-                . new PullRight((new External(
+                . new PullRight($externalDownloadDivisionCoursePdf . (new External(
                     'Alle Schülerübersichten dieses Kurses herunterladen', '/Api/Document/Standard/MultiGradebookOverview/Create', new Download(),
                     array('DivisionCourseId' => $DivisionCourseId)
                 )))

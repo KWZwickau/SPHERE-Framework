@@ -197,7 +197,7 @@ abstract class FrontendBasic extends Extension implements IFrontendInterface
      *
      * @return array
      */
-    protected function getGradeBookPreHeaderList(bool $hasPicture, bool $hasIntegration, bool $hasCourse): array
+    public function getGradeBookPreHeaderList(bool $hasPicture, bool $hasIntegration, bool $hasCourse): array
     {
         $headerList['Number'] = $this->getTableColumnHead('#');
         $headerList['Person'] = $this->getTableColumnHead('Schüler');
@@ -226,7 +226,7 @@ abstract class FrontendBasic extends Extension implements IFrontendInterface
      *
      * @return array
      */
-    protected function getGradeBookPreBodyList(TblPerson $tblPerson, $count, bool $hasPicture, bool $hasIntegration, bool $hasCourse,
+    public function getGradeBookPreBodyList(TblPerson $tblPerson, $count, bool $hasPicture, bool $hasIntegration, bool $hasCourse,
         array $pictureList, array $integrationList, array $courseList, bool $isInactive = false): array
     {
         $result['Number'] = $this->getTableColumnBody($count);

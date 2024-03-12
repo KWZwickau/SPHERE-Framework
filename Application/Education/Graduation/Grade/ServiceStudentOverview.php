@@ -3,21 +3,26 @@
 namespace SPHERE\Application\Education\Graduation\Grade;
 
 use SPHERE\Application\Api\Document\Standard\Repository\GradebookOverview\GradebookOverview;
+use SPHERE\Application\Api\Education\Graduation\Grade\ApiStudentOverview;
 use SPHERE\Application\Api\ParentStudentAccess\ApiOnlineGradebook;
 use SPHERE\Application\Document\Generator\Repository\Section;
 use SPHERE\Application\Document\Generator\Repository\Slice;
 use SPHERE\Application\Education\Graduation\Grade\Service\VirtualTestTask;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblStudentEducation;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Setting\Consumer\Consumer;
+use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
 use SPHERE\Common\Frontend\Icon\Repository\Info;
 use SPHERE\Common\Frontend\Link\Repository\Link;
+use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
+use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\System\Extension\Repository\Sorter\DateTimeSorter;
 use SPHERE\System\Extension\Repository\Sorter\StringNaturalOrderSorter;
@@ -516,5 +521,107 @@ abstract class ServiceStudentOverview extends ServiceScoreCalc
         } else {
             return $this->getSorter($virtualTestTaskList)->sortObjectBy('Date', new DateTimeSorter());
         }
+    }
+
+    /**
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param $Filter
+     * @param bool $isPdf
+     *
+     * @return array
+     */
+    public function getStudentOverviewCourseData(TblDivisionCourse $tblDivisionCourse, $Filter, bool $isPdf): array
+    {
+        $bodyList = array();
+        $headerList = array();
+
+        if (($tblYear = $tblDivisionCourse->getServiceTblYear())) {
+            $integrationList = array();
+            $pictureList = array();
+            $courseList = array();
+
+            $tblSubjectList = array();
+
+            if (($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses())) {
+                foreach ($tblPersonList as $tblPerson) {
+                    // Schüler-Informationen
+                    Grade::useService()->setStudentInfo($tblPerson, $tblYear, $integrationList, $pictureList, $courseList);
+                }
+
+                $tblSubjectList = DivisionCourse::useService()->getSubjectListByPersonListAndYear($tblPersonList, $tblYear);
+            }
+
+            $hasPicture = !empty($pictureList);
+            $hasIntegration = !empty($integrationList);
+            $hasCourse = !empty($courseList);
+            $headerList = Grade::useFrontend()->getGradeBookPreHeaderList($hasPicture, $hasIntegration, $hasCourse);
+            if ($tblSubjectList) {
+                $tblSubjectList = $this->getSorter($tblSubjectList)->sortObjectBy('DisplayName', new StringNaturalOrderSorter());
+                /** @var TblSubject $tblSubject */
+                foreach ($tblSubjectList as $tblSubject) {
+                    $headerList[$tblSubject->getId()] = Grade::useFrontend()->getTableColumnHead($tblSubject->getAcronym());
+                }
+            } else {
+                $tblSubjectList = array();
+            }
+            $headerList['Option'] = Grade::useFrontend()->getTableColumnHead('');
+
+            $averageSumList = array();
+            $averageCountList = array();
+            if ($tblPersonList) {
+                $count = 0;
+                foreach ($tblPersonList as $tblPerson) {
+                    $bodyList[$tblPerson->getId()] = Grade::useFrontend()->getGradeBookPreBodyList($tblPerson, ++$count, $hasPicture, $hasIntegration, $hasCourse,
+                        $pictureList, $integrationList, $courseList);
+
+                    foreach ($tblSubjectList as $tblSubject) {
+                        // Schüler Berechnungsvorschrift ermitteln
+                        $tblScoreRule = Grade::useService()->getScoreRuleByPersonAndYearAndSubject($tblPerson, $tblYear, $tblSubject, $tblDivisionCourse);
+                        if (($tblTestGradeList = Grade::useService()->getTestGradeListByPersonAndYearAndSubject(
+                            $tblPerson, $tblYear, $tblSubject
+                        ))) {
+                            list ($average, $scoreRuleText, $error) = Grade::useService()->getCalcStudentAverage($tblPerson, $tblYear, $tblTestGradeList, $tblScoreRule ?: null);
+                            $contentSubject = '&#216; '
+                                . ($isPdf
+                                    ? $average
+                                    : Grade::useService()->getCalcStudentAverageToolTipByAverage($average, $scoreRuleText, $error));
+                            $average = Grade::useService()->getGradeNumberValue($average);
+                            if (isset($averageSumList[$tblSubject->getId()])) {
+                                $averageSumList[$tblSubject->getId()] += $average;
+                            } else {
+                                $averageSumList[$tblSubject->getId()] = $average;
+                            }
+                            if (isset($averageCountList[$tblSubject->getId()])) {
+                                $averageCountList[$tblSubject->getId()]++;
+                            } else {
+                                $averageCountList[$tblSubject->getId()] = 1;
+                            }
+                        } else {
+                            $contentSubject = '';
+                        }
+
+                        $bodyList[$tblPerson->getId()][$tblSubject->getId()] = Grade::useFrontend()->getTableColumnBody($contentSubject);
+                    }
+
+                    $bodyList[$tblPerson->getId()]['Option'] = Grade::useFrontend()->getTableColumnBody((new Standard("", ApiStudentOverview::getEndpoint(), new EyeOpen(), array(), "Schülerübersicht anzeigen"))
+                        ->ajaxPipelineOnClick(ApiStudentOverview::pipelineLoadViewStudentOverviewStudentContent($tblDivisionCourse->getId(), $tblPerson->getId(), $Filter, 'All')));
+                }
+            }
+
+            // Fach-Klassen-Durchschnitt
+            $rowDataList = array();
+            foreach ($headerList as $key => $value) {
+                $contentTemp = '';
+                if ($key == 'Person') {
+                    $contentTemp = Grade::useFrontend()->getTableColumnBody(new Muted('&#216; Fach-Klasse'));
+                } elseif (isset($averageSumList[$key])) {
+                    $contentTemp = Grade::useFrontend()->getTableColumnBody('&#216; ' . Grade::useService()->getGradeAverage($averageSumList[$key], $averageCountList[$key]));
+                }
+                $rowDataList[$key] = $contentTemp;
+            }
+            $bodyList[-1] = $rowDataList;
+        }
+
+        return array($bodyList, $headerList);
     }
 }
