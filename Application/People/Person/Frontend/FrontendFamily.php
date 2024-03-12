@@ -425,6 +425,7 @@ class FrontendFamily extends FrontendReadOnly
 
         $firstNameInput->ajaxPipelineOnKeyUp(ApiFamilyEdit::pipelineLoadSimilarPersonContent($key));
         $lastNameInput->ajaxPipelineOnKeyUp(ApiFamilyEdit::pipelineLoadSimilarPersonContent($key));
+        $TitleAll = Person::useService()->getTitleAll();
 
         return new Panel(
             $title,
@@ -437,7 +438,7 @@ class FrontendFamily extends FrontendReadOnly
                         , 3
                     ),
                     new LayoutColumn(
-                        (new AutoCompleter('Data[S' . $Ranking . '][Title]', 'Titel', 'Titel', array('Dipl.- Ing.'), new Conversation())), 3
+                        (new AutoCompleter('Data[S' . $Ranking . '][Title]', 'Titel', 'Titel', $TitleAll, new Conversation())), 3
                     ),
                 )),
                 new LayoutRow(array(
