@@ -25,6 +25,7 @@ use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblPeriod;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
@@ -367,6 +368,37 @@ class Frontend extends FrontendTestPlanning
             );
         }
 
+        // wenn Zeugnisauftrag mit Abschlusszeugnis OS oder FOS vorhanden -> Prüfungsnoten
+        $hasExamButton = false;
+        $PrepareCertificateId = null;
+        $errorMessage = '';
+        if (($tblSchoolTypeList = DivisionCourse::useService()->getSchoolTypeListByDivisionCourse($tblDivisionCourse))
+            && ((($tblSchoolType = Type::useService()->getTypeByShortName('OS')) && isset($tblSchoolTypeList[$tblSchoolType->getId()]))
+                || (($tblSchoolType = Type::useService()->getTypeByShortName('FOS')) && isset($tblSchoolTypeList[$tblSchoolType->getId()]))
+            )
+            && ($tblPrepareList = Prepare::useService()->getPrepareAllByDivisionCourse($tblDivisionCourse))
+        )  {
+            foreach ($tblPrepareList as $tblPrepareCertificate) {
+                if ($tblPrepareCertificate->getCertificateType()->getIdentifier() == 'DIPLOMA') {
+                    if ($PrepareCertificateId == null) {
+                        $PrepareCertificateId = $tblPrepareCertificate->getId();
+                        $hasExamButton = true;
+                    } else {
+                        $errorMessage = 'Es existieren mehrere Zeugnisaufträge vom Typ: Abschlusszeugnis für diesen Kurs. Bitte wenden Sie sich an Ihre Schulleitung.';
+                        $hasExamButton = false;
+                    }
+                }
+            }
+        }
+
+        $contentExam = '';
+        if ($errorMessage) {
+            $contentExam = new Warning($errorMessage, new Exclamation());
+        } elseif ($hasExamButton && $PrepareCertificateId) {
+            $contentExam = (new Primary('Prüfungsnote bearbeiten', ApiGradeBook::getEndpoint(), new Edit()))
+                ->ajaxPipelineOnClick(ApiGradeBook::pipelineLoadViewExamGradeEditContent($DivisionCourseId, $SubjectId, $PrepareCertificateId, $Filter));
+        }
+
         return
             new Title(
                 (new Standard("Zurück", ApiGradeBook::getEndpoint(), new ChevronLeft()))
@@ -382,6 +414,7 @@ class Frontend extends FrontendTestPlanning
                         ->ajaxPipelineOnClick(ApiGradeBook::pipelineLoadViewTestEditContent($DivisionCourseId, $SubjectId, $Filter))
                     : ''
                 )
+                . $contentExam
                 . new PullRight((new Standard('Mindestnotenanzahl anzeigen', ApiGradeBook::getEndpoint()))
                     ->ajaxPipelineOnClick(ApiGradeBook::pipelineLoadViewMinimumGradeCountContent($DivisionCourseId, $SubjectId, $Filter)))
             ))

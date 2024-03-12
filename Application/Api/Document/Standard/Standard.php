@@ -96,6 +96,9 @@ class Standard extends Extension implements IModuleInterface
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '/ClassRegister/AbsenceStudent/Create', __CLASS__ . '::createAbsenceStudentPdf'
         ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/ExamGradeList/Create', 'SPHERE\Application\Api\Document\Creator::createExamGradeListPdf'
+        ));
     }
 
     /**

@@ -11,11 +11,13 @@ use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCo
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareStudent;
 use SPHERE\Application\Education\Graduation\Grade\Grade;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Ajax\Template\Notify;
 use SPHERE\Common\Frontend\Form\IFormInterface;
+use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
@@ -441,64 +443,12 @@ abstract class ServiceDiploma extends ServiceCertificateContent
             return $form;
         }
 
-        $error = false;
-
-        if ($Data != null) {
-            foreach ($Data as $personGrades) {
-                if (is_array($personGrades)) {
-                    foreach ($personGrades as $identifier => $value) {
-                        if (trim($value) !== '' && $identifier !== 'Text') {
-                            if (!preg_match('!^[1-6]{1}$!is', trim($value))) {
-                                $error = true;
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        if ($error) {
-            $form->prependGridGroup(
-                new FormGroup(new FormRow(new FormColumn(new Danger(
-                    'Nicht alle eingebenen Zensuren befinden sich im Wertebereich (1-6). Die Daten wurden nicht gespeichert.', new Exclamation())
-                ))));
+        if ($this->checkInputExamGrades($Data)) {
+            $this->setExamGradeFormError($form);
 
             return $form;
         } else {
-            if ($Data != null) {
-                foreach ($Data as $prepareStudentId => $personGrades) {
-                    if (($tblPrepareStudent = $this->getPrepareStudentById($prepareStudentId))
-                        && ($tblPrepareItem = $tblPrepareStudent->getTblPrepareCertificate())
-                        && ($tblPerson = $tblPrepareStudent->getServiceTblPerson())
-                        && is_array($personGrades)
-                    ) {
-                        $hasGradeText = false;
-                        $gradeText = '';
-                        if ((isset($personGrades['Text']))
-                            && ($tblGradeText = Grade::useService()->getGradeTextById($personGrades['Text']))
-                        ) {
-                            $hasGradeText = true;
-                            $gradeText = $tblGradeText->getName();
-                        }
-
-                        foreach ($personGrades as $identifier => $value) {
-                            // GradeText als Endnote speichern
-                            if ($identifier == 'EN' && $hasGradeText) {
-                                $value = $gradeText;
-                            }
-
-                            if (($tblPrepareAdditionalGradeType = $this->getPrepareAdditionalGradeTypeByIdentifier($identifier))) {
-                                if ($tblPrepareAdditionalGrade = $this->getPrepareAdditionalGradeBy($tblPrepareItem, $tblPerson, $tblSubject, $tblPrepareAdditionalGradeType)) {
-                                    (new Data($this->getBinding()))->updatePrepareAdditionalGrade($tblPrepareAdditionalGrade, trim($value));
-                                } elseif (trim($value) != '') {
-                                    (new Data($this->getBinding()))->createPrepareAdditionalGrade($tblPrepareItem, $tblPerson, $tblSubject, $tblPrepareAdditionalGradeType, 0, trim($value));
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+            $this->saveExamGrades($Data, $tblSubject);
 
             return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Noten wurden gespeichert.')
                 . new Redirect('/Education/Certificate/Prepare/Prepare/Diploma/Setting', Redirect::TIMEOUT_SUCCESS,
@@ -510,6 +460,113 @@ abstract class ServiceDiploma extends ServiceCertificateContent
                     )
                 );
         }
+    }
+
+    /**
+     * @param $Data
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param TblSubject $tblSubject
+     * @param TblPrepareCertificate $tblPrepare
+     * @param $Filter
+     *
+     * @return Form|bool
+     */
+    public function checkFormExamGrades($Data, TblDivisionCourse $tblDivisionCourse, TblSubject $tblSubject, TblPrepareCertificate $tblPrepare, $Filter): Form|bool
+    {
+        if ($this->checkInputExamGrades($Data)) {
+            $form = Grade::useFrontend()->getExamGradeForm($tblDivisionCourse, $tblSubject, $tblPrepare, $Filter);
+            $this->setExamGradeFormError($form);
+
+            return $form;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * @param $Data
+     * @param TblSubject $tblSubject
+     *
+     * @return void
+     */
+    public function saveExamGrades($Data, TblSubject $tblSubject): void
+    {
+        if ($Data != null) {
+            foreach ($Data as $prepareStudentId => $personGrades) {
+                if (($tblPrepareStudent = $this->getPrepareStudentById($prepareStudentId))
+                    && ($tblPrepareItem = $tblPrepareStudent->getTblPrepareCertificate())
+                    && ($tblPerson = $tblPrepareStudent->getServiceTblPerson())
+                    && is_array($personGrades)
+                ) {
+                    $hasGradeText = false;
+                    $gradeText = '';
+                    if ((isset($personGrades['Text']))
+                        && ($tblGradeText = Grade::useService()->getGradeTextById($personGrades['Text']))
+                    ) {
+                        $hasGradeText = true;
+                        $gradeText = $tblGradeText->getName();
+                    }
+
+                    foreach ($personGrades as $identifier => $value) {
+                        // GradeText als Endnote speichern
+                        if ($identifier == 'EN' && $hasGradeText) {
+                            $value = $gradeText;
+                        }
+
+                        if (($tblPrepareAdditionalGradeType = $this->getPrepareAdditionalGradeTypeByIdentifier($identifier))) {
+                            if ($tblPrepareAdditionalGrade = $this->getPrepareAdditionalGradeBy($tblPrepareItem, $tblPerson, $tblSubject, $tblPrepareAdditionalGradeType)) {
+                                (new Data($this->getBinding()))->updatePrepareAdditionalGrade($tblPrepareAdditionalGrade, trim($value));
+                            } elseif (trim($value) != '') {
+                                (new Data($this->getBinding()))->createPrepareAdditionalGrade(
+                                    $tblPrepareItem, $tblPerson, $tblSubject, $tblPrepareAdditionalGradeType, 0, trim($value)
+                                );
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * @param array|null $Data
+     *
+     * @return bool
+     */
+    private function checkInputExamGrades(?array $Data): bool
+    {
+        $error = false;
+        if ($Data != null) {
+            foreach ($Data as $personGrades) {
+                if (is_array($personGrades)) {
+                    foreach ($personGrades as $identifier => $value) {
+                        if (trim($value) !== '' && $identifier !== 'Text') {
+//                            if (!preg_match('!^[1-6]{1}$!is', trim($value))) {
+                            if (!preg_match('!^[1-6]$!i', trim($value))) {
+                                $error = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return $error;
+    }
+
+    /**
+     * @param Form $form
+     *
+     * @return void
+     */
+    private function setExamGradeFormError(Form $form): void
+    {
+        $formGroup = new FormGroup(new FormRow(new FormColumn(new Danger(
+            'Nicht alle eingebenen Zensuren befinden sich im Wertebereich (1-6). Die Daten wurden nicht gespeichert.', new Exclamation())
+        )));
+        $form->prependGridGroup($formGroup);
+        $form->appendGridGroup($formGroup);
     }
 
     /**

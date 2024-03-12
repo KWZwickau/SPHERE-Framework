@@ -29,7 +29,7 @@ use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 
-abstract class FrontendGradeBookSelect extends FrontendBasic
+abstract class FrontendGradeBookSelect extends FrontendExamGrade
 {
     /**
      * @param null $Filter

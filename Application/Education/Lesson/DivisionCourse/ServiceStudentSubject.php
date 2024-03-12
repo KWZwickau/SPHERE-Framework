@@ -6,6 +6,7 @@ use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Data;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseMemberType;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblStudentEducation;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblStudentSubject;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblSubjectTable;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\VirtualSubject;
@@ -708,5 +709,55 @@ abstract class ServiceStudentSubject extends ServiceCourseSystem
         }
 
         return empty($tblSubjectList) ? false : $tblSubjectList;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     * @param $ranking
+     *
+     * @return bool|TblSubject
+     */
+    public function getForeignLanguageSubjectByPersonAndYear(TblPerson $tblPerson, TblYear $tblYear, $ranking): bool|TblSubject
+    {
+        if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))) {
+            // Fremdsprache aus dem gespeicherten Fach am Schüler
+            if (($level = $tblStudentEducation->getLevel())
+                && ($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())
+                && ($tblSubjectTable = DivisionCourse::useService()->getSubjectTableByStudentMetaIdentifier($tblSchoolType, $level, 'FOREIGN_LANGUAGE_' . $ranking))
+                && ($tblStudentSubject = DivisionCourse::useService()->getStudentSubjectByPersonAndYearAndSubjectTable($tblPerson, $tblYear, $tblSubjectTable))
+                && ($tblSubject = $tblStudentSubject->getServiceTblSubject())
+            ) {
+                return $tblSubject;
+                // Fremdsprache aus der Schülerakte
+            } elseif (($tblStudent = Student::useService()->getStudentByPerson($tblPerson))
+                && ($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('FOREIGN_LANGUAGE'))
+                && ($tblStudentSubjectRanking = Student::useService()->getStudentSubjectRankingByIdentifier($ranking))
+                && ($tblStudentSubject = Student::useService()->getStudentSubjectByStudentAndSubjectAndSubjectRanking($tblStudent, $tblStudentSubjectType, $tblStudentSubjectRanking))
+            ) {
+                // SSW-484
+                $tillLevel = $tblStudentSubject->getLevelTill();
+                $fromLevel = $tblStudentSubject->getLevelFrom();
+                $level = $tblStudentEducation->getLevel();
+
+                if ($tillLevel && $fromLevel) {
+                    if ($fromLevel <= $level && $tillLevel >= $level) {
+                        return $tblStudentSubject->getServiceTblSubject();
+                    }
+                } elseif ($tillLevel) {
+                    if ($tillLevel >= $level) {
+                        return $tblStudentSubject->getServiceTblSubject();
+                    }
+                } elseif ($fromLevel) {
+                    if ($fromLevel <= $level) {
+                        return $tblStudentSubject->getServiceTblSubject();
+                    }
+                } else {
+                    return $tblStudentSubject->getServiceTblSubject();
+                }
+            }
+        }
+
+        return false;
     }
 }

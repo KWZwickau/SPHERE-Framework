@@ -386,41 +386,7 @@ abstract class Certificate extends Extension
             && ($tblPerson = $tblStudentEducation->getServiceTblPerson())
             && ($tblYear = $tblStudentEducation->getServiceTblYear())
         ) {
-            // Fremdsprache aus dem gespeicherten Fach am Schüler
-            if (($level = $tblStudentEducation->getLevel())
-                && ($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())
-                && ($tblSubjectTable = DivisionCourse::useService()->getSubjectTableByStudentMetaIdentifier($tblSchoolType, $level, 'FOREIGN_LANGUAGE_' . $ranking))
-                && ($tblStudentSubject = DivisionCourse::useService()->getStudentSubjectByPersonAndYearAndSubjectTable($tblPerson, $tblYear, $tblSubjectTable))
-                && ($tblSubject = $tblStudentSubject->getServiceTblSubject())
-            ) {
-                return $tblSubject;
-            // Fremdsprache aus der Schülerakte
-            } elseif (($tblStudent = Student::useService()->getStudentByPerson($tblPerson))
-                && ($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('FOREIGN_LANGUAGE'))
-                && ($tblStudentSubjectRanking = Student::useService()->getStudentSubjectRankingByIdentifier($ranking))
-                && ($tblStudentSubject = Student::useService()->getStudentSubjectByStudentAndSubjectAndSubjectRanking($tblStudent, $tblStudentSubjectType, $tblStudentSubjectRanking))
-            ) {
-                // SSW-484
-                $tillLevel = $tblStudentSubject->getLevelTill();
-                $fromLevel = $tblStudentSubject->getLevelFrom();
-                $level = $tblStudentEducation->getLevel();
-
-                if ($tillLevel && $fromLevel) {
-                    if ($fromLevel <= $level && $tillLevel >= $level) {
-                        return $tblStudentSubject->getServiceTblSubject();
-                    }
-                } elseif ($tillLevel) {
-                    if ($tillLevel >= $level) {
-                        return $tblStudentSubject->getServiceTblSubject();
-                    }
-                } elseif ($fromLevel) {
-                    if ($fromLevel <= $level) {
-                        return $tblStudentSubject->getServiceTblSubject();
-                    }
-                } else {
-                    return $tblStudentSubject->getServiceTblSubject();
-                }
-            }
+            return DivisionCourse::useService()->getForeignLanguageSubjectByPersonAndYear($tblPerson, $tblYear, $ranking);
         }
 
         return false;

@@ -3,6 +3,7 @@ namespace SPHERE\Application\Api\Document;
 
 use DateTime;
 use MOC\V\Component\Document\Component\Parameter\Repository\PaperOrientationParameter;
+use MOC\V\Component\Document\Component\Parameter\Repository\PaperSizeParameter;
 use MOC\V\Component\Document\Document as PdfDocument;
 use MOC\V\Component\Template\Component\IBridgeInterface;
 use MOC\V\Core\FileSystem\FileSystem;
@@ -15,6 +16,8 @@ use SPHERE\Application\Api\Document\Standard\Repository\Billing\DocumentWarning;
 use SPHERE\Application\Api\Document\Standard\Repository\ClassRegister\ClassRegister;
 use SPHERE\Application\Api\Document\Standard\Repository\ClassRegister\CourseContent;
 use SPHERE\Application\Api\Document\Standard\Repository\EnrollmentDocument;
+use SPHERE\Application\Api\Document\Standard\Repository\ExamGradeList\ExamGradeListOS;
+use SPHERE\Application\Api\Document\Standard\Repository\ExamGradeList\ExamGradeListTechnical;
 use SPHERE\Application\Api\Document\Standard\Repository\Gradebook\Gradebook;
 use SPHERE\Application\Api\Document\Standard\Repository\GradebookOverview;
 use SPHERE\Application\Api\Document\Standard\Repository\MultiPassword\MultiPassword;
@@ -36,10 +39,12 @@ use SPHERE\Application\Document\Generator\Generator;
 use SPHERE\Application\Document\Storage\FilePointer;
 use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Absence\Absence;
+use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account as GatekeeperAccount;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblIdentification;
@@ -197,7 +202,7 @@ class Creator extends Extension
      * @return FilePointer
      */
     private static function buildDummyFile($DocumentClass, $Data = array(), $pageList = array(),
-        $paperOrientation = Creator::PAPERORIENTATION_PORTRAIT, $isDestruction = true, $part = '0')
+        $paperOrientation = Creator::PAPERORIENTATION_PORTRAIT, $isDestruction = true, $part = '0', string $paperSize = 'A4')
     {
 
         ini_set('memory_limit', '2G');
@@ -212,6 +217,7 @@ class Creator extends Extension
         /** @var DomPdf $Document */
         $Document = PdfDocument::getPdfDocument($File->getFileLocation());
         $Document->setPaperOrientationParameter(new PaperOrientationParameter($paperOrientation));
+        $Document->setPaperSizeParameter(new PaperSizeParameter($paperSize));
         $Document->setContent($Content);
         $Document->saveFile(new FileParameter($File->getFileLocation()));
 
@@ -1511,5 +1517,47 @@ class Creator extends Extension
         }
 
         return "Kein Kursheft vorhanden!";
+    }
+
+    /**
+     * @param null $PrepareId
+     * @param $Redirect
+     *
+     * @return string
+     */
+    public static function createExamGradeListPdf($PrepareId = null, $Redirect = true): string
+    {
+        if ($Redirect) {
+            return \SPHERE\Application\Api\Education\Certificate\Generator\Creator::displayWaitingPage(
+                '/Api/Document/Standard/ExamGradeList/Create',
+                array(
+                    'PrepareId' => $PrepareId,
+                    'Redirect' => 0
+                )
+            );
+        }
+
+        if (($tblPrepare = Prepare::useService()->getPrepareById($PrepareId))
+            && ($tblDivisionCourse = $tblPrepare->getServiceTblDivision())
+        ) {
+            ini_set('memory_limit', '1G');
+
+            $tblSchoolTypeList = $tblDivisionCourse->getSchoolTypeListFromStudents();
+            if (($tblSchoolTypeOS = Type::useService()->getTypeByShortName('OS'))
+                && isset($tblSchoolTypeList[$tblSchoolTypeOS->getId()])
+            ) {
+                $Document = new ExamGradeListOS($tblPrepare, $tblDivisionCourse);
+            } else {
+                $Document = new ExamGradeListTechnical($tblPrepare, $tblDivisionCourse);
+            }
+
+            $pageList[] = $Document->getPageList();
+            $File = self::buildDummyFile($Document, array(), $pageList, Creator::PAPERORIENTATION_LANDSCAPE, true, '0', 'A3');
+            $FileName = 'Notenliste Abschlussprüfungen ' . $tblDivisionCourse->getName() . ' ' . date("Y-m-d").".pdf";
+
+            return self::buildDownloadFile($File, $FileName);
+        }
+
+        return new Stage('Notenliste Abschlussprüfungen', 'Konnte nicht erstellt werden.');
     }
 }

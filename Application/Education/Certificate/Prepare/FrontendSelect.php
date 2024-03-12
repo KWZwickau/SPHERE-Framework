@@ -12,6 +12,7 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
+use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
 use SPHERE\Common\Frontend\Icon\Repository\ListingTable;
@@ -23,6 +24,7 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\External;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
@@ -360,6 +362,8 @@ abstract class FrontendSelect extends FrontendPreview
             'Zurück', '/Education/Certificate/Prepare/' . $Route, new ChevronLeft())
         );
 
+        $hasOptionDownload = false;
+
         if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionId))) {
             $tableData = array();
             $tblSchoolTypeGy = Type::useService()->getTypeByShortName('Gy');
@@ -427,8 +431,26 @@ abstract class FrontendSelect extends FrontendPreview
                                 $routeDestination = '/Education/Certificate/Prepare/Prepare/Setting';
                             }
 
+                            $linkPdf = '';
+                            if ($tblCertificateType->getIdentifier() == 'DIPLOMA'
+                                && (isset($tblSchoolTypeList[$tblSchoolTypeOS->getId()]) || isset($tblSchoolTypeList[$tblSchoolTypeFOS->getId()]))
+                            ) {
+                                $linkPdf = new External(
+                                    'Notenliste',
+                                    '/Api/Document/Standard/ExamGradeList/Create',
+                                    new Download(),
+                                    array(
+                                        'PrepareId' => $tblPrepare->getId(),
+                                    ),
+                                    'Notenliste Abschlussprüfungen als PDF herunterladen'
+                                );
+                                $hasOptionDownload = true;
+                            }
+
                             $options = (new Standard('', $routeDestination, new Setup(), $parameters, 'Einstellungen'))
-                                . (new Standard('', '/Education/Certificate/Prepare/Prepare/Preview', new EyeOpen(), $parameters, 'Vorschau der Zeugnisse'));
+                                . (new Standard('', '/Education/Certificate/Prepare/Prepare/Preview', new EyeOpen(), $parameters, 'Vorschau der Zeugnisse'))
+                                . $linkPdf
+                            ;
                         }
 
                         $tableData[] = array(
@@ -469,8 +491,7 @@ abstract class FrontendSelect extends FrontendPreview
                                     ),
                                     'columnDefs' => array(
                                         array('type' => 'de_date', 'targets' => 0),
-                                        array('width' => '10%', 'targets' => 3),
-                                        array('orderable' => false, 'width' => '30px', 'targets' => -1),
+                                        array('orderable' => false, 'width' => $hasOptionDownload ? '160px' : '60px', 'targets' => -1),
                                     )
                                 )
                             )
