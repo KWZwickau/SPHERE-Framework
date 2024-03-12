@@ -131,6 +131,8 @@ class Data extends AbstractData
             'Zeugnisse', 'Sollen Arbeitsgemeinschaften in das Bemerkungsfeld der Zeugnisse eingetragen werden. [Standard: Ja]', true);
         $this->createSetting('Education', 'Certificate', 'Prepare', 'ShowOrientationsInCertificateRemark', TblSetting::TYPE_BOOLEAN, '1',
             'Zeugnisse', 'Sollen ' . $orientationName . 'e in das Bemerkungsfeld der Zeugnisse eingetragen werden. [Standard: Ja]', true);
+        $this->createSetting('Education', 'Certificate', 'Diploma', 'DoNotShowSaxonyLogo', TblSetting::TYPE_BOOLEAN, '0',
+            'Zeugnisse', 'Auf Abschlusszeugnissen und Abgangszeugnissen in A3 soll kein Sachsen-Logo aufgedruckt werden. [Standard: Nein]', true);
 
         // Zeugnisse non-public
         $this->createSetting('Education', 'Certificate', 'Generate', 'PictureAddress', TblSetting::TYPE_STRING, '',
