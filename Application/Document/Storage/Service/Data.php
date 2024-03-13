@@ -598,14 +598,14 @@ class Data extends AbstractData
         foreach($list as $item) {
             /** @var TblBinary $Entity */
             $Entity = $Manager->getEntityById('TblBinary', $item['Id']);
-            $Protocol = clone $Entity;
+//            $Protocol = clone $Entity;
             $Entity->setFileSizeKiloByte(intdiv($item['FileSize'], 1024));
 
-            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity, true);
+//            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity, true);
         }
 
         $Manager->flushCache();
-        Protocol::useService()->flushBulkEntries();
+//        Protocol::useService()->flushBulkEntries();
 
         $end = hrtime(true);
 
