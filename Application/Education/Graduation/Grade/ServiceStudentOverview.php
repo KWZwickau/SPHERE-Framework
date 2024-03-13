@@ -227,51 +227,51 @@ abstract class ServiceStudentOverview extends ServiceScoreCalc
                     $tblDivisionCourseTempList = $tblDivisionCourseList;
                 }
 
+                $tblTestList = array();
+                if ($tblDivisionCourseTempList) {
+                    foreach ($tblDivisionCourseTempList as $tblDivisionCourse) {
+                        $tblTestList = array_merge($tblTestList, Grade::useService()->getTestListByDivisionCourseAndSubject($tblDivisionCourse, $tblSubject, true));
+                    }
+                }
                 // Tests auch von den Zensuren, wo der Schüler nicht mehr im Kurs sitzt
-                $tblTestExtraList = array();
                 if (($tblTestGradeExtraList = Grade::useService()->getTestGradeListByPersonAndYearAndSubject($tblPerson, $tblYear, $tblSubject))) {
                     foreach ($tblTestGradeExtraList as $tblTestGradeExtra) {
-                        if ($tblTestGradeExtra->getIsGradeNumeric() && ($tblTestExtra = $tblTestGradeExtra->getTblTest())) {
-                            $tblTestExtraList[$tblTestExtra->getId()] = $tblTestExtra;
+                        if ($tblTestGradeExtra->getGrade() !== null
+                            && ($tblTestExtra = $tblTestGradeExtra->getTblTest())
+                            && $tblTestExtra->getEntityRemove() == null
+                            && !isset($tblTestList[$tblTestExtra->getId()])
+                        ) {
+                            $tblTestList[$tblTestExtra->getId()] = $tblTestExtra;
                         }
                     }
                 }
 
-                if ($tblDivisionCourseTempList) {
-                    foreach ($tblDivisionCourseTempList as $tblDivisionCourse) {
-                        $tblTestList = Grade::useService()->getTestListByDivisionCourseAndSubject($tblDivisionCourse, $tblSubject, true);
-                        foreach ($tblTestExtraList as $tblTextExtra) {
-                            if (!isset($tblTestList[$tblTextExtra->getId()])) {
-                                $tblTestList[$tblTextExtra->getId()] = $tblTextExtra;
+                if (!empty($tblTestList)) {
+                    foreach ($tblTestList as $tblTest) {
+                        $tblTestGrade = Grade::useService()->getTestGradeByTestAndPerson($tblTest, $tblPerson);
+                        $isAddTest = false;
+                        if (!$IsParentView || $tblTest->getIsShownInParentView($tblTestGrade ?: null, $taskDate ?: null, $AutoPublicationOfTestsAfterXDays)) {
+                            $isAddTest = true;
+                            if ($tblTestGrade) {
+                                // nicht teilgenommen
+                                if ($tblTestGrade->getGrade() === null) {
+                                    continue;
+                                }
+                                $tblTestGradeList[$tblTest->getId()] = $tblTestGrade;
                             }
+                            // zukünftige große Noten bei entsprechender Einstellung
+                        } elseif ($showHighlightedTestsInGradeOverview && $tblTest->getTblGradeType()->getIsHighlighted()) {
+                            $isAddTest = true;
+                            // notenspiegel und co darf nicht angezeigt werden
+                            $hideTestInfoList[$tblTest->getId()] = $tblTest;
                         }
 
-                        if (!empty($tblTestList)) {
-                            foreach ($tblTestList as $tblTest) {
-                                $tblTestGrade = Grade::useService()->getTestGradeByTestAndPerson($tblTest, $tblPerson);
-                                $isAddTest = false;
-                                if (!$IsParentView || $tblTest->getIsShownInParentView($tblTestGrade ?: null, $taskDate ?: null, $AutoPublicationOfTestsAfterXDays)) {
-                                    $isAddTest = true;
-                                    if ($tblTestGrade) {
-                                        // nicht teilgenommen
-                                        if ($tblTestGrade->getGrade() === null) {
-                                            continue;
-                                        }
-                                        $tblTestGradeList[$tblTest->getId()] = $tblTestGrade;
-                                    }
-                                // zukünftige große Noten bei entsprechender Einstellung
-                                } elseif ($showHighlightedTestsInGradeOverview && $tblTest->getTblGradeType()->getIsHighlighted()) {
-                                    $isAddTest = true;
-                                    // notenspiegel und co darf nicht angezeigt werden
-                                    $hideTestInfoList[$tblTest->getId()] = $tblTest;
-                                }
-
-                                if($isAddTest) {
-                                    $date = $tblTest->getDate() ?: $tblTest->getFinishDate();
-                                    $periodNumber = $date > $halfYearDate ? 2 : 1;
-                                    $countColumns[$periodNumber]++;
-                                    $virtualTestTaskList[$tblSubject->getId()][$periodNumber][$tblTest->getId()] = new VirtualTestTask($date, $tblTest);
-                                }
+                        if($isAddTest) {
+                            $date = $tblTest->getDate() ?: $tblTest->getFinishDate();
+                            $periodNumber = $date > $halfYearDate ? 2 : 1;
+                            if (!isset($virtualTestTaskList[$tblSubject->getId()][$periodNumber][$tblTest->getId()])) {
+                                $countColumns[$periodNumber]++;
+                                $virtualTestTaskList[$tblSubject->getId()][$periodNumber][$tblTest->getId()] = new VirtualTestTask($date, $tblTest);
                             }
                         }
                     }
