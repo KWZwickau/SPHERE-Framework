@@ -399,11 +399,26 @@ class TblDivisionCourse extends Element
 
                     ksort($tempList);
 
-                    return empty($tempList) ? false : $tempList;
+                    $tblPersonList = $tempList;
                 }
             }
 
-            return empty($tblPersonList) ? false : $tblPersonList;
+            if ($isResultPersonList) {
+
+                return empty($tblPersonList) ? false : $tblPersonList;
+
+            } else {
+                $resultList = array();
+                if ($tblPersonList
+                    && ($tblDivisionCourseMemberType = DivisionCourse::useService()->getDivisionCourseMemberTypeByIdentifier(TblDivisionCourseMemberType::TYPE_STUDENT))
+                ) {
+                    foreach ($tblPersonList as $tblPerson) {
+                        $resultList[] = TblDivisionCourseMember::withParameter($this, $tblDivisionCourseMemberType, $tblPerson);
+                    }
+                }
+
+                return empty($resultList) ? false : $resultList;
+            }
         } else {
             return DivisionCourse::useService()->getStudentListBy($this, $withInActive, $isResultPersonList);
         }
