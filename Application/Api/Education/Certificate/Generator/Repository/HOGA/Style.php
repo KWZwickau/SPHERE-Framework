@@ -23,10 +23,13 @@ abstract class Style extends Certificate
     const TEXT_SIZE_SMALL = '12.5px';
     const TEXT_SIZE_NORMAL = '14px';
     const TEXT_SIZE_LARGE = '15.5px';
-    const PADDING_TOP_GRADE = '-4px';
+    const PADDING_TOP_GRADE = '1px';
+    const PADDING_BOTTOM_GRADE = '1px';
+    const BACKGROUND_LINE_HEIGHT = '90%'; // Differenzierter z.b: 95% hat keine Auswirkungen
     const MARGIN_TOP_GRADE_LINE = '8px';
     const SUBJECT_WIDTH = 25.5;
     const GRADE_WIDTH = 22.5;
+    const LINE_HEIGHT_UNDER_UNDERLINE = '70%';
 
     /**
      * @param array $school
@@ -379,6 +382,8 @@ abstract class Style extends Certificate
                     ->styleAlignCenter()
                     ->styleBackgroundColor(self::BACKGROUND)
                     ->stylePaddingTop(self::PADDING_TOP_GRADE)
+                    ->stylePaddingBottom(self::PADDING_BOTTOM_GRADE)
+                    ->styleLineHeight(self::BACKGROUND_LINE_HEIGHT)
                     ->styleMarginTop(self::MARGIN_TOP_GRADE_LINE)
                     , self::GRADE_WIDTH . '%')
             );
@@ -612,7 +617,7 @@ abstract class Style extends Certificate
     public function getCustomSignPart(int $personId, bool $isExtended, string $marginTop = '25px') : Slice
     {
         $textSize = '10px';
-        $paddingTop = '-5px';
+//        $paddingTop = '-5px';
 
         $slice = (new Slice());
         if ($isExtended) {
@@ -646,7 +651,8 @@ abstract class Style extends Certificate
                             {% endif %}',
                             $textSize
                         )
-                        ->stylePaddingTop($paddingTop)
+//                        ->stylePaddingTop($paddingTop)
+                        ->styleLineHeight('80%')
                         ->styleAlignCenter()
                         , '30%')
                     ->addElementColumn((new Element())
@@ -659,7 +665,8 @@ abstract class Style extends Certificate
                             {% endif %}',
                             $textSize
                         )
-                        ->stylePaddingTop($paddingTop)
+//                        ->stylePaddingTop($paddingTop)
+                        ->styleLineHeight('80%')
                         ->styleAlignCenter()
                         , '30%')
                 )
@@ -672,7 +679,8 @@ abstract class Style extends Certificate
                             {% endif %}',
                             $textSize
                         )
-                        ->stylePaddingTop($paddingTop)
+//                        ->stylePaddingTop($paddingTop)
+                        ->styleLineHeight('80%')
                         ->styleAlignCenter()
                         , '30%')
                     ->addElementColumn((new Element())
@@ -685,7 +693,8 @@ abstract class Style extends Certificate
                             {% endif %}',
                             $textSize
                         )
-                        ->stylePaddingTop($paddingTop)
+//                        ->stylePaddingTop($paddingTop)
+                        ->styleLineHeight('80%')
                         ->styleAlignCenter()
                         , '30%')
                 );
@@ -712,7 +721,8 @@ abstract class Style extends Certificate
                             {% endif %}',
                             $textSize
                         )
-                        ->stylePaddingTop($paddingTop)
+//                        ->stylePaddingTop($paddingTop)
+                        ->styleLineHeight('80%')
                         ->styleAlignCenter()
                         , '30%')
                 )
@@ -727,7 +737,8 @@ abstract class Style extends Certificate
                             {% endif %}',
                             $textSize
                         )
-                        ->stylePaddingTop($paddingTop)
+//                        ->stylePaddingTop($paddingTop)
+                        ->styleLineHeight('80%')
                         ->styleAlignCenter()
                         , '30%')
                 );
@@ -799,10 +810,10 @@ abstract class Style extends Certificate
      *
      * @return Slice
      */
-    protected function getCustomParentSign(string $marginTop = '5px') : Slice
+    protected function getCustomParentSign(string $marginTop = '0px') : Slice
     {
         $textSize = '10px';
-        $paddingTop = '-10px';
+//        $paddingTop = '-5px';
 
         return (new Slice())
             ->styleMarginTop($marginTop)
@@ -821,7 +832,8 @@ abstract class Style extends Certificate
                     , '30%')
                 ->addElementColumn($this->getElement('Eltern', $textSize)
                     ->styleAlignCenter()
-                    ->stylePaddingTop($paddingTop)
+//                    ->stylePaddingTop($paddingTop)
+                    ->styleLineHeight(self::LINE_HEIGHT_UNDER_UNDERLINE)
                     , '40%')
                 ->addElementColumn((new Element())
                     , '30%')
@@ -841,10 +853,17 @@ abstract class Style extends Certificate
             ->styleMarginTop($marginTop)
             ->addElement($this->getElement('Notenerläuterung:', $textSize))
             ->addElement($this->getElement('1 = sehr gut; 2 = gut; 3 = befriedigend; 4 = ausreichend; 5 = mangelhaft; 6 = ungenügend',
-                $textSize)->stylePaddingTop('-5px'));
+                $textSize)
+//                ->stylePaddingTop('-5px')
+                ->styleLineHeight(self::LINE_HEIGHT_UNDER_UNDERLINE)
+
+            );
 
         foreach ($lines as $item) {
-            $slice->addElement($this->getElement($item, $textSize)->stylePaddingTop('-5px'));
+            $slice->addElement($this->getElement($item, $textSize)
+//                ->stylePaddingTop('-5px')
+                ->styleLineHeight(self::LINE_HEIGHT_UNDER_UNDERLINE)
+            );
         }
 
         return $slice;
@@ -861,10 +880,10 @@ abstract class Style extends Certificate
 
         return (new Slice())
             ->styleMarginTop($marginTop)
-            ->addElement($this->getElement(
-                'Notenstufen: sehr gut (1), gut (2), befriedigend (3), ausreichend (4), mangelhaft (5), ungenügend (6)',
-                $textSize
-            )->stylePaddingTop('-5px'));
+            ->addElement($this->getElement('Notenstufen: sehr gut (1), gut (2), befriedigend (3), ausreichend (4), mangelhaft (5), ungenügend (6)', $textSize)
+//                ->stylePaddingTop('-5px')
+                ->styleLineHeight(self::LINE_HEIGHT_UNDER_UNDERLINE)
+            );
     }
 
     /**
@@ -923,6 +942,8 @@ abstract class Style extends Certificate
                 ->styleAlignCenter()
                 ->styleBackgroundColor(self::BACKGROUND)
                 ->stylePaddingTop(self::PADDING_TOP_GRADE)
+                ->stylePaddingBottom(self::PADDING_BOTTOM_GRADE)
+                ->styleLineHeight(self::BACKGROUND_LINE_HEIGHT)
                 ->styleMarginTop(self::MARGIN_TOP_GRADE_LINE)
             , self::GRADE_WIDTH . '%');
     }
@@ -944,6 +965,8 @@ abstract class Style extends Certificate
                 ->styleAlignCenter()
                 ->styleBackgroundColor(self::BACKGROUND)
                 ->stylePaddingTop(self::PADDING_TOP_GRADE)
+                ->stylePaddingBottom(self::PADDING_BOTTOM_GRADE)
+                ->styleLineHeight(self::BACKGROUND_LINE_HEIGHT)
                 ->styleMarginTop(self::MARGIN_TOP_GRADE_LINE)
             , '25%');
     }
@@ -1216,6 +1239,8 @@ abstract class Style extends Certificate
                         ->styleAlignCenter()
                         ->styleBackgroundColor(self::BACKGROUND)
                         ->stylePaddingTop(self::PADDING_TOP_GRADE)
+                        ->stylePaddingBottom(self::PADDING_BOTTOM_GRADE)
+                        ->styleLineHeight(self::BACKGROUND_LINE_HEIGHT)
                         ->styleMarginTop(self::MARGIN_TOP_GRADE_LINE)
                         , self::GRADE_WIDTH . '%');
 
@@ -1456,6 +1481,8 @@ abstract class Style extends Certificate
                         ->styleAlignCenter()
                         ->styleBackgroundColor(self::BACKGROUND)
                         ->stylePaddingTop(self::PADDING_TOP_GRADE)
+                        ->stylePaddingBottom(self::PADDING_BOTTOM_GRADE)
+                        ->styleLineHeight(self::BACKGROUND_LINE_HEIGHT)
                         ->styleMarginTop(self::MARGIN_TOP_GRADE_LINE)
                         , self::GRADE_WIDTH . '%');
                 }
@@ -1568,6 +1595,8 @@ abstract class Style extends Certificate
                         ->styleAlignCenter()
                         ->styleBackgroundColor(self::BACKGROUND)
                         ->stylePaddingTop(self::PADDING_TOP_GRADE)
+                        ->stylePaddingBottom(self::PADDING_BOTTOM_GRADE)
+                        ->styleLineHeight(self::BACKGROUND_LINE_HEIGHT)
                         ->styleMarginTop(self::MARGIN_TOP_GRADE_LINE)
                         , self::GRADE_WIDTH . '%');
                 }
@@ -1652,6 +1681,8 @@ abstract class Style extends Certificate
                 ->styleAlignCenter()
                 ->styleBackgroundColor(self::BACKGROUND)
                 ->stylePaddingTop(self::PADDING_TOP_GRADE)
+                ->stylePaddingBottom(self::PADDING_BOTTOM_GRADE)
+                ->styleLineHeight(self::BACKGROUND_LINE_HEIGHT)
                 ->styleMarginTop(self::MARGIN_TOP_GRADE_LINE)
                 , self::GRADE_WIDTH . '%')
             ->addElementColumn((new Element()), '4%')
@@ -1675,6 +1706,8 @@ abstract class Style extends Certificate
                 ->styleAlignCenter()
                 ->styleBackgroundColor(self::BACKGROUND)
                 ->stylePaddingTop(self::PADDING_TOP_GRADE)
+                ->stylePaddingBottom(self::PADDING_BOTTOM_GRADE)
+                ->styleLineHeight(self::BACKGROUND_LINE_HEIGHT)
                 ->styleMarginTop(self::MARGIN_TOP_GRADE_LINE)
                 , self::GRADE_WIDTH . '%');
         $sectionList[] = $section;
@@ -1869,7 +1902,7 @@ abstract class Style extends Certificate
                 ->addElementColumn($this->getElement($content, '22px')
                     ->styleHeight('30px')
                     ->stylePaddingLeft('8px')
-                    ->stylePaddingTop('-8px')
+                    ->stylePaddingTop('-8px')   //ToDO später mal kontrollieren wie das aktuell aussieht
                     ->stylePaddingBottom('8px')
                     ->styleBorderAll('0.5px')
                 )
@@ -1939,6 +1972,8 @@ abstract class Style extends Certificate
                             ->styleAlignCenter()
                             ->styleBackgroundColor(self::BACKGROUND)
                             ->stylePaddingTop(self::PADDING_TOP_GRADE)
+                            ->stylePaddingBottom(self::PADDING_BOTTOM_GRADE)
+                            ->styleLineHeight(self::BACKGROUND_LINE_HEIGHT)
                             ->styleMarginTop(self::MARGIN_TOP_GRADE_LINE)
                         , self::GRADE_WIDTH . '%');
                 }
@@ -1965,7 +2000,7 @@ abstract class Style extends Certificate
         $secondMemberName = '&nbsp;';
 
         $textSize = '10px';
-        $paddingTop = '-5px';
+//        $paddingTop = '-5px';
 
         if ($this->getTblPrepareCertificate()
             && ($tblGenerateCertificate = $this->getTblPrepareCertificate()->getServiceTblGenerateCertificate())
@@ -2021,30 +2056,35 @@ abstract class Style extends Certificate
             )
             ->addSection((new Section())
                 ->addElementColumn($this->getElement($leaderDescription, $textSize)
-                    ->stylePaddingTop($paddingTop)
+//                    ->stylePaddingTop($paddingTop)
+                    ->styleLineHeight(self::LINE_HEIGHT_UNDER_UNDERLINE)
                     ->styleAlignCenter()
                     ->styleMarginTop('0px')
                     , '30%')
                 ->addElementColumn($this->getElement('Stempel der Schule', $textSize)
-                    ->stylePaddingTop($paddingTop)
+//                    ->stylePaddingTop($paddingTop)
+                    ->styleLineHeight(self::LINE_HEIGHT_UNDER_UNDERLINE)
                     ->styleAlignCenter()
                     ->styleMarginTop('0px')
                 )
                 ->addElementColumn($this->getElement('Mitglied', $textSize)
-                    ->stylePaddingTop($paddingTop)
+//                    ->stylePaddingTop($paddingTop)
+                    ->styleLineHeight(self::LINE_HEIGHT_UNDER_UNDERLINE)
                     ->styleAlignCenter()
                     ->styleMarginTop('0px')
                     , '30%')
             )
             ->addSection((new Section())
                 ->addElementColumn($this->getElement($leaderName, $textSize)
-                    ->stylePaddingTop($paddingTop)
+//                    ->stylePaddingTop($paddingTop)
+                    ->styleLineHeight(self::LINE_HEIGHT_UNDER_UNDERLINE)
                     ->styleAlignCenter()
                     ->styleMarginTop('0px')
                     , '30%')
                 ->addElementColumn($this->getElement(''))
                 ->addElementColumn($this->getElement($firstMemberName, $textSize)
-                    ->stylePaddingTop($paddingTop)
+//                    ->stylePaddingTop($paddingTop)
+                    ->styleLineHeight(self::LINE_HEIGHT_UNDER_UNDERLINE)
                     ->styleAlignCenter()
                     ->styleMarginTop('0px')
                     , '30%')
@@ -2063,7 +2103,8 @@ abstract class Style extends Certificate
                     , '30%')
                 ->addElementColumn($this->getElement(''))
                 ->addElementColumn($this->getElement('Mitglied', $textSize)
-                    ->stylePaddingTop($paddingTop)
+//                    ->stylePaddingTop($paddingTop)
+                    ->styleLineHeight(self::LINE_HEIGHT_UNDER_UNDERLINE)
                     ->styleAlignCenter()
                     ->styleMarginTop('0px')
                     , '30%')
@@ -2073,7 +2114,8 @@ abstract class Style extends Certificate
                     , '30%')
                 ->addElementColumn($this->getElement(''))
                 ->addElementColumn($this->getElement($secondMemberName, $textSize)
-                    ->stylePaddingTop($paddingTop)
+//                    ->stylePaddingTop($paddingTop)
+                    ->styleLineHeight(self::LINE_HEIGHT_UNDER_UNDERLINE)
                     ->styleAlignCenter()
                     ->styleMarginTop('0px')
                     , '30%')
@@ -2299,6 +2341,8 @@ abstract class Style extends Certificate
                         ->styleAlignCenter()
                         ->styleBackgroundColor(self::BACKGROUND)
                         ->stylePaddingTop(self::PADDING_TOP_GRADE)
+                        ->stylePaddingBottom(self::PADDING_BOTTOM_GRADE)
+                        ->styleLineHeight(self::BACKGROUND_LINE_HEIGHT)
                         ->styleMarginTop($marginTopGrade)
                         , self::GRADE_WIDTH . '%');
                 }
@@ -2327,6 +2371,8 @@ abstract class Style extends Certificate
                         ->styleAlignCenter()
                         ->styleBackgroundColor(self::BACKGROUND)
                         ->stylePaddingTop(self::PADDING_TOP_GRADE)
+                        ->stylePaddingBottom(self::PADDING_BOTTOM_GRADE)
+                        ->styleLineHeight(self::BACKGROUND_LINE_HEIGHT)
                         ->styleMarginTop(self::MARGIN_TOP_GRADE_LINE)
                         , self::GRADE_WIDTH . '%')
                 );
@@ -2428,7 +2474,7 @@ abstract class Style extends Certificate
      */
     public function getCustomFosSignPart(int $personId, string $marginTop = '25px', string $textSize = self::TEXT_SIZE_LARGE) : Slice
     {
-        $paddingTop = '-8px';
+        $paddingTop = '-8px'; // ToDO Kontrolle wie das jetzt aussieht
         $paddingTop2 = '-12px';
 
         return (new Slice())
@@ -2528,7 +2574,7 @@ abstract class Style extends Certificate
     public function getCustomFosAbsSignPart(int $personId, string $marginTop = '145px') : Slice
     {
         $textSize = self::TEXT_SIZE_LARGE;
-        $paddingTop = '-8px';
+        $paddingTop = '-8px';   // ToDO Kontrolle wie das jetzt aussieht
         $paddingTop2 = '-12px';
 
         $leaderName = '&nbsp;';
@@ -2642,7 +2688,7 @@ abstract class Style extends Certificate
     protected function getCustomFosParentSign(string $marginTop = '10px') : Slice
     {
         $textSize = self::TEXT_SIZE_LARGE;
-        $paddingTop = '-8px';
+        $paddingTop = '-8px';   // ToDO Kontrolle wie das jetzt aussieht
 
         return (new Slice())
             ->styleMarginTop($marginTop)
@@ -2721,6 +2767,8 @@ abstract class Style extends Certificate
                         ->styleAlignCenter()
                         ->styleBackgroundColor(self::BACKGROUND)
                         ->stylePaddingTop(self::PADDING_TOP_GRADE)
+                        ->stylePaddingBottom(self::PADDING_BOTTOM_GRADE)
+                        ->styleLineHeight(self::BACKGROUND_LINE_HEIGHT)
                         ->styleMarginTop(self::MARGIN_TOP_GRADE_LINE)
                     , self::GRADE_WIDTH . '%')
                 ->addElementColumn($this->getElement('&nbsp;', self::TEXT_SIZE_LARGE))
@@ -2928,6 +2976,8 @@ abstract class Style extends Certificate
                         ->styleAlignCenter()
                         ->styleBackgroundColor(self::BACKGROUND)
                         ->stylePaddingTop(self::PADDING_TOP_GRADE)
+                        ->stylePaddingBottom(self::PADDING_BOTTOM_GRADE)
+                        ->styleLineHeight(self::BACKGROUND_LINE_HEIGHT)
                         ->styleMarginTop(self::MARGIN_TOP_GRADE_LINE)
                         , self::GRADE_WIDTH . '%');
                 }
@@ -2972,6 +3022,8 @@ abstract class Style extends Certificate
                             ->styleAlignCenter()
                             ->styleBackgroundColor(self::BACKGROUND)
                             ->stylePaddingTop(self::PADDING_TOP_GRADE)
+                            ->stylePaddingBottom(self::PADDING_BOTTOM_GRADE)
+                            ->styleLineHeight(self::BACKGROUND_LINE_HEIGHT)
                             ->styleMarginTop(self::MARGIN_TOP_GRADE_LINE)
                         , self::GRADE_WIDTH . '%');
 
@@ -3012,6 +3064,8 @@ abstract class Style extends Certificate
                             ->styleAlignCenter()
                             ->styleBackgroundColor(self::BACKGROUND)
                             ->stylePaddingTop(self::PADDING_TOP_GRADE)
+                            ->stylePaddingBottom(self::PADDING_BOTTOM_GRADE)
+                            ->styleLineHeight(self::BACKGROUND_LINE_HEIGHT)
                             ->styleMarginTop(self::MARGIN_TOP_GRADE_LINE)
                         , self::GRADE_WIDTH . '%');
 
@@ -3205,6 +3259,8 @@ abstract class Style extends Certificate
                         ->styleAlignCenter()
                         ->styleBackgroundColor(self::BACKGROUND)
                         ->stylePaddingTop(self::PADDING_TOP_GRADE)
+                        ->stylePaddingBottom(self::PADDING_BOTTOM_GRADE)
+                        ->styleLineHeight(self::BACKGROUND_LINE_HEIGHT)
                         ->styleMarginTop(self::MARGIN_TOP_GRADE_LINE)
                         , self::GRADE_WIDTH . '%');
 
