@@ -177,7 +177,7 @@ class StaffAccidentReport extends AbstractDocument
      *
      * @return Frame
      */
-    public function buildDocument($pageList = array(), $Part = '0')
+    public function buildDocument(array $pageList = array(), string $Part = '0'): Frame
     {
 
         return (new Frame())->addDocument((new Document())

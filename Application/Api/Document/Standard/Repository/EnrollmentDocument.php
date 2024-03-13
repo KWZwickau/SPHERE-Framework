@@ -120,7 +120,7 @@ class EnrollmentDocument extends AbstractDocument
      *
      * @return Frame
      */
-    public function buildDocument($pageList = array(), $Part = '0')
+    public function buildDocument(array $pageList = array(), string $Part = '0'): Frame
     {
 
         if(Consumer::useService()->getConsumerBySessionIsConsumerType(TblConsumer::TYPE_BERLIN)){

@@ -76,7 +76,7 @@ class Billing extends AbstractDocument
      *
      * @return Frame
      */
-    public function buildDocument($pageList = array(), $part = '0')
+    public function buildDocument(array $pageList = array(), string $part = '0'): Frame
     {
         $document = new Document();
 

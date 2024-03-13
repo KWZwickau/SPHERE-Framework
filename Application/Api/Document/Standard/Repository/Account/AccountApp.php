@@ -50,7 +50,7 @@ class AccountApp extends AccountDocument
      *
      * @return Frame
      */
-    public function buildDocument($pageList = array(), $Part = '0')
+    public function buildDocument(array $pageList = array(), string $Part = '0'): Frame
     {
         $InjectStyle = 'body { margin-left: 1.2cm !important; margin-right: 1.2cm !important; }';
 

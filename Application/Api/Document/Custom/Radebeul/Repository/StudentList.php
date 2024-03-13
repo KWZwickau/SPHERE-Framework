@@ -177,7 +177,7 @@ class StudentList extends AbstractDocument
      *
      * @return Frame
      */
-    public function buildDocument($pageList = array(), $part = '0')
+    public function buildDocument(array $pageList = array(), string $Part = '0'): Frame
     {
         $fontFamily = 'MetaPro';
 

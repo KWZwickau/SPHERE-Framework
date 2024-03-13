@@ -193,7 +193,7 @@ class MultiPassword extends AbstractDocument
      *
      * @return Frame
      */
-    public function buildDocument($pageList = array(), $Part = '0')
+    public function buildDocument(array $pageList = array(), string $Part = '0'): Frame
     {
 
         // wird jetzt nicht mehr verwendet

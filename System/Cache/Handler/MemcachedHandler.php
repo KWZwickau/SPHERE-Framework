@@ -123,7 +123,7 @@ class MemcachedHandler extends AbstractHandler implements HandlerInterface
                     '',
                     $this->getSlotRegion($Region) . '#' . $this->getKey($Key)
                 ), $Value,
-                (!$Timeout ? null : time() + $Timeout));
+                (!$Timeout ? 0 : time() + $Timeout));
             // 0 = MEMCACHED_SUCCESS
             if (0 == ($Code = self::$Connection->getResultCode())) {
                 return $this;

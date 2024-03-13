@@ -16,6 +16,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
+use SPHERE\Common\Frontend\Icon\Repository\Envelope;
 use SPHERE\Common\Frontend\Icon\Repository\Flash;
 use SPHERE\Common\Frontend\Icon\Repository\Mail as MailIcon;
 use SPHERE\Common\Frontend\Icon\Repository\Phone as PhoneIcon;
@@ -26,7 +27,9 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\Mailto;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
+use SPHERE\Common\Frontend\Message\Repository\Info;
 use SPHERE\Common\Frontend\Text\Repository\Danger;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Window\Stage;
@@ -56,10 +59,12 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutGroup(
                     new LayoutRow(array(
                         new LayoutColumn(
-                            Support::useService()->createTicket(
-                                $this->formTicket()
-                                , $Ticket, $Attachment)
-                            , 6),
+                            ''
+                        , 3),
+                        new LayoutColumn(
+                            new Info('Anfragen an den Support bitte über: '.new Mailto('helpdesk@schulsoftware.schule' , 'helpdesk@schulsoftware.schule', new Envelope()).' ')
+//                            .Support::useService()->createTicket($this->formTicket(), $Ticket, $Attachment)
+                        , 6)
                     ))
                 )
             )

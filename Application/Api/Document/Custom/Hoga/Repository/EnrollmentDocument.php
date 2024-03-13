@@ -125,7 +125,7 @@ class EnrollmentDocument extends AbstractDocument
      *
      * @return Frame
      */
-    public function buildDocument($pageList = array(), $Part = '0')
+    public function buildDocument(array $pageList = array(), string $Part = '0'): Frame
     {
         $width = 793.5;
         $InjectStyle = 'body { margin-top: -1.2cm !important; margin-bottom: -1.2cm !important; margin-left: -1.2cm !important; margin-right: -1.2cm !important; }';
