@@ -22,7 +22,7 @@ class Image extends Element
     {
 
         $ProtocolSecure = 'http://';
-        if(strpos($this->getRequest()->getPort(), 'schulsoftware.schule')){
+        if(strpos($this->getRequest()->getHost(), 'schulsoftware.schule')){
             $ProtocolSecure = 'https://';
         }
 
