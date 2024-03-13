@@ -199,17 +199,20 @@ class Frontend extends FrontendTestPlanning
 
             $textCourse = new Bold($tblDivisionCourse->getDisplayName());
             $textSubject = new Bold($tblSubject->getDisplayName());
-            $tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses(true);
 
+            $tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses();
+//            $tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses(true);
+
+            // SSWHD-2823 erstmal wieder deakivieren, da ansonsten die Notbücher mitunter zu sehr aufgepauscht werden -> bessere Lösung finden
             $inactiveStudentList = array();
-            if (($tblDivisionCourseMemberList = $tblDivisionCourse->getStudentsWithSubCourses(true, false))) {
-                /** @var TblDivisionCourseMember $tblDivisionCourseMember */
-                foreach ($tblDivisionCourseMemberList as $tblDivisionCourseMember) {
-                    if ($tblDivisionCourseMember->isInActive() && ($tblPersonTemp = $tblDivisionCourseMember->getServiceTblPerson())) {
-                        $inactiveStudentList[$tblPersonTemp->getId()] = $tblPersonTemp;
-                    }
-                }
-            }
+//            if (($tblDivisionCourseMemberList = $tblDivisionCourse->getStudentsWithSubCourses(true, false))) {
+//                /** @var TblDivisionCourseMember $tblDivisionCourseMember */
+//                foreach ($tblDivisionCourseMemberList as $tblDivisionCourseMember) {
+//                    if ($tblDivisionCourseMember->isInActive() && ($tblPersonTemp = $tblDivisionCourseMember->getServiceTblPerson())) {
+//                        $inactiveStudentList[$tblPersonTemp->getId()] = $tblPersonTemp;
+//                    }
+//                }
+//            }
 
             $bodyList = array();
 
