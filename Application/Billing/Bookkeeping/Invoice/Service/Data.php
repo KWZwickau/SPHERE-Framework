@@ -454,6 +454,7 @@ class Data extends AbstractData
                         $Entity->setServiceTblBankReference($tblBankReference);
                         $Entity->setServiceTblPaymentType($tblPaymentType);
                         $Entity->setTblInvoice($tblInvoice);
+                        $Entity->setIsHistory(false);
 
                         $Manager->bulkSaveEntity($Entity);
                         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
