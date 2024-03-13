@@ -385,7 +385,6 @@ class Service extends AbstractService
             $blackList['EVAP'] = 1;
             $blackList['EVMS'] = 1;
             $blackList['EVMSH'] = 1;
-            $blackList['EVOSG'] = 1;
             $blackList['EVSB'] = 1;
             $blackList['EVSL'] = 1;
             $blackList['EWM'] = 1;
