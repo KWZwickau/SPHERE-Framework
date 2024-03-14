@@ -1141,9 +1141,13 @@ class Frontend extends FrontendTabs
                 ),
             ));
         }
+        $inputContent = new TextField('Data[Content]', 'Thema', 'Thema', new Edit());
+        if ($tblSubject) {
+            $inputContent->setAutoFocus();
+        }
         $formRowList[] = new FormRow(array(
             new FormColumn(
-                new TextField('Data[Content]', 'Thema', 'Thema', new Edit())
+                $inputContent
             ),
         ));
         $formRowList[] = new FormRow(array(
