@@ -216,10 +216,10 @@ abstract class ServiceCertificateContent extends ServiceAbitur
                 $Description .= 'e';
             }
             $Content['P' . $personId]['Division']['Data']['DescriptionWithE'] = $Description;
-        } elseif ($tblCoreGroup) {
-            $Content['P' . $personId]['Division']['Data']['Name'] = $tblCoreGroup->getName();
+//        } elseif ($tblCoreGroup) {
+//            $Content['P' . $personId]['Division']['Data']['Name'] = $tblCoreGroup->getName();
         } else {
-            $Content['P' . $personId]['Division']['Data']['Name'] = '&nbsp;';
+            $Content['P' . $personId]['Division']['Data']['Name'] = $level;
         }
         $course = $level;
         // html funktioniert, allerdings kann es der DOM-PDF nicht, enable utf-8 for domPdf? oder eventuell Schriftart ändern
