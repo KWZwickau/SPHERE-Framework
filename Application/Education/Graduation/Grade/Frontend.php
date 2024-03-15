@@ -1182,7 +1182,9 @@ class Frontend extends FrontendTestPlanning
                         $selectList = $selectListGrades;
                     }
 
-                    if ($this->getIsOverrideScoreTypeException($tblSubject)) {
+                    if (($tblScoreTypeSubject = Grade::useService()->getScoreTypeSubjectByPersonAndYearAndSubject($tblPerson, $tblYear, $tblSubject))
+                        && $tblScoreTypeSubject->getIsOverrideScoreTypeException()
+                    ) {
                         $selectComplete = $this->getGradeInput($tblPerson, $tblYear, $tblSubject, null, $tabIndex, $Errors);
                     } else {
                         $selectComplete = (new SelectCompleter('Data[' . $tblPerson->getId() . '][Grade]', '', '', $selectList))
@@ -1768,23 +1770,6 @@ class Frontend extends FrontendTestPlanning
                     ).'</div>',
                     Panel::PANEL_TYPE_INFO
                 );
-            }
-        }
-
-        return false;
-    }
-
-
-    /**
-     * @param TblSubject $tblSubject
-     *
-     * @return bool
-     */
-    public function getIsOverrideScoreTypeException(TblSubject $tblSubject): bool
-    {
-        if (Consumer::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'ESRL')) {
-            if ($tblSubject->getName() == 'Schwimmunterricht') {
-                return true;
             }
         }
 

@@ -43,6 +43,11 @@ class TblScoreTypeSubject extends Element
     protected int $tblGraduationScoreType;
 
     /**
+     * @Column(type="boolean")
+     */
+    protected bool $IsOverrideScoreTypeException;
+
+    /**
      * @param TblType $tblSchoolType
      * @param int $level
      * @param TblSubject $tblSubject
@@ -118,5 +123,23 @@ class TblScoreTypeSubject extends Element
     public function setTblScoreType(TblScoreType $tblScoreType)
     {
         $this->tblGraduationScoreType = $tblScoreType->getId();
+    }
+
+    /**
+     * @return bool
+     */
+    public function getIsOverrideScoreTypeException(): bool
+    {
+        return $this->IsOverrideScoreTypeException;
+    }
+
+    /**
+     * @param bool $IsOverrideScoreTypeException
+     *
+     * @return void
+     */
+    public function setIsOverrideScoreTypeException(bool $IsOverrideScoreTypeException): void
+    {
+        $this->IsOverrideScoreTypeException = $IsOverrideScoreTypeException;
     }
 }

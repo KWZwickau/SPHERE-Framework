@@ -231,6 +231,7 @@ class Setup  extends AbstractSetup
         $this->createColumn($table, 'serviceTblSchoolType', self::FIELD_TYPE_BIGINT);
         $this->createColumn($table, 'Level', self::FIELD_TYPE_INTEGER);
         $this->createColumn($table, 'serviceTblSubject', self::FIELD_TYPE_BIGINT);
+        $this->createColumn($table, 'IsOverrideScoreTypeException', self::FIELD_TYPE_BOOLEAN, false, false);
         $this->createForeignKey($table, $tblScoreType);
 
         $this->createIndex($table, array(TblScoreTypeSubject::ATTR_TBL_SCORE_TYPE, TblScoreTypeSubject::ATTR_SERVICE_TBL_SCHOOL_TYPE), false);

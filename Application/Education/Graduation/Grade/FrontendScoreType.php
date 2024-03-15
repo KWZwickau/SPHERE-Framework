@@ -51,6 +51,7 @@ abstract class FrontendScoreType extends FrontendScoreRule
 
         $dataList = array();
         if ($tblScoreTypeAll = Grade::useService()->getScoreTypeAll()) {
+            $tblScoreTypeAll[] = TblScoreType::getVirtualOverrideScoreTypeException();
             foreach ($tblScoreTypeAll as $tblScoreType) {
                 $dataList[] = array(
                     'Name' => $tblScoreType->getName(),
@@ -96,7 +97,7 @@ abstract class FrontendScoreType extends FrontendScoreRule
      */
     public function frontendScoreTypeSubject($Id = null): Stage
     {
-        $Stage = new Stage('Bewertungssystem', 'Klassenstufen(Schulart) einem Bewertungssystem zuordnen');
+        $Stage = new Stage('Bewertungssystem', 'Klassenstufen (Schulart) einem Bewertungssystem zuordnen');
         $Stage->setMessage('Hier können dem ausgewählten Bewertungssystem Klassenstufen(Schulart) zugeordnet werden.');
         $Stage->addButton(new Standard('Zurück', '/Education/Graduation/Grade/ScoreType', new ChevronLeft()));
 
@@ -153,18 +154,24 @@ abstract class FrontendScoreType extends FrontendScoreRule
     public function loadScoreTypeSubjects(TblScoreType $tblScoreType, $Data = null): string
     {
         if ((isset($Data['SchoolType']) && ($tblSchoolType = Type::useService()->getTypeById($Data['SchoolType'])))) {
+            $isVirtualOverrideScoreTypeException = $tblScoreType->getId() == TblScoreType::VIRTUAL_OVERRIDE_SCORE_TYPE_EXCEPTION_ID;
             $list = array();
+            $exitsList = array();
             if (($tblScoreTypeSubjectList = Grade::useService()->getScoreTypeSubjectListBySchoolType($tblSchoolType))) {
                 $global = $this->getGlobal();
                 foreach ($tblScoreTypeSubjectList as $tblScoreTypeSubject) {
                     if (($tblSubject = $tblScoreTypeSubject->getServiceTblSubject())
                         && ($tblScoreTypeTemp = $tblScoreTypeSubject->getTblScoreType())
                     ) {
-                        if ($tblScoreType->getId() == $tblScoreTypeTemp->getId()) {
+                        if ($isVirtualOverrideScoreTypeException) {
+                            $exitsList[$tblScoreTypeSubject->getLevel()][$tblSubject->getId()] = 1;
+                            $global->POST['Data']['Subjects'][$tblScoreTypeSubject->getLevel()][$tblSubject->getId()]
+                                = $tblScoreTypeSubject->getIsOverrideScoreTypeException() ? 1 : 0;
+                        } elseif ($tblScoreType->getId() == $tblScoreTypeTemp->getId()) {
                             $global->POST['Data']['Subjects'][$tblScoreTypeSubject->getLevel()][$tblSubject->getId()] = 1;
                         } else {
                             $list[$tblScoreTypeSubject->getLevel()][$tblSubject->getId()] = ' ' . new Label($tblScoreTypeTemp->getName(), Label::LABEL_TYPE_PRIMARY);
-                         }
+                        }
                     }
                 }
                 $global->savePost();
@@ -183,10 +190,12 @@ abstract class FrontendScoreType extends FrontendScoreRule
                         if (($tblSubjectList = DivisionCourse::useService()->getSubjectListBySchoolTypeAndLevelAndYear($tblSchoolType, $level, $tblYear))) {
                             $tblSubjectList = $this->getSorter($tblSubjectList)->sortObjectBy('DisplayName');
                             foreach ($tblSubjectList as $tblSubject) {
-                                $name = 'Data[Subjects][' . $level . '][' . $tblSubject->getId() .']';
-                                $toggleList[$level][$tblSubject->getId()] = $name;
-                                $contentPanelList[$level][$tblSubject->getId()] =
-                                    new CheckBox($name, $tblSubject->getDisplayName() . ($list[$level][$tblSubject->getId()] ?? ''), 1);
+                                if (!$isVirtualOverrideScoreTypeException || isset($exitsList[$level][$tblSubject->getId()])) {
+                                    $name = 'Data[Subjects][' . $level . '][' . $tblSubject->getId() . ']';
+                                    $toggleList[$level][$tblSubject->getId()] = $name;
+                                    $contentPanelList[$level][$tblSubject->getId()] =
+                                        new CheckBox($name, $tblSubject->getDisplayName() . ($list[$level][$tblSubject->getId()] ?? ''), 1);
+                                }
                             }
                         }
                     }
