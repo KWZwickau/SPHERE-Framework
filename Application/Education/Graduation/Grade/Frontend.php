@@ -51,7 +51,6 @@ use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
-use SPHERE\Common\Frontend\Layout\Repository\PullClear;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
@@ -177,14 +176,16 @@ class Frontend extends FrontendTestPlanning
      * @param $DivisionCourseId
      * @param $SubjectId
      * @param $Filter
+     * @param bool $ShowInActive
      *
      * @return string
      */
-    public function loadViewGradeBookContent($DivisionCourseId, $SubjectId, $Filter): string
+    public function loadViewGradeBookContent($DivisionCourseId, $SubjectId, $Filter, bool $ShowInActive = false): string
     {
         $isEdit = Grade::useService()->getIsEdit($DivisionCourseId, $SubjectId);
         $isCheckTeacherLectureship = $isEdit && (Grade::useService()->getRole() == 'Teacher');
 
+        $optionInActive = '';
         $textCourse = "";
         $textSubject = "";
         if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))
@@ -200,19 +201,25 @@ class Frontend extends FrontendTestPlanning
             $textCourse = new Bold($tblDivisionCourse->getDisplayName());
             $textSubject = new Bold($tblSubject->getDisplayName());
 
-            $tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses();
-//            $tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses(true);
-
-            // SSWHD-2823 erstmal wieder deakivieren, da ansonsten die Notbücher mitunter zu sehr aufgepauscht werden -> bessere Lösung finden
             $inactiveStudentList = array();
-//            if (($tblDivisionCourseMemberList = $tblDivisionCourse->getStudentsWithSubCourses(true, false))) {
-//                /** @var TblDivisionCourseMember $tblDivisionCourseMember */
-//                foreach ($tblDivisionCourseMemberList as $tblDivisionCourseMember) {
-//                    if ($tblDivisionCourseMember->isInActive() && ($tblPersonTemp = $tblDivisionCourseMember->getServiceTblPerson())) {
-//                        $inactiveStudentList[$tblPersonTemp->getId()] = $tblPersonTemp;
-//                    }
-//                }
-//            }
+            if ($ShowInActive) {
+                $tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses(true);
+                if (($tblDivisionCourseMemberList = $tblDivisionCourse->getStudentsWithSubCourses(true, false))) {
+                    /** @var TblDivisionCourseMember $tblDivisionCourseMember */
+                    foreach ($tblDivisionCourseMemberList as $tblDivisionCourseMember) {
+                        if ($tblDivisionCourseMember->isInActive() && ($tblPersonTemp = $tblDivisionCourseMember->getServiceTblPerson())) {
+                            $inactiveStudentList[$tblPersonTemp->getId()] = $tblPersonTemp;
+                        }
+                    }
+                }
+            } else {
+                $tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses();
+                if (($countInActive = $tblDivisionCourse->getCountInActiveStudents())) {
+                    $tempContent = $countInActive == 1 ? ' inaktiven' : ' inaktive';
+                    $optionInActive = (new CheckBox('Data[OptionInActive]', $countInActive . $tempContent . ' Schüler mit anzeigen', 1))
+                        ->ajaxPipelineOnChange(ApiGradeBook::pipelineCheckInActive($DivisionCourseId, $SubjectId, $Filter));
+                }
+            }
 
             $bodyList = array();
 
@@ -402,6 +409,24 @@ class Frontend extends FrontendTestPlanning
                 ->ajaxPipelineOnClick(ApiGradeBook::pipelineLoadViewExamGradeEditContent($DivisionCourseId, $SubjectId, $PrepareCertificateId, $Filter));
         }
 
+        $secondRow = new Layout(new LayoutGroup(new LayoutRow(array(
+            new LayoutColumn(
+                ($isEdit
+                    ? (new Primary('Leistungsüberprüfung hinzufügen', ApiGradeBook::getEndpoint(), new Plus()))
+                        ->ajaxPipelineOnClick(ApiGradeBook::pipelineLoadViewTestEditContent($DivisionCourseId, $SubjectId, $Filter))
+                    : ''
+                )
+                . $contentExam
+            , 6),
+            new LayoutColumn(
+                $optionInActive
+            , 3),
+            new LayoutColumn(
+                new PullRight((new Standard('Mindestnotenanzahl anzeigen', ApiGradeBook::getEndpoint()))
+                    ->ajaxPipelineOnClick(ApiGradeBook::pipelineLoadViewMinimumGradeCountContent($DivisionCourseId, $SubjectId, $Filter)))
+            , 3)
+        ))));
+
         return
             new Title(
                 (new Standard("Zurück", ApiGradeBook::getEndpoint(), new ChevronLeft()))
@@ -411,17 +436,7 @@ class Frontend extends FrontendTestPlanning
                 . new Muted(new Small(" im Fach: ")) . $textSubject
                 . new PullRight($externalDownloadSingleGradeBookExcel . $externalDownloadSingleGradeBookPdf . $externalDownloadAllGradeBooks)
             )
-            . new PullClear(new Container(
-                 ($isEdit
-                    ? (new Primary('Leistungsüberprüfung hinzufügen', ApiGradeBook::getEndpoint(), new Plus()))
-                        ->ajaxPipelineOnClick(ApiGradeBook::pipelineLoadViewTestEditContent($DivisionCourseId, $SubjectId, $Filter))
-                    : ''
-                )
-                . $contentExam
-                . new PullRight((new Standard('Mindestnotenanzahl anzeigen', ApiGradeBook::getEndpoint()))
-                    ->ajaxPipelineOnClick(ApiGradeBook::pipelineLoadViewMinimumGradeCountContent($DivisionCourseId, $SubjectId, $Filter)))
-            ))
-            . new Container('&nbsp;')
+            . ($optionInActive ? new Form(new FormGroup(new FormRow(new FormColumn($secondRow)))) : $secondRow .  new Container('&nbsp;'))
             . ApiSupportReadOnly::receiverOverViewModal()
             . ApiPersonPicture::receiverModal()
             . ApiGradeBook::receiverModal()

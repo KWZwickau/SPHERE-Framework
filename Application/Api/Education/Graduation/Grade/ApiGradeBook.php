@@ -51,6 +51,7 @@ class ApiGradeBook extends Extension implements IApiInterface
         $Dispatcher->registerMethod('loadViewGradeBookSelect');
         $Dispatcher->registerMethod('loadGradeBookSelectFilterContent');
         $Dispatcher->registerMethod('loadViewGradeBookContent');
+        $Dispatcher->registerMethod('checkInActive');
 
         $Dispatcher->registerMethod('loadViewTestEditContent');
         $Dispatcher->registerMethod('saveTestEdit');
@@ -324,6 +325,44 @@ class ApiGradeBook extends Extension implements IApiInterface
     public function loadViewGradeBookContent($DivisionCourseId, $SubjectId, $Filter): string
     {
         return Grade::useFrontend()->loadViewGradeBookContent($DivisionCourseId, $SubjectId, $Filter);
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $SubjectId
+     * @param null $Filter
+     *
+     * @return Pipeline
+     */
+    public static function pipelineCheckInActive($DivisionCourseId, $SubjectId, $Filter = null): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'Content'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'checkInActive',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'DivisionCourseId' => $DivisionCourseId,
+            'SubjectId' => $SubjectId,
+            'Filter' => $Filter,
+        ));
+        $ModalEmitter->setLoadingMessage("Daten werden geladen");
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $SubjectId
+     * @param $Filter
+     * @param $Data
+     *
+     * @return string
+     */
+    public function checkInActive($DivisionCourseId, $SubjectId, $Filter, $Data): string
+    {
+        return Grade::useFrontend()->loadViewGradeBookContent($DivisionCourseId, $SubjectId, $Filter, isset($Data['OptionInActive']));
     }
 
     /**
