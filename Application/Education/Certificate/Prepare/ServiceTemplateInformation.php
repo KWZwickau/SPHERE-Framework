@@ -72,6 +72,8 @@ abstract class ServiceTemplateInformation extends ServiceLeave
             $showTeamsInCertificateRemark = false;
         }
 
+        $markPostList = array();
+
         if ($tblCertificate
             && ($tblDivisionCourse = $tblPrepareCertificate->getServiceTblDivision())
             && ($tblYear = $tblDivisionCourse->getServiceTblYear())
@@ -112,6 +114,7 @@ abstract class ServiceTemplateInformation extends ServiceLeave
                     $hasEducationDateFrom = false;
                     $isSubjectAreaSet = false;
                     $isDivisionNameSet = false;
+                    $isOrientationSet = false;
                     $tblStudent = $tblPerson->getStudent();
                     if ($tblPrepareInformationAll) {
                         foreach ($tblPrepareInformationAll as $tblPrepareInformation) {
@@ -133,6 +136,10 @@ abstract class ServiceTemplateInformation extends ServiceLeave
 
                             if ($tblPrepareInformation->getField() == 'DivisionName') {
                                 $isDivisionNameSet = true;
+                            }
+
+                            if ($tblPrepareInformation->getField() == 'Orientation') {
+                                $isOrientationSet = true;
                             }
 
                             if ($tblPrepareInformation->getField() == 'SchoolType'
@@ -199,6 +206,7 @@ abstract class ServiceTemplateInformation extends ServiceLeave
                         }
                         $Global->POST['Data'][$tblPrepareStudent->getId()]['Remark'] =
                             $tblPerson->getFirstSecondName() . ' wird versetzt in Klasse ' . $nextLevel . '.';
+                        $markPostList['Remark'] = true;
                     }
 
                     // Arbeitsgemeinschaften aus der Schülerakte laden
@@ -218,12 +226,14 @@ abstract class ServiceTemplateInformation extends ServiceLeave
                             if (!empty($tempList)) {
                                 $Global->POST['Data'][$tblPrepareStudent->getId()]['Team'] = implode(', ', $tempList);
                                 $Global->POST['Data'][$tblPrepareStudent->getId()]['TeamExtra'] = implode(', ', $tempList);
+                                $markPostList['Team'] = true;
+                                $markPostList['TeamExtra'] = true;
                             }
                         }
                     }
 
                     // Wahlbereich aus der Schülerakte laden
-                    if ($showOrientationsInCertificateRemark) {
+                    if ($showOrientationsInCertificateRemark && !$isOrientationSet) {
                         if ($tblStudent
                             && ($tblSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('ORIENTATION'))
                             && ($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType(
@@ -236,6 +246,7 @@ abstract class ServiceTemplateInformation extends ServiceLeave
                                 $Global->POST['Data'][$tblPrepareStudent->getId()]['Orientation']
                                     = $tblPerson->getFirstSecondName().' hat im Rahmen des Wahlbereiches am Kurs "'
                                     .$tblSubject->getName().'" teilgenommen.';
+                                $markPostList['Orientation'] = true;
                             }
                         }
                     }
@@ -243,6 +254,7 @@ abstract class ServiceTemplateInformation extends ServiceLeave
                     // Vorsetzen auf Versetzungsvermerk: wird versetzt
                     if (!$hasTransfer) {
                         $Global->POST['Data'][$tblPrepareStudent->getId()]['Transfer'] = 1;
+                        $markPostList['Transfer'] = true;
                     }
 
                     // SSW-340 Halbjahreszeugnis Klasse 10 OS -> abgewählte Fächer in die Bemerkung vorsetzen
@@ -275,6 +287,7 @@ abstract class ServiceTemplateInformation extends ServiceLeave
                             }
 
                             $Global->POST['Data'][$tblPrepareStudent->getId()]['Remark'] = $text;
+                            $markPostList['Remark'] = true;
                         }
                     }
 
@@ -286,6 +299,7 @@ abstract class ServiceTemplateInformation extends ServiceLeave
                         && strpos($Certificate->getCertificateEntity()->getCertificate(), 'EVGSM') !== false
                     ) {
                         $Global->POST['Data'][$tblPrepareStudent->getId()]['DivisionName'] = $tblDivisionCourse->getName();
+                        $markPostList['DivisionName'] = true;
                     }
 
                     // GTA setzen, werden in der Schülerakte als Arbeitsgemeinschaften gepflegt
@@ -328,12 +342,15 @@ abstract class ServiceTemplateInformation extends ServiceLeave
                         }
 
                         $Global->POST['Data'][$tblPrepareStudent->getId()]['GTA'] = $textGTA;
+                        $markPostList['GTA'] = true;
                     }
 
                     // Vorsetzen des Schulbesuchsjahrs
                     if (($tblStudent = $tblPerson->getStudent())
-                        && !isset($Global->POST['Data'][$tblPrepareStudent->getId()]['SchoolVisitYear'])) {
+                        && !isset($Global->POST['Data'][$tblPrepareStudent->getId()]['SchoolVisitYear'])
+                    ) {
                         $Global->POST['Data'][$tblPrepareStudent->getId()]['SchoolVisitYear'] = $tblStudent->getSchoolAttendanceYear(false);
+                        $markPostList['SchoolVisitYear'] = true;
                     }
 
                     $isSupportForPrimarySchool = false;
@@ -385,6 +402,8 @@ abstract class ServiceTemplateInformation extends ServiceLeave
                         $Global->POST['Data'][$tblPrepareStudent->getId()]['RemarkWithoutTeam'] = $textSupport;
                         // staatliche GS-Zeugnisse
                         $Global->POST['Data'][$tblPrepareStudent->getId()]['Remark'] = $textSupport;
+                        $markPostList['RemarkWithoutTeam'] = true;
+                        $markPostList['Remark'] = true;
                     }
 
                     // Fachschule
@@ -395,6 +414,7 @@ abstract class ServiceTemplateInformation extends ServiceLeave
                         $technicalCourseName = Student::useService()->getTechnicalCourseGenderNameByPerson($tblPerson);
                         $Global->POST['Data'][$tblPrepareStudent->getId()]['RemarkWithoutTeam'] = 'Der Abschluss '
                             . $technicalCourseName . ' ist im Deutschen und Europäischen Qualifikationsrahmen dem Niveau 6 zugeordnet.';
+                        $markPostList['RemarkWithoutTeam'] = true;
                     }
                     // Vorsetzen der Fachrichtung bei Fachschulen
                     if (!$isSubjectAreaSet
@@ -403,6 +423,7 @@ abstract class ServiceTemplateInformation extends ServiceLeave
                         && ($tblTechnicalSubjectArea = $tblStudentTechnicalSchool->getServiceTblTechnicalSubjectArea())
                     ) {
                         $Global->POST['Data'][$tblPrepareStudent->getId()]['SubjectArea'] = $tblTechnicalSubjectArea->getName();
+                        $markPostList['SubjectArea'] = true;
                     }
 
                     // Berufsfachschule
@@ -412,6 +433,7 @@ abstract class ServiceTemplateInformation extends ServiceLeave
                         $technicalCourseName = Student::useService()->getTechnicalCourseGenderNameByPerson($tblPerson);
                         $Global->POST['Data'][$tblPrepareStudent->getId()]['RemarkWithoutTeam'] = 'Der Abschluss '
                             . $technicalCourseName . ' ist im Deutschen und Europäischen Qualifikationsrahmen dem Niveau 4 zugeordnet.';
+                        $markPostList['RemarkWithoutTeam'] = true;
                     }
 
                     // Berufsfachschule Pflegeberufe
@@ -421,6 +443,7 @@ abstract class ServiceTemplateInformation extends ServiceLeave
                     ) {
                         $Global->POST['Data'][$tblPrepareStudent->getId()]['RemarkWithoutTeam'] = $tblPerson->getFullName()
                             . ' ' . ' hat regelmässig am theoretischen und praktischen Unterricht sowie der praktischen Ausbildung teilgenommen.';
+                        $markPostList['RemarkWithoutTeam'] = true;
                     }
                     if ($Page == 2
                         && $tblCertificate->getName() == 'Berufsfachschule Jahreszeugnis'
@@ -461,11 +484,13 @@ abstract class ServiceTemplateInformation extends ServiceLeave
                                 $Calc = round($GradeSum/$GradeSumCount, 2);
                                 $Calc = number_format($Calc, 2, ",", ".");
                                 $Global->POST['Data'][$tblPrepareStudent->getId()]['YearGradeAverageLesson_Average'] = $Calc;
+                                $markPostList['YearGradeAverageLesson_Average'] = true;
                             }
                             if ($GradePracticalCount && !isset($Global->POST['Data'][$tblPrepareStudent->getId()]['YearGradeAveragePractical_Average'])) {
                                 $Calc = round($GradePracticalSum/$GradePracticalCount, 2);
                                 $Calc = number_format($Calc, 2, ",", ".");
                                 $Global->POST['Data'][$tblPrepareStudent->getId()]['YearGradeAveragePractical_Average'] = $Calc;
+                                $markPostList['YearGradeAveragePractical_Average'] = true;
                             }
                         }
                     }
@@ -477,6 +502,7 @@ abstract class ServiceTemplateInformation extends ServiceLeave
                     ) {
                         $Global->POST['Data'][$tblPrepareStudent->getId()]['RemarkWithoutTeam'] = $tblPerson->getFullName()
                             . ' wurde zur Abschlussprüfung nicht zugelassen / hat die Abschlussprüfung nicht bestanden und kann erst nach erfolgreicher Wiederholung der Klassenstufe erneut an der Abschlussprüfung teilnehmen.';
+                        $markPostList['RemarkWithoutTeam'] = true;
                     }
 
                     // HOGA Beginn der Ausbildung bei Fachoberschule Abschlusszeugnissen
@@ -489,6 +515,7 @@ abstract class ServiceTemplateInformation extends ServiceLeave
                         && ($transferDate = $tblStudentTransfer->getTransferDate())
                     ) {
                         $Global->POST['Data'][$tblPrepareStudent->getId()]['EducationDateFrom'] = $transferDate;
+                        $markPostList['EducationDateFrom'] = true;
                     }
 
                     // Vorbereitungsklasse HOGA Jahreszeugnis
@@ -497,6 +524,7 @@ abstract class ServiceTemplateInformation extends ServiceLeave
                     ) {
                         $Global->POST['Data'][$tblPrepareStudent->getId()]['RemarkWithoutTeam'] =
                             'Die Beendigung der Berufsschulpflicht gemäß § 28 Absatz 5 Satz 2 SächsSchulG bleibt unberührt.';
+                        $markPostList['RemarkWithoutTeam'] = true;
                     }
 
                     $Global->savePost();
@@ -762,6 +790,15 @@ abstract class ServiceTemplateInformation extends ServiceLeave
                                 }
                             }
                         });
+                }
+
+                if (isset($studentTable[$tblPerson->getId()])) {
+                    foreach ($studentTable[$tblPerson->getId()] as $keyTemp => &$valueTemp)
+                    {
+                        if (isset($markPostList[$keyTemp])) {
+                            $valueTemp = new Warning(new Exclamation() . ' Daten sind nicht gespeichert. Bitte speichern!') . $valueTemp;
+                        }
+                    }
                 }
 
                 if ($Page == null) {
