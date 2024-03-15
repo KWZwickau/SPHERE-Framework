@@ -1048,7 +1048,7 @@ class Frontend extends FrontendTestPlanning
             list($tblTestList, $tblTestGradeValueList, $tblTestGradeList, $personPeriodList)
                 = $this->getTestsAndTestGradesForAppointedDateTask($tblPersonList, $tblTask, $tblYear, $tblSubject);
             if ($tblTestList) {
-                $tblTestList = $this->getSorter($tblTestList)->sortObjectBy('SortDate', new DateTimeSorter());
+                $tblTestList = Grade::useService()->sortTestList($tblTestList);
                 foreach ($tblTestList as $tblTest) {
                     $headerList['Test' . $tblTest->getId()] = $this->getTableColumnHeadByTest($tblTest, $DivisionCourseId, $tblSubject->getId(), $Filter, false);
                 }

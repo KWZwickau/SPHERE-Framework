@@ -123,7 +123,7 @@ class Gradebook implements IModuleInterface
             foreach ($tblPeriodList as $tblPeriod) {
                 $countPeriods++;
                 if (($tblTestList = Grade::useService()->getTestListByDivisionCourseAndSubject($tblDivisionCourse, $tblSubject))) {
-                    $tblTestList = \SPHERE\Application\Api\Document\Standard\Repository\Gradebook\Gradebook::sortTestList($tblTestList);
+                    $tblTestList = Grade::useService()->sortTestList($tblTestList);
                     /** @var TblTest $tblTest */
                     foreach ($tblTestList as $tblTest) {
                         if (($tblGradeType = $tblTest->getTblGradeType())) {
