@@ -164,17 +164,15 @@ class Service extends AbstractService
                             $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['Sum'][] = $RowContent['Value'];
                             $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['Price'][$timeString] = $RowContent['Value'];
                             // Preisliste mit Datum BillTime
-                            $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['PriceTable'][] = $BillTimeString.
-                                ' &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; '
-                                . $this->getPriceString($RowContent['Value']);
+                            $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['PriceTable']['Date'][] = $BillTimeString;
+                            $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['PriceTable']['Price'][] = $this->getPriceString($RowContent['Value']);
                         }
                         if($RowContent['BasketTypeId'] == $tblBasketTypeB->getId()){
                             $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['Sum'][] = $RowContent['Value'] * -1;
                             $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['PriceSub'][$timeString] = $RowContent['Value'];
                             // Preisliste mit Datum BillTime
-                            $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['PriceTable'][] = $BillTimeString.
-                                ' &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; '
-                                . '-'.$this->getPriceString($RowContent['Value']);
+                            $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['PriceTable']['Date'][] = $BillTimeString;
+                            $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['PriceTable']['Price'][] = $this->getPriceString($RowContent['Value']);
                         }
                     } else {
                         $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['PriceMissing'][$timeString] = $RowContent['Value'];
@@ -609,17 +607,15 @@ class Service extends AbstractService
                             $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['Sum'][] = $RowContent['Value'];
                             $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['Price'][$timeString] = $RowContent['Value'];
                             // Preisliste mit Datum BillTime
-                            $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['PriceTable'][] = $BillTimeString.
-                                ' &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; '
-                                . $this->getPriceString($RowContent['Value']);
+                            $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['PriceTable']['Date'][] = $BillTimeString;
+                            $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['PriceTable']['Price'][] = $this->getPriceString($RowContent['Value']);
                         }
                         if ($RowContent['BasketTypeId'] == $tblBasketTypeB->getId()){
                             $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['Sum'][] = $RowContent['Value'] * -1;
                             $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['PriceSub'][$timeString] = $RowContent['Value'];
                             // Preisliste mit Datum BillTime
-                            $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['PriceTable'][] = $BillTimeString.
-                                ' &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; '
-                                .'-'.$this->getPriceString($RowContent['Value']);
+                            $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['PriceTable']['Date'][] = $BillTimeString;
+                            $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['PriceTable']['Price'][] = $this->getPriceString($RowContent['Value']);
                         }
                     } else {
                         $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['PriceMissing'][$timeString] = $RowContent['Value'];
@@ -669,6 +665,7 @@ class Service extends AbstractService
     {
 
         $spaceLeft = '100px';
+        $columnWith = '85px';
         if(!empty($PriceList)){
             foreach($PriceList as &$DebtorContent) {
                 foreach($DebtorContent as &$CauserContent) {
@@ -676,9 +673,17 @@ class Service extends AbstractService
                         // convert to Output
                         if(!empty($ItemContent['PriceTable'])){
                             $content = '<table><tbody>';
-                            $content.= '<tr><th style="width: '.$spaceLeft.'"></th><th>Rechnungsdatum &nbsp; Preis</th></tr>';
-                            foreach($ItemContent['PriceTable'] as $Price){
-                                $content.= '<tr><td style="width: '.$spaceLeft.'">&nbsp;</td><td>'.$Price.'</td></tr>';
+                            $content.= '<tr>
+                                            <th style="width: '.$spaceLeft.'"></th>
+                                            <th>Rechnungsdatum</th>
+                                            <th style="width: '.$columnWith.'; text-align: right">Preis</th>
+                                        </tr>';
+                            foreach($ItemContent['PriceTable']['Date'] as $Key => $Date){
+                                $content.= '<tr>
+                                                <td>&nbsp;</td>
+                                                <td>'.$Date.'</td>
+                                                <td style="width: '.$columnWith.'; text-align: right">'.$ItemContent['PriceTable']['Price'][$Key].'</td>
+                                            </tr>';
                             }
                             $content.= '</tbody></table>';
                             $ItemContent['PriceTableString'] = $content;

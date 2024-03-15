@@ -73,6 +73,7 @@ class Billing extends AbstractDocument
 
     /**
      * @param array $pageList
+     * @param string $part
      *
      * @return Frame
      */
