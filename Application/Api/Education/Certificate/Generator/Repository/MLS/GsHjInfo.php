@@ -17,7 +17,7 @@ class GsHjInfo extends Style
         $personId = $tblPerson ? $tblPerson->getId() : 0;
 
         return (new Page)
-            ->addSlice(self::getCustomHead($personId))
+            ->addSlice(self::getCustomHead())
             ->addSlice(self::getCustomDivisionAndYear($personId, '1. Schulhalbjahr'))
             ->addSlice($this->getCustomStudentName($personId))
             ->addSlice($this->getCustomGradeLanes($personId))

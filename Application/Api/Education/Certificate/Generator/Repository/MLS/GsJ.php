@@ -28,7 +28,7 @@ class GsJ extends Style
         $personId = $tblPerson ? $tblPerson->getId() : 0;
 
         return (new Page)
-            ->addSlice(self::getCustomHead($personId, 'Jahreszeugnis'))
+            ->addSlice(self::getCustomHead('Jahreszeugnis der Grundschule'))
             ->addSlice(self::getCustomDivisionAndYear($personId, ''))
             ->addSlice($this->getCustomStudentName($personId))
             ->addSlice($this->getCustomGradeLanes($personId))
