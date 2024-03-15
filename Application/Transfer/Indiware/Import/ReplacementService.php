@@ -145,7 +145,7 @@ class ReplacementService
         if(($Kopf = $Node->getChild('kopf'))){
             $Datum = $Kopf->getChild('datum');
             if($Datum){
-                $DateString = utf8_encode($Datum->getContent());
+                $DateString = $this->getUtf8Encode($Datum->getContent());
                 $Date = $this->getDateFromString($DateString);
             }
             $DayChild = $Kopf->getChild('tag');
@@ -180,27 +180,27 @@ class ReplacementService
                             $item['Hour'] = '';
                         }
                         if(($plFach = $Pl->getChild('pl_fach'))){
-                            $item['Subject'] = utf8_encode($plFach->getContent());
+                            $item['Subject'] = $this->getUtf8Encode($plFach->getContent());
                         } else {
                             $item['Subject'] = '';
                         }
                         if(($plKlasse = $Pl->getChild('pl_klasse'))){
-                            $item['Course'] = utf8_encode($plKlasse->getContent());
+                            $item['Course'] = $this->getUtf8Encode($plKlasse->getContent());
                         } else {
                             $item['Course'] = '';
                         }
                         if(($plLehrer = $Pl->getChild('pl_lehrer'))){
-                            $item['Person'] = utf8_encode($plLehrer->getContent());
+                            $item['Person'] = $this->getUtf8Encode($plLehrer->getContent());
                         } else {
                             $item['Person'] = '';
                         }
                         if(($plRaum = $Pl->getChild('pl_raum'))){
-                            $item['Room'] = utf8_encode($plRaum->getContent());
+                            $item['Room'] = $this->getUtf8Encode($plRaum->getContent());
                         } else {
                             $item['Room'] = '';
                         }
                         if(($plGruppe = $Pl->getChild('pl_gruppe'))){
-                            $item['SubjectGroup'] = utf8_encode($plGruppe->getContent());
+                            $item['SubjectGroup'] = $this->getUtf8Encode($plGruppe->getContent());
                         } else {
                             $item['SubjectGroup'] = '';
                         }
@@ -224,7 +224,7 @@ class ReplacementService
                                 // aus getChild können integer rauskommen. Soll nur bei einem Objekt weiter machen
                                 if(is_object($temp)){
                                     if (method_exists($temp, 'getContent') &&
-                                        ($division = utf8_encode($temp->getContent()))
+                                        ($division = $this->getUtf8Encode($temp->getContent()))
                                     ) {
                                         $addItem = $item;
                                         $addItem['Course'] = $division;
@@ -524,5 +524,14 @@ class ReplacementService
     {
 
         TimetableClassRegister::useService()->createTimetableReplacementBulk($importList);
+    }
+
+    private function getUtf8Encode(?string $item): string
+    {
+        if ($item === null || $item === '') {
+            return '';
+        }
+
+        return utf8_encode($item);
     }
 }
