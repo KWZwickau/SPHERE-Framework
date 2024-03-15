@@ -132,6 +132,12 @@ abstract class FrontendScoreRule extends FrontendScoreGroup
             new Layout(array(
                 new LayoutGroup(array(
                     new LayoutRow(array(
+                        new LayoutColumn(
+                            new Warning('Falls sich im neuen Schuljahr eine Berechnungsvorschrift ändert, legen Sie dafür bitte eine neue
+                                Berechnungsvorschrift an (inklusive Berechnungsvarianten und Zensuren-Gruppen) und deaktivieren die alte 
+                                Berechnungsvorschrift. Bei Änderung einer Berechnungsvorschrift werden ansonsten die Durchschnitte der Notenbücher
+                                in den alten Schuljahren mit geändert.', new Exclamation())
+                        ),
                         new LayoutColumn(array(
                             new TableData($contentTable, null, array(
                                 'Status' => 'Status',
