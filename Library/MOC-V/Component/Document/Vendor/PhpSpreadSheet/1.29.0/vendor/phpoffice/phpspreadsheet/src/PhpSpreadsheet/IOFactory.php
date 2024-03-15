@@ -5,7 +5,6 @@ namespace PhpOffice\PhpSpreadsheet;
 use PhpOffice\PhpSpreadsheet\Reader\IReader;
 use PhpOffice\PhpSpreadsheet\Shared\File;
 use PhpOffice\PhpSpreadsheet\Writer\IWriter;
-use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Factory to create readers and writers easily.
@@ -61,8 +60,6 @@ abstract class IOFactory
     public static function createWriter(Spreadsheet $spreadsheet, string $writerType): IWriter
     {
 
-        Debugger::screenDump(self::$writers);
-        Debugger::screenDump($writerType);
         if (!isset(self::$writers[$writerType])) {
             throw new Writer\Exception("No writer found for type $writerType");
         }

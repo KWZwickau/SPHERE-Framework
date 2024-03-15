@@ -21,7 +21,7 @@ abstract class File extends Config
     /** @var $string $delimiter */
     private $delimiter = null;
 
-    /** @var $string $delimiter */
+    /** @var $string $headColumnLimitCsv */
     private $headColumnLimitCsv = null;
 
     /**
@@ -225,7 +225,7 @@ abstract class File extends Config
             /**
              * Find CSV Delimiter
              */
-            if ('CSV' == $WriterType) {
+            if ('CSV' == strtoupper($WriterType)) {
                 if( $this->delimiter !== null ) {
                     $Writer->setDelimiter($this->delimiter);
                 }
