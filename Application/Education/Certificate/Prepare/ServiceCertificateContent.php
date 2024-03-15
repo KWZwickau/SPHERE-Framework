@@ -621,36 +621,56 @@ abstract class ServiceCertificateContent extends ServiceAbitur
             } else {
                 if (($tblAppointedDateTask = $tblPrepare->getServiceTblAppointedDateTask())
                     && $tblCertificate
-                    && ($tblTaskGradeList = Grade::useService()->getTaskGradeListByTaskAndPerson($tblAppointedDateTask, $tblPerson))
                 ) {
-                    foreach ($tblTaskGradeList as $tblTaskGrade) {
-                        if (($tblSubjectTemp = $tblTaskGrade->getServiceTblSubject())) {
-                            // leere Zensuren bei Zeugnissen ignorieren, bei optionalen Zeugnisfächern
-                            if ($tblTaskGrade->getGrade() ===  null && $tblTaskGrade->getTblGradeText() == null) {
-                                continue;
-                            }
+                    if (($tblTaskGradeList = Grade::useService()->getTaskGradeListByTaskAndPerson($tblAppointedDateTask, $tblPerson))) {
+                        foreach ($tblTaskGradeList as $tblTaskGrade) {
+                            if (($tblSubjectTemp = $tblTaskGrade->getServiceTblSubject())) {
+                                // leere Zensuren bei Zeugnissen ignorieren, bei optionalen Zeugnisfächern
+                                if ($tblTaskGrade->getGrade() === null && $tblTaskGrade->getTblGradeText() == null) {
+                                    continue;
+                                }
 
-                            // Zensuren im Wortlaut
-                            if ($isGradeVerbal
-                                // Abschlusszeugnisse für Berufsfachschule und Fachschule: Zensuren kommen direkt aus dem Notenauftrag
-                                || ($tblCertificateType && $tblCertificateType->getIdentifier() == 'DIPLOMA' && $isGradeVerbalOnDiploma)
-                            ) {
-                                if ($tblTaskGrade->getTblGradeText()) {
-                                    $Content['P' . $personId]['Grade']['Data'][$tblSubjectTemp->getAcronym()] = $tblTaskGrade->getTblGradeText()->getName();
+                                // Zensuren im Wortlaut
+                                if ($isGradeVerbal
+                                    // Abschlusszeugnisse für Berufsfachschule und Fachschule: Zensuren kommen direkt aus dem Notenauftrag
+                                    || ($tblCertificateType && $tblCertificateType->getIdentifier() == 'DIPLOMA' && $isGradeVerbalOnDiploma)
+                                ) {
+                                    if ($tblTaskGrade->getTblGradeText()) {
+                                        $Content['P' . $personId]['Grade']['Data'][$tblSubjectTemp->getAcronym()] = $tblTaskGrade->getTblGradeText()->getName();
+                                    } else {
+                                        $Content['P' . $personId]['Grade']['Data'][$tblSubjectTemp->getAcronym()] = $this->getVerbalGrade($tblTaskGrade->getDisplayGrade(false,
+                                            $tblCertificate));
+                                        $Content['P' . $personId]['Grade']['Data']['IsShrinkSize'][$tblSubjectTemp->getAcronym()] = true;
+                                    }
                                 } else {
-                                    $Content['P' . $personId]['Grade']['Data'][$tblSubjectTemp->getAcronym()] = $this->getVerbalGrade($tblTaskGrade->getDisplayGrade(false, $tblCertificate));
+                                    $Content['P' . $personId]['Grade']['Data'][$tblSubjectTemp->getAcronym()] = $tblTaskGrade->getDisplayGrade(false,
+                                        $tblCertificate);
+                                }
+
+                                // bei Zeugnistext als Note Schriftgröße verkleinern
+                                if ($tblTaskGrade->getTblGradeText()
+                                    && $tblTaskGrade->getTblGradeText()->getName() != '&ndash;'
+                                ) {
                                     $Content['P' . $personId]['Grade']['Data']['IsShrinkSize'][$tblSubjectTemp->getAcronym()] = true;
                                 }
-                            } else {
-                                $Content['P' . $personId]['Grade']['Data'][$tblSubjectTemp->getAcronym()] = $tblTaskGrade->getDisplayGrade(false, $tblCertificate);
                             }
+                        }
+                    }
 
-                            // bei Zeugnistext als Note Schriftgröße verkleinern
-                            if ($tblTaskGrade->getTblGradeText()
-                                && $tblTaskGrade->getTblGradeText()->getName() != '&ndash;'
-//                                    && $tblGradeItem->getTblGradeText()->getName() != 'befreit'
+                    // Standard Zeugnistext aus der Stundentafel
+                    if ($level
+                        && $tblSchoolType
+                        && ($tblSubjectTableList = DivisionCourse::useService()->getSubjectTableListBy($tblSchoolType, $level))
+                    ) {
+                        foreach ($tblSubjectTableList as $tblSubjectTable) {
+                            if (($tblGradeText = $tblSubjectTable->getServiceTblGradeText())
+                                && ($tblSubjectFromSubjectTable = $tblSubjectTable->getServiceTblSubject())
+                                && (!isset($Content['P' . $personId]['Grade']['Data'][$tblSubjectFromSubjectTable->getAcronym()]))
                             ) {
-                                $Content['P' . $personId]['Grade']['Data']['IsShrinkSize'][$tblSubjectTemp->getAcronym()] = true;
+                                $Content['P' . $personId]['Grade']['Data'][$tblSubjectFromSubjectTable->getAcronym()] = $tblGradeText->getName();
+                                if ($tblGradeText->getName() != '&ndash;') {
+                                    $Content['P' . $personId]['Grade']['Data']['IsShrinkSize'][$tblSubjectFromSubjectTable->getAcronym()] = true;
+                                }
                             }
                         }
                     }

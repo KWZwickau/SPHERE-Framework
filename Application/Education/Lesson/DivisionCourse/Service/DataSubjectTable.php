@@ -2,6 +2,8 @@
 
 namespace SPHERE\Application\Education\Lesson\DivisionCourse\Service;
 
+use SPHERE\Application\Education\Graduation\Grade\Grade;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblGradeText;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblSubjectTable;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblSubjectTableLink;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
@@ -17,13 +19,23 @@ abstract class DataSubjectTable extends DataStudentSubject
     protected function setupDatabaseContentForSubjectTable()
     {
         if (GatekeeperConsumer::useService()->getConsumerBySessionIsConsumerType(TblConsumer::TYPE_SACHSEN)) {
-            if (($tblSchoolTypePrimary = Type::useService()->getTypeByShortName('GS'))
-                && !$this->getSubjectTableListBy($tblSchoolTypePrimary)
-            ) {
-                $this->setSachsenGsLevel1($tblSchoolTypePrimary);
-                $this->setSachsenGsLevel2($tblSchoolTypePrimary);
-                $this->setSachsenGsLevel3($tblSchoolTypePrimary);
-                $this->setSachsenGsLevel4($tblSchoolTypePrimary);
+            if (($tblSchoolTypePrimary = Type::useService()->getTypeByShortName('GS'))) {
+                if (!$this->getSubjectTableListBy($tblSchoolTypePrimary)) {
+                    $this->setSachsenGsLevel1($tblSchoolTypePrimary);
+                    $this->setSachsenGsLevel2($tblSchoolTypePrimary);
+                    $this->setSachsenGsLevel3($tblSchoolTypePrimary);
+                    $this->setSachsenGsLevel4($tblSchoolTypePrimary);
+                } else {
+                    if (($tblSubject = Subject::useService()->getSubjectByVariantAcronym('EN'))
+                        && ($tblSubjectTable = $this->getSubjectTableBy($tblSchoolTypePrimary, 3, $tblSubject))
+                    ) {
+                        $this->updateSubjectTable(
+                            $tblSubjectTable, $tblSubjectTable->getLevel(), $tblSubjectTable->getTypeName(), $tblSubject,
+                            $tblSubjectTable->getStudentMetaIdentifier(), $tblSubjectTable->getHoursPerWeek(), $tblSubjectTable->getHasGrading(),
+                            Grade::useService()->getGradeTextByName('teilgenommen') ?: null
+                        );
+                    }
+                }
             }
 
             if (($tblSchoolTypeSecondary = Type::useService()->getTypeByShortName('OS'))
@@ -257,11 +269,12 @@ abstract class DataSubjectTable extends DataStudentSubject
      * @param string $studentMetaIdentifier
      * @param int|null $hoursPerWeek
      * @param bool $hasGrading
+     * @param TblGradeText|null $tblGradeText
      *
      * @return bool
      */
     public function updateSubjectTable(TblSubjectTable $tblSubjectTable, int $level, string $typeName, ?TblSubject $tblSubject, string $studentMetaIdentifier,
-        ?int $hoursPerWeek, bool $hasGrading): bool
+        ?int $hoursPerWeek, bool $hasGrading, ?TblGradeText $tblGradeText): bool
     {
         $Manager = $this->getEntityManager();
         /** @var TblSubjectTable $Entity */
@@ -274,6 +287,7 @@ abstract class DataSubjectTable extends DataStudentSubject
             $Entity->setStudentMetaIdentifier($studentMetaIdentifier);
             $Entity->setHoursPerWeek($hoursPerWeek);
             $Entity->setHasGrading($hasGrading);
+            $Entity->setServiceTblGradeText($tblGradeText);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
@@ -313,16 +327,18 @@ abstract class DataSubjectTable extends DataStudentSubject
      * @param int|null $hoursPerWeek
      * @param string $studentMetaIdentifier
      * @param bool $hasGrading
+     * @param string|null $gradeTextName
      *
      * @return false|TblSubjectTable
      */
     public function setSubjectTable(TblType $tblSchoolType, int $level, ?string $subjectAcronym, string $typeName, int $ranking, ?int $hoursPerWeek,
-        string $studentMetaIdentifier = '', bool $hasGrading = true)
+        string $studentMetaIdentifier = '', bool $hasGrading = true, ?string $gradeTextName = null)
     {
         $tblSubject = false;
         if ($subjectAcronym === null || ($tblSubject = Subject::useService()->getSubjectByVariantAcronym($subjectAcronym))) {
+            $tblGradeText = $gradeTextName ? Grade::useService()->getGradeTextByName($gradeTextName) : null;
             $tblSubjectTable = TblSubjectTable::withParameter($tblSchoolType, $level, $tblSubject ?: null, $typeName, $ranking, $hoursPerWeek,
-                $studentMetaIdentifier, $hasGrading);
+                $studentMetaIdentifier, $hasGrading, $tblGradeText ?: null);
             $this->createSubjectTable($tblSubjectTable);
 
             return $tblSubjectTable;
@@ -508,7 +524,7 @@ abstract class DataSubjectTable extends DataStudentSubject
         $ranking = 1;
         $this->setSubjectTable($tblSchoolTypePrimary, $level, 'DE', 'Pflichtbereich', $ranking++, 7);
         $this->setSubjectTable($tblSchoolTypePrimary, $level, 'SU', 'Pflichtbereich', $ranking++, 2);
-        $this->setSubjectTable($tblSchoolTypePrimary, $level, 'EN', 'Pflichtbereich', $ranking++, 2, '', false);
+        $this->setSubjectTable($tblSchoolTypePrimary, $level, 'EN', 'Pflichtbereich', $ranking++, 2, '', false, 'teilgenommen');
         $this->setSubjectTable($tblSchoolTypePrimary, $level, 'MA', 'Pflichtbereich', $ranking++, 5);
         $this->setSubjectTable($tblSchoolTypePrimary, $level, 'SPO', 'Pflichtbereich', $ranking++, 3);
 
@@ -1130,7 +1146,7 @@ abstract class DataSubjectTable extends DataStudentSubject
 
         // Gesamt 8 Wochenstunden
         $this->setSubjectTable($tblSchoolSecondary, $level, 'GE', 'Pflichtbereich', $ranking++, null);
-        $ranking++; // todo Politische Bildung
+        $ranking++;
         $this->setSubjectTable($tblSchoolSecondary, $level, 'GEO', 'Pflichtbereich', $ranking++, null);
         $this->setSubjectTable($tblSchoolSecondary, $level, 'ETH', 'Pflichtbereich', $ranking++, null); // 'RELIGION'
 
@@ -1159,7 +1175,7 @@ abstract class DataSubjectTable extends DataStudentSubject
 
         // Gesamt 8 Wochenstunden
         $this->setSubjectTable($tblSchoolSecondary, $level, 'GE', 'Pflichtbereich', $ranking++, null);
-        $ranking++; // todo Politische Bildung
+        $ranking++;
         $this->setSubjectTable($tblSchoolSecondary, $level, 'GEO', 'Pflichtbereich', $ranking++, null);
         $this->setSubjectTable($tblSchoolSecondary, $level, 'ETH', 'Pflichtbereich', $ranking++, null); // 'RELIGION'
 
@@ -1188,7 +1204,7 @@ abstract class DataSubjectTable extends DataStudentSubject
 
         // Gesamt 8 Wochenstunden
         $this->setSubjectTable($tblSchoolSecondary, $level, 'GE', 'Pflichtbereich', $ranking++, null);
-        $ranking++; // todo Politische Bildung
+        $ranking++;
         $this->setSubjectTable($tblSchoolSecondary, $level, 'GEO', 'Pflichtbereich', $ranking++, null);
         $this->setSubjectTable($tblSchoolSecondary, $level, 'ETH', 'Pflichtbereich', $ranking++, null); // 'RELIGION'
 
@@ -1217,7 +1233,7 @@ abstract class DataSubjectTable extends DataStudentSubject
 
         // Gesamt 8 Wochenstunden
         $this->setSubjectTable($tblSchoolSecondary, $level, 'GE', 'Pflichtbereich', $ranking++, null);
-        $ranking++; // todo Politische Bildung
+        $ranking++;
         $this->setSubjectTable($tblSchoolSecondary, $level, 'GEO', 'Pflichtbereich', $ranking++, null);
         $this->setSubjectTable($tblSchoolSecondary, $level, 'ETH', 'Pflichtbereich', $ranking++, null); // 'RELIGION'
 
@@ -1247,7 +1263,7 @@ abstract class DataSubjectTable extends DataStudentSubject
 
         // Gesamt 10 Wochenstunden
         $this->setSubjectTable($tblSchoolTypeGy, $level, 'GE', 'Pflichtbereich', $ranking++, null);
-        $ranking++; // todo Politische Bildung
+        $ranking++;
         $this->setSubjectTable($tblSchoolTypeGy, $level, 'GEO', 'Pflichtbereich', $ranking++, null);
         $this->setSubjectTable($tblSchoolTypeGy, $level, 'ETH', 'Pflichtbereich', $ranking++, null); // 'RELIGION'
 
@@ -1274,7 +1290,7 @@ abstract class DataSubjectTable extends DataStudentSubject
 
         // Gesamt 10 Wochenstunden
         $this->setSubjectTable($tblSchoolTypeGy, $level, 'GE', 'Pflichtbereich', $ranking++, null);
-        $ranking++; // todo Politische Bildung
+        $ranking++;
         $this->setSubjectTable($tblSchoolTypeGy, $level, 'GEO', 'Pflichtbereich', $ranking++, null);
         $this->setSubjectTable($tblSchoolTypeGy, $level, 'ETH', 'Pflichtbereich', $ranking++, null); // 'RELIGION'
 
@@ -1302,7 +1318,7 @@ abstract class DataSubjectTable extends DataStudentSubject
 
         // Gesamt 10 Wochenstunden
         $this->setSubjectTable($tblSchoolTypeGy, $level, 'GE', 'Pflichtbereich', $ranking++, null);
-        $ranking++; // todo Politische Bildung
+        $ranking++;
         $this->setSubjectTable($tblSchoolTypeGy, $level, 'GEO', 'Pflichtbereich', $ranking++, null);
         $this->setSubjectTable($tblSchoolTypeGy, $level, 'ETH', 'Pflichtbereich', $ranking++, null); // 'RELIGION'
 
@@ -1330,7 +1346,7 @@ abstract class DataSubjectTable extends DataStudentSubject
 
         // Gesamt 10 Wochenstunden
         $this->setSubjectTable($tblSchoolTypeGy, $level, 'GE', 'Pflichtbereich', $ranking++, null);
-        $ranking++; // todo Politische Bildung
+        $ranking++;
         $this->setSubjectTable($tblSchoolTypeGy, $level, 'GEO', 'Pflichtbereich', $ranking++, null);
         $this->setSubjectTable($tblSchoolTypeGy, $level, 'ETH', 'Pflichtbereich', $ranking++, null); // 'RELIGION'
 
