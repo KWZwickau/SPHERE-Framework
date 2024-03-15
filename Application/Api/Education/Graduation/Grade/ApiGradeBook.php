@@ -630,7 +630,7 @@ class ApiGradeBook extends Extension implements IApiInterface
                 if (($tblPerson = Person::useService()->getPersonById($personId))) {
                     $comment = trim($item['Comment']) ?: null;
                     $publicComment = trim($item['PublicComment']) ?: null;
-                    $grade = str_replace(',', '.', trim($item['Grade']));
+                    $grade = isset($item['Grade']) ? str_replace(',', '.', trim($item['Grade'])) : null;
                     $isNotAttendance = isset($item['Attendance']);
                     $date = !empty($item['Date']) ? new DateTime($item['Date']) : null;
 
