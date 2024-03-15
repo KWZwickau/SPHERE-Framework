@@ -12,6 +12,7 @@ use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Family;
 use SPHERE\Common\Frontend\Icon\Repository\Key;
 use SPHERE\Common\Frontend\Icon\Repository\Off;
+use SPHERE\Common\Frontend\Icon\Repository\Person;
 use SPHERE\Common\Frontend\Icon\Repository\PhoneMobil;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
@@ -103,6 +104,7 @@ class Session extends Extension implements IModuleInterface
             'tokenLogin' => 0,
             'appLogin' => 0,
             'combinedLogin' => 0,
+            'pwOnly' => 0,
             'studentCustody' => 0,
         );
         if ($tblSessionAll) {
@@ -131,8 +133,8 @@ class Session extends Extension implements IModuleInterface
 //                    $Activity = '-NA-';
 //                }
 
+                    $UserName = new Info($tblAccount->getUsername());
                     if (Account::useService()->getHasAuthenticationByAccountAndIdentificationName($tblAccount, TblIdentification::NAME_SYSTEM)) {
-                        $UserName = new Info($tblAccount->getUsername());
                         $AccountType = new ToolTip('A <span hidden>'.$lastActivity.'</span>' . new Key(), 'Admin');
                     } elseif (Account::useService()->getHasAuthenticationByAccountAndIdentificationName($tblAccount, TblIdentification::NAME_TOKEN)
                         || Account::useService()->getHasAuthenticationByAccountAndIdentificationName($tblAccount, TblIdentification::NAME_AUTHENTICATOR_APP)
@@ -148,10 +150,10 @@ class Session extends Extension implements IModuleInterface
                             'Mitarbeiter'
                         );
                     } elseif (Account::useService()->getHasAuthenticationByAccountAndIdentificationName($tblAccount, TblIdentification::NAME_USER_CREDENTIAL)) {
-                        $UserName = $tblAccount->getUsername();
+                        $AccountType = new ToolTip('M PW <span hidden>'.$lastActivity.'</span>&nbsp;' . new Person(), 'Mitarbeiter PW Login');;
+                    } elseif (Account::useService()->getHasAuthenticationByAccountAndIdentificationName($tblAccount, TblIdentification::NAME_USER_CREDENTIAL)) {
                         $AccountType = new ToolTip('S <span hidden>'.$lastActivity.'</span>&nbsp;' . new Family(), 'Sorgeberechtigte / Schüler');
                     } else {
-                        $UserName = '-NA-';
                         $AccountType = '-NA-';
                     }
 
@@ -179,6 +181,8 @@ class Session extends Extension implements IModuleInterface
                         $countArray['tokenLogin']++;
                     } elseif ($tblAccount->getAuthenticatorAppSecret()) {
                         $countArray['appLogin']++;
+                    } elseif($tblAccount->getHasAuthentication(TblIdentification::NAME_CREDENTIAL)) {
+                        $countArray['pwOnly']++;
                     } else {
                         $countArray['studentCustody']++;
                     }
@@ -192,7 +196,8 @@ class Session extends Extension implements IModuleInterface
             .new Bold('Token und App: ').$countArray['combinedLogin'].$space
             .new Bold('Token: ').$countArray['tokenLogin'].$space
             .new Bold('App: ').$countArray['combinedLogin'].$space
-            .new Bold('Gesamt: ').$countArray['combinedLogin']+$countArray['tokenLogin']+$countArray['combinedLogin'].$space
+            .new Bold('PW Only: ').$countArray['pwOnly'].$space
+            .new Bold('Gesamt: ').$countArray['combinedLogin']+$countArray['tokenLogin']+$countArray['appLogin']+$countArray['pwOnly'].$space
             .new Bold('Schüler/Eltern: ').$countArray['studentCustody']
         );
 
