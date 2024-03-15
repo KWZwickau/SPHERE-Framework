@@ -558,16 +558,20 @@ class Service extends ServiceTask
     public function checkFormTestGrades($Data, TblTest $tblTest, TblYear $tblYear, TblSubject $tblSubject, $DivisionCourseId, $Filter)
     {
         $errorList = array();
+        $attendanceList = array();
         if ($Data) {
             foreach ($Data as $personId => $item) {
                 if (($tblPerson = Person::useService()->getPersonById($personId))) {
                     $comment = trim($item['Comment']);
-                    $grade = str_replace(',', '.', trim($item['Grade']));
+                    $grade = isset($item['Grade']) ? str_replace(',', '.', trim($item['Grade'])) : null;
                     $isNotAttendance = isset($item['Attendance']);
                     $date = !empty($item['Date']) ? new DateTime($item['Date']) : null;
 
                     $hasGradeValue = $grade === '0' || (!empty($grade) && $grade != -1);
                     $gradeValue = $isNotAttendance ? null : $grade;
+                    if ($isNotAttendance) {
+                        $attendanceList[$personId] = 1;
+                    }
 
                     // Bewertungssystem Pattern prüfen
                     if ($hasGradeValue
@@ -596,7 +600,7 @@ class Service extends ServiceTask
             }
         }
 
-        return empty($errorList) ? false : Grade::useFrontend()->formTestGrades($tblTest, $tblYear, $tblSubject, $DivisionCourseId, $Filter, false, $errorList);
+        return empty($errorList) ? false : Grade::useFrontend()->formTestGrades($tblTest, $tblYear, $tblSubject, $DivisionCourseId, $Filter, false, $errorList, $attendanceList);
     }
 
     /**
