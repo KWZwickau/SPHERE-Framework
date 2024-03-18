@@ -294,8 +294,9 @@ class Frontend extends Extension implements IFrontendInterface
                                 ));
                             $hasOnlineContactsOptions = true;
                         } else {
+                            $isEmergencyContact = isset($phoneEmergencyList[$phoneIdAndTypeId]);
                             $tblToPerson = false;
-                            $panelType = Panel::PANEL_TYPE_DEFAULT;
+                            $panelType = $isEmergencyContact ? Panel::PANEL_TYPE_DANGER : Panel::PANEL_TYPE_DEFAULT;
                             $options = '';
                             $hasOnlineContactsOptions = false;
                         }
