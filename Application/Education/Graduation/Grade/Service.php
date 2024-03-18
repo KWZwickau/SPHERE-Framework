@@ -618,15 +618,15 @@ class Service extends ServiceTask
 
     /**
      * @param float $sum
-     * @param int $count
+     * @param float $count
      * @param int $precision
      *
      * @return string
      */
-    public function getGradeAverage(float $sum, int $count, int $precision = 2): string
+    public function getGradeAverage(float $sum, float $count, int $precision = 2): string
     {
         if ($count > 0) {
-            return str_replace('.', ',', round($sum / $count, $precision));
+            return str_replace('.', ',', round(fdiv($sum, $count), $precision));
         }
         return '';
     }
