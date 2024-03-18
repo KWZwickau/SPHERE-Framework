@@ -2041,18 +2041,17 @@ class Frontend extends Extension implements IFrontendInterface
 
             $countAddresses = 0;
             $count = 0;
-            $tblPersonList = false;
+            $tblPersonList = array();
             $tbSerialPersonList = SerialLetter::useService()->getSerialPersonBySerialLetter($tblSerialLetter);
-            if ($tbSerialPersonList) {
+            if($tbSerialPersonList) {
                 /** @var TblSerialPerson $tbSerialPerson */
-                foreach ($tbSerialPersonList as $tbSerialPerson) {
-                    if ($tbSerialPerson->getServiceTblPerson()) {
+                foreach($tbSerialPersonList as $tbSerialPerson) {
+                    if($tbSerialPerson->getServiceTblPerson()) {
                         $tblPersonList[] = $tbSerialPerson->getServiceTblPerson();
                     }
                 }
             }
-
-            if ($tblPersonList) {
+            if(!empty($tblPersonList)) {
                 $tblPersonList = $this->getSorter($tblPersonList)->sortObjectBy('LastFirstName', new StringGermanOrderSorter());
                 /** @var TblPerson $tblPerson */
                 foreach ($tblPersonList as $tblPerson) {
@@ -2296,7 +2295,7 @@ class Frontend extends Extension implements IFrontendInterface
 
             $PanelContent = array('Name: '.$tblSerialLetter->getName().' '.new Small(new Muted($tblSerialLetter->getDescription())),
                 'Anzahl Anschreiben: '.$SerialLetterCount,);
-            $PanelFooter = new PullRight(new Label('Enthält '.( $tblPersonList === false ? 0 : count($tblPersonList) )
+            $PanelFooter = new PullRight(new Label('Enthält '.( empty($tblPersonList) ? 0 : count($tblPersonList) )
                     .' Person(en)', Label::LABEL_TYPE_INFO)
             );
 
