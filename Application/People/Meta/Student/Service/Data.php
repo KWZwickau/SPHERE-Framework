@@ -634,7 +634,7 @@ class Data extends Support
         );
     }
 
-    /**
+    /** @deprecated
      * @param null|TblSiblingRank $tblSiblingRank
      *
      * @return TblStudentBilling
@@ -653,7 +653,7 @@ class Data extends Support
         return $Entity;
     }
 
-    /**
+    /** @deprecated
      * @param TblStudentBilling   $tblStudentBilling
      * @param null|TblSiblingRank $tblSiblingRank
      *
