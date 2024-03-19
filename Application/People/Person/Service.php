@@ -545,6 +545,31 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblPerson $tblPerson
+     * @param $Salutation
+     * @param $Title
+     * @param $FirstName
+     * @param $SecondName
+     * @param $CallName
+     * @param $LastName
+     * @param string $BirthName
+     *
+     * @return bool
+     */
+    public function updatePerson(TblPerson $tblPerson,
+        $Salutation,
+        $Title,
+        $FirstName,
+        $SecondName,
+        $CallName,
+        $LastName,
+        string $BirthName = ''
+    ): bool {
+        return (new Data($this->getBinding()))->updatePerson($tblPerson, $Salutation, $Title, $FirstName, $SecondName,
+            $CallName, $LastName, $BirthName);
+    }
+
+    /**
      * @param array $ProcessList
      */
     public function updatePersonAnonymousBulk($ProcessList = array())

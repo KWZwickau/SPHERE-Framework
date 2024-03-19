@@ -6,6 +6,8 @@ use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Corporation\Company\Service\Setup;
 use SPHERE\Application\Corporation\Group\Group;
 use SPHERE\Application\Corporation\Group\Service\Entity\TblGroup;
+use SPHERE\Application\People\Relationship\Relationship;
+use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\System\Database\Binding\AbstractService;
 
 /**
@@ -272,5 +274,30 @@ class Service extends AbstractService
                 Group::useService()->removeMember($tblMember);
         }
         return (new Data($this->getBinding()))->removeCompany($tblCompany);
+    }
+
+    /**
+     * @param $CompanyId
+     * @param $PersonId
+     * @param $Data
+     *
+     * @return false|Form
+     */
+    public function checkCompanyContact($CompanyId, $PersonId, $Data): Form|bool
+    {
+        $error = false;
+        $form = Company::useFrontend()->getCompanyContactForm($CompanyId, $PersonId, isset($Data['Search']) ? trim($Data['Search']) : '');
+
+        if (isset($Data['LastName']) && empty($Data['LastName'])) {
+            $form->setError('Data[LastName]', 'Bitte geben Sie einen Namen an!');
+            $error = true;
+        }
+
+        if (isset($Data['TypeId']) && !Relationship::useService()->getTypeById($Data['TypeId'])) {
+            $form->setError('Data[TypeId]', 'Bitte geben Sie eine Beziehung an!');
+            $error = true;
+        }
+
+        return $error ? $form : false;
     }
 }
