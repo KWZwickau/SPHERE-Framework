@@ -293,7 +293,9 @@ class PasswordChange extends AbstractDocument
     private function getFirstLetterContent($Height = '500px')
     {
         $Live = 'https://schulsoftware.schule';
-        if (GatekeeperConsumer::useService()->getConsumerBySessionIsConsumerType(TblConsumer::TYPE_BERLIN)) {
+
+        $tblConsumer = GatekeeperConsumer::useService()->getConsumerBySession();
+        if ($tblConsumer && $tblConsumer->getType() == TblConsumer::TYPE_BERLIN && $tblConsumer->getAcronym() !== 'SSB') {
             $Live = 'https://ekbo.schulsoftware.schule';
         }
 
