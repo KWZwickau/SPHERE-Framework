@@ -195,7 +195,9 @@ class Replacement extends Extension implements IModuleInterface
     {
 
         $Payload014 = new FilePointer('csv');
-        $Payload014->setFileContent(file_get_contents($File->getRealPath()));
+        $fileContent = file_get_contents($File->getRealPath());
+        $Payload014->setFileContentWithEncoding($fileContent);
+//        $Payload014->setFileContent(file_get_contents($File->getRealPath()));
         $Payload014->saveFile();
 
         $Gateway014 = new ReplacementGPU014($Payload014->getRealPath(), $Data);

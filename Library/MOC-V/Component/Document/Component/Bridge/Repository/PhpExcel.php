@@ -4,6 +4,7 @@ namespace MOC\V\Component\Document\Component\Bridge\Repository;
 use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel\Cell;
 use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel\Style;
 use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel\Worksheet;
+use PhpOffice\PhpSpreadsheet\Cell\CellAddress;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Cell\DataType;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -74,7 +75,7 @@ class PhpExcel extends Worksheet
     public function getValue(Cell $Cell)
     {
 
-        $Value = $this->Source->getActiveSheet()->getCellByColumnAndRow($Cell->getColumn(), $Cell->getRow())->getValue();
+        $Value = $this->Source->getActiveSheet()->getCell(new CellAddress($Cell->getCellName()))->getValue();
         // NULL durch leeren string ersetzen, da es ein unerwarteter Typ ist
         return $Value ?? '';
     }

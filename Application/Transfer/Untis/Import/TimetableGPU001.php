@@ -49,6 +49,7 @@ class TimetableGPU001 extends AbstractConverter
      */
     public function __construct($File, $Data)
     {
+
         $this->loadFile($File);
         $DateFrom = new DateTime($Data['DateFrom']);
         $this->tblYearList = Term::useService()->getYearAllByDate($DateFrom);

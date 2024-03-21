@@ -157,6 +157,9 @@ class Frontend extends Extension implements IFrontendInterface
             $Extension = strtolower($File->getClientOriginalExtension());
 
             $Payload = new FilePointer($Extension);
+            // ToDO eventuell wird hier auch das encoding benötigt.
+//            $fileContent = file_get_contents($File->getRealPath());
+//            $Payload->setFileContentWithEncoding($fileContent);
             $Payload->setFileContent(file_get_contents($File->getRealPath()));
             $Payload->saveFile();
 
