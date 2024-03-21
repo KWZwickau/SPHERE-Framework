@@ -219,11 +219,11 @@ class Timetable extends Extension implements IModuleInterface
     {
 
         $Payload001 = new FilePointer('csv');
-        $Payload001->setFileContent(file_get_contents($File->getRealPath()));
-        $Payload001->saveFile();
 
-//        $WeekImport = Timetable::useService()->getWeekDataFromFile($File);
-//        $WeekImport = array();
+        $fileContent = file_get_contents($File->getRealPath());
+        $Payload001->setFileContentWithEncoding($fileContent);
+//        $Payload001->setFileContent($fileContent);
+        $Payload001->saveFile();
 
         $Gateway001 = new TimetableGPU001($Payload001->getRealPath(), $Data);
         $WarningList = $Gateway001->getWarningList();
