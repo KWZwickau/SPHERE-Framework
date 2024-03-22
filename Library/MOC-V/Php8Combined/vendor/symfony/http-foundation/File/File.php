@@ -112,6 +112,17 @@ class File extends \SplFileInfo
         return $content;
     }
 
+    /**
+     * @return void
+     */
+    public function convertCharSet(): void
+    {
+
+        $FileContent = $this->getContent();
+        $FileContent = mb_convert_encoding($FileContent, 'UTF-8', 'CP1252');
+        file_put_contents($this->getPathname(), $FileContent);
+    }
+
     protected function getTargetFile(string $directory, string $name = null): self
     {
         if (!is_dir($directory)) {
