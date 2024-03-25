@@ -303,7 +303,7 @@ class FrontendTeacher extends FrontendSubjectTable
 
         $tblSubjectList = Subject::useService()->getSubjectAll();
 
-        $tblYearList = false;
+        $tblYearList = array();
         $tblSelectedYear = false;
         if (isset($Filter['Year'])) {
             if ($Filter['Year'] == -1) {
@@ -371,7 +371,7 @@ class FrontendTeacher extends FrontendSubjectTable
      */
     public function loadCheckCoursesContent($Filter, $PersonId, $Data): string
     {
-        $tblYearList = false;
+        $tblYearList = array();
         if (isset($Filter['Year'])) {
             if ($Filter['Year'] == -1) {
                 $tblYearList = Term::useService()->getYearByNow();
