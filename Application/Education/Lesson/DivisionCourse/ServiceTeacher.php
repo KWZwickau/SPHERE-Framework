@@ -54,7 +54,7 @@ abstract class ServiceTeacher extends ServiceSubjectTable
             return new Danger('Lehrer nicht gefunden', new Exclamation());
         }
 
-        $tblYearList = false;
+        $tblYearList = array();
         if (isset($Filter['Year'])) {
             if ($Filter['Year'] == -1) {
                 $tblYearList = Term::useService()->getYearByNow();
