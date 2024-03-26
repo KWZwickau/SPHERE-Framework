@@ -113,13 +113,16 @@ class File extends \SplFileInfo
     }
 
     /**
+     * @param string $From
+     * @param string $To
+     *
      * @return void
      */
-    public function convertCharSet(): void
+    public function convertCharSet(string $From = 'CP1252', string $To = 'UTF-8'): void
     {
 
         $FileContent = $this->getContent();
-        $FileContent = mb_convert_encoding($FileContent, 'UTF-8', 'CP1252');
+        $FileContent = mb_convert_encoding($FileContent, $To, $From);
         file_put_contents($this->getPathname(), $FileContent);
     }
 
