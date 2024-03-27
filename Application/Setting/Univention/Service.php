@@ -214,6 +214,13 @@ class Service extends AbstractService
                         $UploadItem['schoolCode'] = $tblSchool->getSchoolCode();
                     }
                 }
+                // fallback für fehlende Zuweisungen (Schüler / Mitarbeiter / Lehrer ohne Lehrauftrag etc.)
+                $tblSchoolMandantList = School::useService()->getSchoolAll();
+                if($UploadItem['schoolCode'] == '' && $tblSchoolMandantList && count($tblSchoolMandantList) == 1){
+                    $tblSchoolMandant = current($tblSchoolMandantList);{
+                        $UploadItem['schoolCode'] = $tblSchoolMandant->getSchoolCode();
+                    }
+                }
                 // Rollen
                 $tblGroupList = Group::useService()->getGroupAllByPerson($tblPerson);
                 $groups = array();
