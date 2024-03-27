@@ -950,7 +950,7 @@ class Frontend extends Extension implements IFrontendInterface
             || empty($Account['school_classes'])
             || empty($Account['roles'])
             || empty($Account['schools'])
-            || $Account['schoolCode'] == ''
+//            || $Account['schoolCode'] == ''
         ) {
 
             $tblMember = false;
@@ -1070,12 +1070,12 @@ class Frontend extends Extension implements IFrontendInterface
                                 $KeyReplace = 'Klasse:';
                                 $MouseOver = new ToolTip(new InfoIcon(), 'Person muss mindestens einer Klasse zugewiesen sein');
                             break;
-                            case 'schoolCode':
-                                $KeyReplace = 'DISCH:';
-                                $MouseOver = (new ToolTip(new InfoIcon(), htmlspecialchars(
-                                    'Dienststellenschlüssel nicht zugeordnet <br />'
-                                    .'(Lehrauftrag / Schulverlauf / Mandant / Schule)')))->enableHtml();
-                            break;
+//                            case 'schoolCode':
+//                                $KeyReplace = 'DISCH:';
+//                                $MouseOver = (new ToolTip(new InfoIcon(), htmlspecialchars(
+//                                    'Dienststellenschlüssel nicht zugeordnet <br />'
+//                                    .'(Lehrauftrag / Schulverlauf / Mandant / Schule)')))->enableHtml();
+//                            break;
                         }
 
                         if(empty($Value)){
@@ -1087,6 +1087,8 @@ class Frontend extends Extension implements IFrontendInterface
                                 case 'recoveryMail':
                                     // Schulart ist optional (Lehrer etc.)
                                 case 'school_type':
+                                    // Temporär deaktiviert
+                                case 'schoolCode':
                                 // no log
                                 break;
 
