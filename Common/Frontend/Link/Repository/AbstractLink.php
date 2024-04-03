@@ -84,7 +84,7 @@ abstract class AbstractLink extends Extension implements ILinkInterface
             $this->Data = array();
         }
 
-        if (false !== strpos($Path, '\\')) {
+        if (false !== strpos($Path ?? '', '\\')) {
             $this->Path = new Route($Path);
         } else {
             $this->Path = $Path;

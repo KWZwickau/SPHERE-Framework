@@ -197,7 +197,7 @@ class FrontendBasic extends FrontendReadOnly
     public static function getSimilarPersonMessage($countSimilarPerson, $name, $hash) {
         if ($countSimilarPerson > 0) {
             return new Danger(new Bold($countSimilarPerson . ' Personen mit ähnlichem Namen gefunden. Ist diese Person schon angelegt?')
-                . new Link('Zur Liste springen', null, null, array(), false, $hash)
+                . new Link('Zur Liste springen', '', null, array(), false, $hash)
             );
         } else {
             return new \SPHERE\Common\Frontend\Message\Repository\Success('Keine Personen zu ' . $name . ' gefunden');
