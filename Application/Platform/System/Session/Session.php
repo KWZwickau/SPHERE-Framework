@@ -149,8 +149,8 @@ class Session extends Extension implements IModuleInterface
                             . (Account::useService()->getHasAuthenticationByAccountAndIdentificationName($tblAccount, TblIdentification::NAME_AUTHENTICATOR_APP) ? new PhoneMobil() : ''),
                             'Mitarbeiter'
                         );
-                    } elseif (Account::useService()->getHasAuthenticationByAccountAndIdentificationName($tblAccount, TblIdentification::NAME_USER_CREDENTIAL)) {
-                        $AccountType = new ToolTip('M PW <span hidden>'.$lastActivity.'</span>&nbsp;' . new Person(), 'Mitarbeiter PW Login');;
+                    } elseif (Account::useService()->getHasAuthenticationByAccountAndIdentificationName($tblAccount, TblIdentification::NAME_CREDENTIAL)) {
+                        $AccountType = new ToolTip('M PW <span hidden>'.$lastActivity.'</span>&nbsp;' . new Person(), 'Mitarbeiter PW Login');
                     } elseif (Account::useService()->getHasAuthenticationByAccountAndIdentificationName($tblAccount, TblIdentification::NAME_USER_CREDENTIAL)) {
                         $AccountType = new ToolTip('S <span hidden>'.$lastActivity.'</span>&nbsp;' . new Family(), 'Sorgeberechtigte / Schüler');
                     } else {
