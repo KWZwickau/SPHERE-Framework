@@ -65,7 +65,7 @@ class Service extends AbstractService
     {
 
         // Sanitize Route
-        $Route = '/'.trim($Route, '/');
+        $Route = '/'.trim($Route ?? '', '/');
 
         // Cache
         $this->hydrateAuthorization();
