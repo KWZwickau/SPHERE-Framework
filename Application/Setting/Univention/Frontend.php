@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\Setting\Univention;
 
+use MOC\V\Core\FileSystem\FileSystem;
 use SPHERE\Application\Api\Setting\Univention\ApiUnivention;
 use SPHERE\Application\Api\Setting\Univention\ApiWorkGroup;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
@@ -22,12 +23,15 @@ use SPHERE\Common\Frontend\Icon\Repository\Person;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Upload;
+use SPHERE\Common\Frontend\Icon\Repository\Warning as WarningIcon;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Accordion;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Listing;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\PullClear;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
+use SPHERE\Common\Frontend\Layout\Repository\Thumbnail;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
@@ -38,6 +42,7 @@ use SPHERE\Common\Frontend\Link\Repository\Danger;
 use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
+use SPHERE\Common\Frontend\Message\Repository\Info;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
@@ -50,6 +55,7 @@ use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\Success as SuccessText;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
+use SPHERE\Common\Frontend\Text\Repository\Warning as WarningText;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 
@@ -68,7 +74,99 @@ class Frontend extends Extension implements IFrontendInterface
     {
         $Stage = new Stage('UCS', '');
 
-        //ToDO Erklärung der Schnittstelle? + Vorraussetzungen
+        $Stage->setContent(
+            new Layout(new LayoutGroup(array(
+                new LayoutRow(array(
+//                    new LayoutColumn('', 3),
+                    new LayoutColumn(
+                        new Panel('Voraussetzungen:',
+                        new Info(new Bold('Schüler:')
+                            .
+                            '<ul>
+                                <li>'.new Bold('Personengruppe').' Schüler</li>
+                                <ul>
+                                    <li>Personen => Schüler Datenblatt => Grunddaten</li>
+                                    <li>Schüler muss sich in der '.new Bold('Personengruppe Schüler').' befinden</li>
+                                </ul>
+                                <li>'.new Bold('Klasse').', Schulart, Schule</li>
+                                <ul>
+                                    <li>Bildung => Unterricht => Kurs</li>
+                                    <li>Schüler muss im aktuellen/ausgewähltem Schuljahr einer Klasse, Schulart und Schule zugeordnet sein</li>
+                                </ul>
+                                <li>'.new Bold('Benutzeraccounts').' anlegen</li>
+                                <ul>
+                                    <li>Einstellungen => Schüler und Eltern Zugang</li>
+                                    <li>Ist dann der Login-Benutzername für das DLLP</li>
+                                </ul>
+                                <li>Schulische '.new Bold('E-Mail-Adressen').'</li>
+                                <ul>
+                                    <li>Personen => Schüler Datenblatt => E-Mail-Adressen</li>
+                                    <li>Pflichtfeld kann durch den Support für Schüler pro Schulart deaktiviert werden</li>
+                                </ul>
+                                <li>Passwort zurücksetzen '.new Bold('E-Mail-Adressen').'</li>
+                                <ul>
+                                    <li>Personen => Schüler Datenblatt => E-Mail-Adressen</li>
+                                    <li>Optional für Schüler</li>
+                                    <li>'.new WarningText(new WarningIcon()).' Besonderheit bei OX und MS365</li>
+                                </ul>
+                                <li>'.new Bold('Dienststellenschlüssel (DISCH)').'</li>
+                                <ul>
+                                    <li>Einstellungen => Mandant => Schulen</li>
+                                    <li>Automatische Zuordnung DISCH zu Schüler über deren Schule</li>
+                                    <li>'.new WarningText(new WarningIcon()).' Besitzt ein Schulträger mehrere Schulen (mehrere DISCH) und ist bei einem Schüler keine Schule hinterlegt,
+                                     wird eine beliebige der hinterlegten DISCH verwendet</li>
+                                 </ul>
+                             </ul>')
+                            .new Info(new Bold('Mitarbeiter / Lehrer:')
+                             .'<ul>
+                                <li>'.new Bold('Personengruppe').' Mitarbeiter / Lehrer</li>
+                                <ul>
+                                    <li>Personen => Person Datenblatt => Grunddaten</li>
+                                    <li>Person muss sich in der Personengruppe Mitarbeiter befinden und kann zusätzlich auch in der Personengruppe Lehrer sein</li>
+                                </ul>
+                                <li>'.new Bold('Lehraufträge').'</li>
+                                <ul>
+                                    <li>Bildung => Unterricht => Lehrauftrag</li>
+                                    <li>Für die Übertragung ins DLLP wird nur die Klasse aber nicht das Fach verwendet</li>
+                                </ul>
+                                <li>'.new Bold('Benutzeraccounts').' anlegen</li>
+                                <ul>
+                                    <li>Einstellungen => Benutzerverwaltung => Benutzerkonten</li>
+                                    <li>Ist dann der Login-Benutzername für das DLLP</li>
+                                    <li>Benutzeraccounts dürfen keine Umlaute enthalten (Prüfung bestehender Accounts)</li>
+                                </ul>
+                                <li>Schulische '.new Bold('E-Mail-Adressen').'</li>
+                                <ul>
+                                    <li>Personen => Person Datenblatt => E-Mail-Adressen</li>
+                                    <li>Pflichtfeld für Mitarbeiter und Lehrer</li>
+                                </ul>
+                                <li>Passwort zurücksetzen '.new Bold('E-Mail-Adressen').'</li>
+                                <ul>
+                                    <li>Personen => Person Datenblatt => E-Mail-Adressen</li>
+                                    <li>Optional für Mitarbeiter und Lehrer</li>
+                                    <li>'.new WarningText(new WarningIcon()).' Besonderheit bei OX und MS365</li>
+                                </ul>
+                                <li>'.new Bold('Dienststellenschlüssel (DISCH)').'</li>
+                                <ul>
+                                    <li>Einstellungen => Mandant => Schulen</li>
+                                    <li>Automatische Zuordnung DISCH zu Lehrer über deren Lehraufträge</li>
+                                    <li>'.new WarningText(new WarningIcon()).' Besitzt ein Schulträger mehrere Schulen (mehrere DISCH) und ist bei einem Lehrer kein Lehrauftrag
+                                     hinterlegt bzw. handelt es sich nur um einen Mitarbeiter, wird eine beliebige der hinterlegten DISCH verwendet</li>
+                                 </ul>
+                            </ul>')
+                        , Panel::PANEL_TYPE_DEFAULT)
+                    , 10),
+                    new LayoutColumn(new Container(new Bold('Detailliertere Informationen:')), 2),
+                    new LayoutColumn(
+                        new Link((new Thumbnail(
+                            FileSystem::getFileLoader('/Common/Style/Resource/SSWInfo.png')
+                            , 'Schnittstelle Schulsoftware zu DLLP / UCS'))->setPictureHeight()
+                            , '/Api/Document/Standard/Manual/Create/Pdf', null, array('Select' => 'SSW_UCS_DLLP')
+                        )
+                    , 2),
+                ))
+            )))
+        );
 
         return $Stage;
     }
@@ -950,10 +1048,10 @@ class Frontend extends Extension implements IFrontendInterface
             || empty($Account['school_classes'])
             || empty($Account['roles'])
             || empty($Account['schools'])
-//            || $Account['schoolCode'] == ''
+            || $Account['schoolCode'] == ''
         ) {
 
-            $tblMember = false;
+            $tblMemberStudent = false;
             $tblPerson = false;
 
             $tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_STUDENT);
@@ -963,7 +1061,7 @@ class Frontend extends Extension implements IFrontendInterface
             if(($tblAccount = Account::useService()->getAccountById($Account['record_uid']))){
                 if(($tblPersonList = Account::useService()->getPersonAllByAccount($tblAccount))){
                     $tblPerson = current($tblPersonList);
-                    $tblMember = Group::useService()->getMemberByPersonAndGroup($tblPerson, $tblGroup);
+                    $tblMemberStudent = Group::useService()->getMemberByPersonAndGroup($tblPerson, $tblGroup);
                 }
             }
             if($tblPerson){
@@ -991,7 +1089,7 @@ class Frontend extends Extension implements IFrontendInterface
                         case 'roles':
                             $KeyReplace = 'Rolle:';
                             // sich ausschließende Gruppen vergeben, auch eine Fehlermeldung (roles wird im service geleert)
-                            if($tblMember
+                            if($tblMemberStudent
                             && (Group::useService()->getMemberByPersonAndGroup($tblPerson, $tblGroupStaff)
                               || Group::useService()->getMemberByPersonAndGroup($tblPerson, $tblGroupTeacher)
                                 )){
@@ -1025,12 +1123,12 @@ class Frontend extends Extension implements IFrontendInterface
 
                     }
                     // Sonderregelung Schüler ohne Klasse ist ein Fehler Lehrer/Mitarbeiter nicht
-                    if($tblMember && $Key == 'school_classes'){
+                    if($tblMemberStudent && $Key == 'school_classes'){
                         $KeyReplace = 'Klassen:';
                         $MouseOver = (new ToolTip(new InfoIcon(), htmlspecialchars(
 //                            new DangerText('Fehler:').'<br />'.
                             'Schüler ist keiner Klasse zugewiesen')))->enableHtml();
-                    } elseif(!$tblMember && $Key == 'school_classes') {
+                    } elseif(!$tblMemberStudent && $Key == 'school_classes') {
                         continue;
                     }
                     if(empty($Value)){
@@ -1070,12 +1168,12 @@ class Frontend extends Extension implements IFrontendInterface
                                 $KeyReplace = 'Klasse:';
                                 $MouseOver = new ToolTip(new InfoIcon(), 'Person muss mindestens einer Klasse zugewiesen sein');
                             break;
-//                            case 'schoolCode':
-//                                $KeyReplace = 'DISCH:';
-//                                $MouseOver = (new ToolTip(new InfoIcon(), htmlspecialchars(
-//                                    'Dienststellenschlüssel nicht zugeordnet <br />'
-//                                    .'(Lehrauftrag / Schulverlauf / Mandant / Schule)')))->enableHtml();
-//                            break;
+                            case 'schoolCode':
+                                $KeyReplace = 'DISCH:';
+                                $MouseOver = (new ToolTip(new InfoIcon(), htmlspecialchars(
+                                    'Dienststellenschlüssel nicht zugeordnet <br />'
+                                    .'(Lehrauftrag / Schulverlauf / Mandant / Schule)')))->enableHtml();
+                            break;
                         }
 
                         if(empty($Value)){
@@ -1087,8 +1185,8 @@ class Frontend extends Extension implements IFrontendInterface
                                 case 'recoveryMail':
                                     // Schulart ist optional (Lehrer etc.)
                                 case 'school_type':
-                                    // Temporär deaktiviert
-                                case 'schoolCode':
+//                                    // Temporär deaktiviert
+//                                case 'schoolCode':
                                 // no log
                                 break;
 
