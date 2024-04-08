@@ -40,7 +40,7 @@ class EssGsHjTwo extends Certificate
                     ->addElementColumn((new Element\Sample())
                         ->styleTextSize('30px')
                         ->styleHeight('1px')
-                        ->stylePaddingTop('-110px')
+                        ->styleMarginTop('-110px')
                     )
                     ->addElementColumn((new Element())
                         , '25%')

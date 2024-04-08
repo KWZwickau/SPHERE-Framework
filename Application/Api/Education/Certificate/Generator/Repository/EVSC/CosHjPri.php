@@ -18,6 +18,7 @@ class CosHjPri extends Certificate
 {
 
     const TEXT_SIZE = '13px';
+    const TEXT_FAMILY = 'Trebuchet MS';
 
     /**
      * @param TblPerson|null $tblPerson
@@ -75,7 +76,7 @@ class CosHjPri extends Certificate
                                 , '25%')
                             ->addElementColumn((new Element())
                                 ->setContent('FREISTAAT SACHSEN')
-                                ->styleFontFamily('Trebuchet MS')
+                                ->styleFontFamily(self::TEXT_FAMILY)
                                 ->styleTextSize('21px')
                                 ->styleAlignCenter()
                                 ->stylePaddingTop('22px')
@@ -96,7 +97,7 @@ class CosHjPri extends Certificate
                             )
                             ->addElementColumn((new Element())
                                 ->setContent('Evangelische Schule Coswig')
-                                ->styleFontFamily('Trebuchet MS')
+                                ->styleFontFamily(self::TEXT_FAMILY)
                                 ->styleTextSize('21px')
                                 ->styleTextBold()
                                 ->styleAlignCenter()
@@ -119,7 +120,7 @@ class CosHjPri extends Certificate
                         , '25%')
                     ->addElementColumn((new Element())
                         ->setContent('FREISTAAT SACHSEN')
-                        ->styleFontFamily('Trebuchet MS')
+                        ->styleFontFamily(self::TEXT_FAMILY)
                         ->styleTextSize('21px')
                         ->styleAlignCenter()
                         ->stylePaddingTop('22px')
@@ -131,7 +132,7 @@ class CosHjPri extends Certificate
                 (new Section())
                     ->addElementColumn((new Element())
                         ->setContent('Evangelische Schule Coswig')
-                        ->styleFontFamily('Trebuchet MS')
+                        ->styleFontFamily(self::TEXT_FAMILY)
                         ->styleTextSize('21px')
                         ->styleTextBold()
                         ->styleAlignCenter()
@@ -148,13 +149,13 @@ class CosHjPri extends Certificate
                         ->addSectionList($Header)
                         ->addElement((new Element())
                             ->setContent('staatlich anerkannte Ersatzschule')
-                            ->styleFontFamily('Trebuchet MS')
+                            ->styleFontFamily(self::TEXT_FAMILY)
                             ->styleTextSize('16px')
                             ->styleAlignCenter()
                         )
                         ->addElement((new Element())
                             ->setContent($title)
-                            ->styleFontFamily('Trebuchet MS')
+                            ->styleFontFamily(self::TEXT_FAMILY)
                             ->styleTextSize('20px')
                             ->styleTextBold()
                             ->styleAlignCenter()
@@ -165,27 +166,27 @@ class CosHjPri extends Certificate
                                 ->addSection((new Section())
                                     ->addElementColumn((new Element())
                                         ->setContent('Klasse')
-                                        ->styleFontFamily('Trebuchet MS')
+                                        ->styleFontFamily(self::TEXT_FAMILY)
                                         ->styleTextSize(self::TEXT_SIZE)
                                         , '7%')
                                     ->addElementColumn((new Element())
                                         ->setContent('{{ Content.P' . $personId . '.Division.Data.Name }}')
-                                        ->styleFontFamily('Trebuchet MS')
+                                        ->styleFontFamily(self::TEXT_FAMILY)
                                         ->styleAlignCenter()
                                         ->styleTextSize(self::TEXT_SIZE)
                                         , '10%')
                                     ->addElementColumn((new Element())
-                                        ->setContent('&nbsp;')
+                                        ->setContent('')
                                         ->styleTextSize(self::TEXT_SIZE)
                                         , '57%')
                                     ->addElementColumn((new Element())
                                         ->setContent($term)
-                                        ->styleFontFamily('Trebuchet MS')
+                                        ->styleFontFamily(self::TEXT_FAMILY)
                                         ->styleTextSize(self::TEXT_SIZE)
                                         , '16%')
                                     ->addElementColumn((new Element())
                                         ->setContent('{{ Content.P' . $personId . '.Division.Data.Year }}')
-                                        ->styleFontFamily('Trebuchet MS')
+                                        ->styleFontFamily(self::TEXT_FAMILY)
                                         ->styleAlignCenter()
                                         ->styleTextSize(self::TEXT_SIZE)
                                         , '10%')
@@ -197,17 +198,17 @@ class CosHjPri extends Certificate
                                 ->addSection((new Section())
                                     ->addElementColumn((new Element())
                                         ->setContent('Vor- und Zuname:')
-                                        ->styleFontFamily('Trebuchet MS')
+                                        ->styleFontFamily(self::TEXT_FAMILY)
                                         ->styleTextSize(self::TEXT_SIZE)
                                         , '18%')
                                     ->addElementColumn((new Element())
                                         ->setContent('{{ Content.P' . $personId . '.Person.Data.Name.First }}
                                           {{ Content.P' . $personId . '.Person.Data.Name.Last }}')
-                                        ->styleFontFamily('Trebuchet MS')
+                                        ->styleFontFamily(self::TEXT_FAMILY)
                                         ->styleTextSize(self::TEXT_SIZE)
                                         , '64%')
                                     ->addElementColumn((new Element())
-                                        ->setContent('&nbsp;')
+                                        ->setContent('')
                                         ->styleTextSize(self::TEXT_SIZE)
                                         , '18%')
                                 )->styleMarginTop('35px')
@@ -220,7 +221,7 @@ class CosHjPri extends Certificate
                             ->addSliceColumn((new Slice())
                                 ->addElement((new Element())
                                     ->setContent('Leistung in den einzelnen Fächern')
-                                    ->styleFontFamily('Trebuchet MS')
+                                    ->styleFontFamily(self::TEXT_FAMILY)
                                     ->styleTextBold()
                                     ->styleTextItalic()
                                     ->styleMarginTop('30px')
@@ -233,7 +234,7 @@ class CosHjPri extends Certificate
                         )
                         ->addElement((new Element())
                             ->setContent('Bemerkungen:')
-                            ->styleFontFamily('Trebuchet MS')
+                            ->styleFontFamily(self::TEXT_FAMILY)
                             ->styleTextItalic()
                             ->styleTextSize(self::TEXT_SIZE)
                         )
@@ -244,9 +245,9 @@ class CosHjPri extends Certificate
                                         ->setContent('{% if(Content.P' . $personId . '.Input.Remark is not empty) %}
                                                     {{ Content.P' . $personId . '.Input.Remark|nl2br }}
                                                 {% else %}
-                                                    &nbsp;
+                                                    
                                                 {% endif %}')
-                                        ->styleFontFamily('Trebuchet MS')
+                                        ->styleFontFamily(self::TEXT_FAMILY)
                                         ->styleLineHeight('85%')
                                         ->styleTextSize(self::TEXT_SIZE)
                                         , '85%')
@@ -256,32 +257,32 @@ class CosHjPri extends Certificate
                         ->addSection((new Section())
                             ->addElementColumn((new Element())
                                 ->setContent('Fehltage entschuldigt:')
-                                ->styleFontFamily('Trebuchet MS')
+                                ->styleFontFamily(self::TEXT_FAMILY)
                                 ->styleTextSize(self::TEXT_SIZE)
                                 , '22%')
                             ->addElementColumn((new Element())
                                 ->setContent('{% if(Content.P' . $personId . '.Input.Missing is not empty) %}
                                             {{ Content.P' . $personId . '.Input.Missing }}
                                         {% else %}
-                                            &nbsp;
+                                            
                                         {% endif %}')
-                                ->styleFontFamily('Trebuchet MS')
+                                ->styleFontFamily(self::TEXT_FAMILY)
                                 ->styleTextSize(self::TEXT_SIZE)
                                 , '7%')
                             ->addElementColumn((new Element())
                                 , '5%')
                             ->addElementColumn((new Element())
                                 ->setContent('unentschuldigt:')
-                                ->styleFontFamily('Trebuchet MS')
+                                ->styleFontFamily(self::TEXT_FAMILY)
                                 ->styleTextSize(self::TEXT_SIZE)
                                 , '15%')
                             ->addElementColumn((new Element())
                                 ->setContent('{% if(Content.P' . $personId . '.Input.Bad.Missing is not empty) %}
                                             {{ Content.P' . $personId . '.Input.Bad.Missing }}
                                         {% else %}
-                                            &nbsp;
+                                            
                                         {% endif %}')
-                                ->styleFontFamily('Trebuchet MS')
+                                ->styleFontFamily(self::TEXT_FAMILY)
                                 ->styleTextSize(self::TEXT_SIZE)
                                 , '7%')
                             ->addElementColumn((new Element())
@@ -292,16 +293,17 @@ class CosHjPri extends Certificate
                                 ->addSection((new Section())
                                     ->addElementColumn((new Element())
                                         ->setContent('Datum:')
-                                        ->styleFontFamily('Trebuchet MS')
+                                        ->styleFontFamily(self::TEXT_FAMILY)
                                         ->styleTextSize(self::TEXT_SIZE)
                                         , '7%')
                                     ->addElementColumn((new Element())
                                         ->setContent('{% if(Content.P' . $personId . '.Input.Date is not empty) %}
                                                 {{ Content.P' . $personId . '.Input.Date }}
                                             {% else %}
-                                                &nbsp;
+                                                
                                             {% endif %}')
-                                        ->styleFontFamily('Trebuchet MS')
+                                        ->styleFontFamily(self::TEXT_FAMILY)
+                                        ->styleHeight('20px')
                                         ->styleBorderBottom()
                                         ->styleAlignCenter()
                                         ->styleTextSize(self::TEXT_SIZE)
@@ -318,11 +320,12 @@ class CosHjPri extends Certificate
                                 ->addSection((new Section())
                                     ->addElementColumn((new Element())
                                         ->setContent('Zur Kenntnis genommen:')
-                                        ->styleFontFamily('Trebuchet MS')
+                                        ->styleFontFamily(self::TEXT_FAMILY)
                                         ->styleTextSize(self::TEXT_SIZE)
                                         , '25%')
                                     ->addElementColumn((new Element())
-                                        ->setContent('&nbsp;')
+                                        ->setContent('')
+                                        ->styleHeight('16px')
                                         ->styleBorderBottom()
                                         ->styleTextSize(self::TEXT_SIZE)
                                         , '75%')
@@ -330,7 +333,7 @@ class CosHjPri extends Certificate
                                 ->addSection((new Section())
                                     ->addElementColumn((new Element())
                                         ->setContent('Personensorgeberechtigte/r')
-                                        ->styleFontFamily('Trebuchet MS')
+                                        ->styleFontFamily(self::TEXT_FAMILY)
                                         ->styleAlignCenter()
                                         ->styleTextSize('11px')
                                         , '100%')
@@ -341,7 +344,7 @@ class CosHjPri extends Certificate
                         ->addSection((new Section())
                             ->addElementColumn((new Element())
                                 ->setContent('Notenstufen 1 = sehr gut, 2 = gut, 3 = befriedigend, 4 = ausreichend, 5 = mangelhaft, 6 = ungenügend')
-                                ->styleFontFamily('Trebuchet MS')
+                                ->styleFontFamily(self::TEXT_FAMILY)
                                 ->styleTextSize('9px')
                                 ->styleMarginTop('20px')
                             )
@@ -368,7 +371,8 @@ class CosHjPri extends Certificate
                         ->addElementColumn((new Element())
                             , '65%')
                         ->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
+                            ->setContent('')
+                            ->styleHeight('16px')
                             ->styleBorderBottom()
                             ->styleAlignCenter()
                             ->styleTextSize(self::TEXT_SIZE)
@@ -386,7 +390,7 @@ class CosHjPri extends Certificate
                                     Klassenleiter/in
                                 {% endif %}
                             ')
-                            ->styleFontFamily('Trebuchet MS')
+                            ->styleFontFamily(self::TEXT_FAMILY)
                             ->styleTextSize('11px')
                             , '35%')
                     )
@@ -397,9 +401,9 @@ class CosHjPri extends Certificate
                             ->setContent('{% if(Content.P' . $personId . '.DivisionTeacher.Name is not empty) %}
                                     {{ Content.P' . $personId . '.DivisionTeacher.Name }}
                                 {% else %}
-                                    &nbsp;
+                                    
                                 {% endif %}')
-                            ->styleFontFamily('Trebuchet MS')
+                            ->styleFontFamily(self::TEXT_FAMILY)
                             ->styleLineHeight('85%')
                             ->styleTextSize('11px')
                             ->stylePaddingBottom('3px')
@@ -412,7 +416,8 @@ class CosHjPri extends Certificate
                 ->addSliceColumn((new Slice())
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
+                            ->setContent('')
+                            ->styleHeight('16px')
                             ->styleBorderBottom()
                             ->styleAlignCenter()
                             ->styleTextSize(self::TEXT_SIZE)
@@ -420,7 +425,8 @@ class CosHjPri extends Certificate
                         ->addElementColumn((new Element())
                             , '30%')
                         ->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
+                            ->setContent('')
+                            ->styleHeight('16px')
                             ->styleBorderBottom()
                             ->styleAlignCenter()
                             ->styleTextSize(self::TEXT_SIZE)
@@ -435,7 +441,7 @@ class CosHjPri extends Certificate
                                         Schulleiter/in
                                     {% endif %}
                                 ')
-                            ->styleFontFamily('Trebuchet MS')
+                            ->styleFontFamily(self::TEXT_FAMILY)
                             ->styleTextSize('11px')
                             , '35%'
                         )
@@ -450,7 +456,7 @@ class CosHjPri extends Certificate
                                         Klassenleiter/in
                                     {% endif %}
                                 ')
-                            ->styleFontFamily('Trebuchet MS')
+                            ->styleFontFamily(self::TEXT_FAMILY)
                             ->styleTextSize('11px')
                             , '35%')
                     )
@@ -459,10 +465,10 @@ class CosHjPri extends Certificate
                             ->setContent('{% if(Content.P' . $personId . '.Headmaster.Name is not empty) %}
                                         {{ Content.P' . $personId . '.Headmaster.Name }}
                                     {% else %}
-                                        &nbsp;
+                                        
                                     {% endif %}'
                             )
-                            ->styleFontFamily('Trebuchet MS')
+                            ->styleFontFamily(self::TEXT_FAMILY)
                             ->styleLineHeight('85%')
                             ->styleTextSize('11px')
                             ->stylePaddingBottom('3px')
@@ -473,9 +479,9 @@ class CosHjPri extends Certificate
                             ->setContent('{% if(Content.P' . $personId . '.DivisionTeacher.Name is not empty) %}
                                         {{ Content.P' . $personId . '.DivisionTeacher.Name }}
                                     {% else %}
-                                        &nbsp;
+                                        
                                     {% endif %}')
-                            ->styleFontFamily('Trebuchet MS')
+                            ->styleFontFamily(self::TEXT_FAMILY)
                             ->styleLineHeight('85%')
                             ->styleTextSize('11px')
                             ->stylePaddingBottom('3px')

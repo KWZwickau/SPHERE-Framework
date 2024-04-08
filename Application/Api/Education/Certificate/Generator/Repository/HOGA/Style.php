@@ -750,8 +750,8 @@ abstract class Style extends Certificate
     public function getCustomSignPartBgj(int $personId, string $marginTop = '15px') : Slice
     {
         $textSize = self::TEXT_SIZE_NORMAL;
-        $paddingTop = '-8px';
-
+//        $paddingTop = '-8px';
+        $lineHeight = '85%';
         return (new Slice())
             ->styleMarginTop($marginTop)
             ->addSection((new Section())
@@ -769,7 +769,8 @@ abstract class Style extends Certificate
             )
             ->addSection((new Section())
                 ->addElementColumn($this->getElement('Ort, Datum', $textSize)
-                    ->stylePaddingTop($paddingTop)
+//                    ->stylePaddingTop($paddingTop)
+                    ->styleLineHeight($lineHeight)
                     ->styleAlignLeft()
                     , '30%')
                 ->addElementColumn((new Element())
@@ -782,7 +783,8 @@ abstract class Style extends Certificate
                         {% endif %}',
                     $textSize
                 )
-                    ->stylePaddingTop($paddingTop)
+//                    ->stylePaddingTop($paddingTop)
+                    ->styleLineHeight($lineHeight)
                     ->styleAlignCenter()
                     , '30%')
             )
@@ -799,7 +801,8 @@ abstract class Style extends Certificate
                         {% endif %}',
                     $textSize
                 )
-                    ->stylePaddingTop($paddingTop)
+//                    ->stylePaddingTop($paddingTop)
+                    ->styleLineHeight($lineHeight)
                     ->styleAlignCenter()
                     , '30%')
             );
@@ -898,6 +901,23 @@ abstract class Style extends Certificate
             ->setContent($content)
             ->styleTextSize($textSize)
             ->styleFontFamily(self::FONT_FAMILY);
+    }
+
+
+
+    /**
+     * @param string $content
+     * @param string $textSize
+     *
+     * @return Element
+     */
+    protected function getElementWithLineHeight(string $content, string $textSize = self::TEXT_SIZE_SMALL, string $lineHeight = '100%') : Element
+    {
+        return (new Element())
+            ->setContent($content)
+            ->styleTextSize($textSize)
+            ->styleFontFamily(self::FONT_FAMILY)
+            ->styleLineHeight($lineHeight);
     }
 
     /**
@@ -1899,11 +1919,9 @@ abstract class Style extends Certificate
     {
         return (new Slice())
             ->addSection((new Section())
-                ->addElementColumn($this->getElement($content, '22px')
+                ->addElementColumn($this->getElementWithLineHeight($content, '22px', self::BACKGROUND_LINE_HEIGHT)
                     ->styleHeight('30px')
                     ->stylePaddingLeft('8px')
-                    ->stylePaddingTop('-8px')   //ToDO später mal kontrollieren wie das aktuell aussieht
-                    ->stylePaddingBottom('8px')
                     ->styleBorderAll('0.5px')
                 )
             );
@@ -2474,8 +2492,10 @@ abstract class Style extends Certificate
      */
     public function getCustomFosSignPart(int $personId, string $marginTop = '25px', string $textSize = self::TEXT_SIZE_LARGE) : Slice
     {
-        $paddingTop = '-8px'; // ToDO Kontrolle wie das jetzt aussieht
-        $paddingTop2 = '-12px';
+//        $paddingTop = '-8px';
+        $lineHeight = '85%';
+//        $paddingTop2 = '-12px';
+        $lineHeight2 = '70%';
 
         return (new Slice())
             ->styleMarginTop($marginTop)
@@ -2492,12 +2512,14 @@ abstract class Style extends Certificate
             )
             ->addSection((new Section())
                 ->addElementColumn($this->getElement('Ort', $textSize)
-                    ->stylePaddingTop($paddingTop)
+//                    ->stylePaddingTop($paddingTop)
+                    ->styleLineHeight($lineHeight)
                     ->styleAlignCenter()
                     , '35%')
                 ->addElementColumn($this->getElement('&nbsp;', $textSize))
                 ->addElementColumn($this->getElement('Datum', $textSize)
-                    ->stylePaddingTop($paddingTop)
+//                    ->stylePaddingTop($paddingTop)
+                    ->styleLineHeight($lineHeight)
                     ->styleAlignCenter()
                     , '35%')
             )
@@ -2522,7 +2544,8 @@ abstract class Style extends Certificate
                             {% endif %}',
                         $textSize
                     )
-                    ->stylePaddingTop($paddingTop)
+//                    ->stylePaddingTop($paddingTop)
+                    ->styleLineHeight($lineHeight)
                     ->styleAlignCenter()
                     , '35%')
                 ->addElementColumn($this->getElement('&nbsp;', $textSize))
@@ -2534,7 +2557,8 @@ abstract class Style extends Certificate
                         {% endif %}',
                         $textSize
                     )
-                    ->stylePaddingTop($paddingTop)
+//                    ->stylePaddingTop($paddingTop)
+                    ->styleLineHeight($lineHeight)
                     ->styleAlignCenter()
                     , '35%')
             )
@@ -2547,10 +2571,14 @@ abstract class Style extends Certificate
                         {% endif %}',
                         $textSize
                     )
-                    ->stylePaddingTop($paddingTop2)
+//                    ->stylePaddingTop($paddingTop2)
+                    ->styleLineHeight($lineHeight2)
                     ->styleAlignCenter()
                     , '35%')
-                ->addElementColumn($this->getElement('', $textSize)->stylePaddingTop($paddingTop2))
+                ->addElementColumn($this->getElement('', $textSize)
+//                    ->stylePaddingTop($paddingTop2)
+                    ->styleLineHeight($lineHeight2)
+                )
                 ->addElementColumn($this->getElement(
                         '{% if(Content.P' . $personId . '.DivisionTeacher.Name is not empty) %}
                             {{ Content.P' . $personId . '.DivisionTeacher.Name }}
@@ -2559,7 +2587,8 @@ abstract class Style extends Certificate
                         {% endif %}',
                         $textSize
                     )
-                    ->stylePaddingTop($paddingTop2)
+//                    ->stylePaddingTop($paddingTop2)
+                    ->styleLineHeight($lineHeight2)
                     ->styleAlignCenter()
                     , '35%')
             );
@@ -2688,7 +2717,8 @@ abstract class Style extends Certificate
     protected function getCustomFosParentSign(string $marginTop = '10px') : Slice
     {
         $textSize = self::TEXT_SIZE_LARGE;
-        $paddingTop = '-8px';   // ToDO Kontrolle wie das jetzt aussieht
+//        $paddingTop = '-8px';
+        $lineHeight = '85%';   // ToDO Kontrolle wie das jetzt aussieht
 
         return (new Slice())
             ->styleMarginTop($marginTop)
@@ -2704,7 +2734,8 @@ abstract class Style extends Certificate
                     , '30%')
                 ->addElementColumn($this->getElement('Eltern', $textSize)
                     ->styleAlignCenter()
-                    ->stylePaddingTop($paddingTop)
+//                    ->stylePaddingTop($paddingTop)
+                    ->styleLineHeight($lineHeight)
                 )
             );
     }
