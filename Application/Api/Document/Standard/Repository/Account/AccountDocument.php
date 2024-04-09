@@ -54,7 +54,7 @@ abstract class AccountDocument extends AbstractDocument
     {
         return (new Slice())
             ->addElement((new Element())
-                ->setContent(new Bold($this->tblCompany->getName()))
+                ->setContent(new Bold($this->tblCompany ? $this->tblCompany->getName() : ''))
                 ->styleMarginTop($marginTop)
             )
             ->addElement((new Element())
