@@ -42,7 +42,6 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Message\Repository\Success;
-use SPHERE\Common\Frontend\Text\Repository\Warning;
 
 /**
  * Class Timetable
@@ -241,7 +240,7 @@ class Timetable extends Extension implements IModuleInterface
         }
 
         $LayoutColumnList = array();
-        if(!empty($ImportList)){
+        if(!empty($ImportList) || !empty($WarningList)) {
 
             $LayoutColumnList[] = new LayoutColumn(new \SPHERE\Common\Frontend\Message\Repository\Warning(count($WarningList).' Fehlerhafte Einträge können nicht importiert werden', null, false, 5,5));
 
