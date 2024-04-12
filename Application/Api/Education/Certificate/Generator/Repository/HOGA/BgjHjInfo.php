@@ -26,7 +26,7 @@ class BgjHjInfo extends Style
         return (new Page())
             ->addSlice($this->getHeader($school, ''))
             ->addSlice((new Slice())
-                ->styleMarginTop('10px')
+                ->styleMarginTop('0px')
                 ->addElement($this->getElement('Halbjahresinformation', '35px')->styleTextBold()->styleAlignCenter())
                 ->addElement($this->getElement('der Berufsschule - Berufsgrundbildungsjahr', '20px')
                     ->styleTextBold()->styleAlignCenter()->styleMarginTop('-8px'))

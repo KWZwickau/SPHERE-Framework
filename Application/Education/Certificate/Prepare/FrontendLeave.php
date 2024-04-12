@@ -639,7 +639,7 @@ class FrontendLeave extends FrontendDiplomaTechnicalSchool
                             if (($average || $average === (float)0) && $hasNoLeaveGrade && !$hasTaskGrade) {
                                 $hasPreviewGrades = true;
                                 $Global = $this->getGlobal();
-                                $Global->POST['Data']['Grades'][$tblSubject->getId()]['Grade'] = str_replace('.', ',', round($average, 0));
+                                $Global->POST['Data']['Grades'][$tblSubject->getId()]['Grade'] = str_replace('.', ',', round((int)$average, 0));
                                 $Global->savePost();
                             }
                         }

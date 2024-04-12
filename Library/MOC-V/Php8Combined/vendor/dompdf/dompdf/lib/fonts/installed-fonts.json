@@ -1,0 +1,39 @@
+{
+    "calluna sans": {
+        "normal": "calluna_sans_normal_727913f5812249c6e8a868eaf602ab22"
+    },
+    "calluna sans bold": {
+        "bold": "calluna_sans_bold_bold_9776b606e935912a170ab0a5e9ba7f18"
+    },
+    "calluna sans italic": {
+        "italic": "calluna_sans_italic_italic_20afe05b1da75c6e2be7ef9540d4b75d"
+    },
+    "metapro": {
+        "normal": "\/var\/www\/Library\/MOC-V\/Php8Combined\/vendor\/dompdf\/dompdf\/lib\/fonts\/metapro_normal_99cea320762d88a61eddc97fe381c564",
+        "bold": "metapro_bold_bf6dcdeeec8de939f42a880fd76c131c"
+    },
+    "trebuchet ms": {
+        "normal": "\/var\/www\/Library\/MOC-V\/Php8Combined\/vendor\/dompdf\/dompdf\/lib\/fonts\/trebuchet_ms_normal_80aa1cd35cbd4a1a30aa21db5c11bdaa",
+        "bold": "\/var\/www\/Library\/MOC-V\/Php8Combined\/vendor\/dompdf\/dompdf\/lib\/fonts\/trebuchet_ms_bold_4924a15cca0e3ed84674fe19a7ac183a",
+        "italic": "\/var\/www\/Library\/MOC-V\/Php8Combined\/vendor\/dompdf\/dompdf\/lib\/fonts\/trebuchet_ms_italic_3e5552627049f33165782c122766edf4",
+        "bold_italic": "trebuchet_ms_bold_italic_fc2d39974de701738c9e58744e551b9c"
+    },
+    "myriadpro": {
+        "normal": "\/var\/www\/Library\/MOC-V\/Php8Combined\/vendor\/dompdf\/dompdf\/lib\/fonts\/myriadpro_normal_3f13b0e5fd9a23b1a4a1c358a1439a34",
+        "bold": "\/var\/www\/Library\/MOC-V\/Php8Combined\/vendor\/dompdf\/dompdf\/lib\/fonts\/myriadpro_bold_e2269f606ad3f1c41120f1375bb8b40a",
+        "italic": "\/var\/www\/Library\/MOC-V\/Php8Combined\/vendor\/dompdf\/dompdf\/lib\/fonts\/myriadpro_italic_5db8707758a89e656ad3a06ecc699b55",
+        "bold_italic": "myriadpro_bold_italic_11e92bc315e71a34fbe133f02885bcd3"
+    },
+    "andikanewbasic": {
+        "normal": "\/var\/www\/Library\/MOC-V\/Php8Combined\/vendor\/dompdf\/dompdf\/lib\/fonts\/andikanewbasic_normal_8f672b14532015d3752f6972990567c8",
+        "bold": "\/var\/www\/Library\/MOC-V\/Php8Combined\/vendor\/dompdf\/dompdf\/lib\/fonts\/andikanewbasic_bold_48da79b4a7a9fd76f12e7aebf039065f",
+        "italic": "\/var\/www\/Library\/MOC-V\/Php8Combined\/vendor\/dompdf\/dompdf\/lib\/fonts\/andikanewbasic_italic_3c8ed7b0e219de319cf903ac6c8845c3",
+        "bold_italic": "andikanewbasic_bold_italic_ac22e06b3152f742e09bebf4de83911c"
+    },
+    "freesans": {
+        "normal": "\/var\/www\/Library\/MOC-V\/Php8Combined\/vendor\/dompdf\/dompdf\/lib\/fonts\/freesans_normal_df9f27c73ba0409c9a8e56690fd83dd6",
+        "bold": "\/var\/www\/Library\/MOC-V\/Php8Combined\/vendor\/dompdf\/dompdf\/lib\/fonts\/freesans_bold_8fe6ceb80a386d5377ef4300d28feda6",
+        "italic": "\/var\/www\/Library\/MOC-V\/Php8Combined\/vendor\/dompdf\/dompdf\/lib\/fonts\/freesans_italic_db7b32f0f63f037d587dcb0ed3a818d3",
+        "bold_italic": "freesans_bold_italic_8b22354fa51b5813ea018fdbce6c0cc4"
+    }
+}
