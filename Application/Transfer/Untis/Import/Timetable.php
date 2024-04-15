@@ -243,6 +243,9 @@ class Timetable extends Extension implements IModuleInterface
         if(!empty($ImportList) || !empty($WarningList)) {
 
             $LayoutColumnList[] = new LayoutColumn(new \SPHERE\Common\Frontend\Message\Repository\Warning(count($WarningList).' Fehlerhafte Einträge können nicht importiert werden', null, false, 5,5));
+            if(isset($WarningList['missingYear'])){
+                $LayoutColumnList[] = new LayoutColumn(new \SPHERE\Common\Frontend\Message\Repository\Warning($WarningList['missingYear'], null, false, 5,5));
+            }
 
             $Count = $Gateway001->getCountImport();
             if(isset($Count['Course'])){
