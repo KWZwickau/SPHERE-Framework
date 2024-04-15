@@ -491,8 +491,8 @@ class Data extends DataTask
             /** @var Element $Entity */
             $Entity = $Manager->getEntityById($tblElement->getEntityShortName(), $tblElement->getId());
 
-            $Manager->bulkKillEntity($Entity);
             Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity, true);
+            $Manager->bulkKillEntity($Entity);
         }
 
         $Manager->flushCache();
@@ -516,7 +516,7 @@ class Data extends DataTask
             /** @var Element $Entity */
             $Entity = $Manager->getEntityById($tblElement->getEntityShortName(), $tblElement->getId());
 
-            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity, true);
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
             $Manager->removeEntity($Entity);
         }
 
