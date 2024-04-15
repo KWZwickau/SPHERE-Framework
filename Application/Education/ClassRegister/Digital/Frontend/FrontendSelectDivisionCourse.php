@@ -108,6 +108,7 @@ class FrontendSelectDivisionCourse extends FrontendCourseContent
                     'DivisionCourse' => $tblDivisionCourse->getDisplayName(),
                     'DivisionCourseType' => $tblDivisionCourse->getTypeName(),
                     'SchoolTypes' => $tblDivisionCourse->getSchoolTypeListFromStudents(true),
+                    'Teachers' => $tblDivisionCourse->getDivisionTeacherNameListString(),
                     'Option' => new Standard(
                         '',
                         DivisionCourse::useService()->getIsCourseSystemByStudentsInDivisionCourse($tblDivisionCourse)
@@ -131,6 +132,7 @@ class FrontendSelectDivisionCourse extends FrontendCourseContent
                     'DivisionCourse' => 'Kurs',
                     'DivisionCourseType' => 'Kurs-Typ',
                     'SchoolTypes' => 'Schularten',
+                    'Teachers' => 'Leiter',
                     'Option' => ''
                 ), array(
                     'order' => array(
@@ -210,6 +212,7 @@ class FrontendSelectDivisionCourse extends FrontendCourseContent
                 'DivisionCourse' => $tblDivisionCourse->getDisplayName(),
                 'DivisionCourseType' => $tblDivisionCourse->getTypeName(),
                 'SchoolTypes' => $tblDivisionCourse->getSchoolTypeListFromStudents(true),
+                'Teachers' => $tblDivisionCourse->getDivisionTeacherNameListString(),
                 'Option' => new Standard(
                     '',
                     DivisionCourse::useService()->getIsCourseSystemByStudentsInDivisionCourse($tblDivisionCourse)
@@ -230,6 +233,7 @@ class FrontendSelectDivisionCourse extends FrontendCourseContent
             'DivisionCourse' => 'Kurs',
             'DivisionCourseType' => 'Kurs-Typ',
             'SchoolTypes' => 'Schularten',
+            'Teachers' => 'Leiter',
             'Option' => ''
         ), array(
             'order' => array(
