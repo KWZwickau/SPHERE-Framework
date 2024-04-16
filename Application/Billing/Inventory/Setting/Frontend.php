@@ -62,11 +62,11 @@ class Frontend extends Extension implements IFrontendInterface
                         ApiSetting::receiverPersonGroup($this->displayPersonGroup())
                     )
                 ),
-//                new LayoutRow(array(
-//                    new LayoutColumn(
-//                        ApiSetting::receiverSetting($this->displaySetting(TblSetting::CATEGORY_REGULAR), TblSetting::CATEGORY_REGULAR)
-//                    , 6),
-//                )),
+                new LayoutRow(array(
+                    new LayoutColumn(
+                        ApiSetting::receiverSetting($this->displaySetting(TblSetting::CATEGORY_REGULAR), TblSetting::CATEGORY_REGULAR)
+                    , 6),
+                )),
                 new LayoutRow(array(
                     new LayoutColumn(
                         ApiSetting::receiverSetting($this->displaySetting(TblSetting::CATEGORY_SEPA), TblSetting::CATEGORY_SEPA)
@@ -226,7 +226,12 @@ class Frontend extends Extension implements IFrontendInterface
             foreach($tblSettingList as &$tblSetting){
                 switch($tblSetting->getIdentifier()){
                     // REGULAR
-                    // noch leer
+                    case TblSetting::IDENT_INVOICE_DELETE:
+                        $Listing[0] ='&nbsp;Erstellte Abrechnung löschbar: &nbsp;'
+                            .new Bold(($tblSetting->getValue()
+                                ? new SuccessText(new Check())
+                                : new DangerText(new Unchecked())));
+                    break;
                     // SEPA
                     case TblSetting::IDENT_IS_SEPA:
                         $Listing[0] ='&nbsp;Eingabepflicht relevanter Eingaben für SEPA-Lastschrift: &nbsp;'
@@ -380,7 +385,15 @@ class Frontend extends Extension implements IFrontendInterface
 
             switch($tblSetting->getIdentifier()){
                     // Regular Option's
-                // erstmal leer
+                case TblSetting::IDENT_INVOICE_DELETE:
+                    $RegularElementInWell = new Layout(new LayoutGroup(new LayoutRow(array(
+                            new LayoutColumn(
+                                new CheckBox('Setting['.TblSetting::IDENT_INVOICE_DELETE.']', 'Erstellte Abrechnungen löchbar', true)
+                            )
+                        ))));
+                    $_POST['Setting'][TblSetting::IDENT_INVOICE_DELETE] = $tblSetting->getValue();
+                    $elementList[0] = new FormColumn($RegularElementInWell);
+                break;
                     // Sepa Option's
                 case TblSetting::IDENT_IS_SEPA:
                     // Sepa ElementGroup
