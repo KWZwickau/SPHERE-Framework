@@ -83,6 +83,7 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblDirectory', 'Identifier')) {
             $Table->addColumn('Identifier', 'string');
         }
+        $this->createIndex($Table, array('Identifier'), false);
         if (!$this->getConnection()->hasColumn('tblDirectory', 'IsLocked')) {
             $Table->addColumn('IsLocked', 'boolean');
         }

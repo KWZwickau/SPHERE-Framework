@@ -3,6 +3,7 @@ namespace SPHERE\Application\Api\Education;
 
 use SPHERE\Application\Api\Education\Certificate\Certificate;
 use SPHERE\Application\Api\Education\Certificate\Generate\ApiGenerate;
+use SPHERE\Application\Api\Education\Certificate\PrintCertificate\ApiPrintCertificate;
 use SPHERE\Application\Api\Education\Certificate\Reporting\ApiReporting;
 use SPHERE\Application\Api\Education\ClassRegister\ApiAbsence;
 use SPHERE\Application\Api\Education\ClassRegister\ApiDiary;
@@ -106,5 +107,6 @@ class Education implements IApplicationInterface
         ApiScoreRule::registerApi();
         Gradebook::registerModule();
         ApiYear::registerApi();
+        ApiPrintCertificate::registerApi();
     }
 }

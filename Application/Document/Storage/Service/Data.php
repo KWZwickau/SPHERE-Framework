@@ -321,6 +321,19 @@ class Data extends AbstractData
     }
 
     /**
+     * @param string $identifier
+     *
+     * @return false|TblDirectory[]
+     */
+    public function getDirectoryAllByIdentifier(string $identifier)
+    {
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDirectory',
+            array(
+                TblDirectory::ATTR_IDENTIFIER => $identifier
+            ));
+    }
+
+    /**
      * @return false|TblDirectory[]
      */
     public function getDirectoryAll()

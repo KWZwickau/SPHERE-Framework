@@ -76,6 +76,16 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblPerson $tblPerson
+     *
+     * @return false|TblDirectory[]
+     */
+    public function getDirectoryAllByPerson(TblPerson $tblPerson)
+    {
+        return (new Data($this->getBinding()))->getDirectoryAllByIdentifier('TBL-PERSON-ID:' . $tblPerson->getId());
+    }
+
+    /**
      * @param $Id
      *
      * @return false|TblFile
@@ -353,24 +363,14 @@ class Service extends AbstractService
      */
     public function getCertificateRevisionFileAllByPerson(TblPerson $tblPerson)
     {
-
-        $tblPartition = $this->getPartitionByIdentifier(
-            TblPartition::IDENTIFIER_CERTIFICATE_STORAGE
-        );
-
         $resultList = array();
-        $tblDirectoryList = $this->getDirectoryAllByPartition($tblPartition);
+        $tblDirectoryList = $this->getDirectoryAllByPerson($tblPerson);
         if ($tblDirectoryList) {
             foreach ($tblDirectoryList as $tblDirectory) {
-                if (strpos($tblDirectory->getIdentifier(), 'TBL-PERSON-ID:') !== false) {
-                    $personId = substr($tblDirectory->getIdentifier(), strlen('TBL-PERSON-ID:'));
-                    if ($personId == $tblPerson->getId()) {
-                        $tblFileList = $this->getFileAllByDirectory($tblDirectory);
-                        if ($tblFileList) {
-                            foreach ($tblFileList as $tblFile) {
-                                $resultList[] = $tblFile;
-                            }
-                        }
+                $tblFileList = $this->getFileAllByDirectory($tblDirectory);
+                if ($tblFileList) {
+                    foreach ($tblFileList as $tblFile) {
+                        $resultList[] = $tblFile;
                     }
                 }
             }

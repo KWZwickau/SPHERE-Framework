@@ -8,6 +8,8 @@
 
 namespace SPHERE\Application\Education\Certificate\PrintCertificate;
 
+use SPHERE\Application\Api\Education\Certificate\PrintCertificate\ApiPrintCertificate;
+use SPHERE\Application\Api\People\Search\ApiPersonSearch;
 use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Certificate\Generate\Generate;
 use SPHERE\Application\Education\Certificate\Generator\Generator;
@@ -17,6 +19,11 @@ use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
+use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
+use SPHERE\Common\Frontend\Form\Structure\Form;
+use SPHERE\Common\Frontend\Form\Structure\FormColumn;
+use SPHERE\Common\Frontend\Form\Structure\FormGroup;
+use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
@@ -24,6 +31,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Question;
+use SPHERE\Common\Frontend\Icon\Repository\Search;
 use SPHERE\Common\Frontend\Icon\Repository\Select;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
@@ -36,7 +44,11 @@ use SPHERE\Common\Frontend\Link\Repository\External;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
+use SPHERE\Common\Frontend\Message\Repository\Warning as WarningMessage;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
+use SPHERE\Common\Frontend\Text\Repository\Bold;
+use SPHERE\Common\Frontend\Text\Repository\Muted;
+use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
@@ -523,68 +535,41 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
+     * @param null $Search
+     *
      * @return Stage
      */
-    public function frontendPrintCertificateHistory(): Stage
+    public function frontendPrintCertificateHistory($Search = null): Stage
     {
+        if ($Search) {
+            $global = $this->getGlobal();
+            $global->POST['Data']['Search'] = $Search;
+            $global->savePost();
+        }
+
         $Stage = new Stage('Zeugnis', 'Person auswählen');
         $Stage->addButton(new Standard(
             'Zurück', '/Education/Certificate/PrintCertificate', new ChevronLeft()
         ));
 
-        $tblFileList = Storage::useService()->getCertificateRevisionFileAll();
-
-        $personList = array();
-        if ($tblFileList) {
-            foreach ($tblFileList as $tblFile) {
-                if (strpos($tblFile->getTblDirectory()->getIdentifier(), 'TBL-PERSON-ID:') !== false) {
-                    $personId = substr($tblFile->getTblDirectory()->getIdentifier(), strlen('TBL-PERSON-ID:'));
-                    if (Person::useService()->getPersonById($personId)) {
-                        if (isset($personList[$personId])) {
-                            $personList[$personId] = $personList[$personId] + 1;
-                        } else {
-                            $personList[$personId] = 1;
-                        }
-                    }
-                }
-            }
-        }
-
-        $dataList = array();
-        foreach ($personList as $key => $value) {
-            if (($tblPerson = Person::useService()->getPersonById($key))) {
-                $dataList[] = array(
-                    'Name' => $tblPerson->getLastFirstName(),
-                    'Address' => $tblPerson->fetchMainAddress() ? $tblPerson->fetchMainAddress()->getGuiString() : '',
-                    'Count' => $value,
-                    'Option' => new Standard(
-                        '',
-                        '/Education/Certificate/PrintCertificate/History/Person',
-                        new Select(),
-                        array(
-                            'PersonId' => $tblPerson->getId()
-                        ),
-                        'Person auswählen'
-                    )
-                );
-            }
-        }
+        $panel = new Panel(
+            new Search() . ' Personen-Suche',
+            (new Form(new FormGroup(new FormRow(array(
+                new FormColumn(
+                    (new TextField('Data[Search]', '', ''))
+                        ->ajaxPipelineOnKeyUp(ApiPrintCertificate::pipelineSearchPerson())
+                ),
+            )))))->disableSubmitAction(),
+            Panel::PANEL_TYPE_INFO
+        );
 
         $Stage->setContent(
             new Layout(array(
                 new LayoutGroup(array(
                     new LayoutRow(array(
                         new LayoutColumn(array(
-                            empty($dataList)
-                                ? new Warning('Keine Zeugnisse vorhanden', new Exclamation())
-                                : new TableData(
-                                $dataList, null, array(
-                                    'Name' => 'Name',
-                                    'Address' => 'Adresse',
-                                    'Count' => 'Zeugnisse',
-                                    'Option' => ''
-                                )
-                            )
+                            $panel,
+                            ApiPersonSearch::receiverBlock($Search ? $this->loadPersonSearch($Search) : '', 'SearchContent')
                         ))
                     ))
                 ))
@@ -599,10 +584,12 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage|string
      */
-    public function frontendPrintCertificateHistoryPerson($PersonId = null)
+    public function frontendPrintCertificateHistoryPerson($PersonId = null, $Search = null)
     {
         $Stage = new Stage('Zeugnis', 'Auswahl');
-        $Stage->addButton(new Standard('Zurück', '/Education/Certificate/PrintCertificate/History', new ChevronLeft()));
+        $Stage->addButton(new Standard('Zurück', '/Education/Certificate/PrintCertificate/History', new ChevronLeft(), array(
+            'Search' => $Search
+        )));
 
         if (($tblPerson = Person::useService()->getPersonById($PersonId))) {
             $tblFileList = Storage::useService()->getCertificateRevisionFileAllByPerson($tblPerson);
@@ -849,5 +836,85 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         return new \SPHERE\Common\Frontend\Text\Repository\Danger('offen');
+    }
+
+    /**
+     * @param $Search
+     *
+     * @return string
+     */
+    public function loadPersonSearch($Search): string
+    {
+        if ($Search != '' && strlen($Search) > 2) {
+            $Search = str_replace(',', '', $Search);
+            $Search = str_replace('.', '', $Search);
+            $resultList = array();
+            $result = '';
+            if (($tblPersonList = Person::useService()->getPersonListLike($Search))) {
+                foreach ($tblPersonList as $tblPerson) {
+                    if (($tblDirectoryList = Storage::useService()->getDirectoryAllByPerson($tblPerson))) {
+                        $count = 0;
+                        foreach ($tblDirectoryList as $tblDirectory) {
+                            if (($tblFileList = Storage::useService()->getFileAllByDirectory($tblDirectory))) {
+                                $count += count($tblFileList);
+                            }
+                        }
+
+                        $resultList[] = array(
+                            'FullName' => $tblPerson->getLastFirstName(),
+                            'Address' => ($tblAddress = $tblPerson->fetchMainAddress()) ? $tblAddress->getGuiString() : new \SPHERE\Common\Frontend\Text\Repository\Warning('Keine Adresse hinterlegt'),
+                            'Count' => $count,
+                            'Option' => new Standard(
+                                '',
+                                '/Education/Certificate/PrintCertificate/History/Person',
+                                new Select(),
+                                array(
+                                    'PersonId' => $tblPerson->getId(),
+                                    'Search' => $Search
+                                ),
+                                'Person auswählen'
+                            )
+                        );
+                    }
+                }
+
+                $columnList = array(
+                    'FullName'   => 'Name',
+                    'Address'    => 'Adresse',
+                    'Count'      => 'Zeugnisse',
+                    'Option'     => '',
+                );
+
+                // https://datatables.net/manual/tech-notes/3
+                // 'destroy' => true
+
+                $result = new TableData(
+                    $resultList,
+                    null,
+                    $columnList,
+                    array(
+                        'columnDefs' => array(
+                            array('type' => \SPHERE\Application\Setting\Consumer\Consumer::useService()->getGermanSortBySetting(), 'targets' => 0),
+                            array('orderable' => false, 'width' => '60px', 'targets' => -1),
+                        ),
+                        'pageLength' => -1,
+                        'paging' => false,
+                        'info' => false,
+                        'searching' => false,
+                        'responsive' => false,
+                        'destroy' => true
+                    )
+                );
+            }
+
+            if (empty($resultList)) {
+                $result = new WarningMessage('Es wurden keine entsprechenden Personen gefunden.', new Ban());
+            }
+        } else {
+            $result = new WarningMessage('Bitte geben Sie mindestens 3 Zeichen in die Suche ein.', new Exclamation());
+        }
+
+        return new Title('Verfügbare Personen ' . new Small(new Muted('der Personen-Suche: ')) . new Bold($Search))
+            . $result;
     }
 }
