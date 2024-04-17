@@ -39,6 +39,7 @@ class TimetableGPU001 extends AbstractConverter
     private $WarningList = array();
     private $ImportList = array();
     private $CountImport = array();
+    private $DateFrom = '';
     private $tblYearList;
     private $CombineList = array();
 
@@ -51,8 +52,13 @@ class TimetableGPU001 extends AbstractConverter
     {
 
         $this->loadFile($File);
-        $DateFrom = new DateTime($Data['DateFrom']);
+        $this->DateFrom = $Data['DateFrom'];
+        $DateFrom = new DateTime($this->DateFrom);
         $this->tblYearList = Term::useService()->getYearAllByDate($DateFrom);
+        if(!$this->tblYearList){
+            $this->WarningList['missingYear'] = 'Für das start Datum ist kein Schuljahr hinterlegt! ('.$this->DateFrom.')';
+            return;
+        }
 
         $this->addSanitizer(array($this, 'sanitizeFullTrim'));
 
@@ -194,19 +200,21 @@ class TimetableGPU001 extends AbstractConverter
         }
 
         $tblDivisionCourse = false;
-        foreach($this->tblYearList as $tblYear){
-            // Mapping
-            if (($tblDivisionCourse = Education::useService()->getImportMappingValueBy(
-                TblImportMapping::TYPE_DIVISION_NAME_TO_DIVISION_COURSE_NAME, $Value, $tblYear
-            ))) {
+        if($this->tblYearList){
+            foreach($this->tblYearList as $tblYear){
+                // Mapping
+                if (($tblDivisionCourse = Education::useService()->getImportMappingValueBy(
+                    TblImportMapping::TYPE_DIVISION_NAME_TO_DIVISION_COURSE_NAME, $Value, $tblYear
+                ))) {
 
-                // Found
-            } else {
-                $tblDivisionCourse = Education::useService()->getDivisionCourseByDivisionNameAndYear($Value, $tblYear);
-            }
+                    // Found
+                } else {
+                    $tblDivisionCourse = Education::useService()->getDivisionCourseByDivisionNameAndYear($Value, $tblYear);
+                }
 
-            if ($tblDivisionCourse) {
-                break;
+                if ($tblDivisionCourse) {
+                    break;
+                }
             }
         }
 
