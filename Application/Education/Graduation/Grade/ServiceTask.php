@@ -723,7 +723,9 @@ abstract class ServiceTask extends ServiceStudentOverview
                         } elseif ($tblDivisionCourse
                             && ($tblSubject = $tblTeacherLectureship->getServiceTblSubject())
                         ) {
-                            $tblTaskList = $this->getTaskListByDivisionCourse($tblDivisionCourse);
+                            // SSWHD-2880 Unterrichtsgruppe für Lehrer
+//                            $tblTaskList = $this->getTaskListByDivisionCourse($tblDivisionCourse);
+                            $tblTaskList = Grade::useService()->getTaskListByStudentsInDivisionCourse($tblDivisionCourse);
                         }
 
                         if ($tblTaskList && $tblSubject) {
@@ -798,14 +800,39 @@ abstract class ServiceTask extends ServiceStudentOverview
     ): bool {
         $countPersons = 0;
         $countGrades = 0;
+
+        $hasTaskThisDivisionCourse = false;
+        if (($tblDivisionCourseListFromTask = $tblTask->getDivisionCourses())) {
+            $hasTaskThisDivisionCourse = isset($tblDivisionCourseListFromTask[$tblDivisionCourse->getId()]);
+        }
+
         if (($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses())) {
             foreach ($tblPersonList as $tblPerson) {
                 if (($virtualSubject = DivisionCourse::useService()->getVirtualSubjectFromRealAndVirtualByPersonAndYearAndSubject($tblPerson, $tblYear, $tblSubject))
                     && ($virtualSubject->getHasGrading() || ($tblTask->getIsTypeBehavior() && $tblSettingBehaviorHasGrading))
                 ) {
-                    $countPersons++;
-                    if (($tblTaskGradeList = $this->getTaskGradeListByPersonAndYearAndSubjectAndTask($tblPerson, $tblTask, $tblSubject))) {
-                        $countGrades += count($tblTaskGradeList);
+                    $hasTask = $hasTaskThisDivisionCourse;
+                    // nur Schüler mit dem Notenauftrag anzeigen, nicht alle im Kurs
+                    if (!$hasTask) {
+                        if ($tblDivisionCourseListFromTask
+                            && ($tblDivisionCourseListFromStudent = DivisionCourse::useService()->getDivisionCourseListByStudentAndYear(
+                                $tblPerson, $tblYear
+                            ))
+                        ) {
+                            foreach ($tblDivisionCourseListFromStudent as $tblDivisionCourseStudent) {
+                                if (isset($tblDivisionCourseListFromTask[$tblDivisionCourseStudent->getId()])) {
+                                    $hasTask = true;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    if ($hasTask) {
+                        $countPersons++;
+                        if (($tblTaskGradeList = $this->getTaskGradeListByPersonAndYearAndSubjectAndTask($tblPerson, $tblTask, $tblSubject))) {
+                            $countGrades += count($tblTaskGradeList);
+                        }
                     }
                 }
             }
