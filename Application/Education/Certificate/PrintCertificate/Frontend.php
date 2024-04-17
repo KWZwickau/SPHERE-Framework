@@ -895,7 +895,7 @@ class Frontend extends Extension implements IFrontendInterface
                     array(
                         'columnDefs' => array(
                             array('type' => \SPHERE\Application\Setting\Consumer\Consumer::useService()->getGermanSortBySetting(), 'targets' => 0),
-                            array('orderable' => false, 'width' => '60px', 'targets' => -1),
+                            array('orderable' => false, 'width' => '30px', 'targets' => -1),
                         ),
                         'pageLength' => -1,
                         'paging' => false,

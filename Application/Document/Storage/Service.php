@@ -4,6 +4,7 @@ namespace SPHERE\Application\Document\Storage;
 use SPHERE\Application\Api\Education\Certificate\Generator\Certificate;
 use SPHERE\Application\Document\Storage\Service\Data;
 use SPHERE\Application\Document\Storage\Service\Entity\TblBinary;
+use SPHERE\Application\Document\Storage\Service\Entity\TblBinaryRevision;
 use SPHERE\Application\Document\Storage\Service\Entity\TblDirectory;
 use SPHERE\Application\Document\Storage\Service\Entity\TblFile;
 use SPHERE\Application\Document\Storage\Service\Entity\TblFileCategory;
@@ -148,6 +149,7 @@ class Service extends AbstractService
      * @param Certificate $Certificate
      * @param FilePointer $File
      * @param int $fileSizeKByte
+     * @param string $hash
      * @param TblPrepareCertificate|null $tblPrepareCertificate
      *
      * @return bool|TblFile
@@ -158,6 +160,7 @@ class Service extends AbstractService
         Certificate $Certificate,
         FilePointer $File,
         int $fileSizeKByte,
+        string $hash,
         TblPrepareCertificate $tblPrepareCertificate = null,
     ) {
 
@@ -181,13 +184,23 @@ class Service extends AbstractService
                 $tblFileType = $this->getFileTypeByMimeType($File->getMimeType());
                 if ($tblFileType && $tblDirectory) {
                     $tblFile = false;
-                    $tblBinary = $this->createBinary($File->getFileContent(), $fileSizeKByte);
+                    $tblBinary = $this->createBinary($File->getFileContent(), $fileSizeKByte, $hash);
                     if ($tblBinary) {
                         $name = $tblYear->getYear() . ' - ' . $tblPerson->getLastFirstName() . ' - '
                             . $Certificate->getCertificateName() . ' - '
                             . ($tblPrepareCertificate ? $tblPrepareCertificate->getId() : $tblDivisionCourse->getId());
 
                         if (($tblFile = $this->exitsFile($tblDirectory, $tblFileType, $name))) {
+                            if (($tblBinaryOld = $tblFile->getTblBinary()) && $tblBinaryOld->getHash() != $tblBinary->getHash()) {
+                                $version = 1;
+                                if (($tblBinaryRevisionList = $this->getBinaryRevisionListByFile($tblFile))) {
+                                    $tblBinaryRevision = current($tblBinaryRevisionList);
+                                    $version = $tblBinaryRevision->getVersion() + 1;
+                                }
+
+                                (new Data($this->getBinding()))->createBinaryRevision($tblFile, $tblBinaryOld, $version, $tblFile->getDescription());
+                            }
+
                             $this->updateFile($tblFile, $tblBinary, 'Zuletzt erstellt: ' . date('d.m.Y H:i:s'));
                         } else {
                             $tblFile = $this->createFile(
@@ -266,12 +279,13 @@ class Service extends AbstractService
     /**
      * @param string $BinaryBlob
      * @param int $fileSizeKByte
+     * @param string $hash
      *
      * @return TblBinary
      */
-    public function createBinary($BinaryBlob, int $fileSizeKByte)
+    public function createBinary($BinaryBlob, int $fileSizeKByte, string $hash)
     {
-        return (new Data($this->getBinding()))->createBinary($BinaryBlob, $fileSizeKByte);
+        return (new Data($this->getBinding()))->createBinary($BinaryBlob, $fileSizeKByte, $hash);
     }
 
     /**
@@ -664,5 +678,15 @@ class Service extends AbstractService
     public function getFileSizeByConsumer(TblConsumer $tblConsumer, bool $isOnlyWithoutFile = false): int
     {
         return (new Data($this->getBinding()))->getFileSizeByConsumer($tblConsumer, $isOnlyWithoutFile);
+    }
+
+    /**
+     * @param TblFile $tblFile
+     *
+     * @return false|TblBinaryRevision[]
+     */
+    public function getBinaryRevisionListByFile(TblFile $tblFile)
+    {
+        return (new Data($this->getBinding()))->getBinaryRevisionListByFile($tblFile);
     }
 }

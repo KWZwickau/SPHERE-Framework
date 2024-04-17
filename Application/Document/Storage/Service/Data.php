@@ -4,6 +4,7 @@ namespace SPHERE\Application\Document\Storage\Service;
 use MOC\V\Component\Database\Component\IBridgeInterface;
 use MOC\V\Component\Database\Database as MocDatabase;
 use SPHERE\Application\Document\Storage\Service\Entity\TblBinary;
+use SPHERE\Application\Document\Storage\Service\Entity\TblBinaryRevision;
 use SPHERE\Application\Document\Storage\Service\Entity\TblDirectory;
 use SPHERE\Application\Document\Storage\Service\Entity\TblFile;
 use SPHERE\Application\Document\Storage\Service\Entity\TblFileCategory;
@@ -345,10 +346,11 @@ class Data extends AbstractData
     /**
      * @param string $BinaryBlob
      * @param int $fileSizeKByte
+     * @param string $hash
      *
      * @return TblBinary
      */
-    public function createBinary($BinaryBlob, int $fileSizeKByte)
+    public function createBinary($BinaryBlob, int $fileSizeKByte, string $hash): TblBinary
     {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -356,10 +358,10 @@ class Data extends AbstractData
         $New = new TblBinary();
         $New->setBinaryBlob($BinaryBlob);
         $New->setFileSizeKiloByte($fileSizeKByte);
-        $Hash = $New->getHash();
+        $New->setHash($hash);
 
         $Entity = $Manager->getEntity('TblBinary')->findOneBy(array(
-            TblBinary::ATTR_HASH => $Hash,
+            TblBinary::ATTR_HASH => $hash,
             TblBinary::ENTITY_REMOVE => null
         ));
 
@@ -370,6 +372,46 @@ class Data extends AbstractData
         }
 
         return $Entity;
+    }
+
+    /**
+     * @param TblFile $tblFile
+     * @param TblBinary $tblBinary
+     * @param int $version
+     * @param string $description
+     *
+     * @return TblBinaryRevision
+     */
+    public function createBinaryRevision(
+        TblFile $tblFile,
+        TblBinary $tblBinary,
+        int $version,
+        string $description
+    ) {
+        $Manager = $this->getEntityManager();
+
+        $Entity = new TblBinaryRevision();
+        $Entity->setTblFile($tblFile);
+        $Entity->setTblBinary($tblBinary);
+        $Entity->setVersion($version);
+        $Entity->setDescription($description);
+
+        $Manager->saveEntity($Entity);
+        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+
+        return $Entity;
+    }
+
+    /**
+     * @param TblFile $tblFile
+     *
+     * @return false|TblBinaryRevision[]
+     */
+    public function getBinaryRevisionListByFile(TblFile $tblFile)
+    {
+        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblBinaryRevision', array(TblBinaryRevision::ATTR_TBL_FILE => $tblFile->getId()),
+             array(TblBinaryRevision::ATTR_VERSION => self::ORDER_DESC)
+        );
     }
 
     /**

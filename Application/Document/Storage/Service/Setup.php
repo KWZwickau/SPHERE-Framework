@@ -33,6 +33,8 @@ class Setup extends AbstractSetup
         $tblReferenceType = $this->setTableReferenceType($Schema);
         $this->setTableReference($Schema, $tblFile, $tblReferenceType);
         $this->setTablePersonPicture($Schema);
+        $this->setTableBinaryRevision($Schema, $tblFile, $tblBinary);
+
         /**
          * Migration & Protocol
          */
@@ -245,5 +247,20 @@ class Setup extends AbstractSetup
         $this->createColumn($Table, 'Picture', self::FIELD_TYPE_BINARY); // Type::BLOB
 
         return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
+     * @param Table $tblFile
+     * @param Table $tblBinary
+     */
+    private function setTableBinaryRevision(Schema &$Schema, Table $tblFile, Table $tblBinary): void
+    {
+        $table = $this->createTable($Schema, 'tblBinaryRevision');
+        $this->createColumn($table, 'Version', self::FIELD_TYPE_INTEGER);
+        $this->createColumn($table, 'Description');
+
+        $this->createForeignKey($table, $tblFile);
+        $this->createForeignKey($table, $tblBinary);
     }
 }

@@ -8,6 +8,7 @@ use MOC\V\Component\Document\Document;
 use MOC\V\Core\FileSystem\FileSystem;
 use SPHERE\Application\Api\Education\Certificate\Generator\Repository\MultiCertificate;
 use SPHERE\Application\Document\Storage\FilePointer;
+use SPHERE\Application\Document\Storage\Service\Entity\TblBinary;
 use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
@@ -515,6 +516,8 @@ class Creator extends Extension
                             $Document = Document::getPdfDocument($File->getFileLocation());
                             $Content = $Certificate->createCertificate($Data, array(0 => $page));
                             $Document->setContent($Content);
+                            // hier den hash erzeugen
+                            $hash = TblBinary::getHashByContent($Document->getSource());
                             $Document->saveFile(new FileParameter($File->getFileLocation()));
 
                             try {
@@ -523,7 +526,7 @@ class Creator extends Extension
                                 $fileSizeKiloByte = 0;
                             }
 
-                            if (Storage::useService()->saveCertificateRevision($tblPerson, $tblDivisionCourse, $Certificate, $File, $fileSizeKiloByte, $tblPrepare)) {
+                            if (Storage::useService()->saveCertificateRevision($tblPerson, $tblDivisionCourse, $Certificate, $File, $fileSizeKiloByte, $hash, $tblPrepare)) {
                                 Prepare::useService()->updatePrepareStudentSetPrinted($tblPrepareStudent);
                             }
                         }
@@ -619,6 +622,8 @@ class Creator extends Extension
                             $Document = Document::getPdfDocument($File->getFileLocation());
                             $Content = $Certificate->createCertificate($Data, array(0 => $page));
                             $Document->setContent($Content);
+                            // hier den hash erzeugen
+                            $hash = TblBinary::getHashByContent($Document->getSource());
                             $Document->saveFile(new FileParameter($File->getFileLocation()));
 
                             try {
@@ -628,7 +633,7 @@ class Creator extends Extension
                             }
 
                             // Revisionssicher speichern
-                            if (Storage::useService()->saveCertificateRevision($tblPerson, $tblDivisionCourse, $Certificate, $File, $fileSizeKiloByte)) {
+                            if (Storage::useService()->saveCertificateRevision($tblPerson, $tblDivisionCourse, $Certificate, $File, $fileSizeKiloByte, $hash)) {
                                 Prepare::useService()->updateLeaveStudent($tblLeaveStudent, true, true);
                             }
                         }

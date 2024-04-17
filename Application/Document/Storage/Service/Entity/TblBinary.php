@@ -46,9 +46,10 @@ class TblBinary extends Element
     {
 
         $this->BinaryBlob = $BinaryBlob;
-        $this->Hash = hash_hmac('sha256', $this->getBinaryBlob(),
-            'HbGQLxc378gOWqiA9YR0QMV36boVRmZ5wD69pILKlChtAO1c1kOvuXzGM5zKVIn' // WPA-2
-        );
+        // der Hash stimmt bei identischen Pdfs nicht überein, da auch z.B.: das Erstellungsdatum mit im Binary steht
+//        $this->Hash = hash_hmac('sha256', $this->getBinaryBlob(),
+//            'HbGQLxc378gOWqiA9YR0QMV36boVRmZ5wD69pILKlChtAO1c1kOvuXzGM5zKVIn' // WPA-2
+//        );
     }
 
     /**
@@ -76,5 +77,25 @@ class TblBinary extends Element
     public function setFileSizeKiloByte(int $FileSizeKiloByte): void
     {
         $this->FileSizeKiloByte = $FileSizeKiloByte;
+    }
+
+    /**
+     * @param string $content
+     *
+     * @return string
+     */
+    public static function getHashByContent(string $content): string
+    {
+        return hash_hmac('sha256', $content,
+            'HbGQLxc378gOWqiA9YR0QMV36boVRmZ5wD69pILKlChtAO1c1kOvuXzGM5zKVIn' // WPA-2
+        );
+    }
+
+    /**
+     * @param string $Hash
+     */
+    public function setHash(string $Hash): void
+    {
+        $this->Hash = $Hash;
     }
 }
