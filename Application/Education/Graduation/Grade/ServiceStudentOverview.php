@@ -10,6 +10,7 @@ use SPHERE\Application\Document\Generator\Repository\Slice;
 use SPHERE\Application\Education\Graduation\Grade\Service\VirtualTestTask;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseMember;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblStudentEducation;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
@@ -558,11 +559,20 @@ abstract class ServiceStudentOverview extends ServiceScoreCalc
             $courseList = array();
 
             $tblSubjectList = array();
+            $tblPersonList = array();
+            $inactiveStudentList = array();
+            if (($tblDivisionCourseMemberList = $tblDivisionCourse->getStudentsWithSubCourses(true, false))) {
+                /** @var TblDivisionCourseMember $tblDivisionCourseMember */
+                foreach ($tblDivisionCourseMemberList as $tblDivisionCourseMember) {
+                    if (($tblPersonTemp = $tblDivisionCourseMember->getServiceTblPerson())) {
+                        // Schüler-Informationen
+                        Grade::useService()->setStudentInfo($tblPersonTemp, $tblYear, $integrationList, $pictureList, $courseList);
+                        $tblPersonList[$tblPersonTemp->getId()] = $tblPersonTemp;
 
-            if (($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses())) {
-                foreach ($tblPersonList as $tblPerson) {
-                    // Schüler-Informationen
-                    Grade::useService()->setStudentInfo($tblPerson, $tblYear, $integrationList, $pictureList, $courseList);
+                        if ($tblDivisionCourseMember->isInActive()) {
+                            $inactiveStudentList[$tblPersonTemp->getId()] = $tblPersonTemp;
+                        }
+                    }
                 }
 
                 $tblSubjectList = DivisionCourse::useService()->getSubjectListByPersonListAndYear($tblPersonList, $tblYear);
@@ -589,7 +599,7 @@ abstract class ServiceStudentOverview extends ServiceScoreCalc
                 $count = 0;
                 foreach ($tblPersonList as $tblPerson) {
                     $bodyList[$tblPerson->getId()] = Grade::useFrontend()->getGradeBookPreBodyList($tblPerson, ++$count, $hasPicture, $hasIntegration, $hasCourse,
-                        $pictureList, $integrationList, $courseList);
+                        $pictureList, $integrationList, $courseList, isset($inactiveStudentList[$tblPerson->getId()]));
 
                     foreach ($tblSubjectList as $tblSubject) {
                         // Schüler Berechnungsvorschrift ermitteln
