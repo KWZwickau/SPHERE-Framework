@@ -776,23 +776,24 @@ class Service extends Support
                 );
             }
 
-            $SiblingRank = Relationship::useService()->getSiblingRankById($Meta['Billing']);
-            if ($tblStudentBilling = $tblStudent->getTblStudentBilling()) {
-                (new Data($this->getBinding()))->updateStudentBilling(
-                    $tblStudentBilling,
-                    $SiblingRank ? $SiblingRank : null
-                );
-            } else {
-                $tblStudentBilling = (new Data($this->getBinding()))->createStudentBilling(
-                    $SiblingRank ? $SiblingRank : null
-                );
-            }
+//            $SiblingRank = Relationship::useService()->getSiblingRankById($Meta['Billing']);
+//            if ($tblStudentBilling = $tblStudent->getTblStudentBilling()) {
+//                (new Data($this->getBinding()))->updateStudentBilling(
+//                    $tblStudentBilling,
+//                    $SiblingRank ? $SiblingRank : null
+//                );
+//            } else {
+//                $tblStudentBilling = (new Data($this->getBinding()))->createStudentBilling(
+//                    $SiblingRank ? $SiblingRank : null
+//                );
+//            }
 
             (new Data($this->getBinding()))->updateStudentField(
                 $tblStudent,
                 $tblStudent->getTblStudentMedicalRecord() ? $tblStudent->getTblStudentMedicalRecord() : null,
                 $tblStudentTransport ? $tblStudentTransport : null,
-                $tblStudentBilling ? $tblStudentBilling : null,
+                null,
+//                $tblStudentBilling ? $tblStudentBilling : null,
                 $tblStudentLocker ? $tblStudentLocker : null,
                 $tblStudentBaptism ? $tblStudentBaptism : null,
                 $tblStudent->getTblStudentSpecialNeeds() ? $tblStudent->getTblStudentSpecialNeeds() : null,
