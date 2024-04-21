@@ -12,6 +12,7 @@ use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblLeaveStud
 use SPHERE\Application\Education\Graduation\Grade\Grade;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblGradeText;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTestGrade;
+use SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount\SelectBoxItem;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
@@ -362,7 +363,11 @@ class FrontendLeave extends FrontendDiplomaTechnicalSchool
                 if (($tblTypeFromCertificate = $tblCertificate->getServiceTblSchoolType())
                     && $tblTypeFromCertificate->getId() == $tblType->getId()
                 ) {
-                    $list[] = $tblCertificate;
+                    $tblConsumer = $tblCertificate->getServiceTblConsumer();
+                    $list[] = new SelectBoxItem($tblCertificate->getId(), ($tblConsumer ? $tblConsumer->getAcronym() . ' - ': '')
+                        . $tblCertificate->getName()
+                        . ($tblCertificate->getDescription() ? ' - ' . $tblCertificate->getDescription() : '')
+                    );
                 }
             }
         }
@@ -376,7 +381,7 @@ class FrontendLeave extends FrontendDiplomaTechnicalSchool
         if (!empty($list)) {
             $form = new Form(new FormGroup(new FormRow(array(
                 new FormColumn(
-                    new SelectBox('Data[Certificate]', 'Zeugnisvorlage auswählen', array('{{ Name }} - {{ Description }}' => $list))
+                    new SelectBox('Data[Certificate]', 'Zeugnisvorlage auswählen', array('{{ Name }}' => $list))
                 ),
                 new FormColumn(
                     new Primary('Speichern', new Save())
@@ -639,7 +644,7 @@ class FrontendLeave extends FrontendDiplomaTechnicalSchool
                             if (($average || $average === (float)0) && $hasNoLeaveGrade && !$hasTaskGrade) {
                                 $hasPreviewGrades = true;
                                 $Global = $this->getGlobal();
-                                $Global->POST['Data']['Grades'][$tblSubject->getId()]['Grade'] = str_replace('.', ',', round((int)$average, 0));
+                                $Global->POST['Data']['Grades'][$tblSubject->getId()]['Grade'] = str_replace('.', ',', round(floatval($average), 0));
                                 $Global->savePost();
                             }
                         }
@@ -717,7 +722,8 @@ class FrontendLeave extends FrontendDiplomaTechnicalSchool
                     new Panel(
                         'Zeugnisvorlage',
                         $tblCertificate
-                            ? $tblCertificate->getName()
+                            ? (($tblConsumer = $tblCertificate->getServiceTblConsumer()) ? $tblConsumer->getAcronym() . ' - ': '')
+                            . $tblCertificate->getName()
                             . ($tblCertificate->getDescription()
                                 ? new Muted(' - ' . $tblCertificate->getDescription()) : '')
                             . ($canChangeCertificate
