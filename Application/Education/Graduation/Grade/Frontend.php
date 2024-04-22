@@ -727,7 +727,7 @@ class Frontend extends FrontendTestPlanning
                         }
 
                         $headerList['Test' . $testId]
-                            = $this->getTableColumnHeadByTest($virtualTestTask->getTblTest(), $tblDivisionCourse->getId(), $SubjectId, $Filter, $isEditTest);
+                            = $this->getTableColumnHeadByTest($virtualTestTask->getTblTest(), $tblDivisionCourse->getId(), $SubjectId, $Filter, $isEditTest, false);
                         break;
                     case VirtualTestTask::TYPE_TASK:
                         $taskId = $virtualTestTask->getTblTask()->getId();
@@ -764,14 +764,21 @@ class Frontend extends FrontendTestPlanning
      * @param $SubjectId
      * @param $Filter
      * @param bool $isEdit
+     * @param bool $showTestYear
      *
      * @return TableColumn
      */
-    private function getTableColumnHeadByTest(TblTest $tblTest, $DivisionCourseId, $SubjectId, $Filter, bool $isEdit): TableColumn
+    private function getTableColumnHeadByTest(TblTest $tblTest, $DivisionCourseId, $SubjectId, $Filter, bool $isEdit, bool $showTestYear): TableColumn
     {
-        $date = $tblTest->getFinishDateString() ?: $tblTest->getDateString();
-        if (strlen($date) > 6) {
-            $date = substr($date, 0, 6);
+        if ($tblTest->getFinishDate()) {
+            $dateTime = $tblTest->getFinishDate();
+        } else {
+            $dateTime = $tblTest->getDate();
+        }
+
+        $date = '';
+        if ($dateTime) {
+            $date = $showTestYear ? $dateTime->format('d.m.y') : $dateTime->format('d.m.');
         }
 
         $tblGradeType = $tblTest->getTblGradeType();
@@ -1050,7 +1057,7 @@ class Frontend extends FrontendTestPlanning
             if ($tblTestList) {
                 $tblTestList = Grade::useService()->sortTestList($tblTestList);
                 foreach ($tblTestList as $tblTest) {
-                    $headerList['Test' . $tblTest->getId()] = $this->getTableColumnHeadByTest($tblTest, $DivisionCourseId, $tblSubject->getId(), $Filter, false);
+                    $headerList['Test' . $tblTest->getId()] = $this->getTableColumnHeadByTest($tblTest, $DivisionCourseId, $tblSubject->getId(), $Filter, false, $tblTask->getIsAllYears());
                 }
             }
             $headerList['Average'] = $this->getTableColumnHead('&#216;');
