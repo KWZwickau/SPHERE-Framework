@@ -22,8 +22,9 @@ abstract class BGymStyle extends Certificate
     // Grades
     const BACKGROUND = self::BACKGROUND_GRADE_FIELD;
     const MARGIN_TOP_GRADE_LINE = '8px';
-    const PADDING_TOP_GRADE = '4px';
-    const PADDING_BOTTOM_GRADE = '4px';
+    const MARGIN_TOP_SUBJECT_LINE = '9px';
+    const PADDING_TOP_GRADE = '3px';
+    const PADDING_BOTTOM_GRADE = '3px';
     const SUBJECT_WIDTH = 37;
     const GRADE_WIDTH = 10;
     const TEXT_SIZE_SMALL = '14px';
@@ -346,7 +347,7 @@ abstract class BGymStyle extends Certificate
                         $paddingBottom = '0px';
                         $lineHeight = '80%';
                     } else {
-                        $marginTop = self::MARGIN_TOP_GRADE_LINE;
+                        $marginTop = self::MARGIN_TOP_SUBJECT_LINE;
                         $paddingBottom = '5px';
                         $lineHeight = '100%';
                     }
@@ -380,7 +381,7 @@ abstract class BGymStyle extends Certificate
                         ->styleBackgroundColor(self::BACKGROUND)
                         ->stylePaddingTop(self::PADDING_TOP_GRADE)
                         ->stylePaddingBottom(self::PADDING_BOTTOM_GRADE)
-                        ->styleMarginTop(self::MARGIN_TOP_GRADE_LINE)
+                        ->styleMarginTop('6px')
                         , self::GRADE_WIDTH . '%');
                 }
 

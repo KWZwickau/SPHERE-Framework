@@ -1105,12 +1105,18 @@ abstract class ServiceTask extends ServiceStudentOverview
     {
         $result = '';
 
-        // Zensuren - Leistungsüberprüfungen
-        if ($startDate
-            && ($tblGradeList = Grade::useService()->getTestGradeListBetweenDateTimesByPersonAndYearAndSubject(
+        if ($tblTask->getIsAllYears()) {
+            $tblGradeList = Grade::useService()->getTestGradeListToDateTimeByPersonAndSubject($tblPerson, $tblSubject, $tblTask->getToDate());
+        } elseif ($startDate) {
+            $tblGradeList = Grade::useService()->getTestGradeListBetweenDateTimesByPersonAndYearAndSubject(
                 $tblPerson, $tblYear, $tblSubject, $startDate, $tblTask->getDate()
-            ))
-        ) {
+            );
+        } else {
+            $tblGradeList = false;
+        }
+
+        // Zensuren - Leistungsüberprüfungen
+        if ($tblGradeList) {
             $tblScoreRule = Grade::useService()->getScoreRuleByPersonAndYearAndSubject($tblPerson, $tblYear, $tblSubject, $tblDivisionCourse);
             list($result) = Grade::useService()->getCalcStudentAverage($tblPerson, $tblYear, $tblGradeList, $tblScoreRule ?: null, $tblPeriod ?: null);
         }
