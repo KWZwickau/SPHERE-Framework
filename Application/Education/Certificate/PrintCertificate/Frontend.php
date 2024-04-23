@@ -29,6 +29,7 @@ use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
+use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Question;
 use SPHERE\Common\Frontend\Icon\Repository\Search;
@@ -605,6 +606,20 @@ class Frontend extends Extension implements IFrontendInterface
                         $date = $tblFile->getEntityCreate()->format('d.m.Y');
                         $isChanged = false;
                     }
+
+                    $optionRevision = Storage::useService()->getBinaryRevisionListByFile($tblFile)
+                        ? new Standard(
+                            'Revisionen',
+                            '/Education/Certificate/PrintCertificate/History/Person/Revisions',
+                            new EyeOpen(),
+                            array(
+                                'PersonId' => $tblPerson->getId(),
+                                'FileId' => $tblFile->getId(),
+                                'Search' => $Search
+                            ),
+                            'Zeugnis herunterladen')
+                        : '';
+
                     if (count($name) >= 3) {
                         $dataList[] = array(
                             'Year' => $name[0],
@@ -619,6 +634,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     'FileId' => $tblFile->getId(),
                                 ),
                                 'Zeugnis herunterladen')
+                                . $optionRevision
                         );
                     }
                 }
@@ -652,6 +668,100 @@ class Frontend extends Extension implements IFrontendInterface
                                         'columnDefs' => array(
                                             array('type' => 'de_date', 'targets' => 1)
                                         )
+                                    )
+                                )
+                            ))
+                        ))
+                    ))
+                ))
+            );
+
+            return $Stage;
+        } else {
+
+            return $Stage
+                . new Danger('Person nicht gefunden', new Ban())
+                . new Redirect('/Education/Certificate/PrintCertificate/History', Redirect::TIMEOUT_ERROR);
+        }
+    }
+
+    /**
+     * @param $PersonId
+     * @param $FileId
+     * @param $Search
+     *
+     * @return Stage|string
+     */
+    public function frontendPrintCertificateHistoryPersonRevisions($PersonId = null, $FileId = null, $Search = null)
+    {
+        $Stage = new Stage('Zeugnis', 'Revisionen');
+        $Stage->addButton(new Standard('Zurück', '/Education/Certificate/PrintCertificate/History/Person', new ChevronLeft(), array(
+            'PersonId' => $PersonId,
+            'Search' => $Search
+        )));
+
+        if (($tblPerson = Person::useService()->getPersonById($PersonId))
+            && ($tblFile = Storage::useService()->getFileById($FileId))
+            && ($tblBinaryRevisionList = Storage::useService()->getBinaryRevisionListByFile($tblFile))
+        ) {
+            $dataList = array();
+            foreach ($tblBinaryRevisionList as $tblBinaryRevision) {
+                if (($tblBinary = $tblBinaryRevision->getTblBinary())) {
+                    $dataList[] = array(
+                        'Version' => $tblBinaryRevision->getVersion(),
+                        'Description' => $tblBinaryRevision->getDescription(),
+                        'PersonPrinter' => ($tblPersonPrinter = $tblBinary->getServiceTblPersonPrinter()) ? $tblPersonPrinter->getLastFirstName() : '',
+                        'Option' => new External(
+                            'Revision herunterladen',
+                            '/Api/Education/Certificate/Generator/Download',
+                            new Download(),
+                            array(
+                                'BinaryRevisionId' => $tblBinaryRevision->getId(),
+                            ),
+                            'Zeugnis-Revision herunterladen')
+                    );
+                }
+            }
+
+            $certificate = '';
+            $name = explode(' - ', $tblFile->getName());
+            if (count($name) >= 3) {
+                $certificate = $name[2];
+            }
+            $Stage->setContent(
+                new Layout(array(
+                    new LayoutGroup(array(
+                        new LayoutRow(array(
+                            new LayoutColumn(array(
+                                new Panel(
+                                    'Person',
+                                    $tblPerson->getLastFirstName(),
+                                    Panel::PANEL_TYPE_INFO
+                                ),
+                            ), 6),
+                            new LayoutColumn(array(
+                                new Panel(
+                                    'Zeugnis',
+                                    $certificate,
+                                    Panel::PANEL_TYPE_INFO
+                                ),
+                            ), 6)
+                        )),
+                        new LayoutRow(array(
+                            new LayoutColumn(array(
+                                empty($dataList)
+                                    ? new Warning('Keine Zeugnisse vorhanden', new Exclamation())
+                                    : new TableData(
+                                    $dataList, null, array(
+                                    'Version' => 'Version',
+                                    'Description' => 'Beschreibung',
+                                    'PersonPrinter' => 'Gedruckt von',
+                                    'Option' => ''
+                                ),
+                                    array(
+                                        'order' => array(
+                                            array(0, 'desc'),
+                                        ),
                                     )
                                 )
                             ))

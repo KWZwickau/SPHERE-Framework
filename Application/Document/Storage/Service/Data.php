@@ -344,13 +344,14 @@ class Data extends AbstractData
     }
 
     /**
-     * @param string $BinaryBlob
+     * @param $BinaryBlob
      * @param int $fileSizeKByte
      * @param string $hash
+     * @param TblPerson|null $tblPerson
      *
      * @return TblBinary
      */
-    public function createBinary($BinaryBlob, int $fileSizeKByte, string $hash): TblBinary
+    public function createBinary($BinaryBlob, int $fileSizeKByte, string $hash, ?TblPerson $tblPerson): TblBinary
     {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -359,6 +360,7 @@ class Data extends AbstractData
         $New->setBinaryBlob($BinaryBlob);
         $New->setFileSizeKiloByte($fileSizeKByte);
         $New->setHash($hash);
+        $New->setServiceTblPersonPrinter($tblPerson);
 
         $Entity = $Manager->getEntity('TblBinary')->findOneBy(array(
             TblBinary::ATTR_HASH => $hash,
@@ -412,6 +414,16 @@ class Data extends AbstractData
         return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblBinaryRevision', array(TblBinaryRevision::ATTR_TBL_FILE => $tblFile->getId()),
              array(TblBinaryRevision::ATTR_VERSION => self::ORDER_DESC)
         );
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return false|TblBinaryRevision
+     */
+    public function getBinaryRevisionById($Id)
+    {
+        return $this->getCachedEntityById(__METHOD__, $this->getEntityManager(), 'TblBinaryRevision', $Id);
     }
 
     /**

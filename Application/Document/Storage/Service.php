@@ -17,6 +17,7 @@ use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCe
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Listing;
@@ -184,7 +185,8 @@ class Service extends AbstractService
                 $tblFileType = $this->getFileTypeByMimeType($File->getMimeType());
                 if ($tblFileType && $tblDirectory) {
                     $tblFile = false;
-                    $tblBinary = $this->createBinary($File->getFileContent(), $fileSizeKByte, $hash);
+                    $tblPersonPrinter = Account::useService()->getPersonByLogin();
+                    $tblBinary = $this->createBinary($File->getFileContent(), $fileSizeKByte, $hash, $tblPersonPrinter ?: null);
                     if ($tblBinary) {
                         $name = $tblYear->getYear() . ' - ' . $tblPerson->getLastFirstName() . ' - '
                             . $Certificate->getCertificateName() . ' - '
@@ -277,15 +279,16 @@ class Service extends AbstractService
     }
 
     /**
-     * @param string $BinaryBlob
+     * @param $BinaryBlob
      * @param int $fileSizeKByte
      * @param string $hash
+     * @param TblPerson|null $tblPerson
      *
      * @return TblBinary
      */
-    public function createBinary($BinaryBlob, int $fileSizeKByte, string $hash)
+    public function createBinary($BinaryBlob, int $fileSizeKByte, string $hash, ?TblPerson $tblPerson)
     {
-        return (new Data($this->getBinding()))->createBinary($BinaryBlob, $fileSizeKByte, $hash);
+        return (new Data($this->getBinding()))->createBinary($BinaryBlob, $fileSizeKByte, $hash, $tblPerson);
     }
 
     /**
@@ -688,5 +691,15 @@ class Service extends AbstractService
     public function getBinaryRevisionListByFile(TblFile $tblFile)
     {
         return (new Data($this->getBinding()))->getBinaryRevisionListByFile($tblFile);
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return false|TblBinaryRevision
+     */
+    public function getBinaryRevisionById($Id)
+    {
+        return (new Data($this->getBinding()))->getBinaryRevisionById($Id);
     }
 }

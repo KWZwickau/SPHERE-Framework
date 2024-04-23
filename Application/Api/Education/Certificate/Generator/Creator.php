@@ -199,12 +199,25 @@ class Creator extends Extension
      *
      * @return Stage|string
      */
-    public function downloadPdf($FileId = null)
+    public function downloadPdf($FileId = null, $BinaryRevisionId = null)
     {
-        if (($tblFile = Storage::useService()->getFileById($FileId))) {
+        $tblFile = false;
+        $tblBinary= false;
+        if ($BinaryRevisionId
+            && ($tblBinaryRevision = Storage::useService()->getBinaryRevisionById($BinaryRevisionId))
+        ) {
+            $tblFile = $tblBinaryRevision->getTblFile();
+            $tblBinary = $tblBinaryRevision->getTblBinary();
+        } elseif ($FileId
+            && ($tblFile = Storage::useService()->getFileById($FileId))
+        ) {
+            $tblBinary = $tblFile->getTblBinary();
+        }
+
+        if ($tblBinary && $tblFile) {
 
             $File = Storage::createFilePointer('pdf');
-            $File->setFileContent(stream_get_contents($tblFile->getTblBinary()->getBinaryBlob()));
+            $File->setFileContent(stream_get_contents($tblBinary->getBinaryBlob()));
             $File->saveFile();
 
             return FileSystem::getStream($File->getFileLocation(),

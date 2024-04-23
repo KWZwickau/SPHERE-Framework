@@ -116,6 +116,7 @@ class Setup extends AbstractSetup
             $Table->addColumn('Hash', 'string');
         }
         $this->createColumn($Table, 'FileSizeKiloByte', self::FIELD_TYPE_INTEGER, false, 0);
+        $this->createColumn($Table, 'serviceTblPersonPrinter', self::FIELD_TYPE_BIGINT, true);
 
         return $Table;
     }

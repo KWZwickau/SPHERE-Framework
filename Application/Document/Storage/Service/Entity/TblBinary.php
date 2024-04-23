@@ -5,6 +5,8 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
+use SPHERE\Application\People\Person\Person;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -29,6 +31,11 @@ class TblBinary extends Element
      * @Column(type="integer")
      */
     protected int $FileSizeKiloByte;
+
+    /**
+     * @Column(type="bigint")
+     */
+    protected ?int $serviceTblPersonPrinter = null;
 
     /**
      * @return string|resource
@@ -97,5 +104,21 @@ class TblBinary extends Element
     public function setHash(string $Hash): void
     {
         $this->Hash = $Hash;
+    }
+
+    /**
+     * @return false|TblPerson
+     */
+    public function getServiceTblPersonPrinter()
+    {
+        return $this->serviceTblPersonPrinter ? Person::useService()->getPersonById($this->serviceTblPersonPrinter) : false;
+    }
+
+    /**
+     * @param ?TblPerson $tblPerson
+     */
+    public function setServiceTblPersonPrinter(?TblPerson $tblPerson)
+    {
+        $this->serviceTblPersonPrinter = $tblPerson ? $tblPerson->getId() : null;
     }
 }
