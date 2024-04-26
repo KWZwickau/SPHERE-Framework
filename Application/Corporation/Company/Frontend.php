@@ -1,17 +1,16 @@
 <?php
 namespace SPHERE\Application\Corporation\Company;
 
-use SPHERE\Application\Corporation\Company\Service\Entity\ViewCompany;
-use SPHERE\Application\Corporation\Group\Group;
-use SPHERE\Application\People\Group\Group as PeopleGroup;
+use SPHERE\Application\Api\Corporation\Company\ApiCompanyContact;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\ViewPerson;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\People\Relationship\Service\Entity\ViewRelationshipToCompany;
-use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
-use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
+use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
+use SPHERE\Common\Frontend\Form\Repository\Field\AutoCompleter;
+use SPHERE\Common\Frontend\Form\Repository\Field\RadioBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
@@ -22,9 +21,9 @@ use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Conversation;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
+use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Person as PersonIcon;
-use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
 use SPHERE\Common\Frontend\Icon\Repository\Question;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Search;
@@ -32,7 +31,6 @@ use SPHERE\Common\Frontend\Icon\Repository\Success as SuccessIcon;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
-use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
@@ -46,10 +44,9 @@ use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
+use SPHERE\Common\Frontend\Text\Repository\Warning;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
-use SPHERE\System\Database\Binding\AbstractView;
-use SPHERE\System\Database\Filter\Link\Pile;
 use SPHERE\System\Extension\Extension;
 
 /**
@@ -94,288 +91,6 @@ class Frontend extends Extension implements IFrontendInterface
             ))
             , new Primary('Ansprechpartner prüfen')
         );
-    }
-
-
-    /**
-     * @param null|int   $Id Company-Id
-     * @param null|array $Person Form-Person-Data
-     * @param null|int   $Group Company-Group-Id
-     * @param null|int   $tblPerson Link-Person-Id
-     * @param null|int   $tblType Link-Relationship-Id
-     * @param null|int   $tblSalutation Link-Salutation-Id
-     * @param bool       $doCreate New-Person-Toggle
-     *
-     * @return Stage
-     */
-    public function frontendContact($Id = null, $Person = null, $Group = null, $tblPerson = null, $tblType = null, $tblSalutation = null, $doCreate = false)
-    {
-        $Stage = new Stage('Institution', 'Ansprechpartner');
-        $Stage->addButton(new Standard('Zurück', '/Corporation/Company', new ChevronLeft(), array(
-            'Id' => $Id,
-            'Group' => $Group
-        )));
-
-        $tblCompany = Company::useService()->getCompanyById($Id);
-
-        if (!$tblCompany) {
-            $Stage->setContent(new WarningMessage('Die Firma ist nicht Hinterlegt')
-                .new Redirect('/Corporation', Redirect::TIMEOUT_ERROR));
-            return $Stage;
-        }
-
-        $tblGroup = PeopleGroup::useService()->getGroupByMetaTable(
-            \SPHERE\Application\People\Group\Service\Entity\TblGroup::META_TABLE_COMPANY_CONTACT
-        );
-
-        // Link Person to Company
-        if( $tblCompany && $tblPerson && $tblType ) {
-            $tblPerson = Person::useService()->getPersonById( $tblPerson );
-            // set missing Salutation
-            if ($tblPerson->getSalutation() === '') {
-                $tblSalutation = ( $tblSalutation != null ? Person::useService()->getSalutationById($tblSalutation) : false );
-                if ($tblSalutation) {
-                    Person::useService()->updateSalutation($tblPerson, $tblSalutation);
-                }
-            }
-            $tblType = Relationship::useService()->getTypeById( $tblType );
-            if( $tblPerson && $tblType && $tblGroup ) {
-                Relationship::useService()->addCompanyRelationshipToPerson(
-                    $tblCompany, $tblPerson, $tblType
-                );
-                PeopleGroup::useService()->addGroupPerson( $tblGroup, $tblPerson );
-                $Stage->setContent(
-                    new Success(new Ok() . ' Der Ansprechpartner wurde hinzugefügt').
-                    new Redirect( $this->getRequest()->getPathInfo(), Redirect::TIMEOUT_SUCCESS, array(
-                    'Id' => $Id,
-                    'Group' => $Group
-                ) ) );
-                return $Stage;
-            } else {
-                $Stage->setContent(
-                    new Danger(new Ban() . ' Ansprechpartner konnte nicht hinzugefügt werden').
-                    new Redirect( $this->getRequest()->getPathInfo(), Redirect::TIMEOUT_ERROR, array(
-                    'Id' => $Id,
-                    'Group' => $Group
-                ) ) );
-                return $Stage;
-            }
-        }
-
-        // Create Person to Company
-        if( $doCreate && $tblCompany ) {
-            $tblType = Relationship::useService()->getTypeById( $Person[ViewRelationshipToCompany::TBL_TYPE_ID] );
-            if( $tblType ) {
-                $tblPerson = Person::useService()->insertPerson(
-                    $Person[ViewPerson::TBL_SALUTATION_ID], '',
-                    $Person[ViewPerson::TBL_PERSON_FIRST_NAME], '',
-                    $Person[ViewPerson::TBL_PERSON_LAST_NAME],
-                    array(
-                        0 => \SPHERE\Application\People\Group\Group::useService()->getGroupByMetaTable('COMMON'),
-                        1 => $tblGroup
-                    )
-                );
-                if ($tblPerson) {
-                    Relationship::useService()->addCompanyRelationshipToPerson(
-                        $tblCompany, $tblPerson, $tblType
-                    );
-                    $Stage->setContent(
-                        new Success(new Ok() . ' Der Ansprechpartner wurde hinzugefügt') .
-                        new Redirect($this->getRequest()->getPathInfo(), Redirect::TIMEOUT_SUCCESS, array(
-                            'Id' => $Id,
-                            'Group' => $Group
-                        )));
-                    return $Stage;
-                }
-            }
-        }
-
-        $Search = new Pile(Pile::JOIN_TYPE_INNER);
-        $Search->addPile(Company::useService(), new ViewCompany(), null, ViewCompany::TBL_COMPANY_ID);
-        $Search->addPile(Relationship::useService(), new ViewRelationshipToCompany(), ViewRelationshipToCompany::TBL_TO_COMPANY_SERVICE_TBL_COMPANY, ViewRelationshipToCompany::TBL_TO_COMPANY_SERVICE_TBL_PERSON);
-        $Search->addPile(Person::useService(), new ViewPerson(), ViewPerson::TBL_PERSON_ID);
-
-        $Result = $Search->searchPile(array(
-            0 => array(
-                ViewCompany::TBL_COMPANY_NAME => array($tblCompany->getName()),
-                ViewCompany::TBL_COMPANY_EXTENDED_NAME => array($tblCompany->getExtendedName()),
-                ViewCompany::TBL_COMPANY_DESCRIPTION => array($tblCompany->getDescription()),
-            ),
-            1 => array(
-                ViewRelationshipToCompany::TBL_TO_COMPANY_SERVICE_TBL_COMPANY => array($Id)
-            )
-        ));
-
-        $Table = array();
-        /** @var AbstractView[] $Row */
-        foreach ($Result as $Row) {
-            $ViewArray1 = $Row[1]->__toArray();
-            $ViewArray2 = $Row[2]->__toArray();
-            $ViewArray1['DTOption'] = new Standard( new PersonIcon(),'/People/Person',null, array(
-                'Id' => $ViewArray2['TblPerson_Id']
-            ));
-            $Table[] = array_merge( $ViewArray1, $ViewArray2 );
-        }
-
-        $Form = $this->formContact();
-
-        $Error = true;
-        if( $Person ) {
-            $Error = false;
-
-            if (isset($Person[ViewRelationshipToCompany::TBL_TYPE_ID]) && empty($Person[ViewRelationshipToCompany::TBL_TYPE_ID])) {
-                $Form->setError('Person['.ViewRelationshipToCompany::TBL_TYPE_ID.']', 'Bitte wählen Sie eine Beziehung aus');
-                $Error = true;
-            }
-            if (isset($Person[ViewPerson::TBL_SALUTATION_ID]) && empty($Person[ViewPerson::TBL_SALUTATION_ID])) {
-                $Form->setError('Person['.ViewPerson::TBL_SALUTATION_ID.']', 'Bitte wählen Sie eine Anrede aus');
-                $Error = true;
-            }
-            if (isset($Person[ViewPerson::TBL_PERSON_FIRST_NAME]) && empty($Person[ViewPerson::TBL_PERSON_FIRST_NAME])) {
-                $Form->setError('Person['.ViewPerson::TBL_PERSON_FIRST_NAME.']', 'Bitte geben Sie einen Vornamen an');
-                $Error = true;
-            }
-            if (isset($Person[ViewPerson::TBL_PERSON_LAST_NAME]) && empty($Person[ViewPerson::TBL_PERSON_LAST_NAME])) {
-                $Form->setError('Person['.ViewPerson::TBL_PERSON_LAST_NAME.']', 'Bitte geben Sie einen Nachamen an');
-                $Error = true;
-            }
-        }
-
-        $Layout = new Layout(array(
-            new LayoutGroup(
-                new LayoutRow(
-                    new LayoutColumn(
-                        new Panel('Institution', array(
-                            $tblCompany->getName(),
-                            $tblCompany->getExtendedName(),
-                            $tblCompany->getDescription(),
-                        ), Panel::PANEL_TYPE_SUCCESS, array(
-
-                            empty($Table)
-                                ? new Info( 'Keine Ansprechpartner zugewiesen' )
-                                :new TableData($Table, null, array(
-                                ViewRelationshipToCompany::TBL_TYPE_NAME => 'Beziehung',
-                                ViewPerson::TBL_SALUTATION_SALUTATION => 'Anrede',
-                                ViewPerson::TBL_PERSON_FIRST_NAME => 'Vorname',
-                                ViewPerson::TBL_PERSON_LAST_NAME => 'Nachname',
-                                'DTOption' => ''
-                            ),false)
-                        ) )
-                    )
-                )
-                , new Title(new SuccessIcon().' Zugewiesene Ansprechpartner')),
-            new LayoutGroup(
-                new LayoutRow(
-                    new LayoutColumn(
-                        new Well( $Form )
-                    )
-                )
-                , new Title( new Search().' Mögliche Ansprechpartner suchen'))
-        ));
-
-        if( $Person && !$Error ) {
-            $Search = new Pile();
-            $Search->addPile( Person::useService(), new ViewPerson() );
-
-            $Filter = array();
-//            $Filter[ViewPerson::TBL_SALUTATION_ID] = array($Person[ViewPerson::TBL_SALUTATION_ID]);
-            $Filter[ViewPerson::TBL_PERSON_FIRST_NAME] = explode( ' ', $Person[ViewPerson::TBL_PERSON_FIRST_NAME] );
-            $Filter[ViewPerson::TBL_PERSON_LAST_NAME] = explode( ' ', $Person[ViewPerson::TBL_PERSON_LAST_NAME] );
-
-            $Result = $Search->searchPile(array(
-                $Filter
-            ));
-
-            $Result = array_slice( $Result, 0, 10 );
-
-            $PossibleTable = array();
-            /** @var AbstractView[] $Row */
-            foreach( $Result as $Row ) {
-                $ViewArray = $Row[0]->__toArray();
-
-                if (isset($Person[ViewPerson::TBL_SALUTATION_ID])) {
-                    $tblSalutation = Person::useService()->getSalutationById($Person[ViewPerson::TBL_SALUTATION_ID]);
-                    if ($tblSalutation) {
-                        // missing salutation get search salutation
-                        if (!isset($ViewArray[ViewPerson::TBL_SALUTATION_SALUTATION])) {
-                            $ViewArray[ViewPerson::TBL_SALUTATION_SALUTATION] = $tblSalutation->getSalutation();
-                        }
-                    }
-                }
-                $Address = Person::useService()->getPersonById( $ViewArray[ViewPerson::TBL_PERSON_ID] )->fetchMainAddress();
-                $ViewArray['DTAddress'] = ( $Address ? $Address->getGuiTwoRowString(false) : '');
-                $ViewArray['DTOption'] = new \SPHERE\Common\Frontend\Link\Repository\Primary(
-                    'Ansprechpartner hinzufügen',$this->getRequest()->getPathInfo(), new PlusSign(), array(
-                    'Id'            => $Id,
-                    'Group'         => $Group,
-                    'tblPerson'     => $ViewArray[ViewPerson::TBL_PERSON_ID],
-                    'tblType'       => $Person[ViewRelationshipToCompany::TBL_TYPE_ID],
-                    'tblSalutation' => $Person[ViewPerson::TBL_SALUTATION_ID]
-                ));
-                $PossibleTable[] = $ViewArray;
-            }
-
-            $Layout->addGroup(
-                new LayoutGroup(
-                    new LayoutRow(
-                        new LayoutColumn(
-                            (
-                            empty($PossibleTable)
-                                ? new Success( 'Keine ähnlichen Personen gefunden' )
-                                :new TableData($PossibleTable, null, array(
-                                ViewPerson::TBL_SALUTATION_SALUTATION => 'Anrede',
-                                ViewPerson::TBL_PERSON_FIRST_NAME => 'Vorname',
-                                ViewPerson::TBL_PERSON_LAST_NAME => 'Nachname',
-                                'DTAddress' => 'Adresse',
-                                'DTOption' => ''
-                            ))
-                            )
-                        )
-                    ),
-                    new Title( new Question().' Mögliche verfügbare Personen', 'um doppelte Personen zu vermeiden' ))
-            );
-
-            $Layout->addGroup(
-                new LayoutGroup(array(
-                    new LayoutRow(array(
-                        new LayoutColumn(array(
-                            new Panel('Neue Person anlegen',array(
-                                'Anrede: '.Person::useService()
-                                    ->getSalutationById($Person[ViewPerson::TBL_SALUTATION_ID])
-                                    ->getSalutation(),
-                                'Vorname: '.$Person[ViewPerson::TBL_PERSON_FIRST_NAME],
-                                'Nachname: '.$Person[ViewPerson::TBL_PERSON_LAST_NAME],
-                            ))
-                        ),4),
-                        new LayoutColumn(array(
-                            new Panel('Beziehung erstellen',array(
-                                'Gruppe: '.$tblGroup->getName(),
-                                'Beziehung: '.Relationship::useService()
-                                    ->getTypeById( $Person[ViewRelationshipToCompany::TBL_TYPE_ID] )
-                                    ->getName()
-                            ))
-                        ),4),
-                        new LayoutColumn(array(
-                            new \SPHERE\Common\Frontend\Link\Repository\Primary('Ansprechpartner anlegen',$this->getRequest()->getPathInfo(), new Save(), array(
-                                'Id' => $Id,
-                                'Group' => $Group,
-                                'Person' => $Person,
-                                'doCreate' => 1
-                            ))
-                        ))
-                    ))
-                ), new Title( new PlusSign().' Neue Person anlegen',
-                    'Es wird eine neue Person angelegt und mit der Institution verknüpft'
-                ))
-            );
-        }
-
-
-        $Stage->setContent(
-            $Layout
-        );
-
-        return $Stage;
     }
 
     /**
@@ -460,5 +175,236 @@ class Frontend extends Extension implements IFrontendInterface
             );
         }
         return $Stage;
+    }
+
+    /**
+     * @param $CompanyId
+     * @param $Search
+     *
+     * @return string
+     */
+    public function loadPersonSearch($CompanyId, $Search): string
+    {
+        if ($Search != '' && strlen($Search) > 2) {
+            $Search = str_replace(',', '', $Search);
+            $Search = str_replace('.', '', $Search);
+            $resultList = array();
+            $result = '';
+            if (($tblPersonList = Person::useService()->getPersonListLike($Search))) {
+                foreach ($tblPersonList as $tblPerson) {
+                    $resultList[] = array(
+                        'Option' => (new RadioBox('Data[SelectedPerson]' , '&nbsp;', $tblPerson->getId()))
+                            ->ajaxPipelineOnClick(ApiCompanyContact::pipelineLoadPerson($CompanyId)),
+                        'LastName' => $tblPerson->getLastName(),
+                        'FirstName' => $tblPerson->getFirstSecondName(),
+                        'Address' => ($tblAddress = $tblPerson->fetchMainAddress())
+                            ? $tblAddress->getGuiString()
+                            : new Warning('Keine Adresse hinterlegt'),
+                    );
+                }
+
+                $columnList = array(
+                    'Option'   => '',
+                    'LastName' => 'Nachname',
+                    'FirstName' => 'Vorname',
+                    'Address'    => 'Adresse'
+                );
+
+                $result = new TableData(
+                    $resultList,
+                    null,
+                    $columnList,
+                    array(
+                        'order' => array(
+                            array(1, 'asc')
+                        ),
+                        'columnDefs' => array(
+                            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
+                            array('orderable' => false, 'width' => '20px', 'targets' => 0),
+                        ),
+                        'pageLength' => -1,
+                        'paging' => false,
+                        'info' => false,
+                        'searching' => false,
+                        'responsive' => false,
+                        'destroy' => true
+                    )
+                );
+            }
+
+            if (empty($resultList)) {
+                $result = new WarningMessage('Es wurden keine entsprechenden Personen gefunden.', new Ban());
+            }
+        } else {
+            $result = new WarningMessage('Bitte geben Sie mindestens 3 Zeichen in die Suche ein.', new Exclamation());
+        }
+
+        return new Title('Verfügbare Personen ' . new Small(new Muted('der Personen-Suche: ')) . new Bold($Search))
+            . $result
+            . ApiCompanyContact::pipelineLoadPerson($CompanyId, $Search);
+    }
+
+    /**
+     * @param null $CompanyId
+     * @param null $PersonId
+     * @param null $Search
+     * @param bool $isSetPost
+     *
+     * @return Form
+     */
+    public function getCompanyContactForm($CompanyId = null, $PersonId = null, $Search = null, bool $isSetPost = false): Form
+    {
+        $tblPerson = Person::useService()->getPersonById($PersonId);
+        $global = $this->getGlobal();
+        if ($tblPerson) {
+            if ($isSetPost) {
+                $global->POST['Data']['SalutationId'] = ($tblSalutation = $tblPerson->getTblSalutation()) ? $tblSalutation->getId() : 0;
+                $global->POST['Data']['Title'] = $tblPerson->getTitle();
+            }
+            $global->POST['Data']['FirstName'] = $tblPerson->getFirstSecondName();
+            $global->POST['Data']['LastName'] = $tblPerson->getLastName();
+        } elseif ($Search && $isSetPost) {
+            $global->POST['Data']['LastName'] = ucfirst($Search);
+        }
+        $global->savePost();
+
+        $inputSalutation = new SelectBox('Data[SalutationId]', 'Anrede', array('Salutation' => Person::useService()->getSalutationAll()));
+        $inputTitle = new AutoCompleter('Data[Title]', 'Titel', 'Titel', Person::useService()->getTitleAll());
+        $inputFirstName = new TextField('Data[FirstName]', '', 'Vorname');
+        $inputLastName = new TextField('Data[LastName]', '', 'Nachname');
+
+        if ($tblPerson) {
+            $inputFirstName->setDisabled();
+            $inputLastName->setDisabled();
+        } else {
+            $inputLastName->setRequired();
+        }
+
+        return (new Form(new FormGroup(array(
+            new FormRow(array(
+                new FormColumn(
+                   new Panel(
+                       $tblPerson ? 'Bestehende Person' : 'Neue Person anlegen',
+                       array(
+                           $inputSalutation,
+                           $inputTitle,
+                           $inputFirstName,
+                           $inputLastName
+                       )
+                   )
+                , 6),
+                new FormColumn(
+                    new Panel(
+                        'Beziehung erstellen',
+                        array(
+                            (new SelectBox('Data[TypeId]', 'Beziehung',
+                                array('{{ Name }}' => Relationship::useService()->getTypeAllByGroup(Relationship::useService()->getGroupByIdentifier('COMPANY')))))
+                                ->setRequired(),
+                            new TextField('Data[Remark]', '', 'Bemerkung')
+                        )
+                    )
+                , 6),
+            )),
+            new FormRow(new FormColumn(
+                (new \SPHERE\Common\Frontend\Link\Repository\Primary(
+                    'Ansprechpartner ' . ($tblPerson ? 'für eine bestehende Person anlegen' : 'mit einer neuen Person anlegen'),
+                    ApiCompanyContact::getEndpoint(),
+                    new Save())
+                )
+                ->ajaxPipelineOnClick(ApiCompanyContact::pipelineSaveRelationship($CompanyId, $PersonId))
+            ))
+        ))))->disableSubmitAction();
+    }
+
+    /**
+     * @param $Id
+     * @param $Group
+     *
+     * @return string
+     */
+    public function frontendContact($Id = null, $Group = null): string
+    {
+        $stage = new Stage('Institution', 'Ansprechpartner');
+        $stage->addButton(new Standard('Zurück', '/Corporation/Company', new ChevronLeft(), array(
+            'Id' => $Id,
+            'Group' => $Group
+        )));
+
+        $tblCompany = Company::useService()->getCompanyById($Id);
+
+        if (!$tblCompany) {
+            $stage->setContent(new WarningMessage('Die Institution ist nicht hinterlegt')
+                . new Redirect('/Corporation', Redirect::TIMEOUT_ERROR));
+            return $stage;
+        }
+
+        $tableContent = array();
+        if (($tblToCompanyList = Relationship::useService()->getRelationshipToCompanyByCompany($tblCompany))) {
+            foreach ($tblToCompanyList as $tblToCompany) {
+                if (($tblPerson = $tblToCompany->getServiceTblPerson())) {
+                    $tableContent[] = array(
+                        'Type' => $tblToCompany->getTblType()->getName(),
+                        'Remark' => $tblToCompany->getRemark(),
+                        'Salutation' => $tblPerson->getSalutation(),
+                        'FirstName' => $tblPerson->getFirstSecondName(),
+                        'LastName' => $tblPerson->getLastName(),
+                        'Option' => new Standard(new PersonIcon(), '/People/Person', null, array('Id' => $tblPerson->getId()))
+                    );
+                }
+            }
+        }
+
+        $form = (new Form(new FormGroup(new FormRow(array(
+            new FormColumn(
+                (new TextField('Data[Search]', '', ''))
+                    ->ajaxPipelineOnKeyUp(ApiCompanyContact::pipelineSearchPerson($Id))
+            ),
+            new FormColumn(
+                ApiCompanyContact::receiverBlock('', 'SearchContent')
+            ),
+            new FormColumn(
+                ApiCompanyContact::receiverBlock('', 'NewPerson')
+            )
+        )))))->disableSubmitAction();
+
+        $stage->setContent(
+            new Title(new SuccessIcon() . ' Zugewiesene Ansprechpartner')
+            . new Panel('Institution',
+                array(
+                    $tblCompany->getName(),
+                    $tblCompany->getExtendedName(),
+                    $tblCompany->getDescription(),
+                ),
+                Panel::PANEL_TYPE_SUCCESS,
+                array(
+                    empty($tableContent)
+                        ? new Info( 'Keine Ansprechpartner zugewiesen' )
+                        : new TableData(
+                            $tableContent,
+                            null,
+                            array(
+                                'Type' => 'Beziehung',
+                                'Remark' => 'Bemerkung',
+                                'Salutation' => 'Anrede',
+                                'FirstName' => 'Vorname',
+                                'LastName' => 'Nachname',
+                                'Option' => '&nbsp;'
+                            ),
+                            false
+                        )
+                )
+            )
+
+            . new Title(new Search() . ' Mögliche Ansprechpartner suchen')
+            . new Panel(
+                new Search() . ' Personen-Suche',
+                $form,
+                Panel::PANEL_TYPE_INFO
+            )
+
+            . ApiCompanyContact::receiverBlock('', 'LoadPerson')
+        );
+
+        return $stage;
     }
 }
