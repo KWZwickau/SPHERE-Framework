@@ -116,12 +116,13 @@ class Service extends Extension
                 );
                 $Mail->setMailSubject($subject);
                 $Mail->setMailBody($body);
+                $Mail->setFromHeader($Config->getMail());
+                $Mail->addRecipientCC($mailAddress);
                 $Mail->addRecipientTO($Config->getMail());
                 if (isset( $Upload )) {
                     $Mail->addAttachment(new FileParameter($Upload->getLocation().DIRECTORY_SEPARATOR.$Upload->getFilename()));
                 }
-                $Mail->setFromHeader($mailAddress);
-                $Mail->setReplyHeader($mailAddress);
+//                $Mail->setReplyHeader($mailAddress);
                 $Mail->sendMail();
                 $Mail->disconnectServer();
             } catch (\Exception $Exception) {
