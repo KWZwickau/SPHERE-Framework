@@ -702,11 +702,11 @@ abstract class ServiceDiploma extends ServiceCertificateContent
      * @param TblPrepareCertificate $tblPrepareCertificate
      * @param TblPerson $tblPerson
      *
-     * @return array|bool
+     * @return array
      */
     public function checkAbiturExams(TblPrepareCertificate $tblPrepareCertificate, TblPerson $tblPerson)
     {
-        $warnings = false;
+        $warnings = array();
         $exams = array();
         $hasGerman = false;
         $hasMathematics = false;
