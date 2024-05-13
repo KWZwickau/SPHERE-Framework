@@ -2497,7 +2497,7 @@ abstract class BfsStyle extends Certificate
                                 {% else %}
                                     &lt;X&gt;
                                 {% endif %}
-                                Tage
+                                Stunden
                             {% else %}
                                 &nbsp;
                             {% endif %}
@@ -2511,7 +2511,7 @@ abstract class BfsStyle extends Certificate
                             {% if(Content.P' . $personId . '.Input.SubareaTimeHDone' . $i . ' is not empty) %}
                                 davon anwesend
                                 {{ Content.P' . $personId . '.Input.SubareaTimeHDone' . $i . ' }}
-                                Tage
+                                Stunden
                             {% else %}
                                 &nbsp;
                             {% endif %}
