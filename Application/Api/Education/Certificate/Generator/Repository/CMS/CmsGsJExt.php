@@ -84,7 +84,7 @@ class CmsGsJExt extends CmsStyle
                 )
                 ->addSection((new Section())
                     ->addSliceColumn(
-                        self::getCMSSubjectLanes($personId, false, '60px')
+                        self::getCMSSubjectLanes($personId, false, '160px')
                     )
                 )
                 ->addElement((new Element())
@@ -97,7 +97,7 @@ class CmsGsJExt extends CmsStyle
                     ->styleMarginTop('15px')
                 )
                 ->addSectionList(
-                    self::getCMSRemark($personId, '468px')
+                    self::getCMSRemark($personId, '430px')
                 )
             );
         $PageList[] = (new Page())
