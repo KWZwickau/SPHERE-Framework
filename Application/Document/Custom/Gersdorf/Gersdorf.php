@@ -13,7 +13,9 @@ use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\IServiceInterface;
 use SPHERE\Application\People\Group\Group;
+use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Meta\Common\Common;
+use SPHERE\Application\People\Meta\Prospect\Prospect;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Relationship\Relationship;
@@ -73,6 +75,9 @@ class Gersdorf extends Extension implements IModuleInterface
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/MetaDataComparison/Division', __CLASS__.'::frontendMetaDataComparisonDivision'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/MetaDataComparison/Prospect', __CLASS__.'::frontendMetaDataComparisonProspect'
         ));
     }
 
@@ -367,6 +372,13 @@ class Gersdorf extends Extension implements IModuleInterface
             $Stage->addButton(new Standard('Kurs', '/Document/Custom/Gersdorf/MetaDataComparison/Division', new PersonGroup(),
                 array(), 'Stammdatenabfrage eines Kurses'));
         }
+        if(strpos($Url, '/EnrollmentDocument/Division')){
+            $Stage->addButton(new Standard(new Info(new Bold('Interessenten')), '/Document/Custom/Gersdorf/MetaDataComparison/Prospect', new PersonGroup(),
+                array(), 'Stammdatenabfrage Interessenten'));
+        } else {
+            $Stage->addButton(new Standard('Interessenten', '/Document/Custom/Gersdorf/MetaDataComparison/Prospect', new PersonGroup(),
+                array(), 'Stammdatenabfrage Interessenten'));
+        }
     }
 
     /**
@@ -539,4 +551,93 @@ class Gersdorf extends Extension implements IModuleInterface
             ));
     }
 
+    public static function frontendMetaDataComparisonProspect(): Stage
+    {
+
+        $Stage = new Stage('Stammdatenabfrage', 'Kurs auswählen');
+        self::setButtonList($Stage);
+
+        $Stage->setContent(
+            new Layout(
+                new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            self::loadProspectTable()
+                        )
+                    )),
+                    new Title(new Listing() . ' Übersicht')
+                ))
+            ));
+
+        return $Stage;
+    }
+
+    /**
+     * @return Warning|TableData
+     */
+    public static function loadProspectTable()
+    {
+        $dataList = array();
+        $tblDivisionCourseList = array();
+        $tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_PROSPECT);
+        $tblPersonList = $tblGroup->getPersonList();
+        if($tblPersonList){
+            foreach ($tblPersonList as $tblPerson) {
+                $Name = $tblPerson->getLastFirstName();
+                $Address = '';
+                if(($tblAddress = $tblPerson->fetchMainAddress())){
+                    $Address = $tblAddress->getGuiString();
+                }
+                $Year = '';
+                $DivisionCourse = '';
+                $SchoolTypes = '';
+                if(($tblProspect = Prospect::useService()->getProspectByPerson($tblPerson))){
+                    if(($tblProspectReservation = $tblProspect->getTblProspectReservation())){
+                        $Year = $tblProspectReservation->getReservationYear();
+                        $DivisionCourse = $tblProspectReservation->getReservationDivision();
+                        $SchoolTypes = $tblProspectReservation->getServiceTblTypeOptionA();
+                        if(($TypeA =$tblProspectReservation->getServiceTblTypeOptionA())){
+                            $SchoolTypes = $TypeA->getName();
+                        }
+                        if(($TypeB = $tblProspectReservation->getServiceTblTypeOptionB())){
+                            $SchoolTypes .= ($SchoolTypes ?', ' : '').$TypeB->getName();
+                        }
+                    }
+
+                }
+
+                $dataList[] = array(
+                    'Name' => $Name,
+                    'Address' => $Address,
+                    'Year' => $Year,
+                    'DivisionCourse' => $DivisionCourse,
+                    'SchoolTypes' => $SchoolTypes,
+                    'Option' => new External('','/Api/Document/Custom/Gersdorf/MetaDataComparison/Create', new Download(),
+                        array('Data' => array('Person' => array('Id' => $tblPerson->getId()), 'IsProspect' => true)), 'Stammdatenabfrage herunterladen')
+                );
+            }
+        }
+        /** @var TblDivisionCourse $tblDivisionCourse */
+
+        return new TableData($dataList, null,
+            array(
+                'Name' => 'Name',
+                'Address' => 'Adresse',
+                'Year' => 'Schuljahr',
+                'DivisionCourse' => 'Kurs',
+                'SchoolTypes' => 'Schularten',
+                'Option' => '',
+            ), array(
+                'order' => array(
+                    array('2', 'asc'),
+                    array('0', 'asc'),
+
+                ),
+                'columnDefs' => array(
+                    array('type' => 'natural', 'targets' => array(2,3)),
+                    array('orderable' => false, 'width' => '1%', 'targets' => -1)
+                ),
+                'responsive' => false
+            ));
+    }
 }
