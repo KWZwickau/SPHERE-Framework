@@ -154,6 +154,7 @@ class MsAbsLernen extends Certificate
                                 {{ Content.P' . $personId . '.Person.Data.Name.First }}
                                 {{ Content.P' . $personId . '.Person.Data.Name.Last }}
                             ')
+                        ->styleAlignCenter()
                         ->styleBorderBottom()
                         , '45%')
                     ->addElementColumn((new Element())

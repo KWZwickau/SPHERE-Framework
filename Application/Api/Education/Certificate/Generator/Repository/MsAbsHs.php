@@ -153,6 +153,7 @@ class MsAbsHs extends Certificate
                                 {{ Content.P' . $personId . '.Person.Data.Name.Last }}
                             ')
                         ->styleBorderBottom()
+                        ->styleAlignCenter()
                         , '45%')
                     ->addElementColumn((new Element())
                         ->setContent('Klasse:')
