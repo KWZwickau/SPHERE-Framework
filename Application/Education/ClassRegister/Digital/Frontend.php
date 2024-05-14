@@ -1051,6 +1051,7 @@ class Frontend extends FrontendTabs
                 foreach ($tblLessonContentTempList as $tblLessonContentTemp) {
                     $tblSubjectTemp = $tblLessonContentTemp->getServiceTblSubject();
                     if (!$SubjectId || ($tblSubjectTemp && $tblSubjectTemp->getId() == $SubjectId)) {
+                        $tblSubject = $tblSubjectTemp;
                         $Global->POST['Data']['serviceTblSubject'] = $tblSubjectTemp ? $tblSubjectTemp->getId() : 0;
                         $Global->POST['Data']['serviceTblSubstituteSubject'] =
                             $tblLessonContentTemp->getServiceTblSubstituteSubject() ? $tblLessonContentTemp->getServiceTblSubstituteSubject()->getId() : 0;
