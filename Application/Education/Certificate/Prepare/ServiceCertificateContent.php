@@ -565,6 +565,7 @@ abstract class ServiceCertificateContent extends ServiceAbitur
 
             // Fachnoten
             // Abschlusszeugnisse mit Extra Prüfungen, aktuell nur Fachoberschule und Oberschule
+            $examGradeList = array();
             if ($tblCertificateType
                 && $tblCertificateType->getIdentifier() == 'DIPLOMA'
                 && ($tblSchoolType->getShortName() == 'FOS' || $tblSchoolType->getShortName() == 'OS' || $tblSchoolType->getShortName() == 'BFS')
@@ -578,6 +579,7 @@ abstract class ServiceCertificateContent extends ServiceAbitur
                     $gradeListFOS = array();
                     foreach ($tblPrepareAdditionalGradeList as $tblPrepareAdditionalGrade) {
                         if (($tblSubject = $tblPrepareAdditionalGrade->getServiceTblSubject())) {
+                            $examGradeList[$tblSubject->getId()] = $tblSubject;
                             if ($isGradeVerbalOnDiploma) {
                                 $grade = $this->getVerbalGrade($tblPrepareAdditionalGrade->getGrade());
                                 if ($tblConsumer && !$tblConsumer->isConsumer(TblConsumer::TYPE_SACHSEN, 'EZSH')) {
@@ -617,60 +619,65 @@ abstract class ServiceCertificateContent extends ServiceAbitur
                         $Content = $this->setCalcValueFOS($gradeListFOS, $Content, $tblPerson);
                     }
                 }
+            }
+
             // Fachnoten restliche Zeugnisse
-            } else {
-                if (($tblAppointedDateTask = $tblPrepare->getServiceTblAppointedDateTask())
-                    && $tblCertificate
-                ) {
-                    if (($tblTaskGradeList = Grade::useService()->getTaskGradeListByTaskAndPerson($tblAppointedDateTask, $tblPerson))) {
-                        foreach ($tblTaskGradeList as $tblTaskGrade) {
-                            if (($tblSubjectTemp = $tblTaskGrade->getServiceTblSubject())) {
-                                // leere Zensuren bei Zeugnissen ignorieren, bei optionalen Zeugnisfächern
-                                if ($tblTaskGrade->getGrade() === null && $tblTaskGrade->getTblGradeText() == null) {
-                                    continue;
-                                }
+            if (($tblAppointedDateTask = $tblPrepare->getServiceTblAppointedDateTask())
+                && $tblCertificate
+            ) {
+                if (($tblTaskGradeList = Grade::useService()->getTaskGradeListByTaskAndPerson($tblAppointedDateTask, $tblPerson))) {
+                    foreach ($tblTaskGradeList as $tblTaskGrade) {
+                        if (($tblSubjectTemp = $tblTaskGrade->getServiceTblSubject())) {
+                            // bei Abschlusszeugnissen existiert eine Endnote
+                            if (isset($examGradeList[$tblSubjectTemp->getId()])) {
+                                continue;
+                            }
 
-                                // Zensuren im Wortlaut
-                                if ($isGradeVerbal
-                                    // Abschlusszeugnisse für Berufsfachschule und Fachschule: Zensuren kommen direkt aus dem Notenauftrag
-                                    || ($tblCertificateType && $tblCertificateType->getIdentifier() == 'DIPLOMA' && $isGradeVerbalOnDiploma)
-                                ) {
-                                    if ($tblTaskGrade->getTblGradeText()) {
-                                        $Content['P' . $personId]['Grade']['Data'][$tblSubjectTemp->getAcronym()] = $tblTaskGrade->getTblGradeText()->getName();
-                                    } else {
-                                        $Content['P' . $personId]['Grade']['Data'][$tblSubjectTemp->getAcronym()] = $this->getVerbalGrade($tblTaskGrade->getDisplayGrade(false,
-                                            $tblCertificate));
-                                        $Content['P' . $personId]['Grade']['Data']['IsShrinkSize'][$tblSubjectTemp->getAcronym()] = true;
-                                    }
+                            // leere Zensuren bei Zeugnissen ignorieren, bei optionalen Zeugnisfächern
+                            if ($tblTaskGrade->getGrade() === null && $tblTaskGrade->getTblGradeText() == null) {
+                                continue;
+                            }
+
+                            // Zensuren im Wortlaut
+                            if ($isGradeVerbal
+                                // Abschlusszeugnisse für Berufsfachschule und Fachschule: Zensuren kommen direkt aus dem Notenauftrag
+                                || ($tblCertificateType && $tblCertificateType->getIdentifier() == 'DIPLOMA' && $isGradeVerbalOnDiploma)
+                            ) {
+                                if ($tblTaskGrade->getTblGradeText()) {
+                                    $Content['P' . $personId]['Grade']['Data'][$tblSubjectTemp->getAcronym()] = $tblTaskGrade->getTblGradeText()->getName();
                                 } else {
-                                    $Content['P' . $personId]['Grade']['Data'][$tblSubjectTemp->getAcronym()] = $tblTaskGrade->getDisplayGrade(false,
-                                        $tblCertificate);
-                                }
-
-                                // bei Zeugnistext als Note Schriftgröße verkleinern
-                                if ($tblTaskGrade->getTblGradeText()
-                                    && $tblTaskGrade->getTblGradeText()->getName() != '&ndash;'
-                                ) {
+                                    $Content['P' . $personId]['Grade']['Data'][$tblSubjectTemp->getAcronym()] = $this->getVerbalGrade($tblTaskGrade->getDisplayGrade(false,
+                                        $tblCertificate));
                                     $Content['P' . $personId]['Grade']['Data']['IsShrinkSize'][$tblSubjectTemp->getAcronym()] = true;
                                 }
+                            } else {
+                                $Content['P' . $personId]['Grade']['Data'][$tblSubjectTemp->getAcronym()] = $tblTaskGrade->getDisplayGrade(false,
+                                    $tblCertificate);
+                            }
+
+                            // bei Zeugnistext als Note Schriftgröße verkleinern
+                            if ($tblTaskGrade->getTblGradeText()
+                                && $tblTaskGrade->getTblGradeText()->getName() != '&ndash;'
+                            ) {
+                                $Content['P' . $personId]['Grade']['Data']['IsShrinkSize'][$tblSubjectTemp->getAcronym()] = true;
                             }
                         }
                     }
+                }
 
-                    // Standard Zeugnistext aus der Stundentafel
-                    if ($level
-                        && $tblSchoolType
-                        && ($tblSubjectTableList = DivisionCourse::useService()->getSubjectTableListBy($tblSchoolType, $level))
-                    ) {
-                        foreach ($tblSubjectTableList as $tblSubjectTable) {
-                            if (($tblGradeText = $tblSubjectTable->getServiceTblGradeText())
-                                && ($tblSubjectFromSubjectTable = $tblSubjectTable->getServiceTblSubject())
-                                && (!isset($Content['P' . $personId]['Grade']['Data'][$tblSubjectFromSubjectTable->getAcronym()]))
-                            ) {
-                                $Content['P' . $personId]['Grade']['Data'][$tblSubjectFromSubjectTable->getAcronym()] = $tblGradeText->getName();
-                                if ($tblGradeText->getName() != '&ndash;') {
-                                    $Content['P' . $personId]['Grade']['Data']['IsShrinkSize'][$tblSubjectFromSubjectTable->getAcronym()] = true;
-                                }
+                // Standard Zeugnistext aus der Stundentafel
+                if ($level
+                    && $tblSchoolType
+                    && ($tblSubjectTableList = DivisionCourse::useService()->getSubjectTableListBy($tblSchoolType, $level))
+                ) {
+                    foreach ($tblSubjectTableList as $tblSubjectTable) {
+                        if (($tblGradeText = $tblSubjectTable->getServiceTblGradeText())
+                            && ($tblSubjectFromSubjectTable = $tblSubjectTable->getServiceTblSubject())
+                            && (!isset($Content['P' . $personId]['Grade']['Data'][$tblSubjectFromSubjectTable->getAcronym()]))
+                        ) {
+                            $Content['P' . $personId]['Grade']['Data'][$tblSubjectFromSubjectTable->getAcronym()] = $tblGradeText->getName();
+                            if ($tblGradeText->getName() != '&ndash;') {
+                                $Content['P' . $personId]['Grade']['Data']['IsShrinkSize'][$tblSubjectFromSubjectTable->getAcronym()] = true;
                             }
                         }
                     }
