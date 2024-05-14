@@ -1112,7 +1112,7 @@ class Service extends AbstractService
             if (!$tblSubject) {
                 $tblSubject = $this->getSubjectByAcronym('BI');
             }
-        } elseif ($acronym == 'REV' || $acronym == 'RELI' || $acronym == 'REE' || $acronym == 'RE/e') {
+        } elseif ($acronym == 'RE' || $acronym == 'REV' || $acronym == 'RELI' || $acronym == 'REE' || $acronym == 'RE/e') {
             $tblSubject = $this->getSubjectByAcronym('RE/e');
             if (!$tblSubject) {
                 $tblSubject = $this->getSubjectByAcronym('REV');
@@ -1122,6 +1122,9 @@ class Service extends AbstractService
             }
             if (!$tblSubject) {
                 $tblSubject = $this->getSubjectByAcronym('REE');
+            }
+            if (!$tblSubject) {
+                $tblSubject = $this->getSubjectByAcronym('RE');
             }
         } elseif ($acronym == 'REK' || $acronym == 'RE/k') {
             $tblSubject = $this->getSubjectByAcronym('RE/k');
@@ -1158,6 +1161,11 @@ class Service extends AbstractService
             $tblSubject = $this->getSubjectByAcronym('G/R/W');
             if (!$tblSubject) {
                 $tblSubject = $this->getSubjectByAcronym('GRW');
+            }
+        } elseif ($acronym == 'GK' || $acronym == 'GKR') {
+            $tblSubject = $this->getSubjectByAcronym('GK');
+            if (!$tblSubject) {
+                $tblSubject = $this->getSubjectByAcronym('GKR');
             }
         } else {
             $tblSubject = $this->getSubjectByAcronym($acronym);
