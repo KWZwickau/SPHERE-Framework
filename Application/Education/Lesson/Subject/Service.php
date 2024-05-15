@@ -1149,13 +1149,16 @@ class Service extends AbstractService
             if (!$tblSubject) {
                 $tblSubject = $this->getSubjectByAcronym('PHY');
             }
-        } elseif ($acronym == 'WTH' || $acronym == 'WTHD' || $acronym == 'WTHS') {
+        } elseif ($acronym == 'WTH' || $acronym == 'WTHD' || $acronym == 'WTHS' || $acronym == 'WTS') {
             $tblSubject = $this->getSubjectByAcronym('WTH');
             if (!$tblSubject) {
                 $tblSubject = $this->getSubjectByAcronym('WTHD');
             }
             if (!$tblSubject) {
                 $tblSubject = $this->getSubjectByAcronym('WTHS');
+            }
+            if (!$tblSubject) {
+                $tblSubject = $this->getSubjectByAcronym('WTS');
             }
         } elseif ($acronym == 'G/R/W' || $acronym == 'GRW') {
             $tblSubject = $this->getSubjectByAcronym('G/R/W');
