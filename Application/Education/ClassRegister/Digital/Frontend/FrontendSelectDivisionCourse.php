@@ -58,7 +58,7 @@ class FrontendSelectDivisionCourse extends FrontendCourseContent
 
         Digital::useService()->setHeaderButtonList($Stage, View::TEACHER, self::BASE_ROUTE);
         $yearFilterList = array();
-        $buttonList = Digital::useService()->setYearGroupButtonList(self::BASE_ROUTE . '/Teacher', $IsAllYears, $YearId, false, true, $yearFilterList, $hasLastYearsTemp);
+        $buttonList = Digital::useService()->setYearGroupButtonList(self::BASE_ROUTE . '/Teacher', $IsAllYears, $YearId, false, true, $yearFilterList, $hasLastYearsTemp, true);
 
         $table = false;
         if (($tblPerson = Account::useService()->getPersonByLogin())) {
@@ -180,7 +180,7 @@ class FrontendSelectDivisionCourse extends FrontendCourseContent
         $yearFilterList = array();
         // nur Schulleitung darf History (Alle Schuljahre) sehen
         $buttonList = Digital::useService()->setYearGroupButtonList(self::BASE_ROUTE . '/Headmaster',
-            $IsAllYears, $YearId, Access::useService()->hasAuthorization('/Education/ClassRegister/Digital/Instruction/Setting'), true, $yearFilterList, $hasLastYearsTemp);
+            $IsAllYears, $YearId, Access::useService()->hasAuthorization('/Education/ClassRegister/Digital/Instruction/Setting'), true, $yearFilterList, $hasLastYearsTemp, true);
 
         $dataList = array();
         $tblDivisionCourseList = array();
