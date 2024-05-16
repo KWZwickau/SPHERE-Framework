@@ -579,8 +579,10 @@ abstract class ServiceTask extends ServiceStudentOverview
                         }
                     // Stichtagsnoten
                     } else {
-                        if (Grade::useFrontend()->getIsOverrideScoreTypeException($tblSubject)) {
-                            $tblScoreType = Grade::useService()->getScoreTypeByPersonAndYearAndSubject($tblPerson, $tblYear, $tblSubject);
+                        if (($tblScoreTypeSubject = Grade::useService()->getScoreTypeSubjectByPersonAndYearAndSubject($tblPerson, $tblYear, $tblSubject))
+                            && $tblScoreTypeSubject->getIsOverrideScoreTypeException()
+                        ) {
+                            $tblScoreType = $tblScoreTypeSubject->getTblScoreType();
                         } elseif (DivisionCourse::useService()->getIsCourseSystemByPersonAndYear($tblPerson, $tblYear)) {
                             $tblScoreType = Grade::useService()->getScoreTypeByIdentifier('POINTS');
                         } else {
@@ -723,7 +725,9 @@ abstract class ServiceTask extends ServiceStudentOverview
                         } elseif ($tblDivisionCourse
                             && ($tblSubject = $tblTeacherLectureship->getServiceTblSubject())
                         ) {
-                            $tblTaskList = $this->getTaskListByDivisionCourse($tblDivisionCourse);
+                            // SSWHD-2880 Unterrichtsgruppe für Lehrer
+//                            $tblTaskList = $this->getTaskListByDivisionCourse($tblDivisionCourse);
+                            $tblTaskList = Grade::useService()->getTaskListByStudentsInDivisionCourse($tblDivisionCourse);
                         }
 
                         if ($tblTaskList && $tblSubject) {
@@ -798,14 +802,39 @@ abstract class ServiceTask extends ServiceStudentOverview
     ): bool {
         $countPersons = 0;
         $countGrades = 0;
+
+        $hasTaskThisDivisionCourse = false;
+        if (($tblDivisionCourseListFromTask = $tblTask->getDivisionCourses())) {
+            $hasTaskThisDivisionCourse = isset($tblDivisionCourseListFromTask[$tblDivisionCourse->getId()]);
+        }
+
         if (($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses())) {
             foreach ($tblPersonList as $tblPerson) {
                 if (($virtualSubject = DivisionCourse::useService()->getVirtualSubjectFromRealAndVirtualByPersonAndYearAndSubject($tblPerson, $tblYear, $tblSubject))
                     && ($virtualSubject->getHasGrading() || ($tblTask->getIsTypeBehavior() && $tblSettingBehaviorHasGrading))
                 ) {
-                    $countPersons++;
-                    if (($tblTaskGradeList = $this->getTaskGradeListByPersonAndYearAndSubjectAndTask($tblPerson, $tblTask, $tblSubject))) {
-                        $countGrades += count($tblTaskGradeList);
+                    $hasTask = $hasTaskThisDivisionCourse;
+                    // nur Schüler mit dem Notenauftrag anzeigen, nicht alle im Kurs
+                    if (!$hasTask) {
+                        if ($tblDivisionCourseListFromTask
+                            && ($tblDivisionCourseListFromStudent = DivisionCourse::useService()->getDivisionCourseListByStudentAndYear(
+                                $tblPerson, $tblYear
+                            ))
+                        ) {
+                            foreach ($tblDivisionCourseListFromStudent as $tblDivisionCourseStudent) {
+                                if (isset($tblDivisionCourseListFromTask[$tblDivisionCourseStudent->getId()])) {
+                                    $hasTask = true;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    if ($hasTask) {
+                        $countPersons++;
+                        if (($tblTaskGradeList = $this->getTaskGradeListByPersonAndYearAndSubjectAndTask($tblPerson, $tblTask, $tblSubject))) {
+                            $countGrades += count($tblTaskGradeList);
+                        }
                     }
                 }
             }
@@ -1076,12 +1105,18 @@ abstract class ServiceTask extends ServiceStudentOverview
     {
         $result = '';
 
-        // Zensuren - Leistungsüberprüfungen
-        if ($startDate
-            && ($tblGradeList = Grade::useService()->getTestGradeListBetweenDateTimesByPersonAndYearAndSubject(
+        if ($tblTask->getIsAllYears()) {
+            $tblGradeList = Grade::useService()->getTestGradeListToDateTimeByPersonAndSubject($tblPerson, $tblSubject, $tblTask->getToDate());
+        } elseif ($startDate) {
+            $tblGradeList = Grade::useService()->getTestGradeListBetweenDateTimesByPersonAndYearAndSubject(
                 $tblPerson, $tblYear, $tblSubject, $startDate, $tblTask->getDate()
-            ))
-        ) {
+            );
+        } else {
+            $tblGradeList = false;
+        }
+
+        // Zensuren - Leistungsüberprüfungen
+        if ($tblGradeList) {
             $tblScoreRule = Grade::useService()->getScoreRuleByPersonAndYearAndSubject($tblPerson, $tblYear, $tblSubject, $tblDivisionCourse);
             list($result) = Grade::useService()->getCalcStudentAverage($tblPerson, $tblYear, $tblGradeList, $tblScoreRule ?: null, $tblPeriod ?: null);
         }

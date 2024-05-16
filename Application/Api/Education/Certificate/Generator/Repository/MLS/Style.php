@@ -33,13 +33,11 @@ abstract class Style extends Certificate
     }
 
     /**
-     * @param $personId
      * @param string $title
-     * @param string $period
      *
      * @return Slice
      */
-    protected function getCustomHead($personId, string $title = 'Halbjahresinformation', string $period = '1. Schulhalbjahr'): Slice
+    protected function getCustomHead(string $title = 'Halbjahresinformation der Grundschule'): Slice
     {
         if ($this->isSample()) {
             $elementSample = (new Element\Sample());
@@ -78,7 +76,7 @@ abstract class Style extends Certificate
                     )
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent($title . ' der Grundschule')
+                            ->setContent($title)
                             ->styleAlignCenter()
                             ->styleTextBold()
                             ->styleTextSize('20px')

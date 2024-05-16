@@ -216,10 +216,10 @@ abstract class ServiceCertificateContent extends ServiceAbitur
                 $Description .= 'e';
             }
             $Content['P' . $personId]['Division']['Data']['DescriptionWithE'] = $Description;
-        } elseif ($tblCoreGroup) {
-            $Content['P' . $personId]['Division']['Data']['Name'] = $tblCoreGroup->getName();
+//        } elseif ($tblCoreGroup) {
+//            $Content['P' . $personId]['Division']['Data']['Name'] = $tblCoreGroup->getName();
         } else {
-            $Content['P' . $personId]['Division']['Data']['Name'] = '&nbsp;';
+            $Content['P' . $personId]['Division']['Data']['Name'] = $level;
         }
         $course = $level;
         // html funktioniert, allerdings kann es der DOM-PDF nicht, enable utf-8 for domPdf? oder eventuell Schriftart ändern
@@ -565,6 +565,7 @@ abstract class ServiceCertificateContent extends ServiceAbitur
 
             // Fachnoten
             // Abschlusszeugnisse mit Extra Prüfungen, aktuell nur Fachoberschule und Oberschule
+            $examGradeList = array();
             if ($tblCertificateType
                 && $tblCertificateType->getIdentifier() == 'DIPLOMA'
                 && ($tblSchoolType->getShortName() == 'FOS' || $tblSchoolType->getShortName() == 'OS' || $tblSchoolType->getShortName() == 'BFS')
@@ -578,6 +579,7 @@ abstract class ServiceCertificateContent extends ServiceAbitur
                     $gradeListFOS = array();
                     foreach ($tblPrepareAdditionalGradeList as $tblPrepareAdditionalGrade) {
                         if (($tblSubject = $tblPrepareAdditionalGrade->getServiceTblSubject())) {
+                            $examGradeList[$tblSubject->getId()] = $tblSubject;
                             if ($isGradeVerbalOnDiploma) {
                                 $grade = $this->getVerbalGrade($tblPrepareAdditionalGrade->getGrade());
                                 if ($tblConsumer && !$tblConsumer->isConsumer(TblConsumer::TYPE_SACHSEN, 'EZSH')) {
@@ -617,16 +619,22 @@ abstract class ServiceCertificateContent extends ServiceAbitur
                         $Content = $this->setCalcValueFOS($gradeListFOS, $Content, $tblPerson);
                     }
                 }
+            }
+
             // Fachnoten restliche Zeugnisse
-            } else {
-                if (($tblAppointedDateTask = $tblPrepare->getServiceTblAppointedDateTask())
-                    && $tblCertificate
-                    && ($tblTaskGradeList = Grade::useService()->getTaskGradeListByTaskAndPerson($tblAppointedDateTask, $tblPerson))
-                ) {
+            if (($tblAppointedDateTask = $tblPrepare->getServiceTblAppointedDateTask())
+                && $tblCertificate
+            ) {
+                if (($tblTaskGradeList = Grade::useService()->getTaskGradeListByTaskAndPerson($tblAppointedDateTask, $tblPerson))) {
                     foreach ($tblTaskGradeList as $tblTaskGrade) {
                         if (($tblSubjectTemp = $tblTaskGrade->getServiceTblSubject())) {
+                            // bei Abschlusszeugnissen existiert eine Endnote
+                            if (isset($examGradeList[$tblSubjectTemp->getId()])) {
+                                continue;
+                            }
+
                             // leere Zensuren bei Zeugnissen ignorieren, bei optionalen Zeugnisfächern
-                            if ($tblTaskGrade->getGrade() ===  null && $tblTaskGrade->getTblGradeText() == null) {
+                            if ($tblTaskGrade->getGrade() === null && $tblTaskGrade->getTblGradeText() == null) {
                                 continue;
                             }
 
@@ -638,19 +646,38 @@ abstract class ServiceCertificateContent extends ServiceAbitur
                                 if ($tblTaskGrade->getTblGradeText()) {
                                     $Content['P' . $personId]['Grade']['Data'][$tblSubjectTemp->getAcronym()] = $tblTaskGrade->getTblGradeText()->getName();
                                 } else {
-                                    $Content['P' . $personId]['Grade']['Data'][$tblSubjectTemp->getAcronym()] = $this->getVerbalGrade($tblTaskGrade->getDisplayGrade(false, $tblCertificate));
+                                    $Content['P' . $personId]['Grade']['Data'][$tblSubjectTemp->getAcronym()] = $this->getVerbalGrade($tblTaskGrade->getDisplayGrade(false,
+                                        $tblCertificate));
                                     $Content['P' . $personId]['Grade']['Data']['IsShrinkSize'][$tblSubjectTemp->getAcronym()] = true;
                                 }
                             } else {
-                                $Content['P' . $personId]['Grade']['Data'][$tblSubjectTemp->getAcronym()] = $tblTaskGrade->getDisplayGrade(false, $tblCertificate);
+                                $Content['P' . $personId]['Grade']['Data'][$tblSubjectTemp->getAcronym()] = $tblTaskGrade->getDisplayGrade(false,
+                                    $tblCertificate);
                             }
 
                             // bei Zeugnistext als Note Schriftgröße verkleinern
                             if ($tblTaskGrade->getTblGradeText()
                                 && $tblTaskGrade->getTblGradeText()->getName() != '&ndash;'
-//                                    && $tblGradeItem->getTblGradeText()->getName() != 'befreit'
                             ) {
                                 $Content['P' . $personId]['Grade']['Data']['IsShrinkSize'][$tblSubjectTemp->getAcronym()] = true;
+                            }
+                        }
+                    }
+                }
+
+                // Standard Zeugnistext aus der Stundentafel
+                if ($level
+                    && $tblSchoolType
+                    && ($tblSubjectTableList = DivisionCourse::useService()->getSubjectTableListBy($tblSchoolType, $level))
+                ) {
+                    foreach ($tblSubjectTableList as $tblSubjectTable) {
+                        if (($tblGradeText = $tblSubjectTable->getServiceTblGradeText())
+                            && ($tblSubjectFromSubjectTable = $tblSubjectTable->getServiceTblSubject())
+                            && (!isset($Content['P' . $personId]['Grade']['Data'][$tblSubjectFromSubjectTable->getAcronym()]))
+                        ) {
+                            $Content['P' . $personId]['Grade']['Data'][$tblSubjectFromSubjectTable->getAcronym()] = $tblGradeText->getName();
+                            if ($tblGradeText->getName() != '&ndash;') {
+                                $Content['P' . $personId]['Grade']['Data']['IsShrinkSize'][$tblSubjectFromSubjectTable->getAcronym()] = true;
                             }
                         }
                     }

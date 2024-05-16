@@ -1051,6 +1051,7 @@ class Frontend extends FrontendTabs
                 foreach ($tblLessonContentTempList as $tblLessonContentTemp) {
                     $tblSubjectTemp = $tblLessonContentTemp->getServiceTblSubject();
                     if (!$SubjectId || ($tblSubjectTemp && $tblSubjectTemp->getId() == $SubjectId)) {
+                        $tblSubject = $tblSubjectTemp;
                         $Global->POST['Data']['serviceTblSubject'] = $tblSubjectTemp ? $tblSubjectTemp->getId() : 0;
                         $Global->POST['Data']['serviceTblSubstituteSubject'] =
                             $tblLessonContentTemp->getServiceTblSubstituteSubject() ? $tblLessonContentTemp->getServiceTblSubstituteSubject()->getId() : 0;
@@ -1141,9 +1142,13 @@ class Frontend extends FrontendTabs
                 ),
             ));
         }
+        $inputContent = new TextField('Data[Content]', 'Thema', 'Thema', new Edit());
+        if ($tblSubject) {
+            $inputContent->setAutoFocus();
+        }
         $formRowList[] = new FormRow(array(
             new FormColumn(
-                new TextField('Data[Content]', 'Thema', 'Thema', new Edit())
+                $inputContent
             ),
         ));
         $formRowList[] = new FormRow(array(

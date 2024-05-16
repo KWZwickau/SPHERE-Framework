@@ -18,6 +18,7 @@ use SPHERE\System\Database\Fitting\Element;
 class TblScoreType extends Element
 {
     const ATTR_IDENTIFIER = 'Identifier';
+    const VIRTUAL_OVERRIDE_SCORE_TYPE_EXCEPTION_ID = -1;
 
     /**
      * @Column(type="string")
@@ -86,5 +87,18 @@ class TblScoreType extends Element
     public function getScoreTypeSubjects(?TblType $tblSchoolType = null)
     {
         return Grade::useService()->getScoreTypeSubjectListByScoreType($this, $tblSchoolType);
+    }
+
+    /**
+     * @return TblScoreType
+     */
+    public static function getVirtualOverrideScoreTypeException(): TblScoreType
+    {
+        $tblScoreType = new TblScoreType();
+        $tblScoreType->setId(self::VIRTUAL_OVERRIDE_SCORE_TYPE_EXCEPTION_ID);
+        $tblScoreType->setName('Automatisches Überschreiben bei Notenaufträgen verhindern');
+        $tblScoreType->setIdentifier('OverrideScoreTypeException');
+
+        return $tblScoreType;
     }
 }

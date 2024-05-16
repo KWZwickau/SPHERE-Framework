@@ -333,7 +333,7 @@ class Gradebook extends AbstractDocument
         $count = 0;
 
         if (($tblTestList = Grade::useService()->getTestListByDivisionCourseAndSubject($tblDivisionCourse, $tblSubject))) {
-            $tblTestList = $this->sortTestList($tblTestList);
+            $tblTestList = Grade::useService()->sortTestList($tblTestList);
             /** @var TblTest $tblTest */
             foreach ($tblTestList as $tblTest) {
                 if (($tblGradeType = $tblTest->getTblGradeType())) {
@@ -904,60 +904,5 @@ class Gradebook extends AbstractDocument
             . '">'
             . $text
             . '</div>';
-    }
-
-    /**
-     * @param $tblTestList
-     *
-     * @return array
-     */
-    public static function sortTestList($tblTestList): array
-    {
-        if (($tblSetting = Consumer::useService()->getSetting(
-                'Education', 'Graduation', 'Gradebook', 'SortHighlighted'
-            ))
-            && $tblSetting->getValue()
-        ) {
-            // Sortierung nach Großen (fettmarkiert) und Klein Noten
-            $highlightedTests = array();
-            $notHighlightedTests = array();
-            $countTests = 1;
-            $isHighlightedSortedRight = true;
-            if (($tblSettingSortedRight = Consumer::useService()->getSetting(
-                'Education', 'Graduation', 'Gradebook', 'IsHighlightedSortedRight'
-            ))
-            ) {
-                $isHighlightedSortedRight = $tblSettingSortedRight->getValue();
-            }
-            /** @var TblTest $tblTestItem */
-            foreach ($tblTestList as $tblTestItem) {
-                if (($tblGradeType = $tblTestItem->getTblGradeType())) {
-                    if ($tblGradeType->getIsHighlighted()) {
-                        $highlightedTests[$countTests++] = $tblTestItem;
-                    } else {
-                        $notHighlightedTests[$countTests++] = $tblTestItem;
-                    }
-                }
-            }
-
-            $tblTestList = array();
-            if (!empty($notHighlightedTests)) {
-                $tblTestList = (new Extension())->getSorter($notHighlightedTests)->sortObjectBy('Date', new DateTimeSorter());
-            }
-            if (!empty($highlightedTests)) {
-                $highlightedTests = (new Extension())->getSorter($highlightedTests)->sortObjectBy('Date', new DateTimeSorter());
-
-                if ($isHighlightedSortedRight) {
-                    $tblTestList = array_merge($tblTestList, $highlightedTests);
-                } else {
-                    $tblTestList = array_merge($highlightedTests, $tblTestList);
-                }
-            }
-        } else {
-            // Sortierung der Tests nach Datum
-            $tblTestList = (new Extension())->getSorter($tblTestList)->sortObjectBy('Date', new DateTimeSorter());
-        }
-
-        return $tblTestList;
     }
 }

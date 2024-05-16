@@ -569,7 +569,8 @@ abstract class FrontendTest extends FrontendTeacherGroup
      *
      * @return Form
      */
-    public function formTestGrades(TblTest $tblTest, TblYear $tblYear, TblSubject $tblSubject, $DivisionCourseId, $Filter, bool $setPost = false, $Errors = null): Form
+    public function formTestGrades(TblTest $tblTest, TblYear $tblYear, TblSubject $tblSubject, $DivisionCourseId, $Filter, bool $setPost = false, $Errors = null,
+        $attendanceList = null): Form
     {
         $bodyList = array();
 
@@ -596,7 +597,7 @@ abstract class FrontendTest extends FrontendTeacherGroup
         }
 
         $tblGradeList = array();
-        $attendanceList = array();
+        $attendanceList = $attendanceList ?: array();
         if ($setPost) {
             if (($tempGrades = $tblTest->getGrades())) {
                 $global = $this->getGlobal();
@@ -727,7 +728,7 @@ abstract class FrontendTest extends FrontendTeacherGroup
         $global->POST['Data'][$personId]['Attendance'] = $isAttendance ? 1 : 0;
         $global->savePost();
 
-        return new CheckBox('Data[' . $personId . '][Attendance]', ' ', 1);
+        return new CheckBox('Data[' . $personId . '][Attendance]', ' ', 1, array('Data[' . $personId . '][Grade]'));
     }
 
     /**
@@ -763,7 +764,7 @@ abstract class FrontendTest extends FrontendTeacherGroup
             }
 
             if (isset($Errors[$tblPerson->getId()]['Grade'])) {
-                $inputField->setError('Die Eingegebene Zensur entspricht nicht dem Pattern des eingestellten Bewertungssystems!');
+                $inputField->setError('Die eingegebene Zensur entspricht nicht dem Wertebereich des eingestellten Bewertungssystems!');
             }
         } else {
             $inputField = new \SPHERE\Common\Frontend\Text\Repository\Warning('Kein Bewertungssystem hinterlegt!');

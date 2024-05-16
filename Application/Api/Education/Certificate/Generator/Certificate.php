@@ -535,6 +535,7 @@ abstract class Certificate extends Extension
         }
         $isLargeCompanyName = false;
         $name = '';
+        $empty = '&nbsp;';
         // get company name
         if (($tblPerson = Person::useService()->getPersonById($personId))
             && ($tblCompany = $this->getTblCompany())
@@ -544,6 +545,12 @@ abstract class Certificate extends Extension
            if (strlen($name) > 60) {
                $isLargeCompanyName = true;
            }
+
+            if (strlen($name) > 75 && $isSchoolExtendedNameDisplayed) {
+                $isLargeCompanyName = strlen($tblCompany->getName()) > 60 || strlen($tblCompany->getExtendedName()) > 60;
+                $name = $tblCompany->getName() . new Container($tblCompany->getExtendedName());
+                $empty .= new Container('&nbsp;');
+            }
         }
 
         $SchoolSlice = (new Slice());
@@ -569,7 +576,7 @@ abstract class Certificate extends Extension
                     ->styleAlignCenter()
                     , '64%')
                 ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
+                    ->setContent($empty)
                     ->styleBorderBottom()
                     , '18%')
             )->styleMarginTop($MarginTop);

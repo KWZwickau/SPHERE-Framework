@@ -21,7 +21,8 @@ class TblSetting extends Element
     const ATTR_CATEGORY = 'Category';
 
     // Regular Options
-    // aktuell leer
+    const IDENT_INVOICE_DELETE = 'InvoiceDelete';
+    const ATTR_INVOICE_DELETE = 'InvoiceDelete';
 
     // Sepa Options
     const IDENT_IS_SEPA = 'IsSepa';

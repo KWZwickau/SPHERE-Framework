@@ -90,11 +90,19 @@ class ExamGradeListOS extends AbstractDocument
             }
         }
 
-        $this->identifierList['JN'] = 'Jn';
-        $this->identifierList['PS'] = 'Ps';
-        $this->identifierList['PM'] = 'Pm' ;
-        $this->identifierList['PZ'] = 'Pz';
-        $this->identifierList['EN'] = 'En';
+        if ($this->isMainCourse) {
+            $this->identifierList['JN'] = 'Jn';
+            $this->identifierList['LS'] = 'Ps';
+            $this->identifierList['LM'] = 'Pm';
+            $this->identifierList['PZ'] = 'Pz';
+            $this->identifierList['EN'] = 'En';
+        } else {
+            $this->identifierList['JN'] = 'Jn';
+            $this->identifierList['PS'] = 'Ps';
+            $this->identifierList['PM'] = 'Pm';
+            $this->identifierList['PZ'] = 'Pz';
+            $this->identifierList['EN'] = 'En';
+        }
     }
 
     /**
@@ -309,13 +317,20 @@ class ExamGradeListOS extends AbstractDocument
         {
             /** @var TblPerson $tblPerson */
             $tblPerson = $this->personList[$i] ?? null;
+            $textSize = self::TEXT_SIZE;
+            if ($tblPerson) {
+                $firstSecondName = $tblPerson->getFirstSecondName();
+                if (strlen($firstSecondName) > 18) {
+                    $textSize = self::TEXT_SIZE_SMALL;
+                }
+            }
             $slice->addSection((new Section())
                 ->addElementColumn($this->getBodyElement($i))
                 ->addElementColumn($this->getBodyElement($tblPerson ? $tblPerson->getLastName() : '&nbsp;')
                     ->styleAlignLeft()
                     ->stylePaddingLeft('5px')
                     , $widthName)
-                ->addElementColumn($this->getBodyElement($tblPerson ? $tblPerson->getFirstSecondName() : '&nbsp;')
+                ->addElementColumn($this->getBodyElement($tblPerson ? $tblPerson->getFirstSecondName() : '&nbsp;', $textSize)
                     ->styleAlignLeft()
                     ->stylePaddingLeft('5px')
                     , $widthName)
@@ -630,7 +645,7 @@ class ExamGradeListOS extends AbstractDocument
                 , $width[$count]);
 
         return (new Slice())
-            ->styleMarginTop('40px')
+            ->styleMarginTop('30px')
             ->addSection($sectionContent)
             ->addSection($sectionDescription);
     }

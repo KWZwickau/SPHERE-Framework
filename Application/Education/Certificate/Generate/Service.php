@@ -33,7 +33,15 @@ use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Common\Frontend\Form\IFormInterface;
+use SPHERE\Common\Frontend\Form\Structure\FormColumn;
+use SPHERE\Common\Frontend\Form\Structure\FormGroup;
+use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
+use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Structure\Layout;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Window\Redirect;
@@ -172,6 +180,11 @@ class Service extends AbstractService
             return $Form;
         }
 
+        // überschneiden von Stammgruppen und Klassen verhindern
+        if (($this->checkOverlapDivisionAndCoreGroup($Data, $Form))) {
+            return $Form;
+        }
+
         // Soft - Löschen
         $existsDivisionCourseList = array();
         if (($tblPrepareList = Prepare::useService()->getPrepareAllByGenerateCertificate($tblGenerateCertificate))) {
@@ -304,6 +317,55 @@ class Service extends AbstractService
                 new \SPHERE\Common\Frontend\Icon\Repository\Success())
             . new Redirect('/Education/Certificate/Generate/Division', Redirect::TIMEOUT_SUCCESS,
                 array('GenerateCertificateId' => $tblGenerateCertificate->getId()));
+    }
+
+    private function checkOverlapDivisionAndCoreGroup(array $Data, IFormInterface $Form): bool
+    {
+        if (isset($Data['Division'])) {
+            $existsPersonList = array();
+            $doppelPersonList = array();
+            foreach ($Data['Division'] as $divisionCourseId => $value) {
+                if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($divisionCourseId))
+                    && ($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses())
+                ) {
+                    foreach ($tblPersonList as $tblPerson)
+                    {
+                        if (isset($existsPersonList[$tblPerson->getId()])) {
+                            $doppelPersonList[$tblPerson->getId()] = $tblPerson->getLastFirstName() . ' ist in ' . $existsPersonList[$tblPerson->getId()]
+                                . ' und ' . $tblDivisionCourse->getTypeName() . ': ' . $tblDivisionCourse->getName();
+                        } else {
+                            $existsPersonList[$tblPerson->getId()] = $tblDivisionCourse->getTypeName() . ': ' . $tblDivisionCourse->getName();
+                        }
+                    }
+                }
+            }
+
+            if (!empty($doppelPersonList)) {
+                $Form->prependGridGroup(new FormGroup(new FormRow(new FormColumn(
+                    new Layout(new LayoutGroup(array(
+                        new LayoutRow(new LayoutColumn(
+                            new Danger(new Exclamation() . ' Die Daten wurden nicht gespeichert. Es darf keine Überschneidung zwischen Klassen und Stammgruppe bei Zeugnisaufträgen geben!')
+                        ))
+                    )))
+                ))));
+
+                $Form->appendGridGroup(new FormGroup(new FormRow(new FormColumn(
+                    new Layout(new LayoutGroup(array(
+                        new LayoutRow(new LayoutColumn(
+                            new Panel(
+                                new Exclamation() . ' Die Daten wurden nicht gespeichert. Es darf keine Überschneidung zwischen Klassen und Stammgruppe bei Zeugnisaufträgen geben!',
+                                $doppelPersonList,
+                                Panel::PANEL_TYPE_DANGER
+                            )
+                        ))
+                    )))
+                ))));
+
+                return true;
+            }
+        }
+
+        return false;
     }
 
 

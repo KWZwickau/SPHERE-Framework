@@ -189,11 +189,11 @@ class TblTestGrade extends Element
     }
 
     /**
-     * @param TblPerson $tblPerson
+     * @param ?TblPerson $tblPerson
      */
-    public function setServiceTblPersonTeacher(TblPerson $tblPerson)
+    public function setServiceTblPersonTeacher(?TblPerson $tblPerson)
     {
-        $this->serviceTblPersonTeacher = $tblPerson->getId();
+        $this->serviceTblPersonTeacher = $tblPerson?->getId();
     }
 
     /**

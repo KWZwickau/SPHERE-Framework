@@ -1758,10 +1758,11 @@ abstract class BfsStyle extends Certificate
         $Slice->stylePaddingTop('5px');
         $Slice->styleHeight($Height);
         $Slice->styleBorderAll('0.5px');
+        // lediglich Generalistik mit Absence, deswegen feste "Stunden" hinterlegung ok
         if($IsAbsence) {
             $Slice->addElement((new Element())
                 ->setContent('Fehlzeiten Unterricht entschuldigt: {% if(Content.P' . $personId . '.Input.Missing is not empty) %}
-                    {{ Content.P' . $personId . '.Input.Missing }} Tage
+                    {{ Content.P' . $personId . '.Input.Missing }} Stunden
                 {% else %}
                     &nbsp;
                 {% endif %}')
@@ -1769,7 +1770,7 @@ abstract class BfsStyle extends Certificate
             );
             $Slice->addElement((new Element())
                 ->setContent('Fehlzeiten Unterricht unentschuldigt: {% if(Content.P' . $personId . '.Input.Bad.Missing is not empty) %}
-                    {{ Content.P' . $personId . '.Input.Bad.Missing }} Tage
+                    {{ Content.P' . $personId . '.Input.Bad.Missing }} Stunden
                 {% else %}
                     &nbsp;
                 {% endif %}')
@@ -2496,7 +2497,7 @@ abstract class BfsStyle extends Certificate
                                 {% else %}
                                     &lt;X&gt;
                                 {% endif %}
-                                Tage
+                                Stunden
                             {% else %}
                                 &nbsp;
                             {% endif %}
@@ -2510,7 +2511,7 @@ abstract class BfsStyle extends Certificate
                             {% if(Content.P' . $personId . '.Input.SubareaTimeHDone' . $i . ' is not empty) %}
                                 davon anwesend
                                 {{ Content.P' . $personId . '.Input.SubareaTimeHDone' . $i . ' }}
-                                Tage
+                                Stunden
                             {% else %}
                                 &nbsp;
                             {% endif %}

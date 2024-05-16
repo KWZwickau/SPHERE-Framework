@@ -19,6 +19,9 @@ class Data extends AbstractData
     public function setupDatabaseContent()
     {
 
+        // Regular Options
+        $this->createSetting(TblSetting::IDENT_INVOICE_DELETE, '0', TblSetting::TYPE_BOOLEAN, TblSetting::CATEGORY_REGULAR);
+
         // SEPA Options
         $this->createSetting(TblSetting::IDENT_IS_SEPA, '1', TblSetting::TYPE_BOOLEAN, TblSetting::CATEGORY_SEPA);
         $this->createSetting(TblSetting::IDENT_SEPA_REMARK, '', TblSetting::TYPE_STRING, TblSetting::CATEGORY_SEPA);

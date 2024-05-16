@@ -62,8 +62,8 @@ class Frontend extends Extension implements IFrontendInterface
                             ''
                         , 3),
                         new LayoutColumn(
-                            new Info('Anfragen an den Support bitte über: '.new Mailto('helpdesk@schulsoftware.schule' , 'helpdesk@schulsoftware.schule', new Envelope()).' ')
-//                            .Support::useService()->createTicket($this->formTicket(), $Ticket, $Attachment)
+                            new Info('Anfragen an den Support bitte über '.new Mailto('helpdesk@schulsoftware.schule' , 'helpdesk@schulsoftware.schule', new Envelope()).' oder verwenden Sie das Formular.')
+                            .Support::useService()->createTicket($this->formTicket(), $Ticket, $Attachment)
                         , 6)
                     ))
                 )

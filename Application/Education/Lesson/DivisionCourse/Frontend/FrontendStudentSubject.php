@@ -293,6 +293,8 @@ class FrontendStudentSubject extends FrontendStudent
                     . new ToggleSelective( 'Alle wählen/abwählen', $toggleList)
                     . new Container('&nbsp;')
                     . $panel
+                    . (empty($subjectTableVariableList) ? '' : new Warning('Wenn Sie die Fächer-Zuordnung von Schülern mit Verknüpfung zur Schülerakte speichern, haben
+                        entsprechende Änderungen in der Schülerakte keinen Einfluss mehr auf dieses Fach.', new Exclamation()))
                     . (new Primary('Speichern', ApiStudentSubject::getEndpoint(), new Save()))
                         ->ajaxPipelineOnClick(ApiStudentSubject::pipelineSaveStudentSubjectList($DivisionCourseId))
                     . (new Primary('Abbrechen', ApiStudentSubject::getEndpoint(), new Disable()))

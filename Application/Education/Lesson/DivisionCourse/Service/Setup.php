@@ -231,6 +231,7 @@ class Setup extends AbstractSetup
         $this->createColumn($table, 'StudentMetaIdentifier', self::FIELD_TYPE_STRING);
         $this->createColumn($table, 'HasGrading', self::FIELD_TYPE_BOOLEAN);
         $this->createColumn($table, 'HoursPerWeek', self::FIELD_TYPE_INTEGER, true);
+        $this->createColumn($table, 'serviceTblGradeText', self::FIELD_TYPE_BIGINT, true);
 
         return $table;
     }

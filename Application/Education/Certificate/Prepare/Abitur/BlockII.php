@@ -45,14 +45,14 @@ use SPHERE\Common\Frontend\Table\Structure\TableData;
 class BlockII extends AbstractBlock
 {
     /**
-     * @var bool|array
+     * @var array
      */
-    private $AvailableSubjectsP3 = false;
+    private $AvailableSubjectsP3 = array();
 
     /**
-     * @var bool|array
+     * @var array
      */
-    private $AvailableSubjectsP4P5 = false;
+    private $AvailableSubjectsP4P5 = array();
 
     /**
      * BlockII constructor.
@@ -237,7 +237,7 @@ class BlockII extends AbstractBlock
         );
         $columnsContent[] = $resultBlockII;
 
-        if (($warnings = Prepare::useService()->checkAbiturExams($this->tblPrepareCertificate, $this->tblPerson))) {
+        if (($warnings = Prepare::useService()->checkAbiturExams($this->tblPrepareCertificate, $this->tblPerson)) && !empty($warnings)) {
             foreach ($warnings as $warning) {
                 $columnsContent[] = $warning;
             }

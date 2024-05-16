@@ -376,6 +376,18 @@ class Service extends AbstractService
     }
 
     /**
+     * @return string
+     */
+    public function isInvoiceDeleteActive()
+    {
+
+        if(($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_INVOICE_DELETE))){
+            return $tblSetting->getValue();
+        }
+        return '0';
+    }
+
+    /**
      * @param TblBasket          $tblBasket
      * @param TblDebtorSelection $tblDebtorSelection
      * @param float              $Value

@@ -2,6 +2,7 @@
 
 namespace SPHERE\Application\Education\Lesson\DivisionCourse;
 
+use SPHERE\Application\Education\Graduation\Grade\Grade;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Data;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblSubjectTable;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblSubjectTableLink;
@@ -156,7 +157,8 @@ abstract class ServiceSubjectTable extends ServiceStudentSubject
             (new Data($this->getBinding()))->getSubjectTableRankingForNewSubjectTable($tblSchoolType, $tblSubject ?: null, $studentMetaIdentifier),
             $Data['HoursPerWeek'] !== '' ? $Data['HoursPerWeek'] : null,
             $studentMetaIdentifier,
-            isset($Data['HasGrading'])
+            isset($Data['HasGrading']),
+            Grade::useService()->getGradeTextById($Data['GradeText']) ?: null
         ));
     }
 
@@ -177,7 +179,8 @@ abstract class ServiceSubjectTable extends ServiceStudentSubject
             $tblSubject ?: null,
             $studentMetaIdentifier,
             $Data['HoursPerWeek'] !== '' ? $Data['HoursPerWeek'] : null,
-            isset($Data['HasGrading'])
+            isset($Data['HasGrading']),
+            Grade::useService()->getGradeTextById($Data['GradeText']) ?: null
         );
     }
 

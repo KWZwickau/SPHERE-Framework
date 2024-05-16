@@ -16,6 +16,7 @@ class IDataMLS
         if (($tblConsumerCertificate = Consumer::useService()->getConsumerByAcronym('MLS'))){
             self::setGsHjInfo($Data, $tblConsumerCertificate);
             self::setGsJ($Data, $tblConsumerCertificate);
+            self::setBeGs($Data, $tblConsumerCertificate);
         }
     }
 
@@ -100,6 +101,26 @@ class IDataMLS
                 $Data->setCertificateSubject($tblCertificate, 'RE/E', 2, $i++);
                 $Data->setCertificateSubject($tblCertificate, 'WE', 2, $i);
             }
+        }
+    }
+
+    /**
+     * @param Data $Data
+     * @param TblConsumer $tblConsumerCertificate
+     */
+    private static function setBeGs(Data $Data, TblConsumer $tblConsumerCertificate)
+    {
+        $tblCertificate = $Data->createCertificate('Bildungsempfehlung', 'Grundschule Klasse 4', 'MLS\BeGs', $tblConsumerCertificate,
+            false, false, false, $Data->getTblCertificateTypeRecommendation(), $Data->getTblSchoolTypePrimary());
+        if ($tblCertificate) {
+            if (!$Data->getCertificateLevelAllByCertificate($tblCertificate)){
+                $Data->createCertificateLevel($tblCertificate, 4);
+            }
+        }
+        if ($tblCertificate && !$Data->getCertificateSubjectAll($tblCertificate)) {
+            $Data->setCertificateSubject($tblCertificate, 'DE', 1, 1);
+            $Data->setCertificateSubject($tblCertificate, 'SU', 1, 2);
+            $Data->setCertificateSubject($tblCertificate, 'MA', 2, 1);
         }
     }
 }
