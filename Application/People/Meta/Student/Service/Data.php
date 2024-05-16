@@ -245,6 +245,7 @@ class Data extends Support
         } else {
             $this->createSupportType('Widerspruch', '');
         }
+        $this->createSupportType('Zustimmung', '');
 
         // Masern
         $this->createStudentMasernInfo(TblStudentMasernInfo::DOCUMENT_IDENTIFICATION, TblStudentMasernInfo::TYPE_DOCUMENT, 'Impfausweis'
