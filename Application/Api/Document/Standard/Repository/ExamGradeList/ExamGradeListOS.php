@@ -90,11 +90,19 @@ class ExamGradeListOS extends AbstractDocument
             }
         }
 
-        $this->identifierList['JN'] = 'Jn';
-        $this->identifierList['PS'] = 'Ps';
-        $this->identifierList['PM'] = 'Pm' ;
-        $this->identifierList['PZ'] = 'Pz';
-        $this->identifierList['EN'] = 'En';
+        if ($this->isMainCourse) {
+            $this->identifierList['JN'] = 'Jn';
+            $this->identifierList['LS'] = 'Ps';
+            $this->identifierList['LM'] = 'Pm';
+            $this->identifierList['PZ'] = 'Pz';
+            $this->identifierList['EN'] = 'En';
+        } else {
+            $this->identifierList['JN'] = 'Jn';
+            $this->identifierList['PS'] = 'Ps';
+            $this->identifierList['PM'] = 'Pm';
+            $this->identifierList['PZ'] = 'Pz';
+            $this->identifierList['EN'] = 'En';
+        }
     }
 
     /**
