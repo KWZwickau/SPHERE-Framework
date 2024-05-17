@@ -60,7 +60,7 @@ class StudentCardNew extends AbstractDocument
                             ->addElementColumn((new Element())
                                 ->setContent('
                                     {% if( Content.Student.Company2 is not empty) %}
-                                        {{ Content.Student.Company }}
+                                        {{ Content.Student.Company }}<br/>
                                         {{ Content.Student.Company2 }}
                                     {% else %}
                                         {{ Content.Student.Company }}
@@ -428,8 +428,8 @@ class StudentCardNew extends AbstractDocument
                         ->addSection((new Section())
                             ->addElementColumn((new Element())
                                 ->setContent('Kontaktdaten einer im Notfall zu benachrichtigenden Person: 
-                                {% if(Content.Person.Contact.Phone.EmergencyNumber) %}
-                                {{ Content.Person.Contact.Phone.EmergencyNumber }}
+                                {% if(Content.Person.Contact.Phone.EmergencyNumberNew) %}
+                                {{ Content.Person.Contact.Phone.EmergencyNumberNew }}
                                  {% else %}
                                   &nbsp;
                                 {% endif %}')
