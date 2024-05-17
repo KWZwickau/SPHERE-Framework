@@ -875,6 +875,7 @@ abstract class AbstractDocument
 
             $phoneNumberList = $this->setPhoneNumbersByTypeName($tblPerson, 'Notfall');
             $phone = '';
+            $phoneNew = '';
             // es passen nur 3 Telefonnummern in das Feld
             if (!empty($phoneNumberList)) {
                 $phone = $phoneNumberList[0]
@@ -882,8 +883,14 @@ abstract class AbstractDocument
                     . ( isset( $phoneNumberList[2] ) ? '<br>'. $phoneNumberList[2] : '' );
 
                 $Data['Person']['Contact']['Phone']['Radebeul']['EmergencyNumber'] = implode('; ', $phoneNumberList);
+
+                // 2 passen nur 2 Notfallnummern auf die neue Schülerkartei
+                $phoneNew = $phoneNumberList[0]
+                    . ($phoneNumberList[1] ? '; ' . $phoneNumberList[1] : '');
             }
+
             $Data['Person']['Contact']['Phone']['EmergencyNumber'] = $phone;
+            $Data['Person']['Contact']['Phone']['EmergencyNumberNew'] = $phoneNew;
         }
 
         return $Data;
