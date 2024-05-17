@@ -250,6 +250,7 @@ class Frontend extends FrontendYearChange
                     'columnDefs' => array(
                         array('type' => 'natural', 'targets' => 1),
                         array('orderable' => false, 'width' => '140px', 'targets' => -1),
+                        array('searchable' => false, 'targets' => array(-1, -2)),
                     ),
                     'order'      => array(array(0, 'asc'), array(1, 'asc')),
                     'responsive' => false,

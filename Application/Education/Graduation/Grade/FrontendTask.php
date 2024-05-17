@@ -188,6 +188,7 @@ abstract class FrontendTask extends FrontendStudentOverview
                         'columnDefs' => array(
                             array('type' => 'de_date', 'targets' => 0),
                             array('orderable' => false, 'targets' => -1),
+                            array('searchable' => false, 'targets' => -1),
                         ),
                         'destroy' => true
                     )

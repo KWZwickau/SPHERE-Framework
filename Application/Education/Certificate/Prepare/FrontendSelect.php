@@ -126,6 +126,7 @@ abstract class FrontendSelect extends FrontendPreview
                 'columnDefs' => array(
                     array('type' => 'natural', 'targets' => 1),
                     array('orderable' => false, 'width' => '30px', 'targets' => -1),
+                    array('searchable' => false, 'targets' => -1),
                 ),
             ));
         }
