@@ -288,6 +288,7 @@ class Frontend extends Extension implements IFrontendInterface
                         'columnDefs' => array(
                             array('type' => \SPHERE\Application\Setting\Consumer\Consumer::useService()->getGermanSortBySetting(), 'targets' => 0),
                             array('orderable' => false, 'width' => '60px', 'targets' => -1),
+                            array('searchable' => false, 'targets' => -1),
                         ),
                         'pageLength' => -1,
                         'paging' => false,
@@ -424,6 +425,7 @@ class Frontend extends Extension implements IFrontendInterface
             $columnDefs[] = array('type' => 'natural', 'targets' => $targetsNatural);
         }
         $columnDefs[] = array('orderable' => false, 'width' => '60px', 'targets' => -1);
+        $columnDefs[] = array('searchable' => false, 'targets' => -1);
 
         return new Title('Verfügbare Personen ' . new Small(new Muted('im Kurs: ')) . (new Bold($tblDivisionCourse->getDisplayName())))
             . new TableData($tableContent, null, $columnList, array('columnDefs' => $columnDefs, 'order' => array(0, 'asc'), 'destroy' => true));
@@ -655,6 +657,7 @@ class Frontend extends Extension implements IFrontendInterface
                 array('orderable' => false, 'width' => '60px', 'targets' => -1),
             );
         }
+        $columnDefs[] = array('searchable' => false, 'targets' => -1);
 
         return new Title('Verfügbare Personen ' . new Small(new Muted('in der Gruppe: ')) . (new Bold($tblGroup->getName())))
             . new TableData($tableContent, null, $ColumnArray, array('columnDefs' => $columnDefs, 'order' => $orderByColumn, 'destroy' => true));

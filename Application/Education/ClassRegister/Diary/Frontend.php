@@ -178,7 +178,8 @@ class Frontend extends Extension implements IFrontendInterface
                 ),
                 'columnDefs' => array(
                     array('type' => 'natural', 'targets' => 1),
-                    array('orderable' => false, 'width' => '1%', 'targets' => -1)
+                    array('orderable' => false, 'width' => '1%', 'targets' => -1),
+                    array('searchable' => false, 'targets' => -1),
                 ),
             ));
         }
@@ -266,7 +267,8 @@ class Frontend extends Extension implements IFrontendInterface
             ),
             'columnDefs' => array(
                 array('type' => 'natural', 'targets' => 1),
-                array('orderable' => false, 'width' => '1%', 'targets' => -1)
+                array('orderable' => false, 'width' => '1%', 'targets' => -1),
+                array('searchable' => false, 'targets' => -1),
             ),
         ));
 

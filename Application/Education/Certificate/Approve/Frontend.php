@@ -329,6 +329,7 @@ class Frontend extends Extension implements IFrontendInterface
                             array('type' => 'de_date', 'targets' => 0),
                             array('type' => 'natural', 'targets' => 1),
                             array('orderable' => false, 'width' => '138px', 'targets' => -1),
+                            array('searchable' => false, 'targets' => -1),
                         )
                     )
                 );
@@ -354,6 +355,7 @@ class Frontend extends Extension implements IFrontendInterface
                             array('type' => 'de_date', 'targets' => 0),
                             array('type' => 'natural', 'targets' => 1),
                             array('orderable' => false, 'width' => '138px', 'targets' => -1),
+                            array('searchable' => false, 'targets' => -1),
                         )
                     )
                 );

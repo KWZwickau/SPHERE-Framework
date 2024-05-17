@@ -210,6 +210,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     ),
                                     'columnDefs' => array(
                                         array('type' => 'natural', 'targets' => 2),
+                                        array('searchable' => false, 'targets' => -1),
                                     )
                                 )
                             )
@@ -344,6 +345,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     ),
                                     'columnDefs' => array(
                                         array('type' => 'natural', 'targets' => 2),
+                                        array('searchable' => false, 'targets' => -1),
                                     )
                                 )
                             )
