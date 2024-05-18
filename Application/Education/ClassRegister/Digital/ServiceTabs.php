@@ -112,10 +112,12 @@ abstract class ServiceTabs extends ServiceCourseContent
      * @param $HasCurrentYears
      * @param $yearFilterList
      * @param bool $hasLastYearsTemp
+     * @param bool $hasFutureYear
      *
      * @return array
      */
-    public function setYearGroupButtonList($Route, $IsAllYears, $YearId, $HasAllYears, $HasCurrentYears, &$yearFilterList, bool $hasLastYearsTemp = false): array
+    public function setYearGroupButtonList($Route, $IsAllYears, $YearId, $HasAllYears, $HasCurrentYears, &$yearFilterList, bool $hasLastYearsTemp = false,
+        bool $hasFutureYear = false): array
     {
         $tblYear = false;
         $tblYearList = Term::useService()->getYearByNow();
@@ -165,6 +167,21 @@ abstract class ServiceTabs extends ServiceCourseContent
                     }
 
                     $buttonList[] = (new Standard($tblYearItem->getDisplayName(), $Route, null, array('YearId' => $tblYearItem->getId())));
+                }
+            }
+
+            if ($hasFutureYear && !$HasAllYears) {
+                $date = new DateTime('now');
+                $date = $date->add(new DateInterval('P1Y'));
+                if (($tblFutureYearList = Term::useService()->getYearAllByDate($date))) {
+                    foreach ($tblFutureYearList as $tblFutureYear) {
+                        if ($tblYear && $tblYear->getId() == $tblFutureYear->getId()) {
+                            $buttonList[] = (new Standard(new Info(new Bold($tblFutureYear->getDisplayName())), $Route, new Edit(), array('YearId' => $tblFutureYear->getId())));
+                            $yearFilterList[$tblFutureYear->getId()] = $tblFutureYear;
+                        } else {
+                            $buttonList[] = (new Standard($tblFutureYear->getDisplayName(), $Route, null, array('YearId' => $tblFutureYear->getId())));
+                        }
+                    }
                 }
             }
 
