@@ -85,14 +85,22 @@ class FrontendSelectDivisionCourse extends FrontendCourseContent
                             if (($tblDivisionCourse = $tblTeacherLectureship->getTblDivisionCourse())
                                 && !isset($tblDivisionCourseList[$tblDivisionCourse->getId()])
                                 && !isset($checkedDivisionCourseList[$tblDivisionCourse->getId()])
-                                && ($tblDivisionCourseListFromStudents = DivisionCourse::useService()->getDivisionCourseListByStudentsInDivisionCourse($tblDivisionCourse))
                             ) {
-                                foreach ($tblDivisionCourseListFromStudents as $tblDivisionCourseStudent) {
-                                    if ($tblDivisionCourseStudent->getIsDivisionOrCoreGroup()
-                                        && !isset($tblDivisionCourseList[$tblDivisionCourseStudent->getId()])
-                                    ) {
-                                        $tblDivisionCourseList[$tblDivisionCourseStudent->getId()] = $tblDivisionCourseStudent;
-                                        $checkedDivisionCourseList[$tblDivisionCourseStudent->getId()] = $tblDivisionCourseStudent;
+                                // SekII-Kurse
+                                if ($tblDivisionCourse->getType()->getIsCourseSystem()) {
+                                    $tblDivisionCourseList[$tblDivisionCourse->getId()] = $tblDivisionCourse;
+                                    $checkedDivisionCourseList[$tblDivisionCourse->getId()] = $tblDivisionCourse;
+                                }
+
+                                if (($tblDivisionCourseListFromStudents = DivisionCourse::useService()->getDivisionCourseListByStudentsInDivisionCourse($tblDivisionCourse))) {
+                                    foreach ($tblDivisionCourseListFromStudents as $tblDivisionCourseStudent) {
+                                        if (($tblDivisionCourseStudent->getIsDivisionOrCoreGroup()
+                                                || $tblDivisionCourseStudent->getType()->getIsCourseSystem())
+                                            && !isset($tblDivisionCourseList[$tblDivisionCourseStudent->getId()])
+                                        ) {
+                                            $tblDivisionCourseList[$tblDivisionCourseStudent->getId()] = $tblDivisionCourseStudent;
+                                            $checkedDivisionCourseList[$tblDivisionCourseStudent->getId()] = $tblDivisionCourseStudent;
+                                        }
                                     }
                                 }
                             }
@@ -103,6 +111,14 @@ class FrontendSelectDivisionCourse extends FrontendCourseContent
 
             /** @var TblDivisionCourse $tblDivisionCourse */
             foreach ($tblDivisionCourseList as $tblDivisionCourse) {
+                if ($tblDivisionCourse->getType()->getIsCourseSystem()) {
+                    $route = self::BASE_ROUTE . '/CourseContent';
+                } elseif (DivisionCourse::useService()->getIsCourseSystemByStudentsInDivisionCourse($tblDivisionCourse)) {
+                    $route = self::BASE_ROUTE . '/SelectCourse';
+                } else {
+                    $route = self::BASE_ROUTE . '/LessonContent';
+                }
+
                 $dataList[] = array(
                     'Year' => $tblDivisionCourse->getYearName(),
                     'DivisionCourse' => $tblDivisionCourse->getDisplayName(),
@@ -111,9 +127,7 @@ class FrontendSelectDivisionCourse extends FrontendCourseContent
                     'Teachers' => $tblDivisionCourse->getDivisionTeacherNameListString(),
                     'Option' => new Standard(
                         '',
-                        DivisionCourse::useService()->getIsCourseSystemByStudentsInDivisionCourse($tblDivisionCourse)
-                            ? self::BASE_ROUTE . '/SelectCourse'
-                            : self::BASE_ROUTE . '/LessonContent',
+                        $route,
                         new Select(),
                         array(
                             'DivisionCourseId' => $tblDivisionCourse->getId(),
