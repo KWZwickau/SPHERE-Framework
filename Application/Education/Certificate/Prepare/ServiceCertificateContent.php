@@ -69,6 +69,11 @@ abstract class ServiceCertificateContent extends ServiceAbitur
         $Content['P' . $personId]['Person']['Data']['Name']['Salutation'] = $tblPerson->getSalutation();
         $Content['P' . $personId]['Person']['Data']['Name']['First'] = $tblPerson->getFirstSecondName();
         $Content['P' . $personId]['Person']['Data']['Name']['Last'] = $tblPerson->getLastName();
+        // letterFontFix
+        $Content['P' . $personId]['Person']['Data']['Name']['First'] =
+            $this->useLetterFontReplacement($Content['P' . $personId]['Person']['Data']['Name']['First']);
+        $Content['P' . $personId]['Person']['Data']['Name']['Last'] =
+            $this->useLetterFontReplacement($Content['P' . $personId]['Person']['Data']['Name']['Last']);
 
         // Person address
         if (($tblAddress = $tblPerson->fetchMainAddress())) {
@@ -304,10 +309,10 @@ abstract class ServiceCertificateContent extends ServiceAbitur
                         $remark = $tblPrepareInformation->getValue();
                     } elseif ($tblPrepareInformation->getField() == 'Transfer') {
                         if ($tblPrepareInformation->getValue() == 'kein Versetzungsvermerk') {
-                            // SSW-1380  Spezialfall CSW Grumbach
+                            // SSW-1380 Spezialfall CSW Grumbach
                         } else {
-                            $Content['P' . $personId]['Input'][$tblPrepareInformation->getField()] = $tblPerson->getFirstSecondName()
-                                . ' ' . $tblPerson->getLastName() . ' ' . $tblPrepareInformation->getValue();
+                            $Value = $tblPerson->getFirstSecondName(). ' ' . $tblPerson->getLastName() . ' ' . $tblPrepareInformation->getValue();
+                            $Content['P' . $personId]['Input'][$tblPrepareInformation->getField()] = $this->useLetterFontReplacement($Value);
                         }
                     } elseif ($tblPrepareInformation->getField() == 'IndividualTransfer') {
                         // SSWHD-262
@@ -1133,5 +1138,27 @@ abstract class ServiceCertificateContent extends ServiceAbitur
         }
 
         return false;
+    }
+
+    /**
+     * @param string $String
+     *
+     * @return string
+     */
+    public function useLetterFontReplacement(string $String):string
+    {
+
+        $FirstPart = '<span style="font-family: DejaVu Sans, sans-serif; line-height: 95%">';
+        $LastPart = '</span>';
+        $LetterCorrectionList = array(
+            'Č', 'Ď', 'Ě', 'Ň', 'Ř', 'Ť', 'Ů',
+            'č', 'ď', 'ě', 'ň', 'ř', 'ť', 'ů',
+            'Ą', 'Ć', 'Ę', 'Ł', 'Ń', 'Ś', 'Ź', 'Ż',
+            'ą', 'ć', 'ę', 'ł', 'ń', 'ś', 'ź', 'ż'
+        );
+        foreach($LetterCorrectionList as $Letter){
+            $String = str_replace($Letter, $FirstPart.$Letter.$LastPart, $String);
+        }
+        return $String;
     }
 }

@@ -179,8 +179,10 @@ abstract class AbstractDocument
 
         if ($this->getTblPerson()) {
             $Data['Person']['Data']['Name']['Salutation'] = $this->getTblPerson()->getSalutation();
-            $Data['Person']['Data']['Name']['First'] = $this->getTblPerson()->getFirstSecondName();
-            $Data['Person']['Data']['Name']['Last'] = $this->getTblPerson()->getLastName();
+            $FirstName = Prepare::useService()->useLetterFontReplacement($this->getTblPerson()->getFirstSecondName());
+            $LastName = Prepare::useService()->useLetterFontReplacement($this->getTblPerson()->getLastName());
+            $Data['Person']['Data']['Name']['First'] = $FirstName;
+            $Data['Person']['Data']['Name']['Last'] = $LastName;
         }
 
         return $Data;
