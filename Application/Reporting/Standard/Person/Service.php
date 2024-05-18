@@ -42,8 +42,8 @@ use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\People\Relationship\Service\Entity\TblToPerson as TblToPersonRelationship;
 use SPHERE\Application\People\Relationship\Service\Entity\TblType;
 use SPHERE\Common\Frontend\Link\Repository\Mailto;
+use SPHERE\Common\Frontend\Link\Repository\PhoneLink;
 use SPHERE\System\Extension\Extension;
-use SPHERE\System\Extension\Repository\Debugger;
 use SPHERE\System\Extension\Repository\Sorter\StringGermanOrderSorter;
 use SPHERE\System\Extension\Repository\Sorter\StringNaturalOrderSorter;
 
@@ -391,7 +391,7 @@ class Service extends Extension
             $export->setValue($export->getCell($Column++, $row), $PersonData['City']);
             if (is_array($PersonData['ExcelPhone'])) {
                 foreach ($PersonData['ExcelPhone'] as $Phone) {
-                    $export->setValue($export->getCell($Column, $phoneRow++), $Phone);
+                    $export->setValue($export->getCell($Column, $phoneRow++), strip_tags($Phone));
                 }
             }
             $Column++;
@@ -3739,10 +3739,10 @@ class Service extends Extension
                 if ($tblPhone) {
                     if (isset($tblPhoneList[$key])) {
                         $tblPhoneList[$key] = $tblPhoneList[$key] . ', '
-                            . $tblPhone->getNumber() . ' ' . Phone::useService()->getPhoneTypeShort($tblToPersonPhone);
+                            . new PhoneLink($tblPhone->getNumber() . ' ' . Phone::useService()->getPhoneTypeShort($tblToPersonPhone), $tblPhone->getNumber());
                     } else {
                         $tblPhoneList[$key] = $tblPerson->getFirstName() . ' ' . $tblPerson->getLastName() . ' ('
-                            . $tblPhone->getNumber() . ' ' . Phone::useService()->getPhoneTypeShort($tblToPersonPhone);
+                            . new PhoneLink($tblPhone->getNumber() . ' ' . Phone::useService()->getPhoneTypeShort($tblToPersonPhone), $tblPhone->getNumber());
                     }
                 }
             }
@@ -3885,10 +3885,10 @@ class Service extends Extension
                             if ($tblPhone) {
                                 if (!$FirstNumber) {
                                     $tblPhoneList[$key] = $tblPhoneList[$key] . ', '
-                                        . $tblPhone->getNumber() . ' ' . Phone::useService()->getPhoneTypeShort($tblToPersonPhone);
+                                        . new PhoneLink($tblPhone->getNumber() . ' ' . Phone::useService()->getPhoneTypeShort($tblToPersonPhone), $tblPhone->getNumber());
                                 } else {
-                                    $tblPhoneList[$key] = $tblPhoneList[$key] . ' (' . $tblPhone->getNumber() . ' '
-                                        . Phone::useService()->getPhoneTypeShort($tblToPersonPhone);
+                                    $tblPhoneList[$key] = $tblPhoneList[$key] . ' ('
+                                        . new PhoneLink($tblPhone->getNumber() . ' ' . Phone::useService()->getPhoneTypeShort($tblToPersonPhone), $tblPhone->getNumber());
                                     $FirstNumber = false;
                                 }
                             }
@@ -3948,7 +3948,8 @@ class Service extends Extension
         if (!empty($tblPhoneList)) {
             ksort($tblPhoneList);
             $item['Phone'] = $item['Phone'] . implode('<br>', $tblPhoneList);
-            $item['PhoneFixed'] = str_replace(' ', '&nbsp', $item['Phone']);
+//            $item['PhoneFixed'] = str_replace(' ', '&nbsp;', $item['Phone']);
+            $item['PhoneFixed'] = '<span style="white-space: nowrap;">' . $item['Phone'] . '</span>';
             $item['ExcelPhone'] = $tblPhoneList;
         }
         if (!empty($tblPhoneListFixed)) {
