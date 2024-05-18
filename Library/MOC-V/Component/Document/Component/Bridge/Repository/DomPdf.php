@@ -94,4 +94,11 @@ class DomPdf extends Bridge implements IBridgeInterface
         return $Renderer->output();
     }
 
+    /**
+     * @return string
+     */
+    public function getSource(): string
+    {
+        return $this->Source;
+    }
 }

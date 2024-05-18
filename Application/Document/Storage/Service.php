@@ -4,6 +4,7 @@ namespace SPHERE\Application\Document\Storage;
 use SPHERE\Application\Api\Education\Certificate\Generator\Certificate;
 use SPHERE\Application\Document\Storage\Service\Data;
 use SPHERE\Application\Document\Storage\Service\Entity\TblBinary;
+use SPHERE\Application\Document\Storage\Service\Entity\TblBinaryRevision;
 use SPHERE\Application\Document\Storage\Service\Entity\TblDirectory;
 use SPHERE\Application\Document\Storage\Service\Entity\TblFile;
 use SPHERE\Application\Document\Storage\Service\Entity\TblFileCategory;
@@ -16,6 +17,7 @@ use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCe
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Listing;
@@ -73,6 +75,16 @@ class Service extends AbstractService
     {
 
         return ( new Data($this->getBinding()) )->getDirectoryAllByPartition($tblPartition);
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     *
+     * @return false|TblDirectory[]
+     */
+    public function getDirectoryAllByPerson(TblPerson $tblPerson)
+    {
+        return (new Data($this->getBinding()))->getDirectoryAllByIdentifier('TBL-PERSON-ID:' . $tblPerson->getId());
     }
 
     /**
@@ -138,6 +150,7 @@ class Service extends AbstractService
      * @param Certificate $Certificate
      * @param FilePointer $File
      * @param int $fileSizeKByte
+     * @param string $hash
      * @param TblPrepareCertificate|null $tblPrepareCertificate
      *
      * @return bool|TblFile
@@ -148,6 +161,7 @@ class Service extends AbstractService
         Certificate $Certificate,
         FilePointer $File,
         int $fileSizeKByte,
+        string $hash,
         TblPrepareCertificate $tblPrepareCertificate = null,
     ) {
 
@@ -171,13 +185,24 @@ class Service extends AbstractService
                 $tblFileType = $this->getFileTypeByMimeType($File->getMimeType());
                 if ($tblFileType && $tblDirectory) {
                     $tblFile = false;
-                    $tblBinary = $this->createBinary($File->getFileContent(), $fileSizeKByte);
+                    $tblPersonPrinter = Account::useService()->getPersonByLogin();
+                    $tblBinary = $this->createBinary($File->getFileContent(), $fileSizeKByte, $hash, $tblPersonPrinter ?: null);
                     if ($tblBinary) {
                         $name = $tblYear->getYear() . ' - ' . $tblPerson->getLastFirstName() . ' - '
                             . $Certificate->getCertificateName() . ' - '
                             . ($tblPrepareCertificate ? $tblPrepareCertificate->getId() : $tblDivisionCourse->getId());
 
                         if (($tblFile = $this->exitsFile($tblDirectory, $tblFileType, $name))) {
+                            if (($tblBinaryOld = $tblFile->getTblBinary()) && $tblBinaryOld->getHash() != $tblBinary->getHash()) {
+                                $version = 1;
+                                if (($tblBinaryRevisionList = $this->getBinaryRevisionListByFile($tblFile))) {
+                                    $tblBinaryRevision = current($tblBinaryRevisionList);
+                                    $version = $tblBinaryRevision->getVersion() + 1;
+                                }
+
+                                (new Data($this->getBinding()))->createBinaryRevision($tblFile, $tblBinaryOld, $version, $tblFile->getDescription());
+                            }
+
                             $this->updateFile($tblFile, $tblBinary, 'Zuletzt erstellt: ' . date('d.m.Y H:i:s'));
                         } else {
                             $tblFile = $this->createFile(
@@ -254,14 +279,16 @@ class Service extends AbstractService
     }
 
     /**
-     * @param string $BinaryBlob
+     * @param $BinaryBlob
      * @param int $fileSizeKByte
+     * @param string $hash
+     * @param TblPerson|null $tblPerson
      *
      * @return TblBinary
      */
-    public function createBinary($BinaryBlob, int $fileSizeKByte)
+    public function createBinary($BinaryBlob, int $fileSizeKByte, string $hash, ?TblPerson $tblPerson)
     {
-        return (new Data($this->getBinding()))->createBinary($BinaryBlob, $fileSizeKByte);
+        return (new Data($this->getBinding()))->createBinary($BinaryBlob, $fileSizeKByte, $hash, $tblPerson);
     }
 
     /**
@@ -353,24 +380,14 @@ class Service extends AbstractService
      */
     public function getCertificateRevisionFileAllByPerson(TblPerson $tblPerson)
     {
-
-        $tblPartition = $this->getPartitionByIdentifier(
-            TblPartition::IDENTIFIER_CERTIFICATE_STORAGE
-        );
-
         $resultList = array();
-        $tblDirectoryList = $this->getDirectoryAllByPartition($tblPartition);
+        $tblDirectoryList = $this->getDirectoryAllByPerson($tblPerson);
         if ($tblDirectoryList) {
             foreach ($tblDirectoryList as $tblDirectory) {
-                if (strpos($tblDirectory->getIdentifier(), 'TBL-PERSON-ID:') !== false) {
-                    $personId = substr($tblDirectory->getIdentifier(), strlen('TBL-PERSON-ID:'));
-                    if ($personId == $tblPerson->getId()) {
-                        $tblFileList = $this->getFileAllByDirectory($tblDirectory);
-                        if ($tblFileList) {
-                            foreach ($tblFileList as $tblFile) {
-                                $resultList[] = $tblFile;
-                            }
-                        }
+                $tblFileList = $this->getFileAllByDirectory($tblDirectory);
+                if ($tblFileList) {
+                    foreach ($tblFileList as $tblFile) {
+                        $resultList[] = $tblFile;
                     }
                 }
             }
@@ -664,5 +681,25 @@ class Service extends AbstractService
     public function getFileSizeByConsumer(TblConsumer $tblConsumer, bool $isOnlyWithoutFile = false): int
     {
         return (new Data($this->getBinding()))->getFileSizeByConsumer($tblConsumer, $isOnlyWithoutFile);
+    }
+
+    /**
+     * @param TblFile $tblFile
+     *
+     * @return false|TblBinaryRevision[]
+     */
+    public function getBinaryRevisionListByFile(TblFile $tblFile)
+    {
+        return (new Data($this->getBinding()))->getBinaryRevisionListByFile($tblFile);
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return false|TblBinaryRevision
+     */
+    public function getBinaryRevisionById($Id)
+    {
+        return (new Data($this->getBinding()))->getBinaryRevisionById($Id);
     }
 }
