@@ -59,6 +59,7 @@ class TblScoreTypeSubject extends Element
         $this->Level = $level;
         $this->serviceTblSubject = $tblSubject->getId();
         $this->tblGraduationScoreType = $tblScoreType->getId();
+        $this->IsOverrideScoreTypeException = false;
     }
 
     /**
