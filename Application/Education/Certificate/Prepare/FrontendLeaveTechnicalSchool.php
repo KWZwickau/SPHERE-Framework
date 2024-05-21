@@ -247,7 +247,7 @@ abstract class FrontendLeaveTechnicalSchool extends FrontendLeaveSekTwoBGy
                         if (($average || $average === (float)0) && $hasNoLeaveGrade) {
                             $hasPreviewGrades = true;
                             $Global = $this->getGlobal();
-                            $Global->POST['Data']['Grades'][$tblSubject->getId()]['Grade'] = str_replace('.', ',', round($average, 0));
+                            $Global->POST['Data']['Grades'][$tblSubject->getId()]['Grade'] = round(floatval(str_replace(',', '.', $average)), 0);
                             $Global->savePost();
                         }
                     }
