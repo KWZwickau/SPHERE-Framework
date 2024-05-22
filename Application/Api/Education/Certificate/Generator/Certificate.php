@@ -1276,7 +1276,8 @@ abstract class Certificate extends Extension
         $IsGradeUnderlined = false,
         $hasSecondLanguageDiploma = false,
         $hasSecondLanguageSecondarySchool = false,
-        $backgroundColor = self::BACKGROUND_GRADE_FIELD
+        $backgroundColor = self::BACKGROUND_GRADE_FIELD,
+        &$subjectRowCount = 0
     ) {
 
         $tblPerson = Person::useService()->getPersonById($personId);
@@ -1420,6 +1421,7 @@ abstract class Certificate extends Extension
             $count = 0;
             foreach ($SubjectStructure as $SubjectList) {
                 $count++;
+                $subjectRowCount++;
                 // Sort Lane-Ranking (1,2...)
                 ksort($SubjectList);
 

@@ -40,6 +40,8 @@ class GsJa extends Certificate
         // get Content while building certificate
         $Data = $this->getCertificateData($tblPerson, $this->getTblPrepareCertificate());
 
+        $subjectRowCount = 0;
+
         return (new Page())
                 ->addSlice(
                     $Header
@@ -64,8 +66,8 @@ class GsJa extends Certificate
                         ->styleTextBold()
                     )
                 )
-                ->addSlice($this->getSubjectLanesSmall($personId)
-                    ->styleHeight('130px'))
+                ->addSlice($this->getSubjectLanesSmall($personId, true, array(), '14px', false, false, false, Certificate::BACKGROUND_GRADE_FIELD, $subjectRowCount)
+                    ->styleHeight($subjectRowCount > 6 ? '155px': '130px'))
                 ->addSlice($this->getDescriptionHead($personId, true))
 //                ->addSlice($this->getDescriptionContent($personId, '130px', '5px', '', false, $Data['Remark']))
                 ->addSlice($this->getDescriptionContent($personId, '130px', '5px'))
