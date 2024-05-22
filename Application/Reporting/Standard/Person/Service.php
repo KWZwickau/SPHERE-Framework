@@ -1668,6 +1668,7 @@ class Service extends Extension
                 $item['BirthPlace'] = $tblPerson->getBirthplaceString();
                 $item['Nationality'] = $tblPerson->getNationalityString();
                 $item['Religion'] = $tblPerson->getDenominationString();
+                $item['Division'] = DivisionCourse::useService()->getCurrentMainCoursesByPersonAndDate($tblPerson);
                 $item['ParticipationWillingness'] = $item['ParticipationActivities'] = '';
                 $item['RemarkFrontend'] = $item['RemarkExcel'] = '';
                 if (($tblCommon = Common::useService()->getCommonByPerson($tblPerson))) {
@@ -1749,7 +1750,6 @@ class Service extends Extension
                     }
                 }
                 if ($tblGroup->getMetaTable() == 'STUDENT') {
-                    $item['Division'] = '';
                     $item['Identifier'] = '';
                     $item['School'] = '';
                     $item['SchoolCourse'] = '';
@@ -1769,12 +1769,12 @@ class Service extends Extension
                     $item['NameFilm'] = '';
                     $item['NameAdd'] = '';
                     if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndDate($tblPerson))) {
-                        if(($tblDivisionCourseClass = $tblStudentEducation->getTblDivision())){
-                            $item['Division'] = $tblDivisionCourseClass->getName();
-                        }
-                        if(($tblDivisionCourseCoreGroup = $tblStudentEducation->getTblCoreGroup())){
-                            $item['Division'] .= ($item['Division'] ? ', ' : '').$tblDivisionCourseCoreGroup->getName();
-                        }
+//                        if(($tblDivisionCourseClass = $tblStudentEducation->getTblDivision())){
+//                            $item['Division'] = $tblDivisionCourseClass->getName();
+//                        }
+//                        if(($tblDivisionCourseCoreGroup = $tblStudentEducation->getTblCoreGroup())){
+//                            $item['Division'] .= ($item['Division'] ? ', ' : '').$tblDivisionCourseCoreGroup->getName();
+//                        }
                         if (($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())) {
                             $item['SchoolType'] = $tblSchoolType->getName();
                         }

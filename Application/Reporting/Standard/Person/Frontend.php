@@ -710,7 +710,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $columnHead['Gender'] = 'Geschlecht';
                 $columnHead['Nationality'] = 'Staatsangehörigkeit';
                 $columnHead['Religion'] = 'Konfession';
-                $columnHead['Division'] = 'aktuelle Klasse';
+                $columnHead['Division'] = 'aktuelle Klasse/ Stammgruppe';
                 $columnHead['ParticipationWillingness'] = 'Mitarbeitsbereitschaft';
                 $columnHead['ParticipationActivities'] = 'Mitarbeitsbereitschaft - Tätigkeiten';
                 $columnHead['RemarkFrontend'] = 'Bemerkungen';
