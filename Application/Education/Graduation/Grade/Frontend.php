@@ -386,16 +386,21 @@ class Frontend extends FrontendTestPlanning
             && ((($tblSchoolType = Type::useService()->getTypeByShortName('OS')) && isset($tblSchoolTypeList[$tblSchoolType->getId()]))
                 || (($tblSchoolType = Type::useService()->getTypeByShortName('FOS')) && isset($tblSchoolTypeList[$tblSchoolType->getId()]))
             )
-            && ($tblPrepareList = Prepare::useService()->getPrepareAllByDivisionCourse($tblDivisionCourse))
+            // z.B. bei OS Hauptschule wurde der Zeugnisauftrag einer Stammgruppe oder Unterrichtsgruppe zu geordnet
+            && ($tblDivisionCourseList = DivisionCourse::useService()->getDivisionCourseListByStudentsInDivisionCourse($tblDivisionCourse))
         )  {
-            foreach ($tblPrepareList as $tblPrepareCertificate) {
-                if ($tblPrepareCertificate->getCertificateType()->getIdentifier() == 'DIPLOMA') {
-                    if ($PrepareCertificateId == null) {
-                        $PrepareCertificateId = $tblPrepareCertificate->getId();
-                        $hasExamButton = true;
-                    } else {
-                        $errorMessage = 'Es existieren mehrere Zeugnisaufträge vom Typ: Abschlusszeugnis für diesen Kurs. Bitte wenden Sie sich an Ihre Schulleitung.';
-                        $hasExamButton = false;
+            foreach ($tblDivisionCourseList as $tblDivisionCourseTemp) {
+                if (($tblPrepareList = Prepare::useService()->getPrepareAllByDivisionCourse($tblDivisionCourseTemp))) {
+                    foreach ($tblPrepareList as $tblPrepareCertificate) {
+                        if ($tblPrepareCertificate->getCertificateType()->getIdentifier() == 'DIPLOMA') {
+                            if ($PrepareCertificateId == null) {
+                                $PrepareCertificateId = $tblPrepareCertificate->getId();
+                                $hasExamButton = true;
+                            } else {
+                                $errorMessage = 'Es existieren mehrere Zeugnisaufträge vom Typ: Abschlusszeugnis für diesen Kurs. Bitte wenden Sie sich an Ihre Schulleitung.';
+                                $hasExamButton = false;
+                            }
+                        }
                     }
                 }
             }
