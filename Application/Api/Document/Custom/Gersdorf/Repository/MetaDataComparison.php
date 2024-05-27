@@ -13,6 +13,7 @@ use SPHERE\Application\Document\Generator\Repository\Section;
 use SPHERE\Application\Document\Generator\Repository\Slice;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\People\Meta\Common\Common;
+use SPHERE\Application\People\Meta\Prospect\Prospect;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Relationship;
@@ -70,34 +71,43 @@ class MetaDataComparison extends AbstractDocument
         if ($Data['Person']['Id']) {
             if (($tblPerson = Person::useService()->getPersonById($Data['Person']['Id']))) {
                 $this->setPersonContent($tblPerson);
-                if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndDate($tblPerson))) {
-                    if (($tblDivision = $tblStudentEducation->getTblDivision())) {
-                        $this->FieldValue['Division'] = $tblDivision->getName();
-                    } elseif (($tblCoreGroup = $tblStudentEducation->getTblCoreGroup())) {
-                        $this->FieldValue['Division'] = $tblCoreGroup->getName();
-                    }
-
-                    if (($tblYear = $tblStudentEducation->getServiceTblYear())) {
-                        $this->FieldValue['Year'] = $tblYear->getYear();
+                if(isset($Data['IsProspect'])
+                && ($tblProspect = Prospect::useService()->getProspectByPerson($tblPerson))
+                && ($tblProspectReservation = $tblProspect->getTblProspectReservation())){
+                    $this->FieldValue['DocumentTitle'] = 'Interessentendaten';
+                    $this->FieldValue['Year'] = $tblProspectReservation->getReservationYear();
+                    $this->FieldValue['Division'] = $tblProspectReservation->getReservationDivision().' ('.$tblProspectReservation->getReservationYear().')';
+                } else {
+                    $this->FieldValue['DocumentTitle'] = 'Schülerdaten';
+                    if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndDate($tblPerson))) {
+                        if (($tblDivision = $tblStudentEducation->getTblDivision())) {
+                            $this->FieldValue['Division'] = $tblDivision->getName();
+                        } elseif (($tblCoreGroup = $tblStudentEducation->getTblCoreGroup())) {
+                            $this->FieldValue['Division'] = $tblCoreGroup->getName();
+                        }
+                        if (($tblYear = $tblStudentEducation->getServiceTblYear())) {
+                            $this->FieldValue['Year'] = $tblYear->getYear();
+                        }
                     }
                 }
+
 
                 if(($tblCommon = Common::useService()->getCommonByPerson($tblPerson))){
                     if(($tblCommonBirthDates = $tblCommon->getTblCommonBirthDates())){
                         $this->FieldValue['Birthdate'] = $tblCommonBirthDates->getBirthday();
                     }
                 }
-            }
-        }
-        $tblRelationshipType = Relationship::useService()->getTypeByName(TblType::IDENTIFIER_GUARDIAN);
-        if(($tblToPersonList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson, $tblRelationshipType))){
-            foreach($tblToPersonList as $tblToPerson){
-                if($tblToPerson->getRanking() == 1){
-                    $tblPersonS1 = $tblToPerson->getServiceTblPersonFrom();
-                    $this->setPersonContent($tblPersonS1, 'S1');
-                } elseif($tblToPerson->getRanking() == 2){
-                    $tblPersonS2 = $tblToPerson->getServiceTblPersonFrom();
-                    $this->setPersonContent($tblPersonS2, 'S2');
+                $tblRelationshipType = Relationship::useService()->getTypeByName(TblType::IDENTIFIER_GUARDIAN);
+                if(($tblToPersonList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson, $tblRelationshipType))){
+                    foreach($tblToPersonList as $tblToPerson){
+                        if($tblToPerson->getRanking() == 1){
+                            $tblPersonS1 = $tblToPerson->getServiceTblPersonFrom();
+                            $this->setPersonContent($tblPersonS1, 'S1');
+                        } elseif($tblToPerson->getRanking() == 2){
+                            $tblPersonS2 = $tblToPerson->getServiceTblPersonFrom();
+                            $this->setPersonContent($tblPersonS2, 'S2');
+                        }
+                    }
                 }
             }
         }
@@ -293,7 +303,7 @@ class MetaDataComparison extends AbstractDocument
 
         return (new Slice())
             ->addElement((new Element())
-                ->setContent('Schülerdaten / Sorgeberechtigte')
+                ->setContent($this->FieldValue['DocumentTitle'].' / Sorgeberechtigte')
                 ->styleBorderAll()
                 ->styleTextSize('22px')
                 ->styleTextBold()
