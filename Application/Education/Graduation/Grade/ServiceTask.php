@@ -707,7 +707,8 @@ abstract class ServiceTask extends ServiceStudentOverview
                             && ($tblDivisionCourseTempList = DivisionCourse::useService()->getDivisionCourseListByStudentsInDivisionCourse($tblDivisionCourseTeacherGroup))
                         ) {
                             foreach ($tblDivisionCourseTempList as $tblDivisionCourseTemp) {
-                                $subjectDivisionCourseList[$tblSubjectTemp->getId()][$tblDivisionCourseTemp->getId()] = $tblDivisionCourseTeacherGroup;
+                                // Erweiterung der CourseList um die Lerngruppen, damit ein Kurs mehrere Lerngruppen beinhalten und abbilden kann
+                                $subjectDivisionCourseList[$tblSubjectTemp->getId()][$tblDivisionCourseTemp->getId()][$tblDivisionCourseTeacherGroup->getId()] = $tblDivisionCourseTeacherGroup;
                             }
                         }
                     }
@@ -737,16 +738,19 @@ abstract class ServiceTask extends ServiceStudentOverview
                                     $isAddTask = false;
                                     // Lerngruppe setzen statt Kurs
                                     if (isset($subjectDivisionCourseList[$tblSubject->getId()][$tblDivisionCourse->getId()])) {
-                                        /** @var TblDivisionCourse $tblDivisionCourseTeacherGroupTemp */
-                                        $tblDivisionCourseTeacherGroupTemp = $subjectDivisionCourseList[$tblSubject->getId()][$tblDivisionCourse->getId()];
-                                        if (!isset($tblDivisionCourseListChecked[$tblTask->getId()][$tblDivisionCourseTeacherGroupTemp->getId()][$tblSubject->getId()])
-                                            && $this->setCurrentTask(
-                                                $tblDivisionCourseTeacherGroupTemp, $tblSubject, $tblYear, $tblTask, $dataList, $tblSettingBehaviorHasGrading
-                                            )
-                                        ) {
-                                            $isAddTask = true;
-                                            $tblDivisionCourseListChecked[$tblTask->getId()][$tblDivisionCourseTeacherGroupTemp->getId()][$tblSubject->getId()]
-                                                = $tblDivisionCourseTeacherGroupTemp;
+                                        // Mehrere Lerngruppen im Kurs möglich
+                                        foreach($subjectDivisionCourseList[$tblSubject->getId()][$tblDivisionCourse->getId()] as $tblDivisionCourseTeacherGroupTemp){
+//                                            /** @var TblDivisionCourse $tblDivisionCourseTeacherGroupTemp */
+//                                            $tblDivisionCourseTeacherGroupTemp = $subjectDivisionCourseGroup;
+                                            if (!isset($tblDivisionCourseListChecked[$tblTask->getId()][$tblDivisionCourseTeacherGroupTemp->getId()][$tblSubject->getId()])
+                                                && $this->setCurrentTask(
+                                                    $tblDivisionCourseTeacherGroupTemp, $tblSubject, $tblYear, $tblTask, $dataList, $tblSettingBehaviorHasGrading
+                                                )
+                                            ) {
+                                                $isAddTask = true;
+                                                $tblDivisionCourseListChecked[$tblTask->getId()][$tblDivisionCourseTeacherGroupTemp->getId()][$tblSubject->getId()]
+                                                    = $tblDivisionCourseTeacherGroupTemp;
+                                            }
                                         }
                                     } elseif (!isset($tblDivisionCourseListChecked[$tblTask->getId()][$tblDivisionCourse->getId()][$tblSubject->getId()])
                                         && $this->setCurrentTask(
