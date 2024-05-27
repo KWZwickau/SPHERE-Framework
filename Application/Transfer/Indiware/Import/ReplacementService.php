@@ -470,21 +470,22 @@ class ReplacementService
                                 }
                             }
                         }
-
                     } elseif(isset($TimeTableList[$DayCount][$HourCount][$CourseId])){
                         /** @var TblTimetableNode $tblTimeTableNode */
                         foreach($TimeTableList[$DayCount][$HourCount][$CourseId] as $tblTimeTableNode){
                             $Row = array();
-                            $Row['Date'] = $DayList[$tblTimeTableNode->getDay()];
-                            $Row['Hour'] = $tblTimeTableNode->getHour();
-                            $Row['Room'] = $tblTimeTableNode->getRoom();
-                            $Row['SubjectGroup'] = $tblTimeTableNode->getSubjectGroup();
-                            $Row['tblSubject'] = false;
-                            $Row['tblSubstituteSubject'] = $tblTimeTableNode->getServiceTblSubject();
-                            $Row['tblCourse'] = $tblTimeTableNode->getServiceTblCourse();
-                            $Row['tblPerson'] = $tblTimeTableNode->getServiceTblPerson();
-                            $Row['IsCanceled'] = true;
-                            $DifferenceList[] = $Row;
+                            if(isset($DayList[$tblTimeTableNode->getDay()])){
+                                $Row['Date'] = $DayList[$tblTimeTableNode->getDay()];
+                                $Row['Hour'] = $tblTimeTableNode->getHour();
+                                $Row['Room'] = $tblTimeTableNode->getRoom();
+                                $Row['SubjectGroup'] = $tblTimeTableNode->getSubjectGroup();
+                                $Row['tblSubject'] = false;
+                                $Row['tblSubstituteSubject'] = $tblTimeTableNode->getServiceTblSubject();
+                                $Row['tblCourse'] = $tblTimeTableNode->getServiceTblCourse();
+                                $Row['tblPerson'] = $tblTimeTableNode->getServiceTblPerson();
+                                $Row['IsCanceled'] = true;
+                                $DifferenceList[] = $Row;
+                            }
                         }
                     } elseif(isset($ReplaceList[$DayCount][$HourCount][$CourseId])) {
                         // zusätzlicher Unterricht aus dem Import
