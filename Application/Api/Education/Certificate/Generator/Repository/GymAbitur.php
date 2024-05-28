@@ -195,7 +195,7 @@ class GymAbitur extends Certificate
                 )
             )
             ->addSlice($this->getExaminationsBoard('10px','11px'))
-            ->addSlice($this->getInfoForPageFour())
+            ->addSlice($this->getInfoForPageFour('5px'))
         ;
 
         $pageList[] = (new Page())
