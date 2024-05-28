@@ -43,7 +43,7 @@ class Frontend extends Extension implements IFrontendInterface
         if($isUcsConsumer){
             $LayoutColumnList[] = new LayoutColumn(new Link((new Thumbnail(
                 FileSystem::getFileLoader('/Common/Style/Resource/SSWInfo.png')
-                , 'Schnittstelle Schulsoftware zu DLLP / UCS', 'Stand:&nbsp;11.05.2023'))->setPictureHeight()
+                , 'Schnittstelle Schulsoftware zu DLLP / UCS', 'Stand:&nbsp;23.04.2024'))->setPictureHeight()
                 , '/Api/Document/Standard/Manual/Create/Pdf', null, array('Select' => 'SSW_UCS_DLLP')
             ), 2);
             $LayoutColumnList[] = new LayoutColumn(new Link((new Thumbnail(
