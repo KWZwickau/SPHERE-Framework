@@ -146,7 +146,13 @@ class TblPrepareAdditionalGrade extends Element
      */
     public function getGrade()
     {
-        return $this->Grade;
+        // Auf Abschlusszeugnissen dürfen keine Zensuren mit Tendenz stehen
+        $grade = $this->Grade;
+
+        $grade = str_replace('+', '', $grade);
+        $grade = str_replace('-', '', $grade);
+
+        return $grade;
     }
 
     /**
