@@ -539,8 +539,9 @@ class Service extends AbstractService
                         ) {
                             foreach ($tblTimetableReplacementList as $tblTimetableReplacement) {
                                 if ($tblTimeTableNode->getServiceTblSubject()
-                                    && $tblTimetableReplacement->getServiceTblSubject()
-                                    && $tblTimeTableNode->getServiceTblSubject()->getId() == $tblTimetableReplacement->getServiceTblSubject()->getId()
+                                    && (($tblTimetableReplacement->getServiceTblSubject()
+                                            && $tblTimeTableNode->getServiceTblSubject()->getId() == $tblTimetableReplacement->getServiceTblSubject()->getId())
+                                    || $tblTimetableReplacement->getIsCanceled())
                                 ) {
                                     $isCanceled = true;
                                 }
@@ -578,6 +579,11 @@ class Service extends AbstractService
                 $tblLessonContent->setIsCanceled($tblTimetableReplacement->getIsCanceled() || $tblTimetableReplacement->getServiceTblSubstituteSubject());
 
                 if (($tblTimetableReplacement->getServiceTblSubstituteSubject())) {
+                    // reine ausgefallene Fächer ohne Vertretung nicht anzeigen
+                    if (!$tblTimetableReplacement->getServiceTblSubject() && $tblTimetableReplacement->getIsCanceled()) {
+                        continue;
+                    }
+
                     $item = new TblTimetableNode();
                     $item->setServiceTblCourse($tblTimetableReplacement->getServiceTblCourse() ?: null);
                     $item->setServiceTblSubject($tblTimetableReplacement->getServiceTblSubstituteSubject() ?: null);
