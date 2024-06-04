@@ -277,11 +277,72 @@ class Service extends AbstractService
      */
     public function createAccountingExcelDownload($ExcelContent = array())
     {
+
+        $inaktiveContent = array();
+        $aktiveContent = array();
+        if(!empty($ExcelContent)){
+            $Now = new DateTime();
+            foreach($ExcelContent as $RowContent){
+                $From = $RowContent['From'];
+                $To = $RowContent['To'];
+                // inactive content time based exclusion
+                if($From){
+                    $From = new DateTime($From);
+                }
+                if($To){
+                    $To = new DateTime($To);
+                }
+                if($From && $From > $Now){
+                    $inaktiveContent[] = $RowContent;
+                    continue;
+                }
+                if($To && $To < $Now){
+                    $inaktiveContent[] = $RowContent;
+                    continue;
+                }
+                // Active Content
+                $aktiveContent[] = $RowContent;
+            }
+        }
+
         $fileLocation = Storage::createFilePointer('xlsx');
         $Column = 0;
         $Row = 0;
         /** @var PhpExcel $export */
         $export = Document::getDocument($fileLocation->getFileLocation());
+
+        $export->renameWorksheet('aktive stand '.$Now->format('d.m.Y'));
+        $this->setExcelHeader($export, $Column, $Row);
+        if(!empty($ExcelContent)){
+            $this->setExcelContent($export, $Row, $aktiveContent);
+        }
+        $this->setExcelColumnWidth($export);
+
+        $export->createWorksheet('inaktive');
+        $export->selectWorksheetByName('inaktive');
+        $this->setExcelHeader($export, $Column, $Row);
+        if(!empty($ExcelContent)){
+            $this->setExcelContent($export, $Row, $inaktiveContent);
+        }
+        $this->setExcelColumnWidth($export);
+
+        $export->createWorksheet('alles');
+        $export->selectWorksheetByName('alles');
+        $this->setExcelHeader($export, $Column, $Row);
+        if(!empty($ExcelContent)){
+            $this->setExcelContent($export, $Row, $ExcelContent);
+        }
+        $this->setExcelColumnWidth($export);
+
+        $export->selectWorksheetByIndex(0);
+
+        $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
+        return $fileLocation;
+    }
+
+    public function setExcelHeader($export, $Column = 0, $Row = 0)
+    {
+
         $export->setValue($export->getCell($Column++, $Row), "Datum der Bankdaten");
         $export->setValue($export->getCell($Column++, $Row), "Beitragszahler Vorname");
         $export->setValue($export->getCell($Column++, $Row), "Beitragszahler Nachname");
@@ -311,76 +372,80 @@ class Service extends AbstractService
         $export->setValue($export->getCell($Column++, $Row), "Datum beitragspflichtig bis");
         $export->setValue($export->getCell($Column++, $Row), "Mandatsreferenznummer gültig ab");
         $export->setValue($export->getCell($Column, $Row), "Mandatsreferenz");
+    }
 
-        foreach ($ExcelContent as $Content) {
-            $Row++;
-            $Column = 0;
+    public function setExcelContent($export, $Row, $ExcelContent)
+    {
+        if(!empty($ExcelContent)){
+            foreach ($ExcelContent as $Content) {
+                $Row++;
+                $Column = 0;
 
-            $export->setValue($export->getCell($Column++, $Row), $Content['CreateUpdate']);
-            $export->setValue($export->getCell($Column++, $Row), $Content['DebtorFirstName']);
-            $export->setValue($export->getCell($Column++, $Row), $Content['DebtorLastName']);
-            $export->setValue($export->getCell($Column++, $Row), $Content['MailPrivate']);
-            $export->setValue($export->getCell($Column++, $Row), $Content['MailBusiness']);
-            $export->setValue($export->getCell($Column++, $Row), $Content['Phone']);
-            $export->setValue($export->getCell($Column++, $Row), $Content['PhoneMobile']);
-            $export->setValue($export->getCell($Column++, $Row), $Content['StreetName']);
-            $export->setValue($export->getCell($Column++, $Row), $Content['StreetNumber']);
-            $export->setValue($export->getCell($Column++, $Row), $Content['Code']);
-            $export->setValue($export->getCell($Column++, $Row), $Content['City']);
-            $export->setValue($export->getCell($Column++, $Row), $Content['District']);
-            $export->setValue($export->getCell($Column++, $Row), $Content['PaymentType']);
-            $export->setValue($export->getCell($Column++, $Row), $Content['BankName']);
-            $export->setValue($export->getCell($Column++, $Row), $Content['Owner']);
-            $export->setValue($export->getCell($Column++, $Row), $Content['IBAN']);
-            $export->setValue($export->getCell($Column++, $Row), $Content['BIC']);
-            $export->setValue($export->getCell($Column++, $Row), $Content['DebtorNumber']);
-            $export->setValue($export->getCell($Column++, $Row), $Content['CauserFirstName']);
-            $export->setValue($export->getCell($Column++, $Row), $Content['CauserLastName']);
-            $export->setValue($export->getCell($Column++, $Row), $Content['DivisionCourse']);
-            $export->setValue($export->getCell($Column++, $Row), $Content['ItemName']);
-            $export->setValue($export->getCell($Column++, $Row), $Content['Value']);
-            $export->setValue($export->getCell($Column++, $Row), $Content['Variant'] ?? '');
-            $export->setValue($export->getCell($Column++, $Row), $Content['VariantPrice'] ?? '');
-            $export->setValue($export->getCell($Column++, $Row), $Content['From']);
-            $export->setValue($export->getCell($Column++, $Row), $Content['To']);
-            $export->setValue($export->getCell($Column++, $Row), $Content['ReferenceDate']);
-            $export->setValue($export->getCell($Column, $Row), $Content['ReferenceNumber']);
-
+                $export->setValue($export->getCell($Column++, $Row), $Content['CreateUpdate']);
+                $export->setValue($export->getCell($Column++, $Row), $Content['DebtorFirstName']);
+                $export->setValue($export->getCell($Column++, $Row), $Content['DebtorLastName']);
+                $export->setValue($export->getCell($Column++, $Row), $Content['MailPrivate']);
+                $export->setValue($export->getCell($Column++, $Row), $Content['MailBusiness']);
+                $export->setValue($export->getCell($Column++, $Row), $Content['Phone']);
+                $export->setValue($export->getCell($Column++, $Row), $Content['PhoneMobile']);
+                $export->setValue($export->getCell($Column++, $Row), $Content['StreetName']);
+                $export->setValue($export->getCell($Column++, $Row), $Content['StreetNumber']);
+                $export->setValue($export->getCell($Column++, $Row), $Content['Code']);
+                $export->setValue($export->getCell($Column++, $Row), $Content['City']);
+                $export->setValue($export->getCell($Column++, $Row), $Content['District']);
+                $export->setValue($export->getCell($Column++, $Row), $Content['PaymentType']);
+                $export->setValue($export->getCell($Column++, $Row), $Content['BankName']);
+                $export->setValue($export->getCell($Column++, $Row), $Content['Owner']);
+                $export->setValue($export->getCell($Column++, $Row), $Content['IBAN']);
+                $export->setValue($export->getCell($Column++, $Row), $Content['BIC']);
+                $export->setValue($export->getCell($Column++, $Row), $Content['DebtorNumber']);
+                $export->setValue($export->getCell($Column++, $Row), $Content['CauserFirstName']);
+                $export->setValue($export->getCell($Column++, $Row), $Content['CauserLastName']);
+                $export->setValue($export->getCell($Column++, $Row), $Content['DivisionCourse']);
+                $export->setValue($export->getCell($Column++, $Row), $Content['ItemName']);
+                $export->setValue($export->getCell($Column++, $Row), $Content['Value']);
+                $export->setValue($export->getCell($Column++, $Row), $Content['Variant'] ?? '');
+                $export->setValue($export->getCell($Column++, $Row), $Content['VariantPrice'] ?? '');
+                $export->setValue($export->getCell($Column++, $Row), $Content['From']);
+                $export->setValue($export->getCell($Column++, $Row), $Content['To']);
+                $export->setValue($export->getCell($Column++, $Row), $Content['ReferenceDate']);
+                $export->setValue($export->getCell($Column, $Row), $Content['ReferenceNumber']);
+            }
         }
+    }
 
+    public function setExcelColumnWidth($export)
+    {
         //Column width
         $Column = 0;
-        $export->setStyle($export->getCell($Column, 0), $export->getCell($Column++, $Row))->setColumnWidth(15);
-        $export->setStyle($export->getCell($Column, 0), $export->getCell($Column++, $Row))->setColumnWidth(15);
-        $export->setStyle($export->getCell($Column, 0), $export->getCell($Column++, $Row))->setColumnWidth(15);
-        $export->setStyle($export->getCell($Column, 0), $export->getCell($Column++, $Row))->setColumnWidth(10);
-        $export->setStyle($export->getCell($Column, 0), $export->getCell($Column++, $Row))->setColumnWidth(10);
-        $export->setStyle($export->getCell($Column, 0), $export->getCell($Column++, $Row))->setColumnWidth(15);
-        $export->setStyle($export->getCell($Column, 0), $export->getCell($Column++, $Row))->setColumnWidth(15);
-        $export->setStyle($export->getCell($Column, 0), $export->getCell($Column++, $Row))->setColumnWidth(20);
-        $export->setStyle($export->getCell($Column, 0), $export->getCell($Column++, $Row))->setColumnWidth(5);
-        $export->setStyle($export->getCell($Column, 0), $export->getCell($Column++, $Row))->setColumnWidth(7);
-        $export->setStyle($export->getCell($Column, 0), $export->getCell($Column++, $Row))->setColumnWidth(15);
-        $export->setStyle($export->getCell($Column, 0), $export->getCell($Column++, $Row))->setColumnWidth(10);
-        $export->setStyle($export->getCell($Column, 0), $export->getCell($Column++, $Row))->setColumnWidth(16);
-        $export->setStyle($export->getCell($Column, 0), $export->getCell($Column++, $Row))->setColumnWidth(15);
-        $export->setStyle($export->getCell($Column, 0), $export->getCell($Column++, $Row))->setColumnWidth(25);
-        $export->setStyle($export->getCell($Column, 0), $export->getCell($Column++, $Row))->setColumnWidth(24);
-        $export->setStyle($export->getCell($Column, 0), $export->getCell($Column++, $Row))->setColumnWidth(14);
-        $export->setStyle($export->getCell($Column, 0), $export->getCell($Column++, $Row))->setColumnWidth(13);
-        $export->setStyle($export->getCell($Column, 0), $export->getCell($Column++, $Row))->setColumnWidth(15);
-        $export->setStyle($export->getCell($Column, 0), $export->getCell($Column++, $Row))->setColumnWidth(15);
-        $export->setStyle($export->getCell($Column, 0), $export->getCell($Column++, $Row))->setColumnWidth(10);
-        $export->setStyle($export->getCell($Column, 0), $export->getCell($Column++, $Row))->setColumnWidth(20);
-        $export->setStyle($export->getCell($Column, 0), $export->getCell($Column++, $Row))->setColumnWidth(9);
-        $export->setStyle($export->getCell($Column, 0), $export->getCell($Column++, $Row))->setColumnWidth(50);
-        $export->setStyle($export->getCell($Column, 0), $export->getCell($Column++, $Row))->setColumnWidth(9);
-        $export->setStyle($export->getCell($Column, 0), $export->getCell($Column++, $Row))->setColumnWidth(11);
-        $export->setStyle($export->getCell($Column, 0), $export->getCell($Column++, $Row))->setColumnWidth(11);
-        $export->setStyle($export->getCell($Column, 0), $export->getCell($Column++, $Row))->setColumnWidth(11);
-        $export->setStyle($export->getCell($Column, 0), $export->getCell($Column, $Row))->setColumnWidth(10);
-
-        $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
-        return $fileLocation;
+        $export->setStyle($export->getCell($Column, 0), $export->getCell($Column++, 0))->setColumnWidth(15);
+        $export->setStyle($export->getCell($Column, 0), $export->getCell($Column++, 0))->setColumnWidth(15);
+        $export->setStyle($export->getCell($Column, 0), $export->getCell($Column++, 0))->setColumnWidth(15);
+        $export->setStyle($export->getCell($Column, 0), $export->getCell($Column++, 0))->setColumnWidth(10);
+        $export->setStyle($export->getCell($Column, 0), $export->getCell($Column++, 0))->setColumnWidth(10);
+        $export->setStyle($export->getCell($Column, 0), $export->getCell($Column++, 0))->setColumnWidth(15);
+        $export->setStyle($export->getCell($Column, 0), $export->getCell($Column++, 0))->setColumnWidth(15);
+        $export->setStyle($export->getCell($Column, 0), $export->getCell($Column++, 0))->setColumnWidth(20);
+        $export->setStyle($export->getCell($Column, 0), $export->getCell($Column++, 0))->setColumnWidth(5);
+        $export->setStyle($export->getCell($Column, 0), $export->getCell($Column++, 0))->setColumnWidth(7);
+        $export->setStyle($export->getCell($Column, 0), $export->getCell($Column++, 0))->setColumnWidth(15);
+        $export->setStyle($export->getCell($Column, 0), $export->getCell($Column++, 0))->setColumnWidth(10);
+        $export->setStyle($export->getCell($Column, 0), $export->getCell($Column++, 0))->setColumnWidth(16);
+        $export->setStyle($export->getCell($Column, 0), $export->getCell($Column++, 0))->setColumnWidth(15);
+        $export->setStyle($export->getCell($Column, 0), $export->getCell($Column++, 0))->setColumnWidth(25);
+        $export->setStyle($export->getCell($Column, 0), $export->getCell($Column++, 0))->setColumnWidth(24);
+        $export->setStyle($export->getCell($Column, 0), $export->getCell($Column++, 0))->setColumnWidth(14);
+        $export->setStyle($export->getCell($Column, 0), $export->getCell($Column++, 0))->setColumnWidth(13);
+        $export->setStyle($export->getCell($Column, 0), $export->getCell($Column++, 0))->setColumnWidth(15);
+        $export->setStyle($export->getCell($Column, 0), $export->getCell($Column++, 0))->setColumnWidth(15);
+        $export->setStyle($export->getCell($Column, 0), $export->getCell($Column++, 0))->setColumnWidth(10);
+        $export->setStyle($export->getCell($Column, 0), $export->getCell($Column++, 0))->setColumnWidth(20);
+        $export->setStyle($export->getCell($Column, 0), $export->getCell($Column++, 0))->setColumnWidth(9);
+        $export->setStyle($export->getCell($Column, 0), $export->getCell($Column++, 0))->setColumnWidth(50);
+        $export->setStyle($export->getCell($Column, 0), $export->getCell($Column++, 0))->setColumnWidth(9);
+        $export->setStyle($export->getCell($Column, 0), $export->getCell($Column++, 0))->setColumnWidth(11);
+        $export->setStyle($export->getCell($Column, 0), $export->getCell($Column++, 0))->setColumnWidth(11);
+        $export->setStyle($export->getCell($Column, 0), $export->getCell($Column++, 0))->setColumnWidth(11);
+        $export->setStyle($export->getCell($Column, 0), $export->getCell($Column, 0))->setColumnWidth(10);
     }
 }
