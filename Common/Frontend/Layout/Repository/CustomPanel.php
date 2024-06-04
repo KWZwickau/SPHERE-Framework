@@ -5,6 +5,7 @@ use MOC\V\Component\Template\Component\IBridgeInterface;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronDown;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronRight;
 use SPHERE\Common\Frontend\ITemplateInterface;
+use SPHERE\Common\Frontend\Link\ILinkInterface;
 use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\System\Extension\Extension;
 
@@ -131,7 +132,7 @@ class CustomPanel extends Extension implements ITemplateInterface
     }
 
     /**
-     * @param Link|null $link
+     * @param Link|ILinkInterface|null $link
      *
      * @return $this
      */
@@ -148,6 +149,7 @@ class CustomPanel extends Extension implements ITemplateInterface
     {
         if(empty($this->Hash)) {
             $Content = $this->Content;
+            $Title = $this->Title;
             if(is_array($this->Content)) {
                 array_walk($Content, function(&$G) {
 
@@ -155,9 +157,9 @@ class CustomPanel extends Extension implements ITemplateInterface
                         $G = serialize($G);
                     }
                 });
-                $this->Hash = md5(json_encode($Content));
+                $this->Hash = md5(json_encode($Content).$Title);
             } else {
-                $this->Hash = md5(json_encode($Content));
+                $this->Hash = md5(json_encode($Content).$Title);
             }
         }
         return $this->Hash;

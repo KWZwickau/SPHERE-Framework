@@ -17,8 +17,8 @@ use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\Setting\Consumer\Consumer;
-use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
@@ -399,16 +399,22 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Beitragsverursacher', 'bearbeiten');
-        $Stage->addButton(new Standard('Zurück', __NAMESPACE__.'/View', new ChevronLeft(),
-            array('GroupId' => $GroupId)));
+        if($GroupId){
+            $Stage->addButton(new Standard('Zurück', __NAMESPACE__.'/View', new ChevronLeft(), array('GroupId' => $GroupId)));
+        } else {
+            $Stage->addButton(new Standard('Zurück', __NAMESPACE__, new ChevronLeft()));
+        }
 
         $ColumnList = array();
         $ColumnHideList = array();
         $tblPerson = Person::useService()->getPersonById($PersonId);
         if(!$tblPerson){
             $Stage->setContent(new Warning('Person nicht gefunden'));
-            return $Stage.new Redirect('/Billing/Accounting/Causer/View', Redirect::TIMEOUT_ERROR,
-                    array('GroupId' => $GroupId));
+            if($GroupId){
+                return $Stage.new Redirect('/Billing/Accounting/Causer/View', Redirect::TIMEOUT_ERROR, array('GroupId' => $GroupId));
+            } else {
+                return $Stage.new Redirect('/Billing/Accounting/Causer', Redirect::TIMEOUT_ERROR);
+            }
         }
 
         $tblItemList = Item::useService()->getItemAllByPerson($tblPerson);
@@ -456,12 +462,60 @@ class Frontend extends Extension implements IFrontendInterface
         $LayoutRowList = $this->getFrontendPanelList($ColumnList);
         $LayoutRowHideList = $this->getFrontendPanelList($ColumnHideList);
 
+        $SiblingPanel = '';
+        $tblType = Relationship::useService()->getTypeByName('Geschwisterkind');
+        $tblRelationshipList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson, $tblType);
+        $tblPersonSiblingList = array();
+        if($tblRelationshipList){
+            foreach($tblRelationshipList as $tblRelationship){
+                $tblPersonFrom = $tblRelationship->getServiceTblPersonFrom();
+                $tblPersonTo = $tblRelationship->getServiceTblPersonTo();
+                if($tblPersonFrom->getId() != $tblPerson){
+                    $tblPersonSiblingList[] = $tblPersonFrom;
+                } elseif ($tblPersonTo->getId() != $tblPerson){
+                    $tblPersonSiblingList[] = $tblPersonTo;
+                }
+            }
+        }
+        if(!empty($tblPersonSiblingList)){
+            $ColumnSiblingList = array();
+            $tblGroupStudent = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_STUDENT);
+            $tblGroupProspect = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_PROSPECT);
+            foreach($tblPersonSiblingList as $tblPersonSibling){
+                $ContentString = '';
+                $isLink = false;
+                $tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndDate($tblPersonSibling);
+                if($tblGroupStudent && Group::useService()->existsGroupPerson($tblGroupStudent, $tblPersonSibling)){
+                    $ContentString .= 'Schüler';
+                    $isLink = true;
+                } elseif ($tblGroupProspect && Group::useService()->existsGroupPerson($tblGroupProspect, $tblPersonSibling)) {
+                    $ContentString .= 'Interessent';
+                    $isLink = true;
+                }
+                if($ContentString && $tblStudentEducation && ($tblDivision = $tblStudentEducation->getTblDivision())){
+                    $TypeName = '';
+                    if(($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())){
+                        $TypeName = $tblSchoolType->getName();
+                    }
+                    $ContentString .= ' '.$tblDivision->getDisplayName().' - '.$TypeName;
+                }
+
+                $CustomPanel = (new CustomPanel(new PullClear($tblPersonSibling->getFullName()), $ContentString));
+                if($isLink){
+                    $CustomPanel->setLink((new Link('', '/Billing/Accounting/Causer/Edit', new \SPHERE\Common\Frontend\Icon\Repository\Link(),
+                        array('PersonId' => $tblPersonSibling->getId())))->setExternal());
+                }
+
+                $ColumnSiblingList[] = new LayoutColumn($CustomPanel, 4);
+            }
+            $RowSiblingList = $this->getFrontendPanelList($ColumnSiblingList, 3);
+            $SiblingPanel = (new CustomPanel(new InfoText('Geschwisterkinder '.new Bold(count($ColumnSiblingList))),
+                new Layout(new LayoutGroup($RowSiblingList))))->setAccordeon();
+        }
+
         //
         $UnusedItemPanel = (new CustomPanel(new InfoText('Weitere mögliche '.new Bold('Beitragsarten')), new Layout(new LayoutGroup($LayoutRowHideList))))
             ->setAccordeon((count($ColumnList) > 1? false : true));
-//        $UnusedItemAccordion = new Accordion();
-//        $UnusedItemAccordion->addItem(new InfoText(new Edit().' Weitere mögliche '.new Bold('Beitragsarten')), '<div style="height: 11px;">&nbsp;</div>'.
-//            new Layout(new LayoutGroup($LayoutRowHideList)), (count($ColumnList) > 1? false : true));
 
         $Stage->setContent(
             ApiBankReference::receiverModal('Hinzufügen einer Mandatsreferenznummer', 'addBankReference')
@@ -470,15 +524,25 @@ class Frontend extends Extension implements IFrontendInterface
             .ApiDebtorSelection::receiverModal('Hinzufügen der Beitragszahler', 'addDebtorSelection')
             .ApiDebtorSelection::receiverModal('Bearbeiten der Beitragszahler', 'editDebtorSelection')
             .ApiDebtorSelection::receiverModal('Entfernen der Beitragszahler', 'deleteDebtorSelection')
-            .Debtor::useFrontend()->getPersonPanel($PersonId)
+            .($SiblingPanel
+                ? new Layout(new LayoutGroup(new LayoutRow(array(
+                    new LayoutColumn(Debtor::useFrontend()->getPersonPanel($PersonId), 3),
+                    new LayoutColumn($SiblingPanel, 9)
+                ))))
+                : Debtor::useFrontend()->getPersonPanel($PersonId))
             .new Layout(new LayoutGroup($LayoutRowList))
             .$UnusedItemPanel);
-//            .$UnusedItemAccordion);
 
         return $Stage;
     }
 
-    private function getFrontendPanelList($ColumnList)
+    /**
+     * @param LayoutColumn[] $ColumnList
+     * @param int            $ColumnCount
+     *
+     * @return LayoutRow[]
+     */
+    private function getFrontendPanelList(array $ColumnList,int $ColumnCount = 4)
     {
         $LayoutRowList = array();
         $LayoutRowCount = 0;
@@ -487,7 +551,7 @@ class Frontend extends Extension implements IFrontendInterface
          * @var LayoutColumn $ColumnList
          */
         foreach($ColumnList as $Column) {
-            if($LayoutRowCount % 4 == 0){
+            if($LayoutRowCount % $ColumnCount == 0){
                 $LayoutRow = new LayoutRow(array());
                 $LayoutRowList[] = $LayoutRow;
             }
