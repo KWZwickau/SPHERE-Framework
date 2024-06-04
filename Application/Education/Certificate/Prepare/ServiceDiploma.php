@@ -384,6 +384,9 @@ abstract class ServiceDiploma extends ServiceCertificateContent
                             $gradeString .= $tblSubject->getAcronym() . ':' . $tblPrepareAdditionalGrade->getGrade() . ' ';
                         }
                     }
+
+                    // SSW-2490: falls Schuljahreswiederholungen vorliegen
+                    break;
                 }
             }
         }
