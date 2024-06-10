@@ -1167,6 +1167,11 @@ class Creator extends Extension
             header("Content-Type: application/pdf");
             header("Content-Disposition: attachment; filename=Anleitung_Fakturierung_21.02.2022.pdf");
             header("Content-Length: ".filesize($file));
+        } elseif($Select == 'Certificate') {
+            $file = "Common/Style/Resource/Document/Manual/SSWCertificate.pdf";
+            header("Content-Type: application/pdf");
+            header("Content-Disposition: attachment; filename=Kurzleitfaden_Zeugniserstellung.pdf");
+            header("Content-Length: ".filesize($file));
         } elseif($Select == 'PrintA3Certificate') {
             $file = "Common/Style/Resource/Document/Manual/SSWPrintA3Certificate.pdf";
             header("Content-Type: application/pdf");

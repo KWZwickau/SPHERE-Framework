@@ -98,6 +98,11 @@ class Frontend extends Extension implements IFrontendInterface
                                 , '/Api/Document/Standard/Manual/Create/Pdf', null, array('Select' => 'Billing')
                         ), 2),
                         new LayoutColumn(new Link((new Thumbnail(
+                            FileSystem::getFileLoader('/Common/Style/Resource/SSWInfo.png')
+                            , 'Kurzleitfaden Zeugniserstellung', 'Stand:&nbsp;28.04.2024'))->setPictureHeight()
+                            , '/Api/Document/Standard/Manual/Create/Pdf', null, array('Select' => 'Certificate')
+                        ), 2),
+                        new LayoutColumn(new Link((new Thumbnail(
                                 FileSystem::getFileLoader('/Common/Style/Resource/SSWPrint.png')
                                 , 'Druck Abschlusszeugnisse A3'))->setPictureHeight()
                                 , '/Api/Document/Standard/Manual/Create/Pdf', null, array('Select' => 'PrintA3Certificate')
