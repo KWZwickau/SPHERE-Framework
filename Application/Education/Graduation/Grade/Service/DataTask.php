@@ -71,6 +71,7 @@ abstract class DataTask extends DataScore
      */
     public function getGradeTypeListByTask(TblTask $tblTask)
     {
+        $tempList = array();
         $resultList = array();
         if (($list = $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblTaskGradeTypeLink',
             array(TblTaskGradeTypeLink::ATTR_TBL_TASK => $tblTask->getId()))
@@ -78,11 +79,17 @@ abstract class DataTask extends DataScore
             /** @var TblTaskGradeTypeLink $item */
             foreach ($list as $item) {
                 if (($tblGradeType = $item->getTblGradeType())) {
-                    $resultList[$tblGradeType->getId()] = $tblGradeType;
+                    $tempList[$tblGradeType->getId()] = $tblGradeType;
                 }
             }
 
-            $resultList = $this->getSorter($resultList)->sortObjectBy('Name');
+            $tempList = $this->getSorter($tempList)->sortObjectBy('Name');
+
+            // Beim Sortieren werden die Keys wieder von 0 gezählt
+            /** @var TblGradeType $temp */
+            foreach ($tempList as $temp) {
+                $resultList[$temp->getId()] = $temp;
+            }
         }
 
         return empty($resultList) ? false : $resultList;
