@@ -175,7 +175,7 @@ class MsAbsLernen extends Certificate
                     ->styleTextBold()
                 )
             )
-            ->addSlice($this->getSubjectLanes($personId)->styleHeight('270px'))
+            ->addSlice($this->getSubjectLanes($personId)->styleHeight('285px'))
             ->addSlice($this->getSupportContent($personId, 'auto', '15px', 'Bemerkungen: Inklusive Unterrichtung¹: '))
             ->addSlice($this->getSupportSubjectContent($personId, '180px', '0px',
                 'Thema der lebenspraktisch orientierten Komplexen Leistung:'

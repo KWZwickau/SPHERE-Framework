@@ -400,7 +400,8 @@ class MsAbsRs extends Certificate
                     }
 
                     $section->addElementColumn((new Element())
-                        ->setContent($tblSubject->getName())
+                        ->setContent($tblSubject->getName() == 'Gemeinschaftskunde/Rechtserziehung/Wirtschaft'
+                            ? 'Gemeinschaftskunde/ Rechtserziehung/Wirtschaft' : $tblSubject->getName())
                         ->stylePaddingTop()
                         ->styleMarginTop('10px')
                         ->styleTextSize($TextSize)
