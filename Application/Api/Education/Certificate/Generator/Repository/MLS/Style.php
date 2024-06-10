@@ -456,7 +456,7 @@ abstract class Style extends Certificate
      *
      * @return Slice
      */
-    protected function getCustomRating($personId, string $MarginTop = '10px', string $Height = '95px'): Slice
+    protected function getCustomRating($personId, string $MarginTop = '10px', string $Height = '106px'): Slice
     {
         return (new Slice())
             ->styleMarginTop($MarginTop)
