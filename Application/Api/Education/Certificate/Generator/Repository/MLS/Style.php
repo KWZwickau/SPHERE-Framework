@@ -364,10 +364,11 @@ abstract class Style extends Certificate
     /**
      * @param $personId
      * @param string $Height
+     * @param string $Space
      *
      * @return Slice
      */
-    public function getCustomRemark($personId, string $Height = '340px'): Slice
+    public function getCustomRemark($personId, string $Height = '340px', string $Space = '20px'): Slice
     {
         return (new Slice())
             ->styleMarginTop('15px')
@@ -418,7 +419,7 @@ abstract class Style extends Certificate
                             {% endif %}')
                 ->styleTextSize('11pt')
                 ->styleAlignJustify()
-                ->styleMarginTop('20px')
+                ->styleMarginTop($Space)
             );
     }
 
