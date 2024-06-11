@@ -197,6 +197,8 @@ class EzshMsAbsRs extends EzshStyle
                 ->styleMarginTop($count > 4 ? '10px' : '30px')
                 ->addSectionList($this->getEZSHGradeInfo(false)));
 
+        $pageList[] = $this->getRatingPage($personId, 'Anlage zum ABSCHLUSSZEUGNIS', 'OBERSCHULE – staatlich anerkannte Ersatzschule');
+
         return $pageList;
     }
 }
