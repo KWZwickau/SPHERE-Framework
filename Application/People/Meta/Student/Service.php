@@ -18,6 +18,7 @@ use SPHERE\Application\Education\School\Course\Service\Entity\TblTechnicalSubjec
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Group\Group;
+use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Meta\Student\Service\Data;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudent;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentAgreement;
@@ -316,7 +317,12 @@ class Service extends Support
     {
         $identifier = '';
         $tblSetting = Consumer::useService()->getSetting('People', 'Meta', 'Student', 'Automatic_StudentNumber');
-        if($tblSetting && $tblSetting->getValue()){
+        if(($tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_STUDENT))
+        && // nur aktuelle Schüler sollen bei Datenerstellung (z.B. Transfer) bestückt werden
+            Group::useService()->getMemberByPersonAndGroup($tblPerson, $tblGroup)
+        && $tblSetting
+        && $tblSetting->getValue()
+        ){
             $biggestIdentifier = Student::useService()->getStudentMaxIdentifier();
             $identifier = $biggestIdentifier + 1;
         }
