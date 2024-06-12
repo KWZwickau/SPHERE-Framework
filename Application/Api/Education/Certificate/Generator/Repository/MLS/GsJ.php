@@ -34,7 +34,7 @@ class GsJ extends Style
             ->addSlice($this->getCustomGradeLanes($personId))
             ->addSlice($this->getCustomRating($personId))
             ->addSlice($this->getCustomSubjectLanes($personId))
-            ->addSlice($this->getCustomRemark($personId, '220px'))
+            ->addSlice($this->getCustomRemark($personId, '225px', '15px'))
             ->addSlice($this->getCustomTransfer($personId))
             ->addSlice($this->getCustomDateLine($personId, '20px'))
             ->addSlice($this->getSignPart($personId, true, '15px'))

@@ -175,7 +175,7 @@ class MsAbsLernenEquatedHs extends Certificate
                     ->styleTextBold()
                 )
             )
-            ->addSlice($this->getSubjectLanes($personId)->styleHeight('270px'))
+            ->addSlice($this->getSubjectLanes($personId)->styleHeight('285px'))
             ->addSlice($this->getDescriptionContent($personId, '220px', '15px',
                 'Bemerkungen:
                 {{ Content.P' . $personId . '.Person.Data.Name.First }} {{ Content.P' . $personId . '.Person.Data.Name.Last }}

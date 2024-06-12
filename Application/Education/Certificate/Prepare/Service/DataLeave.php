@@ -56,14 +56,17 @@ abstract class DataLeave extends DataDiploma
      *
      * @return false|TblLeaveStudent[]
      */
-    public function getLeaveStudentAllBy(bool $IsApproved = false, bool $IsPrinted = false)
+    public function getLeaveStudentAllBy(?bool $IsApproved, ?bool $IsPrinted)
     {
-        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblLeaveStudent',
-            array(
-                TblLeaveStudent::ATTR_IS_APPROVED => $IsApproved,
-                TblLeaveStudent::ATTR_IS_PRINTED => $IsPrinted
-            )
-        );
+        $parameter = array();
+        if ($IsApproved !== null) {
+            $parameter[TblLeaveStudent::ATTR_IS_APPROVED] = $IsApproved;
+        }
+        if ($IsPrinted !== null) {
+            $parameter[TblLeaveStudent::ATTR_IS_PRINTED] = $IsPrinted;
+        }
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblLeaveStudent', $parameter);
     }
 
     /**
