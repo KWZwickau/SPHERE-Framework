@@ -494,9 +494,9 @@ class Frontend extends Extension implements IFrontendInterface
                                     'DivisionId' => $tblDivisionCourse->getId(),
                                 ),
                                 'Zeugnisse herunterladen und revisionssicher abspeichern'
-                            ))->setRedirect('/Education/Certificate/PrintCertificate', 60)
+                            ))->setRedirect($backRoute, 60)
                             . new Standard(
-                                'Nein', '/Education/Certificate/PrintCertificate', new Disable()
+                                'Nein', $backRoute, new Disable()
                             )
                         ),
                     )))))
@@ -507,7 +507,7 @@ class Frontend extends Extension implements IFrontendInterface
                     new Layout(new LayoutGroup(array(
                         new LayoutRow(new LayoutColumn(array(
                             new Danger(new Ban() . ' Das Zeugnis konnte nicht gefunden werden'),
-                            new Redirect('/Education/Certificate/PrintCertificate', Redirect::TIMEOUT_ERROR)
+                            new Redirect($backRoute, Redirect::TIMEOUT_ERROR)
                         )))
                     )))
                 );
