@@ -831,6 +831,7 @@ class Service extends AbstractService
             }
         }
 
+        $MaxDate = null;
         if ($tblStudentEducation) {
             if (($tblCompanySchool = $tblStudentEducation->getServiceTblCompany())) {
                 $Data['School1'] = $tblCompanySchool->getName();
@@ -846,7 +847,6 @@ class Service extends AbstractService
                 }
             }
 
-            $MaxDate = null;
             if ($tblYear) {
                 list($startDate, $endDate) = Term::useService()->getStartDateAndEndDateOfYear($tblYear);
                 // Letztes Datum des aktuellen Schuljahres
@@ -856,18 +856,18 @@ class Service extends AbstractService
                     $Data['SchoolUntil'] = $endDate->format('d.m.Y');
                 }
             }
+        }
 
-            if (($tblStudent = Student::useService()->getStudentByPerson($tblPerson))
-                && ($tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('LEAVE'))
-                && ($tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent, $tblStudentTransferType))
-            ) {
-                $transferDate = $tblStudentTransfer->getTransferDate();
-                if ($transferDate) {
-                    if ($MaxDate > new DateTime($transferDate)) {
-                        $DateString = $transferDate;
-                        // correct leaveDate if necessary
-                        $Data['SchoolUntil'] = $DateString;
-                    }
+        if (($tblStudent = Student::useService()->getStudentByPerson($tblPerson))
+            && ($tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('LEAVE'))
+            && ($tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent, $tblStudentTransferType))
+        ) {
+            $transferDate = $tblStudentTransfer->getTransferDate();
+            if ($transferDate) {
+                if (!$MaxDate || $MaxDate > new DateTime($transferDate)) {
+                    $DateString = $transferDate;
+                    // correct leaveDate if necessary
+                    $Data['SchoolUntil'] = $DateString;
                 }
             }
         }
