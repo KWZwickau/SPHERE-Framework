@@ -67,4 +67,16 @@ class Service extends AbstractService
             );
         }
     }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param $Meta
+     *
+     * @return bool|TblChild
+     */
+    public function insertChild(TblPerson $tblPerson, $AuthorizedToCollect)
+    {
+
+        return (new Data($this->getBinding()))->createChild($tblPerson, $AuthorizedToCollect);
+    }
 }
