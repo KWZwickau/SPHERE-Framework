@@ -470,10 +470,12 @@ class Frontend extends Extension implements IFrontendInterface
             foreach($tblRelationshipList as $tblRelationship){
                 $tblPersonFrom = $tblRelationship->getServiceTblPersonFrom();
                 $tblPersonTo = $tblRelationship->getServiceTblPersonTo();
-                if($tblPersonFrom->getId() != $tblPerson){
-                    $tblPersonSiblingList[] = $tblPersonFrom;
-                } elseif ($tblPersonTo->getId() != $tblPerson){
-                    $tblPersonSiblingList[] = $tblPersonTo;
+                if($tblPersonFrom && $tblPersonTo){
+                    if($tblPersonFrom->getId() != $tblPerson->getId()){
+                        $tblPersonSiblingList[] = $tblPersonFrom;
+                    } elseif ($tblPersonTo->getId() != $tblPerson->getId()){
+                        $tblPersonSiblingList[] = $tblPersonTo;
+                    }
                 }
             }
         }
