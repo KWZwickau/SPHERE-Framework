@@ -574,6 +574,7 @@ abstract class ServiceCertificateContent extends ServiceAbitur
             $gradeListFOS = array();
             if ($tblCertificateType
                 && $tblCertificateType->getIdentifier() == 'DIPLOMA'
+                && $tblSchoolType
                 && ($tblSchoolType->getShortName() == 'FOS' || $tblSchoolType->getShortName() == 'OS' || $tblSchoolType->getShortName() == 'BFS')
             ) {
                 // Abiturnoten werden direkt im Certificate in der API gedruckt
@@ -602,7 +603,7 @@ abstract class ServiceCertificateContent extends ServiceAbitur
                             }
 
                             // Fachoberschule FHR - Durchschnittsnote berechnen
-                            if ($tblSchoolType->getShortName() == 'FOS' && $tblPrepareAdditionalGrade->getGrade()
+                            if ($tblSchoolType && $tblSchoolType->getShortName() == 'FOS' && $tblPrepareAdditionalGrade->getGrade()
                                 && intval($tblPrepareAdditionalGrade->getGrade())
                             ) {
                                 if ($tblConsumer && $tblConsumer->isConsumer(TblConsumer::TYPE_SACHSEN, 'HOGA')) {
@@ -640,7 +641,7 @@ abstract class ServiceCertificateContent extends ServiceAbitur
                             }
 
                             // Fachoberschule FHR - Durchschnittsnote berechnen
-                            if ($tblSchoolType->getShortName() == 'FOS' && $tblTaskGrade->getGradeNumberValue() !== null) {
+                            if ($tblSchoolType && $tblSchoolType->getShortName() == 'FOS' && $tblTaskGrade->getGradeNumberValue() !== null) {
                                 if ($tblConsumer && $tblConsumer->isConsumer(TblConsumer::TYPE_SACHSEN, 'HOGA')) {
                                     // Sport und die Facharbeit werden bei der Berechnung der Durchschnittsnote nicht berücksichtigt
                                     if (strpos($tblSubjectTemp->getName(), 'Sport') === false && strpos($tblSubjectTemp->getName(), 'Facharbeit') === false) {
