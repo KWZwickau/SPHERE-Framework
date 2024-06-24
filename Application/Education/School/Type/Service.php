@@ -164,6 +164,7 @@ class Service extends AbstractService
             case 'Gy': return 12;
 
             case 'BGy': return 13;
+            case 'FöS':
             case 'FOS': return 12;
             case 'BFS': return 3;
             case 'BGJ':
