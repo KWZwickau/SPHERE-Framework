@@ -370,8 +370,13 @@ class Frontend extends Extension implements IFrontendInterface
                         'Name' => 'Name',
                         'Average' => 'Notendurchschnitt',
                     );
+
+                    $columDefs[] = array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 0);
+                    $columDefs[] = array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1);
+
                     if ($View == View::RS) {
                         $columns['AverageWithDroppedSubjects'] = 'Notendurchschnitt (mit abgewählte Fächer der Klassenstufe 9)';
+                        $columDefs[] = array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 2);
                     }
 
                     $Stage->setContent(
@@ -389,10 +394,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     null,
                                     $columns,
                                     array(
-                                        'columnDefs' => array(
-                                            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 0),
-                                            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
-                                        ),
+                                        'columnDefs' => $columDefs,
                                         'order' => array(
                                             array(1, 'asc'),
                                         )
