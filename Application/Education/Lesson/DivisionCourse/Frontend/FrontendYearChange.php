@@ -10,6 +10,7 @@ use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Meta\Teacher\Teacher;
 use SPHERE\Application\People\Person\Person;
+use SPHERE\Application\Setting\Consumer\School\School;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Structure\Form;
@@ -59,7 +60,7 @@ class FrontendYearChange extends FrontendTeacher
         return new Form(new FormGroup(array(
             new FormRow(array(
                 new FormColumn(
-                    (new SelectBox('Data[SchoolType]', 'Schulart', array('{{ Name }}' => Type::useService()->getTypeAll())))
+                    (new SelectBox('Data[SchoolType]', 'Schulart', array('{{ Name }}' => School::useService()->getConsumerSchoolTypeAll())))
                         ->ajaxPipelineOnChange(ApiYearChange::pipelineLoadYearChangeContent())
                         ->setRequired()
                     , 6),
