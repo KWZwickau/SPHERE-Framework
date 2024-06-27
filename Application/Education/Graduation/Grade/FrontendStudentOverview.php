@@ -9,8 +9,8 @@ use SPHERE\Application\Api\ParentStudentAccess\ApiOnlineGradebook;
 use SPHERE\Application\Api\People\Meta\Support\ApiSupportReadOnly;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
-use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
+use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
@@ -40,7 +40,6 @@ use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Info;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
-use SPHERE\System\Extension\Repository\Sorter\StringNaturalOrderSorter;
 
 abstract class FrontendStudentOverview extends FrontendScoreType
 {
@@ -206,9 +205,35 @@ abstract class FrontendStudentOverview extends FrontendScoreType
         if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
             $textCourse = new Bold($tblDivisionCourse->getDisplayName());
 
-            list ($bodyList, $headerList) = Grade::useService()->getStudentOverviewCourseData($tblDivisionCourse, $Filter, false);
+            // SekII beide Halbjahre getrennt anzeigen
+            if (DivisionCourse::useService()->getIsCourseSystemByStudentsInDivisionCourse($tblDivisionCourse)) {
+                $isShortYear = false;
+                $tblYear = $tblDivisionCourse->getServiceTblYear();
+                if (($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses())) {
+                    foreach ($tblPersonList as $tblPerson) {
+                        if (DivisionCourse::useService()->getIsShortYearByPersonAndYear($tblPerson, $tblYear)) {
+                            $isShortYear = true;
+                            break;
+                        }
+                    }
+                }
 
-            $content = $this->getTableCustom($headerList, $bodyList);
+                $content = '';
+                if ($tblYear
+                    && ($tblPeriodList = Term::useService()->getPeriodListByYear($tblYear, $isShortYear))
+                ) {
+                    $count = 0;
+                    foreach ($tblPeriodList as $tblPeriod) {
+                        $count++;
+                        list ($bodyList, $headerList) = Grade::useService()->getStudentOverviewCourseData($tblDivisionCourse, $Filter, false, $tblPeriod);
+                        $content .= new Title($count . '. Halbjahr')
+                            . $this->getTableCustom($headerList, $bodyList);
+                    }
+                }
+            } else {
+                list ($bodyList, $headerList) = Grade::useService()->getStudentOverviewCourseData($tblDivisionCourse, $Filter, false);
+                $content = $this->getTableCustom($headerList, $bodyList);
+            }
         } else {
             $content = new Danger("Der Kurs wurde nicht gefunden.", new Exclamation());
         }

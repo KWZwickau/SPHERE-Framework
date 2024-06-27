@@ -36,6 +36,7 @@ use SPHERE\Application\Billing\Bookkeeping\Invoice\Invoice;
 use SPHERE\Application\Billing\Inventory\Document\Service\Entity\TblDocument;
 use SPHERE\Application\Billing\Inventory\Item\Item;
 use SPHERE\Application\Document\Generator\Generator;
+use SPHERE\Application\Document\Generator\Repository\Page;
 use SPHERE\Application\Document\Storage\FilePointer;
 use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Absence\Absence;
@@ -1586,37 +1587,77 @@ class Creator extends Extension
         }
 
         if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
-            list ($dataList, $headerList) = Grade::useService()->getStudentOverviewCourseData($tblDivisionCourse, array(), true);
-            unset($headerList['Picture']);
-            unset($headerList['Integration']);
-            unset($headerList['Course']);
-            unset($headerList['Option']);
-
-            $headerWidthList = array();
-            $count = count($headerList) - 2;
-            foreach ($headerList as $key => $header) {
-                if ($key == 'Number') {
-                    $headerWidthList[$key] = '5%';
-                } elseif ($key == 'Person') {
-                    $headerWidthList[$key] = '20%';
-                } else {
-                    $headerWidthList[$key] = (75 / $count) . '%';
-                }
-            }
-
             $preTextList[] = 'Schülerübersicht für ' . $tblDivisionCourse->getDisplayName();
             $preTextList[] = 'Stand: ' . (new DateTime())->format('d.m.Y');
-
             $Document = new DocumentBuilder('Schülerübersicht für ' . $tblDivisionCourse->getDisplayName() . ' ' . (new DateTime())->format('d-m-Y'));
-            $pageList[] = $Document->getPageList($headerList, $headerWidthList, $dataList, $preTextList);
+            $pageList = array();
+
+            // SekII beide Halbjahre getrennt anzeigen
+            if (DivisionCourse::useService()->getIsCourseSystemByStudentsInDivisionCourse($tblDivisionCourse)) {
+                $isShortYear = false;
+                $tblYear = $tblDivisionCourse->getServiceTblYear();
+                if (($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses())) {
+                    foreach ($tblPersonList as $tblPerson) {
+                        if (DivisionCourse::useService()->getIsShortYearByPersonAndYear($tblPerson, $tblYear)) {
+                            $isShortYear = true;
+                            break;
+                        }
+                    }
+                }
+
+                if ($tblYear
+                    && ($tblPeriodList = Term::useService()->getPeriodListByYear($tblYear, $isShortYear))
+                ) {
+                    $count = 0;
+                    foreach ($tblPeriodList as $tblPeriod) {
+                        $count++;
+                        $preTextListForPeriod = $preTextList;
+                        $preTextListForPeriod[] = $count . '. Halbjahr';
+                        list ($bodyList, $headerList) = Grade::useService()->getStudentOverviewCourseData($tblDivisionCourse, array(), true, $tblPeriod);
+                        $pageList[] = self::getStudentOverviewPage($Document, $bodyList, $headerList, $preTextListForPeriod);
+                    }
+                }
+            } else {
+                list ($bodyList, $headerList) = Grade::useService()->getStudentOverviewCourseData($tblDivisionCourse, array(), true);
+                $pageList[] = self::getStudentOverviewPage($Document, $bodyList, $headerList, $preTextList);
+            }
 
             $File = self::buildDummyFile($Document, array(), $pageList, Creator::PAPERORIENTATION_LANDSCAPE);
-
             $FileName = $Document->getName() . '.pdf';
 
             return self::buildDownloadFile($File, $FileName);
         }
 
         return "Keine Schülerübersicht vorhanden!";
+    }
+
+    /**
+     * @param DocumentBuilder $Document
+     * @param array $bodyList
+     * @param array $headerList
+     * @param array $preTextList
+     *
+     * @return Page
+     */
+    private static function getStudentOverviewPage(DocumentBuilder $Document, array $bodyList, array $headerList, array $preTextList): Page
+    {
+        unset($headerList['Picture']);
+        unset($headerList['Integration']);
+        unset($headerList['Course']);
+        unset($headerList['Option']);
+
+        $headerWidthList = array();
+        $count = count($headerList) - 2;
+        foreach ($headerList as $key => $header) {
+            if ($key == 'Number') {
+                $headerWidthList[$key] = '2%';
+            } elseif ($key == 'Person') {
+                $headerWidthList[$key] = '18%';
+            } else {
+                $headerWidthList[$key] = (80 / $count) . '%';
+            }
+        }
+
+        return $Document->getPageList($headerList, $headerWidthList, $bodyList, $preTextList);
     }
 }
