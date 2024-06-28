@@ -723,7 +723,7 @@ class SDataSecondary
     private static function setMsAbsHs(Data $Data, $CertificateNumber)
     {
 
-        $tblCertificate = $Data->createCertificate('Oberschule Abschlusszeugnis', 'Hauptschule', 'MsAbsHs');
+        $tblCertificate = $Data->createCertificate('Oberschule Abschlusszeugnis', 'Hauptschule', 'MsAbsHs', null, false, false, true);
         if ($tblCertificate) {
             if($tblCertificate->getCertificateNumber() != $CertificateNumber){
                 $Data->updateCertificateNumber($tblCertificate, $CertificateNumber);

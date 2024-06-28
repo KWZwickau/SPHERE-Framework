@@ -233,20 +233,25 @@ class Data extends AbstractData
     {
         $tblConsumer = $this->tblConsumer = Consumer::useService()->getConsumerBySession();
 
-        // migration TblCertificateLevel serviceTblLevel -> Level
-        // kann später wieder entfernt werden
-        if (($tblCertificateLevelList = $this->getCertificateLevelAllByLevelIsNull())) {
-            $updateList = array();
-            foreach ($tblCertificateLevelList as $tblCertificateLevel) {
-                if (($tblLevel = $tblCertificateLevel->getServiceTblLevel())) {
-                    $tblCertificateLevel->setLevel(intval($tblLevel->getName()));
-                    $updateList[] = $tblCertificateLevel;
-                } else {
-                    $this->destroyCertificateLevel($tblCertificateLevel);
-                }
-            }
-            if (!empty($updateList)) {
-                $this->updateEntityListBulk($updateList);
+//        // migration TblCertificateLevel serviceTblLevel -> Level
+//        // kann später wieder entfernt werden
+//        if (($tblCertificateLevelList = $this->getCertificateLevelAllByLevelIsNull())) {
+//            $updateList = array();
+//            foreach ($tblCertificateLevelList as $tblCertificateLevel) {
+//                if (($tblLevel = $tblCertificateLevel->getServiceTblLevel())) {
+//                    $tblCertificateLevel->setLevel(intval($tblLevel->getName()));
+//                    $updateList[] = $tblCertificateLevel;
+//                } else {
+//                    $this->destroyCertificateLevel($tblCertificateLevel);
+//                }
+//            }
+//            if (!empty($updateList)) {
+//                $this->updateEntityListBulk($updateList);
+//            }
+//        }
+        if(($tblCertificate = $this->getCertificateByCertificateClassName('MsAbsHs'))){
+            if(!$tblCertificate->isChosenDefault()){
+                $this->updateCertificateIsChosenDefault($tblCertificate, true);
             }
         }
 
@@ -1049,6 +1054,29 @@ class Data extends AbstractData
         $Protocol = clone $Entity;
         if (null !== $Entity) {
             $Entity->setCertificateNumber($CertificateNumber);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblCertificate $tblCertificate
+     * @param bool $CertificateNumber
+     *
+     * @return bool
+     */
+    public function updateCertificateIsChosenDefault(TblCertificate $tblCertificate, bool $IsChosenDefault = false)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblCertificate $Entity */
+        $Entity = $Manager->getEntityById('TblCertificate', $tblCertificate->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setIsChosenDefault($IsChosenDefault);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
