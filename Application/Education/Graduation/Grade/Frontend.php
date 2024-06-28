@@ -28,8 +28,6 @@ use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
-use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
-use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Setting\Consumer\Consumer as ConsumerSetting;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
@@ -72,7 +70,6 @@ use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\Success as TextSuccess;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Stage;
-use SPHERE\System\Extension\Repository\Sorter\DateTimeSorter;
 
 class Frontend extends FrontendTestPlanning
 {
@@ -1570,7 +1567,7 @@ class Frontend extends FrontendTestPlanning
         $selectBox = new SelectBox(
             'GradeText',
             '',
-            array(\SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeText::ATTR_NAME => Grade::useService()->getGradeTextAll())
+            array(TblGradeText::ATTR_NAME => Grade::useService()->getGradeTextAll())
         );
 
         return

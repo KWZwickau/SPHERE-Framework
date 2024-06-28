@@ -3,7 +3,6 @@
 namespace SPHERE\Application\Education\Graduation\Grade\Service;
 
 use DateTime;
-use SPHERE\Application\Education\Graduation\Grade\Grade;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblGradeText;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblGradeType;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblMinimumGradeCount;
@@ -13,7 +12,6 @@ use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTaskGradeTyp
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTest;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTestCourseLink;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTestGrade;
-use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
@@ -33,15 +31,10 @@ class Data extends DataTask
         $this->createScoreType('Verbale Bewertung', 'VERBAL', '');
 
         if (!$this->getGradeTypeAll(true)) {
-            if (Grade::useService()->getGradeTypeAll()) {
-                // alte Daten migrieren
-                $this->migrateTblGradeType();
-            } else {
-                $this->createGradeType('KBE', 'Betragen', 'Kopfnote Betragen', true, false, false, false, true);
-                $this->createGradeType('KFL', 'Fleiß', 'Kopfnote Fleiß', true, false, false, false, true);
-                $this->createGradeType('KMI', 'Mitarbeit', 'Kopfnote Mitarbeit', true, false, false, false, true);
-                $this->createGradeType('KOR', 'Ordnung', 'Kopfnote Ordnung', true, false, false, false, true);
-            }
+            $this->createGradeType('KBE', 'Betragen', 'Kopfnote Betragen', true, false, false, false, true);
+            $this->createGradeType('KFL', 'Fleiß', 'Kopfnote Fleiß', true, false, false, false, true);
+            $this->createGradeType('KMI', 'Mitarbeit', 'Kopfnote Mitarbeit', true, false, false, false, true);
+            $this->createGradeType('KOR', 'Ordnung', 'Kopfnote Ordnung', true, false, false, false, true);
         }
 
         $this->createGradeText('nicht erteilt', 'n.e.', 'NOT_GRANTED');

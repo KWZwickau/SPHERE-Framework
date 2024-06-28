@@ -1,17 +1,8 @@
 <?php
 namespace SPHERE\Application\Education\Graduation;
 
-use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Graduation\Grade\Grade;
-use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
 use SPHERE\Application\IApplicationInterface;
-use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
-use SPHERE\Common\Frontend\Layout\Structure\Layout;
-use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
-use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
-use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
-use SPHERE\Common\Frontend\Table\Structure\TableData;
-use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Stage;
@@ -27,8 +18,6 @@ class Graduation implements IApplicationInterface
     public static function registerApplication()
     {
 
-//        Gradebook::registerModule();
-//        Evaluation::registerModule();
         Grade::registerModule();
 
         Main::getDisplay()->addApplicationNavigation(
