@@ -9,7 +9,6 @@ use SPHERE\Application\Education\Absence\Absence;
 use SPHERE\Application\Education\Absence\Service\Entity\TblAbsence;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCertificate;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareStudent;
-use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Graduation\Grade\Grade;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblGradeType;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTaskGrade;
@@ -304,9 +303,8 @@ abstract class FrontendSetting extends FrontendSelect
                             && $tblPrepareStudent
                         ) {
                             $Global = $this->getGlobal();
-                            $tblTestType = Evaluation::useService()->getTestTypeByIdentifier('BEHAVIOR_TASK');
                             $tblPrepareGrade = Prepare::useService()->getPrepareGradeByGradeType(
-                                $tblPrepare, $tblPerson, $tblTestType, $tblCurrentGradeType
+                                $tblPrepare, $tblPerson, $tblCurrentGradeType
                             );
                             if ($tblPrepareGrade) {
                                 $gradeValue = $tblPrepareGrade->getGrade();

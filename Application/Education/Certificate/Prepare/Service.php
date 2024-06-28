@@ -17,8 +17,6 @@ use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareGr
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareInformation;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareStudent;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Setup;
-use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
-use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTestType;
 use SPHERE\Application\Education\Graduation\Grade\Grade;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblGradeType;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTask;
@@ -163,7 +161,6 @@ class Service extends ServiceTemplateInformation
      *
      * @param TblPrepareCertificate $tblPrepare
      * @param TblPerson $tblPerson
-     * @param TblTestType $tblTestType
      * @param TblGradeType $tblGradeType
      *
      * @return false|TblPrepareGrade
@@ -171,10 +168,9 @@ class Service extends ServiceTemplateInformation
     public function getPrepareGradeByGradeType(
         TblPrepareCertificate $tblPrepare,
         TblPerson $tblPerson,
-        TblTestType $tblTestType,
         TblGradeType $tblGradeType
     ) {
-        return (new Data($this->getBinding()))->getPrepareGradeByGradeType($tblPrepare, $tblPerson, $tblTestType, $tblGradeType);
+        return (new Data($this->getBinding()))->getPrepareGradeByGradeType($tblPrepare, $tblPerson, $tblGradeType);
     }
 
     /**
@@ -497,7 +493,6 @@ class Service extends ServiceTemplateInformation
     /**
      * @param TblPrepareCertificate $tblPrepare
      * @param TblPerson $tblPerson
-     * @param TblTestType $tblTestType
      * @param TblGradeType $tblGradeType
      * @param $Grade
      *
@@ -506,11 +501,10 @@ class Service extends ServiceTemplateInformation
     public function updatePrepareGradeForBehavior(
         TblPrepareCertificate $tblPrepare,
         TblPerson $tblPerson,
-        TblTestType $tblTestType,
         TblGradeType $tblGradeType,
         $Grade
     ): TblPrepareGrade {
-        return (new Data($this->getBinding()))->updatePrepareGradeForBehavior($tblPrepare, $tblPerson, $tblTestType, $tblGradeType, $Grade);
+        return (new Data($this->getBinding()))->updatePrepareGradeForBehavior($tblPrepare, $tblPerson, $tblGradeType, $Grade);
     }
 
     /**
@@ -625,7 +619,6 @@ class Service extends ServiceTemplateInformation
 
             return $form;
         } else {
-            $tblTestType = Evaluation::useService()->getTestTypeByIdentifier('BEHAVIOR_TASK');
             foreach ($Data as $prepareStudentId => $value) {
                 if (($tblPrepareStudent = $this->getPrepareStudentById($prepareStudentId))
                     && ($tblPrepareItem = $tblPrepareStudent->getTblPrepareCertificate())
@@ -635,14 +628,14 @@ class Service extends ServiceTemplateInformation
                         if (trim($value) === '') {
                             // keine leere Kopfnoten anlegen, nur falls eine Kopfnote vorhanden ist
                             // direktes löschen ist ungünstig, da beim nächsten Speichern wieder der Durchschnitt eingetragen würde
-                            if ($this->getPrepareGradeByGradeType($tblPrepareItem, $tblPerson, $tblTestType, $tblGradeType)) {
+                            if ($this->getPrepareGradeByGradeType($tblPrepareItem, $tblPerson, $tblGradeType)) {
                                 Prepare::useService()->updatePrepareGradeForBehavior(
-                                    $tblPrepareItem, $tblPerson, $tblTestType, $tblGradeType, trim($value)
+                                    $tblPrepareItem, $tblPerson, $tblGradeType, trim($value)
                                 );
                             }
                         } else {
                             Prepare::useService()->updatePrepareGradeForBehavior(
-                                $tblPrepareItem, $tblPerson, $tblTestType, $tblGradeType, trim($value)
+                                $tblPrepareItem, $tblPerson, $tblGradeType, trim($value)
                             );
                         }
                     }

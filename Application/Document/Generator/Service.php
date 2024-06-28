@@ -15,7 +15,6 @@ use SPHERE\Application\Document\Generator\Service\Kamenz\KamenzReportService;
 use SPHERE\Application\Document\Generator\Service\Setup;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareStudent;
-use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Graduation\Grade\Grade;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
@@ -215,13 +214,11 @@ class Service extends AbstractService
                 $Data['Certificate'][$typeId]['Data' . $count]['YearForRemark'] = $year;
 
                 // Kopfnoten
-                $tblTestTypeBehaviorTask = Evaluation::useService()->getTestTypeByIdentifier('BEHAVIOR_TASK');
                 if (($tblGradeTypeList = Grade::useService()->getGradeTypeList(true))) {
                     foreach ($tblGradeTypeList as $tblGradeType) {
                         if (($tblTaskGrade = Prepare::useService()->getPrepareGradeByGradeType(
                             $tblPrepare,
                             $tblPerson,
-                            $tblTestTypeBehaviorTask,
                             $tblGradeType
                         ))) {
                             $Data['Certificate'][$typeId]['Data' . $count]['BehaviorGrade'][$tblGradeType->getCode()] = $tblTaskGrade->getGrade();
