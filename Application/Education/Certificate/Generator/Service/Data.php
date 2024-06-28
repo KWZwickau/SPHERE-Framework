@@ -249,6 +249,7 @@ class Data extends AbstractData
 //                $this->updateEntityListBulk($updateList);
 //            }
 //        }
+        // Kann nach DB Update wieder entfernt werden
         if(($tblCertificate = $this->getCertificateByCertificateClassName('MsAbsHs'))){
             if(!$tblCertificate->isChosenDefault()){
                 $this->updateCertificateIsChosenDefault($tblCertificate, true);
