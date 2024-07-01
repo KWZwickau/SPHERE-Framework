@@ -4,6 +4,7 @@ namespace SPHERE\Application\Api\Education\Certificate\Generator\Repository;
 use SPHERE\Application\Api\Education\Certificate\Generator\Certificate;
 use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Element;
+use SPHERE\Application\Education\Certificate\Generator\Repository\Page;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Section;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificate;
@@ -31,58 +32,7 @@ abstract class BfsStyle extends Certificate
         $isChangeableCertificateName = false, $IsLogo = false, $IsCare = false
     ) {
 
-        $name = '';
-        $secondLine = '';
-        // get company name
-        if (($tblCompany = $this->getTblCompany())) {
-            $name = $tblCompany->getName();
-            $secondLine = $tblCompany->getExtendedName();
-        }
-
-        $Slice = (new Slice());
-        if($IsLogo){
-            $Slice->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    , '61%')
-                ->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/ClaimFreistaatSachsen.jpg',
-                    '214px', '66px'))
-                    ->styleAlignRight()
-                    ->stylePaddingTop('20px')
-                    , '39%')
-            );
-            $Slice->addElement((new Element())
-                ->setContent($name ? $name : '&nbsp;')
-                ->styleAlignRight()
-                ->styleTextSize('22px')
-                ->styleHeight('28px')
-                ->stylePaddingTop('40px')
-            );
-            $Slice->addElement((new Element())
-                ->setContent($secondLine ? $secondLine : '&nbsp;')
-                ->styleAlignRight()
-                ->styleTextSize('18px')
-                ->styleHeight('42px')
-//            ->stylePaddingTop('20px')
-            );
-        } else {
-            $Slice->addElement((new Element())
-                ->setContent($name ? $name : '&nbsp;')
-                ->styleAlignCenter()
-                ->styleTextSize('22px')
-                ->styleHeight('28px')
-                ->stylePaddingTop('25px')
-            );
-            $Slice->addElement((new Element())
-                ->setContent($secondLine ? $secondLine : '&nbsp;')
-                ->styleAlignCenter()
-                ->styleTextSize('18px')
-                ->styleHeight('42px')
-//            ->stylePaddingTop('20px')
-            );
-        }
-
-        $Slice->addSection($this->getIndividuallyLogo($this->isSample()));
+        $Slice = $this->getSchoolHeadFirstSlice($IsLogo);
         if($isChangeableCertificateName){
             $Slice->addElement((new Element())
                 ->setContent('
@@ -267,15 +217,16 @@ abstract class BfsStyle extends Certificate
 
     /**
      * @param $personId
+     * @param bool $hasExtraInfo
      *
      * @return Slice
      */
-    protected function getStudentHeadAbs($personId)
+    protected function getStudentHeadAbs($personId, bool $hasExtraInfo = true)
     {
 
         $Slice = new Slice();
 
-        $Slice->stylePaddingTop('20px');
+        $Slice->stylePaddingTop($hasExtraInfo ? '20px' : '15px');
 
         $Slice->addElement((new Element())
             ->setContent('      
@@ -307,8 +258,10 @@ abstract class BfsStyle extends Certificate
                 , '35%'
             )
         );
-        $Slice->addElement((new Element())
-            ->setContent('hat vom 
+
+        if ($hasExtraInfo) {
+            $Slice->addElement((new Element())
+                ->setContent('hat vom 
                 {% if(Content.P' . $personId . '.Input.DateFrom is not empty) %}
                     {{ Content.P' . $personId . '.Input.DateFrom }}
                 {% else %}
@@ -321,66 +274,66 @@ abstract class BfsStyle extends Certificate
                     ---
                 {% endif %}
                  die')
-            ->styleAlignCenter()
-            ->styleTextSize('16px')
-            ->stylePaddingTop('10px')
-        );
-        $Slice->addElement((new Element())
-            ->setContent('Berufsfachschule für {% if(Content.P' . $personId . '.Input.BfsDestination is not empty) %}
+                ->styleAlignCenter()
+                ->styleTextSize('16px')
+                ->stylePaddingTop('10px')
+            );
+            $Slice->addElement((new Element())
+                ->setContent('Berufsfachschule für {% if(Content.P' . $personId . '.Input.BfsDestination is not empty) %}
                     {{ Content.P' . $personId . '.Input.BfsDestination }}
                 {% else %}
                     ---
                 {% endif %}')
-            ->styleAlignCenter()
-            ->styleTextSize('20px')
-            ->styleTextBold()
-            ->stylePaddingTop('10px')
-        );
-        $GenderString = '{{ Content.P' . $personId . '.Person.Data.Name.First }} {{ Content.P' . $personId . '.Person.Data.Name.Last }}';
-        if(($tblPerson = Person::useService()->getPersonById($personId))){
-            if(($tblGender = $tblPerson->getGender())){
-                if($tblGender->getName() == 'Männlich'){
-                    $GenderString = 'Er';
-                } elseif($tblGender->getName() == 'Weiblich') {
-                    $GenderString = 'Sie';
+                ->styleAlignCenter()
+                ->styleTextSize('20px')
+                ->styleTextBold()
+                ->stylePaddingTop('10px')
+            );
+            $GenderString = '{{ Content.P' . $personId . '.Person.Data.Name.First }} {{ Content.P' . $personId . '.Person.Data.Name.Last }}';
+            if (($tblPerson = Person::useService()->getPersonById($personId))) {
+                if (($tblGender = $tblPerson->getGender())) {
+                    if ($tblGender->getName() == 'Männlich') {
+                        $GenderString = 'Er';
+                    } elseif ($tblGender->getName() == 'Weiblich') {
+                        $GenderString = 'Sie';
+                    }
                 }
             }
-        }
 
-        $Slice->addElement((new Element())
-            ->setContent('besucht und im Schuljahr
+            $Slice->addElement((new Element())
+                ->setContent('besucht und im Schuljahr
                 {% if(Content.P' . $personId . '.Division.Data.Year is not empty) %}
                     {{ Content.P' . $personId . '.Division.Data.Year }}
                 {% else %}
                     ---
                 {% endif %}
-                die Abschlussprüfung bestanden. <br/>'.$GenderString.'
+                die Abschlussprüfung bestanden. <br/>' . $GenderString . '
                 ist berechtigt, die Berufsbezeichnung')
-            ->styleAlignCenter()
-            ->styleTextSize('16px')
-            ->stylePaddingTop('10px')
-        );
+                ->styleAlignCenter()
+                ->styleTextSize('16px')
+                ->stylePaddingTop('10px')
+            );
 
-        $Slice->addElement((new Element())
-            ->setContent('
+            $Slice->addElement((new Element())
+                ->setContent('
                 {% if(Content.P' . $personId . '.Student.TechnicalCourse is not empty) %}
                     {{ Content.P' . $personId . '.Student.TechnicalCourse }}
                 {% else %}
                     ---
                 {% endif %}')
-            ->styleAlignCenter()
-            ->styleTextSize('20px')
-            ->styleTextBold()
-            ->stylePaddingTop('10px')
-        );
+                ->styleAlignCenter()
+                ->styleTextSize('20px')
+                ->styleTextBold()
+                ->stylePaddingTop('10px')
+            );
 
-        $Slice->addElement((new Element())
-            ->setContent('zu führen.')
-            ->styleAlignCenter()
-            ->styleTextSize('16px')
-            ->stylePaddingTop('10px')
-        );
-         
+            $Slice->addElement((new Element())
+                ->setContent('zu führen.')
+                ->styleAlignCenter()
+                ->styleTextSize('16px')
+                ->stylePaddingTop('10px')
+            );
+        }
 
         return $Slice;
     }
@@ -1802,10 +1755,11 @@ abstract class BfsStyle extends Certificate
      * @param      $personId
      * @param bool $isChairPerson Abgangszeugnis
      * @param bool $hasExtraSignCare
+     * @param bool $hasSignParentsPart
      *
      * @return Slice
      */
-    protected function getIndividuallySignPart($personId, $isChairPerson = false, $hasExtraSignCare = false)
+    protected function getIndividuallySignPart($personId, $isChairPerson = false, $hasExtraSignCare = false, $hasSignParentsPart = true)
     {
         $Slice = (new Slice());
 
@@ -1980,56 +1934,59 @@ abstract class BfsStyle extends Certificate
                     ->styleAlignCenter()
                     , '35%')
             );
-            $Slice->addElement((new Element())
-                ->setContent('&nbsp;')
-                ->styleHeight('30px')
-            );
 
-            $Slice->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('Zur Kenntnis genommen:')
-                    , '27%'
-                )
-                ->addElementColumn((new Element())
+            if ($hasSignParentsPart) {
+                $Slice->addElement((new Element())
                     ->setContent('&nbsp;')
-                    ->styleBorderBottom('0.5px')
-                    , '73%'
-                )
-            );
-
-            if ($hasExtraSignCare) {
-                // Auszubilende/r / Arbeitgeber/in
-                $Slice->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '27%'
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('Eltern')
-                        ->styleTextSize('10px')
-                        ->styleAlignCenter()
-                        , '38%'
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('Auszubilende/r / Arbeitgeber/in')
-                        ->styleTextSize('10px')
-                        ->styleAlignCenter()
-                    )
+                    ->styleHeight('30px')
                 );
 
-            } else {
                 $Slice->addSection((new Section())
                     ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
+                        ->setContent('Zur Kenntnis genommen:')
                         , '27%'
                     )
                     ->addElementColumn((new Element())
-                        ->setContent('Eltern')
-                        ->styleTextSize('10px')
-                        ->styleAlignCenter()
+                        ->setContent('&nbsp;')
+                        ->styleBorderBottom('0.5px')
                         , '73%'
                     )
                 );
+
+                if ($hasExtraSignCare) {
+                    // Auszubilende/r / Arbeitgeber/in
+                    $Slice->addSection((new Section())
+                        ->addElementColumn((new Element())
+                            ->setContent('&nbsp;')
+                            , '27%'
+                        )
+                        ->addElementColumn((new Element())
+                            ->setContent('Eltern')
+                            ->styleTextSize('10px')
+                            ->styleAlignCenter()
+                            , '38%'
+                        )
+                        ->addElementColumn((new Element())
+                            ->setContent('Auszubilende/r / Arbeitgeber/in')
+                            ->styleTextSize('10px')
+                            ->styleAlignCenter()
+                        )
+                    );
+
+                } else {
+                    $Slice->addSection((new Section())
+                        ->addElementColumn((new Element())
+                            ->setContent('&nbsp;')
+                            , '27%'
+                        )
+                        ->addElementColumn((new Element())
+                            ->setContent('Eltern')
+                            ->styleTextSize('10px')
+                            ->styleAlignCenter()
+                            , '73%'
+                        )
+                    );
+                }
             }
         }
 
@@ -2564,5 +2521,91 @@ abstract class BfsStyle extends Certificate
                                 {% endif %}')
                 )
             );
+    }
+
+    /**
+     * @param $personId
+     *
+     * @return Page
+     */
+    public function getDiplomaSecondPage($personId)
+    {
+        return (new Page())
+            ->addSlice($this->getSecondPageHead($personId, 'Abschlusszeugnis', false))
+            ->addSlice($this->getSubjectLinePerformance())
+            ->addSlice($this->getSubjectLineDuty('10px'))
+            ->addSlice($this->getSubjectLineAcrossAbs($personId, $this->getCertificateEntity(), 'Berufsübergreifender Bereich', 1, 5, 1, 4, '150px'))
+            ->addSlice($this->getSubjectLineAcrossAbs($personId, $this->getCertificateEntity(), 'Berufsbezogener Bereich', 1, 14, 5, 12, '320px'))
+            ->addSlice($this->getSubjectLineAcrossAbs($personId, $this->getCertificateEntity(), 'Wahlpflichtbereich', 1, 2, 13, 13, '80px'))
+            ->addSlice($this->getPraktika($personId, $this->getCertificateEntity(), true))
+            ->addSlice($this->getDescriptionBsContent($personId, '85px'))
+            ->addSlice((new Slice())->addElement((new Element())
+                ->setContent('&nbsp;')
+                ->stylePaddingTop('11px')
+            ))
+            ->addSlice($this->getBsInfo('23px',
+                'NOTENSTUFEN: sehr gut (1), gut (2), befriedigend (3), ausreichend (4), mangelhaft (5), ungenügend (6)'))
+            ;
+    }
+
+    /**
+     * @param bool $IsLogo
+     * @return Slice
+     */
+    protected function getSchoolHeadFirstSlice(bool $IsLogo): Slice
+    {
+        $name = '';
+        $secondLine = '';
+        // get company name
+        if (($tblCompany = $this->getTblCompany())) {
+            $name = $tblCompany->getName();
+            $secondLine = $tblCompany->getExtendedName();
+        }
+
+        $Slice = (new Slice());
+        if ($IsLogo) {
+            $Slice->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    , '61%')
+                ->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/ClaimFreistaatSachsen.jpg',
+                    '214px', '66px'))
+                    ->styleAlignRight()
+                    ->stylePaddingTop('20px')
+                    , '39%')
+            );
+            $Slice->addElement((new Element())
+                ->setContent($name ? $name : '&nbsp;')
+                ->styleAlignRight()
+                ->styleTextSize('22px')
+                ->styleHeight('28px')
+                ->stylePaddingTop('40px')
+            );
+            $Slice->addElement((new Element())
+                ->setContent($secondLine ? $secondLine : '&nbsp;')
+                ->styleAlignRight()
+                ->styleTextSize('18px')
+                ->styleHeight('42px')
+//            ->stylePaddingTop('20px')
+            );
+        } else {
+            $Slice->addElement((new Element())
+                ->setContent($name ? $name : '&nbsp;')
+                ->styleAlignCenter()
+                ->styleTextSize('22px')
+                ->styleHeight('28px')
+                ->stylePaddingTop('25px')
+            );
+            $Slice->addElement((new Element())
+                ->setContent($secondLine ? $secondLine : '&nbsp;')
+                ->styleAlignCenter()
+                ->styleTextSize('18px')
+                ->styleHeight('42px')
+//            ->stylePaddingTop('20px')
+            );
+        }
+
+        $Slice->addSection($this->getIndividuallyLogo($this->isSample()));
+        return $Slice;
     }
 }

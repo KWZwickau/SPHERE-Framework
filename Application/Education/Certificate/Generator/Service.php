@@ -475,6 +475,10 @@ class Service extends AbstractService
             'Content.Input.Subarea4'            => 'TextField',
             'Content.Input.SubareaTimeH4'       => 'TextField',
             'Content.Input.SubareaTimeHDone4'   => 'TextField',
+            'Content.Input.AddEducation_Average_BFS' => 'SelectCompleter',
+            'Content.Input.AddEducation_Average_EXAM' => 'SelectCompleter',
+            'Content.Input.DateExam'            => 'DatePicker',
+            'Content.Input.ExamCenter'          => 'TextField',
             // Fachschule
             'Content.Input.FsDestination'       => 'TextField',
             'Content.Input.SubjectArea'         => 'TextField',
@@ -597,6 +601,10 @@ class Service extends AbstractService
             'Content.Input.Subarea4'            => 'Teilbereich 4',
             'Content.Input.SubareaTimeH4'        => 'Teilbereich 4 Dauer der Ausbildung (h)',
             'Content.Input.SubareaTimeHDone4'   => 'Teilbereich 4 Davon anwesend (h)',
+            'Content.Input.AddEducation_Average_BFS' => 'BFS - Durchschnittsnote',
+            'Content.Input.AddEducation_Average_EXAM' => 'Prüfungszeugnis - Durchschnittsnote',
+            'Content.Input.DateExam'            => 'Datum des Prüfungszeugnisses',
+            'Content.Input.ExamCenter'          => 'Prüfungsstelle',
             // Fachschule
             'Content.Input.FsDestination'       => 'Fachbereich',
             'Content.Input.SubjectArea'         => 'Fachrichtung',

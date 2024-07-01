@@ -1023,6 +1023,7 @@ class Frontend extends Extension implements IFrontendInterface
             'Berufsfachschule Halbjahreszeugnis' => 'BfsHj',
             'Berufsfachschule Jahreszeugnis' => 'BfsJ',
             'Berufsfachschule Abschlusszeugnis' => 'BfsAbs',
+            'Berufsfachschule Abschlusszeugnis mit mittleren Schulabschluss' => 'BfsAbsMs',
             'Berufsfachschule Abgangszeugnis' => 'BfsAbg',
             'Berufsfachschule Jahreszeugnis Pflege' => 'BfsPflegeJ'
         );
