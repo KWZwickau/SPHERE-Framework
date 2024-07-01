@@ -584,7 +584,9 @@ abstract class ServiceCertificateContent extends ServiceAbitur
                     ))
                 ) {
                     foreach ($tblPrepareAdditionalGradeList as $tblPrepareAdditionalGrade) {
-                        if (($tblSubject = $tblPrepareAdditionalGrade->getServiceTblSubject())) {
+                        if (($tblSubject = $tblPrepareAdditionalGrade->getServiceTblSubject())
+                            && $tblPrepareAdditionalGrade->getGrade() !== ''
+                        ) {
                             $examGradeList[$tblSubject->getId()] = $tblSubject;
                             if ($isGradeVerbalOnDiploma) {
                                 $grade = $this->getVerbalGrade($tblPrepareAdditionalGrade->getGrade());

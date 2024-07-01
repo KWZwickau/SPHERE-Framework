@@ -752,6 +752,7 @@ abstract class FrontendTask extends FrontendStudentOverview
                         // Endnote anzeigen
                         if ($tblPrepareCertificate
                             && ($tblPrepareAdditionalGrade = Prepare::useService()->getPrepareAdditionalGradeBy($tblPrepareCertificate, $tblPerson, $tblSubject, $tblPrepareAdditionalGradeType))
+                            && $tblPrepareAdditionalGrade->getGrade() !== ''
                         ) {
                             $average = '';
                             $content = $tblPrepareAdditionalGrade->getGrade();
