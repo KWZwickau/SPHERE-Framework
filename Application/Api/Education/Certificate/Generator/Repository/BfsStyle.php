@@ -1557,12 +1557,12 @@ abstract class BfsStyle extends Certificate
     /**
      * @param $personId
      * @param TblCertificate $tblCertificate
+     * @param int $operationTimeCount
      *
      * @return Slice
      */
-    protected function getPraktikaAbg($personId, TblCertificate $tblCertificate)
+    protected function getPraktikaAbg($personId, TblCertificate $tblCertificate, int $operationTimeCount = 3)
     {
-
         $tblTechnicalCourse = null;
         if(($tblPerson = Person::useService()->getPersonById($personId))){
             if(($tblStudent = Student::useService()->getStudentByPerson($tblPerson))){
@@ -1667,7 +1667,8 @@ abstract class BfsStyle extends Certificate
             ->addElementColumn((new Element())
                 ->setContent('Dauer gesamt: {{ Content.P' . $personId . '.Input.OperationTime1|number_format 
                                              + Content.P' . $personId . '.Input.OperationTime2|number_format 
-                                             + Content.P' . $personId . '.Input.OperationTime3|number_format }} Wochen')
+                                             + Content.P' . $personId . '.Input.OperationTime3|number_format
+                                             + Content.P' . $personId . '.Input.OperationTime4|number_format}} Wochen')
                 ->stylePaddingTop('10px')
                 ->styleAlignRight()
                 ->stylePaddingRight('15px')
@@ -1675,23 +1676,25 @@ abstract class BfsStyle extends Certificate
             )
         );
 
-        $Slice->addSection((new Section())
-            ->addElementColumn((new Element())
-                ->setContent('<b>{% if(Content.P' . $personId . '.Input.Operation3 is not empty) %}
-                        {{ Content.P' . $personId . '.Input.Operation3 }}
+        for ($i = 3; $i <= $operationTimeCount; $i++) {
+            $Slice->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('<b>{% if(Content.P' . $personId . '.Input.Operation' . $i . ' is not empty) %}
+                        {{ Content.P' . $personId . '.Input.Operation' . $i . ' }}
                     {% else %}
                         < EINSATZGEBIETE >
                     {% endif %}</b> (Dauer 
-                     {% if(Content.P' . $personId . '.Input.OperationTime3 is not empty) %}
-                        {{ Content.P' . $personId . '.Input.OperationTime3 }}
+                     {% if(Content.P' . $personId . '.Input.OperationTime' . $i . ' is not empty) %}
+                        {{ Content.P' . $personId . '.Input.OperationTime' . $i . ' }}
                     {% else %}
                         X
                     {% endif %}
                      Wochen)')
-                ->stylePaddingTop('10px')
-                ->stylePaddingLeft('5px')
-            )
-        );
+                    ->stylePaddingTop('10px')
+                    ->stylePaddingLeft('5px')
+                )
+            );
+        }
 
         return $Slice;
     }

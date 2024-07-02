@@ -242,7 +242,9 @@ class FrontendLeave extends FrontendDiplomaTechnicalSchool
                                 }
                             }
                         } elseif ($tblType->getName() == 'Berufsfachschule') {
-                            $tblCertificate = Generator::useService()->getCertificateByCertificateClassName('BfsAbg');
+//                            $tblCertificate = Generator::useService()->getCertificateByCertificateClassName('BfsAbg');
+                            // Auswahl der Zeugnisvorlage, da es mehrere gibt
+                            return $this->getSelectLeaveCertificateStage($tblPerson, $tblYear, $tblType, $tblCourse ?: null, $Data);
                         } elseif ($tblType->getName() == 'Fachschule') {
                             $tblCertificate = Generator::useService()->getCertificateByCertificateClassName('FsAbg');
                         } elseif ($tblConsumer && $tblConsumer->isConsumer(TblConsumer::TYPE_SACHSEN, 'HOGA') && $tblType->getName() == 'Fachoberschule') {
@@ -283,7 +285,8 @@ class FrontendLeave extends FrontendDiplomaTechnicalSchool
                     $tblType ?: null
                 );
             } elseif ($tblCertificate
-                && ($tblCertificate->getCertificate() == 'BfsAbg' || $tblCertificate->getCertificate() == 'FsAbg')
+                && ($tblCertificate->getCertificate() == 'BfsAbg' || $tblCertificate->getCertificate() == 'BfsAbgGeneralistik'
+                    || $tblCertificate->getCertificate() == 'FsAbg')
             ) {
                 $layoutGroups = Prepare::useFrontend()->setLeaveContentForTechnicalSchool(
                     $tblPerson,
@@ -294,7 +297,7 @@ class FrontendLeave extends FrontendDiplomaTechnicalSchool
                     $tblCertificate,
                     $tblLeaveStudent ?: null,
                     $tblType ?: null,
-                    $tblCertificate->getCertificate() == 'BfsAbg'
+                    $tblCertificate->getCertificate() == 'BfsAbg' || $tblCertificate->getCertificate() == 'BfsAbgGeneralistik'
                 );
             } else {
                 $layoutGroups = $this->setLeaveContentForSekOne(

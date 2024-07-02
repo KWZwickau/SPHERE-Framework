@@ -1025,6 +1025,7 @@ class Frontend extends Extension implements IFrontendInterface
             'Berufsfachschule Abschlusszeugnis' => 'BfsAbs',
             'Berufsfachschule Abschlusszeugnis mit mittleren Schulabschluss' => 'BfsAbsMs',
             'Berufsfachschule Abgangszeugnis' => 'BfsAbg',
+            'Berufsfachschule Abgangszeugnis Generalistik' => 'BfsAbgGeneralistik',
             'Berufsfachschule Jahreszeugnis Pflege' => 'BfsPflegeJ'
         );
         $FsList = array(
