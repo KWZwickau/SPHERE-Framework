@@ -5,6 +5,7 @@ use MOC\V\Core\FileSystem\FileSystem;
 use SPHERE\Application\Api\Setting\Univention\ApiUnivention;
 use SPHERE\Application\Api\Setting\Univention\ApiWorkGroup;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Group\Group;
@@ -12,6 +13,13 @@ use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumerLogin;
+use SPHERE\Common\Frontend\Form\Repository\Button\Primary as PrimaryForm;
+use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
+use SPHERE\Common\Frontend\Form\Repository\Field\HiddenField;
+use SPHERE\Common\Frontend\Form\Structure\Form;
+use SPHERE\Common\Frontend\Form\Structure\FormColumn;
+use SPHERE\Common\Frontend\Form\Structure\FormGroup;
+use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
@@ -58,6 +66,7 @@ use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Frontend\Text\Repository\Warning as WarningText;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
+use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Frontend
@@ -869,21 +878,57 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
+     * @param bool $isSekII
+     * @param bool $isStart
+     *
      * @return Stage
      */
-    public function frontendWorkGroupAPI($isStart = false) //
+    public function frontendWorkGroupAPI(bool $isSekII = false, bool $isStart = false):Stage
     {
 
         $Stage = new Stage('API', 'Arbeitsgruppen-Abgleich');
         if(!$isStart){
-            $Stage->setContent(new Layout(new LayoutGroup(new LayoutRow(array(
-                new LayoutColumn(new Warning('Diese Schnittstelle legt neue Stammgruppen aus der Schulsoftware als
-                 Arbeitsgruppen im DLLP / UCS an und ordnet die entsprechenden Schüler
-                  diesen Gruppen zu. Bitte beachten Sie, dass die entsprechenden Schüler zuvor
-                   mittels der Schnittstelle "UCS über API" erst nach DLLP / UCS übertragen
-                    werden müssen.'), 4),
-                new LayoutColumn(new Primary('Datenabgleich der Arbeitsgruppen starten', '/Setting/Univention/WorkGroupApi', new Upload(), array('isStart' => true)))
-            )))));
+            $DivisionCourseList = $this->getDivisionCourseList(true);
+            $ErrorList = array();
+            if($DivisionCourseList){
+                foreach($DivisionCourseList as $DivisionCourse){
+                    $divisionName = $DivisionCourse->getName();
+                    $error = $this->isDivisionCourseValid($divisionName);
+                    if($error){
+                        $TypeName = $DivisionCourse->getTypeName();
+                        $ErrorList[$TypeName][] = $error.' '.$divisionName;
+                    }
+                }
+            }
+            if(!empty($ErrorList)){
+                $LayoutColumnList = array();
+                foreach($ErrorList as $TypeName => $ErrorCourseList){
+                    $LayoutColumnList[] = new LayoutColumn(new Panel($TypeName, new Listing($ErrorCourseList), Panel::PANEL_TYPE_WARNING), 3);
+                }
+            }
+            $_POST['isStart'] = true;
+            $Stage->setContent(new Layout(new LayoutGroup(array(
+                new LayoutRow(array(
+                    new LayoutColumn(new Well( new Form(new FormGroup(array(
+                        new FormRow(array(
+                            new FormColumn(new CheckBox('isSekII', 'auch SEKII-Kurse als Arbeitsgruppen übermitteln', 1), 11),
+                            new FormColumn(new HiddenField('isStart'), 1),
+                        )),
+                        new FormRow(
+                            new FormColumn(
+                                new PrimaryForm('Datenabgleich der Arbeitsgruppen starten', new Upload())
+                                , 2),
+                        )
+                    )))), 4),
+                    new LayoutColumn(new Warning('Diese Schnittstelle legt neue Stammgruppen aus der Schulsoftware als
+                     Arbeitsgruppen im DLLP / UCS an und ordnet die entsprechenden Schüler
+                      diesen Gruppen zu. Bitte beachten Sie, dass die entsprechenden Schüler zuvor
+                       mittels der Schnittstelle "UCS über API" erst nach DLLP / UCS übertragen
+                        werden müssen.'
+                    ), 8)
+                )),
+                new LayoutRow((!empty($ErrorList)?$LayoutColumnList : new LayoutColumn('')))
+            ))));
             return $Stage;
         }
 
@@ -933,45 +978,45 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
-        if(($tblYearList = Term::useService()->getYearByNow())){
-            foreach($tblYearList as $tblYear){
-                if(($tblDivisionCourseCoreGroupList = DivisionCourse::useService()->getDivisionCourseListBy($tblYear, TblDivisionCourseType::TYPE_CORE_GROUP))){
-                    foreach($tblDivisionCourseCoreGroupList as $tblDivisionCourseCoreGroup){
-                        $CoreGroupName = $tblDivisionCourseCoreGroup->getName();
-                        $tblPersonAccountList = array();
-                        if(($tblPersonList = $tblDivisionCourseCoreGroup->getStudents())){
-                            foreach($tblPersonList as $tblPerson){
-                                // Nur Schüler mit einem Account
-                                if(($tblAccountList = Account::useService()->getAccountAllByPerson($tblPerson))) {
-                                    $tblAccount = current($tblAccountList);
-                                    // Nutzer müssen in der API verfügbar sein
-                                    if(in_array($tblAccount->getUsername(), $ApiUserNameList)){
-                                        $tblPersonAccountList[] = $tblAccount->getUsername();
-                                    }
-                                }
+        $DivisionCourseList = $this->getDivisionCourseList($isSekII);
+        if($DivisionCourseList){
+            foreach($DivisionCourseList as $tblDivisionCourse){
+                $GroupName = $tblDivisionCourse->getName();
+                $tblPersonAccountList = array();
+                if(($tblPersonList = $tblDivisionCourse->getStudents())){
+                    foreach($tblPersonList as $tblPerson){
+                        // Nur Schüler mit einem Account
+                        if(($tblAccountList = Account::useService()->getAccountAllByPerson($tblPerson))) {
+                            $tblAccount = current($tblAccountList);
+                            // Nutzer müssen in der API verfügbar sein
+                            if(in_array($tblAccount->getUsername(), $ApiUserNameList)){
+                                $tblPersonAccountList[] = $tblAccount->getUsername();
                             }
                         }
-                        if((array_key_exists($CoreGroupName, $ApiGroupArray))){
-                            $ApiUserList = $ApiGroupArray[$CoreGroupName];
-                            if(count($ApiUserList) != count($tblPersonAccountList)
-                                || ($Diff = array_diff($ApiUserList, $tblPersonAccountList))){
-                                // Gruppen SSW & Univention unterscheiden sich
-                                $Type = 'update';
-                            } else {
-                                // sonst keine Änderungen
-                                $Type = 'ok';
-                            }
-                        } else {
-                            $Type = 'create';
-                        }
-                        $ContentArray[$CoreGroupName] = array(
-                            'Group' => $CoreGroupName,
-                            'UserList' => $tblPersonAccountList,
-                            'Type' => $Type,
-                            'School' => $school
-                        );
                     }
                 }
+                if((array_key_exists($GroupName, $ApiGroupArray))){
+                    $ApiUserList = $ApiGroupArray[$GroupName];
+                    if(count($ApiUserList) != count($tblPersonAccountList)
+                        || ($Diff = array_diff($ApiUserList, $tblPersonAccountList))){
+                        // Gruppen SSW & Univention unterscheiden sich
+                        $Type = 'update';
+                    } else {
+                        // sonst keine Änderungen
+                        $Type = 'ok';
+                    }
+                } else {
+                    $Type = 'create';
+                }
+                if($this->isDivisionCourseValid($GroupName)){
+                    $Type = 'canNot';
+                }
+                $ContentArray[$GroupName] = array(
+                    'Group' => $GroupName,
+                    'UserList' => $tblPersonAccountList,
+                    'Type' => $Type,
+                    'School' => $school
+                );
             }
         }
 
@@ -1006,6 +1051,55 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         return $Stage;
+    }
+
+    /**
+     * @param bool $isSekII
+     *
+     * @return false|TblDivisionCourse[]
+     */
+    private function getDivisionCourseList(bool $isSekII = false)
+    {
+        $DivisionCourseList = array();
+        if(($tblYearList = Term::useService()->getYearByNow())){
+            foreach($tblYearList as $tblYear){
+                if(($tblDivisionCourseCoreGroupList = DivisionCourse::useService()->getDivisionCourseListBy($tblYear, TblDivisionCourseType::TYPE_CORE_GROUP))){
+                    $DivisionCourseList = array_merge($DivisionCourseList, $tblDivisionCourseCoreGroupList);
+                }
+                if($isSekII) {
+                    if(($tblDivisionCourseBasic = DivisionCourse::useService()->getDivisionCourseListBy($tblYear,
+                        TblDivisionCourseType::TYPE_BASIC_COURSE))) {
+                        $DivisionCourseList = array_merge($DivisionCourseList, $tblDivisionCourseBasic);
+                    }
+                    if(($tblDivisionCourseAdvanced = DivisionCourse::useService()->getDivisionCourseListBy($tblYear,
+                        TblDivisionCourseType::TYPE_ADVANCED_COURSE))) {
+                        $DivisionCourseList = array_merge($DivisionCourseList, $tblDivisionCourseAdvanced);
+                    }
+                }
+            }
+        }
+        return (!empty($DivisionCourseList) ? $DivisionCourseList : false);
+    }
+
+    /**
+     * @param TblDivisionCourse $DivisionCourse
+     *
+     * @return string
+     */
+    public function isDivisionCourseValid($divisionName)
+    {
+
+        $error = '';
+        if (!preg_match('!^[\w \-]+$!', $divisionName)) {
+            $error = new DangerText(new ToolTip(new Remove(), 'Erlaubte Zeichen [a-zA-Z0-9 -]'));
+        } else {
+            if (preg_match('!^[ \-]!', $divisionName)) {
+                $error = new DangerText(new ToolTip(new Remove(), 'Darf nicht mit einem "-" beginnen'));
+            } elseif (preg_match('![ \-]$!', $divisionName)) {
+                $error = new DangerText(new ToolTip(new Remove(), 'Darf nicht mit einem "-" aufhören'));
+            }
+        }
+        return $error;
     }
 
     /**
