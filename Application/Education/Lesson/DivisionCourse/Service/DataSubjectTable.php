@@ -672,10 +672,10 @@ abstract class DataSubjectTable extends DataStudentSubject
 
         $linkId = $this->getNextLinkId();
         if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeSecondary, $level, null, 'Wahlbereich', $ranking++, 3, 'FOREIGN_LANGUAGE_2'))) {
-            $this->createSubjectTableLink($linkId, 1, $tblSubjectTable);
+            $this->createSubjectTableLink($linkId, 0, $tblSubjectTable);
         }
         if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeSecondary, $level, null, 'Wahlbereich', $ranking++, 2, 'ORIENTATION'))) {
-            $this->createSubjectTableLink($linkId, 1, $tblSubjectTable);
+            $this->createSubjectTableLink($linkId, 0, $tblSubjectTable);
         }
     }
 
@@ -713,10 +713,10 @@ abstract class DataSubjectTable extends DataStudentSubject
 
         $linkId = $this->getNextLinkId();
         if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeSecondary, $level, null, 'Wahlbereich', $ranking++, 3, 'FOREIGN_LANGUAGE_2'))) {
-            $this->createSubjectTableLink($linkId, 1, $tblSubjectTable);
+            $this->createSubjectTableLink($linkId, 0, $tblSubjectTable);
         }
         if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeSecondary, $level, null, 'Wahlbereich', $ranking++, 2, 'ORIENTATION'))) {
-            $this->createSubjectTableLink($linkId, 1, $tblSubjectTable);
+            $this->createSubjectTableLink($linkId, 0, $tblSubjectTable);
         }
     }
 
@@ -754,10 +754,10 @@ abstract class DataSubjectTable extends DataStudentSubject
 
         $linkId = $this->getNextLinkId();
         if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeSecondary, $level, null, 'Wahlbereich', $ranking++, 3, 'FOREIGN_LANGUAGE_2'))) {
-            $this->createSubjectTableLink($linkId, 1, $tblSubjectTable);
+            $this->createSubjectTableLink($linkId, 0, $tblSubjectTable);
         }
         if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeSecondary, $level, null, 'Wahlbereich', $ranking++, 2, 'ORIENTATION'))) {
-            $this->createSubjectTableLink($linkId, 1, $tblSubjectTable);
+            $this->createSubjectTableLink($linkId, 0, $tblSubjectTable);
         }
     }
 
@@ -810,10 +810,10 @@ abstract class DataSubjectTable extends DataStudentSubject
 
         $linkId = $this->getNextLinkId();
         if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeSecondary, $level, null, 'Wahlbereich', $ranking++, 3, 'FOREIGN_LANGUAGE_2'))) {
-            $this->createSubjectTableLink($linkId, 1, $tblSubjectTable);
+            $this->createSubjectTableLink($linkId, 0, $tblSubjectTable);
         }
         if (($tblSubjectTable = $this->setSubjectTable($tblSchoolTypeSecondary, $level, null, 'Wahlbereich', $ranking++, 2, 'ORIENTATION'))) {
-            $this->createSubjectTableLink($linkId, 1, $tblSubjectTable);
+            $this->createSubjectTableLink($linkId, 0, $tblSubjectTable);
         }
     }
 
