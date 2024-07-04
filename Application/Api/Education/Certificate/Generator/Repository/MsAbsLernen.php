@@ -175,7 +175,7 @@ class MsAbsLernen extends Certificate
                     ->styleTextBold()
                 )
             )
-            ->addSlice($this->getSubjectLanes($personId)->styleHeight('270px'))
+            ->addSlice($this->getSubjectLanes($personId)->styleHeight('285px'))
             ->addSlice($this->getSupportContent($personId, 'auto', '15px', 'Bemerkungen: Inklusive Unterrichtung¹: '))
             ->addSlice($this->getSupportSubjectContent($personId, '180px', '0px',
                 'Thema der lebenspraktisch orientierten Komplexen Leistung:'
@@ -185,7 +185,7 @@ class MsAbsLernen extends Certificate
                 $this->getTblStudentEducation() ?: null,
                 $this->getTblPrepareCertificate() ?: null
             ))->getExaminationsBoard('10px','11px'))
-            ->addSlice($this->getInfo('170px',
+            ->addSlice($this->getInfo('110px',
                 'Notenerläuterung:',
                 '1 = sehr gut; 2 = gut; 3 = befriedigend; 4 = ausreichend; 5 = mangelhaft; 6 = ungenügend',
                 '&nbsp;',

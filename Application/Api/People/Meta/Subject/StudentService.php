@@ -21,8 +21,8 @@ class StudentService
      * @return bool
      */
     public function replaceSubjectByPersonIdList(
-        $PersonIdArray = array(),
-        TblSubject $tblSubject = null,
+        $PersonIdArray,
+        ?TblSubject $tblSubject,
         TblStudentSubjectType $tblStudentSubjectType,
         TblStudentSubjectRanking $tblStudentSubjectRanking
     ) {
@@ -74,8 +74,8 @@ class StudentService
      * @return bool
      */
     public function replaceLevelFromByPersonIdList(
-        $PersonIdArray = array(),
-        ?int $LevelFrom = null,
+        $PersonIdArray,
+        ?int $LevelFrom,
         TblStudentSubjectType $tblStudentSubjectType,
         TblStudentSubjectRanking $tblStudentSubjectRanking
     ): bool {
@@ -120,8 +120,8 @@ class StudentService
      * @return bool
      */
     public function replaceLevelTillByPersonIdList(
-        $PersonIdArray = array(),
-        ?int $LevelTill = null,
+        $PersonIdArray,
+        ?int $LevelTill,
         TblStudentSubjectType $tblStudentSubjectType,
         TblStudentSubjectRanking $tblStudentSubjectRanking
     ): bool {

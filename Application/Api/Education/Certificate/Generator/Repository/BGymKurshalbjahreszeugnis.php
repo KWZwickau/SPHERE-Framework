@@ -171,7 +171,7 @@ class BGymKurshalbjahreszeugnis extends BGymStyle
         $contentGrade = '&ndash;';
         /** @var TblTaskGrade $tblTaskGrade */
         if (($tblTaskGrade = $this->tblTaskGradeList[$tblSubject->getId()] ?? null)
-            && $tblTaskGrade->getGrade()
+            && $tblTaskGrade->getGrade() !== null
         ) {
             $contentGrade = str_pad($tblTaskGrade->getGrade(), 2, '0', STR_PAD_LEFT);
         }

@@ -40,7 +40,7 @@ class GymJ extends Certificate
         return (new Page())
             ->addSlice(FelsStyle::getHeader($this->isSample(), 'Gymnasium'))
 //            ->addSlice($this->getSchoolName($personId))
-            ->addSlice($this->getCertificateHead('Leistungsübersicht des Gymnasiums'))
+            ->addSlice($this->getCertificateHead('Jahreszeugnis des Gymnasiums'))
             ->addSlice($this->getDivisionAndYear($personId))
             ->addSlice($this->getStudentName($personId))
             ->addSlice($this->getGradeLanesSmall($personId))

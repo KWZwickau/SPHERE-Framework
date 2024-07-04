@@ -831,6 +831,7 @@ class Service extends AbstractService
             }
         }
 
+        $MaxDate = null;
         if ($tblStudentEducation) {
             if (($tblCompanySchool = $tblStudentEducation->getServiceTblCompany())) {
                 $Data['School1'] = $tblCompanySchool->getName();
@@ -851,7 +852,22 @@ class Service extends AbstractService
                 // Letztes Datum des aktuellen Schuljahres
                 /** @var DateTime $endDate */
                 if ($endDate) {
+                    $MaxDate = $endDate;
                     $Data['SchoolUntil'] = $endDate->format('d.m.Y');
+                }
+            }
+        }
+
+        if (($tblStudent = Student::useService()->getStudentByPerson($tblPerson))
+            && ($tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('LEAVE'))
+            && ($tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent, $tblStudentTransferType))
+        ) {
+            $transferDate = $tblStudentTransfer->getTransferDate();
+            if ($transferDate) {
+                if (!$MaxDate || $MaxDate > new DateTime($transferDate)) {
+                    $DateString = $transferDate;
+                    // correct leaveDate if necessary
+                    $Data['SchoolUntil'] = $DateString;
                 }
             }
         }

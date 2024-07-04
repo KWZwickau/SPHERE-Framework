@@ -109,15 +109,11 @@ class EzshGymJThreePages  extends EzshStyle
                         ->setContent('&nbsp;')
                         ->stylePaddingTop('75px')
                     )
-                    ->addElement((new Element())
-                        ->setContent('&nbsp;')
-                        ->styleHeight('510px')
+                    ->addSectionList(
+                        self::getEZSHRemark($personId, '700px')
                     )
                     ->addSectionList(
                         self::getEZSHTransfer($personId)
-                    )
-                    ->addSectionList(
-                        self::getEZSHRemark($personId)
                     )
                     ->addSectionList(
                         self::getEZSHDateSign($personId)

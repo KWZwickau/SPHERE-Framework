@@ -41,11 +41,11 @@ class Data extends AbstractData
 
     /**
      * @param TblPerson $tblPerson
-     * @param string $AuthorizedToCollect
-     * 
+     * @param string    $AuthorizedToCollect
+     *
      * @return TblChild
      */
-    public function createChild(TblPerson $tblPerson, $AuthorizedToCollect)
+    public function createChild(TblPerson $tblPerson, string $AuthorizedToCollect)
     {
         $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblChild')->findOneBy(array(TblChild::SERVICE_TBL_PERSON => $tblPerson->getId()));

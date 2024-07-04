@@ -174,7 +174,7 @@ class ExamGradeListOS extends AbstractDocument
             ->addSection((new Section())
                 ->addSliceColumn((new Slice())
                     ->addElement((new Element())
-                        ->setContent('Abschlussprüfung an der Oberschulen, Abendoberschulen und Gemeinschaftsschulen')
+                        ->setContent('Abschlussprüfung an Oberschulen, Abendoberschulen und Gemeinschaftsschulen')
                         ->styleTextSize(self::TEXT_SIZE_H1)
                         ->styleTextBold()
                     )

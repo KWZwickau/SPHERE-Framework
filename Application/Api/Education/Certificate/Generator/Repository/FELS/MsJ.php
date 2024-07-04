@@ -39,7 +39,7 @@ class MsJ extends Certificate
         return (new Page())
             ->addSlice(FelsStyle::getHeader($this->isSample(), 'Oberschule'))
 //            ->addSlice($this->getSchoolName($personId))
-            ->addSlice($this->getCertificateHead('Leistungsübersicht der Oberschule'))
+            ->addSlice($this->getCertificateHead('Jahreszeugnis der Oberschule'))
             ->addSlice($this->getDivisionAndYear($personId, '20px'))
             ->addSlice($this->getStudentName($personId))
             ->addSlice((new Slice())

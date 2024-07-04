@@ -826,14 +826,17 @@ class FrontendLeave extends FrontendDiplomaTechnicalSchool
                 );
             } elseif ($tblCertificate->getCertificate() == 'EZSH\EzshMsAbg') {
                 $remarkTextArea = new TextArea('Data[InformationList][RemarkWithoutTeam]', '', 'Bemerkungen');
+                $ratingTextArea = new TextArea('Data[InformationList][Rating]', '', 'Einschätzung');
 
                 if ($isApproved) {
                     $datePicker->setDisabled();
                     $remarkTextArea->setDisabled();
+                    $ratingTextArea->setDisabled();
                 }
                 $otherInformationList = array(
                     $datePicker,
-                    $remarkTextArea
+                    $remarkTextArea,
+                    $ratingTextArea
                 );
             } elseif ($tblCertificate->getCertificate() == 'FoesAbgGeistigeEntwicklung') {
                 $remarkTextArea = new TextArea('Data[InformationList][RemarkWithoutTeam]', '', 'Bemerkungen');

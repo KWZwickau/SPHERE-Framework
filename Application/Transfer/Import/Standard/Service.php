@@ -26,6 +26,7 @@ use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
+use SPHERE\Application\People\Meta\Child\Child;
 use SPHERE\Application\People\Meta\Club\Club;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Common\Service\Entity\TblCommonInformation;
@@ -135,6 +136,7 @@ class Service
             '2ter_Vorname' => null,
             'Rufname'      => null,
             // common
+            'Bemerkungen'         => null,
             'Geburtsdatum'        => null,
             'Geburtsort'          => null,
             'Staatsangehörigkeit' => null,
@@ -248,7 +250,6 @@ class Service
             'Eintritt_Kind'          => null,
             'Staatliche_Stammschule' => null,
             'Einschulungsart'        => null,
-            'Kind_Bemerkung'         => null,   // Personenbemerkung nach Import vielleicht nochmal in Schüler_Bemerkung umbenennen
             'Kindergarten'           => null,
 
             // Zusatz EKBO -> ESBZ
@@ -264,7 +265,6 @@ class Service
 //            'Gruppe'           => null,
             'Gruppen'   => null,
             'Hortmodul' => null,
-            'Hort-Text' => null,
         );
 
         $unKnownColumns = array();
@@ -346,18 +346,19 @@ class Service
             $birthPlace = $this->getValue('Geburtsort');
             $nationality = $this->getValue('Staatsangehörigkeit');
             $denomination = $this->getValue('Konfession');
-            $remarkString = $this->getValue('Kind_Bemerkung');
-            $remark = $this->getValue('Abholberechtigte');
-            if ($remark != '') {
-                $remarkString .= 'Abholberechtigte: ' . $remark;
-            }
-            $HortText = $this->getValue('Hort-Text');
-            if($HortText){
-                $remarkString .= $HortText;
-            }
+            $remarkString = $this->getValue('Bemerkungen');
             $contactNumber = $this->getValue('BC_Kontakt_Nr');
-
+            // Beispiel um Bemerkung zu erweitern
+//            $remark = $this->getValue('Abholberechtigte');
+//            if ($remark != '') {
+//                $remarkString .= 'Abholberechtigte: ' . $remark;
+//            }
             $this->setPersonBirth($tblPerson, $studentBirth, $birthPlace, $studentGender, $nationality, $denomination, $remarkString, $contactNumber, $this->RunY, $Nr, $error);
+            // tblChild
+            $AuthorizedToCollect = $this->getValue('Abholberechtigte');
+            if($AuthorizedToCollect){
+                Child::useService()->insertChild($tblPerson, $AuthorizedToCollect);
+            }
 
             // student
             $Identification = $this->getValue('Schüler_Nr');

@@ -571,8 +571,10 @@ abstract class ServiceCertificateContent extends ServiceAbitur
             // Fachnoten
             // Abschlusszeugnisse mit Extra Prüfungen, aktuell nur Fachoberschule und Oberschule
             $examGradeList = array();
+            $gradeListFOS = array();
             if ($tblCertificateType
                 && $tblCertificateType->getIdentifier() == 'DIPLOMA'
+                && $tblSchoolType
                 && ($tblSchoolType->getShortName() == 'FOS' || $tblSchoolType->getShortName() == 'OS' || $tblSchoolType->getShortName() == 'BFS')
             ) {
                 // Abiturnoten werden direkt im Certificate in der API gedruckt
@@ -581,9 +583,10 @@ abstract class ServiceCertificateContent extends ServiceAbitur
                         $tblPrepare, $tblPerson, $tblPrepareAdditionalGradeType
                     ))
                 ) {
-                    $gradeListFOS = array();
                     foreach ($tblPrepareAdditionalGradeList as $tblPrepareAdditionalGrade) {
-                        if (($tblSubject = $tblPrepareAdditionalGrade->getServiceTblSubject())) {
+                        if (($tblSubject = $tblPrepareAdditionalGrade->getServiceTblSubject())
+                            && $tblPrepareAdditionalGrade->getGrade() !== ''
+                        ) {
                             $examGradeList[$tblSubject->getId()] = $tblSubject;
                             if ($isGradeVerbalOnDiploma) {
                                 $grade = $this->getVerbalGrade($tblPrepareAdditionalGrade->getGrade());
@@ -602,7 +605,7 @@ abstract class ServiceCertificateContent extends ServiceAbitur
                             }
 
                             // Fachoberschule FHR - Durchschnittsnote berechnen
-                            if ($tblSchoolType->getShortName() == 'FOS' && $tblPrepareAdditionalGrade->getGrade()
+                            if ($tblSchoolType && $tblSchoolType->getShortName() == 'FOS' && $tblPrepareAdditionalGrade->getGrade()
                                 && intval($tblPrepareAdditionalGrade->getGrade())
                             ) {
                                 if ($tblConsumer && $tblConsumer->isConsumer(TblConsumer::TYPE_SACHSEN, 'HOGA')) {
@@ -618,10 +621,6 @@ abstract class ServiceCertificateContent extends ServiceAbitur
 
                             $Content['P' . $personId]['Grade']['Data'][$tblSubject->getAcronym()] = $grade;
                         }
-                    }
-
-                    if ($gradeListFOS) {
-                        $Content = $this->setCalcValueFOS($gradeListFOS, $Content, $tblPerson);
                     }
                 }
             }
@@ -641,6 +640,19 @@ abstract class ServiceCertificateContent extends ServiceAbitur
                             // leere Zensuren bei Zeugnissen ignorieren, bei optionalen Zeugnisfächern
                             if ($tblTaskGrade->getGrade() === null && $tblTaskGrade->getTblGradeText() == null) {
                                 continue;
+                            }
+
+                            // Fachoberschule FHR - Durchschnittsnote berechnen
+                            if ($tblSchoolType && $tblSchoolType->getShortName() == 'FOS' && $tblTaskGrade->getGradeNumberValue() !== null) {
+                                if ($tblConsumer && $tblConsumer->isConsumer(TblConsumer::TYPE_SACHSEN, 'HOGA')) {
+                                    // Sport und die Facharbeit werden bei der Berechnung der Durchschnittsnote nicht berücksichtigt
+                                    if (strpos($tblSubjectTemp->getName(), 'Sport') === false && strpos($tblSubjectTemp->getName(), 'Facharbeit') === false) {
+                                        $gradeListFOS[] = $tblTaskGrade->getGradeNumberValue();
+                                    }
+                                } else {
+                                    // die Fussnote bei C.01.09 hat sich geändert, es werden jetzt alle Fächer berücksichtigt
+                                    $gradeListFOS[] = $tblTaskGrade->getGradeNumberValue();
+                                }
                             }
 
                             // Zensuren im Wortlaut
@@ -687,6 +699,10 @@ abstract class ServiceCertificateContent extends ServiceAbitur
                         }
                     }
                 }
+            }
+
+            if ($gradeListFOS) {
+                $Content = $this->setCalcValueFOS($gradeListFOS, $Content, $tblPerson);
             }
 
             // Fachnoten von abgewählten Fächern vom Vorjahr

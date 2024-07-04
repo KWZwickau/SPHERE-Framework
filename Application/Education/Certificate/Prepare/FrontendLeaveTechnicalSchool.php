@@ -768,9 +768,25 @@ abstract class FrontendLeaveTechnicalSchool extends FrontendLeaveSekTwoBGy
      */
     public function getPanel($panelName, $identifier, $inputName, $isApproved) : Panel
     {
+        // da es public ist und auch von anderen Frontends drauf zugegriffen werden kann, können die privaten Properties nicht verwendet werden.
+
+        // Grades
+        $selectListGrades = array();
+        $selectListGrades[-1] = '';
+        for ($i = 1; $i < 6; $i++) {
+            $selectListGrades[$i] = (string)($i);
+        }
+        $selectListGrades[6] = 6;
+
+        // GradeTexts
+        $selectListGradeTexts = array();
+        if (($tblGradeTextList = Grade::useService()->getGradeTextAll())) {
+            $selectListGradeTexts = $tblGradeTextList;
+        }
+
         $input = new TextField('Data[InformationList][' . $identifier . ']', '', $inputName);
-        $grade = new SelectCompleter('Data[InformationList][' . $identifier . '_Grade]', 'Zensur', '', $this->selectListGrades);
-        $gradeText = new SelectBox('Data[InformationList][' . $identifier . '_GradeText]', 'oder Zeugnistext', array(TblGradeText::ATTR_NAME => $this->selectListGradeTexts));
+        $grade = new SelectCompleter('Data[InformationList][' . $identifier . '_Grade]', 'Zensur', '', $selectListGrades);
+        $gradeText = new SelectBox('Data[InformationList][' . $identifier . '_GradeText]', 'oder Zeugnistext', array(TblGradeText::ATTR_NAME => $selectListGradeTexts));
 
         if ($isApproved) {
             $input->setDisabled();

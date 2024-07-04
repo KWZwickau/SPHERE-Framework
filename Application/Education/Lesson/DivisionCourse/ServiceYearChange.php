@@ -228,6 +228,7 @@ abstract class ServiceYearChange extends ServiceTeacher
                             $tblStudentEducationCreate->setServiceTblYear($tblYearTarget);
                             $tblStudentEducationCreate->setServiceTblCompany($tblStudentEducationSource->getServiceTblCompany() ?: null);
                             $tblStudentEducationCreate->setServiceTblSchoolType($tblStudentEducationSource->getServiceTblSchoolType() ?: null);
+                            $tblStudentEducationCreate->setServiceTblCourse($tblStudentEducationSource->getServiceTblCourse() ?: null);
                         }
                         $tblStudentEducationCreate->setLevel($level + 1);
 

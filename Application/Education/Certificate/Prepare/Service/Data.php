@@ -1379,6 +1379,8 @@ class Data extends DataLeave
                     $queryBuilder->expr()->eq('ps.serviceTblPerson', '?1'),
                     $queryBuilder->expr()->eq('ps.IsApproved', 1),
                     $queryBuilder->expr()->eq('gc.serviceTblAppointedDateTask', '?2'),
+                    // gelöschter Zeugnisauftrag
+                    $queryBuilder->expr()->isNull('gc.EntityRemove')
                 ),
             )
             ->setParameter(1, $tblPerson->getId())

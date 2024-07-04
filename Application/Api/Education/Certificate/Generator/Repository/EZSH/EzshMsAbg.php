@@ -516,7 +516,8 @@ class EzshMsAbg extends EzshStyle
 
         return array(
             self::firstPage($personId),
-            self::secondPage($personId)
+            self::secondPage($personId),
+            $this->getRatingPage($personId, 'Anlage zum ABGANGSZEUGNIS', 'OBERSCHULE – staatlich anerkannte Ersatzschule')
         );
     }
 

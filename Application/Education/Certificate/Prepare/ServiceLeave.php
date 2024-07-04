@@ -65,7 +65,7 @@ abstract class ServiceLeave extends ServiceDiploma
      *
      * @return false|TblLeaveStudent[]
      */
-    public function getLeaveStudentAllBy(bool $IsApproved = false, bool $IsPrinted = false)
+    public function getLeaveStudentAllBy(?bool $IsApproved, ?bool $IsPrinted)
     {
         return (new Data($this->getBinding()))->getLeaveStudentAllBy($IsApproved, $IsPrinted);
     }

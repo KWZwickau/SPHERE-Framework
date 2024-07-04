@@ -28,7 +28,7 @@ class MsHjInfo extends Certificate
         return (new Page())
             ->addSlice(FelsStyle::getHeader($this->isSample(), 'Oberschule'))
 //            ->addSlice($this->getSchoolName($personId))
-            ->addSlice($this->getCertificateHead('Halbjahres-Leistungsübersicht der Oberschule'))
+            ->addSlice($this->getCertificateHead('Halbjahresinformation der Oberschule'))
             ->addSlice($this->getDivisionAndYear($personId, '20px', '1. Schulhalbjahr'))
             ->addSlice($this->getStudentName($personId))
             ->addSlice((new Slice())

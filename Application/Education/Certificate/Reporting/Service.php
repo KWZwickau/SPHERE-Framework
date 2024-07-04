@@ -17,6 +17,7 @@ use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareSt
 use SPHERE\Application\Education\Graduation\Grade\Grade;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\School\Course\Service\Entity\TblCourse;
@@ -618,6 +619,24 @@ class Service extends Extension
                 ) {
                     $personCourseList[$tblPersonTemp->getId()] = $tblCourseTemp;
                 }
+            }
+        }
+
+        // Unterrichtsgruppe ergänzen für z.B. Hauptschüler
+        if ($tblDivisionCourseList) {
+            $addList = array();
+            foreach ($tblDivisionCourseList as $tblDivisionCourse) {
+                if (($tblDivisionCourseListByStudent = DivisionCourse::useService()->getDivisionCourseListByStudentsInDivisionCourse($tblDivisionCourse))) {
+                    foreach ($tblDivisionCourseListByStudent as $tblDivisionCourseStudent) {
+                        if (!isset($tblDivisionCourseList[$tblDivisionCourseStudent->getId()]) && $tblDivisionCourseStudent->getTypeIdentifier() ==  TblDivisionCourseType::TYPE_TEACHING_GROUP) {
+                            $addList[$tblDivisionCourseStudent->getId()] = $tblDivisionCourseStudent;
+                        }
+                    }
+                }
+            }
+
+            foreach ($addList as $key => $item) {
+                $tblDivisionCourseList[$key] = $item;
             }
         }
 

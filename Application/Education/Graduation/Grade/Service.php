@@ -793,7 +793,9 @@ class Service extends ServiceTask
                     if (($gradeValue = $tblTestGrade->getGradeNumberValue()) !== null) {
                         // auf ganze Note runden
                         $gradeValue = intval(round($gradeValue));
-                        $gradeMirrorList[$gradeValue]++;
+                        if (isset($gradeMirrorList[$gradeValue])) {
+                            $gradeMirrorList[$gradeValue]++;
+                        }
                     }
                 }
 

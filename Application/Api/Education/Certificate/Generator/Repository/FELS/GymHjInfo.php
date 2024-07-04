@@ -28,7 +28,7 @@ class GymHjInfo  extends Certificate
         return (new Page())
             ->addSlice(FelsStyle::getHeader($this->isSample(), 'Gymnasium'))
 //            ->addSlice($this->getSchoolName($personId))
-            ->addSlice($this->getCertificateHead('Halbjahres-Leistungsübersicht des Gymnasiums'))
+            ->addSlice($this->getCertificateHead('Halbjahresinformation des Gymnasiums'))
             ->addSlice($this->getDivisionAndYear($personId, '20px', '1. Schulhalbjahr'))
             ->addSlice($this->getStudentName($personId))
             ->addSlice($this->getGradeLanesSmall($personId))

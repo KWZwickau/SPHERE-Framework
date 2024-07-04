@@ -14,6 +14,7 @@ use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Certificate\Generate\Generate;
 use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
+use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblLeaveStudent;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCertificate;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\Term\Term;
@@ -330,6 +331,49 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
+        $leaveDivisionList = array();
+        $isLeaveAutoApproved = ($tblCertificateTypeLeave = Generator::useService()->getCertificateTypeByIdentifier('LEAVE'))
+            && $tblCertificateTypeLeave->isAutomaticallyApproved();
+        if (($tblLeaveStudentList = Prepare::useService()->getLeaveStudentAllBy(null, false))) {
+            /** @var TblLeaveStudent $tblLeaveStudent */
+            foreach ($tblLeaveStudentList as $tblLeaveStudent) {
+                if (($tblDivisionCourse = $tblLeaveStudent->getTblDivisionCourse())
+                    && isset($divisionList[$tblDivisionCourse->getId()])
+                    && !isset($leaveDivisionList[$tblDivisionCourse->getId()])
+                    && ($tblLeaveStudent->isApproved() || $isLeaveAutoApproved)
+                ) {
+                    if (($tblLeaveInformationCertificateDate = Prepare::useService()->getLeaveInformationBy($tblLeaveStudent, 'CertificateDate'))) {
+                        $date = $tblLeaveInformationCertificateDate->getValue();
+                    } else {
+                        $date = '';
+                    }
+
+                    $leaveDivisionList[$tblDivisionCourse->getId()] = $date;
+                }
+            }
+        }
+
+        foreach ($leaveDivisionList as $divisionCourseId => $date) {
+            if (($tblDivisionCourseItem = DivisionCourse::useService()->getDivisionCourseById($divisionCourseId))) {
+                $tableContent[] = array(
+                    'Year' => $tblDivisionCourseItem->getServiceTblYear() ? $tblDivisionCourseItem->getServiceTblYear()->getDisplayName() : '',
+                    'Date' => $date,
+                    'Division' => $tblDivisionCourseItem->getDisplayName(),
+                    'CertificateType' => 'Abgangszeugnis',
+                    'Name' => '',
+                    'Option' => new Standard(
+                        'Zeugnisse herunterladen und revisionssicher speichern',
+                        '/Education/Certificate/PrintCertificate/Confirm',
+                        new Download(),
+                        array(
+                            'DivisionId' => $tblDivisionCourseItem->getId(),
+                            'Route' => 'DivisionTeacher',
+                            'IsLeave' => true,
+                        ))
+                );
+            }
+        }
+
         $Stage->setContent(
             new Layout(array(
                 new LayoutGroup(array(
@@ -450,9 +494,9 @@ class Frontend extends Extension implements IFrontendInterface
                                     'DivisionId' => $tblDivisionCourse->getId(),
                                 ),
                                 'Zeugnisse herunterladen und revisionssicher abspeichern'
-                            ))->setRedirect('/Education/Certificate/PrintCertificate', 60)
+                            ))->setRedirect($backRoute, 60)
                             . new Standard(
-                                'Nein', '/Education/Certificate/PrintCertificate', new Disable()
+                                'Nein', $backRoute, new Disable()
                             )
                         ),
                     )))))
@@ -463,7 +507,7 @@ class Frontend extends Extension implements IFrontendInterface
                     new Layout(new LayoutGroup(array(
                         new LayoutRow(new LayoutColumn(array(
                             new Danger(new Ban() . ' Das Zeugnis konnte nicht gefunden werden'),
-                            new Redirect('/Education/Certificate/PrintCertificate', Redirect::TIMEOUT_ERROR)
+                            new Redirect($backRoute, Redirect::TIMEOUT_ERROR)
                         )))
                     )))
                 );

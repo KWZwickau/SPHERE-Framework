@@ -180,6 +180,8 @@ class EzshMsAbsHs extends EzshStyle
             ->addSlice((self::getEZSHExaminationsBoard('10px','11px')))
             ->addSlice((new Slice())->styleMarginTop('150px')->addSectionList($this->getEZSHGradeInfo(false)));
 
+        $pageList[] = $this->getRatingPage($personId, 'Anlage zum ABSCHLUSSZEUGNIS', 'OBERSCHULE – staatlich anerkannte Ersatzschule');
+
         return $pageList;
     }
 }
