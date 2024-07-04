@@ -354,10 +354,10 @@ class FrontendStudent extends FrontendMember
                         (new Primary('Speichern', ApiDivisionCourseStudent::getEndpoint(), new Save()))
                             ->ajaxPipelineOnClick(ApiDivisionCourseStudent::pipelineChangeDivisionCourseSave($tblDivisionCourse->getId(), $tblPerson->getId()))
                     , 6),
-                    new FormColumn(
-                        (new Primary('Kein Wechsel im Schuljahr, Schüler entfernen', ApiDivisionCourseStudent::getEndpoint(), new MinusSign(), array(),  'Schüler entfernen'))
-                            ->ajaxPipelineOnClick(ApiDivisionCourseStudent::pipelineRemoveStudent($tblDivisionCourse->getId(), $tblPerson->getId()))
-                    , 6)
+//                    new FormColumn(
+//                        (new Primary('Kein Wechsel im Schuljahr, Schüler entfernen', ApiDivisionCourseStudent::getEndpoint(), new MinusSign(), array(),  'Schüler entfernen'))
+//                            ->ajaxPipelineOnClick(ApiDivisionCourseStudent::pipelineRemoveStudent($tblDivisionCourse->getId(), $tblPerson->getId()))
+//                    , 6)
                 )),
             ))
         ))->disableSubmitAction();
