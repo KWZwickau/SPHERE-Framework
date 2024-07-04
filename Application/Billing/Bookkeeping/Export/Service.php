@@ -146,17 +146,19 @@ class Service extends AbstractService
             $item['DivisionCourse'] = $item['CauserFirstName'] = $item['CauserLastName'] = '';
             $item['PaymentType'] = $item['ReferenceDate'] = $item['ReferenceNumber'] = '';
             $item['BankName'] = $item['IBAN'] = $item['BIC'] = $item['Owner'] = '';
-            $item['From'] = $item['To'] = '';
-            if(($tblDerbtorSelectionList = Debtor::useService()->getDebtorSelectionByPersonDebtor($tblPersonDebtor))){
+            $item['From'] = $item['To'] = $item['ErrorDescription'] = '';
+            $item['CauserActiveGroup'] = '0';
+            if(($tblDebtorSelectionList = Debtor::useService()->getDebtorSelectionByPersonDebtor($tblPersonDebtor))){
                 $UsingBankAccountList = array();
                 $tblYearList = Term::useService()->getYearByNow();
-                foreach($tblDerbtorSelectionList as $tblDerbtorSelection){
+                foreach($tblDebtorSelectionList as $tblDebtorSelection){
                     // muss für jeden Schleifenaufruf erneut gesetzt werden
                     $item['CreateUpdate'] = $item['ItemName'] =$item['Value'] = $item['VariantPrice'] = '';
                     $item['DivisionCourse'] = $item['CauserFirstName'] = $item['CauserLastName'] = '';
                     $item['PaymentType'] = $item['ReferenceDate'] = $item['ReferenceNumber'] = '';
-                    $item['BankName'] = $item['IBAN'] = $item['BIC'] = $item['Owner'] = '';
-                    if(($tblBankAccount = $tblDerbtorSelection->getTblBankAccount())){
+                    $item['BankName'] = $item['IBAN'] = $item['BIC'] = $item['Owner'] = $item['ErrorDescription'] = '';
+                    $item['CauserActiveGroup'] = '0';
+                    if(($tblBankAccount = $tblDebtorSelection->getTblBankAccount())){
                         if(($EntityUpdate = $tblBankAccount->getEntityUpdate())){
                             $item['CreateUpdate'] = $EntityUpdate->format('d.m.Y');
                         } else {
@@ -168,11 +170,11 @@ class Service extends AbstractService
                         $item['BIC'] = $tblBankAccount->getBIC();
                         $item['Owner'] = $tblBankAccount->getOwner();
                     }
-                    if(($tblItem = $tblDerbtorSelection->getServiceTblItem())){
+                    if(($tblItem = $tblDebtorSelection->getServiceTblItem())){
                         $item['ItemName'] = $tblItem->getName();
                     }
                     // Variant || Value
-                    if($tblItemVariant = $tblDerbtorSelection->getServiceTblItemVariant()){
+                    if($tblItemVariant = $tblDebtorSelection->getServiceTblItemVariant()){
                         $VariantName = $tblItemVariant->getName().($tblItemVariant->getDescription() ? ' - '.$tblItemVariant->getDescription() : '');
                         if(($tblItemCalculationList = Item::useService()->getItemCalculationByItemVariant($tblItemVariant))){
                             foreach($tblItemCalculationList as $tblItemCalculation){
@@ -186,12 +188,30 @@ class Service extends AbstractService
                         }
                     } else {
                         $item['Variant'] = $item['VariantPrice'] = '';
-                        $item['Value'] = $tblDerbtorSelection->getValuePriceString();
+                        $item['Value'] = $tblDebtorSelection->getValuePriceString();
                     }
-                    if(($tblPaymentType = $tblDerbtorSelection->getServiceTblPaymentType())){
+                    if(($tblPaymentType = $tblDebtorSelection->getServiceTblPaymentType())){
                         $item['PaymentType'] = $tblPaymentType->getName();
                     }
-                    if(($tblPersonCauser = $tblDerbtorSelection->getServiceTblPersonCauser())){
+                    if(($tblPersonCauser = $tblDebtorSelection->getServiceTblPersonCauser())){
+                        $GroupNameList = array();
+                        if(($tblGroupList = Group::useService()->getGroupAllByPerson($tblPersonCauser))){
+                            foreach($tblGroupList as $tblGroup){
+                                $GroupNameList[] = $tblGroup->getName();
+                            }
+                            if($tblItem){
+                                if(($tblItemGroupList = Item::useService()->getItemGroupByItem($tblItem))){
+                                    foreach($tblItemGroupList as $tblItemGroup){
+                                        if(($tblGroupItem = $tblItemGroup->getServiceTblGroup())){
+                                            if(in_array($tblGroupItem->getName(), $GroupNameList)){
+                                                $item['CauserActiveGroup'] = '1';
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
                         $item['CauserFirstName'] = $tblPersonCauser->getFirstName();
                         $item['CauserLastName'] = $tblPersonCauser->getLastName();
                         if($tblYearList){
@@ -209,13 +229,16 @@ class Service extends AbstractService
                             $item['DivisionCourse'] = implode(', ', $DivisionNameList);
                         }
                     }
-                    if(($tblBankReference = $tblDerbtorSelection->getTblBankReference())){
+                    if($item['CauserActiveGroup'] != "1"){
+                        $item['ErrorDescription'] = "Beitragsverursacher befindet sich nicht in einer für die Beitragsart notwendigen Personengruppe";
+                    }
+                    if(($tblBankReference = $tblDebtorSelection->getTblBankReference())){
                         $item['ReferenceDate'] = $tblBankReference->getReferenceDate();
                         $item['ReferenceNumber'] = $tblBankReference->getReferenceNumber();
                     }
 
-                    $item['From'] = $tblDerbtorSelection->getFromDate();
-                    $item['To'] = $tblDerbtorSelection->getToDate();
+                    $item['From'] = $tblDebtorSelection->getFromDate();
+                    $item['To'] = $tblDebtorSelection->getToDate();
 
                     array_push($ExcelContent, $item);
                 }
@@ -223,12 +246,14 @@ class Service extends AbstractService
                 // vorhandene Kontodaten zu denen keine Zahlungsinformation hinterlegt ist (Bar / Überweisung)
                 if(($tblBankAccountList = Debtor::useService()->getBankAccountAllByPerson($tblPersonDebtor))){
                     // Werte für Datensatz nicht verfügbar
-                    $item['CreateUpdate'] = $item['ItemName'] =$item['Value'] = $item['VariantPrice'] = '';
+                    $item['ItemName'] =$item['Value'] = $item['VariantPrice'] = '';
                     $item['DivisionCourse'] = $item['CauserFirstName'] = $item['CauserLastName'] = '';
                     $item['PaymentType'] = $item['ReferenceDate'] = $item['ReferenceNumber'] = '';
-                    $item['BankName'] = $item['IBAN'] = $item['BIC'] = $item['Owner'] = '';
                     $item['From'] = $item['To'] = '';
                     foreach($tblBankAccountList as $tblBankAccount){
+                        $item['CreateUpdate'] = '';
+                        $item['BankName'] = $item['IBAN'] = $item['BIC'] = $item['Owner'] = '';
+                        $item['ErrorDescription'] = "Kontodaten zu denen keine Zahlungszuweisung hinterlegt ist";
                         // nicht verwendete Bankdaten hinzufügen
                         if(!in_array($tblBankAccount->getId(), $UsingBankAccountList)){
                             $item['BankName'] = $tblBankAccount->getBankName();
@@ -245,15 +270,16 @@ class Service extends AbstractService
                     }
                 }
             } else {
-                $item['CreateUpdate'] = $item['BankName'] = $item['IBAN'] = $item['BIC'] = $item['Owner'] = '';
                 // keine Zahlungszuweisung
                 // vorhandene Kontodaten
                 if(($tblBankAccountList = Debtor::useService()->getBankAccountAllByPerson($tblPersonDebtor))){
+                    $item['CreateUpdate'] = $item['BankName'] = $item['IBAN'] = $item['BIC'] = $item['Owner'] = '';
                     foreach($tblBankAccountList as $tblBankAccount){
                         $item['BankName'] = $tblBankAccount->getBankName();
                         $item['IBAN'] = $tblBankAccount->getIBAN();
                         $item['BIC'] = $tblBankAccount->getBIC();
                         $item['Owner'] = $tblBankAccount->getOwner();
+                        $item['ErrorDescription'] = "Kontodaten zu denen keine Zahlungszuweisung hinterlegt ist";
                         if(($EntityUpdate = $tblBankAccount->getEntityUpdate())){
                             $item['CreateUpdate'] = $EntityUpdate->format('d.m.Y');
                         } else {
@@ -262,6 +288,7 @@ class Service extends AbstractService
                         array_push($ExcelContent, $item);
                     }
                 } else {
+                    $item['ErrorDescription'] = "keine Kontodaten hinterlegt";
                     // Ohne Zahlungszuweisungen oder Kontodaten
                     array_push($ExcelContent, $item);
                 }
@@ -271,20 +298,22 @@ class Service extends AbstractService
     }
 
     /**
-     * @param array $ExcelContent
+     * @param array  $ExcelContent
+     * @param string $Date
      *
      * @return false|FilePointer
      */
-    public function createAccountingExcelDownload($ExcelContent = array())
+    public function createAccountingExcelDownload(array $ExcelContent = array(), string $Date = 'now'): FilePointer|false
     {
 
-        $inaktiveContent = array();
+        $inactiveContent = array();
         $aktiveContent = array();
         if(!empty($ExcelContent)){
-            $Now = new DateTime();
-            foreach($ExcelContent as $RowContent){
+            $Now = new DateTime($Date);
+            foreach($ExcelContent as &$RowContent){
                 $From = $RowContent['From'];
                 $To = $RowContent['To'];
+                $CauserActiveGroup = $RowContent['CauserActiveGroup'];
                 // inactive content time based exclusion
                 if($From){
                     $From = new DateTime($From);
@@ -293,11 +322,18 @@ class Service extends AbstractService
                     $To = new DateTime($To);
                 }
                 if($From && $From > $Now){
-                    $inaktiveContent[] = $RowContent;
+                    $RowContent['ErrorDescription'] = 'Abrechnung liegt in der Zukunft';
+                    $inactiveContent[] = $RowContent;
                     continue;
                 }
                 if($To && $To < $Now){
-                    $inaktiveContent[] = $RowContent;
+                    $RowContent['ErrorDescription'] = 'Abrechnung liegt in der Vergangenheit';
+                    $inactiveContent[] = $RowContent;
+                    continue;
+                }
+                // nicht in aktiver Personengruppe
+                if($CauserActiveGroup === '0'){
+                    $inactiveContent[] = $RowContent;
                     continue;
                 }
                 // Active Content
@@ -320,19 +356,20 @@ class Service extends AbstractService
 
         $export->createWorksheet('inaktive');
         $export->selectWorksheetByName('inaktive');
-        $this->setExcelHeader($export, $Column, $Row);
+        $isDescription = true;
+        $this->setExcelHeader($export, $Column, $Row, $isDescription);
         if(!empty($ExcelContent)){
-            $this->setExcelContent($export, $Row, $inaktiveContent);
+            $this->setExcelContent($export, $Row, $inactiveContent, $isDescription);
         }
-        $this->setExcelColumnWidth($export);
+        $this->setExcelColumnWidth($export, $isDescription);
 
         $export->createWorksheet('alles');
         $export->selectWorksheetByName('alles');
-        $this->setExcelHeader($export, $Column, $Row);
+        $this->setExcelHeader($export, $Column, $Row, $isDescription);
         if(!empty($ExcelContent)){
-            $this->setExcelContent($export, $Row, $ExcelContent);
+            $this->setExcelContent($export, $Row, $ExcelContent, $isDescription);
         }
-        $this->setExcelColumnWidth($export);
+        $this->setExcelColumnWidth($export, $isDescription);
 
         $export->selectWorksheetByIndex(0);
 
@@ -340,7 +377,15 @@ class Service extends AbstractService
         return $fileLocation;
     }
 
-    public function setExcelHeader($export, $Column = 0, $Row = 0)
+    /**
+     * @param PhpExcel $export
+     * @param int $Column
+     * @param int $Row
+     * @param bool $isDescription
+     *
+     * @return void
+     */
+    public function setExcelHeader(PhpExcel $export, int $Column = 0, int $Row = 0, bool $isDescription = false): void
     {
 
         $export->setValue($export->getCell($Column++, $Row), "Datum der Bankdaten");
@@ -372,9 +417,21 @@ class Service extends AbstractService
         $export->setValue($export->getCell($Column++, $Row), "Datum beitragspflichtig bis");
         $export->setValue($export->getCell($Column++, $Row), "Mandatsreferenznummer gültig ab");
         $export->setValue($export->getCell($Column, $Row), "Mandatsreferenz");
+        if($isDescription){
+            $Column++;
+            $export->setValue($export->getCell($Column, $Row), "Grund für Inaktivität");
+        }
     }
 
-    public function setExcelContent($export, $Row, $ExcelContent)
+    /**
+     * @param PhpExcel $export
+     * @param int $Row
+     * @param array $ExcelContent
+     * @param bool $isDescription
+     *
+     * @return void
+     */
+    public function setExcelContent(PhpExcel $export, int $Row, array $ExcelContent, bool $isDescription = false): void
     {
         if(!empty($ExcelContent)){
             foreach ($ExcelContent as $Content) {
@@ -410,11 +467,21 @@ class Service extends AbstractService
                 $export->setValue($export->getCell($Column++, $Row), $Content['To']);
                 $export->setValue($export->getCell($Column++, $Row), $Content['ReferenceDate']);
                 $export->setValue($export->getCell($Column, $Row), $Content['ReferenceNumber']);
+                if($isDescription){
+                    $Column++;
+                    $export->setValue($export->getCell($Column, $Row), $Content['ErrorDescription']);
+                }
             }
         }
     }
 
-    public function setExcelColumnWidth($export)
+    /**
+     * @param PhpExcel $export
+     * @param bool    $isDescription
+     *
+     * @return void
+     */
+    public function setExcelColumnWidth(PhpExcel $export, bool $isDescription = false): void
     {
         //Column width
         $Column = 0;
@@ -439,13 +506,17 @@ class Service extends AbstractService
         $export->setStyle($export->getCell($Column, 0), $export->getCell($Column++, 0))->setColumnWidth(15);
         $export->setStyle($export->getCell($Column, 0), $export->getCell($Column++, 0))->setColumnWidth(15);
         $export->setStyle($export->getCell($Column, 0), $export->getCell($Column++, 0))->setColumnWidth(10);
-        $export->setStyle($export->getCell($Column, 0), $export->getCell($Column++, 0))->setColumnWidth(20);
+        $export->setStyle($export->getCell($Column, 0), $export->getCell($Column++, 0))->setColumnWidth(35);
         $export->setStyle($export->getCell($Column, 0), $export->getCell($Column++, 0))->setColumnWidth(9);
         $export->setStyle($export->getCell($Column, 0), $export->getCell($Column++, 0))->setColumnWidth(50);
         $export->setStyle($export->getCell($Column, 0), $export->getCell($Column++, 0))->setColumnWidth(9);
         $export->setStyle($export->getCell($Column, 0), $export->getCell($Column++, 0))->setColumnWidth(11);
         $export->setStyle($export->getCell($Column, 0), $export->getCell($Column++, 0))->setColumnWidth(11);
         $export->setStyle($export->getCell($Column, 0), $export->getCell($Column++, 0))->setColumnWidth(11);
-        $export->setStyle($export->getCell($Column, 0), $export->getCell($Column, 0))->setColumnWidth(10);
+        $export->setStyle($export->getCell($Column, 0), $export->getCell($Column++, 0))->setColumnWidth(10);
+        // description for errors
+        if($isDescription){
+            $export->setStyle($export->getCell($Column, 0), $export->getCell($Column, 0))->setColumnWidth(90);
+        }
     }
 }
