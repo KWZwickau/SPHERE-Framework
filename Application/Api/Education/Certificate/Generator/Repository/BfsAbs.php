@@ -17,7 +17,7 @@ class BfsAbs extends BfsStyle
     /**
      * @return array
      */
-    public function getApiModalColumns()
+    public function getApiModalColumns(): array
     {
         return array(
             'DateFrom' => 'Besucht "seit" die Fachschule',
@@ -41,7 +41,7 @@ class BfsAbs extends BfsStyle
      *
      * @return Page[]
      */
-    public function buildPages(TblPerson $tblPerson = null)
+    public function buildPages(TblPerson $tblPerson = null): array
     {
 
         $personId = $tblPerson ? $tblPerson->getId() : 0;
@@ -56,22 +56,7 @@ class BfsAbs extends BfsStyle
             ->addSlice($this->getIndividuallySignPart($personId, true))
         ;
 
-        $pageList[] = (new Page())
-            ->addSlice($this->getSecondPageHead($personId, 'Abschlusszeugnis', false))
-            ->addSlice($this->getSubjectLinePerformance())
-            ->addSlice($this->getSubjectLineDuty('10px'))
-            ->addSlice($this->getSubjectLineAcrossAbs($personId, $this->getCertificateEntity(), 'Berufsübergreifender Bereich', 1, 5, 1, 4, '150px'))
-            ->addSlice($this->getSubjectLineAcrossAbs($personId, $this->getCertificateEntity(), 'Berufsbezogener Bereich', 1, 14, 5, 12, '320px'))
-            ->addSlice($this->getSubjectLineAcrossAbs($personId, $this->getCertificateEntity(), 'Wahlpflichtbereich', 1, 2, 13, 13, '80px'))
-            ->addSlice($this->getPraktika($personId, $this->getCertificateEntity(), true))
-            ->addSlice($this->getDescriptionBsContent($personId, '85px'))
-            ->addSlice((new Slice())->addElement((new Element())
-                ->setContent('&nbsp;')
-                ->stylePaddingTop('11px')
-            ))
-            ->addSlice($this->getBsInfo('23px',
-                'NOTENSTUFEN: sehr gut (1), gut (2), befriedigend (3), ausreichend (4), mangelhaft (5), ungenügend (6)'))
-        ;
+        $pageList[] = $this->getDiplomaSecondPage($personId);
 
         return $pageList;
     }

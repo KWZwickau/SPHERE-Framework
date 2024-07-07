@@ -33,6 +33,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\Calendar;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
+use SPHERE\Common\Frontend\Icon\Repository\Pencil;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
@@ -41,6 +42,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\External;
+use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
@@ -311,6 +313,12 @@ abstract class FrontendLeaveTechnicalSchool extends FrontendLeaveSekTwoBGy
             }
         }
 
+        if (!$isApproved && $tblType && $tblType->getShortName() == 'BFS') {
+            $canChangeCertificate = true;
+        } else {
+            $canChangeCertificate = false;
+        }
+
         $layoutGroups[] = new LayoutGroup(array(
             new LayoutRow(array(
                 new LayoutColumn(
@@ -344,6 +352,13 @@ abstract class FrontendLeaveTechnicalSchool extends FrontendLeaveSekTwoBGy
                             ? $tblCertificate->getName()
                             . ($tblCertificate->getDescription()
                                 ? new Muted(' - ' . $tblCertificate->getDescription()) : '')
+                            . ($canChangeCertificate
+                                ? new Link('Bearbeiten', '/Education/Certificate/Prepare/Leave/Student', new Pencil(), array(
+                                    'PersonId' => $tblPerson->getId(),
+                                    'YearId' => $tblYear->getId(),
+                                    'ChangeCertificate' => true
+                                ))
+                                : '')
                             : new \SPHERE\Common\Frontend\Text\Repository\Warning(new Exclamation()
                             . ' Keine Zeugnisvorlage verfügbar!'),
                         $tblCertificate ? Panel::PANEL_TYPE_INFO : Panel::PANEL_TYPE_WARNING
@@ -430,6 +445,10 @@ abstract class FrontendLeaveTechnicalSchool extends FrontendLeaveSekTwoBGy
                 $operationTime2Input = (new TextField('Data[InformationList][OperationTime2]', '', 'Einsatzgebiet Dauer in Wochen 2'));
                 $operation3Input = (new TextField('Data[InformationList][Operation3]', '', 'Einsatzgebiet 3'));
                 $operationTime3Input = (new TextField('Data[InformationList][OperationTime3]', '', 'Einsatzgebiet Dauer in Wochen 3'));
+                if ($tblCertificate->getCertificate() == 'BfsAbgGeneralistik') {
+                    $operation4Input = (new TextField('Data[InformationList][Operation4]', '', 'Einsatzgebiet 4'));
+                    $operationTime4Input = (new TextField('Data[InformationList][OperationTime4]', '', 'Einsatzgebiet Dauer in Wochen 4'));
+                }
 
                 if ($isApproved) {
                     $destinationInput->setDisabled();
@@ -441,6 +460,11 @@ abstract class FrontendLeaveTechnicalSchool extends FrontendLeaveSekTwoBGy
                     $operationTime2Input->setDisabled();
                     $operation3Input->setDisabled();
                     $operationTime3Input->setDisabled();
+
+                    if ($tblCertificate->getCertificate() == 'BfsAbgGeneralistik') {
+                        $operation4Input->setDisabled();
+                        $operationTime4Input->setDisabled();
+                    }
                 }
 
                 $panelEducation = new Panel(
@@ -457,25 +481,30 @@ abstract class FrontendLeaveTechnicalSchool extends FrontendLeaveSekTwoBGy
                     Panel::PANEL_TYPE_INFO
                 );
 
+                $layoutRows[] = new LayoutRow(array(
+                    new LayoutColumn($operationTimeTotal, 12)
+                ));
+                $layoutRows[] = new LayoutRow(array(
+                    new LayoutColumn($operation1Input, 6),
+                    new LayoutColumn($operationTime1Input, 6)
+                ));
+                $layoutRows[] = new LayoutRow(array(
+                    new LayoutColumn($operation2Input, 6),
+                    new LayoutColumn($operationTime2Input, 6)
+                ));
+                $layoutRows[] = new LayoutRow(array(
+                    new LayoutColumn($operation3Input, 6),
+                    new LayoutColumn($operationTime3Input, 6)
+                ));
+                if ($tblCertificate->getCertificate() == 'BfsAbgGeneralistik') {
+                    $layoutRows[] = new LayoutRow(array(
+                        new LayoutColumn($operation4Input, 6),
+                        new LayoutColumn($operationTime4Input, 6)
+                    ));
+                }
                 $panelPraxis = new Panel(
                     'Berufspraktische Ausbildung',
-                    new Layout(new LayoutGroup(array(
-                        new LayoutRow(array(
-                            new LayoutColumn($operationTimeTotal, 12)
-                        )),
-                        new LayoutRow(array(
-                            new LayoutColumn($operation1Input, 6),
-                            new LayoutColumn($operationTime1Input, 6)
-                        )),
-                        new LayoutRow(array(
-                            new LayoutColumn($operation2Input, 6),
-                            new LayoutColumn($operationTime2Input, 6)
-                        )),
-                        new LayoutRow(array(
-                            new LayoutColumn($operation3Input, 6),
-                            new LayoutColumn($operationTime3Input, 6)
-                        )),
-                    ))),
+                    new Layout(new LayoutGroup($layoutRows)),
                     Panel::PANEL_TYPE_INFO
                 );
             } else {
@@ -604,6 +633,12 @@ abstract class FrontendLeaveTechnicalSchool extends FrontendLeaveSekTwoBGy
             $otherInformationList[] =  $datePicker;
             $otherInformationList[] =  $remarkTextArea;
 
+            if ($tblCertificate->getCertificate() == 'BfsAbgGeneralistik') {
+                $teacherDescription = 'Klassenlehrer/in';
+            } else {
+                $teacherDescription = 'Vorsitzende/r des Prüfungsausschusses';
+            }
+
             $headmasterNameTextField = new TextField('Data[InformationList][HeadmasterName]', '',
                 'Name des/der Schulleiters/in');
             $radioSex1 = (new RadioBox('Data[InformationList][HeadmasterGender]', 'Männlich',
@@ -612,7 +647,7 @@ abstract class FrontendLeaveTechnicalSchool extends FrontendLeaveSekTwoBGy
             $radioSex2 = (new RadioBox('Data[InformationList][HeadmasterGender]', 'Weiblich',
                 ($tblCommonGender = Common::useService()->getCommonGenderByName('Weiblich'))
                     ? $tblCommonGender->getId() : 0));
-            $teacherSelectBox = new SelectBox('Data[InformationList][DivisionTeacher]', 'Vorsitzende/r des Prüfungsausschusses',
+            $teacherSelectBox = new SelectBox('Data[InformationList][DivisionTeacher]', $teacherDescription,
                 $divisionTeacherList);
             if ($isApproved) {
                 $headmasterNameTextField->setDisabled();
@@ -642,7 +677,7 @@ abstract class FrontendLeaveTechnicalSchool extends FrontendLeaveSekTwoBGy
                 new FormRow(array(
                     new FormColumn(
                         new Panel(
-                            'Unterzeichner - Vorsitzende/r des Prüfungsausschusses',
+                            'Unterzeichner - ' . $teacherDescription,
                             $teacherSelectBox,
                             Panel::PANEL_TYPE_INFO
                         )

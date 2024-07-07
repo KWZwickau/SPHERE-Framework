@@ -22,6 +22,8 @@ class SDataBerufsfachschule
         self::setBfsPflegeJ($Data, 'B.02.02a');
         self::setBfsAbs($Data, 'B.01.05');
         self::setBfsAbg($Data, 'B.01.04');
+        self::setBfsAbsMs($Data, 'B.01.05 + B.02.04');
+        self::setBfsAbgGeneralistik($Data, 'B.02.03');
     }
 
     /**
@@ -174,7 +176,7 @@ class SDataBerufsfachschule
     {
 
         if (($tblCertificate = $Data->createCertificate('Berufsfachschule Abschlusszeugnis', '', 'BfsAbs',
-            null, false, false, false, $Data->getTblCertificateTypeDiploma(), $Data->getTblSchoolTypeBerufsfachschule()))
+            null, false, false, true, $Data->getTblCertificateTypeDiploma(), $Data->getTblSchoolTypeBerufsfachschule()))
         ) {
             if($tblCertificate->getCertificateNumber() != $CertificateNumber){
                 $Data->updateCertificateNumber($tblCertificate, $CertificateNumber);
@@ -287,6 +289,58 @@ class SDataBerufsfachschule
                 $Data->createCertificateField($tblCertificate, $Var, 300);
             }
             $Data->createCertificateInformation($tblCertificate, $Var, 7);
+        }
+    }
+
+    /**
+     * @param Data $Data
+     * @param $CertificateNumber
+     */
+    private static function setBfsAbsMs(Data $Data, $CertificateNumber)
+    {
+
+        if (($tblCertificate = $Data->createCertificate('Berufsfachschule Abschlusszeugnis', 'mit mittleren Schulabschluss', 'BfsAbsMs',
+            null, false, false, false, $Data->getTblCertificateTypeDiploma(), $Data->getTblSchoolTypeBerufsfachschule()))
+        ) {
+            if($tblCertificate->getCertificateNumber() != $CertificateNumber){
+                $Data->updateCertificateNumber($tblCertificate, $CertificateNumber);
+            }
+//            'DateFrom' ist auf Seite 1
+//            'DateTo' ist auf Seite 1
+//            'BfsDestination' ist auf Seite 1
+//            'AddEducation_Average_BFS' ist auf Seite 1
+
+            $Data->createCertificateInformation($tblCertificate, 'OperationTimeTotal', 2);
+            $Data->createCertificateInformation($tblCertificate, 'Operation1', 2);
+            $Data->createCertificateInformation($tblCertificate, 'OperationTime1', 2);
+            $Data->createCertificateInformation($tblCertificate, 'Operation2', 2);
+            $Data->createCertificateInformation($tblCertificate, 'OperationTime2', 2);
+            $Data->createCertificateInformation($tblCertificate, 'Operation3', 2);
+            $Data->createCertificateInformation($tblCertificate, 'OperationTime3', 2);
+            $Data->createCertificateInformation($tblCertificate, 'Operation4', 2);
+            $Data->createCertificateInformation($tblCertificate, 'OperationTime4', 2);
+
+            $Data->createCertificateInformation($tblCertificate, 'RemarkWithoutTeam', 3);
+
+            $Data->createCertificateInformation($tblCertificate, 'DateExam', 4);
+            $Data->createCertificateInformation($tblCertificate, 'ExamCenter', 4);
+            $Data->createCertificateInformation($tblCertificate, 'AddEducation_Average_EXAM', 4);
+        }
+    }
+
+    /**
+     * @param Data $Data
+     * @param $CertificateNumber
+     */
+    private static function setBfsAbgGeneralistik(Data $Data, $CertificateNumber)
+    {
+
+        $tblCertificate = $Data->createCertificate('Berufsfachschule Abgangszeugnis', 'Generalistik', 'BfsAbgGeneralistik',
+            null, false, false, false, $Data->getTblCertificateTypeLeave(), $Data->getTblSchoolTypeBerufsfachschule());
+        if ($tblCertificate) {
+            if($tblCertificate->getCertificateNumber() != $CertificateNumber){
+                $Data->updateCertificateNumber($tblCertificate, $CertificateNumber);
+            }
         }
     }
 }

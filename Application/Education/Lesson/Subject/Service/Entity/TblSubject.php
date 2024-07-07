@@ -145,7 +145,7 @@ class TblSubject extends Element
     public function getTechnicalAcronymForCertificateFromName()
     {
         $name = $this->getName();
-        if (strpos($name, 'LF') === 0) {
+        if (strpos($name ?: '', 'LF') === 0) {
             $split = explode(' ', $name);
 
             if (isset($split[0])) {
