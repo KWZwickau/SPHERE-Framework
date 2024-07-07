@@ -13,8 +13,6 @@ use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
-use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
-use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTestType;
 use SPHERE\Application\Education\Graduation\Grade\Grade;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblGradeType;
 use SPHERE\Application\Education\Lesson\Division\Division;
@@ -37,7 +35,6 @@ class TblPrepareGrade extends Element
     const ATTR_SERVICE_TBL_PERSON = 'serviceTblPerson';
     const ATTR_SERVICE_TBL_DIVISION = 'serviceTblDivision';
     const ATTR_SERVICE_TBL_SUBJECT = 'serviceTblSubject';
-    const ATTR_SERVICE_TBL_TEST_TYPE = 'serviceTblTestType';
     const ATTR_SERVICE_TBL_GRADE_TYPE = 'serviceTblGradeType';
 
     /**
@@ -59,11 +56,6 @@ class TblPrepareGrade extends Element
      * @Column(type="bigint")
      */
     protected $serviceTblSubject;
-
-    /**
-     * @Column(type="bigint")
-     */
-    protected $serviceTblTestType;
 
     /**
      * @Column(type="bigint")
@@ -133,15 +125,6 @@ class TblPrepareGrade extends Element
     }
 
     /**
-     * @param TblDivision|null $tblDivision
-     */
-    public function setServiceTblDivision(TblDivision $tblDivision = null)
-    {
-
-        $this->serviceTblDivision = (null === $tblDivision ? null : $tblDivision->getId());
-    }
-
-    /**
      * @return bool|TblSubject
      */
     public function getServiceTblSubject()
@@ -161,28 +144,6 @@ class TblPrepareGrade extends Element
     {
 
         $this->serviceTblSubject = ( null === $tblSubject ? null : $tblSubject->getId() );
-    }
-
-    /**
-     * @return bool|TblTestType
-     */
-    public function getServiceTblTestType()
-    {
-
-        if (null === $this->serviceTblTestType) {
-            return false;
-        } else {
-            return Evaluation::useService()->getTestTypeById($this->serviceTblTestType);
-        }
-    }
-
-    /**
-     * @param TblTestType|null $tblTestType
-     */
-    public function setServiceTblTestType(TblTestType $tblTestType = null)
-    {
-
-        $this->serviceTblTestType = ( null === $tblTestType ? null : $tblTestType->getId() );
     }
 
     /**

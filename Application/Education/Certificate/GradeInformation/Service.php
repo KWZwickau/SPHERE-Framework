@@ -10,7 +10,6 @@ namespace SPHERE\Application\Education\Certificate\GradeInformation;
 
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCertificate;
-use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Graduation\Grade\Grade;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Common\Frontend\Form\IFormInterface;
@@ -48,7 +47,6 @@ class Service
         }
 
         if ($Grades) {
-            $tblTestType = Evaluation::useService()->getTestTypeByIdentifier('BEHAVIOR_TASK');
             foreach ($Grades as $personId => $personGrades) {
                 if (($tblPerson = Person::useService()->getPersonById($personId))
                     && is_array($personGrades)
@@ -58,7 +56,7 @@ class Service
                             && ($tblGradeType = Grade::useService()->getGradeTypeById($gradeTypeId))
                         ) {
                             Prepare::useService()->updatePrepareGradeForBehavior(
-                                $tblPrepare, $tblPerson, $tblTestType, $tblGradeType, trim($value)
+                                $tblPrepare, $tblPerson, $tblGradeType, trim($value)
                             );
                         }
                     }

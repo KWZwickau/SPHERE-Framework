@@ -13,7 +13,6 @@ use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCo
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareGrade;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareInformation;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareStudent;
-use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTestType;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblGradeType;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTask;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
@@ -105,7 +104,6 @@ class Data extends DataLeave
     /**
      * @param TblPrepareCertificate $tblPrepare
      * @param TblPerson $tblPerson
-     * @param TblTestType $tblTestType
      * @param TblGradeType $tblGradeType
      *
      * @return false|TblPrepareGrade
@@ -113,14 +111,12 @@ class Data extends DataLeave
     public function getPrepareGradeByGradeType(
         TblPrepareCertificate $tblPrepare,
         TblPerson $tblPerson,
-        TblTestType $tblTestType,
         TblGradeType $tblGradeType
     ) {
         return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPrepareGrade',
             array(
                 TblPrepareGrade::ATTR_TBL_PREPARE_CERTIFICATE => $tblPrepare->getId(),
                 TblPrepareGrade::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
-                TblPrepareGrade::ATTR_SERVICE_TBL_TEST_TYPE => $tblTestType->getId(),
                 TblPrepareGrade::ATTR_SERVICE_TBL_GRADE_TYPE => $tblGradeType->getId(),
             )
         );
@@ -333,7 +329,6 @@ class Data extends DataLeave
     /**
      * @param TblPrepareCertificate $tblPrepare
      * @param TblPerson $tblPerson
-     * @param TblTestType $tblTestType
      * @param TblGradeType $tblGradeType
      * @param $Grade
      *
@@ -342,7 +337,6 @@ class Data extends DataLeave
     public function updatePrepareGradeForBehavior(
         TblPrepareCertificate $tblPrepare,
         TblPerson $tblPerson,
-        TblTestType $tblTestType,
         TblGradeType $tblGradeType,
         $Grade
     ): TblPrepareGrade {
@@ -353,14 +347,12 @@ class Data extends DataLeave
         $Entity = $Manager->getEntity('TblPrepareGrade')->findOneBy(array(
             TblPrepareGrade::ATTR_TBL_PREPARE_CERTIFICATE => $tblPrepare->getId(),
             TblPrepareGrade::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
-            TblPrepareGrade::ATTR_SERVICE_TBL_TEST_TYPE => $tblTestType->getId(),
             TblPrepareGrade::ATTR_SERVICE_TBL_GRADE_TYPE => $tblGradeType->getId(),
         ));
         if ($Entity === null) {
             $Entity = new TblPrepareGrade();
             $Entity->setTblPrepareCertificate($tblPrepare);
             $Entity->setServiceTblPerson($tblPerson);
-            $Entity->setServiceTblTestType($tblTestType);
             $Entity->setServiceTblGradeType($tblGradeType);
             $Entity->setGrade($Grade);
 

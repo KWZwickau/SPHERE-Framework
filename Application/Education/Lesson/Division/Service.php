@@ -4,8 +4,6 @@ namespace SPHERE\Application\Education\Lesson\Division;
 use SPHERE\Application\Corporation\Company\Company;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Education\Diary\Diary;
-use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
-use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
 use SPHERE\Application\Education\Lesson\Division\Filter\Filter;
 use SPHERE\Application\Education\Lesson\Division\Service\Data;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
@@ -2696,11 +2694,7 @@ class Service extends AbstractService
     public function canRemoveSubjectGroup(TblDivisionSubject $tblDivisionSubject)
     {
 
-        if (Evaluation::useService()->existsTestByDivisionSubject($tblDivisionSubject)) {
-            return false;
-        }
-
-        return !Gradebook::useService()->existsGradeByDivisionSubject($tblDivisionSubject);
+        return true;
     }
 
     /**
