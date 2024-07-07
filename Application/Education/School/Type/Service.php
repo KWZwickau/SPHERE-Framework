@@ -160,6 +160,7 @@ class Service extends AbstractService
         switch ($tblType->getShortName()) {
             case 'GS': return GatekeeperConsumer::useService()->getConsumerBySessionIsConsumerType(TblConsumer::TYPE_BERLIN) ? 6 : 4;
             case 'ISS':
+            case 'RS':
             case 'OS': return 10;
             case 'Gy': return 12;
 
@@ -184,6 +185,7 @@ class Service extends AbstractService
     {
         switch ($tblType->getShortName()) {
             case 'ISS':
+            case 'RS':
             case 'OS':
             case 'Gy': return 5;
 

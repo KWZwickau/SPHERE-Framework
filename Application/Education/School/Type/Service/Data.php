@@ -41,6 +41,9 @@ class Data extends AbstractData
         // // Berlin
         $this->createType('Integrierte Sekundarschule', 'ISS', $tblCategoryCommon, true);
 
+        // Thüringen
+        $this->createType('Regelschule', 'RS', $tblCategoryCommon, true);
+
         // Berufsbildend
         $this->createType('Berufliches Gymnasium', 'BGy', $tblCategoryTechnical, true);
         $this->createType('Berufsfachschule', 'BFS', $tblCategoryTechnical, true);
