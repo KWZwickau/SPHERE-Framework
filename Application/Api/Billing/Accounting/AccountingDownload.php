@@ -38,11 +38,11 @@ class AccountingDownload implements IModuleInterface
     }
 
     /**
-     * @param null $GroupId
+     * @param string $Date
      *
-     * @return bool|string
+     * @return string
      */
-    public function downloadAccountingList()
+    public function downloadAccountingList(string $Date = '')
     {
         ini_set('memory_limit', '1G');
 
@@ -55,7 +55,7 @@ class AccountingDownload implements IModuleInterface
             });
             // maybe new PHP version?
 //            usort($ExcelContent, fn($a, $b) => strtotime($a["date"]) - strtotime($b["date"]));
-            $fileLocation = Export::useService()->createAccountingExcelDownload($ExcelContent);
+            $fileLocation = Export::useService()->createAccountingExcelDownload($ExcelContent, $Date);
 
             return FileSystem::getDownload($fileLocation->getRealPath(),
                 "Fakturierung Beitragszahler ".date("d-m-Y").".xlsx")->__toString();

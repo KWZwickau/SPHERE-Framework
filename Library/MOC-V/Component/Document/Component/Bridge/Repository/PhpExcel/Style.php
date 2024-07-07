@@ -100,6 +100,10 @@ class Style
         if (null === $this->CellBR) {
             return array($this->CellTL->getColumnName());
         } else {
+            // fix with downside: no range but single Column is ok
+            if(strlen($this->CellTL->getColumnName()) > 1){
+                return array(0 => $this->CellTL->getColumnName());
+            }
             return range($this->CellTL->getColumnName(), $this->CellBR->getColumnName());
         }
     }
