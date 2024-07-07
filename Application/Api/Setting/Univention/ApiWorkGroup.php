@@ -174,6 +174,8 @@ class ApiWorkGroup implements IApiInterface
                 }
             } elseif($Type == 'ok'){
                 $Panel = new Panel($GroupName, 'Gruppe identisch vorhanden ('.count($UserList).' Personen)', Panel::PANEL_TYPE_DEFAULT);
+            } elseif($Type == 'canNot'){
+                $Panel = new Panel($GroupName, 'Erlaubte Zeichen [a-zA-Z0-9 -] und darf nicht mit "-" anfangen oder enden', Panel::PANEL_TYPE_DANGER);
             }
 
             $Identifier++;
