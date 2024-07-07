@@ -748,9 +748,9 @@ class Service extends ServiceYearChange
     public function destroyDivisionCourse(TblDivisionCourse $tblDivisionCourse): bool
     {
         // Verknüpfungen mit anderen Kursen löschen
-        if (($tblSubDivisionCourseList = $this->getSubDivisionCourseListByDivisionCourse($tblDivisionCourse))) {
-            foreach ($tblSubDivisionCourseList as $tblSubDivisionCourse) {
-                $this->removeSubDivisionCourseFromDivisionCourse($tblDivisionCourse, $tblSubDivisionCourse);
+        if (($tblDivisionCourseLinkList = (new Data($this->getBinding()))->getDivisionCourseLinkListByDivisionCourse($tblDivisionCourse))) {
+            foreach ($tblDivisionCourseLinkList as $tblDivisionCourseLink) {
+                (new Data($this->getBinding()))->destroyDivisionCourseLink($tblDivisionCourseLink);
             }
         }
 

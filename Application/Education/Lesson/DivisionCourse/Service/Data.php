@@ -523,6 +523,27 @@ class Data extends DataTeacher
     }
 
     /**
+     * @param TblDivisionCourseLink $tblDivisionCourseLink
+     *
+     * @return bool
+     */
+    public function destroyDivisionCourseLink(TblDivisionCourseLink $tblDivisionCourseLink): bool
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+        $Entity = $Manager->getEntityById('TblDivisionCourseLink', $tblDivisionCourseLink->getId());
+        if(null !== $Entity){
+            /** @var Element $Entity */
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
+
+            $Manager->killEntity($Entity);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
      * @param TblDivisionCourse $tblDivisionCourse
      *
      * @return TblDivisionCourse[]|false
@@ -546,6 +567,17 @@ class Data extends DataTeacher
         }
 
         return false;
+    }
+
+    /**
+     * @param TblDivisionCourse $tblDivisionCourse
+     *
+     * @return false|TblDivisionCourseLink[]
+     */
+    public function getDivisionCourseLinkListByDivisionCourse(TblDivisionCourse $tblDivisionCourse)
+    {
+        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblDivisionCourseLink',
+            array(TblDivisionCourseLink::ATTR_TBL_DIVISION_COURSE => $tblDivisionCourse->getId()));
     }
 
     /**
