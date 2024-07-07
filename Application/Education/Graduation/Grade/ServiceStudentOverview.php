@@ -13,6 +13,7 @@ use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisio
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseMember;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblStudentEducation;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
+use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblPeriod;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -545,10 +546,11 @@ abstract class ServiceStudentOverview extends ServiceScoreCalc
      * @param TblDivisionCourse $tblDivisionCourse
      * @param $Filter
      * @param bool $isPdf
+     * @param TblPeriod|null $tblPeriod
      *
      * @return array
      */
-    public function getStudentOverviewCourseData(TblDivisionCourse $tblDivisionCourse, $Filter, bool $isPdf): array
+    public function getStudentOverviewCourseData(TblDivisionCourse $tblDivisionCourse, $Filter, bool $isPdf, ?TblPeriod $tblPeriod = null): array
     {
         $bodyList = array();
         $headerList = array();
@@ -604,10 +606,18 @@ abstract class ServiceStudentOverview extends ServiceScoreCalc
                     foreach ($tblSubjectList as $tblSubject) {
                         // Schüler Berechnungsvorschrift ermitteln
                         $tblScoreRule = Grade::useService()->getScoreRuleByPersonAndYearAndSubject($tblPerson, $tblYear, $tblSubject, $tblDivisionCourse);
-                        if (($tblTestGradeList = Grade::useService()->getTestGradeListByPersonAndYearAndSubject(
-                            $tblPerson, $tblYear, $tblSubject
-                        ))) {
-                            list ($average, $scoreRuleText, $error) = Grade::useService()->getCalcStudentAverage($tblPerson, $tblYear, $tblTestGradeList, $tblScoreRule ?: null);
+
+                        // Zensuren abhängig vom Halbjahr
+                        if ($tblPeriod) {
+                            $tblTestGradeList = Grade::useService()->getTestGradeListBetweenDateTimesByPersonAndYearAndSubject(
+                                $tblPerson, $tblYear, $tblSubject, $tblPeriod->getFromDateTime(), $tblPeriod->getToDateTime()
+                            );
+                        } else {
+                            $tblTestGradeList = Grade::useService()->getTestGradeListByPersonAndYearAndSubject($tblPerson, $tblYear, $tblSubject);
+                        }
+
+                        if ($tblTestGradeList) {
+                            list ($average, $scoreRuleText, $error) = Grade::useService()->getCalcStudentAverage($tblPerson, $tblYear, $tblTestGradeList, $tblScoreRule ?: null, $tblPeriod ?: null);
                             $contentSubject = '&#216; '
                                 . ($isPdf
                                     ? $average
@@ -640,7 +650,7 @@ abstract class ServiceStudentOverview extends ServiceScoreCalc
             foreach ($headerList as $key => $value) {
                 $contentTemp = '';
                 if ($key == 'Person') {
-                    $contentTemp = Grade::useFrontend()->getTableColumnBody(new Muted('&#216; Fach-Klasse'));
+                    $contentTemp = Grade::useFrontend()->getTableColumnBody(new Muted('&#216; Fach-Kurs'));
                 } elseif (isset($averageSumList[$key])) {
                     $contentTemp = Grade::useFrontend()->getTableColumnBody('&#216; ' . Grade::useService()->getGradeAverage($averageSumList[$key], $averageCountList[$key]));
                 }
