@@ -52,7 +52,7 @@ class Service extends AbstractService
     /**
      * @return array|false
      */
-    public function getAccountingContentByGroup()
+    public function getAccountingContentByGroup(string $Date = 'now')
     {
 
         $tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_DEBTOR);
@@ -75,7 +75,7 @@ class Service extends AbstractService
 //        $tblPersonList = (new Sorter($tblPersonList))->sortObjectBy('getLastFirstName');
 
         $ExcelContent = array();
-        $DateNow = new DateTime();
+        $DateT = new DateTime($Date);
         foreach($tblPersonList as $tblPersonDebtor){
             $item = array();
             $item['DebtorFirstName'] = $tblPersonDebtor->getFirstName();
@@ -150,7 +150,7 @@ class Service extends AbstractService
             $item['CauserActiveGroup'] = '0';
             if(($tblDebtorSelectionList = Debtor::useService()->getDebtorSelectionByPersonDebtor($tblPersonDebtor))){
                 $UsingBankAccountList = array();
-                $tblYearList = Term::useService()->getYearByNow();
+                $tblYearList = Term::useService()->getYearAllByDate($DateT);
                 foreach($tblDebtorSelectionList as $tblDebtorSelection){
                     // muss für jeden Schleifenaufruf erneut gesetzt werden
                     $item['CreateUpdate'] = $item['ItemName'] =$item['Value'] = $item['VariantPrice'] = '';
@@ -178,8 +178,8 @@ class Service extends AbstractService
                         $VariantName = $tblItemVariant->getName().($tblItemVariant->getDescription() ? ' - '.$tblItemVariant->getDescription() : '');
                         if(($tblItemCalculationList = Item::useService()->getItemCalculationByItemVariant($tblItemVariant))){
                             foreach($tblItemCalculationList as $tblItemCalculation){
-                                if($tblItemCalculation->getDateFrom(true) <= $DateNow
-                                    && ($tblItemCalculation->getDateTo() === false || $tblItemCalculation->getDateTo(true) >= $DateNow)){
+                                if($tblItemCalculation->getDateFrom(true) <= $DateT
+                                    && ($tblItemCalculation->getDateTo() === false || $tblItemCalculation->getDateTo(true) >= $DateT)){
                                     $item['Variant'] = $VariantName;
                                     $item['VariantPrice'] = $tblItemCalculation->getPriceString();
                                     break;

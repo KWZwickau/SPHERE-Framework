@@ -46,7 +46,7 @@ class AccountingDownload implements IModuleInterface
     {
         ini_set('memory_limit', '1G');
 
-        if(($ExcelContent = Export::useService()->getAccountingContentByGroup())){
+        if(($ExcelContent = Export::useService()->getAccountingContentByGroup($Date))){
 
             usort($ExcelContent, function($a1, $a2) {
                 $v1 = strtotime($a1['CreateUpdate']);
