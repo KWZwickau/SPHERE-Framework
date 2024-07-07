@@ -661,7 +661,7 @@ abstract class ServiceTabs extends ServiceCourseContent
                 . MedicalRecordReadOnly::receiverOverViewModal()
                 . ApiAgreement::receiverOverViewModal()
                 . ApiPersonPicture::receiverModal()
-                . (($inActivePanel = Person::useFrontend()->getInActiveStudentPanel($tblDivisionCourse)) ? $inActivePanel : '')
+                . (($inActivePanel = Person::useFrontend()->getInActiveStudentPanel($tblDivisionCourse, true, $BasicRoute, $ReturnRoute)) ? $inActivePanel : '')
                 . (new TableData($studentTable, null, $columns,
                     array(
                         'paging' => false,

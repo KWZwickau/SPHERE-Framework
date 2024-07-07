@@ -36,6 +36,7 @@ use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
 use SPHERE\Common\Frontend\Icon\Repository\Filter;
 use SPHERE\Common\Frontend\Icon\Repository\Info;
 use SPHERE\Common\Frontend\Icon\Repository\Listing;
+use SPHERE\Common\Frontend\Icon\Repository\Time;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
@@ -1271,18 +1272,41 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return bool|Panel
      */ // ToDO weiter verfolgen
-    public function getInActiveStudentPanel(TblDivisionCourse $tblDivisionCourse)
+    public function getInActiveStudentPanel(TblDivisionCourse $tblDivisionCourse, bool $hasAbsenceButton = false, string $BasicRoute = '', string $ReturnRoute = '')
     {
-        if($tblDivisionCourse instanceof TblDivision){
-            $tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($tblDivisionCourse->getId());
-        }
         $inActiveStudentList = array();
         if (($tblDivisionCourseMemberList = DivisionCourse::useService()->getDivisionCourseMemberListBy($tblDivisionCourse, TblDivisionCourseMemberType::TYPE_STUDENT, true, false))) {
             $now = new DateTime('now');
             foreach ($tblDivisionCourseMemberList as $tblDivisionCourseMember) {
-                if ($tblDivisionCourseMember->getLeaveDateTime() !== null && $now > $tblDivisionCourseMember->getLeaveDateTime()) {
-                    $tblPerson = $tblDivisionCourseMember->getServiceTblPerson();
-                    $inActiveStudentList[] = $tblPerson->getLastFirstName().' (Deaktivierung: ' . $tblDivisionCourseMember->getLeaveDateTime()->format('d.m.Y').')';
+                if ($tblDivisionCourseMember->getLeaveDateTime() !== null && $now > $tblDivisionCourseMember->getLeaveDateTime()
+                    && ($tblPerson = $tblDivisionCourseMember->getServiceTblPerson())
+                    && ($tblYear = $tblDivisionCourse->getServiceTblYear())
+                ) {
+                    $text = $tblPerson->getLastFirstName().' (Deaktivierung: ' . $tblDivisionCourseMember->getLeaveDateTime()->format('d.m.Y').')';
+
+                    if ($hasAbsenceButton) {
+                        $currentMainDivisionCourses = DivisionCourse::useService()->getCurrentMainCoursesByPersonAndYear($tblPerson, $tblYear);
+
+                        $inActiveStudentList[] = new Layout(new LayoutGroup(new LayoutRow(array(
+                            new LayoutColumn($text, 6),
+                            new LayoutColumn(
+                                $currentMainDivisionCourses
+                                    ?
+                                    : new PullRight((new Standard(
+                                        '', '/Education/ClassRegister/Digital/AbsenceStudent', new Time(),
+                                        array(
+                                            'DivisionCourseId' => $tblDivisionCourse->getId(),
+                                            'PersonId'   => $tblPerson->getId(),
+                                            'BasicRoute' => $BasicRoute,
+                                            'ReturnRoute'=> $ReturnRoute
+                                        ),
+                                        'Fehlzeiten des Schülers verwalten'
+                                    )))
+                                , 6)
+                        ))));
+                    } else {
+                        $inActiveStudentList[] = $text;
+                    }
                 }
             }
         }
