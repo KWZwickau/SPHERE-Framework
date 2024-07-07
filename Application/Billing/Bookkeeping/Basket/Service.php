@@ -429,6 +429,9 @@ class Service extends AbstractService
         $tblGroupList = $this->getGroupListByItem($tblItem);
 
         $tblPersonList = $this->getPersonListByGroupList($tblGroupList);
+        if(null !== $tblYear && $tblPersonList){
+            $tblPersonList = $this->filterPersonListByYear($tblPersonList, $tblYear);
+        }
         if(null !== $tblDivisionCourse && $tblPersonList){
             $tblPersonList = $this->filterPersonListByDivision($tblPersonList, $tblDivisionCourse);
         }
@@ -635,6 +638,28 @@ class Service extends AbstractService
             $PersonExclude['IsCreate'] = $IsCreate;
         }
         return $PersonExclude;
+    }
+
+    /**
+     * @param TblPerson[] $tblPersonList
+     * @param TblYear $tblYear
+     *
+     * @return TblPerson[]|bool
+     */
+    private function filterPersonListByYear(array $tblPersonList, TblYear $tblYear)
+    {
+
+        $resultPersonList = array();
+        if(!empty($tblPersonList)){
+            foreach($tblPersonList as $tblPerson){
+                // "list" weil auch deaktivierte Schüler eventuell noch gezogen werden sollen
+                $tblStudentEducation = DivisionCourse::useService()->getStudentEducationListByPersonAndYear($tblPerson, $tblYear);
+                if($tblStudentEducation){
+                    $resultPersonList[] = $tblPerson;
+                }
+            }
+        }
+        return (!empty($resultPersonList) ? $resultPersonList : false);
     }
 
     /**
