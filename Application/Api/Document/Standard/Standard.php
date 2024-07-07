@@ -102,6 +102,8 @@ class Standard extends Extension implements IModuleInterface
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '/StudentOverviewCourse/Create', __CLASS__ . '::createGradeOverviewDivisionCoursePdf'
         ));
+
+        ApiStandard::registerApi();
     }
 
     /**
@@ -281,25 +283,27 @@ class Standard extends Extension implements IModuleInterface
     }
 
     /**
-     * @param string $DivisionCourseId
+     * @param $DivisionCourseId
+     * @param array $Data
      * @param bool $Redirect
      *
      * @return string
      */
-    public static function createEnrollmentDocumentMultiPdf(string $DivisionCourseId, bool $Redirect = true): string
+    public static function createEnrollmentDocumentMultiPdf($DivisionCourseId = null, array $Data = array(), bool $Redirect = true): string
     {
-        return Creator::createMultiEnrollmentDocumentPdf($DivisionCourseId, $Redirect);
+        return Creator::createMultiEnrollmentDocumentPdf($DivisionCourseId, $Data, $Redirect);
     }
 
     /**
-     * @param string $DivisionCourseId
+     * @param $DivisionCourseId
+     * @param array $Data
      * @param bool $Redirect
      *
      * @return string
      */
-    public static function createSignOutCertificateMultiPdf(string $DivisionCourseId, bool $Redirect = true): string
+    public static function createSignOutCertificateMultiPdf($DivisionCourseId = null, array $Data = array(), bool $Redirect = true): string
     {
-        return Creator::createMultiSignOutCertificatePdf($DivisionCourseId, $Redirect);
+        return Creator::createMultiSignOutCertificatePdf($DivisionCourseId, $Data, $Redirect);
     }
 
     /**

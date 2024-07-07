@@ -2,19 +2,24 @@
 
 namespace SPHERE\Application\Document\Standard\SignOutCertificate;
 
+use DateTime;
 use MOC\V\Core\FileSystem\FileSystem;
 use SPHERE\Application\Document\Standard\EnrollmentDocument\EnrollmentDocument;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
+use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
 use SPHERE\Common\Frontend\Form\Repository\Field\HiddenField;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
+use SPHERE\Common\Frontend\Icon\Repository\Calendar;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
+use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Listing;
 use SPHERE\Common\Frontend\Icon\Repository\PersonGroup;
 use SPHERE\Common\Frontend\IFrontendInterface;
@@ -28,8 +33,10 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\External;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
+use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Info;
+use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 
@@ -77,6 +84,53 @@ class Frontend extends Extension implements IFrontendInterface
             ));
 
         return $Stage;
+    }
+
+    /**
+     * @param $Id
+     * @param $Data
+     *
+     * @return string
+     */
+    public function frontendDivisionInput($Id = null, $Data = null): string
+    {
+        $Stage = new Stage('Abmeldebescheinigung', 'Erstellen für Kurs');
+        $Stage->addButton(new Standard('Zurück', '/Document/Standard/SignOutCertificate/Division', new ChevronLeft()));
+        if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($Id))) {
+            $global = $this->getGlobal();
+            $global->POST['Data']['Date'] = (new DateTime('now'))->format('d.m.Y');
+            $global->savePost();
+
+            $Stage->setContent(
+                new Layout(new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            new Panel('Kurs', $tblDivisionCourse->getDisplayName(), Panel::PANEL_TYPE_INFO)
+                            , 6),
+                        new LayoutColumn(
+                            new Panel('Schuljahr', $tblDivisionCourse->getYearName(), Panel::PANEL_TYPE_INFO)
+                            , 6)
+                    ))
+                )))
+                . new Well(
+                    new Form(
+                        new FormGroup(new FormRow(array(
+                            new FormColumn(
+                                new DatePicker('Data[Date]', '', 'Datum der Ausstellung (Dokument - Datum)', new Calendar())
+                                , 6)
+                        ))),
+                        new Primary('Download', new Download(), true),
+                        '/Api/Document/Standard/SignOutCertificate/CreateMulti',
+                        array('DivisionCourseId' => $tblDivisionCourse->getId())
+                    )
+                )
+            );
+
+            return $Stage;
+        } else {
+            return $Stage . new Danger('Kurs wurde nicht gefunden', new Exclamation())
+                . new Redirect('/Document/Standard/SignOutCertificate/Division', Redirect::TIMEOUT_ERROR);
+        }
     }
 
     /**

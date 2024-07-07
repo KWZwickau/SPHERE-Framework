@@ -1210,17 +1210,19 @@ class Creator extends Extension
 
     /**
      * @param string $DivisionCourseId
+     * @param array $Data
      * @param bool $Redirect
      *
      * @return string
      */
-    public static function createMultiEnrollmentDocumentPdf(string $DivisionCourseId, bool $Redirect): string
+    public static function createMultiEnrollmentDocumentPdf(string $DivisionCourseId, array $Data, bool $Redirect): string
     {
         if ($Redirect) {
             return \SPHERE\Application\Api\Education\Certificate\Generator\Creator::displayWaitingPage(
                 '/Api/Document/Standard/EnrollmentDocument/CreateMulti',
                 array(
                     'DivisionCourseId' => $DivisionCourseId,
+                    'Data' => $Data,
                     'Redirect' => 0
                 )
             );
@@ -1239,7 +1241,7 @@ class Creator extends Extension
                     set_time_limit(300);
 
                     $Document = new EnrollmentDocument(\SPHERE\Application\Document\Standard\EnrollmentDocument\EnrollmentDocument::useService()
-                        ->getEnrollmentDocumentData($tblPerson, $tblYear));
+                        ->getEnrollmentDocumentData($tblPerson, $tblYear, $Data));
                     $File = self::buildDummyFile($Document, array(), array());
 
                     // hinzufügen für das mergen
@@ -1271,17 +1273,19 @@ class Creator extends Extension
 
     /**
      * @param string $DivisionCourseId
+     * @param array $Data
      * @param bool $Redirect
      *
      * @return string
      */
-    public static function createMultiSignOutCertificatePdf(string $DivisionCourseId, bool $Redirect): string
+    public static function createMultiSignOutCertificatePdf(string $DivisionCourseId, array $Data, bool $Redirect): string
     {
         if ($Redirect) {
             return \SPHERE\Application\Api\Education\Certificate\Generator\Creator::displayWaitingPage(
                 '/Api/Document/Standard/SignOutCertificate/CreateMulti',
                 array(
                     'DivisionCourseId' => $DivisionCourseId,
+                    'Data' => $Data,
                     'Redirect' => 0
                 )
             );
@@ -1300,7 +1304,7 @@ class Creator extends Extension
                     set_time_limit(300);
 
                     $Document = new SignOutCertificate(\SPHERE\Application\Document\Standard\SignOutCertificate\SignOutCertificate::useService()
-                        ->getSignOutCertificateData($tblPerson, $tblYear));
+                        ->getSignOutCertificateData($tblPerson, $tblYear, $Data));
                     $File = self::buildDummyFile($Document, array(), array());
 
                     // hinzufügen für das mergen

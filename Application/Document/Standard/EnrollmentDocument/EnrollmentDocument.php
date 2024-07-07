@@ -32,6 +32,12 @@ class EnrollmentDocument extends Extension implements IModuleInterface
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '\Division', __NAMESPACE__ . '\Frontend::frontendSelectDivision'
         ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '\Division\Input', __NAMESPACE__ . '\Frontend::frontendDivisionInput'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '\Archive', __NAMESPACE__ . '\Frontend::frontendStudentArchiv'
+        ));
     }
 
     /**

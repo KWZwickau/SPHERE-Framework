@@ -1,7 +1,9 @@
 <?php
 namespace SPHERE\Application\Document\Standard\EnrollmentDocument;
 
+use DateTime;
 use MOC\V\Core\FileSystem\FileSystem;
+use SPHERE\Application\Api\Document\Standard\ApiStandard;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
@@ -17,11 +19,15 @@ use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
+use SPHERE\Common\Frontend\Icon\Repository\Ban;
+use SPHERE\Common\Frontend\Icon\Repository\Calendar;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
+use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Listing;
 use SPHERE\Common\Frontend\Icon\Repository\Person;
 use SPHERE\Common\Frontend\Icon\Repository\PersonGroup;
+use SPHERE\Common\Frontend\Icon\Repository\Search;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Thumbnail;
@@ -33,9 +39,14 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\External;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
+use SPHERE\Common\Frontend\Message\Repository\Danger;
+use SPHERE\Common\Frontend\Message\Repository\Warning as WarningMessage;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Info;
+use SPHERE\Common\Frontend\Text\Repository\Muted;
+use SPHERE\Common\Frontend\Text\Repository\Small;
+use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 
@@ -53,6 +64,15 @@ class Frontend extends Extension implements IFrontendInterface
     {
         $Stage->addButton(new Standard('Schüler', '/Document/Standard/EnrollmentDocument', new Person(), array(), 'Schulbescheinigung eines Schülers'));
         $Url = $_SERVER['REDIRECT_URL'];
+
+        if(strpos($Url, '/EnrollmentDocument/Archiv')){
+            $Stage->addButton(new Standard(new Info(new Bold('Ehemalige (Archiv)')), '/Document/Standard/EnrollmentDocument/Archive', new Person(),
+                array(), 'Schulbescheinigung eines Schülers'));
+        } else {
+            $Stage->addButton(new Standard('Ehemalige (Archiv)', '/Document/Standard/EnrollmentDocument/Archive', new Person(),
+                array(), 'Schulbescheinigung eines ehemaligen Schülers'));
+        }
+
         if(strpos($Url, '/EnrollmentDocument/Division')){
             $Stage->addButton(new Standard(new Info(new Bold('Kurs')), '/Document/Standard/EnrollmentDocument/Division', new PersonGroup(),
                 array(), 'Schulbescheinigungen eines Kurses'));
@@ -95,17 +115,12 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param array $filterYearList
+     * @param string $documentType
      *
      * @return TableData
      */
     public function loadDivisionTable(array $filterYearList, string $documentType = 'EnrollmentDocument'): TableData
     {
-        switch ($documentType) {
-            case 'EnrollmentDocument': $documentName = 'Schulbescheinigungen'; break;
-            case 'SignOutCertificate': $documentName = 'Abmeldebescheinigung'; break;
-            default: $documentName = 'Dokument';
-        }
-
         $dataList = array();
         $tblDivisionCourseList = array();
         if ($filterYearList) {
@@ -137,15 +152,12 @@ class Frontend extends Extension implements IFrontendInterface
                 'SchoolTypes' => $tblDivisionCourse->getSchoolTypeListFromStudents(true),
                 'Count' => $count,
                 'Option' => $count > 0
-                    ? (new External(
-                        '',
-                        '/Api/Document/Standard/' . $documentType .'/CreateMulti',
-                        new Download(),
-                        array(
-                            'DivisionCourseId' => $tblDivisionCourse->getId()
-                        ),
-                        $documentName . ' herunterladen'
-                    ))->__toString()
+                    ? new Standard(
+                        'Erstellen',
+                        '/Document/Standard/' . $documentType . '/Division/Input',
+                        null,
+                        array('Id' => $tblDivisionCourse->getId())
+                    )
                     : ''
             );
         }
@@ -172,6 +184,53 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
+     * @param $Id
+     * @param $Data
+     *
+     * @return string
+     */
+    public function frontendDivisionInput($Id = null, $Data = null): string
+    {
+        $Stage = new Stage('Schulbescheinigung', 'Erstellen für Kurs');
+        $Stage->addButton(new Standard('Zurück', '/Document/Standard/EnrollmentDocument/Division', new ChevronLeft()));
+        if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($Id))) {
+            $global = $this->getGlobal();
+            $global->POST['Data']['Date'] = (new DateTime('now'))->format('d.m.Y');
+            $global->savePost();
+
+            $Stage->setContent(
+                new Layout(new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            new Panel('Kurs', $tblDivisionCourse->getDisplayName(), Panel::PANEL_TYPE_INFO)
+                            , 6),
+                        new LayoutColumn(
+                            new Panel('Schuljahr', $tblDivisionCourse->getYearName(), Panel::PANEL_TYPE_INFO)
+                            , 6)
+                    ))
+                )))
+                . new Well(
+                    new Form(
+                        new FormGroup(new FormRow(array(
+                            new FormColumn(
+                                new DatePicker('Data[Date]', '', 'Datum der Ausstellung (Dokument - Datum)', new Calendar())
+                            , 6)
+                        ))),
+                        new Primary('Download', new Download(), true),
+                        '/Api/Document/Standard/EnrollmentDocument/CreateMulti',
+                        array('DivisionCourseId' => $tblDivisionCourse->getId())
+                    )
+                )
+            );
+
+            return $Stage;
+        } else {
+            return $Stage . new Danger('Kurs wurde nicht gefunden', new Exclamation())
+                . new Redirect('/Document/Standard/EnrollmentDocument/Division', Redirect::TIMEOUT_ERROR);
+        }
+    }
+
+    /**
      * @return Stage
      */
     public static function frontendEnrollmentDocument(): Stage
@@ -192,6 +251,120 @@ class Frontend extends Extension implements IFrontendInterface
         );
 
         return $Stage;
+    }
+
+    /**
+     * @param null $Search
+     *
+     * @return Stage
+     */
+    public function frontendStudentArchiv($Search = null): Stage
+    {
+        if ($Search) {
+            $global = $this->getGlobal();
+            $global->POST['Data']['Search'] = $Search;
+            $global->savePost();
+        }
+
+        $Stage = new Stage('Schulbescheinigung', 'Ehemaligen Schüler auswählen');
+        self::setButtonList($Stage);
+
+        $panel = new Panel(
+            new Search() . ' Personen-Suche',
+            (new Form(new FormGroup(new FormRow(array(
+                new FormColumn(
+                    (new TextField('Data[Search]', '', ''))
+                        ->ajaxPipelineOnKeyUp(ApiStandard::pipelineSearchPerson())
+                ),
+            )))))->disableSubmitAction(),
+            Panel::PANEL_TYPE_INFO
+        );
+
+        $Stage->setContent(
+            new Layout(array(
+                new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn(array(
+                            $panel,
+                            ApiStandard::receiverBlock($Search ? $this->loadPersonSearch($Search) : '', 'SearchContent')
+                        )),
+                    ))
+                )),
+            ))
+        );
+
+        return $Stage;
+    }
+
+    /**
+     * @param $Search
+     *
+     * @return string
+     */
+    public function loadPersonSearch($Search): string
+    {
+        if ($Search != '' && strlen($Search) > 2) {
+            $Search = str_replace(',', '', $Search);
+            $Search = str_replace('.', '', $Search);
+            $resultList = array();
+            $result = '';
+            if (($tblPersonList = \SPHERE\Application\People\Person\Person::useService()->getPersonListLike($Search))
+                && ($tblGroupArchiv = Group::useService()->getGroupByMetaTable('ARCHIVE'))
+            ) {
+                foreach ($tblPersonList as $tblPerson) {
+                    if (Group::useService()->existsGroupPerson($tblGroupArchiv, $tblPerson)) {
+                        $tblAddress = $tblPerson->fetchMainAddress();
+
+                        $resultList[] = array(
+                            'Name'     => $tblPerson->getLastFirstName(),
+                            'Address'  => $tblAddress ? $tblAddress->getGuiString() : '',
+                            'Option'   => new Standard(
+                                'Erstellen',
+                                '/Document/Standard/EnrollmentDocument/Fill',
+                                null,
+                                array('PersonId' => $tblPerson->getId())
+                            )
+                        );
+                    }
+                }
+
+                $columnList = array(
+                    'Name'   => 'Name',
+                    'Address'    => 'Adresse',
+                    'Option'     => '',
+                );
+
+                // https://datatables.net/manual/tech-notes/3
+                // 'destroy' => true
+
+                $result = new TableData(
+                    $resultList,
+                    null,
+                    $columnList,
+                    array(
+                        'columnDefs' => array(
+                            array('type' => \SPHERE\Application\Setting\Consumer\Consumer::useService()->getGermanSortBySetting(), 'targets' => 0),
+                            array('orderable' => false, 'width' => '30px', 'targets' => -1),
+                        ),
+                        'pageLength' => -1,
+                        'paging' => false,
+                        'info' => false,
+                        'searching' => false,
+                        'responsive' => false,
+                        'destroy' => true
+                    )
+                );
+            }
+
+            if (empty($resultList)) {
+                $result = new WarningMessage('Es wurden keine entsprechenden Personen gefunden.', new Ban());
+            }
+        } else {
+            $result = new WarningMessage('Bitte geben Sie mindestens 3 Zeichen in die Suche ein.', new Exclamation());
+        }
+
+        return new Title('Verfügbare Personen ' . new Small(new Muted('der Personen-Suche: ')) . new Bold($Search))
+            . $result;
     }
 
     /**
