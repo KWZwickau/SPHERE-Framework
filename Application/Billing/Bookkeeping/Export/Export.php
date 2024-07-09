@@ -84,7 +84,7 @@ class Export implements IModuleInterface
     {
 
         $Stage = new Stage('Download', 'aller Zahlungsinformationen');
-        $Stage->addButton(new External('Zahlungsinformationen Beitragszahler', '/Api/Billing/Accounting/AccountingDownload', new Download(), array(), '', External::STYLE_BUTTON_PRIMARY));
+//        $Stage->addButton(new External('Zahlungsinformationen Beitragszahler', '/Api/Billing/Accounting/AccountingDownload', new Download(), array(), '', External::STYLE_BUTTON_PRIMARY));
         $now = new \DateTime();
         $nowString = $now->format('d.m.Y');
         if(!isset($_POST['Date'])){
