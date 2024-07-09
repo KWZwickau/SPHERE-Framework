@@ -347,7 +347,7 @@ class Service extends AbstractService
         /** @var PhpExcel $export */
         $export = Document::getDocument($fileLocation->getFileLocation());
 
-        $export->renameWorksheet('aktive stand '.$Now->format('d.m.Y'));
+        $export->renameWorksheet('aktiv (Stand '.$Now->format('d.m.Y').')');
         $this->setExcelHeader($export, $Column, $Row);
         if(!empty($ExcelContent)){
             $this->setExcelContent($export, $Row, $aktiveContent);
