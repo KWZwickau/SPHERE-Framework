@@ -63,17 +63,11 @@ class AccidentReport extends Extension
 {
     public static function registerModule()
     {
-        Main::getDisplay()->addModuleNavigation(
-            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Unfallanzeige'))
-        );
 
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__, __CLASS__.'::frontendSelectPerson'
-        ));
+        Main::getDisplay()->addModuleNavigation(new Link(new Link\Route(__NAMESPACE__), new Link\Name('Unfallanzeige')));
 
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/Fill', __CLASS__.'::frontendFillAccidentReport'
-        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(__NAMESPACE__, __CLASS__.'::frontendSelectPerson'));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(__NAMESPACE__.'/Fill', __CLASS__.'::frontendFillAccidentReport'));
     }
 
     /**
@@ -122,7 +116,11 @@ class AccidentReport extends Extension
             $Global->POST['Data']['TargetAddressStreet'] = 'Culemeyerstraße 2';
             $Global->POST['Data']['TargetAddressCity'] = '12277 Berlin';
         }
-
+        if (GatekeeperConsumer::useService()->getConsumerBySessionIsConsumerType(TblConsumer::TYPE_THUERINGEN)) {
+            $Global->POST['Data']['AddressTarget'] = 'Unfallkasse Thüringen';
+            $Global->POST['Data']['TargetAddressStreet'] = 'Humboldtstrasse 111';
+            $Global->POST['Data']['TargetAddressCity'] = '99867 Gotha ';
+        }
         if ($tblPerson) {
             $Global->POST['Data']['LastFirstName'] = $tblPerson->getLastFirstName();
             $Global->POST['Data']['Date'] = (new DateTime())->format('d.m.Y');
@@ -135,6 +133,11 @@ class AccidentReport extends Extension
                     $Global->POST['Data']['Birthday'] = $tblCommonBirthDates->getBirthday();
                     if (($tblCommonGender = $tblCommonBirthDates->getTblCommonGender())) {
                         $Global->POST['Data']['Gender'] = $tblCommonGender->getName();
+                    }
+                }
+                if(($tblStudent = $tblPerson->getStudent())){
+                    if(($tblStudentMedicalRecord = $tblStudent->getTblStudentMedicalRecord())){
+                        $Global->POST['Data']['Insurance'] = $tblStudentMedicalRecord->getInsurance();
                     }
                 }
             }
@@ -317,7 +320,18 @@ class AccidentReport extends Extension
         }
         $Global->savePost();
 
-        $form = $this->formAccidentReport();
+
+        $form = null;
+        if (GatekeeperConsumer::useService()->getConsumerBySessionIsConsumerType(TblConsumer::TYPE_BERLIN)) {
+            $form = $this->formAccidentReportBE();
+        }
+        if (GatekeeperConsumer::useService()->getConsumerBySessionIsConsumerType(TblConsumer::TYPE_THUERINGEN)) {
+            $form = $this->formAccidentReportTH();
+        }
+        if (GatekeeperConsumer::useService()->getConsumerBySessionIsConsumerType(TblConsumer::TYPE_SACHSEN)) {
+            $form = $this->formAccidentReportSN();
+        }
+
 
         $HeadPanel = new Panel('Schüler', $tblPerson->getLastFirstName());
 
@@ -340,7 +354,7 @@ class AccidentReport extends Extension
                             , 7),
                         new LayoutColumn(
                             new Title('Vorlage des Standard-Dokuments "Unfallanzeige"')
-                            .new Thumbnail(FileSystem::getFileLoader('/Common/Style/Resource/Document/AccidentReportNew.png'), '')
+                            .new Thumbnail(FileSystem::getFileLoader('/Common/Style/Resource/Document/AccidentReportStandard.png'), '')
                             , 5),
                     ))
                 ))
@@ -351,9 +365,534 @@ class AccidentReport extends Extension
     }
 
     /**
+     * @return LayoutColumn
+     */
+    private function getFormCompany(): LayoutColumn
+    {
+        return new LayoutColumn(new Well(
+            new Layout(
+                new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            new TextField('Data[School]', 'Schule',
+                                new Sup(1).' Schule')
+                            , 6),
+                        new LayoutColumn(
+                            new TextField('Data[SchoolExtended]', 'Zusatz',
+                                new Sup(1).' Zusatz')
+                            , 6)
+                    )),
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            new TextField('Data[SchoolAddressStreet]', 'Straße Nr.',
+                                new Sup(1).' Straße Hausnummer')
+                            , 6),
+                        new LayoutColumn(
+                            new TextField('Data[SchoolAddressCity]', 'PLZ Ort',
+                                new Sup(1).' PLZ Ort')
+                            , 6)
+                    ))
+                ))
+            )
+        ));
+    }
+
+    /**
+     * @return LayoutColumn
+     */
+    private function getFormResponibility(): LayoutColumn
+    {
+        return new LayoutColumn(new Well(new Layout(new LayoutGroup(
+            new LayoutRow(array(
+                new LayoutColumn(
+                    new TextField('Data[SchoolResponsibility]',
+                        'Träger der Einrichtung',
+                        new Sup(2).' Träger der Einrichtung')
+                    , 6),
+                new LayoutColumn(
+                    new TextField('Data[CompanyNumber]', 'Unternehmensnr.',
+                        new Sup(3).' Unternehmensnr.')
+                    , 6)
+            ))
+        ))));
+    }
+
+    /**
+     * @return LayoutColumn
+     */
+    private function getFormReceiver(): LayoutColumn
+    {
+        return new LayoutColumn(new Well(new Layout(new LayoutGroup(
+            new LayoutRow(array(
+                new LayoutColumn(
+                    new TextField('Data[AddressTarget]', 'Empfänger',
+                        new Sup(4).' Empfänger')
+                    , 4),
+                new LayoutColumn(
+                    new TextField('Data[TargetAddressStreet]', 'Straße Hausnummer',
+                        new Sup(4).' Straße Hausnummer')
+                    , 4),
+                new LayoutColumn(
+                    new TextField('Data[TargetAddressCity]', 'PLZ Ort',
+                        new Sup(4).' PLZ Ort')
+                    , 4)
+            ))
+        ))));
+    }
+
+    /**
+     * @return LayoutColumn
+     */
+    private function getFormStudent(): LayoutColumn
+    {
+        return new LayoutColumn(new Well(
+            new Layout(
+                new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            new TextField('Data[LastFirstName]', 'Name, Vorname',
+                                new Sup(5).' Name, Vorname des Schülers/der Schülerin')
+                            , 8),
+                        new LayoutColumn(
+                            new TextField('Data[Birthday]', 'Geburtstag',
+                                new Sup(6).' Geburtstag')
+                            , 4),
+                    )),
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            new TextField('Data[AddressStreet]', 'Straße, Hausnummer',
+                                new Sup(7).' Straße, Hausnummer')
+                            , 6),
+                        new LayoutColumn(
+                            new TextField('Data[AddressPLZ]', 'Postleitzahl',
+                                'Postleitzahl')
+                            , 3),
+                        new LayoutColumn(
+                            new TextField('Data[AddressCity]', 'Ort',
+                                'Ort')
+                            , 3),
+                    )),
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            new Bold(new Sup(8).' Geschlecht').
+                            new Listing(array(
+                                new RadioBox('Data[Gender]', 'Männlich',
+                                    'Männlich'),
+                                new RadioBox('Data[Gender]', 'Weiblich',
+                                    'Weiblich'),
+                                new RadioBox('Data[Gender]', 'Divers',
+                                    'Divers'),
+                                new RadioBox('Data[Gender]', 'Keine Angabe',
+                                    'Without')
+                            ))
+                            , 3),
+                        new LayoutColumn(
+                            new TextField('Data[Nationality]', 'Staatsangehörigkeit',
+                                new Sup(9).' Staatsangehörigkeit')
+                            , 3),
+                        new LayoutColumn(
+                            new TextField('Data[Custody]', 'Vertreter',
+                                new Sup(10).' Vertreter')
+                            , 6),
+                        new LayoutColumn(
+                            '&nbsp;'
+                            , 3),
+                        new LayoutColumn(
+                            new TextField('Data[CustodyAddress]', 'Str Nr. PLZ Ort',
+                                new Sup(10).' Anschrift Vertreter')
+                            , 6),
+                    )),
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            new TextField('Data[Insurance]', 'Krankenkasse',
+                                new Sup(11).' Krankenkasse (Name, PLZ, Ort, bei Familienversicherung Name des Mitglieds)')
+                        ),
+                    )),
+                ))
+            )
+        ));
+    }
+
+    private function getFormAccident(): LayoutColumn
+    {
+        $now = new DateTime();
+        return new LayoutColumn(new Well(
+            new Layout(
+                new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            new PullClear(new Bold(new Sup(12).' Tödlicher Unfall?')).
+                            new PullLeft(new CheckBox('Data[DeathAccidentNo]',
+                                'Nein &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;', true, array('Data[DeathAccidentYes]'))).
+                            new PullLeft(new CheckBox('Data[DeathAccidentYes]',
+                                'Ja', true, array('Data[DeathAccidentNo]')))
+                            , 3),
+                        new LayoutColumn(
+                            new TextField('Data[AccidentDate]',
+                                (new DateTime())->format('d.m.Y'),
+                                new Sup(13).' Datum des Unfalls (TT.MM.JJJJ)')
+                            , 4),
+                        new LayoutColumn(
+                            new TextField('Data[AccidentTime]', $now->format('H:m'),
+                                new Sup(13).'Uhrzeit (h:m)')
+                            , 3),
+                    )),
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            new TextField('Data[AccidentPlace]', 'Ort',
+                                new Sup(14).' Unfallort')
+                            , 6),
+                        new LayoutColumn(
+                            new PullClear(new Header(new Bold(new Sup(15).' Unfall beim Distanzunterricht')))
+                            .new Container(
+                                new PullLeft(new CheckBox('Data[DistanceNo]',
+                                    'Nein &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;', true, array('Data[DistanceYes]')))
+                                .new PullLeft(new CheckBox('Data[DistanceYes]', 'Ja', true, array('Data[DistanceNo]')))
+                            )
+                            , 6)
+                    )),
+                    new LayoutRow(
+                        new LayoutColumn(
+                            new TextArea('Data[AccidentDescription]', 'Beschreibung',
+                                new Sup(16).' Ausführliche Beschreibung des Unfallhergangs')
+                        )
+                    ),
+                    new LayoutRow(
+                        new LayoutColumn(
+                            new PullLeft(new Header(new Bold('Die Angaben beruhen auf der Schilderung &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;')))
+                            .new Container(
+                                new PullLeft(new CheckBox('Data[DescriptionActive]',
+                                    'des Versicherten &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;', true, array('Data[DescriptionPassive]')))
+                                .new PullLeft(new CheckBox('Data[DescriptionPassive]', 'andere Personen', true, array('Data[DescriptionActive]')))
+                            )
+                        )
+                    ),
+                    new LayoutRow(
+                        new LayoutColumn(
+                            new Title('')
+                        )
+                    ),
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            new TextField('Data[AccidentBodyParts]',
+                                'Kopf, Bein, Arm, etc.',
+                                new Sup(17).' Verletzte Körperteile')
+                            , 6),
+                        new LayoutColumn(
+                            new TextField('Data[AccidentType]', 'Art',
+                                new Sup(18).' Art der Verletzung')
+                            , 6),
+                    )),
+                    new LayoutRow(
+                        new LayoutColumn(
+                            new Title('')
+                        )
+                    ),
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            new Bold(new Sup(19).' Hat der Versicherte den Besuch der Einrichtung unterbrochen?')
+                            .new PullClear(
+                                new PullLeft(new CheckBox('Data[BreakNo]',
+                                    'nein &nbsp;&nbsp;&nbsp;&nbsp;', true, array('Data[BreakYes]', 'Data[BreakAt]')))
+                                .new PullLeft(new CheckBox('Data[BreakYes]',
+                                    'sofort &nbsp;&nbsp;&nbsp;&nbsp;', true, array('Data[BreakNo]', 'Data[BreakAt]')))
+                                .new PullLeft(new CheckBox('Data[BreakAt]',
+                                    'später am &nbsp;&nbsp;&nbsp;&nbsp;', true, array('Data[BreakNo]', 'Data[BreakYes]')))
+                            )
+                            , 6),
+                        new LayoutColumn(
+                            new TextField('Data[BreakDate]',
+                                $now->format('d.m'),
+                                'Datum der Unterbrechung')
+                            , 3),
+                        new LayoutColumn(
+                            new TextField('Data[BreakTime]', $now->format('H:m'),
+                                'Zeitpunkt der Unterbrechung')
+                            , 3)
+                    )),
+                    new LayoutRow(
+                        new LayoutColumn(
+                            new Title('')
+                        )
+                    ),
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            new Bold(new Sup(20).' Hat der Versicherte den Besuch der Einrichtung wieder aufgenommen?')
+                            .new PullClear(
+                                new PullLeft(new CheckBox('Data[ReturnNo]',
+                                    'nein &nbsp;&nbsp;&nbsp;&nbsp;', true, array('Data[ReturnYes]')))
+                                .new PullLeft(new CheckBox('Data[ReturnYes]',
+                                    'ja, am &nbsp;&nbsp;&nbsp;&nbsp;', true, array('Data[ReturnNo]')))
+                            )
+                            , 9),
+                        new LayoutColumn(
+                            new TextField('Data[ReturnDate]',
+                                (new DateTime())->format('d.m.Y'),
+                                'Datum der Wiederaufnahme')
+                            , 3),
+                    )),
+                    new LayoutRow(
+                        new LayoutColumn(
+                            new Title('')
+                        )
+                    ),
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            new TextField('Data[WitnessInfo]', 'Name, Vorname Adresse',
+                                new Sup(21).' Wer hat von dem Unfall zuerst Kenntnis genommen? (Name, Anschrift von Zeugen)')
+                            , 9),
+                        new LayoutColumn(
+                            new Bold('War diese Person Augenzeuge?')
+                            .new PullClear(
+                                new PullLeft(new CheckBox('Data[EyeWitnessNo]',
+                                    'nein &nbsp;&nbsp;&nbsp;&nbsp;', true, array('Data[EyeWitnessYes]')))
+                                .new PullLeft(new CheckBox('Data[EyeWitnessYes]',
+                                    'ja &nbsp;&nbsp;&nbsp;&nbsp;', true, array('Data[EyeWitnessNo]')))
+                            )
+                            , 3),
+                    )),
+                    new LayoutRow(
+                        new LayoutColumn(
+                            new Title('')
+                        )
+                    ),
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            new TextField('Data[DoctorAddress]', 'Adresse',
+                                new Sup(22).' Adresse des erstbehandelnden Arztes / Krankenhaus')
+                            , 6),
+                        new LayoutColumn(
+                            new Header(new Bold(new Sup(23).' Beginn des Besuchs der Einrichtung'))
+                            .new TextField('Data[LocalStartTime]', $now->format('H:m'), 'Uhrzeit (h:m)')
+                            , 3),
+                        new LayoutColumn(
+                            new Header(new Bold(new Sup(23).' Ende des Besuchs der Einrichtung'))
+                            .new TextField('Data[LocalEndTime]', $now->format('H:m'), 'Uhrzeit (h:m)')
+                            , 3),
+                    )),
+                    new LayoutRow(
+                        new LayoutColumn(
+                            new Title('')
+                        )
+                    ),
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            new TextField('Data[Date]', (new DateTime())->format('d.m.Y'),
+                                new Sup(23).' Datum')
+                            , 3),
+                        new LayoutColumn(
+                            new TextField('Data[LocalLeader]', 'Leiter',
+                                'Leiter (Beauftragter) der Einrichtung')
+                            , 4),
+                        new LayoutColumn(
+                            new TextField('Data[Recall]', 'Telefonnummer',
+                                'Telefon-Nr. für Rückfragen (Ansprechpartner)')
+                            , 5),
+                    )),
+                ))
+            )
+        ));
+    }
+
+    private function getFormAccidentTH(): LayoutColumn
+    {
+        $now = new DateTime();
+        return new LayoutColumn(new Well(
+            new Layout(
+                new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            new PullClear(new Bold(new Sup(12).' Tödlicher Unfall?')).
+                            new PullLeft(new CheckBox('Data[DeathAccidentNo]',
+                                'Nein &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;', true, array('Data[DeathAccidentYes]'))).
+                            new PullLeft(new CheckBox('Data[DeathAccidentYes]',
+                                'Ja', true, array('Data[DeathAccidentNo]')))
+                            , 2),
+                        new LayoutColumn(
+                            new TextField('Data[AccidentDate]',
+                                (new DateTime())->format('d.m.Y'),
+                                new Sup(13).' Datum des Unfalls (TT.MM.JJJJ)')
+                            , 4),
+                        new LayoutColumn(
+                            new TextField('Data[AccidentTime]', $now->format('H:m'),
+                                new Sup(13).'Uhrzeit (h:m)')
+                            , 2),
+                        new LayoutColumn(
+                            new TextField('Data[PhoneNumber]', '', 'Telefonnummer der vers. Person / gesetzlichen Vertreters')
+                            , 4),
+                    )),
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            new TextField('Data[AccidentPlace]', 'Ort',
+                                new Sup(14).' Unfallort')
+                            , 6),
+                        new LayoutColumn(
+                            new PullClear(new Header(new Bold(new Sup(15).' Unfall beim Distanzunterricht')))
+                            .new Container(
+                                new PullLeft(new CheckBox('Data[DistanceNo]',
+                                    'Nein &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;', true, array('Data[DistanceYes]')))
+                                .new PullLeft(new CheckBox('Data[DistanceYes]', 'Ja', true, array('Data[DistanceNo]')))
+                            )
+                            , 6)
+                    )),
+                    new LayoutRow(
+                        new LayoutColumn(
+                            new TextArea('Data[AccidentDescription]', 'Beschreibung',
+                                new Sup(16).' Ausführliche Beschreibung des Unfallhergangs')
+                        )
+                    ),
+                    new LayoutRow(
+                        new LayoutColumn(
+                            new PullLeft(new Header(new Bold('Die Angaben beruhen auf der Schilderung &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;')))
+                            .new Container(
+                                new PullLeft(new CheckBox('Data[DescriptionActive]',
+                                    'des Versicherten &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;', true, array('Data[DescriptionPassive]')))
+                                .new PullLeft(new CheckBox('Data[DescriptionPassive]', 'andere Personen', true, array('Data[DescriptionActive]')))
+                            )
+                        )
+                    ),
+                    new LayoutRow(
+                        new LayoutColumn(
+                            new PullLeft(new Header(new Bold('Hat ein Gewaltereignis vorgelegen (körperlicher Übergriff, sexueller Übergriff)?
+                             &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;')))
+                            .new Container(
+                                new PullLeft(new CheckBox('Data[DescriptionViolenceNo]',
+                                    'Nein &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;', true, array('Data[DescriptionViolenceYes]')))
+                                .new PullLeft(new CheckBox('Data[DescriptionViolenceYes]', 'Ja', true, array('Data[DescriptionViolenceNo]')))
+                            )
+                        )
+                    ),
+                    new LayoutRow(
+                        new LayoutColumn(
+                            new Title('')
+                        )
+                    ),
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            new TextField('Data[AccidentBodyParts]',
+                                'Kopf, Bein, Arm, etc.',
+                                new Sup(17).' Verletzte Körperteile')
+                            , 6),
+                        new LayoutColumn(
+                            new TextField('Data[AccidentType]', 'Art',
+                                new Sup(18).' Art der Verletzung')
+                            , 6),
+                    )),
+                    new LayoutRow(
+                        new LayoutColumn(
+                            new Title('')
+                        )
+                    ),
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            new Bold(new Sup(19).' Hat der Versicherte den Besuch der Einrichtung unterbrochen?')
+                            .new PullClear(
+                                new PullLeft(new CheckBox('Data[BreakNo]',
+                                    'nein &nbsp;&nbsp;&nbsp;&nbsp;', true, array('Data[BreakYes]', 'Data[BreakAt]')))
+                                .new PullLeft(new CheckBox('Data[BreakYes]',
+                                    'sofort &nbsp;&nbsp;&nbsp;&nbsp;', true, array('Data[BreakNo]', 'Data[BreakAt]')))
+                                .new PullLeft(new CheckBox('Data[BreakAt]',
+                                    'später am &nbsp;&nbsp;&nbsp;&nbsp;', true, array('Data[BreakNo]', 'Data[BreakYes]')))
+                            )
+                            , 6),
+                        new LayoutColumn(
+                            new TextField('Data[BreakDate]',
+                                $now->format('d.m'),
+                                'Datum der Unterbrechung')
+                            , 3),
+                        new LayoutColumn(
+                            new TextField('Data[BreakTime]', $now->format('H:m'),
+                                'Zeitpunkt der Unterbrechung')
+                            , 3)
+                    )),
+                    new LayoutRow(
+                        new LayoutColumn(
+                            new Title('')
+                        )
+                    ),
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            new Bold(new Sup(20).' Hat der Versicherte den Besuch der Einrichtung wieder aufgenommen?')
+                            .new PullClear(
+                                new PullLeft(new CheckBox('Data[ReturnNo]',
+                                    'nein &nbsp;&nbsp;&nbsp;&nbsp;', true, array('Data[ReturnYes]')))
+                                .new PullLeft(new CheckBox('Data[ReturnYes]',
+                                    'ja, am &nbsp;&nbsp;&nbsp;&nbsp;', true, array('Data[ReturnNo]')))
+                            )
+                            , 9),
+                        new LayoutColumn(
+                            new TextField('Data[ReturnDate]',
+                                (new DateTime())->format('d.m.Y'),
+                                'Datum der Wiederaufnahme')
+                            , 3),
+                    )),
+                    new LayoutRow(
+                        new LayoutColumn(
+                            new Title('')
+                        )
+                    ),
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            new TextField('Data[WitnessInfo]', 'Name, Vorname Adresse',
+                                new Sup(21).' Wer hat von dem Unfall zuerst Kenntnis genommen? (Name, Anschrift von Zeugen)')
+                            , 9),
+                        new LayoutColumn(
+                            new Bold('War diese Person Augenzeuge?')
+                            .new PullClear(
+                                new PullLeft(new CheckBox('Data[EyeWitnessNo]',
+                                    'nein &nbsp;&nbsp;&nbsp;&nbsp;', true, array('Data[EyeWitnessYes]')))
+                                .new PullLeft(new CheckBox('Data[EyeWitnessYes]',
+                                'ja &nbsp;&nbsp;&nbsp;&nbsp;', true, array('Data[EyeWitnessNo]')))
+                            )
+                            , 3),
+                    )),
+                    new LayoutRow(
+                        new LayoutColumn(
+                            new Title('')
+                        )
+                    ),
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            new TextField('Data[DoctorAddress]', 'Adresse',
+                                new Sup(22).' Adresse des erstbehandelnden Arztes / Krankenhaus')
+                            , 6),
+                        new LayoutColumn(
+                            new Header(new Bold(new Sup(23).' Beginn des Besuchs der Einrichtung'))
+                            .new TextField('Data[LocalStartTime]', $now->format('H:m'), 'Uhrzeit (h:m)')
+                            , 3),
+                        new LayoutColumn(
+                            new Header(new Bold(new Sup(23).' Ende des Besuchs der Einrichtung'))
+                            .new TextField('Data[LocalEndTime]', $now->format('H:m'), 'Uhrzeit (h:m)')
+                            , 3),
+                    )),
+                    new LayoutRow(
+                        new LayoutColumn(
+                            new Title('')
+                        )
+                    ),
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            new TextField('Data[Date]', (new DateTime())->format('d.m.Y'),
+                                new Sup(23).' Datum')
+                            , 3),
+                        new LayoutColumn(
+                            new TextField('Data[LocalLeader]', 'Leiter',
+                                'Leiter (Beauftragter) der Einrichtung')
+                            , 4),
+                        new LayoutColumn(
+                            new TextField('Data[Recall]', 'Telefonnummer',
+                                'Telefon-Nr. für Rückfragen (Ansprechpartner)')
+                            , 5),
+                    )),
+                ))
+            )
+        ));
+    }
+
+    /**
      * @return Form
      */
-    private function formAccidentReport(): Form
+    private function formAccidentReportSN(): Form
     {
         return new Form(
             new FormGroup(array(
@@ -365,329 +904,112 @@ class AccidentReport extends Extension
                                     new LayoutColumn(
                                         new Title('Einrichtung')
                                     ),
-                                    new LayoutColumn(new Well(
-                                        new Layout(
-                                            new LayoutGroup(array(
-                                                new LayoutRow(array(
-                                                    new LayoutColumn(
-                                                        new TextField('Data[School]', 'Schule',
-                                                            new Sup(1).' Schule')
-                                                        , 6),
-                                                    new LayoutColumn(
-                                                        new TextField('Data[SchoolExtended]', 'Zusatz',
-                                                            new Sup(1).' Zusatz')
-                                                        , 6)
-                                                )),
-                                                new LayoutRow(array(
-                                                    new LayoutColumn(
-                                                        new TextField('Data[SchoolAddressStreet]', 'Straße Nr.',
-                                                            new Sup(1).' Straße Hausnummer')
-                                                        , 6),
-                                                    new LayoutColumn(
-                                                        new TextField('Data[SchoolAddressCity]', 'PLZ Ort',
-                                                            new Sup(1).' PLZ Ort')
-                                                        , 6)
-                                                ))
-                                            ))
-                                        )
-                                    )),
+                                    $this->getFormCompany(),
                                     new LayoutColumn(
                                         new Title('Informationen Träger')
                                     ),
-                                    new LayoutColumn(new Well(
-                                        new Layout(
-                                            new LayoutGroup(
-                                                new LayoutRow(array(
-                                                    new LayoutColumn(
-                                                        new TextField('Data[SchoolResponsibility]',
-                                                            'Träger der Einrichtung',
-                                                            new Sup(2).' Träger der Einrichtung')
-                                                        , 6),
-                                                    new LayoutColumn(
-                                                        new TextField('Data[CompanyNumber]', 'Unternehmensnr.',
-                                                            new Sup(3).' Unternehmensnr.')
-                                                        , 6)
-                                                ))
-                                            )
-                                        )
-                                    )),
+                                    $this->getFormResponibility(),
                                     new LayoutColumn(
                                         new Title('Empfänger')
                                     ),
-                                    new LayoutColumn(new Well(
-                                        new Layout(
-                                            new LayoutGroup(
-                                                new LayoutRow(array(
-                                                    new LayoutColumn(
-                                                        new TextField('Data[AddressTarget]', 'Empfänger',
-                                                            new Sup(4).' Empfänger')
-                                                        , 4),
-                                                    new LayoutColumn(
-                                                        new TextField('Data[TargetAddressStreet]', 'Straße Hausnummer',
-                                                            new Sup(4).' Straße Hausnummer')
-                                                        , 4),
-                                                    new LayoutColumn(
-                                                        new TextField('Data[TargetAddressCity]', 'PLZ Ort',
-                                                            new Sup(4).' PLZ Ort')
-                                                        , 4)
-                                                ))
-                                            )
-                                        )
-                                    )),
+                                    $this->getFormReceiver(),
                                     new LayoutColumn(
                                         new Title('Informationen Versicherter')
                                     ),
-                                    new LayoutColumn(new Well(
-                                        new Layout(
-                                            new LayoutGroup(array(
-                                                new LayoutRow(array(
-                                                    new LayoutColumn(
-                                                        new TextField('Data[LastFirstName]', 'Name, Vorname',
-                                                            new Sup(5).' Name, Vorname des Schülers/der Schülerin')
-                                                        , 8),
-                                                    new LayoutColumn(
-                                                        new TextField('Data[Birthday]', 'Geburtstag',
-                                                            new Sup(6).' Geburtstag')
-                                                        , 4),
-                                                )),
-                                                new LayoutRow(array(
-                                                    new LayoutColumn(
-                                                        new TextField('Data[AddressStreet]', 'Straße, Hausnummer',
-                                                            new Sup(7).' Straße, Hausnummer')
-                                                        , 6),
-                                                    new LayoutColumn(
-                                                        new TextField('Data[AddressPLZ]', 'Postleitzahl',
-                                                            'Postleitzahl')
-                                                        , 3),
-                                                    new LayoutColumn(
-                                                        new TextField('Data[AddressCity]', 'Ort',
-                                                            'Ort')
-                                                        , 3),
-                                                )),
-                                                new LayoutRow(array(
-                                                    new LayoutColumn(
-                                                        new Bold(new Sup(8).' Geschlecht').
-                                                        new Listing(array(
-                                                            new RadioBox('Data[Gender]', 'Männlich',
-                                                                'Männlich'),
-                                                            new RadioBox('Data[Gender]', 'Weiblich',
-                                                                'Weiblich')
-                                                        ))
-                                                        , 3),
-                                                    new LayoutColumn(
-                                                        new TextField('Data[Nationality]', 'Staatsangehörigkeit',
-                                                            new Sup(9).' Staatsangehörigkeit')
-                                                        , 3),
-                                                    new LayoutColumn(
-                                                        new TextField('Data[Custody]', 'Vertreter',
-                                                            new Sup(10).' Vertreter')
-                                                        , 6),
-                                                )),
-                                                new LayoutRow(array(
-                                                    new LayoutColumn(
-                                                        '&nbsp;'
-                                                        , 6),
-                                                    new LayoutColumn(
-                                                        new TextField('Data[CustodyAddress]', 'Str Nr. PLZ Ort',
-                                                            new Sup(10).' Anschrift Vertreter')
-                                                        , 6),
-                                                )),
-                                            ))
-                                        )
-                                    )),
+                                    $this->getFormStudent(),
                                     new LayoutColumn(
                                         new Title('Informationen Unfall')
                                     ),
-                                    new LayoutColumn(new Well(
-                                        new Layout(
-                                            new LayoutGroup(array(
-                                                new LayoutRow(array(
-                                                    new LayoutColumn(
-                                                        new PullClear(new Bold(new Sup(11).' Tödlicher Unfall?')).
-                                                        new PullLeft(new CheckBox('Data[DeathAccidentYes]',
-                                                            'Ja &nbsp;&nbsp;&nbsp;&nbsp;', true)).
-                                                        new PullLeft(new CheckBox('Data[DeathAccidentNo]',
-                                                            'Nein &nbsp;&nbsp;&nbsp;&nbsp;', true))
-                                                        , 3),
-                                                    new LayoutColumn(
-                                                        new TextField('Data[AccidentDate]',
-                                                            (new DateTime())->format('d.m.Y'),
-                                                            new Sup(12).' Datum des Unfalls')
-                                                        , 3),
-                                                    new LayoutColumn(
-                                                        new TextField('Data[AccidentHour]', 'Stunde',
-                                                            new Sup(12).' Stunde Unfallzeitpunkt')
-                                                        , 3),
-                                                    new LayoutColumn(
-                                                        new TextField('Data[AccidentMinute]', 'Minute',
-                                                            new Sup(12).' Minute Unfallzeitpunkt')
-                                                        , 3),
-                                                )),
-                                                new LayoutRow(array(
-                                                    new LayoutColumn(
-                                                        new TextField('Data[AccidentPlace]', 'Ort',
-                                                            new Sup(13).' Unfallort')
-                                                        , 6),
-                                                )),
-                                                new LayoutRow(
-                                                    new LayoutColumn(
-                                                        new TextArea('Data[AccidentDescription]', 'Beschreibung',
-                                                            new Sup(14).' Ausführliche Beschreibung des Unfallhergangs')
-                                                    )
-                                                ),
-                                                new LayoutRow(
-                                                    new LayoutColumn(
-                                                        new PullLeft(new Header(new Bold(new Sup(14).' Die Angaben beruhen auf der Schilderung &nbsp;&nbsp;&nbsp;&nbsp;')))
-                                                        .new Container(
-                                                            new PullLeft(new CheckBox('Data[DescriptionActive]',
-                                                                'des Versicherten &nbsp;&nbsp;&nbsp;&nbsp;'
-                                                                , true))
-                                                            .new PullLeft(new CheckBox('Data[DescriptionPassive]',
-                                                                'andere Personen'
-                                                                , true))
-                                                        )
-                                                    )
-                                                ),
-                                                new LayoutRow(
-                                                    new LayoutColumn(
-                                                        new Title('')
-                                                    )
-                                                ),
-                                                new LayoutRow(array(
-                                                    new LayoutColumn(
-                                                        new TextField('Data[AccidentBodyParts]',
-                                                            'Kopf, Bein, Arm, etc.',
-                                                            new Sup(15).' Verletzte Körperteile')
-                                                        , 6),
-                                                    new LayoutColumn(
-                                                        new TextField('Data[AccidentType]', 'Art',
-                                                            new Sup(16).' Art der Verletzung')
-                                                        , 6),
-                                                )),
-                                                new LayoutRow(
-                                                    new LayoutColumn(
-                                                        new Title('')
-                                                    )
-                                                ),
-                                                new LayoutRow(array(
-                                                    new LayoutColumn(
-                                                        new Bold(new Sup(17).' Hat der Versicherte den Besuch der Einrichtung unterbrochen?')
-                                                        .new PullClear(
-                                                            new PullLeft(new CheckBox('Data[BreakNo]',
-                                                                'nein &nbsp;&nbsp;&nbsp;&nbsp;', true))
-                                                            .new PullLeft(new CheckBox('Data[BreakYes]',
-                                                                'sofort &nbsp;&nbsp;&nbsp;&nbsp;', true))
-                                                            .new PullLeft(new CheckBox('Data[BreakAt]',
-                                                                'später am &nbsp;&nbsp;&nbsp;&nbsp;', true))
-                                                        )
-                                                        , 6),
-                                                    new LayoutColumn(
-                                                        new TextField('Data[BreakDate]',
-                                                            (new DateTime())->format('d.m.Y'),
-                                                            'Datum der Unterbrechung')
-                                                        , 3),
-                                                    new LayoutColumn(
-                                                        new TextField('Data[BreakHour]', 'Stunde',
-                                                            'Zeitpunkt der Unterbrechung')
-                                                        , 3)
-                                                )),
-                                                new LayoutRow(
-                                                    new LayoutColumn(
-                                                        new Title('')
-                                                    )
-                                                ),
-                                                new LayoutRow(array(
-                                                    new LayoutColumn(
-                                                        new Bold(new Sup(18).' Hat der Versicherte den Besuch der Einrichtung wieder aufgenommen?')
-                                                        .new PullClear(
-                                                            new PullLeft(new CheckBox('Data[ReturnNo]',
-                                                                'nein &nbsp;&nbsp;&nbsp;&nbsp;', true))
-                                                            .new PullLeft(new CheckBox('Data[ReturnYes]',
-                                                                'ja, am &nbsp;&nbsp;&nbsp;&nbsp;', true))
-                                                        )
-                                                        , 9),
-                                                    new LayoutColumn(
-                                                        new TextField('Data[ReturnDate]',
-                                                            (new DateTime())->format('d.m.Y'),
-                                                            new Sup(18).' Datum der Wiederaufnahme')
-                                                        , 3),
-                                                )),
-                                                new LayoutRow(
-                                                    new LayoutColumn(
-                                                        new Title('')
-                                                    )
-                                                ),
-                                                new LayoutRow(array(
-                                                    new LayoutColumn(
-                                                        new TextField('Data[WitnessInfo]', 'Name, Vorname Adresse',
-                                                            new Sup(19).' Wer hat von dem Unfall zuerst Kenntnis genommen? (Name, Anschrift von Zeugen)')
-                                                        , 9),
-                                                    new LayoutColumn(
-                                                        new Bold('War diese Person Augenzeuge?')
-                                                        .new PullClear(
-                                                            new PullLeft(new CheckBox('Data[EyeWitnessYes]',
-                                                                'ja &nbsp;&nbsp;&nbsp;&nbsp;', true))
-                                                            .new PullLeft(new CheckBox('Data[EyeWitnessNo]',
-                                                                'nein &nbsp;&nbsp;&nbsp;&nbsp;', true))
-                                                        )
-                                                        , 3),
-                                                )),
-                                                new LayoutRow(
-                                                    new LayoutColumn(
-                                                        new Title('')
-                                                    )
-                                                ),
-                                                new LayoutRow(array(
-                                                    new LayoutColumn(
-                                                        new TextField('Data[Doctor]', 'Name',
-                                                            new Sup(20).' Name des erstbehandelnden Arztes / Krankenhaus')
-                                                        .new TextField('Data[DoctorAddress]', 'Adresse',
-                                                            new Sup(20).' Adresse des erstbehandelnden Arztes / Krankenhaus')
-                                                        , 6),
-                                                    new LayoutColumn(
-                                                        new Header(new Bold(new Sup(21).' Beginn des Besuchs der Einrichtung'))
-                                                        .new TextField('Data[LocalStartHour]', 'Stunde', 'Stunde')
-                                                        .new TextField('Data[LocalStartMinute]', 'Minute', 'Minute')
-                                                        , 3),
-                                                    new LayoutColumn(
-                                                        new Header(new Bold(new Sup(21).' Ende des Besuchs der Einrichtung'))
-                                                        .new TextField('Data[LocalEndHour]', 'Stunde', 'Stunde')
-                                                        .new TextField('Data[LocalEndMinute]', 'Minute', 'Minute')
-                                                        , 3),
-                                                )),
-                                                new LayoutRow(
-                                                    new LayoutColumn(
-                                                        new Title('')
-                                                    )
-                                                ),
-                                                new LayoutRow(array(
-                                                    new LayoutColumn(
-                                                        new TextField('Data[Date]', (new DateTime())->format('d.m.Y'),
-                                                            'Datum')
-                                                        , 3),
-                                                    new LayoutColumn(
-                                                        new TextField('Data[LocalLeader]', 'Leiter',
-                                                            'Leiter (Beauftragter) der Einrichtung')
-                                                        , 4),
-                                                    new LayoutColumn(
-                                                        new TextField('Data[Recall]', 'Telefonnummer',
-                                                            'Telefon-Nr. für Rückfragen (Ansprechpartner)')
-                                                        , 5),
-                                                )),
-                                            ))
-                                        )
-                                    ))
+                                    $this->getFormAccident()
                                 ))
                             )
                         )
                     )
                 ),
-//                new FormRow(array(
-//                    new FormColumn(
-//                        ApiAccidentReport::receiverService(ApiAccidentReport::pipelineButtonRefresh($PersonId))
-////                        (new Standard('PDF erzeugen', ApiAccidentReport::getEndpoint()))->ajaxPipelineOnClick(ApiAccidentReport::pipelineDownload($PersonId))
-//                    )
-//                ))
+            ))
+            , new Primary('Download', new Download(), true), '\Api\Document\Standard\AccidentReport\Create'
+        );
+    }
+
+    /**
+     * @return Form
+     */
+    private function formAccidentReportBE(): Form
+    {
+        return new Form(
+            new FormGroup(array(
+                new FormRow(
+                    new FormColumn(
+                        new Layout(
+                            new LayoutGroup(
+                                new LayoutRow(array(
+                                    new LayoutColumn(
+                                        new Title('Einrichtung')
+                                    ),
+                                    $this->getFormCompany(),
+                                    new LayoutColumn(
+                                        new Title('Informationen Träger')
+                                    ),
+                                    $this->getFormResponibility(),
+                                    new LayoutColumn(
+                                        new Title('Empfänger')
+                                    ),
+                                    $this->getFormReceiver(),
+                                    new LayoutColumn(
+                                        new Title('Informationen Versicherter')
+                                    ),
+                                    $this->getFormStudent(),
+                                    new LayoutColumn(
+                                        new Title('Informationen Unfall')
+                                    ),
+                                    $this->getFormAccident()
+                                ))
+                            )
+                        )
+                    )
+                ),
+            ))
+            , new Primary('Download', new Download(), true), '\Api\Document\Standard\AccidentReport\Create'
+        );
+    }
+
+    /**
+     * @return Form
+     */
+    private function formAccidentReportTH(): Form
+    {
+        return new Form(
+            new FormGroup(array(
+                new FormRow(
+                    new FormColumn(
+                        new Layout(
+                            new LayoutGroup(
+                                new LayoutRow(array(
+                                    new LayoutColumn(
+                                        new Title('Einrichtung')
+                                    ),
+                                    $this->getFormCompany(),
+                                    new LayoutColumn(
+                                        new Title('Informationen Träger')
+                                    ),
+                                    $this->getFormResponibility(),
+                                    new LayoutColumn(
+                                        new Title('Empfänger')
+                                    ),
+                                    $this->getFormReceiver(),
+                                    new LayoutColumn(
+                                        new Title('Informationen Versicherter')
+                                    ),
+                                    $this->getFormStudent(),
+                                    new LayoutColumn(
+                                        new Title('Informationen Unfall')
+                                    ),
+                                    $this->getFormAccidentTH()
+                                ))
+                            )
+                        )
+                    )
+                ),
             ))
             , new Primary('Download', new Download(), true), '\Api\Document\Standard\AccidentReport\Create'
         );

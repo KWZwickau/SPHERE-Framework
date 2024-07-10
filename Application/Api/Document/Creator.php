@@ -8,7 +8,9 @@ use MOC\V\Component\Document\Document as PdfDocument;
 use MOC\V\Component\Template\Component\IBridgeInterface;
 use MOC\V\Core\FileSystem\FileSystem;
 use SPHERE\Application\Api\Document\Custom\Gersdorf\Repository\MetaDataComparison;
-use SPHERE\Application\Api\Document\Standard\Repository\AccidentReport\AccidentReport;
+use SPHERE\Application\Api\Document\Standard\Repository\AccidentReport\AccidentReportBE;
+use SPHERE\Application\Api\Document\Standard\Repository\AccidentReport\AccidentReportSN;
+use SPHERE\Application\Api\Document\Standard\Repository\AccidentReport\AccidentReportTH;
 use SPHERE\Application\Api\Document\Standard\Repository\Account\AccountApp;
 use SPHERE\Application\Api\Document\Standard\Repository\Account\AccountToken;
 use SPHERE\Application\Api\Document\Standard\Repository\Billing\Billing;
@@ -50,6 +52,8 @@ use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account as GatekeeperAccount;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblIdentification;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer as GatekeeperConsumer;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Application\Setting\Consumer\Responsibility\Responsibility;
 use SPHERE\Application\Setting\Consumer\Responsibility\Service\Entity\TblResponsibility;
@@ -659,7 +663,14 @@ class Creator extends Extension
                 $Document = new SignOutCertificate($Data);
             }
             if ($DocumentName == 'AccidentReport') {
-                $Document = new AccidentReport($Data);
+                if (GatekeeperConsumer::useService()->getConsumerBySessionIsConsumerType(TblConsumer::TYPE_BERLIN)) {
+                    $Document = new AccidentReportBE($Data);
+                } elseif(GatekeeperConsumer::useService()->getConsumerBySessionIsConsumerType(TblConsumer::TYPE_THUERINGEN)) {
+                    $Document = new AccidentReportTH($Data);
+                } else { // Sachsen
+                    $Document = new AccidentReportSN($Data);
+                }
+
             }
             if ($DocumentName == 'StaffAccidentReport'){
                 $Document = new StaffAccidentReport($Data);

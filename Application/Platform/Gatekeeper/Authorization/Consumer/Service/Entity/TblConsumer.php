@@ -18,6 +18,7 @@ class TblConsumer extends Element
     const ATTR_NAME = 'Name';
 
     const TYPE_SACHSEN = 'Sachsen';
+    const TYPE_THUERINGEN = 'Thüringen';
     const TYPE_BERLIN = 'Berlin';
 
     /**
