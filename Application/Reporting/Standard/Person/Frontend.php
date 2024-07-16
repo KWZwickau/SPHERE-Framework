@@ -18,6 +18,7 @@ use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Meta\Agreement\Agreement;
 use SPHERE\Application\People\Meta\Student\Student;
+use SPHERE\Application\Reporting\Standard\Person\Person as ReportingPerson;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\Repository\Field\AutoCompleter;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
@@ -1596,6 +1597,39 @@ class Frontend extends Extension implements IFrontendInterface
                 ))
             )
         );
+
+        return $Stage;
+    }
+
+    /**
+     * @return Stage
+     */
+    public function frontendRepresentative(): Stage
+    {
+
+        $Stage = new Stage('Auswertung', 'Elternsprecher / Klassensprecher');
+        $Stage->setMessage(new Danger('Die dauerhafte Speicherung des Excel-Exports ist datenschutzrechtlich nicht zulässig!', new Exclamation()));
+        $Stage->addButton(
+            new Primary('Herunterladen', '/Api/Reporting/Standard/Person/RepresentativeList/Download', new Download())
+        );
+
+        list($dataList, $headers) = ReportingPerson::useService()->createRepresentativeList(false);
+        $Stage->setContent(new Layout(new LayoutGroup(
+            new LayoutRow(new LayoutColumn(
+                new TableData($dataList, null, $headers,
+                    array(
+                        'columnDefs' => array(
+                            array('type' => 'natural', 'targets' => 0),
+                        ),
+                        'order' => array(
+                            array(0, 'asc'),
+                            array(2, 'asc')
+                        ),
+                        'responsive' => false
+                    )
+                )
+                , 12)), new Title(new Listing().' Übersicht')
+        )));
 
         return $Stage;
     }

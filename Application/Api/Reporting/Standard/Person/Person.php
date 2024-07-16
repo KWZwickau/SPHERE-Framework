@@ -584,4 +584,42 @@ class Person extends Extension
 
         return 'Keine Daten vorhanden!';
     }
+
+    /**
+     * @return false|string
+     */
+    public function downloadRepresentativeList()
+    {
+        list ($dataList, $headerList) = ReportingPerson::useService()->createRepresentativeList(true);
+
+        $preTextList[] = 'Elternsprecher / Klassensprecher';
+        $preTextList[] = 'Stand: ' . (new DateTime())->format('d.m.Y');
+
+        $headerWidthList = array(
+            'DivisionCourse' => 10,
+            'SchoolTypes' => 8,
+            'Type' => 16,
+            'Description' => 18,
+            'Salutation' => 9,
+            'FirstName' => 20,
+            'LastName' => 20,
+            'District' => 20,
+            'Street' => 20,
+            'Number' => 8,
+            'ZipCode' => 8,
+            'City' => 20,
+            'EmailPrivate' => 30,
+            'EmailCompany' => 30,
+            'PhonePrivate' => 30,
+            'PhoneCompany' => 30
+        );
+
+        return ExcelBuilder::getDownloadFile(
+            'Elternsprecher-Klassensprecher ' . (new DateTime())->format('d-m-Y'),
+            $headerList,
+            $dataList,
+            $preTextList,
+            $headerWidthList
+        );
+    }
 }
