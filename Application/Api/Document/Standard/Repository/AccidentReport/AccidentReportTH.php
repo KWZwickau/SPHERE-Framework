@@ -52,7 +52,6 @@ class AccidentReportTH extends AbstractDocument
             ->addPage((new Page())
                 ->addSlice((new Slice())
                     ->styleBorderAll()
-                    ->styleHeight('975px')
                     ->addSection($this->Style->getHeaderSection())
                     ->addSection($this->Style->getBorderBottomSection())
                     /////// Name Geburtstag

@@ -39,6 +39,7 @@ use SPHERE\Common\Frontend\Layout\Repository\PullLeft;
 use SPHERE\Common\Frontend\Layout\Repository\Thumbnail;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
+use SPHERE\Common\Frontend\Layout\Repository\WellReadOnly;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
@@ -110,7 +111,6 @@ class AccidentReport extends Extension
         $Global->POST['Data']['AddressTarget'] = 'Unfallkasse Sachsen';
         $Global->POST['Data']['TargetAddressStreet'] = 'Postfach 42';
         $Global->POST['Data']['TargetAddressCity'] = '01651 Meißen';
-
         if (GatekeeperConsumer::useService()->getConsumerBySessionIsConsumerType(TblConsumer::TYPE_BERLIN)) {
             $Global->POST['Data']['AddressTarget'] = 'Unfallkasse Berlin';
             $Global->POST['Data']['TargetAddressStreet'] = 'Culemeyerstraße 2';
@@ -251,6 +251,7 @@ class AccidentReport extends Extension
                 $PersonCustodyDifferentAddress = array();
                 $AddressString = '';
                 foreach ($tblToPersonCustodyList as $tblToPersonCustody) {
+                    $Ranking = $tblToPersonCustody->getRanking();
                     $tblPersonCustody = $tblToPersonCustody->getServiceTblPersonFrom();
 
                     $tblAddressCustody = Address::useService()->getAddressByPerson($tblPersonCustody);
@@ -259,60 +260,34 @@ class AccidentReport extends Extension
                         && $ChildAddressId == $tblAddressCustody->getId()
                     ) {
                         $AddressString = $tblAddressCustody->getGuiString(false);
-                        $PersonCustodySameAddress[] = $tblPersonCustody;
+                        $PersonCustodySameAddress[$Ranking] = $tblPersonCustody;
                         continue;
                     } else {
-                        $PersonCustodyDifferentAddress[] = $tblPersonCustody;
+                        $PersonCustodyDifferentAddress[$Ranking] = $tblPersonCustody;
                     }
                 }
                 if (!empty($PersonCustodySameAddress)) {
+                    // Adresse mit allen Sorgeberechtigten mit der gleichen Adresse
                     /** @var TblPerson $PersonCustody */
                     $ParentList = array();
                     foreach ($PersonCustodySameAddress as $PersonCustody) {
-                        $ParentList[] = $PersonCustody->getSalutation().' '.
-                            ($PersonCustody->getTitle()
-                                ? $PersonCustody->getTitle().' '
-                                : '')
-                            .$PersonCustody->getFirstName().' '.$PersonCustody->getLastName();
+                        $ParentList[] = $PersonCustody->getFullName();
                     }
                     if (!empty($ParentList)) {
-                        $Global->POST['Data']['Custody'] = implode(', ', $ParentList);
-                        $Global->POST['Data']['CustodyAddress'] = $AddressString;
+                        if (!isset($Global->POST['Data']['CustodyAddress'])) {
+                            $Global->POST['Data']['CustodyAddress'] = implode(', ', $ParentList).', '.$AddressString;
+                        }
                     }
                 } elseif (!empty($PersonCustodyDifferentAddress)) {
-                    foreach ($PersonCustodyDifferentAddress as $PersonCustody) {
-                        /** @var TblCommon $tblCommonCustody */
-                        if (($tblCommonCustody = $PersonCustody->getCommon())) {
-                            if (($tblBirthdates = $tblCommonCustody->getTblCommonBirthDates())) {
-                                if (($tblGenderCustody = $tblBirthdates->getTblCommonGender())) {
-                                    if ($tblGenderCustody->getName() == 'Weiblich') {
-                                        if (!isset($Global->POST['Data']['Custody'])) {
-                                            $tblAddressCustody = Address::useService()->getAddressByPerson($PersonCustody);
-                                            if ($tblAddressCustody) {
-                                                $Global->POST['Data']['CustodyAddress'] = $tblAddressCustody->getGuiString();
-                                            }
-                                            $Global->POST['Data']['Custody'] = $PersonCustody->getSalutation().' '.
-                                                ($PersonCustody->getTitle()
-                                                    ? $PersonCustody->getTitle().' '
-                                                    : '')
-                                                .$PersonCustody->getFirstName().' '.$PersonCustody->getLastName();
-                                        }
-                                    }
-                                }
-                            }
-                        }
-
-                        if (!isset($Global->POST['Data']['Custody'])) {
-                            $tblAddressCustody = Address::useService()->getAddressByPerson($PersonCustody);
-                            if ($tblAddressCustody) {
-                                $Global->POST['Data']['CustodyAddress'] = $tblAddressCustody->getGuiString();
-                            }
-
-                            $Global->POST['Data']['Custody'] = $PersonCustody->getSalutation().' '.
-                                ($PersonCustody->getTitle()
-                                    ? $PersonCustody->getTitle().' '
-                                    : '')
-                                .$PersonCustody->getFirstName().' '.$PersonCustody->getLastName();
+                    // Adresse des ersten Sorgeberechtigten, wenn der Schüler woanders wohnt
+                    // lowest ranking
+                    /** @var TblPerson $PersonCustody */
+                    $PersonCustody = array_shift($PersonCustodyDifferentAddress);
+                    /** @var TblCommon $tblCommonCustody */
+                    if (!isset($Global->POST['Data']['CustodyAddress'])) {
+                        $tblAddressCustody = Address::useService()->getAddressByPerson($PersonCustody);
+                        if ($tblAddressCustody) {
+                            $Global->POST['Data']['CustodyAddress'] = $PersonCustody->getFullName().', '.$tblAddressCustody->getGuiString();
                         }
                     }
                 }
@@ -474,34 +449,36 @@ class AccidentReport extends Extension
                     )),
                     new LayoutRow(array(
                         new LayoutColumn(
-                            new Bold(new Sup(8).' Geschlecht').
-                            new Listing(array(
-                                new RadioBox('Data[Gender]', 'Männlich',
-                                    'Männlich'),
-                                new RadioBox('Data[Gender]', 'Weiblich',
-                                    'Weiblich'),
-                                new RadioBox('Data[Gender]', 'Divers',
-                                    'Divers'),
-                                new RadioBox('Data[Gender]', 'Keine Angabe',
-                                    'Without')
+                            new Bold(new Sup(7).' Geschlecht')
+                            .(new Listing(array(
+                            new Layout(new LayoutGroup(
+                                new LayoutRow(array(
+                                    new LayoutColumn(
+                                        new RadioBox('Data[Gender]', 'Männlich', 'Männlich')
+                                        , 3),
+                                    new LayoutColumn(
+                                        new RadioBox('Data[Gender]', 'Weiblich', 'Weiblich')
+                                        , 3),
+                                    new LayoutColumn(
+                                        new RadioBox('Data[Gender]', 'Divers', 'Divers')
+                                        , 2),
+                                    new LayoutColumn(
+                                        new RadioBox('Data[Gender]', 'Keine&nbsp;Angabe', 'Without')
+                                        , 4),
+                                ))
                             ))
-                            , 3),
+                        ))), 8),
                         new LayoutColumn(
                             new TextField('Data[Nationality]', 'Staatsangehörigkeit',
                                 new Sup(9).' Staatsangehörigkeit')
-                            , 3),
-                        new LayoutColumn(
-                            new TextField('Data[Custody]', 'Vertreter',
-                                new Sup(10).' Vertreter')
-                            , 6),
-                        new LayoutColumn(
-                            '&nbsp;'
-                            , 3),
-                        new LayoutColumn(
-                            new TextField('Data[CustodyAddress]', 'Str Nr. PLZ Ort',
-                                new Sup(10).' Anschrift Vertreter')
-                            , 6),
+                            , 4)
                     )),
+                    new LayoutRow(
+                        new LayoutColumn(
+                            new TextField('Data[CustodyAddress]', 'Vertreter',
+                                new Sup(10).' Name, Anschrift und Telefonnummer der gesetzlich Vertretungsberechtigten')
+                        ),
+                    ),
                     new LayoutRow(array(
                         new LayoutColumn(
                             new TextField('Data[Insurance]', 'Krankenkasse',
@@ -593,11 +570,11 @@ class AccidentReport extends Extension
                             new Bold(new Sup(19).' Hat der Versicherte den Besuch der Einrichtung unterbrochen?')
                             .new PullClear(
                                 new PullLeft(new CheckBox('Data[BreakNo]',
-                                    'nein &nbsp;&nbsp;&nbsp;&nbsp;', true, array('Data[BreakYes]', 'Data[BreakAt]')))
+                                    'nein &nbsp;&nbsp;&nbsp;&nbsp;', true, array('Data[BreakYes]', 'Data[BreakAt]', 'Data[BreakDate]', 'Data[BreakTime]')))
                                 .new PullLeft(new CheckBox('Data[BreakYes]',
-                                    'sofort &nbsp;&nbsp;&nbsp;&nbsp;', true, array('Data[BreakNo]', 'Data[BreakAt]')))
+                                    'sofort &nbsp;&nbsp;&nbsp;&nbsp;', true, array('Data[BreakNo]', 'Data[BreakAt]', 'Data[BreakDate]', 'Data[BreakTime]')))
                                 .new PullLeft(new CheckBox('Data[BreakAt]',
-                                    'später am &nbsp;&nbsp;&nbsp;&nbsp;', true, array('Data[BreakNo]', 'Data[BreakYes]')))
+                                    'später, am &nbsp;&nbsp;&nbsp;&nbsp;', true, array('Data[BreakNo]', 'Data[BreakYes]')))
                             )
                             , 6),
                         new LayoutColumn(
@@ -620,7 +597,7 @@ class AccidentReport extends Extension
                             new Bold(new Sup(20).' Hat der Versicherte den Besuch der Einrichtung wieder aufgenommen?')
                             .new PullClear(
                                 new PullLeft(new CheckBox('Data[ReturnNo]',
-                                    'nein &nbsp;&nbsp;&nbsp;&nbsp;', true, array('Data[ReturnYes]')))
+                                    'nein &nbsp;&nbsp;&nbsp;&nbsp;', true, array('Data[ReturnYes]', 'Data[ReturnDate]')))
                                 .new PullLeft(new CheckBox('Data[ReturnYes]',
                                     'ja, am &nbsp;&nbsp;&nbsp;&nbsp;', true, array('Data[ReturnNo]')))
                             )
@@ -788,11 +765,11 @@ class AccidentReport extends Extension
                             new Bold(new Sup(19).' Hat der Versicherte den Besuch der Einrichtung unterbrochen?')
                             .new PullClear(
                                 new PullLeft(new CheckBox('Data[BreakNo]',
-                                    'nein &nbsp;&nbsp;&nbsp;&nbsp;', true, array('Data[BreakYes]', 'Data[BreakAt]')))
+                                    'nein &nbsp;&nbsp;&nbsp;&nbsp;', true, array('Data[BreakYes]', 'Data[BreakAt]', 'Data[BreakDate]', 'Data[BreakTime]')))
                                 .new PullLeft(new CheckBox('Data[BreakYes]',
-                                    'sofort &nbsp;&nbsp;&nbsp;&nbsp;', true, array('Data[BreakNo]', 'Data[BreakAt]')))
+                                    'sofort &nbsp;&nbsp;&nbsp;&nbsp;', true, array('Data[BreakNo]', 'Data[BreakAt]', 'Data[BreakDate]', 'Data[BreakTime]')))
                                 .new PullLeft(new CheckBox('Data[BreakAt]',
-                                    'später am &nbsp;&nbsp;&nbsp;&nbsp;', true, array('Data[BreakNo]', 'Data[BreakYes]')))
+                                    'später, am &nbsp;&nbsp;&nbsp;&nbsp;', true, array('Data[BreakNo]', 'Data[BreakYes]')))
                             )
                             , 6),
                         new LayoutColumn(
@@ -815,7 +792,7 @@ class AccidentReport extends Extension
                             new Bold(new Sup(20).' Hat der Versicherte den Besuch der Einrichtung wieder aufgenommen?')
                             .new PullClear(
                                 new PullLeft(new CheckBox('Data[ReturnNo]',
-                                    'nein &nbsp;&nbsp;&nbsp;&nbsp;', true, array('Data[ReturnYes]')))
+                                    'nein &nbsp;&nbsp;&nbsp;&nbsp;', true, array('Data[ReturnYes]', 'Data[ReturnDate]')))
                                 .new PullLeft(new CheckBox('Data[ReturnYes]',
                                     'ja, am &nbsp;&nbsp;&nbsp;&nbsp;', true, array('Data[ReturnNo]')))
                             )

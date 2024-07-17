@@ -32,7 +32,7 @@ use SPHERE\Application\Api\Document\Standard\Repository\StudentCard\PrimarySchoo
 use SPHERE\Application\Api\Document\Standard\Repository\StudentCard\SecondarySchool;
 use SPHERE\Application\Api\Document\Standard\Repository\StudentCard\StudentCardNew;
 use SPHERE\Application\Api\Document\Standard\Repository\StudentTransfer;
-use SPHERE\Application\Api\Document\Standard\Repository\StaffAccidentReport\StaffAccidentReport;
+use SPHERE\Application\Api\Document\Standard\Repository\StaffAccidentReport\StaffAccidentReportSN;
 use SPHERE\Application\Billing\Bookkeeping\Balance\Balance;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Invoice;
 use SPHERE\Application\Billing\Inventory\Document\Service\Entity\TblDocument;
@@ -673,7 +673,13 @@ class Creator extends Extension
 
             }
             if ($DocumentName == 'StaffAccidentReport'){
-                $Document = new StaffAccidentReport($Data);
+                if (GatekeeperConsumer::useService()->getConsumerBySessionIsConsumerType(TblConsumer::TYPE_BERLIN)) {
+                    $Document = new StaffAccidentReportBE($Data);
+                } elseif(GatekeeperConsumer::useService()->getConsumerBySessionIsConsumerType(TblConsumer::TYPE_THUERINGEN)) {
+                    $Document = new StaffAccidentReportTH($Data);
+                } else { // Sachsen
+                    $Document = new StaffAccidentReportSN($Data);
+                }
             }
             if ($Document) {
                 $File = self::buildDummyFile($Document, array(), array(), $paperOrientation);

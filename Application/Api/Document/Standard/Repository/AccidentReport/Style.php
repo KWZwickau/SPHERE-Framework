@@ -69,7 +69,6 @@ class Style extends Extension
         }
         $this->FieldValue['Nationality'] = (isset($DataPost['Nationality']) && $DataPost['Nationality'] != '' ? $DataPost['Nationality'] : '&nbsp;');
         // custody
-        $this->FieldValue['Custody'] = (isset($DataPost['Custody']) && $DataPost['Custody'] != '' ? $DataPost['Custody'] : '&nbsp;');
         $this->FieldValue['CustodyAddress'] = (isset($DataPost['CustodyAddress']) && $DataPost['CustodyAddress'] != '' ? $DataPost['CustodyAddress'] : '&nbsp;');
         // accident
         $this->FieldValue['DeathAccidentYes'] = (isset($DataPost['DeathAccidentYes']) && $DataPost['DeathAccidentYes'] != '' ? 'X' : '');
@@ -232,7 +231,6 @@ class Style extends Extension
             ->setContent('<b>6</b> Geburtsdatum (TT.MM.JJJJ)')
             ->styleTextSize('11px')
             ->stylePaddingLeft('5px')
-            ->styleBorderRight()
             , '45%'
         );
     }
@@ -432,13 +430,12 @@ class Style extends Extension
         return (new Section())
             ->addElementColumn((new Element())
                 // (Content.Person.Parent.Father.Address|length >= 38) Zählen der Länge entfällt
-                ->setContent($this->FieldValue['Custody']
-                    .'<br/>'.$this->FieldValue['CustodyAddress'])
+                ->setContent($this->FieldValue['CustodyAddress'])
                 ->stylePaddingLeft('5px')
                 ->styleTextSize('11px')
                 ->stylePaddingTop()
                 ->styleBorderBottom()
-                ->styleHeight('27px')
+                ->styleHeight('14px')
             );
     }
 
@@ -608,7 +605,6 @@ class Style extends Extension
                 ->styleTextSize('12px')
                 ->stylePaddingTop()
                 ->styleBorderBottom()
-                ->styleBorderRight()
                 ->styleHeight('19px')
                 , '59%'
             );

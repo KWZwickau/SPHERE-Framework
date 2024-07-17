@@ -1,18 +1,21 @@
 <?php
-namespace SPHERE\Application\Api\Document\Standard\Repository\AccidentReport;
+namespace SPHERE\Application\Api\Document\Standard\Repository\StaffAccidentReport;
 
 use SPHERE\Application\Api\Document\AbstractDocument;
 use SPHERE\Application\Document\Generator\Repository\Document;
+use SPHERE\Application\Document\Generator\Repository\Element;
 use SPHERE\Application\Document\Generator\Repository\Frame;
 use SPHERE\Application\Document\Generator\Repository\Page;
+use SPHERE\Application\Document\Generator\Repository\Section;
 use SPHERE\Application\Document\Generator\Repository\Slice;
+use SPHERE\Common\Frontend\Text\Repository\Code;
 
 /**
- * Class AccidentReportSN
+ * Class StaffAccidentReportSN
  *
  * @package SPHERE\Application\Api\Document\Standard\Repository
  */
-class AccidentReportSN extends AbstractDocument
+class StaffAccidentReportSN extends AbstractDocument
 {
 
     /**
@@ -28,6 +31,7 @@ class AccidentReportSN extends AbstractDocument
      * @var Style
      */
     private Style $Style;
+
 
     /**
      * @return string
@@ -47,7 +51,6 @@ class AccidentReportSN extends AbstractDocument
      */
     public function buildDocument(array $pageList = array(), string $part = '0'): Frame
     {
-
         return (new Frame())->addDocument((new Document())
             ->addPage((new Page())
                 ->addSlice((new Slice())
@@ -60,19 +63,18 @@ class AccidentReportSN extends AbstractDocument
                     ///////// Adresse
                     ->addSection($this->Style->getAddressSection())
                     ->addSection($this->Style->getAddressDataSection())
-                    /////// gender & nationality
+                    /////// Meta
                     ->addSection($this->Style->getGenderSection())
                     ->addSection($this->Style->getGenderDataSection())
-                    /////// name Custody
-                    ->addSection($this->Style->getCustodySection())
-                    ->addSection($this->Style->getCustodyDataSection())
-                    /////// health insurance
+                    // Neue Reihe
+                    ->addSection($this->Style->getEducationSection())
+                    ->addSection($this->Style->getEducationDataSection())
+                    ->addSection($this->Style->getEducationDataTwoSection())
                     ->addSection($this->Style->getInsuranceSection())
                     ->addSection($this->Style->getInsuranceDataSection())
                     /////// Unfall Infos
                     ->addSection($this->Style->getDeadlyAccidentSection())
                     ->addSection($this->Style->getDeadlyAccidentDataSection())
-                    /////// AccidentLocation
                     ->addSection($this->Style->getAccidentLocationSection())
                     ->addSection($this->Style->getAccidentLocationDataSection())
                     ////// Schilderung des Unfallhergangs
@@ -82,17 +84,19 @@ class AccidentReportSN extends AbstractDocument
                     /////// Verletzungen
                     ->addSection($this->Style->getHurtSection())
                     ->addSection($this->Style->getHurtDataSection())
-                    /////// Unterbrechung
-                    ->addSection($this->Style->getBreakSection())
-                    /////// Vortsetzung
-                    ->addSection($this->Style->getRevisitSection())
-                    /////// Kenntnis
                     ->addSection($this->Style->getNoticSection())
                     ->addSection($this->Style->getNoticDataSection())
-                    /////// Kenntnis
-                    ->addSection($this->Style->getInitialTreatmentSection())
+                    ->addSectionList($this->Style->getInitialTreatmentSectionList())
                     ->addSection($this->Style->getInitialTreatmentDataSection())
-                    /////// Date
+                    ->addSection($this->Style->getAccidentJobSection())
+                    ->addSection($this->Style->getAccidentJobDataSection())
+                    ->addSection($this->Style->getCompanyPartSection())
+                    ->addSection($this->Style->getCompanyPartDataSection())
+                    /////// Unterbrechung
+                    ->addSection($this->Style->getBreakDataSection())
+                    /////// Wiederaufnahme
+                    ->addSection($this->Style->getRevisitDataSection())
+                    /////// Kenntnis
                     ->addSection($this->Style->getDateDataSection())
                     ->addSection($this->Style->getDateSection())
                 )
