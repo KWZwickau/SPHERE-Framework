@@ -8,11 +8,11 @@ use SPHERE\Application\Document\Generator\Repository\Page;
 use SPHERE\Application\Document\Generator\Repository\Slice;
 
 /**
- * Class StaffAccidentReportSN
+ * Class StaffAccidentReportBE
  *
  * @package SPHERE\Application\Api\Document\Standard\Repository
  */
-class StaffAccidentReportSN extends AbstractDocument
+class StaffAccidentReportBE extends AbstractDocument
 {
 
     /**
@@ -64,7 +64,7 @@ class StaffAccidentReportSN extends AbstractDocument
                     ->addSection($this->Style->getGenderSection())
                     ->addSection($this->Style->getGenderDataSection())
                     // Neue Reihe
-                    ->addSection($this->Style->getEducationDataSection())
+                    ->addSection($this->Style->getEducationDataSectionBE())
                     ->addSection($this->Style->getInsuranceSection())
                     ->addSection($this->Style->getInsuranceDataSection())
                     /////// Unfall Infos

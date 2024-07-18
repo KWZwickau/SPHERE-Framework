@@ -70,9 +70,10 @@ class Style extends Extension
         $this->FieldValue['PersonOwner'] = (isset($DataPost['PersonOwner']) && $DataPost['PersonOwner'] != '' ? 'X' : '');
         $this->FieldValue['PersonShareholder'] = (isset($DataPost['PersonShareholder']) && $DataPost['PersonShareholder'] != '' ? 'X' : '');
         $this->FieldValue['PersonMarried'] = (isset($DataPost['PersonMarried']) && $DataPost['PersonMarried'] != '' ? 'X' : '');
+        $this->FieldValue['PersonTogether'] = (isset($DataPost['PersonTogether']) && $DataPost['PersonTogether'] != '' ? 'X' : '');
         $this->FieldValue['PersonRelated'] = (isset($DataPost['PersonRelated']) && $DataPost['PersonRelated'] != '' ? 'X' : '');
         $this->FieldValue['PersonCloser'] = '';
-        if($this->FieldValue['PersonMarried'] || $this->FieldValue['PersonRelated']){
+        if($this->FieldValue['PersonMarried'] || $this->FieldValue['PersonRelated'] || $this->FieldValue['PersonTogether']){
             $this->FieldValue['PersonCloser'] = 'X';
         }
         // accident
@@ -234,7 +235,7 @@ class Style extends Extension
                 ->stylePaddingBottom()
                 ->styleTextBold()
                 ->stylePaddingLeft('20px')
-                ->styleHeight('50px')
+                ->styleHeight('40px')
             )
             , '60%'
         )
@@ -484,140 +485,271 @@ class Style extends Extension
             );
     }
 
-    public function getEducationSection()
-    {
-
-        return (new Section())
-            ->addElementColumn((new Element())
-                ->setContent('<b>10</b> Auszubildende/-r')
-                ->styleTextSize('11px')
-                ->stylePaddingLeft('5px')
-                ->styleBorderRight()
-                ->styleHeight('20px')
-                , '24%'
-            )
-            ->addElementColumn((new Element())
-                ->setContent('<b>11</b> Die versicherte Person ist')
-                ->styleTextSize('11px')
-                ->stylePaddingLeft('5px')
-                ->styleHeight('20px')
-                , '22%'
-            )
-            ->addSliceColumn(
-                $this->setCheckBox(($this->FieldValue['PersonOwner'] ? 'X' : ''))
-                    ->styleHeight('15px')
-                , '4%'
-            )
-            ->addElementColumn((new Element())
-                ->setContent('Unternehmer/-in')
-                ->styleTextSize('11px')
-                ->stylePaddingTop('4px')
-                ->styleHeight('15px')
-                , '18%'
-            )
-            ->addSliceColumn(
-                $this->setCheckBox(($this->FieldValue['PersonCloser'] ? 'X' : ''))
-                    //                                ->stylePaddingTop('-5px')
-                    ->styleHeight('15px')
-                , '4%'
-            )
-            ->addElementColumn((new Element())
-                ->setContent('mit dem/der Unternehmer/-in')
-                ->stylePaddingTop('4px')
-                ->styleTextSize('11px')
-                ->styleHeight('15px')
-                , '28%'
-            );
-    }
-
     public function getEducationDataSection()
     {
-
-        //ToDO richtige Checkboxen erstellen
-
         return (new Section())
-            ->addElementColumn((new Element())
-                , '2%'
-            )
-            ->addSliceColumn(
-                $this->setCheckBox(($this->FieldValue['ApprenticeNo'] ? 'X' : ''))
-                , '4%'
-            )
-            ->addElementColumn((new Element())
-                ->setContent('nein')
-                ->styleTextSize('12px')
-                ->stylePaddingTop('4px')
-                , '7%'
-            )
-            ->addSliceColumn(
-                $this->setCheckBox(($this->FieldValue['ApprenticeYes'] ? 'X' : ''))
-                , '4%'
-            )
-            ->addElementColumn((new Element())
-                ->setContent('ja')
-                ->styleTextSize('12px')
-                ->stylePaddingTop('4px')
-                ->styleBorderRight()
-                ->styleHeight('27px')
-                , '7%'
-            )
-            ->addElementColumn((new Element())
-                ->setContent('&nbsp;')
-                , '22%'
-            )
-            ->addSliceColumn(
-                $this->setCheckBox(($this->FieldValue['PersonShareholder'] ? 'X' : ''))
-                , '4%'
-            )
-            ->addElementColumn((new Element())
-                ->setContent('Gesellschafter/-in </br>Geschäftsführer/-in ')
-                ->styleTextSize('11px')
-                ->stylePaddingTop('4px')
-                , '18%'
-            )
-            ->addElementColumn((new Element())
-                ->setContent('&nbsp;')
-                , '4%'
-            )
-            ->addSliceColumn(
-                $this->setCheckBox(($this->FieldValue['PersonMarried'] ? 'X' : ''))
-                    ->stylePaddingTop('-5px')
-                , '4%'
-            )
-            ->addElementColumn((new Element())
-                ->setContent('verheiratet/in eingetragener </br>Lebenspartnerschaft lebend')
-                ->styleTextSize('11px')
-                ->stylePaddingTop('4px')
-                , '24%'
-            );
+            ->addSliceColumn((new Slice())
+                ->addElement((new Element())
+                    ->setContent('<b>10</b> Auszubildende/-r')
+                    ->styleTextSize('11px')
+                    ->stylePaddingTop('4px')
+                    ->stylePaddingLeft('5px')
+                    ->styleBorderRight()
+                    ->styleHeight('20px')
+                )
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        , '8%'
+                    )
+                    ->addSliceColumn(
+                        $this->setCheckBox(($this->FieldValue['ApprenticeNo'] ? 'X' : ''))
+                        , '17%'
+                    )
+                    ->addElementColumn((new Element())
+                        ->setContent('nein')
+                        ->styleTextSize('12px')
+                        ->stylePaddingTop('4px')
+                        , '29%'
+                    )
+                    ->addSliceColumn(
+                        $this->setCheckBox(($this->FieldValue['ApprenticeYes'] ? 'X' : ''))
+                        , '17%'
+                    )
+                    ->addElementColumn((new Element())
+                        ->setContent('ja')
+                        ->styleTextSize('12px')
+                        ->stylePaddingTop('4px')
+                        ->styleBorderRight()
+                        ->styleHeight('38px')
+                        , '29%'
+                    )
+                )
+            , '24%')
+            ->addSliceColumn((new Slice())
+                ->addElement((new Element())
+                    ->setContent('<b>11</b> Die versicherte Person ist')
+                    ->styleTextSize('11px')
+                    ->stylePaddingTop('4px')
+                    ->stylePaddingLeft('5px')
+                    ->styleHeight('20px')
+                )
+            , '22%')
+            ->addSliceColumn((new Slice())
+                ->addSection((new Section())
+                    ->addSliceColumn(
+                        $this->setCheckBox(($this->FieldValue['PersonOwner'] ? 'X' : ''))
+                            ->styleHeight('15px')
+                        , '18%'
+                    )
+                    ->addElementColumn((new Element())
+                        ->setContent('Unternehmer/-in')
+                        ->styleTextSize('11px')
+                        ->stylePaddingTop('4px')
+                        ->styleHeight('15px')
+                        , '82%'
+                    )
+                )
+                ->addSection((new Section())
+                    ->addSliceColumn(
+                        $this->setCheckBox(($this->FieldValue['PersonShareholder'] ? 'X' : ''))
+                        , '18%'
+                    )
+                    ->addElementColumn((new Element())
+                        ->setContent('Gesellschafter/-in </br>Geschäftsführer/-in ')
+                        ->styleTextSize('11px')
+                        , '82%'
+                    )
+                )
+            , '22%')
+            ->addSliceColumn((new Slice())
+                ->addSection((new Section())
+                    ->addSliceColumn(
+                        $this->setCheckBox(($this->FieldValue['PersonCloser'] ? 'X' : ''))
+                            ->styleHeight('15px')
+                        , '12%'
+                    )
+                    ->addElementColumn((new Element())
+                        ->setContent('mit dem/der Unternehmer/-in')
+                        ->stylePaddingTop('4px')
+                        ->styleTextSize('11px')
+                        ->styleHeight('15px')
+                        , '88%'
+                    )
+                )
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
+                        , '5%'
+                    )
+                    ->addSliceColumn(
+                        $this->setCheckBox(($this->FieldValue['PersonMarried'] ? 'X' : ''))
+                        , '12%'
+                    )
+                    ->addElementColumn((new Element())
+                        ->setContent('verheiratet/in eingetragener </br>Lebenspartnerschaft lebend')
+                        ->styleTextSize('11px')
+                        , '83%'
+                    )
+                )
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
+                        , '5%'
+                    )
+                    ->addSliceColumn(
+                        $this->setCheckBox(($this->FieldValue['PersonRelated'] ? 'X' : ''))
+                            ->styleHeight('20px')
+                        , '12%'
+                    )
+                    ->addElementColumn((new Element())
+                        ->setContent('verwandt')
+                        ->styleTextSize('11px')
+                        ->stylePaddingTop('4px')
+                        , '83%'
+                    )
+                )
+            , '32%');
     }
 
-    public function getEducationDataTwoSection()
+    public function getEducationDataSectionBE()
     {
-
-        //ToDO richtige Checkboxen erstellen
-
         return (new Section())
-            ->addElementColumn((new Element())
-                ->styleHeight('22px')
-                ->styleBorderRight()
-                , '24%'
-            )
-            ->addElementColumn((new Element())
-                , '48%'
-            )
-            ->addSliceColumn(
-                $this->setCheckBox(($this->FieldValue['PersonRelated'] ? 'X' : ''))
-                    ->stylePaddingTop('-5px')
+            ->addSliceColumn((new Slice())
+                ->addElement((new Element())
+                    ->setContent('<b>10</b> Auszubildende/-r')
+                    ->styleTextSize('11px')
+                    ->stylePaddingTop('4px')
+                    ->stylePaddingLeft('5px')
+                    ->styleBorderRight()
                     ->styleHeight('20px')
-                , '4%'
-            )
-            ->addElementColumn((new Element())
-                ->setContent('verwandt')
-                ->styleTextSize('11px')
-                ->stylePaddingTop('4px')
-                , '24%'
-            );
+                )
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        , '8%'
+                    )
+                    ->addSliceColumn(
+                        $this->setCheckBox(($this->FieldValue['ApprenticeNo'] ? 'X' : ''))
+                        , '17%'
+                    )
+                    ->addElementColumn((new Element())
+                        ->setContent('nein')
+                        ->styleTextSize('12px')
+                        ->stylePaddingTop('4px')
+                        , '29%'
+                    )
+                    ->addSliceColumn(
+                        $this->setCheckBox(($this->FieldValue['ApprenticeYes'] ? 'X' : ''))
+                        , '17%'
+                    )
+                    ->addElementColumn((new Element())
+                        ->setContent('ja')
+                        ->styleTextSize('12px')
+                        ->stylePaddingTop('4px')
+                        ->styleBorderRight()
+                        ->styleHeight('56px')
+                        , '29%'
+                    )
+                )
+            , '24%')
+            ->addSliceColumn((new Slice())
+                ->addElement((new Element())
+                    ->setContent('<b>11</b> Die versicherte Person ist')
+                    ->styleTextSize('11px')
+                    ->stylePaddingTop('4px')
+                    ->stylePaddingLeft('5px')
+                    ->styleHeight('20px')
+                )
+            , '22%')
+            ->addSliceColumn((new Slice())
+                ->addSection((new Section())
+                    ->addSliceColumn(
+                        $this->setCheckBox(($this->FieldValue['PersonOwner'] ? 'X' : ''))
+                            ->styleHeight('15px')
+                        , '18%'
+                    )
+                    ->addElementColumn((new Element())
+                        ->setContent('Unternehmer/-in')
+                        ->styleTextSize('11px')
+                        ->stylePaddingTop('4px')
+                        ->styleHeight('15px')
+                        , '82%'
+                    )
+                )
+                ->addSection((new Section())
+                    ->addSliceColumn(
+                        $this->setCheckBox(($this->FieldValue['PersonShareholder'] ? 'X' : ''))
+                        , '18%'
+                    )
+                    ->addElementColumn((new Element())
+                        ->setContent('Gesellschafter/-in </br>Geschäftsführer/-in ')
+                        ->styleTextSize('11px')
+                        , '82%'
+                    )
+                )
+            , '22%')
+            ->addSliceColumn((new Slice())
+                ->addSection((new Section())
+                    ->addSliceColumn(
+                        $this->setCheckBox(($this->FieldValue['PersonCloser'] ? 'X' : ''))
+                            ->styleHeight('15px')
+                        , '12%'
+                    )
+                    ->addElementColumn((new Element())
+                        ->setContent('mit dem/der Unternehmer/-in')
+                        ->stylePaddingTop('4px')
+                        ->styleTextSize('11px')
+                        ->styleHeight('15px')
+                        , '88%'
+                    )
+                )
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
+                        , '5%'
+                    )
+                    ->addSliceColumn(
+                        $this->setCheckBox(($this->FieldValue['PersonMarried'] ? 'X' : ''))
+                        , '12%'
+                    )
+                    ->addElementColumn((new Element())
+                        ->setContent('verheiratet')
+                        ->styleTextSize('11px')
+                        , '83%'
+                    )
+                )
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
+                        , '5%'
+                    )
+                    ->addSliceColumn(
+                        $this->setCheckBox(($this->FieldValue['PersonTogether'] ? 'X' : ''))
+                        , '12%'
+                    )
+                    ->addElementColumn((new Element())
+                        ->setContent('in eingetragener Lebenspartnerschaft lebend')
+                        ->styleTextSize('11px')
+                        , '83%'
+                    )
+                )
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
+                        , '5%'
+                    )
+                    ->addSliceColumn(
+                        $this->setCheckBox(($this->FieldValue['PersonRelated'] ? 'X' : ''))
+                            ->styleHeight('20px')
+                        , '12%'
+                    )
+                    ->addElementColumn((new Element())
+                        ->setContent('verwandt')
+                        ->styleTextSize('11px')
+                        ->stylePaddingTop('4px')
+                        , '83%'
+                    )
+                )
+            , '32%');
     }
 
     public function getInsuranceSection()

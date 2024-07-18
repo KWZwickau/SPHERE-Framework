@@ -34,7 +34,6 @@ use SPHERE\Common\Frontend\Layout\Repository\PullLeft;
 use SPHERE\Common\Frontend\Layout\Repository\Thumbnail;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
-use SPHERE\Common\Frontend\Layout\Repository\WellReadOnly;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
@@ -371,19 +370,131 @@ class StaffAccidentReport extends Extension
                             new Layout(new LayoutGroup(new LayoutRow(array(
                                 new LayoutColumn(
                                     new CheckBox('Data[PersonOwner]', 'Unternehmer/-in',
-                                        'Unternehmer', array('Data[PersonShareholder]', 'Data[PersonMarried]', 'Data[PersonRelated]'))
+                                        true, array('Data[PersonShareholder]', 'Data[PersonMarried]', 'Data[PersonRelated]'))
                                     .new CheckBox('Data[PersonShareholder]', 'Gesellschafter/-in Geschäftsführer/-in',
-                                        'Gesellschafter', array('Data[PersonOwner]', 'Data[PersonMarried]', 'Data[PersonRelated]'))
+                                        true, array('Data[PersonOwner]', 'Data[PersonMarried]', 'Data[PersonRelated]'))
                                     , 5),
                                 new LayoutColumn(
                                     new Container(new Italic('mit dem/der Unternehmer/-in'))
                                     .new CheckBox('Data[PersonMarried]', 'verheiratet/in eingetragener Lebenspartnerschaft lebend',
-                                        'Ehegatte', array('Data[PersonOwner]', 'Data[PersonShareholder]', 'Data[PersonRelated]'))
+                                        true, array('Data[PersonOwner]', 'Data[PersonShareholder]', 'Data[PersonRelated]'))
                                     .new CheckBox('Data[PersonRelated]', 'verwandt',
-                                        'Verwandt', array('Data[PersonOwner]', 'Data[PersonShareholder]', 'Data[PersonMarried]'))
+                                        true, array('Data[PersonOwner]', 'Data[PersonShareholder]', 'Data[PersonMarried]'))
                                     , 7)
                             ))))))
                         , 10)
+                    )),
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            new TextField('Data[ContinuePayment]', '',
+                                new Sup(12). ' Anspruch auf Entgeltfortzahlung in Wochen:')
+                            , 5),
+                        new LayoutColumn(
+                            new TextField('Data[HealthInsurance]', 'Krankenkasse',
+                                new Sup(13).' Krankenkasse (Name, PLZ, Ort, bei Familienversicherung)')
+                            , 7),
+                    ))
+                ))
+            )
+        ));
+    }
+
+    /**
+     * @return LayoutColumn
+     */
+    private function getFormPersonBE(): LayoutColumn
+    {
+
+        return new LayoutColumn(new Well(
+            new Layout(
+                new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            new TextField('Data[LastFirstName]', 'Name, Vorname',
+                                new Sup(4).' Name, Vorname des Mitarbeiters/der Mitarbeiterin')
+                            , 8),
+                        new LayoutColumn(
+                            new TextField('Data[Birthday]', 'Geburtstag',
+                                new Sup(5).' Geburtstag')
+                            , 4),
+                    )),
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            new TextField('Data[AddressStreet]', 'Straße, Hausnummer',
+                                new Sup(6).' Straße, Hausnummer')
+                            , 6),
+                        new LayoutColumn(
+                            new TextField('Data[AddressPLZ]', 'Postleitzahl',
+                                'Postleitzahl')
+                            , 3),
+                        new LayoutColumn(
+                            new TextField('Data[AddressCity]', 'Ort',
+                                'Ort')
+                            , 3),
+                    )),
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            new Bold(new Sup(7).' Geschlecht')
+                            .(new Listing(array(
+                                new Layout(new LayoutGroup(
+                                    new LayoutRow(array(
+                                        new LayoutColumn(
+                                            new RadioBox('Data[Gender]', 'Männlich', 'Männlich')
+                                            , 3),
+                                        new LayoutColumn(
+                                            new RadioBox('Data[Gender]', 'Weiblich', 'Weiblich')
+                                            , 3),
+                                        new LayoutColumn(
+                                            new RadioBox('Data[Gender]', 'Divers', 'Divers')
+                                            , 2),
+                                        new LayoutColumn(
+                                            new RadioBox('Data[Gender]', 'Keine&nbsp;Angabe', 'Without')
+                                            , 4),
+                                    ))
+                                ))
+                            ))), 6),
+                        new LayoutColumn(
+                            new TextField('Data[Nationality]', 'Staatsangehörigkeit',
+                                new Sup(8).' Staatsangehörigkeit')
+                            , 3),
+                        new LayoutColumn(
+                            new PullClear(new Bold(new Sup(9).' Leiharbeitnehmer/in?')).
+                            new PullLeft(new CheckBox('Data[TemporaryWorkNo]',
+                                'Nein &nbsp;&nbsp;&nbsp;&nbsp;', true, array('Data[TemporaryWorkYes]'))).
+                            new PullLeft(new CheckBox('Data[TemporaryWorkYes]',
+                                'Ja &nbsp;&nbsp;&nbsp;&nbsp;', true, array('Data[TemporaryWorkNo]')))
+                            , 3)
+                    )),
+                    new LayoutRow(new LayoutColumn(new Title(''))),
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            new PullClear(new Bold(new Sup(10).' Auszubildender?')).
+                            new PullLeft(new CheckBox('Data[ApprenticeNo]',
+                                'Nein &nbsp;&nbsp;&nbsp;&nbsp;', true, array('Data[ApprenticeYes]'))).
+                            new PullLeft(new CheckBox('Data[ApprenticeYes]',
+                                'Ja &nbsp;&nbsp;&nbsp;&nbsp;', true, array('Data[ApprenticeNo]')))
+                            , 2),
+                        new LayoutColumn(
+                            new Bold(new Sup(11).' Versicherte Person ist:').
+                            new Listing(array(
+                                new Layout(new LayoutGroup(new LayoutRow(array(
+                                    new LayoutColumn(
+                                        new CheckBox('Data[PersonOwner]', 'Unternehmer/-in',
+                                            true, array('Data[PersonShareholder]', 'Data[PersonMarried]', 'Data[PersonRelated]', 'Data[PersonTogether]'))
+                                        .new CheckBox('Data[PersonShareholder]', 'Gesellschafter/-in Geschäftsführer/-in',
+                                            true, array('Data[PersonOwner]', 'Data[PersonMarried]', 'Data[PersonRelated]', 'Data[PersonTogether]'))
+                                        , 5),
+                                    new LayoutColumn(
+                                        new Container(new Italic('mit dem/der Unternehmer/-in'))
+                                        .new CheckBox('Data[PersonMarried]', 'verheiratet',
+                                            true, array('Data[PersonOwner]', 'Data[PersonShareholder]', 'Data[PersonRelated]', 'Data[PersonTogether]'))
+                                        .new CheckBox('Data[PersonTogether]', 'in eingetragener Lebenspartnerschaft lebend',
+                                            true, array('Data[PersonOwner]', 'Data[PersonShareholder]', 'Data[PersonRelated]', 'Data[PersonMarried]'))
+                                        .new CheckBox('Data[PersonRelated]', 'verwandt',
+                                            true, array('Data[PersonOwner]', 'Data[PersonShareholder]', 'Data[PersonMarried]', 'Data[PersonTogether]'))
+                                        , 7)
+                                ))))))
+                            , 10)
                     )),
                     new LayoutRow(array(
                         new LayoutColumn(
@@ -544,7 +655,7 @@ class StaffAccidentReport extends Extension
                 new LayoutRow(array(
                     new LayoutColumn(
                         new TextField('Data[Date]', (new DateTime())->format('d.m.Y'),
-                            'Datum')
+                            new Sup(29).' Datum')
                     , 2),
                     new LayoutColumn(
                         new TextField('Data[LocalLeader]', 'Leiter',
@@ -598,7 +709,7 @@ class StaffAccidentReport extends Extension
                 new LayoutColumn(new Title('Empfänger')),
                 $this->getFormReceiver(),
                 new LayoutColumn(new Title('Informationen Versicherter')),
-                $this->getFormPerson(),
+                $this->getFormPersonBE(),
                 new LayoutColumn(new Title('Informationen Unfall')),
                 $this->getFormAccident()
             ))))
