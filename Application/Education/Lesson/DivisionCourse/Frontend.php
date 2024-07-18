@@ -144,10 +144,10 @@ class Frontend extends FrontendYearChange
 //                    continue;
 //                }
 
-                $optionSubCourse = !$tblDivisionCourse->getIsDivisionOrCoreGroup()
-                    ? (new Standard('', ApiDivisionCourse::getEndpoint(), new LinkIcon(), array(), 'Unter-Kurse verknüpfen'))
-                        ->ajaxPipelineOnClick(ApiDivisionCourse::pipelineOpenLinkDivisionCourseModal($tblDivisionCourse->getId(), $Filter))
-                    : '';
+//                $optionSubCourse = !$tblDivisionCourse->getIsDivisionOrCoreGroup()
+//                    ? (new Standard('', ApiDivisionCourse::getEndpoint(), new LinkIcon(), array(), 'Unter-Kurse verknüpfen'))
+//                        ->ajaxPipelineOnClick(ApiDivisionCourse::pipelineOpenLinkDivisionCourseModal($tblDivisionCourse->getId(), $Filter))
+//                    : '';
 
                 $countActive = 0;
                 $countInActive = 0;
@@ -178,7 +178,7 @@ class Frontend extends FrontendYearChange
                             new EyeOpen(), array('DivisionCourseId' => $tblDivisionCourse->getId(), 'Filter' => $Filter), 'Kurs einsehen')
                         . (new Standard('', ApiDivisionCourse::getEndpoint(), new Pen(), array(), 'Name des Kurses bearbeiten'))
                             ->ajaxPipelineOnClick(ApiDivisionCourse::pipelineOpenEditDivisionCourseModal($tblDivisionCourse->getId(), $Filter))
-                        . $optionSubCourse
+//                        . $optionSubCourse
                         . (new Standard('', ApiDivisionCourse::getEndpoint(), new Remove(), array(), 'Kurs löschen'))
                             ->ajaxPipelineOnClick(ApiDivisionCourse::pipelineOpenDeleteDivisionCourseModal($tblDivisionCourse->getId(), $Filter))
                 );
@@ -232,7 +232,7 @@ class Frontend extends FrontendYearChange
                 'Name' => 'Kursname',
                 'Description' => 'Beschreibung',
                 'Type' => 'Typ',
-                'SubCourses' => 'Unter-Kurse',
+//                'SubCourses' => 'Unter-Kurse',
                 'Students' => 'Schüler',
             );
             if ($showExtraInfo) {
