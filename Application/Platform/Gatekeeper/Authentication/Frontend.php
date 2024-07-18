@@ -397,7 +397,7 @@ class Frontend extends Extension implements IFrontendInterface
             $Form.= new Layout(new LayoutGroup(new LayoutRow(
                 new LayoutColumn(array(
                     '<br/><br/><br/><br/>',
-                    new Title('Anmeldung UCS (Pilot)'),
+                    new Title('Anmeldung UCS'),
                     new PrimaryLink('Login', 'SPHERE\Application\Platform\Gatekeeper\Saml\Login\DLLP')
                     // Frontend dazu muss noch entschieden werden
 //                    .new PrimaryLink('Placeholder', 'SPHERE\Application\Platform\Gatekeeper\Saml\Login\Placeholder') // -> Beispiel kann für zukünftige IDP's verwendet werden
