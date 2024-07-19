@@ -4,7 +4,6 @@ namespace SPHERE\Application\Education\Diary;
 
 use SPHERE\Application\Education\ClassRegister\Diary\Frontend;
 use SPHERE\Application\Education\ClassRegister\Diary\Service;
-use SPHERE\Application\Education\ClassRegister\Diary\ServiceOld;
 use SPHERE\Application\IApplicationInterface;
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
@@ -68,18 +67,5 @@ class Diary implements IApplicationInterface, IModuleInterface
     public static function useFrontend(): Frontend
     {
         return new Frontend();
-    }
-
-    /**
-     * @deprecated
-     *
-     * @return ServiceOld
-     */
-    public static function useServiceOld(): ServiceOld
-    {
-        return new ServiceOld(new Identifier('Education', 'ClassRegister', null, null,
-            Consumer::useService()->getConsumerBySession()),
-            self::LOCATION . '/ServiceOld/Entity', self::LOCATION . '\ServiceOld\Entity'
-        );
     }
 }

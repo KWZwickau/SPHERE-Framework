@@ -6,8 +6,6 @@ use DateTime;
 use SPHERE\Application\Education\ClassRegister\Instruction\Service\Entity\TblInstruction;
 use SPHERE\Application\Education\ClassRegister\Instruction\Service\Entity\TblInstructionItem;
 use SPHERE\Application\Education\ClassRegister\Instruction\Service\Entity\TblInstructionItemStudent;
-use SPHERE\Application\Education\Lesson\Division\Division;
-use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -59,25 +57,25 @@ class Data extends AbstractData
 
         $resultList = $query->getResult();
 
-        if ($resultList) {
-            /** @var TblInstructionItem $tblInstructionItem */
-            foreach ($resultList as $tblInstructionItem) {
-                if (($tblDivisionSubject = $tblInstructionItem->getServiceTblDivisionSubject())
-                    && ($tblDivision = $tblDivisionSubject->getTblDivision())
-                    && ($tblSubject = $tblDivisionSubject->getServiceTblSubject())
-                    && ($tblSubjectGroup = $tblDivisionSubject->getTblSubjectGroup())
-                    && ($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseByMigrateSekCourse(
-                            Division::useService()->getMigrateSekCourseString($tblDivision, $tblSubject, $tblSubjectGroup
-                        )))
-                ) {
-                    $count++;
-                    $tblInstructionItem->setServiceTblDivisionCourse($tblDivisionCourse);
-                    $Manager->bulkSaveEntity($tblInstructionItem);
-                }
-            }
-
-            $Manager->flushCache();
-        }
+//        if ($resultList) {
+//            /** @var TblInstructionItem $tblInstructionItem */
+//            foreach ($resultList as $tblInstructionItem) {
+//                if (($tblDivisionSubject = $tblInstructionItem->getServiceTblDivisionSubject())
+//                    && ($tblDivision = $tblDivisionSubject->getTblDivision())
+//                    && ($tblSubject = $tblDivisionSubject->getServiceTblSubject())
+//                    && ($tblSubjectGroup = $tblDivisionSubject->getTblSubjectGroup())
+//                    && ($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseByMigrateSekCourse(
+//                            Division::useService()->getMigrateSekCourseString($tblDivision, $tblSubject, $tblSubjectGroup
+//                        )))
+//                ) {
+//                    $count++;
+//                    $tblInstructionItem->setServiceTblDivisionCourse($tblDivisionCourse);
+//                    $Manager->bulkSaveEntity($tblInstructionItem);
+//                }
+//            }
+//
+//            $Manager->flushCache();
+//        }
 
 
         $end = hrtime(true);

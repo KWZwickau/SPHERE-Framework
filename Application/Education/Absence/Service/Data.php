@@ -5,8 +5,6 @@ namespace SPHERE\Application\Education\Absence\Service;
 use DateTime;
 use SPHERE\Application\Education\Absence\Service\Entity\TblAbsence;
 use SPHERE\Application\Education\Absence\Service\Entity\TblAbsenceLesson;
-use SPHERE\Application\Education\ClassRegister\Absence\Absence as AbsenceOld;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
@@ -30,36 +28,36 @@ class Data extends AbstractData
         $start = hrtime(true);
         if ($tblDivisionList) {
             $Manager = $this->getEntityManager();
-            /** @var TblDivision $tblDivision */
-            foreach ($tblDivisionList as $tblDivision) {
-                if (($tblAbsenceOldList = AbsenceOld::useService()->getAbsenceAllByDivision($tblDivision))) {
-                    $createEntityList = array();
-                    // trennung nach mit Stunden und ohne Stunden
-                    foreach ($tblAbsenceOldList as $tblAbsenceOld) {
-                        if (($tblPerson = $tblAbsenceOld->getServiceTblPerson())) {
-                            $tblAbsence = new TblAbsence(
-                                $tblPerson, $tblAbsenceOld->getFromDateTime(), $tblAbsenceOld->getToDateTime(),
-                                $tblAbsenceOld->getStatus(), $tblAbsenceOld->getType(), $tblAbsenceOld->getRemark(), $tblAbsenceOld->getIsCertificateRelevant(),
-                                $tblAbsenceOld->getServiceTblPersonStaff() ?: null, $tblAbsenceOld->getServiceTblPersonCreator() ?: null, $tblAbsenceOld->getSource()
-                            );
-
-                            // bei vorhandenen Stunden kann die Fehlzeit nicht per Bulk gespeichert werden
-                            if (($tblAbsenceLessonOldList = AbsenceOld::useService()->getAbsenceLessonAllByAbsence($tblAbsenceOld))) {
-                                $Manager->saveEntity($tblAbsence);
-                                foreach ($tblAbsenceLessonOldList as $tblAbsenceLessonOld) {
-                                    $createEntityList[] = new TblAbsenceLesson($tblAbsence, $tblAbsenceLessonOld->getLesson());
-                                }
-                            } else {
-                                $createEntityList[] = $tblAbsence;
-                            }
-                        }
-                    }
-
-                    foreach ($createEntityList as $tblAbsenceCreate) {
-                        $Manager->bulkSaveEntity($tblAbsenceCreate);
-                    }
-                }
-            }
+//            /** @var TblDivision $tblDivision */
+//            foreach ($tblDivisionList as $tblDivision) {
+//                if (($tblAbsenceOldList = AbsenceOld::useService()->getAbsenceAllByDivision($tblDivision))) {
+//                    $createEntityList = array();
+//                    // trennung nach mit Stunden und ohne Stunden
+//                    foreach ($tblAbsenceOldList as $tblAbsenceOld) {
+//                        if (($tblPerson = $tblAbsenceOld->getServiceTblPerson())) {
+//                            $tblAbsence = new TblAbsence(
+//                                $tblPerson, $tblAbsenceOld->getFromDateTime(), $tblAbsenceOld->getToDateTime(),
+//                                $tblAbsenceOld->getStatus(), $tblAbsenceOld->getType(), $tblAbsenceOld->getRemark(), $tblAbsenceOld->getIsCertificateRelevant(),
+//                                $tblAbsenceOld->getServiceTblPersonStaff() ?: null, $tblAbsenceOld->getServiceTblPersonCreator() ?: null, $tblAbsenceOld->getSource()
+//                            );
+//
+//                            // bei vorhandenen Stunden kann die Fehlzeit nicht per Bulk gespeichert werden
+//                            if (($tblAbsenceLessonOldList = AbsenceOld::useService()->getAbsenceLessonAllByAbsence($tblAbsenceOld))) {
+//                                $Manager->saveEntity($tblAbsence);
+//                                foreach ($tblAbsenceLessonOldList as $tblAbsenceLessonOld) {
+//                                    $createEntityList[] = new TblAbsenceLesson($tblAbsence, $tblAbsenceLessonOld->getLesson());
+//                                }
+//                            } else {
+//                                $createEntityList[] = $tblAbsence;
+//                            }
+//                        }
+//                    }
+//
+//                    foreach ($createEntityList as $tblAbsenceCreate) {
+//                        $Manager->bulkSaveEntity($tblAbsenceCreate);
+//                    }
+//                }
+//            }
 
             $Manager->flushCache();
         }

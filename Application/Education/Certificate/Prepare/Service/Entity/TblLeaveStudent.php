@@ -14,8 +14,6 @@ use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificate;
-use SPHERE\Application\Education\Lesson\Division\Division;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
@@ -102,30 +100,6 @@ class TblLeaveStudent extends Element
     public function setServiceTblYear(TblYear $tblYear)
     {
         $this->serviceTblYear = $tblYear->getId();
-    }
-
-    /**
-     * @deprecated
-     *
-     * @return bool|TblDivision
-     */
-    public function getServiceTblDivision()
-    {
-        if (null === $this->serviceTblDivision) {
-            return false;
-        } else {
-            return Division::useService()->getDivisionById($this->serviceTblDivision);
-        }
-    }
-
-    /**
-     * @deprecated
-     *
-     * @param TblDivision|null $tblDivision
-     */
-    public function setServiceTblDivision(TblDivision $tblDivision = null)
-    {
-        $this->serviceTblDivision = (null === $tblDivision ? null : $tblDivision->getId());
     }
 
     /**

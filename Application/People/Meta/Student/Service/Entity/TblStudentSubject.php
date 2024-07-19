@@ -5,8 +5,6 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
-use SPHERE\Application\Education\Lesson\Division\Division;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblLevel;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\People\Meta\Student\Student;
@@ -60,19 +58,6 @@ class TblStudentSubject extends Element
      * @Column(type="integer")
      */
     protected ?int $LevelTill = null;
-
-    /**
-     * @return bool|TblStudent
-     */
-    public function getTblStudent()
-    {
-
-        if (null === $this->tblStudent) {
-            return false;
-        } else {
-            return Student::useService()->getStudentById($this->tblStudent);
-        }
-    }
 
     /**
      * @param null|TblStudent $tblStudent
@@ -147,36 +132,6 @@ class TblStudentSubject extends Element
     {
 
         $this->serviceTblSubject = ( null === $tblSubject ? null : $tblSubject->getId() );
-    }
-
-    /**
-     * @deprecated
-     *
-     * @return bool|TblLevel
-     */
-    public function getServiceTblLevelFrom()
-    {
-
-        if (null === $this->serviceTblLevelFrom) {
-            return false;
-        } else {
-            return Division::useService()->getLevelById($this->serviceTblLevelFrom);
-        }
-    }
-
-    /**
-     * @deprecated
-     *
-     * @return bool|TblLevel
-     */
-    public function getServiceTblLevelTill()
-    {
-
-        if (null === $this->serviceTblLevelTill) {
-            return false;
-        } else {
-            return Division::useService()->getLevelById($this->serviceTblLevelTill);
-        }
     }
 
     /**

@@ -3,12 +3,9 @@
 namespace SPHERE\Application\Api\Transfer\Untis\Meta;
 
 use MOC\V\Core\FileSystem\FileSystem;
-use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\IModuleInterface;
-use SPHERE\Application\IServiceInterface;
 use SPHERE\Application\Transfer\Untis\Export\Meta\Meta as MetaApp;
-use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Main;
 
 class Meta implements IModuleInterface

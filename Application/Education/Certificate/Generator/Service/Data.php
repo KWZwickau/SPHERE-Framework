@@ -233,23 +233,6 @@ class Data extends AbstractData
     {
         $tblConsumer = $this->tblConsumer = Consumer::useService()->getConsumerBySession();
 
-        // migration TblCertificateLevel serviceTblLevel -> Level
-        // kann später wieder entfernt werden
-        if (($tblCertificateLevelList = $this->getCertificateLevelAllByLevelIsNull())) {
-            $updateList = array();
-            foreach ($tblCertificateLevelList as $tblCertificateLevel) {
-                if (($tblLevel = $tblCertificateLevel->getServiceTblLevel())) {
-                    $tblCertificateLevel->setLevel(intval($tblLevel->getName()));
-                    $updateList[] = $tblCertificateLevel;
-                } else {
-                    $this->destroyCertificateLevel($tblCertificateLevel);
-                }
-            }
-            if (!empty($updateList)) {
-                $this->updateEntityListBulk($updateList);
-            }
-        }
-
         if ($tblConsumer && $tblConsumer->getType() == TblConsumer::TYPE_SACHSEN) {
 
             // Informationen der Zeugnisse

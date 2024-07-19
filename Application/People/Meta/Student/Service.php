@@ -3,13 +3,9 @@ namespace SPHERE\Application\People\Meta\Student;
 
 use DateTime;
 use SPHERE\Application\Corporation\Company\Company;
-use SPHERE\Application\Education\Lesson\Division\Division;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
-use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
-use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Course\Course;
 use SPHERE\Application\Education\School\Course\Service\Entity\TblSchoolDiploma;
 use SPHERE\Application\Education\School\Course\Service\Entity\TblTechnicalCourse;
@@ -42,7 +38,6 @@ use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransport;
 use SPHERE\Application\People\Meta\Student\Service\Service\Support;
 use SPHERE\Application\People\Meta\Student\Service\Setup;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
-use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\People\Relationship\Service\Entity\TblSiblingRank;
 use SPHERE\Application\Setting\Consumer\Consumer;
 
@@ -1081,121 +1076,6 @@ class Service extends Support
     ) {
 
         return (new Data($this->getBinding()))->getStudentTransportById($Id);
-    }
-
-    /**
-     * @deprecated
-     *
-     * @param TblPerson $tblPerson
-     * @param bool $isStudentGroup
-     *
-     * @return false|TblDivision[]
-     */
-    public function getCurrentDivisionListByPerson(TblPerson $tblPerson, bool $isStudentGroup = true)
-    {
-
-        $tblDivisionList = array();
-        if (Group::useService()->existsGroupPerson(Group::useService()->getGroupByMetaTable('STUDENT'), $tblPerson)
-            || !$isStudentGroup
-        ) {
-            $tblYearList = Term::useService()->getYearByNow();
-            if ($tblYearList) {
-                $tblDivisionStudentList = Division::useService()->getDivisionStudentAllByPerson($tblPerson);
-                if ($tblDivisionStudentList) {
-                    foreach ($tblDivisionStudentList as $tblDivisionStudent) {
-                        foreach ($tblYearList as $tblYear) {
-                            if ($tblDivisionStudent->getTblDivision() && !$tblDivisionStudent->getLeaveDateTime()) {
-                                $divisionYear = $tblDivisionStudent->getTblDivision()->getServiceTblYear();
-                                if ($divisionYear && $divisionYear->getId() == $tblYear->getId()) {
-                                    $tblDivisionList[] = $tblDivisionStudent->getTblDivision();
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        return empty($tblDivisionList) ? false : $tblDivisionList;
-    }
-
-    /**
-     * @deprecated
-     *
-     * @param TblPerson $tblPerson
-     * @param TblYear|null $tblYear
-     *
-     * @return false|TblDivision
-     */
-    public function getCurrentMainDivisionByPerson(TblPerson $tblPerson, TblYear $tblYear = null)
-    {
-
-        if (Group::useService()->existsGroupPerson(Group::useService()->getGroupByMetaTable('STUDENT'),
-            $tblPerson)
-        ) {
-            if ($tblYear) {
-                $tblYearList = array(0 => $tblYear);
-            } else {
-                $tblYearList = Term::useService()->getYearByNow();
-            }
-            if ($tblYearList) {
-                $tblDivisionStudentList = Division::useService()->getDivisionStudentAllByPerson($tblPerson);
-                if ($tblDivisionStudentList) {
-                    foreach ($tblDivisionStudentList as $tblDivisionStudent) {
-                        foreach ($tblYearList as $tblYearItem) {
-                            if ($tblDivisionStudent->getTblDivision()) {
-                                $divisionYear = $tblDivisionStudent->getTblDivision()->getServiceTblYear();
-                                if ($divisionYear && $divisionYear->getId() == $tblYearItem->getId()) {
-                                    if(($tblDivision = $tblDivisionStudent->getTblDivision())){
-                                        if (($tblLevel = $tblDivision->getTblLevel())
-                                            && !$tblLevel->getIsChecked()
-                                        ) {
-                                            return $tblDivision;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * @deprecated
-     *
-     * @param TblPerson $tblPerson
-     * @param TblYear $tblYear
-     *
-     * @return false|TblDivision
-     */
-    public function getMainDivisionByPersonAndYear(TblPerson $tblPerson, TblYear $tblYear)
-    {
-
-        $tblDivisionStudentList = Division::useService()->getDivisionStudentAllByPerson($tblPerson);
-        if ($tblDivisionStudentList) {
-            foreach ($tblDivisionStudentList as $tblDivisionStudent) {
-                if ($tblDivisionStudent->getLeaveDateTime() == null
-                    && $tblDivisionStudent->getTblDivision()
-                ) {
-                    $divisionYear = $tblDivisionStudent->getTblDivision()->getServiceTblYear();
-                    if ($divisionYear && $divisionYear->getId() == $tblYear->getId()) {
-                        if (($tblDivision = $tblDivisionStudent->getTblDivision())) {
-                            if (($tblLevel = $tblDivision->getTblLevel())
-                                && !$tblLevel->getIsChecked()
-                            ) {
-                                return $tblDivision;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        return false;
     }
 
     /**

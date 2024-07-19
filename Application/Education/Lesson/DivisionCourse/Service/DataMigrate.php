@@ -3,17 +3,13 @@
 namespace SPHERE\Application\Education\Lesson\DivisionCourse\Service;
 
 use SPHERE\Application\Education\Graduation\Grade\Grade;
-use SPHERE\Application\Education\Lesson\Division\Division;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseMember;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseMemberType;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblStudentEducation;
-use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblStudentSubject;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblSubjectTable;
-use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblTeacherLectureship;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
@@ -49,29 +45,29 @@ abstract class DataMigrate extends AbstractData
     {
         $count = 0;
         $start = hrtime(true);
-        if (($tblDivisionList = Division::useService()->getDivisionAll())
-            && ($tblType = $this->getDivisionCourseTypeByIdentifier(TblDivisionCourseType::TYPE_DIVISION))
-        ) {
-            $tblDivisionList = $this->getSorter($tblDivisionList)->sortObjectBy('Id');
-            $Manager = $this->getEntityManager();
-            /** @var TblDivision $tblDivision */
-            foreach ($tblDivisionList as $tblDivision) {
-                if (($tblYear = $tblDivision->getServiceTblYear())) {
-                    $description = '';
-                    if ($tblDivision->getDescription()) {
-                        $description = $tblDivision->getDescription();
-                    } elseif (($tblSchoolType = $tblDivision->getType()) && strtolower($tblSchoolType->getShortName()) != strtolower($tblDivision->getName())) {
-                        $description = $tblSchoolType->getShortName();
-                    }
-                    $tblDivisionCourse = TblDivisionCourse::withParameterAndId($tblType, $tblYear, $tblDivision->getDisplayName(), $description,
-                        $tblDivision->getId(), true, true);
-
-                    // beim Speichern mit vorgegebener Id ist kein bulkSave möglich
-                    $Manager->saveEntityWithSetId($tblDivisionCourse);
-                    $count++;
-                }
-            }
-        }
+//        if (($tblDivisionList = Division::useService()->getDivisionAll())
+//            && ($tblType = $this->getDivisionCourseTypeByIdentifier(TblDivisionCourseType::TYPE_DIVISION))
+//        ) {
+//            $tblDivisionList = $this->getSorter($tblDivisionList)->sortObjectBy('Id');
+//            $Manager = $this->getEntityManager();
+//            /** @var TblDivision $tblDivision */
+//            foreach ($tblDivisionList as $tblDivision) {
+//                if (($tblYear = $tblDivision->getServiceTblYear())) {
+//                    $description = '';
+//                    if ($tblDivision->getDescription()) {
+//                        $description = $tblDivision->getDescription();
+//                    } elseif (($tblSchoolType = $tblDivision->getType()) && strtolower($tblSchoolType->getShortName()) != strtolower($tblDivision->getName())) {
+//                        $description = $tblSchoolType->getShortName();
+//                    }
+//                    $tblDivisionCourse = TblDivisionCourse::withParameterAndId($tblType, $tblYear, $tblDivision->getDisplayName(), $description,
+//                        $tblDivision->getId(), true, true);
+//
+//                    // beim Speichern mit vorgegebener Id ist kein bulkSave möglich
+//                    $Manager->saveEntityWithSetId($tblDivisionCourse);
+//                    $count++;
+//                }
+//            }
+//        }
 
         $end = hrtime(true);
 
@@ -167,280 +163,280 @@ abstract class DataMigrate extends AbstractData
         $scoreRuleSubjectList = array();
 
         $isCurrentYear = Term::useService()->getIsCurrentYear($tblYear);
-        if (($tblDivisionList = Division::useService()->getDivisionByYear($tblYear))) {
-            $tblTypeAdvancedCourse = $this->getDivisionCourseTypeByIdentifier(TblDivisionCourseType::TYPE_ADVANCED_COURSE);
-            $tblTypeBasicCourse = $this->getDivisionCourseTypeByIdentifier(TblDivisionCourseType::TYPE_BASIC_COURSE);
-            $tblDivisionList = $this->getSorter($tblDivisionList)->sortObjectBy('Id');
-            $Manager = $this->getEntityManager();
-            /** @var TblDivision $tblDivision */
-            foreach ($tblDivisionList as $tblDivision) {
-                if (($tblLevel = $tblDivision->getTblLevel())
-                    && ($tblSchoolType = $tblLevel->getServiceTblType())
-                    && ($tblDivisionCourse = $this->getDivisionCourseById($tblDivision->getId()))
-                ) {
-                    // bei EKPO 2 schulen mit Level 'W' und WVSZ hat Level mit leeren Namen
-                    $level = intval($tblLevel->getName());
-
-                    /**
-                     * Schüler der Klasse - TblDivisionStudent
-                     */
-                    // Jahrgangsübergreifende Klasse
-                    if ($tblLevel->getIsChecked()) {
-                        // WVSZ Förderschule ist nicht als jahrgangübergreifende Klasse angelegt und bei EKPO werden auch keine verwendet
-                        continue;
-                    } else {
-                        // feste Klasse
-                        if (($tblDivisionStudentList = Division::useService()->getDivisionStudentAllByDivision($tblDivision, true))) {
-                            foreach ($tblDivisionStudentList as $tblDivisionStudent) {
-                                if (($tblPerson = $tblDivisionStudent->getServiceTblPerson())) {
-                                    // prüfen, ob es schon vorhanden ist, eventuell durch Klassen
-                                    /** @var TblStudentEducation $tblStudentEducation */
-                                    if (!($tblStudentEducation = $Manager->getEntity('TblStudentEducation')->findOneBy(array(
-                                        TblStudentEducation::ATTR_SERVICE_TBL_YEAR => $tblYear->getId(),
-                                        TblStudentEducation::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
-                                        TblStudentEducation::ATTR_LEAVE_DATE => $tblDivisionStudent->getLeaveDateTime()
-                                    )))) {
-                                        $tblStudentEducation = new TblStudentEducation();
-                                        $tblStudentEducation->setServiceTblYear($tblYear);
-                                        $tblStudentEducation->setServiceTblPerson($tblPerson);
-                                        $tblStudentEducation->setLeaveDate($tblDivisionStudent->getLeaveDateTime());
-                                    }
-
-                                    $tblStudentEducation->setTblDivision($tblDivisionCourse);
-                                    $tblStudentEducation->setServiceTblCompany($tblDivision->getServiceTblCompany() ?: null);
-                                    $tblStudentEducation->setLevel($level ?: null);
-                                    $tblStudentEducation->setServiceTblSchoolType($tblSchoolType);
-                                    if (($tblStudent = $tblPerson->getStudent()) && ($tblCourse = $tblStudent->getCourse())) {
-                                        // Bildungsgang bei OS nicht vor Klasse 7 setzen
-                                        if ($tblSchoolType->getShortName() == 'OS' && $level < 7) {
-                                            $tblCourse = null;
-                                        }
-                                        $tblStudentEducation->setServiceTblCourse($tblCourse);
-                                    }
-
-                                    $tblStudentEducation->setDivisionSortOrder($tblDivisionStudent->getSortOrder());
-                                    $Manager->bulkSaveEntity($tblStudentEducation);
-                                }
-                            }
-                        }
-                    }
-
-                    /**
-                     * Klassenlehrer der Klasse - TblDivisionTeacher
-                     */
-                    if (($tblDivisionTeacherList = Division::useService()->getDivisionTeacherAllByDivision($tblDivision))
-                        && ($tblTypeMemberTeacher = $this->getDivisionCourseMemberTypeByIdentifier(TblDivisionCourseMemberType::TYPE_DIVISION_TEACHER))
-                    ) {
-                        foreach ($tblDivisionTeacherList as $tblDivisionTeacher) {
-                            if ($tblPersonTeacher = $tblDivisionTeacher->getServiceTblPerson()) {
-                                $Manager->bulkSaveEntity(TblDivisionCourseMember::withParameter($tblDivisionCourse, $tblTypeMemberTeacher, $tblPersonTeacher,
-                                    $tblDivisionTeacher->getDescription()));
-                            }
-                        }
-                    }
-
-                    /**
-                     * Eltern Vertreter der Klasse - TblDivisionCustody
-                     */
-                    if (($tblDivisionCustodyList = Division::useService()->getDivisionCustodyAllByDivision($tblDivision))
-                        && ($tblTypeMemberCustody = $this->getDivisionCourseMemberTypeByIdentifier(TblDivisionCourseMemberType::TYPE_CUSTODY))
-                    ) {
-                        foreach ($tblDivisionCustodyList as $tblDivisionCustody) {
-                            if ($tblPersonCustody = $tblDivisionCustody->getServiceTblPerson()) {
-                                $Manager->bulkSaveEntity(TblDivisionCourseMember::withParameter($tblDivisionCourse, $tblTypeMemberCustody, $tblPersonCustody,
-                                    $tblDivisionCustody->getDescription()));
-                            }
-                        }
-                    }
-
-                    /**
-                     * Klassensprecher der Klasse - TblDivisionRepresentative
-                     */
-                    if (($tblDivisionRepresentativeList = Division::useService()->getDivisionRepresentativeByDivision($tblDivision))
-                        && ($tblTypeMemberRepresentative = $this->getDivisionCourseMemberTypeByIdentifier(TblDivisionCourseMemberType::TYPE_REPRESENTATIVE))
-                    ) {
-                        foreach ($tblDivisionRepresentativeList as $tblDivisionRepresentative) {
-                            if ($tblPersonRepresentative = $tblDivisionRepresentative->getServiceTblPerson()) {
-                                $Manager->bulkSaveEntity(TblDivisionCourseMember::withParameter($tblDivisionCourse, $tblTypeMemberRepresentative,
-                                    $tblPersonRepresentative, $tblDivisionRepresentative->getDescription()));
-                            }
-                        }
-                    }
-
-                    /**
-                     * Fächer den Schülern und Lehraufträge den Lehrer zuordnen - TblDivisionSubject, TblSubjectGroup, TblSubjectStudent, TblSubjectTeacher
-                     */
-                    $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
-                    $isCourseSystem = Division::useService()->getIsDivisionCourseSystem($tblDivision);
-                    if (($tblDivisionSubjectList = Division::useService()->getDivisionSubjectByDivision($tblDivision, false))) {
-                        $variableStudentTableList = array();
-                        if (($tblSubjectTableList = DivisionCourse::useService()->getSubjectTableListBy($tblSchoolType, $level))) {
-                            foreach ($tblSubjectTableList as $tblSubjectTableTemp) {
-                                if ($tblSubjectTableTemp->getStudentMetaIdentifier()) {
-                                    $variableStudentTableList[$tblSubjectTableTemp->getId()] = $tblSubjectTableTemp;
-
-                                }
-                            }
-                        }
-
-                        foreach ($tblDivisionSubjectList as $tblDivisionSubject) {
-                            if (($tblSubject = $tblDivisionSubject->getServiceTblSubject())) {
-                                // prüfen, ob Fach bereits über die feste Stundentafel kommt
-                                $addStudentSubject = true;
-                                if (!$isCourseSystem) {
-                                    if (($tblSubjectTable = DivisionCourse::useService()->getSubjectTableBy($tblSchoolType, $level, $tblSubject))) {
-                                        if ($tblSubjectTable->getIsFixed()) {
-                                            $addStudentSubject = false;
-                                        }
-                                    }
-                                }
-
-                                if (($groupList = Division::useService()->getDivisionSubjectAllWhereSubjectGroupByDivisionAndSubject(
-                                    $tblDivisionSubject->getTblDivision(),
-                                    $tblDivisionSubject->getServiceTblSubject()
-                                ))) {
-                                    // Fach-Gruppen
-                                    foreach ($groupList as $groupItem) {
-                                        if (($tblSubjectStudentList = Division::useService()->getStudentByDivisionSubject($groupItem))
-                                            && ($tblSubjectGroup = $groupItem->getTblSubjectGroup())
-                                        ) {
-                                            // SekII-Kurs als Kurs anlegen
-                                            if ($isCourseSystem) {
-                                                // Erkennung Untis: 11Gy EN-L-1
-                                                if (strpos($tblSubjectGroup->getName(), '-L-') !== false
-                                                    || strpos($tblSubjectGroup->getName(), '-G-') !== false
-                                                ) {
-                                                    $newCourseName = $tblLevel->getName() . $tblSchoolType->getShortName() . ' ' . $tblSubjectGroup->getName();
-                                                // Inidware: 11Gy L-BIO1
-                                                } else {
-                                                    $newCourseName = $tblLevel->getName() . $tblSchoolType->getShortName() . ' '
-                                                       . ($tblSubjectGroup->isAdvancedCourse() ? 'L-' : 'G-') . $tblSubjectGroup->getName();
-                                                }
-
-                                                $tblDivisionCourseSekII = TblDivisionCourse::withParameter(
-                                                    $tblSubjectGroup->isAdvancedCourse() ? $tblTypeAdvancedCourse : $tblTypeBasicCourse,
-                                                    $tblYear,
-                                                    $newCourseName,
-                                                    '',
-                                                    $tblSubjectGroup->isAdvancedCourse(),
-                                                    $tblSubjectGroup->isAdvancedCourse(),
-                                                    $tblSubject,
-                                                    null,
-                                                    Division::useService()->getMigrateSekCourseString($tblDivision, $tblSubject, $tblSubjectGroup)
-                                                );
-                                                // bulkSave nicht möglich, da ansonsten noch keine Id vorhanden ist
-                                                $Manager->saveEntity($tblDivisionCourseSekII);
-                                            } else {
-                                                $tblDivisionCourseSekII = false;
-                                            }
-
-                                            // SEKII-Kurse
-                                            if ($isCourseSystem) {
-                                                // bei SekII-kursen SchülerFächer direkt mit neuem Kurs verknüpfen
-                                                for ($i = 1; $i <= 2; $i++) {
-                                                    foreach ($tblSubjectStudentList as $tblSubjectStudent) {
-                                                        $Manager->bulkSaveEntity(TblStudentSubject::withParameter(
-                                                            $tblSubjectStudent, $tblYear, null, $groupItem->getHasGrading(), null,
-                                                            $tblDivisionCourseSekII ?: null, $level . '/' . $i
-                                                        ));
-                                                    }
-                                                }
-                                            // normale Fächer, keine SEKII-Kurse
-                                            } else {
-                                                if ($addStudentSubject) {
-                                                    foreach ($tblSubjectStudentList as $tblSubjectStudent) {
-                                                        $tblSubjectTable = null;
-                                                        if ($this->getAddStudentSubject($tblSubjectStudent, $tblSchoolType, $level, $tblSubject,
-                                                            $variableStudentTableList, $tblSubjectTable, $isCurrentYear
-                                                        )) {
-                                                            $Manager->bulkSaveEntity(TblStudentSubject::withParameter(
-                                                                $tblSubjectStudent, $tblYear, $tblSubject, $groupItem->getHasGrading(), $tblSubjectTable ?: null
-                                                            ));
-                                                        }
-                                                    }
-                                                }
-                                            }
-
-                                            // Lehraufträge bei Gruppen
-                                            if (($tblSubjectTeacherList = Division::useService()->getSubjectTeacherByDivisionSubject($groupItem))) {
-                                                foreach ($tblSubjectTeacherList as $tblSubjectTeacher) {
-                                                    if (($tblTeacherPerson = $tblSubjectTeacher->getServiceTblPerson())) {
-                                                        $Manager->bulkSaveEntity(TblTeacherLectureship::withParameter(
-                                                            $tblTeacherPerson,
-                                                            $tblYear,
-                                                            $tblDivisionCourseSekII ?: $tblDivisionCourse,
-                                                            $tblSubject,
-                                                            $tblDivisionCourseSekII ? '' : $tblSubjectGroup->getName()
-                                                        ));
-                                                    }
-                                                }
-                                            }
-
-//                                            // Berechnungsvorschrift an SekII-Kursen
-//                                            if ($tblDivisionCourseSekII
-//                                                && ($tblScoreRuleSubjectGroup = Gradebook::useService()->getScoreRuleSubjectGroupByDivisionAndSubjectAndGroup(
-//                                                    $tblDivision, $tblSubject, $tblSubjectGroup
-//                                                ))
-//                                                && ($tblScoreRuleOld = $tblScoreRuleSubjectGroup->getTblScoreRule())
-//                                            ) {
-//                                                $tblScoreRule = $tblScoreRuleList[$tblScoreRuleOld->getId()];
-//                                                $Manager->bulkSaveEntity(new TblScoreRuleSubjectDivisionCourse($tblDivisionCourseSekII, $tblSubject, $tblScoreRule));
-//                                            }
-                                        }
-                                    }
-                                } else {
-                                    // gesamte Klasse
-                                    if (!$isCourseSystem && $addStudentSubject && $tblPersonList) {
-                                        $tblSubjectTable = null;
-                                        foreach ($tblPersonList as $tblPersonItem) {
-                                            if ($this->getAddStudentSubject($tblPersonItem, $tblSchoolType, $level, $tblSubject,
-                                                $variableStudentTableList, $tblSubjectTable, $isCurrentYear
-                                            )) {
-                                                $Manager->bulkSaveEntity(TblStudentSubject::withParameter(
-                                                    $tblPersonItem, $tblYear, $tblSubject, $tblDivisionSubject->getHasGrading(), $tblSubjectTable ?: null
-                                                ));
-                                            }
-                                        }
-                                    }
-                                }
-
-                                // Lehraufträge ohne Gruppen
-                                if (!$isCourseSystem && ($tblSubjectTeacherList = Division::useService()->getSubjectTeacherByDivisionSubject($tblDivisionSubject))) {
-                                    foreach ($tblSubjectTeacherList as $tblSubjectTeacher) {
-                                        if (($tblTeacherPerson = $tblSubjectTeacher->getServiceTblPerson())) {
-                                            $Manager->bulkSaveEntity(TblTeacherLectureship::withParameter($tblTeacherPerson, $tblYear, $tblDivisionCourse, $tblSubject));
-                                        }
-                                    }
-                                }
-
-                                // Bewertungssystem und Berechnungsvorschrift
-//                                if (($tblScoreRuleDivisionSubject = Gradebook::useService()->getScoreRuleDivisionSubjectByDivisionAndSubject($tblDivision, $tblSubject))) {
-//                                    // Bewertungssystem nur bei aktuellem Schuljahr, es gibt beim Bewertungssystem keine Schuljahre mehr
-//                                    if ($isCurrentYear && ($tblScoreTypeOld = $tblScoreRuleDivisionSubject->getTblScoreType())) {
-//                                        if (!isset($scoreTypeSubjectList[$tblSchoolType->getId()][$level][$tblSubject->getId()])) {
-//                                            $tblScoreType = $tblScoreTypeList[$tblScoreTypeOld->getIdentifier()];
-//                                            $scoreTypeSubjectList[$tblSchoolType->getId()][$level][$tblSubject->getId()] = $tblScoreType;
-//                                            $Manager->bulkSaveEntity(new TblScoreTypeSubject($tblSchoolType, $level, $tblSubject, $tblScoreType));
-//                                        }
+//        if (($tblDivisionList = Division::useService()->getDivisionByYear($tblYear))) {
+//            $tblTypeAdvancedCourse = $this->getDivisionCourseTypeByIdentifier(TblDivisionCourseType::TYPE_ADVANCED_COURSE);
+//            $tblTypeBasicCourse = $this->getDivisionCourseTypeByIdentifier(TblDivisionCourseType::TYPE_BASIC_COURSE);
+//            $tblDivisionList = $this->getSorter($tblDivisionList)->sortObjectBy('Id');
+//            $Manager = $this->getEntityManager();
+//            /** @var TblDivision $tblDivision */
+//            foreach ($tblDivisionList as $tblDivision) {
+//                if (($tblLevel = $tblDivision->getTblLevel())
+//                    && ($tblSchoolType = $tblLevel->getServiceTblType())
+//                    && ($tblDivisionCourse = $this->getDivisionCourseById($tblDivision->getId()))
+//                ) {
+//                    // bei EKPO 2 schulen mit Level 'W' und WVSZ hat Level mit leeren Namen
+//                    $level = intval($tblLevel->getName());
+//
+//                    /**
+//                     * Schüler der Klasse - TblDivisionStudent
+//                     */
+//                    // Jahrgangsübergreifende Klasse
+//                    if ($tblLevel->getIsChecked()) {
+//                        // WVSZ Förderschule ist nicht als jahrgangübergreifende Klasse angelegt und bei EKPO werden auch keine verwendet
+//                        continue;
+//                    } else {
+//                        // feste Klasse
+//                        if (($tblDivisionStudentList = Division::useService()->getDivisionStudentAllByDivision($tblDivision, true))) {
+//                            foreach ($tblDivisionStudentList as $tblDivisionStudent) {
+//                                if (($tblPerson = $tblDivisionStudent->getServiceTblPerson())) {
+//                                    // prüfen, ob es schon vorhanden ist, eventuell durch Klassen
+//                                    /** @var TblStudentEducation $tblStudentEducation */
+//                                    if (!($tblStudentEducation = $Manager->getEntity('TblStudentEducation')->findOneBy(array(
+//                                        TblStudentEducation::ATTR_SERVICE_TBL_YEAR => $tblYear->getId(),
+//                                        TblStudentEducation::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
+//                                        TblStudentEducation::ATTR_LEAVE_DATE => $tblDivisionStudent->getLeaveDateTime()
+//                                    )))) {
+//                                        $tblStudentEducation = new TblStudentEducation();
+//                                        $tblStudentEducation->setServiceTblYear($tblYear);
+//                                        $tblStudentEducation->setServiceTblPerson($tblPerson);
+//                                        $tblStudentEducation->setLeaveDate($tblDivisionStudent->getLeaveDateTime());
 //                                    }
 //
-//                                    // Berechnungsvorschrift
-//                                    if (($tblScoreRuleOld = $tblScoreRuleDivisionSubject->getTblScoreRule())) {
-//                                        if (!isset($scoreRuleSubjectList[$tblSchoolType->getId()][$level][$tblSubject->getId()])) {
-//                                            $tblScoreRule = $tblScoreRuleList[$tblScoreRuleOld->getId()];
-//                                            $scoreRuleSubjectList[$tblSchoolType->getId()][$level][$tblSubject->getId()] = $tblScoreRule;
-//                                            $Manager->bulkSaveEntity(new TblScoreRuleSubject($tblYear, $tblSchoolType, $level, $tblSubject, $tblScoreRule));
+//                                    $tblStudentEducation->setTblDivision($tblDivisionCourse);
+//                                    $tblStudentEducation->setServiceTblCompany($tblDivision->getServiceTblCompany() ?: null);
+//                                    $tblStudentEducation->setLevel($level ?: null);
+//                                    $tblStudentEducation->setServiceTblSchoolType($tblSchoolType);
+//                                    if (($tblStudent = $tblPerson->getStudent()) && ($tblCourse = $tblStudent->getCourse())) {
+//                                        // Bildungsgang bei OS nicht vor Klasse 7 setzen
+//                                        if ($tblSchoolType->getShortName() == 'OS' && $level < 7) {
+//                                            $tblCourse = null;
+//                                        }
+//                                        $tblStudentEducation->setServiceTblCourse($tblCourse);
+//                                    }
+//
+//                                    $tblStudentEducation->setDivisionSortOrder($tblDivisionStudent->getSortOrder());
+//                                    $Manager->bulkSaveEntity($tblStudentEducation);
+//                                }
+//                            }
+//                        }
+//                    }
+//
+//                    /**
+//                     * Klassenlehrer der Klasse - TblDivisionTeacher
+//                     */
+//                    if (($tblDivisionTeacherList = Division::useService()->getDivisionTeacherAllByDivision($tblDivision))
+//                        && ($tblTypeMemberTeacher = $this->getDivisionCourseMemberTypeByIdentifier(TblDivisionCourseMemberType::TYPE_DIVISION_TEACHER))
+//                    ) {
+//                        foreach ($tblDivisionTeacherList as $tblDivisionTeacher) {
+//                            if ($tblPersonTeacher = $tblDivisionTeacher->getServiceTblPerson()) {
+//                                $Manager->bulkSaveEntity(TblDivisionCourseMember::withParameter($tblDivisionCourse, $tblTypeMemberTeacher, $tblPersonTeacher,
+//                                    $tblDivisionTeacher->getDescription()));
+//                            }
+//                        }
+//                    }
+//
+//                    /**
+//                     * Eltern Vertreter der Klasse - TblDivisionCustody
+//                     */
+//                    if (($tblDivisionCustodyList = Division::useService()->getDivisionCustodyAllByDivision($tblDivision))
+//                        && ($tblTypeMemberCustody = $this->getDivisionCourseMemberTypeByIdentifier(TblDivisionCourseMemberType::TYPE_CUSTODY))
+//                    ) {
+//                        foreach ($tblDivisionCustodyList as $tblDivisionCustody) {
+//                            if ($tblPersonCustody = $tblDivisionCustody->getServiceTblPerson()) {
+//                                $Manager->bulkSaveEntity(TblDivisionCourseMember::withParameter($tblDivisionCourse, $tblTypeMemberCustody, $tblPersonCustody,
+//                                    $tblDivisionCustody->getDescription()));
+//                            }
+//                        }
+//                    }
+//
+//                    /**
+//                     * Klassensprecher der Klasse - TblDivisionRepresentative
+//                     */
+//                    if (($tblDivisionRepresentativeList = Division::useService()->getDivisionRepresentativeByDivision($tblDivision))
+//                        && ($tblTypeMemberRepresentative = $this->getDivisionCourseMemberTypeByIdentifier(TblDivisionCourseMemberType::TYPE_REPRESENTATIVE))
+//                    ) {
+//                        foreach ($tblDivisionRepresentativeList as $tblDivisionRepresentative) {
+//                            if ($tblPersonRepresentative = $tblDivisionRepresentative->getServiceTblPerson()) {
+//                                $Manager->bulkSaveEntity(TblDivisionCourseMember::withParameter($tblDivisionCourse, $tblTypeMemberRepresentative,
+//                                    $tblPersonRepresentative, $tblDivisionRepresentative->getDescription()));
+//                            }
+//                        }
+//                    }
+//
+//                    /**
+//                     * Fächer den Schülern und Lehraufträge den Lehrer zuordnen - TblDivisionSubject, TblSubjectGroup, TblSubjectStudent, TblSubjectTeacher
+//                     */
+//                    $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
+//                    $isCourseSystem = Division::useService()->getIsDivisionCourseSystem($tblDivision);
+//                    if (($tblDivisionSubjectList = Division::useService()->getDivisionSubjectByDivision($tblDivision, false))) {
+//                        $variableStudentTableList = array();
+//                        if (($tblSubjectTableList = DivisionCourse::useService()->getSubjectTableListBy($tblSchoolType, $level))) {
+//                            foreach ($tblSubjectTableList as $tblSubjectTableTemp) {
+//                                if ($tblSubjectTableTemp->getStudentMetaIdentifier()) {
+//                                    $variableStudentTableList[$tblSubjectTableTemp->getId()] = $tblSubjectTableTemp;
+//
+//                                }
+//                            }
+//                        }
+//
+//                        foreach ($tblDivisionSubjectList as $tblDivisionSubject) {
+//                            if (($tblSubject = $tblDivisionSubject->getServiceTblSubject())) {
+//                                // prüfen, ob Fach bereits über die feste Stundentafel kommt
+//                                $addStudentSubject = true;
+//                                if (!$isCourseSystem) {
+//                                    if (($tblSubjectTable = DivisionCourse::useService()->getSubjectTableBy($tblSchoolType, $level, $tblSubject))) {
+//                                        if ($tblSubjectTable->getIsFixed()) {
+//                                            $addStudentSubject = false;
 //                                        }
 //                                    }
 //                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            $Manager->flushCache();
-        }
+//
+//                                if (($groupList = Division::useService()->getDivisionSubjectAllWhereSubjectGroupByDivisionAndSubject(
+//                                    $tblDivisionSubject->getTblDivision(),
+//                                    $tblDivisionSubject->getServiceTblSubject()
+//                                ))) {
+//                                    // Fach-Gruppen
+//                                    foreach ($groupList as $groupItem) {
+//                                        if (($tblSubjectStudentList = Division::useService()->getStudentByDivisionSubject($groupItem))
+//                                            && ($tblSubjectGroup = $groupItem->getTblSubjectGroup())
+//                                        ) {
+//                                            // SekII-Kurs als Kurs anlegen
+//                                            if ($isCourseSystem) {
+//                                                // Erkennung Untis: 11Gy EN-L-1
+//                                                if (strpos($tblSubjectGroup->getName(), '-L-') !== false
+//                                                    || strpos($tblSubjectGroup->getName(), '-G-') !== false
+//                                                ) {
+//                                                    $newCourseName = $tblLevel->getName() . $tblSchoolType->getShortName() . ' ' . $tblSubjectGroup->getName();
+//                                                // Inidware: 11Gy L-BIO1
+//                                                } else {
+//                                                    $newCourseName = $tblLevel->getName() . $tblSchoolType->getShortName() . ' '
+//                                                       . ($tblSubjectGroup->isAdvancedCourse() ? 'L-' : 'G-') . $tblSubjectGroup->getName();
+//                                                }
+//
+//                                                $tblDivisionCourseSekII = TblDivisionCourse::withParameter(
+//                                                    $tblSubjectGroup->isAdvancedCourse() ? $tblTypeAdvancedCourse : $tblTypeBasicCourse,
+//                                                    $tblYear,
+//                                                    $newCourseName,
+//                                                    '',
+//                                                    $tblSubjectGroup->isAdvancedCourse(),
+//                                                    $tblSubjectGroup->isAdvancedCourse(),
+//                                                    $tblSubject,
+//                                                    null,
+//                                                    Division::useService()->getMigrateSekCourseString($tblDivision, $tblSubject, $tblSubjectGroup)
+//                                                );
+//                                                // bulkSave nicht möglich, da ansonsten noch keine Id vorhanden ist
+//                                                $Manager->saveEntity($tblDivisionCourseSekII);
+//                                            } else {
+//                                                $tblDivisionCourseSekII = false;
+//                                            }
+//
+//                                            // SEKII-Kurse
+//                                            if ($isCourseSystem) {
+//                                                // bei SekII-kursen SchülerFächer direkt mit neuem Kurs verknüpfen
+//                                                for ($i = 1; $i <= 2; $i++) {
+//                                                    foreach ($tblSubjectStudentList as $tblSubjectStudent) {
+//                                                        $Manager->bulkSaveEntity(TblStudentSubject::withParameter(
+//                                                            $tblSubjectStudent, $tblYear, null, $groupItem->getHasGrading(), null,
+//                                                            $tblDivisionCourseSekII ?: null, $level . '/' . $i
+//                                                        ));
+//                                                    }
+//                                                }
+//                                            // normale Fächer, keine SEKII-Kurse
+//                                            } else {
+//                                                if ($addStudentSubject) {
+//                                                    foreach ($tblSubjectStudentList as $tblSubjectStudent) {
+//                                                        $tblSubjectTable = null;
+//                                                        if ($this->getAddStudentSubject($tblSubjectStudent, $tblSchoolType, $level, $tblSubject,
+//                                                            $variableStudentTableList, $tblSubjectTable, $isCurrentYear
+//                                                        )) {
+//                                                            $Manager->bulkSaveEntity(TblStudentSubject::withParameter(
+//                                                                $tblSubjectStudent, $tblYear, $tblSubject, $groupItem->getHasGrading(), $tblSubjectTable ?: null
+//                                                            ));
+//                                                        }
+//                                                    }
+//                                                }
+//                                            }
+//
+//                                            // Lehraufträge bei Gruppen
+//                                            if (($tblSubjectTeacherList = Division::useService()->getSubjectTeacherByDivisionSubject($groupItem))) {
+//                                                foreach ($tblSubjectTeacherList as $tblSubjectTeacher) {
+//                                                    if (($tblTeacherPerson = $tblSubjectTeacher->getServiceTblPerson())) {
+//                                                        $Manager->bulkSaveEntity(TblTeacherLectureship::withParameter(
+//                                                            $tblTeacherPerson,
+//                                                            $tblYear,
+//                                                            $tblDivisionCourseSekII ?: $tblDivisionCourse,
+//                                                            $tblSubject,
+//                                                            $tblDivisionCourseSekII ? '' : $tblSubjectGroup->getName()
+//                                                        ));
+//                                                    }
+//                                                }
+//                                            }
+//
+////                                            // Berechnungsvorschrift an SekII-Kursen
+////                                            if ($tblDivisionCourseSekII
+////                                                && ($tblScoreRuleSubjectGroup = Gradebook::useService()->getScoreRuleSubjectGroupByDivisionAndSubjectAndGroup(
+////                                                    $tblDivision, $tblSubject, $tblSubjectGroup
+////                                                ))
+////                                                && ($tblScoreRuleOld = $tblScoreRuleSubjectGroup->getTblScoreRule())
+////                                            ) {
+////                                                $tblScoreRule = $tblScoreRuleList[$tblScoreRuleOld->getId()];
+////                                                $Manager->bulkSaveEntity(new TblScoreRuleSubjectDivisionCourse($tblDivisionCourseSekII, $tblSubject, $tblScoreRule));
+////                                            }
+//                                        }
+//                                    }
+//                                } else {
+//                                    // gesamte Klasse
+//                                    if (!$isCourseSystem && $addStudentSubject && $tblPersonList) {
+//                                        $tblSubjectTable = null;
+//                                        foreach ($tblPersonList as $tblPersonItem) {
+//                                            if ($this->getAddStudentSubject($tblPersonItem, $tblSchoolType, $level, $tblSubject,
+//                                                $variableStudentTableList, $tblSubjectTable, $isCurrentYear
+//                                            )) {
+//                                                $Manager->bulkSaveEntity(TblStudentSubject::withParameter(
+//                                                    $tblPersonItem, $tblYear, $tblSubject, $tblDivisionSubject->getHasGrading(), $tblSubjectTable ?: null
+//                                                ));
+//                                            }
+//                                        }
+//                                    }
+//                                }
+//
+//                                // Lehraufträge ohne Gruppen
+//                                if (!$isCourseSystem && ($tblSubjectTeacherList = Division::useService()->getSubjectTeacherByDivisionSubject($tblDivisionSubject))) {
+//                                    foreach ($tblSubjectTeacherList as $tblSubjectTeacher) {
+//                                        if (($tblTeacherPerson = $tblSubjectTeacher->getServiceTblPerson())) {
+//                                            $Manager->bulkSaveEntity(TblTeacherLectureship::withParameter($tblTeacherPerson, $tblYear, $tblDivisionCourse, $tblSubject));
+//                                        }
+//                                    }
+//                                }
+//
+//                                // Bewertungssystem und Berechnungsvorschrift
+////                                if (($tblScoreRuleDivisionSubject = Gradebook::useService()->getScoreRuleDivisionSubjectByDivisionAndSubject($tblDivision, $tblSubject))) {
+////                                    // Bewertungssystem nur bei aktuellem Schuljahr, es gibt beim Bewertungssystem keine Schuljahre mehr
+////                                    if ($isCurrentYear && ($tblScoreTypeOld = $tblScoreRuleDivisionSubject->getTblScoreType())) {
+////                                        if (!isset($scoreTypeSubjectList[$tblSchoolType->getId()][$level][$tblSubject->getId()])) {
+////                                            $tblScoreType = $tblScoreTypeList[$tblScoreTypeOld->getIdentifier()];
+////                                            $scoreTypeSubjectList[$tblSchoolType->getId()][$level][$tblSubject->getId()] = $tblScoreType;
+////                                            $Manager->bulkSaveEntity(new TblScoreTypeSubject($tblSchoolType, $level, $tblSubject, $tblScoreType));
+////                                        }
+////                                    }
+////
+////                                    // Berechnungsvorschrift
+////                                    if (($tblScoreRuleOld = $tblScoreRuleDivisionSubject->getTblScoreRule())) {
+////                                        if (!isset($scoreRuleSubjectList[$tblSchoolType->getId()][$level][$tblSubject->getId()])) {
+////                                            $tblScoreRule = $tblScoreRuleList[$tblScoreRuleOld->getId()];
+////                                            $scoreRuleSubjectList[$tblSchoolType->getId()][$level][$tblSubject->getId()] = $tblScoreRule;
+////                                            $Manager->bulkSaveEntity(new TblScoreRuleSubject($tblYear, $tblSchoolType, $level, $tblSubject, $tblScoreRule));
+////                                        }
+////                                    }
+////                                }
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//
+//            $Manager->flushCache();
+//        }
 
         $end = hrtime(true);
 

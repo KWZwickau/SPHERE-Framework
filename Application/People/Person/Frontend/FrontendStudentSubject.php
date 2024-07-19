@@ -11,7 +11,6 @@ namespace SPHERE\Application\People\Person\Frontend;
 use SPHERE\Application\Api\MassReplace\ApiMassReplace;
 use SPHERE\Application\Api\People\Meta\Subject\MassReplaceSubject;
 use SPHERE\Application\Api\People\Person\ApiPersonEdit;
-use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudent;

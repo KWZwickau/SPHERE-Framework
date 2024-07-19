@@ -3,7 +3,7 @@ namespace SPHERE\Application\Transfer\Indiware\Import;
 
 use MOC\V\Component\Document\Exception\DocumentTypeException as DocumentTypeException;
 use SPHERE\Application\Education\ClassRegister\Timetable\Timetable as TimetableClassregister;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\FileUpload;
 use SPHERE\Common\Frontend\Form\Repository\Field\RadioBox;
@@ -68,9 +68,9 @@ class ReplacementFrontend extends Extension implements IFrontendInterface
                 $item['Date'] = $Date;
                 $DivisionList = $this->getSorter($DivisionList)->sortObjectBy('DisplayName');
                 $DivList = array();
-                /** @var TblDivision $Division */
+                /** @var TblDivisionCourse $Division */
                 foreach($DivisionList as $Division){
-                    $DivList[] = $Division->getDisplayName();
+                    $DivList[] = $Division->getName();
                 }
                 $item['Course'] = implode(', ', $DivList);
                 array_push($TableContent, $item);

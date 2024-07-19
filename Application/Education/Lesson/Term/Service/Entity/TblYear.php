@@ -5,7 +5,6 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
@@ -18,7 +17,6 @@ use SPHERE\System\Database\Fitting\Element;
  */
 class TblYear extends Element
 {
-
     const ATTR_YEAR = 'Year';
     const ATTR_NAME = 'Name';
     const ATTR_DESCRIPTION = 'Description';
@@ -76,20 +74,6 @@ class TblYear extends Element
     {
 
         $this->Year = $Year;
-    }
-
-    /**
-     * @deprecated
-     *
-     * @param TblDivision|null $tblDivision
-     * @param false $IsAll
-     *
-     * @return bool|TblPeriod[]
-     */
-    public function getTblPeriodAll(TblDivision $tblDivision = null, bool $IsAll = false)
-    {
-
-        return Term::useService()->getPeriodAllByYear($this, $tblDivision, $IsAll);
     }
 
     /**
