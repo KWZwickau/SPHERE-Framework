@@ -21,9 +21,7 @@ class FosAbg extends Style
         $textSize2 = '17px';
         $personId = $tblPerson ? $tblPerson->getId() : 0;
 
-        $school[] = 'Berufliches Schulzentrum';
-        $school[] = 'der HOGA Schloss Albrechtsberg g SchulgmbH';
-        $school[] = 'Staatlich anerkannte Schulen in freier Trägerschaft';
+        $school = $this->getCustomSchoolName('Berufliches Schulzentrum');
 
         // ist doch nicht das Zeugnisdatum
         $educationToDate = '31.07.' . (new DateTime('now'))->format('Y');

@@ -33,9 +33,7 @@ class FosAbs extends Style
         $textSizeFooter = '10px';
         $personId = $tblPerson ? $tblPerson->getId() : 0;
 
-        $school[] = 'Berufliches Schulzentrum';
-        $school[] = 'der HOGA Schloss Albrechtsberg g SchulgmbH';
-        $school[] = 'Staatlich anerkannte Schulen in freier Trägerschaft';
+        $school = $this->getCustomSchoolName('Berufliches Schulzentrum');
 
         if (($tblPrepare = $this->getTblPrepareCertificate()) && $tblPrepare->getDate()) {
             $certificateDate = $tblPrepare->getDate();

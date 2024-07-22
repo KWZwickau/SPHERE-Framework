@@ -16,10 +16,7 @@ class GymHjZ extends Style
     {
         $personId = $tblPerson ? $tblPerson->getId() : 0;
 
-        $school[] = 'Allgemeinbildendes Gymnasium der';
-        $school[] = 'HOGA Schloss Albrechtsberg g SchulgmbH';
-        $school[] = 'Staatlich anerkannte Schule in freier Trägerschaft';
-
+        $school = $this->getCustomSchoolName('Allgemeinbildendes Gymnasium');
         $title = 'Halbjahreszeugnis des Gymnasiums';
 
         return (new Page())

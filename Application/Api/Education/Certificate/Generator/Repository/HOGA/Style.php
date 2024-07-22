@@ -2,6 +2,7 @@
 
 namespace SPHERE\Application\Api\Education\Certificate\Generator\Repository\HOGA;
 
+use DateTime;
 use SPHERE\Application\Api\Education\Certificate\Generator\Certificate;
 use SPHERE\Application\Education\Certificate\Generate\Generate;
 use SPHERE\Application\Education\Certificate\Generator\Generator;
@@ -3383,5 +3384,27 @@ abstract class Style extends Certificate
                 )->styleAlignRight(), '50%')
             )
             ;
+    }
+
+    /**
+     * @param string $schoolTypeName
+     *
+     * @return array
+     */
+    public function getCustomSchoolName(string $schoolTypeName) : array
+    {
+        $school[] = $schoolTypeName;
+
+        if (($CertificateDate = $this->getCertificateDateTime())
+            && $CertificateDate < new DateTime('01.11.2024')
+        ) {
+            // alter Schulname
+            $school[] = 'der HOGA Schloss Albrechtsberg g SchulgmbH';
+        } else {
+            $school[] = 'HOGA Schulen Dresden gemeinnützige Schulgesellschaft mbH';
+        }
+        $school[] = 'Staatlich anerkannte Schule in freier Trägerschaft';
+
+        return $school;
     }
 }

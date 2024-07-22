@@ -41,9 +41,7 @@ class BgjAbs extends Style
         $textSize2 = '19px';
         $personId = $tblPerson ? $tblPerson->getId() : 0;
 
-        $school[] = 'Berufliches Schulzentrum';
-        $school[] = 'der HOGA Schloss Albrechtsberg g SchulgmbH';
-        $school[] = 'Staatlich anerkannte Schulen in freier Trägerschaft';
+        $school = $this->getCustomSchoolName('Berufliches Schulzentrum');
 
         $pageList[] = (new Page())
             ->addSlice($this->getHeader($school, '', false, false))

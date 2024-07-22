@@ -33,9 +33,7 @@ class VklbaJ extends Style
         $textSize = self::TEXT_SIZE_NORMAL;
         $personId = $tblPerson ? $tblPerson->getId() : 0;
 
-        $school[] = 'Berufliches Schulzentrum';
-        $school[] = 'der HOGA Schloss Albrechtsberg g SchulgmbH';
-        $school[] = 'Staatlich anerkannte Schulen in freier Trägerschaft';
+        $school = $this->getCustomSchoolName('Berufliches Schulzentrum');
 
         $startDate = null;
         if ($this->getYear()) {

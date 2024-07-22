@@ -2,6 +2,7 @@
 
 namespace SPHERE\Application\Api\Education\Certificate\Generator;
 
+use DateTime;
 use MOC\V\Component\Template\Component\IBridgeInterface;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Education\Certificate\Generator\Generator;
@@ -13,6 +14,7 @@ use SPHERE\Application\Education\Certificate\Generator\Repository\Section;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificate;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
+use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblLeaveStudent;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCertificate;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblStudentEducation;
@@ -22,7 +24,6 @@ use SPHERE\Application\Education\School\Course\Service\Entity\TblCourse;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
-use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer as ConsumerGatekeeper;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
@@ -313,6 +314,38 @@ abstract class Certificate extends Extension
         } else {
             return $this->tblPrepareCertificate;
         }
+    }
+
+    /**
+     * @return false|TblLeaveStudent
+     */
+    public function getTblLeaveStudent()
+    {
+        if (($tblStudentEducation = $this->getTblStudentEducation())
+            && ($tblPerson = $tblStudentEducation->getServiceTblPerson())
+            && ($tblYear = $this->getYear())
+        ) {
+            return Prepare::useService()->getLeaveStudentBy($tblPerson, $tblYear);
+        }
+
+        return false;
+    }
+
+    /**
+     * @return DateTime|null
+     */
+    public function getCertificateDateTime(): ?DateTime
+    {
+        if (($tblPrepareCertificate = $this->getTblPrepareCertificate())) {
+            return $tblPrepareCertificate->getDateTime();
+        } elseif (($tblLeaveStudent = $this->getTblLeaveStudent())
+            && ($tblLeaveInformation = Prepare::useService()->getLeaveInformationBy($tblLeaveStudent, 'CertificateDate'))
+            && ($tblLeaveInformation->getValue())
+        ) {
+            return new DateTime($tblLeaveInformation->getValue());
+        }
+
+        return null;
     }
 
     /**
