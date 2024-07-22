@@ -86,11 +86,10 @@ class Data extends AbstractData
     /**
      * @param TblCompany $tblCompany
      * @param TblType    $tblType
-     * @param string     $CompanyNumber
      *
      * @return bool|TblSchool
      */
-    public function addSchool(TblCompany $tblCompany, TblType $tblType, $CompanyNumber = '')
+    public function addSchool(TblCompany $tblCompany, TblType $tblType)
     {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -103,7 +102,8 @@ class Data extends AbstractData
             $Entity = new TblSchool();
             $Entity->setServiceTblCompany($tblCompany);
             $Entity->setTblType($tblType);
-            $Entity->setCompanyNumber($CompanyNumber);
+            $Entity->setCompanyNumber('');
+            $Entity->setSchoolCode('');
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
             return $Entity;
