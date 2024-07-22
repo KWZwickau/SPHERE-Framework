@@ -70,6 +70,7 @@ class Style extends Extension
         $this->FieldValue['Nationality'] = (isset($DataPost['Nationality']) && $DataPost['Nationality'] != '' ? $DataPost['Nationality'] : '&nbsp;');
         // custody
         $this->FieldValue['CustodyAddress'] = (isset($DataPost['CustodyAddress']) && $DataPost['CustodyAddress'] != '' ? $DataPost['CustodyAddress'] : '&nbsp;');
+        $this->FieldValue['Insurance'] = (isset($DataPost['Insurance']) && $DataPost['Insurance'] != '' ? $DataPost['Insurance'] : '&nbsp;');
         // accident
         $this->FieldValue['DeathAccidentYes'] = (isset($DataPost['DeathAccidentYes']) && $DataPost['DeathAccidentYes'] != '' ? 'X' : '');
         $this->FieldValue['DeathAccidentNo'] = (isset($DataPost['DeathAccidentNo']) && $DataPost['DeathAccidentNo'] != '' ? 'X' : '');
@@ -98,7 +99,6 @@ class Style extends Extension
         $this->FieldValue['EyeWitnessYes'] = (isset($DataPost['EyeWitnessYes']) && $DataPost['EyeWitnessYes'] != '' ? 'X' : '&nbsp;');
         $this->FieldValue['EyeWitnessNo'] = (isset($DataPost['EyeWitnessNo']) && $DataPost['EyeWitnessNo'] != '' ? 'X' : '&nbsp;');
         // doctor
-        $this->FieldValue['Doctor'] = (isset($DataPost['Doctor']) && $DataPost['Doctor'] != '' ? $DataPost['Doctor'] : '&nbsp;');
         $this->FieldValue['DoctorAddress'] = (isset($DataPost['DoctorAddress']) && $DataPost['DoctorAddress'] != '' ? $DataPost['DoctorAddress'] : '&nbsp;');
         // time in school
         $this->FieldValue['LocalStartTime'] = (isset($DataPost['LocalStartTime']) && $DataPost['LocalStartTime'] != '' ? $DataPost['LocalStartTime'] : '&nbsp;');
@@ -455,9 +455,7 @@ class Style extends Extension
 
         return (new Section())
             ->addElementColumn((new Element())
-                    //ToDO Insurance
-//                ->setContent($this->FieldValue['Insurance'])
-                ->setContent('Test eingabe Insurance')
+                ->setContent($this->FieldValue['Insurance'])
                 ->stylePaddingLeft('5px')
                 ->styleTextSize('11px')
                 ->stylePaddingTop()
@@ -1176,8 +1174,7 @@ class Style extends Extension
 
         return (new Section())
             ->addElementColumn((new Element())
-                // ToDO vielleicht in einer Eingabezeile
-                ->setContent($this->FieldValue['Doctor'].' '.$this->FieldValue['DoctorAddress'])
+                ->setContent($this->FieldValue['DoctorAddress'])
                 ->stylePaddingLeft('5px')
                 ->styleHeight()
                 ->styleTextSize('11px')
@@ -1194,7 +1191,6 @@ class Style extends Extension
                 , '6%'
             )
             ->addElementColumn((new Element())
-                // ToDO neue Eingabe
                 ->setContent('13:50')
                 ->setContent($this->FieldValue['LocalStartTime'])
                 ->styleHeight()
@@ -1221,7 +1217,6 @@ class Style extends Extension
                 , '5%'
             )
             ->addElementColumn((new Element())
-                // ToDO neue Eingabe
                 ->setContent($this->FieldValue['LocalEndTime'])
                 ->styleHeight()
                 ->styleTextSize('11px')

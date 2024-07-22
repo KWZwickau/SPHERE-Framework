@@ -1,5 +1,4 @@
 <?php
-
 namespace SPHERE\Application\Document\Standard\AccidentReport;
 
 use DateTime;
@@ -39,7 +38,6 @@ use SPHERE\Common\Frontend\Layout\Repository\PullLeft;
 use SPHERE\Common\Frontend\Layout\Repository\Thumbnail;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
-use SPHERE\Common\Frontend\Layout\Repository\WellReadOnly;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
@@ -510,8 +508,8 @@ class AccidentReport extends Extension
                                 new Sup(13).' Datum des Unfalls (TT.MM.JJJJ)')
                             , 4),
                         new LayoutColumn(
-                            new TextField('Data[AccidentTime]', $now->format('H:m'),
-                                new Sup(13).'Uhrzeit (h:m)')
+                            new TextField('Data[AccidentTime]', $now->format('H:i'),
+                                new Sup(13).'Uhrzeit (hh:mm)')
                             , 3),
                     )),
                     new LayoutRow(array(
@@ -580,10 +578,10 @@ class AccidentReport extends Extension
                         new LayoutColumn(
                             new TextField('Data[BreakDate]',
                                 $now->format('d.m'),
-                                'Datum der Unterbrechung')
+                                'Datum der Unterbrechung (TT.MM)')
                             , 3),
                         new LayoutColumn(
-                            new TextField('Data[BreakTime]', $now->format('H:m'),
+                            new TextField('Data[BreakTime]', $now->format('H:i'),
                                 'Zeitpunkt der Unterbrechung')
                             , 3)
                     )),
@@ -640,11 +638,11 @@ class AccidentReport extends Extension
                             , 6),
                         new LayoutColumn(
                             new Header(new Bold(new Sup(23).' Beginn des Besuchs der Einrichtung'))
-                            .new TextField('Data[LocalStartTime]', $now->format('H:m'), 'Uhrzeit (h:m)')
+                            .new TextField('Data[LocalStartTime]', $now->format('H:i'), 'Uhrzeit (hh:mm)')
                             , 3),
                         new LayoutColumn(
                             new Header(new Bold(new Sup(23).' Ende des Besuchs der Einrichtung'))
-                            .new TextField('Data[LocalEndTime]', $now->format('H:m'), 'Uhrzeit (h:m)')
+                            .new TextField('Data[LocalEndTime]', $now->format('H:i'), 'Uhrzeit (hh:mm)')
                             , 3),
                     )),
                     new LayoutRow(
@@ -691,8 +689,8 @@ class AccidentReport extends Extension
                                 new Sup(13).' Datum des Unfalls (TT.MM.JJJJ)')
                             , 4),
                         new LayoutColumn(
-                            new TextField('Data[AccidentTime]', $now->format('H:m'),
-                                new Sup(13).'Uhrzeit (h:m)')
+                            new TextField('Data[AccidentTime]', $now->format('H:i'),
+                                new Sup(13).'Uhrzeit (hh:mm)')
                             , 2),
                         new LayoutColumn(
                             new TextField('Data[PhoneNumber]', '', 'Telefonnummer der vers. Person / gesetzlichen Vertreters')
@@ -778,7 +776,7 @@ class AccidentReport extends Extension
                                 'Datum der Unterbrechung')
                             , 3),
                         new LayoutColumn(
-                            new TextField('Data[BreakTime]', $now->format('H:m'),
+                            new TextField('Data[BreakTime]', $now->format('H:i'),
                                 'Zeitpunkt der Unterbrechung')
                             , 3)
                     )),
@@ -835,11 +833,11 @@ class AccidentReport extends Extension
                             , 6),
                         new LayoutColumn(
                             new Header(new Bold(new Sup(23).' Beginn des Besuchs der Einrichtung'))
-                            .new TextField('Data[LocalStartTime]', $now->format('H:m'), 'Uhrzeit (h:m)')
+                            .new TextField('Data[LocalStartTime]', $now->format('H:i'), 'Uhrzeit (hh:mm)')
                             , 3),
                         new LayoutColumn(
                             new Header(new Bold(new Sup(23).' Ende des Besuchs der Einrichtung'))
-                            .new TextField('Data[LocalEndTime]', $now->format('H:m'), 'Uhrzeit (h:m)')
+                            .new TextField('Data[LocalEndTime]', $now->format('H:i'), 'Uhrzeit (hh:mm)')
                             , 3),
                     )),
                     new LayoutRow(

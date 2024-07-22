@@ -26,6 +26,7 @@ use SPHERE\Application\Api\Document\Standard\Repository\MultiPassword\MultiPassw
 use SPHERE\Application\Api\Document\Standard\Repository\PasswordChange\PasswordChange;
 use SPHERE\Application\Api\Document\Standard\Repository\SignOutCertificate\SignOutCertificate;
 use SPHERE\Application\Api\Document\Standard\Repository\StaffAccidentReport\StaffAccidentReportBE;
+use SPHERE\Application\Api\Document\Standard\Repository\StaffAccidentReport\StaffAccidentReportTH;
 use SPHERE\Application\Api\Document\Standard\Repository\StudentCard\AbstractStudentCard;
 use SPHERE\Application\Api\Document\Standard\Repository\StudentCard\GrammarSchool;
 use SPHERE\Application\Api\Document\Standard\Repository\StudentCard\MultiStudentCard;

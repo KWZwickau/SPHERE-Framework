@@ -4,6 +4,7 @@ namespace SPHERE\Application\Document\Standard\StaffAccidentReport;
 use DateTime;
 use MOC\V\Core\FileSystem\FileSystem;
 use SPHERE\Application\Contact\Address\Address;
+use SPHERE\Application\Contact\Phone\Phone;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Meta\Common\Common;
@@ -128,13 +129,11 @@ class StaffAccidentReport extends Extension
         $Global->POST['Data']['TargetAddressStreet'] = 'Wiener Platz 6';
         $Global->POST['Data']['TargetAddressCity'] = '01069 Dresden';
         if (GatekeeperConsumer::useService()->getConsumerBySessionIsConsumerType(TblConsumer::TYPE_BERLIN)) {
-            // Todo kontrollieren
             $Global->POST['Data']['AddressTarget'] = 'Unfallkasse Berlin';
             $Global->POST['Data']['TargetAddressStreet'] = 'Culemeyerstraße 2';
             $Global->POST['Data']['TargetAddressCity'] = '12277 Berlin';
         }
         if (GatekeeperConsumer::useService()->getConsumerBySessionIsConsumerType(TblConsumer::TYPE_THUERINGEN)) {
-            // Todo kontrollieren
             $Global->POST['Data']['AddressTarget'] = 'Unfallkasse Thüringen';
             $Global->POST['Data']['TargetAddressStreet'] = 'Humboldtstrasse 111';
             $Global->POST['Data']['TargetAddressCity'] = '99867 Gotha ';
@@ -170,6 +169,16 @@ class StaffAccidentReport extends Extension
                 if ($tblCity) {
                     $Global->POST['Data']['AddressPLZ'] = $tblCity->getCode();
                     $Global->POST['Data']['AddressCity'] = $tblCity->getDisplayName();
+                }
+            }
+            $tblToPersonList = Phone::useService()->getPhoneAllByPerson($tblPerson);
+            if($tblToPersonList){
+                foreach($tblToPersonList as $tblToPerson){
+                    $tblPhoneType = $tblToPerson->getTblType();
+                    $tblPhone = $tblToPerson->getTblPhone();
+                    if($tblPhone && $tblPhoneType && $tblPhoneType->getName() == 'Privat'){
+                        $Global->POST['Data']['PersonPhone'] = $tblPhone->getNumber();
+                    }
                 }
             }
 
@@ -522,24 +531,22 @@ class StaffAccidentReport extends Extension
                 new LayoutRow(array(
                     new LayoutColumn(
                         new PullClear(new Bold(new Sup(14).' Tödlicher Unfall?')).
-                        new PullLeft(new CheckBox('Data[DeathAccidentNo]',
-                            'Nein &nbsp;&nbsp;&nbsp;&nbsp;', true, array('Data[DeathAccidentYes]'))).
-                        new PullLeft(new CheckBox('Data[DeathAccidentYes]',
-                            'Ja &nbsp;&nbsp;&nbsp;&nbsp;', true, array('Data[DeathAccidentNo]')))
+                        new PullLeft(new CheckBox('Data[DeathAccidentNo]', 'Nein &nbsp;&nbsp;&nbsp;&nbsp;', true, array('Data[DeathAccidentYes]'))).
+                        new PullLeft(new CheckBox('Data[DeathAccidentYes]', 'Ja &nbsp;&nbsp;&nbsp;&nbsp;', true, array('Data[DeathAccidentNo]')))
                     , 4),
                     new LayoutColumn(
                         new TextField('Data[AccidentDate]', $now->format('d.m.Y'), new Sup(15).' Datum des Unfalls (TT.MM.JJJJ)')
                     , 4),
                     new LayoutColumn(
-                        new TextField('Data[AccidentTime]', $now->format('H:m'), 'Uhrzeit (hh:mm)')
+                        new TextField('Data[AccidentTime]', $now->format('H:i'), 'Uhrzeit (hh:mm)')
                     , 4),
                 )),
                 new LayoutRow(array(
                     new LayoutColumn(new TextField('Data[AccidentPlace]', 'Ort', new Sup(16).'Unfallort (genaue Orts- und Straßenangabe mit PLZ)'), 8),
                     new LayoutColumn(
                         new PullClear(new Bold(new Sup(17).' Unfall im Homeoffice'))
-                        .new PullLeft(new CheckBox('Data[HomeOfficeYes]', 'Ja &nbsp;&nbsp;&nbsp;&nbsp;', true, array('Data[HomeOfficeNo]')))
                         .new PullLeft(new CheckBox('Data[HomeOfficeNo]', 'Nein &nbsp;&nbsp;&nbsp;&nbsp;', true, array('Data[HomeOfficeYes]')))
+                        .new PullLeft(new CheckBox('Data[HomeOfficeYes]', 'Ja &nbsp;&nbsp;&nbsp;&nbsp;', true, array('Data[HomeOfficeNo]')))
                     , 4),
                 )),
                 new LayoutRow(new LayoutColumn(new Title(''))),
@@ -551,26 +558,17 @@ class StaffAccidentReport extends Extension
                 new LayoutRow(
                     new LayoutColumn(
                         new PullLeft(new Header(new Bold('Die Angaben beruhen auf der Schilderung &nbsp;&nbsp;&nbsp;&nbsp;')))
-                        .new Container(
-                            new PullLeft(new CheckBox('Data[DescriptionActive]',
-                                'der versicherten Person &nbsp;&nbsp;&nbsp;&nbsp;'
-                                , true))
-                            .new PullLeft(new CheckBox('Data[DescriptionPassive]',
-                                'andere Personen'
-                                , true))
-                        )
+                        .new PullLeft(new CheckBox('Data[DescriptionActive]', 'der versicherten Person &nbsp;&nbsp;&nbsp;&nbsp;', true))
+                        .new PullLeft(new CheckBox('Data[DescriptionPassive]', 'andere Personen', true))
                     )
                 ),
                 new LayoutRow(new LayoutColumn(new Title(''))),
                 new LayoutRow(array(
                     new LayoutColumn(
-                        new TextField('Data[AccidentBodyParts]',
-                            'Kopf, Bein, Arm, etc.',
-                            new Sup(19).' Verletzte Körperteile')
+                        new TextField('Data[AccidentBodyParts]', 'Kopf, Bein, Arm, etc.', new Sup(19).' Verletzte Körperteile')
                     , 6),
                     new LayoutColumn(
-                        new TextField('Data[AccidentType]', 'Art',
-                            new Sup(20).' Art der Verletzung')
+                        new TextField('Data[AccidentType]', 'Art', new Sup(20).' Art der Verletzung')
                     , 6),
                 )),
                 new LayoutRow(new LayoutColumn(new Title(''))),
@@ -582,10 +580,8 @@ class StaffAccidentReport extends Extension
                     new LayoutColumn(
                         new Bold('War diese Person Augenzeuge?')
                         .new PullClear(
-                            new PullLeft(new CheckBox('Data[EyeWitnessNo]',
-                                'nein &nbsp;&nbsp;&nbsp;&nbsp;', true, array('Data[EyeWitnessYes]')))
-                            .new PullLeft(new CheckBox('Data[EyeWitnessYes]',
-                                'ja &nbsp;&nbsp;&nbsp;&nbsp;', true, array('Data[EyeWitnessNo]')))
+                            new PullLeft(new CheckBox('Data[EyeWitnessNo]', 'Nein &nbsp;&nbsp;&nbsp;&nbsp;', true, array('Data[EyeWitnessYes]')))
+                            .new PullLeft(new CheckBox('Data[EyeWitnessYes]', 'Ja &nbsp;&nbsp;&nbsp;&nbsp;', true, array('Data[EyeWitnessNo]')))
                         )
                     , 4),
                 )),
@@ -596,11 +592,11 @@ class StaffAccidentReport extends Extension
                     , 4),
                     new LayoutColumn(
                         new Bold(new Sup(23).' Beginn des Besuchs der Einrichtung')
-                        .new TextField('Data[LocalStartTime]', $now->format('H:m'), 'Uhrzeit (hh:mm)')
+                        .new TextField('Data[LocalStartTime]', $now->format('H:i'), 'Uhrzeit (hh:mm)')
                     , 4),
                     new LayoutColumn(
                         new Bold(new Sup(23).' Ende des Besuchs der Einrichtung')
-                        .new TextField('Data[LocalEndTime]', $now->format('H:m'), 'Uhrzeit (hh:mm)')
+                        .new TextField('Data[LocalEndTime]', $now->format('H:i'), 'Uhrzeit (hh:mm)')
                     , 4),
                 )),
                 new LayoutRow(new LayoutColumn(new Title(''))),
@@ -624,7 +620,7 @@ class StaffAccidentReport extends Extension
                         new Bold(new Sup(27).' Hat der Versicherte die Arbeit eingestellt?')
                         .new PullClear(
                             new PullLeft(new CheckBox('Data[BreakNo]',
-                                'nein &nbsp;&nbsp;&nbsp;&nbsp;', true, array('Data[BreakYes]', 'Data[BreakAt]', 'Data[BreakDate]', 'Data[BreakTime]')))
+                                'Nein &nbsp;&nbsp;&nbsp;&nbsp;', true, array('Data[BreakYes]', 'Data[BreakAt]', 'Data[BreakDate]', 'Data[BreakTime]')))
                             .new PullLeft(new CheckBox('Data[BreakYes]',
                                 'sofort &nbsp;&nbsp;&nbsp;&nbsp;', true, array('Data[BreakNo]', 'Data[BreakAt]', 'Data[BreakDate]', 'Data[BreakTime]')))
                             .new PullLeft(new CheckBox('Data[BreakAt]',
@@ -635,7 +631,7 @@ class StaffAccidentReport extends Extension
                         new TextField('Data[BreakDate]', (new DateTime())->format('d.m'), 'Datum Unterbrechung (TT.MM)')
                     , 3),
                     new LayoutColumn(
-                        new TextField('Data[BreakTime]', $now->format('H:m'), 'Uhrzeit der Unterbrechung')
+                        new TextField('Data[BreakTime]', $now->format('H:i'), 'Uhrzeit der Unterbrechung (hh:mm)')
                     , 3)
                 )),
                 new LayoutRow(new LayoutColumn(new Title(''))),
@@ -643,8 +639,168 @@ class StaffAccidentReport extends Extension
                     new LayoutColumn(
                         new Bold(new Sup(28).' Hat die versicherte Person die Arbeit wieder aufgenommen?')
                         .new PullClear(
-                            new PullLeft(new CheckBox('Data[ReturnNo]', 'nein &nbsp;&nbsp;&nbsp;&nbsp;', true, array('Data[ReturnYes]', 'Data[ReturnDate]')))
-                            .new PullLeft(new CheckBox('Data[ReturnYes]', 'ja, am &nbsp;&nbsp;&nbsp;&nbsp;', true, array('Data[ReturnNo]')))
+                            new PullLeft(new CheckBox('Data[ReturnNo]', 'Nein &nbsp;&nbsp;&nbsp;&nbsp;', true, array('Data[ReturnYes]', 'Data[ReturnDate]')))
+                            .new PullLeft(new CheckBox('Data[ReturnYes]', 'Ja, am &nbsp;&nbsp;&nbsp;&nbsp;', true, array('Data[ReturnNo]')))
+                        )
+                    , 8),
+                    new LayoutColumn(
+                        new TextField('Data[ReturnDate]', (new DateTime())->format('d.m.Y'), 'Datum der Wiederaufnahme')
+                    , 4),
+                )),
+                new LayoutRow(new LayoutColumn(new Title(''))),
+                new LayoutRow(array(
+                    new LayoutColumn(
+                        new TextField('Data[Date]', (new DateTime())->format('d.m.Y'), new Sup(29).' Datum')
+                    , 2),
+                    new LayoutColumn(
+                        new TextField('Data[LocalLeader]', 'Leiter', 'Leiter (Beauftragter) der Einrichtung')
+                    , 4),
+                    new LayoutColumn(
+                        new TextField('Data[Council]', 'Betriebsrat', 'Betriebsrat (Personalrat)')
+                    , 3),
+                    new LayoutColumn(
+                        new TextField('Data[Recall]', 'Telefonnummer', 'Telefon-Nr. für Rückfragen (Ansprechpartner)')
+                    , 3),
+                )),
+            ))
+        )));
+    }
+
+    /**
+     * @return LayoutColumn
+     */
+    private function getFormAccidentTH(): LayoutColumn
+    {
+        $now = new DateTime();
+        return new LayoutColumn(new Well(new Layout(
+            new LayoutGroup(array(
+                new LayoutRow(array(
+                    new LayoutColumn(
+                        new PullClear(new Bold(new Sup(14).' Tödlicher Unfall?')).
+                        new PullLeft(new CheckBox('Data[DeathAccidentNo]',
+                            'Nein &nbsp;&nbsp;&nbsp;&nbsp;', true, array('Data[DeathAccidentYes]'))).
+                        new PullLeft(new CheckBox('Data[DeathAccidentYes]',
+                            'Ja &nbsp;&nbsp;&nbsp;&nbsp;', true, array('Data[DeathAccidentNo]')))
+                    , 4),
+                    new LayoutColumn(
+                        new TextField('Data[AccidentDate]', $now->format('d.m.Y'), new Sup(15).' Datum des Unfalls (TT.MM.JJJJ)')
+                    , 4),
+                    new LayoutColumn(
+                        new TextField('Data[AccidentTime]', $now->format('H:i'), 'Uhrzeit (hh:mm)')
+                    , 4),
+                )),
+                new LayoutRow(
+                    new LayoutColumn(
+                        new TextField('Data[PersonPhone]', 'Telefon', 'Telefonnummer der versicherten Person')
+                    , 6)
+                ),
+                new LayoutRow(array(
+                    new LayoutColumn(new TextField('Data[AccidentPlace]', 'Ort', new Sup(16).'Unfallort (genaue Orts- und Straßenangabe mit PLZ)'), 8),
+                    new LayoutColumn(
+                        new PullClear(new Bold(new Sup(17).' Unfall im Homeoffice'))
+                        .new PullLeft(new CheckBox('Data[HomeOfficeNo]', 'Nein &nbsp;&nbsp;&nbsp;&nbsp;', true, array('Data[HomeOfficeYes]')))
+                        .new PullLeft(new CheckBox('Data[HomeOfficeYes]', 'Ja &nbsp;&nbsp;&nbsp;&nbsp;', true, array('Data[HomeOfficeNo]')))
+                    , 4),
+                )),
+                new LayoutRow(new LayoutColumn(new Title(''))),
+                new LayoutRow(
+                    new LayoutColumn(
+                        new TextArea('Data[AccidentDescription]', 'Beschreibung', new Sup(18).' Ausführliche Beschreibung des Unfallhergangs')
+                    )
+                ),
+                new LayoutRow(
+                    new LayoutColumn(
+                        new PullLeft(new Header(new Bold('Die Angaben beruhen auf der Schilderung &nbsp;&nbsp;&nbsp;&nbsp;')))
+                        .new PullLeft(new CheckBox('Data[DescriptionActive]', 'der versicherten Person &nbsp;&nbsp;&nbsp;&nbsp;', true))
+                        .new PullLeft(new CheckBox('Data[DescriptionPassive]', 'andere Personen', true))
+                    )
+                ),
+                new LayoutRow(
+                    new LayoutColumn(
+                        new PullLeft(new Header(new Bold('Hat ein Gewaltereignis vorgelegen (körperlicher Übergriff, sexueller Übergriff)? &nbsp;&nbsp;&nbsp;&nbsp;')))
+                        .new PullLeft(new CheckBox('Data[DescriptionViolenceNo]', 'Nein &nbsp;&nbsp;&nbsp;&nbsp;', true))
+                        .new PullLeft(new CheckBox('Data[DescriptionViolenceYes]', 'Ja', true))
+                    )
+                ),
+                new LayoutRow(new LayoutColumn(new Title(''))),
+                new LayoutRow(array(
+                    new LayoutColumn(
+                        new TextField('Data[AccidentBodyParts]', 'Kopf, Bein, Arm, etc.', new Sup(19).' Verletzte Körperteile')
+                    , 6),
+                    new LayoutColumn(
+                        new TextField('Data[AccidentType]', 'Art', new Sup(20).' Art der Verletzung')
+                    , 6),
+                )),
+                new LayoutRow(new LayoutColumn(new Title(''))),
+                new LayoutRow(array(
+                    new LayoutColumn(
+                        new TextField('Data[WitnessInfo]', 'Name, Vorname Adresse',
+                            new Sup(21).' Wer hat von dem Unfall zuerst Kenntnis genommen? (Name, Anschrift)')
+                    , 8),
+                    new LayoutColumn(
+                        new Bold('War diese Person Augenzeuge?')
+                        .new PullClear(
+                            new PullLeft(new CheckBox('Data[EyeWitnessNo]', 'Nein &nbsp;&nbsp;&nbsp;&nbsp;', true, array('Data[EyeWitnessYes]')))
+                            .new PullLeft(new CheckBox('Data[EyeWitnessYes]', 'Ja &nbsp;&nbsp;&nbsp;&nbsp;', true, array('Data[EyeWitnessNo]')))
+                        )
+                    , 4),
+                )),
+                new LayoutRow(array(
+                    new LayoutColumn(
+                        new TextField('Data[DoctorAddress]', 'Arzt / Krankenhaus',
+                            new Sup(22).' Name und Anschrift der Ärztin/des Arztes oder des Krankenhauses')
+                    , 4),
+                    new LayoutColumn(
+                        new Bold(new Sup(23).' Beginn des Besuchs der Einrichtung')
+                        .new TextField('Data[LocalStartTime]', $now->format('H:i'), 'Uhrzeit (hh:mm)')
+                    , 4),
+                    new LayoutColumn(
+                        new Bold(new Sup(23).' Ende des Besuchs der Einrichtung')
+                        .new TextField('Data[LocalEndTime]', $now->format('H:i'), 'Uhrzeit (hh:mm)')
+                    , 4),
+                )),
+                new LayoutRow(new LayoutColumn(new Title(''))),
+                new LayoutRow(array(
+                    new LayoutColumn(
+                        new TextField('Data[WorkAtAccident]', 'Beschäftigung', new Sup(24).' Zum Unfallzeitpunkt beschäftigt/tätig als ')
+                    , 6),
+                    new LayoutColumn(
+                        new TextField('Data[LocationSince]', $now->format('d.m.Y'), new Sup(25).' Seit wann in dieser Tätigkeit? (TT.MM.JJJJ)')
+                    , 6),
+                )),
+                new LayoutRow(
+                    new LayoutColumn(
+                        new TextField('Data[WorkArea]', 'Teil des Unternehmens',
+                            new Sup(26).' In welchem Teil des Unternehmens ist die versicherte Person ständig tätig?')
+                    , 12)
+                ),
+                new LayoutRow(new LayoutColumn(new Title(''))),
+                new LayoutRow(array(
+                    new LayoutColumn(
+                        new Bold(new Sup(27).' Hat der Versicherte die Arbeit eingestellt?')
+                        .new PullClear(
+                            new PullLeft(new CheckBox('Data[BreakNo]',
+                                'Nein &nbsp;&nbsp;&nbsp;&nbsp;', true, array('Data[BreakYes]', 'Data[BreakAt]', 'Data[BreakDate]', 'Data[BreakTime]')))
+                            .new PullLeft(new CheckBox('Data[BreakYes]',
+                                'sofort &nbsp;&nbsp;&nbsp;&nbsp;', true, array('Data[BreakNo]', 'Data[BreakAt]', 'Data[BreakDate]', 'Data[BreakTime]')))
+                            .new PullLeft(new CheckBox('Data[BreakAt]',
+                                'später am &nbsp;&nbsp;&nbsp;&nbsp;', true, array('Data[BreakNo]', 'Data[BreakYes]')))
+                        )
+                    , 6),
+                    new LayoutColumn(
+                        new TextField('Data[BreakDate]', (new DateTime())->format('d.m'), 'Datum Unterbrechung (TT.MM)')
+                    , 3),
+                    new LayoutColumn(
+                        new TextField('Data[BreakTime]', $now->format('H:i'), 'Uhrzeit der Unterbrechung (hh:mm)')
+                    , 3)
+                )),
+                new LayoutRow(new LayoutColumn(new Title(''))),
+                new LayoutRow(array(
+                    new LayoutColumn(
+                        new Bold(new Sup(28).' Hat die versicherte Person die Arbeit wieder aufgenommen?')
+                        .new PullClear(
+                            new PullLeft(new CheckBox('Data[ReturnNo]', 'Nein &nbsp;&nbsp;&nbsp;&nbsp;', true, array('Data[ReturnYes]', 'Data[ReturnDate]')))
+                            .new PullLeft(new CheckBox('Data[ReturnYes]', 'Ja, am &nbsp;&nbsp;&nbsp;&nbsp;', true, array('Data[ReturnNo]')))
                         )
                     , 8),
                     new LayoutColumn(
@@ -658,16 +814,13 @@ class StaffAccidentReport extends Extension
                             new Sup(29).' Datum')
                     , 2),
                     new LayoutColumn(
-                        new TextField('Data[LocalLeader]', 'Leiter',
-                            'Leiter (Beauftragter) der Einrichtung')
+                        new TextField('Data[LocalLeader]', 'Leiter', 'Leiter (Beauftragter) der Einrichtung')
                     , 4),
                     new LayoutColumn(
-                        new TextField('Data[Council]', 'Betriebsrat',
-                            'Betriebsrat (Personalrat)')
+                        new TextField('Data[Council]', 'Betriebsrat', 'Betriebsrat (Personalrat)')
                     , 3),
                     new LayoutColumn(
-                        new TextField('Data[Recall]', 'Telefonnummer',
-                            'Telefon-Nr. für Rückfragen (Ansprechpartner)')
+                        new TextField('Data[Recall]', 'Telefonnummer', 'Telefon-Nr. für Rückfragen (Ansprechpartner)')
                     , 3),
                 )),
             ))
@@ -732,7 +885,7 @@ class StaffAccidentReport extends Extension
                 new LayoutColumn(new Title('Informationen Versicherter')),
                 $this->getFormPerson(),
                 new LayoutColumn(new Title('Informationen Unfall')),
-                $this->getFormAccident()
+                $this->getFormAccidentTH()
             ))))
         )),), new Primary('Download', new Download(), true), '\Api\Document\Standard\StaffAccidentReport\Create');
     }

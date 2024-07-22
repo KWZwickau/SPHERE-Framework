@@ -76,6 +76,7 @@ class StaffAccidentReportSN extends AbstractDocument
                     ->addSection($this->Style->getDescriptionSection())
                     ->addSection($this->Style->getDescriptionDataSection())
                     ->addSection($this->Style->getDescriptionInfoDataSection())
+                    ->addSection($this->Style->getBorderBottomSection())
                     /////// Verletzungen
                     ->addSection($this->Style->getHurtSection())
                     ->addSection($this->Style->getHurtDataSection())

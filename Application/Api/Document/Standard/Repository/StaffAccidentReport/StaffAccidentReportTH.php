@@ -8,11 +8,11 @@ use SPHERE\Application\Document\Generator\Repository\Page;
 use SPHERE\Application\Document\Generator\Repository\Slice;
 
 /**
- * Class StaffAccidentReportBE
+ * Class StaffAccidentReportTH
  *
  * @package SPHERE\Application\Api\Document\Standard\Repository
  */
-class StaffAccidentReportBE extends AbstractDocument
+class StaffAccidentReportTH extends AbstractDocument
 {
 
     /**
@@ -64,18 +64,19 @@ class StaffAccidentReportBE extends AbstractDocument
                     ->addSection($this->Style->getGenderSection())
                     ->addSection($this->Style->getGenderDataSection())
                     // Neue Reihe
-                    ->addSection($this->Style->getEducationDataSectionBE())
+                    ->addSection($this->Style->getEducationDataSection())
                     ->addSection($this->Style->getInsuranceSection())
                     ->addSection($this->Style->getInsuranceDataSection())
                     /////// Unfall Infos
-                    ->addSection($this->Style->getDeadlyAccidentSection())
-                    ->addSection($this->Style->getDeadlyAccidentDataSection())
+                    ->addSection($this->Style->getDeadlyAccidentSectionTH())
+                    ->addSection($this->Style->getDeadlyAccidentDataSectionTH())
                     ->addSection($this->Style->getAccidentLocationSection())
                     ->addSection($this->Style->getAccidentLocationDataSection())
                     ////// Schilderung des Unfallhergangs
                     ->addSection($this->Style->getDescriptionSection())
                     ->addSection($this->Style->getDescriptionDataSection())
                     ->addSection($this->Style->getDescriptionInfoDataSection())
+                    ->addSection($this->Style->getDescriptionViolanceDataSection())
                     ->addSection($this->Style->getBorderBottomSection())
                     /////// Verletzungen
                     ->addSection($this->Style->getHurtSection())

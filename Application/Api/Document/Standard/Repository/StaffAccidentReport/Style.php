@@ -81,10 +81,16 @@ class Style extends Extension
         $this->FieldValue['DeathAccidentNo'] = (isset($DataPost['DeathAccidentNo']) && $DataPost['DeathAccidentNo'] != '' ? 'X' : '');
         $this->FieldValue['AccidentDate'] = (isset($DataPost['AccidentDate']) && $DataPost['AccidentDate'] != '' ? $DataPost['AccidentDate'] : '&nbsp;');
         $this->FieldValue['AccidentTime'] = (isset($DataPost['AccidentTime']) && $DataPost['AccidentTime'] != '' ? $DataPost['AccidentTime'] : '&nbsp;');
+        $this->FieldValue['PersonPhone'] = (isset($DataPost['PersonPhone']) && $DataPost['PersonPhone'] != '' ? $DataPost['PersonPhone'] : '&nbsp;');
         $this->FieldValue['AccidentPlace'] = (isset($DataPost['AccidentPlace']) && $DataPost['AccidentPlace'] != '' ? $DataPost['AccidentPlace'] : '&nbsp;');
+
+        $this->FieldValue['HomeOfficeNo'] = (isset($DataPost['HomeOfficeNo']) && $DataPost['HomeOfficeNo'] != '' ? 'X' : '');
+        $this->FieldValue['HomeOfficeYes'] = (isset($DataPost['HomeOfficeYes']) && $DataPost['HomeOfficeYes'] != '' ? 'X' : '');
         $this->FieldValue['AccidentDescription'] = (isset($DataPost['AccidentDescription']) && $DataPost['AccidentDescription'] != '' ? $DataPost['AccidentDescription'] : '&nbsp;');
         $this->FieldValue['DescriptionActive'] = (isset($DataPost['DescriptionActive']) && $DataPost['DescriptionActive'] != '' ? 'X' : '&nbsp;');
         $this->FieldValue['DescriptionPassive'] = (isset($DataPost['DescriptionPassive']) && $DataPost['DescriptionPassive'] != '' ? 'X' : '&nbsp;');
+        $this->FieldValue['DescriptionViolenceNo'] = (isset($DataPost['DescriptionViolenceNo']) && $DataPost['DescriptionViolenceNo'] != '' ? 'X' : '&nbsp;');
+        $this->FieldValue['DescriptionViolenceYes'] = (isset($DataPost['DescriptionViolenceYes']) && $DataPost['DescriptionViolenceYes'] != '' ? 'X' : '&nbsp;');
         $this->FieldValue['AccidentBodyParts'] = (isset($DataPost['AccidentBodyParts']) && $DataPost['AccidentBodyParts'] != '' ? $DataPost['AccidentBodyParts'] : '&nbsp;');
         $this->FieldValue['AccidentType'] = (isset($DataPost['AccidentType']) && $DataPost['AccidentType'] != '' ? $DataPost['AccidentType'] : '&nbsp;');
         // breake time
@@ -506,7 +512,7 @@ class Style extends Extension
                         , '17%'
                     )
                     ->addElementColumn((new Element())
-                        ->setContent('nein')
+                        ->setContent('Nein')
                         ->styleTextSize('12px')
                         ->stylePaddingTop('4px')
                         , '29%'
@@ -516,7 +522,7 @@ class Style extends Extension
                         , '17%'
                     )
                     ->addElementColumn((new Element())
-                        ->setContent('ja')
+                        ->setContent('Ja')
                         ->styleTextSize('12px')
                         ->stylePaddingTop('4px')
                         ->styleBorderRight()
@@ -632,7 +638,7 @@ class Style extends Extension
                         , '17%'
                     )
                     ->addElementColumn((new Element())
-                        ->setContent('nein')
+                        ->setContent('Nein')
                         ->styleTextSize('12px')
                         ->stylePaddingTop('4px')
                         , '29%'
@@ -642,7 +648,7 @@ class Style extends Extension
                         , '17%'
                     )
                     ->addElementColumn((new Element())
-                        ->setContent('ja')
+                        ->setContent('Ja')
                         ->styleTextSize('12px')
                         ->stylePaddingTop('4px')
                         ->styleBorderRight()
@@ -829,6 +835,32 @@ class Style extends Extension
             );
     }
 
+    public function getDeadlyAccidentSectionTH()
+    {
+
+        return (new Section())
+            ->addElementColumn((new Element())
+                ->setContent('<b>14</b> Tödlicher Unfall?')
+                ->styleTextSize('11px')
+                ->stylePaddingLeft('5px')
+                ->styleBorderRight()
+                , '24%'
+            )
+            ->addElementColumn((new Element())
+                ->setContent('<b>15</b> Unfallzeitpunkt (TT.MM.JJJJ/hh:mm)')
+                ->styleTextSize('11px')
+                ->stylePaddingLeft('5px')
+                ->styleBorderRight()
+                , '48%'
+            )
+            ->addElementColumn((new Element())
+                ->setContent('Telefonnummer der versicherten Person')
+                ->styleTextSize('10px')
+                ->stylePaddingLeft('5px')
+                , '28%'
+            );
+    }
+
     public function getDeadlyAccidentDataSection()
     {
 
@@ -845,7 +877,7 @@ class Style extends Extension
                 , '4%'
             )
             ->addElementColumn((new Element())
-                ->setContent('nein')
+                ->setContent('Nein')
                 ->styleTextSize('12px')
                 ->styleHeight('18px')
                 ->stylePaddingTop('3px')
@@ -859,7 +891,7 @@ class Style extends Extension
                 , '4%'
             )
             ->addElementColumn((new Element())
-                ->setContent('ja')
+                ->setContent('Ja')
                 ->styleTextSize('12px')
                 ->styleHeight('18px')
                 ->stylePaddingTop('3px')
@@ -882,6 +914,71 @@ class Style extends Extension
                 ->styleBorderBottom()
                 ->styleHeight('19px')
                 , '55%'
+            );
+    }
+
+    public function getDeadlyAccidentDataSectionTH()
+    {
+
+        return (new Section())
+            ->addElementColumn((new Element())
+                ->styleHeight('21px')
+                ->styleBorderBottom()
+                , '2%'
+            )
+            ->addSliceColumn(
+                $this->setCheckBox(($this->FieldValue['DeathAccidentNo'] ? 'X' : ''))
+                    ->styleBorderBottom()
+                    ->styleHeight('21px')
+                , '4%'
+            )
+            ->addElementColumn((new Element())
+                ->setContent('Nein')
+                ->styleTextSize('12px')
+                ->styleHeight('18px')
+                ->stylePaddingTop('3px')
+                ->styleBorderBottom()
+                , '7%'
+            )
+            ->addSliceColumn(
+                $this->setCheckBox(($this->FieldValue['DeathAccidentYes'] ? 'X' : ''))
+                    ->styleBorderBottom()
+                    ->styleHeight('21px')
+                , '4%'
+            )
+            ->addElementColumn((new Element())
+                ->setContent('Ja')
+                ->styleTextSize('12px')
+                ->styleHeight('18px')
+                ->stylePaddingTop('3px')
+                ->styleBorderRight()
+                ->styleBorderBottom()
+                , '7%'
+            )
+            ->addElementColumn((new Element())
+                ->setContent($this->FieldValue['AccidentDate'])
+                ->stylePaddingLeft('5px')
+                ->styleHeight('19px')
+                ->stylePaddingTop()
+                ->styleBorderBottom()
+                , '21%'
+            )
+            ->addElementColumn((new Element())
+                ->setContent($this->FieldValue['AccidentTime'].' Uhr')
+                ->stylePaddingLeft('5px')
+                ->stylePaddingTop()
+                ->styleBorderRight()
+                ->styleBorderBottom()
+                ->styleHeight('19px')
+                , '27%'
+            )
+            ->addElementColumn((new Element())
+                ->setContent($this->FieldValue['PersonPhone'])
+                ->stylePaddingLeft('5px')
+                ->stylePaddingTop()
+                ->styleBorderBottom()
+                ->styleHeight('19px')
+                , '28%'
             );
     }
 
@@ -918,30 +1015,28 @@ class Style extends Extension
                 ->styleBorderBottom()
                 , '80%'
             )
-            ->addSliceColumn(// toDO
-//                $this->setCheckBox(($this->FieldValue['AccidentHomeofficeNo'] ? 'X' : ''))
-                $this->setCheckBox('')
+            ->addSliceColumn(
+                $this->setCheckBox(($this->FieldValue['HomeOfficeNo'] ? 'X' : ''))
                     ->styleBorderBottom()
                     ->styleHeight('21px')
                 , '4%'
             )
             ->addElementColumn((new Element())
-                ->setContent('nein')
+                ->setContent('Nein')
                 ->styleTextSize('12px')
                 ->styleHeight('17px')
                 ->stylePaddingTop('4px')
                 ->styleBorderBottom()
                 , '6%'
             )
-            ->addSliceColumn(// toDO
-//                $this->setCheckBox(($this->FieldValue['AccidentHomeofficeYes'] ? 'X' : ''))
-                $this->setCheckBox('')
+            ->addSliceColumn(
+                $this->setCheckBox(($this->FieldValue['HomeOfficeYes'] ? 'X' : ''))
                     ->styleBorderBottom()
                     ->styleHeight('21px')
                 , '4%'
             )
             ->addElementColumn((new Element())
-                ->setContent('ja')
+                ->setContent('Ja')
                 ->styleTextSize('12px')
                 ->styleHeight('17px')
                 ->stylePaddingTop('4px')
@@ -982,12 +1077,10 @@ class Style extends Extension
                 ->stylePaddingTop('5px')
                 ->styleHeight('15px')
                 ->stylePaddingLeft('5px')
-                ->styleBorderBottom()
                 , '35%'
             )
             ->addSliceColumn($this->setCheckBox($this->FieldValue['DescriptionActive'])
                 ->styleHeight('20px')
-                ->styleBorderBottom()
                 , '4%'
             )
             ->addElementColumn((new Element())
@@ -995,12 +1088,10 @@ class Style extends Extension
                 ->styleTextSize('11px')
                 ->stylePaddingTop('5px')
                 ->styleHeight('15px')
-                ->styleBorderBottom()
                 , '22%'
             )
             ->addSliceColumn($this->setCheckBox($this->FieldValue['DescriptionPassive'])
                 ->styleHeight('20px')
-                ->styleBorderBottom()
                 , '4%'
             )
             ->addElementColumn((new Element())
@@ -1008,14 +1099,53 @@ class Style extends Extension
                 ->styleTextSize('11px')
                 ->stylePaddingTop('5px')
                 ->styleHeight('15px')
-                ->styleBorderBottom()
                 , '15%'
             )
             ->addElementColumn((new Element())
                 ->setContent('&nbsp;')
                 ->styleHeight('20px')
-                ->styleBorderBottom()
                 , '21%'
+            );
+    }
+
+    public function getDescriptionViolanceDataSection()
+    {
+
+        return (new Section())
+            ->addElementColumn((new Element())
+                ->setContent('Hat ein Gewaltereignis vorgelegen (körperlicher Übergriff, sexueller Übergriff)?')
+                ->styleTextSize('11px')
+                ->stylePaddingTop('5px')
+                ->styleHeight('15px')
+                ->stylePaddingLeft('5px')
+                , '61%'
+            )
+            ->addSliceColumn($this->setCheckBox($this->FieldValue['DescriptionViolenceNo'])
+                ->styleHeight('20px')
+                , '4%'
+            )
+            ->addElementColumn((new Element())
+                ->setContent('Nein')
+                ->styleTextSize('11px')
+                ->stylePaddingTop('5px')
+                ->styleHeight('15px')
+                , '7%'
+            )
+            ->addSliceColumn($this->setCheckBox($this->FieldValue['DescriptionViolenceYes'])
+                ->styleHeight('20px')
+                , '4%'
+            )
+            ->addElementColumn((new Element())
+                ->setContent('Ja')
+                ->styleTextSize('11px')
+                ->stylePaddingTop('5px')
+                ->styleHeight('15px')
+                , '15%'
+            )
+            ->addElementColumn((new Element())
+                ->setContent('&nbsp;')
+                ->styleHeight('20px')
+                , '10%'
             );
     }
 
@@ -1436,7 +1566,7 @@ class Style extends Extension
                 ->stylePaddingTop('22px')
                 ->styleHeight('18px')
                 ->styleBorderBottom()
-                , '15%'
+                , '13%'
             )
             ->addElementColumn((new Element())
                 ->setContent($this->FieldValue['LocalLeader'])
@@ -1444,7 +1574,7 @@ class Style extends Extension
                 ->stylePaddingTop('22px')
                 ->styleHeight('18px')
                 ->styleBorderBottom()
-                , '25%'
+                , '27%'
             )
             ->addElementColumn((new Element())
                 ->setContent($this->FieldValue['Council'])
@@ -1472,13 +1602,13 @@ class Style extends Extension
                 ->setContent('<b>29</b> Datum')
                 ->styleTextSize('11px')
                 ->stylePaddingLeft('5px')
-                , '15%'
+                , '13%'
             )
             ->addElementColumn((new Element())
                 ->setContent('Unternehmer/-in (Bevollmächtigte/-r)')
                 ->styleTextSize('11px')
                 ->stylePaddingLeft('5px')
-                , '25%'
+                , '27%'
             )
             ->addElementColumn((new Element())
                 ->setContent('Betriebsrat (Personalrat)')
