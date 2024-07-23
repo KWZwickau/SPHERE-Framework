@@ -99,9 +99,7 @@ class LeaveLevelEleven extends AbstractBlock
                     && ($tblPrepareStudentList = Prepare::useService()->getPrepareStudentListByPersonAndCertificateTypeAndYear($tblPerson, $tblCertificateType, $tblYear))
                 ) {
                     foreach ($tblPrepareStudentList as $tblPrepareStudent) {
-                        if ($tblPrepareStudent->isApproved()
-                            && $tblPrepareStudent->isPrinted()
-                            && ($tblPrepare = $tblPrepareStudent->getTblPrepareCertificate())
+                        if (($tblPrepare = $tblPrepareStudent->getTblPrepareCertificate())
                             && $tblPrepare->getServiceTblAppointedDateTask()
                         ) {
                             $tblAppointedDateTaskLevelTen = $tblPrepare->getServiceTblAppointedDateTask();

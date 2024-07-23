@@ -298,8 +298,7 @@ abstract class AbstractDocument
                     && ($tblPrepareStudentList = Prepare::useService()->getPrepareStudentAllByPerson($tblPerson, $tblCertificate ))
                 ) {
                     foreach ($tblPrepareStudentList as $tblPrepareStudent) {
-                        if ($tblPrepareStudent->isPrinted()
-                            && ($tblPrepare = $tblPrepareStudent->getTblPrepareCertificate())
+                        if (($tblPrepare = $tblPrepareStudent->getTblPrepareCertificate())
                             && ($tblPrepareInformation = Prepare::useService()->getPrepareInformationBy($tblPrepare, $tblPerson, 'SchoolType'))
                         ) {
                             if (strpos($tblPrepareInformation->getValue(), 'Oberschule') !== false) {
