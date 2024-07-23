@@ -236,21 +236,28 @@ abstract class EsbdStyle extends Certificate
      * @param $personId
      * @param $Height
      * @param string $MarginTop
+     * @param bool $hasGTA
      *
      * @return Slice
      */
-    protected function getDescriptionConsumer($personId, $Height, $MarginTop = '15px')
+    protected function getDescriptionConsumer($personId, $Height, string $MarginTop = '15px', bool $hasGTA = true)
     {
         $DescriptionSlice = (new Slice());
         $DescriptionSlice->addSection((new Section())
                 ->addElementColumn((new Element())
-                    ->setContent(
-                        '{% if(Content.P' . $personId . '.Input.Remark is not empty) %}
-                            Bemerkungen: {{ Content.P' . $personId . '.Input.Remark|nl2br }}
-                        {% else %}
-                            Bemerkungen: &nbsp;
+                    ->setContent('
+                        {% if(Content.P'.$personId.'.Input.RemarkWithoutTeam is not empty) %}
+                            {{ Content.P'.$personId.'.Input.RemarkWithoutTeam|nl2br }} <br>
                         {% endif %}'
-                    ))
+                        . ($hasGTA
+                            ? '{% if(Content.P'.$personId.'.Input.GTA is not empty) %}
+                                {{ Content.P'.$personId.'.Input.GTA|nl2br }}
+                            {% else %}
+                                &nbsp;
+                            {% endif %}'
+                            : '')
+                    )
+                )
             )->styleMarginTop($MarginTop)
             ->styleHeight($Height);
 
