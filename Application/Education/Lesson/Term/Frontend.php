@@ -947,6 +947,9 @@ class Frontend extends FrontendWizard
             if (($tblState = BasicData::useService()->getStateByName('Niedersachsen'))) {
                 $list[$tblState->getId()] = $tblState->getName();
             }
+            if (($tblState = BasicData::useService()->getStateByName('Thüringen'))) {
+                $list[$tblState->getId()] = $tblState->getName();
+            }
 
             $form = new Form(new FormGroup(new FormRow(new FormColumn(
                 new SelectBox('Data', 'Bundesland', $list
