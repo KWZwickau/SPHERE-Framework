@@ -260,6 +260,7 @@ class Frontend extends Extension implements IFrontendInterface
      */
     public function frontendStudentArchiv($Search = null): Stage
     {
+        $Route = '/Document/Standard/EnrollmentDocument/Fill';
         if ($Search) {
             $global = $this->getGlobal();
             $global->POST['Data']['Search'] = $Search;
@@ -274,7 +275,7 @@ class Frontend extends Extension implements IFrontendInterface
             (new Form(new FormGroup(new FormRow(array(
                 new FormColumn(
                     (new TextField('Data[Search]', '', ''))
-                        ->ajaxPipelineOnKeyUp(ApiStandard::pipelineSearchPerson())
+                        ->ajaxPipelineOnKeyUp(ApiStandard::pipelineSearchPerson($Route))
                 ),
             )))))->disableSubmitAction(),
             Panel::PANEL_TYPE_INFO
@@ -286,7 +287,7 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutRow(array(
                         new LayoutColumn(array(
                             $panel,
-                            ApiStandard::receiverBlock($Search ? $this->loadPersonSearch($Search) : '', 'SearchContent')
+                            ApiStandard::receiverBlock($Search ? $this->loadPersonSearch($Route, $Search) : '', 'SearchContent')
                         )),
                     ))
                 )),
@@ -297,11 +298,12 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
+     * @param $Route
      * @param $Search
      *
      * @return string
      */
-    public function loadPersonSearch($Search): string
+    public function loadPersonSearch($Route, $Search): string
     {
         if ($Search != '' && strlen($Search) > 2) {
             $Search = str_replace(',', '', $Search);
@@ -320,7 +322,7 @@ class Frontend extends Extension implements IFrontendInterface
                             'Address'  => $tblAddress ? $tblAddress->getGuiString() : '',
                             'Option'   => new Standard(
                                 'Erstellen',
-                                '/Document/Standard/EnrollmentDocument/Fill',
+                                $Route,
                                 null,
                                 array('PersonId' => $tblPerson->getId())
                             )
