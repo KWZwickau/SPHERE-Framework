@@ -124,6 +124,8 @@ class Service
          * Prepare
          */
         $File = $File->move($File->getPath(), $File->getFilename().'.'.$File->getClientOriginalExtension());
+        // Zeichenkodierung umwandeln
+        $File->convertCharSet();
 
         /**
          * Read

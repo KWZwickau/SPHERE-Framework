@@ -245,7 +245,7 @@ class Service extends AbstractService
                 && ($subjectAcronym = $tblImportItem->getSubjectAcronym())
             ) {
                 // Fach in Schulsoftware gefunden
-                if (($tblSubject = Subject::useService()->getSubjectByAcronym($subjectAcronym))
+                if (($tblSubject = Subject::useService()->getSubjectByVariantAcronym($subjectAcronym))
                     && $tblSubject->getId() == $SubjectId
                 ) {
                     continue;
