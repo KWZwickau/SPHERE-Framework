@@ -5,6 +5,7 @@ namespace SPHERE\Application\Education\Certificate\Prepare;
 use DateTime;
 use SPHERE\Application\Api\Education\Prepare\ApiPrepare;
 use SPHERE\Application\Api\People\Meta\Support\ApiSupportReadOnly;
+use SPHERE\Application\Api\Platform\ReloadReceiver\ApiReloadReceiver;
 use SPHERE\Application\Education\Absence\Absence;
 use SPHERE\Application\Education\Absence\Service\Entity\TblAbsence;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCertificate;
@@ -398,7 +399,8 @@ abstract class FrontendSetting extends FrontendSelect
                 );
 
                 $Stage->setContent(
-                    new Layout(array(
+                    ApiReloadReceiver::receiverReload(ApiReloadReceiver::pipelineReload())
+                    .new Layout(array(
                         new LayoutGroup(array(
                             new LayoutRow(array(
                                 new LayoutColumn(array(
@@ -912,7 +914,8 @@ abstract class FrontendSetting extends FrontendSelect
         );
 
         $Stage->setContent(
-            ApiPrepare::receiverModal()
+            ApiReloadReceiver::receiverReload(ApiReloadReceiver::pipelineReload())
+            .ApiPrepare::receiverModal()
             .new Layout(array(
                 new LayoutGroup(array(
                     new LayoutRow(array(
@@ -1042,7 +1045,8 @@ abstract class FrontendSetting extends FrontendSelect
         );
 
         $Stage->setContent(
-            ApiPrepare::receiverModal()
+            ApiReloadReceiver::receiverReload(ApiReloadReceiver::pipelineReload())
+            .ApiPrepare::receiverModal()
             .new Layout(array(
                 new LayoutGroup(array(
                     new LayoutRow(array(

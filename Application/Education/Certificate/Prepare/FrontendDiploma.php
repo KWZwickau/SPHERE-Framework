@@ -4,6 +4,7 @@ namespace SPHERE\Application\Education\Certificate\Prepare;
 
 use SPHERE\Application\Api\Education\Prepare\ApiPrepare;
 use SPHERE\Application\Api\People\Meta\Support\ApiSupportReadOnly;
+use SPHERE\Application\Api\Platform\ReloadReceiver\ApiReloadReceiver;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCertificate;
 use SPHERE\Application\Education\Graduation\Grade\Grade;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblGradeText;
@@ -483,42 +484,39 @@ abstract class FrontendDiploma extends Extension implements IFrontendInterface
         }
 
         $Stage->setContent(
-            new Layout(array(
-                new LayoutGroup(array(
-                    new LayoutRow(array(
-                        new LayoutColumn(array(
-                            new Panel(
-                                'Zeugnis',
-                                array(
-                                    $tblPrepare->getName() . ' ' . new Small(new Muted($tblPrepare->getDate()))
-                                ),
-                                Panel::PANEL_TYPE_INFO
+            ApiReloadReceiver::receiverReload(ApiReloadReceiver::pipelineReload())
+            .new Layout(array(
+                new LayoutGroup(new LayoutRow(array(
+                    new LayoutColumn(array(
+                        new Panel(
+                            'Zeugnis',
+                            array(
+                                $tblPrepare->getName() . ' ' . new Small(new Muted($tblPrepare->getDate()))
                             ),
-                        ), 6),
-                        new LayoutColumn(array(
-                            new Panel(
-                                $tblDivisionCourse->getTypeName(),
-                                $tblDivisionCourse->getDisplayName(),
-                                Panel::PANEL_TYPE_INFO
-                            ),
-                        ), 6),
-                        new LayoutColumn($buttonList),
-                    )),
-                )),
-                new LayoutGroup(array(
-                    new LayoutRow(array(
-                        new LayoutColumn(array(
-                            ApiSupportReadOnly::receiverOverViewModal(),
-                            Prepare::useService()->updatePrepareExamGrades(
-                                $form,
-                                $tblPrepare,
-                                $tblSubject,
-                                $Route,
-                                $NextTab,
-                                $SchoolTypeShortName,
-                                $Data
-                            )
-                        ))
+                            Panel::PANEL_TYPE_INFO
+                        ),
+                    ), 6),
+                    new LayoutColumn(array(
+                        new Panel(
+                            $tblDivisionCourse->getTypeName(),
+                            $tblDivisionCourse->getDisplayName(),
+                            Panel::PANEL_TYPE_INFO
+                        ),
+                    ), 6),
+                    new LayoutColumn($buttonList),
+                ))),
+                new LayoutGroup(new LayoutRow(
+                    new LayoutColumn(array(
+                        ApiSupportReadOnly::receiverOverViewModal(),
+                        Prepare::useService()->updatePrepareExamGrades(
+                            $form,
+                            $tblPrepare,
+                            $tblSubject,
+                            $Route,
+                            $NextTab,
+                            $SchoolTypeShortName,
+                            $Data
+                        )
                     ))
                 ))
             ))

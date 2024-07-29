@@ -7,6 +7,7 @@ use SPHERE\Application\Api\Platform\DataMaintenance\ApiMigrateDivision;
 use SPHERE\Application\Api\Platform\Gatekeeper\ApiAuthenticatorApp;
 use SPHERE\Application\Api\Platform\Gatekeeper\ApiUserGroup;
 use SPHERE\Application\Api\Platform\Gatekeeper\Gatekeeper;
+use SPHERE\Application\Api\Platform\ReloadReceiver\ApiReloadReceiver;
 use SPHERE\Application\Api\Platform\Test\ApiSystemTest;
 use SPHERE\Application\Api\Platform\View\View;
 use SPHERE\Application\IApplicationInterface;
@@ -30,5 +31,6 @@ class Platform implements IApplicationInterface
         ApiAuthenticatorApp::registerApi();
         ApiMigrateDivision::registerApi();
         ApiDocumentStorage::registerApi();
+        ApiReloadReceiver::registerApi();
     }
 }
