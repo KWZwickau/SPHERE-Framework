@@ -72,6 +72,9 @@ class FrontendWizard extends Extension implements IFrontendInterface
         if (($tblState = BasicData::useService()->getStateByName('Niedersachsen'))) {
             $stateList[$tblState->getId()] = $tblState->getName();
         }
+        if (($tblState = BasicData::useService()->getStateByName('Thüringen'))) {
+            $stateList[$tblState->getId()] = $tblState->getName();
+        }
 
         $PreData = array();
         $global = $this->getGlobal();

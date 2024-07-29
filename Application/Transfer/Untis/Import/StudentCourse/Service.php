@@ -122,7 +122,8 @@ class Service
         }
 
         $File10Name = $File10->getClientOriginalName();
-        $File15Name = $File10->getClientOriginalName();
+        $File15Name = $File15->getClientOriginalName();
+
 
         $ExternSoftwareName = TblImport::EXTERN_SOFTWARE_NAME_UNTIS;
         $TypeIdentifier = TblImport::TYPE_IDENTIFIER_STUDENT_COURSE;
@@ -164,6 +165,8 @@ class Service
          * Prepare
          */
         $File10 = $File10->move($File10->getPath(), $File10->getFilename().'.'.$File10->getClientOriginalExtension());
+        // Zeichenkodierung umwandeln
+        $File10->convertCharSet();
 
         /**
          * Read
@@ -234,6 +237,8 @@ class Service
          * Prepare
          */
         $File15 = $File15->move($File15->getPath(), $File15->getFilename().'.'.$File15->getClientOriginalExtension());
+        // Zeichenkodierung umwandeln
+        $File15->convertCharSet();
 
         /**
          * Read
