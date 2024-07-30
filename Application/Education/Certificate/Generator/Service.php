@@ -800,7 +800,7 @@ class Service extends AbstractService
             // bei z.B: EN2 kann in der Schülerakte trotzdem das normale EN eingestellt sein
             if (($tblSubjectList = Subject::useService()->getSubjectAllByName($tblSubject->getName()))) {
                 foreach ($tblSubjectList as $tblSubject) {
-                    if (($temp = DivisionCourse::useService()->getStudentSubjectByPersonAndYearAndSubject($tblPerson, $tblYear, $tblSubject))) {
+                    if (($temp = DivisionCourse::useService()->getStudentSubjectByPersonAndYearAndSubjectForCourseSystem($tblPerson, $tblYear, $tblSubject))) {
                         $identifier = $temp->getIsAdvancedCourse() ? 'AfterAdvancedCourse' : 'AfterBasicCourse';
                         break;
                     }
