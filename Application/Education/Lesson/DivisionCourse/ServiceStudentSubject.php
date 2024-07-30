@@ -257,7 +257,7 @@ abstract class ServiceStudentSubject extends ServiceCourseSystem
                     foreach ($tblStudentMemberList as $tblPerson) {
                         if (($tblStudentSubjectList = DivisionCourse::useService()->getStudentSubjectListByPersonAndYear($tblPerson, $tblYear))) {
                             foreach ($tblStudentSubjectList as $tblStudentSubject) {
-                                if (($list = explode('/', $tblStudentSubject->getPeriodIdentifier()))
+                                if ($tblStudentSubject->getPeriodIdentifier() && ($list = explode('/', $tblStudentSubject->getPeriodIdentifier()))
                                     && isset($list[1])
                                     && $list[1] == $Period
                                 ) {

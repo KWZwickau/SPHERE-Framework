@@ -60,6 +60,7 @@ use SPHERE\Common\Frontend\Text\Repository\Info;
 use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Stage;
+use SPHERE\System\Extension\Repository\Debugger;
 use SPHERE\System\Extension\Repository\Sorter\StringNaturalOrderSorter;
 
 abstract class ServiceTabs extends ServiceCourseContent
@@ -141,14 +142,24 @@ abstract class ServiceTabs extends ServiceCourseContent
 
             if ($hasLastYearsTemp) {
                 $date = new DateTime('now');
-                $date = $date->sub(new DateInterval('P1Y'));
+                // springt das neue Jahr in den Juli muss weniger als 1 Jahr abgezogen werden,
+                // um das letzte Jahr zu bekommen, wenn es regulär am 01.08.xxxx oder später begonnen hat
+                $isChange = false;
+                if($date->format('m') == '07'){
+                    $date = $date->sub(new DateInterval('P11M'));
+                    $isChange = true;
+                }
+                // Standard
+                 if(!$isChange) {
+                    $date = $date->sub(new DateInterval('P1Y'));
+                }
                 if (($tblLastYearList = Term::useService()->getYearAllByDate($date))) {
                     foreach ($tblLastYearList as $tblLastYear) {
                         if ($tblYear && $tblYear->getId() == $tblLastYear->getId()) {
-                            $buttonList[] = (new Standard(new Info(new Bold($tblLastYear->getDisplayName())), $Route, new Edit(), array('YearId' => $tblLastYear->getId())));
+                            $buttonList[$tblLastYear->getId()] = (new Standard(new Info(new Bold($tblLastYear->getDisplayName())), $Route, new Edit(), array('YearId' => $tblLastYear->getId())));
                             $yearFilterList[$tblLastYear->getId()] = $tblLastYear;
                         } else {
-                            $buttonList[] = (new Standard($tblLastYear->getDisplayName(), $Route, null, array('YearId' => $tblLastYear->getId())));
+                            $buttonList[$tblLastYear->getId()] = (new Standard($tblLastYear->getDisplayName(), $Route, null, array('YearId' => $tblLastYear->getId())));
                         }
                     }
                 }
@@ -158,15 +169,14 @@ abstract class ServiceTabs extends ServiceCourseContent
             /** @var TblYear $tblYearItem */
             foreach ($tblYearList as $tblYearItem) {
                 if ($tblYear && $tblYear->getId() == $tblYearItem->getId()) {
-                    $buttonList[] = (new Standard(new Info(new Bold($tblYearItem->getDisplayName())),
+                    $buttonList[$tblYearItem->getId()] = (new Standard(new Info(new Bold($tblYearItem->getDisplayName())),
                         $Route, new Edit(), array('YearId' => $tblYearItem->getId())));
                     $yearFilterList[$tblYearItem->getId()] = $tblYearItem;
                 } else {
                     if ($isCurrentYears) {
                         $yearFilterList[$tblYearItem->getId()] = $tblYearItem;
                     }
-
-                    $buttonList[] = (new Standard($tblYearItem->getDisplayName(), $Route, null, array('YearId' => $tblYearItem->getId())));
+                    $buttonList[$tblYearItem->getId()] = (new Standard($tblYearItem->getDisplayName(), $Route, null, array('YearId' => $tblYearItem->getId())));
                 }
             }
 
@@ -176,10 +186,10 @@ abstract class ServiceTabs extends ServiceCourseContent
                 if (($tblFutureYearList = Term::useService()->getYearAllByDate($date))) {
                     foreach ($tblFutureYearList as $tblFutureYear) {
                         if ($tblYear && $tblYear->getId() == $tblFutureYear->getId()) {
-                            $buttonList[] = (new Standard(new Info(new Bold($tblFutureYear->getDisplayName())), $Route, new Edit(), array('YearId' => $tblFutureYear->getId())));
+                            $buttonList[$tblFutureYear->getId()] = (new Standard(new Info(new Bold($tblFutureYear->getDisplayName())), $Route, new Edit(), array('YearId' => $tblFutureYear->getId())));
                             $yearFilterList[$tblFutureYear->getId()] = $tblFutureYear;
                         } else {
-                            $buttonList[] = (new Standard($tblFutureYear->getDisplayName(), $Route, null, array('YearId' => $tblFutureYear->getId())));
+                            $buttonList[$tblFutureYear->getId()] = (new Standard($tblFutureYear->getDisplayName(), $Route, null, array('YearId' => $tblFutureYear->getId())));
                         }
                     }
                 }
