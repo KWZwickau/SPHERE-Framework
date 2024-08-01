@@ -311,9 +311,16 @@ abstract class ServiceYearChange extends ServiceTeacher
                                             );
                                         }
                                         if (($tblDivisionCourseFuture = $divisionCourseList[$tblDivisionCourseSekII->getId()] ?? null)) {
+                                            $periodIdentifier = '';
+                                            if (($explode = explode('/', $tblStudentSubject->getPeriodIdentifier()))
+                                                && isset($explode[1])
+                                            ) {
+                                                $periodIdentifier = ($level + 1) . '/' . $explode[1];
+                                            }
+
                                             $createStudentSubjectList[] = TblStudentSubject::withParameter(
                                                 $tblPerson, $tblYearTarget, $tblSubject, $tblStudentSubject->getHasGrading(), null,
-                                                $tblDivisionCourseFuture, $tblStudentSubject->getPeriodIdentifier()
+                                                $tblDivisionCourseFuture, $periodIdentifier
                                             );
                                         }
                                     }
