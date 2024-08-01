@@ -497,9 +497,10 @@ UPDATE ".$Acronym."_BillingInvoice.tblDebtorSelection SET ToDate = date_add(ToDa
 UPDATE ".$Acronym."_BillingInvoice.tblInvoice SET InvoiceNumber = concat(substr(InvoiceNumber, 1, 4)+1, substr(InvoiceNumber, 5, 20)), Year = Year + 1, TargetTime = date_add(TargetTime, interval 1 YEAR), BillTime = date_add(BillTime, interval 1 YEAR);
 UPDATE ".$Acronym."_BillingInvoice.tblItemCalculation SET DateFrom = date_add(DateFrom, interval 1 YEAR);
 UPDATE ".$Acronym."_BillingInvoice.tblItemCalculation SET DateTo = date_add(DateTo, interval 1 YEAR) where DateTo IS NOT NULL;
-UPDATE ".$Acronym."_DocumentStorage.tblDirectory SET Name = concat(substr(Name, 1, 4)+1, \"/\", substr(Name, 6, 2)+1) where Identifier like \"TBL-YEAR-ID%\";
-UPDATE ".$Acronym."_DocumentStorage.tblFile SET Name = concat(substr(Name, 1, 4)+1, \"/\", substr(Name, 6, 2)+1, substr(Name, 8, 100)), Description = concat(substr(Description, 1, 16), substr(Description, 17, 4)+1, substr(Description, 21, 100));
-UPDATE ".$Acronym."_EducationApplication.tblAbsence SET FromDate = date_add(FromDate, interval 1 YEAR);
+UPDATE ".$Acronym."_DocumentStorage.tblDirectory SET Name = concat(substr(Name, 1, 4)+1, \"/\", substr(Name, 6, 2)+1) where Identifier like \"TBL-YEAR-ID%\";".
+// Funktioniert durch geänderten String nicht mehr. Ein Update ist hier auch nicht zwingend erforderlich.
+// "UPDATE ".$Acronym."_DocumentStorage.tblFile SET Name = concat(substr(Name, 1, 4)+1, \"/\", substr(Name, 6, 2)+1, substr(Name, 8, 100)), Description = concat(substr(Description, 1, 16), substr(Description, 17, 4)+1, substr(Description, 21, 100));
+"UPDATE ".$Acronym."_EducationApplication.tblAbsence SET FromDate = date_add(FromDate, interval 1 YEAR);
 UPDATE ".$Acronym."_EducationApplication.tblAbsence SET ToDate = date_add(ToDate, interval 1 YEAR) where ToDate IS NOT NULL;
 UPDATE ".$Acronym."_EducationApplication.tblClassRegisterCourseContent SET Date = date_add(Date, interval 1 YEAR);
 UPDATE ".$Acronym."_EducationApplication.tblClassRegisterCourseContent SET DateHeadmaster = date_add(DateHeadmaster, interval 1 YEAR) where DateHeadmaster IS NOT NULL;
