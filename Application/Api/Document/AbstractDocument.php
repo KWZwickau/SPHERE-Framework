@@ -888,7 +888,7 @@ abstract class AbstractDocument
 
                 // 2 passen nur 2 Notfallnummern auf die neue Schülerkartei
                 $phoneNew = $phoneNumberList[0]
-                    . ($phoneNumberList[1] ? '; ' . $phoneNumberList[1] : '');
+                    . (isset($phoneNumberList[1]) ? '; ' . $phoneNumberList[1] : '');
             }
 
             $Data['Person']['Contact']['Phone']['EmergencyNumber'] = $phone;
