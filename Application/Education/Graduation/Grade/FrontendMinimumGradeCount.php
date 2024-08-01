@@ -164,7 +164,7 @@ class FrontendMinimumGradeCount extends FrontendGradeType
         $levelColumns = array();
         foreach ($schoolTypeList as $typeId => $levels) {
             if (($tblTypeItem = Type::useService()->getTypeById($typeId))) {
-                ksort($levels);
+//                ksort($levels);
                 // für Sortierung
                 if ($tblTypeItem->getName() == 'Grundschule') {
                     $key = 1;
@@ -173,9 +173,10 @@ class FrontendMinimumGradeCount extends FrontendGradeType
                 } elseif ($tblTypeItem->getName() == 'Gymnasium') {
                     $key = 3;
                 } else {
-                    $key = 10  + $typeId;
+                    $key = 10 + $typeId;
                 }
-
+                // erstes Element wird ignoriert, deswegen wird ein "inhaltsleeres" vorn angefügt.
+                array_unshift($levels, 'null');
                 $levelColumns[$key] = new LayoutColumn(
                     new Panel($tblTypeItem->getName(), $levels), 3
                 );
