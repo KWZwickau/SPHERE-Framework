@@ -741,11 +741,11 @@ class Frontend extends Extension implements IFrontendInterface
                     new FormColumn(
                         (new SelectBox('RoleId', 'Benutzerrecht ' . new Danger('*'), array('{{ Name }}' => Access::useService()->getRolesForSelect(false))))
                             ->ajaxPipelineOnChange(ApiAccount::pipelineLoadMassReplaceContent($RoleId, $PersonGroupId))
-                        , 3),
+                        , 6),
                     new FormColumn(
                         (new SelectBox('PersonGroupId', 'Personengruppe', array('{{ Name }}' => $groupList)))
                             ->ajaxPipelineOnChange(ApiAccount::pipelineLoadMassReplaceContent($RoleId, $PersonGroupId))
-                        , 3),
+                        , 6),
                 ))
             )),
             Panel::PANEL_TYPE_INFO
@@ -783,28 +783,15 @@ class Frontend extends Extension implements IFrontendInterface
             $count = 0;
             if (($tblAccountList = Account::useService()->getAccountAllForEdit())) {
                 $tblAccountList = $this->getSorter($tblAccountList)->sortObjectBy('UserName');
+                /** @var TblAccount $tblAccount */
                 foreach ($tblAccountList as $tblAccount) {
                     if (($tblPerson = Account::useService()->getFirstPersonByAccount($tblAccount))
                         && (!$tblGroup || Group::useService()->existsGroupPerson($tblGroup, $tblPerson))
                     ) {
                         // bei Rolle nur für Hardware-Token, Benutzerkonten ohne entsprechenden Ausfiltern
-                        if ($tblRole->isSecure()
-                            && ($tblIdentification = $tblAccount->getServiceTblIdentification())
-                        ) {
-                            switch ($tblIdentification->getName()) {
-                                case 'AuthenticatorApp':
-                                    $isAdd = true;
-                                    break;
-                                case 'Token':
-                                    // Token muss gesetzt sein
-                                    if ($tblAccount->getServiceTblToken()) {
-                                        $isAdd = true;
-                                    } else {
-                                        $isAdd = false;
-                                    }
-                                    break;
-                                default : $isAdd = false;
-                            }
+                        if ($tblRole->isSecure()) {
+                            $isAdd = $tblAccount->getHasAuthentication(TblIdentification::NAME_AUTHENTICATOR_APP)
+                                || ($tblAccount->getHasAuthentication(TblIdentification::NAME_TOKEN) && $tblAccount->getServiceTblToken());
                         } else {
                             $isAdd = true;
                         }
