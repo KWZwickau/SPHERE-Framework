@@ -83,24 +83,12 @@ class Service extends AbstractService
     public function getAccountAllForAPITransfer()
     {
 
-        // Mitarbeiter / Lehrer mit Token
-        $tblIdentification = Account::useService()->getIdentificationByName(TblIdentification::NAME_TOKEN);
-        $tblAccountList = Account::useService()->getAccountListByIdentification($tblIdentification);
+        // Alle Mitarbeiter/Lehrer Account's
+        $tblAccountList = Account::useService()->getAccountAllForEdit();
 
+        // Wenn keine vorhanden sind muss trotzdem ein Array weiter gereicht werden
         if (!is_array($tblAccountList)){
             $tblAccountList = array();
-        }
-
-        // Mitarbeiter / Lehrer mit Authenticator App
-        $tblIdentification = Account::useService()->getIdentificationByName(TblIdentification::NAME_AUTHENTICATOR_APP);
-        if(($tblAccountList2 = Account::useService()->getAccountListByIdentification($tblIdentification))){
-            $tblAccountList = array_merge($tblAccountList, $tblAccountList2);
-        }
-
-        // Mitarbeiter ohne 2 Wege Authentifizierung
-        $tblIdentification = Account::useService()->getIdentificationByName(TblIdentification::NAME_CREDENTIAL);
-        if(($tblAccountList3 = Account::useService()->getAccountListByIdentification($tblIdentification))){
-            $tblAccountList = array_merge($tblAccountList, $tblAccountList3);
         }
 
         // Student
@@ -111,6 +99,7 @@ class Service extends AbstractService
                 }
             }
         }
+        $tblAccountList = array_unique($tblAccountList);
         return (!empty($tblAccountList) ? $tblAccountList : false);
     }
 
