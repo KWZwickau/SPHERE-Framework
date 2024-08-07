@@ -49,6 +49,12 @@ class ViewEducationStudent extends AbstractView
     const TBL_LESSON_DIVISION_COURSE_NAME_C = 'TblLessonDivisionCourse_Name_C';
     const TBL_LESSON_DIVISION_COURSE_DESCRIPTION_C = 'TblLessonDivisionCourse_Description_C';
     const TBL_PERSON_TUTOR_LAST_NAME_LIST = 'TblPerson_TutorLastNameList';
+    // Unterrichtsgruppen
+    const TBL_LESSON_DIVISION_COURSE_TEACHING_GROUP = 'TblLessonDivisionCourse_TeachingGroup';
+    // Lerngruppen
+    const TBL_LESSON_DIVISION_COURSE_TEACHER_GROUP = 'TblLessonDivisionCourse_TeacherGroup';
+    // SekII
+    const TBL_LESSON_DIVISION_COURSE_SEKII = 'TblLessonDivisionCourse_SekII';
 
     /**
      * @return array
@@ -127,6 +133,18 @@ class ViewEducationStudent extends AbstractView
      * @Column(type="string")
      */
     protected $TblYear_Description;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblLessonDivisionCourse_TeachingGroup;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblLessonDivisionCourse_TeacherGroup;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblLessonDivisionCourse_SekII;
 
     /**
      * Use this method to set PropertyName to DisplayName conversions with "setNameDefinition()"
@@ -150,6 +168,9 @@ class ViewEducationStudent extends AbstractView
         $this->setNameDefinition(self::TBL_LESSON_DIVISION_COURSE_NAME_C, 'Bildung: Stammgruppe');
 //        $this->setNameDefinition(self::TBL_LESSON_DIVISION_COURSE_DESCRIPTION_C, 'Bildung: Stammgruppe Beschreibung');
         $this->setNameDefinition(self::TBL_PERSON_TUTOR_LAST_NAME_LIST, 'Bildung: Tutor');
+        $this->setNameDefinition(self::TBL_LESSON_DIVISION_COURSE_TEACHING_GROUP, 'Bildung: Unterrichtsgruppen');
+        $this->setNameDefinition(self::TBL_LESSON_DIVISION_COURSE_TEACHER_GROUP, 'Bildung: Lerngruppen');
+        $this->setNameDefinition(self::TBL_LESSON_DIVISION_COURSE_SEKII, 'Bildung: SEKII Kurse');
 
         //GroupDefinition
         $this->setGroupDefinition('Schulverlauf', array(
@@ -166,6 +187,9 @@ class ViewEducationStudent extends AbstractView
             self::TBL_LESSON_DIVISION_COURSE_NAME_C,
 //            self::TBL_LESSON_DIVISION_COURSE_DESCRIPTION_C,
             self::TBL_PERSON_TUTOR_LAST_NAME_LIST,
+            self::TBL_LESSON_DIVISION_COURSE_TEACHING_GROUP,
+            self::TBL_LESSON_DIVISION_COURSE_TEACHER_GROUP,
+            self::TBL_LESSON_DIVISION_COURSE_SEKII,
         ));
 
         // Flag um Filter zu deaktivieren (nur Anzeige von Informationen)
