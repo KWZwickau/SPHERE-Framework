@@ -790,8 +790,7 @@ class KamenzReportService
                                     && ($tblPrepareStudentList = Prepare::useService()->getPrepareStudentAllByPrepare($tblPrepare))
                                 ) {
                                     foreach ($tblPrepareStudentList as $tblPrepareStudent) {
-                                        if ($tblPrepareStudent->isPrinted()
-                                            && ($tblPerson = $tblPrepareStudent->getServiceTblPerson())
+                                        if (($tblPerson = $tblPrepareStudent->getServiceTblPerson())
                                             && ((($tblPrepareInformationTransfer = Prepare::useService()->getPrepareInformationBy($tblPrepare, $tblPerson, 'Transfer'))
                                                     && (strpos($tblPrepareInformationTransfer->getValue(), 'nicht versetzt') !== false))
                                                 || (($tblPrepareInformationIndividualTransfer = Prepare::useService()->getPrepareInformationBy(
@@ -2736,8 +2735,7 @@ class KamenzReportService
                                     && ($tblPrepareStudentList = Prepare::useService()->getPrepareStudentAllByPrepare($tblPrepare))
                                 ) {
                                     foreach ($tblPrepareStudentList as $tblPrepareStudent) {
-                                        if ($tblPrepareStudent->isPrinted()
-                                            && ($tblPerson = $tblPrepareStudent->getServiceTblPerson())
+                                        if (($tblPerson = $tblPrepareStudent->getServiceTblPerson())
                                             && ($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())
                                         ) {
                                             $levelName = 0;
@@ -3252,8 +3250,7 @@ class KamenzReportService
                                     && ($tblPrepareStudentList = Prepare::useService()->getPrepareStudentAllByPrepare($tblPrepare))
                                 ) {
                                     foreach ($tblPrepareStudentList as $tblPrepareStudent) {
-                                        if ($tblPrepareStudent->isPrinted()
-                                            && ($tblPerson = $tblPrepareStudent->getServiceTblPerson())
+                                        if (($tblPerson = $tblPrepareStudent->getServiceTblPerson())
                                             && ($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())
                                         ) {
                                             self::setTechnicalGraduationForPerson($tblPerson, 'DiplomaTotal', $Content);

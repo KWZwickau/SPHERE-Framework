@@ -38,9 +38,7 @@ abstract class ServiceAbitur extends AbstractService
             && ($tblPrepareStudentList = Prepare::useService()->getPrepareStudentListByPersonAndCertificateType($tblPerson, $tblCertificateType))
         ) {
             foreach ($tblPrepareStudentList as $tblPrepareStudent) {
-                if ($tblPrepareStudent->isApproved()
-                    && $tblPrepareStudent->isPrinted()
-                    && ($tblPrepare = $tblPrepareStudent->getTblPrepareCertificate())
+                if (($tblPrepare = $tblPrepareStudent->getTblPrepareCertificate())
                     && ($tblGenerateCertificate = $tblPrepare->getServiceTblGenerateCertificate())
                     && ($tblYear = $tblGenerateCertificate->getServiceTblYear())
                     && ($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))

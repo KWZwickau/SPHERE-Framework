@@ -161,8 +161,8 @@ class Service extends AbstractService
                         || $tblCertificateType->getIdentifier() == 'MID_TERM_COURSE'
                         || $tblCertificateType->getIdentifier() == 'DIPLOMA'
                     )
-                    && $tblPrepareStudent->isApproved()
-                    && $tblPrepareStudent->isPrinted()
+//                    && $tblPrepareStudent->isApproved()
+//                    && $tblPrepareStudent->isPrinted()
                     && ($tblYear = $tblPrepare->getYear())
                     && ($tblStudentEducationPrepare = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))
                     && ($level = $tblStudentEducationPrepare->getLevel())
@@ -401,8 +401,8 @@ class Service extends AbstractService
                     && ($tblCertificateType->getIdentifier() == 'HALF_YEAR'
                         || $tblCertificateType->getIdentifier() == 'YEAR'
                     )
-                    && $tblPrepareStudent->isApproved()
-                    && $tblPrepareStudent->isPrinted()
+//                    && $tblPrepareStudent->isApproved()
+//                    && $tblPrepareStudent->isPrinted()
                 ) {
                     $list[(new DateTime($tblPrepare->getDate()))->format('Y.m.d')] = $tblPrepareStudent;
                 }
@@ -495,8 +495,8 @@ class Service extends AbstractService
                         || $tblCertificateType->getIdentifier() == 'YEAR'
                         || $tblCertificateType->getIdentifier() == 'MID_TERM_COURSE'
                     )
-                    && $tblPrepareStudent->isApproved()
-                    && $tblPrepareStudent->isPrinted()
+//                    && $tblPrepareStudent->isApproved()
+//                    && $tblPrepareStudent->isPrinted()
                     && ($tblYear = $tblPrepare->getYear())
                     && ($tblStudentEducationPrepare = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))
                     && ($tblSchoolType = $tblStudentEducationPrepare->getServiceTblSchoolType())

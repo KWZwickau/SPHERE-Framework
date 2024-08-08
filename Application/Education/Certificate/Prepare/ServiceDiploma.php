@@ -362,8 +362,7 @@ abstract class ServiceDiploma extends ServiceCertificateContent
             && ($tblPrepareAdditionalGradeType = $this->getPrepareAdditionalGradeTypeByIdentifier('PRIOR_YEAR_GRADE'))
         ) {
             foreach ($tblPrepareStudentList as $tblPrepareStudent) {
-                if ($tblPrepareStudent->isPrinted()
-                    && ($tblPrepareTemp = $tblPrepareStudent->getTblPrepareCertificate())
+                if (($tblPrepareTemp = $tblPrepareStudent->getTblPrepareCertificate())
                     && ($tblYear = $tblPrepareTemp->getYear())
                     && ($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))
                     && $tblStudentEducation->getLevel() == 9

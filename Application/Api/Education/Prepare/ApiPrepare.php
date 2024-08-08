@@ -6,6 +6,7 @@ use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\Api\Education\Certificate\Generator\Certificate;
 use SPHERE\Application\Education\Certificate\Generator\Generator;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\IApiInterface;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
@@ -21,7 +22,10 @@ use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
+use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
+use SPHERE\Common\Frontend\Icon\Repository\Ok;
+use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
@@ -31,6 +35,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Primary;
+use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
@@ -61,6 +66,8 @@ class ApiPrepare extends Extension implements IApiInterface
         $Dispatcher->registerMethod('changeInformation');
 
         $Dispatcher->registerMethod('loadDiplomaAverage');
+
+        $Dispatcher->registerMethod('openResetApprovedModal');
 
         return $Dispatcher->callMethod($Method);
     }
@@ -401,5 +408,100 @@ class ApiPrepare extends Extension implements IApiInterface
                 'Data[' . $PrepareStudentId . ']', $PrepareStudentId, $selectListGrades, $calc
             );
         }
+    }
+
+    /**
+     * @param null $Route
+     * @param null $PrepareId
+     * @param null $DivisionId
+     * @param null $IsLeave
+     * @param null $IsAllYears
+     *
+     * @return Pipeline
+     */
+    public static function pipelineOpenResetApprovedModal($Route = null, $PrepareId = null, $DivisionId = null, $IsLeave = null, $IsAllYears = null): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'openResetApprovedModal',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'Route' => $Route,
+            'PrepareId' => $PrepareId,
+            'DivisionId' => $DivisionId,
+            'IsLeave' => $IsLeave,
+            'IsAllYears' => $IsAllYears,
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $Route
+     * @param $PrepareId
+     * @param $DivisionId
+     * @param $IsLeave
+     * @param $IsAllYears
+     *
+     * @return string
+     */
+    public function openResetApprovedModal($Route, $PrepareId, $DivisionId, $IsLeave, $IsAllYears): string
+    {
+        if (($tblPrepare = \SPHERE\Application\Education\Certificate\Prepare\Prepare::useService()->getPrepareById($PrepareId))) {
+            $tblDivisionCourse = $tblPrepare->getServiceTblDivision();
+        } else {
+            $tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionId);
+        }
+
+        if (!$tblDivisionCourse) {
+            return new Danger('Der Kurs wurde nicht gefunden', new Exclamation());
+        }
+
+        return new Title(new Disable() . ' Die Zeugnisfreigabe wirklich entfernen?')
+            . new Layout(
+                new LayoutGroup(array(
+                    new LayoutRow(array(
+                        $tblPrepare
+                        ? new LayoutColumn(array(
+                            new Panel(
+                                'Zeugnisvorbereitung',
+                                array(
+                                    $tblPrepare->getName() . ' ' . new Small(new Muted($tblPrepare->getDate())),
+                                ),
+                                Panel::PANEL_TYPE_INFO
+                            ),
+                        ), 6)
+                        : null,
+                        new LayoutColumn(array(
+                            new Panel(
+                                $tblDivisionCourse->getTypeName(),
+                                $tblDivisionCourse->getDisplayName(),
+                                Panel::PANEL_TYPE_INFO
+                            ),
+                        ), 6),
+                    )),
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            new Warning('Es wurden bereits Zeugnisse dieses Kurses gedruckt. Wollen Sie die Zeugnisfreigabe wirklich entfernen?')
+                        )
+                    )),
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            (new Primary('Ja', '/Education/Certificate/Approve/Prepare/Division/ResetApproved', new Ok(),
+                                array(
+                                    'PrepareId' => $PrepareId,
+                                    'DivisionId' => $DivisionId,
+                                    'Route' => $Route,
+                                    'IsLeave' => $IsLeave === 'true',
+                                    'IsAllYears' => $IsAllYears === 'true'
+                                )))
+                            . (new Standard('Nein', self::getEndpoint(), new Remove()))
+                                ->ajaxPipelineOnClick(self::pipelineClose())
+                        )
+                    ))
+                ))
+            );
     }
 }

@@ -8,6 +8,7 @@
 
 namespace SPHERE\Application\Education\Certificate\Approve;
 
+use SPHERE\Application\Api\Education\Prepare\ApiPrepare;
 use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
@@ -113,6 +114,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         if ($tblLeaveStudentList) {
             $leaveStudentDivisionList = array();
+            $isAlreadyPrintedList = array();
             foreach ($tblLeaveStudentList as $tblLeaveStudent) {
                 if (($tblYearLeave = $tblLeaveStudent->getServiceTblYear())
                     && ($tblDivisionCourse = $tblLeaveStudent->getTblDivisionCourse())
@@ -140,6 +142,10 @@ class Frontend extends Extension implements IFrontendInterface
                             'DivisionDisplayName' => $tblDivisionCourse->getDisplayName(),
                             'DivisionId' => $tblDivisionCourse->getId(),
                         );
+                    }
+
+                    if ($tblLeaveStudent->isPrinted()) {
+                        $isAlreadyPrintedList[$tblDivisionCourse->getId()] = true;
                     }
                 }
             }
@@ -188,17 +194,20 @@ class Frontend extends Extension implements IFrontendInterface
                             ),
                             'Alle Zeugnisse dieser Klasse freigeben'
                         ))
-                        . (new Standard(
-                            '',
-                            '/Education/Certificate/Approve/Prepare/Division/ResetApproved',
-                            new Disable(),
-                            array(
-                                'DivisionId' => $item['DivisionId'],
-                                'IsLeave' => true,
-                                'Route' => '/Education/Certificate/Approve'
-                            ),
-                            'Alle Zeugnisfreigaben dieser Klasse entfernen'
-                        ))
+                        . (isset($isAlreadyPrintedList[$item['DivisionId']])
+                            ? (new Standard('', ApiPrepare::getEndpoint(), new Disable()))
+                                ->ajaxPipelineOnClick(ApiPrepare::pipelineOpenResetApprovedModal('/Education/Certificate/Approve', null, $item['DivisionId'], true))
+                            : (new Standard(
+                                '',
+                                '/Education/Certificate/Approve/Prepare/Division/ResetApproved',
+                                new Disable(),
+                                array(
+                                    'DivisionId' => $item['DivisionId'],
+                                    'IsLeave' => true,
+                                    'Route' => '/Education/Certificate/Approve'
+                                ),
+                                'Alle Zeugnisfreigaben dieser Klasse entfernen'
+                            )))
                 );
             }
         }
@@ -225,6 +234,7 @@ class Frontend extends Extension implements IFrontendInterface
                     $countApproved = 0;
                     $isAutomaticallyApproved = ($tblCertificateType = $tblPrepare->getCertificateType()) && $tblCertificateType->isAutomaticallyApproved();
                     $isInEdit = false;
+                    $isAlreadyPrinted = false;
                     if (($tblDivisionCourse = $tblPrepare->getServiceTblDivision())
                         && ($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses())
                     ) {
@@ -241,6 +251,9 @@ class Frontend extends Extension implements IFrontendInterface
                                 }
                                 if ($tblPrepareStudent->isApproved()) {
                                     $countApproved++;
+                                }
+                                if ($tblPrepareStudent->isPrinted()) {
+                                    $isAlreadyPrinted = true;
                                 }
                             }
                         }
@@ -294,7 +307,10 @@ class Frontend extends Extension implements IFrontendInterface
                                     ),
                                     'Alle Zeugnisse dieser Klasse freigeben'
                                 ))
-                                . (new Standard(
+                                . ($isAlreadyPrinted
+                                    ? (new Standard('', ApiPrepare::getEndpoint(), new Disable()))
+                                        ->ajaxPipelineOnClick(ApiPrepare::pipelineOpenResetApprovedModal('/Education/Certificate/Approve', $tblPrepare->getId()))
+                                    : (new Standard(
                                     '',
                                     '/Education/Certificate/Approve/Prepare/Division/ResetApproved',
                                     new Disable(),
@@ -303,7 +319,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         'Route' => '/Education/Certificate/Approve'
                                     ),
                                     'Alle Zeugnisfreigaben dieser Klasse entfernen'
-                                ))
+                                )))
                         );
                     }
                 }
@@ -444,7 +460,8 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $Stage->setContent(
-            new Layout(array(
+            ApiPrepare::receiverModal()
+            . new Layout(array(
                 new LayoutGroup(array(
                     new LayoutRow(array(
                         new LayoutColumn(array(
@@ -534,6 +551,7 @@ class Frontend extends Extension implements IFrontendInterface
                 );
 
                 $studentTable = array();
+                $isAlreadyPrinted = false;
                 if (($tblLeaveStudentList = Prepare::useService()->getLeaveStudentAllByYear($tblYear))) {
                     foreach ($tblLeaveStudentList as $tblLeaveStudent) {
                         if (($tblPerson = $tblLeaveStudent->getServiceTblPerson())
@@ -572,6 +590,10 @@ class Frontend extends Extension implements IFrontendInterface
                                 $status = $isApproved
                                     ? new Success(new Enable() . ' freigegeben')
                                     : new Warning(new Exclamation() . ' nicht freigegeben');
+                            }
+
+                            if ($tblLeaveStudent->isApproved()) {
+                                $isAlreadyPrinted = true;
                             }
 
                             $studentTable[] = array(
@@ -617,7 +639,8 @@ class Frontend extends Extension implements IFrontendInterface
                 }
 
                 $Stage->setContent(
-                    new Layout(array(
+                    ApiPrepare::receiverModal()
+                    . new Layout(array(
                         new LayoutGroup(array(
                             new LayoutRow(array(
                                 new LayoutColumn(array(
@@ -647,17 +670,22 @@ class Frontend extends Extension implements IFrontendInterface
                                             'IsAllYears' => $IsAllYears
                                         )
                                     ),
-                                    new Standard(
-                                        'Alle Zeugnisfreigaben dieser Klasse entfernen',
-                                        '/Education/Certificate/Approve/Prepare/Division/ResetApproved',
-                                        new Disable(),
-                                        array(
-                                            'DivisionId' => $tblDivisionCourse->getId(),
-                                            'IsLeave' => true,
-                                            'Route' => '/Education/Certificate/Approve/Prepare',
-                                            'IsAllYears' => $IsAllYears
-                                        )
-                                    ),
+                                    ($isAlreadyPrinted
+                                        ? (new Standard('Alle Zeugnisfreigaben dieser Klasse entfernen', ApiPrepare::getEndpoint(), new Disable()))
+                                            ->ajaxPipelineOnClick(ApiPrepare::pipelineOpenResetApprovedModal(
+                                                '/Education/Certificate/Approve/Prepare', null, $tblDivisionCourse->getId(), true, $IsAllYears
+                                            ))
+                                        : new Standard(
+                                            'Alle Zeugnisfreigaben dieser Klasse entfernen',
+                                            '/Education/Certificate/Approve/Prepare/Division/ResetApproved',
+                                            new Disable(),
+                                            array(
+                                                'DivisionId' => $tblDivisionCourse->getId(),
+                                                'IsLeave' => true,
+                                                'Route' => '/Education/Certificate/Approve/Prepare',
+                                                'IsAllYears' => $IsAllYears
+                                            )
+                                        ))
                                 )),
                             )),
                         )),
@@ -698,6 +726,7 @@ class Frontend extends Extension implements IFrontendInterface
                 && ($tblDivisionCourse = $tblPrepare->getServiceTblDivision())
                 && ($tblYear = $tblDivisionCourse->getServiceTblYear())
             ) {
+                $isAlreadyPrinted = false;
                 $studentTable = array();
                 $Stage->addButton(new Standard(
                     'Zurück', '/Education/Certificate/Approve', new ChevronLeft(),
@@ -738,6 +767,10 @@ class Frontend extends Extension implements IFrontendInterface
                                         $prepareStatus = new \SPHERE\Common\Frontend\Text\Repository\Danger('offen');
                                     }
                                 }
+                            }
+
+                            if ($tblPrepareStudent->isPrinted()) {
+                                $isAlreadyPrinted = true;
                             }
                         } else {
                             $tblCertificate = false;
@@ -801,7 +834,8 @@ class Frontend extends Extension implements IFrontendInterface
                 }
 
                 $Stage->setContent(
-                    new Layout(array(
+                    ApiPrepare::receiverModal()
+                    . new Layout(array(
                         new LayoutGroup(array(
                             new LayoutRow(array(
                                 new LayoutColumn(array(
@@ -839,14 +873,20 @@ class Frontend extends Extension implements IFrontendInterface
                                             'IsAllYears' => $IsAllYears
                                         )
                                     ),
-                                    new Standard(
-                                        'Alle Zeugnisfreigaben dieser Klasse entfernen',
-                                        '/Education/Certificate/Approve/Prepare/Division/ResetApproved',
-                                        new Disable(),
-                                        array(
-                                            'PrepareId' => $tblPrepare->getId(),
-                                            'Route' => '/Education/Certificate/Approve/Prepare',
-                                            'IsAllYears' => $IsAllYears
+                                    ($isAlreadyPrinted
+                                        ? (new Standard('Alle Zeugnisfreigaben dieser Klasse entfernen', ApiPrepare::getEndpoint(), new Disable()))
+                                            ->ajaxPipelineOnClick(ApiPrepare::pipelineOpenResetApprovedModal(
+                                                '/Education/Certificate/Approve/Prepare', $tblPrepare->getId(), null, null, $IsAllYears
+                                            ))
+                                        : new Standard(
+                                            'Alle Zeugnisfreigaben dieser Klasse entfernen',
+                                            '/Education/Certificate/Approve/Prepare/Division/ResetApproved',
+                                            new Disable(),
+                                            array(
+                                                'PrepareId' => $tblPrepare->getId(),
+                                                'Route' => '/Education/Certificate/Approve/Prepare',
+                                                'IsAllYears' => $IsAllYears
+                                            )
                                         )
                                     ),
                                 )),
