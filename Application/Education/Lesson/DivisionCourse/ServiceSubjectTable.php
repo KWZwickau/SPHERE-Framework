@@ -250,7 +250,7 @@ abstract class ServiceSubjectTable extends ServiceStudentSubject
             $form->setSuccess('Data[Level]');
         }
 
-        if (!isset($Data['MinCount']) || empty($Data['MinCount'])) {
+        if (!isset($Data['MinCount']) || $Data['MinCount'] === '') {
             $form->setError('Data[MinCount]', 'Bitte geben Sie eine Mindestanzahl ein');
             $error = true;
         } else {
