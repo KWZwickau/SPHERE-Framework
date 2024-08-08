@@ -20,6 +20,7 @@ use SPHERE\Application\Contact\Phone\Service\Entity\TblToPerson;
 use SPHERE\Application\Document\Storage\FilePointer;
 use SPHERE\Application\Document\Storage\Storage;
 use \SPHERE\Application\Education\Absence\Absence;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseMember;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
@@ -4318,7 +4319,7 @@ class Service extends Extension
             }
         }
 
-        $headers['DivisionCourse'] = 'Klasse';
+        $headers['DivisionCourse'] = 'Kurs';
         for ($i = 1; $i <= $maxCountTeacher; $i++){
             $headers['DivisionCourseTeacher'.$i.'FirstName'] = 'Klassenlehrer&nbsp;'.$i.' - Vorname';
             $headers['DivisionCourseTeacher'.$i.'Name'] = 'Klassenlehrer&nbsp;'.$i.' - Nachname';
@@ -4373,5 +4374,138 @@ class Service extends Extension
             return $fileLocation;
         }
         return false;
+    }
+
+    /**
+     * @param bool $isExcel
+     *
+     * @return array
+     */
+    public function createRepresentativeList(bool $isExcel): array
+    {
+        $headers = array(
+            'DivisionCourse' => 'Kurs',
+            'SchoolTypes' => 'Schulart',
+            'Type' => 'Funktion',
+            'Description' => 'Beschreibung',
+            'Salutation' => 'Anrede',
+            'FirstName' => 'Vorname',
+            'LastName' => 'Nachname',
+        );
+
+        if ($isExcel) {
+            $headers['District'] = 'Ortsteil';
+            $headers['Street'] = 'Straße';
+            $headers['Number'] = 'Hausnr.';
+            $headers['ZipCode'] = 'PLZ';
+            $headers['City'] = 'Ort';
+        } else {
+            $headers['Address'] = 'Adresse';
+        }
+
+        $headers['EmailPrivate'] = 'Email Privat';
+        $headers['EmailCompany'] = 'Email Geschäftlich';
+        $headers['PhonePrivate'] = 'Telefonnummer Privat';
+        $headers['PhoneCompany'] = 'Telefonnummer Geschäftlich';
+
+        $dataList = array();
+        if (($tblYearList = Term::useService()->getYearByNow())) {
+            foreach ($tblYearList as $tblYear) {
+                if (($tblDivisionCourseList = DivisionCourse::useService()->getDivisionCourseListByYear($tblYear, true))) {
+                    $tblDivisionCourseList = $this->getSorter($tblDivisionCourseList)->sortObjectBy('DisplayName', new StringNaturalOrderSorter());
+                    /** @var TblDivisionCourse $tblDivisionCourse */
+                    foreach ($tblDivisionCourseList as $tblDivisionCourse) {
+                        // nur Klassen und Stammgruppen
+                        if ($tblDivisionCourse->getIsDivisionOrCoreGroup()) {
+                            $divisionCourseName = $tblDivisionCourse->getName();
+                            $schoolTypes = $tblDivisionCourse->getSchoolTypeListFromStudents(true);
+
+                            if (($tblPersonCustodyList = DivisionCourse::useService()->getDivisionCourseMemberListBy(
+                                $tblDivisionCourse, TblDivisionCourseMemberType::TYPE_CUSTODY, false, false
+                            ))){
+                                foreach ($tblPersonCustodyList as $tblPersonCustody) {
+                                    if ($tblPersonCustody->getServiceTblPerson()) {
+                                        $dataList[] = $this->getDivisionCourseMemberInfo($tblPersonCustody, $divisionCourseName, $schoolTypes);
+                                    }
+                                }
+                            }
+                            if (($tblPersonRepresentativeList = DivisionCourse::useService()->getDivisionCourseMemberListBy(
+                                $tblDivisionCourse, TblDivisionCourseMemberType::TYPE_REPRESENTATIVE, false, false
+                            ))){
+                                foreach ($tblPersonRepresentativeList as $tblPersonRepresentative) {
+                                    if ($tblPersonRepresentative->getServiceTblPerson()) {
+                                        $dataList[] = $this->getDivisionCourseMemberInfo($tblPersonRepresentative, $divisionCourseName, $schoolTypes);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return array($dataList, $headers);
+    }
+
+    /**
+     * @param TblDivisionCourseMember $tblDivisionCourseMember
+     * @param string $divisionCourseName
+     * @param string $schoolTypes
+     *
+     * @return array
+     */
+    private function getDivisionCourseMemberInfo(TblDivisionCourseMember $tblDivisionCourseMember, string $divisionCourseName, string $schoolTypes): array
+    {
+        $data = array(
+            'DivisionCourse' => $divisionCourseName,
+            'SchoolTypes' => $schoolTypes,
+            'Type' => $tblDivisionCourseMember->getTblMemberType()->getName(),
+            'Description' => $tblDivisionCourseMember->getDescription()
+        );
+
+        if (($tblPerson = $tblDivisionCourseMember->getServiceTblPerson())) {
+            $data['Salutation'] = $tblPerson->getSalutation();
+            $data['FirstName'] = $tblPerson->getFirstSecondName();
+            $data['LastName'] = $tblPerson->getLastName();
+
+            if (($tblAddress = $tblPerson->fetchMainAddress())) {
+                $data['Address'] = $tblAddress->getGuiString();
+                $data['District'] = $tblAddress->getDistrictString();
+                $data['Street'] = $tblAddress->getStreetName();
+                $data['Number'] = $tblAddress->getStreetNumber();
+                $data['ZipCode'] = $tblAddress->getCodeString();
+                $data['City'] = $tblAddress->getCityString();
+            }
+
+            $mailPrivateList = array();
+            $mailCompanyList = array();
+            if (($tblMailList = Mail::useService()->getMailAllByPerson($tblPerson))) {
+                foreach ($tblMailList as $tblMailToPerson) {
+                    if ($tblMailToPerson->getTblType()->getName() == 'Privat') {
+                        $mailPrivateList[] = $tblMailToPerson->getTblMail()->getAddress();
+                    } else {
+                        $mailCompanyList[] = $tblMailToPerson->getTblMail()->getAddress();
+                    }
+                }
+            }
+            $data['EmailPrivate'] = implode('; ', $mailPrivateList);
+            $data['EmailCompany'] = implode('; ', $mailCompanyList);
+
+            $phonePrivateList = array();
+            $phoneCompanyList = array();
+            if (($tblPhoneList = Phone::useService()->getPhoneAllByPerson($tblPerson))) {
+                foreach ($tblPhoneList as $tblPhoneToPerson) {
+                    if ($tblPhoneToPerson->getTblType()->getName() == 'Privat') {
+                        $phonePrivateList[] = $tblPhoneToPerson->getTblPhone()->getNumber();
+                    } elseif ($tblPhoneToPerson->getTblType()->getName() == 'Geschäftlich') {
+                        $phoneCompanyList[] = $tblPhoneToPerson->getTblPhone()->getNumber();
+                    }
+                }
+            }
+            $data['PhonePrivate'] = implode('; ', $phonePrivateList);
+            $data['PhoneCompany'] = implode('; ', $phoneCompanyList);
+        }
+
+        return $data;
     }
 }
