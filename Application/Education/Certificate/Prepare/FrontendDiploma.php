@@ -631,6 +631,14 @@ abstract class FrontendDiploma extends Extension implements IFrontendInterface
                         if (is_numeric($jn)) {
                             $gradeList['JN'] = $jn;
                         }
+
+                        // Notendurchschnitt der Jahresnote anzeigen
+                        list($startDate, $tblPeriod) = Grade::useService()->getStartDateAndPeriodByPerson($tblPerson, $tblYear, $tblTask);
+                        $average = Grade::useService()->getAppointedTaskAverage(
+                            $tblPerson, $tblYear, $tblDivisionCourse, $tblSubject, $tblTask, $startDate ?: null, $tblPeriod ?: null
+                        );
+
+                        $jn .= ($average ? new Muted(new Small('&nbsp;&nbsp; &#216;' . $average)) : '');
                     }
                     $studentTable[$tblPerson->getId()]['JN'] = $jn;
 
