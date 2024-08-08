@@ -3,9 +3,11 @@ namespace SPHERE\Application\Document\Standard\StudentTransfer;
 
 use DateTime;
 use MOC\V\Core\FileSystem\FileSystem;
+use SPHERE\Application\Api\Document\Standard\ApiStandard;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Phone\Phone;
 use SPHERE\Application\Contact\Phone\Service\Entity\TblToPerson as TblToPersonPhone;
+use SPHERE\Application\Document\Standard\EnrollmentDocument\EnrollmentDocument;
 use SPHERE\Application\Document\Standard\EnrollmentDocument\Frontend;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblStudentEducation;
@@ -23,6 +25,8 @@ use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
+use SPHERE\Common\Frontend\Icon\Repository\Person as PersonIcon;
+use SPHERE\Common\Frontend\Icon\Repository\Search;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Thumbnail;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
@@ -33,6 +37,8 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\External;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
+use SPHERE\Common\Frontend\Text\Repository\Bold;
+use SPHERE\Common\Frontend\Text\Repository\Info;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Stage;
@@ -54,6 +60,71 @@ class StudentTransfer extends Extension
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/Fill', __CLASS__.'::frontendFillStudentTransfer'
         ));
+
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '/Archive', __CLASS__.'::frontendStudentArchiv'
+        ));
+    }
+
+    /**
+     * @param Stage $Stage
+     */
+    private static function setButtonList(Stage $Stage): void
+    {
+        $Stage->addButton(new Standard('Schüler', '/Document/Standard/StudentTransfer', new PersonIcon(), array(), 'Schülerüberweisung eines Schülers'));
+        $Url = $_SERVER['REDIRECT_URL'];
+
+        if(strpos($Url, '/StudentTransfer/Archiv')){
+            $Stage->addButton(new Standard(new Info(new Bold('Ehemalige (Archiv)')), '/Document/Standard/StudentTransfer/Archive', new PersonIcon(),
+                array(), 'Schülerüberweisung eines Schülers'));
+        } else {
+            $Stage->addButton(new Standard('Ehemalige (Archiv)', '/Document/Standard/StudentTransfer/Archive', new PersonIcon(),
+                array(), 'Schülerüberweisung eines ehemaligen Schülers'));
+        }
+    }
+
+    /**
+     * @param null $Search
+     *
+     * @return Stage
+     */
+    public function frontendStudentArchiv($Search = null): Stage
+    {
+        $Route = '/Document/Standard/StudentTransfer/Fill';
+        if ($Search) {
+            $global = $this->getGlobal();
+            $global->POST['Data']['Search'] = $Search;
+            $global->savePost();
+        }
+
+        $Stage = new Stage('Schülerüberweisung', 'Ehemaligen Schüler auswählen');
+        self::setButtonList($Stage);
+
+        $panel = new Panel(
+            new Search() . ' Personen-Suche',
+            (new Form(new FormGroup(new FormRow(array(
+                new FormColumn(
+                    (new TextField('Data[Search]', '', ''))
+                        ->ajaxPipelineOnKeyUp(ApiStandard::pipelineSearchPerson($Route))
+                ),
+            )))))->disableSubmitAction(),
+            Panel::PANEL_TYPE_INFO
+        );
+
+        $Stage->setContent(
+            new Layout(array(
+                new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn(array(
+                            $panel,
+                            ApiStandard::receiverBlock($Search ? EnrollmentDocument::useFrontend()->loadPersonSearch($Route, $Search) : '', 'SearchContent')
+                        )),
+                    ))
+                )),
+            ))
+        );
+
+        return $Stage;
     }
 
     /**
@@ -62,6 +133,7 @@ class StudentTransfer extends Extension
     public static function frontendSelectPerson(): Stage
     {
         $Stage = new Stage('Schülerüberweisung', 'Schüler auswählen');
+        self::setButtonList($Stage);
 
         $Stage->setContent(
             new Layout(array(

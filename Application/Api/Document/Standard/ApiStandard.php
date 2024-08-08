@@ -39,15 +39,19 @@ class ApiStandard extends Extension implements IApiInterface
     {
         return (new BlockReceiver($Content))->setIdentifier($Identifier);
     }
+
     /**
+     * @param $Route
+     *
      * @return Pipeline
      */
-    public static function pipelineSearchPerson(): Pipeline
+    public static function pipelineSearchPerson($Route): Pipeline
     {
         $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'SearchContent'), self::getEndpoint());
         $ModalEmitter->setGetPayload(array(
             self::API_TARGET => 'searchPerson',
+            'Route' => $Route
         ));
         $ModalEmitter->setLoadingMessage('Daten werden geladen.');
         $Pipeline->appendEmitter($ModalEmitter);
@@ -56,12 +60,13 @@ class ApiStandard extends Extension implements IApiInterface
     }
 
     /**
+     * @param $Route
      * @param null $Data
      *
      * @return string
      */
-    public function searchPerson($Data = null): string
+    public function searchPerson($Route, $Data = null): string
     {
-        return EnrollmentDocument::useFrontend()->loadPersonSearch(isset($Data['Search']) ? trim($Data['Search']) : '');
+        return EnrollmentDocument::useFrontend()->loadPersonSearch($Route, isset($Data['Search']) ? trim($Data['Search']) : '');
     }
 }
