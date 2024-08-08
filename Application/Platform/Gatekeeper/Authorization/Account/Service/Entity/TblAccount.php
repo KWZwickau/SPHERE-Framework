@@ -221,7 +221,7 @@ class TblAccount extends Element
         } elseif ($this->getHasAuthentication(TblIdentification::NAME_AUTHENTICATOR_APP)
             || $this->getHasAuthentication(TblIdentification::NAME_TOKEN)
         ) {
-            $Timeout = ( 60 * 60 );
+            $Timeout = ( 60 * 60 * 2);
         } elseif ($this->getHasAuthentication(TblIdentification::NAME_CREDENTIAL)
             || $this->getHasAuthentication(TblIdentification::NAME_USER_CREDENTIAL)
         ) {
