@@ -35,6 +35,7 @@ use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
+use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
@@ -468,7 +469,13 @@ abstract class FrontendSetting extends FrontendSelect
                     : new ToolTip(new Success(new Edit()), 'Das Zeugnis des Schülers kann bearbeitet werden.'));
         }
         $data = array(
-            'Number' => $isMuted ? new Muted(++$count) : ++$count . $temp,
+            'Number' => $isMuted
+                ? new Muted(++$count) . ' ' . new ToolTip(new \SPHERE\Common\Frontend\Text\Repository\Danger(new Remove()),
+                    'Für den Schüler wurde keine Zeugnisvorlage hinterlegt, es können keine Daten eingegeben werden.
+                    Falls für den Schüler trotzdem ein Zeugnis erstellt werden soll, wenden Sie sich bitte an Ihre Schulleitung, diese kann
+                    die Zeugnisvorlage am entsprechenden Zeugnisauftrag hinterlegen.
+                    ')
+                : ++$count . $temp,
             'Name' => $isMuted ? new Muted($tblPerson->getLastFirstNameWithCallNameUnderline()) : $tblPerson->getLastFirstNameWithCallNameUnderline()
         );
 
