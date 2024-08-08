@@ -27,11 +27,8 @@ class GymJ extends Style
     {
         $personId = $tblPerson ? $tblPerson->getId() : 0;
 
-        $school[] = 'Allgemeinbildendes Gymnasium der';
-        $school[] = 'HOGA Schloss Albrechtsberg g SchulgmbH';
-        $school[] = 'Staatlich anerkannte Schule in freier Trägerschaft';
-
         $title = 'Jahreszeugnis des Gymnasiums';
+        $school = $this->getCustomSchoolName('Allgemeinbildendes Gymnasium');
 
         return (new Page())
             ->addSlice($this->getHeader($school, $title))

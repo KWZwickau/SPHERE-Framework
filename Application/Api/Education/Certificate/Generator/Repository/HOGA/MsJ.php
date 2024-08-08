@@ -27,10 +27,7 @@ class MsJ extends Style
     {
         $personId = $tblPerson ? $tblPerson->getId() : 0;
 
-        $school[] = 'Oberschule der';
-        $school[] = 'HOGA Schloss Albrechtsberg g SchulgmbH';
-        $school[] = 'Staatlich anerkannte Schule in freier Trägerschaft';
-
+        $school = $this->getCustomSchoolName('Oberschule');
         $title = 'Jahreszeugnis der Oberschule';
 
         return (new Page())

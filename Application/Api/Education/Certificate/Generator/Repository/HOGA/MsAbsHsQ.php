@@ -23,6 +23,8 @@ class MsAbsHsQ extends Style
 
         $pageList[] = $this->getCoverPage('ABSCHLUSSZEUGNIS', 'der Oberschule', '');
 
+        $school = $this->getCustomSchoolName('Oberschule');
+
         $paddingTop = '4px';
         $marginSpace = '45px';
         $page = $this->getSecondPageTop($personId, $marginSpace);
@@ -39,7 +41,7 @@ class MsAbsHsQ extends Style
                 ->styleMarginTop('30px')
                 ->addSection((new Section())
                     ->addElementColumn(
-                        $this->getElement('Oberschule', self::TEXT_SIZE_SMALL)
+                        $this->getElement($school[0], self::TEXT_SIZE_SMALL)
                             ->styleAlignCenter()
                             ->styleTextBold()
                             ->styleMarginTop('-6px')
@@ -47,21 +49,14 @@ class MsAbsHsQ extends Style
                 )
                 ->addSection((new Section())
                     ->addElementColumn(
-                        $this->getElement('der HOGA Schloss Albrechtsberg', self::TEXT_SIZE_SMALL)
+                        $this->getElement($school[1], self::TEXT_SIZE_SMALL)
                             ->styleAlignCenter()
                             ->styleMarginTop('-6px')
                     )
                 )
                 ->addSection((new Section())
                     ->addElementColumn(
-                        $this->getElement('gemeinnützige Schulgesellschaft mbH', self::TEXT_SIZE_SMALL)
-                            ->styleAlignCenter()
-                            ->styleMarginTop('-6px')
-                    )
-                )
-                ->addSection((new Section())
-                    ->addElementColumn(
-                        $this->getElement('staatlich anerkannte Schule in freier Trägerschaft', self::TEXT_SIZE_SMALL)
+                        $this->getElement($school[2], self::TEXT_SIZE_SMALL)
                             ->styleAlignCenter()
                             ->styleMarginTop('-6px')
                     )

@@ -82,7 +82,7 @@ class EsbdGymJ extends EsbdStyle
                 )
                 ->styleMarginTop('10px')
             )
-            ->addSlice($this->getDescriptionConsumer($personId, '35px', '10px'))
+            ->addSlice($this->getDescriptionConsumer($personId, '35px', '10px', false))
             ->addSlice($this->getMissingConsumer($personId))
             ->addSlice($this->getTransferConsumer($personId, '15px'))
             ->addSlice($this->getDateLineConsumer($personId, '15px'))
