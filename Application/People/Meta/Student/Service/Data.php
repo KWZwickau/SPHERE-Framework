@@ -288,23 +288,23 @@ class Data extends Support
         $Manager = $this->getEntityManager();
 
         $tblStudentSubjectType = $this->getStudentSubjectTypeByIdentifier(TblStudentSubjectType::TYPE_FOREIGN_LANGUAGE);
-        if (($tblStudentSubjectList = $this->getCachedEntityListBy(__METHOD__, $Manager, 'TblStudentSubject', array(
-            TblStudentSubject::ATTR_TBL_STUDENT_SUBJECT_TYPE => $tblStudentSubjectType->getId()
-        )))) {
-            /** @var TblStudentSubject $tblStudentSubject */
-            foreach ($tblStudentSubjectList as $tblStudentSubject) {
-                if (($tblLevelFrom = $tblStudentSubject->getServiceTblLevelFrom())) {
-                    $count++;
-                    $tblStudentSubject->setLevelFrom(intval($tblLevelFrom->getName()));
-                }
-                if (($tblLevelTill = $tblStudentSubject->getServiceTblLevelTill())) {
-                    $count++;
-                    $tblStudentSubject->setLevelTill(intval($tblLevelTill->getName()));
-                }
-
-                $Manager->bulkSaveEntity($tblStudentSubject);
-            }
-        }
+//        if (($tblStudentSubjectList = $this->getCachedEntityListBy(__METHOD__, $Manager, 'TblStudentSubject', array(
+//            TblStudentSubject::ATTR_TBL_STUDENT_SUBJECT_TYPE => $tblStudentSubjectType->getId()
+//        )))) {
+//            /** @var TblStudentSubject $tblStudentSubject */
+//            foreach ($tblStudentSubjectList as $tblStudentSubject) {
+//                if (($tblLevelFrom = $tblStudentSubject->getServiceTblLevelFrom())) {
+//                    $count++;
+//                    $tblStudentSubject->setLevelFrom(intval($tblLevelFrom->getName()));
+//                }
+//                if (($tblLevelTill = $tblStudentSubject->getServiceTblLevelTill())) {
+//                    $count++;
+//                    $tblStudentSubject->setLevelTill(intval($tblLevelTill->getName()));
+//                }
+//
+//                $Manager->bulkSaveEntity($tblStudentSubject);
+//            }
+//        }
 
         $Manager->flushCache();
 

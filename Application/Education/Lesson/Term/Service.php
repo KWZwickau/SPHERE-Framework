@@ -4,7 +4,6 @@ namespace SPHERE\Application\Education\Lesson\Term;
 use DateInterval;
 use DateTime;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\Term\Service\Data;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblHoliday;
@@ -36,7 +35,6 @@ use SPHERE\System\Database\Binding\AbstractService;
  */
 class Service extends AbstractService
 {
-
     /**
      * @param bool $doSimulation
      * @param bool $withData
@@ -55,32 +53,6 @@ class Service extends AbstractService
             (new Data($this->getBinding()))->setupDatabaseContent();
         }
         return $Protocol;
-    }
-
-    /**
-     * @deprecated
-     *
-     * @param TblYear $tblYear
-     * @param TblDivision|null $tblDivision
-     * @param bool $IsAll
-     *
-     * @return bool|TblPeriod[]
-     */
-    public function getPeriodAllByYear(TblYear $tblYear, TblDivision $tblDivision = null, bool $IsAll = false)
-    {
-        // aGym Klasse 12 oder bGym Klasse 13
-        if ($tblDivision
-            && ($tblLevel = $tblDivision->getTblLevel())
-            && ($tblSchoolType = $tblLevel->getServiceTblType())
-            && (($tblSchoolType->getShortName() == 'Gy' && intval($tblLevel->getName()) == 12)
-                    || ($tblSchoolType->getShortName() == 'BGy' && intval($tblLevel->getName()) == 13))
-        ) {
-            $IsLevel12 = true;
-        } else {
-            $IsLevel12 = false;
-        }
-
-        return (new Data($this->getBinding()))->getPeriodAllByYear($tblYear, $IsLevel12, $IsAll);
     }
 
     /**
@@ -133,7 +105,7 @@ class Service extends AbstractService
         $tblYearAll = Term::useService()->getYearAll();
         if ($tblYearAll) {
             foreach ($tblYearAll as $tblYear) {
-                $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear, null, true);
+                $tblPeriodList = Term::useService()->getPeriodListByYear($tblYear, false, true);
                 if ($tblPeriodList) {
                     $To = '';
                     $tblPeriodTemp = new TblPeriod();
@@ -313,7 +285,7 @@ class Service extends AbstractService
         $tblYearAll = Term::useService()->getYearAll();
         if ($tblYearAll) {
             foreach ($tblYearAll as $tblYear) {
-                $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear, null, true);
+                $tblPeriodList = Term::useService()->getPeriodListByYear($tblYear, false, true);
                 if ($tblPeriodList) {
                     $From = '';
                     $To = '';

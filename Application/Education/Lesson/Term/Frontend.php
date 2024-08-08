@@ -210,7 +210,7 @@ class Frontend extends FrontendWizard
         if ($tblYearAll) {
             array_walk($tblYearAll, function (TblYear $tblYear) use (&$TableContent) {
 
-                $tblPeriodAll = $tblYear->getTblPeriodAll(null, true);
+                $tblPeriodAll = $tblYear->getPeriodList(false, true);
                 $Temp['Year'] = $tblYear->getYear();
                 $Temp['Description'] = $tblYear->getDescription();
                 $Temp['Option'] =

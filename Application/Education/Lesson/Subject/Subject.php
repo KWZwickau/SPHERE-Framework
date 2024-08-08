@@ -63,12 +63,6 @@ class Subject implements IModuleInterface
             __NAMESPACE__.'/Link/Category', __NAMESPACE__.'\Frontend::frontendLinkCategory'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/Link/Person', __NAMESPACE__.'\Frontend::frontendLinkPerson'
-        ));
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/Link/Person/Add', __NAMESPACE__.'\Frontend::frontendSubjectPersonAdd'
-        ));
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/Create/Subject', __NAMESPACE__.'\Frontend::frontendCreateSubject'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
@@ -175,14 +169,6 @@ class Subject implements IModuleInterface
                         new Standard('Zuweisen von Kategorien', __NAMESPACE__.'\Link\Category', new Transfer(),
                             array('Id' => $tblGroup->getId())
                         ),
-                        ($tblGroup->getName() == (Student::useService()->getStudentSubjectTypeByIdentifier('ORIENTATION'))->getName() ?
-                            new Standard('Zuweisen von Personen', __NAMESPACE__.'\Link\Person', new Transfer(),
-                                array('Id' => $tblGroup->getId())
-                            ) : ''),
-                        ($tblGroup->getName() == 'Wahlfach' ?
-                            new Standard('Zuweisen von Personen', __NAMESPACE__.'\Link\Person', new Transfer(),
-                                array('Id' => $tblGroup->getId())
-                            ) : '')
                     ))
                 )));
                 $tblCategoryAll = $this->useService()->getCategoryAllByGroup($tblGroup);

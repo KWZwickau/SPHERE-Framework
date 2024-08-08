@@ -9,8 +9,6 @@ use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Education\ClassRegister\Digital\Digital;
 use SPHERE\Application\Education\ClassRegister\Instruction\Instruction;
-use SPHERE\Application\Education\Lesson\Division\Division;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionSubject;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\People\Person\Person;
@@ -117,20 +115,6 @@ class TblInstructionItem extends Element
     public function setServiceTblDivisionCourse(TblDivisionCourse $tblDivisionCourse)
     {
         $this->serviceTblDivision = $tblDivisionCourse->getId();
-    }
-
-    /**
-     * @deprecated
-     *
-     * @return bool|TblDivisionSubject
-     */
-    public function getServiceTblDivisionSubject()
-    {
-        if (null === $this->serviceTblDivisionSubject) {
-            return false;
-        } else {
-            return Division::useService()->getDivisionSubjectById($this->serviceTblDivisionSubject);
-        }
     }
 
     /**

@@ -8,8 +8,6 @@ use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblFullTim
 use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblLessonContent;
 use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblLessonContentLink;
 use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblLessonWeek;
-use SPHERE\Application\Education\Lesson\Division\Division;
-use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
@@ -37,31 +35,31 @@ class Data  extends AbstractData
         $start = hrtime(true);
 
         // Kursbücher migrieren
-        if (($tblDivisionList = Division::useService()->getDivisionByYear($tblYear))) {
-            $Manager = $this->getEntityManager();
-            foreach ($tblDivisionList as $tblDivision) {
-                if (($tblCourseContentList = $this->getCachedEntityListBy(__METHOD__, $Manager, 'TblCourseContent', array(
-                    TblCourseContent::ATTR_SERVICE_TBL_DIVISION_COURSE => null,
-                    TblCourseContent::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId()
-                )))) {
-                    /** @var TblCourseContent $tblCourseContent */
-                    foreach($tblCourseContentList as $tblCourseContent) {
-                        if (($tblSubject = $tblCourseContent->getServiceTblSubject())
-                            && ($tblSubjectGroup = $tblCourseContent->getServiceTblSubjectGroup())
-                            && ($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseByMigrateSekCourse(
-                                Division::useService()->getMigrateSekCourseString($tblDivision, $tblSubject, $tblSubjectGroup
-                            )))
-                        ) {
-                            $count++;
-                            $tblCourseContent->setServiceTblDivisionCourse($tblDivisionCourse);
-                            $Manager->bulkSaveEntity($tblCourseContent);
-                        }
-                    }
-                }
-            }
-
-            $Manager->flushCache();
-        }
+//        if (($tblDivisionList = Division::useService()->getDivisionByYear($tblYear))) {
+//            $Manager = $this->getEntityManager();
+//            foreach ($tblDivisionList as $tblDivision) {
+//                if (($tblCourseContentList = $this->getCachedEntityListBy(__METHOD__, $Manager, 'TblCourseContent', array(
+//                    TblCourseContent::ATTR_SERVICE_TBL_DIVISION_COURSE => null,
+//                    TblCourseContent::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId()
+//                )))) {
+//                    /** @var TblCourseContent $tblCourseContent */
+//                    foreach($tblCourseContentList as $tblCourseContent) {
+//                        if (($tblSubject = $tblCourseContent->getServiceTblSubject())
+//                            && ($tblSubjectGroup = $tblCourseContent->getServiceTblSubjectGroup())
+//                            && ($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseByMigrateSekCourse(
+//                                Division::useService()->getMigrateSekCourseString($tblDivision, $tblSubject, $tblSubjectGroup
+//                            )))
+//                        ) {
+//                            $count++;
+//                            $tblCourseContent->setServiceTblDivisionCourse($tblDivisionCourse);
+//                            $Manager->bulkSaveEntity($tblCourseContent);
+//                        }
+//                    }
+//                }
+//            }
+//
+//            $Manager->flushCache();
+//        }
 
 
         $end = hrtime(true);

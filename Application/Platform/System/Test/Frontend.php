@@ -7,7 +7,7 @@ use RecursiveIteratorIterator;
 use SPHERE\Application\Api\Platform\Test\ApiSystemTest;
 use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Element\Ruler;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Common\Frontend\Form\Repository\Button\Danger;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
@@ -104,14 +104,14 @@ class Frontend extends Extension implements IFrontendInterface
             new External('Link', 'http://www.google.de')
         );
 
-        $D1 = new TblDivision();$D1->setName('A');$D1->setId(1);
-        $D2 = new TblDivision();$D2->setName('B');$D2->setId(2);
-        $D3 = new TblDivision();$D3->setName('C');$D3->setId(3);
-        $D4 = new TblDivision();$D4->setName('D');$D4->setId(4);
-        $D5 = new TblDivision();$D5->setName('E');$D5->setId(5);
-        $D6 = new TblDivision();$D6->setName('F');$D6->setId(6);
-        $D7 = new TblDivision();$D7->setName('G');$D7->setId(7);
-        $D8 = new TblDivision();$D8->setName('H');$D8->setId(8);
+        $D1 = new TblDivisionCourse();$D1->setName('A');$D1->setId(1);
+        $D2 = new TblDivisionCourse();$D2->setName('B');$D2->setId(2);
+        $D3 = new TblDivisionCourse();$D3->setName('C');$D3->setId(3);
+        $D4 = new TblDivisionCourse();$D4->setName('D');$D4->setId(4);
+        $D5 = new TblDivisionCourse();$D5->setName('E');$D5->setId(5);
+        $D6 = new TblDivisionCourse();$D6->setName('F');$D6->setId(6);
+        $D7 = new TblDivisionCourse();$D7->setName('G');$D7->setId(7);
+        $D8 = new TblDivisionCourse();$D8->setName('H');$D8->setId(8);
 
         $Check = array($D1, $D2, $D3, $D4, $D5, $D6, $D7, $D8);
         $Check2 = array($D1, $D2, $D3, $D4, $D5, $D6, $D7);

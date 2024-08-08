@@ -8,7 +8,6 @@ use SPHERE\Application\Contact\Mail\Mail;
 use SPHERE\Application\Contact\Phone\Phone;
 use SPHERE\Application\Contact\Web\Web;
 use SPHERE\Application\Corporation\Company\Company;
-use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Course\Course;
@@ -411,36 +410,36 @@ class Service
                             }
 
                             // Division
-                            if (( $Level = trim($Document->getValue($Document->getCell($Location['Schüler_Klassenstufe'],
-                                    $RunY))) ) != ''
-                            ) {
-                                if ($tblType) {
-                                    $Level = (int)$Level;
-                                    $Level = (string)$Level;
-                                    $tblLevel = Division::useService()->insertLevel($tblType, $Level);
-                                    if ($tblLevel) {
-                                        $Division = trim($Document->getValue($Document->getCell($Location['Schüler_Klasse'],
-                                            $RunY)));
-                                        if ($Division != '') {
-                                            if (($pos = strpos($Division, $Level)) !== false) {
-                                                if (strlen($Division) > (($start = $pos + strlen($Level)))) {
-                                                    $Division = substr($Division, $start);
-                                                } else {
-                                                    $Division = '';
-                                                }
-                                            }
-                                            $tblDivision = Division::useService()->insertDivision($tblYear, $tblLevel,
-                                                $Division);
-                                            if ($tblDivision) {
-                                                Division::useService()->insertDivisionStudent($tblDivision, $tblPerson);
-                                            }
-                                        }
-                                    }
-                                } else {
-                                    $error[] = 'Zeile: ' . ($RunY + 1) . ' da kein Schulart gefunden wurde, kann die Klassestufe: '
-                                        . $Level . ' nicht angelegt werden. Der Schüler wurde keiner Klasse zugewiesen';
-                                }
-                            }
+//                            if (( $Level = trim($Document->getValue($Document->getCell($Location['Schüler_Klassenstufe'],
+//                                    $RunY))) ) != ''
+//                            ) {
+//                                if ($tblType) {
+//                                    $Level = (int)$Level;
+//                                    $Level = (string)$Level;
+//                                    $tblLevel = Division::useService()->insertLevel($tblType, $Level);
+//                                    if ($tblLevel) {
+//                                        $Division = trim($Document->getValue($Document->getCell($Location['Schüler_Klasse'],
+//                                            $RunY)));
+//                                        if ($Division != '') {
+//                                            if (($pos = strpos($Division, $Level)) !== false) {
+//                                                if (strlen($Division) > (($start = $pos + strlen($Level)))) {
+//                                                    $Division = substr($Division, $start);
+//                                                } else {
+//                                                    $Division = '';
+//                                                }
+//                                            }
+//                                            $tblDivision = Division::useService()->insertDivision($tblYear, $tblLevel,
+//                                                $Division);
+//                                            if ($tblDivision) {
+//                                                Division::useService()->insertDivisionStudent($tblDivision, $tblPerson);
+//                                            }
+//                                        }
+//                                    }
+//                                } else {
+//                                    $error[] = 'Zeile: ' . ($RunY + 1) . ' da kein Schulart gefunden wurde, kann die Klassestufe: '
+//                                        . $Level . ' nicht angelegt werden. Der Schüler wurde keiner Klasse zugewiesen';
+//                                }
+//                            }
 
                             // Schülerakte
                             $studentNumber = trim($Document->getValue($Document->getCell($Location['Schüler_Schülernummer'],
@@ -1616,54 +1615,54 @@ class Service
                     $tblType = Type::useService()->getTypeById($TypeId);
                     $tblYear = Term::useService()->getYearById($YearId);
 
-                    for ($RunY = 1; $RunY < $Y; $RunY++) {
-
-                        if (( $Level = trim($Document->getValue($Document->getCell($Location['Klassenstufe'],
-                                $RunY))) ) != ''
-                        ) {
-                            $tblLevel = Division::useService()->insertLevel($tblType, $Level);
-                            if ($tblLevel) {
-                                $Division = trim($Document->getValue($Document->getCell($Location['Klasse'],
-                                    $RunY)));
-                                if ($Division != '') {
-                                    if (( $pos = strpos($Division, $Level) ) !== false) {
-                                        if (strlen($Division) > ( ( $start = $pos + strlen($Level) ) )) {
-                                            $Division = substr($Division, $start);
-                                        }
-                                    }
-                                    $tblDivision = Division::useService()->insertDivision($tblYear, $tblLevel,
-                                        $Division);
-                                    if ($tblDivision) {
-
-                                        $countDivision++;
-                                        $teacherCode = trim($Document->getValue($Document->getCell($Location['Klassenlehrer_kurz'],
-                                            $RunY)));
-                                        if ($teacherCode !== '') {
-                                            $tblPerson = $this->usePeoplePerson()->getTeacherByRemark($teacherCode);
-                                            if ($tblPerson) {
-                                                Division::useService()->insertDivisionTeacher($tblDivision, $tblPerson);
-                                                $countAddDivisionTeacher++;
-                                            } else {
-                                                $countTeacherNotExists++;
-                                            }
-                                        }
-                                        $teacherCode = trim($Document->getValue($Document->getCell($Location['Stellvertreter_Klassenlehrer_kurz'],
-                                            $RunY)));
-                                        if ($teacherCode !== '') {
-                                            $tblPerson = $this->usePeoplePerson()->getTeacherByRemark($teacherCode);
-                                            if ($tblPerson) {
-                                                Division::useService()->insertDivisionTeacher($tblDivision, $tblPerson);
-                                                $countAddDivisionTeacher++;
-                                            } else {
-                                                $countTeacherNotExists++;
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-
-                        }
-                    }
+//                    for ($RunY = 1; $RunY < $Y; $RunY++) {
+//
+//                        if (( $Level = trim($Document->getValue($Document->getCell($Location['Klassenstufe'],
+//                                $RunY))) ) != ''
+//                        ) {
+//                            $tblLevel = Division::useService()->insertLevel($tblType, $Level);
+//                            if ($tblLevel) {
+//                                $Division = trim($Document->getValue($Document->getCell($Location['Klasse'],
+//                                    $RunY)));
+//                                if ($Division != '') {
+//                                    if (( $pos = strpos($Division, $Level) ) !== false) {
+//                                        if (strlen($Division) > ( ( $start = $pos + strlen($Level) ) )) {
+//                                            $Division = substr($Division, $start);
+//                                        }
+//                                    }
+//                                    $tblDivision = Division::useService()->insertDivision($tblYear, $tblLevel,
+//                                        $Division);
+//                                    if ($tblDivision) {
+//
+//                                        $countDivision++;
+//                                        $teacherCode = trim($Document->getValue($Document->getCell($Location['Klassenlehrer_kurz'],
+//                                            $RunY)));
+//                                        if ($teacherCode !== '') {
+//                                            $tblPerson = $this->usePeoplePerson()->getTeacherByRemark($teacherCode);
+//                                            if ($tblPerson) {
+//                                                Division::useService()->insertDivisionTeacher($tblDivision, $tblPerson);
+//                                                $countAddDivisionTeacher++;
+//                                            } else {
+//                                                $countTeacherNotExists++;
+//                                            }
+//                                        }
+//                                        $teacherCode = trim($Document->getValue($Document->getCell($Location['Stellvertreter_Klassenlehrer_kurz'],
+//                                            $RunY)));
+//                                        if ($teacherCode !== '') {
+//                                            $tblPerson = $this->usePeoplePerson()->getTeacherByRemark($teacherCode);
+//                                            if ($tblPerson) {
+//                                                Division::useService()->insertDivisionTeacher($tblDivision, $tblPerson);
+//                                                $countAddDivisionTeacher++;
+//                                            } else {
+//                                                $countTeacherNotExists++;
+//                                            }
+//                                        }
+//                                    }
+//                                }
+//                            }
+//
+//                        }
+//                    }
                     return
                         new Success('Es wurden '.$countDivision.' Klassen erfolgreich angelegt.').
                         new Success('Es wurden '.$countAddDivisionTeacher.' Klassenlehrer und Stellvertreter erfolgreich zugeordnet.').

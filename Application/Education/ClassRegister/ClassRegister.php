@@ -1,7 +1,6 @@
 <?php
 namespace SPHERE\Application\Education\ClassRegister;
 
-use SPHERE\Application\Education\ClassRegister\Absence\Absence;
 use SPHERE\Application\Education\ClassRegister\Digital\Digital;
 use SPHERE\Application\Education\ClassRegister\Instruction\Instruction;
 use SPHERE\Application\Education\ClassRegister\Timetable\Timetable;
@@ -18,7 +17,6 @@ class ClassRegister implements IApplicationInterface
 {
     public static function registerApplication()
     {
-        Absence::registerModule();
         Digital::registerModule();
         Instruction::registerModule();
         Timetable::registerModule();

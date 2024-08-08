@@ -5,14 +5,11 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
-use SPHERE\Application\Api\Education\Certificate\Generator\Certificate;
 use SPHERE\Application\Education\Certificate\Generator\Generator;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\School\Course\Course;
 use SPHERE\Application\Education\School\Course\Service\Entity\TblCourse;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\Education\School\Type\Type;
-use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\System\Database\Fitting\Element;
@@ -128,24 +125,6 @@ class TblCertificate extends Element
     {
 
         $this->serviceTblConsumer = ( null === $serviceTblConsumer ? null : $serviceTblConsumer->getId() );
-    }
-
-    /**
-     * @param TblPerson   $tblPerson
-     * @param TblDivision $tblDivision
-     * @param bool        $IsSample
-     *
-     * @return bool|Certificate
-     */
-    public function getDocument(TblPerson $tblPerson, TblDivision $tblDivision, $IsSample = true)
-    {
-
-        $Class = '\SPHERE\Application\Api\Education\Certificate\Generator\Repository\\'.$this->getCertificate();
-        if (class_exists($Class)) {
-
-            return new $Class($tblPerson, $tblDivision, $IsSample);
-        }
-        return false;
     }
 
     /**

@@ -15,8 +15,6 @@ use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\Education\Graduation\Grade\Grade;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblGradeType;
-use SPHERE\Application\Education\Lesson\Division\Division;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\People\Person\Person;
@@ -109,19 +107,6 @@ class TblPrepareGrade extends Element
     {
 
         $this->serviceTblPerson = ( null === $tblPerson ? null : $tblPerson->getId() );
-    }
-
-    /**
-     * @return bool|TblDivision
-     */
-    public function getServiceTblDivision()
-    {
-
-        if (null === $this->serviceTblDivision) {
-            return false;
-        } else {
-            return Division::useService()->getDivisionById($this->serviceTblDivision);
-        }
     }
 
     /**

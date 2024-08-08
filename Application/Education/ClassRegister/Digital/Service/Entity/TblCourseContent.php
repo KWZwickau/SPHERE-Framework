@@ -8,9 +8,6 @@ use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Education\ClassRegister\Digital\Digital;
-use SPHERE\Application\Education\Lesson\Division\Division;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectGroup;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
@@ -125,30 +122,6 @@ class TblCourseContent extends Element
     /**
      * @deprecated
      *
-     * @return bool|TblDivision
-     */
-    public function getServiceTblDivision()
-    {
-        if (null === $this->serviceTblDivision) {
-            return false;
-        } else {
-            return Division::useService()->getDivisionById($this->serviceTblDivision);
-        }
-    }
-
-    /**
-     * @deprecated
-     *
-     * @param TblDivision|null $tblDivision
-     */
-    public function setServiceTblDivision(TblDivision $tblDivision = null)
-    {
-        $this->serviceTblDivision = (null === $tblDivision ? null : $tblDivision->getId());
-    }
-
-    /**
-     * @deprecated
-     *
      * @return bool|TblSubject
      */
     public function getServiceTblSubject()
@@ -168,30 +141,6 @@ class TblCourseContent extends Element
     public function setServiceTblSubject(TblSubject $tblSubject = null)
     {
         $this->serviceTblSubject = ( null === $tblSubject ? null : $tblSubject->getId() );
-    }
-
-    /**
-     * @deprecated
-     *
-     * @return bool|TblSubjectGroup
-     */
-    public function getServiceTblSubjectGroup()
-    {
-        if (null === $this->serviceTblSubjectGroup) {
-            return false;
-        } else {
-            return Division::useService()->getSubjectGroupById($this->serviceTblSubjectGroup);
-        }
-    }
-
-    /**
-     * @deprecated
-     *
-     * @param TblSubjectGroup|null $tblSubjectGroup
-     */
-    public function setServiceTblSubjectGroup(TblSubjectGroup $tblSubjectGroup = null)
-    {
-        $this->serviceTblSubjectGroup = ( null === $tblSubjectGroup ? null : $tblSubjectGroup->getId() );
     }
 
     /**

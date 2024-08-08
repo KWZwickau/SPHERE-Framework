@@ -632,7 +632,7 @@ class Data extends AbstractData
 
         $fromDate = false;
         $toDate = false;
-        $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear, null, true);
+        $tblPeriodList = Term::useService()->getPeriodListByYear($tblYear, false, true);
         if ($tblPeriodList) {
             foreach ($tblPeriodList as $tblPeriod) {
                 if ($fromDate) {

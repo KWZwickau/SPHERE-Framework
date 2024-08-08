@@ -5,7 +5,6 @@ use DateTime;
 use SPHERE\Application\Api\Reporting\Standard\ApiMetaDataComparison;
 use SPHERE\Application\Api\Reporting\Standard\ApiStandard;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Element\Ruler;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseMemberType;
@@ -70,7 +69,6 @@ use SPHERE\System\Extension\Extension;
  */
 class Frontend extends Extension implements IFrontendInterface
 {
-
     /**
      * @param $Route
      * @param $All
@@ -1268,7 +1266,7 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param TblDivisionCourse|TblDivision $tblDivisionCourse
+     * @param TblDivisionCourse $tblDivisionCourse
      *
      * @return bool|Panel
      */ // ToDO weiter verfolgen

@@ -6,10 +6,7 @@ use DateTime;
 use SPHERE\Application\Education\ClassRegister\Diary\Service\Entity\TblDiary;
 use SPHERE\Application\Education\ClassRegister\Diary\Service\Entity\TblDiaryPredecessorDivisionCourse;
 use SPHERE\Application\Education\ClassRegister\Diary\Service\Entity\TblDiaryStudent;
-use SPHERE\Application\Education\Diary\Diary;
-use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
-use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -43,88 +40,88 @@ class Data extends AbstractData
             }
         }
 
-        if (($tblDiaryOldList = Diary::useServiceOld()->getDiaryListByYear($tblYear))) {
-            $Manager = $this->getEntityManager();
-            $tblDivisionCourseGroupList = array();
-            $tblDivisionList = array();
-            $tblTypeCoreGroup = DivisionCourse::useService()->getDivisionCourseTypeByIdentifier(TblDivisionCourseType::TYPE_CORE_GROUP);
-            foreach ($tblDiaryOldList as $tblDiaryOld) {
-                $tblDivisionCourse = false;
-                // Klasse
-                if (($tblDivision = $tblDiaryOld->getServiceTblDivision())) {
-                    $tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($tblDivision->getId());
-                    if (!isset($tblDivisionList[$tblDivision->getId()])) {
-                        $tblDivisionList[$tblDivision->getId()] = $tblDivision;
-                    }
-                // Stammgruppe
-                } elseif (($tblGroup = $tblDiaryOld->getServiceTblGroup())) {
-                    if (isset($tblDivisionCourseGroupList[$tblGroup->getId()])) {
-                        $tblDivisionCourse = $tblDivisionCourseGroupList[$tblGroup->getId()];
-                    } elseif ($isCurrentYear) {
-                        $tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseByMigrateGroupId($tblGroup->getId());
-                    } else {
-                        // für ältere Schuljahre muss die Personen-Stammgruppe noch als DivisionCourse angelegt werden
-                        if (($tblDivisionCourse = DivisionCourse::useService()->insertDivisionCourse(
-                            $tblTypeCoreGroup, $tblYear, $tblGroup->getName(), $tblGroup->getDescription(), true, true, null
-                        ))) {
-                            $tblDivisionCourseGroupList[$tblGroup->getId()] = $tblDivisionCourse;
-                        }
-                    }
-                }
-
-                if ($tblDivisionCourse) {
-                    $tblDiary = new TblDiary();
-                    $tblDiary->setServiceTblDivisionCourse($tblDivisionCourse);
-                    $tblDiary->setSubject($tblDiaryOld->getSubject());
-                    $tblDiary->setContent($tblDiaryOld->getContent());
-                    $tblDiary->setDate(($Date = $tblDiaryOld->getDate()) ? new DateTime($Date) : null);
-                    $tblDiary->setLocation($tblDiaryOld->getLocation());
-                    $tblDiary->setServiceTblPerson($tblDiaryOld->getServiceTblPerson() ?: null);
-
-                    $count++;
-                    // bei vorhandenen Schülern muss der Diary-Eintrag sofort gespeichert werden für die Id
-                    if (($tblDiaryStudentOldList = Diary::useServiceOld()->getDiaryStudentAllByDiary($tblDiaryOld))) {
-                        $Manager->saveEntity($tblDiary);
-
-                        foreach ($tblDiaryStudentOldList as $tblDiaryStudentOld) {
-                            if (($tblPersonStudent = $tblDiaryStudentOld->getServiceTblPerson())) {
-                                $tblDiaryStudent = new TblDiaryStudent();
-                                $tblDiaryStudent->setTblDiary($tblDiary);
-                                $tblDiaryStudent->setServiceTblPerson($tblPersonStudent);
-
-                                $Manager->bulkSaveEntity($tblDiaryStudent);
-                                $count++;
-                            }
-                        }
-                    } else {
-                        $Manager->bulkSaveEntity($tblDiary);
-                    }
-                }
-            }
-
-            if (!empty($tblDivisionList)) {
-                foreach ($tblDivisionList as $tblDivisionItem) {
-                    if (($tblDiaryDivisionOldList = Diary::useServiceOld()->getDiaryDivisionByDivision($tblDivisionItem))
-                        && ($tblDivisionCourseItem = DivisionCourse::useService()->getDivisionCourseById($tblDivisionItem->getId()))
-                    ) {
-                        foreach($tblDiaryDivisionOldList as $tblDiaryDivisionOld) {
-                            if (($tblPredecessorDivision = $tblDiaryDivisionOld->getServiceTblPredecessorDivision())
-                                && ($tblPredecessorDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($tblPredecessorDivision->getId()))
-                            ) {
-                                $tblDiaryPredecessorDivisionCourse = new TblDiaryPredecessorDivisionCourse();
-                                $tblDiaryPredecessorDivisionCourse->setServiceTblDivisionCourse($tblDivisionCourseItem);
-                                $tblDiaryPredecessorDivisionCourse->setServiceTblPredecessorDivisionCourse($tblPredecessorDivisionCourse);
-
-                                $Manager->bulkSaveEntity($tblDiaryPredecessorDivisionCourse);
-                                $count++;
-                            }
-                        }
-                    }
-                }
-            }
-
-            $Manager->flushCache();
-        }
+//        if (($tblDiaryOldList = Diary::useServiceOld()->getDiaryListByYear($tblYear))) {
+//            $Manager = $this->getEntityManager();
+//            $tblDivisionCourseGroupList = array();
+//            $tblDivisionList = array();
+//            $tblTypeCoreGroup = DivisionCourse::useService()->getDivisionCourseTypeByIdentifier(TblDivisionCourseType::TYPE_CORE_GROUP);
+//            foreach ($tblDiaryOldList as $tblDiaryOld) {
+//                $tblDivisionCourse = false;
+//                // Klasse
+//                if (($tblDivision = $tblDiaryOld->getServiceTblDivision())) {
+//                    $tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($tblDivision->getId());
+//                    if (!isset($tblDivisionList[$tblDivision->getId()])) {
+//                        $tblDivisionList[$tblDivision->getId()] = $tblDivision;
+//                    }
+//                // Stammgruppe
+//                } elseif (($tblGroup = $tblDiaryOld->getServiceTblGroup())) {
+//                    if (isset($tblDivisionCourseGroupList[$tblGroup->getId()])) {
+//                        $tblDivisionCourse = $tblDivisionCourseGroupList[$tblGroup->getId()];
+//                    } elseif ($isCurrentYear) {
+//                        $tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseByMigrateGroupId($tblGroup->getId());
+//                    } else {
+//                        // für ältere Schuljahre muss die Personen-Stammgruppe noch als DivisionCourse angelegt werden
+//                        if (($tblDivisionCourse = DivisionCourse::useService()->insertDivisionCourse(
+//                            $tblTypeCoreGroup, $tblYear, $tblGroup->getName(), $tblGroup->getDescription(), true, true, null
+//                        ))) {
+//                            $tblDivisionCourseGroupList[$tblGroup->getId()] = $tblDivisionCourse;
+//                        }
+//                    }
+//                }
+//
+//                if ($tblDivisionCourse) {
+//                    $tblDiary = new TblDiary();
+//                    $tblDiary->setServiceTblDivisionCourse($tblDivisionCourse);
+//                    $tblDiary->setSubject($tblDiaryOld->getSubject());
+//                    $tblDiary->setContent($tblDiaryOld->getContent());
+//                    $tblDiary->setDate(($Date = $tblDiaryOld->getDate()) ? new DateTime($Date) : null);
+//                    $tblDiary->setLocation($tblDiaryOld->getLocation());
+//                    $tblDiary->setServiceTblPerson($tblDiaryOld->getServiceTblPerson() ?: null);
+//
+//                    $count++;
+//                    // bei vorhandenen Schülern muss der Diary-Eintrag sofort gespeichert werden für die Id
+//                    if (($tblDiaryStudentOldList = Diary::useServiceOld()->getDiaryStudentAllByDiary($tblDiaryOld))) {
+//                        $Manager->saveEntity($tblDiary);
+//
+//                        foreach ($tblDiaryStudentOldList as $tblDiaryStudentOld) {
+//                            if (($tblPersonStudent = $tblDiaryStudentOld->getServiceTblPerson())) {
+//                                $tblDiaryStudent = new TblDiaryStudent();
+//                                $tblDiaryStudent->setTblDiary($tblDiary);
+//                                $tblDiaryStudent->setServiceTblPerson($tblPersonStudent);
+//
+//                                $Manager->bulkSaveEntity($tblDiaryStudent);
+//                                $count++;
+//                            }
+//                        }
+//                    } else {
+//                        $Manager->bulkSaveEntity($tblDiary);
+//                    }
+//                }
+//            }
+//
+//            if (!empty($tblDivisionList)) {
+//                foreach ($tblDivisionList as $tblDivisionItem) {
+//                    if (($tblDiaryDivisionOldList = Diary::useServiceOld()->getDiaryDivisionByDivision($tblDivisionItem))
+//                        && ($tblDivisionCourseItem = DivisionCourse::useService()->getDivisionCourseById($tblDivisionItem->getId()))
+//                    ) {
+//                        foreach($tblDiaryDivisionOldList as $tblDiaryDivisionOld) {
+//                            if (($tblPredecessorDivision = $tblDiaryDivisionOld->getServiceTblPredecessorDivision())
+//                                && ($tblPredecessorDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($tblPredecessorDivision->getId()))
+//                            ) {
+//                                $tblDiaryPredecessorDivisionCourse = new TblDiaryPredecessorDivisionCourse();
+//                                $tblDiaryPredecessorDivisionCourse->setServiceTblDivisionCourse($tblDivisionCourseItem);
+//                                $tblDiaryPredecessorDivisionCourse->setServiceTblPredecessorDivisionCourse($tblPredecessorDivisionCourse);
+//
+//                                $Manager->bulkSaveEntity($tblDiaryPredecessorDivisionCourse);
+//                                $count++;
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//
+//            $Manager->flushCache();
+//        }
 
         $end = hrtime(true);
 
