@@ -21,6 +21,7 @@ use SPHERE\Common\Frontend\Layout\Repository\Listing;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Link\Repository\Danger as DangerLink;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
+use SPHERE\Common\Frontend\Message\Repository\Info;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Warning as WarningText;
 use SPHERE\Common\Main;
@@ -141,6 +142,9 @@ class Timetable extends Extension implements IModuleInterface
             new Layout(
                 new LayoutGroup(
                     new LayoutRow(array(
+                        new LayoutColumn(
+                            new Info('Bitte stellen Sie sicher, dass das Startdatum innerhalb des gewünschten Schuljahres liegt', null, false, '5', '5')
+                        , 6),
                         new LayoutColumn(
                             Timetable::useService()->readTimetableFromFile($Form, $File, $Data)
                         )
