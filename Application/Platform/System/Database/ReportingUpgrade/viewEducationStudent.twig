@@ -13,6 +13,7 @@ SELECT distinct
     tLDC_D.Id AS TblLessonDivisionCourse_Id_D,
     tLDC_D.Name AS TblLessonDivisionCourse_Name_D,
     tLDC_D.Description AS TblLessonDivisionCourse_Description_D,
+-- Lehrerliste
     (select group_concat(concat(tP.LastName) separator ', ')
         from {{ ConsumerAcronym }}_EducationApplication.tblLessonDivisionCourseMember tLDCM
         left join {{ ConsumerAcronym }}_EducationApplication.tblLessonDivisionCourseMemberType tLDCMT ON tLDCMT.Id = tLDCM.tblLessonDivisionCourseMemberType
@@ -20,10 +21,10 @@ SELECT distinct
         where tLDCM.tblLessonDivisionCourse = TblLessonDivisionCourse_Id_D
         and tLDCMT.Identifier = 'DIVISION_TEACHER'
     ) as tblPerson_TeacherLastNameList,
-
     tLDC_C.Id AS TblLessonDivisionCourse_Id_C,
     tLDC_C.Name AS TblLessonDivisionCourse_Name_C,
     tLDC_C.Description AS TblLessonDivisionCourse_Description_C,
+-- TutorListe
     (select group_concat(concat(tP.LastName) separator ', ')
         from {{ ConsumerAcronym }}_EducationApplication.tblLessonDivisionCourseMember tLDCM
         left join {{ ConsumerAcronym }}_EducationApplication.tblLessonDivisionCourseMemberType tLDCMT ON tLDCMT.Id = tLDCM.tblLessonDivisionCourseMemberType
@@ -31,16 +32,37 @@ SELECT distinct
         where tLDCM.tblLessonDivisionCourse = TblLessonDivisionCourse_Id_C
         and tLDCMT.Identifier = 'DIVISION_TEACHER'
     ) as tblPerson_TutorLastNameList,
+
+-- tblYear
+    tY.Id as TblYear_Id,
+    (CASE WHEN (ISNULL(tY.Year) OR (tY.Year = '')) THEN tY.Name ELSE tY.Year END) AS TblYear_Year,
+    tY.Description AS TblYear_Description,
+-- Unterrichtsgruppe
+    (SELECT group_concat(tLDC.Name ORDER BY tLDC.Name separator ', ') FROM {{ ConsumerAcronym }}_EducationApplication.tblLessonDivisionCourseMember as tLDCM
+        LEFT JOIN {{ ConsumerAcronym }}_EducationApplication.tblLessonDivisionCourse tLDC ON tLDC.Id = tLDCM.tblLessonDivisionCourse
+        LEFT JOIN {{ ConsumerAcronym }}_EducationApplication.tblLessonDivisionCourseType tLDCT ON tLDCT.Id = tLDC.tblLessonDivisionCourseType
+    where tLDCM.serviceTblPerson = TblPerson_Id
+        and tLDC.serviceTblYear = TblYear_Id
+        and tLDCT.Identifier = 'TEACHING_GROUP') as TblLessonDivisionCourse_TeachingGroup,
+-- Lerngruppe
+    (SELECT group_concat(tLDC.Name ORDER BY tLDC.Name separator ', ') FROM {{ ConsumerAcronym }}_EducationApplication.tblLessonDivisionCourseMember as tLDCM
+        LEFT JOIN {{ ConsumerAcronym }}_EducationApplication.tblLessonDivisionCourse tLDC ON tLDC.Id = tLDCM.tblLessonDivisionCourse
+        LEFT JOIN {{ ConsumerAcronym }}_EducationApplication.tblLessonDivisionCourseType tLDCT ON tLDCT.Id = tLDC.tblLessonDivisionCourseType
+    where tLDCM.serviceTblPerson = TblPerson_Id
+        and tLDC.serviceTblYear = TblYear_Id
+        and tLDCT.Identifier = 'TEACHER_GROUP') as TblLessonDivisionCourse_TeacherGroup,
+-- SekII Kurse
+    (SELECT GROUP_CONCAT(DISTINCT tLDC.Name ORDER BY tLDC.Name SEPARATOR ', ') FROM {{ ConsumerAcronym }}_EducationApplication.tblLessonStudentSubject AS tLSS
+        LEFT JOIN {{ ConsumerAcronym }}_EducationApplication.tblLessonDivisionCourse AS tLDC ON tLDC.Id = tLSS.tblLessonDivisionCourse
+    WHERE tLSS.serviceTblPerson = TblPerson_Id
+        and tLDC.serviceTblYear = TblYear_Id
+        AND tLDC.Name IS NOT NULL) as TblLessonDivisionCourse_SekII,
 -- tblType
     tT.Id AS TblType_Id,
     tT.Name AS TblType_Name,
     tT.Description AS TblType_Description,
 -- tblCourse
-    tCo.Name as TblCourse_Name,
--- tblYear
-    tY.Id as TblYear_Id,
-    (CASE WHEN (ISNULL(tY.Year) OR (tY.Year = '')) THEN tY.Name ELSE tY.Year END) AS TblYear_Year,
-    tY.Description AS TblYear_Description
+    tCo.Name as TblCourse_Name
 
 FROM {{ ConsumerAcronym }}_EducationApplication.tblLessonStudentEducation tLSE
 	LEFT JOIN {{ ConsumerAcronym }}_EducationApplication.tblLessonDivisionCourse tLDC_D ON tLDC_D.Id = tLSE.tblDivision
