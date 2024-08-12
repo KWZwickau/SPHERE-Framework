@@ -392,7 +392,7 @@ class ReplacementService
             foreach($tblTimeTableList as $tblTimeTable){
                 if(($tblTimeTableNodeList = TimetableClassRegister::useService()->getTimetableNodeListByTimetable($tblTimeTable))){
                     foreach($tblTimeTableNodeList as $tblTimeTableNode){
-                        if(key_exists($tblTimeTableNode->getServiceTblCourse()->getId(), $tblCourseList)){
+                        if(($tblTimeTableCourse = $tblTimeTableNode->getServiceTblCourse()) && key_exists($tblTimeTableCourse->getId(), $tblCourseList)){
                             $Day = (string)$tblTimeTableNode->getDay();
                             $Hour = (string)$tblTimeTableNode->getHour();
                             $CourseId = (string)$tblTimeTableNode->getServiceTblCourse()->getId();
