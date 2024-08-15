@@ -426,7 +426,7 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendStudentShow()
     {
 
-        ini_set('memory_limit', '256M');
+        ini_set('memory_limit', '512M');
         $Stage = new Stage('Schüler-Accounts', 'Übersicht');
         $Stage->addButton(new Standard('Zurück', '/Setting/User', new ChevronLeft()));
 
@@ -657,7 +657,7 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendCustodyShow()
     {
 
-        ini_set('memory_limit', '256M');
+        ini_set('memory_limit', '512M');
         $Stage = new Stage('Sorgeberechtigten-Accounts', 'Übersicht');
         $Stage->addButton(new Standard('Zurück', '/Setting/User', new ChevronLeft()));
 
