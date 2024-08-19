@@ -113,8 +113,12 @@ class Timetable extends Extension implements IModuleInterface
                 'DateTo' => 'Gültig bis',
                 'Option' => '',
             ), array(
+                'order' => array(
+                    array('2', 'desc'),
+                ),
                 'columnDefs' => array(
                     array('width' => '70px', "targets" => -1),
+                    array('type' => 'de_date', 'targets' => array(2, 3)),
                 ),
             ))
         )))));
