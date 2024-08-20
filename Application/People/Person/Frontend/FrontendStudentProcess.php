@@ -12,6 +12,7 @@ use SPHERE\Application\Api\Education\DivisionCourse\ApiDivisionCourseStudent;
 use SPHERE\Application\Api\People\Person\ApiPersonEdit;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblStudentEducation;
+use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Person\FrontendReadOnly;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -28,7 +29,6 @@ use SPHERE\Common\Frontend\Text\Repository\Strikethrough;
 use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
-use SPHERE\Common\Frontend\Text\Repository\Warning;
 use SPHERE\Common\Frontend\Text\Repository\Warning as WarningText;
 use SPHERE\System\Extension\Extension;
 use SPHERE\System\Extension\Repository\Sorter;
@@ -53,6 +53,7 @@ class FrontendStudentProcess extends FrontendReadOnly
         if (($tblPerson = Person::useService()->getPersonById($PersonId))) {
             // Verlauf mit Edit + neu für neues Schuljahr auswahl begrenzen auf neue Schuljahre + noch kein Eintrag TblStudentEducation
             $studentEducationList = array();
+            $hasOption = false;
             if (($tblStudentEducationList = DivisionCourse::useService()->getStudentEducationListByPerson($tblPerson))) {
                 $levelList = array();
                 // Sortierung aufsteigend, notwendig wegen Schuljahrwiederholung
@@ -93,12 +94,21 @@ class FrontendStudentProcess extends FrontendReadOnly
                     $item['DivisionTeachers'] = $isInActive ? new Strikethrough($divisionTeachers) : $divisionTeachers;
                     $item['CoreGroup'] = $isInActive ? new Strikethrough($coreGroup) : $coreGroup;
                     $item['Tudors'] = $isInActive ? new Strikethrough($tudors) : $tudors;
-                    if ($AllowEdit) {
+                    if ($AllowEdit
+                        || ($tblYear
+                            && ($today = new \DateTime('today'))
+                            && (list($startDate, $endDate) = Term::useService()->getStartDateAndEndDateOfYear($tblYear))
+                            && $startDate < $today && $endDate > $today
+                        )
+                    ) {
+                        $hasOption = true;
                         $item['Option'] = (new Link('', ApiPersonEdit::getEndpoint(), new Pen(), array(), 'Bearbeiten'))
                                 ->ajaxPipelineOnClick(ApiPersonEdit::pipelineEditStudentProcessContent($tblPerson->getId(), $tblStudentEducation->getId()))
                             . ' | '
                             . (new Link(new Danger(new Disable()), ApiPersonEdit::getEndpoint(), null, array(), 'Löschen'))
                                 ->ajaxPipelineOnClick(ApiPersonEdit::pipelineOpenDeleteStudentEducationModal($tblStudentEducation->getId()));
+                    } else {
+                        $item['Option'] = '';
                     }
                     $studentEducationList[] = $item;
 
@@ -122,7 +132,7 @@ class FrontendStudentProcess extends FrontendReadOnly
             $headerColumnList[] = $divisionCourseFrontend->getTableHeaderColumn('Klassen&shy;lehrer', $backgroundColor);
             $headerColumnList[] = $divisionCourseFrontend->getTableHeaderColumn('Stamm&shy;gruppe', $backgroundColor);
             $headerColumnList[] = $divisionCourseFrontend->getTableHeaderColumn('Tutor', $backgroundColor);
-            if ($AllowEdit) {
+            if ($hasOption) {
                 $headerColumnList[] = $divisionCourseFrontend->getTableHeaderColumn('&nbsp; ', $backgroundColor, '50px');
             }
 
