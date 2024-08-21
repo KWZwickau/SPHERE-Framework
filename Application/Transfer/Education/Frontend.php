@@ -472,6 +472,11 @@ class Frontend extends FrontendStudentCourse
                     ) {
                         $subjectGroup = $tblImportLectureship->getSubjectGroup();
 
+                        // SSWHD-3123 bei Bad Düben ist der Gruppen Name leer, dort müsste eigentlich z.B. de1 stehen, dieser Gruppenname steht in der Spalte Fach wo eigentlich das Fach-Kürzel stehen müsste
+                        if (!$subjectGroup) {
+                            $subjectGroup = $subjectAcronym;
+                        }
+
                         // Spezialfall: Lehraufträge für SekII -> es werden direkt bei den Lehraufträge die SekII-Kurse zugeordnet, falls vorhanden
                         if (DivisionCourse::useService()->getIsCourseSystemByStudentsInDivisionCourse($tblDivisionCourse)
                             && ($tblStudentList = $tblDivisionCourse->getStudents())
