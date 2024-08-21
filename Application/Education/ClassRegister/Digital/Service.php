@@ -527,8 +527,11 @@ class Service extends ServiceTabs
 
             /** @var TblDivisionCourse $tblDivisionCourse */
             foreach ($tblDivisionCourseList as $tblDivisionCourse) {
+                // falsch vergebener Lehrauftrag direkt an der Klasse statt am SekII-Kurs im Falle der SekII
+                if ($tblDivisionCourse->getIsDivisionOrCoreGroup() && DivisionCourse::useService()->getIsCourseSystemByStudentsInDivisionCourse($tblDivisionCourse)) {
+                    continue;
                 // Klassentagebuch
-                if ($tblDivisionCourse->getIsDivisionOrCoreGroup()) {
+                } elseif ($tblDivisionCourse->getIsDivisionOrCoreGroup()) {
                     $resultList[] = array(
                         'DivisionCourse' => $tblDivisionCourse->getDisplayName(),
                         'DivisionCourseType' => $tblDivisionCourse->getTypeName(),
