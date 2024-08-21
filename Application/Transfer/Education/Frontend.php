@@ -3,7 +3,6 @@
 namespace SPHERE\Application\Transfer\Education;
 
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
-use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblTeacherLectureship;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
@@ -471,6 +470,11 @@ class Frontend extends FrontendStudentCourse
                         && ($tblSubject = $subjectAcronymList[$subjectAcronym])
                     ) {
                         $subjectGroup = $tblImportLectureship->getSubjectGroup();
+
+                        // SSWHD-3123 bei Bad Düben ist der Gruppen Name leer, dort müsste eigentlich z.B. de1 stehen, dieser Gruppenname steht in der Spalte Fach wo eigentlich das Fach-Kürzel stehen müsste
+                        if (!$subjectGroup) {
+                            $subjectGroup = $subjectAcronym;
+                        }
 
                         // Spezialfall: Lehraufträge für SekII -> es werden direkt bei den Lehraufträge die SekII-Kurse zugeordnet, falls vorhanden
                         if (DivisionCourse::useService()->getIsCourseSystemByStudentsInDivisionCourse($tblDivisionCourse)
