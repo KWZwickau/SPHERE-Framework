@@ -697,7 +697,7 @@ class Service extends AbstractService
                 $tblYear = $tblYear ?: $tblDivision->getServiceTblYear();
             } elseif (($tblCoreGroup = $tblStudentEducation->getTblCoreGroup())) {
                 $Data['Division'] = $tblCoreGroup->getName();
-                $tblYear = $tblYear ?: $tblDivision->getServiceTblYear();
+                $tblYear = $tblYear ?: $tblCoreGroup->getServiceTblYear();
             }
 
             if ($tblYear) {
