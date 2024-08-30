@@ -737,7 +737,7 @@ class Frontend extends FrontendTabs
                             $teacher = $acronym;
                         } else {
                             if (strlen($tblPerson->getLastName()) > 5) {
-                                $teacher = substr($tblPerson->getLastName(), 0, 5) . '.';
+                                $teacher = mb_substr($tblPerson->getLastName(), 0, 5) . '.';
                             }
                         }
                     }
