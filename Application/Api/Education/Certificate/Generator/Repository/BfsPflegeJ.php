@@ -49,10 +49,10 @@ class BfsPflegeJ extends BfsStyle
         $pageList[] = (new Page())
             ->addSlice($this->getSchoolHead($personId, 'Jahreszeugnis', false, false, true))
             ->addSlice($this->getOccupation($personId))
-            ->addSlice($this->getStudentHead($personId, 'Schuljahr', 'folgende Leistungen erreicht:', true, false))
+            ->addSlice($this->getStudentHead($personId, 'Schuljahr', 'folgende Leistungen erreicht:', true, true))
             ->addSlice($this->getSubjectLineDuty())
             ->addSlice($this->getSubjectLineBase($personId, $this->getCertificateEntity(), 'Berufsübergreifender Bereich', 1, 1))
-            ->addSlice($this->getSubjectLineBase($personId, $this->getCertificateEntity(), 'Berufsbezogener Bereich', 1, 10))
+            ->addSlice($this->getSubjectLineBase($personId, $this->getCertificateEntity(), 'Berufsbezogener Bereich', 1, 12))
         ;
 
         $pageList[] = (new Page())
