@@ -53,9 +53,9 @@ use SPHERE\System\Cache\Handler\MemoryHandler;
 use SPHERE\System\Cache\Handler\OpCacheHandler;
 use SPHERE\System\Cache\Handler\SmartyHandler;
 use SPHERE\System\Cache\Handler\TwigHandler;
-use SPHERE\System\Debugger\DebuggerFactory;
-use SPHERE\System\Debugger\Logger\FileLogger;
 use SPHERE\System\Extension\Extension;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Class Main
@@ -128,9 +128,39 @@ class Main extends Extension
 
     public function runPlatform()
     {
-
         /**
          * REST-API
+         */
+        if (preg_match('!^/api/v1!i', $this->getRequest()->getPathInfo())) {
+
+//            self::registerApiV1();
+
+
+//            if ($this->runAuthenticator()) {
+
+//                if (Access::useService()->existsRightByName($this->getRequest()->getPathInfo())) {
+//                    if (!Access::useService()->hasAuthorization($this->getRequest()->getPathInfo())) {
+//                        (new Response($this->getRequest()->getPathInfo(), Response::HTTP_FORBIDDEN))->send();
+//                    } else {
+//
+            $obj = new \stdClass();
+            $obj->foo = 42;
+            $obj->{1} = 42;
+
+                        (new JsonResponse([$obj,'DATA', $this->getRequest()->getPathInfo()],Response::HTTP_OK))->send();
+//
+//                    }
+//                } else {
+//                    (new JsonResponse($this->getRequest()->getPathInfo(), Response::HTTP_NETWORK_AUTHENTICATION_REQUIRED))->send();
+//                }
+//            } else {
+//                (new JsonResponse($this->getRequest()->getUrl(), Response::HTTP_BAD_REQUEST))->send();
+//            }
+            exit(0);
+        }
+
+        /**
+         * GUI-API
          */
         if (preg_match('!^/Api/!is', $this->getRequest()->getPathInfo())) {
 
