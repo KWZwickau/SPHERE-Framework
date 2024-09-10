@@ -375,6 +375,9 @@ class TblDivisionCourse extends Element
                                $hasDivisionSort = true;
                                $divisionSortList[$tblPersonTemp->getId()] = $tblStudentEducation->getDivisionSortOrder();
                            }
+                        } else {
+                            // Schüler ohne Schüler-Bildung nicht mehr im Kurs anzeigen
+                            continue;
                         }
 
                         $tblPersonList[$tblPersonTemp->getId()] = $tblPersonTemp;
