@@ -18,10 +18,14 @@ use SPHERE\Application\Manual\Manual;
 use SPHERE\Application\ParentStudentAccess\ParentStudentAccess;
 use SPHERE\Application\People\People;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account as GatekeeperAccount;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Platform\Platform;
 use SPHERE\Application\Platform\System;
 use SPHERE\Application\Reporting\Reporting;
+use SPHERE\Application\RestApi\Dispatcher as RestApiDispatcher;
+use SPHERE\Application\RestApi\RestApi;
 use SPHERE\Application\Setting\Authorization\Account\Account;
 use SPHERE\Application\Setting\Setting;
 use SPHERE\Application\Transfer\Transfer;
@@ -72,6 +76,8 @@ class Main extends Extension
     /** @var Dispatcher $Dispatcher */
     private static $Dispatcher = null;
 
+    private static ?RestApiDispatcher $RestApiDispatcher = null;
+
     /**
      *
      */
@@ -85,6 +91,9 @@ class Main extends Extension
         }
         if (self::getDispatcher() === null) {
             self::$Dispatcher = new Dispatcher(new Router());
+        }
+        if (self::getRestApiDispatcher() === null) {
+            self::$RestApiDispatcher = new RestApiDispatcher(new Router());
         }
     }
 
@@ -126,14 +135,64 @@ class Main extends Extension
         return self::$Dispatcher;
     }
 
+    /**
+     * @return RestApiDispatcher|null
+     */
+    public static function getRestApiDispatcher(): ?RestApiDispatcher
+    {
+        return self::$RestApiDispatcher;
+    }
+
     public function runPlatform()
     {
         /**
          * REST-API
          */
-        if (preg_match('!^/api/v1!i', $this->getRequest()->getPathInfo())) {
+        if (preg_match('!^/RestApi/!i', $this->getRequest()->getPathInfo())) {
+            if (preg_match('!^/RestApi/Public/Authorization!i', $this->getRequest()->getPathInfo())) {
+                self::registerRestApi();
+                $response = self::getRestApiDispatcher()->fetchRoute(
+                    $this->getRequest()->getPathInfo()
+                );
+                $response->send();
+            } else {
+                $parameters = $this->getRequest()->getParameterArray();
+                $accountId = $parameters['AccountId'] ?? '';
+                if (($tblAccount = GatekeeperAccount::useService()->getAccountById($accountId))) {
+                    // Session in SSW für DB Zugriff
+                    // todo geht nicht bei jedem aufruf, nur bei neuer Session oder refresh
+                    if (($tblSessionList = GatekeeperAccount::useService()->getSessionAllByAccount($tblAccount))) {
+                        $tblSession = current($tblSessionList);
+                        session_id($tblSession->getSession());
+                        Account::useService()->refreshSession($tblSession->getSession());
+                    } else {
+                        $tblSession = GatekeeperAccount::useService()->createSession($tblAccount);
+                        session_id($tblSession->getSession());
+                    }
+                }
 
-//            self::registerApiV1();
+                if ($tblAccount && Access::useService()->existsRightByName($this->getRequest()->getPathInfo())) {
+                    self::registerRestApi();
+                    if (!Access::useService()->hasAuthorization($this->getRequest()->getPathInfo())) {
+                        (new Response('HTTP/1.0 403 Forbidden: ' . $this->getRequest()->getPathInfo(), Response::HTTP_FORBIDDEN))->send();
+                    } else {
+                        $response = self::getRestApiDispatcher()->fetchRoute(
+                            $this->getRequest()->getPathInfo()
+                        );
+                        $response->send();
+
+//                        echo self::getDispatcher()->fetchRoute(
+//                            $this->getRequest()->getPathInfo()
+//                        );
+
+//                    (new JsonResponse([$this->getRequest()->getPathInfo()],Response::HTTP_OK))->send();
+                    }
+                } else {
+                    (new JsonResponse([$this->getRequest()->getPathInfo()], Response::HTTP_BAD_REQUEST))->send();
+                }
+            }
+
+
 
 
 //            if ($this->runAuthenticator()) {
@@ -143,11 +202,11 @@ class Main extends Extension
 //                        (new Response($this->getRequest()->getPathInfo(), Response::HTTP_FORBIDDEN))->send();
 //                    } else {
 //
-            $obj = new \stdClass();
-            $obj->foo = 42;
-            $obj->{1} = 42;
-
-                        (new JsonResponse([$obj,'DATA', $this->getRequest()->getPathInfo()],Response::HTTP_OK))->send();
+//            $obj = new \stdClass();
+//            $obj->foo = 42;
+//            $obj->{1} = 42;
+//
+//                        (new JsonResponse([$obj,'DATA', $this->getRequest()->getPathInfo()],Response::HTTP_OK))->send();
 //
 //                    }
 //                } else {
@@ -222,6 +281,7 @@ class Main extends Extension
              */
             self::registerApiPlatform();
             self::registerGuiPlatform();
+            self::registerRestApi();
 
             /**
              * Execute Request
@@ -327,6 +387,14 @@ class Main extends Extension
 
         Platform::registerCluster();
         Api::registerCluster();
+    }
+
+    /**
+     * @return void
+     */
+    public static function registerRestApi(): void
+    {
+        RestApi::registerApi();
     }
 
     /**
