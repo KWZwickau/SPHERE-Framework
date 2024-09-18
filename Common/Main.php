@@ -19,7 +19,6 @@ use SPHERE\Application\ParentStudentAccess\ParentStudentAccess;
 use SPHERE\Application\People\People;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account as GatekeeperAccount;
-use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Platform\Platform;
 use SPHERE\Application\Platform\System;
@@ -156,11 +155,18 @@ class Main extends Extension
                 );
                 $response->send();
             } else {
+                // Parameters stehen in der URL
                 $parameters = $this->getRequest()->getParameterArray();
+
                 $accountId = $parameters['AccountId'] ?? '';
                 if (($tblAccount = GatekeeperAccount::useService()->getAccountById($accountId))) {
+                    // erstmal nur für REF-Mandanten freigeben
+                    if (!($tblConsumer = $tblAccount->getServiceTblConsumer()) || $tblConsumer->getAcronym() != 'REF') {
+                        (new JsonResponse([$this->getRequest()->getPathInfo()], Response::HTTP_BAD_REQUEST))->send();
+                        exit(0);
+                    }
+
                     // Session in SSW für DB Zugriff
-                    // todo geht nicht bei jedem aufruf, nur bei neuer Session oder refresh
                     if (($tblSessionList = GatekeeperAccount::useService()->getSessionAllByAccount($tblAccount))) {
                         $tblSession = current($tblSessionList);
                         session_id($tblSession->getSession());
@@ -169,52 +175,25 @@ class Main extends Extension
                         $tblSession = GatekeeperAccount::useService()->createSession($tblAccount);
                         session_id($tblSession->getSession());
                     }
-                }
 
-                if ($tblAccount && Access::useService()->existsRightByName($this->getRequest()->getPathInfo())) {
                     self::registerRestApi();
-                    if (!Access::useService()->hasAuthorization($this->getRequest()->getPathInfo())) {
-                        (new Response('HTTP/1.0 403 Forbidden: ' . $this->getRequest()->getPathInfo(), Response::HTTP_FORBIDDEN))->send();
+                    if (Access::useService()->existsRightByName($this->getRequest()->getPathInfo())) {
+                        if (!Access::useService()->hasAuthorization($this->getRequest()->getPathInfo())) {
+                            (new JsonResponse('HTTP/1.0 403 Forbidden: ' . $this->getRequest()->getPathInfo(), Response::HTTP_FORBIDDEN))->send();
+                        } else {
+                            $response = self::getRestApiDispatcher()->fetchRoute(
+                                $this->getRequest()->getPathInfo()
+                            );
+                            $response->send();
+                        }
                     } else {
-                        $response = self::getRestApiDispatcher()->fetchRoute(
-                            $this->getRequest()->getPathInfo()
-                        );
-                        $response->send();
-
-//                        echo self::getDispatcher()->fetchRoute(
-//                            $this->getRequest()->getPathInfo()
-//                        );
-
-//                    (new JsonResponse([$this->getRequest()->getPathInfo()],Response::HTTP_OK))->send();
+                        (new JsonResponse([$this->getRequest()->getPathInfo()], Response::HTTP_NETWORK_AUTHENTICATION_REQUIRED))->send();
                     }
                 } else {
                     (new JsonResponse([$this->getRequest()->getPathInfo()], Response::HTTP_BAD_REQUEST))->send();
                 }
             }
 
-
-
-
-//            if ($this->runAuthenticator()) {
-
-//                if (Access::useService()->existsRightByName($this->getRequest()->getPathInfo())) {
-//                    if (!Access::useService()->hasAuthorization($this->getRequest()->getPathInfo())) {
-//                        (new Response($this->getRequest()->getPathInfo(), Response::HTTP_FORBIDDEN))->send();
-//                    } else {
-//
-//            $obj = new \stdClass();
-//            $obj->foo = 42;
-//            $obj->{1} = 42;
-//
-//                        (new JsonResponse([$obj,'DATA', $this->getRequest()->getPathInfo()],Response::HTTP_OK))->send();
-//
-//                    }
-//                } else {
-//                    (new JsonResponse($this->getRequest()->getPathInfo(), Response::HTTP_NETWORK_AUTHENTICATION_REQUIRED))->send();
-//                }
-//            } else {
-//                (new JsonResponse($this->getRequest()->getUrl(), Response::HTTP_BAD_REQUEST))->send();
-//            }
             exit(0);
         }
 
