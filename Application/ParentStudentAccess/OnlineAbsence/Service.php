@@ -3,10 +3,13 @@
 namespace SPHERE\Application\ParentStudentAccess\OnlineAbsence;
 
 use DateTime;
+use SPHERE\Application\Education\Absence\Service\Entity\TblAbsence;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Setting\Consumer\Consumer;
+use SPHERE\Application\Setting\User\Account\Account as UserAccount;
+use SPHERE\Application\Setting\User\Account\Service\Entity\TblUserAccount;
 
 class Service
 {
@@ -69,5 +72,26 @@ class Service
         }
 
         return empty($tblPersonList) ? false : $tblPersonList;
+    }
+
+    /**
+     * @return array
+     */
+    public function getPersonListAndSourceFromAccountBySession(): array
+    {
+        if (($tblAccount = Account::useService()->getAccountBySession())
+            && ($tblUserAccount = UserAccount::useService()->getUserAccountByAccount($tblAccount))
+            && $tblUserAccount->getType() == TblUserAccount::VALUE_TYPE_STUDENT
+        ) {
+            // Schüler-Zugang
+            $tblPersonList = OnlineAbsence::useService()->getPersonListFromStudentLogin();
+            $source = TblAbsence::VALUE_SOURCE_ONLINE_STUDENT;
+        } else {
+            // Mitarbeiter oder Eltern-Zugang
+            $tblPersonList = OnlineAbsence::useService()->getPersonListFromCustodyLogin();
+            $source = TblAbsence::VALUE_SOURCE_ONLINE_CUSTODY;
+        }
+
+        return array($tblPersonList, $source);
     }
 }

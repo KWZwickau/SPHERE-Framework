@@ -797,10 +797,13 @@ class Service extends AbstractService
                 /** @var TblAbsence $tblAbsence */
                 foreach ($tblAbsenceList as $tblAbsence) {
                     $status = '';
+                    $statusShort = '';
                     if ($tblAbsence->getStatus() == TblAbsence::VALUE_STATUS_EXCUSED) {
                         $status = new Success('entschuldigt');
+                        $statusShort = 'E';
                     } elseif ($tblAbsence->getStatus() == TblAbsence::VALUE_STATUS_UNEXCUSED) {
                         $status = new \SPHERE\Common\Frontend\Text\Repository\Danger('unentschuldigt');
+                        $statusShort = 'U';
                     }
 
                     $item = array(
@@ -809,8 +812,11 @@ class Service extends AbstractService
                         'Days' => ($days = $tblAbsence->getDays($tblYear, null, $tblCompany ?: null, $tblSchoolType ?: null)) == 1
                             ? $days . ' ' . new Small(new Muted($tblAbsence->getWeekDay()))
                             : $days,
+                        'DaysCount' => $days === '' ? 0 : $days,
                         'Lessons' => $tblAbsence->getLessonStringByAbsence(),
+                        'LessonsCount' => $tblAbsence->getCountLessons(),
                         'Status' => $status,
+                        'StatusShort' => $statusShort,
                         'PersonCreator' => $tblAbsence->getDisplayPersonCreator(),
                         'IsCertificateRelevant' => $tblAbsence->getIsCertificateRelevant() ? 'ja' : 'nein'
                     );
