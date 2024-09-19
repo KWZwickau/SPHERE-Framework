@@ -335,7 +335,9 @@ abstract class ServiceYearChange extends ServiceTeacher
                                         && !$tblStudentSubject->getServiceTblSubjectTable()
                                         && !$tblStudentSubject->getTblDivisionCourse()
                                         // prüfen, ob der Schüler das Fach bereits im neuen Schuljahr hat
-                                        && !DivisionCourse::useService()->getStudentSubjectByPersonAndYearAndSubject($tblPerson, $tblYearTarget, $tblSubject)
+                                        && !DivisionCourse::useService()->getStudentSubjectByPersonAndYearAndSubject($tblPerson, $tblYearTarget, $tblSubject, true)
+                                        // prüfen, ob Fach bereits in der Stundentafel für das nächste Schuljahr vorhanden ist
+                                        && !DivisionCourse::useService()->getSubjectTableBy($tblSchoolType, $level + 1, $tblSubject)
                                     ) {
                                         $createStudentSubjectList[] = TblStudentSubject::withParameter(
                                             $tblPerson, $tblYearTarget, $tblSubject, $tblStudentSubject->getHasGrading()
