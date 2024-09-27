@@ -88,7 +88,8 @@ class Dispatcher  extends Extension
 
         $Path = trim($Path, '/');
         if (in_array($Path, self::$Router->getRouteList())) {
-            return (new JsonResponse(self::$Router->getRoute($Path), Response::HTTP_OK));
+//            return (new JsonResponse(self::$Router->getRoute($Path), Response::HTTP_OK));
+            return self::$Router->getRoute($Path);
         } else {
             return new JsonResponse('Route not found!', Response::HTTP_NOT_FOUND);
         }
