@@ -194,8 +194,8 @@ class KamenzService
                             );
 
                             // Schulart letztes Schuljahr
+                            $schoolTypePastYear = '';
                             if ($level > 1) {
-                                $schoolTypePastYear = new Warning('Keine Schulart', new Exclamation());
                                 foreach ($tblPastYearList as $tblPastYear) {
                                     if (($tblStudentEducationPastYear = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblPastYear))
                                         && ($tblSchoolTypePastYear = $tblStudentEducationPastYear->getServiceTblSchoolType())
@@ -203,8 +203,19 @@ class KamenzService
                                         $schoolTypePastYear = $tblSchoolTypePastYear->getShortName();
                                     }
                                 }
-                            } else {
-                                $schoolTypePastYear = '';
+                                if (!$schoolTypePastYear) {
+                                    if ($tblStudent
+                                        && ($tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('ARRIVE'))
+                                        && ($tblStudentTransfer = Student::useService()->getStudentTransferByType(
+                                            $tblStudent, $tblStudentTransferType
+                                        ))
+                                        && ($tblSchoolTypeArrive = $tblStudentTransfer->getServiceTblType())
+                                    ) {
+                                        $schoolTypePastYear = $tblSchoolTypeArrive->getShortName();
+                                    } else {
+                                        $schoolTypePastYear = 'Keine Schulart (Neuzugang)';
+                                    }
+                                }
                             }
                             $studentList[$tblPerson->getId()]['LastSchoolType'] = $schoolTypePastYear;
 
