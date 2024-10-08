@@ -49,6 +49,9 @@ class Style extends Extension
             case 2:
                 $this->setSource('/Common/Style/Application.css');
                 break;
+            case 3:
+                $this->setSource('/Common/Style/BootstrapDark.css');
+                break;
             default:
                 $this->setSource('/Common/Style/Bootstrap.css');
         }
@@ -115,6 +118,10 @@ class Style extends Extension
             case 2:
                 $this->setSource('/Common/Style/Application.Correction.css', false, true);
                 $this->setSource('/Common/Style/Application.DataTable.Correction.css', false, true);
+                break;
+            case 3:
+                $this->setSource('/Common/Style/Application.CorrectionDark.css', false, true);
+                $this->setSource('/Common/Style/Application.DataTable.CorrectionDark.css', false, true);
                 break;
             default:
                 $this->setSource('/Common/Style/Correction.css', false, true);

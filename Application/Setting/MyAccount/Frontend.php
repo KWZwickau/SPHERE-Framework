@@ -282,7 +282,7 @@ class Frontend extends Extension implements IFrontendInterface
                                                             new SelectBox(
                                                                 'Setting[Surface]',
                                                                 'Aussehen der Programmoberfläche',
-                                                                array(1 => 'Webseite', 2 => 'Anwendung')
+                                                                array(1 => 'Webseite', 2 => 'Anwendung', 3 => 'Webseite Dunkel')
                                                             ),
                                                         )
                                                         , Panel::PANEL_TYPE_INFO),
