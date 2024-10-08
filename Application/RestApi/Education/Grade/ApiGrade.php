@@ -8,14 +8,18 @@ use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\ParentStudentAccess\OnlineGradebook\OnlineGradebook;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
+use SPHERE\Application\RestApi\IApiInterface;
 use SPHERE\Common\Main;
 use SPHERE\System\Extension\Extension;
 use SPHERE\System\Extension\Repository\Sorter;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 
-class ApiGrade
+class ApiGrade implements IApiInterface
 {
+    /**
+     * @return void
+     */
     public static function registerApi(): void
     {
         Main::getRestApiDispatcher()->registerRoute(Main::getRestApiDispatcher()->createRoute(
