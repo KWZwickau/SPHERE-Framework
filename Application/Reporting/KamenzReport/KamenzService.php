@@ -19,6 +19,7 @@ use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Person;
+use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Info;
@@ -70,6 +71,7 @@ class KamenzService
         $count['ForeignLanguage2'] = 0;
         $count['SchoolEnrollmentType'] = 0;
         $count['SchoolAttendanceStartDate'] = 0;
+        $count['NoStudent'] = array();
 
         // Berufsfachschulen und Fachschulen
         $count['TenseOfLesson'] = 0;
@@ -87,6 +89,7 @@ class KamenzService
             $tblPastYearList = $temp;
         }
 
+        $tblGroup = Group::useService()->getGroupByMetaTable('STUDENT');
         $studentList = array();
         if (($tblCurrentYearList = Term::useService()->getYearByNow())) {
             foreach ($tblCurrentYearList as $tblYear) {
@@ -97,6 +100,10 @@ class KamenzService
                             && !isset($studentList[$tblPerson->getId()])
                         ) {
                             $count['Student']++;
+                            if (!Group::useService()->existsGroupPerson($tblGroup, $tblPerson)) {
+                                $count['NoStudent'][] = $tblPerson->getLastFirstName();
+                            }
+
                             $gender = false;
                             $birthday = false;
                             $nationality = '';
@@ -765,6 +772,13 @@ class KamenzService
         if ($count['TblSchoolType'] > 0) {
             $summary[] = new Warning($count['TblSchoolType'] . ' Schüler/n ist keine allgemeinbildende Schulart zugeordnet.'
                 , new Exclamation());
+        }
+        if (!empty($count['NoStudent'])) {
+            $summary[] = new Panel(
+                new Exclamation() . ' ' . count($count['NoStudent']) . ' Personen im Schuljahr, aber nicht mehr in der Personengruppe: Schüler.',
+                $count ['NoStudent'],
+                Panel::PANEL_TYPE_WARNING
+            );
         }
 
         return $summary;
