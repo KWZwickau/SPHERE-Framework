@@ -2,13 +2,16 @@
 
 namespace SPHERE\Application\ParentStudentAccess\OnlineGradebook;
 
+use DateTime;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
-use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Application\Setting\Consumer\Service\Entity\TblStudentCustody;
+use SPHERE\Application\Setting\User\Account\Account as UserAccount;
+use SPHERE\Application\Setting\User\Account\Service\Entity\TblUserAccount;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
@@ -18,46 +21,11 @@ use SPHERE\System\Extension\Extension;
 class Service
 {
     /**
-     * @return false|TblPerson[]
-     */
-    public function getPersonListForStudent()
-    {
-        $tblPerson = false;
-        $tblAccount = Account::useService()->getAccountBySession();
-        if ($tblAccount) {
-            $tblPersonAllByAccount = Account::useService()->getPersonAllByAccount($tblAccount);
-            if ($tblPersonAllByAccount) {
-                $tblPerson = $tblPersonAllByAccount[0];
-            }
-        }
-
-        $tblPersonList = array();
-        if ($tblPerson) {
-            $tblPersonList[] = $tblPerson;
-
-            $tblPersonRelationshipList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson);
-            if ($tblPersonRelationshipList) {
-                foreach ($tblPersonRelationshipList as $relationship) {
-                    if ($relationship->getServiceTblPersonTo()
-                        && ($relationship->getTblType()->getName() == 'Sorgeberechtigt'
-                            || $relationship->getTblType()->getName() == 'Bevollmächtigt'
-                            || $relationship->getTblType()->getName() == 'Vormund')
-                    ) {
-                        $tblPersonList[] = $relationship->getServiceTblPersonTo();
-                    }
-                }
-            }
-        }
-
-        return empty($tblPersonList) ? false : $tblPersonList;
-    }
-
-    /**
      * eingeloggte Person ist ein Schüler, wo die Notenübersicht nicht gesperrt ist
      *
      * @return array|false
      */
-    public function getPersonListFromStudentLogin()
+    public function getPersonListFromStudentLogin(): bool|array
     {
         $tblPersonList = array();
         if (($tblPerson = Account::useService()->getPersonByLogin())) {
@@ -84,7 +52,7 @@ class Service
      *
      * @return array|false
      */
-    public function getPersonListFromCustodyLogin()
+    public function getPersonListFromCustodyLogin(): bool|array
     {
         $tblPersonList = array();
         if (($tblPerson = Account::useService()->getPersonByLogin())) {
@@ -117,6 +85,85 @@ class Service
         }
 
         return empty($tblPersonList) ? false : $tblPersonList;
+    }
+
+    /**
+     * @return array
+     */
+    public function getPersonListFromAccountBySession(): array
+    {
+        if (($tblAccount = Account::useService()->getAccountBySession())
+            && ($tblUserAccount = UserAccount::useService()->getUserAccountByAccount($tblAccount))
+            && $tblUserAccount->getType() == TblUserAccount::VALUE_TYPE_STUDENT
+        ) {
+            // Schüler-Zugang
+            $tblPersonList = $this->getPersonListFromStudentLogin();
+        } else {
+            // Mitarbeiter oder Eltern-Zugang
+            $tblPersonList = $this->getPersonListFromCustodyLogin();
+        }
+
+        return $tblPersonList;
+    }
+
+    /**
+     * @return array
+     */
+    public function getOnlineGradeBookYearAndBlockedAndDataList(): array
+    {
+        $tblDisplayYearList = array();
+        $BlockedList = array();
+        $data = array();
+
+        // Schuljahre Anzeigen ab:
+        $startYear = '';
+        $tblSetting = Consumer::useService()->getSetting('Education', 'Graduation', 'Gradebook', 'YearOfUserView');
+        if($tblSetting){
+            $YearTempId = $tblSetting->getValue();
+            if ($YearTempId && ($tblYearTemp = Term::useService()->getYearById($YearTempId))){
+                $startYear = ($tblYearTemp->getYear() ? $tblYearTemp->getYear() : $tblYearTemp->getName());
+            }
+        }
+
+        // Jahre ermitteln, in denen Schüler in einer Klasse ist
+        if (($tblPersonList = OnlineGradebook::useService()->getPersonListFromAccountBySession())
+            && ($tblAccount = Account::useService()->getAccountBySession())
+        ) {
+            $dateTimeNow = new DateTime('now');
+            foreach ($tblPersonList as $tblPerson) {
+                $tblPersonAccountList = Account::useService()->getAccountAllByPerson($tblPerson);
+                if ($tblPersonAccountList && current($tblPersonAccountList)->getId() != $tblAccount->getId()) {
+                    // Schüler überspringen, wenn Sorgeberechtigter geblockt ist
+                    if (Consumer::useService()->getStudentCustodyByStudentAndCustody(current($tblPersonAccountList),
+                        $tblAccount)) {
+                        // Merken des geblockten Accounts
+                        $BlockedList[] = current($tblPersonAccountList);
+                        continue;
+                    }
+                }
+                if ($tblStudentEducationList = DivisionCourse::useService()->getStudentEducationListByPerson($tblPerson)) {
+                    foreach ($tblStudentEducationList as $tblStudentEducation) {
+                        if ($tblStudentEducation->getLeaveDate()) {
+                            continue;
+                        }
+
+                        if (($tblYear = $tblStudentEducation->getServiceTblYear())) {
+                            // Anzeige nur für Schuljahre die nach dem "Startschuljahr"(Veröffentlichung) liegen
+                            if($tblYear->getYear() >= $startYear){
+                                // keine zukünftigen Schuljahre anzeigen SSWHD-1751
+                                list($startDate) = Term::useService()->getStartDateAndEndDateOfYear($tblYear);
+                                if ($startDate < $dateTimeNow) {
+                                    $tblDisplayYearList[$tblYear->getId()] = $tblYear;
+                                    $data[$tblYear->getId()][$tblPerson->getId()] = $tblStudentEducation;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return array($tblDisplayYearList, $BlockedList, $data);
     }
 
     /**

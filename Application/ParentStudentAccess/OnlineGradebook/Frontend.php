@@ -74,8 +74,6 @@ class Frontend extends Extension implements IFrontendInterface
         );
 
         $rowList = array();
-        $tblDisplayYearList = array();
-        $data = array();
         $isStudent = false;
         $isEighteen = false;    // oder Älter
         $tblPersonSession = false;
@@ -124,70 +122,7 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
-        $tblPersonList = OnlineGradebook::useService()->getPersonListForStudent();
-        // erlaubte Schularten:
-        $tblSetting = Consumer::useService()->getSetting('Education', 'Graduation', 'Gradebook', 'IgnoreSchoolType');
-        $tblSchoolTypeList = Consumer::useService()->getSchoolTypeBySettingString($tblSetting->getValue());
-        if($tblSchoolTypeList){
-            // erzeuge eine Id Liste, wenn Schularten blockiert werden
-            foreach ($tblSchoolTypeList as &$tblSchoolTypeControl){
-                $tblSchoolTypeControl = $tblSchoolTypeControl->getId();
-            }
-        }
-
-        // Schuljahre Anzeigen ab:
-        $startYear = '';
-        $tblSetting = Consumer::useService()->getSetting('Education', 'Graduation', 'Gradebook', 'YearOfUserView');
-        if($tblSetting){
-            $YearTempId = $tblSetting->getValue();
-            if ($YearTempId && ($tblYearTemp = Term::useService()->getYearById($YearTempId))){
-                $startYear = ($tblYearTemp->getYear() ? $tblYearTemp->getYear() : $tblYearTemp->getName());
-            }
-        }
-
-        $BlockedList = array();
-        $dateTimeNow = new DateTime('now');
-        // Jahre ermitteln, in denen Schüler in einer Klasse ist
-        if ($tblPersonList) {
-            foreach ($tblPersonList as $tblPerson) {
-                $tblPersonAccountList = Account::useService()->getAccountAllByPerson($tblPerson);
-                if ($tblPersonAccountList && current($tblPersonAccountList)->getId() != $tblAccount->getId()) {
-                    // Schüler überspringen wenn Sorgeberechtigter geblockt ist
-                    if (Consumer::useService()->getStudentCustodyByStudentAndCustody(current($tblPersonAccountList),
-                        $tblAccount)) {
-                        // Merken des geblockten Accounts
-                        $BlockedList[] = current($tblPersonAccountList);
-                        continue;
-                    }
-                }
-                if ($tblStudentEducationList = DivisionCourse::useService()->getStudentEducationListByPerson($tblPerson)) {
-                    foreach ($tblStudentEducationList as $tblStudentEducation) {
-                        if ($tblStudentEducation->getLeaveDate()) {
-                            continue;
-                        }
-
-                        // Schulart Prüfung nur, wenn auch Schularten in den Einstellungen erlaubt werden.
-                        if($tblSchoolTypeList){
-                            if(!($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType()) || !in_array($tblSchoolType->getId(), $tblSchoolTypeList)){
-                                // Klassen werden nicht angezeigt, wenn die Schulart nicht freigeben ist.
-                                continue;
-                            }
-                        }
-                        if (($tblYear = $tblStudentEducation->getServiceTblYear())) {
-                            // Anzeige nur für Schuljahre die nach dem "Startschuljahr"(Veröffentlichung) liegen
-                            if($tblYear->getYear() >= $startYear){
-                                // keine zukünftigen Schuljahre anzeigen SSWHD-1751
-                                list($startDate, $endDate) = Term::useService()->getStartDateAndEndDateOfYear($tblYear);
-                                if ($startDate < $dateTimeNow) {
-                                    $tblDisplayYearList[$tblYear->getId()] = $tblYear;
-                                    $data[$tblYear->getId()][$tblPerson->getId()] = $tblStudentEducation;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
+        list($tblDisplayYearList, $BlockedList, $data) = OnlineGradebook::useService()->getOnlineGradeBookYearAndBlockedAndDataList();
 
         if (!empty($tblDisplayYearList)) {
             $tblDisplayYearList = $this->getSorter($tblDisplayYearList)->sortObjectBy('DisplayName');

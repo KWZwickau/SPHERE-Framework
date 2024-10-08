@@ -128,11 +128,12 @@ abstract class ServiceStudentOverview extends ServiceScoreCalc
      * @param TblStudentEducation $tblStudentEducation
      * @param bool $IsParentView
      * @param bool $IsPdf
+     * @param bool $IsApi
      *
-     * @return string|Slice
+     * @return string|Slice|array
      */
     public function getStudentOverviewDataByPerson(TblPerson $tblPerson, TblYear $tblYear, TblStudentEducation $tblStudentEducation,
-        bool $IsParentView, bool $IsPdf)
+        bool $IsParentView, bool $IsPdf, bool $IsApi = false)
     {
         $countMaxColumn = 5;
         $withSubjectNumber = $IsPdf ? 5 : 10;
@@ -140,9 +141,11 @@ abstract class ServiceStudentOverview extends ServiceScoreCalc
 
         $headerList = array();
         $headerPdfSection = new Section();
+        $headerApiList = array();
 
         $bodyList = array();
         $bodyPdfSectionList = array();
+        $bodyApiList = array();
 
         if ($IsParentView) {
             list($isShownAverage, $isShownDivisionSubjectScore, $isShownGradeMirror, $tblSchoolTypeList, $startYear, $isScoreRuleShown,
@@ -311,9 +314,14 @@ abstract class ServiceStudentOverview extends ServiceScoreCalc
         $widthGrade = $widthGradeNumber . '%';
 
         if ($tblPeriodList) {
+            $countPeriod = 0;
             foreach($tblPeriodList as $tblPeriod) {
                 $headerList[$tblPeriod->getId()] = $frontend->getTableColumnHead($tblPeriod->getDisplayName(), true, null, $countMaxColumn);
                 $headerPdfSection->addElementColumn(GradebookOverview::getHeaderElement($tblPeriod->getDisplayName()), ($countMaxColumn * $widthGradeNumber) . '%');
+                $headerApiList[++$countPeriod] = array(
+                    'Name' => $tblPeriod->getName(),
+                    'Period' => $tblPeriod->getFromDate() . ' - ' . $tblPeriod->getToDate(),
+                );
             }
             if ($isShownAverage) {
                 $headerList['Average'] = $frontend->getTableColumnHead('&#216;');
@@ -328,6 +336,7 @@ abstract class ServiceStudentOverview extends ServiceScoreCalc
 
                 $data = array();
                 $dataPdfSection = new Section();
+                $dataApi = array();
 
                 $data['Subject'] = $frontend->getTableColumnBody(
                     new Bold($tblSubject->getName())
@@ -339,11 +348,16 @@ abstract class ServiceStudentOverview extends ServiceScoreCalc
                     $frontend::BACKGROUND_COLOR, $widthSubject
                 );
                 $dataPdfSection->addElementColumn(GradebookOverview::getHeaderElement($tblSubject->getAcronym(), true), $widthSubject);
+                $dataApi['Subject'] = array(
+                    'Name' => $tblSubject->getName(),
+                    'Acronym' => $tblSubject->getAcronym(),
+                );
 
                 $testGrades = array();
                 $testGrades['All'] = array();
 
                 for ($i = 1; $i < 3; $i++) {
+                    $gradesApi = array();
                     $count = 0;
                     if (isset($virtualTestTaskList[$tblSubject->getId()][$i])) {
                         $tempList = $this->getVirtualTestTaskListSorted($virtualTestTaskList[$tblSubject->getId()][$i]);
@@ -387,6 +401,13 @@ abstract class ServiceStudentOverview extends ServiceScoreCalc
                                         $widthGrade
                                     );
                                     $dataPdfSection->addElementColumn(GradebookOverview::getBodyElement($contentTest), $widthGrade);
+                                    $gradesApi[] = array(
+                                        'Date' => $dateItem ? $dateItem->format('c') : null,
+                                        'GradeType' => $virtualTestTask->getTblTest()->getTblGradeType()->getCode(),
+                                        'Grade' => $tblTestGrade ? $tblTestGrade->getGrade() : null,
+                                        'Description' => $tblTest->getDescription(),
+                                        'PublicComment' => $publicComment,
+                                    );
 
                                     if ($tblTestGrade) {
                                         $testGrades[$i][] = $tblTestGrade;
@@ -422,6 +443,7 @@ abstract class ServiceStudentOverview extends ServiceScoreCalc
                             $testGrades['All'] = array_merge($testGrades['All'], $testGrades[$i]);
                         } else {
                             $average = '&nbsp;';
+                            $scoreRuleText = '';
                             $toolTip = '';
                         }
 
@@ -432,6 +454,17 @@ abstract class ServiceStudentOverview extends ServiceScoreCalc
                         );
                         $dataPdfSection->addElementColumn(GradebookOverview::getBodyElement('&nbsp;' . '<br>' . '&#216;' . '<br>' . $average, true, true), $widthGrade);
                     }
+
+                    // API
+                    $apiItem = $headerApiList[$i] ?? [];
+                    if ($isShownAverage) {
+                        $apiItem['PeriodAverage'] = array(
+                            'Grade' => $average == '&nbsp;' ? null : $average,
+                            'ScoreRule' => str_replace('<br>', ' ', $scoreRuleText),
+                        );
+                    }
+                    $apiItem['GradeList'] = $gradesApi;
+                    $dataApi['Subject']['PeriodList'][] = $apiItem;
                 }
 
                 // Gesamt-Notendurchschnitt
@@ -451,14 +484,26 @@ abstract class ServiceStudentOverview extends ServiceScoreCalc
                         $widthGrade
                     );
                     $dataPdfSection->addElementColumn(GradebookOverview::getBodyElement('&nbsp;' . '<br>' . '&nbsp;' . '<br>' . $average, true, true), $widthGrade);
+
+                    // API
+                    $tempApi = $dataApi['Subject']['PeriodList'];
+                    unset($dataApi['Subject']['PeriodList']);
+                    $dataApi['Subject']['TotalAverage'] = array(
+                        'Grade' => $average == '&nbsp;' ? null : $average,
+                        'ScoreRule' => str_replace('<br>', ' ', $scoreRuleText),
+                    );
+                    $dataApi['Subject']['PeriodList'] = $tempApi;
                 }
 
                 $bodyList[] = $data;
                 $bodyPdfSectionList[] = $dataPdfSection;
+                $bodyApiList[] = $dataApi['Subject'];
             }
         }
 
-        if ($IsPdf) {
+        if ($IsApi) {
+            return $bodyApiList;
+        } else if ($IsPdf) {
             $slice = (new Slice())->addSection($headerPdfSection);
             if (!empty($bodyPdfSectionList)) {
                 $slice->addSectionList($bodyPdfSectionList);

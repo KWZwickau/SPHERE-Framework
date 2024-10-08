@@ -10,11 +10,12 @@ use SPHERE\Application\ParentStudentAccess\OnlineAbsence\OnlineAbsence;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
+use SPHERE\Application\RestApi\IApiInterface;
 use SPHERE\Common\Main;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 
-class ApiAbsence
+class ApiAbsence implements IApiInterface
 {
     public static function registerApi(): void
     {
