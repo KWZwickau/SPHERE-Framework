@@ -7,6 +7,7 @@ use SPHERE\Application\Education\Absence\Service\Entity\TblAbsence;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblIdentification;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Application\Setting\User\Account\Account as UserAccount;
 use SPHERE\Application\Setting\User\Account\Service\Entity\TblUserAccount;
@@ -14,11 +15,37 @@ use SPHERE\Application\Setting\User\Account\Service\Entity\TblUserAccount;
 class Service
 {
     /**
-     * eingeloggte Person ist ein Schüler -> nur ab 18 Jahre
+     * @return bool
+     */
+    public function getIsModuleRegistered(): bool
+    {
+        // nur registrieren, wenn über die Mandanteneinstellung freigeschaltet ist und Personen angezeigt würden
+        // oder wenn System-Account fürs Sperren der Routen
+        $isRegistered = false;
+        if (($tblAccount = Account::useService()->getAccountBySession())) {
+            if ($tblAccount->getHasAuthentication(TblIdentification::NAME_SYSTEM)) {
+                // System-Account
+                $isRegistered = true;
+            } elseif (($tblUserAccount = UserAccount::useService()->getUserAccountByAccount($tblAccount))
+                && $tblUserAccount->getType() == TblUserAccount::VALUE_TYPE_STUDENT
+            ) {
+                // Schüler-Zugang
+                $isRegistered = OnlineAbsence::useService()->getPersonListFromStudentLogin();
+            } else {
+                // Mitarbeiter oder Eltern-Zugang
+                $isRegistered = OnlineAbsence::useService()->getPersonListFromCustodyLogin();
+            }
+        }
+
+        return (bool) $isRegistered;
+    }
+
+    /**
+     * eingeloggte Person ist ein Schüler → nur ab 18 Jahren
      *
      * @return array|false
      */
-    public function getPersonListFromStudentLogin()
+    public function getPersonListFromStudentLogin(): bool|array
     {
         $tblPersonList = array();
         if (($tblPerson = Account::useService()->getPersonByLogin())
@@ -43,7 +70,7 @@ class Service
      *
      * @return array|false
      */
-    public function getPersonListFromCustodyLogin()
+    public function getPersonListFromCustodyLogin(): bool|array
     {
         $tblPersonList = array();
         if (($tblPerson = Account::useService()->getPersonByLogin())

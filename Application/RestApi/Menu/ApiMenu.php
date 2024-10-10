@@ -2,6 +2,7 @@
 
 namespace SPHERE\Application\RestApi\Menu;
 
+use SPHERE\Application\ParentStudentAccess\OnlineAbsence\OnlineAbsence;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\RestApi\IApiInterface;
@@ -32,11 +33,13 @@ class ApiMenu implements IApiInterface
             // todo remove AccountId after extern API
             $params = array('AccountId' => $tblAccount->getId());
 
-            if (($item = self::getMenuItem('/RestApi/Education/Absence/Load', 'Fehlzeiten', $params))) {
+            if (($item = self::getMenuItem('/RestApi/Education/Grade/OnlineGradeBook/Year/Load', 'Notenübersicht', $params))) {
                 $result[] = $item;
             }
 
-            if (($item = self::getMenuItem('/RestApi/Education/Grade/OnlineGradeBook/Year/Load', 'Notenübersicht', $params))) {
+            if (OnlineAbsence::useService()->getIsModuleRegistered()
+                && ($item = self::getMenuItem('/RestApi/Education/Absence/Load', 'Fehlzeiten', $params))
+            ) {
                 $result[] = $item;
             }
         }
