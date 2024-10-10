@@ -401,6 +401,7 @@ class Service extends ServiceYearChange
     public function getIsCourseSystemBySchoolTypeAndLevel(TblType $tblSchoolType, int $level): bool
     {
         return ($tblSchoolType->getShortName() == 'Gy' && preg_match('!(11|12)!is', $level))
+            || ($tblSchoolType->getShortName() == 'GMS' && preg_match('!(11|12)!is', $level))
             || ($tblSchoolType->getShortName() == 'BGy' && preg_match('!(12|13)!is', $level));
     }
 
