@@ -104,7 +104,7 @@ class TblMinimumGradeCountLevelLink extends Element
             $typeName = $tblSchoolType->getName();
             if ($typeName == 'Grundschule') {
                 $typeName = 'GS';
-            } elseif ($typeName == 'Mittelschule / Oberschule') {
+            } elseif ($typeName == TblType::IDENT_OBER_SCHULE) {
                 $typeName = 'OS';
             } elseif ($typeName == 'Gymnasium') {
                 $typeName = 'GYM';

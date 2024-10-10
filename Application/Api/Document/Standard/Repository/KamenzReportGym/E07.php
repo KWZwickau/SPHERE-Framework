@@ -11,6 +11,7 @@ namespace SPHERE\Application\Api\Document\Standard\Repository\KamenzReportGym;
 use SPHERE\Application\Document\Generator\Repository\Element;
 use SPHERE\Application\Document\Generator\Repository\Section;
 use SPHERE\Application\Document\Generator\Repository\Slice;
+use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 
 /**
  * Class E07
@@ -216,7 +217,7 @@ class E07
             );
 
         self::setRowContent($sliceList, 'Grundschule', 'PrimarySchool');
-        self::setRowContent($sliceList, 'Mittelschule', 'SecondarySchool');
+        self::setRowContent($sliceList, TblType::IDENT_OBER_SCHULE, 'SecondarySchool');
         self::setRowContent($sliceList, 'Gymnasium', 'GrammarSchool');
         self::setRowContent($sliceList, 'Unbekannt*', 'Unknown');
         self::setRowContent($sliceList, 'Insgesamt', 'TotalCount');

@@ -61,9 +61,6 @@ class Service extends Extension
                     if(($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())){
                         $SchoolType = $tblSchoolType->getName();
                     }
-                    if($SchoolType == 'Mittelschule / Oberschule'){
-                        $SchoolType = 'Oberschule';
-                    }
                     $level = $tblStudentEducation->getLevel();
                     if(($tblDivisionCourse = $tblStudentEducation->getTblDivision())) {
                         $Division = $tblDivisionCourse->getName();
