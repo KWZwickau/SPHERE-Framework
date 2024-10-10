@@ -33,12 +33,22 @@ class ApiMenu implements IApiInterface
             // todo remove AccountId after extern API
             $params = array('AccountId' => $tblAccount->getId());
 
-            if (($item = self::getMenuItem('/RestApi/Education/Grade/OnlineGradeBook/Year/Load', 'Notenübersicht', $params))) {
+            if (($item = self::getMenuItem(
+                '/RestApi/Education/Grade/OnlineGradeBook/Year/Load',
+                'OnlineGradeBook',
+                'Notenübersicht',
+                $params
+            ))) {
                 $result[] = $item;
             }
 
             if (OnlineAbsence::useService()->getIsModuleRegistered()
-                && ($item = self::getMenuItem('/RestApi/Education/Absence/Load', 'Fehlzeiten', $params))
+                && ($item = self::getMenuItem(
+                    '/RestApi/Education/Absence/Load',
+                    'OnlineAbsence',
+                    'Fehlzeiten',
+                    $params
+                ))
             ) {
                 $result[] = $item;
             }
@@ -49,15 +59,17 @@ class ApiMenu implements IApiInterface
 
     /**
      * @param string $route
+     * @param string $type
      * @param string $name
      * @param array $params
      *
      * @return array|null
      */
-    private static function getMenuItem(string $route, string $name, array $params = []): ?array
+    private static function getMenuItem(string $route, string $type, string $name, array $params = []): ?array
     {
         if ((Access::useService()->hasAuthorization($route))) {
             return array(
+                'Type' => $type,
                 'Name' => $name,
                 'Link' => 'https://' . $_SERVER['HTTP_HOST'] . $route,
                 'Parameters' => $params
