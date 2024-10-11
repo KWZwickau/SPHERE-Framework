@@ -553,10 +553,10 @@ class FrontendStudentSubject extends FrontendStudent
                 /** @var TblStudentSubject $tblStudentSubject */
                 foreach ($tblStudentSubjectList as $tblStudentSubject) {
                     if (($tblSubjectItem = $tblStudentSubject->getServiceTblSubject())) {
-                        if (!isset($item[$tblSubjectItem->getId()])) {
+//                        if (!isset($item[$tblSubjectItem->getId()])) {
                             $item[$tblSubjectItem->getId()] = new Check()
                                 . (!$tblStudentSubject->getHasGrading() ? ' ' . new ToolTip(new Muted(new Ban()), 'Keine Benotung') : '');
-                        }
+//                        }
 
                         if (!isset($subjectList[$tblSubjectItem->getId()])) {
                             $subjectList[$tblSubjectItem->getId()] = new PullClear($tblSubjectItem->getAcronym()
