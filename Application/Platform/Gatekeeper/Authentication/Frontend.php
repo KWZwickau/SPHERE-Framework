@@ -130,6 +130,11 @@ class Frontend extends Extension implements IFrontendInterface
                             ? $timeTable : Digital::useService()->getDigitalClassRegisterPanelForTeacher());
                 }
             }
+
+            // gespeichertes Notenbuch Schuljahr zurücksetzen
+            if (\SPHERE\Application\Setting\Consumer\Consumer::useService()->getAccountSettingValue("GradeBookSelectedYearId")) {
+                \SPHERE\Application\Setting\Consumer\Consumer::useService()->createAccountSetting("GradeBookSelectedYearId", "");
+            }
         }
         if ($tblAccount) {
             if ($tblAccount->getHasAuthentication(TblIdentification::NAME_USER_CREDENTIAL)) {
