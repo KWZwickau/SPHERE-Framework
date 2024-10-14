@@ -93,15 +93,13 @@ class DataProtectionOrdinance implements IClusterInterface, IApplicationInterfac
                             sich bitte per E-Mail an unseren Datenschutzbeauftragten.'),
                             new Container('&nbsp;'),
                             new Panel(
-                                'Pierre Große',
+                                'Herr Erik Kahnt (Vertreter im Amt) ',
                                 array(
-                                    'Datenschutzbeauftragter der Ev.-Luth. Landeskirche Sachsens',
-                                    'Ev.-Luth. Landeskirchenamt',
-                                    'Der Datenschutzbeauftragte',
-                                    'Reichenbrander Str. 4',
-                                    '09117 Chemnitz',
+                                    'Der Datenschutzbeauftragte für Kirche und Diakonie',
+                                    'Leiter der Aufsichtsbehörde',
+                                    'Dienstsitz: 09117 Chemnitz, Reichenbrander Str. 4',
                                     'Telefon: 0351 4692-460',
-                                    'Fax: 0351 4692-469',
+//                                    'Fax: 0351 4692-469',
                                     'E-Mail: datenschutzbeauftragter@evlks.de',
                                 )
                             )
