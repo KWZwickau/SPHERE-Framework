@@ -48,6 +48,7 @@ class Platform implements IClusterInterface
                     } elseif($tblProtocol && $tblProtocol->getEntityCreate() >= $DateYellow) {
                         $LabelCountColor = Label::LABEL_TYPE_WARNING;
                     }
+//                    $ProtocolCount = DataMaintenance::useFrontend()->getProtocolEntryCount();
                     Main::getDisplay()->addServiceNavigation(
                         new Link(new Link\Route('/Platform/System/DataMaintenance/Protocol'), new Link\Name(new Bold(new Label('Protokoll', $LabelCountColor))))
                     );
