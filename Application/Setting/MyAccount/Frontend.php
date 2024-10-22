@@ -10,6 +10,7 @@ use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAuthorization;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblIdentification;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumerLogin;
@@ -264,6 +265,10 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $tblConsumer = Consumer::useService()->getConsumerBySession();
+        $colorChoice = array(1 => 'Webseite', 2 => 'Anwendung');
+        if($tblAccount && $tblAccount->getHasAuthentication(TblIdentification::NAME_SYSTEM)){
+            $colorChoice[3] = '(Experimantal) Webseite Dunkel';
+        }
 
         $Stage->setContent(
             new Layout(
@@ -282,7 +287,7 @@ class Frontend extends Extension implements IFrontendInterface
                                                             new SelectBox(
                                                                 'Setting[Surface]',
                                                                 'Aussehen der Programmoberfläche',
-                                                                array(1 => 'Webseite', 2 => 'Anwendung', 3 => 'Webseite Dunkel')
+                                                                $colorChoice, null, true, null
                                                             ),
                                                         )
                                                         , Panel::PANEL_TYPE_INFO),
