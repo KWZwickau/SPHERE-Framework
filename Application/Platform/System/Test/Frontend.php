@@ -26,7 +26,6 @@ use SPHERE\Common\Frontend\Form\Repository\Field\RadioBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectCompleter;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextArea;
-use SPHERE\Common\Frontend\Form\Repository\Field\TextCaptcha;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Repository\Title as TitleForm;
 use SPHERE\Common\Frontend\Form\Structure\Form;
@@ -34,6 +33,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Check;
+use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Select;
@@ -42,16 +42,16 @@ use SPHERE\Common\Frontend\Icon\Repository\Unchecked;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Badge;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
-use SPHERE\Common\Frontend\Layout\Repository\Header;
 use SPHERE\Common\Frontend\Layout\Repository\Label;
-use SPHERE\Common\Frontend\Layout\Repository\Listing;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Paragraph;
+use SPHERE\Common\Frontend\Layout\Repository\ProgressBar;
 use SPHERE\Common\Frontend\Layout\Repository\PullLeft;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Thumbnail;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
+use SPHERE\Common\Frontend\Layout\Repository\WellReadOnly;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
@@ -59,13 +59,26 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutSocial;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutTab;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutTabs;
+use SPHERE\Common\Frontend\Link\Repository\Danger as DangerLink;
 use SPHERE\Common\Frontend\Link\Repository\External;
+use SPHERE\Common\Frontend\Link\Repository\Primary as PrimaryLink;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
+use SPHERE\Common\Frontend\Link\Repository\Success as SuccessLink;
 use SPHERE\Common\Frontend\Link\Repository\ToggleCheckbox;
 use SPHERE\Common\Frontend\Link\Repository\ToggleSelective;
+use SPHERE\Common\Frontend\Link\Repository\Warning as WarningLink;
+use SPHERE\Common\Frontend\Message\Repository\Danger as DangerMessage;
+use SPHERE\Common\Frontend\Message\Repository\Info;
+use SPHERE\Common\Frontend\Message\Repository\Success as SuccessMessage;
+use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
+use SPHERE\Common\Frontend\Text\Repository\Danger as DangerText;
+use SPHERE\Common\Frontend\Text\Repository\Info as InfoText;
+use SPHERE\Common\Frontend\Text\Repository\Primary as PrimaryText;
+use SPHERE\Common\Frontend\Text\Repository\Success as SuccessText;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
+use SPHERE\Common\Frontend\Text\Repository\Warning as WarningText;
 use SPHERE\Common\Window\Navigation\Link\Route;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
@@ -97,12 +110,14 @@ class Frontend extends Extension implements IFrontendInterface
              emitters of the fantastic ionic cannon. Where is the strange teleporter?'
         );
 
-        $Stage->addButton(
-            new Standard('Link', new Route(__NAMESPACE__), null, array(), true)
-        );
-        $Stage->addButton(
-            new External('Link', 'http://www.google.de')
-        );
+        $Stage->addButton(new Standard('Frontend', new Route(__NAMESPACE__.'/Frontend'), null, array(), true));
+        $Stage->addButton(new Standard('Test Seite', new Route(__NAMESPACE__.'/TestSite'), null, array(), true));
+        $Stage->addButton(new External('Link', 'http://www.google.de'));
+        $Stage->addButton(new Standard('', '#', new EyeOpen()));
+        $Stage->addButton(new PrimaryLink('', '#', new EyeOpen()));
+        $Stage->addButton(new SuccessLink('', '#', new EyeOpen()));
+        $Stage->addButton(new WarningLink('', '#', new EyeOpen()));
+        $Stage->addButton(new DangerLink('', '#', new EyeOpen()));
 
         $D1 = new TblDivisionCourse();$D1->setName('A');$D1->setId(1);
         $D2 = new TblDivisionCourse();$D2->setName('B');$D2->setId(2);
@@ -189,63 +204,100 @@ class Frontend extends Extension implements IFrontendInterface
         $Editor = array('Description' => 'Verhalten' ,'first' => 'behält HTML Tags', 'second' => 'behält HTML Tags', 'third' => 'trimt die HTML Tags weg', 'fourth' => 'trimt die HTML Tags weg');$TableEditorList[] = $Editor;
 
         $Stage->setContent(
-            (new Form(
+            new Layout(new LayoutGroup(array(
+                new LayoutRow(array(
+                    new LayoutColumn(
+                        new Panel('Panel Default', array(
+                            'Content',
+                            'Text Example'.new Container('Container (Textblock)')
+                        ), Panel::PANEL_TYPE_DEFAULT, 'Footer'.new PullRight(new Label('Label Default', Label::LABEL_TYPE_DEFAULT)))
+                    , 2),
+                    new LayoutColumn(
+                        new Panel('Panel Info', array(
+                            'Content',
+                            new InfoText('Info Example').new Container('Container (Textblock)')
+                        ), Panel::PANEL_TYPE_INFO, 'Footer'.new PullRight(new Label('Label Info', Label::LABEL_TYPE_INFO)))
+                    , 2),
+                    new LayoutColumn(
+                        new Panel('Panel Primary', array(
+                            'Content',
+                            new PrimaryText('Primary Example').new Container('Container (Textblock)')
+                        ), Panel::PANEL_TYPE_PRIMARY, 'Footer'.new PullRight(new Label('Label Primary', Label::LABEL_TYPE_PRIMARY)))
+                    , 2),
+                    new LayoutColumn(
+                        new Panel('Panel Success', array(
+                            'Content',
+                            new SuccessText('Success Example').new Container('Container (Textblock)')
+                        ), Panel::PANEL_TYPE_SUCCESS, 'Footer'.new PullRight(new Label('Label Success', Label::LABEL_TYPE_SUCCESS)))
+                    , 2),
+                    new LayoutColumn(
+                        new Panel('Panel Warning', array(
+                            'Content',
+                            new WarningText('Warning Example').new Container('Container (Textblock)')
+                        ), Panel::PANEL_TYPE_WARNING, 'Footer'.new PullRight(new Label('Label Warning', Label::LABEL_TYPE_WARNING)))
+                    , 2),
+                    new LayoutColumn(
+                        new Panel('Panel Danger', array(
+                            'Content',
+                            new DangerText('Danger Example').new Container('Container (Textblock)')
+                        ), Panel::PANEL_TYPE_DANGER, 'Footer'.new PullRight(new Label('Label Danger', Label::LABEL_TYPE_DANGER)))
+                    , 2),
+                )),
+                new LayoutRow(array(
+                    new LayoutColumn(
+                        new Well('Well'.new PullRight(new Badge('Badge Default', Badge::BADGE_TYPE_DEFAULT)))
+                    , 2),
+                    new LayoutColumn(
+                        new Info('Info'.new PullRight(new Badge('Badge Info', Badge::BADGE_TYPE_INFO)))
+                    , 2),
+                    new LayoutColumn(
+                        new WellReadOnly('WellReadOnly'.new PullRight(new Badge('Badge Normal', Badge::BADGE_TYPE_NORMAL)))
+                    , 2),
+                    new LayoutColumn(
+                        new SuccessMessage('Success'.new PullRight(new Badge('Badge Success', Badge::BADGE_TYPE_SUCCESS)))
+                    , 2),
+                    new LayoutColumn(
+                        new Warning('Warning'.new PullRight(new Badge('Badge Warning', Badge::BADGE_TYPE_WARNING)))
+                    , 2),
+                    new LayoutColumn(
+                        new DangerMessage('Danger'.new PullRight(new Badge('Badge Danger', Badge::BADGE_TYPE_DANGER)))
+                    , 2),
+                )),
+                new LayoutRow(array(
+                    new LayoutColumn(
+                        (new ProgressBar(20, 60, 20))
+                            ->setSize(15)
+                    , 2),
+                    new LayoutColumn(
+                        (new ProgressBar(20, 60, 20))
+                            ->setSize(15)
+                            ->setColor(ProgressBar::BAR_COLOR_INFO, ProgressBar::BAR_COLOR_INFO, ProgressBar::BAR_COLOR_INFO)
+                    , 2),
+                    new LayoutColumn(
+                        (new ProgressBar(20, 60, 20))
+                            ->setSize(15)
+                            ->setColor(ProgressBar::BAR_COLOR_STRIPED, ProgressBar::BAR_COLOR_STRIPED, ProgressBar::BAR_COLOR_STRIPED)
+                    , 2),
+                    new LayoutColumn(
+                        (new ProgressBar(20, 60, 20))
+                            ->setSize(15)
+                            ->setColor(ProgressBar::BAR_COLOR_SUCCESS, ProgressBar::BAR_COLOR_SUCCESS, ProgressBar::BAR_COLOR_SUCCESS)
+                    , 2),
+                    new LayoutColumn(
+                        (new ProgressBar(20, 60, 20))
+                            ->setSize(15)
+                            ->setColor(ProgressBar::BAR_COLOR_WARNING, ProgressBar::BAR_COLOR_WARNING, ProgressBar::BAR_COLOR_WARNING)
+                    , 2),
+                    new LayoutColumn(
+                        (new ProgressBar(20, 60, 20))
+                            ->setSize(15)
+                            ->setColor(ProgressBar::BAR_COLOR_DANGER, ProgressBar::BAR_COLOR_DANGER, ProgressBar::BAR_COLOR_DANGER)
+                    , 2),
+
+                ))
+            )))
+            .(new Form(
                 new FormGroup(array(
-                    new FormRow(array(
-                        new FormColumn(array(
-                            new AutoCompleter('AutoCompleter', 'AutoCompleter', 'AutoCompleter',
-                                array('123', '234', '345')),
-                            new SelectCompleter('SelectCompleter', 'SelectCompleter', 'SelectCompleter',
-                                array('', '1+','1','1-', '2', '2-','2+','3','3-','3+','4','4-','4+','5','5-','5+','6','6-','6+')
-                            )
-                        ), 3),
-                        new FormColumn(array(
-                            new CheckBox('CheckBox', 'CheckBox', 'c1'),
-                            new RadioBox('RadioBox1', 'RadioBox1a', '1a'),
-                        ), 3),
-                        new FormColumn(
-                            new DatePicker('DatePicker', 'DatePicker', 'DatePicker')
-                            , 3),
-                        new FormColumn(array(
-                            new FileUpload('FileUpload[1]', 'FileUpload', 'FileUpload'),
-                            new FileUpload('FileUpload[2]', 'FileUpload', 'FileUpload'),
-                            new FileUpload('FileUpload[A]', 'FileUpload', 'FileUpload'),
-                            new FileUpload('FileUpload[B]', 'FileUpload', 'FileUpload'),
-                        ), 3),
-                    )),
-                    new FormRow(array(
-                        new FormColumn(
-                            new HiddenField('HiddenField', 'HiddenField', 'HiddenField')
-                            , 3),
-                        new FormColumn(
-                            new NumberField('NumberField', 'NumberField', 'NumberField')
-                            , 3),
-                        new FormColumn(
-                            new PasswordField('PasswordField', 'PasswordField', 'PasswordField')
-                            , 3),
-                        new FormColumn(array(
-                            new RadioBox('RadioBox1', 'RadioBox1b', '1b'),
-                            new RadioBox('RadioBox2', 'RadioBox2', '2'),
-                            new RadioBox('RadioBox3', 'RadioBox3', '3'),
-                        ), 1),
-                        new FormColumn(
-                            new Panel('Farben bei RadioBox',
-                                new RadioBox('RadioBoxColor1', 'Standard', 1, RadioBox::RADIO_BOX_TYPE_DEFAULT)
-                                    .new RadioBox('RadioBoxColor2', 'Black', 2, RadioBox::RADIO_BOX_TYPE_BLACK)
-                                    .new RadioBox('RadioBoxColor3', 'Info', 3, RadioBox::RADIO_BOX_TYPE_INFO)
-                                    .new RadioBox('RadioBoxColor4', 'Success', 4, RadioBox::RADIO_BOX_TYPE_SUCCESS)
-                                    .new RadioBox('RadioBoxColor5', 'Warning', 5, RadioBox::RADIO_BOX_TYPE_WARNING)
-                                    .new RadioBox('RadioBoxColor6', 'Danger', 6, RadioBox::RADIO_BOX_TYPE_DANGER)
-                                )
-                        , 1),
-                        new FormColumn(
-                            new Panel('ToolTip',
-                                new ToolTip('Test mit Umbruch', 'Text der umbricht bei Platzmangel')
-                                .new Ruler()
-                                .new Container(new ToolTip('Test ohne Umbruch (benötigt bei z.B. kleinen spalten in Tabellen)', 'Text der nicht umbrechen kann', false))
-                            )
-                        , 1),
-                    )),
                     new FormRow(array(
                         new FormColumn(array(
                             (new SelectBox('SelectBox1', 'SelectBox - Bootstrap (funktioniert nicht auf Tablet\'s)',
@@ -261,21 +313,70 @@ class Frontend extends Extension implements IFrontendInterface
                                 array('{{ Id }}{{ Name }} nochmal {{ Name }} "Twig test"' => $Check3)
                             ))->setMinimumResultForSerach(3),
                         ), 3),
-                        new FormColumn(
-                            new TextArea('TextArea', 'TextArea', 'TextArea')
-                            , 3),
-//                        new FormColumn(
-//                            new TextCaptcha('TextCaptcha', 'TextCaptcha', 'TextCaptcha')
-//                            , 3),
-                        new FormColumn(
-                            new TextField('TextField', 'TextField', 'TextField')
-                            , 3),
+                        new FormColumn(array(
+                            new FileUpload('FileUpload[1]', 'FileUpload', 'FileUpload'),
+                            new FileUpload('FileUpload[2]', 'FileUpload', 'FileUpload'),
+                            new FileUpload('FileUpload[A]', 'FileUpload', 'FileUpload'),
+                            new FileUpload('FileUpload[B]', 'FileUpload', 'FileUpload'),
+                        ), 3),
+                        new FormColumn(array(
+                            new AutoCompleter('AutoCompleter', 'AutoCompleter', 'AutoCompleter',
+                                array('123', '234', '345')),
+                            new SelectCompleter('SelectCompleter', 'SelectCompleter', 'SelectCompleter',
+                                array('', '1+','1','1-', '2', '2-','2+','3','3-','3+','4','4-','4+','5','5-','5+','6','6-','6+')
+                            ),
+                            new DatePicker('DatePicker', 'DatePicker', 'DatePicker'),
+                            new NumberField('NumberField', 'NumberField', 'NumberField'),
+                            new PasswordField('PasswordField', 'PasswordField', 'PasswordField'),
+                        ), 3),
+                        new FormColumn(array(
+                            new HiddenField('HiddenField', 'HiddenField', 'HiddenField'),
+                            new TextArea('TextArea', 'TextArea', 'TextArea'),
+                            new TextField('TextField', 'TextField', 'TextField'),
+                        ), 3),
                     )),
+                    new FormRow(new FormColumn(new InfoText('<hr>'))),
+                    new FormRow(array(
+                        new FormColumn(
+                            new Panel('ToolTip',
+                                new ToolTip('Test mit Umbruch', 'Text der umbricht bei Platzmangel')
+                                .new Ruler()
+                                .new Container(new ToolTip('Test ohne Umbruch (benötigt bei z.B. kleinen spalten in Tabellen)', 'Text der nicht umbrechen kann', false))
+                            )
+                        , 1),
+                        new FormColumn(
+                            new Panel('Farben bei RadioBox',
+                                new RadioBox('RadioBoxColor1', 'Standard', 1, RadioBox::RADIO_BOX_TYPE_DEFAULT)
+                                .new RadioBox('RadioBoxColor2', 'Black', 2, RadioBox::RADIO_BOX_TYPE_BLACK)
+                                .new RadioBox('RadioBoxColor3', 'Info', 3, RadioBox::RADIO_BOX_TYPE_INFO)
+                                .new RadioBox('RadioBoxColor4', 'Success', 4, RadioBox::RADIO_BOX_TYPE_SUCCESS)
+                                .new RadioBox('RadioBoxColor5', 'Warning', 5, RadioBox::RADIO_BOX_TYPE_WARNING)
+                                .new RadioBox('RadioBoxColor6', 'Danger', 6, RadioBox::RADIO_BOX_TYPE_DANGER)
+                            )
+                            , 3),
+                        new FormColumn(array(
+                            new RadioBox('RadioBox1', 'RadioBox1', '1'),
+                            new RadioBox('RadioBox2', 'RadioBox2', '2'),
+                            new RadioBox('RadioBox3', 'RadioBox3', '3'),
+
+                        ), 2),
+                        new FormColumn(array(
+                            new RadioBox('RadioBox1', 'RadioBox1b', '1b'),
+                            new RadioBox('RadioBox2', 'RadioBox2b', '2b'),
+                            new RadioBox('RadioBox3', 'RadioBox3b', '3b'),
+                        ), 2),
+
+
+                    )),
+                    new FormRow(new FormColumn(new InfoText('<hr>'))),
                     new FormRow(array(
                         new FormColumn(array(
                             new ToggleCheckbox('Alle wählen/abwählen', $CheckBoxTable),
                             $CheckBoxTable
-                        ), 6),
+                        ), 4),
+                        new FormColumn(
+                            new CheckBox('CheckBox', 'CheckBox', 'c1')
+                        , 2),
                         new FormColumn(
                             new Layout( new LayoutGroup(new LayoutRow( array(
                                 new LayoutColumn(
@@ -339,53 +440,30 @@ class Frontend extends Extension implements IFrontendInterface
             )), new TitleForm('Editor und das '.htmlspecialchars('<tag>').' verhalten mit POST/REQUEST')), new Primary('Abschicken'))
             .new Layout(array(
                 new LayoutGroup(array(
+//                    new LayoutRow(array(
+//                        new LayoutColumn(array(
+//                            new Badge('Badge')
+//                        ), 3),
+//                        new LayoutColumn(array(
+//                            new Container('Container')
+//                        ), 3),
+//                        new LayoutColumn(array(
+//                            new Header('Header')
+//                        ), 3),
+//                    )),
+//                    new LayoutRow(array(
+//                        new LayoutColumn(array(
+//                            new PullRight('PullRight')
+//                        ), 3),
+//                    )),
                     new LayoutRow(array(
-//                        new LayoutColumn( array(
-//                            new Address( null )
-//                        ), 3 ),
-                        new LayoutColumn(array(
-                            new Badge('Badge')
-                        ), 3),
-                        new LayoutColumn(array(
-                            new Container('Container')
-                        ), 3),
-                        new LayoutColumn(array(
-                            new Header('Header')
-                        ), 3),
-                    )),
-                    new LayoutRow(array(
-                        new LayoutColumn(array(
-                            new Label('Label')
-                        ), 3),
-                        new LayoutColumn(array(
-                            new Listing('Listing')
-                        ), 3),
-                        new LayoutColumn(array(
-                            new Panel('Panel', array('Conten 1', 'Content 2', 'Content 3'),
-                                Panel::PANEL_TYPE_DEFAULT, 'Footer')
-                        ), 3),
-                        new LayoutColumn(array(
-                            new PullRight('PullRight')
-                        ), 3),
-                    )),
-                    new LayoutRow(array(
-                        new LayoutColumn(array(
-                            new Thumbnail(
-                                FileSystem::getFileLoader('/Common/Style/Resource/logo_kreide2.png'),
-                                'Title', 'Description',
-                                array(new \SPHERE\Common\Frontend\Link\Repository\Primary('Primary', ''))
-                            )
-                        ), 3),
-                        new LayoutColumn(array(
-                            new Well('Well')
-                        ), 3),
                         new LayoutColumn(
                             new TableData(array(
                                 array('A' => 1, 'B' => '2'),
                                 array('A' => 2, 'B' => '34567890'),
                                 array('A' => 'SelectBox Width Test DT', 'B' =>
                                     (new SelectBox('SelectBox2DT', 'SelectBox - jQuery Select2',
-                                    array('{{ Id }}{{ Name }}{{ Name }} {{ Id }}{{ Name }}{{ Name }}' => $Check)
+                                        array('{{ Id }}{{ Name }}{{ Name }} {{ Id }}{{ Name }}{{ Name }}' => $Check)
                                     ))->configureLibrary( SelectBox::LIBRARY_SELECT2 )
                                 ),
                                 array('A' => 'SelectCompleter', 'B' =>
@@ -394,24 +472,14 @@ class Frontend extends Extension implements IFrontendInterface
                                     )
                                 )
                             ))
-                            , 6),
-
-                    )),
-                    new LayoutRow(array(
+                        , 6),
                         new LayoutColumn(array(
-                            '<hr/>'
-                        )),
-
-                    )),
-
-                ), new Title('Layout-Title')),
-                new LayoutGroup(array(
-                    new LayoutRow(array(
-                        new LayoutColumn(new LayoutTabs(array(
-                            new LayoutTab('Name1', 0),
-                            new LayoutTab('Name2', 1),
-                            new LayoutTab('Name3', 2),
-                        )), 3),
+                            new Thumbnail(
+                                FileSystem::getFileLoader('/Common/Style/Resource/logo_kreide2.png'),
+                                'Title', 'Description',
+                                array(new PrimaryLink('Primary', ''))
+                            )
+                        ), 3),
                         new LayoutColumn(
                             (new LayoutSocial())
                                 ->addMediaItem('Head1', new Paragraph('Content').new Paragraph('Content'), new Time())
@@ -428,9 +496,23 @@ class Frontend extends Extension implements IFrontendInterface
                                             '<img src="/Common/Style/Resource/logo_kreide2.png" alt="Logo" class="image-responsive" style="width:20px;"/>',
                                             '', LayoutSocial::ALIGN_MIDDLE)
                                 )
-                            , 4),
+                        , 3),
+                    )),
+                    new LayoutRow(array(
+                        new LayoutColumn(array(
+                            '<hr/>'
+                        )),
                     )),
 
+                ), new Title('Layout-Title')),
+                new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn(new LayoutTabs(array(
+                            new LayoutTab('Name1', 0),
+                            new LayoutTab('Name2', 1),
+                            new LayoutTab('Name3', 2),
+                        )), 3),
+                    )),
                 ), new Title('Layout Development')),
                 new LayoutGroup(
                     new LayoutRow(array(
@@ -465,77 +547,7 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Test Site', '');
-//        echo ini_get('upload_max_filesize'), ", " , ini_get('post_max_size');
-
-//        // Editor Beispiel
-//        if(!isset($_POST['Feld1'])){
-//            $_POST['Feld1'] = '<strong>Wert 1</strong>';
-//        }
-//        if(!isset($_POST['Ebene1']['Feld2'])){
-//            $_POST['Ebene1']['Feld2'] = '<em><strong>Wert 2</strong></em>';
-//        }
-//        if(!isset($_POST['Ebene1']['Ebene2']['Feld3'])){
-//            $_POST['Ebene1']['Ebene2']['Feld3'] = '<span style="text-decoration: underline;"><strong>Wert 3</strong></span>';
-//        }
-//        if(!isset($_POST['Feld4'])){
-//            $_POST['Feld4'] = '<strong>Wert 4</strong>';
-//        }
-//        if(!isset($_POST['Feld5'])){
-//            $_POST['Feld5'] = '<strong>Wert 5</strong>';
-//        }
-//        if(!isset($_POST['Data']['Feld6'])){
-//            $_POST['Data']['Feld6'] = '<strong>Wert 6</strong>';
-//        }
-//
-//        $TableEditorList = array();
-//        $Editor = array(
-//            'Description' => 'Inputfelder',
-//            'first' => new Editor('Feld1'),
-//            'second' => new Editor('Ebene1[Feld2]'),
-//            'third' => new Editor('Ebene1[Ebene2][Feld3]'),
-//            'fourth' => new TextArea('Feld4'),
-//            'fifth' => new TextField('Feld5'),
-//            'sixth' => new TextField('Data[Feld6]')
-//        );
-//        $TableEditorList[] = $Editor;
-//        $Editor = array('Description' => 'Feldobjekt',
-//                        'first' => 'Editor',
-//                        'second' => 'Editor 2 Ebenen im POST',
-//                        'third' => 'Editor 3 Ebenen im POST',
-//                        'fourth' => 'Text Area',
-//                        'fifth' => 'Text Filed',
-//                        'sixth' => 'Text Filed 2 Ebenen im POST'
-//        );
-//        $TableEditorList[] = $Editor;
-//        $Editor = array('Description' => 'Verhalten',
-//                        'first' => 'behält HTML Tags',
-//                        'second' => 'behält HTML Tags',
-//                        'third' => 'behält HTML Tags',
-//                        'fourth' => 'trimt die HTML Tags weg',
-//                        'fifth' => 'trimt die HTML Tags weg',
-//                        'sixth' => 'trimt die HTML Tags weg'
-//        );
-//        $TableEditorList[] = $Editor;
-//
-//        $Stage->setContent(
-//            new Form(new FormGroup(new FormRow(array(new FormColumn(
-//                new TableData($TableEditorList, null,
-//                    array(
-//                        'Description' => 'Zeilenbeschreibung',
-//                        'first'       => 'Spalte 1',
-//                        'second'      => 'Spalte 2',
-//                        'third'       => 'Spalte 3',
-//                        'fourth'      => 'Spalte 4',
-//                        'fifth'       => 'Spalte 5',
-//                        'sixth'       => 'Spalte 6'
-//                    ),
-//                    false
-//                )),
-//            )), new TitleForm('Editor und das '.htmlspecialchars('<tag>').' verhalten mit POST/REQUEST')), new Primary('Abschicken'))
-//        );
-
         if(!$PersonId){
-
             $Picture = '';
             $TableContent = array();
             if(($tblPersonAll = Person::useService()->getPersonAll())){

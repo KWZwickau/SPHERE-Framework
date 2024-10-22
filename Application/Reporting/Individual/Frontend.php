@@ -427,26 +427,16 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         return (new ApiIndividual())->downloadFile($ViewType);
-//        $Stage = new Stage('Dokument wird vorbereitet');
-//        $Stage->setContent(new Layout(new LayoutGroup(array(
-//                new LayoutRow(array(
-//                    new LayoutColumn(array(
-//                        new Paragraph('Dieser Vorgang kann längere Zeit in Anspruch nehmen.'),
-//                        (new ProgressBar(0, 100, 0, 10))->setColor(
-//                            ProgressBar::BAR_COLOR_SUCCESS, ProgressBar::BAR_COLOR_SUCCESS, ProgressBar::BAR_COLOR_STRIPED
-//                        ),
-//                        new Paragraph('Bitte warten ..'),
-//                        "<button type=\"button\" class=\"btn btn-default\" onclick=\"window.open('', '_self', ''); window.close();\">Abbrechen</button>"
-//                    ), 4),
-//                )),
-//                new LayoutRow(
-//                    new LayoutColumn(
-//                        new RedirectScript($Route, 1, $this->getGlobal()->GET)
-//                    )
-//                ),
-//            )))
-//        );
-//
-//        return $Stage;
+    }
+
+    /**
+     * @param string $ViewType
+     *
+     * @return string
+     */
+    public function frontendCsvDownload($ViewType = TblWorkSpace::VIEW_TYPE_ALL)
+    {
+
+        return (new ApiIndividual())->downloadCsvFile($ViewType);
     }
 }

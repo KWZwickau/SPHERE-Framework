@@ -294,7 +294,7 @@ class Billing extends AbstractDocument
     private function getHeaderSlice($Height = '200px')
     {
         if(GatekeeperConsumer::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'HOGA')){
-            $pictureAddress = 'Common/Style/Resource/Document/Hoga/HOGA-Briefbogen_without_space.png';
+            $pictureAddress = 'Common/Style/Resource/Document/Hoga/HOGA-Briefbogen_2024_without_space.png';
             $pictureHeight = '370';
         } else {
             if(($tblSetting = Consumer::useService()->getSetting(
