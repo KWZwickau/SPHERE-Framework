@@ -1825,7 +1825,7 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                 return new Layout(new LayoutGroup(new LayoutRow(array(
                     new LayoutColumn(
                         new Form(new FormGroup(new FormRow(new FormColumn($FieldList)))
-                            , new Submit( 'Herunterladen', new Download(), true ), new Route(__NAMESPACE__.'/Download'), array('ViewType' => $ViewType)
+                            , new Submit( 'Excel Herunterladen', new Download(), true ), new Route(__NAMESPACE__.'/Download'), array('ViewType' => $ViewType)
                         )
                     , 2),
                     new LayoutColumn(
