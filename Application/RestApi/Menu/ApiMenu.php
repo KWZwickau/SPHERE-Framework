@@ -3,6 +3,7 @@
 namespace SPHERE\Application\RestApi\Menu;
 
 use SPHERE\Application\ParentStudentAccess\OnlineAbsence\OnlineAbsence;
+use SPHERE\Application\ParentStudentAccess\OnlineTimeTable\OnlineTimeTable;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\RestApi\IApiInterface;
@@ -47,6 +48,17 @@ class ApiMenu implements IApiInterface
                     '/RestApi/Education/Absence/Load',
                     'OnlineAbsence',
                     'Fehlzeiten',
+                    $params
+                ))
+            ) {
+                $result[] = $item;
+            }
+
+            if (OnlineTimeTable::useService()->getPersonListFromAccountBySession()
+                && ($item = self::getMenuItem(
+                    '/RestApi/Education/ClassRegister/OnlineTimeTable/Load',
+                    'OnlineTimeTable',
+                    'Stundenplan',
                     $params
                 ))
             ) {

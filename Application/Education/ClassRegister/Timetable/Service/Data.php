@@ -2,6 +2,7 @@
 namespace SPHERE\Application\Education\ClassRegister\Timetable\Service;
 
 use DateTime;
+use PhpOffice\PhpSpreadsheet\Calculation\MathTrig\IntClass;
 use SPHERE\Application\Education\ClassRegister\Timetable\Service\Entity\TblTimetableNode;
 use SPHERE\Application\Education\ClassRegister\Timetable\Service\Entity\TblTimetable;
 use SPHERE\Application\Education\ClassRegister\Timetable\Service\Entity\TblTimetableReplacement;
@@ -167,15 +168,22 @@ class Data extends AbstractData
     /**
      * @param TblTimetable $tblTimetable
      * @param TblDivisionCourse $tblDivisionCourse
+     * @param Int|null $day
      *
      * @return false|TblTimetableNode[]
      */
-    public function getTimetableNodeListByTimetableAndDivisionCourse(TblTimetable $tblTimetable, TblDivisionCourse $tblDivisionCourse)
-    {
-        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblTimetableNode', array(
+    public function getTimetableNodeListByTimetableAndDivisionCourse(
+        TblTimetable $tblTimetable, TblDivisionCourse $tblDivisionCourse, ?Int $day = null
+    ): bool|array {
+        $parameters = array(
             TblTimetableNode::ATTR_TBL_CLASS_REGISTER_TIMETABLE => $tblTimetable->getId(),
             TblTimetableNode::ATTR_SERVICE_TBL_COURSE => $tblDivisionCourse->getId(),
-        ), array(
+        );
+        if ($day !== null) {
+            $parameters[TblTimetableNode::ATTR_DAY] = $day;
+        }
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblTimetableNode', $parameters , array(
             TblTimetableNode::ATTR_DAY => self::ORDER_ASC,
             TblTimetableNode::ATTR_HOUR => self::ORDER_ASC
         ));
