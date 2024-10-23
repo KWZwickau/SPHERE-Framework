@@ -194,6 +194,9 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/Download', __CLASS__.'::downloadFile'
         ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/CSV/Download', __CLASS__.'::downloadCsvFile'
+        ));
     }
 
     public static function useService()
@@ -1789,7 +1792,7 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
     /**
      * @param string $ViewType
      *
-     * @return null|Form
+     * @return null|string
      * @throws \Exception
      */
     private function getDownloadForm($ViewType = TblWorkSpace::VIEW_TYPE_ALL) {
@@ -1819,16 +1822,18 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                     }
                 }
 
-                return (new Form(
-                    new FormGroup(
-                        new FormRow(
-                            new FormColumn(
-                                $FieldList
-                            )
+                return new Layout(new LayoutGroup(new LayoutRow(array(
+                    new LayoutColumn(
+                        new Form(new FormGroup(new FormRow(new FormColumn($FieldList)))
+                            , new Submit( 'Excel Herunterladen', new Download(), true ), new Route(__NAMESPACE__.'/Download'), array('ViewType' => $ViewType)
                         )
-                    )
-                    , new Submit( 'Herunterladen', new Download(), true ), new Route(__NAMESPACE__.'/Download'), array('ViewType' => $ViewType))
-                );
+                    , 2),
+                    new LayoutColumn(
+                        new Form(new FormGroup(new FormRow(new FormColumn($FieldList)))
+                            , new Submit( 'CSV Herunterladen', new Download(), true ), new Route(__NAMESPACE__.'/CSV/Download'), array('ViewType' => $ViewType)
+                        )
+                    , 2)
+                ))));
             }
         }
         return null;
@@ -2502,6 +2507,53 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
     /**
      * @param string $ViewType
      *
+     * @return null|FilePointer
+     * @throws \MOC\V\Component\Document\Component\Exception\Repository\TypeFileException
+     * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
+     */
+    private function buildCsvFile($ViewType = TblWorkSpace::VIEW_TYPE_ALL)
+    {
+        $Result = array();
+        if(($Query = $this->buildSearchQuery($ViewType))) {
+            $Result = $Query->getResult();
+        }
+        if(!empty($Result)) {
+            $ColumnDTNames = array();
+            $ColumnDBNames = array_keys(current($Result));
+            array_walk($ColumnDBNames, function ($Name, $Index) use (&$ColumnDTNames) {
+                //                $ColumnDTNames[$Index] = preg_replace('!\_!is', ' ', $Name);
+                $ColumnDTNames[$Index] = $this->decodeField($Name);
+            });
+
+            $File = new FilePointer('csv','Auswertung');
+
+            /** @var PhpExcel $Document */
+            $Document = Document::getDocument( $File->getFileLocation() );
+            $Document->setDelimiter(';');
+
+            // Header
+            foreach ( $ColumnDTNames as $Index => $Name ) {
+                $Document->setValue( $Document->getCell( $Index, 0), $Name );
+                $Document->setStyle( $Document->getCell( $Index, 0) )->setFontBold()->setColumnWidth();
+            }
+
+            // Body
+            foreach( $Result as $RowIndex => $Row ) {
+                $ColumnCount = 0;
+                foreach( $Row as $Value ) {
+                    $Document->setValue( $Document->getCell( $ColumnCount++, $RowIndex+1 ), $Value );
+                }
+            }
+
+            $Document->saveFile( new FileParameter($File->getFileLocation()) );
+            return $File;
+        }
+        return null;
+    }
+
+    /**
+     * @param string $ViewType
+     *
      * @return string
      * @throws \MOC\V\Core\FileSystem\Exception\FileSystemException
      */
@@ -2511,33 +2563,32 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
         if(!$File){
             return 'Download der Auswertung konnte nicht erstellt werden, prüfen Sie Ihre Filterung';
         }
-
-//        /** @var PhpExcel $Document */
-//        $Document = Document::getDocument( $File->getFileLocation() );
-//        $X = $Document->getSheetRowCount();
-//        $Y = $Document->getSheetColumnCount();
-//
-//        $Rows = array();
-//        $Header = array();
-//        for( $XI = 1; $XI < $X; $XI++ ) {
-//            $Cols = array();
-//            for( $YI = 0; $YI < $Y; $YI++ ) {
-//                if( $XI == 1 ) {
-//                    $Header[$YI] = new TableColumn( $Document->getValue( $Document->getCell( $YI, $XI ) ) );
-//                } else {
-//                    $Cols[$YI] = new TableColumn($Document->getValue($Document->getCell($YI, $XI)));
-//                }
-//            }
-//            $Rows[] = new TableRow( $Cols );
-//        }
-
-//        return new Table( new TableHead( new TableRow( $Header ) ), new TableBody( $Rows ) );
-
         $FileName = 'Auswertung_';
         $FileName .= $this->getRealNameByViewType($ViewType);
         $FileName .= '_'.date('d-m-Y_H-i-s').'.xlsx';
 
         return FileSystem::getStream(
+            $File->getRealPath(), $FileName
+        )->__toString();
+    }
+
+    /**
+     * @param string $ViewType
+     *
+     * @return string
+     * @throws \MOC\V\Core\FileSystem\Exception\FileSystemException
+     */
+    public function downloadCsvFile($ViewType = TblWorkSpace::VIEW_TYPE_ALL)
+    {
+        $File = $this->buildCsvFile($ViewType);
+        if(!$File){
+            return 'Download der Auswertung konnte nicht erstellt werden, prüfen Sie Ihre Filterung';
+        }
+        $FileName = 'Auswertung_';
+        $FileName .= $this->getRealNameByViewType($ViewType);
+        $FileName .= '_'.date('d-m-Y_H-i-s').'.csv';
+
+        return FileSystem::getDownload(
             $File->getRealPath(), $FileName
         )->__toString();
     }

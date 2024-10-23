@@ -43,14 +43,17 @@ abstract class ServiceStudentSubject extends ServiceCourseSystem
      * @param TblPerson $tblPerson
      * @param TblYear $tblYear
      * @param TblSubject $tblSubject
+     * @param bool $ignoreStudentEducationCheck
      *
      * @return false|TblStudentSubject
      */
-    public function getStudentSubjectByPersonAndYearAndSubject(TblPerson $tblPerson, TblYear $tblYear, TblSubject $tblSubject)
+    public function getStudentSubjectByPersonAndYearAndSubject(TblPerson $tblPerson, TblYear $tblYear, TblSubject $tblSubject, bool $ignoreStudentEducationCheck = false)
     {
-        // ohne Schüler-Bildung für das Schuljahr keine Fächer
-        if (!DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear)) {
-            return false;
+        if (!$ignoreStudentEducationCheck) {
+            // ohne Schüler-Bildung für das Schuljahr keine Fächer
+            if (!DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear)) {
+                return false;
+            }
         }
 
         return (new Data($this->getBinding()))->getStudentSubjectByPersonAndYearAndSubject($tblPerson, $tblYear, $tblSubject);

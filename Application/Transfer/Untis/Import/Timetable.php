@@ -231,11 +231,11 @@ class Timetable extends Extension implements IModuleInterface
         $fileContent = file_get_contents($File->getRealPath());
         // wahrscheinlich sind die verschiedenen Untis Versionen verschieden codiert
         // Herausforderung sind die Umlaute
-        if (GatekeeperConsumer::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'HOGA')) {
-            $Payload001->setFileContent($fileContent);
-        } else {
+//        if (GatekeeperConsumer::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'HOGA')) {
+//            $Payload001->setFileContent($fileContent);
+//        } else {
             $Payload001->setFileContentWithEncoding($fileContent);
-        }
+//        }
         $Payload001->saveFile();
 
         $Gateway001 = new TimetableGPU001($Payload001->getRealPath(), $Data);

@@ -385,7 +385,7 @@ class EnrollmentDocument extends AbstractDocument
                     ->addSection((new Section())
                         ->addElementColumn(
                             (new Element\Image(
-                                '/Common/Style/Resource/Document/Hoga/HOGA-Briefbogen_2019_allgemein_ohne.png',
+                                '/Common/Style/Resource/Document/Hoga/HOGA-Briefbogen_2024.png',
                                 $width . 'px',
                                 ($width * 1.414) . 'px')
                             )
