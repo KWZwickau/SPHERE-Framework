@@ -677,6 +677,7 @@ abstract class ServiceTabs extends ServiceCourseContent
                         'paging' => false,
                         'columnDefs' => array(
                             array('type'  => Consumer::useService()->getGermanSortBySetting(), 'targets' => array(1, -7)),
+                            array('type' => 'natural', 'targets' => array(-2, -3)),
                             array('width' => '60px', 'targets' => 3),
                             array('width' => '60px', 'targets' => -2),
                             array('width' => '60px', 'targets' => -3),
