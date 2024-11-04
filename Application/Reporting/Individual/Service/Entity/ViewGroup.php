@@ -74,16 +74,16 @@ class ViewGroup extends AbstractView
     {
 
         //NameDefinition
-//        $this->setNameDefinition(self::TBL_GROUP_ID, 'Gruppe: Name');
-        $this->setNameDefinition(self::TBL_GROUP_NAME, 'Gruppe: Name');
+        $this->setNameDefinition(self::TBL_GROUP_ID, 'Gruppe: Name');
+//        $this->setNameDefinition(self::TBL_GROUP_NAME, 'Gruppe: Name');
         $this->setNameDefinition(self::TBL_GROUP_DESCRIPTION, 'Gruppe: Beschreibung');
         $this->setNameDefinition(self::TBL_GROUP_REMARK, 'Gruppe: Bemerkung');
 
 
         //GroupDefinition
         $this->setGroupDefinition('Gruppeninformation', array(
-//            self::TBL_GROUP_ID,
-            self::TBL_GROUP_NAME,
+            self::TBL_GROUP_ID,
+//            self::TBL_GROUP_NAME,
             self::TBL_GROUP_DESCRIPTION,
             self::TBL_GROUP_REMARK,
         ));
@@ -142,10 +142,10 @@ class ViewGroup extends AbstractView
 //                $Data = Group::useService()->getPropertyList( new TblGroup(''), TblGroup::ATTR_NAME );
                 $Field = $this->getFormFieldSelectBox( $Data, $PropertyName, $Label, $Icon, $doResetCount, false);
                 break;
-            case self::TBL_GROUP_NAME:
-                $Data = Group::useService()->getPropertyList(new TblGroup(''), TblGroup::ATTR_NAME);
-                $Field = $this->getFormFieldSelectBox($Data, $PropertyName, $Label, $Icon, $doResetCount, true);
-                break;
+//            case self::TBL_GROUP_NAME:
+//                $Data = Group::useService()->getPropertyList(new TblGroup(''), TblGroup::ATTR_NAME);
+//                $Field = $this->getFormFieldSelectBox($Data, $PropertyName, $Label, $Icon, $doResetCount, true);
+//                break;
             default:
                 $Field = parent::getFormField( $PropertyName, $Placeholder, $Label, ($Icon?$Icon:new Pencil()), $doResetCount );
                 break;

@@ -247,7 +247,7 @@ class ViewGroupStudentTechnicalSchool extends AbstractView
         switch ($PropertyName) {
             case self::TBL_STUDENT_TECHNICAL_SCHOOL_HAS_FINANCIAL_AID:
                 $Data = array( 0 => 'Nein', 1 => 'Ja' );
-                $Field = $this->getFormFieldSelectBox( $Data, $PropertyName, $Label, $Icon, $doResetCount, true );
+                $Field = $this->getFormFieldSelectBox( $Data, $PropertyName, $Label, $Icon, $doResetCount );
                 break;
             case self::TBL_SCHOOL_DIPLOMA_NAME:
                 $Data = Course::useService()->getPropertyList(new TblSchoolDiploma(), TblSchoolDiploma::ATTR_NAME);
