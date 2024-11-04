@@ -392,7 +392,6 @@ abstract class AbstractView extends Element
         }
         if(!isset($Data[0])){
             // Id Listen sollen mit dem Eintrag für 0 erweitert werden (ohne die Id's zu verschieben)
-            // ToDO Data[0] wird bei $doKeyConvertToText angehangen aber ignoriert
             if( $PropertyCount == 1) {
                 $Data[0] = '-[ Alle ]-';
             } else {
