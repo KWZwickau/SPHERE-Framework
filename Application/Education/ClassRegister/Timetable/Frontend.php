@@ -886,7 +886,7 @@ class Frontend extends Extension implements IFrontendInterface
             }
 
             $columns = array();
-            if (($fromDateTime = $tblTimetable->getDateFrom(true)) && ($toDateTime = $tblTimetable->getDateTo(true))
+            if (($fromDateTime = new \DateTime($tblTimetable->getDateFrom())) && ($toDateTime = $tblTimetable->getDateTo(true))
                 && $toDateTime > $fromDateTime
             ) {
                 while ($fromDateTime <= $toDateTime) {
