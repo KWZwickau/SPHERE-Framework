@@ -119,6 +119,7 @@ class Frontend extends Extension implements IFrontendInterface
                         'columnDefs' => array(
                             array('type' => 'natural', 'targets' => array(1,3)),
                             array("orderable" => false, "targets"   => -1),
+                            array('searchable' => false, 'targets' => array(-1, -2)),
                         ),
                         'order' => array(
                             array(0, 'desc'),
