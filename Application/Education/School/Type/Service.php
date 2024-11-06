@@ -162,6 +162,7 @@ class Service extends AbstractService
             case 'ISS':
             case 'RS':
             case 'OS': return 10;
+            case 'GMS':
             case 'Gy': return 12;
 
             case 'BGy': return 13;
