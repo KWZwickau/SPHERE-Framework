@@ -189,8 +189,6 @@ class FrontendStudentBasic extends FrontendReadOnly
         $tblStudentAll = Student::useService()->getStudentAll();
         $AutoCompleteMigrationBackground = new AutoCompleter('Meta[Student][MigrationBackground]', 'Herkunftssprache', '',
             array('MigrationBackground' => $tblStudentAll));
-        // logik für die Checkbox drehen
-        $AutoCompleteMigrationBackground->setDisabled();
 
         return (new Form(array(
             new FormGroup(array(
@@ -253,7 +251,7 @@ class FrontendStudentBasic extends FrontendReadOnly
                             new CheckBox(
                                 'Meta[Student][HasMigrationBackground]',
                                 'Herkunftssprache ist nicht oder nicht ausschließlich Deutsch',
-                                1, array('Meta[Student][MigrationBackground]', 'Meta[Student][Test]')
+                                1
                             ),
                             $AutoCompleteMigrationBackground
                         ), Panel::PANEL_TYPE_INFO)
