@@ -12,6 +12,7 @@ use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareSt
 use SPHERE\Application\Education\Graduation\Grade\Grade;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTask;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\IFormInterface;
@@ -780,5 +781,20 @@ abstract class ServiceAbitur extends AbstractService
                 'PrepareId' => $tblPrepare->getId(),
                 'Route' => 'Diploma'
             ));
+    }
+
+    /**
+     * @param TblPrepareAdditionalGrade $tblPrepareAdditionalGrade
+     * @param TblSubject $tblSubject
+     * @param $grade
+     *
+     * @return bool
+     */
+    public function updatePrepareAdditionalGradeAndSubject(
+        TblPrepareAdditionalGrade $tblPrepareAdditionalGrade,
+        TblSubject $tblSubject,
+        $grade,
+    ): bool {
+        return (new Data($this->getBinding()))->updatePrepareAdditionalGradeAndSubject($tblPrepareAdditionalGrade, $tblSubject, $grade);
     }
 }

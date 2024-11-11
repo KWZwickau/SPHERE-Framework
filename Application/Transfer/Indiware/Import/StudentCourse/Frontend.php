@@ -223,12 +223,14 @@ class Frontend extends Extension implements IFrontendInterface
      */
     public function frontendImportSelectedCourse($File = null, $Data = null) : Stage
     {
-        $stage = new Stage('Import', 'Abitur Kurseinbringung');
+        $stage = new Stage('Import', 'Abitur Kurseinbringung und Prüfungsnoten');
         $stage->addButton(new Standard('Zurück', '/Transfer/Indiware/Import', new ChevronLeft()));
 
         $list = array();
         $tblSchoolTypeGy = Type::useService()->getTypeByShortName('Gy');
+
         if (($tblYearList = Term::useService()->getYearByNow())) {
+//        if (($tblYearList = Term::useService()->getYearAllByDate(new \DateTime('01.06.2024')))) {
             foreach ($tblYearList as $tblYear) {
                 if (($tblGenerateCertificateList = Generate::useService()->getGenerateCertificateAllByYear($tblYear))) {
                     foreach ($tblGenerateCertificateList as $tblGenerateCertificate) {
