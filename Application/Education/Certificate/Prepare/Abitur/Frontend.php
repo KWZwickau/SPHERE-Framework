@@ -28,6 +28,7 @@ use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
+use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
@@ -80,7 +81,7 @@ class Frontend extends Extension
         $headerColumns = array();
         $headerColumns[] = new LayoutColumn(
             new Panel(
-                $tblDivisionCourse->getDisplayName(),
+                $tblDivisionCourse->getTypeName(),
                 $tblDivisionCourse->getDisplayName(),
                 Panel::PANEL_TYPE_INFO
             )
@@ -154,12 +155,40 @@ class Frontend extends Extension
                     $resultBlockII = new Warning(new Disable() . ' ' . $resultBlockII . ' von mindestens 100');
                 }
 
+                // Klassenstufe 10
+                if (($tblPrepareInformation = Prepare::useService()->getPrepareInformationBy(
+                        $tblPrepare,
+                        $tblPerson,
+                        'LevelTenGradesAreNotShown'
+                    ))
+                    && $tblPrepareInformation->getValue()
+                ) {
+                    $contentLevenTen = new Success(new Check() . ' ' .'Ausweisung abgelehnt');
+                } elseif (($tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('LEVEL-' . $levelTen))
+                    && ($tblPrepareAdditionalGradeList = Prepare::useService()->getPrepareAdditionalGradeListBy(
+                        $tblPrepare,
+                        $tblPerson,
+                        $tblPrepareAdditionalGradeType
+                    ))
+                ) {
+                    $tempList = [];
+                    foreach ($tblPrepareAdditionalGradeList as $tblPrepareAdditionalGrade) {
+                        if (($tblSubject = $tblPrepareAdditionalGrade->getServiceTblSubject())) {
+                            $tempList[] = $tblSubject->getAcronym();
+                        }
+                    }
+                    $contentLevenTen = new Success(new Check() . ' ' . implode(', ', $tempList));
+                } else {
+                    $contentLevenTen = new Warning(new Disable());
+                }
+
                 $studentTable[] = array(
                     'Number' => $count++,
                     'Name' => $tblPerson->getLastFirstName(),
                     'SelectedCourses' => $countCourses,
                     'ResultBlockI' => $resultBlockI,
                     'ResultBlockII' => $resultBlockII,
+                    'LevelTen' => $contentLevenTen,
                     'Option' => ($tblCertificate
                         ?
                         (new Standard(
@@ -228,6 +257,7 @@ class Frontend extends Extension
                 'SelectedCourses' => 'Eingebrachte Kurse',
                 'ResultBlockI' => 'Block I Punktsumme',
                 'ResultBlockII' => 'Block II Punktsumme',
+                'LevelTen' => 'Klassenstufe 10',
                 'Option' => ' '
             ),
             array(
@@ -253,6 +283,15 @@ class Frontend extends Extension
             )
         );
 
+        $link = (new Standard(
+            'Klassenstufe 10 für alle Schüler automatisch erstellen', '/Education/Certificate/Prepare/Prepare/Diploma/Abitur/LevelTen/SetAll',
+            null,
+            array(
+                'PrepareId' => $tblPrepare->getId(),
+            ),
+            'Klassenstufe 10 für alle Schüler des Kurses automatisch erstellen'
+        ));
+
         $stage->setContent(
             new Layout(array(
                 new LayoutGroup(array(
@@ -261,6 +300,9 @@ class Frontend extends Extension
                     )
                 )),
                 new LayoutGroup(array(
+                    new LayoutRow(
+                        new LayoutColumn($link)
+                    ),
                     new LayoutRow(
                         new LayoutColumn($table)
                     )
@@ -650,5 +692,32 @@ class Frontend extends Extension
         }
 
         return $stage;
+    }
+
+    /**
+     * @param $PrepareId
+     *
+     * @return string
+     */
+    public function frontendPrepareDiplomaAbiturLevelTenSetAll($PrepareId = null): string
+    {
+        $stage = new Stage('Klassenstufe 10 für alle Schüler des Kurses automatisch erstellen');
+        if (($tblPrepare = Prepare::useService()->getPrepareById($PrepareId))) {
+            Prepare::useService()->prepareDiplomaAbiturLevelTenSetAll($tblPrepare);
+            $stage->setContent(new \SPHERE\Common\Frontend\Message\Repository\Success('Klassenstufe 10 wurde für alle Schüler des Kurses automatisch erstellt.',
+                new \SPHERE\Common\Frontend\Icon\Repository\Success()));
+
+            return $stage . new Redirect('/Education/Certificate/Prepare/Prepare/Diploma/Abitur/Preview', Redirect::TIMEOUT_SUCCESS, array(
+                    'PrepareId' => $PrepareId,
+                    'Route' => 'Diploma'
+                ));
+        } else {
+            $stage->setContent(new Danger('Kurs nicht gefunden!', new Exclamation()));
+
+            return $stage . new Redirect('/Education/Certificate/Prepare/Prepare/Diploma/Abitur/Preview', Redirect::TIMEOUT_WAIT, array(
+                    'PrepareId' => $PrepareId,
+                    'Route' => 'Diploma'
+                ));
+        }
     }
 }

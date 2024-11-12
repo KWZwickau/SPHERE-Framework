@@ -4,6 +4,7 @@ namespace SPHERE\Application\Education\Certificate\Prepare;
 
 use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Prepare\Abitur\BlockIView;
+use SPHERE\Application\Education\Certificate\Prepare\Abitur\LevelTen;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Data;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareAdditionalGrade;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareAdditionalGradeType;
@@ -796,5 +797,23 @@ abstract class ServiceAbitur extends AbstractService
         $grade,
     ): bool {
         return (new Data($this->getBinding()))->updatePrepareAdditionalGradeAndSubject($tblPrepareAdditionalGrade, $tblSubject, $grade);
+    }
+
+    /**
+     * @param TblPrepareCertificate $tblPrepare
+     *
+     * @return bool
+     */
+    public function prepareDiplomaAbiturLevelTenSetAll(TblPrepareCertificate $tblPrepare): bool
+    {
+        if (($tblDivisionCourse = $tblPrepare->getServiceTblDivision())
+            && ($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses())
+        ) {
+            foreach ($tblPersonList as $tblPerson) {
+                (new LevelTen($tblPerson, $tblPrepare));
+            }
+        }
+
+        return true;
     }
 }
