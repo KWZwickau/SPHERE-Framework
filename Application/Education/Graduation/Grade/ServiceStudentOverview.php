@@ -7,6 +7,7 @@ use SPHERE\Application\Api\Education\Graduation\Grade\ApiStudentOverview;
 use SPHERE\Application\Api\ParentStudentAccess\ApiOnlineGradebook;
 use SPHERE\Application\Document\Generator\Repository\Section;
 use SPHERE\Application\Document\Generator\Repository\Slice;
+use SPHERE\Application\Education\Graduation\Grade\Service\Data;
 use SPHERE\Application\Education\Graduation\Grade\Service\VirtualTestTask;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
@@ -705,5 +706,73 @@ abstract class ServiceStudentOverview extends ServiceScoreCalc
         }
 
         return array($bodyList, $headerList);
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     * @param bool $IsParentView
+     *
+     * @return array
+     */
+    public function getRecentGrades(TblPerson $tblPerson, TblYear $tblYear, bool $IsParentView = true): array
+    {
+        $resulList = array();
+        if (($tblGradeList =  (new Data($this->getBinding()))->getTestGradeListByPersonAndYear($tblPerson, $tblYear))) {
+            $tblTaskList = Grade::useService()->getTaskListByStudentAndYear($tblPerson, $tblYear);
+
+            $taskDate = null;
+            // automatische Bekanntgabe durch den Stichtagsnotenauftrag
+            if ($IsParentView && $tblTaskList) {
+                foreach ($tblTaskList as $tblTask) {
+                    if ($tblTask->getIsTypeBehavior()) {
+                        continue;
+                    }
+
+                    if (Grade::useService()->getTaskGradeListByTaskAndPerson($tblTask, $tblPerson)) {
+                        $taskDate = $tblTask->getDate();
+                    }
+                }
+            }
+
+            // automatische Bekanntgabe nach X Tagen
+            if (($tblSetting = Consumer::useService()->getSetting(
+                'Education', 'Graduation', 'Evaluation', 'AutoPublicationOfTestsAfterXDays'))
+            ) {
+                $AutoPublicationOfTestsAfterXDays = intval($tblSetting->getValue());
+            } else {
+                $AutoPublicationOfTestsAfterXDays = 28;
+            }
+
+            foreach ($tblGradeList as $tblTestGrade) {
+                if (($tblTest = $tblTestGrade->getTblTest())
+                    && ($tblSubject = $tblTest->getServiceTblSubject())
+                ) {
+                    if (!$IsParentView || $tblTest->getIsShownInParentView($tblTestGrade, $taskDate ?: null, $AutoPublicationOfTestsAfterXDays)) {
+                        // nicht teilgenommen
+                        if ($tblTestGrade->getGrade() === null) {
+                            continue;
+                        }
+
+                        $dateItem = $tblTestGrade->getDate() ?: $tblTest->getSortDate();
+
+                        $resulList[] = array(
+                            'Date' => $dateItem ? $dateItem->format('c') : null,
+                            'CreateDate' => $tblTestGrade->getEntityCreate() ? $tblTestGrade->getEntityCreate()->format('c') : null,
+                            'Subject' => array(
+                                'Name' => $tblSubject->getName(),
+                                'Acronym' => $tblSubject->getAcronym(),
+                            ),
+                            'GradeType' => $tblTest->getTblGradeType()->getCode(),
+                            'Grade' => $tblTestGrade->getGrade(),
+                            'Description' => $tblTest->getDescription(),
+                            'PublicComment' => $tblTestGrade->getPublicComment(),
+                        );
+                    }
+                }
+            }
+        }
+
+        return $resulList;
     }
 }

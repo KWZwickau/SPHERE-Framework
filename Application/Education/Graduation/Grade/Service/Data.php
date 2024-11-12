@@ -765,4 +765,36 @@ class Data extends DataTask
 
         return 0;
     }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     *
+     * @return TblTestGrade[]|false
+     */
+    public function getTestGradeListByPersonAndYear(TblPerson $tblPerson, TblYear $tblYear): bool|array
+    {
+        $Manager = $this->getEntityManager();
+        $queryBuilder = $Manager->getQueryBuilder();
+
+        $query = $queryBuilder->select('g')
+            ->from(TblTestGrade::class, 'g')
+            ->join(TblTest::class, 't')
+            ->where(
+                $queryBuilder->expr()->andX(
+                    $queryBuilder->expr()->eq('g.tblGraduationTest', 't.Id'),
+                    $queryBuilder->expr()->eq('g.serviceTblPerson', '?1'),
+                    $queryBuilder->expr()->eq('t.serviceTblYear', '?2'),
+                    $queryBuilder->expr()->isNull('g.EntityRemove'),
+                ),
+            )
+            ->setParameter(1, $tblPerson->getId())
+            ->setParameter(2, $tblYear->getId())
+            ->orderBy('g.EntityCreate', 'DESC')
+            ->getQuery();
+
+        $resultList = $query->getResult();
+
+        return empty($resultList) ? false : $resultList;
+    }
 }

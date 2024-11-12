@@ -88,9 +88,9 @@ class Service
     }
 
     /**
-     * @return array
+     * @return bool|array
      */
-    public function getPersonListFromAccountBySession(): array
+    public function getPersonListFromAccountBySession(): bool|array
     {
         if (($tblAccount = Account::useService()->getAccountBySession())
             && ($tblUserAccount = UserAccount::useService()->getUserAccountByAccount($tblAccount))
