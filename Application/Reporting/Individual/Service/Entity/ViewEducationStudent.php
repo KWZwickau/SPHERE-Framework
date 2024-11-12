@@ -249,7 +249,7 @@ class ViewEducationStudent extends AbstractView
 //                break;
             case self::TBL_TYPE_NAME:
                 $Data = Type::useService()->getPropertyList(new TblType(), TblType::ATTR_NAME);
-                $Field = $this->getFormFieldSelectBox($Data, $PropertyName, $Label, $Icon, $doResetCount, true);
+                $Field = $this->getFormFieldSelectBox($Data, $PropertyName, $Label, $Icon, $doResetCount);
                 break;
             case self::TBL_YEAR_YEAR:
                 $Data = Term::useService()->getPropertyList( new TblYear(), TblYear::ATTR_YEAR );
@@ -279,7 +279,7 @@ class ViewEducationStudent extends AbstractView
                     }
                 }
                 if(!empty($Data)){
-                    $Field = $this->getFormFieldSelectBox($Data, $PropertyName, $Label, $Icon, $doResetCount, true);
+                    $Field = $this->getFormFieldSelectBox($Data, $PropertyName, $Label, $Icon, $doResetCount);
                 } else {
                     $Field = parent::getFormField( $PropertyName, $Placeholder, $Label, ($Icon?$Icon:new Pencil()), $doResetCount );
                 }
@@ -294,7 +294,7 @@ class ViewEducationStudent extends AbstractView
                     }
                 }
                 if(!empty($Data)){
-                    $Field = $this->getFormFieldSelectBox($Data, $PropertyName, $Label, $Icon, $doResetCount, true);
+                    $Field = $this->getFormFieldSelectBox($Data, $PropertyName, $Label, $Icon, $doResetCount);
                 } else {
                     $Field = parent::getFormField( $PropertyName, $Placeholder, $Label, ($Icon?$Icon:new Pencil()), $doResetCount );
                 }
