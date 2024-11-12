@@ -272,7 +272,7 @@ class ViewStudent extends AbstractView
         switch ($PropertyName) {
             case self::TBL_STUDENT_TRANSPORT_IS_DRIVER_STUDENT:
                 $Data = array( 0 => 'Nein', 1 => 'Ja' );
-                $Field = $this->getFormFieldSelectBox( $Data, $PropertyName, $Label, $Icon, $doResetCount, true );
+                $Field = $this->getFormFieldSelectBox( $Data, $PropertyName, $Label, $Icon, $doResetCount );
                 break;
             case self::SIBLINGS_COUNT:
                 $PropertyCount = $this->calculateFormFieldCount( $PropertyName, $doResetCount );

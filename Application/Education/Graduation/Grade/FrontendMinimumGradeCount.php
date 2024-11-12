@@ -135,7 +135,9 @@ class FrontendMinimumGradeCount extends FrontendGradeType
      */
     private function formMinimumGradeCount(): Form
     {
-        $tblGradeTypeList = Grade::useService()->getGradeTypeList(false);
+        if (!($tblGradeTypeList = Grade::useService()->getGradeTypeList(false))) {
+            $tblGradeTypeList = array();
+        }
 
         $tblGradeTypeList[] = new SelectBoxItem(-SelectBoxItem::HIGHLIGHTED_ALL, 'Alle Zensuren-Typen');
         $tblGradeTypeList[] = new SelectBoxItem(-SelectBoxItem::HIGHLIGHTED_IS_HIGHLIGHTED, 'Nur große Zensuren-Typen (Fett markiert)');

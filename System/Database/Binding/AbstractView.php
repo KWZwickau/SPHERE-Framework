@@ -387,37 +387,30 @@ abstract class AbstractView extends Element
     protected function getFormFieldSelectBox( $Data, $PropertyName, $Label = null, $Icon = null, $doResetCount = false, $doKeyConvertToText = true) {
         $PropertyCount = $this->calculateFormFieldCount( $PropertyName, $doResetCount );
         // Make Value == Key for selecting Text-Value not Id
-        if( $doKeyConvertToText ) {
+        if ($doKeyConvertToText) {
             $Data = array_combine($Data, $Data);
-            // Add "ALL" Option
-            if(!empty($Data)){
-                if(!empty($Data)){
-                    if( $PropertyCount == 1) {
-                        $Data[0] = '-[ Alle ]-';
-                    } else {
-                        $Data[0] = '-[ Oder ]-';
-                    }
-                }
-            }
-        } else {
-            // Add "ALL" Option
-            // unshift weil es $Data[0] beim Daten holen schon gibt. -> Frontend Vorauswahl liegt aber auf 0
-            if( $PropertyCount == 1) {
-                array_unshift($Data, '-[ Alle ]-');
-            } else {
-                array_unshift($Data, '-[ Oder ]-');
-            }
         }
-        // Old version broken FrontendInputPost
-//        following part destroy IdKeys
-//        // Add "ALL" Option
-//        if( $PropertyCount == 1 ) {
-//            $Data = array_merge(array('' => 'Alle'), $Data);
+        if(!isset($Data[0])){
+            // Id Listen sollen mit dem Eintrag für 0 erweitert werden (ohne die Id's zu verschieben)
+            if( $PropertyCount == 1) {
+                $Data[0] = '-[ Alle ]-';
+            } else {
+                $Data[0] = '-[ Oder ]-';
+            }
+            // unshift funktioniert nicht mehr, "Alle" / "Oder" wird nicht mehr als Standard verwendet.
+            // für Id listen war dies eh problematisch, da es die Id's kaputt macht.
 //        } else {
-//            $Data = array_merge(array('' => 'ODER'), $Data);
-//        }
+//            // fallback (aktuell nicht in Verwendung
+//            // Add "ALL" Option
+//            // unshift weil es $Data[0] beim Daten holen schon gibt. -> Frontend Vorauswahl liegt aber auf 0
+//            if( $PropertyCount == 1) {
+//                array_unshift($Data, '-[ Alle ]-');
+//            } else {
+//                array_unshift($Data, '-[ Oder ]-');
+//            }
+        }
         return new SelectBox( $PropertyName.'['.$PropertyCount.']',
-            $Label, $Data, ($Icon?$Icon:new More()), $doKeyConvertToText ? true : false
+            $Label, $Data, ($Icon?$Icon:new More()), false // $doKeyConvertToText ? true : false
         );
     }
 

@@ -230,7 +230,7 @@ class Frontend extends FrontendTestPlanning
             list($testGradeList, $taskGradeList, $tblTestListNoTeacherLectureship, $integrationList, $pictureList, $courseList, $averagePeriodList,
                 $averagePersonList, $scoreRulePersonList, $averageTestSumList, $averageTestCountList, $hasStudents)
                 = $this->getTestGradeListAndTestListByPersonListAndSubject(
-                    $tblPersonList, $tblYear, $tblSubject, $tblDivisionCourse, $Filter, $tblTestList, $isEdit, $isCheckTeacherLectureship
+                    $tblPersonList, $tblYear, $tblSubject, $tblDivisionCourse, $Filter, $tblTestList, $isEdit, $isCheckTeacherLectureship, $inactiveStudentList
                 );
 
             $hasPicture = !empty($pictureList);
@@ -244,7 +244,9 @@ class Frontend extends FrontendTestPlanning
             $count = 0;
             if ($tblPersonList) {
                 foreach ($tblPersonList as $tblPerson) {
-                    if (($tblVirtualSubject = DivisionCourse::useService()->getVirtualSubjectFromRealAndVirtualByPersonAndYearAndSubject($tblPerson, $tblYear, $tblSubject))
+                    if (($tblVirtualSubject = DivisionCourse::useService()->getVirtualSubjectFromRealAndVirtualByPersonAndYearAndSubject(
+                            $tblPerson, $tblYear, $tblSubject, isset($inactiveStudentList[$tblPerson->getId()])
+                        ))
                         && ($tblVirtualSubject->getHasGrading() || $hasBehaviorTaskSetting)
                     ) {
 //                        $bodyList[$tblPerson->getId()]['Number'] = ($this->getTableColumnBody(++$count))->setClass("tableFixFirstColumn");
@@ -495,7 +497,7 @@ class Frontend extends FrontendTestPlanning
      * @return array[]
      */
     private function getTestGradeListAndTestListByPersonListAndSubject($tblPersonList, TblYear $tblYear, TblSubject $tblSubject, TblDivisionCourse $tblDivisionCourse,
-        $Filter, array &$tblTestList, $isEdit, $isCheckTeacherLectureship): array
+        $Filter, array &$tblTestList, $isEdit, $isCheckTeacherLectureship, array $inactiveStudentList): array
     {
         $tblPersonLogin = Account::useService()->getPersonByLogin();
         $DivisionCourseId = $tblDivisionCourse->getId();
@@ -536,7 +538,9 @@ class Frontend extends FrontendTestPlanning
                 && $tblSetting->getValue()
                 && Grade::useService()->getBehaviorTaskListByDivisionCourse($tblDivisionCourse);
             foreach ($tblPersonList as $tblPerson) {
-                if (($tblVirtualSubject = DivisionCourse::useService()->getVirtualSubjectFromRealAndVirtualByPersonAndYearAndSubject($tblPerson, $tblYear, $tblSubject))
+                if (($tblVirtualSubject = DivisionCourse::useService()->getVirtualSubjectFromRealAndVirtualByPersonAndYearAndSubject(
+                        $tblPerson, $tblYear, $tblSubject, isset($inactiveStudentList[$tblPerson->getId()])
+                    ))
                     && ($tblVirtualSubject->getHasGrading() || $hasBehaviorTaskSetting)
                 ) {
                     if ($tblVirtualSubject->getHasGrading()) {
@@ -630,8 +634,21 @@ class Frontend extends FrontendTestPlanning
                         $scoreRulePersonList[$tblPerson->getId()] = $tblScoreRule;
                     }
 
+                    $tblStudentEducation = false;
+                    if (isset($inactiveStudentList[$tblPerson->getId()])) {
+                        if (($tblStudentEducationList  = DivisionCourse::useService()->getStudentEducationListByPersonAndYear($tblPerson, $tblYear))) {
+                            foreach ($tblStudentEducationList as $tblStudentEducationTemp) {
+                                if ($tblStudentEducationTemp->isInActive()) {
+                                    $tblStudentEducation = $tblStudentEducationTemp;
+                                }
+                            }
+                        }
+                    } else {
+                        $tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear);
+                    }
+
                     // Schüler-Durchschnitte anzeigen
-                    if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))
+                    if ($tblStudentEducation
                         && ($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())
                     ) {
                         // SEKII
