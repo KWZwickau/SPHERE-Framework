@@ -1496,7 +1496,7 @@ class Creator extends Extension
 
         if (($tblPerson = Person::useService()->getPersonById($PersonId))
             && ($tblYear = Term::useService()->getYearById($YearId))
-            && ($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))
+            && ($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYearWithLeaved($tblPerson, $tblYear))
         ) {
             $hasAbsenceTypeOptions = false;
             $dataList = Absence::useService()->getStudentAbsenceDataForParentStudentAccess($tblPerson, $tblStudentEducation, $hasAbsenceTypeOptions);

@@ -1479,6 +1479,17 @@ class Service extends ServiceYearChange
 
     /**
      * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     *
+     * @return false|TblStudentEducation
+     */
+    public function getStudentEducationByPersonAndYearWithLeaved(TblPerson $tblPerson, TblYear $tblYear)
+    {
+        return (new Data($this->getBinding()))->getStudentEducationByPersonAndYearWithLeaved($tblPerson, $tblYear);
+    }
+
+    /**
+     * @param TblPerson $tblPerson
      * @param string $date
      *
      * @return false|TblStudentEducation
