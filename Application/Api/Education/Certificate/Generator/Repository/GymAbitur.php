@@ -157,13 +157,6 @@ class GymAbitur extends Certificate
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
                         ->setContent('
-                            {% if Content.P' . $personId . '.Person.Common.BirthDates.Gender == 2 %}
-                                Frau
-                            {% else %}
-                                {% if Content.P' . $personId . '.Person.Common.BirthDates.Gender == 1 %}
-                                    Herr
-                                {% endif %}
-                            {% endif %}
                             <u>&nbsp;&nbsp;&nbsp;&nbsp; {{ Content.P' . $personId . '.Person.Data.Name.First }} {{ Content.P' . $personId . '.Person.Data.Name.Last }} &nbsp;&nbsp;&nbsp;&nbsp;</u> 
                             hat die <b>Abiturprüfung bestanden</b> und die Berechtigung zum Studium an einer Hochschule in der
                             Bundesrepublik Deutschland erworben.
@@ -178,7 +171,7 @@ class GymAbitur extends Certificate
                         ->setContent('
                                 {{ Content.P' . $personId . '.Company.Address.City.Name }}, {{ Content.P' . $personId . '.Input.Date }}
                             ')
-                        ->styleMarginTop('70px')
+                        ->styleMarginTop('65px')
                         ->styleBorderBottom()
                         , '35%')
                     ->addElementColumn((new Element()))
@@ -285,22 +278,20 @@ class GymAbitur extends Certificate
             ->addSlice((new Slice())
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
-                        ->setContent('hat sich nach dem Besuch der gymnasialen Oberstufe der Abiturprüfung unterzogen.')
+                        ->setContent('hat sich nach dem Besuch der gymnasialen Oberstufe erfolgreich der Abiturprüfung unterzogen.')
                     )
                 )->styleMarginTop('20px')
             )
             ->addSlice((new Slice())
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
-                        ->setContent('
+                        ->setContent("
                         Dem Zeugnis liegen zugrunde: <br />
-                        – &nbsp;&nbsp; Vereinbarung zur Gestaltung der gymnasialen Oberstufe in der Sekundarstufe II (Beschluss der Kultusministerkonferenz vom <br />
-                          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;07.07.1972, in der jeweils geltenden Fassung) <br />
-                        – &nbsp;&nbsp; Vereinbarung über die Abiturprüfung der gymnasialen Oberstufe in der Sekundarstufe II (Beschluss der Kultusministerkon- <br />
-                          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ferenz vom 13.12.1973, in der jeweils geltenden Fassung) <br />
-                        – &nbsp;&nbsp; Schulordnung Gymnasien Abiturprüfung vom 27. Juni 2012 (SächsGVBl. S. 348), die zuletzt durch Artikel 1 der Verordnung <br />
-                          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;vom 7. Mai 2018 (SächsGVBl. S. 240) geändert worden ist, in der jeweils geltenden Fassung
-                        ')
+                        {$this->getBullet()} Vereinbarung zur Gestaltung der gymnasialen Oberstufe und der Abiturprüfung (Beschluss der <br />
+                        {$this->getBulletSpace()} Kultusministerkonferenz vom 07.07.1972 in der jeweils geltenden Fassung) <br />
+                        {$this->getBullet()} Schulordnung Gymnasien Abiturprüfung vom 30. Mai 2023 (SächsGVBl. S. 379, 668), die zuletzt durch die <br />
+                        {$this->getBulletSpace()} Verordnung vom 3. Juni 2024 (SächsGVBl. S. 554) geändert worden ist, in der jeweils geltenden Fassung <br />
+                        ")
                         ->styleTextSize('11px')
                     )
                 )->styleMarginTop('310px')
@@ -424,6 +415,7 @@ class GymAbitur extends Certificate
             ->addSection($this->setSubjectRow($personId, 'Biologie'))
             ->addSection($this->setSubjectRow($personId, 'Chemie'))
             ->addSection($this->setSubjectRow($personId, 'Physik'))
+            ->addSection($this->setSubjectRow($personId, 'Informatik'))
             ->addSection($this->setFieldRow())
             ->addSection($this->setSubjectRow($personId, 'RELIGION'))
             ->addSection($this->setSubjectRow($personId, 'Sport'));
@@ -444,7 +436,6 @@ class GymAbitur extends Certificate
         $slice
             ->addSection($this->setFieldRow())
             ->addSection($this->setSubjectRow($personId, 'Astronomie', false))
-            ->addSection($this->setSubjectRow($personId, 'Informatik', false))
             ->addSection($this->setSubjectRow($personId, 'Philosophie', false))
             ->addSection($this->setSubjectRow($personId, $tblCertificateSubject1 && $tblCertificateSubject1->getServiceTblSubject()
                 ? $tblCertificateSubject1->getServiceTblSubject()->getName() : '&nbsp;', false))
@@ -945,10 +936,10 @@ class GymAbitur extends Certificate
             }
         }
 
-        if ($subjectName == 'Informatik') {
-            $postfix = '5';
-            $width = '19%';
-        }
+//        if ($subjectName == 'Informatik') {
+//            $postfix = '5';
+//            $width = '19%';
+//        }
 
         $grades = array(
             '11-1' => '&ndash;',
@@ -1901,10 +1892,10 @@ class GymAbitur extends Certificate
             ->addSection($this->setInfoRow(1, 'Die Halbjahresergebnisse, die nicht in die Gesamtqualifikation eingehen, werden in Klammern gesetzt.'))
             ->addSection($this->setInfoRow(2, 'Alle Punktzahlen werden zweistellig angegeben.'))
             ->addSection($this->setInfoRow(3, 'Grundkursfächer bleiben ohne besondere Kennzeichnung. Leistungskursfächer sind in der betreffenden Zeile der Spalte „LF“ zu
-                 kennzeichnen.'))
-            ->addSection($this->setInfoRow(4, 'An Gymnasien gemäß § 38 Absatz 2 der Schulordnung Gymnasien Abiturprüfung sind die Fächer Ev./Kath. Religion dem gesellschaftswissenschaftli-<br />
-            chen Aufgabenfeld zugeordnet.'))
-            ->addSection($this->setInfoRow(5, 'mathematisch-naturwissenschaftlich-technisches Aufgabenfeld'))
+                kennzeichnen.'))
+            ->addSection($this->setInfoRow(4, 'An Gymnasien gemäß § 40 Absatz 2 der Schulordnung Gymnasien Abiturprüfung sind die Fächer Ev./Kath. Religion dem gesellschaftswissenschaftlichen
+                Aufgabenfeld zugeordnet.'))
+//            ->addSection($this->setInfoRow(5, 'mathematisch-naturwissenschaftlich-technisches Aufgabenfeld'))
 
             ;
 
@@ -1948,12 +1939,13 @@ class GymAbitur extends Certificate
             ->addSection((new Section())
                 ->addElementColumn((new Element())
                     ->styleBorderBottom()
+                    ->styleMarginBottom('5px')
                     , '30%')
                 ->addElementColumn((new Element())
                     , '70%')
             )
             ->styleMarginTop($marginTop)
-            ->addSection($this->setInfoRow(1, 'Das jeweilige Fach ist einzutragen. Die Ausweisung der Noten und Notenstufen kann der Schüler ablehnen (§ 65 Absatz 3 der Schulordnung Gymnasien Abiturprüfung).'))
+            ->addSection($this->setInfoRow(1, 'Das jeweilige Fach ist einzutragen. Die Ausweisung der Noten und Notenstufen kann kann die Schülerin oder der Schüler ablehnen ablehnen (§ 65 Absatz 3 der Schulordnung Gymnasien Abiturprüfung).'))
             ->addSection($this->setInfoRow(2, 'Gemeinsamer Europäischer Referenzrahmen für Sprachen'))
             ->addSection($this->setInfoRow(3, 'Nichtzutreffendes ist zu streichen.'))
         ;
@@ -1984,5 +1976,15 @@ class GymAbitur extends Certificate
             );
 
         return $section;
+    }
+
+    private function getBullet(): string
+    {
+        return '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&bull;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
+    }
+
+    private function getBulletSpace(): string
+    {
+        return '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
     }
 }
