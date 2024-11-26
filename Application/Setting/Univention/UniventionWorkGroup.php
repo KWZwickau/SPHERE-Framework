@@ -77,12 +77,17 @@ class UniventionWorkGroup
         foreach($UserList as &$Name){
             $Name = 'https://'.$this->server.'/v1/users/'.$Name;
         }
+        $UserNameList = array();
+        foreach($UserList as $User){
+            $UserNameList[] = $User;
+        }
+
         // URL Fähiger Gruppenname -> Create braucht den normal!
 //        $group = urlencode($group);
         $PersonContent = array(
             'name' => $group,
             'school' => $school,
-            'users' => $UserList,
+            'users' => $UserNameList,
         );
         $PersonContent = json_encode($PersonContent);
 //        return $PersonContent;
@@ -117,7 +122,9 @@ class UniventionWorkGroup
         if(false !== strpos($Json, 'Forbidden')){
             return $group.' '.new Bold('UCS: You don\'t have permission to access this resource.');
         }
-
+        if(false !== ( $msPos = strpos($Json, '"msg":"'))){
+            return $group.' '.new Bold(substr($Json, $msPos - 17));
+        }
         // Object to Array
         $StdClassArray = json_decode($Json, true);
         $Error = null;
