@@ -24,7 +24,7 @@ class BfsAbs extends BfsStyle
             'DateTo' => 'Besuchte "bis" die Fachschule',
             'BfsDestination'      => 'Berufsfachschule für ...',
 
-            'OperationTimeTotal' => 'Berufspraktische Ausbildung Dauer in Wochen',
+            'OperationTimeTotal' => 'Praktische Ausbildung Dauer in Wochen',
             'Operation1' => 'Einsatzgebiet 1',
             'OperationTime1' => 'Einsatzgebiet Dauer in Wochen 1',
             'Operation2' => 'Einsatzgebiet 2',

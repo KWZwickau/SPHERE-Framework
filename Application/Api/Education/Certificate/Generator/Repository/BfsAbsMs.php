@@ -26,7 +26,7 @@ class BfsAbsMs extends BfsStyle
             'DateTo' => 'Besuchte "bis" die Fachschule',
             'BfsDestination'      => 'Berufsfachschule für ...',
 
-            'OperationTimeTotal' => 'Berufspraktische Ausbildung Dauer in Wochen',
+            'OperationTimeTotal' => 'Praktische Ausbildung Dauer in Wochen',
             'Operation1' => 'Einsatzgebiet 1',
             'OperationTime1' => 'Einsatzgebiet Dauer in Wochen 1',
             'Operation2' => 'Einsatzgebiet 2',
@@ -362,7 +362,7 @@ class BfsAbsMs extends BfsStyle
         $Slice->stylePaddingBottom('10px');
         $Slice->addSection((new Section())
             ->addElementColumn((new Element())
-                ->setContent('<b>Berufspraktische Ausbildung</b> (Dauer:
+                ->setContent('<b>Praktische Ausbildung</b> (Dauer:
                     {% if(Content.P' . $personId . '.Input.OperationTimeTotal is not empty) %}
                         {{ Content.P' . $personId . '.Input.OperationTimeTotal }}
                     {% else %}
