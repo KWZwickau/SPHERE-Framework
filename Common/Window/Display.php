@@ -290,6 +290,24 @@ class Display extends Extension implements ITemplateInterface
         $this->Template->setVariable('BreadcrumbModule', $this->ModuleBreadcrumb);
         $this->Template->setVariable('NavigationService', implode('', $this->ServiceNavigation));
 
+        $tblAccount = Account::useService()->getAccountBySession();
+        $tblConsumer = Consumer::useService()->getConsumerBySession();
+        $UpdateDate = $tblConsumer->getEntityUpdate();
+        // Anzeige nur eingeloggt
+        if($tblAccount){
+            // Anzeige ab Datum anzeigen (ältere Datenabgleiche nicht bekannt)
+            if($UpdateDate >= new \DateTime('01.10.2024')) {
+                // Wo darf die Anzeige abgebildet werden: Server DEMO / Entwicklerumgebungen
+                switch (strtolower($this->getRequest()->getHost())) {
+                    case 'demo.schulsoftware.schule':
+                    case '192.168.109.128':
+                        $this->Template->setVariable('ConsumerUpdate', '<i>- Stand: '.$UpdateDate->format('d.m.Y').'</i>');
+                        break;
+                }
+            }
+        }
+
+
         $Debug = $this->getDebugger();
         $Runtime = $Debug->getRuntime();
 
