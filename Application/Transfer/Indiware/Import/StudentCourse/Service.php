@@ -10,8 +10,13 @@ use SPHERE\Application\Education\Certificate\Generate\Generate;
 use SPHERE\Application\Education\Certificate\Prepare\Abitur\BlockI;
 use SPHERE\Application\Education\Certificate\Prepare\Abitur\BlockIView;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
+use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareAdditionalGrade;
+use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareAdditionalGradeType;
+use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCertificate;
+use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Transfer\Education\Education;
 use SPHERE\Application\Transfer\Education\Service\Entity\TblImport;
@@ -242,6 +247,12 @@ class Service
                 }
             }
 
+            for ($i = 1; $i < 6; $i++) {
+                $Location['PrFach' . $i] = null;
+                $Location['PrPunkte' . $i] = null;
+                $Location['PrZusatzPunkte' . $i] = null;
+            }
+
             for ($RunX = 0; $RunX < $X; $RunX++) {
                 $Value = trim($Document->getValue($Document->getCell($RunX, 0)));
                 if (array_key_exists($Value, $Location)) {
@@ -405,11 +416,48 @@ class Service
                         $success[] =  $countSelectedCourse == 40
                             ? new SuccessText($text)
                             : new \SPHERE\Common\Frontend\Text\Repository\Warning($text);
+
+                        // Prüfungsnoten
+                        $countExams = 0;
+                        if (($tblPrepareAdditionalGradeTypeWrittenExam = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('WRITTEN_EXAM'))
+                            && ($tblPrepareAdditionalGradeTypeVerbalExam = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('VERBAL_EXAM'))
+                            && ($tblPrepareAdditionalGradeTypeExtraVerbalExam = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('EXTRA_VERBAL_EXAM'))
+                        ) {
+                            for ($i = 1; $i < 6; $i++) {
+                                if ($i < 4) {
+                                    $tblPrepareAdditionalGradeType = $tblPrepareAdditionalGradeTypeWrittenExam;
+                                } else {
+                                    $tblPrepareAdditionalGradeType = $tblPrepareAdditionalGradeTypeVerbalExam;
+                                }
+
+                                // Prüfungsfach
+                                if (($subject = trim($Document->getValue($Document->getCell($Location['PrFach' . $i], $RunY))))
+                                    && ($tblSubject = Subject::useService()->getSubjectByAcronym($subject))
+                                ) {
+                                    $countExams++;
+                                    // Prüfungsnote schriftlich oder mündlich
+                                    $grade = trim($Document->getValue($Document->getCell($Location['PrPunkte' . $i], $RunY)));
+                                    $this->saveExamGrade($tblPrepare, $tblPerson, $tblSubject, $tblPrepareAdditionalGradeType, $i, $grade);
+
+                                    // optional zusätzliche mündliche Prüfungsnote
+                                    if (($extraGrade = trim($Document->getValue($Document->getCell($Location['PrZusatzPunkte' . $i], $RunY)))) !== '') {
+                                        $this->saveExamGrade($tblPrepare, $tblPerson, $tblSubject, $tblPrepareAdditionalGradeTypeExtraVerbalExam, $i, $extraGrade);
+                                    }
+                                } else {
+                                    $error[] = 'Zeile: ' . ($RunY + 1) . ' Bei Person ' . $firstName . ' ' . $lastName
+                                        . ' wurde für die Prüfungsnote'. $i . ':' . $subject . ' das Fach nicht gefunden';
+                                }
+                            }
+                        }
+
+                        $text = $firstName . ' ' . $lastName . ' wurden ' . $countExams . ' von 5 Prüfungen importiert.';
+                        $success[] =  $countExams == 5
+                            ? new SuccessText($text)
+                            : new \SPHERE\Common\Frontend\Text\Repository\Warning($text);
                     }
                 }
 
                 return
-//                    new Success('Es wurden ' . $countPersons . ' Personen erfolgreich gefunden.') .
                     new Panel(
                         'Es wurden ' . $countPersons . ' Personen erfolgreich gefunden.',
                         $success,
@@ -434,5 +482,38 @@ class Service
         }
 
         return new Danger('File nicht gefunden');
+    }
+
+    /**
+     * @param TblPrepareCertificate $tblPrepare
+     * @param TblPerson $tblPerson
+     * @param TblSubject $tblSubject
+     * @param TblPrepareAdditionalGradeType $tblPrepareAdditionalGradeType
+     * @param int $ranking
+     * @param string $grade
+     *
+     * @return void
+     */
+    private function saveExamGrade(TblPrepareCertificate $tblPrepare, TblPerson $tblPerson, TblSubject $tblSubject,
+        TblPrepareAdditionalGradeType $tblPrepareAdditionalGradeType, int $ranking, string $grade
+    ): void {
+        if (($tblPrepareAdditionalGrade = Prepare::useService()->getPrepareAdditionalGradeByRanking(
+            $tblPrepare, $tblPerson, $tblPrepareAdditionalGradeType, $ranking
+        ))) {
+            Prepare::useService()->updatePrepareAdditionalGradeAndSubject(
+                $tblPrepareAdditionalGrade,
+                $tblSubject,
+                $grade,
+            );
+        } else {
+            Prepare::useService()->createPrepareAdditionalGrade(
+                $tblPrepare,
+                $tblPerson,
+                $tblSubject,
+                $tblPrepareAdditionalGradeType,
+                $ranking,
+                $grade
+            );
+        }
     }
 }
