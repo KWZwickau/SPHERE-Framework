@@ -13,6 +13,7 @@ use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareSt
 use SPHERE\Application\Education\Graduation\Grade\Grade;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
@@ -442,7 +443,7 @@ abstract class ServiceCertificateContent extends ServiceAbitur
                         $Content['P'.$personId]['DivisionTeacher']['Name'] = $tblPersonSigner->getFullName();
                         if ($level < 9
                             && $tblSchoolType
-                            && $tblSchoolType->getName() == 'Mittelschule / Oberschule'
+                            && $tblSchoolType->getName() == TblType::IDENT_OBER_SCHULE
                         ) {
                             $divisionTeacherDescription = 'Gruppenleiter';
                         }
@@ -457,7 +458,7 @@ abstract class ServiceCertificateContent extends ServiceAbitur
                         break;
                     case 'CSW':
                         if ($tblSchoolType
-                            && $tblSchoolType->getName() == 'Mittelschule / Oberschule'
+                            && $tblSchoolType->getName() == TblType::IDENT_OBER_SCHULE
                         ) {
                             $Content['P' . $personId]['DivisionTeacher']['Name'] = $tblPersonSigner->getFirstSecondName() . ' ' . $tblPersonSigner->getLastName();
                         } else {

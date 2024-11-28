@@ -237,7 +237,7 @@ class Service extends AbstractService
                                     $tblType = false;
                                 }
 
-                                // bei Mittelschule und primärer Förderschwerpunkt Lernen oder geistige Entwicklung soll keine
+                                // bei Oberschule und primärer Förderschwerpunkt Lernen oder geistige Entwicklung soll keine
                                 // Zeugnisvorlage vorausgewählt werden
                                 // SSW-1647 Noteninformation soll unabhängig vom FS immer gesetzt werden
                                 if ($tblType && !$this->checkAutoSelect($tblPerson, $tblType)

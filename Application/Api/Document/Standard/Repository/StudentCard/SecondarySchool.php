@@ -24,7 +24,7 @@ class SecondarySchool extends AbstractStudentCard
      */
     public function getName(): string
     {
-        return 'Schülerkartei - Mittelschule';
+        return 'Schülerkartei - ' . TblType::IDENT_OBER_SCHULE;
     }
 
     /**
@@ -59,7 +59,7 @@ class SecondarySchool extends AbstractStudentCard
         $Page->addSlice((new Slice())
             ->addSection((new Section())
                 ->addElementColumn((new Element())
-                    ->setContent('Mittelschule')
+                    ->setContent(TblType::IDENT_OBER_SCHULE)
                     ->styleHeight('30px')
                     ->styleTextSize('18px')
                     ->styleTextBold()

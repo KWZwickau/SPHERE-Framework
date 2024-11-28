@@ -109,7 +109,7 @@ class FrontendLeave extends FrontendDiplomaTechnicalSchool
                 foreach ($tblStudentEducationList as $tblStudentEducation) {
                     if (($tblPerson = $tblStudentEducation->getServiceTblPerson())
                         && ($tblType = $tblStudentEducation->getServiceTblSchoolType())
-                        && ($tblType->getName() == 'Mittelschule / Oberschule'
+                        && ($tblType->getName() == TblType::IDENT_OBER_SCHULE
                             || $tblType->getName() == 'Gymnasium'
                             || $tblType->getName() == 'Berufsfachschule'
                             || $tblType->getName() == 'Fachschule'
