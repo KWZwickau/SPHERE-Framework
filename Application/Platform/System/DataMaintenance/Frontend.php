@@ -32,6 +32,7 @@ use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Label;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\ProgressBar;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Title as TitleLayout;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
@@ -51,6 +52,7 @@ use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Center;
 use SPHERE\Common\Frontend\Text\Repository\Code;
 use SPHERE\Common\Window\Redirect;
+use SPHERE\Common\Window\RedirectScript;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 use SPHERE\System\Extension\Repository\Debugger;
@@ -58,7 +60,7 @@ use SPHERE\System\Extension\Repository\Debugger;
 class Frontend extends Extension implements IFrontendInterface
 {
     private int $ProtocolActiveDays = 365;
-    private int $deleteMax = 50000;
+    private int $deleteMax = 35000;
 
     public function frontendDataMaintenance()
     {
@@ -179,7 +181,7 @@ class Frontend extends Extension implements IFrontendInterface
         return $this->ProtocolActiveDays;
     }
 
-    public function frontendProtocol($doDelete = false)
+    public function frontendProtocol($doDelete = false, $loading = false, $time = '')
     {
 
         ini_set('memory_limit', '1G');
@@ -190,18 +192,47 @@ class Frontend extends Extension implements IFrontendInterface
         $DateTime->sub(new \DateInterval('P' . $this->ProtocolActiveDays . 'D'));
         $Stage = new Stage('Protokoll', 'Einträge');
         $Stage->addButton(new Standard('Zurück', __NAMESPACE__, new ChevronLeft()));
-        if(!$doDelete){
-            // holen der Anzahl
+
+        // Loding Screen
+        if($loading){
+            $Stage->setContent(new Layout(new LayoutGroup(new LayoutRow(array(
+                new LayoutColumn('', 2),
+                new LayoutColumn(new Container('Protokoll-Einträge werden gerade gelöscht.')
+                    .new ProgressBar(0,100,0,12)
+                    .new RedirectScript('/Platform/System/DataMaintenance/Protocol', 0, array('doDelete' => true)), 8),
+            )))));
+            return $Stage;
+        // Service Working
+        } elseif($doDelete) {
             $ProtocolCount = Protocol::useService()->getProtocolCountBeforeDate($DateTime);
-            $ProtocolFirstDate = 'kein Eintrag vorhanden';
-            if(($tblProtocol = Protocol::useService()->getProtocolFirstEntry())){
-                $ProtocolFirstDate = $tblProtocol->getEntityCreate()->format('d.m.Y');
+            Debugger::setTime();
+            if(Protocol::useService()->deleteProtocolAllBeforeDate($DateTime, $this->deleteMax)){
+                $executionTime = round(Debugger::getTime());
+                $Stage->setContent(
+                    new Layout(new LayoutGroup(new LayoutRow(array(
+                        new LayoutColumn(new Success('maximal '.number_format($this->deleteMax, 0,',', '.')
+                            .' Protokoll-Einträge in '.$executionTime.' Sek. erfolgreich bereinigt'
+                        .new Redirect('/Platform/System/DataMaintenance/Protocol', 0, array('time' => $executionTime))))
+                        , 5)
+                    ))));
+            } else {
+                $Stage->setContent(new Danger('Protokoll konnte nicht bereinigt werden'));
             }
-            $TimeInfo = 'Bei '.number_format($this->deleteMax, 0, ',', '.').' Einträgen dauert das löschen ca. 30 Sek.';
-            $Stage->setContent(
-                new Layout(new LayoutGroup(new LayoutRow(
-                    new LayoutColumn(
-                        new Panel(new Center(new Bold('Zusammenfassung')),
+            return $Stage;
+        }
+
+        // holen der Anzahl
+        $ProtocolCount = Protocol::useService()->getProtocolCountBeforeDate($DateTime);
+        $ProtocolFirstDate = 'kein Eintrag vorhanden';
+        if(($tblProtocol = Protocol::useService()->getProtocolFirstEntry())){
+            $ProtocolFirstDate = $tblProtocol->getEntityCreate()->format('d.m.Y');
+        }
+
+        $TimeInfo = 'Bei '.number_format($this->deleteMax, 0, ',', '.').' Einträgen dauert das löschen ca. 15 Sek.';
+        $Stage->setContent(
+            new Layout(new LayoutGroup(new LayoutRow(
+                new LayoutColumn(
+                    new Panel(new Center(new Bold('Zusammenfassung')),
                         array(
                             $this->InPanelLayout('zu löschende Protokolleinträge:', $ProtocolCount),
                             $this->InPanelLayout('Protokoll aktiv seit: ', $ProtocolFirstDate),
@@ -214,27 +245,18 @@ class Frontend extends Extension implements IFrontendInterface
                                             ? number_format($this->deleteMax, 0, ',', '.')
                                             :number_format($ProtocolCount, 0, ',', '.')
                                         ).') löschen'
-                                        , __NAMESPACE__.'/Protocol', new Remove(), array('doDelete' => true))
+                                        , __NAMESPACE__.'/Protocol', new Remove(), array('loading' => true))
                                     : new Success('Keine Protokolleinträge älter als '.$DateTime->format('d.m.Y'))
                                 )
                             ),
-                            new Warning(new Center('Durch exponentielles Wachstum der Zeit beim löschen von Daten, auf 50.000 beschränkt.')),
+                            new Warning(new Center('Durch exponentielles Wachstum der Zeit beim löschen von Daten, auf '
+                                    .number_format($this->deleteMax, 0,',', '.').' beschränkt.')
+                                , null, false, 3,0),
+                            ($time ? $this->InPanelLayout('Löschdauer:', $time.'Sek.') : '')
                         ))
                     , 5)
-                )))
-            );
-        } else {
-            Debugger::setTime();
-            if(Protocol::useService()->deleteProtocolAllBeforeDate($DateTime, $this->deleteMax)){
-                $executionTime = round(Debugger::getTime());
-                $Stage->setContent(
-                    new Success('Protokoll in '.$executionTime.' Sek. erfolgreich bereinigt')
-                    .new Redirect('/Platform/System/DataMaintenance/Protocol', Redirect::TIMEOUT_SUCCESS)
-                );
-            } else {
-                $Stage->setContent(new Danger('Protokoll konnte nicht bereinigt werden'));
-            }
-        }
+            )))
+        );
 
         return $Stage;
     }
