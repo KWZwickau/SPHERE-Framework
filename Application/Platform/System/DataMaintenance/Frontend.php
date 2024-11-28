@@ -13,6 +13,7 @@ use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account as AccountAuthorization;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblUser;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer as GatekeeperConsumer;
+use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Application\Setting\User\Account\Account;
 use SPHERE\Application\Setting\User\Account\Service\Entity\TblUserAccount;
@@ -31,6 +32,7 @@ use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Label;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Title as TitleLayout;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
@@ -46,13 +48,17 @@ use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Repository\Title;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
+use SPHERE\Common\Frontend\Text\Repository\Center;
 use SPHERE\Common\Frontend\Text\Repository\Code;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
+use SPHERE\System\Extension\Repository\Debugger;
 
 class Frontend extends Extension implements IFrontendInterface
 {
+    private int $ProtocolActiveDays = 365;
+    private int $deleteMax = 50000;
 
     public function frontendDataMaintenance()
     {
@@ -102,11 +108,19 @@ class Frontend extends Extension implements IFrontendInterface
         if (($tblPersonList = Person::useService()->getPersonAllBySoftRemove())) {
             $CountSoftRemovePerson = count($tblPersonList);
         }
-
+        $DateTime = new \DateTime();
+        $DateTime->sub(new \DateInterval('P' . $this->ProtocolActiveDays . 'D'));
+//        $ProtocolCount = Protocol::useService()->getProtocolCountBeforeDate($DateTime);
 
         $Stage->setContent( new Layout(
             new LayoutGroup(
                 new LayoutRow(array(
+                    new LayoutColumn(array(
+                            new TitleLayout('Protokoll älter als: '.$DateTime->format('d.m.Y')),
+//                            new Standard('Protokolleinträge ('.number_format($ProtocolCount, 0, ',', '.').')', __NAMESPACE__.'/Protocol'),
+                            new Standard('Protokolleinträge', __NAMESPACE__.'/Protocol'),
+                        )
+                    ),
                     new LayoutColumn(array(
                         new TitleLayout('Gelöschte Personen'),
                         ($CountSoftRemovePerson >= 1
@@ -148,6 +162,90 @@ class Frontend extends Extension implements IFrontendInterface
         ));
 
         return $Stage;
+    }
+
+//    public function getProtocolEntryCount()
+//    {
+//        $DateTime = new \DateTime();
+//        $DateTime->sub(new \DateInterval('P' . $this->ProtocolActiveDays . 'D'));
+//        $ProtocolCount = Protocol::useService()->getProtocolCountBeforeDate($DateTime);
+//        return $ProtocolCount;
+//    }
+    /**
+     * @return int
+     */
+    public function getProtocolActiveDays()
+    {
+        return $this->ProtocolActiveDays;
+    }
+
+    public function frontendProtocol($doDelete = false)
+    {
+
+        ini_set('memory_limit', '1G');
+        ini_set('display_errors', 1);
+
+        // ab wann sollen Protokoll-Einträge gelöcht werden
+        $DateTime = new \DateTime();
+        $DateTime->sub(new \DateInterval('P' . $this->ProtocolActiveDays . 'D'));
+        $Stage = new Stage('Protokoll', 'Einträge');
+        $Stage->addButton(new Standard('Zurück', __NAMESPACE__, new ChevronLeft()));
+        if(!$doDelete){
+            // holen der Anzahl
+            $ProtocolCount = Protocol::useService()->getProtocolCountBeforeDate($DateTime);
+            $ProtocolFirstDate = 'kein Eintrag vorhanden';
+            if(($tblProtocol = Protocol::useService()->getProtocolFirstEntry())){
+                $ProtocolFirstDate = $tblProtocol->getEntityCreate()->format('d.m.Y');
+            }
+            $TimeInfo = 'Bei '.number_format($this->deleteMax, 0, ',', '.').' Einträgen dauert das löschen ca. 30 Sek.';
+            $Stage->setContent(
+                new Layout(new LayoutGroup(new LayoutRow(
+                    new LayoutColumn(
+                        new Panel(new Center(new Bold('Zusammenfassung')),
+                        array(
+                            $this->InPanelLayout('zu löschende Protokolleinträge:', $ProtocolCount),
+                            $this->InPanelLayout('Protokoll aktiv seit: ', $ProtocolFirstDate),
+                            $this->InPanelLayout('Zieldatum (vor '.$this->ProtocolActiveDays.' Tagen): ', $DateTime->format('d.m.Y')),
+                            new Center($TimeInfo),
+                            new Center(
+                                ($ProtocolCount >= 1
+                                    ? new Standard('Protokolleinträge ('.
+                                        ($ProtocolCount >= $this->deleteMax
+                                            ? number_format($this->deleteMax, 0, ',', '.')
+                                            :number_format($ProtocolCount, 0, ',', '.')
+                                        ).') löschen'
+                                        , __NAMESPACE__.'/Protocol', new Remove(), array('doDelete' => true))
+                                    : new Success('Keine Protokolleinträge älter als '.$DateTime->format('d.m.Y'))
+                                )
+                            ),
+                            new Warning(new Center('Durch exponentielles Wachstum der Zeit beim löschen von Daten, auf 50.000 beschränkt.')),
+                        ))
+                    , 5)
+                )))
+            );
+        } else {
+            Debugger::setTime();
+            if(Protocol::useService()->deleteProtocolAllBeforeDate($DateTime, $this->deleteMax)){
+                $executionTime = round(Debugger::getTime());
+                $Stage->setContent(
+                    new Success('Protokoll in '.$executionTime.' Sek. erfolgreich bereinigt')
+                    .new Redirect('/Platform/System/DataMaintenance/Protocol', Redirect::TIMEOUT_SUCCESS)
+                );
+            } else {
+                $Stage->setContent(new Danger('Protokoll konnte nicht bereinigt werden'));
+            }
+        }
+
+        return $Stage;
+    }
+
+    private function InPanelLayout($contentLeft, $contentRight, $leftWith = 6)
+    {
+
+        return new Layout(new LayoutGroup(new LayoutRow(array(
+            new LayoutColumn(new PullRight($contentLeft), $leftWith),
+            new LayoutColumn(new Bold($contentRight), 12-$leftWith)
+        ))));
     }
 
     /**

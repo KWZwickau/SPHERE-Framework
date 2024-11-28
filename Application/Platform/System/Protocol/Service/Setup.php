@@ -4,6 +4,7 @@ namespace SPHERE\Application\Platform\System\Protocol\Service;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
 use SPHERE\System\Database\Binding\AbstractSetup;
+use SPHERE\System\Database\Fitting\Element;
 
 /**
  * Class Setup
@@ -99,6 +100,9 @@ class Setup extends AbstractSetup
         }
         if (!$this->getConnection()->hasColumn('tblProtocol', 'EntityTo')) {
             $Table->addColumn('EntityTo', 'text', array('notnull' => false));
+        }
+        if (!$this->getConnection()->hasIndex($Table, array(Element::ENTITY_CREATE))) {
+            $Table->addIndex(array(Element::ENTITY_CREATE));
         }
 
         return $Table;
