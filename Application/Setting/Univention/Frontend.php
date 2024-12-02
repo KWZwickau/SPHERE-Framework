@@ -920,10 +920,11 @@ class Frontend extends Extension implements IFrontendInterface
                         )
                     )))), 4),
                     new LayoutColumn(new Warning('Diese Schnittstelle legt neue Stammgruppen aus der Schulsoftware als
-                     Arbeitsgruppen im DLLP / UCS an und ordnet die entsprechenden Schüler
-                      diesen Gruppen zu. Bitte beachten Sie, dass die entsprechenden Schüler zuvor
-                       mittels der Schnittstelle "UCS über API" erst nach DLLP / UCS übertragen
-                        werden müssen.'
+                     Arbeitsgruppen im DLLP / UCS an und ordnet die entsprechenden Schüler / Lehrer (Lehrauftrag)
+                     diesen Gruppen zu.'
+                    .new Container('Bitte beachten Sie, dass die entsprechenden Schüler / Lehrer zuvor
+                     mittels der Schnittstelle '.new Bold('"UCS über API" erst nach DLLP / UCS übertragen').'
+                     werden müssen.')
                     ), 8)
                 )),
                 new LayoutRow((!empty($ErrorList)?$LayoutColumnList : new LayoutColumn('')))
