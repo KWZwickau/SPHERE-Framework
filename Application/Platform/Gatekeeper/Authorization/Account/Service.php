@@ -686,6 +686,16 @@ class Service extends AbstractService
         return (new Data($this->getBinding()))->getAccountInitialByAccount($tblAccount);
     }
 
+    /**
+     * @param TblAccount $tblAccount
+     *
+     * @return null|string
+     */
+    public function getAccountInitialPasswordByAccountWithoutLogin(TblAccount $tblAccount)
+    {
+
+        return (new Data($this->getBinding()))->getAccountInitialPasswordByAccountWithoutLogin($tblAccount);
+    }
 
     public function isAccountPWInitial(TblAccount $tblAccount)
     {
@@ -913,6 +923,92 @@ class Service extends AbstractService
     }
 
     /**
+     * @param IFormInterface $Form
+     * @param int $AccountId
+     * @param string $newCredentialLock
+     * @param string $newCredentialLockSafety
+     * @return IFormInterface|string
+     */
+    public function updatePasswordInitial(
+        IFormInterface $Form, $AccountId, $newCredentialLock = null, $newCredentialLockSafety = null
+    ){
+        // Return on Input Error
+        if (!($tblAccount = Account::useService()->getAccountById($AccountId))) {
+            return new Redirect('/', Redirect::TIMEOUT_ERROR);
+        }
+        if('' == $newCredentialLock && '' == $newCredentialLockSafety
+        ) {
+            return $Form;
+        }
+
+        $Error = false;
+        if (empty( $newCredentialLock )) {
+            $Form->setError('newCredentialLock', 'Bitte geben Sie ein Passwort an');
+            $Error = true;
+        } else {
+            if (strlen($newCredentialLock) < 8) {
+                $Form->setError('newCredentialLock', 'Das Passwort muss mindestens 8 Zeichen lang sein');
+                $Form->setError('newCredentialLockSafety', '');
+                $Error = true;
+            }
+            if(($tblAccountInitial = $this->getAccountInitialByAccount($tblAccount))){
+                if($tblAccountInitial->getPassword() == hash('sha256', $newCredentialLock)){
+                    $Form->setError('newCredentialLock', 'Das Passwort darf nicht das Initialpasswort sein');
+                    $Error = true;
+                }
+            }
+        }
+
+        if (empty( $newCredentialLockSafety )) {
+            $Form->setError('newCredentialLockSafety', 'Bitte wiederholen Sie das Passwort');
+            $Error = true;
+        }
+        if ($newCredentialLock != $newCredentialLockSafety && !$Error) {
+            $Form->setError('newCredentialLock', '');
+            $Form->setError('newCredentialLockSafety', 'Die beiden Passworte stimmen nicht überein');
+            $Error = true;
+        }
+
+        // are enough criteria matched?
+        $Step = 0;
+        if ($newCredentialLock && !$Error) {
+            if (preg_match('![a-z]!s', $newCredentialLock)) {
+                $Step++;
+            }
+            if (preg_match('![A-Z]!s', $newCredentialLock)) {
+                $Step++;
+            }
+            if (preg_match('![0-9]!s', $newCredentialLock)) {
+                $Step++;
+            }
+            if (preg_match('![^\w\d]!s', $newCredentialLock)) {
+                $Step++;
+            }
+            // min 3 criteria
+            if ($Step < 3) {
+                $Form->setError('newCredentialLock', 'Nicht genügend Sicherheitskriterien erfüllt');
+                $Form->setError('newCredentialLockSafety', '');
+                $Error = true;
+            }
+        }
+        if ($Error) {
+
+            return $Form;
+        } else {
+            $LoginTest = Account::useService()->getAccountBySession();
+            if(!$LoginTest){
+                // Password not stored as preset -> LOGIN
+                Account::useService()->createSession($tblAccount);
+            }
+            if (Account::useService()->changePassword($newCredentialLock, $tblAccount)) {
+                return new Success('Das Passwort wurde erfolgreich geändert').new Redirect('/', Redirect::TIMEOUT_SUCCESS);
+            } else {
+                return new Danger('Das Passwort konnte nicht geändert werden').new Redirect('/', Redirect::TIMEOUT_ERROR);
+            }
+        }
+    }
+
+    /**
      * @param string $Password
      * @param TblAccount $tblAccount
      *
@@ -921,6 +1017,23 @@ class Service extends AbstractService
     public function changePassword($Password, TblAccount $tblAccount = null)
     {
 
+        return (new Data($this->getBinding()))->changePassword($Password, $tblAccount);
+    }
+
+    /**
+     * @param string $Password
+     * @param TblAccount $tblAccount
+     *
+     * @return bool
+     */
+    public function changePasswordWithInitial($Password, TblAccount $tblAccount = null)
+    {
+
+        if($this->getAccountInitialByAccount($tblAccount)){
+            (new Data($this->getBinding()))->updateAccountInitial($tblAccount);
+        } else {
+            (new Data($this->getBinding()))->createAccountInitial($tblAccount);
+        }
         return (new Data($this->getBinding()))->changePassword($Password, $tblAccount);
     }
 

@@ -125,7 +125,7 @@ lQIDAQAB
                     || $tblAccount->getHasAuthentication(TblIdentification::NAME_TOKEN)
                     || $tblAccount->getHasAuthentication(TblIdentification::NAME_AUTHENTICATOR_APP)
                 ) {
-                    return Authentication::useFrontend()->frontendIdentificationToken($tblAccount->getId(), null, $isCookieAvailable);
+                    return Authentication::useFrontend()->frontendIdentificationToken($tblAccount->getId(), null, $isCookieAvailable, false);
                 } elseif ($tblAccount->getHasAuthentication(TblIdentification::NAME_CREDENTIAL)
                     || $tblAccount->getHasAuthentication(TblIdentification::NAME_USER_CREDENTIAL)
                 ) {

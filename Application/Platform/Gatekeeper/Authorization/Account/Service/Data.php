@@ -1,6 +1,8 @@
 <?php
 namespace SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service;
 
+use MOC\V\Component\Database\Component\IBridgeInterface;
+use MOC\V\Component\Database\Database as MocDatabase;
 use SPHERE\Application\Contact\Mail\Mail;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -22,8 +24,10 @@ use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Cache\Handler\MemcachedHandler;
 use SPHERE\System\Cache\Handler\MemoryHandler;
 use SPHERE\System\Database\Binding\AbstractData;
+use SPHERE\System\Database\Database;
 use SPHERE\System\Database\Fitting\ColumnHydrator;
 use SPHERE\System\Database\Fitting\Element;
+use SPHERE\System\Database\Type\MySql;
 use SPHERE\System\Debugger\DebuggerFactory;
 use SPHERE\System\Debugger\Logger\CacheLogger;
 
@@ -247,6 +251,26 @@ class Data extends AbstractData
             $Entity->setTblAccount($tblAccount);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
+        return $Entity;
+    }
+
+    /**
+     * @param TblAccount $tblAccount
+     *
+     * @return object|TblAccountInitial|null
+     */
+    public function updateAccountInitial(TblAccount $tblAccount)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $Entity = $Manager->getEntity('TblAccountInitial')->findOneBy(array(TblAccountInitial::ATTR_TBL_ACCOUNT => $tblAccount->getId()));
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setPassword($tblAccount->getPassword());
+            $Entity->setTblAccount($tblAccount);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
         }
         return $Entity;
     }
@@ -509,6 +533,68 @@ class Data extends AbstractData
         return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblAccountInitial', array(
             TblAccountInitial::ATTR_TBL_ACCOUNT => $tblAccount->getId()
         ));
+    }
+
+    /**
+     * @param TblAccount $tblAccount
+     * @return null|string
+     */
+    public function getAccountInitialPasswordByAccountWithoutLogin(TblAccount $tblAccount): ?string
+    {
+
+        $tblConsumer = $tblAccount->getServiceTblConsumer();
+        $container = Database::getDataBaseConfig($tblConsumer);
+        $UserPassword = null;
+        if ($container) {
+            try {
+                $connection = $this->getConnectionByAcronym(
+                    $container->getContainer('Host')->getValue(),
+                    $container->getContainer('Username')->getValue(),
+                    $container->getContainer('Password')->getValue(),
+                    $tblConsumer->getAcronym()
+                );
+                if ($connection) {
+                    $queryBuilder = $connection->getQueryBuilder();
+                    $query = $queryBuilder->select('tUA.UserPassword')
+                        ->from($tblConsumer->getAcronym().'_SettingConsumer.tblUserAccount', 'tUA')
+                        ->where('tUA.serviceTblAccount = :AccountId')
+                        ->setParameter('AccountId', $tblAccount->getId());
+                    $result = $query->execute();
+                    $array = $result->fetch();
+
+                    if (isset($array['UserPassword'])) {
+                        $UserPassword = $array['UserPassword'];
+                    }
+
+                    $connection->getConnection()->close();
+                }
+            } catch (\Exception $Exception) {
+                if ($connection) {
+                    $connection->getConnection()->close();
+                }
+                $connection = null;
+            }
+        }
+        return $UserPassword?hash('sha256', $UserPassword): null;
+    }
+
+    /**
+     * @param string $Host Server-Address (IP)
+     * @param string $User
+     * @param string $Password
+     * @param string $Acronym DatabaseName will get prefix '_SettingConsumer' e.g. {Acronym}_SettingConsumer
+     *
+     * @return bool|IBridgeInterface
+     */
+    private function getConnectionByAcronym($Host, $User, $Password, $Acronym)
+    {
+        $Connection = MocDatabase::getDatabase(
+            $User, $Password, strtoupper($Acronym).'_SettingConsumer', (new MySql())->getIdentifier(), $Host
+        );
+        if ($Connection->getConnection()->isConnected()) {
+            return $Connection;
+        }
+        return false;
     }
 
     /**

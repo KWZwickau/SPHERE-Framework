@@ -339,7 +339,7 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
 
                 // Edit Password
                 if (!empty( $Password )) {
-                    GatekeeperAccount::useService()->changePassword($Password, $tblAccount);
+                    GatekeeperAccount::useService()->changePasswordWithInitial($Password, $tblAccount);
                 }
 
                 return new Success('Das Benutzerkonto wurde geändert')

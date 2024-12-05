@@ -61,6 +61,9 @@ class Authentication implements IModuleInterface
                 __NAMESPACE__, __NAMESPACE__.'\Frontend::frontendIdentificationCredential'
             ));
             Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+                __NAMESPACE__.'/InitialPasswordChange', __NAMESPACE__.'\Frontend::frontendInitialPasswordChange'
+            ));
+            Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
                 __NAMESPACE__.'/Token', __NAMESPACE__.'\Frontend::frontendIdentificationToken'
             ));
             Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
