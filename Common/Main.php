@@ -148,7 +148,9 @@ class Main extends Extension
          * REST-API
          */
         if (preg_match('!^/RestApi/!i', $this->getRequest()->getPathInfo())) {
-            if (preg_match('!^/RestApi/Public/Authorization!i', $this->getRequest()->getPathInfo())) {
+            if (preg_match('!^/RestApi/Public/Authorization!i', $this->getRequest()->getPathInfo())
+             || preg_match('!^/RestApi/Public/Indiware!i', $this->getRequest()->getPathInfo())
+            ) {
                 self::registerRestApi();
                 $response = self::getRestApiDispatcher()->fetchRoute(
                     $this->getRequest()->getPathInfo()
