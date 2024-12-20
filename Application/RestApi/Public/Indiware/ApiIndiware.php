@@ -2,13 +2,8 @@
 
 namespace SPHERE\Application\RestApi\Public\Indiware;
 
-use SPHERE\Application\Platform\Gatekeeper\Authentication\TwoFactorApp\TwoFactorApp;
-use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
-use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblIdentification;
-use SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Token;
 use SPHERE\Application\RestApi\IApiInterface;
 use SPHERE\Common\Main;
-use SPHERE\System\Extension\Extension;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
 class ApiIndiware implements IApiInterface
@@ -28,7 +23,7 @@ class ApiIndiware implements IApiInterface
 
         // http://192.168.92.128/RestApi/Public/Indiware/Log
         $Date = new \DateTime();
-        $dateipfad = $Date->format('H_i_s').'_dataJSON.txt'; // d.m.Y_ (Datum verkürzt, steht ja auch an der Datei)
+        $dateipfad = 'UnitTest/IndiwareLog/'.$Date->format('H_i_s').'_dataJSON.txt'; // d.m.Y_ (Datum verkürzt, steht ja auch an der Datei)
 //        $dateipfad = $Date->format('d.m.Y_h:m:s').'_dataJSON.txt';
 
         $JsonResponse = new JsonResponse();

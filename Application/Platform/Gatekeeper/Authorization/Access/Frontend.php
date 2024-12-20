@@ -259,7 +259,7 @@ class Frontend
         $tblRightAll = Access::useService()->getRightAll();
 
         $PublicRouteAll = Main::getDispatcher()->getPublicRoutes();
-        $PublicRouteAll = array_merge(Main::getRestApiDispatcher()->getPublicRoutes(), $PublicRouteAll);
+//        $PublicRouteAll = array_merge(Main::getRestApiDispatcher()->getPublicRoutes(), $PublicRouteAll);
         $publicRightList = array();
         $publicRouteList = array(
             '/',
@@ -285,8 +285,8 @@ class Frontend
             '/Platform/Gatekeeper/Authentication/Saml/Placeholder',
             '/Platform/Gatekeeper/OAuth2/Vidis',
             '/Platform/Gatekeeper/OAuth2/OAuthSite',
-            '/RestApi/Public/Authorization/Login',
-            '/RestApi/Public/Indiware/Log'
+//            '/RestApi/Public/Authorization/Login',
+//            '/RestApi/Public/Indiware/Log'
         );
         if ($PublicRouteAll) {
             array_walk($PublicRouteAll, function (&$Route) use (&$publicRightList, $publicRouteList) {
