@@ -4,6 +4,7 @@ namespace SPHERE\Application\Api\Transfer;
 
 use SPHERE\Application\Api\Transfer\Indiware\AppointmentGrade\ApiAppointmentGrade;
 use SPHERE\Application\Api\Transfer\Indiware\AppointmentGrade\AppointmentGrade;
+use SPHERE\Application\Api\Transfer\Indiware\IndiwareLog\IndiwareLog;
 use SPHERE\Application\Api\Transfer\Indiware\Meta\Meta;
 use SPHERE\Application\Api\Transfer\ItsLearning\ItsLearning;
 use SPHERE\Application\Api\Transfer\Standard\Import;
@@ -21,6 +22,7 @@ class Transfer implements IApplicationInterface
 
         ApiAppointmentGrade::registerApi();
         AppointmentGrade::registerModule();
+        IndiwareLog::registerModule(); // ToDO nach dem Indiware test wieder entfernen
         Meta::registerModule();
         \SPHERE\Application\Api\Transfer\Untis\Meta\Meta::registerModule();
         ItsLearning::registerModule();
