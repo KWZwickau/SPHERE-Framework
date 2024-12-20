@@ -16,6 +16,7 @@ SELECT
 	tSMR.Disease AS TblStudentMedicalRecord_Disease,
 	tSMR.Medication AS TblStudentMedicalRecord_Medication,
 	tSIS.Name AS TblStudentInsuranceState_Name,
+	tSMR.InsuranceNumber AS TblStudentMedicalRecord_InsuranceNumber,
 	tSMR.Insurance AS TblStudentMedicalRecord_Insurance,
 	DATE_FORMAT( tSMR.MasernDate, '%d.%m.%Y' ) AS TblStudentMedicalRecord_MasernDate,
 	tSMI.TextShort AS TblStudentMedicalRecord_MasernDocumentType,

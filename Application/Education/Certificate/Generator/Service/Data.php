@@ -251,7 +251,7 @@ class Data extends AbstractData
             $this->tblCertificateTypeDiploma = $this->createCertificateType('Abschlusszeugnis', 'DIPLOMA');
             $this->tblCertificateTypeMidTermCourse = $this->createCertificateType('Kurshalbjahreszeugnis', 'MID_TERM_COURSE');
             $this->tblSchoolTypePrimary = Type::useService()->getTypeByName('Grundschule');
-            $this->tblSchoolTypeSecondary = Type::useService()->getTypeByName('Mittelschule / Oberschule');
+            $this->tblSchoolTypeSecondary = Type::useService()->getTypeByName(TblType::IDENT_OBER_SCHULE);
             $this->tblSchoolTypeGym = Type::useService()->getTypeByName('Gymnasium');
             $this->tblSchoolTypeFoerderSchule = Type::useService()->getTypeByName('Förderschule');
             $this->tblSchoolTypeBerufsfachschule = Type::useService()->getTypeByName('Berufsfachschule');
@@ -347,7 +347,7 @@ class Data extends AbstractData
             $this->tblCertificateTypeDiploma = $this->createCertificateType('Abschlusszeugnis', 'DIPLOMA');
             $this->tblCertificateTypeMidTermCourse = $this->createCertificateType('Kurshalbjahreszeugnis', 'MID_TERM_COURSE');
             $this->tblSchoolTypePrimary = Type::useService()->getTypeByName('Grundschule');
-            $this->tblSchoolTypeSecondary = Type::useService()->getTypeByName('Mittelschule / Oberschule');
+            $this->tblSchoolTypeSecondary = Type::useService()->getTypeByName(TblType::IDENT_OBER_SCHULE);
             $this->tblSchoolTypeGym = Type::useService()->getTypeByName('Gymnasium');
             $this->tblSchoolTypeBeruflichesGymnasium = Type::useService()->getTypeByName('Berufliches Gymnasium');
             $this->tblSchoolTypeFoerderSchule = Type::useService()->getTypeByName('Förderschule');

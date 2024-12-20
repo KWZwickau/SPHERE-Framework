@@ -129,8 +129,8 @@ class Import extends Extension implements IModuleInterface
                 ),
                 new LayoutColumn(
                     new Panel(
-                        'Indiware-Import der Kurseinbringung für das Abitur',
-                        new PullClear('Kurseinbringung importieren: '
+                        'Indiware-Import für das Abiturzeugnis (Gy)',
+                        new PullClear('Kurseinbringung und Prüfungsnoten importieren: '
                             . new Center(new Standard('', '/Transfer/Indiware/Import/StudentCourse/SelectedCourse/Import', new Upload()))
                         ),
                         Panel::PANEL_TYPE_INFO

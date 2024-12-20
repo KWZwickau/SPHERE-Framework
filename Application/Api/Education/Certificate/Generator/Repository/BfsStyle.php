@@ -1416,7 +1416,7 @@ abstract class BfsStyle extends Certificate
         $Slice->stylePaddingBottom('10px');
         $Slice->addSection((new Section())
             ->addElementColumn((new Element())
-                ->setContent('<b>Berufspraktische Ausbildung</b> (Dauer:
+                ->setContent('<b>Praktische Ausbildung</b> (Dauer:
                     {% if(Content.P' . $personId . '.Input.OperationTimeTotal is not empty) %}
                         {{ Content.P' . $personId . '.Input.OperationTimeTotal }}
                     {% else %}
@@ -1606,7 +1606,7 @@ abstract class BfsStyle extends Certificate
         $Slice->stylePaddingBottom('10px');
         $Slice->addSection((new Section())
             ->addElementColumn((new Element())
-                ->setContent('<b>Berufspraktische Ausbildung</b> (Dauer: 
+                ->setContent('<b>Praktische Ausbildung</b> (Dauer: 
                     {{ Content.P' . $personId . '.Input.OperationTimeTotal }}
                     Wochen)')
                 ->stylePaddingLeft('5px')
@@ -2361,7 +2361,7 @@ abstract class BfsStyle extends Certificate
         $slice->stylePaddingBottom('10px');
         $slice->addSection((new Section())
             ->addElementColumn((new Element())
-                ->setContent('<b>Berufspraktische Ausbildung</b>')
+                ->setContent('<b>Praktische Ausbildung</b>')
                 ->stylePaddingLeft('5px')
                 , 'auto'
             )

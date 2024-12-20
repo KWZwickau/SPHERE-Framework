@@ -50,6 +50,7 @@ use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account as GatekeeperAccount;
@@ -277,7 +278,7 @@ class Creator extends Extension
                     if ($tblType->getName() == 'Gymnasium') {
                         $DocumentItem = new GrammarSchool();
                     } else {
-                        if ($tblType->getName() == 'Mittelschule / Oberschule') {
+                        if ($tblType->getName() == TblType::IDENT_OBER_SCHULE) {
                             $DocumentItem = new SecondarySchool();
                         } else {
                             $DocumentItem = false;
@@ -418,7 +419,7 @@ class Creator extends Extension
                                 if ($tblType->getName() == 'Gymnasium') {
                                     $DocumentItem = new GrammarSchool();
                                 } else {
-                                    if ($tblType->getName() == 'Mittelschule / Oberschule') {
+                                    if ($tblType->getName() == TblType::IDENT_OBER_SCHULE) {
                                         $DocumentItem = new SecondarySchool();
                                     } else {
                                         $DocumentItem = false;
@@ -1496,7 +1497,7 @@ class Creator extends Extension
 
         if (($tblPerson = Person::useService()->getPersonById($PersonId))
             && ($tblYear = Term::useService()->getYearById($YearId))
-            && ($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))
+            && ($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYearWithLeaved($tblPerson, $tblYear))
         ) {
             $hasAbsenceTypeOptions = false;
             $dataList = Absence::useService()->getStudentAbsenceDataForParentStudentAccess($tblPerson, $tblStudentEducation, $hasAbsenceTypeOptions);

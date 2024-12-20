@@ -27,7 +27,11 @@ class Data extends AbstractData
         // Allgemeinbildend
         $this->createType('Grundschule', 'GS', $tblCategoryCommon, true);
         $this->createType('Gymnasium', 'Gy', $tblCategoryCommon, true);
-        $this->createType('Mittelschule / Oberschule', 'OS', $tblCategoryCommon, true);
+        if (($tblType = $this->getTypeByName('Mittelschule / Oberschule'))) {
+            $this->updateType($tblType, 'Oberschule', 'OS', $tblCategoryCommon, true, '');
+        } else {
+            $this->createType('Oberschule', 'OS', $tblCategoryCommon, true);
+        }
         $this->createType('Förderschule', 'FöS', $tblCategoryCommon, true);
         if(($tblType =  $this->getTypeByName('Gemeinschaftsschule'))){
             if($tblType->getShortName() != 'GMS'){

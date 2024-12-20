@@ -4,6 +4,7 @@ namespace SPHERE\Application\Document\Standard\SignOutCertificate;
 
 use DateTime;
 use MOC\V\Core\FileSystem\FileSystem;
+use SPHERE\Application\Api\Document\Standard\ApiStandard;
 use SPHERE\Application\Document\Standard\EnrollmentDocument\EnrollmentDocument;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\Term\Term;
@@ -22,6 +23,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Listing;
 use SPHERE\Common\Frontend\Icon\Repository\PersonGroup;
+use SPHERE\Common\Frontend\Icon\Repository\Search;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Thumbnail;
@@ -46,6 +48,15 @@ class Frontend extends Extension implements IFrontendInterface
     {
         $Stage->addButton(new Standard('Schüler', '/Document/Standard/SignOutCertificate', new \SPHERE\Common\Frontend\Icon\Repository\Person(), array(), 'Abmeldebescheinigung eines Schülers'));
         $Url = $_SERVER['REDIRECT_URL'];
+
+        if(strpos($Url, '/SignOutCertificate/Archiv')){
+            $Stage->addButton(new Standard(new Info(new Bold('Ehemalige (Archiv)')), '/Document/Standard/SignOutCertificate/Archive', new \SPHERE\Common\Frontend\Icon\Repository\Person(),
+                array(), 'Schulbescheinigung eines Schülers'));
+        } else {
+            $Stage->addButton(new Standard('Ehemalige (Archiv)', '/Document/Standard/SignOutCertificate/Archive', new \SPHERE\Common\Frontend\Icon\Repository\Person(),
+                array(), 'Schulbescheinigung eines ehemaligen Schülers'));
+        }
+
         if(strpos($Url, '/SignOutCertificate/Division')){
             $Stage->addButton(new Standard(new Info(new Bold('Kurs')), '/Document/Standard/SignOutCertificate/Division', new PersonGroup(),
                 array(), 'Abmeldebescheinigung eines Kurses'));
@@ -157,6 +168,50 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
+     * @param null $Search
+     *
+     * @return Stage
+     */
+    public function frontendStudentArchiv($Search = null): Stage
+    {
+        $Route = '/Document/Standard/SignOutCertificate/Fill';
+        if ($Search) {
+            $global = $this->getGlobal();
+            $global->POST['Data']['Search'] = $Search;
+            $global->savePost();
+        }
+
+        $Stage = new Stage('Abmeldebescheinigung', 'Ehemaligen Schüler auswählen');
+        self::setButtonList($Stage);
+
+        $panel = new Panel(
+            new Search() . ' Personen-Suche',
+            (new Form(new FormGroup(new FormRow(array(
+                new FormColumn(
+                    (new TextField('Data[Search]', '', ''))
+                        ->ajaxPipelineOnKeyUp(ApiStandard::pipelineSearchPerson($Route))
+                ),
+            )))))->disableSubmitAction(),
+            Panel::PANEL_TYPE_INFO
+        );
+
+        $Stage->setContent(
+            new Layout(array(
+                new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn(array(
+                            $panel,
+                            ApiStandard::receiverBlock($Search ? EnrollmentDocument::useFrontend()->loadPersonSearch($Route, $Search) : '', 'SearchContent')
+                        )),
+                    ))
+                )),
+            ))
+        );
+
+        return $Stage;
+    }
+
+    /**
      * @param null $PersonId
      *
      * @return Stage
@@ -166,9 +221,18 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage('Abmeldebescheinigung', 'Erstellen');
         $Stage->addButton(new Standard('Zurück', '/Document/Standard/SignOutCertificate', new ChevronLeft()));
         $tblPerson = Person::useService()->getPersonById($PersonId);
+        // ehemalige Schüler
+        $tblYear = null;
+        if (!($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndDate($tblPerson))) {
+            if (($tblStudentEducationList = DivisionCourse::useService()->getStudentEducationListByPerson($tblPerson))) {
+                $tblStudentEducation = current($tblStudentEducationList);
+                $tblYear = $tblStudentEducation->getServiceTblYear();
+            }
+        }
+
         $Global = $this->getGlobal();
         if ($tblPerson) {
-            $Data = SignOutCertificate::useService()->getSignOutCertificateData($tblPerson);
+            $Data = SignOutCertificate::useService()->getSignOutCertificateData($tblPerson, $tblYear ?: null);
             $Global->POST['Data'] = $Data;
         }
         $Global->savePost();

@@ -3401,7 +3401,7 @@ abstract class Style extends Certificate
             // alter Schulname
             $school[] = 'der HOGA Schloss Albrechtsberg g SchulgmbH';
         } else {
-            $school[] = 'HOGA Schulen Dresden gemeinnützige Schulgesellschaft mbH';
+            $school[] = 'der HOGA Schulen Dresden gSchulgmbH';
         }
         $school[] = 'Staatlich anerkannte Schule in freier Trägerschaft';
 
