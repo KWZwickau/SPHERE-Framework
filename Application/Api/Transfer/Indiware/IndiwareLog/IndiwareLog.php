@@ -44,13 +44,22 @@ class IndiwareLog implements IModuleInterface
 //        $DirectoryContentList = scandir('UnitTest/IndiwareLog/');
 //        var_dump($DirectoryContentList);
 //        exit;
-        $File = 'UnitTest/IndiwareLog/'.$fileName;
-        if ($File) {
-            echo '<pre>';
-            readFile($File);
-            echo '</pre>';
+        $file = 'UnitTest/IndiwareLog/'.$fileName;
+        if (file_exists($file)) {
+            // Setze die Header für den Dateidownload
+            header('Content-Description: File Transfer');
+            header('Content-Type: application/octet-stream');
+            header('Content-Disposition: attachment; filename="' . basename($file) . '"');
+            header('Expires: 0');
+            header('Cache-Control: must-revalidate');
+            header('Pragma: public');
+            header('Content-Length: ' . filesize($file));
+
+            // Datei lesen und ausgeben
+            readfile($file);
             exit;
-//            return FileSystem::getDownload($filePath,$fileName)->__toString();
+        } else {
+            return 'Datei nicht gefunden!';
         }
         return 'Fehler beim Download.';
     }

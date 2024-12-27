@@ -4,6 +4,7 @@ namespace SPHERE\Application\Platform\System\DataMaintenance;
 
 use SPHERE\Application\Api\Platform\DataMaintenance\ApiDocumentStorage;
 use SPHERE\Application\Api\Platform\DataMaintenance\ApiMigrateDivision;
+use SPHERE\Application\Api\Transfer\Indiware\IndiwareLog\ApiIndiware;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
@@ -20,6 +21,7 @@ use SPHERE\Application\Setting\User\Account\Service\Entity\TblUserAccount;
 use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
+use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
@@ -827,11 +829,13 @@ UPDATE ".$Acronym."_SettingConsumer.tblUserAccount SET UpdateDate = date_add(Upd
             $item['Name'] = $formattedFileName;
             $item['Time'] = date ("d.m.Y", filemtime($File));
             $item['Path'] = $filePath;
-            $item['Download'] = (new Standard('', '/Api/Transfer/Indiware/IndiwareLog/Download', new EyeOpen(),
-                array('fileName' => $fileName), 'Anzeigen'))->setExternal();
+            $item['Download'] = (new Standard('', '/Api/Transfer/Indiware/IndiwareLog/Download', new Download(),
+                array('fileName' => $fileName), 'Anzeigen'))->setExternal()
+            .(new Standard('', '#', new EyeOpen()))->ajaxPipelineOnClick(ApiIndiware::pipelineShowFileContent($fileName))
+            ;
             $content[] = array_merge($content, $item);
         }
-
+        $Receiver = (new ApiIndiware())::receiverContent();
         $Stage->setContent(
             new Layout(new LayoutGroup(new LayoutRow(array(
 //                new LayoutColumn( '',4),
@@ -857,7 +861,10 @@ UPDATE ".$Acronym."_SettingConsumer.tblUserAccount SET UpdateDate = date_add(Upd
                             ),
                         )
                     )
-                , 4)
+                , 4),
+                new LayoutColumn(
+                    $Receiver
+                , 8)
             ))))
         );
 

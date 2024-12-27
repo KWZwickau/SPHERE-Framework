@@ -23,7 +23,7 @@ class ApiIndiware implements IApiInterface
 
         // http://192.168.92.128/RestApi/Public/Indiware/Log
         $Date = new \DateTime();
-        $dateipfad = 'UnitTest/IndiwareLog/'.$Date->format('H_i_s').' Log '.$Date->format('d_m_Y').'.txt'; // d.m.Y_ (Datum verkürzt, steht ja auch an der Datei)
+        $dateipfad = 'UnitTest/IndiwareLog/'.$Date->format('H_i_s').' Log '.$Date->format('d_m_Y').'.txt';
 //        $dateipfad = $Date->format('d.m.Y_h:m:s').'_dataJSON.txt';
 
         $JsonResponse = new JsonResponse();
