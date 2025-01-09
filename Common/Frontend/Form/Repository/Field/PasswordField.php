@@ -4,6 +4,9 @@ namespace SPHERE\Common\Frontend\Form\Repository\Field;
 use SPHERE\Common\Frontend\Form\IFieldInterface;
 use SPHERE\Common\Frontend\Form\Repository\AbstractTextField;
 use SPHERE\Common\Frontend\Icon\IIconInterface;
+use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
+use SPHERE\Common\Frontend\Icon\Repository\Question;
+use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 
 /**
  * Class PasswordField
@@ -46,5 +49,13 @@ class PasswordField extends AbstractTextField implements IFieldInterface
             $this->setPostValue($this->Template, $this->getName(), 'ElementValue');
         }
         return parent::getContent();
+    }
+
+    public function setShow(IIconInterface $Icon)
+    {
+        $this->Template->setVariable('ElementIconShow', $Icon);
+        // new ToolTip($Icon, 'Passwort verstecken')
+//        $this->Icon = new ToolTip($this->Icon, 'Passwort anzeigen');
+//        $this->Template->setVariable('ElementIcon', new ToolTip($this->Icon, 'Passwort anzeigen'));
     }
 }
