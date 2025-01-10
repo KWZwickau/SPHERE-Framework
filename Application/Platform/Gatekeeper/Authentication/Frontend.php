@@ -40,6 +40,7 @@ use SPHERE\Common\Frontend\Icon\Repository\CogWheels;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Enable;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
+use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
 use SPHERE\Common\Frontend\Icon\Repository\Globe;
 use SPHERE\Common\Frontend\Icon\Repository\Key;
 use SPHERE\Common\Frontend\Icon\Repository\Lock;
@@ -351,8 +352,9 @@ class Frontend extends Extension implements IFrontendInterface
         // Field Definition
         $CredentialNameField = (new TextField('CredentialName', 'Benutzername', 'Benutzername', new Person()))
             ->setRequired()->setAutoFocus();
-        $CredentialLockField = (new PasswordField('CredentialLock', 'Passwort', 'Passwort', new Lock()))
+        $CredentialLockField = (new PasswordField('CredentialLock', 'Passwort', 'Passwort', new EyeOpen()))
             ->setRequired()->setDefaultValue($CredentialLock, true);
+        $CredentialLockField->setShow(new Lock());
 
         // Error Handling
         if ($CredentialName !== null) {
