@@ -425,6 +425,28 @@ abstract class Style extends Certificate
 
     /**
      * @param $personId
+     * @param string $Height
+     *
+     * @return Slice
+     */
+    public function getCustomRemarkWithoutHeader($personId, string $Height): Slice
+    {
+        return (new Slice())
+            ->styleMarginTop('15px')
+            ->styleHeight($Height)
+            ->addElement((new Element())
+                ->setContent('{% if(Content.P'.$personId.'.Input.RemarkWithoutTeam is not empty) %}
+                                {{ Content.P'.$personId.'.Input.RemarkWithoutTeam|nl2br }}
+                            {% else %}
+                                &nbsp;
+                            {% endif %}')
+                ->styleTextSize('11pt')
+                ->styleAlignJustify()
+            );
+    }
+
+    /**
+     * @param $personId
      * @param string $MarginTop
      *
      * @return Slice
@@ -500,6 +522,43 @@ abstract class Style extends Certificate
                     ->stylePaddingLeft('7px')
                     ->styleBorderBottom()
                 )
+            );
+    }
+
+    /**
+     * @param $personId
+     *
+     * @return Slice
+     */
+    protected function getCustomAbsence($personId): Slice
+    {
+        return (new Slice())
+            ->styleMarginTop('5px')
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('Fehltage entschuldigt:')
+                    ->styleBorderBottom()
+                    , '25%')
+                ->addElementColumn((new Element())
+                    ->setContent('{% if(Content.P' . $personId . '.Input.Missing is not empty) %}
+                                    {{ Content.P' . $personId . '.Input.Missing }}
+                                {% else %}
+                                    &nbsp;
+                                {% endif %}')
+                    ->styleBorderBottom()
+                    , '25%')
+                ->addElementColumn((new Element())
+                    ->setContent('unentschuldigt:')
+                    ->styleBorderBottom()
+                    , '20%')
+                ->addElementColumn((new Element())
+                    ->setContent('{% if(Content.P' . $personId . '.Input.Bad.Missing is not empty) %}
+                                    {{ Content.P' . $personId . '.Input.Bad.Missing }}
+                                {% else %}
+                                    &nbsp;
+                                {% endif %}')
+                    ->styleBorderBottom()
+                    , 'auto')
             );
     }
 }
