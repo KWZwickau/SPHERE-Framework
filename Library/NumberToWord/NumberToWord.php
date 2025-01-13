@@ -20,6 +20,9 @@ class NumberToWord
 
         if($fNumber != ''){
             $fNumber = str_replace('€', '', $fNumber);
+            // Tausender Trennzeichen entfernen
+            $fNumber = (float)str_replace('.', '', $fNumber);
+            // Dezimal mit Punkt
             $fNumber = (float)str_replace(',', '.', $fNumber);
             // Zahl mit korrektem Trennzeichen
             // Zahl auf 2 Nachkommastellen runden (wenn zu lang)
