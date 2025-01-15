@@ -14,6 +14,7 @@ class IDataFELS
         $tblConsumerCertificate = Consumer::useService()->getConsumerByAcronym('FELS');
         if ($tblConsumerCertificate){
             self::setMsHjInfo($Data, $tblConsumerCertificate);
+            self::setMsHj($Data, $tblConsumerCertificate);
             self::setMsJ($Data, $tblConsumerCertificate);
             self::setGymHjInfo($Data, $tblConsumerCertificate);
             self::setGymJ($Data, $tblConsumerCertificate);
@@ -37,7 +38,6 @@ class IDataFELS
                     $Data->createCertificateLevel($tblCertificate, 7);
                     $Data->createCertificateLevel($tblCertificate, 8);
                     $Data->createCertificateLevel($tblCertificate, 9);
-                    $Data->createCertificateLevel($tblCertificate, 10);
                 }
             }
             // Begrenzung des Bemerkungsfeld
@@ -69,6 +69,50 @@ class IDataFELS
             $Data->setCertificateSubject($tblCertificate, 'INF', 2, 8);
         }
     }
+
+    /**
+     * @param Data        $Data
+     * @param TblConsumer $tblConsumerCertificate
+     */
+    private static function setMsHj(Data $Data, TblConsumer $tblConsumerCertificate)
+    {
+
+        $tblCertificate = $Data->createCertificate('Halbjahreszeugnis der Oberschule', '', 'FELS\MsHj', $tblConsumerCertificate);
+        if ($tblCertificate) {
+            if ($Data->getTblSchoolTypeSecondary()) {
+                $Data->updateCertificate($tblCertificate, $Data->getTblCertificateTypeHalfYear(), $Data->getTblSchoolTypeSecondary());
+                if (!$Data->getCertificateLevelAllByCertificate($tblCertificate)) {
+                    $Data->createCertificateLevel($tblCertificate, 10);
+                }
+            }
+            // Begrenzung des Bemerkungsfeld
+            $FieldName = 'Remark';
+            if (!$Data->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)){
+                $Data->createCertificateField($tblCertificate, $FieldName, 700);
+            }
+        }
+        if ($tblCertificate && !$Data->getCertificateGradeAll($tblCertificate)) {
+            $Data->setCertificateGradeAllStandard($tblCertificate);
+        }
+        if ($tblCertificate && !$Data->getCertificateSubjectAll($tblCertificate)) {
+            $Data->setCertificateSubject($tblCertificate, 'DE', 1, 1);
+            $Data->setCertificateSubject($tblCertificate, 'EN', 1, 2);
+            $Data->setCertificateSubject($tblCertificate, 'KU', 1, 3, false);
+            $Data->setCertificateSubject($tblCertificate, 'MU', 1, 4, false);
+            $Data->setCertificateSubject($tblCertificate, 'GE', 1, 5, false);
+            $Data->setCertificateSubject($tblCertificate, 'GK', 1, 6, false);
+            $Data->setCertificateSubject($tblCertificate, 'GEO', 1, 7, false);
+
+            $Data->setCertificateSubject($tblCertificate, 'MA', 2, 1);
+            $Data->setCertificateSubject($tblCertificate, 'BIO', 2, 2);
+            $Data->setCertificateSubject($tblCertificate, 'CH', 2, 3);
+            $Data->setCertificateSubject($tblCertificate, 'PH', 2, 4);
+            $Data->setCertificateSubject($tblCertificate, 'SPO', 2, 5);
+            $Data->setCertificateSubject($tblCertificate, 'RE/e', 2, 6);
+            $Data->setCertificateSubject($tblCertificate, 'INF', 2, 7);
+        }
+    }
+
     /**
      * @param Data        $Data
      * @param TblConsumer $tblConsumerCertificate
