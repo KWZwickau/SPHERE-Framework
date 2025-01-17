@@ -36,6 +36,10 @@ class Script extends Extension
             'jQuery', '/Library/jQuery/1.11.3/jquery-1.11.3.min.js',
             "'undefined' !== typeof jQuery"
         );
+//        $this->setSource(
+//            'jQuery', '/Library/jQuery/3.7.1/jquery-3.7.1.min.js',
+//            "'undefined' !== typeof jQuery"
+//        );
         $this->setSource(
             'jQuery.Ui', '/Library/jQuery.Ui/1.11.4/jquery-ui.min.js',
             "'undefined' !== typeof jQuery.ui"
@@ -138,7 +142,12 @@ class Script extends Extension
         );
 
 //        <script type="text/javascript" src="Bootstrap-3.3.6/js/bootstrap.js"></script>
-//        <script type="text/javascript" src="JSZip-2.5.0/jszip.js"></script>
+        $this->setSource(
+            'jQuery.DataTable.Buttons.JsZip',
+            '/Library/DataTables/JSZip-2.5.0/jszip.min.js',
+            "'undefined' !== typeof JSZip"
+        );
+//        '<script type="text/javascript" src="JSZip-2.5.0/jszip.js"></script>';
 //        <script type="text/javascript" src="pdfmake-0.1.18/build/pdfmake.js"></script>
 //        <script type="text/javascript" src="pdfmake-0.1.18/build/vfs_fonts.js"></script>
 //        <script type="text/javascript" src="DataTables-1.10.12/js/jquery.dataTables.js"></script>
@@ -253,7 +262,7 @@ class Script extends Extension
         );
 
         $this->setSource(
-            'jQuery.Select2', '/Library/jQuery.Select2/4.0.3/dist/js/select2.full.min.js',
+            'jQuery.Select2', '/Library/jQuery.Select2/4.0.13/dist/js/select2.full.js',
             "'undefined' !== typeof jQuery.fn.select2"
         );
 
@@ -267,6 +276,14 @@ class Script extends Extension
         );
         $this->setSource('CookieScript', '/Library/CookieScript/CookieScript.js',
             "'undefined' !== typeof window.hasCookieHinweis"
+        );
+        $this->setSource(
+            'tinymce', '/Library/TinyMCE/tinymce.min.js',
+            "'undefined' !== typeof tinymce"
+        );
+        $this->setSource(
+            'jQueryTinymce', '/Library/TinyMCE/jquery.tinymce.min.js',
+            "'undefined' !== typeof jQuery.fn.tinymce"
         );
 
         /**
@@ -314,6 +331,7 @@ class Script extends Extension
                 'jQuery.DataTable.Plugin.Sorting.GermanString-A-With',
                 'jQuery.DataTable.Plugin.Sorting.Natural',
                 'jQuery.DataTable.Buttons.FlashExport',
+                'jQuery.DataTable.Buttons.JsZip',
                 'jQuery.DataTable.Buttons.HtmlExport',
                 'jQuery.DataTable.Buttons.ColVis',
                 'jQuery.DataTable.Buttons.Bootstrap',
@@ -374,6 +392,9 @@ class Script extends Extension
         );
         $this->setModule(
             'ModCookie', array('CookieScript')
+        );
+        $this->setModule(
+            'ModTinyMCE', array('tinymce', 'jQueryTinymce', 'jQuery')
         );
     }
 

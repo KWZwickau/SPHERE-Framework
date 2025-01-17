@@ -24,6 +24,9 @@ class TblAccount extends Element
     const ATTR_PASSWORD = 'Password';
     const SERVICE_TBL_CONSUMER = 'serviceTblConsumer';
     const SERVICE_TBL_TOKEN = 'serviceTblToken';
+    const ATTR_USER_ALIAS = 'UserAlias';
+    const ATTR_AUTHENTICATOR_APP_SECRET = 'AuthenticatorAppSecret';
+
     /**
      * @Column(type="string")
      */
@@ -40,6 +43,20 @@ class TblAccount extends Element
      * @Column(type="bigint")
      */
     protected $serviceTblConsumer;
+
+    /**
+     * @Column(type="string")
+     */
+    protected ?string $UserAlias;
+    /**
+     * @Column(type="string")
+     */
+    protected ?string $BackupMail;
+
+    /**
+     * @Column(type="string")
+     */
+    protected $AuthenticatorAppSecret;
 
     /**
      * @param string $Username
@@ -131,16 +148,98 @@ class TblAccount extends Element
     }
 
     /**
-     * @return bool|TblIdentification
+     * @return string
      */
-    public function getServiceTblIdentification()
+    public function getUserAlias()
+    {
+        if(!$this->UserAlias){
+            return '';
+        }
+        return strtolower($this->UserAlias);
+    }
+
+    /**
+     * @param string $UserAlias
+     */
+    public function setUserAlias($UserAlias)
+    {
+        if($UserAlias){
+            $this->UserAlias = strtolower($UserAlias);
+        } else {
+            $this->UserAlias = null;
+        }
+
+    }
+
+    /**
+     * @return string
+     */
+    public function getRecoveryMail()
+    {
+        if(!$this->BackupMail){
+            return '';
+        }
+        return strtolower($this->BackupMail);
+    }
+
+    /**
+     * @param string $RecoveryMail
+     */
+    public function setRecoveryMail($RecoveryMail)
     {
 
-        $Authentication = Account::useService()->getAuthenticationByAccount($this);
-        if ($Authentication) {
-            return $Authentication->getTblIdentification();
+        if($RecoveryMail){
+            $this->BackupMail = strtolower($RecoveryMail);
         } else {
-            return false;
+            $this->BackupMail = null;
         }
+    }
+
+    /**
+     * @return string
+     */
+    public function getAuthenticatorAppSecret()
+    {
+        return $this->AuthenticatorAppSecret;
+    }
+
+    /**
+     * @param string $AuthenticatorAppSecret
+     */
+    public function setAuthenticatorAppSecret($AuthenticatorAppSecret)
+    {
+        $this->AuthenticatorAppSecret = $AuthenticatorAppSecret;
+    }
+
+    /**
+     * @return float|int
+     */
+    public function getSessionTimeOut()
+    {
+        if ($this->getHasAuthentication(TblIdentification::NAME_SYSTEM)) {
+            $Timeout = ( 60 * 60 * 4 );
+        } elseif ($this->getHasAuthentication(TblIdentification::NAME_AUTHENTICATOR_APP)
+            || $this->getHasAuthentication(TblIdentification::NAME_TOKEN)
+        ) {
+            $Timeout = ( 60 * 60 * 2);
+        } elseif ($this->getHasAuthentication(TblIdentification::NAME_CREDENTIAL)
+            || $this->getHasAuthentication(TblIdentification::NAME_USER_CREDENTIAL)
+        ) {
+            $Timeout = ( 60 * 30 );
+        } else {
+            $Timeout = ( 60 * 10 );
+        }
+
+        return $Timeout;
+    }
+
+    /**
+     * @param string $IdentificationName
+     *
+     * @return bool
+     */
+    public function getHasAuthentication(string $IdentificationName): bool
+    {
+        return Account::useService()->getHasAuthenticationByAccountAndIdentificationName($this, $IdentificationName);
     }
 }

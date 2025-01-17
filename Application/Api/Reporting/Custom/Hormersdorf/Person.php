@@ -2,8 +2,9 @@
 namespace SPHERE\Application\Api\Reporting\Custom\Hormersdorf;
 
 use MOC\V\Core\FileSystem\FileSystem;
-use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\People\Group\Group;
+use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\Reporting\Custom\Hormersdorf\Person\Person as HormersdorfPerson;
 
 /**
@@ -15,28 +16,20 @@ class Person
 {
 
     /**
-     * @param null $DivisionId
+     * @param null $DivisionCourseId
      *
      * @return string|bool
      */
-    public function downloadClassList($DivisionId = null)
+    public function downloadClassList($DivisionCourseId = null)
     {
 
-        $tblDivision = Division::useService()->getDivisionById($DivisionId);
-        if ($tblDivision) {
-            $PersonList = HormersdorfPerson::useService()->createClassList($tblDivision);
-            if ($PersonList) {
-                $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
-                if ($tblPersonList) {
-                    $fileLocation = HormersdorfPerson::useService()->createClassListExcel($PersonList, $tblPersonList);
-
-                    return FileSystem::getDownload($fileLocation->getRealPath(),
-                        "Klassenliste ".$tblDivision->getDisplayName()
-                        ." ".date("Y-m-d H:i:s").".xlsx")->__toString();
-                }
-            }
+        if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))
+        && ($tblPersonList = $tblDivisionCourse->getStudents())
+        && !empty($TableContent = HormersdorfPerson::useService()->createClassList($tblDivisionCourse))) {
+            $fileLocation = HormersdorfPerson::useService()->createClassListExcel($TableContent, $tblPersonList);
+            return FileSystem::getDownload($fileLocation->getRealPath(),
+                "Klassenliste ".$tblDivisionCourse->getDisplayName()." ".date("Y-m-d").".xlsx")->__toString();
         }
-
         return false;
     }
 
@@ -46,18 +39,12 @@ class Person
     public function downloadStaffList()
     {
 
-        $PersonList = HormersdorfPerson::useService()->createStaffList();
-
-        if ($PersonList) {
-            $tblPersonList = Group::useService()->getPersonAllByGroup(Group::useService()->getGroupByName('Mitarbeiter'));
-            if ($tblPersonList) {
-                $fileLocation = HormersdorfPerson::useService()->createStaffListExcel($PersonList, $tblPersonList);
-
-                return FileSystem::getDownload($fileLocation->getRealPath(),
-                    "Mitarbeiterliste (Geburtstage) ".date("Y-m-d H:i:s").".xlsx")->__toString();
-            }
+        if(($tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_STAFF))
+        && ($tblPersonList = $tblGroup->getPersonList())
+        && ($TableContent = HormersdorfPerson::useService()->createStaffList($tblPersonList))) {
+            $fileLocation = HormersdorfPerson::useService()->createStaffListExcel($TableContent, $tblPersonList);
+            return FileSystem::getDownload($fileLocation->getRealPath(), "Mitarbeiterliste (Geburtstage) ".date("Y-m-d").".xlsx")->__toString();
         }
-
         return false;
     }
 }

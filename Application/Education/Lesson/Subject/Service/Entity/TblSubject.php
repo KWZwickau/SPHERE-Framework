@@ -5,6 +5,7 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
+use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -18,6 +19,7 @@ class TblSubject extends Element
     const ATTR_ACRONYM = 'Acronym';
     const ATTR_NAME = 'Name';
     const ATTR_DESCRIPTION = 'Description';
+    const ATTR_IS_ACTIVE = 'IsActive';
 
     const PSEUDO_ORIENTATION_ID = -1;
     const PSEUDO_PROFILE_ID = -2;
@@ -34,6 +36,28 @@ class TblSubject extends Element
      * @Column(type="string")
      */
     protected $Description;
+    /**
+     * @Column(type="boolean")
+     */
+    protected bool $IsActive;
+
+    /**
+     * @param int $id
+     * @param string $acronym
+     * @param string $name
+     *
+     * @return TblSubject
+     */
+    public static function withParameter(int $id, string $acronym, string $name): TblSubject
+    {
+        $instance = new self();
+
+        $instance->setId($id);
+        $instance->setAcronym($acronym);
+        $instance->setName($name);
+
+        return  $instance;
+    }
 
     /**
      * @return string
@@ -50,7 +74,7 @@ class TblSubject extends Element
     public function setAcronym($Acronym)
     {
 
-        $this->Acronym = strtoupper($Acronym);
+        $this->Acronym = $Acronym;
     }
 
     /**
@@ -90,6 +114,22 @@ class TblSubject extends Element
     }
 
     /**
+     * @return bool
+     */
+    public function getIsActive(): bool
+    {
+        return $this->IsActive;
+    }
+
+    /**
+     * @param bool $IsActive
+     */
+    public function setIsActive(bool $IsActive): void
+    {
+        $this->IsActive = $IsActive;
+    }
+
+    /**
      * Acronym-Name
      * @return string
      */
@@ -97,5 +137,39 @@ class TblSubject extends Element
     {
 
         return $this->getAcronym() . '-' . $this->getName();
+    }
+
+    /**
+     * @return string
+     */
+    public function getTechnicalAcronymForCertificateFromName()
+    {
+        $name = $this->getName();
+        if (strpos($name ?: '', 'LF') === 0) {
+            $split = explode(' ', $name);
+
+            if (isset($split[0])) {
+                $result = $split[0];
+                if (strlen($result > 2)) {
+                    return $result;
+                } else {
+                    if (isset($split[1])) {
+                        $result .= ' ' . $split[1];
+                        return  $result;
+                    }
+                }
+            }
+        }
+
+        // fallback
+        return $this->getAcronym();
+    }
+
+    /**
+     * @return bool
+     */
+    public function getIsUsed(): bool
+    {
+        return Subject::useService()->getIsSubjectUsed($this);
     }
 }

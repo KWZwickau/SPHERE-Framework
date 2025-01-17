@@ -40,6 +40,7 @@ class EssGsHjOne extends Certificate
                     ->addElementColumn((new Element\Sample())
                         ->styleTextSize('30px')
                         ->styleHeight('1px')
+                        ->styleMarginTop('-110px')
                     )
                     ->addElementColumn((new Element())
                         , '25%')
@@ -49,7 +50,6 @@ class EssGsHjOne extends Certificate
         }
 
         return (new Page())
-            ->addSlice($Header)
             ->addSlice((new Slice())
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
@@ -59,6 +59,7 @@ class EssGsHjOne extends Certificate
                     ->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/ESS_Grundschule_Head.jpg', '700px')))
                 )
             )
+            ->addSlice($Header)
             ->addSlice((new Slice())
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
@@ -67,10 +68,10 @@ class EssGsHjOne extends Certificate
                     )
                     ->addElementColumn((new Element())
                         ->setContent('HALBJAHRESINFORMATION')
-                        ->styleLineHeight('105%')
+                        ->styleLineHeight('90%')
                         ->styleFontFamily(self::TEXT_FAMILY)
                         ->styleTextSize(self::TEXT_SIZE_BIG)
-                        ->styleMarginTop('25px')
+                        ->styleMarginTop('15px')
                         , '75%'
                     )
                 )
@@ -82,20 +83,16 @@ class EssGsHjOne extends Certificate
                 )
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '0%'
-                    )
-                    ->addElementColumn((new Element())
                         ->setContent('Klasse {{ Content.P' . $personId . '.Division.Data.Level.Name }}')
                         ->styleTextSize(self::TEXT_SIZE)
-                        ->styleLineHeight('105%')
+                        ->styleLineHeight('90%')
                         ->styleFontFamily(self::TEXT_FAMILY)
                         , '25%'
                     )
                     ->addElementColumn((new Element())
                         ->setContent('1. Schulhalbjahr {{ Content.P' . $personId . '.Division.Data.Year }}')
                         ->styleTextSize(self::TEXT_SIZE)
-                        ->styleLineHeight('105%')
+                        ->styleLineHeight('90%')
                         ->styleFontFamily(self::TEXT_FAMILY)
                         , '45%'
                     )
@@ -107,14 +104,10 @@ class EssGsHjOne extends Certificate
                                 &nbsp;
                             {% endif %}')
                         ->styleTextSize(self::TEXT_SIZE)
-                        ->styleLineHeight('105%')
+                        ->styleLineHeight('90%')
                         ->styleFontFamily(self::TEXT_FAMILY)
                         ->styleAlignRight()
                         , '30%'
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '0%'
                     )
                 )
                 ->stylePaddingBottom('30px')
@@ -122,30 +115,18 @@ class EssGsHjOne extends Certificate
             ->addSlice((new Slice())
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '0%'
-                    )
-                    ->addElementColumn((new Element())
                         ->setContent('{{ Content.P' . $personId . '.Person.Data.Name.First }}
                                       {{ Content.P' . $personId . '.Person.Data.Name.Last }}')
                         ->styleTextSize(self::TEXT_SIZE_BIG)
-                        ->styleLineHeight('105%')
+                        ->styleLineHeight('90%')
                         ->styleFontFamily(self::TEXT_FAMILY)
 //                        ->styleTextBold()
                         , '100%'
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '0%'
                     )
                 )
             )
             ->addSlice((new Slice())
                 ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '0%'
-                    )
                     ->addElementColumn((new Element())
                         ->setContent('Vor- und Zuname')
                         ->styleTextSize(self::TEXT_SIZE_SMALL)
@@ -153,19 +134,11 @@ class EssGsHjOne extends Certificate
                         ->styleFontFamily(self::TEXT_FAMILY)
                         , '100%'
                     )
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '0%'
-                    )
                 )
             )
 
             ->addSlice((new Slice())
                 ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '0%'
-                    )
                     ->addElementColumn((new Element())
                         ->setContent('{% if(Content.P' . $personId . '.Input.Remark is not empty) %}
                                 {{ Content.P' . $personId . '.Input.Remark|nl2br }}
@@ -173,23 +146,20 @@ class EssGsHjOne extends Certificate
                                 &nbsp;
                             {% endif %}')
                         ->styleTextSize(self::TEXT_SIZE)
-                        ->styleLineHeight('105%')
+                        ->styleLineHeight('90%')
                         ->styleFontFamily(self::TEXT_FAMILY)
                         ->styleAlignJustify()
-                        ->stylePaddingTop('25px')
+                        ->stylePaddingTop('20px')
                         ->stylePaddingBottom('20px')
-                        ->styleHeight('402px')
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '0%'
+                        ->styleHeight('412px')
                     )
                 )
             )
 
             ->addSlice((new Slice())
-                ->addElement((new Element())
-                    ->setContent('
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('
                             {% if(Content.P' . $personId . '.DivisionTeacher.Gender is not empty) %}
                                 {% if(Content.P' . $personId . '.DivisionTeacher.Gender == "M") %}
                                     Dein Lehrer
@@ -204,30 +174,34 @@ class EssGsHjOne extends Certificate
                             {% else %}
                                 &nbsp;
                             {% endif %}')
-                    ->styleTextSize(self::TEXT_SIZE)
-                    ->styleLineHeight('105%')
-                    ->styleFontFamily(self::TEXT_FAMILY)
-                    ->stylePaddingTop('30px')
-                    ->stylePaddingRight('40px')
-                    ->stylePaddingLeft('40px')
+                        ->styleTextSize(self::TEXT_SIZE)
+                        ->styleLineHeight('90%')
+                        ->styleFontFamily(self::TEXT_FAMILY)
+                        ->stylePaddingTop('30px')
+                    , '100%')
                 )
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
-                        , '40%'
+                        ->setContent('&nbsp;')
+                        , '42%'
                     )
                     ->addElementColumn((new Element())
                         ->setContent('Zur Kenntnis genommen:')
-                        ->styleTextSize(self::TEXT_SIZE)
-                        ->styleLineHeight('105%')
+                        ->styleTextSize('10pt')
+                        ->styleLineHeight('90%')
                         ->styleFontFamily(self::TEXT_FAMILY)
-                        ->stylePaddingTop('30px')
-                        , '26%'
+                        ->stylePaddingTop('20px')
+                        , '23%'
                     )
                     ->addElementColumn((new Element())
                         ->setContent('&nbsp;')
-                        ->stylePaddingTop('30px')
+                        ->stylePaddingTop('20px')
                         ->styleBorderBottom('1px', '#000', 'dotted')
                         , '34%'
+                    )
+                    ->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
+                        , '1%'
                     )
                 )
                 ->addSection((new Section())
@@ -237,7 +211,7 @@ class EssGsHjOne extends Certificate
                     ->addElementColumn((new Element())
                         ->setContent('Eltern')
                         ->styleTextSize(self::TEXT_SIZE_SMALL)
-                        ->styleLineHeight('105%')
+                        ->styleLineHeight('90%')
                         ->styleFontFamily(self::TEXT_FAMILY)
                         ->stylePaddingTop('5px')
                         ->styleAlignCenter()
@@ -250,7 +224,7 @@ class EssGsHjOne extends Certificate
                 )
             )
             ->addSlice((new Slice())
-                ->addElement((new Element\Image('/Common/Style/Resource/Logo/ESS_Grundschule_down.jpg', '700px'))
+                ->addElement((new Element\Image('/Common/Style/Resource/Logo/ESS_Grundschule_Down.jpg', '700px'))
                     ->stylePaddingTop('20px')
                 )
             );

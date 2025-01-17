@@ -28,6 +28,8 @@ class Setup extends AbstractSetup
         $Schema = clone $this->getConnection()->getSchema();
         $this->setTableSetting($Schema);
         $this->setTableStudentCustody($Schema);
+        $this->setTableAccountDownloadLock($Schema);
+        $this->setTableAccountSetting($Schema);
 
         /**
          * Migration & Protocol
@@ -59,8 +61,9 @@ class Setup extends AbstractSetup
         $this->createColumn($table, 'Description', self::FIELD_TYPE_TEXT, false, '');
         $this->createColumn($table, 'IsPublic', self::FIELD_TYPE_BOOLEAN, false, false);
         $this->createColumn($table, 'Category', self::FIELD_TYPE_STRING, false, 'Allgemein');
+        $this->createColumn($table, 'SortOrder', self::FIELD_TYPE_INTEGER, true);
 
-        $this->createIndex($table, array('Cluster', 'Application', 'Module', 'Identifier'));
+//        $this->createIndex($table, array('Cluster', 'Application', 'Module', 'Identifier'));
 
         return $table;
     }
@@ -74,5 +77,33 @@ class Setup extends AbstractSetup
         $this->createColumn($table, 'serviceTblAccountStudent', self::FIELD_TYPE_BIGINT);
         $this->createColumn($table, 'serviceTblAccountCustody', self::FIELD_TYPE_BIGINT);
         $this->createColumn($table, 'serviceTblAccountBlocker', self::FIELD_TYPE_BIGINT);
+    }
+
+    /**
+     * @param Schema $Schema
+     */
+    private function setTableAccountDownloadLock(Schema &$Schema)
+    {
+        $table = $this->createTable($Schema, 'tblAccountDownloadLock');
+        $this->createColumn($table, 'serviceTblAccount', self::FIELD_TYPE_BIGINT);
+        $this->createColumn($table, 'Date', self::FIELD_TYPE_DATETIME);
+        $this->createColumn($table, 'Identifier', self::FIELD_TYPE_STRING);
+        $this->createColumn($table, 'IsLocked', self::FIELD_TYPE_BOOLEAN);
+        $this->createColumn($table, 'IsLockedLastLoad', self::FIELD_TYPE_BOOLEAN);
+
+        $this->createIndex($table, array('serviceTblAccount'));
+    }
+
+    /**
+     * @param Schema $Schema
+     */
+    private function setTableAccountSetting(Schema &$Schema)
+    {
+        $table = $this->createTable($Schema, 'tblAccountSetting');
+        $this->createColumn($table, 'serviceTblAccount', self::FIELD_TYPE_BIGINT);
+        $this->createColumn($table, 'Identifier', self::FIELD_TYPE_STRING);
+        $this->createColumn($table, 'Value', self::FIELD_TYPE_STRING);
+
+        $this->createIndex($table, array('serviceTblAccount', 'Identifier'));
     }
 }

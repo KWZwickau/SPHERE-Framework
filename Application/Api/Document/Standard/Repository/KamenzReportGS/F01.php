@@ -32,7 +32,7 @@ class F01
             ->styleMarginBottom('5px')
             ->addElement((new Element())
                 ->setContent('F01. Inklusiv unterrichtete Schüler mit sonderpädagogischem Förderbedarf im Schuljahr
-                {{ Content.SchoolYear.Current }} </br> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; nach Förderschwerpunkten und Klassenstufen')
+                {{ Content.SchoolYear.Current }} <br /> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; nach Förderschwerpunkten und Klassenstufen')
             );
 
         $sliceList[] = (new Slice())
@@ -45,72 +45,84 @@ class F01
             ->addSection((new Section())
                 ->addElementColumn((new Element())
                     ->setContent('Förderschwerpunkt(e)')
+                    ->styleAlignCenter()
                     ->styleBorderRight()
-                    ->stylePaddingTop('34.7px')
-                    ->stylePaddingBottom('34.7px'), '20%'
+                    ->stylePaddingTop('43.35px')
+                    ->stylePaddingBottom('43.35px'), '20%'
                 )
                 ->addElementColumn((new Element())
                     ->setContent('Klassenstufe')
+                    ->styleAlignCenter()
                     ->styleBorderRight()
-                    ->stylePaddingTop('34.7px')
-                    ->stylePaddingBottom('34.7px'), '30%'
+                    ->stylePaddingTop('43.35px')
+                    ->stylePaddingBottom('43.35px'), '15%'
                 )
                 ->addSliceColumn((new Slice())
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('Schüler')
+                            ->styleAlignCenter()
                             ->styleBorderBottom()
                             ->styleBorderRight()
-                            ->stylePaddingTop('25.6px')
-                            ->stylePaddingBottom('25.6px'), '30%'
+                            ->stylePaddingTop('34.25px')
+                            ->stylePaddingBottom('34.25px'), '30%'
                         )
                     )
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('m')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '50%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('w')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '50%'
                         )
-                    ), '16.66%'
+                    ), '21.66%'
                 )
                 ->addSliceColumn((new Slice())
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('<b>Darunter</b> von Spalte Schüler'), '100%'
+                            ->setContent('<b>Darunter</b> von Spalte Schüler')
+                            ->styleAlignCenter(), '100%'
                         )
                     )
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('Schüler mit<br/>Migrations-<br/>hintergrund')
+                            ->setContent('Schüler, deren<br/>Herkunftssprache nicht<br/>oder nicht ausschl.<br/>Deutsch ist')
+                            ->styleAlignCenter()
                             ->styleBorderBottom()
                             ->styleBorderRight(), '50%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('Schüler mit<br/>gutachterl.<br/>best. Autismus')
+                            ->setContent('Schüler mit<br/>gutachterl.<br/>best. Autismus<br/>&nbsp;')
+                            ->styleAlignCenter()
                             ->styleBorderBottom(), '50%'
                         )
                     )
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('m')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '25%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('w')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '25%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('m')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '25%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('w'), '25%'
+                            ->setContent('w')
+                            ->styleAlignCenter(), '25%'
                         )
                     )
-                    , '33.34%'
+                    , '43.34%'
                 )
             );
 
@@ -123,9 +135,10 @@ class F01
                 case 1: $text = 'Sehen'; break;
                 case 2: $text = 'Hören'; break;
                 case 3: $text = 'Sprache'; break;
-                case 4: $text = 'Körperlich-motorische Entwicklung'; $paddingTop = '19px'; $paddingBottom = '19px'; break;
+//                case 4: $text = 'Körperlich-motorische Entwicklung'; $paddingTop = '19px'; $paddingBottom = '19px'; break;
+                case 4: $text = 'Körperlich-motorische Entwicklung'; $paddingTop = '27.8px'; $paddingBottom = '27.8px'; break;
                 case 5: $text = 'Geistige Entwicklung'; break;
-                case 6: $text = 'Sozial-emotionale Entwicklung'; $paddingTop = '27.8px'; $paddingBottom = '27.8px';break;
+                case 6: $text = 'Emotionale-soziale Entwicklung'; $paddingTop = '27.8px'; $paddingBottom = '27.8px';break;
                 case 7: $text = 'Insgesamt'; $isBold = true; break;
                 default: $text = '';
             }
@@ -134,6 +147,7 @@ class F01
             $section
                 ->addElementColumn((new Element())
                     ->setContent($text)
+                    ->styleAlignCenter()
                     ->styleBackgroundColor('lightgrey')
                     ->styleBorderRight()
                     ->stylePaddingTop($paddingTop)
@@ -147,6 +161,7 @@ class F01
                 $lineSection
                     ->addElementColumn((new Element())
                         ->setContent($j)
+                        ->styleAlignCenter()
                         ->styleBorderBottom()
                     );
                 $lineSectionList[] = $lineSection;
@@ -159,6 +174,7 @@ class F01
             $lineSectionList[] = (new Section())
                 ->addElementColumn((new Element())
                     ->setContent('Zusammen')
+                    ->styleAlignCenter()
                     ->styleTextBold()
                 );
             $section
@@ -166,7 +182,7 @@ class F01
                     ->styleBackgroundColor('lightgrey')
                     ->styleBorderRight()
                     ->addSectionList($lineSectionList)
-                    , '30%'
+                    , '15%'
                 );
 
             // Schüler
@@ -194,10 +210,11 @@ class F01
     }
 
     /**
-     * @param $section
+     * @param Section $section
      * @param $text
      * @param $identifier
      * @param $gender
+     * @param string $width
      */
     private static function setColumn(Section $section, $text, $identifier, $gender)
     {
@@ -220,6 +237,7 @@ class F01
                                 &nbsp;
                             {% endif %}
                         ')
+                    ->styleAlignCenter()
                     ->styleBorderBottom()
                 );
             $lineSectionList[] = $lineSection;
@@ -244,13 +262,14 @@ class F01
                         &nbsp;
                     {% endif %}
                 ')
+                ->styleAlignCenter()
                 ->styleTextBold()
             );
         $section
             ->addSliceColumn((new Slice())
                 ->styleBorderRight()
                 ->addSectionList($lineSectionList)
-                , '8.333%'
+                , '10.833%'
             );
     }
 }

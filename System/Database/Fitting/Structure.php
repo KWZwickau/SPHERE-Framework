@@ -52,6 +52,17 @@ class Structure
     }
 
     /**
+     * @param $Name
+     */
+    public function dropView($Name)
+    {
+
+        if ($this->Database->hasView($Name)) {
+            $this->getSchemaManager()->dropView($Name);
+        }
+    }
+
+    /**
      * @return DBALSchemaManager
      */
     public function getSchemaManager()
@@ -87,6 +98,16 @@ class Structure
             $Table->addColumn('EntityRemove', 'datetime', array('notnull' => false));
         }
         return $Table;
+    }
+
+    /**
+     * @param $Table
+     */
+    public function dropTable($Name)
+    {
+        if ($this->Database->hasTable($Name)){
+            $this->getSchemaManager()->dropTable($Name);
+        }
     }
 
     /**
@@ -150,11 +171,11 @@ class Structure
             foreach( $TableStatus as $Status ) {
 
                 // correct Collation && ignore view's
-                if( $Status['Collation'] != 'utf8_german2_ci'
+                if($Status['Collation'] != 'utf8mb4_german2_ci'
                     && !preg_match('!view!', $Status['Name'])
                 ) {
-                    array_push( $Statement, "alter table ".$DatabaseName.".".$Status['Name']." character set utf8 collate utf8_german2_ci;" );
-                    array_push( $Statement, "alter table ".$DatabaseName.".".$Status['Name']." convert to character set utf8 collate utf8_german2_ci;" );
+                    array_push( $Statement, "alter table ".$DatabaseName.".".$Status['Name']." character set utf8mb4 collate utf8mb4_german2_ci;" );
+                    array_push( $Statement, "alter table ".$DatabaseName.".".$Status['Name']." convert to character set utf8mb4 collate utf8mb4_german2_ci;" );
                 }
             }
         }

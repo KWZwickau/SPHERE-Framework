@@ -3,6 +3,7 @@ namespace SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer;
 
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Data;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumerLogin;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Setup;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Window\Redirect;
@@ -62,6 +63,17 @@ class Service extends AbstractService
     }
 
     /**
+     * @param $Id
+     *
+     * @return bool|TblConsumer
+     */
+    public function getConsumerLoginById($Id)
+    {
+
+        return (new Data($this->getBinding()))->getConsumerLoginById($Id);
+    }
+
+    /**
      * @param string $Name
      *
      * @return bool|TblConsumer
@@ -70,6 +82,29 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getConsumerByName($Name);
+    }
+
+    /**
+     * @param TblConsumer $tblConsumer
+     *
+     * @return TblConsumerLogin[]|false
+     */
+    public function getConsumerLoginListByConsumer(TblConsumer $tblConsumer)
+    {
+
+        return (new Data($this->getBinding()))->getConsumerLoginListByConsumer($tblConsumer);
+    }
+
+    /**
+     * @param TblConsumer $tblConsumer
+     * @param string      $SystemName
+     *
+     * @return TblConsumerLogin|false
+     */
+    public function getConsumerLoginByConsumerAndSystem(TblConsumer $tblConsumer, string $SystemName = '')
+    {
+
+        return (new Data($this->getBinding()))->getConsumerLoginByConsumerAndSystem($tblConsumer, $SystemName);
     }
 
     /**
@@ -93,6 +128,37 @@ class Service extends AbstractService
         } else {
             return $tblConsumer;
         }
+    }
+
+    /**
+     * @param string $Type
+     * @param string $Acronym
+     * @param string|null $Session
+     *
+     * @return bool
+     */
+    public function getConsumerBySessionIsConsumer(string $Type, string $Acronym, ?string $Session = null): bool
+    {
+        if(($tblConsumer = $this->getConsumerBySession($Session))) {
+            return $tblConsumer->isConsumer($Type, $Acronym);
+        }
+
+        return false;
+    }
+
+    /**
+     * @param string $Type
+     * @param string|null $Session
+     *
+     * @return bool
+     */
+    public function getConsumerBySessionIsConsumerType(string $Type, ?string $Session = null): bool
+    {
+        if(($tblConsumer = $this->getConsumerBySession($Session))) {
+            return $tblConsumer->getType() == $Type;
+        }
+
+        return false;
     }
 
     /**
@@ -142,8 +208,19 @@ class Service extends AbstractService
         if ($Error) {
             return $Form;
         } else {
-            (new Data($this->getBinding()))->createConsumer($ConsumerAcronym, $ConsumerName, $ConsumerAlias);
+            $ConsumerType = $this->getConsumerTypeFromServerHost();
+
+            (new Data($this->getBinding()))->createConsumer($ConsumerAcronym, $ConsumerName, $ConsumerType, $ConsumerAlias);
             return new Redirect('/Platform/Gatekeeper/Authorization/Consumer', 0);
+        }
+    }
+
+    /**
+     * @return void
+     */
+    public function updateConsumer(): void {
+        if(($tblConsumer = $this->getConsumerBySession())){
+            (new Data($this->getBinding()))->updateConsumer($tblConsumer);
         }
     }
 
@@ -160,5 +237,17 @@ class Service extends AbstractService
         }
         self::$ConsumerByAcronymCache[$Acronym] = (new Data($this->getBinding()))->getConsumerByAcronym($Acronym);
         return self::$ConsumerByAcronymCache[$Acronym];
+    }
+
+    /**
+     * @return string
+     */
+    public function getConsumerTypeFromServerHost(): string
+    {
+        if (strpos(strtolower($_SERVER['HTTP_HOST']), 'ekbo') !== false) {
+            return TblConsumer::TYPE_BERLIN;
+        } else {
+            return TblConsumer::TYPE_SACHSEN;
+        }
     }
 }

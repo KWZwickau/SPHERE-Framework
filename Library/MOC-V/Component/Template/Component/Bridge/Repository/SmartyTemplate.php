@@ -24,11 +24,12 @@ class SmartyTemplate extends Bridge implements IBridgeInterface
     public function __construct()
     {
 
-        if (!defined('SMARTY_DIR')) {
-            define('SMARTY_DIR', realpath(__DIR__.'/../../../Vendor/Smarty/').DIRECTORY_SEPARATOR);
-        }
-        /** @noinspection PhpIncludeInspection */
-        require_once( SMARTY_DIR.'Smarty.class.php' );
+        require_once(__DIR__.'/../../../../../Php8Combined/vendor/autoload.php');
+//        if (!defined('SMARTY_DIR')) {
+//            define('SMARTY_DIR', realpath(__DIR__.'/../../../Vendor/Smarty/').DIRECTORY_SEPARATOR);
+//        }
+//        /** @noinspection PhpIncludeInspection */
+//        require_once( SMARTY_DIR.'Smarty.class.php' );
     }
 
     /**

@@ -25,6 +25,9 @@ abstract class AbstractLink extends Extension implements ILinkInterface
 {
 
     const TYPE_LINK = 'italic';
+    const TYPE_WHITE_LINK = 'type-white-link';
+    const TYPE_MUTED_LINK = 'type-muted-link';
+    const TYPE_ORANGE_LINK = 'type-orange-link';
     const TYPE_DEFAULT = 'btn btn-default';
     const TYPE_DANGER = 'btn btn-danger';
     const TYPE_WARNING = 'btn btn-warning';
@@ -81,7 +84,7 @@ abstract class AbstractLink extends Extension implements ILinkInterface
             $this->Data = array();
         }
 
-        if (false !== strpos($Path, '\\')) {
+        if (false !== strpos($Path ?? '', '\\')) {
             $this->Path = new Route($Path);
         } else {
             $this->Path = $Path;
@@ -161,6 +164,16 @@ abstract class AbstractLink extends Extension implements ILinkInterface
     {
 
         $this->Template->setVariable('Disabled', true);
+        return $this;
+    }
+
+    /**
+     * @return ILinkInterface
+     */
+    public function setExternal()
+    {
+
+        $this->Template->setVariable('ElementExternal', true);
         return $this;
     }
 

@@ -7,10 +7,12 @@ use SPHERE\Application\Contact\Mail\Service\Entity\TblToCompany as TblToCompanyM
 use SPHERE\Application\Contact\Phone\Phone;
 use SPHERE\Application\Contact\Phone\Service\Entity\TblToCompany as TblToCompanyPhone;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAuthorization;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumerLogin;
 use SPHERE\Application\Setting\Consumer\Responsibility\Responsibility;
 use SPHERE\Application\Setting\Consumer\Responsibility\Service\Entity\TblResponsibility;
 use SPHERE\Application\Setting\Consumer\School\School;
@@ -112,14 +114,34 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $tblConsumerAll = Consumer::useService()->getConsumerAll();
-        $Result = array();
+        $TableContent = array();
         if ($tblConsumerAll) {
-            array_walk($tblConsumerAll, function (TblConsumer $tblConsumer) use (&$Result) {
+            array_walk($tblConsumerAll, function (TblConsumer $tblConsumer) use (&$TableContent) {
+                $item = array();
+                $item['Acronym'] = $tblConsumer->getAcronym();
+                $item['Name'] = $tblConsumer->getName();
+                $item['Alias'] = $tblConsumer->getAlias();
+                $item['Kamenz'] = '';
+                $item['UCS'] = '';
+                $item['Region'] = $tblConsumer->getType();
+                // Kamenz
+                $tblRole = Access::useService()->getRoleByName('Auswertung: Kamenz-Statistik');
+                if(Access::useService()->getRoleConsumerBy($tblRole, $tblConsumer)){
+                    $item['Kamenz'] = 'Ja';
+                }
+                // UCS
+                if(($tblConsumerLogin = Consumer::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_UCS))){
+                    $item['UCS'] = 'API Verfügbar ';
+                    if($tblConsumerLogin->getIsActiveAPI()){
+                        $item['UCS'] .= new Muted(new Small('Aktiv'));
+                    }
+                }
 
-                array_push($Result, array_merge($tblConsumer->__toArray(), array(
-                    'Option' => new Standard('', '/Setting/MyAccount/Consumer/Change', new Select(),
-                        array('Id' => $tblConsumer->getId()), 'Auswählen')
-                )));
+
+                $item['Option'] = new Standard('', '/Setting/MyAccount/Consumer/Change', new Select(),
+                    array('Id' => $tblConsumer->getId()), 'Auswählen');
+
+                $TableContent[] = $item;
             });
         }
 
@@ -127,7 +149,15 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->addButton(new Standard('Zurück', '/Setting/MyAccount', new ChevronLeft()));
         $Stage->setContent(
             new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
-                new TableData($Result, null, array('Acronym' => 'Kürzel', 'Name' => 'Name', 'Alias' => 'Alias', 'Option' => ''))
+                new TableData($TableContent, null, array(
+                    'Acronym' => 'Kürzel',
+                    'Name'    => 'Name',
+                    'Alias'   => 'Alias',
+                    'Kamenz'  => 'verwendet Kamenz',
+                    'UCS'     => 'verwendet UCS',
+                    'Region'  => 'Region',
+                    'Option'  => ''
+                ))
             )), new Title(new Select().' Auswahl'))));
 
         return $Stage;
@@ -189,8 +219,16 @@ class Frontend extends Extension implements IFrontendInterface
             ( !empty( $tblPersonAll ) ? new Listing($tblPersonAll) : new Danger(new Exclamation().new Small(' Keine Person angeben')) )
         );
 
+        $Content = array();
+        if (($tblAuthenticationList = Account::useService()->getAuthenticationListByAccount($tblAccount))) {
+            foreach ($tblAuthenticationList as $tblAuthentication) {
+                if (($tblIdentification = $tblAuthentication->getTblIdentification())) {
+                    $Content[] = $tblIdentification->getDescription();
+                }
+            }
+        }
         $Authentication = new Panel('Authentication',
-            ( $tblAccount->getServiceTblIdentification() ? $tblAccount->getServiceTblIdentification()->getDescription() : '' )
+            $Content
         );
 
         $Authorization = new Panel('Berechtigungen',
@@ -277,8 +315,8 @@ class Frontend extends Extension implements IFrontendInterface
                                     .new Container(implode($this->listingResponsibility()))
                                     .new Container(implode($this->listingSponsorAssociation()))
                                 )
-                                , Panel::PANEL_TYPE_INFO,
-                                new Standard('Zugriff auf Mandant ändern', new Route(__NAMESPACE__.'/Consumer'))
+                                , Panel::PANEL_TYPE_INFO
+//                                , new Standard('Zugriff auf Mandant ändern', new Route(__NAMESPACE__.'/Consumer'))
                             )
                         ), 4),
                     ))
@@ -292,7 +330,7 @@ class Frontend extends Extension implements IFrontendInterface
     /**
      * @return array
      */
-    private function listingSchool()
+    public function listingSchool()
     {
 
         $tblSchoolAll = School::useService()->getSchoolAll();
@@ -313,7 +351,9 @@ class Frontend extends Extension implements IFrontendInterface
                         array_walk($tblPhoneAll, function (TblToCompanyPhone $tblToCompany) use (&$List) {
 
                             $tblPhone = $tblToCompany->getTblPhone();
-                            $List[] = $tblToCompany->getTblType()->getName().' '.$tblToCompany->getTblType()->getDescription().': '.$tblPhone->getNumber();
+                            $Remark = $tblToCompany->getRemark();
+                            $List[] = $tblToCompany->getTblType()->getName().' '.$tblToCompany->getTblType()->getDescription().': '.$tblPhone->getNumber()
+                                .($Remark ? ' - '.$Remark : '');
                         });
                     }
                     $tblMailAll = Mail::useService()->getMailAllByCompany($tblCompany);
@@ -321,7 +361,9 @@ class Frontend extends Extension implements IFrontendInterface
                         array_walk($tblMailAll, function (TblToCompanyMail $tblToCompany) use (&$List) {
 
                             $tblMail = $tblToCompany->getTblMail();
-                            $List[] = $tblToCompany->getTblType()->getName().' '.$tblToCompany->getTblType()->getDescription().': '.$tblMail->getAddress();
+                            $Remark = $tblToCompany->getRemark();
+                            $List[] = $tblToCompany->getTblType()->getName().' '.$tblToCompany->getTblType()->getDescription().': '.$tblMail->getAddress()
+                                .($Remark ? ' - '.$Remark : '');
                         });
                     }
                     $Result[] = new Panel(
@@ -341,7 +383,7 @@ class Frontend extends Extension implements IFrontendInterface
     /**
      * @return array
      */
-    private function listingResponsibility()
+    public function listingResponsibility()
     {
 
         $tblResponsibilityAll = Responsibility::useService()->getResponsibilityAll();
@@ -362,7 +404,9 @@ class Frontend extends Extension implements IFrontendInterface
                         array_walk($tblPhoneAll, function (TblToCompanyPhone $tblToCompany) use (&$List) {
 
                             $tblPhone = $tblToCompany->getTblPhone();
-                            $List[] = $tblToCompany->getTblType()->getName().' '.$tblToCompany->getTblType()->getDescription().': '.$tblPhone->getNumber();
+                            $Remark = $tblToCompany->getRemark();
+                            $List[] = $tblToCompany->getTblType()->getName().' '.$tblToCompany->getTblType()->getDescription().': '.$tblPhone->getNumber()
+                                .($Remark ? ' - '.$Remark : '');
                         });
                     }
                     $tblMailAll = Mail::useService()->getMailAllByCompany($tblCompany);
@@ -370,7 +414,9 @@ class Frontend extends Extension implements IFrontendInterface
                         array_walk($tblMailAll, function (TblToCompanyMail $tblToCompany) use (&$List) {
 
                             $tblMail = $tblToCompany->getTblMail();
-                            $List[] = $tblToCompany->getTblType()->getName().' '.$tblToCompany->getTblType()->getDescription().': '.$tblMail->getAddress();
+                            $Remark = $tblToCompany->getRemark();
+                            $List[] = $tblToCompany->getTblType()->getName().' '.$tblToCompany->getTblType()->getDescription().': '.$tblMail->getAddress()
+                                .($Remark ? ' - '.$Remark : '');
                         });
                     }
                     $Result[] = new Panel(
@@ -388,7 +434,7 @@ class Frontend extends Extension implements IFrontendInterface
     /**
      * @return array
      */
-    private function listingSponsorAssociation()
+    public function listingSponsorAssociation()
     {
 
         $tblSponsorAssociationAll = SponsorAssociation::useService()->getSponsorAssociationAll();
@@ -410,7 +456,9 @@ class Frontend extends Extension implements IFrontendInterface
                             array_walk($tblPhoneAll, function (TblToCompanyPhone $tblToCompany) use (&$List) {
 
                                 $tblPhone = $tblToCompany->getTblPhone();
-                                $List[] = $tblToCompany->getTblType()->getName().' '.$tblToCompany->getTblType()->getDescription().': '.$tblPhone->getNumber();
+                                $Remark = $tblToCompany->getRemark();
+                                $List[] = $tblToCompany->getTblType()->getName().' '.$tblToCompany->getTblType()->getDescription().': '.$tblPhone->getNumber()
+                                    .($Remark ? ' - '.$Remark : '');
                             });
                         }
                         $tblMailAll = Mail::useService()->getMailAllByCompany($tblCompany);
@@ -418,7 +466,9 @@ class Frontend extends Extension implements IFrontendInterface
                             array_walk($tblMailAll, function (TblToCompanyMail $tblToCompany) use (&$List) {
 
                                 $tblMail = $tblToCompany->getTblMail();
-                                $List[] = $tblToCompany->getTblType()->getName().' '.$tblToCompany->getTblType()->getDescription().': '.$tblMail->getAddress();
+                                $Remark = $tblToCompany->getRemark();
+                                $List[] = $tblToCompany->getTblType()->getName().' '.$tblToCompany->getTblType()->getDescription().': '.$tblMail->getAddress()
+                                    .($Remark ? ' - '.$Remark : '');
                             });
                         }
                         $Result[] = new Panel(

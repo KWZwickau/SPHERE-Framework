@@ -10,7 +10,6 @@ namespace SPHERE\Application\Api\Education\Certificate\Generator\Repository\EVSR
 
 use SPHERE\Application\Api\Education\Certificate\Generator\Certificate;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Page;
-use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 
 /**
@@ -20,6 +19,9 @@ use SPHERE\Application\People\Person\Service\Entity\TblPerson;
  */
 class RadebeulOsHalbjahresinformation extends Certificate
 {
+    const TEXT_COLOR_BLUE = 'rgb(25,59,100)';
+    const FONT_FAMILY = 'MetaPro';
+
     /**
      * @param TblPerson|null $tblPerson
      *
@@ -27,11 +29,46 @@ class RadebeulOsHalbjahresinformation extends Certificate
      */
     public function buildPages(TblPerson $tblPerson = null)
     {
+        $gradeFieldWidth = 18;
 
         $personId = $tblPerson ? $tblPerson->getId() : 0;
 
+        $gradeLanesSlice = $this->getGradeLanesForRadebeul(
+            $personId,
+            self::TEXT_COLOR_BLUE,
+            '10pt',
+            'rgb(224,226,231)',
+            false,
+            '20px',
+            $gradeFieldWidth
+        );
+
+        $subjectLanesSlice = $this->getSubjectLanesForRadebeul(
+            $personId,
+            self::TEXT_COLOR_BLUE,
+            '10pt',
+            'rgb(224,226,231)',
+            false,
+            '8px',
+            $gradeFieldWidth,
+            self::FONT_FAMILY,
+            '265px',
+            true
+        );
+
         return (new Page())
+//        (new Page())
             ->addSlice(RadebeulOsJahreszeugnis::getHeader('Halbjahresinformation'))
-            ->addSliceArray((new RadebeulOsJahreszeugnis($this->getTblDivision()))->getBody($personId, false));
+            ->addSliceArray((new RadebeulOsJahreszeugnis(
+                $this->getTblStudentEducation() ?: null,
+                $this->getTblPrepareCertificate() ?: null
+            ))->getBody(
+                $personId,
+                false,
+                $gradeLanesSlice,
+                $subjectLanesSlice
+        ))
+            ;
+//        exit;
     }
 }

@@ -8,20 +8,24 @@
 
 namespace SPHERE\Application\Education\Certificate\Generate\Service\Entity;
 
+use DateTime;
 use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
+use SPHERE\Application\Education\Certificate\Generate\Generate;
 use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificateType;
-use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
-use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTask;
+use SPHERE\Application\Education\Certificate\Prepare\Prepare;
+use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCertificate;
+use SPHERE\Application\Education\Graduation\Grade\Grade;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTask;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Common\Service\Entity\TblCommonGender;
 use SPHERE\System\Database\Fitting\Element;
-
 
 /**
  * @Entity()
@@ -30,14 +34,17 @@ use SPHERE\System\Database\Fitting\Element;
  */
 class TblGenerateCertificate extends Element
 {
-
     const ATTR_SERVICE_TBL_YEAR = 'serviceTblYear';
-    const ATTR_SERVICE_TBL_CERTIFICATE_TYPE = 'serviceTblCertificateType';
 
     /**
      * @Column(type="datetime")
      */
     protected $Date;
+
+    /**
+     * @Column(type="datetime")
+     */
+    protected $AppointedDateForAbsence;
 
     /**
      * @Column(type="string")
@@ -80,22 +87,16 @@ class TblGenerateCertificate extends Element
     protected $serviceTblCommonGenderHeadmaster;
 
     /**
-     * @Column(type="boolean")
-     */
-    protected $IsLocked;
-
-    /**
      * @return string
      */
     public function getDate()
     {
-
         if (null === $this->Date) {
             return false;
         }
-        /** @var \DateTime $Date */
+        /** @var DateTime $Date */
         $Date = $this->Date;
-        if ($Date instanceof \DateTime) {
+        if ($Date instanceof DateTime) {
             return $Date->format('d.m.Y');
         } else {
             return (string)$Date;
@@ -103,12 +104,44 @@ class TblGenerateCertificate extends Element
     }
 
     /**
-     * @param null|\DateTime $Date
+     * @return ?DateTime
      */
-    public function setDate(\DateTime $Date = null)
+    public function getDateTime(): ?DateTime
     {
+        return $this->Date;
+    }
 
+    /**
+     * @param null|DateTime $Date
+     */
+    public function setDate(DateTime $Date = null)
+    {
         $this->Date = $Date;
+    }
+
+    /**
+     * @return string
+     */
+    public function getAppointedDateForAbsence()
+    {
+        if (null === $this->AppointedDateForAbsence) {
+            return false;
+        }
+        /** @var DateTime $Date */
+        $Date = $this->AppointedDateForAbsence;
+        if ($Date instanceof DateTime) {
+            return $Date->format('d.m.Y');
+        } else {
+            return (string)$Date;
+        }
+    }
+
+    /**
+     * @param null|DateTime $AppointedDateForAbsence
+     */
+    public function setAppointedDateForAbsence(DateTime $AppointedDateForAbsence = null)
+    {
+        $this->AppointedDateForAbsence = $AppointedDateForAbsence;
     }
 
     /**
@@ -116,7 +149,6 @@ class TblGenerateCertificate extends Element
      */
     public function getServiceTblYear()
     {
-
         if (null === $this->serviceTblYear) {
             return false;
         } else {
@@ -129,7 +161,6 @@ class TblGenerateCertificate extends Element
      */
     public function setServiceTblYear(TblYear $tblYear = null)
     {
-
         $this->serviceTblYear = (null === $tblYear ? null : $tblYear->getId());
     }
 
@@ -154,11 +185,10 @@ class TblGenerateCertificate extends Element
      */
     public function getServiceTblAppointedDateTask()
     {
-
         if (null === $this->serviceTblAppointedDateTask) {
             return false;
         } else {
-            return Evaluation::useService()->getTaskById($this->serviceTblAppointedDateTask);
+            return Grade::useService()->getTaskById($this->serviceTblAppointedDateTask);
         }
     }
 
@@ -167,7 +197,6 @@ class TblGenerateCertificate extends Element
      */
     public function setServiceTblAppointedDateTask(TblTask $tblTask = null)
     {
-
         $this->serviceTblAppointedDateTask = (null === $tblTask ? null : $tblTask->getId());
     }
 
@@ -176,11 +205,10 @@ class TblGenerateCertificate extends Element
      */
     public function getServiceTblBehaviorTask()
     {
-
         if (null === $this->serviceTblBehaviorTask) {
             return false;
         } else {
-            return Evaluation::useService()->getTaskById($this->serviceTblBehaviorTask);
+            return Grade::useService()->getTaskById($this->serviceTblBehaviorTask);
         }
     }
 
@@ -189,7 +217,6 @@ class TblGenerateCertificate extends Element
      */
     public function setServiceTblBehaviorTask(TblTask $tblTask = null)
     {
-
         $this->serviceTblBehaviorTask = (null === $tblTask ? null : $tblTask->getId());
     }
 
@@ -230,7 +257,6 @@ class TblGenerateCertificate extends Element
      */
     public function getServiceTblCertificateType()
     {
-
         if (null === $this->serviceTblCertificateType) {
             return false;
         } else {
@@ -243,7 +269,6 @@ class TblGenerateCertificate extends Element
      */
     public function setServiceTblCertificateType(TblCertificateType $tblCertificateType = null)
     {
-
         $this->serviceTblCertificateType = (null === $tblCertificateType ? null : $tblCertificateType->getId());
     }
 
@@ -252,7 +277,6 @@ class TblGenerateCertificate extends Element
      */
     public function getServiceTblCommonGenderHeadmaster()
     {
-
         if (null === $this->serviceTblCommonGenderHeadmaster) {
             return false;
         } else {
@@ -265,24 +289,24 @@ class TblGenerateCertificate extends Element
      */
     public function setServiceTblCommonGenderHeadmaster(TblCommonGender $tblGender = null)
     {
-
         $this->serviceTblCommonGenderHeadmaster = (null === $tblGender ? null : $tblGender->getId());
     }
 
     /**
-     * @return boolean
+     * @param bool $isString
+     *
+     * @return false|Type[]|string
      */
-    public function isLocked()
+    public function getSchoolTypes(bool $isString = false)
     {
-
-        return (boolean) $this->IsLocked;
+        return Generate::useService()->getSchoolTypeListFromGenerateCertificate($this, $isString);
     }
 
     /**
-     * @param boolean $IsLocked
+     * @return false|TblPrepareCertificate[]
      */
-    public function setIsLocked($IsLocked)
+    public function getPrepareList()
     {
-        $this->IsLocked = (boolean) $IsLocked;
+        return Prepare::useService()->getPrepareAllByGenerateCertificate($this);
     }
 }

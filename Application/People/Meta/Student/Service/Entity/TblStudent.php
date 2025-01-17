@@ -1,15 +1,18 @@
 <?php
 namespace SPHERE\Application\People\Meta\Student\Service\Entity;
 
+use DateTime;
 use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\School\Course\Service\Entity\TblCourse;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
+use SPHERE\Common\Frontend\Text\Repository\ToolTip;
+use SPHERE\Common\Frontend\Text\Repository\Warning;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -64,12 +67,20 @@ class TblStudent extends Element
     /**
      * @Column(type="bigint")
      */
-    protected $tblStudentIntegration;
+    protected $tblStudentSpecialNeeds;
+    /**
+     * @Column(type="bigint")
+     */
+    protected $tblStudentTechnicalSchool;
 
     /**
      * @Column(type="boolean")
      */
     protected $HasMigrationBackground;
+    /**
+     * @Column(type="string")
+     */
+    protected $MigrationBackground;
 
     /**
      * @Column(type="boolean")
@@ -209,28 +220,6 @@ class TblStudent extends Element
     }
 
     /**
-     * @return bool|TblStudentIntegration
-     */
-    public function getTblStudentIntegration()
-    {
-
-        if (null === $this->tblStudentIntegration) {
-            return false;
-        } else {
-            return Student::useService()->getStudentIntegrationById($this->tblStudentIntegration);
-        }
-    }
-
-    /**
-     * @param null|TblStudentIntegration $tblStudentIntegration
-     */
-    public function setTblStudentIntegration(TblStudentIntegration $tblStudentIntegration = null)
-    {
-
-        $this->tblStudentIntegration = ( null === $tblStudentIntegration ? null : $tblStudentIntegration->getId() );
-    }
-
-    /**
      * @return string
      */
     public function getPrefix()
@@ -284,9 +273,9 @@ class TblStudent extends Element
         if (null === $this->SchoolAttendanceStartDate) {
             return false;
         }
-        /** @var \DateTime $SchoolAttendanceStartDate */
+        /** @var DateTime $SchoolAttendanceStartDate */
         $SchoolAttendanceStartDate = $this->SchoolAttendanceStartDate;
-        if ($SchoolAttendanceStartDate instanceof \DateTime) {
+        if ($SchoolAttendanceStartDate instanceof DateTime) {
             return $SchoolAttendanceStartDate->format('d.m.Y');
         } else {
             return (string)$SchoolAttendanceStartDate;
@@ -294,9 +283,9 @@ class TblStudent extends Element
     }
 
     /**
-     * @param null|\DateTime $SchoolAttendanceStartDate
+     * @param null|DateTime $SchoolAttendanceStartDate
      */
-    public function setSchoolAttendanceStartDate(\DateTime $SchoolAttendanceStartDate = null)
+    public function setSchoolAttendanceStartDate(DateTime $SchoolAttendanceStartDate = null)
     {
 
         $this->SchoolAttendanceStartDate = $SchoolAttendanceStartDate;
@@ -319,6 +308,22 @@ class TblStudent extends Element
     }
 
     /**
+     * @return string|null
+     */
+    public function getMigrationBackground(): ?string
+    {
+        return $this->MigrationBackground;
+    }
+
+    /**
+     * @param string $HasMigrationBackground
+     */
+    public function setMigrationBackground(string $MigrationBackground = ''): void
+    {
+        $this->MigrationBackground = $MigrationBackground;
+    }
+
+    /**
      * @return boolean
      */
     public function isInPreparationDivisionForMigrants()
@@ -335,54 +340,8 @@ class TblStudent extends Element
     }
 
     /**
-     * @return false|TblDivision[]
-     */
-    public function getCurrentDivisionList()
-    {
-
-        if (($tblPerson = $this->getServiceTblPerson())) {
-            return Student::useService()->getCurrentDivisionListByPerson($tblPerson);
-        } else {
-            return false;
-        }
-    }
-
-    /**
-     * @param string $Prefix
+     * @deprecated
      *
-     * @return bool|string
-     */
-    public function getDisplayCurrentDivisionList($Prefix = 'Klasse')
-    {
-
-        if (($tblPerson = $this->getServiceTblPerson())) {
-            return Student::useService()->getDisplayCurrentDivisionListByPerson($tblPerson, $Prefix);
-        } else {
-            return false;
-        }
-    }
-
-    /**
-     *
-     * @return bool|TblDivision
-     */
-    public function getCurrentMainDivision()
-    {
-
-        if (($list = $this->getCurrentDivisionList())) {
-            foreach ($list as $tblDivision){
-                if (($tblLevel = $tblDivision->getTblLevel())
-                    && !$tblLevel->getIsChecked()
-                ) {
-                    return $tblDivision;
-                }
-            }
-        }
-
-        return false;
-    }
-
-    /**
      * @return bool|TblCourse
      */
     public function getCourse()
@@ -465,5 +424,82 @@ class TblStudent extends Element
         }
 
         return false;
+    }
+
+    /**
+     * @return bool|TblStudentSpecialNeeds
+     */
+    public function getTblStudentSpecialNeeds()
+    {
+
+        if (null === $this->tblStudentSpecialNeeds) {
+            return false;
+        } else {
+            return Student::useService()->getStudentSpecialNeedsById($this->tblStudentSpecialNeeds);
+        }
+    }
+
+    /**
+     * @param null|TblStudentSpecialNeeds $tblStudentSpecialNeeds
+     */
+    public function setTblStudentSpecialNeeds(TblStudentSpecialNeeds $tblStudentSpecialNeeds = null)
+    {
+
+        $this->tblStudentSpecialNeeds = ( null === $tblStudentSpecialNeeds ? null : $tblStudentSpecialNeeds->getId() );
+    }
+
+    /**
+     * @return bool|TblStudentTechnicalSchool
+     */
+    public function getTblStudentTechnicalSchool()
+    {
+
+        if (null === $this->tblStudentTechnicalSchool) {
+            return false;
+        } else {
+            return Student::useService()->getStudentTechnicalSchoolById($this->tblStudentTechnicalSchool);
+        }
+    }
+
+    /**
+     * @param null|TblStudentTechnicalSchool $tblStudentTechnicalSchool
+     */
+    public function setTblStudentTechnicalSchool(TblStudentTechnicalSchool $tblStudentTechnicalSchool = null)
+    {
+
+        $this->tblStudentTechnicalSchool = ( null === $tblStudentTechnicalSchool ? null : $tblStudentTechnicalSchool->getId() );
+    }
+
+    /**
+     * @param bool $DisplayError
+     *
+     * @return int|ToolTip|string
+     */
+    public function getSchoolAttendanceYear($DisplayError = true)
+    {
+        // SBJ (Schulbesuchsjahr): automatisch berechnet aus Datum / Jahr  der Ersteinschulung und richtig setzen entsprechend aktuelle Schuljahr (Stichtag vor und nach 1.8)
+        if (($tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('ENROLLMENT'))
+            && ($tblTransfer = Student::useService()->getStudentTransferByType($this, $tblStudentTransferType))
+        ) {
+            $enrollmentDate = $tblTransfer->getTransferDate();
+        } else {
+            $enrollmentDate = false;
+        }
+
+        if ($enrollmentDate) {
+            $enrollmentDateTime = new DateTime($enrollmentDate);
+            $enrollmentYear = intval($enrollmentDateTime->format('Y'));
+            $now = new DateTime('now');
+            $nowYear = intval($now->format('Y'));
+            $endOfPeriod = new DateTime('01.08.' . $nowYear);
+
+            return ($nowYear - $enrollmentYear + ($now > $endOfPeriod ? 1 : 0));
+        } else {
+            if($DisplayError){
+                return new ToolTip(new Warning(new Exclamation()), 'Bitte pflegen Sie das Ersteinschulungsdatum ein.');
+            } else {
+                return '';
+            }
+        }
     }
 }

@@ -3,10 +3,11 @@ namespace SPHERE\Application\Corporation\Company;
 
 use SPHERE\Application\Corporation\Company\Service\Data;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
-use SPHERE\Application\Corporation\Company\Service\Entity\ViewCompany;
 use SPHERE\Application\Corporation\Company\Service\Setup;
 use SPHERE\Application\Corporation\Group\Group;
 use SPHERE\Application\Corporation\Group\Service\Entity\TblGroup;
+use SPHERE\Application\People\Relationship\Relationship;
+use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\System\Database\Binding\AbstractService;
 
 /**
@@ -16,14 +17,6 @@ use SPHERE\System\Database\Binding\AbstractService;
  */
 class Service extends AbstractService
 {
-    /**
-     * @return false|ViewCompany[]
-     */
-    public function viewCompany()
-    {
-
-        return ( new Data($this->getBinding()) )->viewCompany();
-    }
 
     /**
      * @param bool $doSimulation
@@ -46,12 +39,37 @@ class Service extends AbstractService
     }
 
     /**
-     * int
+     * @param TblGroup $tblGroup
+     *
+     * @return int
      */
-    public function countCompanyAll()
+    public function countCompanyAllByGroup(TblGroup $tblGroup)
     {
 
-        return (new Data($this->getBinding()))->countCompanyAll();
+        return Group::useService()->countMemberByGroup($tblGroup);
+    }
+
+    /**
+     * @param integer $Id
+     *
+     * @return bool|TblCompany
+     */
+    public function getCompanyById($Id)
+    {
+
+        return (new Data($this->getBinding()))->getCompanyById($Id);
+    }
+
+    /**
+     * @param string $Name
+     * @param string $ExtendedName
+     *
+     * @return bool|TblCompany
+     */
+    public function getCompanyByName($Name, $ExtendedName)
+    {
+
+        return ( new Data($this->getBinding()) )->getCompanyByName($Name, $ExtendedName);
     }
 
     /**
@@ -64,14 +82,44 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblGroup $tblGroup
+     * @param $Name
      *
-     * @return int
+     * @return false|TblCompany[]
      */
-    public function countCompanyAllByGroup(TblGroup $tblGroup)
+    public function getCompanyListLike($Name)
     {
 
-        return Group::useService()->countMemberByGroup($tblGroup);
+        return (new Data($this->getBinding()))->getCompanyListLike($Name);
+    }
+
+    /** @deprecated ist wohl nach dem Import nicht immer eindeutig
+     * @param integer $ImportId
+     *
+     * @return bool|TblCompany
+     */
+    public function getCompanyByImportId($ImportId)
+    {
+        return (new Data($this->getBinding()))->getCompanyByImportId($ImportId);
+    }
+
+    /**
+     * @param integer $ImportId
+     *
+     * @return bool|TblCompany[]
+     */
+    public function getCompanyListByImportId($ImportId)
+    {
+        return (new Data($this->getBinding()))->getCompanyListByImportId($ImportId);
+    }
+
+    /**
+     * @param array $FilterList
+     *
+     * @return
+     */
+    public function fetchIpCompanyByFilter(array $FilterList = array())
+    {
+        return (new Data($this->getBinding()))->fetchIpCompanyByFilter($FilterList);
     }
 
     /**
@@ -104,24 +152,14 @@ class Service extends AbstractService
      * @param string $Name
      * @param string $Description
      * @param string $ExtendedName
+     * @param string $ImportId
      *
      * @return TblCompany
      */
-    public function insertCompany($Name, $Description = '', $ExtendedName = '')
+    public function insertCompany($Name, $Description = '', $ExtendedName = '', $ImportId = '', $ContactNumber = '')
     {
 
-        return (new Data($this->getBinding()))->createCompany($Name, $ExtendedName, $Description);
-    }
-
-    /**
-     * @param integer $Id
-     *
-     * @return bool|TblCompany
-     */
-    public function getCompanyById($Id)
-    {
-
-        return (new Data($this->getBinding()))->getCompanyById($Id);
+        return (new Data($this->getBinding()))->createCompany($Name, $ExtendedName, $Description, $ImportId, $ContactNumber);
     }
 
     /**
@@ -132,8 +170,13 @@ class Service extends AbstractService
      */
     public function updateCompanyService(TblCompany $tblCompany, $Company)
     {
+
+        if(!isset($Company['ContactNumber'])){
+            $Company['ContactNumber'] = $tblCompany->getContactNumber();
+        }
+
         if ((new Data($this->getBinding()))->updateCompany($tblCompany, $Company['Name'],
-            $Company['ExtendedName'], $Company['Description'])
+            $Company['ExtendedName'], $Company['Description'], $Company['ContactNumber'])
         ) {
             // Change Groups
             if (isset($Company['Group'])) {
@@ -163,69 +206,38 @@ class Service extends AbstractService
     }
 
     /**
-     * @param string $Description
-     *
-     * @return bool|TblCompany
-     */
-    public function getCompanyByDescription($Description)
-    {
-
-        return (new Data($this->getBinding()))->getCompanyByDescription($Description);
-    }
-
-    /**
-     * @param string $Name
-     * @param string $ExtendedName
-     *
-     * @return bool|TblCompany
-     */
-    public function getCompanyByName($Name, $ExtendedName)
-    {
-
-        return ( new Data($this->getBinding()) )->getCompanyByName($Name, $ExtendedName);
-    }
-
-    /**
-     * @param string $Name
-     *
-     * @return bool|TblCompany
-     */
-    public function getCompanyListByName($Name)
-    {
-
-        return ( new Data($this->getBinding()) )->getCompanyListByName($Name);
-    }
-
-    /**
      * @param TblCompany $tblCompany
+     * @param            $Name
+     * @param string     $ExtendedName
+     * @param string     $Description
+     * @param string     $Contactnumber
      *
      * @return bool
      */
-    public function removeCompany(TblCompany $tblCompany)
+    public function updateCompanyWithoutForm(TblCompany $tblCompany, $Name, $ExtendedName = '', $Description = '', $Contactnumber = '')
     {
 
-        if(($tblMemberList = Group::useService()->getMemberAllByCompany($tblCompany))){
-            foreach($tblMemberList as $tblMember)
-            Group::useService()->removeMember($tblMember);
+        if(!$Contactnumber){
+            $Contactnumber = $tblCompany->getContactNumber();
         }
-        return (new Data($this->getBinding()))->removeCompany($tblCompany);
+
+        return (new Data($this->getBinding()))->updateCompany($tblCompany, $Name, $ExtendedName, $Description, $Contactnumber);
     }
 
     /**
      * @param TblCompany $tblCompany
-     * @param $Name
-     * @param $ExtendedName
-     * @param $Description
+     * @param $ImportId
      *
      * @return bool
      */
-    public function updateCompanyWithoutForm(TblCompany $tblCompany, $Name, $ExtendedName = '', $Description = '')
-    {
-
-        return (new Data($this->getBinding()))->updateCompany($tblCompany, $Name, $ExtendedName, $Description);
+    public function updateCompanyImportId(
+        TblCompany $tblCompany,
+        $ImportId
+    ) {
+        return (new Data($this->getBinding()))->updateCompanyImportId($tblCompany, $ImportId);
     }
 
-    /**
+    /** @deprecated
      * @param TblCompany $tblCompany
      * @param $Description
      *
@@ -250,13 +262,42 @@ class Service extends AbstractService
     }
 
     /**
-     * @param $Name
+     * @param TblCompany $tblCompany
      *
-     * @return false|TblCompany[]
+     * @return bool
      */
-    public function getCompanyListLike($Name)
+    public function removeCompany(TblCompany $tblCompany)
     {
 
-        return (new Data($this->getBinding()))->getCompanyListLike($Name);
+        if(($tblMemberList = Group::useService()->getMemberAllByCompany($tblCompany))){
+            foreach($tblMemberList as $tblMember)
+                Group::useService()->removeMember($tblMember);
+        }
+        return (new Data($this->getBinding()))->removeCompany($tblCompany);
+    }
+
+    /**
+     * @param $CompanyId
+     * @param $PersonId
+     * @param $Data
+     *
+     * @return false|Form
+     */
+    public function checkCompanyContact($CompanyId, $PersonId, $Data): Form|bool
+    {
+        $error = false;
+        $form = Company::useFrontend()->getCompanyContactForm($CompanyId, $PersonId, isset($Data['Search']) ? trim($Data['Search']) : '');
+
+        if (isset($Data['LastName']) && empty($Data['LastName'])) {
+            $form->setError('Data[LastName]', 'Bitte geben Sie einen Namen an!');
+            $error = true;
+        }
+
+        if (isset($Data['TypeId']) && !Relationship::useService()->getTypeById($Data['TypeId'])) {
+            $form->setError('Data[TypeId]', 'Bitte geben Sie eine Beziehung an!');
+            $error = true;
+        }
+
+        return $error ? $form : false;
     }
 }

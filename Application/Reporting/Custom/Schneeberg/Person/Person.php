@@ -1,11 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: kauschke
- * Date: 16.08.2016
- * Time: 13:52
- */
-
 namespace SPHERE\Application\Reporting\Custom\Schneeberg\Person;
 
 use SPHERE\Application\IModuleInterface;
@@ -24,16 +17,9 @@ class Person extends AbstractModule implements IModuleInterface
     public static function registerModule()
     {
 
-        Main::getDisplay()->addModuleNavigation(
-            new Link(new Link\Route(__NAMESPACE__ . '/ClassList'), new Link\Name('Klassenlisten'))
-        );
-
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__, __NAMESPACE__.'\Frontend::frontendPerson'
-        ));
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__ . '/ClassList', __NAMESPACE__ . '\Frontend::frontendClassList'
-        ));
+        Main::getDisplay()->addModuleNavigation(new Link(new Link\Route(__NAMESPACE__ . '/ClassList'), new Link\Name('Klassenlisten')));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(__NAMESPACE__, __NAMESPACE__.'\Frontend::frontendPerson'));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(__NAMESPACE__ . '/ClassList', __NAMESPACE__ . '\Frontend::frontendClassList'));
     }
 
     /**

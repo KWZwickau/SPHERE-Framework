@@ -13,7 +13,6 @@ use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
-use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Service
@@ -120,8 +119,6 @@ class Service extends AbstractService
      */
     public function updateResponsibility(IFormInterface $Form, TblResponsibility $tblResponsibility, $CompanyNumber, $Responsibility)
     {
-
-        Debugger::screenDump($Responsibility);
 
         /**
          * Skip to Frontend

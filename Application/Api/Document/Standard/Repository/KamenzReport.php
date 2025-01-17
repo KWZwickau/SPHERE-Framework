@@ -41,10 +41,11 @@ class KamenzReport extends AbstractDocument
     /**
      *
      * @param array $pageList
+     * @param string $Part
      *
      * @return Frame
      */
-    public function buildDocument($pageList = array())
+    public function buildDocument(array $pageList = array(), string $Part = '0'): Frame
     {
         return (new Frame())->addDocument((new Document())
             ->addPage((new Page())
@@ -75,7 +76,10 @@ class KamenzReport extends AbstractDocument
                 ->addSliceArray(E11::getContent())
             )
             ->addPage((new Page())
-                ->addSliceArray(F01::getContent())
+                ->addSliceArray(F01::getContent(0,4))
+            )
+            ->addPage((new Page())
+                ->addSliceArray(F01::getContent(5,7))
                 ->addSliceArray(G01::getContent())
             )
         );

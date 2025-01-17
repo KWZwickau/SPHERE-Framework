@@ -6,6 +6,8 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentMasernInfo;
+use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Common\Frontend\Form\Repository\AbstractField;
 use SPHERE\Common\Frontend\Form\Repository\Field\NumberField;
 use SPHERE\Common\Frontend\Icon\IIconInterface;
@@ -27,14 +29,20 @@ class ViewStudent extends AbstractView
 
     const SIBLINGS_COUNT = 'Sibling_Count';
     // Krankenakte
+    const TBL_STUDENT_MEDICAL_RECORD_ATTENDING_DOCTOR = 'TblStudentMedicalRecord_AttendingDoctor';
     const TBL_STUDENT_MEDICAL_RECORD_DISEASE = 'TblStudentMedicalRecord_Disease';
     const TBL_STUDENT_MEDICAL_RECORD_MEDICATION = 'TblStudentMedicalRecord_Medication';
-    const TBL_STUDENT_MEDICAL_RECORD_INSURANCE_STATE = 'TblStudentMedicalRecord_InsuranceState';
+    const TBL_STUDENT_INSURANCE_STATE_NAME = 'TblStudentInsuranceState_Name';
+    const TBL_STUDENT_MEDICAL_RECORD_INSURANCE_NUMBER = 'TblStudentMedicalRecord_InsuranceNumber';
     const TBL_STUDENT_MEDICAL_RECORD_INSURANCE = 'TblStudentMedicalRecord_Insurance';
+    const TBL_STUDENT_MEDICAL_RECORD_MASERN_DATE = 'TblStudentMedicalRecord_MasernDate';
+    const TBL_STUDENT_MEDICAL_RECORD_MASERN_DOCUMENT_TYPE = 'TblStudentMedicalRecord_MasernDocumentType';
+    const TBL_STUDENT_MEDICAL_RECORD_MASERN_CREATOR_TYPE = 'TblStudentMedicalRecord_MasernCreatorType';
     // Taufe
     const TBL_STUDENT_BAPTISM_LOCATION = 'TblStudentBaptism_Location';
     const TBL_STUDENT_BAPTISM_DATE = 'TblStudentBaptism_BaptismDate';
     // Schulbeförderung
+    const TBL_STUDENT_TRANSPORT_IS_DRIVER_STUDENT = 'TblStudentTransport_IsDriverStudent';
     const TBL_STUDENT_TRANSPORT_ROUTE = 'TblStudentTransport_Route';
     const TBL_STUDENT_TRANSPORT_STATION_ENTRANCE = 'TblStudentTransport_StationEntrance';
     const TBL_STUDENT_TRANSPORT_STATION_EXIT = 'TblStudentTransport_StationExit';
@@ -49,9 +57,10 @@ class ViewStudent extends AbstractView
     const TBL_STUDENT_LOCKER_LOCKER_NUMBER = 'TblStudentLocker_LockerNumber';
     const TBL_STUDENT_LOCKER_LOCKER_LOCATION = 'TblStudentLocker_LockerLocation';
     const TBL_STUDENT_LOCKER_KEY_NUMBER = 'TblStudentLocker_KeyNumber';
-    // Einverständnis
-    const TBL_STUDENT_STUDENT_NAME_AGREEMENT = 'TblStudent_NameAgreement';
-    const TBL_STUDENT_STUDENT_PICTURE_AGREEMENT = 'TblStudent_PictureAgreement';
+    const TBL_STUDENT_LOCKER_COMBINATION_LOCK_NUMBER = 'TblStudentLocker_CombinationLockNumber';
+    // Einverständniserklärung
+//    const TBL_STUDENT_STUDENT_NAME_AGREEMENT = 'TblStudent_NameAgreement';
+//    const TBL_STUDENT_STUDENT_PICTURE_AGREEMENT = 'TblStudent_PictureAgreement';
 
     /**
      * @return array
@@ -97,6 +106,14 @@ class ViewStudent extends AbstractView
     /**
      * @Column(type="string")
      */
+    protected $TblStudentLocker_CombinationLockNumber;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblStudentMedicalRecord_AttendingDoctor;
+    /**
+     * @Column(type="string")
+     */
     protected $TblStudentMedicalRecord_Disease;
     /**
      * @Column(type="string")
@@ -105,11 +122,31 @@ class ViewStudent extends AbstractView
     /**
      * @Column(type="string")
      */
-    protected $TblStudentMedicalRecord_InsuranceState;
+    protected $TblStudentInsuranceState_Name;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblStudentMedicalRecord_InsuranceNumber;
     /**
      * @Column(type="string")
      */
     protected $TblStudentMedicalRecord_Insurance;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblStudentMedicalRecord_MasernDate;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblStudentMedicalRecord_MasernDocumentType;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblStudentMedicalRecord_MasernCreatorType;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblStudentTransport_IsDriverStudent;
     /**
      * @Column(type="string")
      */
@@ -154,12 +191,19 @@ class ViewStudent extends AbstractView
         $this->setNameDefinition(self::TBL_STUDENT_LOCKER_LOCKER_NUMBER, 'Allgemeines: Schließfachnummer');
         $this->setNameDefinition(self::TBL_STUDENT_LOCKER_LOCKER_LOCATION, 'Allgemeines: Schließfach Standort');
         $this->setNameDefinition(self::TBL_STUDENT_LOCKER_KEY_NUMBER, 'Allgemeines: Schließfach Schlüssel Nummer');
+        $this->setNameDefinition(self::TBL_STUDENT_LOCKER_COMBINATION_LOCK_NUMBER, 'Allgemeines: Zahlenschloss Nummer');
 
+        $this->setNameDefinition(self::TBL_STUDENT_MEDICAL_RECORD_ATTENDING_DOCTOR, 'Allgemeines: Behandelnder Arzt');
         $this->setNameDefinition(self::TBL_STUDENT_MEDICAL_RECORD_DISEASE, 'Allgemeines: Krankheiten / Allergien');
         $this->setNameDefinition(self::TBL_STUDENT_MEDICAL_RECORD_MEDICATION, 'Allgemeines: Medikamente');
-        $this->setNameDefinition(self::TBL_STUDENT_MEDICAL_RECORD_INSURANCE_STATE, 'Allgemeines: Versicherungsstatus');
+        $this->setNameDefinition(self::TBL_STUDENT_INSURANCE_STATE_NAME, 'Allgemeines: Versicherungsstatus');
+        $this->setNameDefinition(self::TBL_STUDENT_MEDICAL_RECORD_INSURANCE_NUMBER, 'Allgemeines: Versicherungsnummer');
         $this->setNameDefinition(self::TBL_STUDENT_MEDICAL_RECORD_INSURANCE, 'Allgemeines: Krankenkasse');
+        $this->setNameDefinition(self::TBL_STUDENT_MEDICAL_RECORD_MASERN_DATE, 'Masern: Vorlagedatum Bescheid');
+        $this->setNameDefinition(self::TBL_STUDENT_MEDICAL_RECORD_MASERN_DOCUMENT_TYPE, 'Masern: Art der Bescheinigung');
+        $this->setNameDefinition(self::TBL_STUDENT_MEDICAL_RECORD_MASERN_CREATOR_TYPE, 'Masern: Bescheinigung durch');
 
+        $this->setNameDefinition(self::TBL_STUDENT_TRANSPORT_IS_DRIVER_STUDENT, 'Allgemeines: Fahrschüler');
         $this->setNameDefinition(self::TBL_STUDENT_TRANSPORT_ROUTE, 'Allgemeines: Buslinie');
         $this->setNameDefinition(self::TBL_STUDENT_TRANSPORT_STATION_ENTRANCE, 'Allgemeines: Einstiegshaltestelle');
         $this->setNameDefinition(self::TBL_STUDENT_TRANSPORT_STATION_EXIT, 'Allgemeines: Ausstiegshaltestelle');
@@ -169,8 +213,8 @@ class ViewStudent extends AbstractView
 
         $this->setNameDefinition(self::SIBLINGS_COUNT, 'Allgemeines: Anzahl Geschwister');
 
-        $this->setNameDefinition(self::TBL_STUDENT_STUDENT_NAME_AGREEMENT, 'Allgemeines: Erlaubnis Schülername');
-        $this->setNameDefinition(self::TBL_STUDENT_STUDENT_PICTURE_AGREEMENT, 'Allgemeines: Erlaubnis Schülerbild');
+//        $this->setNameDefinition(self::TBL_STUDENT_STUDENT_NAME_AGREEMENT, 'Allgemeines: Erlaubnis Schülername');
+//        $this->setNameDefinition(self::TBL_STUDENT_STUDENT_PICTURE_AGREEMENT, 'Allgemeines: Erlaubnis Schülerbild');
 
 //        //GroupDefinition
         $this->setGroupDefinition('&nbsp;', array(
@@ -178,19 +222,26 @@ class ViewStudent extends AbstractView
             self::TBL_STUDENT_LOCKER_LOCKER_NUMBER,
             self::TBL_STUDENT_LOCKER_LOCKER_LOCATION,
             self::TBL_STUDENT_LOCKER_KEY_NUMBER,
+            self::TBL_STUDENT_LOCKER_COMBINATION_LOCK_NUMBER,
             self::TBL_STUDENT_BAPTISM_LOCATION,
             self::TBL_STUDENT_BAPTISM_DATE,
+            self::TBL_STUDENT_MEDICAL_RECORD_ATTENDING_DOCTOR,
             self::TBL_STUDENT_MEDICAL_RECORD_DISEASE,
             self::TBL_STUDENT_MEDICAL_RECORD_MEDICATION,
-            self::TBL_STUDENT_MEDICAL_RECORD_INSURANCE_STATE,
+            self::TBL_STUDENT_INSURANCE_STATE_NAME,
+            self::TBL_STUDENT_MEDICAL_RECORD_INSURANCE_NUMBER,
             self::TBL_STUDENT_MEDICAL_RECORD_INSURANCE,
+            self::TBL_STUDENT_MEDICAL_RECORD_MASERN_DATE,
+            self::TBL_STUDENT_MEDICAL_RECORD_MASERN_DOCUMENT_TYPE,
+            self::TBL_STUDENT_MEDICAL_RECORD_MASERN_CREATOR_TYPE,
+            self::TBL_STUDENT_TRANSPORT_IS_DRIVER_STUDENT,
             self::TBL_STUDENT_TRANSPORT_ROUTE,
             self::TBL_STUDENT_TRANSPORT_STATION_ENTRANCE,
             self::TBL_STUDENT_TRANSPORT_STATION_EXIT,
             self::TBL_STUDENT_TRANSPORT_REMARK,
             self::TBL_STUDENT_LIBERATION_SPORT_TYPE_NAME,
-            self::TBL_STUDENT_STUDENT_NAME_AGREEMENT,
-            self::TBL_STUDENT_STUDENT_PICTURE_AGREEMENT,
+//            self::TBL_STUDENT_STUDENT_NAME_AGREEMENT,
+//            self::TBL_STUDENT_STUDENT_PICTURE_AGREEMENT,
         ));
     }
 
@@ -226,11 +277,27 @@ class ViewStudent extends AbstractView
     {
 
         switch ($PropertyName) {
+            case self::TBL_STUDENT_TRANSPORT_IS_DRIVER_STUDENT:
+                $Data = array( 0 => 'Nein', 1 => 'Ja' );
+                $Field = $this->getFormFieldSelectBox( $Data, $PropertyName, $Label, $Icon, $doResetCount );
+                break;
             case self::SIBLINGS_COUNT:
                 $PropertyCount = $this->calculateFormFieldCount( $PropertyName, $doResetCount );
                 $Field = new NumberField( $PropertyName.'['.$PropertyCount.']',
                     $Placeholder, $Label, $Icon
                 );
+                break;
+            case self::TBL_STUDENT_MEDICAL_RECORD_MASERN_DOCUMENT_TYPE:
+                $Data = Student::useService()->getPropertyList( new TblStudentMasernInfo(), TblStudentMasernInfo::ATTR_TEXT_SHORT, array(
+                    TblStudentMasernInfo::ATTR_TYPE => TblStudentMasernInfo::TYPE_DOCUMENT
+                ));
+                $Field = $this->getFormFieldSelectBox( $Data, $PropertyName, $Label, $Icon, $doResetCount );
+                break;
+            case self::TBL_STUDENT_MEDICAL_RECORD_MASERN_CREATOR_TYPE:
+                $Data = Student::useService()->getPropertyList( new TblStudentMasernInfo(), TblStudentMasernInfo::ATTR_TEXT_SHORT, array(
+                    TblStudentMasernInfo::ATTR_TYPE => TblStudentMasernInfo::TYPE_CREATOR
+                ));
+                $Field = $this->getFormFieldSelectBox( $Data, $PropertyName, $Label, $Icon, $doResetCount );
                 break;
             default:
                 $Field = parent::getFormField( $PropertyName, $Placeholder, $Label, ($Icon?$Icon:new Pencil()), $doResetCount );

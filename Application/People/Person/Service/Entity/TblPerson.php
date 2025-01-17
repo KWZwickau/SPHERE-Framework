@@ -7,11 +7,15 @@ use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Address\Service\Entity\TblAddress;
+use SPHERE\Application\People\Meta\Child\Child;
+use SPHERE\Application\People\Meta\Child\Service\Entity\TblChild;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Common\Service\Entity\TblCommon;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudent;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
+use SPHERE\Application\Setting\Consumer\Consumer;
+use SPHERE\Common\Frontend\Text\Repository\Underline;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -23,6 +27,7 @@ class TblPerson extends Element
 {
 
     const ATTR_FIRST_NAME = 'FirstName';
+    const ATTR_SECOND_NAME = 'SecondName';
     const ATTR_LAST_NAME = 'LastName';
     const ATTR_IMPORT_ID = 'ImportId';
 
@@ -37,19 +42,19 @@ class TblPerson extends Element
     /**
      * @Column(type="string")
      */
-    protected $FirstName;
+    protected $FirstName = '';
     /**
      * @Column(type="string")
      */
-    protected $SecondName;
+    protected $SecondName = '';
     /**
      * @Column(type="string")
      */
-    protected $CallName;
+    protected $CallName = '';
     /**
      * @Column(type="string")
      */
-    protected $LastName;
+    protected $LastName = '';
     /**
      * @Column(type="string")
      */
@@ -250,6 +255,30 @@ class TblPerson extends Element
     /**
      * @return string
      */
+    public function getLastFirstNameWithCallNameUnderline(): string
+    {
+        if (preg_match('![a-zA-Z]!s', $this->FirstName)) {
+            $isDisplayCallNameAndLastName = ($tblSetting = Consumer::useService()->getSetting('People', 'Person', 'Student', 'DisplayCallNameAndLastName'))
+                && $tblSetting->getValue();
+            $firstSecondName = trim($this->FirstName . ' ' . $this->SecondName);
+            if ($isDisplayCallNameAndLastName) {
+                return ($this->CallName ?: $firstSecondName) . ' ' . $this->LastName;
+            } else {
+                if ($this->CallName && ($this->CallName != $firstSecondName) && (($pos = strpos($firstSecondName, $this->CallName)) !== false)) {
+                    return trim($this->LastName . ', ' . substr($firstSecondName, 0, $pos) . new Underline($this->CallName) . substr($firstSecondName,
+                            $pos + strlen($this->CallName)));
+                }
+            }
+
+            return trim($this->LastName.', '. $firstSecondName);
+        }
+
+        return trim($this->LastName);
+    }
+
+    /**
+     * @return string
+     */
     public function getFirstSecondName()
     {
 
@@ -266,6 +295,14 @@ class TblPerson extends Element
     {
 
         return Common::useService()->getCommonByPerson($this);
+    }
+
+    /**
+     * @return bool|TblChild
+     */
+    public function getChild()
+    {
+        return Child::useService()->getChildByPerson($this);
     }
 
     /**
@@ -306,6 +343,22 @@ class TblPerson extends Element
     }
 
     /**
+     * @param string $format
+     *
+     * @return string
+     */
+    public function getBirthday(string $format = 'd.m.Y'): string
+    {
+        if (($tblCommon = $this->getCommon())) {
+            if (($tblCommonBirthDates = $tblCommon->getTblCommonBirthDates())) {
+                return $tblCommonBirthDates->getBirthday($format);
+            }
+        }
+
+        return '';
+    }
+
+    /**
      * @return string
      */
     public function getCallName()
@@ -341,5 +394,47 @@ class TblPerson extends Element
         }
 
         return false;
+    }
+
+    /**
+     * @return string
+     */
+    public function getBirthplaceString()
+    {
+        $birthplace = '';
+        if (($tblCommon = $this->getCommon())) {
+            if (($tblCommonBirthDates = $tblCommon->getTblCommonBirthDates())) {
+                $birthplace = $tblCommonBirthDates->getBirthplace();
+            }
+        }
+        return $birthplace;
+    }
+
+    /**
+     * @return string
+     */
+    public function getDenominationString()
+    {
+        $denomination = '';
+        if (($tblCommon = $this->getCommon())) {
+            if ($tblCommonInformation = $tblCommon->getTblCommonInformation()) {
+                $denomination = $tblCommonInformation->getDenomination();
+            }
+        }
+        return $denomination;
+    }
+
+    /**
+     * @return string
+     */
+    public function getNationalityString()
+    {
+        $nationality = '';
+        if (($tblCommon = $this->getCommon())) {
+            if ($tblCommonInformation = $tblCommon->getTblCommonInformation()) {
+                $nationality = $tblCommonInformation->getNationality();
+            }
+        }
+        return $nationality;
     }
 }

@@ -1,122 +1,180 @@
 select
-    vP.TblPerson_Id AS TblPerson_Id,
+    tP.Id AS TblPerson_Id,
     -- Person S1
     -- Definition S1 Id
-    (select vRTP.TblToPerson_serviceTblPersonTo
-        from SettingConsumer_{{ ConsumerAcronym }}.viewRelationshipToPerson vRTP
-        where vP.TblPerson_Id = vRTP.TblToPerson_serviceTblPersonFrom
+    (select vRTP.TblToPerson_serviceTblPersonFrom
+        from {{ ConsumerAcronym }}_SettingConsumer.viewRelationshipToPerson vRTP
+        where tP.Id = vRTP.TblToPerson_serviceTblPersonTo
         and vRTP.TblType_Name like 'Bevollm%chtigt'
 
         limit 0,1
     ) TblPerson_Authorized_Id,
 
     if ((select vRTP.TblToPerson_IsSingleParent
-        from SettingConsumer_{{ ConsumerAcronym }}.viewRelationshipToPerson vRTP
-        where vP.TblPerson_Id = vRTP.TblToPerson_serviceTblPersonFrom
+        from {{ ConsumerAcronym }}_SettingConsumer.viewRelationshipToPerson vRTP
+        where tP.Id = vRTP.TblToPerson_serviceTblPersonTo
         and vRTP.TblType_Name like 'Bevollm%chtigt'
         limit 0,1
     ), 'Ja', 'Nein') TblToPerson_IsSingleParent_Bev,
-
-    (select vP.TblSalutation_Salutation
-        from SettingConsumer_{{ ConsumerAcronym }}.viewPerson vP
-        where vP.TblPerson_Id = TblPerson_Authorized_Id
+    -- --------
+    (SELECT tS.Salutation
+        FROM {{ ConsumerAcronym }}_PeoplePerson.tblPerson tP
+        LEFT JOIN {{ ConsumerAcronym }}_PeoplePerson.tblSalutation tS ON tS.Id = tP.tblSalutation
+        WHERE tP.Id = TblPerson_Authorized_Id
     ) TblSalutation_Salutation_Bev,
 
-    (select vP.TblPerson_Title
-        from SettingConsumer_{{ ConsumerAcronym }}.viewPerson vP
-        where vP.TblPerson_Id = TblPerson_Authorized_Id
+    (SELECT tP.Title
+        FROM {{ ConsumerAcronym }}_PeoplePerson.tblPerson tP
+        WHERE tP.Id = TblPerson_Authorized_Id
     ) TblPerson_Title_Bev,
 
-    (select vP.TblPerson_FirstName
-        from SettingConsumer_{{ ConsumerAcronym }}.viewPerson vP
-        where vP.TblPerson_Id = TblPerson_Authorized_Id
+    (SELECT tP.FirstName
+        FROM {{ ConsumerAcronym }}_PeoplePerson.tblPerson tP
+        WHERE tP.Id = TblPerson_Authorized_Id
     ) TblPerson_FirstName_Bev,
 
-    (select vP.TblPerson_SecondName
-        from SettingConsumer_{{ ConsumerAcronym }}.viewPerson vP
-        where vP.TblPerson_Id = TblPerson_Authorized_Id
+    (SELECT tP.SecondName
+        FROM {{ ConsumerAcronym }}_PeoplePerson.tblPerson tP
+        WHERE tP.Id = TblPerson_Authorized_Id
     ) TblPerson_SecondName_Bev,
 
-    (select vP.TblPerson_CallName
-        from SettingConsumer_{{ ConsumerAcronym }}.viewPerson vP
-        where vP.TblPerson_Id = TblPerson_Authorized_Id
+    (SELECT tP.CallName
+        FROM {{ ConsumerAcronym }}_PeoplePerson.tblPerson tP
+        WHERE tP.Id = TblPerson_Authorized_Id
     ) TblPerson_CallName_Bev,
 
-    (select vP.TblPerson_LastName
-        from SettingConsumer_{{ ConsumerAcronym }}.viewPerson vP
-        where vP.TblPerson_Id = TblPerson_Authorized_Id
+    (SELECT tP.LastName
+        FROM {{ ConsumerAcronym }}_PeoplePerson.tblPerson tP
+        WHERE tP.Id = TblPerson_Authorized_Id
     ) TblPerson_LastName_Bev,
 
-    (select vP.TblPerson_BirthName
-        from SettingConsumer_{{ ConsumerAcronym }}.viewPerson vP
-        where vP.TblPerson_Id = TblPerson_Authorized_Id
+    (SELECT tP.BirthName
+        FROM {{ ConsumerAcronym }}_PeoplePerson.tblPerson tP
+        WHERE tP.Id = TblPerson_Authorized_Id
     ) TblPerson_BirthName_Bev,
 
-    (select vP.TblCommonBirthDates_Birthday
-        from SettingConsumer_{{ ConsumerAcronym }}.viewPerson vP
-        where vP.TblPerson_Id = TblPerson_Authorized_Id
+    (SELECT DATE_FORMAT( tCBD.Birthday, '%d.%m.%Y')
+        FROM {{ ConsumerAcronym }}_PeopleMeta.tblCommon tC
+			LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblCommonBirthDates tCBD ON tCBD.Id = tC.tblCommonBirthDates
+        WHERE tC.serviceTblPerson = TblPerson_Authorized_Id
     ) TblPerson_Birthday_Bev,
 
     -- Address
     (select vCA.TblAddress_StreetName
-        from SettingConsumer_{{ ConsumerAcronym }}.viewContactAddress vCA
+        from {{ ConsumerAcronym }}_SettingConsumer.viewContactAddress vCA
         where vCA.TblPerson_Id = TblPerson_Authorized_Id
         and vCA.TblType_Name = 'Hauptadresse'
     ) TblAddress_StreetName_Bev,
 
     (select vCA.TblAddress_StreetNumber
-        from SettingConsumer_{{ ConsumerAcronym }}.viewContactAddress vCA
+        from {{ ConsumerAcronym }}_SettingConsumer.viewContactAddress vCA
         where vCA.TblPerson_Id = TblPerson_Authorized_Id
         and vCA.TblType_Name = 'Hauptadresse'
     ) TblAddress_StreetNumber_Bev,
 
     (select vCA.TblCity_Code
-        from SettingConsumer_{{ ConsumerAcronym }}.viewContactAddress vCA
+        from {{ ConsumerAcronym }}_SettingConsumer.viewContactAddress vCA
         where vCA.TblPerson_Id = TblPerson_Authorized_Id
         and vCA.TblType_Name = 'Hauptadresse'
     ) TblCity_Code_Bev,
 
     (select vCA.TblCity_Name
-        from SettingConsumer_{{ ConsumerAcronym }}.viewContactAddress vCA
+        from {{ ConsumerAcronym }}_SettingConsumer.viewContactAddress vCA
         where vCA.TblPerson_Id = TblPerson_Authorized_Id
         and vCA.TblType_Name = 'Hauptadresse'
-    ) TblCity_City_Bev,
+    ) TblCity_Name_Bev,
 
     (select vCA.TblCity_District
-        from SettingConsumer_{{ ConsumerAcronym }}.viewContactAddress vCA
+        from {{ ConsumerAcronym }}_SettingConsumer.viewContactAddress vCA
         where vCA.TblPerson_Id = TblPerson_Authorized_Id
         and vCA.TblType_Name = 'Hauptadresse'
     ) TblCity_District_Bev,
 
     (select vCA.TblAddress_County
-        from SettingConsumer_{{ ConsumerAcronym }}.viewContactAddress vCA
+        from {{ ConsumerAcronym }}_SettingConsumer.viewContactAddress vCA
         where vCA.TblPerson_Id = TblPerson_Authorized_Id
         and vCA.TblType_Name = 'Hauptadresse'
     ) TblAddress_County_Bev,
 
     (select vCA.TblState_Name
-        from SettingConsumer_{{ ConsumerAcronym }}.viewContactAddress vCA
+        from {{ ConsumerAcronym }}_SettingConsumer.viewContactAddress vCA
         where vCA.TblPerson_Id = TblPerson_Authorized_Id
         and vCA.TblType_Name = 'Hauptadresse'
     ) TblState_Name_Bev,
 
     (select vCA.TblAddress_Nation
-        from SettingConsumer_{{ ConsumerAcronym }}.viewContactAddress vCA
+        from {{ ConsumerAcronym }}_SettingConsumer.viewContactAddress vCA
         where vCA.TblPerson_Id = TblPerson_Authorized_Id
         and vCA.TblType_Name = 'Hauptadresse'
     ) TblAddress_Nation_Bev,
 
-    (select
-        group_concat(
-            concat(
+    (SELECT group_concat(concat(
             vCP.TblType_Name,
             ': ',
             vCP.TblPhone_Number,
+            -- case when vCP.TblToPerson_Remark then ' - ' else '' end, doesn't work if searched
+            ' ',
             vCP.TblToPerson_Remark
-            ) separator ' - \n\r'
-        ) from SettingConsumer_{{ ConsumerAcronym }}.viewContactPhone vCP
-        where vCP.TblPerson_Id = TblPerson_Authorized_Id
+            ) separator ' - \n')
+        FROM {{ ConsumerAcronym }}_SettingConsumer.viewContactPhone vCP
+        WHERE vCP.TblPerson_Id = TblPerson_Authorized_Id
     ) TblPhone_Number_Bev,
+
+    (select group_concat(concat(vCP.TblPhone_Number) separator ';\n')
+        from {{ ConsumerAcronym }}_SettingConsumer.viewContactPhone vCP
+        WHERE vCP.TblPerson_Id = TblPerson_Authorized_Id
+        and vCP.TblType_Name = 'Privat'
+        and vCP.TblType_Description = 'Festnetz'
+    ) TblPhone_Number_PF_Bev,
+
+    (select group_concat(concat(vCP.TblPhone_Number) separator ';\n')
+        from {{ ConsumerAcronym }}_SettingConsumer.viewContactPhone vCP
+        WHERE vCP.TblPerson_Id = TblPerson_Authorized_Id
+        and vCP.TblType_Name = 'Privat'
+        and vCP.TblType_Description = 'Mobil'
+    ) TblPhone_Number_PM_Bev,
+
+    (select group_concat(concat(vCP.TblPhone_Number) separator ';\n')
+        from {{ ConsumerAcronym }}_SettingConsumer.viewContactPhone vCP
+        WHERE vCP.TblPerson_Id = TblPerson_Authorized_Id
+        and vCP.TblType_Name = 'Geschäftlich'
+        and vCP.TblType_Description = 'Festnetz'
+    ) TblPhone_Number_GF_Bev,
+
+    (select group_concat(concat(vCP.TblPhone_Number) separator ';\n')
+        from {{ ConsumerAcronym }}_SettingConsumer.viewContactPhone vCP
+        WHERE vCP.TblPerson_Id = TblPerson_Authorized_Id
+        and vCP.TblType_Name = 'Geschäftlich'
+        and vCP.TblType_Description = 'Mobil'
+    ) TblPhone_Number_GM_Bev,
+
+    (select group_concat(concat(vCP.TblPhone_Number) separator ';\n')
+        from {{ ConsumerAcronym }}_SettingConsumer.viewContactPhone vCP
+        WHERE vCP.TblPerson_Id = TblPerson_Authorized_Id
+        and vCP.TblType_Is_Emergency_Contact = 1
+        and vCP.TblType_Description = 'Festnetz'
+    ) TblPhone_Number_NF_Bev,
+
+    (select group_concat(concat(vCP.TblPhone_Number) separator ';\n')
+        from {{ ConsumerAcronym }}_SettingConsumer.viewContactPhone vCP
+        WHERE vCP.TblPerson_Id = TblPerson_Authorized_Id
+        and vCP.TblType_Is_Emergency_Contact = 1
+        and vCP.TblType_Description = 'Mobil'
+    ) TblPhone_Number_NM_Bev,
+
+    (select group_concat(concat(vCP.TblPhone_Number) separator ';\n')
+        from {{ ConsumerAcronym }}_SettingConsumer.viewContactPhone vCP
+        WHERE vCP.TblPerson_Id = TblPerson_Authorized_Id
+        and vCP.TblType_Name = 'Fax'
+        and vCP.TblType_Description = 'Privat'
+    ) TblPhone_Number_FP_Bev,
+
+    (select group_concat(concat(vCP.TblPhone_Number) separator ';\n')
+        from {{ ConsumerAcronym }}_SettingConsumer.viewContactPhone vCP
+        WHERE vCP.TblPerson_Id = TblPerson_Authorized_Id
+        and vCP.TblType_Name = 'Fax'
+        and vCP.TblType_Description = 'Geschäftlich'
+    ) TblPhone_Number_FG_Bev,
 
     (select
         group_concat(
@@ -126,8 +184,8 @@ select
             vCM.TblMail_Address,
             case when vCM.TblToPerson_Remark <> '' then ' - ' else '' end,
             vCM.TblToPerson_Remark
-            ) separator '\n\r'
-        ) from SettingConsumer_{{ ConsumerAcronym }}.viewContactMail vCM
+            ) separator '\n'
+        ) from {{ ConsumerAcronym }}_SettingConsumer.viewContactMail vCM
         where vCM.TblPerson_Id = TblPerson_Authorized_Id
     ) TblMail_Address_Bev,
 
@@ -136,7 +194,7 @@ select
             concat(
             vCM.TblMail_Address
             ) separator '; '
-        ) from SettingConsumer_{{ ConsumerAcronym }}.viewContactMail vCM
+        ) from {{ ConsumerAcronym }}_SettingConsumer.viewContactMail vCM
         where vCM.TblPerson_Id = TblPerson_Authorized_Id
         and vCM.TblType_Name = 'Privat'
     ) TblMail_AddressPrivate_Bev,
@@ -146,11 +204,12 @@ select
             concat(
             vCM.TblMail_Address
             ) separator '; '
-        ) from SettingConsumer_{{ ConsumerAcronym }}.viewContactMail vCM
+        ) from {{ ConsumerAcronym }}_SettingConsumer.viewContactMail vCM
         where vCM.TblPerson_Id = TblPerson_Authorized_Id
         and vCM.TblType_Name like 'Gesch%ftlich'
     ) TblMail_AddressCompany_Bev
 
-from SettingConsumer_{{ ConsumerAcronym }}.viewPerson vP
-    JOIN SettingConsumer_{{ ConsumerAcronym }}.viewGroup vG ON vG.TblPerson_Id = vP.TblPerson_Id
+from {{ ConsumerAcronym }}_PeoplePerson.tblPerson tP
+    JOIN {{ ConsumerAcronym }}_SettingConsumer.viewGroup vG ON vG.TblPerson_Id = tP.Id
 where vG.TblGroup_MetaTable = 'STUDENT'
+AND tP.EntityRemove IS NULL

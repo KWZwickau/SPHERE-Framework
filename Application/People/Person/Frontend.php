@@ -2,7 +2,8 @@
 namespace SPHERE\Application\People\Person;
 
 use SPHERE\Application\Document\Storage\Storage;
-use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
+use SPHERE\Application\Education\Graduation\Grade\Grade;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
@@ -17,6 +18,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
+use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
@@ -33,16 +35,18 @@ class Frontend extends Extension implements IFrontendInterface
     /**
      * @param $Id
      * @param bool|false $Confirm
-     * @param null $Group
+     * @param null $PseudoId
      * @return Stage
      */
-    public function frontendDestroyPerson($Id = null, $Confirm = false, $Group = null)
+    public function frontendDestroyPerson($Id = null, $Confirm = false, $PseudoId = null, $PersonView = false)
     {
 
         $Stage = new Stage('Person', 'Löschen');
         if ($Id) {
-            if ($Group) {
-                $Stage->addButton(new Standard('Zurück', '/People/Search/Group', new ChevronLeft(), array('Id' => $Group)));
+            if ($PersonView) {
+                $Stage->addButton(new Standard('Zurück', '/People/Person', new ChevronLeft(), array('Id' => $Id,'PseudoId' => $PseudoId)));
+            } elseif ($PseudoId) {
+                $Stage->addButton(new Standard('Zurück', '/People', new ChevronLeft(), array('PseudoId' => $PseudoId)));
             }
             $tblPerson = Person::useService()->getPersonById($Id);
             if (!$tblPerson){
@@ -50,7 +54,7 @@ class Frontend extends Extension implements IFrontendInterface
                     new Layout(new LayoutGroup(array(
                         new LayoutRow(new LayoutColumn(array(
                             new Danger('Die Person konnte nicht gefunden werden.', new Ban()),
-                            new Redirect('/People/Search/Group', Redirect::TIMEOUT_ERROR, array('Id' => $Group))
+                            new Redirect('/People', Redirect::TIMEOUT_ERROR, array('PseudoId' => $PseudoId))
                         )))
                     )))
                 );
@@ -58,33 +62,39 @@ class Frontend extends Extension implements IFrontendInterface
                 if (!$Confirm) {
                     // Personen (Schüler) dürfen aktuell nicht gelöscht werden wenn sie Zensuren oder Zeugnisse besitzen SSW-115
                     $canRemove = true;
-                    if (($tblGradeAll = Gradebook::useService()->getGradeAllBy($tblPerson))) {
+                    $descriptionList = array();
+                    if (Grade::useService()->getCountPersonTestGrades($tblPerson)) {
                         $canRemove = false;
+                        $descriptionList[] = 'Diese Person kann aktuell nicht gelöscht werden, da zu dieser Person Zensuren und/oder Zeugnisse existieren.';
                     } elseif (($tblFileList = Storage::useService()->getCertificateRevisionFileAllByPerson($tblPerson))) {
                         $canRemove = false;
+                        $descriptionList[] = 'Diese Person kann aktuell nicht gelöscht werden, da zu dieser Person Zensuren und/oder Zeugnisse existieren.';
                     }
-
+                    // Person mit Account darf nicht gelöscht werden
+                    if (($AccountList = Account::useService()->getAccountAllByPerson($tblPerson))) {
+                        foreach($AccountList as &$Account){
+                            $Account = $Account->getUsername();
+                        }
+                        $canRemove = false;
+                        $descriptionList[] = 'Diese Person kann aktuell nicht gelöscht werden, da ein Account für diese Person Exisitert ('.implode(',', $AccountList).')';
+                    }
+                    $Button = new Standard('Nein', '/People', new Disable(), array('PseudoId' => $PseudoId));
+                    if ($PersonView) {
+                        $Button = new Standard('Nein', '/People/Person', new Disable(), array('Id' => $Id, 'PseudoId' => $PseudoId));
+                    }
                     if ($canRemove) {
                         $buttonList =
-                            new Standard(
-                                'Ja', '/People/Person/Destroy', new Ok(),
-                                array('Id' => $Id, 'Confirm' => true, 'Group' => $Group)
-                            )
-                            . new Standard(
-                                'Nein', '/People/Search/Group', new Disable(), array('Id' => $Group)
-                            );
+                            new Standard('Ja', '/People/Person/Destroy', new Ok(), array('Id' => $Id, 'Confirm' => true, 'PseudoId' => $PseudoId))
+                            .$Button;
                     } else {
-                        $buttonList =
-                            new Standard(
-                                'Nein', '/People/Search/Group', new Disable(), array('Id' => $Group)
-                            );
+                        $buttonList = $Button;
                     }
 
                     $Stage->setContent(
                         ($canRemove
                             ? ''
-                            : new \SPHERE\Common\Frontend\Message\Repository\Warning(
-                                'Diese Person kann aktuell nicht gelöscht werden, da zu dieser Person Zensuren und/oder Zeugnisse existieren.'
+                            : new Warning(
+                                implode('<br/>', $descriptionList)
                             )
                         )
                         . new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(array(
@@ -106,7 +116,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     ? new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Person wurde gelöscht.')
                                     : new Danger(new Ban() . ' Die Person konnte nicht gelöscht werden.')
                                 ),
-                                new Redirect('/People/Search/Group', Redirect::TIMEOUT_SUCCESS, array('Id' => $Group))
+                                new Redirect('/People', Redirect::TIMEOUT_SUCCESS, array('PseudoId' => $PseudoId))
                             )))
                         )))
                     );
@@ -117,7 +127,7 @@ class Frontend extends Extension implements IFrontendInterface
                 new Layout(new LayoutGroup(array(
                     new LayoutRow(new LayoutColumn(array(
                         new Danger('Daten nicht abrufbar.', new Ban()),
-                        new Redirect('/People/Search/Group', Redirect::TIMEOUT_ERROR, array('Id' => $Group))
+                        new Redirect('/People', Redirect::TIMEOUT_ERROR, array('PseudoId' => $PseudoId))
                     )))
                 )))
             );

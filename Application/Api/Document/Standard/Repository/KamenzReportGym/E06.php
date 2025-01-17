@@ -12,6 +12,9 @@ use SPHERE\Application\Document\Generator\Repository\Element;
 use SPHERE\Application\Document\Generator\Repository\Section;
 use SPHERE\Application\Document\Generator\Repository\Slice;
 
+/**
+ * @deprecated
+ */
 class E06
 {
     public static function getContent()

@@ -28,7 +28,7 @@ class TblMail extends Element
     public function getAddress()
     {
 
-        return $this->Address;
+        return strtolower($this->Address);
     }
 
     /**
@@ -37,6 +37,6 @@ class TblMail extends Element
     public function setAddress($Address)
     {
 
-        $this->Address = $Address;
+        $this->Address = strtolower($Address);
     }
 }

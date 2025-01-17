@@ -1,15 +1,8 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: Kauschke
- * Date: 12.09.2016
- * Time: 16:28
- */
-
 namespace SPHERE\Application\Api\Reporting\Custom\Radebeul;
 
 use MOC\V\Core\FileSystem\FileSystem;
-use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\Reporting\Custom\Radebeul\Person\Person as RadebeulPerson;
 
@@ -22,29 +15,21 @@ class Person
 {
 
     /**
-     * @param null $DivisionId
+     * @param string $DivisionCourseId
      *
      * @return bool|string
      */
-    public function downloadParentTeacherConferenceList($DivisionId = null)
+    public function downloadParentTeacherConferenceList(string $DivisionCourseId)
     {
 
-        $tblDivision = Division::useService()->getDivisionById($DivisionId);
-        if ($tblDivision) {
-            $PersonList = RadebeulPerson::useService()->createParentTeacherConferenceList($tblDivision);
-            if ($PersonList) {
-                $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
-                if ($tblPersonList) {
-                    $fileLocation = RadebeulPerson::useService()->createParentTeacherConferenceListExcel($tblDivision,
-                        $PersonList);
-
-                    return FileSystem::getDownload($fileLocation->getRealPath(),
-                        "Radebeul Anwesenheitsliste für Elternabende " . $tblDivision->getDisplayName()
-                        . " " . date("Y-m-d H:i:s") . ".xlsx")->__toString();
-                }
-            }
+        if(($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))
+        && ($tblPersonList = $tblDivisionCourse->getStudents())
+        && !empty($TableContent = RadebeulPerson::useService()->createParentTeacherConferenceList($tblDivisionCourse))
+        ) {
+            $fileLocation = RadebeulPerson::useService()->createParentTeacherConferenceListExcel($TableContent, $tblPersonList);
+            return FileSystem::getDownload($fileLocation->getRealPath(),
+                "Radebeul Anwesenheitsliste für Elternabende ".$tblDivisionCourse->getDisplayName()." ".date("Y-m-d").".xlsx")->__toString();
         }
-
         return false;
     }
 
@@ -54,107 +39,79 @@ class Person
     public function downloadDenominationList()
     {
 
-        $countArray = array();
-        $PersonList = RadebeulPerson::useService()->createDenominationList($countArray);
-        if ($PersonList) {
-            $fileLocation = RadebeulPerson::useService()->createDenominationListExcel($PersonList, $countArray);
+        list($TableContent, $countArray) = RadebeulPerson::useService()->createDenominationList();;
+        if(!empty($TableContent)) {
+            $fileLocation = RadebeulPerson::useService()->createDenominationListExcel($TableContent, $countArray);
+            return FileSystem::getDownload($fileLocation->getRealPath(), "Radebeul Religionszugehörigkeit "." ".date("Y-m-d").".xlsx")->__toString();
+        }
 
+        return false;
+    }
+
+    /**
+     * @param string $GroupId
+     *
+     * @return bool|string
+     */
+    public function downloadPhoneList(string $GroupId)
+    {
+
+        if(($tblGroup = Group::useService()->getGroupById($GroupId))
+        && !empty($TableContent = RadebeulPerson::useService()->createPhoneList($tblGroup))) {
+            $fileLocation = RadebeulPerson::useService()->createPhoneListExcel($TableContent);
             return FileSystem::getDownload($fileLocation->getRealPath(),
-                "Radebeul Religionszugehörigkeit " . " " . date("Y-m-d H:i:s") . ".xlsx")->__toString();
+                "Radebeul Telefonliste ".$tblGroup->getName()." ".date("Y-m-d").".xlsx")->__toString();
         }
-
         return false;
     }
 
     /**
-     * @param null $GroupId
+     * @param string $GroupId
      *
      * @return bool|string
      */
-    public function downloadPhoneList($GroupId = null)
+    public function downloadKindergartenList(string $GroupId)
     {
 
-        $tblGroup = Group::useService()->getGroupById($GroupId);
-        if ($tblGroup) {
-            $PersonList = RadebeulPerson::useService()->createPhoneList($tblGroup);
-            if ($PersonList) {
-                $fileLocation = RadebeulPerson::useService()->createPhoneListExcel($PersonList);
-
-                return FileSystem::getDownload($fileLocation->getRealPath(),
-                    "Radebeul Telefonliste " . $tblGroup->getName()
-                    . " " . date("Y-m-d H:i:s") . ".xlsx")->__toString();
-            }
+        if(($tblGroup = Group::useService()->getGroupById($GroupId))
+        && !empty($TableContent = RadebeulPerson::useService()->createKindergartenList($tblGroup))) {
+            $fileLocation = RadebeulPerson::useService()->createKindergartenListExcel($tblGroup, $TableContent);
+            return FileSystem::getDownload($fileLocation->getRealPath(), "Radebeul Kinderhausliste ".$tblGroup->getName()." ".date("Y-m-d").".xlsx")
+                ->__toString();
         }
-
         return false;
     }
 
     /**
-     * @param null $GroupId
+     * @param string $GroupId
      *
      * @return bool|string
      */
-    public function downloadKindergartenList($GroupId = null)
+    public function downloadRegularSchoolList(string $GroupId)
     {
 
-        $tblGroup = Group::useService()->getGroupById($GroupId);
-        if ($tblGroup) {
-            $PersonList = RadebeulPerson::useService()->createKindergartenList($tblGroup);
-            if ($PersonList) {
-                $fileLocation = RadebeulPerson::useService()->createKindergartenListExcel($tblGroup, $PersonList);
-
-                return FileSystem::getDownload($fileLocation->getRealPath(),
-                    "Radebeul Kinderhausliste " . $tblGroup->getName()
-                    . " " . date("Y-m-d H:i:s") . ".xlsx")->__toString();
-            }
+        if(($tblGroup = Group::useService()->getGroupById($GroupId))
+        && !empty($TableContent = RadebeulPerson::useService()->createRegularSchoolList($tblGroup))) {
+            $fileLocation = RadebeulPerson::useService()->createRegularSchoolListExcel($TableContent);
+            return FileSystem::getDownload($fileLocation->getRealPath(),
+                "Radebeul Stammschulenliste ".$tblGroup->getName()." ".date("Y-m-d").".xlsx")->__toString();
         }
-
         return false;
     }
 
     /**
-     * @param null $GroupId
+     * @param string $GroupId
      *
      * @return bool|string
      */
-    public function downloadRegularSchoolList($GroupId = null)
+    public function downloadDiseaseList(string $GroupId)
     {
 
-        $tblGroup = Group::useService()->getGroupById($GroupId);
-        if ($tblGroup) {
-            $PersonList = RadebeulPerson::useService()->createRegularSchoolList($tblGroup);
-            if ($PersonList) {
-                $fileLocation = RadebeulPerson::useService()->createRegularSchoolListExcel($PersonList);
-
-                return FileSystem::getDownload($fileLocation->getRealPath(),
-                    "Radebeul Stammschulenliste " . $tblGroup->getName()
-                    . " " . date("Y-m-d H:i:s") . ".xlsx")->__toString();
-            }
+        if(($tblGroup = Group::useService()->getGroupById($GroupId))
+        && !empty($TableContent = RadebeulPerson::useService()->createDiseaseList($tblGroup))) {
+            $fileLocation = RadebeulPerson::useService()->createDiseaseListExcel($tblGroup, $TableContent);
+            return FileSystem::getDownload($fileLocation->getRealPath(),"Radebeul Allergieliste ".$tblGroup->getName()." ".date("Y-m-d").".xlsx")->__toString();
         }
-
-        return false;
-    }
-
-    /**
-     * @param null $GroupId
-     *
-     * @return bool|string
-     */
-    public function downloadDiseaseList($GroupId = null)
-    {
-
-        $tblGroup = Group::useService()->getGroupById($GroupId);
-        if ($tblGroup) {
-            $PersonList = RadebeulPerson::useService()->createDiseaseList($tblGroup);
-            if ($PersonList) {
-                $fileLocation = RadebeulPerson::useService()->createDiseaseListExcel($tblGroup, $PersonList);
-
-                return FileSystem::getDownload($fileLocation->getRealPath(),
-                    "Radebeul Allergieliste " . $tblGroup->getName()
-                    . " " . date("Y-m-d H:i:s") . ".xlsx")->__toString();
-            }
-        }
-
         return false;
     }
 
@@ -163,20 +120,15 @@ class Person
      *
      * @return bool|string
      */
-    public function downloadNursery($PLZ = '')
+    public function downloadNursery(string $PLZ = '')
     {
 
-        if (($tblGroup = Group::useService()->getGroupByName('Hort'))) {
-            $PersonList = RadebeulPerson::useService()->createNursery($tblGroup, $PLZ);
-            if ($PersonList) {
-                $fileLocation = RadebeulPerson::useService()->createNurseryExcel($PersonList, $PLZ);
-
-                return FileSystem::getDownload($fileLocation->getRealPath(),
-                    "Radebeul Stichtagsmeldung Deckblatt ".$tblGroup->getName()
-                    ." ".date("Y-m-d H:i:s").".xlsx")->__toString();
-            }
+        if(($tblGroup = Group::useService()->getGroupByName('Hort'))
+        && (!empty($TableContent = RadebeulPerson::useService()->createNursery($tblGroup, $PLZ)))) {
+            $fileLocation = RadebeulPerson::useService()->createNurseryExcel($TableContent, $PLZ);
+            return FileSystem::getDownload($fileLocation->getRealPath(),
+                "Radebeul Stichtagsmeldung Deckblatt ".$tblGroup->getName()." ".date("Y-m-d").".xlsx")->__toString();
         }
-
         return false;
     }
 
@@ -185,20 +137,15 @@ class Person
      *
      * @return bool|string
      */
-    public function downloadNurseryList($PLZ = '')
+    public function downloadNurseryList(string $PLZ = '')
     {
 
-        if (($tblGroup = Group::useService()->getGroupByName('Hort'))) {
-            $PersonList = RadebeulPerson::useService()->createNursery($tblGroup, $PLZ);
-            if ($PersonList) {
-                $fileLocation = RadebeulPerson::useService()->createNurseryListExcel($PersonList, $PLZ);
-
-                return FileSystem::getDownload($fileLocation->getRealPath(),
-                    "Radebeul Stichtagsmeldung ".$tblGroup->getName()
-                    ." ".date("Y-m-d H:i:s").".xlsx")->__toString();
-            }
+        if(($tblGroup = Group::useService()->getGroupByName('Hort'))
+        && !empty($TableContent = RadebeulPerson::useService()->createNursery($tblGroup, $PLZ))) {
+            $fileLocation = RadebeulPerson::useService()->createNurseryListExcel($TableContent, $PLZ);
+            return FileSystem::getDownload($fileLocation->getRealPath(),
+                "Radebeul Stichtagsmeldung ".$tblGroup->getName()." ".date("Y-m-d").".xlsx")->__toString();
         }
-
         return false;
     }
 }

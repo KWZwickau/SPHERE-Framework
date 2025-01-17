@@ -8,10 +8,9 @@
 
 namespace SPHERE\Application\Education\Certificate\Prepare\Abitur;
 
-use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCertificate;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareStudent;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\System\Extension\Extension;
@@ -23,26 +22,20 @@ use SPHERE\System\Extension\Extension;
  */
 abstract class AbstractBlock extends Extension
 {
-
-    /**
-     * @var TblDivision|null
-     */
-    protected $tblDivision = null;
-
     /**
      * @var TblPerson|null
      */
-    protected $tblPerson = null;
+    protected ?TblPerson $tblPerson = null;
 
     /**
      * @var TblPrepareCertificate|null
      */
-    protected $tblPrepareCertificate = null;
+    protected ?TblPrepareCertificate $tblPrepareCertificate = null;
 
     /**
      * @var TblPrepareStudent|null
      */
-    protected $tblPrepareStudent = null;
+    protected ?TblPrepareStudent $tblPrepareStudent = null;
 
     /**
      * @var array|false
@@ -57,7 +50,7 @@ abstract class AbstractBlock extends Extension
     /**
      * @var array
      */
-    protected $pointsList = array();
+    protected array $pointsList = array();
 
     protected function setPointList()
     {
@@ -72,11 +65,7 @@ abstract class AbstractBlock extends Extension
 
     protected function setCourses()
     {
-
-        list($this->AdvancedCourses, $this->BasicCourses) = Prepare::useService()->getCoursesForStudent(
-            $this->tblDivision,
-            $this->tblPerson
-        );
+        list($this->AdvancedCourses, $this->BasicCourses) = DivisionCourse::useService()->getCoursesForStudent($this->tblPerson);
     }
 
     /**

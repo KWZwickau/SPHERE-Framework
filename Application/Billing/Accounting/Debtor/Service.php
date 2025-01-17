@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\Billing\Accounting\Debtor;
 
+use DateTime;
 use SPHERE\Application\Billing\Accounting\Debtor\Service\Data;
 use SPHERE\Application\Billing\Accounting\Debtor\Service\Entity\TblBankAccount;
 use SPHERE\Application\Billing\Accounting\Debtor\Service\Entity\TblBankReference;
@@ -127,10 +128,30 @@ class Service extends AbstractService
      *
      * @return false|TblDebtorNumber[]
      */
-    public function getDebtorNumberByPerson(TblPerson $tblPerson)
+    public function getDebtorNumberByPerson(TblPerson $tblPerson, $isForced = false)
     {
 
-        return (new Data($this->getBinding()))->getDebtorNumberByPerson($tblPerson);
+        return (new Data($this->getBinding()))->getDebtorNumberByPerson($tblPerson, $isForced);
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     *
+     * @return false|TblDebtorNumber[]
+     */
+    public function getDebtorNumberStringByPerson(TblPerson $tblPerson)
+    {
+        $DebtorNumberString = '';
+        if(($tblDebtorNumberList = $this->getDebtorNumberByPerson($tblPerson))){
+            $DebtorNumberList = array();
+            foreach($tblDebtorNumberList as $tblDebtorNumber){
+                $DebtorNumberList[] = $tblDebtorNumber->getDebtorNumber();
+            }
+            if(!empty($DebtorNumberList)){
+                $DebtorNumberString = implode('; ', $DebtorNumberList);
+            }
+        }
+        return $DebtorNumberString;
     }
 
     /**
@@ -259,6 +280,17 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblPerson $tblPersonDebtor
+     *
+     * @return false|TblDebtorSelection[]
+     */
+    public function getDebtorSelectionByPersonDebtor(TblPerson $tblPersonDebtor)
+    {
+
+        return (new Data($this->getBinding()))->getDebtorSelectionByPersonDebtor($tblPersonDebtor);
+    }
+
+    /**
      * @param TblItem $tblItem
      *
      * @return false|TblDebtorSelection[]
@@ -364,7 +396,6 @@ class Service extends AbstractService
         if($DebtorCountSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_DEBTOR_NUMBER_COUNT)){
             $count = $DebtorCountSetting->getValue();
             // get the right length of DebtorNumber
-            substr($Number, 0, $count);
             $Number = str_pad($Number, $count, '0', STR_PAD_LEFT);
         }
 
@@ -446,7 +477,6 @@ class Service extends AbstractService
         if($DebtorCountSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_DEBTOR_NUMBER_COUNT)){
             $count = $DebtorCountSetting->getValue();
             // get the right length of DebtorNumber
-            substr($Number, 0, $count);
             $Number = str_pad($Number, $count, '0', STR_PAD_LEFT);
         }
 
@@ -492,7 +522,7 @@ class Service extends AbstractService
      * @param TblPaymentType        $tblPaymentType
      * @param TblDebtorPeriodType   $tblDebtorPeriodType
      * @param string                $FromDate
-     * @param string|null           $ToDate
+     * @param string                $ToDate
      * @param TblItemVariant|null   $tblItemVariant
      * @param string                $Value
      * @param TblBankAccount|null   $tblBankAccount
@@ -508,19 +538,26 @@ class Service extends AbstractService
         $Value = str_replace(',', '.', $Value);
 
         //Pflichtfeld
-        $FromDate = new \DateTime($FromDate);
+        $FromDate = new DateTime($FromDate);
         // (kein Pflichtfeld)
         // hiermit kann das ToDate wieder entfernt werden
-        if('' === $ToDate){
+        if(!$ToDate){
             $ToDate = null;
         } else {
-            $ToDate = new \DateTime($ToDate);
+            $ToDate = new DateTime($ToDate);
         }
+
         // nicht benötigte Informationen entfernen
-        if($tblPaymentType->getName() != 'SEPA-Lastschrift'){
-            $tblBankAccount = null;
-            $tblBankReference = null;
+        switch($tblPaymentType->getName()){
+            case 'Bar':
+                $tblBankAccount = null;
+                $tblBankReference = null;
+            break;
+            case 'SEPA-Überweisung':
+                $tblBankReference = null;
         }
+
+
         return (new Data($this->getBinding()))->updateDebtorSelection($tblDebtorSelection, $tblPerson, $tblPaymentType,
             $tblDebtorPeriodType, $FromDate, $ToDate, $tblItemVariant, $Value, $tblBankAccount, $tblBankReference);
     }

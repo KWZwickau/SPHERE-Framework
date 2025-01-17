@@ -1,11 +1,12 @@
 <?php
-
 namespace SPHERE\Application\Reporting\Individual\Service\Entity;
 
 use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSchoolEnrollmentType;
+use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Common\Frontend\Form\Repository\AbstractField;
 use SPHERE\Common\Frontend\Icon\IIconInterface;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
@@ -23,13 +24,10 @@ class ViewGroupStudentTransfer extends AbstractView
     // Sortierung beeinflusst die Gruppenreihenfolge im Frontend
     const TBL_PERSON_ID = 'TblPerson_Id';
     const TBL_STUDENT_ID = 'TblStudent_Id';
-    // Aktuelle Schule
-    const TBL_COMPANY_PROCESS_NAME = 'TblCompanyProcess_Name';
-    const TBL_STUDENT_TRANSFER_PROCESS_COURSE = 'TblStudentTransferProcess_Course';
-    const TBL_STUDENT_TRANSFER_PROCESS_REMARK = 'TblStudentTransferProcess_Remark';
     // Ersteinschulung
     const TBL_COMPANY_ENROLLMENT_NAME = 'TblCompanyEnrollment_Name';
     const TBL_STUDENT_TRANSFER_ENROLLMENT_TYPE = 'TblStudentTransferEnrollment_Type';
+    const TBL_STUDENT_SCHOOL_ENROLLMENT_TYPE_NAME = 'TblStudentSchoolEnrollmentType_Name';
     const TBL_STUDENT_TRANSFER_ENROLLMENT_COURSE = 'TblStudentTransferEnrollment_Course';
     const TBL_STUDENT_TRANSFER_ENROLLMENT_TRANSFER_DATE = 'TblStudentTransferEnrollment_TransferDate';
     const TBL_STUDENT_TRANSFER_ENROLLMENT_REMARK = 'TblStudentTransferEnrollment_Remark';
@@ -72,6 +70,10 @@ class ViewGroupStudentTransfer extends AbstractView
      * @Column(type="string")
      */
     protected $TblStudentTransferEnrollment_Type;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblStudentSchoolEnrollmentType_Name;
     /**
      * @Column(type="string")
      */
@@ -128,18 +130,6 @@ class ViewGroupStudentTransfer extends AbstractView
      * @Column(type="string")
      */
     protected $TblStudentTransferLeave_Remark;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblCompanyProcess_Name;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblStudentTransferProcess_Course;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblStudentTransferProcess_Remark;
 
     /**
      * Use this method to set PropertyName to DisplayName conversions with "setNameDefinition()"
@@ -150,12 +140,9 @@ class ViewGroupStudentTransfer extends AbstractView
     {
 
 //        //NameDefinition
-        $this->setNameDefinition(self::TBL_COMPANY_PROCESS_NAME, 'Aktuell: Schule');
-        $this->setNameDefinition(self::TBL_STUDENT_TRANSFER_PROCESS_COURSE, 'Aktuell: Bildungsgang');
-        $this->setNameDefinition(self::TBL_STUDENT_TRANSFER_PROCESS_REMARK, 'Aktuell: Bemerkungen');
-
         $this->setNameDefinition(self::TBL_COMPANY_ENROLLMENT_NAME, 'Einschulung: Schule');
         $this->setNameDefinition(self::TBL_STUDENT_TRANSFER_ENROLLMENT_TYPE, 'Einschulung: Schulart');
+        $this->setNameDefinition(self::TBL_STUDENT_SCHOOL_ENROLLMENT_TYPE_NAME, 'Einschulung: Einschulungsart');
         $this->setNameDefinition(self::TBL_STUDENT_TRANSFER_ENROLLMENT_COURSE, 'Einschulung: Bildungsgang');
         $this->setNameDefinition(self::TBL_STUDENT_TRANSFER_ENROLLMENT_TRANSFER_DATE, 'Einschulung: Datum');
         $this->setNameDefinition(self::TBL_STUDENT_TRANSFER_ENROLLMENT_REMARK, 'Einschulung: Bemerkungen');
@@ -173,15 +160,10 @@ class ViewGroupStudentTransfer extends AbstractView
         $this->setNameDefinition(self::TBL_STUDENT_TRANSFER_LEAVE_TRANSFER_DATE, 'Abgabe: Datum');
         $this->setNameDefinition(self::TBL_STUDENT_TRANSFER_LEAVE_REMARK, 'Abgabe: Bemerkungen');
 
-        $this->setGroupDefinition('Schulverlauf', array(
-            self::TBL_COMPANY_PROCESS_NAME,
-            self::TBL_STUDENT_TRANSFER_PROCESS_COURSE,
-            self::TBL_STUDENT_TRANSFER_PROCESS_REMARK
-        ));
-
         $this->setGroupDefinition('Einschulung', array(
             self::TBL_COMPANY_ENROLLMENT_NAME,
             self::TBL_STUDENT_TRANSFER_ENROLLMENT_TYPE,
+            self::TBL_STUDENT_SCHOOL_ENROLLMENT_TYPE_NAME,
             self::TBL_STUDENT_TRANSFER_ENROLLMENT_COURSE,
             self::TBL_STUDENT_TRANSFER_ENROLLMENT_TRANSFER_DATE,
             self::TBL_STUDENT_TRANSFER_ENROLLMENT_REMARK
@@ -238,12 +220,10 @@ class ViewGroupStudentTransfer extends AbstractView
     {
 
         switch ($PropertyName) {
-//            case self::SIBLINGS_COUNT:
-//                $PropertyCount = $this->calculateFormFieldCount( $PropertyName, $doResetCount );
-//                $Field = new NumberField( $PropertyName.'['.$PropertyCount.']',
-//                    $Placeholder, $Label, $Icon
-//                );
-//                break;
+            case self::TBL_STUDENT_SCHOOL_ENROLLMENT_TYPE_NAME:
+                $Data = Student::useService()->getPropertyList( new TblStudentSchoolEnrollmentType(), TblStudentSchoolEnrollmentType::ATTR_NAME );
+                $Field = $this->getFormFieldSelectBox( $Data, $PropertyName, $Label, $Icon, $doResetCount );
+                break;
             default:
                 $Field = parent::getFormField( $PropertyName, $Placeholder, $Label, ($Icon?$Icon:new Pencil()), $doResetCount );
                 break;

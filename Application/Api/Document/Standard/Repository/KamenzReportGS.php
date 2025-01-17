@@ -41,11 +41,13 @@ class KamenzReportGS extends AbstractDocument
     }
 
     /**
-     * @param array $pageList
      *
-     * @return $this|Frame
+     * @param array $pageList
+     * @param string $Part
+     *
+     * @return Frame
      */
-    public function buildDocument($pageList = array())
+    public function buildDocument(array $pageList = array(), string $Part = '0'): Frame
     {
         return (new Frame())->addDocument((new Document())
             ->addPage((new Page())

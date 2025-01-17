@@ -55,6 +55,9 @@ class PrintCertificate implements IModuleInterface
             __NAMESPACE__ . '\History\Person', __NAMESPACE__ . '\Frontend::frontendPrintCertificateHistoryPerson')
         );
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '\History\Person\Revisions', __NAMESPACE__ . '\Frontend::frontendPrintCertificateHistoryPersonRevisions')
+        );
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '\History\Division', __NAMESPACE__ . '\Frontend::frontendPrintCertificateHistoryDivision')
         );
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(

@@ -12,19 +12,32 @@ use SPHERE\Application\Document\Generator\Repository\Element;
 use SPHERE\Application\Document\Generator\Repository\Section;
 use SPHERE\Application\Document\Generator\Repository\Slice;
 
+/**
+ * Class F01
+ *
+ * @package SPHERE\Application\Api\Document\Standard\Repository\KamenzReportGym
+ */
 class F01
 {
-    public static function getContent()
+    /**
+     * End max 7
+     * @param int $Start
+     * @param int $End
+     *
+     * @return Slice[]
+     */
+    public static function getContent($Start = 0, $End = 4)
     {
         $sliceList = array();
-
+        //display Header
+        if($Start == 0){
         $sliceList[] = (new Slice())
             ->styleTextBold()
             ->styleMarginTop('20px')
             ->styleMarginBottom('5px')
             ->addElement((new Element())
                 ->setContent('F01. Inklusiv unterrichtete Schüler mit sonderpädagogischem Förderbedarf im Schuljahr
-                    {{ Content.SchoolYear.Current }} </br> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; nach 
+                    {{ Content.SchoolYear.Current }} <br /> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; nach 
                     Förderschwerpunkten und Klassen- bzw. Jahrgangsstufen')
             );
 
@@ -38,76 +51,89 @@ class F01
             ->addSection((new Section())
                 ->addElementColumn((new Element())
                     ->setContent('Förderschwerpunkt(e)')
+                    ->styleAlignCenter()
                     ->styleBorderRight()
-                    ->stylePaddingTop('34.7px')
-                    ->stylePaddingBottom('34.7px'), '20%'
+                    ->stylePaddingTop('43.35px')
+                    ->stylePaddingBottom('43.35px'), '20%'
                 )
                 ->addElementColumn((new Element())
                     ->setContent('Klassenstufe')
+                    ->styleAlignCenter()
                     ->styleBorderRight()
-                    ->stylePaddingTop('34.7px')
-                    ->stylePaddingBottom('34.7px'), '30%'
+                    ->stylePaddingTop('43.35px')
+                    ->stylePaddingBottom('43.35px'), '15%'
                 )
                 ->addSliceColumn((new Slice())
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('Schüler')
+                            ->styleAlignCenter()
                             ->styleBorderBottom()
                             ->styleBorderRight()
-                            ->stylePaddingTop('25.6px')
-                            ->stylePaddingBottom('25.6px'), '30%'
+                            ->stylePaddingTop('34.25px')
+                            ->stylePaddingBottom('34.25px'), '30%'
                         )
                     )
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('m')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '50%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('w')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '50%'
                         )
-                    ), '16.66%'
+                    ), '21.66%'
                 )
                 ->addSliceColumn((new Slice())
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('<b>Darunter</b> von Spalte Schüler'), '100%'
+                            ->setContent('<b>Darunter</b> von Spalte Schüler')
+                            ->styleAlignCenter(), '100%'
                         )
                     )
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('Schüler mit<br/>Migrations-<br/>hintergrund')
+                            ->setContent('Schüler, deren<br/>Herkunftssprache nicht<br/>oder nicht ausschl.<br/>Deutsch ist')
+                            ->styleAlignCenter()
                             ->styleBorderBottom()
                             ->styleBorderRight(), '50%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('Schüler mit<br/>gutachterl.<br/>best. Autismus')
+                            ->setContent('Schüler mit<br/>gutachterl.<br/>best. Autismus<br/>&nbsp;')
+                            ->styleAlignCenter()
                             ->styleBorderBottom(), '50%'
                         )
                     )
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('m')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '25%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('w')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '25%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('m')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '25%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('w'), '25%'
+                            ->setContent('w')
+                            ->styleAlignCenter(), '25%'
                         )
                     )
-                    , '33.34%'
+                    , '43.34%'
                 )
             );
+        }
 
-        for ($i = 0; $i < 8; $i++) {
+        for ($i = $Start; $i <= $End; $i++) {
             $isBold = false;
             $paddingTop = '72.1px';
             $paddingBottom = '72.1px';
@@ -126,14 +152,14 @@ class F01
                     break;
                 case 4:
                     $text = 'Körperlich-motorische Entwicklung';
-                    $paddingTop = '55px';
-                    $paddingBottom = '55px';
+                    $paddingTop = '64px';
+                    $paddingBottom = '64px';
                     break;
                 case 5:
                     $text = 'Geistige Entwicklung';
                     break;
                 case 6:
-                    $text = 'Sozial-emotionale Entwicklung';
+                    $text = 'Emotionale-soziale Entwicklung';
                     $paddingTop = '64px';
                     $paddingBottom = '64px';
                     break;
@@ -149,6 +175,7 @@ class F01
             $section
                 ->addElementColumn((new Element())
                     ->setContent($text)
+                    ->styleAlignCenter()
                     ->styleBackgroundColor('lightgrey')
                     ->styleBorderRight()
                     ->stylePaddingTop($paddingTop)
@@ -162,6 +189,7 @@ class F01
                 $lineSection
                     ->addElementColumn((new Element())
                         ->setContent($j)
+                        ->styleAlignCenter()
                         ->styleBorderBottom()
                     );
                 $lineSectionList[] = $lineSection;
@@ -169,6 +197,7 @@ class F01
             $lineSectionList[] = (new Section())
                 ->addElementColumn((new Element())
                     ->setContent('Zusammen')
+                    ->styleAlignCenter()
                     ->styleTextBold()
                 );
             $section
@@ -176,7 +205,7 @@ class F01
                     ->styleBackgroundColor('lightgrey')
                     ->styleBorderRight()
                     ->addSectionList($lineSectionList)
-                    , '30%'
+                    , '15%'
                 );
 
             // Schüler
@@ -204,7 +233,7 @@ class F01
     }
 
     /**
-     * @param $section
+     * @param Section $section
      * @param $text
      * @param $identifier
      * @param $gender
@@ -232,6 +261,7 @@ class F01
                                 &nbsp;
                             {% endif %}
                         ')
+                    ->styleAlignCenter()
                     ->styleBorderBottom()
                     ->styleBackgroundColor($isGrey ? 'lightgrey' : 'white')
                 );
@@ -246,6 +276,7 @@ class F01
                         &nbsp;
                     {% endif %}
                 ')
+                ->styleAlignCenter()
                 ->styleTextBold()
                 ->styleBackgroundColor('lightgrey')
             );
@@ -253,7 +284,7 @@ class F01
             ->addSliceColumn((new Slice())
                 ->styleBorderRight()
                 ->addSectionList($lineSectionList)
-                , '8.333%'
+                , '10.833%'
             );
     }
 }

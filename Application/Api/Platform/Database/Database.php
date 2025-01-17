@@ -62,12 +62,15 @@ class Database extends Extension implements IModuleInterface
 
         $Result = array();
         if ($Consumer) {
+//            // Warte 0,5 Sekunden
+//            usleep(500000);
+//            sleep(1);
             $tblConsumer = Consumer::useService()->getConsumerByAcronym($Consumer);
             if ($tblConsumer) {
 
-                $Break = 3;
-                $Acronym = '';
-                while (( ( $Break-- ) > 0 ) && ( strtoupper($Consumer) != strtoupper($Acronym) )) {
+//                $Break = 2;
+//                $Acronym = '';
+//                while (( ( $Break-- ) > 0 ) && ( strtoupper($Consumer) != strtoupper($Acronym) )) {
                     Account::useService()->changeConsumer($tblConsumer);
 
                     $this->getCache(new CookieHandler())->clearCache();
@@ -78,10 +81,10 @@ class Database extends Extension implements IModuleInterface
                     $this->getCache(new TwigHandler())->clearCache();
                     $this->getCache(new SmartyHandler())->clearCache();
 
-                    sleep(1);
+//                    sleep(1);
 
                     $Acronym = Consumer::useService()->getConsumerBySession()->getAcronym();
-                }
+//                }
 
 //                Main::registerGuiPlatform();
 

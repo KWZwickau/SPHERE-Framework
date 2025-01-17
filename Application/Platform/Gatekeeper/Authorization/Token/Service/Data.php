@@ -17,10 +17,6 @@ class Data extends AbstractData
     public function setupDatabaseContent()
     {
 
-        $this->createToken('ccccccdilkui');
-        $this->createToken('ccccccectjge');
-        $this->createToken('ccccccectjgt');
-        $this->createToken('ccccccectjgr');
     }
 
     /**
@@ -52,6 +48,7 @@ class Data extends AbstractData
     public function getTokenByIdentifier($Identifier)
     {
 
+        /** @var TblToken $Entity*/
         $Entity = $this->getConnection()->getEntityManager()->getEntity('TblToken')
             ->findOneBy(array(TblToken::ATTR_IDENTIFIER => $Identifier));
         return ( null === $Entity ? false : $Entity );
@@ -75,6 +72,7 @@ class Data extends AbstractData
     public function getTokenById($Id)
     {
 
+        /** @var TblToken $Entity*/
         $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblToken', $Id);
         return ( null === $Entity ? false : $Entity );
     }
@@ -102,6 +100,7 @@ class Data extends AbstractData
     {
 
         $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblToken $Entity*/
         $Entity = $Manager->getEntityById('TblToken', $tblToken->getId());
         if (null !== $Entity) {
             $Manager->killEntity($Entity);

@@ -21,8 +21,8 @@ class Section
 
     /** @var IBridgeInterface $Template */
     protected $Template = null;
-    /** @var string $Content */
-    private $Columns = '';
+    /** @var array $Content */
+    private $Columns = array();
 
     /**
      * Element constructor.

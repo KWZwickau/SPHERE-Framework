@@ -5,6 +5,7 @@ use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblCategory;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblGroup;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\IModuleInterface;
+use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Common\Frontend\Icon\Repository\Education;
 use SPHERE\Common\Frontend\Icon\Repository\Enable;
@@ -62,13 +63,10 @@ class Subject implements IModuleInterface
             __NAMESPACE__.'/Link/Category', __NAMESPACE__.'\Frontend::frontendLinkCategory'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/Link/Person', __NAMESPACE__.'\Frontend::frontendLinkPerson'
-        ));
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/Link/Person/Add', __NAMESPACE__.'\Frontend::frontendSubjectPersonAdd'
-        ));
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/Create/Subject', __NAMESPACE__.'\Frontend::frontendCreateSubject'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Activate/Subject', __NAMESPACE__.'\Frontend::frontendActivateSubject'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/Change/Subject', __NAMESPACE__.'\Frontend::frontendChangeSubject'
@@ -171,14 +169,6 @@ class Subject implements IModuleInterface
                         new Standard('Zuweisen von Kategorien', __NAMESPACE__.'\Link\Category', new Transfer(),
                             array('Id' => $tblGroup->getId())
                         ),
-                        ($tblGroup->getName() == 'Neigungskurs' ?
-                            new Standard('Zuweisen von Personen', __NAMESPACE__.'\Link\Person', new Transfer(),
-                                array('Id' => $tblGroup->getId())
-                            ) : ''),
-                        ($tblGroup->getName() == 'Wahlfach' ?
-                            new Standard('Zuweisen von Personen', __NAMESPACE__.'\Link\Person', new Transfer(),
-                                array('Id' => $tblGroup->getId())
-                            ) : '')
                     ))
                 )));
                 $tblCategoryAll = $this->useService()->getCategoryAllByGroup($tblGroup);
@@ -193,9 +183,10 @@ class Subject implements IModuleInterface
                                     .$tblSubject->getName().' '
                                     .new Small(new Muted($tblSubject->getDescription()));
                             });
+                            $Height = floor(((count($tblSubjectAll) + 2) / 3) + 1);
+                        } else {
+                            $Height = 1;
                         }
-
-                        $Height = floor(((count($tblSubjectAll) + 2) / 3) + 1);
                         Main::getDispatcher()->registerWidget($tblGroup->getIdentifier(),
                             new Panel(
                                 $tblCategory->getName().' '.$tblCategory->getDescription(),

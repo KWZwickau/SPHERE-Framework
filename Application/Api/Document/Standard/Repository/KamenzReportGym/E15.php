@@ -33,52 +33,64 @@ class E15
             ->addSection((new Section())
                 ->addElementColumn((new Element())
                     ->setContent('Fremdsprache')
+                    ->styleAlignCenter()
                     ->styleBorderBottom()
                     ->styleBorderRight(), '70%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('Schüler in der Klassenstufe'), '30%'
+                    ->setContent('Schüler in der Klassenstufe')
+                    ->styleAlignCenter(), '30%'
                 )
             )
             ->addSection((new Section())
                 ->addElementColumn((new Element())
                     ->setContent('1.')
+                    ->styleAlignCenter()
                     ->styleBorderRight(), '17.5%'
                 )
                 ->addElementColumn((new Element())
                     ->setContent('2.')
+                    ->styleAlignCenter()
                     ->styleBorderRight(), '17.5%'
                 )
                 ->addElementColumn((new Element())
                     ->setContent('3.')
+                    ->styleAlignCenter()
                     ->styleBorderRight(), '17.5%'
                 )
                 ->addElementColumn((new Element())
                     ->setContent('4.')
+                    ->styleAlignCenter()
                     ->styleBorderRight(), '17.5%'
                 )
                 ->addElementColumn((new Element())
                     ->setContent('5')
+                    ->styleAlignCenter()
                     ->styleBorderRight(), '5%'
                 )
                 ->addElementColumn((new Element())
                     ->setContent('6')
+                    ->styleAlignCenter()
                     ->styleBorderRight(), '5%'
                 )
                 ->addElementColumn((new Element())
                     ->setContent('7')
+                    ->styleAlignCenter()
                     ->styleBorderRight(), '5%'
                 )
                 ->addElementColumn((new Element())
                     ->setContent('8')
+                    ->styleAlignCenter()
                     ->styleBorderRight(), '5%'
                 )
                 ->addElementColumn((new Element())
                     ->setContent('9')
+                    ->styleAlignCenter()
                     ->styleBorderRight(), '5%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('10'), '5%'
+                    ->setContent('10')
+                    ->styleAlignCenter(), '5%'
                 )
             );
 
@@ -95,6 +107,7 @@ class E15
                                 &nbsp;
                             {% endif %}
                         ')
+                        ->styleAlignCenter()
                         ->styleBorderRight(), '17.5%'
                     );
             }
@@ -109,6 +122,7 @@ class E15
                                 &nbsp;
                             {% endif %}
                         ')
+                        ->styleAlignCenter()
                         ->styleBorderRight(), '5%'
                     );
             }
@@ -125,6 +139,7 @@ class E15
         $section
             ->addElementColumn((new Element())
                 ->setContent('Insgesamt')
+                ->styleAlignCenter()
                 ->styleBorderRight(), '70%'
             );
         for ($j = 5; $j < 11; $j++) {
@@ -137,6 +152,7 @@ class E15
                                 &nbsp;
                             {% endif %}
                         ')
+                    ->styleAlignCenter()
                     ->styleBorderRight(), '5%'
                 );
         }

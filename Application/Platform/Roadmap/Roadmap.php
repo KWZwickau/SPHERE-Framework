@@ -108,10 +108,7 @@ class Roadmap extends Extension implements IApplicationInterface, IModuleInterfa
             $SystemLink = false;
             $tblAccount = Account::useService()->getAccountBySession();
             if ($tblAccount) {
-                $tblIdentification = $tblAccount->getServiceTblIdentification();
-                if ($tblIdentification) {
-                    $SystemLink = ( $tblIdentification->getName() == TblIdentification::NAME_SYSTEM );
-                }
+                $SystemLink = $tblAccount->getHasAuthentication(TblIdentification::NAME_SYSTEM);
             }
 
             $Sprints = $Map->getSprints();

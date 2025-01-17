@@ -1,5 +1,16 @@
 SELECT
-    vPMT.TblTeacher_serviceTblPerson AS TblPerson_Id,
-    vPMT.TblTeacher_Acronym
 
-FROM PeopleMeta_{{ ConsumerAcronym }}.viewPeopleMetaTeacher vPMT
+-- PersonId to match with all View's // tblTeacher
+    tP.Id AS TblPerson_Id,
+    tT.Acronym AS TblTeacher_Acronym,
+    DATE_FORMAT( tPM.MasernDate, '%d.%m.%Y' ) AS TblPersonMasern_MasernDate,
+    tSMI.TextShort AS TblStudentMedicalRecord_MasernDocumentType,
+    tSMI2.TextShort AS TblStudentMedicalRecord_MasernCreatorType
+
+FROM {{ ConsumerAcronym }}_PeoplePerson.tblPerson tP
+    LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblTeacher tT ON tT.serviceTblPerson = tP.Id
+    LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblPersonMasern tPM ON tPM.serviceTblPerson = tP.Id
+    LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentMasernInfo tSMI ON tSMI.Id = tPM.MasernDocumentType
+    LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentMasernInfo tSMI2 ON tSMI2.Id = tPM.MasernCreatorType
+
+where tT.EntityRemove IS NULL

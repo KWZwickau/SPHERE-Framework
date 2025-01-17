@@ -56,12 +56,13 @@ class Data extends AbstractData
      *
      * @return false|TblInvoiceItemDebtor[]
      */
-    public function getInvoiceItemDebtorByIsPaid($IsPaid = false)
+    public function getInvoiceItemDebtorByIsPaid($IsPaid = false, $isHistory = false)
     {
 
         return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
             'TblInvoiceItemDebtor', array(
-                TblInvoiceItemDebtor::ATTR_IS_PAID => $IsPaid
+                TblInvoiceItemDebtor::ATTR_IS_PAID => $IsPaid,
+                TblInvoiceItemDebtor::ATTR_IS_HISTORY => $isHistory
             ));
     }
 
@@ -152,17 +153,39 @@ class Data extends AbstractData
     }
 
     /**
-     * @param $Year
+     * @param TblPerson $tblPersonCauser
+     * @param string    $Year
+     * @param string    $Month
      *
      * @return bool|TblInvoice[]
      */
-    public function getInvoiceAllByYear($Year = '')
+    public function getInvoiceAllByPersonCauserAndYearAndMonth(TblPerson $tblPersonCauser, $Year = '', $Month = '')
     {
 
         $Manager = $this->getConnection()->getEntityManager();
         /** @var TblInvoice|null $Entity */
         return $this->getCachedEntityListBy(__METHOD__, $Manager, 'TblInvoice',
             array(
+                TblInvoice::ATTR_SERVICE_TBL_PERSON_CAUSER => $tblPersonCauser,
+                TblInvoice::ATTR_YEAR => $Year,
+                TblInvoice::ATTR_MONTH => $Month
+            ));
+    }
+
+    /**
+     * @param TblPerson $tblPersonCauser
+     * @param string    $Year
+     *
+     * @return bool|TblInvoice[]
+     */
+    public function getInvoiceAllByPersonCauserAndYear(TblPerson $tblPersonCauser, $Year = '')
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblInvoice|null $Entity */
+        return $this->getCachedEntityListBy(__METHOD__, $Manager, 'TblInvoice',
+            array(
+                TblInvoice::ATTR_SERVICE_TBL_PERSON_CAUSER => $tblPersonCauser,
                 TblInvoice::ATTR_YEAR => $Year
             ));
     }
@@ -398,6 +421,7 @@ class Data extends AbstractData
                     $Description = $Item['Description'];
                     $Value = $Item['Value'];
                     $Quantity = $Item['Quantity'];
+                    $IsPaid = $Item['IsPaid'];
 
                     $Entity = $Manager->getEntity('TblInvoiceItemDebtor')->findOneBy(
                         array(
@@ -423,13 +447,14 @@ class Data extends AbstractData
                         $Entity->setBankName($BankName);
                         $Entity->setIBAN($IBAN);
                         $Entity->setBIC($BIC);
-                        $Entity->setIsPaid(true);
+                        $Entity->setIsPaid($IsPaid);
                         $Entity->setServiceTblItem($tblItem);
                         $Entity->setServiceTblPersonDebtor($tblPerson);
                         $Entity->setServiceTblBankAccount($tblBankAccount);
                         $Entity->setServiceTblBankReference($tblBankReference);
                         $Entity->setServiceTblPaymentType($tblPaymentType);
                         $Entity->setTblInvoice($tblInvoice);
+                        $Entity->setIsHistory(false);
 
                         $Manager->bulkSaveEntity($Entity);
                         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
@@ -472,6 +497,8 @@ class Data extends AbstractData
         if($Entity === null){
             $Entity = new TblInvoiceCreditor();
             $Entity->setCreditorId($CreditorId);
+            // TODO Sidney setSchoolName
+            $Entity->setSchoolName('');
             $Entity->setOwner($Owner);
             $Entity->setBankName($BankName);
             $Entity->setIBAN($IBAN);
@@ -505,6 +532,84 @@ class Data extends AbstractData
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
                 $Protocol,
                 $Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblInvoiceItemDebtor $tblInvoiceItemDebtor
+     * @param bool                 $isHistory
+     *
+     * @return bool
+     */
+    public function changeInvoiceItemDebtorIsHistory(TblInvoiceItemDebtor $tblInvoiceItemDebtor, $isHistory = true)
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblInvoiceItemDebtor $Entity */
+        $Entity = $Manager->getEntityById('TblInvoiceItemDebtor', $tblInvoiceItemDebtor->getId());
+        $Protocol = clone $Entity;
+        if(null !== $Entity){
+            $Entity->setIsHistory($isHistory);
+            // prevent problems with Multiclick
+            $Entity->setIsPaid(false);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
+                $Protocol,
+                $Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param array $InvoiceIdList
+     *
+     * @return bool
+     */
+    public function destroyInvoiceBulk($InvoiceIdList)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        if(!empty($InvoiceIdList)){
+            foreach($InvoiceIdList as $InvoiceId) {
+                $Entity = $Manager->getEntity('TblInvoice')->findOneBy(array('Id' => $InvoiceId));
+                /**@var TblInvoice $Entity */
+                if(null !== $Entity){
+                    Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
+                        $Entity, true);
+                    $Manager->bulkKillEntity($Entity);
+                }
+            }
+            $Manager->flushCache();
+            Protocol::useService()->flushBulkEntries();
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param array $InvoiceItemDebtorIdList
+     *
+     * @return bool
+     */
+    public function destroyInvoiceItemDebtorBulk($InvoiceItemDebtorIdList)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        if(!empty($InvoiceItemDebtorIdList)){
+            foreach($InvoiceItemDebtorIdList as $InvoiceItemDebtorId) {
+                $Entity = $Manager->getEntity('TblInvoiceItemDebtor')->findOneBy(array('Id' => $InvoiceItemDebtorId));
+                /**@var TblInvoice $Entity */
+                if(null !== $Entity){
+                    Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
+                        $Entity, true);
+                    $Manager->bulkKillEntity($Entity);
+                }
+            }
+            $Manager->flushCache();
+            Protocol::useService()->flushBulkEntries();
             return true;
         }
         return false;

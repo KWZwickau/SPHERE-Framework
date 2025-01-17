@@ -1,6 +1,8 @@
 <?php
 namespace MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel;
 
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
+
 /**
  * Class Cell
  *
@@ -40,7 +42,7 @@ class Cell
     public function getColumnName()
     {
 
-        return \PHPExcel_Cell::stringFromColumnIndex($this->getColumn());
+        return Coordinate::stringFromColumnIndex($this->getColumn());
     }
 
     /**

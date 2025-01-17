@@ -1,0 +1,274 @@
+<?php
+
+namespace SPHERE\Application\Api\Document\Standard\Repository\KamenzReportFS;
+
+use SPHERE\Application\Api\Document\Standard\Repository\KamenzReportBFS\Common;
+use SPHERE\Application\Document\Generator\Repository\Element;
+use SPHERE\Application\Document\Generator\Repository\Section;
+use SPHERE\Application\Document\Generator\Repository\Slice;
+
+/**
+ * Class B01
+ *
+ * @package SPHERE\Application\Api\Document\Standard\Repository\KamenzReportFS
+ */
+class B01
+{
+    /**
+     * @param string $name
+     *
+     * @return array
+     */
+    public static function getContent($name)
+    {
+        switch ($name) {
+            case 'B01_1_A':
+                $title = 'B01-1-A. Absolventen/Abgänger im <u>Ausbildungsstatus Auszubildende/Schüler im Vollzeitunterricht</u>
+                    aus dem Schuljahr {{ Content.SchoolYear.Past }} nach Bildungsgängen,<br />' . Common::getBlankSpace(15)
+                    . 'planmäßiger Ausbildungsdauer, Förderschwerpunkten und Abschlussarten';
+                break;
+            case 'B01_1_U':
+                $title = 'B01-1-U. Absolventen/Abgänger im <u>Ausbildungsstatus Umschüler im Vollzeitunterricht</u>
+                    aus dem Schuljahr {{ Content.SchoolYear.Past }} nach Bildungsgängen,<br />' . Common::getBlankSpace(15)
+                    . 'planmäßiger Ausbildungsdauer, Förderschwerpunkten und Abschlussarten';
+                break;
+            case 'B01_1_1_A':
+                $title = 'B01-1.1-A Darunter Absolventen/Abgänger im <u>Ausbildungsstatus Auszubildende/Schüler im Vollzeitunterricht</u>
+                    , deren Herkunftssprache nicht oder nicht<br />' . Common::getBlankSpace(17)
+                    . ' ausschließlich Deutsch ist, aus dem Schuljahr {{ Content.SchoolYear.Past }}
+                    nach Bildungsgängen, planmäßiger Ausbildungsdauer, Förderschwerpunkten und <br />'
+                    . Common::getBlankSpace(18) . 'Abschlussarten';
+                break;
+            case 'B01_1_1_U':
+                $title = 'B01-1.1-U Darunter Absolventen/Abgänger im <u>Ausbildungsstatus Umschüler im Vollzeitunterricht</u>
+                    , deren Herkunftssprache nicht oder nicht<br />' . Common::getBlankSpace(17)
+                    . ' ausschließlich Deutsch ist, aus dem Schuljahr {{ Content.SchoolYear.Past }}
+                    nach Bildungsgängen, planmäßiger Ausbildungsdauer, Förderschwerpunkten und <br />'
+                    . Common::getBlankSpace(18) . 'Abschlussarten';
+                break;
+            case 'B01_2_A':
+                $title = 'B01-2-A. Absolventen/Abgänger im <u>Ausbildungsstatus Auszubildende/Schüler im Teilzeitunterricht</u>
+                    aus dem Schuljahr {{ Content.SchoolYear.Past }} nach Bildungsgängen,<br />' . Common::getBlankSpace(15)
+                    . 'planmäßiger Ausbildungsdauer, Förderschwerpunkten und Abschlussarten';
+                break;
+            case 'B01_2_U':
+                $title = 'B01-2-U. Absolventen/Abgänger im <u>Ausbildungsstatus Umschüler im Teilzeitunterricht</u>
+                    aus dem Schuljahr {{ Content.SchoolYear.Past }} nach Bildungsgängen,<br />' . Common::getBlankSpace(15)
+                    . 'planmäßiger Ausbildungsdauer, Förderschwerpunkten und Abschlussarten';
+                break;
+            case 'B01_2_1_A':
+                $title = 'B01-2.1-A Darunter Absolventen/Abgänger im <u>Ausbildungsstatus Auszubildende/Schüler im Teilzeitunterricht</u>
+                    , deren Herkunftssprache nicht oder nicht<br />' . Common::getBlankSpace(17)
+                    . ' ausschließlich Deutsch ist, aus dem Schuljahr {{ Content.SchoolYear.Past }}
+                    nach Bildungsgängen, planmäßiger Ausbildungsdauer, Förderschwerpunkten und <br />'
+                    . Common::getBlankSpace(18) . 'Abschlussarten';
+                break;
+            case 'B01_2_1_U':
+                $title = 'B01-2.1-U Darunter Absolventen/Abgänger im <u>Ausbildungsstatus Umschüler im Teilzeitunterricht</u>
+                    , deren Herkunftssprache nicht oder nicht<br />' . Common::getBlankSpace(17)
+                    . ' ausschließlich Deutsch ist, aus dem Schuljahr {{ Content.SchoolYear.Past }}
+                    nach Bildungsgängen, planmäßiger Ausbildungsdauer, Förderschwerpunkten und <br />'
+                    . Common::getBlankSpace(18) . 'Abschlussarten';
+                break;
+            default: $title = '';
+        }
+
+        $sliceList = array();
+
+        $sliceList[] = (new Slice())
+            ->styleTextBold()
+            ->styleMarginBottom('10px')
+            ->addElement((new Element())
+                ->setContent($title)
+            );
+
+        $width[0] = '30%';
+        $width[1] = '6%';
+        $width[2] = '14%';
+        $width[3] = '10%';
+        $width[4] = '8%';
+        $width[5] = '24%';
+        $width[6] = '8%';
+
+        $paddingTop = '42px';
+        $paddingBottom = '43.5px';
+
+        $sliceList[] = (new Slice())
+            ->styleBackgroundColor('lightgrey')
+            ->styleAlignCenter()
+            ->styleBorderTop()
+            ->styleBorderBottom()
+            ->styleBorderLeft()
+            ->styleBorderRight()
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('Bildungsgang')
+                    ->styleAlignCenter()
+                    ->styleBorderRight()
+                    ->stylePaddingTop($paddingTop)
+                    ->stylePaddingBottom($paddingBottom)
+                    , $width[0])
+                ->addElementColumn((new Element())
+                    ->setContent('Plan-<br/>mäßige<br/>Ausbil-<br/>dungs-<br/>dauer in<br/>Monaten')
+                    ->styleAlignCenter()
+                    ->styleBorderRight()
+                    , $width[1])
+                ->addElementColumn((new Element())
+                    ->setContent('Förderschwerpunkt')
+                    ->styleAlignCenter()
+                    ->styleBorderRight()
+                    ->stylePaddingTop($paddingTop)
+                    ->stylePaddingBottom($paddingBottom)
+                    , $width[2])
+                ->addElementColumn((new Element())
+                    ->setContent('Geschlecht')
+                    ->styleAlignCenter()
+                    ->styleBorderRight()
+                    ->stylePaddingTop($paddingTop)
+                    ->stylePaddingBottom($paddingBottom)
+                    , $width[3])
+                ->addElementColumn((new Element())
+                    ->setContent('<b>Abgänger</b> mit Abgangsz.')
+                    ->styleAlignCenter()
+                    ->stylePaddingTop('25.5px')
+                    ->stylePaddingBottom('25.7px')
+                    ->styleBorderRight()
+                    , $width[4])
+                ->addSliceColumn((new Slice())
+                    ->addElement((new Element())
+                        ->setContent('<b>Absolventen</b> mit Abschlusszeugnis')
+                        ->styleAlignCenter()
+                        ->styleBorderRight()
+                        ->styleBorderBottom()
+                    )
+                    ->addSection((new Section())
+                        ->addElementColumn((new Element())
+                            ->setContent('zusammen')
+                            ->styleAlignCenter()
+                            ->stylePaddingTop('33px')
+                            ->stylePaddingBottom('34.3px')
+                            ->styleBorderRight()
+                            , '33.333%')
+                        ->addSliceColumn((new Slice())
+                            ->addElement((new Element())
+                                ->setContent('darunter zusätzlich')
+                                ->styleAlignCenter()
+                                ->stylePaddingTop('7px')
+                                ->stylePaddingBottom('8px')
+                                ->styleBorderRight()
+                                ->styleBorderBottom()
+                            )
+                            ->addSection((new Section())
+                                ->addElementColumn((new Element())
+                                    ->setContent('zuerk.<br/>mittlerer<br/>Schulabs.')
+                                    ->styleAlignCenter()
+                                    ->styleBorderRight()
+                                    , '50%')
+                                ->addElementColumn((new Element())
+                                    ->setContent('erworbene<br/>Fachhoch-<br/>schulreife')
+                                    ->styleAlignCenter()
+                                    ->styleBorderRight()
+                                    , '50%')
+                            )
+                        , '66.666%')
+                    )
+                    , $width[5])
+                ->addSliceColumn((new Slice())
+                    ->styleTextBold()
+                    ->addElement((new Element())
+                        ->setContent('Insgesamt')
+                        ->styleAlignCenter()
+                        ->stylePaddingTop($paddingTop)
+                        ->stylePaddingBottom($paddingBottom)
+                    )
+                    , $width[6])
+            );
+
+        for ($i = 0; $i < 6; $i++) {
+            $section = new Section();
+            $preText = 'Content.' . $name . '.R' . $i . '.';
+            Common::setContentElement($section, $preText . 'Course', $width[0], false);
+            Common::setContentElement($section, $preText . 'Time', $width[1], true);
+            Common::setContentElement($section, $preText . 'Support', $width[2], false);
+            Common::setContentElement($section, $preText . 'Gender', $width[3], true);
+            Common::setContentElement($section, $preText . 'Leave', $width[4], true);
+            Common::setContentElement($section, $preText . 'DiplomaTotal', $width[4], true);
+            Common::setContentElement($section, $preText . 'DiplomaAddition', $width[4], true);
+            Common::setContentElement($section, $preText . 'DiplomaExtra', $width[4], true);
+            Common::setContentElement($section, $preText . 'TotalCount', $width[4], true, true);
+
+            $sliceList[] = (new Slice())
+                ->styleBorderBottom()
+                ->styleBorderLeft()
+                ->styleBorderRight()
+                ->addSection($section);
+        }
+
+        /**
+         * TotalCount
+         */
+        $section = new Section();
+        $section
+            ->addElementColumn((new Element())
+                ->setContent('Insgesamt¹')
+                ->styleAlignCenter()
+                ->styleBackgroundColor('lightgrey')
+                ->styleBorderRight()
+                ->stylePaddingTop('36px')
+                ->stylePaddingBottom('36.2px')
+                , '50%')
+            ->addSliceColumn((new Slice())
+                ->addElement((new Element())
+                    ->setContent('männlich')
+                    ->styleAlignCenter()
+                    ->styleBorderRight()
+                    ->styleBorderBottom()
+                )
+                ->addElement((new Element())
+                    ->setContent('weiblich')
+                    ->styleAlignCenter()
+                    ->styleBorderRight()
+                    ->styleBorderBottom()
+                )
+                ->addElement((new Element())
+                    ->setContent('divers')
+                    ->styleAlignCenter()
+                    ->styleBorderRight()
+                    ->styleBorderBottom()
+                )
+                ->addElement((new Element())
+                    ->setContent('ohne Angabe²')
+                    ->styleAlignCenter()
+                    ->styleBorderRight()
+                    ->styleBorderBottom()
+                )
+                ->addElement((new Element())
+                    ->setContent('insgesamt')
+                    ->styleAlignCenter()
+                    ->styleBorderRight()
+                )
+                , $width[3])
+            ->addSliceColumn(Common::setTotalSlice($name, 'Leave'), $width[4])
+            ->addSliceColumn(Common::setTotalSlice($name, 'DiplomaTotal'), $width[4])
+            ->addSliceColumn(Common::setTotalSlice($name, 'DiplomaAddition'), $width[4])
+            ->addSliceColumn(Common::setTotalSlice($name, 'DiplomaExtra'), $width[4])
+            ->addSliceColumn(Common::setTotalSlice($name, 'TotalCount', true), $width[4]);
+
+        $sliceList[] = (new Slice())
+            ->styleBackgroundColor('lightgrey')
+            ->styleTextBold()
+            ->styleAlignCenter()
+            ->styleBorderBottom()
+            ->styleBorderLeft()
+            ->styleBorderRight()
+            ->addSection($section);
+
+        $array[] = 'Nicht erfasst werden Schüler, die bei Verbleib im Bildungsgang die Schule wechseln!<br />'
+            . Common::getBlankSpace(5) . 'Ohne Teilnehmer von Schulfremdenprüfungen. Diese werden als 
+                    Absolventen/Abgänger an der Schule gezählt, an der die Ausbildung stattfand.';
+        $array[] = 'Laut Eintrag im Geburtenregister';
+        $sliceList[] = Common::setFootnotes($array);
+
+        return $sliceList;
+    }
+}

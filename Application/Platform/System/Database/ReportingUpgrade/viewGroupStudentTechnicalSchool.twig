@@ -1,0 +1,53 @@
+SELECT
+
+-- PersonId to match with all View's // tblStudent
+tS.serviceTblPerson AS TblPerson_Id,
+tS.Id AS TblStudent_Id,
+
+-- serviceTblTechnicalCourse
+-- ToDO Geschlechtsbestimmung in SQL?
+tTC.Name as TblTechnicalCourse_Name,
+-- serviceTblSchoolDiploma
+tSD.Name as TblSchoolDiploma_Name,
+-- serviceTblSchoolType
+tT.Name as TblType_Name,
+tT.Id as TblType_Id,
+-- serviceTblTechnicalDiploma
+tTD.Name as TblTechnicalDiploma_Name,
+tTD.Id as TblTechnicalDiploma_Id,
+-- serviceTblTechnicalType
+tTT.Name as TblTechnicalType_Name,
+tTT.Id as TblTechnicalType_Id,
+
+-- TblStudentTechnicalSchool
+tSTS.PraxisLessons as TblStudentTechnicalSchool_PraxisLessons,
+tSTS.DurationOfTraining as TblStudentTechnicalSchool_DurationOfTraining,
+tSTS.Remark as TblStudentTechnicalSchool_Remark,
+
+tSTS.YearOfSchoolDiploma as TblStudentTechnicalSchool_YearOfSchoolDiploma,
+tSTS.YearOfTechnicalDiploma as TblStudentTechnicalSchool_YearOfTechnicalDiploma,
+IF (tSTS.HasFinancialAid, 'Ja', 'Nein') as TblStudentTechnicalSchool_HasFinancialAid,
+tSTS.FinancialAidApplicationYear as TblStudentTechnicalSchool_FinancialAidApplicationYear,
+tSTS.FinancialAidBureau as TblStudentTechnicalSchool_FinancialAidBureau,
+-- tblTechnicalSubjectArea
+tTSA.Name as TblTechnicalSubjectArea_Name,
+tTSA.Acronym as TblTechnicalSubjectArea_Acronym,
+-- TblStudentTensOfLesson
+tSTOL.Name as TblStudentTensOfLesson_Name,
+-- TblStudentTrainingStatus
+tSTSt.Name as TblStudentTrainingStatus_Name
+
+
+FROM {{ ConsumerAcronym }}_PeopleMeta.tblStudent tS
+left join {{ ConsumerAcronym }}_PeopleMeta.tblStudentTechnicalSchool tSTS on tSTS.Id = tS.tblStudentTechnicalSchool
+left join {{ ConsumerAcronym }}_PeopleMeta.tblStudentTenseOfLesson tSTOL on tSTOL.Id = tSTS.tblStudentTenseOfLesson
+left join {{ ConsumerAcronym }}_PeopleMeta.tblStudentTrainingStatus tSTSt on tSTSt.Id = tSTS.tblStudentTrainingStatus
+
+left join {{ ConsumerAcronym }}_EducationSchoolCourse.tblTechnicalCourse tTC on tTC.Id = tSTS.serviceTblTechnicalCourse
+left join {{ ConsumerAcronym }}_EducationSchoolCourse.tblSchoolDiploma tSD on tSD.Id = tSTS.serviceTblSchoolDiploma
+left join {{ ConsumerAcronym }}_EducationSchoolType.tblType tT on tT.Id = tSTS.serviceTblSchoolType
+left join {{ ConsumerAcronym }}_EducationSchoolCourse.tblTechnicalDiploma tTD on tTD.Id = tSTS.serviceTblTechnicalDiploma
+left join {{ ConsumerAcronym }}_EducationSchoolType.tblType tTT on tTT.Id = tSTS.serviceTblTechnicalType
+left join {{ ConsumerAcronym }}_EducationSchoolCourse.tblTechnicalSubjectArea tTSA on tTSA.Id = tSTS.serviceTblTechnicalSubjectArea
+
+WHERE tS.EntityRemove is Null

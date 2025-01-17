@@ -47,7 +47,7 @@ class Error extends Extension implements ITemplateInterface
         } else {
 
             $Path = parse_url( $this->getRequest()->getUrl(), PHP_URL_PATH );
-            parse_str( parse_url( $this->getRequest()->getUrl(), PHP_URL_QUERY ), $Query );
+            parse_str( (parse_url( $this->getRequest()->getUrl(), PHP_URL_QUERY ) ?: ''), $Query );
             unset( $Query['_Sign'] );
             $Query = json_encode( $Query );
 

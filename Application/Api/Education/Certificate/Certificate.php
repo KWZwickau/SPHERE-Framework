@@ -10,10 +10,6 @@ class Certificate extends Extension implements IModuleInterface
 
     public static function registerModule()
     {
-
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/Generator/Create', __NAMESPACE__.'\Generator\Creator::createPdf'
-        ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '/Generator/Preview', __NAMESPACE__ . '\Generator\Creator::previewPdf'
         ));
@@ -22,12 +18,6 @@ class Certificate extends Extension implements IModuleInterface
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '/Generator/Download', __NAMESPACE__ . '\Generator\Creator::downloadPdf'
-        ));
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__ . '/Generator/PreviewZip', __NAMESPACE__ . '\Generator\Creator::previewZip'
-        ));
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__ . '/Generator/DownloadZip', __NAMESPACE__ . '\Generator\Creator::downloadZip'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '/Generator/History/DownloadZip', __NAMESPACE__ . '\Generator\Creator::downloadHistoryZip'

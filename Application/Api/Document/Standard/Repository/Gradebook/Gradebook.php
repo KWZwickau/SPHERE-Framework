@@ -1,34 +1,37 @@
 <?php
 namespace SPHERE\Application\Api\Document\Standard\Repository\Gradebook;
 
+use DateTime;
+use MOC\V\Component\Template\Component\IBridgeInterface;
+use SPHERE\Application\Api\Document\AbstractDocument;
 use SPHERE\Application\Document\Generator\Repository\Document;
 use SPHERE\Application\Document\Generator\Repository\Element;
 use SPHERE\Application\Document\Generator\Repository\Frame;
 use SPHERE\Application\Document\Generator\Repository\Page;
 use SPHERE\Application\Document\Generator\Repository\Section;
 use SPHERE\Application\Document\Generator\Repository\Slice;
+use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
-use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
-use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTest;
-use SPHERE\Application\Education\Lesson\Division\Division;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionSubject;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectGroup;
+use SPHERE\Application\Education\Graduation\Grade\Grade;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTest;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblPeriod;
+use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\Setting\Consumer\Consumer;
-use SPHERE\Common\Frontend\Text\Repository\Small;
-use SPHERE\Common\Frontend\Text\Repository\Strikethrough;
+use SPHERE\System\Extension\Extension;
+use SPHERE\System\Extension\Repository\Sorter\DateTimeSorter;
 
 /**
  * Class Gradebook
  *
  * @package SPHERE\Application\Api\Document\Standard\Repository\Gradebook
  */
-class Gradebook
+class Gradebook extends AbstractDocument
 {
-
     const TEXT_SIZE_HEADER = '8pt';// '12px';
     const TEXT_SIZE_BODY = '8pt';// '11px';
     const HEIGHT_HEADER = 450;
@@ -37,46 +40,83 @@ class Gradebook
     const COLOR_BODY_ALTERNATE_2 = '#FFF';
     const COLOR_BODY_DARK = '#E4E4E4';
     const MINIMUM_TEST_COUNT = 4;
-    // Anzahl der Spalten für die Vornoten
-    const EXTRA_GRADES_WIDTH = 2;
-
-    /** @var null|Frame $Document */
-    private $Document = null;
 
     /**
-     * @param TblDivisionSubject $tblDivisionSubject
-     *
-     * @return \MOC\V\Component\Template\Component\IBridgeInterface
+     * @return string
      */
-    public function createSingleDocument(TblDivisionSubject $tblDivisionSubject)
+    public function getName(): string
     {
+        return 'Notenbücher.pdf';
+    }
 
+    /**
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param TblSubject $tblSubject
+     *
+     * @return IBridgeInterface
+     */
+    public function createSingleDocument(TblDivisionCourse $tblDivisionCourse, TblSubject $tblSubject): IBridgeInterface
+    {
+        $pageList = $this->buildPageList($tblDivisionCourse, $tblSubject);
+
+        $Document = $this->buildDocument($pageList);
+
+        return $Document->getTemplate();
+    }
+
+    /**
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param TblSubject $tblSubject
+     *
+     * @return Page[]
+     */
+    public function buildPageList(TblDivisionCourse $tblDivisionCourse, TblSubject $tblSubject): array
+    {
         $pageList = array();
-        if (($tblDivision = $tblDivisionSubject->getTblDivision())
-            && ($tblYear = $tblDivision->getServiceTblYear())
-            && ($tblLevel = $tblDivision->getTblLevel())
-            && ($tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear, $tblLevel && $tblLevel->getName() == '12'))
+
+        $isSekTwo = DivisionCourse::useService()->getIsCourseSystemByStudentsInDivisionCourse($tblDivisionCourse);
+
+        $showCourse = false;
+        if (($tblSchoolTypeList = $tblDivisionCourse->getSchoolTypeListFromStudents())
+            && ($tblSchoolType = Type::useService()->getTypeByShortName('OS'))
+            && isset($tblSchoolTypeList[$tblSchoolType->getId()])
+        ) {
+            $showCourse = true;
+        }
+
+        $isShortYear = false;
+        $tblYear = $tblDivisionCourse->getServiceTblYear();
+        if (($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses())) {
+            foreach ($tblPersonList as $tblPerson) {
+                if (DivisionCourse::useService()->getIsShortYearByPersonAndYear($tblPerson, $tblYear)) {
+                    $isShortYear = true;
+                    break;
+                }
+            }
+        }
+
+        if ($tblYear
+            && ($tblPeriodList = Term::useService()->getPeriodListByYear($tblYear, $isShortYear))
         ) {
             $count = 0;
             foreach ($tblPeriodList as $tblPeriod) {
                 $count++;
                 $isLastPeriod = $count == count($tblPeriodList);
 
-                $pageList[] = $this->buildPage($tblDivisionSubject, $tblPeriod, $isLastPeriod);
+                $pageList[] = $this->buildPage($tblDivisionCourse, $tblSubject, $tblPeriod, $tblYear, $isLastPeriod, $isSekTwo, $showCourse, $count);
             }
         }
 
-        $this->Document = $this->buildDocument($pageList);
-
-        return $this->Document->getTemplate();
+        return $pageList;
     }
 
     /**
-     * @param array $pageList
+     * @param array  $pageList
+     * @param string $part
      *
      * @return Frame
      */
-    public function buildDocument($pageList = array())
+    public function buildDocument($pageList = array(), $part = '0'): Frame
     {
         $document = new Document();
 
@@ -94,84 +134,98 @@ class Gradebook
     }
 
     /**
-     * @param TblDivisionSubject $tblDivisionSubject
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param TblSubject $tblSubject
      * @param TblPeriod $tblPeriod
+     * @param TblYear $tblYear
      * @param bool $isLastPeriod
+     * @param bool $isSekTwo
+     * @param bool $showCourse
+     * @param int $countPeriods
      *
      * @return Page
      */
     public function buildPage(
-        TblDivisionSubject $tblDivisionSubject,
+        TblDivisionCourse $tblDivisionCourse,
+        TblSubject $tblSubject,
         TblPeriod $tblPeriod,
-        $isLastPeriod = false
-    ) {
-
-        if (($tblDivision = $tblDivisionSubject->getTblDivision())
-            && ($tblSubject = $tblDivisionSubject->getServiceTblSubject())
-        ) {
-
-            $tblSubjectGroup = $tblDivisionSubject->getTblSubjectGroup();
-
-            return (new Page())
-                ->addSlice((new Slice())
-                    ->addElement((new Element())
-                        ->setContent('Notenbuch')
-                        ->styleTextSize('20px')
-                        ->styleTextBold()
-                    )
-                    ->addElement((new Element())
-                        ->setContent(
-                            'Klasse ' . $tblDivision->getDisplayName() . ' - ' . $tblSubject->getDisplayName()
-                            . ($tblSubjectGroup ? new Small(' (Gruppe: ' . $tblSubjectGroup->getName() . ')') : '')
-                        )
-                        ->styleTextSize('20px')
-                        ->styleTextBold()
-                    )
-                    ->addElement((new Element())
-                        ->setContent(
-                            'Fachlehrer: ' . Division::useService()->getSubjectTeacherNameList(
-                                $tblDivision, $tblSubject, $tblDivisionSubject->getTblSubjectGroup()
-                                ? $tblDivisionSubject->getTblSubjectGroup() : null
-                            )
-                        )
-                    )
-                    ->addElement((new Element())
-                        ->setContent(
-                            'Stand: ' . (new \DateTime())->format('d.m.Y')
-                        )
-                    )
-                )
-                ->addSlice((new Slice())->addElement((new Element())->styleHeight('20px')))
-                ->addSlice(
-                    $this->setContent(
-                        $tblDivision,
-                        $tblSubject,
-                        $tblSubjectGroup ? $tblSubjectGroup : null,
-                        $tblPeriod,
-                        $isLastPeriod
-                    )
-                );
+        TblYear $tblYear,
+        bool $isLastPeriod,
+        bool $isSekTwo,
+        bool $showCourse,
+        int $countPeriods
+    ): Page {
+        $tblTeacherList = array();
+        if (($tblTeacherLectureshipList = DivisionCourse::useService()->getTeacherLectureshipListBy(null, null, $tblDivisionCourse, $tblSubject))) {
+            foreach ($tblTeacherLectureshipList as $tblTeacherLectureship) {
+                if (($tblPerson = $tblTeacherLectureship->getServiceTblPerson())) {
+                    $tblTeacherList[$tblPerson->getId()] = $tblTeacherLectureship->getTeacherName();
+                }
+            }
         }
 
-        return (new Page());
+        return (new Page())
+            ->addSlice((new Slice())
+                ->addElement((new Element())
+                    ->setContent('Notenbuch')
+                    ->styleTextSize('20px')
+                    ->styleTextBold()
+                )
+                ->addElement((new Element())
+                    ->setContent(
+                        $tblDivisionCourse->getTypeName() . ' ' . $tblDivisionCourse->getName() . ' - ' . $tblSubject->getDisplayName()
+                    )
+                    ->styleTextSize('20px')
+                    ->styleTextBold()
+                )
+                ->addElement((new Element())
+                    ->setContent(
+                        'Fachlehrer: ' . (empty($tblTeacherList) ? '' : implode(', ', $tblTeacherList))
+                    )
+                )
+                ->addElement((new Element())
+                    ->setContent(
+                        'Stand: ' . (new DateTime())->format('d.m.Y')
+                    )
+                )
+            )
+            ->addSlice((new Slice())->addElement((new Element())->styleHeight('20px')))
+            ->addSlice(
+                $this->setContent(
+                    $tblDivisionCourse,
+                    $tblSubject,
+                    $tblPeriod,
+                    $tblYear,
+                    $isLastPeriod,
+                    $isSekTwo,
+                    $showCourse,
+                    $countPeriods
+                )
+            );
     }
 
     /**
-     * @param TblDivision $tblDivision
+     * @param TblDivisionCourse $tblDivisionCourse
      * @param TblSubject $tblSubject
-     * @param TblSubjectGroup|null $tblSubjectGroup
      * @param TblPeriod $tblPeriod
+     * @param TblYear $tblYear
      * @param bool $isLastPeriod
+     * @param bool $isSekTwo
+     * @param bool $showCourse
+     * @param int $countPeriods
      *
      * @return Slice
      */
     private function setContent(
-        TblDivision $tblDivision,
+        TblDivisionCourse $tblDivisionCourse,
         TblSubject $tblSubject,
-        TblSubjectGroup $tblSubjectGroup = null,
         TblPeriod $tblPeriod,
-        $isLastPeriod = false
-    ) {
+        TblYear $tblYear,
+        bool $isLastPeriod,
+        bool $isSekTwo,
+        bool $showCourse,
+        int $countPeriods
+    ): Slice {
 
         $slice = new Slice();
         $paddingLeft = '3px';
@@ -182,27 +236,11 @@ class Gradebook
         $widthPeriodColumns = 100 - $widthStudentColumn;
         $widthStudentColumnString = $widthStudentColumn . '%';
 
-        $showCourse = false;
-        $isSekTwo = false;
-        if (($tblLevel = $tblDivision->getTblLevel())
-            && ($tblType = $tblLevel->getServiceTblType())
-        ) {
-            if ($tblType->getName() == 'Mittelschule / Oberschule'
-                && intval($tblLevel->getName()) > 6
-            ) {
-                $showCourse = true;
-            } elseif ($tblType->getName() == 'Gymnasium'
-                && intval($tblLevel->getName()) > 10
-            ) {
-                $isSekTwo = true;
-            }
-        }
+        $widthNumber = '9%';
         if ($showCourse) {
-            $widthNumber = '9%';
             $widthStudentName = '76%';
             $widthCourse = '15%';
         } else {
-            $widthNumber = '9%';
             $widthStudentName = '91%';
             $widthCourse = '0%';
         }
@@ -210,18 +248,6 @@ class Gradebook
         // wird dynamisch nach der Testanzahl angepasst
         $widthColumnTest = 10;
         $widthColumnTestString = '10%';
-
-        $tblScoreRule = \SPHERE\Application\Education\Graduation\Gradebook\Gradebook::useService()->getScoreRuleByDivisionAndSubjectAndGroup(
-            $tblDivision,
-            $tblSubject,
-            $tblSubjectGroup ? $tblSubjectGroup : null
-        );
-
-        $tblDivisionSubject = Division::useService()->getDivisionSubjectByDivisionAndSubjectAndSubjectGroup(
-            $tblDivision,
-            $tblSubject,
-            $tblSubjectGroup ? $tblSubjectGroup : null
-        );
 
         $showAverage = false;
         if (($tblSettingAverage = Consumer::useService()->getSetting('Education', 'Graduation', 'Gradebook', 'ShowAverageInPdf'))) {
@@ -250,61 +276,6 @@ class Gradebook
             $offset = 1;
         } else {
             $offset = 0;
-        }
-
-        if ($tblSubjectGroup) {
-            $tblPersonList = Division::useService()->getStudentByDivisionSubject($tblDivisionSubject);
-        } elseif ($tblDivisionSubject) {
-            $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
-        } else {
-            $tblPersonList = false;
-        }
-        if ($tblPersonList) {
-            $gradeListFromAnotherDivision = \SPHERE\Application\Education\Graduation\Gradebook\Gradebook::useService()
-                ->getGradesFromAnotherDivision($tblDivision, $tblSubject, $tblPersonList);
-        } else {
-            $gradeListFromAnotherDivision = false;
-        }
-
-        $addStudentList = array();
-        $existingPersonList = array();
-        if ($tblPersonList) {
-            foreach ($tblPersonList as $tblPerson) {
-                $existingPersonList[$tblPerson->getId()] = $tblPerson;
-            }
-        }
-
-        // mögliches Zeugnis ermitteln
-        $tblPrepareForCertificateGrade = false;
-        if (($tblPrepareList = Prepare::useService()->getPrepareAllByDivision($tblDivision))) {
-            foreach ($tblPrepareList as $tblPrepareCertificate) {
-                if (($tblGenerateCertificate = $tblPrepareCertificate->getServiceTblGenerateCertificate())
-                    && ($tblCertificateType = $tblGenerateCertificate->getServiceTblCertificateType())
-                ) {
-                    if ($isSekTwo) {
-                        if ($tblCertificateType->getIdentifier() == 'MID_TERM_COURSE'
-                            && ($tblTask = $tblPrepareCertificate->getServiceTblAppointedDateTask())
-                            && ($tblPeriodOfPrepareCertificate = $tblTask->getServiceTblPeriodByDivision($tblDivision))
-                            && $tblPeriod->getId() == $tblPeriodOfPrepareCertificate->getId()
-                        ) {
-                            $tblPrepareForCertificateGrade = $tblPrepareCertificate;
-                            break;
-                        }
-                    } else {
-                        if (!$isLastPeriod
-                            && ($tblCertificateType->getIdentifier() == 'HALF_YEAR')
-                        ) {
-                            $tblPrepareForCertificateGrade = $tblPrepareCertificate;
-                            break;
-                        } elseif ($isLastPeriod
-                            && ($tblCertificateType->getIdentifier() == 'YEAR')
-                        ) {
-                            $tblPrepareForCertificateGrade = $tblPrepareCertificate;
-                            break;
-                        }
-                    }
-                }
-            }
         }
 
         $subSection = new Section();
@@ -356,73 +327,43 @@ class Gradebook
                 , $widthStudentColumnString
             );
 
-        $tblYear = $tblDivision->getServiceTblYear();
-        if ($tblYear) {
-            $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear, $tblLevel && $tblLevel->getName() == '12');
-        } else {
-            $tblPeriodList = false;
-        }
-        $tblTestType = Evaluation::useService()->getTestTypeByIdentifier('TEST');
-
         $periodListCount = array();
         $testList = array();
 
         $count = 0;
-        // Vornoten
-        if ($gradeListFromAnotherDivision && isset($gradeListFromAnotherDivision[$tblPeriod->getId()])) {
-            $count += self::EXTRA_GRADES_WIDTH;
-            $testList[$tblPeriod->getId()]['ExtraGrades'] = 'Vornoten';
-        }
 
-        $tblTestList = Evaluation::useService()->getTestAllByTypeAndDivisionAndSubjectAndPeriodAndSubjectGroup(
-            $tblDivision,
-            $tblSubject,
-            $tblTestType,
-            $tblPeriod,
-            $tblSubjectGroup
-        );
-        if ($tblTestList) {
-            $tblTestList = Evaluation::useService()->sortTestList($tblTestList);
+        if (($tblTestList = Grade::useService()->getTestListByDivisionCourseAndSubject($tblDivisionCourse, $tblSubject))) {
+            $tblTestList = Grade::useService()->sortTestList($tblTestList);
             /** @var TblTest $tblTest */
             foreach ($tblTestList as $tblTest) {
-                if (($tblGradeType = $tblTest->getServiceTblGradeType())) {
-                    $count++;
+                if (($tblGradeType = $tblTest->getTblGradeType())) {
+                    $dateTime = null;
                     if ($tblTest->getDate()) {
-                        $date = $tblTest->getDate();
-                        if (strlen($date) > 6) {
-                            $date = substr($date, 0, 6);
-                        }
-                    } elseif ($tblTest->isContinues() && $tblTest->getFinishDate()) {
-                        $date = $tblTest->getFinishDate();
-                        if (strlen($date) > 6) {
-                            $date = '(' . substr($date, 0, 6) . ')';
-                        }
-                    } else {
-                        $date = '';
+                        $dateTime = $tblTest->getDate();
+                    } elseif ($tblTest->getIsContinues() && $tblTest->getFinishDate()) {
+                        $dateTime = $tblTest->getFinishDate();
                     }
 
-                    $text = trim($date . ' ' .
-                        $tblGradeType->getCode() . ' '
-                        . trim($tblTest->getDescription()));
+                    $date = '';
+                    if ($dateTime) {
+                        // Tests welche nicht zur Periode gehören überspringen
+                        if ($dateTime < $tblPeriod->getFromDateTime() || $dateTime > $tblPeriod->getToDateTime()) {
+                            continue;
+                        }
 
-                    if (!empty($text)) {
-                        $text = str_replace(' ', '&nbsp;', $text);
-                        $text = str_replace('-', '&nbsp;', $text);
+                        $date = $dateTime->format('d.m.');
                     }
+
+                    $count++;
+
+                    $description = trim($tblTest->getDescription());
+                    if (!empty($description)) {
+                        $description = str_replace('-', ' ', $description);
+                    }
+
+                    $text = trim($date . ' ' . $tblGradeType->getCode() . ' ' . $description);
 
                     $testList[$tblPeriod->getId()][$tblTest->getId()] = $text;
-
-                    // für Schüler, welche nicht mehr in der Klasse sind
-                    $tblGradeList = \SPHERE\Application\Education\Graduation\Gradebook\Gradebook::useService()->getGradeAllByTest($tblTest);
-                    if ($tblGradeList) {
-                        foreach ($tblGradeList as $tblGradeItem) {
-                            if (($tblPersonItem = $tblGradeItem->getServiceTblPerson())
-                                && !isset($existingPersonList[$tblPersonItem->getId()])
-                            ) {
-                                $addStudentList[$tblPersonItem->getId()] = $tblPersonItem;
-                            }
-                        }
-                    }
                 }
             }
 
@@ -430,23 +371,16 @@ class Gradebook
                 $count = $minimumTestCount;
             }
 
-            if ($showAverage) {
-                $count++;
-            }
-            if ($showCertificateGrade) {
-                $count++;
-            }
-            $periodListCount[$tblPeriod->getId()] = $count;
         } else {
             $count = $minimumTestCount;
-            if ($showAverage) {
-                $count++;
-            }
-            if ($showCertificateGrade) {
-                $count++;
-            }
-            $periodListCount[$tblPeriod->getId()] = $count;
         }
+        if ($showAverage) {
+            $count++;
+        }
+        if ($showCertificateGrade) {
+            $count++;
+        }
+        $periodListCount[$tblPeriod->getId()] = $count;
 
         $sumCount = array_sum($periodListCount);
         if ($sumCount > 0) {
@@ -458,27 +392,20 @@ class Gradebook
             $countTestPeriod = $periodListCount[$tblPeriod->getId()];
             $headerSection = new Section();
             $countTests = 0;
+            $countHeaders = 4;
             if (isset($testList[$tblPeriod->getId()])) {
+                $countHeaders = count($testList[$tblPeriod->getId()]);
                 foreach ($testList[$tblPeriod->getId()] as $testId => $text) {
-                    // Vornoten
-                    if ($testId == 'ExtraGrades') {
-                        $countTests += self::EXTRA_GRADES_WIDTH;
-                        $headerSection = $this->setHeaderTest(
-                            $headerSection,
-                            $text,
-                            ($widthColumnTest * self::EXTRA_GRADES_WIDTH) . '%',
-                            false,
-                            $isLastTestLastColumn && $countTests == $countTestPeriod
-                        );
-                    } elseif (($tblTest = Evaluation::useService()->getTestById($testId))
-                        && ($tblGradeType = $tblTest->getServiceTblGradeType())
+                    if (($tblTest = Grade::useService()->getTestById($testId))
+                        && ($tblGradeType = $tblTest->getTblGradeType())
                     ) {
                         $countTests++;
                         $headerSection = $this->setHeaderTest(
                             $headerSection,
                             $text,
                             $widthColumnTestString,
-                            $tblGradeType->isHighlighted(),
+                            $countHeaders,
+                            $tblGradeType->getIsHighlighted(),
                             $isLastTestLastColumn && $countTests == $countTestPeriod
                         );
                     }
@@ -492,6 +419,7 @@ class Gradebook
                         $headerSection,
                         '&nbsp;',
                         $widthColumnTestString,
+                        $countHeaders,
                         false,
                         $isLastTestLastColumn && $countTests == ($countTestPeriod - $offset - 1)
                     );
@@ -511,6 +439,7 @@ class Gradebook
                     $headerSection,
                     '&#216;' . '&nbsp;' . $headerName,
                     $widthColumnTestString,
+                    $countHeaders,
                     true,
                     $isAverageLastColumn
                 );
@@ -529,6 +458,7 @@ class Gradebook
                     $headerSection,
                     'Zeugnisnote' . '&nbsp;' . $headerName,
                     $widthColumnTestString,
+                    $countHeaders,
                     true,
                     $isCertificateGradeLastColumn
                 );
@@ -555,30 +485,57 @@ class Gradebook
 
         $slice->addSection($section);
 
-        if (!empty($addStudentList)) {
-            if (!$tblPersonList) {
-                $tblPersonList = array();
-            }
-            foreach ($addStudentList as $tblAddPerson) {
-                $tblPersonList[$tblAddPerson->getId()] = $tblAddPerson;
-            }
+        if ($isSekTwo) {
+            $tblCertificateType = Generator::useService()->getCertificateTypeByIdentifier('MID_TERM_COURSE');
+        } elseif ($isLastPeriod) {
+            $tblCertificateType = Generator::useService()->getCertificateTypeByIdentifier('YEAR');
+        } else {
+            $tblCertificateType = Generator::useService()->getCertificateTypeByIdentifier('HALF_YEAR');
         }
 
         /**
          * Body
          */
-        if ($tblPersonList) {
+        $tblTestGradeListByTest = array();
+        if (($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses())) {
             $number = 0;
             foreach ($tblPersonList as $tblPerson) {
-                $number++;
+                if (!DivisionCourse::useService()->getVirtualSubjectFromRealAndVirtualByPersonAndYearAndSubject($tblPerson, $tblYear, $tblSubject)) {
+                    // Schüler hat das Fach nicht
+                    continue;
+                }
 
-                $isMissing = isset($addStudentList[$tblPerson->getId()]);
-                $name = $isMissing ? new Strikethrough($tblPerson->getLastFirstName()) : $tblPerson->getLastFirstName();
+                $tblTask = false;
+                $tblCertificate = false;
+                if ($showCertificateGrade
+                    && ($tblPrepareStudentList = Prepare::useService()->getPrepareStudentListByPersonAndCertificateTypeAndYear(
+                        $tblPerson, $tblCertificateType, $tblYear, 'ASC'
+                    ))
+                ) {
+                    $countTemp = 0;
+                    foreach ($tblPrepareStudentList as $tblPrepareStudent) {
+                        if (($tblPrepare = $tblPrepareStudent->getTblPrepareCertificate())) {
+                            $countTemp++;
+                            if ($isSekTwo && (!$countPeriods || $countTemp == $countPeriods)) {
+                                $tblCertificate = $tblPrepareStudent->getServiceTblCertificate();
+                                $tblTask = $tblPrepare->getServiceTblAppointedDateTask();
+                                break;
+                            } elseif (!$isSekTwo) {
+                                $tblCertificate = $tblPrepareStudent->getServiceTblCertificate();
+                                $tblTask = $tblPrepare->getServiceTblAppointedDateTask();
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                $number++;
+                $name = $tblPerson->getLastFirstName();
 
                 $courseName = '&nbsp;';
                 if ($showCourse
-                    && ($tblStudent = $tblPerson->getStudent())
-                    && ($tblCourse = $tblStudent->getCourse())
+                    && ($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))
+                    && ($tblCourse = $tblStudentEducation->getServiceTblCourse())
                 ) {
                     if ($tblCourse->getName() == 'Gymnasium') {
                         $courseName = 'GYM';
@@ -592,7 +549,7 @@ class Gradebook
                 $subSection = new Section();
                 $subSection
                     ->addElementColumn((new Element())
-                        ->setContent($isMissing ? new Strikethrough($number) : $number)
+                        ->setContent($number)
                         ->styleTextSize(self::TEXT_SIZE_BODY)
                         ->stylePaddingLeft($paddingLeft)
                         ->styleBorderTop()
@@ -626,149 +583,120 @@ class Gradebook
                         , $widthStudentColumnString
                     );
 
-                foreach ($tblPeriodList as $tblPeriod) {
-                    if (isset($periodListCount[$tblPeriod->getId()])) {
-                        $countTestPeriod = $periodListCount[$tblPeriod->getId()];
-                        $periodSection = new Section();
-                        $countTests = 0;
-                        if (isset($testList[$tblPeriod->getId()])) {
-                            foreach ($testList[$tblPeriod->getId()] as $testId => $text) {
-                                // Vornoten
-                                if ($testId == 'ExtraGrades') {
-                                    $countTests += self::EXTRA_GRADES_WIDTH;
-                                    $grade = isset($gradeListFromAnotherDivision[$tblPeriod->getId()][$tblPerson->getId()])
-                                        ? implode(', ', $gradeListFromAnotherDivision[$tblPeriod->getId()][$tblPerson->getId()])
-                                        : '&nbsp;';
-
-                                    $periodSection->addElementColumn((new Element())
-                                        ->setContent($grade)
-                                        ->styleTextSize(self::TEXT_SIZE_BODY)
-                                        ->stylePaddingLeft($paddingLeft)
-                                        ->styleBorderTop()
-                                        ->styleBorderLeft()
-                                        ->styleBorderRight($isLastTestLastColumn && $countTests == $countTestPeriod
-                                            ? '1px' : '0px')
-                                        ->styleBackgroundColor($number % 2 == 1 ? self::COLOR_BODY_ALTERNATE_1 : self::COLOR_BODY_ALTERNATE_2)
-                                        , ($widthColumnTest * self::EXTRA_GRADES_WIDTH) . '%');
-                                } elseif (($tblTest = Evaluation::useService()->getTestById($testId))
-                                    && ($tblGradeType = $tblTest->getServiceTblGradeType())
+                if (isset($periodListCount[$tblPeriod->getId()])) {
+                    $countTestPeriod = $periodListCount[$tblPeriod->getId()];
+                    $periodSection = new Section();
+                    $countTests = 0;
+                    if (isset($testList[$tblPeriod->getId()])) {
+                        foreach ($testList[$tblPeriod->getId()] as $testId => $text) {
+                            if (($tblTest = Grade::useService()->getTestById($testId))
+                                && ($tblGradeType = $tblTest->getTblGradeType())
+                            ) {
+                                $countTests++;
+                                $grade = '&nbsp;';
+                                if (($tblGrade = Grade::useService()->getTestGradeByTestAndPerson($tblTest, $tblPerson))
+                                    && $tblGrade->getGrade() !== false && $tblGrade->getGrade() !== null
                                 ) {
-                                    $countTests++;
-                                    $grade = '&nbsp;';
-                                    if (($tblGrade = \SPHERE\Application\Education\Graduation\Gradebook\Gradebook::useService()
-                                            ->getGradeByTestAndStudent($tblTest, $tblPerson))
-                                        && $tblGrade->getGrade() !== false && $tblGrade->getGrade() !== null
-                                    ) {
-                                        $grade = $tblGrade->getDisplayGrade();
+                                    $grade = $tblGrade->getGrade();
+                                    if ($tblGrade->getIsGradeNumeric()) {
+                                        if (isset($tblTestGradeListByTest[$tblTest->getId()])) {
+                                            $tblTestGradeListByTest[$tblTest->getId()]['Sum'] += $tblGrade->getGradeNumberValue();
+                                            $tblTestGradeListByTest[$tblTest->getId()]['Count']++;
+                                        } else {
+                                            $tblTestGradeListByTest[$tblTest->getId()]['Sum'] = $tblGrade->getGradeNumberValue();
+                                            $tblTestGradeListByTest[$tblTest->getId()]['Count'] = 1;
+                                        }
                                     }
-
-                                    $periodSection->addElementColumn((new Element())
-                                        ->setContent($grade)
-                                        ->styleTextSize(self::TEXT_SIZE_BODY)
-                                        ->stylePaddingLeft($paddingLeft)
-                                        ->styleTextBold($tblGradeType->isHighlighted() ? 'bold' : 'normal')
-                                        ->styleBorderTop()
-                                        ->styleBorderLeft()
-                                        ->styleBorderRight($isLastTestLastColumn && $countTests == $countTestPeriod
-                                            ? '1px' : '0px')
-                                        ->styleBackgroundColor($number % 2 == 1 ? self::COLOR_BODY_ALTERNATE_1 : self::COLOR_BODY_ALTERNATE_2)
-                                        , $widthColumnTestString);
                                 }
-                            }
-                        }
 
-                        // leer Spalten auffüllen
-                        if ($countTests < $countTestPeriod - $offset) {
-                            for (; $countTests < $countTestPeriod - $offset; $countTests++){
                                 $periodSection->addElementColumn((new Element())
-                                    ->setContent('&nbsp;')
+                                    ->setContent($grade)
                                     ->styleTextSize(self::TEXT_SIZE_BODY)
                                     ->stylePaddingLeft($paddingLeft)
+                                    ->styleTextBold($tblGradeType->getIsHighlighted() ? 'bold' : 'normal')
                                     ->styleBorderTop()
                                     ->styleBorderLeft()
-                                    ->styleBorderRight($isLastTestLastColumn && $countTests == ($countTestPeriod - $offset - 1)
+                                    ->styleBorderRight($isLastTestLastColumn && $countTests == $countTestPeriod
                                         ? '1px' : '0px')
                                     ->styleBackgroundColor($number % 2 == 1 ? self::COLOR_BODY_ALTERNATE_1 : self::COLOR_BODY_ALTERNATE_2)
                                     , $widthColumnTestString);
                             }
                         }
-
-                        if ($showAverage) {
-                            /*
-                             * Calc Average Period or Average Total
-                             */
-                            $average = \SPHERE\Application\Education\Graduation\Gradebook\Gradebook::useService()->calcStudentGrade(
-                                $tblPerson,
-                                $tblDivision,
-                                $tblSubject,
-                                $tblTestType,
-                                $tblScoreRule ? $tblScoreRule : null,
-                                !$isSekTwo && $isLastPeriod ? null : $tblPeriod,
-                                $tblSubjectGroup ? $tblSubjectGroup : null,
-                                false,
-                                $gradeListFromAnotherDivision
-                            );
-
-                            if (is_array($average)) {
-                                $average = 'f';
-                            } elseif (is_string($average) && strpos($average,
-                                    '(')
-                            ) {
-                                $average = substr($average, 0, strpos($average, '('));
-                            }
-
-                            $average = str_replace('.', ',', $average);
-                            if ($average == '') {
-                                $average = '&nbsp;';
-                            }
-
-                            $periodSection->addElementColumn((new Element())
-                                ->setContent($average)
-                                ->styleTextSize(self::TEXT_SIZE_BODY)
-                                ->stylePaddingLeft($paddingLeft)
-                                ->styleTextBold()
-                                ->styleBorderTop()
-                                ->styleBorderLeft()
-                                ->styleBorderRight($isAverageLastColumn ? '1px' : '0px')
-                                ->styleBackgroundColor(self::COLOR_BODY_DARK)
-                                , $widthColumnTestString);
-                        }
-
-                        if ($showCertificateGrade) {
-                            $certificateGrade = '&nbsp;';
-                            if ($tblPrepareForCertificateGrade
-                                && ($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepareForCertificateGrade, $tblPerson))
-                                && $tblPrepareStudent->isApproved()
-                                && $tblPrepareStudent->isPrinted()
-                                && ($tblPrepareGrade = Prepare::useService()->getPrepareGradeBySubject(
-                                    $tblPrepareForCertificateGrade,
-                                    $tblPerson,
-                                    $tblDivision,
-                                    $tblSubject,
-                                    Evaluation::useService()->getTestTypeByIdentifier('APPOINTED_DATE_TASK')
-                                ))
-                            ) {
-                                $certificateGrade = $tblPrepareGrade->getGrade();
-                            }
-
-                            $periodSection->addElementColumn((new Element())
-                                ->setContent($certificateGrade)
-                                ->styleTextSize(self::TEXT_SIZE_BODY)
-                                ->stylePaddingLeft($paddingLeft)
-                                ->styleTextBold()
-                                ->styleBorderTop()
-                                ->styleBorderLeft()
-                                ->styleBorderRight($isCertificateGradeLastColumn ? '1px' : '0px')
-                                ->styleBackgroundColor(self::COLOR_BODY_DARK)
-                                , $widthColumnTestString);
-                        }
-
-                        $section
-                            ->addSliceColumn((new Slice)
-                                ->addSection($periodSection)
-                                , ($countTestPeriod * $widthColumnTest) . '%'
-                            );
                     }
+
+                    // leer Spalten auffüllen
+                    if ($countTests < $countTestPeriod - $offset) {
+                        for (; $countTests < $countTestPeriod - $offset; $countTests++){
+                            $periodSection->addElementColumn((new Element())
+                                ->setContent('&nbsp;')
+                                ->styleTextSize(self::TEXT_SIZE_BODY)
+                                ->stylePaddingLeft($paddingLeft)
+                                ->styleBorderTop()
+                                ->styleBorderLeft()
+                                ->styleBorderRight($isLastTestLastColumn && $countTests == ($countTestPeriod - $offset - 1)
+                                    ? '1px' : '0px')
+                                ->styleBackgroundColor($number % 2 == 1 ? self::COLOR_BODY_ALTERNATE_1 : self::COLOR_BODY_ALTERNATE_2)
+                                , $widthColumnTestString);
+                        }
+                    }
+
+                    if ($showAverage) {
+                        /*
+                         * Calc Average Period or Average Total
+                         */
+                        $tblScoreRule = Grade::useService()->getScoreRuleByPersonAndYearAndSubject($tblPerson, $tblYear, $tblSubject, $tblDivisionCourse);
+                        if (!$isSekTwo && $isLastPeriod) {
+                            $tblTestGradeListByStudent = Grade::useService()->getTestGradeListByPersonAndYearAndSubject($tblPerson, $tblYear, $tblSubject);
+                        } else {
+                            $tblTestGradeListByStudent = Grade::useService()->getTestGradeListBetweenDateTimesByPersonAndYearAndSubject(
+                                $tblPerson, $tblYear, $tblSubject, $tblPeriod->getFromDateTime(), $tblPeriod->getToDateTime()
+                            );
+                        }
+
+                        $average = '&nbsp;';
+                        if ($tblTestGradeListByStudent) {
+                            list($average) = Grade::useService()->getCalcStudentAverage(
+                                $tblPerson, $tblYear, $tblTestGradeListByStudent, $tblScoreRule ?: null, $tblPeriod
+                            );
+                        }
+
+                        $periodSection->addElementColumn((new Element())
+                            ->setContent($average)
+                            ->styleTextSize(self::TEXT_SIZE_BODY)
+                            ->stylePaddingLeft($paddingLeft)
+                            ->styleTextBold()
+                            ->styleBorderTop()
+                            ->styleBorderLeft()
+                            ->styleBorderRight($isAverageLastColumn ? '1px' : '0px')
+                            ->styleBackgroundColor(self::COLOR_BODY_DARK)
+                            , $widthColumnTestString);
+                    }
+
+                    if ($showCertificateGrade) {
+                        $certificateGrade = '&nbsp;';
+                        if ($tblTask
+                            && ($tblTaskGrade = Grade::useService()->getTaskGradeByPersonAndTaskAndSubject($tblPerson, $tblTask, $tblSubject))
+                        ) {
+                            $certificateGrade = $tblTaskGrade->getDisplayGrade(true, $tblCertificate ?: null);
+                        }
+
+                        $periodSection->addElementColumn((new Element())
+                            ->setContent($certificateGrade)
+                            ->styleTextSize(self::TEXT_SIZE_BODY)
+                            ->stylePaddingLeft($paddingLeft)
+                            ->styleTextBold()
+                            ->styleBorderTop()
+                            ->styleBorderLeft()
+                            ->styleBorderRight($isCertificateGradeLastColumn ? '1px' : '0px')
+                            ->styleBackgroundColor(self::COLOR_BODY_DARK)
+                            , $widthColumnTestString);
+                    }
+
+                    $section
+                        ->addSliceColumn((new Slice)
+                            ->addSection($periodSection)
+                            , ($countTestPeriod * $widthColumnTest) . '%'
+                        );
                 }
 
                 $slice->addSection($section);
@@ -819,103 +747,89 @@ class Gradebook
                 , $widthStudentColumnString
             );
 
-        foreach ($tblPeriodList as $tblPeriod) {
-            if (isset($periodListCount[$tblPeriod->getId()])) {
-                $countTestPeriod = $periodListCount[$tblPeriod->getId()];
-                $periodSection = new Section();
-                $countTests = 0;
-                if (isset($testList[$tblPeriod->getId()])) {
-                    foreach ($testList[$tblPeriod->getId()] as $testId => $text) {
-                        // Vornoten
-                        if ($testId == 'ExtraGrades') {
-                            $countTests += self::EXTRA_GRADES_WIDTH;
+        if (isset($periodListCount[$tblPeriod->getId()])) {
+            $countTestPeriod = $periodListCount[$tblPeriod->getId()];
+            $periodSection = new Section();
+            $countTests = 0;
+            if (isset($testList[$tblPeriod->getId()])) {
+                foreach ($testList[$tblPeriod->getId()] as $testId => $text) {
+                    if (($tblTest = Grade::useService()->getTestById($testId))
+                        && ($tblGradeType = $tblTest->getTblGradeType())
+                    ) {
+                        $countTests++;
+                        $testAverage = isset($tblTestGradeListByTest[$tblTest->getId()])
+                            ? Grade::useService()->getGradeAverage(
+                                $tblTestGradeListByTest[$tblTest->getId()]['Sum'], $tblTestGradeListByTest[$tblTest->getId()]['Count']
+                            )
+                            : '&nbsp;';
 
-                            $periodSection->addElementColumn((new Element())
-                                ->setContent('&nbsp;')
-                                ->styleTextSize(self::TEXT_SIZE_BODY)
-                                ->stylePaddingLeft($paddingLeft)
-                                ->styleBorderTop()
-                                ->styleBorderLeft()
-                                ->styleBorderBottom()
-                                ->styleBorderRight($isLastTestLastColumn && $countTests == $countTestPeriod
-                                    ? '1px' : '0px')
-                                ->styleBackgroundColor(self::COLOR_BODY_DARK)
-                                , ($widthColumnTest * self::EXTRA_GRADES_WIDTH) . '%');
-                        } elseif (($tblTest = Evaluation::useService()->getTestById($testId))
-                            && ($tblGradeType = $tblTest->getServiceTblGradeType())
-                        ) {
-                            $countTests++;
-                            $testAverage = \SPHERE\Application\Education\Graduation\Gradebook\Gradebook::useService()
-                                ->getAverageByTest($tblTest);
-
-                            $periodSection->addElementColumn((new Element())
-                                ->setContent($testAverage ? str_replace('.', ',',$testAverage) : '&nbsp;')
-                                ->styleTextSize(self::TEXT_SIZE_BODY)
-                                ->stylePaddingLeft($paddingLeft)
-                                ->styleTextBold($tblGradeType->isHighlighted() ? 'bold' : 'normal')
-                                ->styleTextItalic()
-                                ->styleBorderTop()
-                                ->styleBorderLeft()
-                                ->styleBorderBottom()
-                                ->styleBorderRight($isLastTestLastColumn && $countTests == $countTestPeriod
-                                    ? '1px' : '0px')
-                                ->styleBackgroundColor(self::COLOR_BODY_DARK)
-                                , $widthColumnTestString);
-                        }
-                    }
-                }
-
-                // leer Spalten auffüllen
-                if ($countTests < $countTestPeriod - $offset) {
-                    for (; $countTests < $countTestPeriod - $offset; $countTests++){
                         $periodSection->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
+                            ->setContent($testAverage)
                             ->styleTextSize(self::TEXT_SIZE_BODY)
                             ->stylePaddingLeft($paddingLeft)
+                            ->styleTextBold($tblGradeType->getIsHighlighted() ? 'bold' : 'normal')
+                            ->styleTextItalic()
                             ->styleBorderTop()
                             ->styleBorderLeft()
                             ->styleBorderBottom()
-                            ->styleBorderRight($isLastTestLastColumn && $countTests == ($countTestPeriod - 1)
+                            ->styleBorderRight($isLastTestLastColumn && $countTests == $countTestPeriod
                                 ? '1px' : '0px')
                             ->styleBackgroundColor(self::COLOR_BODY_DARK)
                             , $widthColumnTestString);
                     }
                 }
-
-                if ($showAverage) {
-                    $periodSection->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        ->styleTextSize(self::TEXT_SIZE_BODY)
-                        ->stylePaddingLeft($paddingLeft)
-                        ->styleTextBold()
-                        ->styleBorderTop()
-                        ->styleBorderLeft()
-                        ->styleBorderBottom()
-                        ->styleBorderRight($isAverageLastColumn ? '1px' : '0px')
-                        ->styleBackgroundColor(self::COLOR_BODY_DARK)
-                        , $widthColumnTestString);
-                }
-
-                if ($showCertificateGrade) {
-                    $periodSection->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        ->styleTextSize(self::TEXT_SIZE_BODY)
-                        ->stylePaddingLeft($paddingLeft)
-                        ->styleTextBold()
-                        ->styleBorderTop()
-                        ->styleBorderLeft()
-                        ->styleBorderBottom()
-                        ->styleBorderRight($isCertificateGradeLastColumn ? '1px' : '0px')
-                        ->styleBackgroundColor(self::COLOR_BODY_DARK)
-                        , $widthColumnTestString);
-                }
-
-                $section
-                    ->addSliceColumn((new Slice)
-                        ->addSection($periodSection)
-                        , ($countTestPeriod * $widthColumnTest) . '%'
-                    );
             }
+
+            // leer Spalten auffüllen
+            if ($countTests < $countTestPeriod - $offset) {
+                for (; $countTests < $countTestPeriod - $offset; $countTests++){
+                    $periodSection->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
+                        ->styleTextSize(self::TEXT_SIZE_BODY)
+                        ->stylePaddingLeft($paddingLeft)
+                        ->styleBorderTop()
+                        ->styleBorderLeft()
+                        ->styleBorderBottom()
+                        ->styleBorderRight($isLastTestLastColumn && $countTests == ($countTestPeriod - 1)
+                            ? '1px' : '0px')
+                        ->styleBackgroundColor(self::COLOR_BODY_DARK)
+                        , $widthColumnTestString);
+                }
+            }
+
+            if ($showAverage) {
+                $periodSection->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    ->styleTextSize(self::TEXT_SIZE_BODY)
+                    ->stylePaddingLeft($paddingLeft)
+                    ->styleTextBold()
+                    ->styleBorderTop()
+                    ->styleBorderLeft()
+                    ->styleBorderBottom()
+                    ->styleBorderRight($isAverageLastColumn ? '1px' : '0px')
+                    ->styleBackgroundColor(self::COLOR_BODY_DARK)
+                    , $widthColumnTestString);
+            }
+
+            if ($showCertificateGrade) {
+                $periodSection->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    ->styleTextSize(self::TEXT_SIZE_BODY)
+                    ->stylePaddingLeft($paddingLeft)
+                    ->styleTextBold()
+                    ->styleBorderTop()
+                    ->styleBorderLeft()
+                    ->styleBorderBottom()
+                    ->styleBorderRight($isCertificateGradeLastColumn ? '1px' : '0px')
+                    ->styleBackgroundColor(self::COLOR_BODY_DARK)
+                    , $widthColumnTestString);
+            }
+
+            $section
+                ->addSliceColumn((new Slice)
+                    ->addSection($periodSection)
+                    , ($countTestPeriod * $widthColumnTest) . '%'
+                );
         }
 
         $slice->addSection($section);
@@ -927,15 +841,16 @@ class Gradebook
      * @param Section $section
      * @param $text
      * @param $width
+     * @param $countHeaders
      * @param bool $isBold
      * @param bool $hasBorderRight
      *
      * @return Section
      */
-    private function setHeaderTest(Section $section, $text, $width, $isBold = false, $hasBorderRight = false)
+    private function setHeaderTest(Section $section, $text, $width, $countHeaders, bool $isBold = false, bool $hasBorderRight = false): Section
     {
         $section->addElementColumn((new Element())
-            ->setContent($this->setRotatedContend($text))
+            ->setContent($this->setRotatedContend($text, $countHeaders))
             ->styleTextSize(self::TEXT_SIZE_HEADER)
             ->styleHeight(self::HEIGHT_HEADER . 'px')
             ->styleTextBold($isBold ? 'bold' : 'normal')
@@ -949,24 +864,43 @@ class Gradebook
 
     /**
      * @param string $text
-     * @param string $paddingTop
+     * @param $countHeaders
      *
      * @return string
      */
-    protected function setRotatedContend($text = '&nbsp;', $paddingTop = '2px')
+    protected function setRotatedContend(string $text, $countHeaders): string
     {
 
-        $paddingLeft = (15 - self::HEIGHT_HEADER) . 'px';
         // für Zeilenumbruch im Thema des Tests
         $height = self::HEIGHT_HEADER . 'px';
 
+        // paddingTop abhängig von der anzahl der Spalten
+        if ($countHeaders < 6) {
+            $paddingTop = '35px';
+        } elseif ($countHeaders < 8) {
+            $paddingTop = '25px';
+        } elseif ($countHeaders < 10) {
+            $paddingTop = '20px';
+        } else {
+            $paddingTop = '15px';
+        }
+
+        $paddingLeft = '10px';
+
+        if (strlen($text) > 90) {
+            $text = substr($text, 0, 90);
+        }
+
         return
-            '<div style="padding-top: ' . $paddingTop
+            '<div style="'
+            . 'position: absolute;'
+            . 'transform-origin: left bottom 0;'
+            . 'padding-top: ' . $paddingTop
             . '!important; padding-left: ' . $paddingLeft
             . '!important; transform: rotate(270deg)!important;'
             . 'max-width: ' . $height . ';'
-            // geht erst ab dompdf 0.8.1
-//            . ' white-space: nowrap!important;'
+            . 'top: ' . $height . ';'
+            . ' white-space: nowrap!important;'
             . '">'
             . $text
             . '</div>';

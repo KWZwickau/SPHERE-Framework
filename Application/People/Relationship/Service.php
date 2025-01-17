@@ -3,7 +3,6 @@ namespace SPHERE\Application\People\Relationship;
 
 use SPHERE\Application\Corporation\Company\Company;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
-use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Service\Data;
@@ -12,13 +11,14 @@ use SPHERE\Application\People\Relationship\Service\Entity\TblSiblingRank;
 use SPHERE\Application\People\Relationship\Service\Entity\TblToCompany;
 use SPHERE\Application\People\Relationship\Service\Entity\TblToPerson;
 use SPHERE\Application\People\Relationship\Service\Entity\TblType;
-use SPHERE\Application\People\Relationship\Service\Entity\ViewRelationshipFromPerson;
 use SPHERE\Application\People\Relationship\Service\Entity\ViewRelationshipToCompany;
-use SPHERE\Application\People\Relationship\Service\Entity\ViewRelationshipToPerson;
 use SPHERE\Application\People\Relationship\Service\Setup;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
+use SPHERE\Common\Frontend\Text\Repository\Muted;
+use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\System\Database\Binding\AbstractService;
 
 /**
@@ -28,24 +28,6 @@ use SPHERE\System\Database\Binding\AbstractService;
  */
 class Service extends AbstractService
 {
-
-    /**
-     * @return false|ViewRelationshipToPerson[]
-     */
-    public function viewRelationshipToPerson()
-    {
-
-        return (new Data($this->getBinding()))->viewRelationshipToPerson();
-    }
-
-    /**
-     * @return false|ViewRelationshipFromPerson[]
-     */
-    public function viewRelationshipFromPerson()
-    {
-
-        return ( new Data($this->getBinding()) )->viewRelationshipFromPerson();
-    }
 
     /**
      * @return false|ViewRelationshipToCompany[]
@@ -78,15 +60,54 @@ class Service extends AbstractService
 
     /**
      * @param TblPerson $tblPerson
-     * @param TblType|null $tblType
+     * @param TblType|string|null $tblType
      * @param bool $isForced
      *
      * @return bool|TblToPerson[]
      */
-    public function getPersonRelationshipAllByPerson(TblPerson $tblPerson, TblType $tblType = null, $isForced = false)
+    public function getPersonRelationshipAllByPerson(TblPerson $tblPerson, $tblType = null, $isForced = false)
     {
 
-        return (new Data($this->getBinding()))->getPersonRelationshipAllByPerson($tblPerson, $tblType, $isForced);
+        if(null !== $tblType && !($tblType instanceof TblType)){
+            $tblType = Relationship::useService()->getTypeByName($tblType);
+        }
+        // Sortier-Reihenfolge
+        // Sorg1, Sorg2, Sorg3, Vormund, Bevollmächtigter, Geschwisterkinder (eigene Beziehungen), Geschwisterkinder (andersrum), Rest
+        $resultList = array();
+        if (($list  = (new Data($this->getBinding()))->getPersonRelationshipAllByPerson($tblPerson, $tblType, $isForced))) {
+            $count['Sorgeberechtigt'] = 4;
+            $count['Vormund'] = 10;
+            $count['Bevollmächtigt'] = 100;
+            $count['Geschwisterkind'] = 1000;
+            $count['Rest'] = 10000;
+
+            foreach ($list as $tblToPerson) {
+                if (($tblTypeRelationship = $tblToPerson->getTblType())) {
+                    switch ($tblTypeRelationship->getName()) {
+                        case 'Sorgeberechtigt':
+                            if (($ranking = $tblToPerson->getRanking())
+                                && ($tblPersonTemp = $tblToPerson->getServiceTblPersonTo())
+                                && $tblPersonTemp->getId() == $tblPerson->getId() ) {
+                                $resultList[$ranking] = $tblToPerson;
+                            } else {
+                                $resultList[$count['Sorgeberechtigt']++] = $tblToPerson;
+                            }
+                            break;
+                        case 'Vormund':
+                        case 'Bevollmächtigt':
+                        case 'Geschwisterkind':
+                            $resultList[$count[$tblTypeRelationship->getName()]++] = $tblToPerson;
+                            break;
+                        default:
+                            $resultList[$count['Rest']++] = $tblToPerson;
+                    }
+                }
+            }
+
+            ksort($resultList);
+        }
+
+        return empty($resultList) ? false : $resultList;
     }
 
     /**
@@ -97,6 +118,16 @@ class Service extends AbstractService
     public function getPersonRelationshipAllByType(TblType $tblType)
     {
         return (new Data($this->getBinding()))->getPersonRelationshipAllByType($tblType);
+    }
+
+    /**
+     * @param TblType $tblType
+     *
+     * @return array array[PersonFromId[PersonToId]]
+     */
+    public function getPersonRelationshipArrayByType(TblType $tblType)
+    {
+        return (new Data($this->getBinding()))->getPersonRelationshipArrayByType($tblType);
     }
 
     /**
@@ -111,49 +142,13 @@ class Service extends AbstractService
 
         $GuardianList = array();
         if ($tblToPersonList && !empty($tblToPersonList)) {
-            $i = 2;
             foreach ($tblToPersonList as $tblToPerson) {
+                $Ranking = $tblToPerson->getRanking();
                 $tblPersonGuardian = $tblToPerson->getServiceTblPersonFrom();
-                // get Gender
-                $Gender = '';
-                if ($tblPersonGuardian && ($common = Common::useService()->getCommonByPerson($tblPersonGuardian))) {
-                    if (($tblCommonBirthDates = $common->getTblCommonBirthDates())) {
-                        if (($tblCommonGender = $tblCommonBirthDates->getTblCommonGender())) {
-                            $Gender = $tblCommonGender->getName();
-                        }
-                    }
-                }
-                if ($Gender == '') {
-                    $Salutation = $tblPersonGuardian->getSalutation();
-                    if ($Salutation == 'Frau') {
-                        $Gender = 'Weiblich';
-                    } elseif ($Salutation == 'Herr') {
-                        $Gender = 'Männlich';
-                    }
-                }
-                // get sorted List (0 => Mother; 1 => Father; 2.. => Other )
-                if ($Gender == 'Weiblich') {
-                    if (isset($GuardianList[0])) {
-                        if (!isset($GuardianList[1])) {
-                            $GuardianList[1] = $GuardianList[0];
-                        } else {
-                            $GuardianList[$i++] = $GuardianList[0];
-                        }
-                    }
-                    $GuardianList[0] = $tblToPerson->getServiceTblPersonFrom();
-                } elseif (!isset($GuardianList[1]) && $Gender == 'Männlich') {
-                    if (isset($GuardianList[1])) {
-                        if (!isset($GuardianList[0])) {
-                            $GuardianList[0] = $GuardianList[1];
-                        } else {
-                            $GuardianList[$i++] = $GuardianList[1];
-                        }
-                    }
-                    $GuardianList[1] = $tblToPerson->getServiceTblPersonFrom();
-                } else {
-                    // if no matches set unknown to Mother/Father to keep it running
-                    $GuardianList[] = $tblToPerson->getServiceTblPersonFrom();
-                }
+                $GuardianList[$Ranking] = $tblPersonGuardian;
+            }
+            if(!empty($GuardianList)){
+                ksort($GuardianList);
             }
         }
         return $GuardianList;
@@ -176,10 +171,10 @@ class Service extends AbstractService
      *
      * @return bool|TblToCompany[]
      */
-    public function getCompanyRelationshipAllByCompany(TblCompany $tblCompany)
+    public function getCompanyRelationshipAllByCompany(TblCompany $tblCompany, TblType $tblType = null)
     {
 
-        return (new Data($this->getBinding()))->getCompanyRelationshipAllByCompany($tblCompany);
+        return (new Data($this->getBinding()))->getCompanyRelationshipAllByCompany($tblCompany, $tblType);
     }
 
     /**
@@ -319,7 +314,7 @@ class Service extends AbstractService
         if ($isGuardianOfTheGalaxy) {
             $Ranking = null;
             if (!isset($Type['Ranking'])) {
-                $messageOptions = new Danger('Bitte geben Sie an um welchen Sorgeberechtigten (S1, S2, S3) es sich handelt',
+                $message = new Danger('Bitte geben Sie an um welchen Sorgeberechtigten (S1, S2, S3) es sich handelt',
                     new Exclamation());
                 $error = true;
             } else {
@@ -332,8 +327,30 @@ class Service extends AbstractService
                     if (($warnings = $this->checkGuardianRelationshipsForPerson($tblPersonChild, $tblPersonGuardian,
                         $Ranking, $isSingleParent))) {
                         $error = true;
-                        $messageOptions = new Danger(implode('<br>', $warnings));
+                        $message = new Danger(implode('<br>', $warnings));
                     }
+                }
+            }
+        }
+
+        // SSw-718 Prüfung ob es die Beziehung zu dieser Person bereits existiert
+        if ($tblPersonGuardian
+            && $tblPersonChild
+            && $tblType
+            && ($tblRelationshipList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPersonGuardian, $tblType))
+        ) {
+            foreach ($tblRelationshipList as $tblRelationship) {
+                // aktuelle Beziehung ignorieren
+                if ($tblToPerson && $tblToPerson->getId() == $tblRelationship->getId()) {
+                    continue;
+                }
+
+                if (($tblPersonRelationshipTo = $tblRelationship->getServiceTblPersonTo())
+                    && $tblPersonRelationshipTo->getId() == $tblPersonChild->getId()
+                ) {
+                    $error = true;
+                    $message = new Danger('Diese Personenbeziehung existiert bereits, bitte wählen Sie eine andere Person aus.',
+                        new Exclamation());
                 }
             }
         }
@@ -623,6 +640,17 @@ class Service extends AbstractService
 
     /**
      * @param TblCompany $tblCompany
+     *
+     * @return false|TblToCompany[]
+     */
+    public function getRelationshipToCompanyByCompany(TblCompany $tblCompany)
+    {
+
+        return (new Data($this->getBinding()))->getRelationshipToCompanyByCompany($tblCompany);
+    }
+
+    /**
+     * @param TblCompany $tblCompany
      * @param TblPerson  $tblPerson
      * @param TblType    $tblType
      * @param string     $Remark
@@ -645,8 +673,9 @@ class Service extends AbstractService
      * @param TblPerson $tblPersonTo
      * @param TblType $tblType
      * @param string $Remark
-     *
      * @param integer|null $Ranking
+     * @param bool $IsSingleParent
+     *
      * @return bool
      */
     public function insertRelationshipToPerson(
@@ -654,11 +683,12 @@ class Service extends AbstractService
         TblPerson $tblPersonTo,
         TblType $tblType,
         $Remark,
-        $Ranking = null
+        $Ranking = null,
+        $IsSingleParent = false
     ) {
 
         if ((new Data($this->getBinding()))->addPersonRelationshipToPerson($tblPersonFrom, $tblPersonTo, $tblType,
-            $Remark, $Ranking)
+            $Remark, $Ranking, $IsSingleParent)
         ) {
             return true;
         } else {
@@ -735,5 +765,67 @@ class Service extends AbstractService
     public function updateRelationshipRanking($modifyList)
     {
         return (new Data($this->getBinding()))->updateRelationshipRanking($modifyList);
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblPerson $tblPersonContact
+     * @param $remarkContact
+     *
+     * @return string
+     */
+    public function getRelationshipInformationForContact(TblPerson $tblPerson, TblPerson $tblPersonContact, $remarkContact)
+    {
+        // abhängig von beziehungstyp
+        // Sorgeb., Bevol., Vormund, Notfallkontakt -> beim From -> Kind
+        // Geschwisterkind beide Richtungen
+        // der Rest weglassen
+
+        $result = '';
+        if(($tblToPersonRelationship = Relationship::useService()->getRelationshipToPersonByPersonFromAndPersonTo($tblPersonContact, $tblPerson))){
+            $tblRelationshipType = $tblToPersonRelationship->getTblType();
+            $typeName = $tblRelationshipType->getName();
+            $remarkRelationship = $tblToPersonRelationship->getRemark();
+
+            switch ($typeName) {
+                case 'Sorgeberechtigt':
+                case 'Bevollmächtigt':
+                case 'Vormund':
+                case 'Notfallkontakt':
+                case 'Geschwisterkind':
+                    $result = ' (' . $typeName
+                        . ($remarkRelationship ? ' ' . new Small(new Muted($remarkRelationship)) : '')
+                        . ')';
+                    break;
+                default:
+                    $result = $remarkRelationship ? ' (' . new Small(new Muted($remarkRelationship)) . ')' : '';
+            }
+        } elseif (($tblToPersonRelationship = Relationship::useService()->getRelationshipToPersonByPersonFromAndPersonTo($tblPerson, $tblPersonContact))){
+            $tblRelationshipType = $tblToPersonRelationship->getTblType();
+            $typeName = $tblRelationshipType->getName();
+            $remarkRelationship = $tblToPersonRelationship->getRemark();
+
+            switch ($typeName) {
+                case 'Geschwisterkind':
+                    $result = ' (' . $typeName
+                        . ($remarkRelationship ? ' ' . new Small(new Muted($remarkRelationship)) : '')
+                        . ')';
+                    break;
+                case 'Sorgeberechtigt':
+                case 'Bevollmächtigt':
+                case 'Vormund':
+                case 'Notfallkontakt':
+                    $result = ' (Kind'
+                        . ($remarkRelationship ? ' ' . new Small(new Muted($remarkRelationship)) : '')
+                        . ')';
+                    break;
+                default:
+                    $result = $remarkRelationship ? ' (' . new Small(new Muted($remarkRelationship)) . ')' : '';
+            }
+        }
+
+        $result.= $remarkContact ? new Container(new Small(new Muted($remarkContact))) : '';
+
+        return $result;
     }
 }

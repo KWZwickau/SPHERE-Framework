@@ -1,6 +1,4 @@
 <?php
-
-
 namespace SPHERE\Application\Reporting\CheckList;
 
 use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel;
@@ -13,8 +11,7 @@ use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Corporation\Group\Group as CompanyGroup;
 use SPHERE\Application\Corporation\Group\Service\Entity\TblGroup as CompanyGroupEntity;
 use SPHERE\Application\Document\Storage\Storage;
-use SPHERE\Application\Education\Lesson\Division\Division;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Group\Group;
@@ -773,6 +770,12 @@ class Service extends AbstractService
         ));
     }
 
+    public function getListObjectListContentByList(TblList $tblList)
+    {
+
+        return (new Data($this->getBinding()))->getListObjectListContentByList($tblList);
+    }
+
     /**
      * @param TblList $tblList
      *
@@ -782,6 +785,18 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getListObjectElementListByList($tblList);
+    }
+
+    /**
+     * @param TblList $tblList
+     * @param int     $ObjectId
+     *
+     * @return bool|TblListObjectElementList[]
+     */
+    public function getListObjectElementListByListAndObjectId(TblList $tblList, $ObjectId)
+    {
+
+        return (new Data($this->getBinding()))->getListObjectElementListByListAndObjectId($tblList, $ObjectId);
     }
 
     /**
@@ -865,6 +880,8 @@ class Service extends AbstractService
             $filterLevel = false;
             $filterSchoolOption1 = false;
             $filterSchoolOption2 = false;
+
+            $countCheckBoxValue = array();
 
             // filter
             if ($YearPersonId !== null) {
@@ -1118,6 +1135,17 @@ class Service extends AbstractService
                                                 if ($tblListElementList->getId() === $item->getTblListElementList()->getId()) {
                                                     $export->setValue($export->getCell($columnCount, $rowCount),
                                                         $item->getValue());
+                                                    if ($item->getValue()
+                                                        && ($tblElementType = $tblListElementList->getTblElementType())
+                                                        && ($tblElementType->getIdentifier() == 'CHECKBOX')
+                                                    ) {
+                                                        if (isset($countCheckBoxValue[$columnCount])) {
+                                                            $countCheckBoxValue[$columnCount]++;
+                                                        } else {
+                                                            $countCheckBoxValue[$columnCount] = 1;
+                                                        }
+                                                    }
+
                                                     break;
                                                 } else {
                                                     $columnCount++;
@@ -1131,6 +1159,14 @@ class Service extends AbstractService
                         }
                     }
                 }
+            }
+
+            // isChecked zählen
+            $countAll = $rowCount - 1;
+            $rowCount = 0;
+            foreach ($countCheckBoxValue as $fieldCount => $countCheck) {
+                $cell = $export->getCell($fieldCount, $rowCount);
+                $export->setValue($cell, $export->getValue($cell) . ' (' . $countCheck . ' von ' . $countAll . ')');
             }
 
             $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
@@ -1203,12 +1239,11 @@ class Service extends AbstractService
                             }
                         }
                     } elseif ($Identifier == 'DIVISIONGROUP') {
-                        /** @var TblDivision $tblObject */
-                        $tblStudentAllByDivision = Division::useService()->getStudentAllByDivision($tblObject);
-                        if ($tblStudentAllByDivision) {
-                            $GroupIdentifer = $this->getObjectTypeByIdentifier('PERSON');
+                        /** @var TblDivisionCourse $tblObject */
+                        if (($tblStudentAllByDivision = $tblObject->getStudents())) {
+                            $GroupIdentifier = $this->getObjectTypeByIdentifier('PERSON');
                             foreach ($tblStudentAllByDivision as $tblPerson) {
-                                $objectList[$GroupIdentifer->getId()][$tblPerson->getId()] = $tblPerson->getLastFirstName();
+                                $objectList[$GroupIdentifier->getId()][$tblPerson->getId()] = $tblPerson->getLastFirstName();
                             }
                         }
                     }
@@ -1391,8 +1426,8 @@ class Service extends AbstractService
 
         return new Redirect('/Reporting/CheckList/Object/Element/Show', Redirect::TIMEOUT_SUCCESS, array(
             'Id'              => $ListId,
-            'YearPersonId'    => $Filter['Year'],
-            'LevelPersonId'   => $Filter['Level'],
+            'YearPersonId'    => (isset($Filter['Year']) ? $Filter['Year'] : 0),
+            'LevelPersonId'    => (isset($Filter['Level']) ? $Filter['Level'] : 0),
             'SchoolOption1Id' => $Filter['SchoolOption1'],
             'SchoolOption2Id' => $Filter['SchoolOption2']
         ));

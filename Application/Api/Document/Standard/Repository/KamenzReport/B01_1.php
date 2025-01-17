@@ -24,7 +24,7 @@ class B01_1
             ->styleMarginBottom('5px')
             ->addElement((new Element())
                 ->setContent('B01.1 Darunter <u>Absolventen/Abgänger, deren Herkunftssprache nicht oder nicht
-                    ausschließlich Deutsch</u> </br> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                    ausschließlich Deutsch</u> <br /> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                     <u>ist,</u> aus dem Schuljahr {{ Content.SchoolYear.Past }} 
                     nach Abschlussarten und Klassenstufen')
             );
@@ -39,6 +39,7 @@ class B01_1
             ->addSection((new Section())
                 ->addElementColumn((new Element())
                     ->setContent('Abschlussart')
+                    ->styleAlignCenter()
                     ->styleBorderRight()
                     ->stylePaddingTop('17.2px')
                     ->stylePaddingBottom('18px'), '16%'
@@ -46,26 +47,31 @@ class B01_1
                 ->addSliceColumn((new Slice())
                     ->addElement((new Element())
                         ->setContent('Klassenstufe')
+                        ->styleAlignCenter()
                         ->styleBorderRight()
                     )
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('7')
+                            ->styleAlignCenter()
                             ->styleBorderBottom()
                             ->styleBorderRight(), '25%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('8')
+                            ->styleAlignCenter()
                             ->styleBorderBottom()
                             ->styleBorderRight(), '25%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('9')
+                            ->styleAlignCenter()
                             ->styleBorderBottom()
                             ->styleBorderRight(), '25%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('10')
+                            ->styleAlignCenter()
                             ->styleBorderBottom()
                             ->styleBorderRight(), '25%'
                         )
@@ -73,35 +79,43 @@ class B01_1
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('m')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '12.5%'
 
                         )
                         ->addElementColumn((new Element())
                             ->setContent('w')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '12.5%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('m')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '12.5%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('w')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '12.5%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('m')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '12.5%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('w')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '12.5%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('m')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '12.5%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('w')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '12.5%'
                         )
                     ), '56%'
@@ -109,6 +123,7 @@ class B01_1
                 ->addSliceColumn((new Slice())
                     ->addElement((new Element())
                         ->setContent('Sonderkl.')
+                        ->styleAlignCenter()
                         ->styleBorderBottom()
                         ->styleBorderRight()
                         ->stylePaddingTop('8.6px')
@@ -117,11 +132,13 @@ class B01_1
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('m')
+                            ->styleAlignCenter()
                             ->styleBorderRight()
                             , '50%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('w')
+                            ->styleAlignCenter()
                             ->styleBorderRight()
                             , '50%'
                         )
@@ -131,6 +148,7 @@ class B01_1
                     ->styleTextBold()
                     ->addElement((new Element())
                         ->setContent('Insgesamt')
+                        ->styleAlignCenter()
                         ->styleBorderBottom()
                         ->stylePaddingTop('8.6px')
                         ->stylePaddingBottom('8.5px')
@@ -138,10 +156,12 @@ class B01_1
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('m')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '50%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('w'), '50%'
+                            ->setContent('w')
+                            ->styleAlignCenter(), '50%'
                         )
                     ), '14%'
                 )
@@ -266,6 +286,7 @@ class B01_1
                 ->setContent('
                             Insgesamt                       
                         ')
+                ->styleAlignCenter()
                 ->styleBackgroundColor('lightgrey')
                 ->styleBorderRight(), '16%'
             );
@@ -279,6 +300,7 @@ class B01_1
                                 &nbsp;
                             {% endif %}
                         ')
+                    ->styleAlignCenter()
                     ->styleBorderRight(), '7%'
                 );
             $section
@@ -290,6 +312,7 @@ class B01_1
                                 &nbsp;
                             {% endif %}
                         ')
+                    ->styleAlignCenter()
                     ->styleBorderRight(), '7%'
                 );
         }
@@ -298,12 +321,14 @@ class B01_1
         $section
             ->addElementColumn((new Element())
                 ->setContent('&nbsp;')
+                ->styleAlignCenter()
                 ->styleBackgroundColor('lightgrey')
                 ->styleBorderRight()
                 ->styleTextBold(), '7%'
             )
             ->addElementColumn((new Element())
                 ->setContent('&nbsp;')
+                ->styleAlignCenter()
                 ->styleBackgroundColor('lightgrey')
                 ->styleBorderRight()
                 ->styleTextBold(), '7%'
@@ -318,6 +343,7 @@ class B01_1
                         &nbsp;
                     {% endif %}
                 ')
+                ->styleAlignCenter()
                 ->styleBackgroundColor('lightgrey')
                 ->styleBorderRight()
                 ->styleTextBold(), '7%'
@@ -330,6 +356,7 @@ class B01_1
                         &nbsp;
                     {% endif %}
                 ')
+                ->styleAlignCenter()
                 ->styleBackgroundColor('lightgrey')
                 ->styleTextBold(), '7%'
             );

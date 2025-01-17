@@ -2,11 +2,18 @@ SELECT DISTINCT
     vGS.TblPerson_Id,
     vGS.TblStudent_Id,
 
-    (select count(vRTP.TblToPerson_serviceTblPersonFrom) from SettingConsumer_{{ ConsumerAcronym }}.viewRelationshipToPerson vRTP
-        where vRTP.TblToPerson_serviceTblPersonTo = vGS.TblPerson_Id
-        and vRTP.TblType_Name = 'Geschwisterkind'
+    if((select count(vRTP.TblToPerson_serviceTblPersonFrom) from {{ ConsumerAcronym }}_SettingConsumer.viewRelationshipToPerson vRTP
+        where (vRTP.TblToPerson_serviceTblPersonTo = vGS.TblPerson_Id
+            or vRTP.TblToPerson_serviceTblPersonFrom = vGS.TblPerson_Id)
+            and vRTP.TblType_Name = 'Geschwisterkind'
         limit 0,1
-    ) Sibling_Count,
+    ),
+        (select count(vRTP.TblToPerson_serviceTblPersonFrom) from {{ ConsumerAcronym }}_SettingConsumer.viewRelationshipToPerson vRTP
+        where (vRTP.TblToPerson_serviceTblPersonTo = vGS.TblPerson_Id
+            or vRTP.TblToPerson_serviceTblPersonFrom = vGS.TblPerson_Id)
+            and vRTP.TblType_Name = 'Geschwisterkind'
+        limit 0,1
+    ), null) as Sibling_Count,
 
     vGS.TblStudentBaptism_Location,
     vGS.TblStudentBaptism_BaptismDate,
@@ -16,19 +23,25 @@ SELECT DISTINCT
     vGS.TblStudentLocker_LockerNumber,
     vGS.TblStudentLocker_LockerLocation,
     vGS.TblStudentLocker_KeyNumber,
+    vGS.TblStudentLocker_CombinationLockNumber,
+    vGS.TblStudentMedicalRecord_AttendingDoctor,
     vGS.TblStudentMedicalRecord_Disease,
     vGS.TblStudentMedicalRecord_Medication,
-    vGS.TblStudentMedicalRecord_InsuranceState,
+    vGS.TblStudentInsuranceState_Name,
+    vGS.TblStudentMedicalRecord_InsuranceNumber,
     vGS.TblStudentMedicalRecord_Insurance,
+    vGS.TblStudentMedicalRecord_MasernDate,
+    vGS.TblStudentMedicalRecord_MasernDocumentType,
+    vGS.TblStudentMedicalRecord_MasernCreatorType,
 
+    vGS.TblStudentTransport_IsDriverStudent,
     vGS.TblStudentTransport_Route,
     vGS.TblStudentTransport_StationEntrance,
     vGS.TblStudentTransport_StationExit,
     vGS.TblStudentTransport_Remark,
     vGS.TblStudentLiberationSportType_Name
 
-    from SettingConsumer_{{ ConsumerAcronym }}.viewGroupStudent vGS
-        JOIN SettingConsumer_{{ ConsumerAcronym }}.viewGroupStudentTransfer vGST ON vGST.TblStudent_Id = vGS.TblStudent_Id
-        JOIN SettingConsumer_{{ ConsumerAcronym }}.viewGroup vG ON vG.TblPerson_Id = vGS.TblPerson_Id
+    from {{ ConsumerAcronym }}_SettingConsumer.viewGroupStudent vGS
+        JOIN {{ ConsumerAcronym }}_SettingConsumer.viewGroup vG ON vG.TblPerson_Id = vGS.TblPerson_Id
 
     where vG.TblGroup_MetaTable = 'STUDENT'

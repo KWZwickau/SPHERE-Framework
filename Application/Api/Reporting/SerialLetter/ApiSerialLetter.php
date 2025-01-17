@@ -38,11 +38,11 @@ class ApiSerialLetter  extends Extension implements IApiInterface
 
     /**
      * @param string $Content
-     * @param        $ReceiverId
+     * @param string $ReceiverId
      *
      * @return BlockReceiver
      */
-    public static function receiverCompanyStatus($Content = '', $ReceiverId)
+    public static function receiverCompanyStatus(string $Content, string $ReceiverId):BlockReceiver
     {
 
         return (new BlockReceiver($Content))->setIdentifier($ReceiverId);

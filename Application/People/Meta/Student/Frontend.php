@@ -74,7 +74,7 @@ class Frontend extends Extension implements IFrontendInterface
         $Accordion = new Accordion('');
         $Accordion->addItem('Förderantrag/Förderbescheid '.ApiSupport::receiverInline('', 'SupportCount'), $SupportContent, true);
         $Accordion->addItem('Entwicklungsbesonderheiten '.ApiSupport::receiverInline('', 'SpecialCount'), $SpecialContent, false);
-        $Accordion->addItem('Nachteilsaugleich '.ApiSupport::receiverInline('', 'HandyCapCount'), $HandyCapContent, false);
+        $Accordion->addItem('Nachteilsausgleich '.ApiSupport::receiverInline('', 'HandyCapCount'), $HandyCapContent, false);
 
         $Stage->setContent(
             ApiSupport::pipelineLoadTable($tblPerson->getId())
@@ -360,6 +360,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $Global->POST['Data']['LearnTarget'] = $tblHandyCap->getLearnTarget();
                 $Global->POST['Data']['RemarkLesson'] = $tblHandyCap->getRemarkLesson(false);
                 $Global->POST['Data']['RemarkRating'] = $tblHandyCap->getRemarkRating(false);
+                $Global->POST['Data']['RemarkCertificate'] = $tblHandyCap->getRemarkCertificate(false);
                 $Global->savePost();
             }
         }// don't need pre fill for create new Entity's
@@ -435,6 +436,13 @@ class Frontend extends Extension implements IFrontendInterface
                     new FormRow(
                         new FormColumn(
                             new TextArea('Data[RemarkRating]', 'Bemerkung', 'Besonderheiten bei Leistungsbewertungen',
+                                new Edit())
+                            , 12)
+                    ),
+                    new FormRow(new FormColumn(new Ruler())),
+                    new FormRow(
+                        new FormColumn(
+                            new TextArea('Data[RemarkCertificate]', 'Bemerkung', 'Besonderheiten in der Zeugnisvorbereitung',
                                 new Edit())
                             , 12)
                     ),
@@ -619,6 +627,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $Item['LearnTarget'] = $tblHandyCap->getLearnTarget();
                 $Item['RemarkLesson'] = $tblHandyCap->getRemarkLesson();
                 $Item['RemarkRating'] = $tblHandyCap->getRemarkRating();
+                $Item['RemarkCertificate'] = $tblHandyCap->getRemarkCertificate();
                 $Item['Editor'] = $tblHandyCap->getPersonEditor();
                 if ($hasEdit) {
                     $Item['Option'] = (new Standard('', '#', new Edit()))
@@ -642,6 +651,7 @@ class Frontend extends Extension implements IFrontendInterface
             'LearnTarget' => 'Lernziel',
             'RemarkLesson' => 'Besonderheiten im Unterricht',
             'RemarkRating' => 'Besonderheiten bei Leistungsbewertungen',
+            'RemarkCertificate' => 'Besonderheiten in der Zeugnisvorbereitung',
             'Editor' => 'Bearbeiter'
         );
         if ($hasEdit) {

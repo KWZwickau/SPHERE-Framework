@@ -80,17 +80,16 @@ class Service
                     $info .= 'Host: ' .  Extension::getRequest()->getHost() . '<br>';
 
                     if (($tblConsumer = Consumer::useService()->getConsumerBySession())) {
-                        $info .= 'Mandant: ' . $tblConsumer->getAcronym() . ' - ' . $tblConsumer->getName() . '<br>';
+                        $info .= 'Mandant: ' . $tblConsumer->getAcronym() . ' (' . $tblConsumer->getType() . ')' . ' - ' . $tblConsumer->getName() . '<br>';
                     }
 
-                    $tblPerson = false;
-                    if (($tblAccount = Account::useService()->getAccountBySession())
-                        && ($tblPersonAllByAccount = Account::useService()->getPersonAllByAccount($tblAccount))
-                    ) {
-                        $tblPerson = $tblPersonAllByAccount[0];
-                    }
-                    if ($tblPerson) {
-                        $info .= 'Person: ' . $tblPerson->getFullName() . '<br>';
+                    if (($tblAccount = Account::useService()->getAccountBySession())) {
+                        $info .= 'Account: ' . $tblAccount->getUsername() . '<br>';
+                        if (($tblPersonAllByAccount = Account::useService()->getPersonAllByAccount($tblAccount))) {
+                            $tblPerson = $tblPersonAllByAccount[0];
+                            $info .= 'Person: ' . $tblPerson->getFullName() . '<br>';
+                        }
+
                     }
 
                     $info .= '<br>';

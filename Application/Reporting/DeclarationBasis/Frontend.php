@@ -1,17 +1,16 @@
 <?php
-
 namespace SPHERE\Application\Reporting\DeclarationBasis;
 
-use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
+use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
+use SPHERE\Common\Frontend\Form\Structure\Form;
+use SPHERE\Common\Frontend\Form\Structure\FormColumn;
+use SPHERE\Common\Frontend\Form\Structure\FormGroup;
+use SPHERE\Common\Frontend\Form\Structure\FormRow;
+use SPHERE\Common\Frontend\Icon\Repository\Calendar;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\IFrontendInterface;
-use SPHERE\Common\Frontend\Layout\Structure\Layout;
-use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
-use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
-use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
-use SPHERE\Common\Frontend\Link\Repository\Primary;
-use SPHERE\Common\Frontend\Message\Repository\Warning;
-use SPHERE\Common\Frontend\Text\Repository\Bold;
+use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 
@@ -28,34 +27,33 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendDeclarationBasis()
     {
 
-        $YearString = new Bold('Kein aktuelles Jahr gefunden');
-        $tblYearList = false;
-        $YearList = Term::useService()->getYearByNow();
-        if ($YearList) {
-            $YearString = current($YearList)->getYear();
-            // get Years that not now but have same YearString
-            $tblYearList = Term::useService()->getYearsByYear(current($YearList));
-        }
+        $Stage = new Stage('Stichtagsmeldung', 'Schülerzahlen, Inklusionsschüler');
+        $Stage->setContent(new Well($this->getForm()));
 
-        $Stage = new Stage('Stichtagsmeldung', 'Aktuelles Schuljahr: '.$YearString);
-        if ($tblYearList) {
-            $Stage->addButton(
-                new Primary('Herunterladen',
-                    '/Api/Reporting/DeclarationBasis/Download', new Download())
-            );
-        } else {
-            $Stage->setContent(
-                new Layout(
-                    new LayoutGroup(
-                        new LayoutRow(
-                            new LayoutColumn(
-                                new Warning('Kein Schuljahr besitzt einen Zeitraum der das aktuelle Datum einschließt')
-                            )
-                        )
-                    )
-                )
-            );
-        }
         return $Stage;
+    }
+
+    /**
+     * @param null $Data
+     *
+     * @return Form
+     */
+    public function getForm($Data = null)
+    {
+
+        $global = $this->getGlobal();
+        if ($Data) {
+            $global->POST['Data']['Date'] = $Data['Date'];
+        } else {
+            $global->POST['Data']['Date'] = (new \DateTime())->format('d.m.Y');
+        }
+        $global->savePost();
+
+        return new Form(new FormGroup(array(
+            new FormRow(array(
+                new FormColumn((new DatePicker('Data[Date]', 'Stichtag', 'Stichtag', new Calendar()))->setRequired(), 3)
+            )),
+        ))
+        , new Primary('Herunterladen', new Download(), true), '\Api\Reporting\DeclarationBasis\Download');
     }
 }

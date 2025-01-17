@@ -4,17 +4,28 @@ namespace SPHERE\Application\Document\Storage;
 use SPHERE\Application\Api\Education\Certificate\Generator\Certificate;
 use SPHERE\Application\Document\Storage\Service\Data;
 use SPHERE\Application\Document\Storage\Service\Entity\TblBinary;
+use SPHERE\Application\Document\Storage\Service\Entity\TblBinaryRevision;
 use SPHERE\Application\Document\Storage\Service\Entity\TblDirectory;
 use SPHERE\Application\Document\Storage\Service\Entity\TblFile;
 use SPHERE\Application\Document\Storage\Service\Entity\TblFileCategory;
 use SPHERE\Application\Document\Storage\Service\Entity\TblFileType;
 use SPHERE\Application\Document\Storage\Service\Entity\TblPartition;
+use SPHERE\Application\Document\Storage\Service\Entity\TblPersonPicture;
 use SPHERE\Application\Document\Storage\Service\Entity\TblReferenceType;
 use SPHERE\Application\Document\Storage\Service\Setup;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCertificate;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
+use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
+use SPHERE\Common\Frontend\Form\IFormInterface;
+use SPHERE\Common\Frontend\Layout\Repository\Listing;
+use SPHERE\Common\Frontend\Message\Repository\Danger;
+use SPHERE\Common\Frontend\Message\Repository\Success;
+use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 /**
  * Class Service
@@ -67,13 +78,22 @@ class Service extends AbstractService
     }
 
     /**
-     * @param int $Id
+     * @param TblPerson $tblPerson
+     *
+     * @return false|TblDirectory[]
+     */
+    public function getDirectoryAllByPerson(TblPerson $tblPerson)
+    {
+        return (new Data($this->getBinding()))->getDirectoryAllByIdentifier('TBL-PERSON-ID:' . $tblPerson->getId());
+    }
+
+    /**
+     * @param $Id
      *
      * @return false|TblFile
      */
     public function getFileById($Id)
     {
-
         return (new Data($this->getBinding()))->getFileById($Id);
     }
 
@@ -126,19 +146,23 @@ class Service extends AbstractService
 
     /**
      * @param TblPerson $tblPerson
-     * @param TblDivision $tblDivision
+     * @param TblDivisionCourse $tblDivisionCourse
      * @param Certificate $Certificate
      * @param FilePointer $File
+     * @param int $fileSizeKByte
+     * @param string $hash
      * @param TblPrepareCertificate|null $tblPrepareCertificate
      *
      * @return bool|TblFile
      */
     public function saveCertificateRevision(
         TblPerson $tblPerson,
-        TblDivision $tblDivision,
+        TblDivisionCourse $tblDivisionCourse,
         Certificate $Certificate,
         FilePointer $File,
-        TblPrepareCertificate $tblPrepareCertificate = null
+        int $fileSizeKByte,
+        string $hash,
+        TblPrepareCertificate $tblPrepareCertificate = null,
     ) {
 
         // Load Tmp
@@ -148,7 +172,7 @@ class Service extends AbstractService
             $tblPartition = $this->getPartitionByIdentifier(
                 TblPartition::IDENTIFIER_CERTIFICATE_STORAGE
             );
-            $tblYear = $tblDivision->getServiceTblYear();
+            $tblYear = $tblDivisionCourse->getServiceTblYear();
             if ($tblYear) {
                 $tblDirectory = $this->createDirectory(
                     $tblPartition, $tblYear->getYear(), $tblYear->getDescription(), null, true,
@@ -161,13 +185,24 @@ class Service extends AbstractService
                 $tblFileType = $this->getFileTypeByMimeType($File->getMimeType());
                 if ($tblFileType && $tblDirectory) {
                     $tblFile = false;
-                    $tblBinary = $this->createBinary($File->getFileContent());
+                    $tblPersonPrinter = Account::useService()->getPersonByLogin();
+                    $tblBinary = $this->createBinary($File->getFileContent(), $fileSizeKByte, $hash, $tblPersonPrinter ?: null);
                     if ($tblBinary) {
                         $name = $tblYear->getYear() . ' - ' . $tblPerson->getLastFirstName() . ' - '
                             . $Certificate->getCertificateName() . ' - '
-                            . ($tblPrepareCertificate ? $tblPrepareCertificate->getId() : $tblDivision->getId());
+                            . ($tblPrepareCertificate ? $tblPrepareCertificate->getId() : $tblDivisionCourse->getId());
 
                         if (($tblFile = $this->exitsFile($tblDirectory, $tblFileType, $name))) {
+                            if (($tblBinaryOld = $tblFile->getTblBinary()) && $tblBinaryOld->getHash() != $tblBinary->getHash()) {
+                                $version = 1;
+                                if (($tblBinaryRevisionList = $this->getBinaryRevisionListByFile($tblFile))) {
+                                    $tblBinaryRevision = current($tblBinaryRevisionList);
+                                    $version = $tblBinaryRevision->getVersion() + 1;
+                                }
+
+                                (new Data($this->getBinding()))->createBinaryRevision($tblFile, $tblBinaryOld, $version, $tblFile->getDescription());
+                            }
+
                             $this->updateFile($tblFile, $tblBinary, 'Zuletzt erstellt: ' . date('d.m.Y H:i:s'));
                         } else {
                             $tblFile = $this->createFile(
@@ -244,14 +279,16 @@ class Service extends AbstractService
     }
 
     /**
-     * @param string $BinaryBlob
+     * @param $BinaryBlob
+     * @param int $fileSizeKByte
+     * @param string $hash
+     * @param TblPerson|null $tblPerson
      *
      * @return TblBinary
      */
-    public function createBinary($BinaryBlob)
+    public function createBinary($BinaryBlob, int $fileSizeKByte, string $hash, ?TblPerson $tblPerson)
     {
-
-        return (new Data($this->getBinding()))->createBinary($BinaryBlob);
+        return (new Data($this->getBinding()))->createBinary($BinaryBlob, $fileSizeKByte, $hash, $tblPerson);
     }
 
     /**
@@ -343,24 +380,14 @@ class Service extends AbstractService
      */
     public function getCertificateRevisionFileAllByPerson(TblPerson $tblPerson)
     {
-
-        $tblPartition = $this->getPartitionByIdentifier(
-            TblPartition::IDENTIFIER_CERTIFICATE_STORAGE
-        );
-
         $resultList = array();
-        $tblDirectoryList = $this->getDirectoryAllByPartition($tblPartition);
+        $tblDirectoryList = $this->getDirectoryAllByPerson($tblPerson);
         if ($tblDirectoryList) {
             foreach ($tblDirectoryList as $tblDirectory) {
-                if (strpos($tblDirectory->getIdentifier(), 'TBL-PERSON-ID:') !== false) {
-                    $personId = substr($tblDirectory->getIdentifier(), strlen('TBL-PERSON-ID:'));
-                    if ($personId == $tblPerson->getId()) {
-                        $tblFileList = $this->getFileAllByDirectory($tblDirectory);
-                        if ($tblFileList) {
-                            foreach ($tblFileList as $tblFile) {
-                                $resultList[] = $tblFile;
-                            }
-                        }
+                $tblFileList = $this->getFileAllByDirectory($tblDirectory);
+                if ($tblFileList) {
+                    foreach ($tblFileList as $tblFile) {
+                        $resultList[] = $tblFile;
                     }
                 }
             }
@@ -399,5 +426,280 @@ class Service extends AbstractService
     ) {
 
         return (new Data($this->getBinding()))->updateFile($tblFile, $tblBinary, $Description);
+    }
+
+    /**
+     * @param IFormInterface|null $form
+     * @param int|null            $PersonId
+     * @param UploadedFile|null   $FileUpload
+     *
+     * @return IFormInterface|string|null
+     */
+    public function uploadNow(IFormInterface &$form = null, $PersonId = null, UploadedFile $FileUpload = null)
+    {
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $FileUpload
+        ) {
+            return $form;
+        }
+
+        if (!$FileUpload) {
+            $form->setError('FileUpload', 'Bitte wählen Sie eine Datei');
+            return $form;
+        }
+
+        try {
+            if($_FILES['FileUpload']['error']){
+                $form->setError('FileUpload', 'Datei überschreitet die Grenzwerte.');
+                return $form;
+            }
+            switch ($_FILES['FileUpload']['type']) {
+                case 'image/jpg':
+                case 'image/jpeg':
+                case 'image/png':
+                case 'image/git':
+                    break;
+                default:
+                    $form->setError('FileUpload', 'Datei mit dem MimeType ('.$_FILES['FileUpload']['type'].') ist nicht erlaubt.');
+                    return $form;
+            }
+
+            $maxDim = 500;
+            $fileName = $_FILES['FileUpload']['tmp_name'];
+            list($width, $height) = getimagesize( $fileName );
+            if ( $width > $maxDim || $height > $maxDim ){
+                $ratio = $width / $height;
+                if($ratio > 1){
+                    $newWidth = $maxDim;
+                    $newHeight = (int)($maxDim / $ratio);
+                } else {
+                    $newWidth = (int)($maxDim * $ratio);
+                    $newHeight = $maxDim;
+                }
+            } else {
+                $newWidth = $width;
+                $newHeight = $height;
+            }
+
+            // skalieren
+            $src = imagecreatefromstring(file_get_contents($fileName));
+            $dst = imagecreatetruecolor($newWidth, $newHeight);
+            imagecopyresampled($dst, $src, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
+            imagejpeg($dst, $fileName); // adjust format as needed
+            imagedestroy($src);
+            imagedestroy($dst);
+            //            $Dimension = $Upload->getDimensions();
+            if(!($tblPerson = Person::useService()->getPersonById($PersonId))){
+                $form .= new Danger('Person nicht gefunden');
+            }
+
+
+            //ToDO Pipeline
+            (new Data($this->getBinding()))->insertPersonPicture($tblPerson, file_get_contents($fileName ));
+                $form .= new Success('Der Upload ist erfasst');
+                //                .new Redirect('/Platform/System/Test/TestSite', Redirect::TIMEOUT_SUCCESS);
+            unlink($fileName);
+            return $form;
+
+        } catch (\Exception $Exception) {
+            if(json_decode($Exception->getMessage())){
+                $ArrayExeption = json_decode($Exception->getMessage());
+            } else {
+                $ArrayExeption = array($Exception->getMessage());
+            }
+            if($ArrayExeption){
+                foreach($ArrayExeption as &$ExeptionMessage){
+                    switch ($ExeptionMessage){
+                        case 'The uploaded file exceeds the upload_max_filesize directive in php.ini':
+                            $ExeptionMessage = 'Der Anhang überschreitet die maximale Größe von '.ini_get('upload_max_filesize').'B';
+                            break;
+                        case 'The uploaded file was not sent with a POST request':
+                            $ExeptionMessage = 'Das Ticket konnte nicht erstellt werden';
+                    }
+                }
+                $form->setError('FileUpload', new Listing($ArrayExeption));
+            }
+            // File entfernen, wenn eins vorhanden war
+            if(isset($_FILES['FileUpload']['tmp_name'])){
+                unlink($_FILES['FileUpload']['tmp_name']);
+            }
+            $Error = true;
+        }
+
+        return $form;
+    }
+
+    /**
+     * @param IFormInterface|null $form
+     * @param int|null            $PersonId
+     * @param UploadedFile|null   $FileUpload
+     *
+     * @return IFormInterface|string|null
+     */
+    public function createPersonPicture(IFormInterface &$form = null, $PersonId = null, $Group = null, UploadedFile $FileUpload = null, $IsUpload = '')
+    {
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $FileUpload && $IsUpload
+        ) {
+            return $form;
+        }
+
+        try {
+            if($_FILES['FileUpload']['error']){
+                $form->setError('FileUpload', 'Datei überschreitet die Grenzwerte.');
+                return $form;
+            }
+            switch ($_FILES['FileUpload']['type']) {
+                case 'image/jpg':
+                case 'image/jpeg':
+                case 'image/png':
+                case 'image/git':
+                    break;
+                default:
+                    $form->setError('FileUpload', 'Datei mit dem MimeType ('.$_FILES['FileUpload']['type'].') ist nicht erlaubt.');
+                    return $form;
+            }
+
+            $maxDim = 500;
+            $fileName = $_FILES['FileUpload']['tmp_name'];
+            list($width, $height) = getimagesize( $fileName );
+            if ( $width > $maxDim || $height > $maxDim ){
+                $ratio = $width / $height;
+                if($ratio > 1){
+                    $newWidth = $maxDim;
+                    $newHeight = (int)($maxDim / $ratio);
+                } else {
+                    $newWidth = (int)($maxDim * $ratio);
+                    $newHeight = $maxDim;
+                }
+            } else {
+                $newWidth = $width;
+                $newHeight = $height;
+            }
+
+            // skalieren
+            $src = imagecreatefromstring(file_get_contents($fileName));
+            $dst = imagecreatetruecolor($newWidth, $newHeight);
+            imagecopyresampled($dst, $src, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
+            imagejpeg($dst, $fileName); // adjust format as needed
+            imagedestroy($src);
+            imagedestroy($dst);
+            //            $Dimension = $Upload->getDimensions();
+            if(!($tblPerson = Person::useService()->getPersonById($PersonId))){
+                $form .= new Danger('Person nicht gefunden');
+            }
+
+
+            (new Data($this->getBinding()))->insertPersonPicture($tblPerson, file_get_contents($fileName ));
+            $form .= new Success('Der Upload ist erfasst')
+                .new Redirect('/People/Person', Redirect::TIMEOUT_SUCCESS, array('Id' => $PersonId, 'Group' => $Group));
+                unlink($fileName);
+            return $form;
+
+        } catch (\Exception $Exception) {
+            if(json_decode($Exception->getMessage())){
+                $ArrayExeption = json_decode($Exception->getMessage());
+            } else {
+                $ArrayExeption = array($Exception->getMessage());
+            }
+            if($ArrayExeption){
+                foreach($ArrayExeption as &$ExeptionMessage){
+                    switch ($ExeptionMessage){
+                        case 'The uploaded file exceeds the upload_max_filesize directive in php.ini':
+                            $ExeptionMessage = 'Der Anhang überschreitet die maximale Größe von '.ini_get('upload_max_filesize').'B';
+                            break;
+                        case 'The uploaded file was not sent with a POST request':
+                            $ExeptionMessage = 'Das Ticket konnte nicht erstellt werden';
+                    }
+                }
+                $form->setError('FileUpload', new Listing($ArrayExeption));
+            }
+            // File entfernen, wenn eins vorhanden war
+            if(isset($_FILES['FileUpload']['tmp_name'])){
+                unlink($_FILES['FileUpload']['tmp_name']);
+            }
+            $_POST['IsUpload'] = $IsUpload;
+            return $form;
+        }
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     *
+     * @return false|TblPersonPicture
+     */
+    public function getPersonPictureByPerson(TblPerson $tblPerson)
+    {
+
+        return (new Data($this->getBinding()))->getPersonPictureByPerson($tblPerson);
+    }
+
+    /**
+     * @param TblPersonPicture $tblPersonPicture
+     *
+     * @return string
+     */
+    public function destroyPersonPicture(TblPersonPicture $tblPersonPicture)
+    {
+
+        //ToDO return überarbeiten
+        (new Data($this->getBinding()))->destroyPersonPicture($tblPersonPicture);
+        return new Success('Das Foto wurde erfolgreich gelöscht')
+            .new Redirect('/Platform/System/Test/TestSite', 1);
+    }
+
+    /**
+     * @return bool|array[]
+     */
+    public function getBinariesWithoutFileSize(int $maxResults, int $startId = 0): bool|array
+    {
+        return (new Data($this->getBinding()))->getBinaryIdAndFileSizeListWithoutFileSize($maxResults, $startId);
+    }
+
+    /**
+     * @param array $tblBinaryList
+     *
+     * @return float
+     */
+    public function updateFileSize(array $tblBinaryList): float
+    {
+        return (new Data($this->getBinding()))->updateFileSize($tblBinaryList);
+    }
+
+    /**
+     * @param TblConsumer $tblConsumer
+     * @param bool $isOnlyWithoutFile
+     *
+     * @return int
+     */
+    public function getFileSizeByConsumer(TblConsumer $tblConsumer, bool $isOnlyWithoutFile = false): int
+    {
+        return (new Data($this->getBinding()))->getFileSizeByConsumer($tblConsumer, $isOnlyWithoutFile);
+    }
+
+    /**
+     * @param TblFile $tblFile
+     *
+     * @return false|TblBinaryRevision[]
+     */
+    public function getBinaryRevisionListByFile(TblFile $tblFile)
+    {
+        return (new Data($this->getBinding()))->getBinaryRevisionListByFile($tblFile);
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return false|TblBinaryRevision
+     */
+    public function getBinaryRevisionById($Id)
+    {
+        return (new Data($this->getBinding()))->getBinaryRevisionById($Id);
     }
 }

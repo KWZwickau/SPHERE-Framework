@@ -5,11 +5,12 @@ use SPHERE\Application\Contact\Phone\Service\Entity\TblPhone;
 use SPHERE\Application\Contact\Phone\Service\Entity\TblToCompany;
 use SPHERE\Application\Contact\Phone\Service\Entity\TblToPerson;
 use SPHERE\Application\Contact\Phone\Service\Entity\TblType;
-use SPHERE\Application\Contact\Phone\Service\Entity\ViewPhoneToPerson;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
+use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Database\Binding\AbstractData;
+use SPHERE\System\Database\Fitting\Element;
 
 /**
  * Class Data
@@ -19,17 +20,6 @@ use SPHERE\System\Database\Binding\AbstractData;
 class Data extends AbstractData
 {
 
-    /**
-     * @return false|ViewPhoneToPerson[]
-     */
-    public function viewPhoneToPerson()
-    {
-
-        return $this->getCachedEntityList(
-            __METHOD__, $this->getConnection()->getEntityManager(), 'ViewPhoneToPerson'
-        );
-    }
-
     public function setupDatabaseContent()
     {
 
@@ -37,10 +27,99 @@ class Data extends AbstractData
         $this->createType('Privat', 'Mobil');
         $this->createType('Geschäftlich', 'Festnetz');
         $this->createType('Geschäftlich', 'Mobil');
-        $this->createType('Notfall', 'Festnetz');
-        $this->createType('Notfall', 'Mobil');
         $this->createType('Fax', 'Privat');
         $this->createType('Fax', 'Geschäftlich');
+
+        // todo kann nach der Migration (DB-Update) gelöscht werden
+
+        $deleteBulkList = array();
+        // Telefonnummern finden, welche bei einer Person mehrmals gespeichert sind und mindestens eine als Notfallnummer
+        if ($this->getTypeByNameAndDescription('Notfall', 'Festnetz')) {
+            if (($duplicateList = $this->getPhoneDuplicate())) {
+                foreach ($duplicateList as $item) {
+                    if (isset($item['serviceTblPerson'])
+                        && ($tblPerson = Person::useService()->getPersonById($item['serviceTblPerson']))
+                        && ($tblTempList = $this->getPhoneAllByPerson($tblPerson))
+                    ) {
+                        $list = array();
+                        foreach ($tblTempList as $tblTemp) {
+                            $list[$tblTemp->getTblPhone()->getId()]['List'][$tblTemp->getId()] = $tblTemp;
+                            if ($tblTemp->getTblType()->getName() == 'Notfall') {
+                                $list[$tblTemp->getTblPhone()->getId()]['hasEmergencyContact'] = true;
+                            }
+                        }
+
+                        foreach ($list as $array) {
+                            if (isset($array['hasEmergencyContact'])) {
+                                /** @var TblToPerson $tblToPersonTemp */
+                                foreach ($array['List'] as $tblToPersonTemp) {
+                                    if ($tblToPersonTemp->getTblType()->getName() != 'Notfall') {
+                                        $deleteBulkList[] = $tblToPersonTemp;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        $updateBulkList = array();
+        if (($tblType = $this->getTypeByNameAndDescription('Notfall', 'Festnetz'))) {
+            // Migration Notfall-Telefonnummern
+            if (($tblPhoneToPersonList = $this->getPhoneToPersonListByType($tblType))) {
+                $tblTypeNew = $this->getTypeByNameAndDescription('Privat', 'Festnetz');
+                foreach ($tblPhoneToPersonList as $tblToPerson) {
+                    $tblToPerson->setIsEmergencyContact(true);
+                    $tblToPerson->setTblType($tblTypeNew);
+
+                    $updateBulkList[] = $tblToPerson;
+                }
+            }
+            if (($tblPhoneToCompanyList = $this->getPhoneToCompanyListByType($tblType))) {
+                $tblTypeNew = $this->getTypeByNameAndDescription('Privat', 'Festnetz');
+                foreach ($tblPhoneToCompanyList as $tblToCompany) {
+                    $tblToCompany->setIsEmergencyContact(true);
+                    $tblToCompany->setTblType($tblTypeNew);
+
+                    $updateBulkList[] = $tblToCompany;
+                }
+            }
+
+            // Typ soft löschen
+            $this->removeType($tblType);
+        }
+        if (($tblType = $this->getTypeByNameAndDescription('Notfall', 'Mobil'))) {
+            // Migration Notfall-Telefonnummern
+            if (($tblPhoneToPersonList = $this->getPhoneToPersonListByType($tblType))) {
+                $tblTypeNew = $this->getTypeByNameAndDescription('Privat', 'Mobil');
+                foreach ($tblPhoneToPersonList as $tblToPerson) {
+                    $tblToPerson->setIsEmergencyContact(true);
+                    $tblToPerson->setTblType($tblTypeNew);
+
+                    $updateBulkList[] = $tblToPerson;
+                }
+            }
+            if (($tblPhoneToCompanyList = $this->getPhoneToCompanyListByType($tblType))) {
+                $tblTypeNew = $this->getTypeByNameAndDescription('Privat', 'Mobil');
+                foreach ($tblPhoneToCompanyList as $tblToCompany) {
+                    $tblToCompany->setIsEmergencyContact(true);
+                    $tblToCompany->setTblType($tblTypeNew);
+
+                    $updateBulkList[] = $tblToCompany;
+                }
+            }
+
+            // Typ soft löschen
+            $this->removeType($tblType);
+        }
+
+        if ($updateBulkList) {
+            $this->updateEntityListBulk($updateBulkList);
+        }
+        if ($deleteBulkList) {
+            $this->softRemoveEntityList($deleteBulkList);
+        }
     }
 
     /**
@@ -197,13 +276,14 @@ class Data extends AbstractData
 
     /**
      * @param TblPerson $tblPerson
-     * @param TblPhone  $tblPhone
-     * @param TblType   $tblType
-     * @param string    $Remark
+     * @param TblPhone $tblPhone
+     * @param TblType $tblType
+     * @param string $Remark
+     * @param bool $isEmergencyContact
      *
      * @return TblToPerson
      */
-    public function addPhoneToPerson(TblPerson $tblPerson, TblPhone $tblPhone, TblType $tblType, $Remark)
+    public function addPhoneToPerson(TblPerson $tblPerson, TblPhone $tblPhone, TblType $tblType, string $Remark, bool $isEmergencyContact = false)
     {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -219,6 +299,7 @@ class Data extends AbstractData
             $Entity->setTblPhone($tblPhone);
             $Entity->setTblType($tblType);
             $Entity->setRemark($Remark);
+            $Entity->setIsEmergencyContact($isEmergencyContact);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         }
@@ -270,15 +351,15 @@ class Data extends AbstractData
 
     /**
      * @param TblCompany $tblCompany
-     * @param TblPhone   $tblPhone
-     * @param TblType    $tblType
-     * @param string     $Remark
+     * @param TblPhone $tblPhone
+     * @param TblType $tblType
+     * @param string $Remark
+     * @param bool $isEmergencyContact
      *
      * @return TblToCompany
      */
-    public function addPhoneToCompany(TblCompany $tblCompany, TblPhone $tblPhone, TblType $tblType, $Remark)
+    public function addPhoneToCompany(TblCompany $tblCompany, TblPhone $tblPhone, TblType $tblType, string $Remark, bool $isEmergencyContact = false): TblToCompany
     {
-
         $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblToCompany')
             ->findOneBy(array(
@@ -292,9 +373,12 @@ class Data extends AbstractData
             $Entity->setTblPhone($tblPhone);
             $Entity->setTblType($tblType);
             $Entity->setRemark($Remark);
+            $Entity->setIsEmergencyContact($isEmergencyContact);
+
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         }
+
         return $Entity;
     }
 
@@ -329,6 +413,19 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblPerson $tblPerson
+     *
+     * @return false|TblToPerson[]
+     */
+    public function getPhoneToPersonAllEmergencyContactByPerson(TblPerson $tblPerson)
+    {
+        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblToPerson', array(
+            TblToPerson::SERVICE_TBL_PERSON => $tblPerson->getId(),
+            TblToPerson::ATTR_IS_EMERGENCY_CONTACT => 1
+        ));
+    }
+
+    /**
      * @param TblToPerson $tblToPerson
      *
      * @return bool
@@ -347,5 +444,138 @@ class Data extends AbstractData
             return true;
         }
         return false;
+    }
+
+    /**
+     * @param TblPhone $tblPhone
+     *
+     * @return false|TblToPerson[]
+     */
+    public function getToPersonAllByPhone(TblPhone $tblPhone)
+    {
+        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblToPerson', array(TblToPerson::ATT_TBL_PHONE => $tblPhone->getId()));
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblPhone $tblPhone
+     *
+     * @return false|TblToPerson
+     */
+    public function getPhoneToPersonByPersonAndPhone(TblPerson $tblPerson, TblPhone $tblPhone)
+    {
+        return $this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblToPerson', array(
+            TblToPerson::SERVICE_TBL_PERSON => $tblPerson->getId(),
+            TblToPerson::ATT_TBL_PHONE => $tblPhone->getId()
+        ));
+    }
+
+    /**
+     * @param TblType $tblType
+     *
+     * @return bool
+     */
+    private function removeType(TblType $tblType): bool
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblToPerson $Entity */
+        $Entity = $Manager->getEntityById('TblType', $tblType->getId());
+        if (null !== $Entity) {
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
+            $Manager->removeEntity($Entity);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param TblType $tblType
+     *
+     * @return false|TblToPerson[]
+     */
+    private function getPhoneToPersonListByType(TblType $tblType)
+    {
+        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblToPerson', array(
+            TblToPerson::ATT_TBL_TYPE => $tblType->getId()
+        ));
+    }
+
+    /**
+     * @param TblType $tblType
+     *
+     * @return false|TblToCompany[]
+     */
+    private function getPhoneToCompanyListByType(TblType $tblType)
+    {
+        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblToCompany', array(
+            TblToPerson::ATT_TBL_TYPE => $tblType->getId()
+        ));
+    }
+
+    /**
+     * @param array $tblEntityList
+     *
+     * @return bool
+     */
+    public function updateEntityListBulk(array $tblEntityList): bool
+    {
+        $Manager = $this->getEntityManager();
+
+        /** @var Element $tblElement */
+        foreach ($tblEntityList as $tblElement) {
+            $Manager->bulkSaveEntity($tblElement);
+            /** @var Element $Entity */
+            $Entity = $Manager->getEntityById($tblElement->getEntityShortName(), $tblElement->getId());
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Entity, $tblElement, true);
+        }
+
+        $Manager->flushCache();
+        Protocol::useService()->flushBulkEntries();
+
+        return true;
+    }
+
+    /**
+     * @param array $tblEntityList
+     *
+     * @return bool
+     */
+    public function softRemoveEntityList(array $tblEntityList): bool
+    {
+        $Manager = $this->getEntityManager();
+
+        /** @var Element $tblElement */
+        foreach ($tblEntityList as $tblElement) {
+
+            /** @var Element $Entity */
+            $Entity = $Manager->getEntityById($tblElement->getEntityShortName(), $tblElement->getId());
+
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity, true);
+            $Manager->removeEntity($Entity);
+        }
+
+        return true;
+    }
+
+    /**
+     * @return array|false
+     */
+    private function getPhoneDuplicate()
+    {
+        $Manager = $this->getEntityManager();
+        $queryBuilder = $Manager->getQueryBuilder();
+
+        $query = $queryBuilder->select('t.serviceTblPerson, t.tblPhone')
+            ->from(TblToPerson::class, 't')
+            ->groupBy('t.serviceTblPerson, t.tblPhone')
+            ->having($queryBuilder->expr()->gt($queryBuilder->expr()->count('t.serviceTblPerson'), '?1'))
+            ->setParameter(1, 1)
+            ->getQuery();
+
+        $resultList = $query->getResult();
+
+        return empty($resultList) ? false : $resultList;
     }
 }

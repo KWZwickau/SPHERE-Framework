@@ -1,7 +1,6 @@
 <?php
 namespace SPHERE\Application\People\Meta\Student\Service\Service;
 
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblLevel;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\People\Meta\Student\Service\Data;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudent;
@@ -18,13 +17,12 @@ abstract class Subject extends Transfer
 {
 
     /**
-     * @param TblStudent               $tblStudent
-     * @param TblStudentSubjectType    $tblStudentSubjectType
+     * @param TblStudent $tblStudent
+     * @param TblStudentSubjectType $tblStudentSubjectType
      * @param TblStudentSubjectRanking $tblStudentSubjectRanking
-     * @param TblSubject               $tblSubject
-     *
-     * @param TblLevel                 $tblLevelFrom
-     * @param TblLevel                 $tblLevelTill
+     * @param TblSubject $tblSubject
+     * @param int|null $LevelFrom
+     * @param int|null $LevelTill
      *
      * @return TblStudentSubject
      */
@@ -33,12 +31,11 @@ abstract class Subject extends Transfer
         TblStudentSubjectType $tblStudentSubjectType,
         TblStudentSubjectRanking $tblStudentSubjectRanking,
         TblSubject $tblSubject,
-        TblLevel $tblLevelFrom = null,
-        TblLevel $tblLevelTill = null
-    ) {
-
+        ?int $LevelFrom = null,
+        ?int $LevelTill = null
+    ): TblStudentSubject {
         return (new Data($this->getBinding()))->addStudentSubject($tblStudent, $tblStudentSubjectType,
-            $tblStudentSubjectRanking, $tblSubject, $tblLevelFrom, $tblLevelTill);
+            $tblStudentSubjectRanking, $tblSubject, $LevelFrom, $LevelTill);
     }
 
     /**
@@ -134,16 +131,17 @@ abstract class Subject extends Transfer
     }
 
     /**
-     * @param TblStudent            $tblStudent
-     * @param TblStudentSubjectType $tblStudentSubjectType
+     * @param TblStudent                   $tblStudent
+     * @param string|TblStudentSubjectType $tblStudentSubjectType
      *
      * @return bool|TblStudentSubject[]
      */
-    public function getStudentSubjectAllByStudentAndSubjectType(
-        TblStudent $tblStudent,
-        TblStudentSubjectType $tblStudentSubjectType
-    ) {
+    public function getStudentSubjectAllByStudentAndSubjectType(TblStudent $tblStudent, $tblStudentSubjectType)
+    {
 
+        if(null !== $tblStudentSubjectType && !($tblStudentSubjectType instanceof TblStudentSubjectType)){
+            $tblStudentSubjectType = $this->getStudentSubjectTypeByIdentifier($tblStudentSubjectType);
+        }
         return (new Data($this->getBinding()))->getStudentSubjectAllByStudentAndSubjectType($tblStudent,
             $tblStudentSubjectType);
     }

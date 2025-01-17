@@ -29,7 +29,7 @@ class MsHj extends Certificate
 
         $personId = $tblPerson ? $tblPerson->getId() : 0;
 
-        $Header = $this->getHead($this->isSample(), true, 'auto', '50px');
+        $Header = $this->getHead($this->isSample());
 
         return (new Page())
             ->addSlice(
@@ -41,22 +41,20 @@ class MsHj extends Certificate
             ->addSlice($this->getStudentName($personId))
             ->addSlice((new Slice())
                 ->addElement((new Element())
-                    // entfällt, die Schulart steht jetzt im Titel
-//                    ->setContent('nahm am Unterricht der Schulart Mittelschule teil.')
                     ->setContent('&nbsp;')
                     ->styleTextSize('12px')
                     ->styleMarginTop('8px')
-                )
-            )
-            ->addSlice($this->getGradeLanes($personId))
+                ))
+            ->addSlice($this->getGradeLanesSmall($personId))
             ->addSlice((new Slice())
                 ->addElement((new Element())
                     ->setContent('Leistungen in den einzelnen Fächern:')
                     ->styleMarginTop('15px')
+                    ->styleMarginBottom('5px')
                     ->styleTextBold()
                 )
             )
-            ->addSlice($this->getSubjectLanes(
+            ->addSlice($this->getSubjectLanesSmall(
                 $personId,
                 true,
                 array(),
@@ -64,10 +62,10 @@ class MsHj extends Certificate
                 false,
                 false,
                 true
-            )->styleHeight('290px'))
+            )->styleHeight('220px'))
 //            ->addSlice($this->getOrientationStandard($personId))
             ->addSlice($this->getDescriptionHead($personId, true))
-            ->addSlice($this->getDescriptionContent($personId, '100px', '15px'))
+            ->addSlice($this->getDescriptionContent($personId, '118px', '15px'))
             ->addSlice($this->getDateLine($personId))
             ->addSlice($this->getSignPart($personId))
             ->addSlice($this->getParentSign())

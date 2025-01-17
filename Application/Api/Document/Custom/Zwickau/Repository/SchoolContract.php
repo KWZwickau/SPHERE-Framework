@@ -117,11 +117,12 @@ class SchoolContract extends AbstractDocument
     }
 
     /**
-     * @param array $pageList
+     * @param array  $pageList
+     * @param string $part
      *
      * @return Frame
      */
-    public function buildDocument($pageList = array())
+    public function buildDocument(array $pageList = array(), string $Part = '0'): Frame
     {
         return (new Frame())->addDocument((new Document())
             ->addPage((new Page())

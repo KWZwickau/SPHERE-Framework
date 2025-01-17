@@ -3,9 +3,12 @@ namespace SPHERE\Application\Setting\Consumer;
 
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\Education\School\Type\Type;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer as GatekeeperConsumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Setting\Consumer\Service\Data;
+use SPHERE\Application\Setting\Consumer\Service\Entity\TblAccountDownloadLock;
 use SPHERE\Application\Setting\Consumer\Service\Entity\TblSetting;
 use SPHERE\Application\Setting\Consumer\Service\Entity\TblStudentCustody;
 use SPHERE\Application\Setting\Consumer\Service\Setup;
@@ -42,18 +45,18 @@ class Service extends AbstractService
     }
 
     /**
-     * @param $Cluster
-     * @param $Application
-     * @param null $Module
-     * @param $Identifier
+     * @param string $Cluster
+     * @param string $Application
+     * @param string|null $Module
+     * @param string $Identifier
      * @return false|TblSetting
      */
     public function getSetting(
-        $Cluster,
-        $Application,
-        $Module = null,
-        $Identifier
-    ) {
+        string $Cluster,
+        string $Application,
+        string $Module = null,
+        string $Identifier = ''
+    ):false|TblSetting {
 
         return (new Data($this->getBinding()))->getSetting(
             $Cluster, $Application, $Module, $Identifier
@@ -92,18 +95,10 @@ class Service extends AbstractService
         $Value = str_replace(' ', '', $Value);
         $ValueList = explode(',', $Value);
         $tblSchoolTypeList = array();
-        if($ValueList){
-            foreach ($ValueList as $Number){
-                switch ($Number) {
-                    case '1':
-                        $tblSchoolTypeList[] = Type::useService()->getTypeByName(TblType::IDENT_GRUND_SCHULE);
-                    break;
-                    case '2':
-                        $tblSchoolTypeList[] = Type::useService()->getTypeByName(TblType::IDENT_OBER_SCHULE);
-                    break;
-                    case '3':
-                        $tblSchoolTypeList[] = Type::useService()->getTypeByName(TblType::IDENT_GYMNASIUM);
-                    break;
+        if($Value != '' && $ValueList){
+            foreach ($ValueList as $ShortName){
+                if(($tblType = Type::useService()->getTypeByShortName($ShortName))){
+                    $tblSchoolTypeList[$tblType->getId()] = $tblType;
                 }
             }
         }
@@ -111,23 +106,23 @@ class Service extends AbstractService
     }
 
     /**
-     * @param $Cluster
-     * @param $Application
-     * @param null $Module
-     * @param $Identifier
+     * @param string $Cluster
+     * @param string $Application
+     * @param string|null $Module
+     * @param string $Identifier
      * @param string $Type
-     * @param $Value
+     * @param string $Value
      *
      * @return TblSetting
      */
     public function createSetting(
-        $Cluster,
-        $Application,
-        $Module = null,
-        $Identifier,
-        $Type = TblSetting::TYPE_BOOLEAN,
-        $Value
-    ) {
+        string $Cluster,
+        string $Application,
+        string $Module = null,
+        string $Identifier = '',
+        string $Type = TblSetting::TYPE_BOOLEAN,
+        string $Value = ''
+    ):TblSetting {
 
         return (new Data($this->getBinding()))->createSetting(
             $Cluster, $Application, $Module, $Identifier, $Type, $Value
@@ -300,4 +295,104 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->getSettingByConsumer($tblSetting, $tblConsumer);
     }
+
+    /**
+     * @param TblAccount $tblAccount
+     * @param \DateTime $dateTime
+     * @param $identifier
+     * @param $isLocked
+     * @param $isLockedLastLoad
+     *
+     * @return TblAccountDownloadLock
+     */
+    public function createAccountDownloadLock(
+        TblAccount $tblAccount,
+        \DateTime $dateTime,
+        $identifier,
+        $isLocked,
+        $isLockedLastLoad
+    ) {
+        return (new Data($this->getBinding()))->createAccountDownloadLock(
+            $tblAccount,
+            $dateTime,
+            $identifier,
+            $isLocked,
+            $isLockedLastLoad
+        );
+    }
+
+    /**
+     * @param TblAccount $tblAccount
+     * @param $identifier
+     *
+     * @return false|TblAccountDownloadLock
+     */
+    public function getAccountDownloadLock(
+        TblAccount $tblAccount,
+        $identifier
+    ) {
+        return (new Data($this->getBinding()))->getAccountDownloadLock($tblAccount, $identifier);
+    }
+
+    /**
+     * @param string $Identifier
+     * @param string $Value
+     */
+    public function createAccountSetting(
+        string $Identifier,
+        string $Value
+    ) {
+        if (($tblAccount = Account::useService()->getAccountBySession())) {
+            (new Data($this->getBinding()))->createAccountSetting(
+                $tblAccount,
+                $Identifier,
+                $Value
+            );
+        }
+    }
+
+    /**
+     * @param string $Identifier
+     *
+     * @return string|false
+     */
+    public function getAccountSettingValue(
+        string $Identifier
+    ) {
+        if (($tblAccount = Account::useService()->getAccountBySession())
+            && ($tblAccountSetting = (new Data($this->getBinding()))->getAccountSetting($tblAccount, $Identifier))) {
+            return $tblAccountSetting->getValue();
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * aktuell nicht genutzte Mandanten
+     *
+     * @return array
+     */
+    public function getConsumerBlackList(): array
+    {
+        $blackList = array();
+        // aktuell nicht genutzte Mandanten in Sachsen
+        if (GatekeeperConsumer::useService()->getConsumerTypeFromServerHost() == TblConsumer::TYPE_SACHSEN) {
+            $blackList['DWO'] = 1;
+            $blackList['EMSP'] = 1;
+            $blackList['ESA'] = 1;
+            $blackList['ESL'] = 1;
+            $blackList['ESVL'] = 1;
+            $blackList['EVAP'] = 1;
+            $blackList['EVMS'] = 1;
+            $blackList['EVMSH'] = 1;
+            $blackList['EVSB'] = 1;
+            $blackList['EVSL'] = 1;
+            $blackList['EWM'] = 1;
+            $blackList['EWS'] = 1;
+            $blackList['FV'] = 1;
+        }
+
+        return $blackList;
+    }
+
 }

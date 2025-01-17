@@ -18,7 +18,7 @@ use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasketVerifi
 use SPHERE\Application\Billing\Inventory\Item\Item;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItem;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItemVariant;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -266,7 +266,7 @@ class Data extends AbstractData
      * @param TblPaymentType|null     $tblPaymentType
      * @param TblDebtorSelection|null $tblDebtorSelection
      *
-     * @return object|TblBasketVerification|null
+     * @return TblBasketVerification
      */
     public function createBasketVerification(
         TblBasket $tblBasket,
@@ -392,17 +392,19 @@ class Data extends AbstractData
     }
 
     /**
-     * @param string              $Name
-     * @param string              $Description
-     * @param string              $Year
-     * @param string              $Month
-     * @param \DateTime           $TargetTime
-     * @param \DateTime|null      $BillTime
-     * @param TblBasketType       $tblBasketType
-     * @param TblCreditor|null    $tblCreditor
-     * @param TblDivision|null    $tblDivision
-     * @param TblType|null        $tblType
-     * @param TblDebtorPeriodType $tblDebtorPeriodType
+     * @param string                 $Name
+     * @param string                 $Description
+     * @param string                 $Year
+     * @param string                 $Month
+     * @param \DateTime              $TargetTime
+     * @param \DateTime|null         $BillTime
+     * @param TblBasketType          $tblBasketType
+     * @param TblCreditor|null       $tblCreditor
+     * @param TblDivisionCourse|null $tblDivisionCourse
+     * @param TblType|null           $tblType
+     * @param TblDebtorPeriodType    $tblDebtorPeriodType
+     * @param string                 $FibuAccount
+     * @param string                 $FibuToAccount
      *
      * @return TblBasket
      */
@@ -415,9 +417,11 @@ class Data extends AbstractData
         $BillTime,
         $tblBasketType,
         TblCreditor $tblCreditor = null,
-        TblDivision $tblDivision = null,
+        TblDivisionCourse $tblDivisionCourse = null,
         TblType $tblType = null,
-        TblDebtorPeriodType $tblDebtorPeriodType = null
+        TblDebtorPeriodType $tblDebtorPeriodType = null,
+        $FibuAccount = '',
+        $FibuToAccount = ''
     ){
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -439,9 +443,11 @@ class Data extends AbstractData
             $Entity->setIsArchive(false);
             $Entity->setTblBasketType($tblBasketType);
             $Entity->setServiceTblCreditor($tblCreditor);
-            $Entity->setServiceTblDivision($tblDivision);
+            $Entity->setServiceTblDivisionCourse($tblDivisionCourse);
             $Entity->setServiceTblType($tblType);
             $Entity->setServiceTblDebtorPeriodType($tblDebtorPeriodType);
+            $Entity->setFibuAccount($FibuAccount);
+            $Entity->setFibuToAccount($FibuToAccount);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
                 $Entity);
@@ -483,9 +489,11 @@ class Data extends AbstractData
      * @param TblBasket        $tblBasket
      * @param string           $Name
      * @param string           $Description
-     * @param /DateTime        $TargetTime
-     * @param /DateTime|null   $BillTime
+     * @param \DateTime|null   $TargetTime
+     * @param \DateTime|null   $BillTime
      * @param TblCreditor|null $tblCreditor
+     * @param string           $FibuAccount
+     * @param string           $FibuToAccount
      *
      * @return bool
      */
@@ -495,7 +503,9 @@ class Data extends AbstractData
         $Description,
         $TargetTime,
         $BillTime,
-        TblCreditor $tblCreditor = null
+        TblCreditor $tblCreditor = null,
+        $FibuAccount = '',
+        $FibuToAccount = ''
     ){
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -509,6 +519,8 @@ class Data extends AbstractData
             $Entity->setTargetTime($TargetTime);
             $Entity->setBillTime($BillTime);
             $Entity->setServiceTblCreditor($tblCreditor);
+            $Entity->setFibuAccount($FibuAccount);
+            $Entity->setFibuToAccount($FibuToAccount);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
@@ -646,6 +658,31 @@ class Data extends AbstractData
         $Protocol = clone $Entity;
         if(null !== $Entity){
             $Entity->setQuantity($Quantity);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
+                $Protocol,
+                $Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblBasketVerification $tblBasketVerification
+     * @param string                $Price
+     *
+     * @return bool
+     */
+    public function changeBasketVerificationInPrice(TblBasketVerification $tblBasketVerification, $Price)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblBasketVerification $Entity */
+        $Entity = $Manager->getEntityById('TblBasketVerification', $tblBasketVerification->getId());
+        $Protocol = clone $Entity;
+        if(null !== $Entity){
+            $Entity->setValue($Price);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
                 $Protocol,

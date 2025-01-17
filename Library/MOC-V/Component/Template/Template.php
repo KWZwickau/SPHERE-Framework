@@ -114,6 +114,8 @@ class Template implements IVendorInterface
                 new TwigTemplate()
             )
         );
+
+//        Debugger::screenDump($String);
         $Template->getBridgeInterface()->loadString($String, true);
 
         return $Template->getBridgeInterface();

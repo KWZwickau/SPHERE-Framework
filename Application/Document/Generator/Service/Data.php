@@ -65,9 +65,9 @@ class Data extends AbstractData
             }
         }
 
-        // Schülerkartei - Mittelschule
-        if (($tblSchoolType = Type::useService()->getTypeByName('Mittelschule / Oberschule'))) {
-            $tblDocument = $this->createDocument('Schülerkartei - Mittelschule',
+        // Schülerkartei - Oberschule
+        if (($tblSchoolType = Type::useService()->getTypeByName(TblType::IDENT_OBER_SCHULE))) {
+            $tblDocument = $this->createDocument('Schülerkartei - ' . TblType::IDENT_OBER_SCHULE,
                 'Standard\Repository\StudentCard\SecondarySchool', $tblSchoolType);
             if ($tblDocument && !$this->getDocumentSubjectListByDocument($tblDocument)) {
                 $i = 1;

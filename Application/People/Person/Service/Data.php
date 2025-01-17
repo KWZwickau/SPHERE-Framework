@@ -1,11 +1,12 @@
 <?php
 namespace SPHERE\Application\People\Person\Service;
 
+use Doctrine\ORM\AbstractQuery;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Mail\Mail;
 use SPHERE\Application\Contact\Phone\Phone;
-use SPHERE\Application\Education\ClassRegister\Absence\Absence;
-use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Absence\Absence;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Meta\Club\Club;
 use SPHERE\Application\People\Meta\Common\Common;
@@ -46,6 +47,7 @@ class Data extends AbstractData
         $this->createSalutation('Herr', true);
         $this->createSalutation('Frau', true);
         $this->createSalutation('Schüler', true);
+        $this->createSalutation('Schülerin', true);
 
     }
 
@@ -260,6 +262,30 @@ class Data extends AbstractData
     }
 
     /**
+     * @return array
+     */
+    public function getTitleAll()
+    {
+
+        $queryBuilder = $this->getConnection()->getEntityManager()->getQueryBuilder();
+        $queryBuilder->select('tP.Title')
+            ->from(__NAMESPACE__ . '\Entity\TblPerson', 'tP')
+            ->groupBy('tP.Title');
+
+        $query = $queryBuilder->getQuery();
+        $resultList = $query->getResult(AbstractQuery::HYDRATE_ARRAY);
+        $result = array();
+        if($resultList){
+            foreach($resultList as $resultString){
+                if($resultString['Title']){
+                    $result[] = $resultString['Title'];
+                }
+            }
+        }
+        return $result;
+    }
+
+    /**
      * @return false|TblPerson[]
      */
     public function getPersonAllBySoftRemove()
@@ -289,7 +315,25 @@ class Data extends AbstractData
 
         return $this->getForceEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPerson', array(
             TblPerson::ATTR_FIRST_NAME => $FirstName,
-            TblPerson::ATTR_LAST_NAME  => $LastName
+            TblPerson::ATTR_LAST_NAME  => $LastName,
+            TblPerson::ENTITY_REMOVE => null
+        ));
+    }
+
+    /**
+     * @param $FirstName
+     * @param $LastName
+     *
+     * @return bool|TblPerson[]
+     */
+    public function getPersonAllByFirstNameAndSecondNameAndLastName($FirstName, $SecondName, $LastName)
+    {
+
+        return $this->getForceEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPerson', array(
+            TblPerson::ATTR_FIRST_NAME => $FirstName,
+            TblPerson::ATTR_SECOND_NAME => $SecondName,
+            TblPerson::ATTR_LAST_NAME  => $LastName,
+            TblPerson::ENTITY_REMOVE => null
         ));
     }
 
@@ -329,6 +373,42 @@ class Data extends AbstractData
         $query = $queryBuilder->getQuery();
         $result = $query->getResult();
 
+        return empty($result) ? false : $result;
+    }
+
+    /**
+     * @param string $firstName
+     * @param string $lastName
+     *
+     * @return false|TblPerson[]
+     */
+    public function getPersonListLikeFirstNameAndLastName(string $firstName, string $lastName)
+    {
+        $queryBuilder = $this->getConnection()->getEntityManager()->getQueryBuilder();
+        $and = $queryBuilder->expr()->andX();
+
+        $or = $queryBuilder->expr()->orX();
+        // Verbinden von FirstName und SecondName
+        $firstName = str_replace(' ', '%', $firstName);
+        $or->add($queryBuilder->expr()->like(
+            $queryBuilder->expr()->concat('t.FirstName', 't.SecondName'),
+            '?' . 1
+        ));
+        $or->add($queryBuilder->expr()->like('t.FirstName', '?' . 1));
+        $and->add($or);
+        $and->add($queryBuilder->expr()->like('t.LastName', '?' . 2));
+        // keine gelöschten Personen anzeigen
+        $and->add($queryBuilder->expr()->isNull('t.EntityRemove'));
+        $queryBuilder->setParameter(1, '%' . $firstName . '%');
+        $queryBuilder->setParameter(2, '%' . $lastName . '%');
+
+        $queryBuilder->select('t')
+            ->from(__NAMESPACE__ . '\Entity\TblPerson', 't')
+            ->where($and);
+
+        $query = $queryBuilder->getQuery();
+        $result = $query->getResult();
+
         return $result;
     }
 
@@ -355,6 +435,38 @@ class Data extends AbstractData
         } else {
             return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPerson', $Id);
         }
+    }
+
+    /**
+     * @param $PersonIdList
+     *
+     * @return array
+     */
+    public function getPersonArrayByIdList($PersonIdList)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $queryBuilder = $Manager->getQueryBuilder();
+        $Person = new TblPerson();
+        $Salutation = new TblSalutation('');
+
+        $query = $queryBuilder->select('tP.Id as tblPersonId, tS.Salutation, tP.FirstName, tP.SecondName, tP.LastName')
+            ->from($Person->getEntityFullName(), 'tP')
+            ->leftJoin($Salutation->getEntityFullName(), 'tS', 'WITH', 'tS.Id = tP.tblSalutation')
+            //            ->leftJoin($tblPerson->getEntityFullName(), 'tP',
+            //                'WITH', 'tP.Id = tM.serviceTblPerson')
+            ->where($queryBuilder->expr()->in('tP.Id', $PersonIdList))
+            ->andWhere($queryBuilder->expr()->isNull('tP.EntityRemove'))
+            ->getQuery();
+//        $ResultList = $query->getResult(ColumnHydrator::HYDRATION_MODE);
+        $result = $query->getResult();
+        $IdCorrectedResult = array();
+        if(!empty($result)){
+            foreach($result as $row){
+                $IdCorrectedResult[$row['tblPersonId']] = $row;
+            }
+        }
+        return $IdCorrectedResult;
     }
 
     /**
@@ -413,6 +525,8 @@ class Data extends AbstractData
 
     /**
      * @param TblPerson $tblPerson
+     *
+     * @return bool
      */
     public function softRemovePersonReferences(TblPerson $tblPerson)
     {
@@ -422,7 +536,7 @@ class Data extends AbstractData
         Address::useService()->removeAddressAllByPerson($tblPerson, $IsSoftRemove);
         Mail::useService()->removeSoftMailAllByPerson($tblPerson, $IsSoftRemove);
         Phone::useService()->removeSoftPhoneAllByPerson($tblPerson, $IsSoftRemove);
-        Division::useService()->removePerson($tblPerson, $IsSoftRemove);
+        DivisionCourse::useService()->removePerson($tblPerson, $IsSoftRemove);
         if (($tblClub = Club::useService()->getClubByPerson($tblPerson))){
             Club::useService()->destroyClub($tblClub, $IsSoftRemove);
         }
@@ -444,6 +558,7 @@ class Data extends AbstractData
         Relationship::useService()->removeRelationshipAllByPerson($tblPerson, $IsSoftRemove);
         Absence::useService()->destroyAbsenceAllByPerson($tblPerson, $IsSoftRemove);
         Group::useService()->removeMemberAllByPerson($tblPerson, $IsSoftRemove);
+        return true;
     }
 
     /**

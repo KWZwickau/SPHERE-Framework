@@ -1,11 +1,12 @@
 <?php
-
 namespace SPHERE\Application\Api\Reporting\DeclarationBasis;
 
+use DateTime;
 use MOC\V\Core\FileSystem\FileSystem;
+use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\IModuleInterface;
-use SPHERE\Application\IServiceInterface;
-use SPHERE\Common\Frontend\IFrontendInterface;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Common\Main;
 
 /**
@@ -17,35 +18,37 @@ class DeclarationBasis implements IModuleInterface
     public static function registerModule()
     {
 
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/Download', __CLASS__.'::downloadDivisionReport'
-        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(__NAMESPACE__.'/Download', __CLASS__.'::downloadDivisionReport'));
     }
 
-    /**
-     * @return IServiceInterface
-     */
     public static function useService()
     {
         // Implement useService() method.
     }
 
-    /**
-     * @return IFrontendInterface
-     */
     public static function useFrontend()
     {
         // Implement useFrontend() method.
     }
 
     /**
+     * @param null $Data
+     *
      * @return string
      */
-    public function downloadDivisionReport()
+    public function downloadDivisionReport($Data = null)
     {
-
-        $fileLocation = \SPHERE\Application\Reporting\DeclarationBasis\DeclarationBasis::useService()->createDivisionReportExcel();
-        return FileSystem::getDownload($fileLocation->getRealPath(),
-            "Stichtagsmeldung SBA"." ".date("Y-m-d H:i:s").".xlsx")->__toString();
+        if ($Data != null) {
+            $date = new DateTime($Data['Date']);
+            if (Term::useService()->getYearAllByDate($date)) {
+                $fileLocation = \SPHERE\Application\Reporting\DeclarationBasis\DeclarationBasis::useService()->createDivisionReportExcel($date);
+                return FileSystem::getDownload($fileLocation->getRealPath(), "Stichtagsmeldung Schülerzahl"
+                        . (Consumer::useService()->getConsumerBySessionIsConsumerType(TblConsumer::TYPE_SACHSEN) ? " LASUB " : " ")
+                        . $date->format('Y-m-d') . ".xlsx")->__toString();
+            } else {
+                return 'Für den Stichtag: ' . $date->format('d.m.Y') . ' wurde kein Schuljahr gefunden.';
+            }
+        }
+        return 'Schuljahr nicht gefunden!';
     }
 }

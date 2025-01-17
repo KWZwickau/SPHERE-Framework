@@ -87,22 +87,20 @@ class CmsMsJExt extends CmsStyle
                 )
                 ->addSection((new Section())
                     ->addSliceColumn(
-                        self::getCMSSubjectLanes($personId)
+                        self::getCMSSubjectLanes($personId, true, '295px')
                     )
                 )
                 ->addElement((new Element())
-                    ->styleMarginTop('10px')
+                    ->styleMarginTop('20px')
                 )
-                ->addSection((new Section())
-                    ->addSliceColumn(
-                        self::getCMSOrientationStandard($personId)
-                    )
+                ->addSection(
+                    self::getCMSMissing($personId)
                 )
                 ->addElement((new Element())
-                    ->styleMarginTop('10px')
+                    ->styleMarginTop('15px')
                 )
                 ->addSectionList(
-                    self::getCMSRemark($personId, '250px', true)
+                    self::getCMSRemark($personId, '218px', true)
                 )
             );
         $PageList[] = (new Page())
@@ -119,13 +117,7 @@ class CmsMsJExt extends CmsStyle
                     ->styleMarginTop('20px')
                 )
                 ->addSectionList(
-                    self::getCMSSecondRemark($personId, '725px')
-                )
-                ->addSection(
-                    self::getCMSMissing($personId)
-                )
-                ->addElement((new Element())
-                    ->styleMarginTop('15px')
+                    self::getCMSSecondRemark($personId, '737px')
                 )
                 ->addSection(
                     self::getCMSDate($personId)

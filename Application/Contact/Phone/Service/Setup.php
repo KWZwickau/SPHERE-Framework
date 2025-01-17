@@ -112,10 +112,11 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblToPerson', 'serviceTblPerson')) {
             $Table->addColumn('serviceTblPerson', 'bigint', array('notnull' => false));
         }
-        $this->getConnection()->removeIndex($Table, array('serviceTblPerson'));
         if (!$this->getConnection()->hasIndex($Table, array('serviceTblPerson', Element::ENTITY_REMOVE))) {
             $Table->addIndex(array('serviceTblPerson', Element::ENTITY_REMOVE));
         }
+        $this->createColumn($Table, 'IsEmergencyContact', self::FIELD_TYPE_BOOLEAN, false, false);
+
         $this->getConnection()->addForeignKey($Table, $tblPhone, null);
         $this->getConnection()->addForeignKey($Table, $tblType);
         return $Table;
@@ -138,10 +139,11 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblToCompany', 'serviceTblCompany')) {
             $Table->addColumn('serviceTblCompany', 'bigint', array('notnull' => false));
         }
-        $this->getConnection()->removeIndex($Table, array('serviceTblCompany'));
         if (!$this->getConnection()->hasIndex($Table, array('serviceTblCompany', Element::ENTITY_REMOVE))) {
             $Table->addIndex(array('serviceTblCompany', Element::ENTITY_REMOVE));
         }
+        $this->createColumn($Table, 'IsEmergencyContact', self::FIELD_TYPE_BOOLEAN, false, false);
+
         $this->getConnection()->addForeignKey($Table, $tblPhone, null);
         $this->getConnection()->addForeignKey($Table, $tblType);
         return $Table;

@@ -110,6 +110,16 @@ abstract class Element extends Extension
     }
 
     /**
+     * @return Element
+     */
+    public function setEntityUpdate()
+    {
+
+        $this->EntityUpdate = new \DateTime("now");
+        return $this;
+    }
+
+    /**
      * @param Element $Required
      *
      * @return \DateTime|null
@@ -240,5 +250,17 @@ abstract class Element extends Extension
             }
             return (float)str_replace(',', '.', str_replace('.', '', $Value ));
         }
+    }
+
+    /**
+     * @param $Value
+     * @return mixed|null
+     */
+    protected function changeFalseToNull($Value)
+    {
+        if(false === $Value){
+            $Value = null;
+        }
+        return $Value;
     }
 }

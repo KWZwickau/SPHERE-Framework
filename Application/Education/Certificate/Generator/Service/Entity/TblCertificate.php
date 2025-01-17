@@ -5,14 +5,11 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
-use SPHERE\Application\Api\Education\Certificate\Generator\Certificate;
 use SPHERE\Application\Education\Certificate\Generator\Generator;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\School\Course\Course;
 use SPHERE\Application\Education\School\Course\Service\Entity\TblCourse;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\Education\School\Type\Type;
-use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\System\Database\Fitting\Element;
@@ -35,6 +32,15 @@ class TblCertificate extends Element
     const ATTR_IS_INFORMATION = 'IsInformation';
     const ATTR_IS_CHOSEN_DEFAULT = 'IsChosenDefault';
     const ATTR_IS_IGNORED_FOR_AUTO_SELECT = 'IsIgnoredForAutoSelect';
+    const ATTR_IS_GRADE_VERBAL = 'IsGradeVerbal';
+
+    const CERTIFICATE_TYPE_PRIMARY = 'Primary';
+    const CERTIFICATE_TYPE_SECONDARY = 'Secondary';
+    const CERTIFICATE_TYPE_GYM = 'Gym';
+    const CERTIFICATE_TYPE_B_GYM = 'BGym';
+    const CERTIFICATE_TYPE_BERUFSFACHSCHULE = 'Berufsfachschule';
+    const CERTIFICATE_TYPE_FACHSCHULE = 'Fachschule';
+    const CERTIFICATE_TYPE_FOERDERSCHULE = 'Förderschule';
 
     /**
      * @Column(type="string")
@@ -90,6 +96,16 @@ class TblCertificate extends Element
     protected $IsIgnoredForAutoSelect;
 
     /**
+     * @Column(type="boolean")
+     */
+    protected $IsGradeVerbal;
+
+    /**
+     * @Column(type="string")
+     */
+    protected $CertificateNumber;
+
+    /**
      * @return bool|TblConsumer
      */
     public function getServiceTblConsumer()
@@ -109,24 +125,6 @@ class TblCertificate extends Element
     {
 
         $this->serviceTblConsumer = ( null === $serviceTblConsumer ? null : $serviceTblConsumer->getId() );
-    }
-
-    /**
-     * @param TblPerson   $tblPerson
-     * @param TblDivision $tblDivision
-     * @param bool        $IsSample
-     *
-     * @return bool|Certificate
-     */
-    public function getDocument(TblPerson $tblPerson, TblDivision $tblDivision, $IsSample = true)
-    {
-
-        $Class = '\SPHERE\Application\Api\Education\Certificate\Generator\Repository\\'.$this->getCertificate();
-        if (class_exists($Class)) {
-
-            return new $Class($tblPerson, $tblDivision, $IsSample);
-        }
-        return false;
     }
 
     /**
@@ -321,4 +319,37 @@ class TblCertificate extends Element
     {
         $this->IsIgnoredForAutoSelect = $IsIgnoredForAutoSelect;
     }
+
+    /**
+     * @return boolean
+     */
+    public function getIsGradeVerbal()
+    {
+        return $this->IsGradeVerbal;
+    }
+
+    /**
+     * @param boolean $IsGradeVerbal
+     */
+    public function setIsGradeVerbal($IsGradeVerbal)
+    {
+        $this->IsGradeVerbal = $IsGradeVerbal;
+    }
+
+    /**
+     * @return string
+     */
+    public function getCertificateNumber(): string
+    {
+        return $this->CertificateNumber;
+    }
+
+    /**
+     * @param string $Anlage
+     */
+    public function setCertificateNumber($CertificateNumber): void
+    {
+        $this->CertificateNumber = $CertificateNumber;
+    }
+
 }

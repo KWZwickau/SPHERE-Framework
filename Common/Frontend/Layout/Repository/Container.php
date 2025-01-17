@@ -15,6 +15,8 @@ class Container extends Extension implements ITemplateInterface
     /** @var string $Content */
     private $Content = '';
 
+    private array $styles = array();
+
     /**
      * @param string|array $Content
      */
@@ -38,9 +40,26 @@ class Container extends Extension implements ITemplateInterface
     /**
      * @return string
      */
-    public function getContent()
+    public function getContent(): string
     {
+        $styleString = '';
+        if (!empty($this->styles)) {
+            $string = implode('', $this->styles);
+            $styleString = "style=\"$string\"";
+        }
 
-        return '<div>'.$this->Content.'</div>';
+        return "<div $styleString>$this->Content</div>";
+    }
+
+    /**
+     * @param array $styles
+     *
+     * @return Container
+     */
+    public function setStyle(array $styles): Container
+    {
+        $this->styles = $styles;
+
+        return $this;
     }
 }

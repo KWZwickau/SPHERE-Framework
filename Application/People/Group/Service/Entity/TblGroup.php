@@ -7,7 +7,9 @@ use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\System\Database\Fitting\Element;
+use SPHERE\System\Extension\Repository\Sorter\StringNaturalOrderSorter;
 
 /**
  * @Entity
@@ -19,6 +21,7 @@ class TblGroup extends Element
 
     const ATTR_NAME = 'Name';
     const ATTR_IS_LOCKED = 'IsLocked';
+    const ATTR_IS_CORE_GROUP = 'IsCoreGroup';
     const ATTR_META_TABLE = 'MetaTable';
 
     const META_TABLE_COMMON = 'COMMON';
@@ -31,6 +34,7 @@ class TblGroup extends Element
     const META_TABLE_COMPANY_CONTACT = 'COMPANY_CONTACT';
     const META_TABLE_TUDOR = 'TUDOR';
     const META_TABLE_DEBTOR = 'DEBTOR';
+    const META_TABLE_ARCHIVE = 'ARCHIVE';
 
     /**
      * @Column(type="string")
@@ -52,6 +56,10 @@ class TblGroup extends Element
      * @Column(type="string")
      */
     protected $MetaTable;
+    /**
+     * @Column(type="boolean")
+     */
+    protected $IsCoreGroup;
 
     /**
      * @param $Name
@@ -65,9 +73,12 @@ class TblGroup extends Element
     /**
      * @return string
      */
-    public function getDescription()
+    public function getDescription($isShowCoreInfo = false, $isExcel = false)
     {
-
+        if($isShowCoreInfo && $this->isCoreGroup()){
+            $text = ' (Stammgruppe)';
+            return $this->Description . ($isExcel ? $text : new Muted($text));
+        }
         return $this->Description;
     }
 
@@ -153,11 +164,54 @@ class TblGroup extends Element
     }
 
     /**
-     * @return bool|TblPerson[]
+     * @return bool
      */
-    public function getTudors()
+    public function isCoreGroup()
     {
 
-        return Group::useService()->getTudors($this);
+        return (bool)$this->IsCoreGroup;
+    }
+
+    /**
+     * @param bool $IsCoreGroup
+     */
+    public function setCoreGroup($IsCoreGroup)
+    {
+
+        $this->IsCoreGroup = (bool)$IsCoreGroup;
+    }
+
+    /**
+     * bei Stammgruppen dürfen nur Schüler herauskommen, z.B. fürs Klassenbuch
+     *
+     * @return array|false
+     */
+    public function getStudentOnlyList()
+    {
+        $list = array();
+        if ($this->isCoreGroup()) {
+            if (($tblPersonList = Group::useService()->getPersonAllByGroup($this))
+                && ($tblGroup = Group::useService()->getGroupByMetaTable('Student'))
+            ) {
+                $tblPersonList = $this->getSorter($tblPersonList)->sortObjectBy('LastFirstName', new StringNaturalOrderSorter());
+                foreach ($tblPersonList as $tblPerson) {
+                    if (Group::useService()->existsGroupPerson($tblGroup, $tblPerson)) {
+                        $list[] = $tblPerson;
+                    }
+                }
+            }
+        }
+
+        return empty($list) ? false : $list;
+    }
+
+    /**
+     * @return array|TblPerson[]
+     */
+    public function getPersonList()
+    {
+
+        $tblPersonList = Group::useService()->getPersonAllByGroup($this);
+        return $tblPersonList ?: array();
     }
 }

@@ -3,6 +3,7 @@ namespace SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service;
 
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\System\Database\Binding\AbstractSetup;
 use SPHERE\System\Database\Fitting\Element;
 
@@ -27,7 +28,8 @@ class Setup extends AbstractSetup
          * Table
          */
         $Schema = clone $this->getConnection()->getSchema();
-        $this->setTableConsumer($Schema);
+        $tblConsumer = $this->setTableConsumer($Schema);
+        $this->setTableConsumerLogin($Schema, $tblConsumer);
         /**
          * Migration & Protocol
          */
@@ -60,6 +62,27 @@ class Setup extends AbstractSetup
             $Table->addColumn('Name', 'string');
         }
         $this->createColumn($Table, 'Alias', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'Type', self::FIELD_TYPE_STRING, false, Consumer::useService()->getConsumerTypeFromServerHost());
+
+        return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
+     * @param Table  $tblConsumer
+     *
+     * @return Table
+     */
+    private function setTableConsumerLogin(Schema &$Schema, Table $tblConsumer)
+    {
+
+        $Table = $this->createTable($Schema, 'tblConsumerLogin');
+        $this->createColumn($Table, 'SystemName', self::FIELD_TYPE_STRING);
+        if($this->hasColumn($Table, 'IsSchoolSeparated')){
+            $Table->dropColumn('IsSchoolSeparated');
+        }
+        $this->createColumn($Table, 'IsActiveAPI', self::FIELD_TYPE_BOOLEAN, false, false);
+        $this->getConnection()->addForeignKey($Table, $tblConsumer);
 
         return $Table;
     }

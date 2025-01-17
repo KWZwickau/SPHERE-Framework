@@ -19,38 +19,22 @@ class Data extends AbstractData
     public function setupDatabaseContent()
     {
 
+        // Regular Options
+        $this->createSetting(TblSetting::IDENT_INVOICE_DELETE, '0', TblSetting::TYPE_BOOLEAN, TblSetting::CATEGORY_REGULAR);
 
         // SEPA Options
         $this->createSetting(TblSetting::IDENT_IS_SEPA, '1', TblSetting::TYPE_BOOLEAN, TblSetting::CATEGORY_SEPA);
         $this->createSetting(TblSetting::IDENT_SEPA_REMARK, '', TblSetting::TYPE_STRING, TblSetting::CATEGORY_SEPA);
-        $tblSetting = $this->createSetting(TblSetting::IDENT_IS_AUTO_REFERENCE_NUMBER, '1', TblSetting::TYPE_BOOLEAN, TblSetting::CATEGORY_SEPA);
-        // ToDO Update darf später wieder entfernt werden (nach 1.8.56)
-        if($tblSetting->getCategory() == TblSetting::CATEGORY_REGULAR){
-            $this->updateSettingCategory($tblSetting, TblSetting::CATEGORY_SEPA);
-        }
+        $this->createSetting(TblSetting::IDENT_IS_AUTO_REFERENCE_NUMBER, '1', TblSetting::TYPE_BOOLEAN, TblSetting::CATEGORY_SEPA);
         $this->createSetting(TblSetting::IDENT_SEPA_FEE, '', TblSetting::TYPE_STRING, TblSetting::CATEGORY_SEPA);
 
         // DATEV Options
-        // ToDO Update darf später wieder entfernt werden (nach 1.8.56)
-        $tblSetting = $this->getSettingByIdentifier('IsDebtorNumberNeed');
-        if($tblSetting){
-            $this->updateSettingIdentifier($tblSetting, TblSetting::IDENT_IS_DATEV);
-            $this->updateSettingCategory($tblSetting, TblSetting::CATEGORY_DATEV);
-        }
         $this->createSetting(TblSetting::IDENT_IS_DATEV, '1', TblSetting::TYPE_BOOLEAN, TblSetting::CATEGORY_DATEV);
-
-        $tblSetting = $this->createSetting(TblSetting::IDENT_DEBTOR_NUMBER_COUNT, '5', TblSetting::TYPE_INTEGER, TblSetting::CATEGORY_DATEV);
-        // ToDO Update darf später wieder entfernt werden (nach 1.8.56)
-        if($tblSetting->getCategory() == TblSetting::CATEGORY_REGULAR){
-            $this->updateSettingCategory($tblSetting, TblSetting::CATEGORY_DATEV);
-        }
-        $tblSetting = $this->createSetting(TblSetting::IDENT_IS_AUTO_DEBTOR_NUMBER, '1', TblSetting::TYPE_BOOLEAN, TblSetting::CATEGORY_DATEV);
-        // ToDO Update darf später wieder entfernt werden (nach 1.8.56)
-        if($tblSetting->getCategory() == TblSetting::CATEGORY_REGULAR){
-            $this->updateSettingCategory($tblSetting, TblSetting::CATEGORY_DATEV);
-        }
+        $this->createSetting(TblSetting::IDENT_DEBTOR_NUMBER_COUNT, '5', TblSetting::TYPE_INTEGER, TblSetting::CATEGORY_DATEV);
+        $this->createSetting(TblSetting::IDENT_IS_AUTO_DEBTOR_NUMBER, '1', TblSetting::TYPE_BOOLEAN, TblSetting::CATEGORY_DATEV);
         $this->createSetting(TblSetting::IDENT_DATEV_REMARK, '', TblSetting::TYPE_STRING, TblSetting::CATEGORY_DATEV);
         $this->createSetting(TblSetting::IDENT_FIBU_ACCOUNT, '', TblSetting::TYPE_STRING, TblSetting::CATEGORY_DATEV);
+        $this->createSetting(TblSetting::IDENT_FIBU_ACCOUNT_AS_DEBTOR, '0', TblSetting::TYPE_BOOLEAN, TblSetting::CATEGORY_DATEV);
         $this->createSetting(TblSetting::IDENT_FIBU_TO_ACCOUNT, '', TblSetting::TYPE_STRING, TblSetting::CATEGORY_DATEV);
         $this->createSetting(TblSetting::IDENT_CONSULT_NUMBER, '', TblSetting::TYPE_STRING, TblSetting::CATEGORY_DATEV);
         $this->createSetting(TblSetting::IDENT_CLIENT_NUMBER, '', TblSetting::TYPE_STRING, TblSetting::CATEGORY_DATEV);
@@ -58,6 +42,8 @@ class Data extends AbstractData
         $this->createSetting(TblSetting::IDENT_KOST_1, '0', TblSetting::TYPE_INTEGER, TblSetting::CATEGORY_DATEV);
         $this->createSetting(TblSetting::IDENT_KOST_2, '0', TblSetting::TYPE_INTEGER, TblSetting::CATEGORY_DATEV);
         $this->createSetting(TblSetting::IDENT_BU_KEY, '0', TblSetting::TYPE_INTEGER, TblSetting::CATEGORY_DATEV);
+        $Now = new \DateTime();
+        $this->createSetting(TblSetting::IDENT_ECONOMIC_DATE, '01.01.'.$Now->format('Y'), TblSetting::TYPE_STRING, TblSetting::CATEGORY_DATEV);
 
 
 

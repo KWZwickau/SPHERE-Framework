@@ -34,10 +34,14 @@ class Doctrine2DBAL extends Bridge implements IBridgeInterface
     public function __construct()
     {
 
-        AutoLoader::getNamespaceAutoLoader('Doctrine\DBAL',
-            __DIR__.'/../../../Vendor/Doctrine2DBAL/2.5.0/lib');
-        AutoLoader::getNamespaceAutoLoader('Doctrine\Common',
-            __DIR__.'/../../../Vendor/Doctrine2Common/2.5.0/lib');
+        require_once(__DIR__.DIRECTORY_SEPARATOR.'../../../../../Php8Combined/vendor/autoload.php');
+//        require_once(__DIR__.'/../../../Vendor/Doctrine2DBAL/3.6.x/autoload.php');
+//        AutoLoader::getNamespaceAutoLoader('Doctrine\Deprecations',
+//            __DIR__.'/../../../Vendor/Deprecations-1.1/lib');
+////        AutoLoader::getNamespaceAutoLoader('Doctrine\DBAL',
+////            __DIR__.'/../../../Vendor/Doctrine2DBAL/2.5.0/lib');
+//        AutoLoader::getNamespaceAutoLoader('Doctrine\Common',
+//            __DIR__.'/../../../Vendor/Doctrine2Common/3.4/src', 'Doctrine\Common');
     }
 
     /**
@@ -84,6 +88,9 @@ class Doctrine2DBAL extends Bridge implements IBridgeInterface
                     'dbname'        => $Database->getDatabase(),
                     'port'          => $Port->getPort(),
                     'driverOptions' => array(
+//                        \PDO::MYSQL_ATTR_INIT_COMMAND => "SET SESSION CHARACTER_SET_RESULTS = latin1",
+//                        \PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8",
+//                        \PDO::MYSQL_ATTR_INIT_COMMAND =>"SET NAMES 'utf8mb4' COLLATE 'utf8mb4_0900_ai_ci' ",
                         \PDO::ATTR_TIMEOUT => $Timeout,
                         \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION
                     )

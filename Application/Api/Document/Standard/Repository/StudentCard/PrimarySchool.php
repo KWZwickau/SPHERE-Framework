@@ -67,6 +67,7 @@ class PrimarySchool extends AbstractStudentCard
         $OutLines = '1.2px';
         $InnerLines = '0.5px';
         $padding = '4.7px';
+        $paddingSchoolLines = '3.7px';
         $SpaceBetween = '15px';
 
         $subjectPosition = array();
@@ -290,7 +291,7 @@ class PrimarySchool extends AbstractStudentCard
                                          {% if(Content.Person.Parent.Mother.Name.Last is not empty) %}
                                             {% if(Content.Person.Parent.Father.Name.Last is not empty) %}
                                                 {{ Content.Person.Parent.Mother.Name.Last }}, {{ Content.Person.Parent.Mother.Name.First }}
-                                                </br>
+                                                <br />
                                                 {{ Content.Person.Parent.Father.Name.Last }}, {{ Content.Person.Parent.Father.Name.First }}
                                             {% else %}
                                                 {{ Content.Person.Parent.Mother.Name.Last }} {{ Content.Person.Parent.Mother.Name.First }}
@@ -306,7 +307,7 @@ class PrimarySchool extends AbstractStudentCard
                                 ->stylePaddingLeft('4px')
                                 ->stylePaddingTop('1px')
                                 ->styleTextSize($InputText)
-                                ->styleHeight('35px')
+                                ->styleHeight('47px')
                             )
                         )
                         , '30%')
@@ -324,7 +325,7 @@ class PrimarySchool extends AbstractStudentCard
                                          {% if(Content.Person.Address.Street.Name) %}
                                             {{ Content.Person.Address.Street.Name }}
                                             {{ Content.Person.Address.Street.Number }}
-                                            </br>
+                                            <br />
                                             {{ Content.Person.Address.City.Code }}
                                             {{ Content.Person.Address.City.Name }}
                                         {% else %}
@@ -334,7 +335,7 @@ class PrimarySchool extends AbstractStudentCard
                                 ->stylePaddingLeft('4px')
                                 ->stylePaddingTop('1px')
                                 ->styleTextSize($InputText)
-                                ->styleHeight('35px')
+                                ->styleHeight('47px')
                             )
                         )
                         ->styleBorderLeft($InnerLines)
@@ -366,7 +367,7 @@ class PrimarySchool extends AbstractStudentCard
                                 ->stylePaddingLeft('4px')
                                 ->stylePaddingTop('1px')
                                 ->styleTextSize($InputText)
-                                ->styleHeight('35px')
+                                ->styleHeight('47px')
                                 , '50%')
                             ->addElementColumn((new Element())
                                 ->setContent('
@@ -380,7 +381,7 @@ class PrimarySchool extends AbstractStudentCard
                                 ->stylePaddingTop('1px')
                                 ->styleTextSize($InputText)
                                 ->styleBorderLeft($OutLines)
-                                ->styleHeight('35px')
+                                ->styleHeight('47px')
                                 , '50%')
                         )
                         , '40%')
@@ -658,9 +659,15 @@ class PrimarySchool extends AbstractStudentCard
                         , '25%')
                     ->addSliceColumn((new Slice())
                         ->addSection((new Section())
-                            ->addSliceColumn($this->setCheckBox(), '4%')
+                            ->addSliceColumn($this->setCheckBox(
+                                '{% if(Content.Student.School.Education.Recommendation.OS is not empty) %}
+                                    X
+                                {% else %}
+                                    &nbsp;
+                                {% endif %}'
+                            ), '4%')
                             ->addElementColumn((new Element())
-                                ->setContent('Mittelschule')
+                                ->setContent(TblType::IDENT_OBER_SCHULE)
                                 ->styleTextSize($InputText)
                                 ->stylePaddingLeft('4px')
                                 ->stylePaddingTop($padding)
@@ -668,7 +675,13 @@ class PrimarySchool extends AbstractStudentCard
                                 , '21%')
                         )
                         ->addSection((new Section())
-                            ->addSliceColumn($this->setCheckBox(), '4%')
+                            ->addSliceColumn($this->setCheckBox(
+                                '{% if(Content.Student.School.Education.Recommendation.GYM is not empty) %}
+                                    X
+                                {% else %}
+                                    &nbsp;
+                                {% endif %}'
+                            ), '4%')
                             ->addElementColumn((new Element())
                                 ->setContent('Gymnasium')
                                 ->styleTextSize($InputText)
@@ -772,8 +785,8 @@ class PrimarySchool extends AbstractStudentCard
                         ->setContent('&nbsp;')
                         ->styleTextSize($InputText)
                         ->stylePaddingLeft('4px')
-                        ->stylePaddingTop($padding)
-                        ->stylePaddingBottom($padding)
+                        ->stylePaddingTop($paddingSchoolLines)
+                        ->stylePaddingBottom($paddingSchoolLines)
                         ->styleBorderTop($InnerLines)
                     )
                 )
@@ -782,8 +795,8 @@ class PrimarySchool extends AbstractStudentCard
                         ->setContent('&nbsp;')
                         ->styleTextSize($InputText)
                         ->stylePaddingLeft('4px')
-                        ->stylePaddingTop($padding)
-                        ->stylePaddingBottom($padding)
+                        ->stylePaddingTop($paddingSchoolLines)
+                        ->stylePaddingBottom($paddingSchoolLines)
                         ->styleBorderTop($InnerLines)
                     )
                 )
@@ -792,8 +805,8 @@ class PrimarySchool extends AbstractStudentCard
                         ->setContent('&nbsp;')
                         ->styleTextSize($InputText)
                         ->stylePaddingLeft('4px')
-                        ->stylePaddingTop($padding)
-                        ->stylePaddingBottom($padding)
+                        ->stylePaddingTop($paddingSchoolLines)
+                        ->stylePaddingBottom($paddingSchoolLines)
                         ->styleBorderTop($InnerLines)
                     )
                 )
@@ -802,8 +815,8 @@ class PrimarySchool extends AbstractStudentCard
                         ->setContent('&nbsp;')
                         ->styleTextSize($InputText)
                         ->stylePaddingLeft('4px')
-                        ->stylePaddingTop($padding)
-                        ->stylePaddingBottom($padding)
+                        ->stylePaddingTop($paddingSchoolLines)
+                        ->stylePaddingBottom($paddingSchoolLines)
                         ->styleBorderTop($InnerLines)
                     )
                 )
@@ -812,8 +825,8 @@ class PrimarySchool extends AbstractStudentCard
                         ->setContent('&nbsp;')
                         ->styleTextSize($InputText)
                         ->stylePaddingLeft('4px')
-                        ->stylePaddingTop($padding)
-                        ->stylePaddingBottom($padding)
+                        ->stylePaddingTop($paddingSchoolLines)
+                        ->stylePaddingBottom($paddingSchoolLines)
                         ->styleBorderTop($InnerLines)
                     )
                 )
@@ -822,8 +835,8 @@ class PrimarySchool extends AbstractStudentCard
                         ->setContent('&nbsp;')
                         ->styleTextSize($InputText)
                         ->stylePaddingLeft('4px')
-                        ->stylePaddingTop($padding)
-                        ->stylePaddingBottom($padding)
+                        ->stylePaddingTop($paddingSchoolLines)
+                        ->stylePaddingBottom($paddingSchoolLines)
                         ->styleBorderTop($InnerLines)
                     )
                 )
@@ -877,11 +890,13 @@ class PrimarySchool extends AbstractStudentCard
     }
 
     /**
+     *
      * @param array $pageList
+     * @param string $Part
      *
      * @return Frame
      */
-    public function buildDocument($pageList = array())
+    public function buildDocument(array $pageList = array(), string $Part = '0'): Frame
     {
         return (new Frame())->addDocument((new Document())
             ->addPage($this->buildPage())

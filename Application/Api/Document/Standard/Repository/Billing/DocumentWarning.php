@@ -10,7 +10,10 @@ use SPHERE\Application\Document\Generator\Repository\Page;
 use SPHERE\Application\Document\Generator\Repository\Section;
 use SPHERE\Application\Document\Generator\Repository\Slice;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer as GatekeeperConsumer;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Setting\Consumer\Consumer;
+use SPHERE\Library\NumberToWord\NumberToWord;
 
 /**
  * Class DocumentWarning Mahnung
@@ -73,9 +76,71 @@ class DocumentWarning
             }
         }
 
-        $InjectStyle = 'body { margin-left: 1.0cm !important; margin-right: 1.0cm !important; }';
+        if(GatekeeperConsumer::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'HOGA')){
+            $InjectStyle = 'body { margin-left: 1.0cm !important; margin-right: -0.5cm !important; }';
+        } else {
+            $InjectStyle = 'body { margin-left: 1.0cm !important; margin-right: 1.0cm !important; }';
+        }
+
 
         return (new Frame($InjectStyle))->addDocument($document);
+    }
+
+    /**
+     * @param $Text
+     * @param $InvoiceNumber
+     * @param $BillTime
+     * @param $BillName
+     * @param $TargetTime
+     * @param $ItemName
+     * @param $Count
+     * @param $Price
+     * @param $SummaryPrice
+     * @param $DebtorSalutation
+     * @param $DebtorFirstName
+     * @param $DebtorLastName
+     * @param $CauserSalutation
+     * @param $CauserFirstName
+     * @param $CauserLastName
+     * @param $Birthday
+     * @param $Date
+     * @param $Location
+     * @param $CompanyName
+     * @param $CompanyExtendedName
+     * @param $CompanyAddress
+     *
+     * @return mixed
+     */
+    private function setPlaceholders ($Text, $InvoiceNumber, $BillTime, $BillName, $TargetTime, $ItemName, $Count,
+        $Price, $SummaryPrice, $DebtorSalutation, $DebtorFirstName, $DebtorLastName, $CauserSalutation, $CauserFirstName,
+        $CauserLastName, $Birthday, $Date, $Location, $CompanyName, $CompanyExtendedName, $CompanyAddress)
+    {
+
+        $Text = str_replace('[Rechnungsnummer]', $InvoiceNumber, $Text);
+        $Text = str_replace('[Abrechnungszeitraum]', $BillTime, $Text);
+        $Text = str_replace('[Name der Abrechnung]', $BillName, $Text);
+        $Text = str_replace('[Fälligkeit]', $TargetTime, $Text);
+        $Text = str_replace('[Beitragsart]', $ItemName, $Text);
+        $Text = str_replace('[Anzahl]', $Count, $Text);
+        $Text = str_replace('[Einzelpreis]', $Price, $Text);
+        $Price2Word = NumberToWord::float2Text($Price, true);
+        $Text = str_replace('[Einzelpreis als Wort]', $Price2Word, $Text);
+        $Text = str_replace('[Gesamtpreis]', $SummaryPrice, $Text);
+        $SummaryPrice2Word = NumberToWord::float2Text($SummaryPrice, true);
+        $Text = str_replace('[Gesamtpreis als Wort]', $SummaryPrice2Word, $Text);
+        $Text = str_replace('[Beitragszahler Anrede]', $DebtorSalutation, $Text);
+        $Text = str_replace('[Beitragszahler Vorname]', $DebtorFirstName, $Text);
+        $Text = str_replace('[Beitragszahler Nachname]', $DebtorLastName, $Text);
+        $Text = str_replace('[Beitragsverursacher Anrede]', $CauserSalutation, $Text);
+        $Text = str_replace('[Beitragsverursacher Vorname]', $CauserFirstName, $Text);
+        $Text = str_replace('[Beitragsverursacher Nachname]', $CauserLastName, $Text);
+        $Text = str_replace('[Beitragsverursacher Geburtstag]', $Birthday, $Text);
+        $Text = str_replace('[Datum]', $Date, $Text);
+        $Text = str_replace('[Ort]', $Location, $Text);
+        $Text = str_replace('[Trägername]', $CompanyName, $Text);
+        $Text = str_replace('[Trägerzusatz]', $CompanyExtendedName, $Text);
+        $Text = str_replace('[Trägeradresse]', $CompanyAddress, $Text);
+        return $Text;
     }
 
     /**
@@ -96,8 +161,8 @@ class DocumentWarning
         $CompanyAddress = $Data['CompanyAddress'];
         $Subject = $Data['Subject'];
         $Content = $Data['Content'];
-        $Date = '_________________';
-        $Location = '_________________';
+        $Date = '___________________';
+        $Location = '_________________________';
         $BillTime = $Data['BillTime'];
         $BillName = $Data['BillName'];
         $Count = $Data['Count'];
@@ -121,12 +186,13 @@ class DocumentWarning
         $InvoiceNumber = $this->setEmptyString($InvoiceNumber);
         $TargetTime = $this->setEmptyString($TargetTime);
         $CompanyName = $this->setEmptyString($CompanyName);
-        $CompanyExtendedName = $this->setEmptyString($CompanyExtendedName);
+        // ist dieser nicht vorhanden, würde er ungewollt im Briefkopf stehen
+//        $CompanyExtendedName = $this->setEmptyString($CompanyExtendedName);
         $CompanyAddress = $this->setEmptyString($CompanyAddress);
         $Subject = $this->setEmptyString($Subject);
         $Content = $this->setEmptyString($Content);
-        $Date = $this->setEmptyString($Date);
-        $Location = $this->setEmptyString($Location);
+//        $Date = $this->setEmptyString($Date);
+//        $Location = $this->setEmptyString($Location);
         $BillTime = $this->setEmptyString($BillTime);
         $BillName = $this->setEmptyString($BillName);
         $Count = $this->setEmptyString($Count);
@@ -141,103 +207,81 @@ class DocumentWarning
         $CauserLastName = $this->setEmptyString($CauserLastName);
         $Birthday = $this->setEmptyString($Birthday);
 
-        $Subject = str_replace('[Rechnungsnummer]', $InvoiceNumber, $Subject);
-        $Subject = str_replace('[Abrechnungszeitraum]', $BillTime, $Subject);
-        $Subject = str_replace('[Name der Abrechnung]', $BillName, $Subject);
-        $Subject = str_replace('[Fälligkeit]', $TargetTime, $Subject);
-        $Subject = str_replace('[Beitragsart]', $ItemName, $Subject);
-        $Subject = str_replace('[Anzahl]', $Count, $Subject);
-        $Subject = str_replace('[Einzelpreis]', $Price, $Subject);
-        $Subject = str_replace('[Gesamtpreis]', $SummaryPrice, $Subject);
-        $Subject = str_replace('[Beitragszahler Anrede]', $DebtorSalutation, $Subject);
-        $Subject = str_replace('[Beitragszahler Vorname]', $DebtorFirstName, $Subject);
-        $Subject = str_replace('[Beitragszahler Nachname]', $DebtorLastName, $Subject);
-        $Subject = str_replace('[Beitragsverursacher Anrede]', $CauserSalutation, $Subject);
-        $Subject = str_replace('[Beitragsverursacher Vorname]', $CauserFirstName, $Subject);
-        $Subject = str_replace('[Beitragsverursacher Nachname]', $CauserLastName, $Subject);
-        $Subject = str_replace('[Beitragsverursacher Geburtstag]', $Birthday, $Subject);
-        $Subject = str_replace('[Datum]', $Date, $Subject);
-        $Subject = str_replace('[Ort]', $Location, $Subject);
-        $Subject = str_replace('[Trägername]', $CompanyName, $Subject);
-        $Subject = str_replace('[Trägerzusatz]', $CompanyExtendedName, $Subject);
-        $Subject = str_replace('[Trägeradresse]', $CompanyAddress, $Subject);
+        $Subject = self::setPlaceholders($Subject, $InvoiceNumber, $BillTime, $BillName, $TargetTime, $ItemName,
+            $Count, $Price, $SummaryPrice, $DebtorSalutation, $DebtorFirstName, $DebtorLastName, $CauserSalutation,
+            $CauserFirstName, $CauserLastName, $Birthday, $Date, $Location, $CompanyName, $CompanyExtendedName, $CompanyAddress);
 
-        $Content = str_replace('[Rechnungsnummer]', $InvoiceNumber, $Content);
-        $Content = str_replace('[Abrechnungszeitraum]', $BillTime, $Content);
-        $Content = str_replace('[Name der Abrechnung]', $BillName, $Content);
-        $Content = str_replace('[Fälligkeit]', $TargetTime, $Content);
-        $Content = str_replace('[Beitragsart]', $ItemName, $Content);
-        $Content = str_replace('[Anzahl]', $Count, $Content);
-        $Content = str_replace('[Einzelpreis]', $Price, $Content);
-        $Content = str_replace('[Gesamtpreis]', $SummaryPrice, $Content);
-        $Content = str_replace('[Beitragszahler Anrede]', $DebtorSalutation, $Content);
-        $Content = str_replace('[Beitragszahler Vorname]', $DebtorFirstName, $Content);
-        $Content = str_replace('[Beitragszahler Nachname]', $DebtorLastName, $Content);
-        $Content = str_replace('[Beitragsverursacher Anrede]', $CauserSalutation, $Content);
-        $Content = str_replace('[Beitragsverursacher Vorname]', $CauserFirstName, $Content);
-        $Content = str_replace('[Beitragsverursacher Nachname]', $CauserLastName, $Content);
-        $Content = str_replace('[Beitragsverursacher Geburtstag]', $Birthday, $Content);
-        $Content = str_replace('[Datum]', $Date, $Content);
-        $Content = str_replace('[Ort]', $Location, $Content);
-        $Content = str_replace('[Trägername]', $CompanyName, $Content);
-        $Content = str_replace('[Trägerzusatz]', $CompanyExtendedName, $Content);
-        $Content = str_replace('[Trägeradresse]', $CompanyAddress, $Content);
+        $Content = self::setPlaceholders($Content, $InvoiceNumber, $BillTime, $BillName, $TargetTime, $ItemName,
+            $Count, $Price, $SummaryPrice, $DebtorSalutation, $DebtorFirstName, $DebtorLastName, $CauserSalutation,
+            $CauserFirstName, $CauserLastName, $Birthday, $Date, $Location, $CompanyName, $CompanyExtendedName, $CompanyAddress);
+
+        $TextWith = '100%';
+        $EmptyWith = '0%';
+        if(GatekeeperConsumer::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'HOGA')){
+            $TextWith = '70%';
+            $EmptyWith = '30%';
+        }
 
         return (new Page())
             ->addSlice($this->getHeaderSlice('150px'))
             ->addSlice($this->getAddressSlice($CompanyName, $CompanyExtendedName, $CompanyAddress, $tblPersonDebtor))
             ->addSlice((new Slice())
                 ->addElement((new Element())
-                    ->setContent('&nbsp;') // $Location . ', den ' . $Date)
+                    ->setContent('&nbsp;')
                     ->styleTextSize(self::TEXT_SIZE)
                     ->styleAlignRight()
                     ->styleMarginTop('50px')
                 )
             )
             ->addSlice((new Slice())
-                ->addElement((new Element())
-                    ->setContent($Subject)
-                    ->styleTextSize('18px')
-                    ->styleTextBold()
-                    ->styleMarginTop('20px')
-                )
-            )
-            ->addSlice((new Slice())
-                ->addElement((new Element())
-                    ->setContent(nl2br($Content))
-                    ->styleTextSize(self::TEXT_SIZE)
-                    ->styleAlignJustify()
-                    ->styleMarginTop('25px')
-                )
-            )
-            ->addSlice((new Slice())
-                ->addElement((new Element())
-                    ->setContent('&nbsp;') // $Location . ', den ' . $Date)
-                    ->setContent($Location . ', den ' . $Date)
-                    ->styleTextSize(self::TEXT_SIZE)
-                    ->styleAlignRight()
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent($Subject)
+                        ->styleTextSize('18px')
+                        ->styleTextBold()
+                        ->styleMarginTop('20px')
+                    , $TextWith)
+                    ->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
+                    , $EmptyWith)
                 )
             )
             ->addSlice((new Slice())
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        ->styleTextSize('8pt')
-                        ->styleAlignRight()
-                        ->styleHeight('10px')
-                        , '53%'
-                    )
+                        ->setContent(nl2br($Content))
+                        ->styleTextSize(self::TEXT_SIZE)
+                        ->styleAlignJustify()
+                        ->styleMarginTop('25px')
+                    , $TextWith)
                     ->addElementColumn((new Element())
-                        ->setContent('Ort')
+                        ->setContent('&nbsp;')
+                    , $EmptyWith)
+                )
+            )
+            ->addSlice((new Slice())
+                ->addElement((new Element())
+                    ->setContent($Location . ', den ' . $Date)
+                    ->styleTextSize(self::TEXT_SIZE)
+                    ->stylePaddingTop('25px')
+                )
+            )
+            ->addSlice((new Slice())
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('&nbsp;Ort')
                         ->styleTextSize('8pt')
                         ->styleHeight('10px')
-                        , '26%'
+                        , '34%'
                     )
                     ->addElementColumn((new Element())
                         ->setContent('Datum')
                         ->styleTextSize('8pt')
                         ->styleHeight('10px')
-                        , '21%'
+                        , '14%'
+                    )
+                    ->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
                     )
                 )
             );
@@ -259,25 +303,32 @@ class DocumentWarning
 
     /**
      * @param string $Height
+     * @param string $Acronym
      *
      * @return Slice
      */
     private function getHeaderSlice($Height = '200px')
     {
-        if (($tblSetting = Consumer::useService()->getSetting(
-            'Api', 'Document', 'Standard', 'Billing_PictureAddress'))
-        ) {
-            $pictureAddress = (string)$tblSetting->getValue();
-        } else {
-            $pictureAddress = '';
-        }
 
-        if (($tblSetting = Consumer::useService()->getSetting(
-            'Api', 'Document', 'Standard', 'Billing_PictureHeight'))
-        ) {
-            $pictureHeight = (string)$tblSetting->getValue();
+        if(GatekeeperConsumer::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'HOGA')){
+            $pictureAddress = 'Common/Style/Resource/Document/Hoga/HOGA-Briefbogen_2024_without_space.png';
+            $pictureHeight = '370';
         } else {
-            $pictureHeight = '';
+            if (($tblSetting = Consumer::useService()->getSetting(
+                'Api', 'Document', 'Standard', 'Billing_PictureAddress'))
+            ) {
+                $pictureAddress = (string)$tblSetting->getValue();
+            } else {
+                $pictureAddress = '';
+            }
+
+            if (($tblSetting = Consumer::useService()->getSetting(
+                'Api', 'Document', 'Standard', 'Billing_PictureHeight'))
+            ) {
+                $pictureHeight = (string)$tblSetting->getValue();
+            } else {
+                $pictureHeight = '';
+            }
         }
 
         if ($pictureAddress != '') {

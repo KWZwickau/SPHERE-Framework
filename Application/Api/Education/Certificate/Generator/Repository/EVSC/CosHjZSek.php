@@ -31,8 +31,8 @@ class CosHjZSek extends Certificate
         $obligationToVotePart = $this->getObligationToVotePartCustomForCoswig($personId,
             self::TEXT_SIZE);
 
-        return CosHjSek::buildContentPage($personId, $this->isSample(), 'Halbjahreszeugnis der Schule (Sekundarstufe)',
-            '1. Schulhalbjahr', $gradeLanesSlice, $subjectLanesSlice, $obligationToVotePart
+        return CosHjSek::buildContentPage($personId, $this->isSample(), 'Halbjahreszeugnis der Oberschule',
+            '1. Schulhalbjahr', $gradeLanesSlice, $subjectLanesSlice, $obligationToVotePart, false
         );
     }
 }

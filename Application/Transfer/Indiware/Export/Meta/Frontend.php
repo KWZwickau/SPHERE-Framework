@@ -2,8 +2,9 @@
 
 namespace SPHERE\Application\Transfer\Indiware\Export\Meta;
 
-use SPHERE\Application\Education\Lesson\Division\Division;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
@@ -19,70 +20,114 @@ use SPHERE\System\Extension\Extension;
 
 /**
  * Class Frontend
+ *
  * @package SPHERE\Application\Transfer\Indiware\Export\Meta
  */
 class Frontend extends Extension implements IFrontendInterface
 {
-
     /**
+     * @param bool $IsAllYears
+     * @param string|null $YearId
+     *
      * @return Stage
      */
-    public function frontendPrepare()
+    public function frontendPrepare(bool $IsAllYears = false, ?string $YearId = null): Stage
     {
         $Stage = new Stage('Indiware', 'Datentransfer');
         $Stage->addButton(new Standard('Zurück', '/Transfer/Indiware/Export', new ChevronLeft()));
         $Stage->setMessage('Exportvorbereitung / Klassenauswahl');
 
-        $YearId = null;
-        $tblDivisionList = array();
-        $tableContent = array();
-        if(($tblYearList = Term::useService()->getYearByNow())){
-            foreach($tblYearList as $tblYear) {
-                $currentList = Division::useService()->getDivisionAllByYear($tblYear);
-                if($currentList){
-                    foreach($currentList as $current){
-                        if($current->getTypeName() == 'Gymnasium'){
-                            $tblDivisionList[] = $current;
-                        }
-                    }
-                }
-            }
-        }
-        if(!empty($tblDivisionList)){
-            // Klassen der Schulart: Gymnasium
-            array_walk($tblDivisionList, function(TblDivision $tblDivision) use (&$tableContent){
-                $item['Division'] = $tblDivision->getDisplayName();
-                $item['Term'] = $tblDivision->getServiceTblYear()->getDisplayName();
-                $item['SchoolType'] = $tblDivision->getTypeName();
-                $item['countStudent'] = 0;
-                $item['Option'] = new Standard('', '/Api/Transfer/Indiware/Meta/Download', new Download(), array('DivisionId' => $tblDivision->getId()));
-
-                $tblDivisionStudentList = Division::useService()->getDivisionStudentAllByDivision($tblDivision);
-                if($tblDivisionStudentList){
-                    $item['countStudent'] = count($tblDivisionStudentList);
-                }
-
-                array_push($tableContent, $item);
-            });
-        }
-
-        $Stage->setContent(new Layout(
-            new LayoutGroup(
-                new LayoutRow(
-                    new LayoutColumn(
-                        new TableData($tableContent, null, array(
-                            'Division' => 'Klasse',
-                            'Term' => 'Schuljahr',
-                            'SchoolType' => 'Schulart',
-                            'countStudent' => 'Anzahl Schüler',
-                            'Option' => '',
-                        ))
-                    )
-                )
-            )
+        $Stage->setContent($this->getCourseSelectStageContent(
+            '/Transfer/Indiware/Export/Meta',
+            '/Api/Transfer/Indiware/Meta/Download',
+            $IsAllYears,
+            $YearId
         ));
 
         return $Stage;
     }
 
+    /**
+     * @param string $route
+     * @param string $downloadApiRoute
+     * @param bool $IsAllYears
+     * @param string|null $YearId
+     *
+     * @return Layout
+     */
+    public function getCourseSelectStageContent(string $route, string $downloadApiRoute, bool $IsAllYears, ?string $YearId): Layout
+    {
+        list($yearButtonList, $filterYearList)
+            = Term::useFrontend()->getYearButtonsAndYearFilters($route, $IsAllYears, $YearId);
+
+        $dataList = array();
+        $tblDivisionCourseList = array();
+        if ($filterYearList) {
+            foreach ($filterYearList as $tblYear) {
+                if (($tblDivisionCourseListDivision = DivisionCourse::useService()->getDivisionCourseListBy($tblYear, TblDivisionCourseType::TYPE_DIVISION))) {
+                    $tblDivisionCourseList = $tblDivisionCourseListDivision;
+                }
+                if (($tblDivisionCourseListCoreGroup = DivisionCourse::useService()->getDivisionCourseListBy($tblYear,
+                    TblDivisionCourseType::TYPE_CORE_GROUP))) {
+                    $tblDivisionCourseList = array_merge($tblDivisionCourseList, $tblDivisionCourseListCoreGroup);
+                }
+            }
+        } else {
+            if (($tblDivisionCourseListDivision = DivisionCourse::useService()->getDivisionCourseListBy(null, TblDivisionCourseType::TYPE_DIVISION))) {
+                $tblDivisionCourseList = $tblDivisionCourseListDivision;
+            }
+            if (($tblDivisionCourseListCoreGroup = DivisionCourse::useService()->getDivisionCourseListBy(null, TblDivisionCourseType::TYPE_CORE_GROUP))) {
+                $tblDivisionCourseList = array_merge($tblDivisionCourseList, $tblDivisionCourseListCoreGroup);
+            }
+        }
+
+        /** @var TblDivisionCourse $tblDivisionCourse */
+        foreach ($tblDivisionCourseList as $tblDivisionCourse) {
+            $count = $tblDivisionCourse->getCountStudents();
+            $dataList[] = array(
+                'Year' => $tblDivisionCourse->getYearName(),
+                'DivisionCourse' => $tblDivisionCourse->getDisplayName(),
+                'DivisionCourseType' => $tblDivisionCourse->getTypeName(),
+                'SchoolTypes' => $tblDivisionCourse->getSchoolTypeListFromStudents(true),
+                'Count' => $count,
+                'Option' => $count > 0
+                    ? new Standard('', $downloadApiRoute, new Download(), array('DivisionCourseId' => $tblDivisionCourse->getId()))
+                    : ''
+            );
+        }
+
+        return new Layout(array(
+            new LayoutGroup(array(
+                new LayoutRow(new LayoutColumn(
+                    empty($yearButtonList) ? '' : $yearButtonList
+                )),
+            )),
+            new LayoutGroup(
+                new LayoutRow(
+                    new LayoutColumn(
+                        new TableData($dataList, null,
+                            array(
+                                'Year' => 'Schuljahr',
+                                'DivisionCourse' => 'Kurs',
+                                'DivisionCourseType' => 'Kurs-Typ',
+                                'SchoolTypes' => 'Schularten',
+                                'Count' => 'Schüler',
+                                'Option' => '',
+                            ), array(
+                                'order' => array(
+                                    array('0', 'desc'),
+                                    array('1', 'asc'),
+                                ),
+                                'columnDefs' => array(
+                                    array('type' => 'natural', 'targets' => 1),
+                                    array('orderable' => false, 'width' => '1%', 'targets' => -1)
+                                ),
+                                'responsive' => false
+                            )
+                        )
+                    )
+                )
+            )
+        ));
+    }
 }

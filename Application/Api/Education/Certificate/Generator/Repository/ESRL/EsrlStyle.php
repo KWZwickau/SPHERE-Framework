@@ -25,7 +25,7 @@ abstract class EsrlStyle extends Certificate
     {
 
         $PictureSection = (new Section())
-            ->addElementColumn((new Element\Image('Common/Style/Resource/Logo/ESRL_Zeugnis_Logo.jpg',
+            ->addElementColumn((new Element\Image('Common/Style/Resource/Logo/ESRL.jpg',
                 'auto', $PictureHeight))
                 , '60%')
 //                    ->addElementColumn((new Element()), '25%')
@@ -88,7 +88,7 @@ abstract class EsrlStyle extends Certificate
             ->styleTextSize(self::TEXT_SIZE)
             , '10%')
             ->addElementColumn((new Element())
-                ->setContent('{{ Content.P'.$personId.'.Division.Data.Level.Name }}{{ Content.P'.$personId.'.Division.Data.Name }}')
+                ->setContent('{{ Content.P' . $personId . '.Division.Data.Name }}')
                 ->styleTextSize(self::TEXT_SIZE)
                 ->styleBorderBottom('1px', '#999')
                 ->styleAlignCenter()
@@ -202,7 +202,7 @@ abstract class EsrlStyle extends Certificate
                                  &ndash;
                              {% endif %}')
                         ->styleAlignCenter()
-                        ->styleBackgroundColor('#CCC')
+                        ->styleBackgroundColor(self::BACKGROUND_GRADE_FIELD)
                         ->stylePaddingTop('1px')
                         ->stylePaddingBottom('1px')
                         ->styleMarginTop('8px')
@@ -313,7 +313,7 @@ abstract class EsrlStyle extends Certificate
                                              &ndash;
                                          {% endif %}')
                         ->styleAlignCenter()
-                        ->styleBackgroundColor('#CCC')
+                        ->styleBackgroundColor(self::BACKGROUND_GRADE_FIELD)
                         ->stylePaddingTop('1px')
                         ->stylePaddingBottom('1px')
                         ->styleMarginTop('8px')
@@ -334,22 +334,30 @@ abstract class EsrlStyle extends Certificate
 
     /**
      * @param        $personId
-     * @param string $Hight
+     * @param bool   $hasGTA
+     * @param string $Height
      *
      * @return Section
      */
-    public function getESRLRemark($personId, $Hight = '100px')
+    public function getESRLRemark($personId, $hasGTA, $Height = '100px')
     {
 
         $Section = new Section();
         $Section->addElementColumn((new Element())
-            ->setContent('{% if(Content.P'.$personId.'.Input.Remark is not empty) %}
-                    {{ Content.P'.$personId.'.Input.Remark|nl2br }}
-                {% else %}
-                    &nbsp;
-                {% endif %}')
+            ->setContent('
+                {% if(Content.P'.$personId.'.Input.RemarkWithoutTeam is not empty) %}
+                    {{ Content.P'.$personId.'.Input.RemarkWithoutTeam|nl2br }} <br>
+                {% endif %}'
+                . ($hasGTA
+                    ? '{% if(Content.P'.$personId.'.Input.GTA is not empty) %}
+                        {{ Content.P'.$personId.'.Input.GTA|nl2br }}
+                    {% else %}
+                        &nbsp;
+                    {% endif %}'
+                    : '')
+            )
             ->styleAlignJustify()
-            ->styleHeight($Hight)
+            ->styleHeight($Height)
             ->styleMarginTop('20px')
         );
         return $Section;
@@ -399,7 +407,7 @@ abstract class EsrlStyle extends Certificate
             , '24%')
             ->addElementColumn((new Element())
                 ->setContent('{% if(Content.P'.$personId.'.Input.Transfer) %}
-                        {{ Content.P'.$personId.'.Input.Transfer }}
+                        {{ Content.P'.$personId.'.Input.Transfer }}.
                     {% else %}
                           &nbsp;
                     {% endif %}')

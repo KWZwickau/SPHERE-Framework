@@ -1,8 +1,8 @@
 <?php
 namespace SPHERE\Application\Education\Lesson\Subject;
 
-use SPHERE\Application\Education\Lesson\Division\Division;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\ClassRegister\Digital\Digital;
+use SPHERE\Application\Education\Graduation\Grade\Grade;
 use SPHERE\Application\Education\Lesson\Subject\Service\Data;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblCategory;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblCategorySubject;
@@ -11,8 +11,6 @@ use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblGroupCategory;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Service\Setup;
 use SPHERE\Application\People\Meta\Student\Student;
-use SPHERE\Application\People\Person\Person;
-use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
@@ -50,10 +48,9 @@ class Service extends AbstractService
     /**
      * @return bool|TblSubject[]
      */
-    public function getSubjectAll()
+    public function getSubjectAll(bool $withInActive = false)
     {
-
-        return (new Data($this->getBinding()))->getSubjectAll();
+        return (new Data($this->getBinding()))->getSubjectAll($withInActive);
     }
 
     /**
@@ -61,26 +58,22 @@ class Service extends AbstractService
      */
     public function getSubjectOrientationAll()
     {
-
-        $tblSubjectList = array();
-        $tblCategory = $this->getGroupByIdentifier('ORIENTATION');
-        if ($tblCategory) {
-            $tblCategory = $tblCategory->getTblCategoryAll();
-            if ($tblCategory) {
-                array_walk($tblCategory, function (TblCategory &$tblCategory) {
-                    $tblSubjects = $tblCategory->getTblSubjectAll();
-                    $tblCategory = $tblSubjects ? $tblSubjects : null;
-                });
-                if ($tblCategory) {
-                    array_walk_recursive($tblCategory, function (TblSubject $tblSubject = null) use (&$tblSubjectList) {
-                        if ($tblSubject) {
-                            $tblSubjectList[$tblSubject->getId()] = $tblSubject;
+        $resultList = array();
+        $tblGroup = $this->getGroupByIdentifier('ORIENTATION');
+        if ($tblGroup) {
+            $tblCategoryList = $tblGroup->getTblCategoryAll();
+            if ($tblCategoryList) {
+                foreach ($tblCategoryList as $tblCategory) {
+                    if (($tblSubjectList = $tblCategory->getTblSubjectAll())) {
+                        foreach ($tblSubjectList as $tblSubject) {
+                            $resultList[$tblSubject->getId()] = $tblSubject;
                         }
-                    });
+                    }
                 }
             }
         }
-        return (empty($tblSubjectList) ? false : $tblSubjectList);
+
+        return (empty($resultList) ? false : $resultList);
     }
 
     /**
@@ -158,7 +151,7 @@ class Service extends AbstractService
                 if ($tblSubjectAll) {
                     array_walk_recursive($tblSubjectAll, function ($tblSubject) use (&$tblSubjectList) {
 
-                        $tblSubjectList[] = $tblSubject;
+                        $tblSubjectList[$tblSubject->getId()] = $tblSubject;
                     });
                 }
             }
@@ -194,23 +187,22 @@ class Service extends AbstractService
      */
     public function getSubjectElectiveAll()
     {
-
-        $tblSubjectList = array();
-        $tblCategory = $this->getGroupByIdentifier('ELECTIVE');
-        if ($tblCategory) {
-            $tblCategory = $tblCategory->getTblCategoryAll();
-            if ($tblCategory) {
-                array_walk($tblCategory, function (TblCategory &$tblCategory) {
-                    $tblCategory = $tblCategory->getTblSubjectAll();
-                });
-                if ($tblCategory) {
-                    array_walk_recursive($tblCategory, function ($tblSubject) use (&$tblSubjectList) {
-                        $tblSubjectList[] = $tblSubject;
-                    });
+        $resultList = array();
+        $tblGroup = $this->getGroupByIdentifier('ELECTIVE');
+        if ($tblGroup) {
+            $tblCategoryList = $tblGroup->getTblCategoryAll();
+            if ($tblCategoryList) {
+                foreach ($tblCategoryList as $tblCategory) {
+                    if (($tblSubjectList = $tblCategory->getTblSubjectAll())) {
+                        foreach ($tblSubjectList as $tblSubject) {
+                            $resultList[$tblSubject->getId()] = $tblSubject;
+                        }
+                    }
                 }
             }
         }
-        return (empty($tblSubjectList) ? false : $tblSubjectList);
+
+        return (empty($resultList) ? false : $resultList);
     }
 
     /**
@@ -529,7 +521,7 @@ class Service extends AbstractService
     }
 
     /**
-     * @param int $Id
+     * @param $Id
      *
      * @return bool|TblSubject
      */
@@ -814,181 +806,6 @@ class Service extends AbstractService
     }
 
     /**
-     * @param                  $tblPersonList
-     * @param TblDivision|null $tblDivision
-     *
-     * @return false|TblPerson[]
-     */
-    public function filterPersonListByDivision(
-        $tblPersonList,
-        TblDivision $tblDivision = null
-    ) {
-
-        if (is_array($tblPersonList)) {
-            $resultPersonList = array();
-            /** @var TblPerson $tblPerson */
-            foreach ($tblPersonList as $tblPerson) {
-                if ($tblDivision) {
-
-                    $tblPersonDivisionList = Student::useService()->getCurrentDivisionListByPerson($tblPerson);
-                    if ($tblPersonDivisionList) {
-                        foreach ($tblPersonDivisionList as $division) {
-                            if ($division->getId() == $tblDivision->getId()) {
-                                $resultPersonList[$tblPerson->getId()] = $tblPerson;
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-
-            return empty( $resultPersonList ) ? false : $resultPersonList;
-        } else {
-            return false;
-        }
-    }
-
-    /**
-     * @param IFormInterface   $Form
-     * @param string           $Id // SubjectGroupId
-     * @param string           $SubjectGroup
-     * @param string           $Group
-     * @param TblSubject       $tblSubject
-     * @param null             $DataAddPerson
-     * @param null             $DataRemovePerson
-     * @param TblDivision|null $tblFilterDivision
-     *
-     * @return IFormInterface|string
-     */
-    public function addPersonsToSubject(
-        IFormInterface $Form,
-        $Id,
-        $SubjectGroup,
-        $Group,
-        TblSubject $tblSubject,
-        $DataAddPerson = null,
-        $DataRemovePerson = null,
-        TblDivision $tblFilterDivision = null
-    ) {
-
-        /**
-         * Skip to Frontend
-         */
-        if ($DataAddPerson === null && $DataRemovePerson === null) {
-            return $Form;
-        }
-
-        // entfernen
-        if ($DataRemovePerson !== null) {
-            $this->removePersonListFromSubject($DataRemovePerson, $SubjectGroup, $Group);
-        }
-
-        // hinzufügen
-        if ($DataAddPerson !== null) {
-            $this->addPersonListFromSubject($DataAddPerson, $tblSubject, $SubjectGroup, $Group);
-        }
-
-        return new Success('Daten erfolgreich gespeichert', new \SPHERE\Common\Frontend\Icon\Repository\Success())
-        .new Redirect('/Education/Lesson/Subject/Link/Person/Add', Redirect::TIMEOUT_SUCCESS, array(
-            'Id'               => $Id,
-            'SubjectId'        => $tblSubject->getId(),
-            'FilterDivisionId' => $tblFilterDivision ? $tblFilterDivision->getId() : null,
-        ));
-    }
-
-    /**
-     * @param IFormInterface $Form
-     * @param $Id
-     * @param $SubjectId
-     * @param null $Filter
-     *
-     * @return IFormInterface|string
-     */
-    public function getFilter(IFormInterface $Form, $Id, $SubjectId, $Filter = null)
-    {
-
-        /**
-         * Skip to Frontend
-         */
-        if ($Filter === null) {
-            return $Form;
-        }
-
-        $tblDivision = false;
-        if (isset( $Filter['Division'] )) {
-            $tblDivision = Division::useService()->getDivisionById($Filter['Division']);
-        }
-
-        return new Success('Die verfügbaren Personen werden gefiltert.',
-            new \SPHERE\Common\Frontend\Icon\Repository\Success())
-        .new Redirect('/Education/Lesson/Subject/Link/Person/Add', Redirect::TIMEOUT_SUCCESS, array(
-            'Id'               => $Id,
-            'SubjectId'        => $SubjectId,
-            'FilterDivisionId' => $tblDivision ? $tblDivision->getId() : null,
-        ));
-    }
-
-    /**
-     * @param            $DataRemovePerson
-     * @param            $SubjectGroup
-     * @param            $Group
-     */
-    private function removePersonListFromSubject($DataRemovePerson, $SubjectGroup, $Group)
-    {
-
-        foreach ($DataRemovePerson as $personId => $value) {
-            $tblPerson = Person::useService()->getPersonById($personId);
-            if ($tblPerson) {
-                $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
-                if ($tblStudent) {
-                    if ($SubjectGroup == 'Wahlfach') {
-                        $SubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('ELECTIVE');
-                    }
-                    if ($SubjectGroup == 'Neigungskurs') {
-                        $SubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('ORIENTATION');
-                    }
-                    $SubjectRanking = Student::useService()->getStudentSubjectRankingByIdentifier($Group);
-                    if (isset( $SubjectType ) && $SubjectType && $SubjectRanking) {
-                        $Subject = Student::useService()->getStudentSubjectByStudentAndSubjectAndSubjectRanking($tblStudent, $SubjectType, $SubjectRanking);
-                        if ($Subject) {
-                            Student::useService()->removeStudentSubject($Subject);
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    /**
-     * @param array      $DataAddPerson
-     * @param TblSubject $tblSubject
-     * @param string     $SubjectGroup
-     * @param string     $Group
-     */
-    private function addPersonListFromSubject($DataAddPerson, TblSubject $tblSubject, $SubjectGroup, $Group)
-    {
-
-        foreach ($DataAddPerson as $personId => $value) {
-            $tblPerson = Person::useService()->getPersonById($personId);
-            if ($tblPerson) {
-                $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
-                if ($tblStudent) {
-                    if ($SubjectGroup == 'Wahlfach') {
-                        $tblSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('ELECTIVE');
-                    }
-                    if ($SubjectGroup == 'Neigungskurs') {
-                        $tblSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('ORIENTATION');
-                    }
-                    $tblSubjectRanking = Student::useService()->getStudentSubjectRankingByIdentifier($Group);
-                    if (isset( $tblSubjectType ) && $tblSubjectType && $tblSubjectRanking) {
-                        Student::useService()->addStudentSubject($tblStudent, $tblSubjectType, $tblSubjectRanking, $tblSubject);
-                    }
-                }
-            }
-        }
-    }
-
-    /**
      * @param TblCategory $tblCategory
      * @param TblSubject $tblSubject
      *
@@ -1061,7 +878,7 @@ class Service extends AbstractService
         $orientationSubject = new TblSubject();
         $orientationSubject->setId(TblSubject::PSEUDO_ORIENTATION_ID);
         $orientationSubject->setAcronym('NK');
-        $orientationSubject->setName('Neigungskurs');
+        $orientationSubject->setName((Student::useService()->getStudentSubjectTypeByIdentifier('ORIENTATION'))->getName());
 
         return $orientationSubject;
     }
@@ -1088,5 +905,127 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getSubjectAllByName($Name);
+    }
+
+    /**
+     * @param string $acronym
+     *
+     * @return bool|TblSubject
+     */
+    public function getSubjectByVariantAcronym(string $acronym)
+    {
+        // abweichende Fächer
+        if ($acronym == 'DE' || $acronym == 'D' || $acronym == 'DEU') {
+            $tblSubject = $this->getSubjectByAcronym('DE');
+            if (!$tblSubject) {
+                $tblSubject = $this->getSubjectByAcronym('D');
+            }
+            if (!$tblSubject) {
+                $tblSubject = $this->getSubjectByAcronym('DEU');
+            }
+        } elseif ($acronym == 'EN' || $acronym == 'ENG') {
+            $tblSubject = $this->getSubjectByAcronym('EN');
+            if (!$tblSubject) {
+                $tblSubject = $this->getSubjectByAcronym('ENG');
+            }
+        } elseif ($acronym == 'BI' || $acronym == 'BIO') {
+            $tblSubject = $this->getSubjectByAcronym('BIO');
+            if (!$tblSubject) {
+                $tblSubject = $this->getSubjectByAcronym('BI');
+            }
+        } elseif ($acronym == 'RE' || $acronym == 'REV' || $acronym == 'RELI' || $acronym == 'REE' || $acronym == 'RE/e') {
+            $tblSubject = $this->getSubjectByAcronym('RE/e');
+            if (!$tblSubject) {
+                $tblSubject = $this->getSubjectByAcronym('REV');
+            }
+            if (!$tblSubject) {
+                $tblSubject = $this->getSubjectByAcronym('RELI');
+            }
+            if (!$tblSubject) {
+                $tblSubject = $this->getSubjectByAcronym('REE');
+            }
+            if (!$tblSubject) {
+                $tblSubject = $this->getSubjectByAcronym('RE');
+            }
+        } elseif ($acronym == 'REK' || $acronym == 'RE/k') {
+            $tblSubject = $this->getSubjectByAcronym('RE/k');
+            if (!$tblSubject) {
+                $tblSubject = $this->getSubjectByAcronym('REK');
+            }
+        } elseif ($acronym == 'IN' || $acronym == 'INFO' || $acronym == 'INF') {
+            $tblSubject = $this->getSubjectByAcronym('INF');
+            if (!$tblSubject) {
+                $tblSubject = $this->getSubjectByAcronym('IN');
+            }
+            if (!$tblSubject) {
+                $tblSubject = $this->getSubjectByAcronym('INFO');
+            }
+        } elseif ($acronym == 'WK' || $acronym == 'WE') {
+            $tblSubject = $this->getSubjectByAcronym('WE');
+            if (!$tblSubject) {
+                $tblSubject = $this->getSubjectByAcronym('WK');
+            }
+        } elseif ($acronym == 'PH' || $acronym == 'PHY') {
+            $tblSubject = $this->getSubjectByAcronym('PH');
+            if (!$tblSubject) {
+                $tblSubject = $this->getSubjectByAcronym('PHY');
+            }
+        } elseif ($acronym == 'WTH' || $acronym == 'WTHD' || $acronym == 'WTHS' || $acronym == 'WTS') {
+            $tblSubject = $this->getSubjectByAcronym('WTH');
+            if (!$tblSubject) {
+                $tblSubject = $this->getSubjectByAcronym('WTHD');
+            }
+            if (!$tblSubject) {
+                $tblSubject = $this->getSubjectByAcronym('WTHS');
+            }
+            if (!$tblSubject) {
+                $tblSubject = $this->getSubjectByAcronym('WTS');
+            }
+        } elseif ($acronym == 'G/R/W' || $acronym == 'GRW') {
+            $tblSubject = $this->getSubjectByAcronym('G/R/W');
+            if (!$tblSubject) {
+                $tblSubject = $this->getSubjectByAcronym('GRW');
+            }
+        } elseif ($acronym == 'GK' || $acronym == 'GKR') {
+            $tblSubject = $this->getSubjectByAcronym('GK');
+            if (!$tblSubject) {
+                $tblSubject = $this->getSubjectByAcronym('GKR');
+            }
+        } else {
+            $tblSubject = $this->getSubjectByAcronym($acronym);
+        }
+
+        return $tblSubject;
+    }
+
+    /**
+     * @param TblSubject $tblSubject
+     * @param bool $isActive
+     *
+     * @return bool
+     */
+    public function updateSubjectActive(TblSubject $tblSubject, bool $isActive): bool
+    {
+        return (new Data($this->getBinding()))->updateSubjectActive($tblSubject, $isActive);
+    }
+
+    /**
+     * @param TblSubject $tblSubject
+     *
+     * @return bool
+     */
+    public function getIsSubjectUsed(TblSubject $tblSubject): bool
+    {
+        // Notenbuch
+        if (Grade::useService()->getIsSubjectUsedInGradeBook($tblSubject)) {
+            return true;
+        }
+
+        // Klassenbuch
+        if (Digital::useService()->getIsSubjectUsedInDigital($tblSubject)) {
+            return true;
+        }
+
+        return false;
     }
 }

@@ -101,9 +101,10 @@ class TableData extends Table
                     /**
                      * With Object, use getter instead of property (if available)
                      */
-                    if (is_object($Column) && method_exists($Row, 'get'.substr(trim($Index), 2))) {
-                        $Column = $Row->{'get'.substr(trim($Index), 2)}();
-                    }
+                    //ToDO SR Wozu war das gut?
+//                    if (is_object($Column) && method_exists($Row, 'get'.substr(trim($Index), 2))) {
+//                        $Column = $Row->{'get'.substr(trim($Index), 2)}();
+//                    }
                     /**
                      * Other values
                      */
@@ -152,7 +153,7 @@ class TableData extends Table
                     /**
                      * With Object, use getter instead of property (if available)
                      */
-                    if (is_object($Column) && method_exists($Content[1], 'get'.substr(trim($Index), 2))) {
+                    if (is_object($Column) && method_exists($Content[1][$Index], 'get'.substr(trim($Index), 2))) {
                         $Column = $Content[1]->{'get'.substr(trim($Index), 2)}();
                     }
 
@@ -202,8 +203,7 @@ class TableData extends Table
             }
 
             parent::__construct(
-                new TableHead(new TableRow($GridHead)), new TableBody($DataList), $TableTitle,
-                $Interactive, null
+                new TableHead(new TableRow($GridHead)), new TableBody($DataList), $TableTitle, $Interactive, null
             );
         } else {
             if ($Interactive === null) {

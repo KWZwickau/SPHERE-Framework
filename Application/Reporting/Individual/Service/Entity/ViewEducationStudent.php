@@ -1,18 +1,18 @@
 <?php
-
 namespace SPHERE\Application\Reporting\Individual\Service\Entity;
 
 use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
-use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\Education\School\Type\Type;
+use SPHERE\Application\Setting\Consumer\School\School;
 use SPHERE\Common\Frontend\Form\Repository\AbstractField;
 use SPHERE\Common\Frontend\Icon\IIconInterface;
+use SPHERE\Common\Frontend\Icon\Repository\Pencil;
 use SPHERE\System\Database\Binding\AbstractService;
 use SPHERE\System\Database\Binding\AbstractView;
 
@@ -26,21 +26,35 @@ class ViewEducationStudent extends AbstractView
 
     // Sortierung beeinflusst die Gruppenreihenfolge im Frontend
     const TBL_PERSON_ID = 'TblPerson_Id';
-
-    const TBL_DIVISION_DISPLAY = 'TblDivision_Display';
-    const TBL_LEVEL_ID = 'TblLevel_Id';
-    const TBL_LEVEL_NAME = 'TblLevel_Name';
-    const TBL_LEVEL_DESCRIPTION = 'TblLevel_Description';
-    const TBL_LEVEL_IS_CHECKED = 'TblLevel_IsChecked';
-
-    const TBL_DIVISION_NAME = 'TblDivision_Name';
-    const TBL_DIVISION_DESCRIPTION = 'TblDivision_Description';
-
-    const TBL_TYPE_NAME = 'TblType_Name';
-    const TBL_TYPE_DESCRIPTION = 'TblType_Description';
-
+    // tblYear
+    const TBL_YEAR_ID = 'TblYear_Id';
     const TBL_YEAR_YEAR = 'TblYear_Year';
     const TBL_YEAR_DESCRIPTION = 'TblYear_Description';
+    // TblType
+    const TBL_TYPE_ID = 'TblType_Id';
+    const TBL_TYPE_NAME = 'TblType_Name';
+    const TBL_TYPE_DESCRIPTION = 'TblType_Description';
+    // tblCompany
+    const TBL_COMPANY_NAME = 'TblCompany_Name';
+    const TBL_COMPANY_EXTENDED_NAME = 'TblCompany_ExtendedName';
+    // TblLessonStudentEducation
+    const TBL_LESSON_STUDENT_EDUCATION_LEVEL = 'TblLessonStudentEducation_Level';
+    // TblCourse
+    const TBL_COURSE_NAME = 'TblCourse_Name';
+    // tblLessonDivisionCourse (Division)
+    const TBL_LESSON_DIVISION_COURSE_NAME_D = 'TblLessonDivisionCourse_Name_D';
+    const TBL_LESSON_DIVISION_COURSE_DESCRIPTION_D = 'TblLessonDivisionCourse_Description_D';
+    const TBL_PERSON_TEACHER_LAST_NAME_LIST = 'TblPerson_TeacherLastNameList';
+    // tblLessonDivisionCourse (CoreGroup)
+    const TBL_LESSON_DIVISION_COURSE_NAME_C = 'TblLessonDivisionCourse_Name_C';
+    const TBL_LESSON_DIVISION_COURSE_DESCRIPTION_C = 'TblLessonDivisionCourse_Description_C';
+    const TBL_PERSON_TUTOR_LAST_NAME_LIST = 'TblPerson_TutorLastNameList';
+    // Unterrichtsgruppen
+    const TBL_LESSON_DIVISION_COURSE_TEACHING_GROUP = 'TblLessonDivisionCourse_TeachingGroup';
+    // Lerngruppen
+    const TBL_LESSON_DIVISION_COURSE_TEACHER_GROUP = 'TblLessonDivisionCourse_TeacherGroup';
+    // SekII
+    const TBL_LESSON_DIVISION_COURSE_SEKII = 'TblLessonDivisionCourse_SekII';
 
     /**
      * @return array
@@ -58,31 +72,43 @@ class ViewEducationStudent extends AbstractView
     /**
      * @Column(type="string")
      */
-    protected $TblDivision_Display;
+    protected $TblLessonStudentEducation_Level;
     /**
      * @Column(type="string")
      */
-    protected $TblLevel_Id;
+    protected $TblCompany_Name;
     /**
      * @Column(type="string")
      */
-    protected $TblLevel_Name;
+    protected $TblCompany_ExtendedName;
     /**
      * @Column(type="string")
      */
-    protected $TblLevel_Description;
+    protected $TblLessonDivisionCourse_Name_D;
     /**
      * @Column(type="string")
      */
-    protected $TblLevel_IsChecked;
+    protected $TblLessonDivisionCourse_Description_D;
     /**
      * @Column(type="string")
      */
-    protected $TblDivision_Name;
+    protected $TblPerson_TeacherLastNameList;
     /**
      * @Column(type="string")
      */
-    protected $TblDivision_Description;
+    protected $TblLessonDivisionCourse_Name_C;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblLessonDivisionCourse_Description_C;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblPerson_TutorLastNameList;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblType_Id;
     /**
      * @Column(type="string")
      */
@@ -94,11 +120,31 @@ class ViewEducationStudent extends AbstractView
     /**
      * @Column(type="string")
      */
+    protected $TblCourse_Name;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblYear_Id;
+    /**
+     * @Column(type="string")
+     */
     protected $TblYear_Year;
     /**
      * @Column(type="string")
      */
     protected $TblYear_Description;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblLessonDivisionCourse_TeachingGroup;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblLessonDivisionCourse_TeacherGroup;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblLessonDivisionCourse_SekII;
 
     /**
      * Use this method to set PropertyName to DisplayName conversions with "setNameDefinition()"
@@ -109,29 +155,41 @@ class ViewEducationStudent extends AbstractView
     {
 
         //NameDefinition
-        $this->setNameDefinition(self::TBL_DIVISION_DISPLAY, 'Bildung: Klasse');
-        $this->setNameDefinition(self::TBL_LEVEL_ID, 'Bildung: Klassenstufe');
-//        $this->setNameDefinition(self::TBL_LEVEL_NAME, 'Bildung: Klassenstufe');
-        $this->setNameDefinition(self::TBL_LEVEL_DESCRIPTION, 'Bildung: Stufen Beschreibung');
-        $this->setNameDefinition(self::TBL_LEVEL_IS_CHECKED, 'Bildung: Klasse ist Stufenübergreifend');
-        $this->setNameDefinition(self::TBL_DIVISION_NAME, 'Bildung: Klassengruppe');
-        $this->setNameDefinition(self::TBL_DIVISION_DESCRIPTION, 'Bildung: Klassen Beschreibung');
-        $this->setNameDefinition(self::TBL_TYPE_NAME, 'Bildung: Schulart');
         $this->setNameDefinition(self::TBL_YEAR_YEAR, 'Bildung: Schuljahr');
         $this->setNameDefinition(self::TBL_YEAR_DESCRIPTION, 'Bildung: Schuljahr Beschreibung');
+        $this->setNameDefinition(self::TBL_TYPE_NAME, 'Bildung: Schulart');
+        $this->setNameDefinition(self::TBL_COMPANY_NAME, 'Bildung: Schule');
+        $this->setNameDefinition(self::TBL_COMPANY_EXTENDED_NAME, 'Bildung: Schule und Zusatz');
+        $this->setNameDefinition(self::TBL_LESSON_STUDENT_EDUCATION_LEVEL, 'Bildung: Klassenstufe');
+        $this->setNameDefinition(self::TBL_COURSE_NAME, 'Bildung: Bildungsgang');
+        $this->setNameDefinition(self::TBL_LESSON_DIVISION_COURSE_NAME_D, 'Bildung: Klasse');
+//        $this->setNameDefinition(self::TBL_LESSON_DIVISION_COURSE_DESCRIPTION_D, 'Bildung: Klassen Beschreibung');
+        $this->setNameDefinition(self::TBL_PERSON_TEACHER_LAST_NAME_LIST, 'Bildung: Klassenlehrer');
+        $this->setNameDefinition(self::TBL_LESSON_DIVISION_COURSE_NAME_C, 'Bildung: Stammgruppe');
+//        $this->setNameDefinition(self::TBL_LESSON_DIVISION_COURSE_DESCRIPTION_C, 'Bildung: Stammgruppe Beschreibung');
+        $this->setNameDefinition(self::TBL_PERSON_TUTOR_LAST_NAME_LIST, 'Bildung: Tutor');
+        $this->setNameDefinition(self::TBL_LESSON_DIVISION_COURSE_TEACHING_GROUP, 'Bildung: Unterrichtsgruppen');
+        $this->setNameDefinition(self::TBL_LESSON_DIVISION_COURSE_TEACHER_GROUP, 'Bildung: Lerngruppen');
+        $this->setNameDefinition(self::TBL_LESSON_DIVISION_COURSE_SEKII, 'Bildung: SEKII Kurse');
 
         //GroupDefinition
-        $this->setGroupDefinition('Klasse', array(
-            self::TBL_DIVISION_DISPLAY,
-            self::TBL_LEVEL_ID,
-            self::TBL_DIVISION_NAME,
-            self::TBL_DIVISION_DESCRIPTION,
-            self::TBL_TYPE_NAME,
-        ));
-
-        $this->setGroupDefinition('Zeitraum', array(
+        $this->setGroupDefinition('Schulverlauf', array(
             self::TBL_YEAR_YEAR,
             self::TBL_YEAR_DESCRIPTION,
+            self::TBL_TYPE_NAME,
+            self::TBL_COMPANY_NAME,
+            self::TBL_COMPANY_EXTENDED_NAME,
+            self::TBL_LESSON_STUDENT_EDUCATION_LEVEL,
+            self::TBL_COURSE_NAME,
+            self::TBL_LESSON_DIVISION_COURSE_NAME_D,
+//            self::TBL_LESSON_DIVISION_COURSE_DESCRIPTION_D,
+            self::TBL_PERSON_TEACHER_LAST_NAME_LIST,
+            self::TBL_LESSON_DIVISION_COURSE_NAME_C,
+//            self::TBL_LESSON_DIVISION_COURSE_DESCRIPTION_C,
+            self::TBL_PERSON_TUTOR_LAST_NAME_LIST,
+            self::TBL_LESSON_DIVISION_COURSE_TEACHING_GROUP,
+            self::TBL_LESSON_DIVISION_COURSE_TEACHER_GROUP,
+            self::TBL_LESSON_DIVISION_COURSE_SEKII,
         ));
 
         // Flag um Filter zu deaktivieren (nur Anzeige von Informationen)
@@ -170,28 +228,28 @@ class ViewEducationStudent extends AbstractView
     {
 
         switch ($PropertyName) {
-            case self::TBL_LEVEL_ID:
-                // Test Address By Student
-                $Data = array();
-                $tblLevelList = Division::useService()->getLevelAll();
-                if($tblLevelList){
-                    foreach($tblLevelList as $tblLevel){
-                        // nur richtige Klassenstufen anzeigen
-                        if(!$tblLevel->getIsChecked()){
-                            $Type = '';
-                            // Schulart der Klassenstufe zusätzlich anzeigen
-                            if(($tblType = $tblLevel->getServiceTblType())){
-                                $Type = $tblType->getName();
-                            }
-                            $Data[$tblLevel->getId()] = $tblLevel->getName().' '.$Type;
-                        }
-                    }
-                }
-                $Field = $this->getFormFieldSelectBox( $Data, $PropertyName, $Label, $Icon, $doResetCount, false);
-                break;
+//            case self::TBL_LEVEL_ID:
+//                // Test Address By Student
+//                $Data = array();
+//                $tblLevelList = Division::useService()->getLevelAll();
+//                if($tblLevelList){
+//                    foreach($tblLevelList as $tblLevel){
+//                        // nur richtige Klassenstufen anzeigen
+//                        if(!$tblLevel->getIsChecked()){
+//                            $Type = '';
+//                            // Schulart der Klassenstufe zusätzlich anzeigen
+//                            if(($tblType = $tblLevel->getServiceTblType())){
+//                                $Type = $tblType->getName();
+//                            }
+//                            $Data[$tblLevel->getId()] = $tblLevel->getName().' '.$Type;
+//                        }
+//                    }
+//                }
+//                $Field = $this->getFormFieldSelectBox( $Data, $PropertyName, $Label, $Icon, $doResetCount, false);
+//                break;
             case self::TBL_TYPE_NAME:
                 $Data = Type::useService()->getPropertyList(new TblType(), TblType::ATTR_NAME);
-                $Field = $this->getFormFieldSelectBox($Data, $PropertyName, $Label, $Icon, $doResetCount, true);
+                $Field = $this->getFormFieldSelectBox($Data, $PropertyName, $Label, $Icon, $doResetCount);
                 break;
             case self::TBL_YEAR_YEAR:
                 $Data = Term::useService()->getPropertyList( new TblYear(), TblYear::ATTR_YEAR );
@@ -207,9 +265,39 @@ class ViewEducationStudent extends AbstractView
 //                $Data = Subject::useService()->getPropertyList(new TblSubject(), TblSubject::ATTR_ACRONYM);
 //                $Field = $this->getFormFieldAutoCompleter( $Data, $PropertyName, $Placeholder, $Label, $Icon, $doResetCount );
 //                break;
-            case self::TBL_LEVEL_IS_CHECKED:
-                $Data = array( 0 => 'Nein', 1 => 'Ja' );
-                $Field = $this->getFormFieldSelectBox( $Data, $PropertyName, $Label, $Icon, $doResetCount, false );
+//            case self::TBL_LEVEL_IS_CHECKED:
+//                $Data = array( 0 => 'Nein', 1 => 'Ja' );
+//                $Field = $this->getFormFieldSelectBox( $Data, $PropertyName, $Label, $Icon, $doResetCount, false );
+//                break;
+            case self::TBL_COMPANY_NAME:
+                $Data = array();
+                if(($tblSchoolList = School::useService()->getSchoolAll())){
+                    foreach($tblSchoolList as $tblSchool){
+                        if(($tblCompany = $tblSchool->getServiceTblCompany())){
+                            $Data[] = $tblCompany->getName();
+                        }
+                    }
+                }
+                if(!empty($Data)){
+                    $Field = $this->getFormFieldSelectBox($Data, $PropertyName, $Label, $Icon, $doResetCount);
+                } else {
+                    $Field = parent::getFormField( $PropertyName, $Placeholder, $Label, ($Icon?$Icon:new Pencil()), $doResetCount );
+                }
+                break;
+            case self::TBL_COMPANY_EXTENDED_NAME:
+                $Data = array();
+                if(($tblSchoolList = School::useService()->getSchoolAll())){
+                    foreach($tblSchoolList as $tblSchool){
+                        if(($tblCompany = $tblSchool->getServiceTblCompany())){
+                            $Data[] = $tblCompany->getDisplayName();
+                        }
+                    }
+                }
+                if(!empty($Data)){
+                    $Field = $this->getFormFieldSelectBox($Data, $PropertyName, $Label, $Icon, $doResetCount);
+                } else {
+                    $Field = parent::getFormField( $PropertyName, $Placeholder, $Label, ($Icon?$Icon:new Pencil()), $doResetCount );
+                }
                 break;
 
             default:

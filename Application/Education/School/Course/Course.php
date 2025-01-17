@@ -9,12 +9,10 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
-use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
-use SPHERE\Common\Window\Stage;
 use SPHERE\System\Database\Link\Identifier;
 
 /**
@@ -80,22 +78,5 @@ class Course implements IModuleInterface
             new Identifier('Education', 'School', 'Course', null, Consumer::useService()->getConsumerBySession()),
             __DIR__ . '/Service/Entity', __NAMESPACE__ . '\Service\Entity'
         );
-    }
-
-    /**
-     * @return Stage
-     */
-    public function frontendDashboard()
-    {
-
-        $Stage = new Stage('Dashboard', 'Bildungsgang');
-
-        $Stage->setMessage(
-            new Warning('Bildungsgänge sind im Moment fest hinterlegt')
-        );
-
-        $Stage->setContent(Main::getDispatcher()->fetchDashboard('School-Course'));
-
-        return $Stage;
     }
 }

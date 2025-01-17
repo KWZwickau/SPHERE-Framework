@@ -5,7 +5,6 @@
  * Date: 12.12.2018
  * Time: 10:43
  */
-
 namespace SPHERE\Application\People\Person\Frontend;
 
 use SPHERE\Application\Api\People\Meta\Support\ApiSupport;
@@ -21,6 +20,7 @@ use SPHERE\Common\Frontend\Icon\Repository\EyeMinus;
 use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
 use SPHERE\Common\Frontend\Icon\Repository\Tag;
 use SPHERE\Common\Frontend\Layout\Repository\Accordion;
+use SPHERE\Common\Frontend\Layout\Repository\CustomPanel;
 use SPHERE\Common\Frontend\Layout\Repository\Ruler;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
@@ -40,7 +40,7 @@ use SPHERE\Common\Frontend\Link\Repository\Link;
  */
 class FrontendStudentIntegration extends FrontendReadOnly
 {
-    const TITLE = 'Integration-Daten';
+    const TITLE = 'Inklusion - Daten';
 
     /**
      * @param null $PersonId
@@ -55,12 +55,13 @@ class FrontendStudentIntegration extends FrontendReadOnly
         ) {
             $showLink = (new Link(new EyeOpen() . ' Anzeigen', ApiPersonReadOnly::getEndpoint()))
                 ->ajaxPipelineOnClick(ApiPersonReadOnly::pipelineLoadIntegrationContent($PersonId));
+            $DivisionString = FrontendReadOnly::getDivisionString($tblPerson);
 
             return TemplateReadOnly::getContent(
                 self::TITLE,
-                new Info('Die Integrations-Daten sind ausgeblendet. Bitte klicken Sie auf Anzeigen.'),
+                new Info('Die Inklusions-Daten sind ausgeblendet. Bitte klicken Sie auf Anzeigen.'),
                 array($showLink),
-                'der Person ' . new Bold(new Success($tblPerson->getFullName())),
+                'der Person ' . new Bold(new Success($tblPerson->getFullName())).$DivisionString,
                 new Tag(),
                 true
             );
@@ -90,12 +91,13 @@ class FrontendStudentIntegration extends FrontendReadOnly
 
             $hideLink = (new Link(new EyeMinus() . ' Ausblenden', ApiPersonReadOnly::getEndpoint()))
                 ->ajaxPipelineOnClick(ApiPersonReadOnly::pipelineLoadIntegrationTitle($PersonId));
+            $DivisionString = FrontendReadOnly::getDivisionString($tblPerson);
 
             return TemplateReadOnly::getContent(
                 self::TITLE,
                 $content,
                 array($hideLink),
-                'der Person ' . new Bold(new Success($tblPerson->getFullName())),
+                'der Person ' . new Bold(new Success($tblPerson->getFullName())).$DivisionString,
                 new Tag()
             );
         }
@@ -117,7 +119,11 @@ class FrontendStudentIntegration extends FrontendReadOnly
         $Accordion = new Accordion('');
         $Accordion->addItem('Förderantrag/Förderbescheid '.ApiSupport::receiverInline('', 'SupportCount'), $SupportContent, true);
         $Accordion->addItem('Entwicklungsbesonderheiten '.ApiSupport::receiverInline('', 'SpecialCount'), $SpecialContent, false);
-        $Accordion->addItem('Nachteilsaugleich '.ApiSupport::receiverInline('', 'HandyCapCount'), $HandyCapContent, false);
+        $Accordion->addItem('Nachteilsausgleich '.ApiSupport::receiverInline('', 'HandyCapCount'), $HandyCapContent, false);
+
+        $first = (new CustomPanel('Förderantrag/Förderbescheid '.ApiSupport::receiverInline('', 'SupportCount'), $SupportContent))->setAccordeon(true)->setHash('Förderantrag/Förderbescheid');
+        $second = (new CustomPanel('Entwicklungsbesonderheiten '.ApiSupport::receiverInline('', 'SpecialCount'), $SpecialContent))->setAccordeon()->setHash('Entwicklungsbesonderheiten');
+        $third = (new CustomPanel('Nachteilsausgleich '.ApiSupport::receiverInline('', 'HandyCapCount'), $HandyCapContent))->setAccordeon()->setHash('Nachteilsausgleich');
 
         $content = ApiSupport::pipelineLoadTable($tblPerson->getId())
             . new Layout(array(
@@ -146,7 +152,8 @@ class FrontendStudentIntegration extends FrontendReadOnly
                 new LayoutGroup(
                     new LayoutRow(
                         new LayoutColumn(array(
-                            $Accordion,
+//                            $Accordion,
+                            $first, $second, $third
                         ))
                     )
                 ),
@@ -166,7 +173,11 @@ class FrontendStudentIntegration extends FrontendReadOnly
         $Accordion = new Accordion('');
         $Accordion->addItem('Förderantrag/Förderbescheid', Student::useFrontend()->getSupportTable($tblPerson, false), true);
         $Accordion->addItem('Entwicklungsbesonderheiten', Student::useFrontend()->getSpecialTable($tblPerson, false), false);
-        $Accordion->addItem('Nachteilsaugleich', Student::useFrontend()->getHandyCapTable($tblPerson, false), false);
+        $Accordion->addItem('Nachteilsausgleich', Student::useFrontend()->getHandyCapTable($tblPerson, false), false);
+
+        $first = (new CustomPanel('Förderantrag/Förderbescheid',  Student::useFrontend()->getSupportTable($tblPerson, false)))->setAccordeon(true);
+        $second = (new CustomPanel('Entwicklungsbesonderheiten',  Student::useFrontend()->getSpecialTable($tblPerson, false)))->setAccordeon();
+        $third = (new CustomPanel('Nachteilsausgleich',  Student::useFrontend()->getHandyCapTable($tblPerson, false)))->setAccordeon();
 
         $content = new Layout(array(
             new LayoutGroup(
@@ -179,7 +190,8 @@ class FrontendStudentIntegration extends FrontendReadOnly
             new LayoutGroup(
                 new LayoutRow(
                     new LayoutColumn(array(
-                        $Accordion,
+//                        $Accordion,
+                        $first, $second, $third
                     ))
                 )
             ),

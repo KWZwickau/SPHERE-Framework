@@ -68,7 +68,7 @@ table.dataTable td.reorder {
   cursor: ns-resize;
 }
 
-table.dataTable th {
+table.dataTable > thead > tr > th {
     background: linear-gradient(90deg, rgba(150, 150, 150, 0.2) 70%, transparent 100%)
 }
 
@@ -85,7 +85,7 @@ table.dataTable thead .sorting_desc,
 table.dataTable thead .sorting_asc_disabled,
 table.dataTable thead .sorting_desc_disabled {
     cursor: pointer;
-    position: relative;
+    position: sticky;
 }
 
 table.dataTable thead .sorting:after,
@@ -123,7 +123,7 @@ table.dataTable thead .sorting_desc_disabled:after {
     color: #eee;
 }
 
-table.dataTable thead > tr > th {
+table.dataTable > thead > tr > th {
     padding-right: 30px;
 }
 
@@ -132,9 +132,15 @@ table.dataTable th:active {
 }
 
 /* Condensed */
-table.dataTable.table-condensed thead > tr > th {
+table.dataTable.table-condensed > thead > tr > th {
     padding-right: 20px;
+    background-color: white;
 }
+
+/*th.sorting_disabled {*/
+/*    padding-right: 5px !important;*/
+/*    background-color: white;*/
+/*}*/
 
 table.dataTable.table-condensed thead .sorting:after,
 table.dataTable.table-condensed thead .sorting_asc:after,

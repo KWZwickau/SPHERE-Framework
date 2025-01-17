@@ -33,6 +33,7 @@ class Setup extends AbstractSetup
         $this->setTableCertificateLevel($Schema, $tblCertificate);
         $this->setTableCertificateField($Schema, $tblCertificate);
         $this->setTableCertificateReferenceForLanguages($Schema, $tblCertificate);
+        $this->setTableCertificateInformation($Schema, $tblCertificate);
 
         /**
          * Migration & Protocol
@@ -74,9 +75,11 @@ class Setup extends AbstractSetup
         $this->createColumn($Table, 'IsInformation', self::FIELD_TYPE_BOOLEAN);
         $this->createColumn($Table, 'IsChosenDefault', self::FIELD_TYPE_BOOLEAN);
         $this->createColumn($Table, 'IsIgnoredForAutoSelect', self::FIELD_TYPE_BOOLEAN, false, false);
+        $this->createColumn($Table, 'IsGradeVerbal', self::FIELD_TYPE_BOOLEAN, false, false);
 
         $this->createColumn($Table, 'serviceTblCourse', self::FIELD_TYPE_BIGINT, true);
         $this->createColumn($Table, 'serviceTblSchoolType', self::FIELD_TYPE_BIGINT, true);
+        $this->createColumn($Table, 'CertificateNumber', self::FIELD_TYPE_STRING, false, '');
 
         $this->getConnection()->addForeignKey($Table, $tblCertificateType, true);
 
@@ -93,22 +96,14 @@ class Setup extends AbstractSetup
     {
 
         $Table = $this->getConnection()->createTable($Schema, 'tblCertificateSubject');
-        if (!$this->getConnection()->hasColumn('tblCertificateSubject', 'Lane')) {
-            $Table->addColumn('Lane', 'integer');
-        }
-        if (!$this->getConnection()->hasColumn('tblCertificateSubject', 'Ranking')) {
-            $Table->addColumn('Ranking', 'integer');
-        }
-        if (!$this->getConnection()->hasColumn('tblCertificateSubject', 'IsEssential')) {
-            $Table->addColumn('IsEssential', 'boolean');
-        }
-        if (!$this->getConnection()->hasColumn('tblCertificateSubject', 'serviceTblStudentLiberationCategory')) {
-            $Table->addColumn('serviceTblStudentLiberationCategory', 'bigint', array('notnull' => false));
-        }
-        if (!$this->getConnection()->hasColumn('tblCertificateSubject', 'serviceTblSubject')) {
-            $Table->addColumn('serviceTblSubject', 'bigint', array('notnull' => false));
-        }
-        $this->getConnection()->addForeignKey($Table, $tblCertificate);
+        $this->createColumn($Table, 'Lane', self::FIELD_TYPE_INTEGER);
+        $this->createColumn($Table, 'Ranking', self::FIELD_TYPE_INTEGER);
+        $this->createColumn($Table, 'IsEssential', self::FIELD_TYPE_BOOLEAN);
+        $this->createColumn($Table, 'serviceTblStudentLiberationCategory', self::FIELD_TYPE_BIGINT, true);
+        $this->createColumn($Table, 'serviceTblSubject', self::FIELD_TYPE_BIGINT);
+        $this->createColumn($Table, 'serviceTblTechnicalCourse', self::FIELD_TYPE_BIGINT, true);
+
+        $this->createForeignKey($Table, $tblCertificate);
 
         return $Table;
     }
@@ -165,18 +160,16 @@ class Setup extends AbstractSetup
     /**
      * @param Schema $Schema
      * @param Table $tblCertificate
-     *
-     * @return Table
      */
     private function setTableCertificateLevel(Schema &$Schema, Table $tblCertificate)
     {
-
         $Table = $this->getConnection()->createTable($Schema, 'tblCertificateLevel');
+        // alt
         $this->createColumn($Table, 'serviceTblLevel', self::FIELD_TYPE_BIGINT, true);
+        // neu
+        $this->createColumn($Table, 'Level', self::FIELD_TYPE_INTEGER, true);
 
         $this->getConnection()->addForeignKey($Table, $tblCertificate, true);
-
-        return $Table;
     }
 
     /**
@@ -214,6 +207,25 @@ class Setup extends AbstractSetup
         $this->createColumn($Table, 'AfterAdvancedCourse', self::FIELD_TYPE_STRING);
 
         $this->createForeignKey($Table, $tblCertificate, true);
+
+        return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
+     * @param Table $tblCertificate
+     *
+     * @return Table
+     */
+    private function setTableCertificateInformation(Schema &$Schema, Table $tblCertificate)
+    {
+
+        $Table = $this->getConnection()->createTable($Schema, 'tblCertificateInformation');
+        $this->createColumn($Table, 'FieldName', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'Page', self::FIELD_TYPE_INTEGER);
+
+        $this->createForeignKey($Table, $tblCertificate, true);
+        $this->createIndex($Table, array('FieldName', 'tblCertificate'));
 
         return $Table;
     }

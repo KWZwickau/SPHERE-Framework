@@ -16,6 +16,8 @@ use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 
 /**
+ * @deprecated
+ *
  * Class CswMsJahreszeugnis
  *
  * @package SPHERE\Application\Api\Education\Certificate\Generator\Repository\CSW
@@ -43,47 +45,14 @@ class CswMsJahreszeugnis extends Certificate
     {
 
         $personId = $tblPerson ? $tblPerson->getId() : 0;
-        $pictureHeight = '90px';
-
-        if ($this->isSample()) {
-            $Header = (new Slice())
-                ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        , '25%'
-                    )
-                    ->addElementColumn((new Element\Sample())
-                        ->styleTextSize('30px')
-                    )
-                    ->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/CSW_Logo_EOK_100x100.jpg',
-                        'auto', $pictureHeight))->styleAlignRight()
-                        , '25%')
-                );
-        } else {
-            $Header = (new Slice())
-                ->addSection((new Section())
-                    ->addElementColumn((new Element()), '75%')
-                    ->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/CSW_Logo_EOK_100x100.jpg',
-                        'auto', $pictureHeight))->styleAlignRight()
-                        , '25%')
-                );
-        }
-        $Header->styleHeight('50px');
 
         return (new Page())
-            ->addSlice(
-                $Header
-            )
-            ->addSlice(CswMsHalbjahresinformation::getIndividualSchoolLine($personId))
-            ->addSlice($this->getCertificateHead('Jahreszeugnis'))
+            ->addSlice(CswMsStyle::getHeader($this->isSample()))
+            ->addSlice(CswMsStyle::getIndividualSchoolLine($personId))
+            ->addSlice($this->getCertificateHead('Jahreszeugnis der Oberschule'))
             ->addSlice($this->getDivisionAndYear($personId, '20px'))
             ->addSlice($this->getStudentName($personId))
-            ->addSlice((new Slice())
-                ->addElement((new Element())
-                    ->setContent('nahm am Unterricht der Schulart Mittelschule teil.')
-                    ->styleTextSize('12px')
-                    ->styleMarginTop('8px')
-                )
-            )
+            ->addSlice($this->getCourse($personId, '8px', '12px'))
             ->addSlice($this->getGradeLanes($personId))
             ->addSlice((new Slice())
                 ->addSection((new Section())
@@ -93,7 +62,7 @@ class CswMsJahreszeugnis extends Certificate
                             {% else %}
                                 &nbsp;
                             {% endif %}')
-                        ->styleHeight('50px')
+                        ->styleHeight('30px')
                     )
                 )
                 ->styleMarginTop('15px')
@@ -110,12 +79,12 @@ class CswMsJahreszeugnis extends Certificate
             )
             ->addSlice($this->getOrientationStandard($personId))
             ->addSlice($this->getDescriptionHead($personId, true))
-            ->addSlice($this->getDescriptionContent($personId, '55px', '8px'))
-            ->addSlice($this->getTransfer($personId, '13px'))
-            ->addSlice($this->getDateLine($personId, '10px'))
-            ->addSlice($this->getSignPart($personId, true, '25px'))
-            ->addSlice($this->getParentSign('25px'))
-            ->addSlice($this->getInfo('3px',
+            ->addSlice($this->getDescriptionContent($personId, '35px', '8px'))
+            ->addSlice($this->getTransfer($personId, '8px'))
+            ->addSlice($this->getDateLine($personId, '8px'))
+            ->addSlice($this->getSignPart($personId, true, '15px'))
+            ->addSlice($this->getParentSign('20px'))
+            ->addSlice($this->getInfo('5px',
                 'Notenerläuterung:',
                 '1 = sehr gut; 2 = gut; 3 = befriedigend; 4 = ausreichend; 5 = mangelhaft; 6 = ungenügend 
                 (6 = ungenügend nur bei der Bewertung der Leistungen)')

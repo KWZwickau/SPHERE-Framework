@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\Api\Corporation;
 
+use SPHERE\Application\Api\Corporation\Company\ApiCompanyContact;
 use SPHERE\Application\Api\Corporation\Company\ApiCompanyEdit;
 use SPHERE\Application\Api\Corporation\Company\ApiCompanyReadOnly;
 use SPHERE\Application\IApplicationInterface;
@@ -17,5 +18,6 @@ class Corporation implements IApplicationInterface
     {
         ApiCompanyEdit::registerApi();
         ApiCompanyReadOnly::registerApi();
+        ApiCompanyContact::registerApi();
     }
 }

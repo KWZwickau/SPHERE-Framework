@@ -6,16 +6,26 @@ use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\IApiInterface;
 use SPHERE\Application\People\Person\Frontend\FrontendBasic;
+use SPHERE\Application\People\Person\Frontend\FrontendChild;
 use SPHERE\Application\People\Person\Frontend\FrontendClub;
 use SPHERE\Application\People\Person\Frontend\FrontendCommon;
 use SPHERE\Application\People\Person\Frontend\FrontendCustody;
+use SPHERE\Application\People\Person\Frontend\FrontendPersonAgreement;
+use SPHERE\Application\People\Person\Frontend\FrontendPersonMasern;
 use SPHERE\Application\People\Person\Frontend\FrontendProspect;
-use SPHERE\Application\People\Person\Frontend\FrontendStudent;
+use SPHERE\Application\People\Person\Frontend\FrontendProspectGroup;
+use SPHERE\Application\People\Person\Frontend\FrontendProspectTransfer;
+use SPHERE\Application\People\Person\Frontend\FrontendStaffGroup;
+use SPHERE\Application\People\Person\Frontend\FrontendStudentAgreement;
+use SPHERE\Application\People\Person\Frontend\FrontendStudentBasic;
 use SPHERE\Application\People\Person\Frontend\FrontendStudentGeneral;
+use SPHERE\Application\People\Person\Frontend\FrontendStudentGroup;
 use SPHERE\Application\People\Person\Frontend\FrontendStudentIntegration;
 use SPHERE\Application\People\Person\Frontend\FrontendStudentMedicalRecord;
 use SPHERE\Application\People\Person\Frontend\FrontendStudentProcess;
+use SPHERE\Application\People\Person\Frontend\FrontendStudentSpecialNeeds;
 use SPHERE\Application\People\Person\Frontend\FrontendStudentSubject;
+use SPHERE\Application\People\Person\Frontend\FrontendStudentTechnicalSchool;
 use SPHERE\Application\People\Person\Frontend\FrontendStudentTransfer;
 use SPHERE\Application\People\Person\Frontend\FrontendTeacher;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
@@ -44,22 +54,36 @@ class ApiPersonReadOnly extends Extension implements IApiInterface
 
         $Dispatcher->registerMethod('loadBasicContent');
         $Dispatcher->registerMethod('loadCommonContent');
-        $Dispatcher->registerMethod('loadProspectContent');
+        //Staff
+        $Dispatcher->registerMethod('loadStaffGroupTitle');
+        $Dispatcher->registerMethod('loadStaffGroupContent');
         $Dispatcher->registerMethod('loadTeacherContent');
+        $Dispatcher->registerMethod('loadPersonMasernContent');
+        $Dispatcher->registerMethod('loadPersonAgreementContent');
+        //Prospect
+        $Dispatcher->registerMethod('loadProspectGroupTitle');
+        $Dispatcher->registerMethod('loadProspectGroupContent');
+        $Dispatcher->registerMethod('loadProspectContent');
+        $Dispatcher->registerMethod('loadProspectTransferContent');
+
         $Dispatcher->registerMethod('loadCustodyContent');
         $Dispatcher->registerMethod('loadClubContent');
+        $Dispatcher->registerMethod('loadChildContent');
 
         $Dispatcher->registerMethod('loadIntegrationTitle');
         $Dispatcher->registerMethod('loadIntegrationContent');
 
-        $Dispatcher->registerMethod('loadStudentTitle');
-        $Dispatcher->registerMethod('loadStudentContent');
+        $Dispatcher->registerMethod('loadStudentGroupTitle');
+        $Dispatcher->registerMethod('loadStudentGroupContent');
         $Dispatcher->registerMethod('loadStudentBasicContent');
         $Dispatcher->registerMethod('loadStudentTransferContent');
         $Dispatcher->registerMethod('loadStudentProcessContent');
         $Dispatcher->registerMethod('loadStudentMedicalRecordContent');
         $Dispatcher->registerMethod('loadStudentGeneralContent');
+        $Dispatcher->registerMethod('loadStudentAgreementContent');
         $Dispatcher->registerMethod('loadStudentSubjectContent');
+        $Dispatcher->registerMethod('loadStudentSpecialNeedsContent');
+        $Dispatcher->registerMethod('loadStudentTechnicalSchoolContent');
 
         return $Dispatcher->callMethod($Method);
     }
@@ -77,11 +101,12 @@ class ApiPersonReadOnly extends Extension implements IApiInterface
     }
 
     /**
-     * @param int $PersonId
+     * @param $PersonId
+     * @param $GroupId
      *
      * @return Pipeline
      */
-    public static function pipelineLoadBasicContent($PersonId)
+    public static function pipelineLoadBasicContent($PersonId, $GroupId)
     {
         $pipeline = new Pipeline(false);
 
@@ -90,7 +115,8 @@ class ApiPersonReadOnly extends Extension implements IApiInterface
             self::API_TARGET => 'loadBasicContent',
         ));
         $emitter->setPostPayload(array(
-            'PersonId' => $PersonId
+            'PersonId' => $PersonId,
+            'GroupId' => $GroupId
         ));
         $pipeline->appendEmitter($emitter);
 
@@ -109,6 +135,48 @@ class ApiPersonReadOnly extends Extension implements IApiInterface
         $emitter = new ServerEmitter(self::receiverBlock('', 'CommonContent'), self::getEndpoint());
         $emitter->setGetPayload(array(
             self::API_TARGET => 'loadCommonContent',
+        ));
+        $emitter->setPostPayload(array(
+            'PersonId' => $PersonId
+        ));
+        $pipeline->appendEmitter($emitter);
+
+        return $pipeline;
+    }
+
+    /**
+     * @param int $PersonId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineLoadProspectGroupTitle($PersonId)
+    {
+        $pipeline = new Pipeline(false);
+
+        $emitter = new ServerEmitter(self::receiverBlock('', 'ProspectGroupContent'), self::getEndpoint());
+        $emitter->setGetPayload(array(
+            self::API_TARGET => 'loadProspectGroupTitle',
+        ));
+        $emitter->setPostPayload(array(
+            'PersonId' => $PersonId
+        ));
+        $pipeline->appendEmitter($emitter);
+
+        return $pipeline;
+    }
+
+    /**
+     * @param int $PersonId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineLoadProspectGroupContent($PersonId)
+    {
+        $pipeline = new Pipeline(false);
+
+        $emitter = new ServerEmitter(self::receiverBlock('', 'ProspectGroupContent'), self::getEndpoint());
+        $emitter->setGetPayload(array(
+            self::API_TARGET => 'loadProspectGroupContent',
         ));
         $emitter->setPostPayload(array(
             'PersonId' => $PersonId
@@ -144,6 +212,69 @@ class ApiPersonReadOnly extends Extension implements IApiInterface
      *
      * @return Pipeline
      */
+    public static function pipelineLoadProspectTransferContent($PersonId)
+    {
+        $pipeline = new Pipeline(false);
+
+        $emitter = new ServerEmitter(self::receiverBlock('', 'ProspectTransferContent'), self::getEndpoint());
+        $emitter->setGetPayload(array(
+            self::API_TARGET => 'loadProspectTransferContent',
+        ));
+        $emitter->setPostPayload(array(
+            'PersonId' => $PersonId
+        ));
+        $pipeline->appendEmitter($emitter);
+
+        return $pipeline;
+    }
+
+    /**
+     * @param int $PersonId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineLoadStaffGroupTitle($PersonId)
+    {
+        $pipeline = new Pipeline(false);
+
+        $emitter = new ServerEmitter(self::receiverBlock('', 'StaffGroup'), self::getEndpoint());
+        $emitter->setGetPayload(array(
+            self::API_TARGET => 'loadStaffGroupTitle',
+        ));
+        $emitter->setPostPayload(array(
+            'PersonId' => $PersonId
+        ));
+        $pipeline->appendEmitter($emitter);
+
+        return $pipeline;
+    }
+
+    /**
+     * @param int $PersonId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineLoadStaffGroupContent($PersonId)
+    {
+        $pipeline = new Pipeline(false);
+
+        $emitter = new ServerEmitter(self::receiverBlock('', 'StaffGroup'), self::getEndpoint());
+        $emitter->setGetPayload(array(
+            self::API_TARGET => 'loadStaffGroupContent',
+        ));
+        $emitter->setPostPayload(array(
+            'PersonId' => $PersonId
+        ));
+        $pipeline->appendEmitter($emitter);
+
+        return $pipeline;
+    }
+
+    /**
+     * @param int $PersonId
+     *
+     * @return Pipeline
+     */
     public static function pipelineLoadTeacherContent($PersonId)
     {
         $pipeline = new Pipeline(false);
@@ -151,6 +282,48 @@ class ApiPersonReadOnly extends Extension implements IApiInterface
         $emitter = new ServerEmitter(self::receiverBlock('', 'TeacherContent'), self::getEndpoint());
         $emitter->setGetPayload(array(
             self::API_TARGET => 'loadTeacherContent',
+        ));
+        $emitter->setPostPayload(array(
+            'PersonId' => $PersonId
+        ));
+        $pipeline->appendEmitter($emitter);
+
+        return $pipeline;
+    }
+
+    /**
+     * @param int $PersonId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineLoadPersonMasernContent($PersonId)
+    {
+        $pipeline = new Pipeline(false);
+
+        $emitter = new ServerEmitter(self::receiverBlock('', 'PersonMasernContent'), self::getEndpoint());
+        $emitter->setGetPayload(array(
+            self::API_TARGET => 'loadPersonMasernContent',
+        ));
+        $emitter->setPostPayload(array(
+            'PersonId' => $PersonId
+        ));
+        $pipeline->appendEmitter($emitter);
+
+        return $pipeline;
+    }
+
+    /**
+     * @param int $PersonId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineLoadPersonAgreementContent($PersonId)
+    {
+        $pipeline = new Pipeline(false);
+
+        $emitter = new ServerEmitter(self::receiverBlock('', 'PersonAgreementContent'), self::getEndpoint());
+        $emitter->setGetPayload(array(
+            self::API_TARGET => 'loadPersonAgreementContent',
         ));
         $emitter->setPostPayload(array(
             'PersonId' => $PersonId
@@ -249,13 +422,13 @@ class ApiPersonReadOnly extends Extension implements IApiInterface
      *
      * @return Pipeline
      */
-    public static function pipelineLoadStudentTitle($PersonId)
+    public static function pipelineLoadStudentGroupTitle($PersonId)
     {
         $pipeline = new Pipeline(false);
 
-        $emitter = new ServerEmitter(self::receiverBlock('', 'StudentContent'), self::getEndpoint());
+        $emitter = new ServerEmitter(self::receiverBlock('', 'StudentGroupContent'), self::getEndpoint());
         $emitter->setGetPayload(array(
-            self::API_TARGET => 'loadStudentTitle',
+            self::API_TARGET => 'loadStudentGroupTitle',
         ));
         $emitter->setPostPayload(array(
             'PersonId' => $PersonId
@@ -267,19 +440,21 @@ class ApiPersonReadOnly extends Extension implements IApiInterface
 
     /**
      * @param int $PersonId
+     * @param int $AllowEdit
      *
      * @return Pipeline
      */
-    public static function pipelineLoadStudentContent($PersonId)
+    public static function pipelineLoadStudentGroupContent($PersonId, $AllowEdit = 1)
     {
         $pipeline = new Pipeline(false);
 
-        $emitter = new ServerEmitter(self::receiverBlock('', 'StudentContent'), self::getEndpoint());
+        $emitter = new ServerEmitter(self::receiverBlock('', 'StudentGroupContent'), self::getEndpoint());
         $emitter->setGetPayload(array(
-            self::API_TARGET => 'loadStudentContent',
+            self::API_TARGET => 'loadStudentGroupContent',
         ));
         $emitter->setPostPayload(array(
-            'PersonId' => $PersonId
+            'PersonId' => $PersonId,
+            'AllowEdit' => $AllowEdit,
         ));
         $pipeline->appendEmitter($emitter);
 
@@ -396,6 +571,27 @@ class ApiPersonReadOnly extends Extension implements IApiInterface
      *
      * @return Pipeline
      */
+    public static function pipelineLoadStudentAgreementContent($PersonId)
+    {
+        $pipeline = new Pipeline(false);
+
+        $emitter = new ServerEmitter(self::receiverBlock('', 'StudentAgreementContent'), self::getEndpoint());
+        $emitter->setGetPayload(array(
+            self::API_TARGET => 'loadStudentAgreementContent',
+        ));
+        $emitter->setPostPayload(array(
+            'PersonId' => $PersonId
+        ));
+        $pipeline->appendEmitter($emitter);
+
+        return $pipeline;
+    }
+
+    /**
+     * @param int $PersonId
+     *
+     * @return Pipeline
+     */
     public static function pipelineLoadStudentSubjectContent($PersonId)
     {
         $pipeline = new Pipeline(false);
@@ -412,16 +608,78 @@ class ApiPersonReadOnly extends Extension implements IApiInterface
         return $pipeline;
     }
 
+    /**
+     * @param int $PersonId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineLoadStudentSpecialNeedsContent($PersonId)
+    {
+        $pipeline = new Pipeline(false);
+
+        $emitter = new ServerEmitter(self::receiverBlock('', 'StudentSpecialNeedsContent'), self::getEndpoint());
+        $emitter->setGetPayload(array(
+            self::API_TARGET => 'loadStudentSpecialNeedsContent',
+        ));
+        $emitter->setPostPayload(array(
+            'PersonId' => $PersonId
+        ));
+        $pipeline->appendEmitter($emitter);
+
+        return $pipeline;
+    }
+
+    /**
+     * @param int $PersonId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineLoadStudentTechnicalSchoolContent($PersonId)
+    {
+        $pipeline = new Pipeline(false);
+
+        $emitter = new ServerEmitter(self::receiverBlock('', 'StudentTechnicalSchoolContent'), self::getEndpoint());
+        $emitter->setGetPayload(array(
+            self::API_TARGET => 'loadStudentTechnicalSchoolContent',
+        ));
+        $emitter->setPostPayload(array(
+            'PersonId' => $PersonId
+        ));
+        $pipeline->appendEmitter($emitter);
+
+        return $pipeline;
+    }
+
+    /**
+     * @param int $PersonId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineLoadChildContent($PersonId)
+    {
+        $pipeline = new Pipeline(false);
+
+        $emitter = new ServerEmitter(self::receiverBlock('', 'ChildContent'), self::getEndpoint());
+        $emitter->setGetPayload(array(
+            self::API_TARGET => 'loadChildContent',
+        ));
+        $emitter->setPostPayload(array(
+            'PersonId' => $PersonId
+        ));
+        $pipeline->appendEmitter($emitter);
+
+        return $pipeline;
+    }
 
     /**
      * @param null $PersonId
      *
      * @return string
      */
-    public function loadBasicContent($PersonId = null)
+    public function loadBasicContent($PersonId = null, $GroupId = null)
     {
 
-        return FrontendBasic::getBasicContent($PersonId);
+        return FrontendBasic::getBasicContent($PersonId, $GroupId);
     }
 
     /**
@@ -440,10 +698,76 @@ class ApiPersonReadOnly extends Extension implements IApiInterface
      *
      * @return string
      */
+    public function loadPersonAgreementContent($PersonId = null)
+    {
+
+        return FrontendPersonAgreement::getPersonAgreementContent($PersonId);
+    }
+
+    /**
+     * @param null $PersonId
+     *
+     * @return string
+     */
+    public function loadProspectGroupTitle($PersonId = null)
+    {
+
+        return FrontendProspectGroup::getProspectGroupTitle($PersonId);
+    }
+
+    /**
+     * @param null $PersonId
+     *
+     * @return string
+     */
+    public function loadProspectGroupContent($PersonId = null)
+    {
+
+        return FrontendProspectGroup::getProspectGroupContent($PersonId);
+    }
+
+    /**
+     * @param null $PersonId
+     *
+     * @return string
+     */
     public function loadProspectContent($PersonId = null)
     {
 
         return FrontendProspect::getProspectContent($PersonId);
+    }
+
+    /**
+     * @param null $PersonId
+     *
+     * @return string
+     */
+    public function loadProspectTransferContent($PersonId = null)
+    {
+
+        return FrontendProspectTransfer::getProspectTransferContent($PersonId);
+    }
+
+    /**
+     * @param null $PersonId
+     *
+     * @return string
+     */
+    public function loadStaffGroupTitle($PersonId = null)
+    {
+
+        return FrontendStaffGroup::getStaffGroupTitle($PersonId);
+    }
+
+    /**
+     * @param null $PersonId
+     *
+     * @return string
+     */
+    public function loadStaffGroupContent($PersonId = null)
+    {
+
+        return FrontendStaffGroup::getStaffGroupContent($PersonId);
     }
 
     /**
@@ -506,21 +830,22 @@ class ApiPersonReadOnly extends Extension implements IApiInterface
      *
      * @return string
      */
-    public function loadStudentTitle($PersonId = null)
+    public function loadStudentGroupTitle($PersonId = null)
     {
 
-        return FrontendStudent::getStudentTitle($PersonId);
+        return FrontendStudentGroup::getStudentGroupTitle($PersonId);
     }
 
     /**
      * @param null $PersonId
+     * @param int  $AllowEdit
      *
      * @return string
      */
-    public function loadStudentContent($PersonId = null)
+    public function loadStudentGroupContent($PersonId = null, $AllowEdit = 1)
     {
 
-        return FrontendStudent::getStudentContent($PersonId);
+        return FrontendStudentGroup::getStudentGroupContent($PersonId, $AllowEdit);
     }
 
     /**
@@ -531,7 +856,7 @@ class ApiPersonReadOnly extends Extension implements IApiInterface
     public function loadStudentBasicContent($PersonId = null)
     {
 
-        return FrontendStudent::getStudentBasicContent($PersonId);
+        return FrontendStudentBasic::getStudentBasicContent($PersonId);
     }
 
     /**
@@ -583,9 +908,61 @@ class ApiPersonReadOnly extends Extension implements IApiInterface
      *
      * @return string
      */
+    public function loadStudentAgreementContent($PersonId = null)
+    {
+
+        return FrontendStudentAgreement::getStudentAgreementContent($PersonId);
+    }
+
+    /**
+     * @param null $PersonId
+     *
+     * @return string
+     */
+    public function loadPersonMasernContent($PersonId = null)
+    {
+
+        return FrontendPersonMasern::getPersonMasernContent($PersonId);
+    }
+
+    /**
+     * @param null $PersonId
+     *
+     * @return string
+     */
     public function loadStudentSubjectContent($PersonId = null)
     {
 
         return FrontendStudentSubject::getStudentSubjectContent($PersonId);
+    }
+
+    /**
+     * @param null $PersonId
+     *
+     * @return string
+     */
+    public function loadStudentSpecialNeedsContent($PersonId = null)
+    {
+        return FrontendStudentSpecialNeeds::getStudentSpecialNeedsContent($PersonId);
+    }
+
+    /**
+     * @param null $PersonId
+     *
+     * @return string
+     */
+    public function loadStudentTechnicalSchoolContent($PersonId = null)
+    {
+        return FrontendStudentTechnicalSchool::getStudentTechnicalSchoolContent($PersonId);
+    }
+
+    /**
+     * @param null $PersonId
+     *
+     * @return string
+     */
+    public function loadChildContent($PersonId = null)
+    {
+        return FrontendChild::getChildContent($PersonId);
     }
 }

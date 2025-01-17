@@ -5,7 +5,6 @@ use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Corporation\Group\Service\Data;
 use SPHERE\Application\Corporation\Group\Service\Entity\TblGroup;
 use SPHERE\Application\Corporation\Group\Service\Entity\TblMember;
-use SPHERE\Application\Corporation\Group\Service\Entity\ViewCompanyGroupMember;
 use SPHERE\Application\Corporation\Group\Service\Setup;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Icon\Repository\Ban;
@@ -22,15 +21,6 @@ use SPHERE\System\Extension\Repository\Sorter;
  */
 class Service extends AbstractService
 {
-
-    /**
-     * @return false|ViewCompanyGroupMember[]
-     */
-    public function viewCompanyGroupMember()
-    {
-
-        return ( new Data($this->getBinding()) )->viewCompanyGroupMember();
-    }
 
     /**
      * @param bool $doSimulation
@@ -100,10 +90,108 @@ class Service extends AbstractService
     }
 
     /**
-     * @param IFormInterface $Form
-     * @param array          $Group
+     * @param string $Name
      *
-     * @return IFormInterface|Redirect
+     * @return bool|TblGroup
+     */
+    public function getGroupByName($Name)
+    {
+
+        return (new Data($this->getBinding()))->getGroupByName($Name);
+    }
+
+    /**
+     * @param string $MetaTable
+     *
+     * @return bool|TblGroup
+     */
+    public function getGroupByMetaTable($MetaTable)
+    {
+
+        return (new Data($this->getBinding()))->getGroupByMetaTable($MetaTable);
+    }
+
+    /**
+     * @param TblGroup $tblGroup
+     *
+     * @return bool|TblCompany[]
+     */
+    public function getCompanyAllByGroup(TblGroup $tblGroup)
+    {
+
+        return (new Data($this->getBinding()))->getCompanyAllByGroup($tblGroup);
+    }
+
+    /**
+     *
+     * @param TblCompany $tblCompany
+     *
+     * @return bool|TblGroup[]
+     */
+    public function getGroupAllByCompany(TblCompany $tblCompany)
+    {
+
+        return (new Data($this->getBinding()))->getGroupAllByCompany($tblCompany);
+    }
+
+    /**
+     * @param TblGroup $tblGroup
+     * @param bool     $IsForced
+     *
+     * @return false|TblMember[]
+     */
+    public function getMemberAllByGroup(TblGroup $tblGroup, $IsForced = false)
+    {
+        return (new Data($this->getBinding()))->getMemberAllByGroup($tblGroup, ( $IsForced ? $IsForced : null ));
+    }
+
+    /**
+     * @param TblCompany $tblCompany
+     *
+     * @return bool|TblMember[]
+     */
+    public function getMemberAllByCompany(TblCompany $tblCompany)
+    {
+        return (new Data($this->getBinding()))->getMemberAllByCompany($tblCompany);
+    }
+
+    /**
+     * @param array $FilterList
+     *
+     * @return mixed
+     */
+    public function fetchIdCompanyByFilter(array $FilterList = array(), $CompanyResult = array())
+    {
+
+        return (new Data($this->getBinding()))->fetchIdCompanyByFilter($FilterList, $CompanyResult);
+    }
+
+    /**
+     * @param TblGroup $tblGroup
+     * @return int
+     */
+    public function countMemberByGroup(TblGroup $tblGroup)
+    {
+        return (new Data($this->getBinding()))->countMemberByGroup($tblGroup);
+    }
+
+    /**
+     * @param TblGroup $tblGroup
+     * @param TblCompany $tblCompany
+     *
+     * @return bool|TblMember
+     */
+    public function existsGroupCompany(TblGroup $tblGroup, TblCompany $tblCompany)
+    {
+
+        return (new Data($this->getBinding()))->existsGroupCompany($tblGroup, $tblCompany);
+    }
+
+    /**
+     * @param IFormInterface|null $Form
+     * @param array               $Group
+     *
+     * @return IFormInterface|string|null
      */
     public function createGroup(IFormInterface $Form = null, $Group)
     {
@@ -133,10 +221,10 @@ class Service extends AbstractService
             )
             ) {
                 return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Gruppe wurde erfolgreich erstellt')
-                .new Redirect('/Corporation/Group', Redirect::TIMEOUT_SUCCESS);
+                    .new Redirect('/Corporation/Group', Redirect::TIMEOUT_SUCCESS);
             } else {
                 return new Danger(new Ban() . ' Die Gruppe konnte nicht erstellt werden')
-                .new Redirect('/Corporation/Group', Redirect::TIMEOUT_ERROR);
+                    .new Redirect('/Corporation/Group', Redirect::TIMEOUT_ERROR);
             }
         }
 
@@ -155,35 +243,13 @@ class Service extends AbstractService
     }
 
     /**
-     * @param string $Name
-     *
-     * @return bool|TblGroup
-     */
-    public function getGroupByName($Name)
-    {
-
-        return (new Data($this->getBinding()))->getGroupByName($Name);
-    }
-
-    /**
-     * @param string $MetaTable
-     *
-     * @return bool|TblGroup
-     */
-    public function getGroupByMetaTable($MetaTable)
-    {
-
-        return (new Data($this->getBinding()))->getGroupByMetaTable($MetaTable);
-    }
-
-    /**
      * @param IFormInterface $Form
      * @param TblGroup       $tblGroup
      * @param array          $Group
      *
-     * @return IFormInterface|Redirect
+     * @return IFormInterface|string|null
      */
-    public function updateGroup(IFormInterface $Form = null, TblGroup $tblGroup, $Group)
+    public function updateGroup(IFormInterface $Form, TblGroup $tblGroup, $Group)
     {
 
         /**
@@ -212,81 +278,14 @@ class Service extends AbstractService
             )
             ) {
                 return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Änderungen wurden erfolgreich gespeichert')
-                .new Redirect('/Corporation/Group', Redirect::TIMEOUT_SUCCESS);
+                    .new Redirect('/Corporation/Group', Redirect::TIMEOUT_SUCCESS);
             } else {
                 return new Danger(new Ban() . ' Die Änderungen konnte nicht gespeichert werden')
-                .new Redirect('/Corporation/Group', Redirect::TIMEOUT_ERROR);
+                    .new Redirect('/Corporation/Group', Redirect::TIMEOUT_ERROR);
             }
         }
 
         return $Form;
-    }
-
-    /**
-     * @param TblGroup $tblGroup
-     *
-     * @return bool|TblCompany[]
-     */
-    public function getCompanyAllByGroup(TblGroup $tblGroup)
-    {
-
-        return (new Data($this->getBinding()))->getCompanyAllByGroup($tblGroup);
-    }
-
-
-    /**
-     * @return bool|TblCompany[]
-     */
-    public function getCompanyAllHavingNoGroup()
-    {
-
-        return (new Data($this->getBinding()))->getCompanyAllHavingNoGroup();
-    }
-
-    /**
-     * @deprecated countCompanyAllByGroup -> countMemberAllByGroup
-     *             
-     * @param TblGroup $tblGroup
-     *
-     * @return int
-     */
-    public function countCompanyAllByGroup(TblGroup $tblGroup)
-    {
-
-        return $this->countMemberAllByGroup($tblGroup);
-    }
-
-    /**
-     * @deprecated use countMemberByGroup
-     * @param TblGroup $tblGroup
-     *
-     * @return int
-     */
-    public function countMemberAllByGroup(TblGroup $tblGroup)
-    {
-
-        return $this->countEntityList((new Data($this->getBinding()))->getMemberAllByGroup($tblGroup));
-    }
-
-    /**
-     * @param TblGroup $tblGroup
-     * @return int
-     */
-    public function countMemberByGroup(TblGroup $tblGroup)
-    {
-        return (new Data($this->getBinding()))->countMemberByGroup($tblGroup);
-    }
-
-    /**
-     *
-     * @param TblCompany $tblCompany
-     *
-     * @return bool|TblGroup[]
-     */
-    public function getGroupAllByCompany(TblCompany $tblCompany)
-    {
-
-        return (new Data($this->getBinding()))->getGroupAllByCompany($tblCompany);
     }
 
     /**
@@ -311,26 +310,6 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->addGroupCompany($tblGroup, $tblCompany);
-    }
-
-    /**
-     * @param TblGroup $tblGroup
-     *
-     * @return false|TblMember[]
-     */
-    public function getMemberAllByGroup(TblGroup $tblGroup)
-    {
-        return (new Data($this->getBinding()))->getMemberAllByGroup($tblGroup);
-    }
-
-    /**
-     * @param TblCompany $tblCompany
-     *
-     * @return bool|TblMember[]
-     */
-    public function getMemberAllByCompany(TblCompany $tblCompany)
-    {
-        return (new Data($this->getBinding()))->getMemberAllByCompany($tblCompany);
     }
 
     /**
@@ -363,7 +342,7 @@ class Service extends AbstractService
     public function destroyGroup(TblGroup $tblGroup)
     {
 
-        $tblMemberList = Group::useService()->getMemberAllByGroup($tblGroup);
+        $tblMemberList = Group::useService()->getMemberAllByGroup($tblGroup, true);
         if ($tblMemberList) {
             foreach ($tblMemberList as $tblMember) {
                 Group::useService()->destroyMember($tblMember);
@@ -371,17 +350,5 @@ class Service extends AbstractService
         }
 
         return (new Data($this->getBinding()))->destroyGroup($tblGroup);
-    }
-
-    /**
-     * @param TblGroup $tblGroup
-     * @param TblCompany $tblCompany
-     *
-     * @return bool|TblMember
-     */
-    public function existsGroupCompany(TblGroup $tblGroup, TblCompany $tblCompany)
-    {
-
-        return (new Data($this->getBinding()))->existsGroupCompany($tblGroup, $tblCompany);
     }
 }

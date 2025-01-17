@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\People\Meta\Common\Service;
 
+use DateTime;
 use SPHERE\Application\People\Meta\Common\Service\Entity\TblCommon;
 use SPHERE\Application\People\Meta\Common\Service\Entity\TblCommonBirthDates;
 use SPHERE\Application\People\Meta\Common\Service\Entity\TblCommonGender;
@@ -31,8 +32,10 @@ class Data extends AbstractData
     
     public function setupDatabaseContent()
     {
-        $this->createCommonGender( 'Männlich' );
-        $this->createCommonGender( 'Weiblich' );
+        $this->createCommonGender('Männlich');
+        $this->createCommonGender('Weiblich');
+        $this->createCommonGender('Divers');
+        $this->createCommonGender('Ohne Angabe');
     }
 
     /**
@@ -79,22 +82,22 @@ class Data extends AbstractData
     /**
      * @param string $Birthday
      * @param string $Birthplace
-     * @param int    $Gender
+     * @param TblCommonGender|null $tblCommonGender
      *
      * @return TblCommonBirthDates
      */
     public function createCommonBirthDates(
         $Birthday,
         $Birthplace,
-        $Gender
+        TblCommonGender $tblCommonGender = null
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
 
         $Entity = new TblCommonBirthDates();
-        $Entity->setBirthday(( $Birthday ? new \DateTime($Birthday) : null ));
+        $Entity->setBirthday(( $Birthday ? new DateTime($Birthday) : null ));
         $Entity->setBirthplace($Birthplace);
-        $Entity->setGender($Gender);
+        $Entity->setTblCommonGender($tblCommonGender);
         $Manager->saveEntity($Entity);
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
 
@@ -106,6 +109,7 @@ class Data extends AbstractData
      * @param string $Denomination
      * @param int    $IsAssistance
      * @param string $AssistanceActivity
+     * @param string $ContactNumber
      *
      * @return TblCommonInformation
      */
@@ -113,7 +117,8 @@ class Data extends AbstractData
         $Nationality,
         $Denomination,
         $IsAssistance,
-        $AssistanceActivity
+        $AssistanceActivity,
+        $ContactNumber = ''
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -121,6 +126,7 @@ class Data extends AbstractData
         $Entity = new TblCommonInformation();
         $Entity->setNationality($Nationality);
         $Entity->setDenomination($Denomination);
+        $Entity->setContactNumber($ContactNumber);
         $Entity->setAssistance($IsAssistance);
         $Entity->setAssistanceActivity($AssistanceActivity);
         $Manager->saveEntity($Entity);
@@ -233,11 +239,18 @@ class Data extends AbstractData
             'TblCommonBirthDates');
     }
 
+    public function getViewPeopleMetaCommonAll()
+    {
+
+        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(),
+            'ViewPeopleMetaCommon');
+    }
+
     /**
      * @param TblCommonBirthDates $tblCommonBirthDates
      * @param string              $Birthday
      * @param string              $Birthplace
-     * @param int                 $Gender
+     * @param TblCommonGender|null     $tblCommonGender
      *
      * @return bool
      */
@@ -245,7 +258,7 @@ class Data extends AbstractData
         TblCommonBirthDates $tblCommonBirthDates,
         $Birthday,
         $Birthplace,
-        $Gender
+        TblCommonGender $tblCommonGender = null
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -253,9 +266,9 @@ class Data extends AbstractData
         $Entity = $Manager->getEntityById('TblCommonBirthDates', $tblCommonBirthDates->getId());
         if (null !== $Entity) {
             $Protocol = clone $Entity;
-            $Entity->setBirthday(( $Birthday ? new \DateTime($Birthday) : null ));
+            $Entity->setBirthday(( $Birthday ? new DateTime($Birthday) : null ));
             $Entity->setBirthplace($Birthplace);
-            $Entity->setGender($Gender);
+            $Entity->setTblCommonGender($tblCommonGender);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
             return true;

@@ -71,28 +71,20 @@ class CmsMsHj extends CmsStyle
             )
             ->addSection((new Section())
                 ->addSliceColumn(
-                    self::getCMSSubjectLanes($personId)
+                    self::getCMSSubjectLanes($personId, true, '295px')
                 )
             )
             ->addElement((new Element())
-                ->styleMarginTop('10px')
-            )
-            ->addSection((new Section())
-                ->addSliceColumn(
-                    self::getCMSOrientationStandard($personId)
-                )
-            )
-            ->addElement((new Element())
-                ->styleMarginTop('10px')
-            )
-            ->addSectionList(
-                self::getCMSRemark($personId, '40px', true)
+                ->styleMarginTop('20px')
             )
             ->addSection(
                 self::getCMSMissing($personId)
             )
             ->addElement((new Element())
                 ->styleMarginTop('15px')
+            )
+            ->addSectionList(
+                self::getCMSRemark($personId, '88px', true)
             )
             ->addSection(
                 self::getCMSDate($personId)

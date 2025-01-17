@@ -13,12 +13,8 @@ use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
-use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
-use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTestType;
-use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
-use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeType;
-use SPHERE\Application\Education\Lesson\Division\Division;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Graduation\Grade\Grade;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblGradeType;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\People\Person\Person;
@@ -37,7 +33,6 @@ class TblPrepareGrade extends Element
     const ATTR_SERVICE_TBL_PERSON = 'serviceTblPerson';
     const ATTR_SERVICE_TBL_DIVISION = 'serviceTblDivision';
     const ATTR_SERVICE_TBL_SUBJECT = 'serviceTblSubject';
-    const ATTR_SERVICE_TBL_TEST_TYPE = 'serviceTblTestType';
     const ATTR_SERVICE_TBL_GRADE_TYPE = 'serviceTblGradeType';
 
     /**
@@ -59,11 +54,6 @@ class TblPrepareGrade extends Element
      * @Column(type="bigint")
      */
     protected $serviceTblSubject;
-
-    /**
-     * @Column(type="bigint")
-     */
-    protected $serviceTblTestType;
 
     /**
      * @Column(type="bigint")
@@ -120,28 +110,6 @@ class TblPrepareGrade extends Element
     }
 
     /**
-     * @return bool|TblDivision
-     */
-    public function getServiceTblDivision()
-    {
-
-        if (null === $this->serviceTblDivision) {
-            return false;
-        } else {
-            return Division::useService()->getDivisionById($this->serviceTblDivision);
-        }
-    }
-
-    /**
-     * @param TblDivision|null $tblDivision
-     */
-    public function setServiceTblDivision(TblDivision $tblDivision = null)
-    {
-
-        $this->serviceTblDivision = (null === $tblDivision ? null : $tblDivision->getId());
-    }
-
-    /**
      * @return bool|TblSubject
      */
     public function getServiceTblSubject()
@@ -164,46 +132,22 @@ class TblPrepareGrade extends Element
     }
 
     /**
-     * @return bool|TblTestType
-     */
-    public function getServiceTblTestType()
-    {
-
-        if (null === $this->serviceTblTestType) {
-            return false;
-        } else {
-            return Evaluation::useService()->getTestTypeById($this->serviceTblTestType);
-        }
-    }
-
-    /**
-     * @param TblTestType|null $tblTestType
-     */
-    public function setServiceTblTestType(TblTestType $tblTestType = null)
-    {
-
-        $this->serviceTblTestType = ( null === $tblTestType ? null : $tblTestType->getId() );
-    }
-
-    /**
      * @return bool|TblGradeType
      */
     public function getServiceTblGradeType()
     {
-
         if (null === $this->serviceTblGradeType) {
             return false;
         } else {
-            return Gradebook::useService()->getGradeTypeById($this->serviceTblGradeType);
+            return Grade::useService()->getGradeTypeById($this->serviceTblGradeType);
         }
     }
 
     /**
      * @param TblGradeType|null $serviceTblGradeType
      */
-    public function setServiceTblGradeType($serviceTblGradeType)
+    public function setServiceTblGradeType(?TblGradeType $serviceTblGradeType)
     {
-
         $this->serviceTblGradeType = ( null === $serviceTblGradeType ? null : $serviceTblGradeType->getId() );
     }
 
@@ -222,5 +166,4 @@ class TblPrepareGrade extends Element
     {
         $this->Grade = $Grade;
     }
-
 }

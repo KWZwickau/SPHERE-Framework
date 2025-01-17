@@ -1,0 +1,30 @@
+{
+    "name": "sphere-framework/schulsoftware",
+    "description": "Containing all necessary library",
+    "minimum-stability": "stable",
+    "require": {
+        "php": ">=8.0.0",
+        "doctrine/dbal": "3.*",
+        "doctrine/orm": "2.16.*",
+        "doctrine/deprecations": "1.1.*",
+        "doctrine/annotations": "2.*",
+        "doctrine/cache": "1.*",
+        "doctrine/collections": "2.*",
+        "doctrine/common": "3.*",
+        "doctrine/instantiator": "2.*",
+        "doctrine/lexer": "2.*",
+        "twig/twig": "3.7.0",
+        "smarty/smarty": "v4.3.4",
+        "symfony/http-kernel": "v6.3.4",
+        "symfony/finder": "v6.3.*",
+        "dompdf/dompdf": "v2.0.3"
+    },
+    "autoload": {
+        "psr-4": { "Library\\MOCV\\": "src" }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "1.0.x-dev"
+        }
+    }
+}

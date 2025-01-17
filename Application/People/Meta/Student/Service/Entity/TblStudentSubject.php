@@ -5,8 +5,6 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
-use SPHERE\Application\Education\Lesson\Division\Division;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblLevel;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\People\Meta\Student\Student;
@@ -23,10 +21,7 @@ class TblStudentSubject extends Element
     const ATTR_TBL_STUDENT = 'tblStudent';
     const ATTR_TBL_STUDENT_SUBJECT_TYPE = 'tblStudentSubjectType';
     const ATTR_TBL_STUDENT_SUBJECT_RANKING = 'tblStudentSubjectRanking';
-    const SERVICE_TBL_SUBJECT = 'serviceTblSubject';
-    const SERVICE_TBL_LEVEL_FROM = 'serviceTblLevelFrom';
-    const SERVICE_TBL_LEVEL_TILL = 'serviceTblLevelTill';
-    
+
     /**
      * @Column(type="bigint")
      */
@@ -44,26 +39,25 @@ class TblStudentSubject extends Element
      */
     protected $serviceTblSubject;
     /**
+     * @deprecated
+     *
      * @Column(type="bigint")
      */
     protected $serviceTblLevelFrom;
     /**
+     * @deprecated
+     *
      * @Column(type="bigint")
      */
     protected $serviceTblLevelTill;
-    
     /**
-     * @return bool|TblStudent
+     * @Column(type="integer")
      */
-    public function getTblStudent()
-    {
-
-        if (null === $this->tblStudent) {
-            return false;
-        } else {
-            return Student::useService()->getStudentById($this->tblStudent);
-        }
-    }
+    protected ?int $LevelFrom = null;
+    /**
+     * @Column(type="integer")
+     */
+    protected ?int $LevelTill = null;
 
     /**
      * @param null|TblStudent $tblStudent
@@ -141,46 +135,34 @@ class TblStudentSubject extends Element
     }
 
     /**
-     * @return bool|TblLevel
+     * @return int|null
      */
-    public function getServiceTblLevelFrom()
+    public function getLevelFrom(): ?int
     {
-
-        if (null === $this->serviceTblLevelFrom) {
-            return false;
-        } else {
-            return Division::useService()->getLevelById($this->serviceTblLevelFrom);
-        }
+        return $this->LevelFrom;
     }
 
     /**
-     * @param TblLevel|null $tblLevel
+     * @param int|null $LevelFrom
      */
-    public function setServiceTblLevelFrom(TblLevel $tblLevel = null)
+    public function setLevelFrom(?int $LevelFrom): void
     {
-
-        $this->serviceTblLevelFrom = ( null === $tblLevel ? null : $tblLevel->getId() );
+        $this->LevelFrom = $LevelFrom;
     }
 
     /**
-     * @return bool|TblLevel
+     * @return int|null
      */
-    public function getServiceTblLevelTill()
+    public function getLevelTill(): ?int
     {
-
-        if (null === $this->serviceTblLevelTill) {
-            return false;
-        } else {
-            return Division::useService()->getLevelById($this->serviceTblLevelTill);
-        }
+        return $this->LevelTill;
     }
 
     /**
-     * @param TblLevel|null $tblLevel
+     * @param int|null $LevelTill
      */
-    public function setServiceTblLevelTill(TblLevel $tblLevel = null)
+    public function setLevelTill(?int $LevelTill): void
     {
-
-        $this->serviceTblLevelTill = ( null === $tblLevel ? null : $tblLevel->getId() );
+        $this->LevelTill = $LevelTill;
     }
 }

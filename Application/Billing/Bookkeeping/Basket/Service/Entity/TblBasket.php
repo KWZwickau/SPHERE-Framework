@@ -11,8 +11,10 @@ use SPHERE\Application\Billing\Accounting\Creditor\Service\Entity\TblCreditor;
 use SPHERE\Application\Billing\Accounting\Debtor\Debtor;
 use SPHERE\Application\Billing\Accounting\Debtor\Service\Entity\TblDebtorPeriodType;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Basket;
-use SPHERE\Application\Education\Lesson\Division\Division;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Billing\Inventory\Setting\Service\Entity\TblSetting;
+use SPHERE\Application\Billing\Inventory\Setting\Setting;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\System\Database\Fitting\Element;
@@ -34,6 +36,8 @@ class TblBasket extends Element
     const ATTR_SERVICE_TBL_CREDITOR = 'serviceTblCreditor';
     const ATTR_SERVICE_TBL_DIVISION = 'serviceTblDivision';
     const ATTR_SERVICE_TBL_TYPE = 'serviceTblType';
+    const ATTR_FIBU_ACCOUNT = 'FibuAccount';
+    const ATTR_FIBU_TO_ACCOUNT = 'FibuToAccount';
 
     /**
      * @Column(type="string")
@@ -103,6 +107,14 @@ class TblBasket extends Element
      * @Column(type="bigint")
      */
     protected $serviceTblDebtorPeriodType;
+    /**
+     * @Column(type="string")
+     */
+    protected $FibuAccount;
+    /**
+     * @Column(type="string")
+     */
+    protected $FibuToAccount;
 
     /**
      * @return string
@@ -272,7 +284,7 @@ class TblBasket extends Element
             $BillTime = $this->BillTime;
             if($BillTime instanceof \DateTime){
                 if($IsMaxMonthDay){
-                    $TimeLong = mktime(null, null, null, $BillTime->format('m'), $BillTime->format('d'), $BillTime->format('Y'));
+                    $TimeLong = mktime(0, null, null, $BillTime->format('m'), $BillTime->format('d'), $BillTime->format('Y'));
                     $Day = date('t', $TimeLong);
                     return $BillTime->format('Ym').$Day;
                 } else {
@@ -287,7 +299,7 @@ class TblBasket extends Element
             $TargetTime = $this->TargetTime;
             if ($TargetTime instanceof \DateTime){
                 if ($IsMaxMonthDay){
-                    $TimeLong = mktime(null, null, null, $TargetTime->format('m'), $TargetTime->format('d'),
+                    $TimeLong = mktime(0, null, null, $TargetTime->format('m'), $TargetTime->format('d'),
                         $TargetTime->format('Y'));
                     $Day = date('t', $TimeLong);
                     return $TargetTime->format('Ym').$Day;
@@ -301,7 +313,7 @@ class TblBasket extends Element
         // Fehlendes Rechnungsdatum, fehlende Fälligkeit -> aktuelles Datum
         $Now = new \DateTime();
         if($IsMaxMonthDay){
-            $TimeLong = mktime(null, null, null, $Now->format('m'), $Now->format('d'), $Now->format('Y'));
+            $TimeLong = mktime(0, null, null, $Now->format('m'), $Now->format('d'), $Now->format('Y'));
             $Day = date('t', $TimeLong);
             return $Now->format('Ym').$Day;
         } else {
@@ -343,7 +355,7 @@ class TblBasket extends Element
     }
 
     /**
-     * @return bool|TblBasket
+     * @return bool|TblBasketType
      */
     public function getTblBasketType()
     {
@@ -465,24 +477,24 @@ class TblBasket extends Element
     }
 
     /**
-     * @return TblDivision|false
+     * @return TblDivisionCourse|false
      */
-    public function getServiceTblDivision()
+    public function getServiceTblDivisionCoures()
     {
 
         if(null !== $this->serviceTblDivision){
-            return Division::useService()->getDivisionById($this->serviceTblDivision);
+            return DivisionCourse::useService()->getDivisionCourseById($this->serviceTblDivision);
         }
         return false;
     }
 
     /**
-     * @param TblDivision|bool $serviceTblDivision
+     * @param TblDivisionCourse|null $tblDivisionCourse
      */
-    public function setServiceTblDivision($serviceTblDivision)
+    public function setServiceTblDivisionCourse(?TblDivisionCourse $tblDivisionCourse)
     {
 
-        $this->serviceTblDivision = ($serviceTblDivision ? $serviceTblDivision->getId() : null);
+        $this->serviceTblDivision = ($tblDivisionCourse ? $tblDivisionCourse->getId() : null);
     }
 
     /**
@@ -525,6 +537,50 @@ class TblBasket extends Element
     {
 
         $this->serviceTblDebtorPeriodType = ($serviceTblDebtorPeriodType ? $serviceTblDebtorPeriodType->getId() : null);
+    }
+
+    /**
+     * @param bool $probablyStandard
+     *
+     * @return string
+     */
+    public function getFibuAccount($probablyStandard = true)
+    {
+        if( !$this->FibuAccount && $probablyStandard){
+            if(($tblSettingFibuAccount = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_FIBU_ACCOUNT))){
+                return $tblSettingFibuAccount->getValue();
+            }
+        }
+        return $this->FibuAccount;
+    }
+
+    /**
+     * @param string $FibuAccount
+     */
+    public function setFibuAccount($FibuAccount)
+    {
+        $this->FibuAccount = $FibuAccount;
+    }
+
+    /**
+     * @return string
+     */
+    public function getFibuToAccount($probablyStandard = true)
+    {
+        if( !$this->FibuToAccount && $probablyStandard){
+            if(($tblSettingFibuToAccount = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_FIBU_TO_ACCOUNT))){
+                return $tblSettingFibuToAccount->getValue();
+            }
+        }
+        return $this->FibuToAccount;
+    }
+
+    /**
+     * @param string $FibuToAccount
+     */
+    public function setFibuToAccount($FibuToAccount)
+    {
+        $this->FibuToAccount = $FibuToAccount;
     }
 
 }

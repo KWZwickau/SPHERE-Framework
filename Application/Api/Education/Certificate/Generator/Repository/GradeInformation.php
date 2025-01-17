@@ -15,8 +15,8 @@ use SPHERE\Application\Education\Certificate\Generator\Repository\Page;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Section;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificateSubject;
-use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeType;
-use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblGradeType;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 
@@ -27,15 +27,13 @@ use SPHERE\Application\People\Person\Service\Entity\TblPerson;
  */
 class GradeInformation extends Certificate
 {
-
     /**
      * @param TblPerson|null $tblPerson
-     * @return Page
-     * @internal param bool $IsSample
      *
+     * @return Page
      */
-    public function buildPages(TblPerson $tblPerson = null){
-
+    public function buildPages(TblPerson $tblPerson = null): Page
+    {
         $personId = $tblPerson ? $tblPerson->getId() : 0;
 
         return (new Page())
@@ -62,8 +60,7 @@ class GradeInformation extends Certificate
                         ->styleBorderBottom()
                         , '45%')
                     ->addElementColumn((new Element())
-                        ->setContent(', Klasse {{ Content.P' . $personId . '.Division.Data.Level.Name }}
-                        {{ Content.P' . $personId . '.Division.Data.Name }}, {{ Content.P' . $personId . '.Input.Date }}')
+                        ->setContent(', Klasse {{ Content.P' . $personId . '.Division.Data.Name }}, {{ Content.P' . $personId . '.Input.Date }}')
                         ->styleTextItalic()
                         ->styleTextSize('15px')
                         ->stylePaddingLeft('4px')
@@ -81,19 +78,7 @@ class GradeInformation extends Certificate
                 )
                 ->styleMarginTop('25px')
             )
-            ->addSlice((new Slice())
-                ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        ->setContent('{% if(Content.P' . $personId . '.Input.Remark is not empty) %}
-                                    {{ Content.P' . $personId . '.Input.Remark|nl2br }}
-                                {% else %}
-                                    &nbsp;
-                                {% endif %}')
-                        ->styleHeight('100px')
-                    )
-                )
-                ->styleMarginTop('5px')
-            )
+            ->addSlice($this->getDescriptionContent($personId, '100px', '5px'))
             ->addSlice((new Slice())
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
@@ -127,15 +112,11 @@ class GradeInformation extends Certificate
      *
      * @return Slice
      */
-    protected function getGradeLanesForGradeInformation(TblPerson $tblPerson = null)
+    protected function getGradeLanesForGradeInformation(TblPerson $tblPerson = null): Slice
     {
-
         $personId = $tblPerson ? $tblPerson->getId() : 0;
-
         $slice = (new Slice());
-
         $subjectList = $this->getSubjectList($tblPerson);
-
         if (!empty($subjectList)) {
             ksort($subjectList);
             $count = count($subjectList);
@@ -290,9 +271,8 @@ class GradeInformation extends Certificate
      *
      * @return Slice
      */
-    protected function getSubjectLanesForGradeInformation(TblPerson $tblPerson = null)
+    protected function getSubjectLanesForGradeInformation(TblPerson $tblPerson = null): Slice
     {
-
         $personId = $tblPerson ? $tblPerson->getId() : 0;
 
         $slice = (new Slice());
@@ -319,7 +299,7 @@ class GradeInformation extends Certificate
                 ->styleBorderLeft()
                 ->styleBorderTop()
                 ->styleBorderBottom()
-                ->styleBackgroundColor('#BBB')
+                ->styleBackgroundColor(self::BACKGROUND_GRADE_FIELD)
                 ->styleHeight($height)
                 ->styleTextSize($fontSize)
                 , '50%')
@@ -332,7 +312,7 @@ class GradeInformation extends Certificate
                 ->styleBorderTop()
                 ->styleBorderBottom()
                 ->styleBorderRight()
-                ->styleBackgroundColor('#BBB')
+                ->styleBackgroundColor(self::BACKGROUND_GRADE_FIELD)
                 ->styleHeight($height)
                 ->styleAlignCenter()
                 ->styleTextSize($fontSize)
@@ -342,7 +322,7 @@ class GradeInformation extends Certificate
 //                ->styleMarginTop($top)
 //                ->stylePaddingLeft($paddingLeft)
 //                ->styleBorderAll()
-//                ->styleBackgroundColor('#BBB')
+//                ->styleBackgroundColor(self::BACKGROUND_GRADE_FIELD)
 //                ->styleHeight($height)
 //                ->styleAlignCenter()
 //                ->styleTextSize($fontSize)
@@ -397,7 +377,7 @@ class GradeInformation extends Certificate
      *
      * @return array
      */
-    private function getSubjectList(TblPerson $tblPerson = null)
+    private function getSubjectList(TblPerson $tblPerson = null): array
     {
         $subjectList = array();
         $tblCertificateSubjectAll = Generator::useService()->getCertificateSubjectAll($this->getCertificateEntity());
@@ -407,35 +387,17 @@ class GradeInformation extends Certificate
                 if (($tblSubject = $tblCertificateSubject->getServiceTblSubject())) {
                     if ($tblCertificateSubject->isEssential()) {
                         $subjectList[$tblCertificateSubject->getRanking()] = $tblSubject;
-
                         // Überprüfen ob der Schüler dieses Fach im Unterricht hat --> dann anzeigen
-                    } elseif ($tblPerson && ($tblDivision = $this->getTblDivision())) {
-                        // in Gruppe
-                        if (($tblDivisionSubjectList = Division::useService()->getDivisionSubjectAllWhereSubjectGroupByDivisionAndSubject(
-                            $tblDivision, $tblSubject
-                        ))
-                        ) {
-                            foreach ($tblDivisionSubjectList as $tblDivisionSubjectItem) {
-                                if (Division::useService()->getSubjectStudentByDivisionSubjectAndPerson(
-                                    $tblDivisionSubjectItem, $tblPerson
-                                )
-                                ) {
-                                    $subjectList[$tblCertificateSubject->getRanking()] = $tblSubject;
-                                    break;
-                                }
-                            }
-                        // keine Gruppe und in der Klasse
-                        } elseif ($tblDivisionSubject = Division::useService()->getDivisionSubjectByDivisionAndSubjectAndSubjectGroup(
-                            $tblDivision, $tblSubject
-                        )
-                        ) {
-                            $subjectList[$tblCertificateSubject->getRanking()] = $tblSubject;
-                        }
+                    } elseif ($tblPerson
+                        && ($tblYear = $this->getYear())
+                        && (DivisionCourse::useService()->getVirtualSubjectFromRealAndVirtualByPersonAndYearAndSubject($tblPerson, $tblYear, $tblSubject))
+                    ) {
+                        $subjectList[$tblCertificateSubject->getRanking()] = $tblSubject;
                     }
                 }
             }
-            return $subjectList;
         }
+
         return $subjectList;
     }
 }

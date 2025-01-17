@@ -15,12 +15,14 @@ use SPHERE\Application\Document\LegalNotice;
 use SPHERE\Application\Document\License;
 use SPHERE\Application\Education\Education;
 use SPHERE\Application\Manual\Manual;
+use SPHERE\Application\ParentStudentAccess\ParentStudentAccess;
 use SPHERE\Application\People\People;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Platform\Platform;
 use SPHERE\Application\Platform\System;
 use SPHERE\Application\Reporting\Reporting;
+use SPHERE\Application\Setting\Authorization\Account\Account;
 use SPHERE\Application\Setting\Setting;
 use SPHERE\Application\Transfer\Transfer;
 use SPHERE\Common\Frontend\Icon\Repository\HazardSign;
@@ -51,6 +53,8 @@ use SPHERE\System\Cache\Handler\MemoryHandler;
 use SPHERE\System\Cache\Handler\OpCacheHandler;
 use SPHERE\System\Cache\Handler\SmartyHandler;
 use SPHERE\System\Cache\Handler\TwigHandler;
+use SPHERE\System\Debugger\DebuggerFactory;
+use SPHERE\System\Debugger\Logger\FileLogger;
 use SPHERE\System\Extension\Extension;
 
 /**
@@ -140,11 +144,20 @@ class Main extends Extension
                  */
                 self::registerApiPlatform();
 
+                $excludeSessionAPI = array(
+                    '/Api/Platform/Database/Upgrade',
+                    '/Api/Reporting/CustomEKBO/BerlinZentrum/SuSList/Download',
+                    '/Api/Reporting/CustomEKBO/BerlinZentrum/KuKList/Download',
+                );
+
                 if ($this->runAuthenticator()) {
                     if (Access::useService()->existsRightByName($this->getRequest()->getPathInfo())) {
                         if (!Access::useService()->hasAuthorization($this->getRequest()->getPathInfo())) {
                             header('HTTP/1.0 403 Forbidden: '.$this->getRequest()->getPathInfo());
                         } else {
+                            if(!in_array($this->getRequest()->getPathInfo(), ($excludeSessionAPI))){
+                                Account::useService()->refreshSession();
+                            }
                             echo self::getDispatcher()->fetchRoute(
                                 $this->getRequest()->getPathInfo()
                             );
@@ -184,6 +197,13 @@ class Main extends Extension
              * Execute Request
              */
             if ($this->runAuthenticator()) {
+                $excludeSession = array(
+                    '/Reporting/Custom/SuSList',
+                    '/Reporting/Custom/KuKList',
+                );
+                if(!in_array($this->getRequest()->getPathInfo(), ($excludeSession))){
+                    Account::useService()->refreshSession();
+                }
                 self::getDisplay()->setContent(
                     self::getDispatcher()->fetchRoute(
                         $this->getRequest()->getPathInfo()
@@ -229,7 +249,9 @@ class Main extends Extension
                 function ($Code, $Message, $File, $Line) {
 
                     if (!preg_match('!apc_store.*?was.*?on.*?gc-list.*?for!is', $Message)) {
-                        throw new \ErrorException($Message, 0, $Code, $File, $Line);
+                        if (!preg_match('!"continue" targeting switch is equivalent to "break"!is', $Message)) {
+                            throw new \ErrorException($Message, 0, $Code, $File, $Line);
+                        }
                     }
                 }, E_ALL
             );
@@ -251,6 +273,9 @@ class Main extends Extension
                         return;
                     }
                     if (preg_match('!apc_store.*?was.*?on.*?gc-list.*?for!is', $Error['message'])) {
+                        return;
+                    }
+                    if (preg_match('!"continue" targeting switch is equivalent to "break"!is', $Error['message'])) {
                         return;
                     }
                     $Display = new Display();
@@ -303,6 +328,9 @@ class Main extends Extension
     public static function runSelfHeal(\Exception $Exception = null)
     {
 
+//        Fehlerfunde nicht der gesuchte Fehler
+//        (new DebuggerFactory())->createLogger(new FileLogger())->addLog('runSelfHeal Error: '.$Exception->getMessage());
+
         $Protocol = (new System\Database\Database())->frontendSetup(false, true);
 
         $Display = new Display();
@@ -343,7 +371,6 @@ class Main extends Extension
 
     public static function registerGuiPlatform()
     {
-
         People::registerCluster();
         Corporation::registerCluster();
         Education::registerCluster();
@@ -357,5 +384,6 @@ class Main extends Extension
         License::registerCluster();
         LegalNotice::registerCluster();
         DataProtectionOrdinance::registerCluster();
+        ParentStudentAccess::registerCluster();
     }
 }

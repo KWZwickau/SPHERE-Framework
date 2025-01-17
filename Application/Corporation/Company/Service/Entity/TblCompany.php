@@ -22,6 +22,7 @@ class TblCompany extends Element
     const ATTR_NAME = 'Name';
     const ATTR_EXTENDED_NAME = 'ExtendedName';
     const ATTR_DESCRIPTION = 'Description';
+    const ATTR_IMPORT_ID = 'ImportId';
 
     /**
      * @Column(type="string")
@@ -35,6 +36,15 @@ class TblCompany extends Element
      * @Column(type="string")
      */
     protected $Description;
+    /**
+     * @Column(type="string")
+     */
+    protected $ContactNumber;
+
+    /**
+     * @Column(type="string")
+     */
+    protected $ImportId;
 
     /**
      * @return string
@@ -104,7 +114,41 @@ class TblCompany extends Element
 
         return $this->Name.( $this->ExtendedName != '' ? ' '.$this->ExtendedName : null );
     }
-    
+
+    /**
+     * @return string
+     */
+    public function getContactNumber()
+    {
+        return $this->ContactNumber;
+    }
+
+    /**
+     * @param string $ContactNumber
+     */
+    public function setContactNumber($ContactNumber = ''): void
+    {
+        $this->ContactNumber = $ContactNumber;
+    }
+
+    /**
+     * @return string
+     */
+    public function getImportId()
+    {
+
+        return $this->ImportId;
+    }
+
+    /**
+     * @param string $ImportId
+     */
+    public function setImportId($ImportId)
+    {
+
+        $this->ImportId = $ImportId;
+    }
+
     /**
      * @return bool|TblAddress
      */

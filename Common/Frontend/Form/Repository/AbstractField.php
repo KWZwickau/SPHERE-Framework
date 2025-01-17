@@ -309,6 +309,18 @@ abstract class AbstractField extends Extension implements IFieldInterface
     }
 
     /**
+     * @return bool
+     */
+    public function getDisabled()
+    {
+
+        if(isset($this->TemplateVariableList['Disabled'])){
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * @return AbstractField
      */
     public function setRequired()

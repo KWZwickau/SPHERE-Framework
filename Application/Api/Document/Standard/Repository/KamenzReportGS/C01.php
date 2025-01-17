@@ -32,7 +32,7 @@ class C01
             ->styleMarginBottom('5px')
             ->addElement((new Element())
                 ->setContent('C01. Anzahl der Schüler, die im <u>Schuljahr {{ Content.SchoolYear.Past }}</u> 
-                    diese Schule besucht haben und nicht versetzt </br> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; worden sind, nach Klassenstufen')
+                    diese Schule besucht haben und nicht versetzt <br /> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; worden sind, nach Klassenstufen')
             );
 
         $sliceList[] = (new Slice())
@@ -44,6 +44,7 @@ class C01
             ->addSection((new Section())
                 ->addElementColumn((new Element())
                     ->setContent('Merkmal')
+                    ->styleAlignCenter()
                     ->styleBorderRight()
                     ->stylePaddingTop('17.7px')
                     ->stylePaddingBottom('17.6px'), '50%'
@@ -52,27 +53,32 @@ class C01
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('Klassen- bzw. Jahrgangsstufe')
+                            ->styleAlignCenter()
                             ->styleBorderRight()
                         )
                     )
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('1')
+                            ->styleAlignCenter()
                             ->styleBorderBottom()
                             ->styleBorderRight(), '10%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('2')
+                            ->styleAlignCenter()
                             ->styleBorderBottom()
                             ->styleBorderRight(), '10%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('3')
+                            ->styleAlignCenter()
                             ->styleBorderBottom()
                             ->styleBorderRight(), '10%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('4')
+                            ->styleAlignCenter()
                             ->styleBorderBottom()
                             ->styleBorderRight(), '10%'
                         )
@@ -80,34 +86,42 @@ class C01
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('m')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '5%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('w')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '5%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('m')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '5%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('w')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '5%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('m')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '5%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('w')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '5%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('m')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '5%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('w')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '5%'
                         )
                     ), '40%'
@@ -126,10 +140,12 @@ class C01
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('m')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '50%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('w')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '50%'
                         )
                     ), '10%'

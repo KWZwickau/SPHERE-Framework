@@ -1,31 +1,28 @@
 <?php
 namespace SPHERE\Application\Setting\User\Account;
 
+use DateTime;
 use SPHERE\Application\Api\Contact\ApiContactAddress;
 use SPHERE\Application\Api\Setting\UserAccount\ApiUserAccount;
+use SPHERE\Application\Api\Setting\UserAccount\ApiUserDelete;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Phone\Phone;
 use SPHERE\Application\Contact\Web\Web;
-use SPHERE\Application\Education\Lesson\Division\Division;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\ViewDivision;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\ViewDivisionStudent;
-use SPHERE\Application\Education\Lesson\Term\Service\Entity\ViewYear;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Group\Group;
-use SPHERE\Application\People\Group\Service\Entity\ViewPeopleGroupMember;
-use SPHERE\Application\People\Meta\Student\Student;
-use SPHERE\Application\People\Person\Person;
+use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
-use SPHERE\Application\People\Person\Service\Entity\ViewPerson;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\People\Relationship\Service\Entity\TblType;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer as ConsumerGatekeeper;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumerLogin;
 use SPHERE\Application\Setting\Authorization\Account\Account as AccountAuthorization;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Application\Setting\Consumer\School\School;
 use SPHERE\Application\Setting\User\Account\Service\Entity\TblUserAccount;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
-use SPHERE\Common\Frontend\Form\Repository\Field\AutoCompleter;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\HiddenField;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
@@ -38,7 +35,6 @@ use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
-use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Info as InfoIcon;
 use SPHERE\Common\Frontend\Icon\Repository\Mail;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
@@ -55,6 +51,7 @@ use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\ProgressBar;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
+use SPHERE\Common\Frontend\Layout\Repository\WellReadOnly;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
@@ -65,17 +62,17 @@ use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Link\Repository\ToggleCheckbox;
 use SPHERE\Common\Frontend\Message\Repository\Danger as DangerMessage;
 use SPHERE\Common\Frontend\Message\Repository\Info;
-use SPHERE\Common\Frontend\Message\Repository\Success as SuccessMessage;
-use SPHERE\Common\Frontend\Message\Repository\Warning as WarningMessage;
+use SPHERE\Common\Frontend\Message\Repository\Success;
+use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Repository\Title;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
+use SPHERE\Common\Frontend\Text\Repository\Center;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
-use SPHERE\Common\Frontend\Text\Repository\Small;
-use SPHERE\Common\Frontend\Text\Repository\Warning;
+use SPHERE\Common\Frontend\Text\Repository\ToolTip;
+use SPHERE\Common\Frontend\Text\Repository\Warning as WarningText;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
-use SPHERE\System\Database\Filter\Link\Pile;
 use SPHERE\System\Extension\Extension;
 
 /**
@@ -134,49 +131,41 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param null $Person
-     * @param null $Year
-     * @param null $Division
+     * @param null|array $Data
      *
      * @return Stage
-     * @throws \Exception
      */
-    public function frontendStudentAdd($Person = null, $Year = null, $Division = null)
+    public function frontendStudentAdd(array $Data = null):Stage
     {
 
         $Stage = new Stage('Schüler-Accounts', 'Erstellen');
 
-        $form = $this->getStudentFilterForm();
-
-        $Result = $this->getStudentFilterResult($Person, $Year, $Division);
-        $MaxResult = 800;
-        $TableContent = $this->getStudentTableContent($Result, $MaxResult);
-
-        // erlaubte Schularten:
-        $tblSetting = Consumer::useService()->getSetting('Education', 'Graduation', 'Gradebook', 'IgnoreSchoolType');
-        $tblSchoolTypeList = Consumer::useService()->getSchoolTypeBySettingString($tblSetting->getValue());
-        if($tblSchoolTypeList){
-            // erzeuge eine Id Liste, wenn Schularten erlaubt werden
-            foreach ($tblSchoolTypeList as &$tblSchoolTypeControl){
-                $tblSchoolTypeControl = $tblSchoolTypeControl->getName();
+        if(!isset($Data['Year'])){
+            if(($tblYearList = Term::useService()->getYearByNow())){
+                $_POST['Data']['Year'] = current($tblYearList)->getId();
             }
         }
 
+        $form = $this->getStudentFilterForm();
+        $StudentEducationList = Account::useService()->getStudentFilterResult($Data);
+        $MaxResult = 800;
+        $TableContent = Account::useService()->getStudentTableContent($StudentEducationList, $MaxResult);
         $Table = new TableData($TableContent, null, array(
-            'Check'         => 'Auswahl',
-            'Name'          => 'Name',
-            'StudentNumber' => 'Schüler-Nr.',
-            'Course'        => 'Schulart',
-            'Division'      => 'Klasse',
-            'Address'       => 'Adresse',
-            'Option'        => '',
+            'Check'           => 'Auswahl',
+            'Name'            => 'Name',
+            'StudentNumber'   => 'Schüler-Nr.',
+            'SchoolType'      => 'Schulart',
+            'DivisionCourseD' => 'Klasse',
+            'DivisionCourseC' => 'Stammgruppe',
+            'Address'         => 'Adresse',
+            'Option'          => '',
         ),
             array(
-                'order'      => array(array(5, 'asc')),
+                'order'      => array(array(6, 'asc')),
                 'columnDefs' => array(
                     array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
-//                    array('width' => '1%', 'targets' => 0), //ToDO handle changing with
-//                    array('width' => '1%', 'targets' => -1),
+                    array('width' => '1%', 'targets' => 0),
+                    array('width' => '1%', 'targets' => -1),
                 ),
                 'pageLength' => -1,
                 'paging'     => false,
@@ -184,65 +173,43 @@ class Frontend extends Extension implements IFrontendInterface
                 'searching'  => false,
                 'responsive' => false,
             )
-//            false
         );
 
         //get ErrorMessage by Filter
         $formResult = new Form(new FormGroup(new FormRow(new FormColumn(
-            (isset($Year[ViewYear::TBL_YEAR_ID]) && $Year[ViewYear::TBL_YEAR_ID] != 0
-                ? new WarningMessage(new Container('Filterung findet keine Personen (ohne Account)')
-                . ($tblSchoolTypeList
-                    ? new Container('Folgende Schularten werden in den Einstellungen erlaubt: '.implode(', ', $tblSchoolTypeList))
-                    : ''))
-                : new WarningMessage('Die Filterung benötigt ein Schuljahr'))
+            (isset($Data['Year']) && $Data['Year'] != 0
+                ? new Warning(new Container('Filterung findet keine Personen (ohne Account)'))
+                : new Warning('Die Filterung benötigt ein Schuljahr'))
         ))));
         if (!empty($TableContent)) {
-            $formResult = (new Form(
-                new FormGroup(
-                    new FormRow(array(
-                        new FormColumn($Table),
-                        new FormColumn((new PrimaryLink('Benutzerkonten anlegen', ApiContactAddress::getEndpoint(), new Save()))
-                            ->ajaxPipelineOnClick(ApiUserAccount::pipelineSaveAccount('S'))
-                        )
-                    ))
+            $formResult = (new Form(new FormGroup(new FormRow(array(
+                new FormColumn($Table),
+                new FormColumn((new PrimaryLink('Benutzerkonten anlegen', ApiContactAddress::getEndpoint(), new Save()))
+                    ->ajaxPipelineOnClick(ApiUserAccount::pipelineSaveAccount('S'))
                 )
-            ))
-//                ->appendFormButton((new Primary('Speichern', new Save())))
-                ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
+            )))))
+            ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
         }
 
         $Stage->setContent(
             new Layout(
                 new LayoutGroup(array(
-                    new LayoutRow(
-                        new LayoutColumn(new Well(
-                            $form
+                    new LayoutRow(new LayoutColumn(new Well($form))),
+                    new LayoutRow(new LayoutColumn(ApiContactAddress::receiverModal())),
+                    new LayoutRow(new LayoutColumn(
+                        (count($TableContent) == $MaxResult
+                            ? new Warning(new WarningIcon().' Maximalanzahl der Personen erreicht.
+                            Die Filterung ist möglicherweise nicht komplett!')
+                            : ''
+                        )
+                    )),
+                    new LayoutRow(new LayoutColumn(
+                        ApiUserAccount::receiverAccountModal()
+                        .new Panel('Filterung', array(
+                            (!empty($TableContent) ? new ToggleCheckbox('Alle wählen/abwählen', $Table) : ''),
+                            $formResult
                         ))
-                    ),
-                    new LayoutRow(
-                        new LayoutColumn(
-                            ApiContactAddress::receiverModal()
-                        )
-                    ),
-                    new LayoutRow(
-                        new LayoutColumn(
-                            (count($TableContent) >= $MaxResult
-                                ? new WarningMessage(new WarningIcon().' Maximalanzahl der Personen erreicht.
-                                Die Filterung ist nicht komplett!')
-                                : ''
-                            )
-                        )
-                    ),
-                    new LayoutRow(
-                        new LayoutColumn(
-                            ApiUserAccount::receiverAccountModal()
-                            .new Panel('Filterung', array(
-                                (!empty($TableContent) ? new ToggleCheckbox('Alle wählen/abwählen', $Table) : ''),
-                                $formResult
-//                                Account::useService()->createAccount($formResult, $PersonIdArray, 'S')
-                            ))
-                        )
-                    )
+                    ))
                 ))
             )
         );
@@ -253,50 +220,31 @@ class Frontend extends Extension implements IFrontendInterface
     /**
      * @return Form
      */
-    private function getStudentFilterForm()
+    private function getStudentFilterForm():Form
     {
-        $tblLevelShowList = array();
 
-        $tblLevelList = Division::useService()->getLevelAll();
-        if ($tblLevelList) {
-            foreach ($tblLevelList as &$tblLevel) {
-                if (!$tblLevel->getName()) {
-                    $tblLevelClone = clone $tblLevel;
-                    $tblLevelClone->setName('Stufenübergreifende Klassen');
-                    $tblLevelShowList[] = $tblLevelClone;
-                } else {
-                    $tblLevelShowList[] = $tblLevel;
-                }
-            }
+        $levelList = DivisionCourse::useService()->getStudentEducationLevelListForSelectbox();
+        $tblDivisionCourseList = DivisionCourse::useService()->getDivisionCourseListByDate();
+        $YearString = '';
+        if(($tblYearList = Term::useService()->getYearByNow())){
+            $YearString = current($tblYearList)->getYear();
         }
-
         return new Form(
             new FormGroup(array(
                 new FormRow(array(
-//                    new FormColumn(
-//                        new Panel('Person', array(
-//                            new TextField('Person['.ViewPerson::TBL_PERSON_FIRST_NAME.']', '', 'Vorname'),
-//                            new TextField('Person['.ViewPerson::TBL_PERSON_LAST_NAME.']', '', 'Nachname')
-//                        ), Panel::PANEL_TYPE_INFO)
-//                        , 4),
                     new FormColumn(
                         new Panel('Bildung', array(
-                            (new SelectBox('Year['.ViewYear::TBL_YEAR_ID.']', 'Schuljahr',
-                                array('{{ Name }} {{ Description }}' => Term::useService()->getYearAllSinceYears(1))))
+                            (new SelectBox('Data[Year]', 'Schuljahr', array('{{ Name }} {{ Description }}' => Term::useService()->getYearAllSinceYears(1))))
                                 ->setRequired(),
-                            new SelectBox('Division['.ViewDivision::TBL_LEVEL_SERVICE_TBL_TYPE.']', 'Schulart',
-                                array('Name' => Type::useService()->getTypeAll()))
+                            new SelectBox('Data[SchoolType]', 'Schulart', array('Name' => Type::useService()->getTypeAll()))
                         ), Panel::PANEL_TYPE_INFO)
                         , 4),
                     new FormColumn(
                         new Panel('Klasse', array(
-                            new SelectBox('Division['.ViewDivision::TBL_LEVEL_ID.']', 'Stufe',
-                                array('{{ Name }} {{ serviceTblType.Name }}' => $tblLevelShowList)),
-                            new AutoCompleter('Division['.ViewDivision::TBL_DIVISION_NAME.']', 'Gruppe',
-                                'Klasse: Gruppe', array('Name' => Division::useService()->getDivisionAll()))
+                            new SelectBox('Data[Level]', 'Stufe', $levelList),
+                            new SelectBox('Data[DivisionCourse]', 'Klasse '.$YearString, array('Name' => $tblDivisionCourseList))
                         ), Panel::PANEL_TYPE_INFO)
                         , 4),
-
                     new FormColumn(
                         new Panel('Filter-Information', new Info('Das Filterlimit beträgt 800 Personen')
                             .new Info('Es werden nur Personen ohne Account abgebildet')
@@ -309,253 +257,32 @@ class Frontend extends Extension implements IFrontendInterface
                     )
                 )
             ))
-//            , new Primary('Filtern')
         );
     }
 
     /**
-     * @param array $Person
-     * @param array $Year
-     * @param array $Division
-     *
-     * @return array
-     */
-    private function getStudentFilterResult($Person, $Year, $Division)
-    {
-
-        $Pile = new Pile(Pile::JOIN_TYPE_INNER);
-        $Pile->addPile((new ViewPeopleGroupMember())->getViewService(), new ViewPeopleGroupMember(),
-            null, ViewPeopleGroupMember::TBL_MEMBER_SERVICE_TBL_PERSON
-        );
-        $Pile->addPile((new ViewPerson())->getViewService(), new ViewPerson(),
-            ViewPerson::TBL_PERSON_ID, ViewPerson::TBL_PERSON_ID
-        );
-        $Pile->addPile((new ViewDivisionStudent())->getViewService(), new ViewDivisionStudent(),
-            ViewDivisionStudent::TBL_DIVISION_STUDENT_SERVICE_TBL_PERSON, ViewDivisionStudent::TBL_DIVISION_TBL_YEAR
-        );
-        $Pile->addPile((new ViewYear())->getViewService(), new ViewYear(),
-            ViewYear::TBL_YEAR_ID, ViewYear::TBL_YEAR_ID
-        );
-
-        $Result = array();
-
-        if (isset($Year) && $Year['TblYear_Id'] != 0 && isset($Pile)) {
-            // Preparation Filter $FilterYear
-            array_walk($Year, function (&$Input) {
-
-                if (!empty($Input)) {
-                    $Input = explode(' ', $Input);
-                    $Input = array_filter($Input);
-                } else {
-                    $Input = false;
-                }
-            });
-            $FilterYear = array_filter($Year);
-//            // Preparation FilterPerson
-//            $Filter['Person'] = array();
-
-            // Preparation $FilterPerson
-            if (isset($Person) && $Person) {
-                array_walk($Person, function (&$Input) {
-
-                    if (!empty($Input)) {
-                        $Input = explode(' ', $Input);
-                        $Input = array_filter($Input);
-                    } else {
-                        $Input = false;
-                    }
-                });
-                $FilterPerson = array_filter($Person);
-            } else {
-                $FilterPerson = array();
-            }
-            // Preparation $FilterDivision
-            if (isset($Division) && $Division) {
-                array_walk($Division, function (&$Input) {
-
-                    if (!empty($Input)) {
-                        $Input = explode(' ', $Input);
-                        $Input = array_filter($Input);
-                    } else {
-                        $Input = false;
-                    }
-                });
-                $FilterDivision = array_filter($Division);
-            } else {
-                $FilterDivision = array();
-            }
-
-            $StudentGroup = Group::useService()->getGroupByMetaTable('STUDENT');
-            $Result = $Pile->searchPile(array(
-                0 => array(ViewPeopleGroupMember::TBL_GROUP_ID => array($StudentGroup->getId())),
-                1 => $FilterPerson,
-                2 => $FilterDivision,
-                3 => $FilterYear
-            ));
-        }
-
-        return $Result;
-    }
-
-    /**
-     * @param array $Result
-     * @param int   $MaxResult
-     *
-     * @return array
-     * @throws \Exception
-     */
-    public function getStudentTableContent($Result, $MaxResult = 800)
-    {
-
-        $SearchResult = array();
-        if (!empty($Result)) {
-
-            // erlaubte Schularten:
-            $tblSetting = Consumer::useService()->getSetting('Education', 'Graduation', 'Gradebook', 'IgnoreSchoolType');
-            $tblSchoolTypeList = Consumer::useService()->getSchoolTypeBySettingString($tblSetting->getValue());
-            if($tblSchoolTypeList){
-                // erzeuge eine Id Liste, wenn Schularten erlaubt werden
-                foreach ($tblSchoolTypeList as &$tblSchoolTypeControl){
-                    $tblSchoolTypeControl = $tblSchoolTypeControl->getId();
-                }
-            }
-
-            $countRow = 0;
-            /**
-             * @var int                                $Index
-             * @var ViewPerson[]|ViewDivisionStudent[] $Row
-             */
-            foreach ($Result as $Index => $Row) {
-
-                /** @var ViewPerson $DataPerson */
-                $DataPerson = $Row[1]->__toArray();
-                /** @var ViewDivisionStudent $DivisionStudent */
-                $DivisionStudent = $Row[2]->__toArray();
-                $tblPerson = Person::useService()->getPersonById($DataPerson['TblPerson_Id']);
-
-                // ignor Person with existing Accounts (By Person)
-                if ($tblPerson && !AccountAuthorization::useService()->getAccountAllByPerson($tblPerson)) {
-                    /** @noinspection PhpUndefinedFieldInspection */
-                    $DataPerson['Name'] = false;
-                    $DataPerson['Check'] = '';
-                    $DataPerson['Course'] = '';
-                    $DataPerson['Course'] = '';
-                    $DataPerson['Address'] = $this->apiChangeMainAddressField($tblPerson);
-                    $DataPerson['Option'] = $this->apiChangeMainAddressButton($tblPerson);
-
-                    if ($tblPerson) {
-                        $DataPerson['Check'] = (new CheckBox('PersonIdArray['.$tblPerson->getId().']', ' ',
-                            $tblPerson->getId()
-                            , array($tblPerson->getId())))->setChecked();
-                        $DataPerson['Name'] = $tblPerson->getLastFirstName();
-                        $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
-                        if ($tblStudent) {
-                            $tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS');
-                            if ($tblTransferType) {
-                                $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
-                                    $tblTransferType);
-                                if ($tblStudentTransfer && ($tblCourse = $tblStudentTransfer->getServiceTblCourse())) {
-                                    $DataPerson['Course'] = $tblCourse->getName();
-                                }
-                            }
-                        }
-                    }
-                    $DataPerson['Division'] = '';
-                    $DataPerson['Level'] = '';
-
-                    $tblDivision = Division::useService()->getDivisionById($DivisionStudent['TblDivision_Id']);
-                    if ($tblDivision) {
-                        $DataPerson['Division'] = $tblDivision->getDisplayName();
-                        // Schüler, die sich nicht in erlaubte Schularten befinden sollen übersprungen werden (wenn es diese Einstellung gibt)
-                        if($tblSchoolTypeList && ($tblLevel = $tblDivision->getTblLevel())){
-                            if(($tblType = $tblLevel->getServiceTblType()) && !in_array($tblType->getId(), $tblSchoolTypeList)){
-                                // Schüler Überspringen
-                                continue;
-                            }
-                        }
-                    }
-                    $DataPerson['StudentNumber'] = new Small(new Muted('-NA-'));
-                    if (isset($tblStudent) && $tblStudent && $DataPerson['Name']) {
-                        $DataPerson['StudentNumber'] = $tblStudent->getIdentifierComplete();
-                    }
-
-                    if (!isset($DataPerson['ProspectYear'])) {
-                        $DataPerson['ProspectYear'] = new Small(new Muted('-NA-'));
-                    }
-                    if (!isset($DataPerson['ProspectDivision'])) {
-                        $DataPerson['ProspectDivision'] = new Small(new Muted('-NA-'));
-                    }
-
-
-                    // ignore duplicated Person
-                    if ($DataPerson['Name']) {
-                        if (!array_key_exists($DataPerson['TblPerson_Id'], $SearchResult)) {
-                            if ($countRow >= $MaxResult) {
-                                break;
-                            }
-                            $countRow++;
-                            $SearchResult[$DataPerson['TblPerson_Id']] = $DataPerson;
-                        }
-                    }
-                }
-            }
-        }
-
-        return $SearchResult;
-    }
-
-    /**
-     * @param TblPerson $tblPerson
-     *
-     * @return \SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver
-     */
-    public function apiChangeMainAddressField(TblPerson $tblPerson)
-    {
-        $Content = ApiContactAddress::receiverColumn($tblPerson->getId());
-        return $Content;
-    }
-
-    /**
-     * @param TblPerson $tblPerson
-     *
-     * @return string|Standard
-     */
-    public function apiChangeMainAddressButton(TblPerson $tblPerson)
-    {
-        $Button = (new Standard('', ApiContactAddress::getEndpoint(), new Edit(), array(),
-            'Bearbeiten der Hauptadresse'))
-            ->ajaxPipelineOnClick(ApiContactAddress::pipelineOpen($tblPerson->getId()));
-
-        return $Button;
-    }
-
-    /**
-     * @param null $Person
-     * @param null $Year
-     * @param null $Division
-     * @param null $TypeId
+     * @param null|array $Data
      *
      * @return Stage
      */
-    public function frontendCustodyAdd($Person = null, $Year = null, $Division = null, $TypeId = null)
+    public function frontendCustodyAdd(array $Data = null):Stage
     {
+
         $Stage = new Stage('Sorgeberechtigten-Accounts', 'Erstellen');
-
-        $form = $this->getCustodyFilterForm();
-
-        $Result = $this->getStudentFilterResult($Person, $Year, $Division);
-        $MaxResult = 800;
-        $TableContent = $this->getCustodyTableContent($Result, $MaxResult, $TypeId);
-
-        // erlaubte Schularten:
-        $tblSetting = Consumer::useService()->getSetting('Education', 'Graduation', 'Gradebook', 'IgnoreSchoolType');
-        $tblSchoolTypeList = Consumer::useService()->getSchoolTypeBySettingString($tblSetting->getValue());
-        if($tblSchoolTypeList){
-            // erzeuge eine Id Liste, wenn Schularten erlaubt werden
-            foreach ($tblSchoolTypeList as &$tblSchoolTypeControl){
-                $tblSchoolTypeControl = $tblSchoolTypeControl->getName();
+        if(!isset($Data['Year'])){
+            if(($tblYearList = Term::useService()->getYearByNow())){
+                $_POST['Data']['Year'] = current($tblYearList)->getId();
             }
         }
+        $form = $this->getCustodyFilterForm();
+        $tblStudentEducationList = Account::useService()->getStudentFilterResult($Data);
+        $MaxResult = 800;
+        $TypeId = null;
+        if(isset($Data['RelationshipType'])
+        && ($tblRelationshipType = Relationship::useService()->getTypeById($Data['RelationshipType']))){
+            $TypeId = $tblRelationshipType->getId();
+        }
+        $TableContent = Account::useService()->getCustodyTableContent($tblStudentEducationList, $MaxResult, $TypeId);
 
         $Table = new TableData($TableContent, null, array(
             'Check'   => 'Auswahl',
@@ -565,11 +292,11 @@ class Frontend extends Extension implements IFrontendInterface
             'Option'  => '',
         ),
             array(
-                'order'      => array(array(2, 'asc')),
+                'order'      => array(array(3, 'asc')),
                 'columnDefs' => array(
-                    array('type' => 'german-string', 'targets' => 1),
-//                    array('width' => '1%', 'targets' => 0), //ToDO handle changing with
-//                    array('width' => '1%', 'targets' => -1),
+                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
+                    array('width' => '1%', 'targets' => 0),
+                    array('width' => '1%', 'targets' => -1),
                 ),
                 'pageLength' => -1,
                 'paging'     => false,
@@ -582,12 +309,14 @@ class Frontend extends Extension implements IFrontendInterface
 
         //get ErrorMessage by Filter
         $formResult = new Form(new FormGroup(new FormRow(new FormColumn(
-            (isset($Year[ViewYear::TBL_YEAR_ID]) && $Year[ViewYear::TBL_YEAR_ID] != 0
-                ? new WarningMessage(new Container('Filterung findet keine Personen (ohne Account)')
-                    .($tblSchoolTypeList
-                        ? new Container('Folgende Schularten werden in den Einstellungen erlaubt: '.implode(', ', $tblSchoolTypeList))
-                        : ''))
-                : new WarningMessage('Die Filterung benötigt ein Schuljahr'))
+            (isset($Data['Year']) && $Data['Year'] != 0
+                ? new Warning(new Container('Filterung findet keine Personen (ohne Account)')
+                // SSW-1625 keine Einschränkung durch die Mandanten Einstellung
+//                    .($tblSchoolTypeList
+//                        ? new Container('Folgende Schularten werden in den Einstellungen erlaubt: '.implode(', ', $tblSchoolTypeList))
+//                        : '')
+                )
+                : new Warning('Die Filterung benötigt ein Schuljahr'))
         ))));
         if (!empty($TableContent)) {
             $formResult = (new Form(
@@ -618,9 +347,9 @@ class Frontend extends Extension implements IFrontendInterface
                     ),
                     new LayoutRow(
                         new LayoutColumn(
-                            (count($TableContent) >= $MaxResult
-                                ? new WarningMessage(new WarningIcon().' Maximalanzahl der Personen erreicht.
-                                Die Filterung ist nicht komplett!')
+                            (count($TableContent) == $MaxResult
+                                ? new Warning(new WarningIcon().' Maximalanzahl der Personen erreicht.
+                                Die Filterung ist möglicherweise nicht komplett!')
                                 : ''
                             )
                         )
@@ -646,48 +375,33 @@ class Frontend extends Extension implements IFrontendInterface
      */
     private function getCustodyFilterForm()
     {
-        $tblLevelShowList = array();
 
-        $tblLevelList = Division::useService()->getLevelAll();
-        if ($tblLevelList) {
-            foreach ($tblLevelList as &$tblLevel) {
-                if (!$tblLevel->getName()) {
-                    $tblLevelClone = clone $tblLevel;
-                    $tblLevelClone->setName('Stufenübergreifende Klassen');
-                    $tblLevelShowList[] = $tblLevelClone;
-                } else {
-                    $tblLevelShowList[] = $tblLevel;
-                }
-            }
+        $TypeList = Account::useService()->getRelationshipList();
+        $levelList = DivisionCourse::useService()->getStudentEducationLevelListForSelectbox();
+        $tblDivisionCourseList = DivisionCourse::useService()->getDivisionCourseListByDate();
+        $YearString = '';
+        if(($tblYearList = Term::useService()->getYearByNow())){
+            $YearString = current($tblYearList)->getYear();
         }
-        $TypeList = $this->getRelationshipList();
-
         return new Form(
             new FormGroup(array(
                 new FormRow(array(
-//                    new FormColumn(
-//                        new Success('')
-//                        , 4),
                     new FormColumn(
                         new Panel('Bildung', array(
-                            (new SelectBox('Year['.ViewYear::TBL_YEAR_ID.']', 'Schuljahr',
-                                array('{{ Name }} {{ Description }}' => Term::useService()->getYearAllSinceYears(1))))
+                            (new SelectBox('Data[Year]', 'Schuljahr', array('{{ Name }} {{ Description }}' => Term::useService()->getYearAllSinceYears(1))))
                                 ->setRequired(),
-                            new SelectBox('Division['.ViewDivision::TBL_LEVEL_SERVICE_TBL_TYPE.']', 'Schulart',
-                                array('Name' => Type::useService()->getTypeAll()))
+                            new SelectBox('Data[SchoolType]', 'Schulart', array('Name' => Type::useService()->getTypeAll()))
                         ), Panel::PANEL_TYPE_INFO)
                         , 3),
                     new FormColumn(
                         new Panel('Klasse', array(
-                            new SelectBox('Division['.ViewDivision::TBL_LEVEL_ID.']', 'Stufe',
-                                array('{{ Name }} {{ serviceTblType.Name }}' => $tblLevelShowList)),
-                            new AutoCompleter('Division['.ViewDivision::TBL_DIVISION_NAME.']', 'Gruppe',
-                                'Klasse: Gruppe', array('Name' => Division::useService()->getDivisionAll()))
+                            new SelectBox('Data[Level]', 'Stufe', $levelList),
+                            new SelectBox('Data[DivisionCourse]', 'Klasse '.$YearString, array('Name' => $tblDivisionCourseList))
                         ), Panel::PANEL_TYPE_INFO)
                         , 3),
                     new FormColumn(
                         new Panel('Beziehungstyp', array(
-                            new SelectBox('TypeId', 'Beziehungstyp',
+                            new SelectBox('Data[RelationshipType]', 'Beziehungstyp',
                                 array('{{ Name }}' => $TypeList))
                         ), Panel::PANEL_TYPE_INFO)
                         , 3),
@@ -707,194 +421,252 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @return TblType[]
+     * @return Stage
      */
-    private function getRelationshipList()
+    public function frontendStudentShow()
     {
 
-        $TypeList = array();
-        $TypeNameList = array(
-            TblType::IDENTIFIER_GUARDIAN,       // Sorgeberechtigt
-            TblType::IDENTIFIER_AUTHORIZED,     // Bevollmächtigt
-            TblType::IDENTIFIER_GUARDIAN_SHIP   // Vormund
+        ini_set('memory_limit', '512M');
+        $Stage = new Stage('Schüler-Accounts', 'Übersicht');
+        $Stage->addButton(new Standard('Zurück', '/Setting/User', new ChevronLeft()));
+
+        $ApiDeleteModalButton = (new Standard('Ehemalige Schüler-Accounts löschen', '#'))
+            ->ajaxPipelineOnClick(ApiUserDelete::pipelineOpenModal('STUDENT'));
+        $Stage->addButton($ApiDeleteModalButton);
+
+
+        $StudentTable = $this->getStudentTable();
+        $tableReceiver = ApiUserDelete::receiverTable($StudentTable);
+
+        $Stage->setContent(
+            new Layout(
+                new LayoutGroup(
+                    new LayoutRow(array(
+//                        new LayoutColumn(),
+                        new LayoutColumn(
+                            ApiContactAddress::receiverModal()
+                            .ApiUserDelete::receiverAccountModal('Löschen ehemaliger '.new Bold('Schüler-Accounts'))
+                            .ApiUserDelete::receiverAccountService()
+                        ),
+                        new LayoutColumn(
+                            $tableReceiver
+                        )
+                    ))
+                )
+            )
         );
-        foreach($TypeNameList as $TypeName){
-            if(($tblType = Relationship::useService()->getTypeByName($TypeName))){
-                $TypeList[] = $tblType;
-            }
-        }
-        return $TypeList;
+
+        return $Stage;
     }
 
-    /**
-     * @param array $Result
-     * @param int   $MaxResult
-     * @param null  $TypeId
-     *
-     * @return array
-     */
-    public function getCustodyTableContent($Result, $MaxResult = 800, $TypeId = null)
+    public function getStudentTable($IsDeleteModal = false)
     {
 
-        $SearchResult = array();
-        if (!empty($Result)) {
-
-            // erlaubte Schularten:
-            $tblSetting = Consumer::useService()->getSetting('Education', 'Graduation', 'Gradebook', 'IgnoreSchoolType');
-            $tblSchoolTypeList = Consumer::useService()->getSchoolTypeBySettingString($tblSetting->getValue());
-            if($tblSchoolTypeList){
-                // erzeuge eine Id Liste, wenn Schularten erlaubt werden
-                foreach ($tblSchoolTypeList as &$tblSchoolTypeControl){
-                    $tblSchoolTypeControl = $tblSchoolTypeControl->getId();
+        $tblUserAccountAll = Account::useService()->getUserAccountAllByType(TblUserAccount::VALUE_TYPE_STUDENT);
+        $TableContent = array();
+        if ($tblUserAccountAll) {
+            $tblGroupStudent = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_STUDENT);
+            array_walk($tblUserAccountAll, function (TblUserAccount $tblUserAccount) use (&$TableContent, $tblGroupStudent, $IsDeleteModal) {
+                if($IsDeleteModal
+                && $tblUserAccount->getServiceTblAccount()){
+                    // Account eigentlich immer vorhanden, ausnahme DEMO
+                    $item['Select'] = (new CheckBox('Data['.$tblUserAccount->getId().']', '&nbsp;', $tblUserAccount->getServiceTblAccount()->getId()))->setChecked();
                 }
-            }
+                $item['Salutation'] = new Muted('-NA-');
+                $item['Name'] = '';
+                $item['UserName'] = new WarningText(new WarningIcon().' Keine Accountnamen hinterlegt');
+                $item['Address'] = '';
+                $item['PersonListCustody'] = '';
+                $item['Division'] = new Muted('-NA-');
+                $item['DivisionCourseD'] = new Muted('-NA-');
+                $item['DivisionCourseC'] = new Muted('-NA-');
+                $item['ActiveInfo'] = new Center(new ToolTip(new InfoIcon(), 'Aktuell kein Schüler'));
+                $item['IsInfo'] = true;
+                if(!$IsDeleteModal){
+                    $item['Creator'] = $tblUserAccount->getAccountCreator() ?: new Muted('-NA-');
+                    $item['CreateDate'] = $tblUserAccount->getGroupByTime('d.m.Y');
+                    $item['LastUpdate'] = '';
+                    $item['Option'] =
+                        new Standard('', '/Setting/User/Account/Password/Generation', new Mail(),
+                            array(
+                                'Id'   => $tblUserAccount->getId(),
+                                'Path' => '/Setting/User/Account/Student/Show'
+                            )
+                            , 'Neues Passwort generieren')
+                        .new Standard('', '/Setting/User/Account/Reset', new Repeat(),
+                            array(
+                                'Id'   => $tblUserAccount->getId(),
+                                'Path' => '/Setting/User/Account/Student/Show'
+                            )
+                            , 'Passwort zurücksetzen')
+                        .new Standard('', '/Setting/User/Account/Destroy', new Remove(),
+                            array('Id' => $tblUserAccount->getId()), 'Benutzer entfernen');
+                }
 
-            if(($tblType = Relationship::useService()->getTypeById($TypeId))){
-                $tblTypeList[] = $tblType;
-            } else {
-                $tblTypeList = $this->getRelationshipList();
-            }
+                $tblAccount = $tblUserAccount->getServiceTblAccount();
+                if ($tblAccount) {
+                    $item['UserName'] = $tblAccount->getUsername();
+                }
 
-            $countRow = 0;
-            /**
-             * @var int                                $Index
-             * @var ViewPerson[]|ViewDivisionStudent[] $Row
-             */
-            foreach ($Result as $Index => $Row) {
-                /** @var ViewPerson $DataPerson */
-                $DataPerson = $Row[1]->__toArray();
-//                /** @var ViewDivisionStudent $DivisionStudent */
-                $DivisionStudent = $Row[2]->__toArray();
-                $tblPersonStudent = Person::useService()->getPersonById($DataPerson['TblPerson_Id']);
-                // Schüler, die sich nicht in erlaubte Schularten befinden sollen übersprungen werden (wenn es diese Einstellung gibt)
-                $tblDivision = Division::useService()->getDivisionById($DivisionStudent['TblDivision_Id']);
-                if ($tblSchoolTypeList && $tblDivision) {
-                    // $DataPerson['Division'] = $tblDivision->getDisplayName();
-                    if(($tblLevel = $tblDivision->getTblLevel())){
-                        if(($tblTypeLevel = $tblLevel->getServiceTblType()) && !in_array($tblTypeLevel->getId(), $tblSchoolTypeList)){
-                            // Schüler Überspringen
-                            continue;
+                $tblPerson = $tblUserAccount->getServiceTblPerson();
+                if ($tblPerson) {
+                    $item['Address'] = Account::useService()->apiChangeMainAddressField($tblPerson);
+                    if(!$IsDeleteModal){
+                        $item['Option'] = Account::useService()->apiChangeMainAddressButton($tblPerson).$item['Option'];
+                    }
+
+                    if ($tblPerson->getSalutation() != '') {
+                        $item['Salutation'] = $tblPerson->getSalutation();
+                    }
+                    $item['Name'] = $tblPerson->getLastFirstName();
+                    // Sortierung der Info's nach Namen
+                    $item['ActiveInfo'] = '<span hidden>'.$item['Name'].'</span>'.$item['ActiveInfo'];
+
+                    if(($tblStudentEducation =  DivisionCourse::useService()->getStudentEducationByPersonAndDate($tblPerson))){
+                        $DivisionList = array();
+                        if(($tblDivisionCourseD = $tblStudentEducation->getTblDivision()) && $DivisionName = $tblDivisionCourseD->getDisplayName()) {
+                            $DivisionList[] = $DivisionName;
+                            $item['DivisionCourseD'] = $DivisionName;
+                        }
+                        if(($tblDivisionCourseC = $tblStudentEducation->getTblCoreGroup()) && $CoreGroupName = $tblDivisionCourseC->getDisplayName()) {
+                            $DivisionList[] = $CoreGroupName;
+                            $item['DivisionCourseC'] = $CoreGroupName;
+                        }
+                        if(!empty($DivisionList)){
+                            $item['Division'] = implode(', ',$DivisionList );
                         }
                     }
-                }
 
-                foreach($tblTypeList as $tblType) {
-                    $tblToPersonList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPersonStudent, $tblType);
-                    if ($tblToPersonList){
-                        foreach ($tblToPersonList as $tblToPerson) {
-                            $tblPerson = $tblToPerson->getServiceTblPersonFrom();
-                            if ($tblToPerson->getTblType() && $tblToPerson->getTblType()->getId() == $tblType->getId()){
+                    $CustodyList = array();
 
-                                /** @noinspection PhpUndefinedFieldInspection */
-                                $DataPerson['Name'] = false;
-                                $DataPerson['Check'] = '';
-                                $DataPerson['Type'] = $tblType->getName();
-
-                                $DataPerson['Address'] = $this->apiChangeMainAddressField($tblPerson);
-                                $DataPerson['Option'] = $this->apiChangeMainAddressButton($tblPerson);
-
-                                if ($tblPerson){
-                                    $DataPerson['Check'] = (new CheckBox('PersonIdArray['.$tblPerson->getId().']', ' ',
-                                        $tblPerson->getId()
-                                        , array($tblPerson->getId())))->setChecked();
-                                    $DataPerson['Name'] = $tblPerson->getLastFirstName();
-                                }
-
-                                // ignor Person with existing Accounts (By Person)
-                                if (!AccountAuthorization::useService()->getAccountAllByPerson($tblPerson)){
-                                    // ignore duplicated Person
-                                    if (!array_key_exists($tblPerson->getId(), $SearchResult)){
-                                        if ($countRow >= $MaxResult){
-                                            break;
-                                        }
-                                        $countRow++;
-                                        $SearchResult[$tblPerson->getId()] = $DataPerson;
-                                    }
-                                }
+                    if(($tblType = Relationship::useService()->getTypeByName(TblType::IDENTIFIER_GUARDIAN))
+                    && ($tblRelationshipList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson, $tblType))) {
+                        foreach ($tblRelationshipList as $tblRelationship) {
+                            $tblPersonCustody = $tblRelationship->getServiceTblPersonFrom();
+                            if ($tblPersonCustody && $tblPersonCustody->getId() != $tblPerson->getId()) {
+                                $CustodyList[] = new Container($tblPersonCustody->getLastFirstName());
                             }
                         }
-                        if ($countRow >= $MaxResult){
-                            break;
-                        }
+                    }
+                    if (!empty($CustodyList)) {
+                        $item['PersonListCustody'] = implode('', $CustodyList);
+                    }
+                    if((Group::useService()->getMemberByPersonAndGroup($tblPerson, $tblGroupStudent))){
+                        $item['ActiveInfo'] = '<span hidden>ZZ'.$item['Name'].'</span>';
+                        $item['IsInfo'] = false;
                     }
                 }
-            }
-        }
 
-        return $SearchResult;
+
+                if(!$IsDeleteModal) {
+                    if($tblUserAccount->getUpdateDate()){
+                        $UpdateTypeString = '';
+                        $UpdateTypeAcronym = '';
+                        $UpdateType = $tblUserAccount->getUpdateType();
+                        if($UpdateType == TblUserAccount::VALUE_UPDATE_TYPE_RESET){
+                            $UpdateTypeAcronym = 'Z';
+                            $UpdateTypeString = 'Zurückgesetzt';
+                        } elseif($UpdateType == TblUserAccount::VALUE_UPDATE_TYPE_RENEW){
+                            $UpdateTypeAcronym = 'G';
+                            $UpdateTypeString = 'Neu Generiert';
+                        }
+
+                        $Updater = new Muted('-NA- ');
+                        if($tblUserAccount->getAccountUpdater()){
+                            $Updater = $tblUserAccount->getAccountUpdater();
+                        }
+                        $updateTime = $tblUserAccount->getUpdateDate('d.m.Y');
+                        $item['LastUpdate'] = new ToolTip($UpdateTypeAcronym.' '.$Updater.' '.$updateTime, $UpdateTypeString);
+                    }
+                    $item['Option'] = '<div style="width: 155px">' . $item['Option'] . '</div>';
+                }
+
+                if($IsDeleteModal){
+                    if($item['IsInfo']){
+                        array_push($TableContent, $item);
+                    }
+                } else {
+                    array_push($TableContent, $item);
+                }
+            });
+        }
+        if(!$IsDeleteModal) {
+            return (!empty($TableContent)
+                ? new TableData($TableContent, new Title('Übersicht', 'Benutzer'),
+                    array(
+                        'Salutation'        => 'Anrede',
+                        'Name'              => 'Name',
+                        'UserName'          => 'Account',
+                        'Address'           => 'Adresse',
+                        'PersonListCustody' => 'Sorgeberechtigte',
+                        'DivisionCourseD'   => 'aktuelle Klasse',
+                        'DivisionCourseC'   => 'aktuelle Stammgruppe',
+                        'ActiveInfo'        => 'Info',
+                        'Creator'           => 'Ersteller',
+                        'CreateDate'        => 'Erstell&shy;datum',
+                        'LastUpdate'        => new ToolTip('Passwort bearbeitet '.new InfoIcon(), 'Art - Benutzer - Datum'),
+                        'Option'            => ''
+                    ), array(
+                        'order'      => array(
+                            array(7, 'asc'),
+
+                        ),
+                        'columnDefs' => array(
+                            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
+                            array('type' => 'de_date', 'targets' => 9),
+                            array('width' => '142px', 'orderable' => false, 'targets' => -1)
+                        )
+                    )
+                )
+                : new Warning('Keine Benutzerzugänge vorhanden.')
+            );
+        } else {
+            return (!empty($TableContent)
+                ? new TableData($TableContent, null,
+                    array(
+                        'Select'            => 'Auswahl',
+                        'Salutation'        => 'Anrede',
+                        'Name'              => 'Name',
+                        'UserName'          => 'Account',
+                        'Address'           => 'Adresse',
+                        'PersonListCustody' => 'Sorgeberechtigte',
+                        'Division'          => 'aktuelle Klasse',
+                        'ActiveInfo'        => 'Info',
+                    ), array(
+                        'order'      => array(
+                            array(7, 'asc'),
+
+                        ),
+                        'columnDefs' => array(
+                            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 2),
+                        ),
+                        "paging" => false, // Deaktiviert Blättern
+                        "iDisplayLength" => -1,    // Alle Einträge zeigen
+                        "searching" => false, // Deaktiviert Suche
+                        "info" => false, // Deaktiviert Such-Info)
+                    )
+                )
+                : new Warning('Keine inaktive Benutzerzugänge gefunden.')
+            );
+        }
     }
 
     /**
      * @return Stage
      */
-    public function frontendStudentShow()
+    public function frontendCustodyShow()
     {
-        $Stage = new Stage('Schüler-Accounts', 'Übersicht');
 
+        ini_set('memory_limit', '512M');
+        $Stage = new Stage('Sorgeberechtigten-Accounts', 'Übersicht');
         $Stage->addButton(new Standard('Zurück', '/Setting/User', new ChevronLeft()));
 
-        $tblUserAccountAll = Account::useService()->getUserAccountAllByType(TblUserAccount::VALUE_TYPE_STUDENT);
-        $TableContent = array();
-        if ($tblUserAccountAll) {
-            array_walk($tblUserAccountAll, function (TblUserAccount $tblUserAccount) use (&$TableContent) {
+        $ApiDeleteModalButton = (new Standard('Ehemalige Sorgeberechtigten-Accounts löschen', '#'))
+            ->ajaxPipelineOnClick(ApiUserDelete::pipelineOpenModal('CUSTODY'));
+        $Stage->addButton($ApiDeleteModalButton);
 
-                $Item['Salutation'] = new Muted('-NA-');
-                $Item['Name'] = '';
-                $Item['UserName'] = new Warning(new WarningIcon().' Keine Accountnamen hinterlegt');
-                $Item['Address'] = '';
-                $Item['PersonListCustody'] = '';
-                $Item['PersonListStudent'] = '';
-                $Item['GroupByTime'] = $tblUserAccount->getGroupByTime();
-                $Item['Option'] =
-                    new Standard('', '/Setting/User/Account/Password/Generation', new Mail(),
-                        array(
-                            'Id'   => $tblUserAccount->getId(),
-                            'Path' => '/Setting/User/Account/Student/Show'
-                        )
-                        , 'Neues Passwort generieren')
-                    .new Standard('', '/Setting/User/Account/Reset', new Repeat(),
-                        array(
-                            'Id'   => $tblUserAccount->getId(),
-                            'Path' => '/Setting/User/Account/Student/Show'
-                        )
-                        , 'Passwort zurücksetzen')
-                    .new Standard('', '/Setting/User/Account/Destroy', new Remove(),
-                        array('Id' => $tblUserAccount->getId()), 'Benutzer entfernen');
-                $tblAccount = $tblUserAccount->getServiceTblAccount();
-                if ($tblAccount) {
-                    $Item['UserName'] = $tblAccount->getUsername();
-                }
-
-                $tblPerson = $tblUserAccount->getServiceTblPerson();
-                if ($tblPerson) {
-                    $Item['Address'] = $this->apiChangeMainAddressField($tblPerson);
-                    $Item['Option'] = $this->apiChangeMainAddressButton($tblPerson).$Item['Option'];
-
-                    if ($tblPerson->getSalutation() != '') {
-                        $Item['Salutation'] = $tblPerson->getSalutation();
-                    }
-                    $Item['Name'] = $tblPerson->getLastFirstName();
-
-                    $CustodyList = array();
-                    $tblRelationshipList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson);
-                    if ($tblRelationshipList) {
-                        foreach ($tblRelationshipList as $tblRelationship) {
-                            if ($tblRelationship->getTblType()->getName() == 'Sorgeberechtigt') {
-
-                                $tblPersonCustody = $tblRelationship->getServiceTblPersonFrom();
-                                if ($tblPersonCustody && $tblPersonCustody->getId() != $tblPerson->getId()) {
-                                    $CustodyList[] = new Container($tblPersonCustody->getLastFirstName());
-                                }
-                            }
-                        }
-                    }
-                    if (!empty($CustodyList)) {
-                        $Item['PersonListCustody'] = implode($CustodyList);
-                    }
-                }
-                array_push($TableContent, $Item);
-            });
-        }
+        $CustodyTable = $this->getCustodyTable();
+        $tableReceiver = ApiUserDelete::receiverTable($CustodyTable);
 
         $Stage->setContent(
             new Layout(
@@ -902,25 +674,11 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutRow(array(
                         new LayoutColumn(
                             ApiContactAddress::receiverModal()
+                            .ApiUserDelete::receiverAccountModal('Löschen ehemaliger '.new Bold('Sorgeberechtigten-Accounts'))
+                            .ApiUserDelete::receiverAccountService()
                         ),
                         new LayoutColumn(
-                            (!empty($TableContent)
-                                ? new TableData($TableContent, new Title('Übersicht', 'Benutzer'),
-                                    array(
-                                        'Salutation'        => 'Anrede',
-                                        'Name'              => 'Name',
-                                        'UserName'          => 'Account',
-                                        'Address'           => 'Adresse',
-                                        'PersonListCustody' => 'Sorgeberechtigte',
-                                        'GroupByTime'       => 'Erstellung am',
-                                        'Option'            => ''
-                                    ), array(
-                                        'order'      => array(array(1, 'asc')),
-                                        'columnDefs' => array(array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1))
-                                    )
-                                )
-                                : new WarningMessage('Keine Benutzerzugänge vorhanden.')
-                            )
+                            $tableReceiver
                         )
                     ))
                 )
@@ -931,43 +689,51 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @return Stage
+     * @param $IsDeleteModal
+     *
+     * @return Warning|TableData
      */
-    public function frontendCustodyShow()
+    public function getCustodyTable($IsDeleteModal = false)
     {
-        $Stage = new Stage('Sorgeberechtigten-Accounts', 'Übersicht');
-
-        $Stage->addButton(new Standard('Zurück', '/Setting/User', new ChevronLeft()));
 
         $tblUserAccountAll = Account::useService()->getUserAccountAllByType(TblUserAccount::VALUE_TYPE_CUSTODY);
         $TableContent = array();
         if ($tblUserAccountAll) {
-            array_walk($tblUserAccountAll, function (TblUserAccount $tblUserAccount) use (&$TableContent) {
+            $tblGroupStudent = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_STUDENT);
+            array_walk($tblUserAccountAll, function (TblUserAccount $tblUserAccount) use (&$TableContent, $tblGroupStudent, $IsDeleteModal) {
 
+                if($IsDeleteModal){
+                    $Item['Select'] = (new CheckBox('Data['.$tblUserAccount->getId().']', '&nbsp;', $tblUserAccount->getServiceTblAccount()->getId()))->setChecked();
+                }
                 $Item['Salutation'] = new Muted('-NA-');
                 $Item['Name'] = '';
-                $Item['UserName'] = new Warning(new WarningIcon().' Keine Accountnamen hinterlegt');
+                $Item['UserName'] = new WarningText(new WarningIcon().' Keine Accountnamen hinterlegt');
                 $Item['UserPassword'] = '';
                 $Item['Address'] = '';
-                $Item['PersonListCustody'] = '';
                 $Item['PersonListStudent'] = '';
-                $Item['GroupByTime'] = $tblUserAccount->getGroupByTime();
-                $Item['Option'] =
-                    new Standard('', '/Setting/User/Account/Password/Generation', new Mail(),
-                        array(
-                            'Id'   => $tblUserAccount->getId(),
-                            'Path' => '/Setting/User/Account/Custody/Show',
-                            'IsParent' => true
-                        )
-                        , 'Neues Passwort generieren')
-                    .new Standard('', '/Setting/User/Account/Reset', new Repeat(),
-                        array(
-                            'Id'   => $tblUserAccount->getId(),
-                            'Path' => '/Setting/User/Account/Custody/Show'
-                        )
-                        , 'Passwort zurücksetzen')
-                    .new Standard('', '/Setting/User/Account/Destroy', new Remove(),
-                        array('Id' => $tblUserAccount->getId()), 'Benutzer entfernen');
+                $Item['ActiveInfo'] = new ToolTip(new InfoIcon(), 'keine aktiven Schüler');
+                $Item['IsInfo'] = true;
+                if(!$IsDeleteModal){
+                    $Item['Creator'] = $tblUserAccount->getAccountCreator() ?: new Muted('-NA-');
+                    $Item['CreateDate'] = $tblUserAccount->getGroupByTime('d.m.Y');
+                    $Item['LastUpdate'] = '';
+                    $Item['Option'] =
+                        new Standard('', '/Setting/User/Account/Password/Generation', new Mail(),
+                            array(
+                                'Id'   => $tblUserAccount->getId(),
+                                'Path' => '/Setting/User/Account/Custody/Show',
+                                'IsParent' => true
+                            )
+                            , 'Neues Passwort generieren')
+                        .new Standard('', '/Setting/User/Account/Reset', new Repeat(),
+                            array(
+                                'Id'   => $tblUserAccount->getId(),
+                                'Path' => '/Setting/User/Account/Custody/Show'
+                            )
+                            , 'Passwort zurücksetzen')
+                        .new Standard('', '/Setting/User/Account/Destroy', new Remove(),
+                            array('Id' => $tblUserAccount->getId()), 'Benutzer entfernen');
+                }
                 $tblAccount = $tblUserAccount->getServiceTblAccount();
                 if ($tblAccount) {
                     $Item['UserName'] = $tblAccount->getUsername();
@@ -975,24 +741,34 @@ class Frontend extends Extension implements IFrontendInterface
 
                 $tblPerson = $tblUserAccount->getServiceTblPerson();
                 if ($tblPerson) {
-                    $Item['Address'] = $this->apiChangeMainAddressField($tblPerson);
-                    $Item['Option'] = $this->apiChangeMainAddressButton($tblPerson).$Item['Option'];
+                    $Item['Address'] = Account::useService()->apiChangeMainAddressField($tblPerson);
+                    if(!$IsDeleteModal) {
+                        $Item['Option'] = Account::useService()->apiChangeMainAddressButton($tblPerson) . $Item['Option'];
+                    }
 
                     if ($tblPerson->getSalutation() != '') {
                         $Item['Salutation'] = $tblPerson->getSalutation();
                     }
                     $Item['Name'] = $tblPerson->getLastFirstName();
+                    // Sortierung der Info's nach Namen
+                    $Item['ActiveInfo'] = '<span hidden>'.$Item['Name'].'</span>'.$Item['ActiveInfo'];
 
                     $StudentList = array();
-                    $tblRelationshipType = Relationship::useService()->getTypeByName('Sorgeberechtigt');
-                    $tblRelationshipList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson,
-                        $tblRelationshipType);
+//                    $tblRelationshipType = Relationship::useService()->getTypeByName('Sorgeberechtigt');
+                    $tblRelationshipList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson);
                     if ($tblRelationshipList) {
                         foreach ($tblRelationshipList as $tblRelationship) {
-                            if ($tblRelationship->getTblType()->getName() == 'Sorgeberechtigt') {
+                            if ($tblRelationship->getTblType()->getName() == TblType::IDENTIFIER_GUARDIAN
+                             || $tblRelationship->getTblType()->getName() == TblType::IDENTIFIER_AUTHORIZED
+                             || $tblRelationship->getTblType()->getName() == TblType::IDENTIFIER_GUARDIAN_SHIP) {
                                 $tblPersonStudent = $tblRelationship->getServiceTblPersonTo();
                                 if ($tblPersonStudent && $tblPersonStudent->getId() != $tblPerson->getId()) {
                                     $StudentList[] = new Container($tblPersonStudent->getLastFirstName());
+                                    // Gruppenkontrolle
+                                    if((Group::useService()->getMemberByPersonAndGroup($tblPersonStudent, $tblGroupStudent))){
+                                        $Item['ActiveInfo'] = '<span hidden>ZZ'.$Item['Name'].'</span>';
+                                        $Item['IsInfo'] = false;
+                                    }
                                 }
                             }
                         }
@@ -1001,46 +777,94 @@ class Frontend extends Extension implements IFrontendInterface
                         $Item['PersonListStudent'] = implode($StudentList);
                     }
                 }
-                array_push($TableContent, $Item);
+
+                if($tblUserAccount->getUpdateDate()){
+                    $UpdateTypeString = '';
+                    $UpdateTypeAcronym = '';
+                    $UpdateType = $tblUserAccount->getUpdateType();
+                    if($UpdateType == TblUserAccount::VALUE_UPDATE_TYPE_RESET){
+                        $UpdateTypeAcronym = 'Z';
+                        $UpdateTypeString = 'Zurückgesetzt';
+                    } elseif($UpdateType == TblUserAccount::VALUE_UPDATE_TYPE_RENEW){
+                        $UpdateTypeAcronym = 'G';
+                        $UpdateTypeString = 'Neu Generiert';
+                    }
+
+                    $Updater = new Muted('-NA- ');
+                    if($tblUserAccount->getAccountUpdater()){
+                        $Updater = $tblUserAccount->getAccountUpdater();
+                    }
+                    $updateTime = $tblUserAccount->getUpdateDate('d.m.Y');
+                    $Item['LastUpdate'] = new ToolTip($UpdateTypeAcronym.' '.$Updater.' '.$updateTime, $UpdateTypeString);
+                }
+                if(!$IsDeleteModal) {
+                    $Item['Option'] = '<div style="width: 155px">' . $Item['Option'] . '</div>';
+                }
+
+                if($IsDeleteModal){
+                    if($Item['IsInfo']){
+                        array_push($TableContent, $Item);
+                    }
+                } else {
+                    array_push($TableContent, $Item);
+                }
             });
         }
-
-        $Stage->setContent(
-            new Layout(
-                new LayoutGroup(
-                    new LayoutRow(array(
-                        new LayoutColumn(
-                            ApiContactAddress::receiverModal()
-                        ),
-                        new LayoutColumn(
-                            (!empty($TableContent)
-                                ? new TableData($TableContent, new Title('Übersicht', 'Benutzer'),
-                                    array(
-                                        'Salutation'        => 'Anrede',
-                                        'Name'              => 'Name',
-                                        'UserName'          => 'Account',
-                                        'Address'           => 'Adresse',
-                                        'PersonListStudent' => 'Sorgeberechtigt für',
-                                        'GroupByTime'       => 'Erstellung am',
-                                        'Option'            => ''
-                                    ), array(
-                                        'order'      => array(array(1, 'asc')),
-                                        'columnDefs' => array(array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1))
-                                    )
-                                )
-                                : new WarningMessage('Keine Benutzerzugänge vorhanden.')
-                            )
+        if(!$IsDeleteModal){
+            return (!empty($TableContent)
+                ? new TableData($TableContent, new Title('Übersicht', 'Benutzer'),
+                    array(
+                        'Salutation'        => 'Anrede',
+                        'Name'              => 'Name',
+                        'UserName'          => 'Account',
+                        'Address'           => 'Adresse',
+                        'PersonListStudent' => 'Sorgeberechtigt für',
+                        'ActiveInfo'        => 'Info',
+                        'Creator'           => 'Ersteller',
+                        'CreateDate'        => 'Erstell&shy;datum',
+                        'LastUpdate'        => new ToolTip('Passwort bearbeitet '.new InfoIcon(), 'Art - Benutzer - Datum'),
+                        'Option'            => ''
+                    ), array(
+                        'order'      => array(array(5, 'asc')),
+                        'columnDefs' => array(
+                            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
+                            array('type' => 'de_date', 'targets' => 7),
+                            array('width' => '142px', 'orderable' => false, 'targets' => -1)
                         )
-                    ))
+                    )
                 )
-            )
-        );
+                : new Warning('Keine Benutzerzugänge vorhanden.')
+            );
+        } else {
+            return (!empty($TableContent)
+                ? new TableData($TableContent, null,
+                    array(
+                        'Select'            => 'Auswahl',
+                        'Salutation'        => 'Anrede',
+                        'Name'              => 'Name',
+                        'UserName'          => 'Account',
+                        'Address'           => 'Adresse',
+                        'PersonListStudent' => 'Sorgeberechtigt für',
+                        'ActiveInfo'        => 'Info'
+                    ), array(
+                        'order'      => array(array(2, 'asc')),
+                        'columnDefs' => array(
+                            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 2),
+                        ),
+                        "paging" => false, // Deaktiviert Blättern
+                        "iDisplayLength" => -1,    // Alle Einträge zeigen
+                        "searching" => false, // Deaktiviert Suche
+                        "info" => false, // Deaktiviert Such-Info)
+                    )
+                )
+                : new Warning('Keine inaktive Benutzerzugänge gefunden.')
+            );
+        }
 
-        return $Stage;
     }
 
     /**
-     * @param null|string $Time
+     * @param $Time
      *
      * @return Stage
      */
@@ -1069,18 +893,18 @@ class Frontend extends Extension implements IFrontendInterface
 
                     // Success Entry if linked
                     if ($Time && $Time == $GroupByTime) {
-                        $item['GroupByTime'] = new SuccessMessage(new Bold($GroupByTime).' Aktuell erstellte Benutzer');
-                        $item['UserAccountCount'] = new SuccessMessage(count($tblUserAccountList));
-                        $item['ExportInfo'] = new SuccessMessage('&nbsp;');
+                        $item['GroupByTime'] = new Success(new Bold($GroupByTime).' Aktuell erstellte Benutzer', null, false, '5', '3');
+                        $item['UserAccountCount'] = new Success(count($tblUserAccountList), null, false, '5', '3');
+                        $item['ExportInfo'] = new Success('&nbsp;', null, false, '5', '3');
                         if ($tblUserAccountTarget->getExportDate()) {
-                            $item['ExportInfo'] = new SuccessMessage($tblUserAccountTarget->getLastDownloadAccount()
-                                .' ('.$tblUserAccountTarget->getExportDate().')');
+                            $item['ExportInfo'] = new Success($tblUserAccountTarget->getLastDownloadAccount()
+                                .' ('.$tblUserAccountTarget->getExportDate().')', null, false, '5', '3');
                         }
 
                         if ($tblUserAccountTarget->getType() == TblUserAccount::VALUE_TYPE_STUDENT) {
-                            $item['AccountType'] = new SuccessMessage('Schüler-Accounts');
+                            $item['AccountType'] = new Success('Schüler-Accounts', null, false, '5', '3');
                         } elseif ($tblUserAccountTarget->getType() == TblUserAccount::VALUE_TYPE_CUSTODY) {
-                            $item['AccountType'] = new SuccessMessage('Sorgeberechtigten-Accounts');
+                            $item['AccountType'] = new Success('Sorgeberechtigten-Accounts', null, false, '5', '3');
                         }
                     } else {
                         $item['GroupByTime'] = $GroupByTime;
@@ -1088,7 +912,7 @@ class Frontend extends Extension implements IFrontendInterface
                         $item['ExportInfo'] = '';
                         if($LastDownload){
                             //ToDO better performance with Querybuilder
-                            $tblLastUserAccountList = Account::useService()->getUserAccountByLastExport(new \DateTime($GroupByTime), new \DateTime($LastDownload));
+                            $tblLastUserAccountList = Account::useService()->getUserAccountByLastExport(new DateTime($GroupByTime), new DateTime($LastDownload));
                             if($tblLastUserAccountList && ($tblLastUserAccount = $tblLastUserAccountList[0])){
                                 $item['ExportInfo'] = $tblLastUserAccount->getLastDownloadAccount()
                                     .' ('.$tblLastUserAccount->getExportDate().')';
@@ -1173,14 +997,14 @@ class Frontend extends Extension implements IFrontendInterface
             }
             $tblAccount = $tblUserAccount->getServiceTblAccount();
             if (!$tblAccount) {
-                return $Stage->setContent(new WarningMessage('Account nicht vorhanden')
+                return $Stage->setContent(new Warning('Account nicht vorhanden')
                     .new Redirect($Path, Redirect::TIMEOUT_ERROR));
             }
             $tblPerson = $tblUserAccount->getServiceTblPerson();
             if (!$tblPerson) {
                 return $Stage->setContent(new Layout(new LayoutGroup(new LayoutRow(array(
                     new LayoutColumn(
-                        new Panel('Person', new WarningMessage('Person wurde nicht gefunden')
+                        new Panel('Person', new Warning('Person wurde nicht gefunden')
                             . new DangerMessage('Account ohne Person kann nicht angeschrieben werden.'))
                         .new Redirect($Path, Redirect::TIMEOUT_ERROR)
                     )
@@ -1266,7 +1090,7 @@ class Frontend extends Extension implements IFrontendInterface
 
             // display error if no option exist
 //        } elseif(!$tblSchoolAll){
-//            $Warning = new WarningMessage('Es sind keine Schulen in den Mandanteneinstellungen hinterlegt.
+//            $Warning = new Warning('Es sind keine Schulen in den Mandanteneinstellungen hinterlegt.
 //            Um diese Funktionalität nutzen zu können ist dies zwingend erforderlich.');
         }
         if($tblCompany){
@@ -1339,7 +1163,7 @@ class Frontend extends Extension implements IFrontendInterface
             $Global->POST['Data']['Mail'] = $CompanyMail;
             $Global->POST['Data']['Web'] = $CompanyWeb;
             // Signer
-            $Global->POST['Data']['Date'] = (new \DateTime())->format('d.m.Y');
+            $Global->POST['Data']['Date'] = (new DateTime())->format('d.m.Y');
             $Global->POST['Data']['Place'] = $CompanyCity;
             $Global->savePost();
         }
@@ -1428,14 +1252,14 @@ class Frontend extends Extension implements IFrontendInterface
             }
             $tblAccount = $tblUserAccount->getServiceTblAccount();
             if (!$tblAccount) {
-                return $Stage->setContent(new WarningMessage('Account nicht vorhanden')
+                return $Stage->setContent(new Warning('Account nicht vorhanden')
                     .new Redirect($Path, Redirect::TIMEOUT_ERROR));
             }
             $tblPerson = $tblUserAccount->getServiceTblPerson();
             if (!$tblPerson) {
                 return $Stage->setContent(new Layout(new LayoutGroup(new LayoutRow(array(
                     new LayoutColumn(
-                        new Panel('Person', new WarningMessage('Person wurde nicht gefunden')),
+                        new Panel('Person', new Warning('Person wurde nicht gefunden')),
                         new Panel(new Question().' Das Passwort dieses Benutzers wirklich Zurücksetzen?', '',
                             Panel::PANEL_TYPE_DANGER,
                             new Standard(
@@ -1479,13 +1303,14 @@ class Frontend extends Extension implements IFrontendInterface
                     if (AccountAuthorization::useService()->resetPassword($Password, $tblAccount)) {
                         $IsChanged = true;
                     }
+                    Account::useService()->changeUpdateDate($tblUserAccount, TblUserAccount::VALUE_UPDATE_TYPE_RESET);
                 }
 
                 $Stage->setContent(
                     new Layout(new LayoutGroup(array(
                         new LayoutRow(new LayoutColumn(array(
                             ($IsChanged
-                                ? new SuccessMessage(new SuccessIcon().' Der Benutzer wurde Zurückgesetzt')
+                                ? new Success(new SuccessIcon().' Der Benutzer wurde Zurückgesetzt')
                                 : new DangerMessage(new Ban().' Der Benutzer konnte nicht Zurückgesetzt werden')
                             ),
                             new Redirect($Path, Redirect::TIMEOUT_SUCCESS)
@@ -1536,7 +1361,7 @@ class Frontend extends Extension implements IFrontendInterface
                     new Layout(new LayoutGroup(array(
                         new LayoutRow(new LayoutColumn(
                             array(
-                                new SuccessMessage(new SuccessIcon().' Der Benutzer wurde gelöscht'),
+                                new Success(new SuccessIcon().' Der Benutzer wurde gelöscht'),
                                 new Redirect('/Setting/User', Redirect::TIMEOUT_SUCCESS)
                             )
                         ))
@@ -1555,6 +1380,18 @@ class Frontend extends Extension implements IFrontendInterface
                 new Standard('Zurück', $Route, new ChevronLeft())
             );
             if (!$Confirm) {
+                $IsUCSMandant = false;
+                if ($tblUserAccount->getType() == TblUserAccount::VALUE_TYPE_STUDENT
+                && ($tblConsumer = ConsumerGatekeeper::useService()->getConsumerBySession())) {
+                    if (ConsumerGatekeeper::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_UCS)) {
+                        $IsUCSMandant = true;
+                    }
+                }
+                $UcsRemark = '';
+                if($IsUCSMandant){
+                    $UcsRemark = new WellReadOnly('Nach dem Löschen des Accounts in der Schulsoftware wird dieser auch über die UCS Schnittstelle aus dem DLLP Projekt gelöscht.');
+                }
+
                 $UserName = '';
                 if($tblAccount){
                     $UserName = $tblAccount->getUserName();
@@ -1568,7 +1405,7 @@ class Frontend extends Extension implements IFrontendInterface
                             ),
                             Panel::PANEL_TYPE_SUCCESS
                         ),
-                        new Panel(new Question().' Diesen Benutzer wirklich löschen?', '',
+                        new Panel(new Question().' Diesen Benutzer wirklich löschen?', $UcsRemark,
                             Panel::PANEL_TYPE_DANGER,
                             new Standard(
                                 'Ja', '/Setting/User/Account/Destroy', new Ok(),
@@ -1593,7 +1430,7 @@ class Frontend extends Extension implements IFrontendInterface
                     new Layout(new LayoutGroup(array(
                         new LayoutRow(new LayoutColumn(array(
                             ($IsDestroy
-                                ? new SuccessMessage(new SuccessIcon().' Der Benutzer wurde gelöscht')
+                                ? new Success(new SuccessIcon().' Der Benutzer wurde gelöscht')
                                 : new DangerMessage(new Ban().' Der Benutzer konnte nicht gelöscht werden')
                             ),
                             new Redirect($Route, Redirect::TIMEOUT_SUCCESS)
@@ -1624,7 +1461,7 @@ class Frontend extends Extension implements IFrontendInterface
     {
         $Stage = new Stage('Benutzer', 'Klartext Passwörter');
         if ($GroupByTime) {
-            $GroupByTime = new \DateTime($GroupByTime);
+            $GroupByTime = new DateTime($GroupByTime);
             $tblUserAccountList = Account::useService()->getUserAccountByTime($GroupByTime);
             if (!$tblUserAccountList) {
                 return $Stage.new DangerMessage('Export nicht gefunden', new Ban())
@@ -1677,7 +1514,7 @@ class Frontend extends Extension implements IFrontendInterface
                     new Layout(new LayoutGroup(new LayoutRow(
                         new LayoutColumn(array(
                             ($IsDestroy
-                                ? new SuccessMessage(new SuccessIcon().' Der Klartext wurde gelöscht')
+                                ? new Success(new SuccessIcon().' Der Klartext wurde gelöscht')
                                 : new DangerMessage(new Ban().' Der Klartext konnte nicht gelöscht werden')
                             ),
                             new Redirect('/Setting/User/Account/Export', Redirect::TIMEOUT_SUCCESS)

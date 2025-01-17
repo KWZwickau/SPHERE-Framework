@@ -58,7 +58,7 @@ class HorJ extends Certificate
                     )
                 )
                 ->addSection((new Section())
-                    ->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/Hormersdorf_logo.jpg', '155px',
+                    ->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/FESH.jpg', '155px',
                         '90px'))
                         ->styleAlignCenter()
                         , '25%')
@@ -114,7 +114,7 @@ class HorJ extends Certificate
                         ->styleMarginTop('34px')
                         , '8%')
                     ->addElementColumn((new Element())
-                        ->setContent('{{ Content.P' . $personId . '.Division.Data.Level.Name }}{{ Content.P' . $personId . '.Division.Data.Name }}')
+                        ->setContent('{{ Content.P' . $personId . '.Division.Data.Name }}')
                         ->styleTextSize($TextSizeInput)
                         ->styleMarginTop('32px')
                         , '43%')

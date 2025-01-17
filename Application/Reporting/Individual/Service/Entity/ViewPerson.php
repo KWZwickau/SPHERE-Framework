@@ -39,10 +39,16 @@ class ViewPerson extends AbstractView
     const TBL_PERSON_CALL_NAME = 'TblPerson_CallName';
     const TBL_PERSON_LAST_NAME = 'TblPerson_LastName';
     const TBL_PERSON_BIRTH_NAME = 'TblPerson_BirthName';
+    // Special Column #SSW-704
+    const TBL_PERSON_FIRST_LAST_NAME = 'TblPerson_FirstLastName';
+    const TBL_PERSON_LAST_FIRST_NAME = 'TblPerson_LastFirstName';
 
     const TBL_GROUP_GROUP_LIST = 'TblGroup_GroupList';
 
     const TBL_COMMON_BIRTHDATES_BIRTHDAY = 'TblCommonBirthDates_Birthday';
+    const TBL_COMMON_BIRTHDATES_DAY = 'TblCommonBirthDates_Day';
+    const TBL_COMMON_BIRTHDATES_MONTH = 'TblCommonBirthDates_Month';
+    const TBL_COMMON_BIRTHDATES_YEAR = 'TblCommonBirthDates_Year';
     const TBL_COMMON_BIRTHDATES_BIRTHPLACE = 'TblCommonBirthDates_Birthplace';
     const TBL_COMMON_GENDER_NAME = 'TblCommonGender_Name';
     const TBL_COMMON_INFORMATION_NATIONALITY = 'TblCommonInformation_Nationality';
@@ -50,6 +56,8 @@ class ViewPerson extends AbstractView
     const TBL_COMMON_INFORMATION_IS_ASSISTANCE = 'TblCommonInformation_IsAssistance';
     const TBL_COMMON_INFORMATION_ASSISTANCE_ACTIVITY = 'TblCommonInformation_AssistanceActivity';
     const TBL_COMMON_REMARK = 'TblCommon_Remark';
+
+    const TBL_CHILD_AUTHORIZED_TO_COLLECT = 'TblChild_AuthorizedToCollect';
 
     /**
      * @return array
@@ -99,6 +107,14 @@ class ViewPerson extends AbstractView
     /**
      * @Column(type="string")
      */
+    protected $TblPerson_FirstLastName;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblPerson_LastFirstName;
+    /**
+     * @Column(type="string")
+     */
     protected $TblGroup_GroupList;
     /**
      * @Column(type="string")
@@ -127,7 +143,23 @@ class ViewPerson extends AbstractView
     /**
      * @Column(type="string")
      */
+    protected $TblCommonBirthDates_Day;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblCommonBirthDates_Month;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblCommonBirthDates_Year;
+    /**
+     * @Column(type="string")
+     */
     protected $TblCommonBirthDates_Birthplace;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblChild_AuthorizedToCollect;
 
     /**
      * Use this method to set PropertyName to DisplayName conversions with "setNameDefinition()"
@@ -138,6 +170,7 @@ class ViewPerson extends AbstractView
     {
 
         //NameDefinition
+        $this->setNameDefinition(self::TBL_PERSON_ID, 'Person: Id');
         $this->setNameDefinition(self::TBL_SALUTATION_SALUTATION, 'Person: Anrede');
         $this->setNameDefinition(self::TBL_PERSON_TITLE, 'Person: Titel');
         $this->setNameDefinition(self::TBL_PERSON_FIRST_NAME, 'Person: Vorname');
@@ -146,9 +179,15 @@ class ViewPerson extends AbstractView
         $this->setNameDefinition(self::TBL_PERSON_LAST_NAME, 'Person: Nachname');
         $this->setNameDefinition(self::TBL_PERSON_BIRTH_NAME, 'Person: Geburtsname');
 
+        $this->setNameDefinition(self::TBL_PERSON_FIRST_LAST_NAME, 'Person: Vorname Nachname');
+        $this->setNameDefinition(self::TBL_PERSON_LAST_FIRST_NAME, 'Person: Nachname Vorname');
+
         $this->setNameDefinition(self::TBL_GROUP_GROUP_LIST, 'Person: Gruppenliste');
 
-        $this->setNameDefinition(self::TBL_COMMON_BIRTHDATES_BIRTHDAY, 'Person: Geburtstag');
+        $this->setNameDefinition(self::TBL_COMMON_BIRTHDATES_BIRTHDAY, 'Person: Geburtsdatum');
+        $this->setNameDefinition(self::TBL_COMMON_BIRTHDATES_DAY, 'Person: Geburtstag');
+        $this->setNameDefinition(self::TBL_COMMON_BIRTHDATES_MONTH, 'Person: Geburtsmonat');
+        $this->setNameDefinition(self::TBL_COMMON_BIRTHDATES_YEAR, 'Person: Geburtsjahr');
         $this->setNameDefinition(self::TBL_COMMON_BIRTHDATES_BIRTHPLACE, 'Person: Geburtsort');
         $this->setNameDefinition(self::TBL_COMMON_GENDER_NAME, 'Person: Geschlecht');
         $this->setNameDefinition(self::TBL_COMMON_INFORMATION_NATIONALITY, 'Person: Staatsangehörigkeit');
@@ -157,19 +196,27 @@ class ViewPerson extends AbstractView
         $this->setNameDefinition(self::TBL_COMMON_INFORMATION_ASSISTANCE_ACTIVITY, 'Person: Mitarbeit Tätigkeit');
         $this->setNameDefinition(self::TBL_COMMON_REMARK, 'Person: Bemerkung zur Person');
 
+        $this->setNameDefinition(self::TBL_CHILD_AUTHORIZED_TO_COLLECT, 'Person: Abholberechtigte');
+
         //GroupDefinition
         $this->setGroupDefinition('Grunddaten', array(
+            self::TBL_PERSON_ID,
             self::TBL_SALUTATION_SALUTATION,
             self::TBL_PERSON_TITLE,
             self::TBL_PERSON_FIRST_NAME,
             self::TBL_PERSON_SECOND_NAME,
             self::TBL_PERSON_CALL_NAME,
             self::TBL_PERSON_LAST_NAME,
+            self::TBL_PERSON_FIRST_LAST_NAME,
+            self::TBL_PERSON_LAST_FIRST_NAME,
 //            self::TBL_PERSON_BIRTH_NAME,
         ));
         $this->setGroupDefinition('Personendaten', array(
             self::TBL_GROUP_GROUP_LIST,
             self::TBL_COMMON_BIRTHDATES_BIRTHDAY,
+            self::TBL_COMMON_BIRTHDATES_DAY,
+            self::TBL_COMMON_BIRTHDATES_MONTH,
+            self::TBL_COMMON_BIRTHDATES_YEAR,
             self::TBL_COMMON_BIRTHDATES_BIRTHPLACE,
             self::TBL_COMMON_GENDER_NAME,
             self::TBL_COMMON_INFORMATION_NATIONALITY,
@@ -178,9 +225,13 @@ class ViewPerson extends AbstractView
             self::TBL_COMMON_INFORMATION_ASSISTANCE_ACTIVITY,
             self::TBL_COMMON_REMARK,
         ));
+        $this->setGroupDefinition('Abholberechtigte', array(
+            self::TBL_CHILD_AUTHORIZED_TO_COLLECT
+        ));
 
         // Flag um Filter zu deaktivieren (nur Anzeige von Informationen)
-//        $this->setDisableDefinition(self::TBL_SALUTATION_SALUTATION_S1);
+        $this->setDisableDefinition(self::TBL_PERSON_FIRST_LAST_NAME);
+        $this->setDisableDefinition(self::TBL_PERSON_LAST_FIRST_NAME);
     }
 
     /**
@@ -267,5 +318,4 @@ class ViewPerson extends AbstractView
         }
         return $Field;
     }
-
 }

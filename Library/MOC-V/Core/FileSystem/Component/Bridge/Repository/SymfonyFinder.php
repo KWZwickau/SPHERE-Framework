@@ -5,6 +5,7 @@ use MOC\V\Core\AutoLoader\AutoLoader;
 use MOC\V\Core\FileSystem\Component\Bridge\Bridge;
 use MOC\V\Core\FileSystem\Component\IBridgeInterface;
 use MOC\V\Core\FileSystem\Component\Parameter\Repository\FileParameter;
+use SPHERE\System\Extension\Repository\Debugger;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\Finder\SplFileInfo;
 
@@ -28,13 +29,14 @@ class SymfonyFinder extends Bridge implements IBridgeInterface
     {
 
         parent::__construct();
-        AutoLoader::getNamespaceAutoLoader('Symfony\Component', __DIR__.'/../../../Vendor/');
+        require_once(__DIR__.'/../../../../../Php8Combined/vendor/autoload.php');
+//        AutoLoader::getNamespaceAutoLoader('Symfony\Component', __DIR__.'/../../../Vendor/');
 
         $this->FileOption = $FileOption;
 
         try {
             $this->Instance = new Finder();
-            $this->Instance->useBestAdapter()->files()
+            $this->Instance->files()
                 ->name(pathinfo($FileOption->getFile(), PATHINFO_BASENAME))
                 ->in(pathinfo($FileOption->getFile(), PATHINFO_DIRNAME));
         } catch (\Exception $Exception) {

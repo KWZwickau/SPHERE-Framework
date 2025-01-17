@@ -11,6 +11,7 @@ use SPHERE\Application\Document\Generator\Repository\Section;
 use SPHERE\Application\Document\Generator\Repository\Slice;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Person\Person;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
 
 /**
  * Class StudentTransfer
@@ -73,6 +74,7 @@ class StudentTransfer extends AbstractDocument
         $this->FieldValue['NewSchool1'] = (isset($DataPost['NewSchool1']) && $DataPost['NewSchool1'] != '' ? $DataPost['NewSchool1'] : '&nbsp;');
         $this->FieldValue['NewSchool2'] = (isset($DataPost['NewSchool2']) && $DataPost['NewSchool2'] != '' ? $DataPost['NewSchool2'] : '&nbsp;');
         $this->FieldValue['NewSchool3'] = (isset($DataPost['NewSchool3']) && $DataPost['NewSchool3'] != '' ? $DataPost['NewSchool3'] : '&nbsp;');
+        $this->FieldValue['NewSchool4'] = (isset($DataPost['NewSchool4']) && $DataPost['NewSchool4'] != '' ? $DataPost['NewSchool4'] : '&nbsp;');
         // Student information
         $this->FieldValue['LastFirstName'] = (isset($DataPost['LastFirstName']) && $DataPost['LastFirstName'] != '' ? $DataPost['LastFirstName'] : '&nbsp;');
         $this->FieldValue['MainAddress'] = (isset($DataPost['MainAddress']) && $DataPost['MainAddress'] != '' ? $DataPost['MainAddress'] : '&nbsp;');
@@ -98,11 +100,13 @@ class StudentTransfer extends AbstractDocument
     }
 
     /**
+     *
      * @param array $pageList
+     * @param string $Part
      *
      * @return Frame
      */
-    public function buildDocument($pageList = array())
+    public function buildDocument(array $pageList = array(), string $Part = '0'): Frame
     {
         return (new Frame())->addDocument((new Document())
             ->addPage($this->buildPage())
@@ -141,7 +145,7 @@ class StudentTransfer extends AbstractDocument
             ->styleBorderLeft()
             ->styleBorderRight()
             ->styleBorderBottom()
-            ->styleTextSize('12pt')
+            ->styleTextSize('11pt')
         );
         $Slice->addSection((new Section())
             ->addElementColumn((new Element())
@@ -177,7 +181,7 @@ class StudentTransfer extends AbstractDocument
                 ->styleBorderLeft()
                 ->styleBorderRight()
                 ->styleBorderBottom()
-                ->styleTextSize('12pt')
+                ->styleTextSize('11pt')
                 , '25%'
             )
             ->addElementColumn((new Element())
@@ -185,7 +189,7 @@ class StudentTransfer extends AbstractDocument
                 ->stylePaddingLeft($this->TextPaddingLeft)
                 ->styleBorderRight()
                 ->styleBorderBottom()
-                ->styleTextSize('12pt')
+                ->styleTextSize('11pt')
                 , '25%'
             )
             ->addElementColumn((new Element())
@@ -193,7 +197,7 @@ class StudentTransfer extends AbstractDocument
                 ->stylePaddingLeft($this->TextPaddingLeft)
                 ->styleBorderRight()
                 ->styleBorderBottom()
-                ->styleTextSize('12pt')
+                ->styleTextSize('11pt')
                 , '25%'
             )
             ->addElementColumn((new Element())
@@ -201,7 +205,7 @@ class StudentTransfer extends AbstractDocument
                 ->stylePaddingLeft($this->TextPaddingLeft)
                 ->styleBorderRight()
                 ->styleBorderBottom()
-                ->styleTextSize('12pt')
+                ->styleTextSize('11pt')
                 , '25%'
             )
         );
@@ -217,7 +221,7 @@ class StudentTransfer extends AbstractDocument
             ->styleBorderLeft()
             ->styleBorderRight()
             ->styleBorderBottom()
-            ->styleTextSize('12pt')
+            ->styleTextSize('11pt')
         );
         $Slice->addSection((new Section())
             ->addElementColumn((new Element())
@@ -239,7 +243,7 @@ class StudentTransfer extends AbstractDocument
                 ->stylePaddingLeft($this->TextPaddingLeft)
                 ->styleBorderLeft()
                 ->styleBorderBottom()
-                ->styleTextSize('12pt')
+                ->styleTextSize('11pt')
                 , '75%'
             )
             ->addElementColumn((new Element())
@@ -247,7 +251,7 @@ class StudentTransfer extends AbstractDocument
                 ->stylePaddingLeft($this->TextPaddingLeft)
                 ->styleBorderRight()
                 ->styleBorderBottom()
-                ->styleTextSize('12pt')
+                ->styleTextSize('11pt')
                 , '25%'
             )
         );
@@ -262,55 +266,36 @@ class StudentTransfer extends AbstractDocument
     {
         $Slice = new Slice();
         $Slice->addSection((new Section())
-            ->addSliceColumn((new Slice())
-                ->addElement((new Element())
-                    ->setContent('Aufnehmende Schule')
-                    ->styleBorderTop()
-                    ->styleBorderLeft()
-                    ->styleBorderRight()
-                    ->styleTextSize('8pt')
-                )
-                ->addElement((new Element())
-                    ->setContent($this->FieldValue['NewSchool1'])
-                    ->stylePaddingLeft($this->TextPaddingLeft)
-                    ->styleBorderLeft()
-                    ->styleBorderRight()
-                    ->styleBorderBottom()
-                    ->styleTextSize('12pt')
-                )
-                ->addElement((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleBorderLeft()
-                    ->styleBorderRight()
-                    ->styleTextSize('8pt')
-                )
-                ->addElement((new Element())
-                    ->setContent($this->FieldValue['NewSchool2'])
-                    ->stylePaddingLeft($this->TextPaddingLeft)
-                    ->styleBorderLeft()
-                    ->styleBorderRight()
-                    ->styleBorderBottom()
-                    ->styleTextSize('12pt')
-                )
-                ->addElement((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleBorderLeft()
-                    ->styleBorderRight()
-                    ->styleTextSize('8pt')
-                )
-                ->addElement((new Element())
-                    ->setContent($this->FieldValue['NewSchool3'])
-                    ->stylePaddingLeft($this->TextPaddingLeft)
-                    ->styleBorderLeft()
-                    ->styleBorderRight()
-                    ->styleBorderBottom()
-                    ->styleTextSize('12pt')
-                )
-                , '49%'
-            )
             ->addElementColumn((new Element())
                 ->setContent('&nbsp;')
                 , '2%'
+            )
+            ->addSliceColumn((new Slice())
+                ->addElement((new Element())
+                    ->setContent('Aufnehmende Schule')
+//                    ->styleBorderTop()
+//                    ->styleBorderLeft()
+//                    ->styleBorderRight()
+                    ->styleTextSize('8pt')
+                )
+                ->addElement((new Element())
+                    ->setContent($this->FieldValue['NewSchool1']
+                        .new Container($this->FieldValue['NewSchool2'])
+                        .new Container($this->FieldValue['NewSchool3'])
+                        .new Container($this->FieldValue['NewSchool4'])
+                    )
+                    ->stylePaddingLeft($this->TextPaddingLeft)
+//                    ->styleBorderLeft()
+//                    ->styleBorderRight()
+//                    ->styleBorderBottom()
+                    ->styleHeight('95px')
+                    ->styleTextSize('10pt')
+                )
+                , '45%'
+            )
+            ->addElementColumn((new Element())
+                ->setContent('&nbsp;')
+                , '6%'
             )
             ->addSliceColumn((new Slice())
                 ->addElement((new Element())
@@ -333,14 +318,14 @@ class StudentTransfer extends AbstractDocument
                 ->addElement((new Element())
                     ->setContent('(Ausfertigung für die aufnehmende Schule)')
                     ->stylePaddingLeft($this->TextPaddingLeft)
-                    ->styleHeight('31.8px')
+                    ->styleHeight('40px')
                     ->styleBorderLeft()
                     ->styleBorderRight()
                     ->styleBorderBottom()
                     ->styleTextSize('11pt')
                     ->styleAlignCenter()
                 )
-                , '49%'
+                , '47%'
             )
         );
 
@@ -592,7 +577,13 @@ class StudentTransfer extends AbstractDocument
             ->addSlice((new Slice())
                 ->addElement((new Element())
                     ->setContent('&nbsp;')
-                    ->styleHeight('95px')
+                    ->styleHeight('60px')
+                )
+            )
+            ->addSlice((new Slice())
+                ->addElement((new Element())
+                    ->setContent('_')
+                    ->styleHeight('35px')
                 )
             )
             ->addSlice((new Slice())
@@ -634,7 +625,13 @@ class StudentTransfer extends AbstractDocument
             ->addSlice((new Slice())
                 ->addElement((new Element())
                     ->setContent('&nbsp;')
-                    ->styleHeight('180px')
+                    ->styleHeight('47px')
+                )
+            )
+            ->addSlice((new Slice())
+                ->addElement((new Element())
+                    ->setContent('_')
+                    ->styleHeight('133px')
                 )
             )
             ->addSlice((new Slice())

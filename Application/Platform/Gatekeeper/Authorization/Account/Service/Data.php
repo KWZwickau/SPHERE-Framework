@@ -1,8 +1,10 @@
 <?php
 namespace SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service;
 
+use SPHERE\Application\Contact\Mail\Mail;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\Platform\Gatekeeper\Authentication\TwoFactorApp\TwoFactorApp;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\TblRole;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccountInitial;
@@ -21,6 +23,7 @@ use SPHERE\System\Cache\Handler\MemcachedHandler;
 use SPHERE\System\Cache\Handler\MemoryHandler;
 use SPHERE\System\Database\Binding\AbstractData;
 use SPHERE\System\Database\Fitting\ColumnHydrator;
+use SPHERE\System\Database\Fitting\Element;
 use SPHERE\System\Debugger\DebuggerFactory;
 use SPHERE\System\Debugger\Logger\CacheLogger;
 
@@ -40,61 +43,7 @@ class Data extends AbstractData
         $this->createIdentification('Token', 'Benutzername / Passwort & Hardware-Schlüssel', true);
         $this->createIdentification('Credential', 'Benutzername / Passwort', true);
         $this->createIdentification('UserCredential', 'Benutzername / Passwort', true);
-
-//        $tblConsumer = Consumer::useService()->getConsumerById(1);
-//        // Choose the right Identification for Authentication
-//        $tblIdentification = $this->getIdentificationByName('Credential');
-//        $tblRole = Access::useService()->getRoleByName('Administrator');
-//
-//        // Install Administrator
-//        $tblAccount = $this->createAccount('root', 'sphere', null, $tblConsumer);
-//        $this->addAccountAuthentication($tblAccount, $tblIdentification);
-//        $this->addAccountAuthorization($tblAccount, $tblRole);
-//        if (!$this->getSettingByAccount($tblAccount, 'Surface')) {
-//            $this->setSettingByAccount($tblAccount, 'Surface', 1);
-//        }
-
-/*
-                $tblConsumer = Consumer::useService()->getConsumerById(1);
-                $tblIdentification = $this->getIdentificationByName('System');
-                $tblRole = Access::useService()->getRoleByName('Administrator');
-
-                // System (Gerd)
-                $tblToken = Token::useService()->getTokenByIdentifier('ccccccdilkui');
-                $tblAccount = $this->createAccount('System', 'System', $tblToken, $tblConsumer);
-                $this->addAccountAuthentication($tblAccount, $tblIdentification);
-                $this->addAccountAuthorization($tblAccount, $tblRole);
-                if (!$this->getSettingByAccount($tblAccount, 'Surface')) {
-                    $this->setSettingByAccount($tblAccount, 'Surface', 1);
-                }
-
-                // System (Jens)
-                $tblToken = Token::useService()->getTokenByIdentifier('ccccccectjge');
-                $tblAccount = $this->createAccount('Kmiezik', 'System', $tblToken, $tblConsumer);
-                $this->addAccountAuthentication($tblAccount, $tblIdentification);
-                $this->addAccountAuthorization($tblAccount, $tblRole);
-                if (!$this->getSettingByAccount($tblAccount, 'Surface')) {
-                    $this->setSettingByAccount($tblAccount, 'Surface', 1);
-                }
-
-                // System (Sidney)
-                $tblToken = Token::useService()->getTokenByIdentifier('ccccccectjgt');
-                $tblAccount = $this->createAccount('Rackel', 'System', $tblToken, $tblConsumer);
-                $this->addAccountAuthentication($tblAccount, $tblIdentification);
-                $this->addAccountAuthorization($tblAccount, $tblRole);
-                if (!$this->getSettingByAccount($tblAccount, 'Surface')) {
-                    $this->setSettingByAccount($tblAccount, 'Surface', 1);
-                }
-
-                // System (Johannes)
-                $tblToken = Token::useService()->getTokenByIdentifier('ccccccectjgr');
-                $tblAccount = $this->createAccount('Kauschke', 'System', $tblToken, $tblConsumer);
-                $this->addAccountAuthentication($tblAccount, $tblIdentification);
-                $this->addAccountAuthorization($tblAccount, $tblRole);
-                if (!$this->getSettingByAccount($tblAccount, 'Surface')) {
-                    $this->setSettingByAccount($tblAccount, 'Surface', 1);
-                }
-        */
+        $this->createIdentification('AuthenticatorApp', 'Benutzername / Passwort & Authenticator App', true);
     }
 
     /**
@@ -247,14 +196,18 @@ class Data extends AbstractData
     }
 
     /**
-     * @param string           $Username
-     * @param string           $Password
-     * @param null|TblToken    $tblToken
-     * @param null|TblConsumer $tblConsumer
+     * @param $Username
+     * @param $Password
+     * @param TblToken|null $tblToken
+     * @param TblConsumer|null $tblConsumer
+     * @param false $isAuthenticatorApp
+     * @param null $UserAlias
+     * @param null $RecoveryMail
      *
      * @return TblAccount
      */
-    public function createAccount($Username, $Password, TblToken $tblToken = null, TblConsumer $tblConsumer = null)
+    public function createAccount($Username, $Password, TblToken $tblToken = null, TblConsumer $tblConsumer = null,
+        $isAuthenticatorApp = false, $UserAlias = null, $RecoveryMail = null)
     {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -264,6 +217,19 @@ class Data extends AbstractData
             $Entity->setPassword(hash('sha256', $Password));
             $Entity->setServiceTblToken($tblToken);
             $Entity->setServiceTblConsumer($tblConsumer);
+
+            if ($isAuthenticatorApp) {
+                $twoFactorApp = new TwoFactorApp();
+                $Entity->setAuthenticatorAppSecret($twoFactorApp->createSecret());
+            }
+
+            if ($UserAlias) {
+                $Entity->setUserAlias($UserAlias);
+            }
+            if ($RecoveryMail) {
+                $Entity->setRecoveryMail($RecoveryMail);
+            }
+
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         }
@@ -333,6 +299,39 @@ class Data extends AbstractData
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         }
         return $Entity;
+    }
+
+    /**
+     * @param TblRole $tblRole
+     * @param $tblAccountList
+     *
+     * @return int
+     */
+    public function bulkAddAccountAuthorization(TblRole $tblRole, $tblAccountList)
+    {
+        $countAdd = 0;
+        $Manager = $this->getConnection()->getEntityManager();
+        foreach ($tblAccountList as $tblAccount) {
+            $Entity = $Manager->getEntity('TblAuthorization')
+                ->findOneBy(array(
+                    TblAuthorization::ATTR_TBL_ACCOUNT => $tblAccount->getId(),
+                    TblAuthorization::SERVICE_TBL_ROLE => $tblRole->getId()
+                ));
+            if (null === $Entity) {
+                $countAdd++;
+                $Entity = new TblAuthorization();
+                $Entity->setTblAccount($tblAccount);
+                $Entity->setServiceTblRole($tblRole);
+
+                $Manager->bulkSaveEntity($Entity);
+                Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity, true);
+            }
+        }
+
+        $Manager->flushCache();
+        Protocol::useService()->flushBulkEntries();
+
+        return $countAdd;
     }
 
     /**
@@ -616,11 +615,20 @@ class Data extends AbstractData
             return false;
         }
 
-        $tblAuthentication = $this->getConnection()->getEntityManager()->getEntity('TblAuthentication')
-            ->findOneBy(array(
-                TblAuthentication::ATTR_TBL_ACCOUNT        => $tblAccount->getId(),
-                TblAuthentication::ATTR_TBL_IDENTIFICATION => $tblIdentification->getId()
-            ));
+        if ($tblIdentification) {
+            $tblAuthentication = $this->getConnection()->getEntityManager()->getEntity('TblAuthentication')
+                ->findOneBy(array(
+                    TblAuthentication::ATTR_TBL_ACCOUNT        => $tblAccount->getId(),
+                    TblAuthentication::ATTR_TBL_IDENTIFICATION => $tblIdentification->getId()
+                ));
+        } else {
+            // der Account muss eine Identification haben
+            $tblAuthentication = $this->getConnection()->getEntityManager()->getEntity('TblAuthentication')
+                ->findOneBy(array(
+                    TblAuthentication::ATTR_TBL_ACCOUNT        => $tblAccount->getId(),
+                ));
+        }
+
         // Identification not valid
         if (null === $tblAuthentication) {
             return false;
@@ -720,15 +728,38 @@ class Data extends AbstractData
         /** @var TblAccount $Entity */
         $Entity = $Manager->getEntityById('TblAccount', $tblAccount->getId());
         if (null !== $Entity) {
-            // Remove Person
+            // Person Data
             $tblUserList = $this->getUserAllByAccount( $Entity );
             if( $tblUserList ) {
                 /** @var TblUser $tblUser */
                 foreach( $tblUserList as $tblUser ) {
-                    if( $tblUser->getTblAccount() && $tblUser->getServiceTblPerson() ) {
-                        $this->removeAccountPerson(
-                            $tblUser->getTblAccount(), $tblUser->getServiceTblPerson()
-                        );
+                    $tblPerson = $tblUser->getServiceTblPerson();
+                    if($tblPerson){
+                        // remove E-Mail UserAlias || RecoveryMail
+                        if(($tblToPersonList = Mail::useService()->getMailAllByPerson($tblPerson))){
+                            foreach($tblToPersonList as $tblToPerson){
+                                if($tblToPerson->isAccountUserAlias()){
+                                    if(($tblMail = $tblToPerson->getTblMail())){
+                                        if(($tblMail->getAddress() == $tblAccount->getUserAlias())){
+                                            Mail::useService()->updateMailToPersonAlias($tblToPerson);
+                                        }
+                                    }
+                                }
+                                if($tblToPerson->isAccountRecoveryMail()){
+                                    if(($tblMail = $tblToPerson->getTblMail())){
+                                        if(($tblMail->getAddress() == $tblAccount->getRecoveryMail())){
+                                            Mail::useService()->updateMailToPersonRecoveryMail($tblToPerson);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        // remove Person
+                        if( $tblUser->getTblAccount()) {
+                            $this->removeAccountPerson(
+                                $tblUser->getTblAccount(), $tblPerson
+                            );
+                        }
                     }
                 }
             }
@@ -766,12 +797,13 @@ class Data extends AbstractData
                 }
             }
             // Remove Identification
-            $tblAuthentication = $this->getAuthenticationByAccount( $Entity );
-            if( $tblAuthentication ) {
-                if( $tblAuthentication->getTblAccount() && $tblAuthentication->getTblIdentification() ) {
-                    $this->removeAccountAuthentication(
-                        $tblAuthentication->getTblAccount(), $tblAuthentication->getTblIdentification()
-                    );
+            if (($tblAuthenticationList = $this->getAuthenticationListByAccount($tblAccount))) {
+                foreach ($tblAuthenticationList as $tblAuthentication) {
+                    if ($tblAuthentication->getTblAccount() && $tblAuthentication->getTblIdentification()) {
+                        $this->removeAccountAuthentication(
+                            $tblAuthentication->getTblAccount(), $tblAuthentication->getTblIdentification()
+                        );
+                    }
                 }
             }
             Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
@@ -860,33 +892,39 @@ class Data extends AbstractData
                 array(
                     TblSession::ATTR_SESSION => $Session
                 ));
-
-            if ($Entity) {
-                $Account = $Entity->getTblAccount();
-                // Reset Timeout on Current Session (within time)
-                $Type = $this->getAuthenticationByAccount($Account)->getTblIdentification()->getName();
-                switch (strtoupper($Type)) {
-                    case 'SYSTEM':
-                        $Timeout = ( 60 * 60 * 4 );
-                        break;
-                    case 'TOKEN':
-                        $Timeout = ( 60 * 60 );
-                        break;
-                    case 'CREDENTIAL':
-                        $Timeout = ( 60 * 30 );
-                        break;
-                    case 'USERCREDENTIAL':
-                        $Timeout = ( 60 * 30 );
-                        break;
-                    default:
-                        $Timeout = ( 60 * 10 );
-                }
-                $this->changeTimeout($Entity, $Timeout);
-                $Entity = $Account;
+            if($Entity){
+                $Entity = $Entity->getTblAccount();
+                $Memory->setValue($Session, $Entity, 0, __METHOD__);
             }
-            $Memory->setValue($Session, $Entity, 0, __METHOD__);
         }
         return ( $Entity ? $Entity : false );
+    }
+
+    /**
+     * @param $Session
+     *
+     * @return void
+     * @throws \Exception
+     */
+    public function refreshSession($Session)
+    {
+        if (null === $Session) {
+            $Session = session_id();
+        }
+
+        /** @var false|TblSession $Entity */
+        $Entity = $this->getForceEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblSession',
+            array(
+                TblSession::ATTR_SESSION => $Session
+            ));
+
+        if ($Entity) {
+            $Account = $Entity->getTblAccount();
+            // Reset Timeout on Current Session (within time)
+            $Timeout = $Account->getSessionTimeOut();
+
+            $this->changeTimeout($Entity, $Timeout);
+        }
     }
 
     private function removeSessionByTimeout()
@@ -922,16 +960,32 @@ class Data extends AbstractData
     /**
      * @param TblAccount $tblAccount
      *
-     * @return bool|TblAuthentication
+     * @return bool|TblAuthentication[]
      */
-    public function getAuthenticationByAccount(TblAccount $tblAccount)
+    public function getAuthenticationListByAccount(TblAccount $tblAccount)
     {
-
-        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblAuthentication',
-            array(
-                TblAuthentication::ATTR_TBL_ACCOUNT => $tblAccount->getId()
-            )
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblAuthentication',
+            array(TblAuthentication::ATTR_TBL_ACCOUNT => $tblAccount->getId()),
+            array(Element::ENTITY_CREATE => self::ORDER_ASC)
         );
+    }
+
+    /**
+     * @param TblAccount $tblAccount
+     * @param string $IdentificationName
+     *
+     * @return bool
+     */
+    public function getHasAuthenticationByAccountAndIdentificationName(TblAccount $tblAccount, string $IdentificationName): bool
+    {
+        if (($tblIdentification = $this->getIdentificationByName($IdentificationName))) {
+            return (bool) $this->getCachedEntityBy(__METHOD__, $this->getEntityManager() , 'TblAuthentication', array(
+                TblAuthentication::ATTR_TBL_ACCOUNT => $tblAccount->getId(),
+                TblAuthentication::ATTR_TBL_IDENTIFICATION => $tblIdentification->getId()
+            ));
+        }
+
+        return false;
     }
 
     /**
@@ -1004,10 +1058,14 @@ class Data extends AbstractData
         if (null === $tblAccount) {
             $tblAccount = $this->getAccountBySession();
         }
-        $Manager = $this->getConnection()->getEntityManager();
-        /** @var TblAccount $Entity */
-        $Entity = $Manager->getEntityById('TblAccount', $tblAccount->getId());
+
+        /** @var TblAccount|null $Entity */
+        $Entity = $this->getForceEntityById(__Method__, $this->getConnection()->getEntityManager(),
+            'TblAccount', $tblAccount->getId());
+
         $Protocol = clone $Entity;
+
+        $Manager = $this->getConnection()->getEntityManager();
         if (null !== $Entity) {
             $Entity->setServiceTblConsumer($tblConsumer);
             $Manager->saveEntity($Entity);
@@ -1097,9 +1155,7 @@ class Data extends AbstractData
                 $tblAccount = $Entity->getTblAccount();
                 if ($tblAccount && $tblAccount->getServiceTblConsumer()) {
                     // ignor System Accounts (support etc.)
-                    if (($tblIdentification = $tblAccount->getServiceTblIdentification())
-                        && $tblIdentification->getName() != 'System'
-                    ) {
+                    if (!$tblAccount->getHasAuthentication(TblIdentification::NAME_SYSTEM)) {
                         if ($tblAccount->getServiceTblConsumer()->getId() == $tblConsumer->getId()) {
                             $tblAccountList[] = $tblAccount;
                         }
@@ -1108,6 +1164,22 @@ class Data extends AbstractData
             }
         }
         return (!empty($tblAccountList) ? $tblAccountList : false);
+    }
+
+    /**
+     * @param TblConsumer       $tblConsumer
+     *
+     * @return bool|TblAccount[]
+     */
+    public function getAccountListByConsumer(TblConsumer $tblConsumer)
+    {
+
+        $EntityList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblAccount',
+            array(
+                TblAccount::SERVICE_TBL_CONSUMER => $tblConsumer->getId(),
+            ));
+        return (!empty($EntityList) ? $EntityList : false);
     }
 
     /**
@@ -1179,5 +1251,111 @@ class Data extends AbstractData
     {
 
         return $this->getConnection()->getEntityManager()->getEntity('TblSession')->count();
+    }
+
+    /**
+     * @param TblAccount $tblAccount
+     * @param string     $userAlias
+     *
+     * @return bool
+     */
+    public function changeUserAlias(TblAccount $tblAccount, $userAlias)
+    {
+
+        if($userAlias === ''){
+            $userAlias = null;
+        } else {
+            // prüfen ob Alias eineindeutig ist
+            if (($tblAccountList = $this->getAccountAllByUserAlias($userAlias))) {
+                foreach ($tblAccountList as $item) {
+                    if ($tblAccount->getId() != $item->getId()) {
+                        return false;
+                    }
+                }
+            }
+        }
+
+        $Manager = $this->getConnection()->getEntityManager();
+        /**
+         * @var TblAccount $Protocol
+         * @var TblAccount $Entity
+         */
+        $Entity = $Manager->getEntityById('TblAccount', $tblAccount->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setUserAlias($userAlias);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblAccount $tblAccount
+     * @param string     $RecoveryMail
+     *
+     * @return bool
+     */
+    public function changeRecoveryMail(TblAccount $tblAccount, $RecoveryMail)
+    {
+
+        if($RecoveryMail === ''){
+            $RecoveryMail = null;
+        }
+
+        $Manager = $this->getConnection()->getEntityManager();
+        /**
+         * @var TblAccount $Protocol
+         * @var TblAccount $Entity
+         */
+        $Entity = $Manager->getEntityById('TblAccount', $tblAccount->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setRecoveryMail($RecoveryMail);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param $userAlias
+     *
+     * @return false|TblAccount[]
+     */
+    public function getAccountAllByUserAlias($userAlias)
+    {
+        return $this->getForceEntityListBy(__METHOD__, $this->getEntityManager(), 'TblAccount', array(
+            TblAccount::ATTR_USER_ALIAS => $userAlias
+        ));
+    }
+
+    /**
+     * @param TblAccount $tblAccount
+     * @param $secret
+     *
+     * @return bool
+     */
+    public function changeAuthenticatorAppSecret(TblAccount $tblAccount, $secret)
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+        /**
+         * @var TblAccount $Protocol
+         * @var TblAccount $Entity
+         */
+        $Entity = $Manager->getEntityById('TblAccount', $tblAccount->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setAuthenticatorAppSecret($secret);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+
+            return true;
+        }
+
+        return false;
     }
 }

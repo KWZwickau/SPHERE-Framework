@@ -205,7 +205,7 @@ class TblDebtorSelection extends Element
     {
 
         if($IsShort){
-            return str_replace('.', ',', number_format($this->Value, 2));
+            return number_format($this->Value, 2, ',', '');
         }
         return $this->Value;
     }
@@ -216,8 +216,7 @@ class TblDebtorSelection extends Element
     public function getValuePriceString()
     {
 
-        $result = sprintf("%01.2f", $this->Value);
-        return str_replace('.', ',', $result)." €";
+        return number_format($this->Value, 2, ',', '.')." €";
     }
 
     /**

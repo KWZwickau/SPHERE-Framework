@@ -25,6 +25,8 @@ use SPHERE\Application\People\Person\FrontendReadOnly as PersonFrontendReadOnly;
 use SPHERE\Application\People\Person\TemplateReadOnly;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\RadioBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
@@ -47,6 +49,7 @@ use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Link;
@@ -261,6 +264,15 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
                 }
             }
 
+            $layoutRow = new LayoutRow(new LayoutColumn(''));
+            if(Consumer::useService()->getConsumerBySessionIsConsumerType(TblConsumer::TYPE_BERLIN)){
+                $layoutRow =
+                new LayoutRow(array(
+                    PersonFrontendReadOnly::getLayoutColumnLabel('Kontakt Nummer'),
+                    PersonFrontendReadOnly::getLayoutColumnValue($tblCompany->getContactNumber(), 10),
+                ));
+            }
+
             $content = new Layout(new LayoutGroup(array(
                 new LayoutRow(array(
                     PersonFrontendReadOnly::getLayoutColumnLabel('Name'),
@@ -278,6 +290,7 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
                     PersonFrontendReadOnly::getLayoutColumnLabel('Gruppen'),
                     PersonFrontendReadOnly::getLayoutColumnValue(implode(', ', $groups), 10),
                 )),
+                $layoutRow
             )));
 
             $editLink = (new Link(new Edit() . ' Bearbeiten', ApiCompanyEdit::getEndpoint()))

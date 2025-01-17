@@ -18,7 +18,7 @@ use SPHERE\System\Database\Fitting\Element;
 class TblImport extends Element
 {
 
-    const ATTR_ROW = 'Row';
+    const ATTR_NUMBER = 'Number';
     const ATTR_FIRST_NAME = 'FirstName';
     const ATTR_LAST_NAME = 'LastName';
     const ATTR_BIRTHDAY = 'Birthday';
@@ -34,15 +34,17 @@ class TblImport extends Element
     const ATTR_DEBTOR_FIRST_NAME = 'DebtorFirstName';
     const ATTR_DEBTOR_LAST_NAME = 'DebtorLastName';
     const ATTR_SERVICE_TBL_PERSON_DEBTOR = 'serviceTblPersonDebtor';
+    const ATTR_OWNER = 'Owner';
     const ATTR_DEBTOR_NUMBER = 'DebtorNumber';
     const ATTR_IBAN = 'IBAN';
     const ATTR_BIC = 'BIC';
     const ATTR_BANK = 'Bank';
+    const ATTR_IS_YEAR = 'IsYear';
 
     /**
      * @Column(type="string")
      */
-    protected $Row;
+    protected $Number;
     /**
      * @column(type="string")
      */
@@ -106,6 +108,10 @@ class TblImport extends Element
     /**
      * @column(type="string")
      */
+    protected $Owner;
+    /**
+     * @column(type="string")
+     */
     protected $DebtorNumber;
     /**
      * @column(type="string")
@@ -119,21 +125,25 @@ class TblImport extends Element
      * @column(type="string")
      */
     protected $Bank;
+    /**
+     * @column(type="string")
+     */
+    protected $IsYear;
 
     /**
      * @return string
      */
-    public function getRow()
+    public function getNumber()
     {
-        return $this->Row;
+        return $this->Number;
     }
 
     /**
-     * @param string $Row
+     * @param string $Number
      */
-    public function setRow($Row)
+    public function setNumber($Number)
     {
-        $this->Row = $Row;
+        $this->Number = $Number;
     }
 
     /**
@@ -290,7 +300,11 @@ class TblImport extends Element
      */
     public function getReferenceDate()
     {
-        return $this->ReferenceDate;
+        if($this->ReferenceDate){
+            return $this->ReferenceDate;
+        }
+        $Date = new \DateTime();
+        return $Date->format('d.m.Y');
     }
 
     /**
@@ -389,6 +403,22 @@ class TblImport extends Element
     /**
      * @return string
      */
+    public function getOwner()
+    {
+        return $this->Owner;
+    }
+
+    /**
+     * @param string $Owner
+     */
+    public function setOwner($Owner)
+    {
+        $this->Owner = $Owner;
+    }
+
+    /**
+     * @return string
+     */
     public function getDebtorNumber()
     {
         return $this->DebtorNumber;
@@ -448,5 +478,21 @@ class TblImport extends Element
     public function setBank($Bank)
     {
         $this->Bank = $Bank;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getIsYear()
+    {
+        return $this->IsYear;
+    }
+
+    /**
+     * @param mixed $IsYear
+     */
+    public function setIsYear($IsYear)
+    {
+        $this->IsYear = $IsYear;
     }
 }

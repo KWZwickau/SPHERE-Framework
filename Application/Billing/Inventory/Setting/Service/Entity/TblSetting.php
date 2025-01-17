@@ -21,7 +21,8 @@ class TblSetting extends Element
     const ATTR_CATEGORY = 'Category';
 
     // Regular Options
-    // aktuell leer
+    const IDENT_INVOICE_DELETE = 'InvoiceDelete';
+    const ATTR_INVOICE_DELETE = 'InvoiceDelete';
 
     // Sepa Options
     const IDENT_IS_SEPA = 'IsSepa';
@@ -35,6 +36,7 @@ class TblSetting extends Element
     const IDENT_IS_AUTO_DEBTOR_NUMBER = 'IsAutoDebtorNumber';
     const IDENT_DATEV_REMARK = 'DatevRemark';
     const IDENT_FIBU_ACCOUNT = 'FibuAccount';
+    const IDENT_FIBU_ACCOUNT_AS_DEBTOR = 'FibuAccountAsDebtor';
     const IDENT_FIBU_TO_ACCOUNT = 'FibuToAccount';
     const IDENT_CONSULT_NUMBER = 'ConsultNumber'; // Beraternummer
     const IDENT_CLIENT_NUMBER = 'ClientNumber'; // Mandantennummer
@@ -42,6 +44,7 @@ class TblSetting extends Element
     const IDENT_KOST_1 = 'KOST1'; // Kostenstelle 1
     const IDENT_KOST_2 = 'KOST2'; // Kostenstelle 2
     const IDENT_BU_KEY = 'BuKey'; // BU-Schlüssel
+    const IDENT_ECONOMIC_DATE = 'EconomicDate'; // Wirtschaftsjahr Datum
 
     const TYPE_BOOLEAN = 'boolean';
     const TYPE_STRING = 'string';

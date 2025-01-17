@@ -21,6 +21,7 @@ class TblToCompany extends Element
     const ATT_TBL_TYPE = 'tblType';
     const ATT_TBL_PHONE = 'tblPhone';
     const SERVICE_TBL_COMPANY = 'serviceTblCompany';
+    const ATTR_IS_EMERGENCY_CONTACT = 'IsEmergencyContact';
 
     /**
      * @Column(type="text")
@@ -38,6 +39,10 @@ class TblToCompany extends Element
      * @Column(type="bigint")
      */
     protected $tblPhone;
+    /**
+     * @Column(type="boolean")
+     */
+    protected $IsEmergencyContact;
 
     /**
      * @return bool|TblCompany
@@ -121,5 +126,21 @@ class TblToCompany extends Element
     {
 
         $this->tblPhone = ( null === $tblPhone ? null : $tblPhone->getId() );
+    }
+
+    /**
+     * @return bool
+     */
+    public function getIsEmergencyContact(): bool
+    {
+        return $this->IsEmergencyContact;
+    }
+
+    /**
+     * @param bool $IsEmergencyContact
+     */
+    public function setIsEmergencyContact(bool $IsEmergencyContact): void
+    {
+        $this->IsEmergencyContact = $IsEmergencyContact;
     }
 }

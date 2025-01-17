@@ -35,6 +35,7 @@ class E17
             ->addSection((new Section())
                 ->addElementColumn((new Element())
                     ->setContent('Fach')
+                    ->styleAlignCenter()
                     ->styleBorderRight()
                     ->stylePaddingTop('17.6px')
                     ->stylePaddingBottom('17.6px'), '40%'
@@ -43,12 +44,14 @@ class E17
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('Anzahl der eingerichteten Leistungskurs')
+                            ->styleAlignCenter()
                             ->styleBorderBottom()
                         )
                     )
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('Insgesamt')
+                            ->styleAlignCenter()
                             ->styleTextBold()
                             ->styleBorderRight()
                             ->stylePaddingTop('8.6px')
@@ -58,15 +61,18 @@ class E17
                             ->addSection((new Section())
                                 ->addElementColumn((new Element())
                                     ->setContent('davon in der Jahrgangsstufe')
+                                    ->styleAlignCenter()
                                 )
                             )
                             ->addSection((new Section())
                                 ->addElementColumn((new Element())
                                     ->setContent('11')
+                                    ->styleAlignCenter()
                                     ->styleBorderRight(), '50%'
                                 )
                                 ->addElementColumn((new Element())
-                                    ->setContent('12'), '50%'
+                                    ->setContent('12')
+                                    ->styleAlignCenter(), '50%'
                                 )
                             ), '66.66%'
                         )
@@ -149,6 +155,7 @@ class E17
             ->addSection((new Section())
                 ->addElementColumn((new Element())
                     ->setContent('Insgesamt')
+                    ->styleAlignCenter()
                     ->styleBorderRight(), '40%'
                 )->addElementColumn((new Element())
                     ->setContent('
@@ -158,6 +165,7 @@ class E17
                             &nbsp;
                         {% endif %}
                     ')
+                    ->styleAlignCenter()
                     ->styleBorderRight(), '20%'
                 )
                 ->addElementColumn((new Element())
@@ -168,6 +176,7 @@ class E17
                             &nbsp;
                         {% endif %}
                     ')
+                    ->styleAlignCenter()
                     ->styleBorderRight(), '20%'
                 )
                 ->addElementColumn((new Element())
@@ -178,6 +187,7 @@ class E17
                             &nbsp;
                         {% endif %}
                     ')
+                    ->styleAlignCenter()
                     ->styleBorderRight(), '20%'
                 )
             );

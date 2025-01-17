@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\Education\Lesson\Term\Service;
 
+use DateTime;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblHoliday;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblHolidayType;
@@ -8,8 +9,6 @@ use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblPeriod;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYearHoliday;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYearPeriod;
-use SPHERE\Application\Education\Lesson\Term\Service\Entity\ViewYear;
-use SPHERE\Application\Education\Lesson\Term\Service\Entity\ViewYearPeriod;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Database\Binding\AbstractData;
@@ -23,28 +22,6 @@ use SPHERE\System\Extension\Repository\Sorter\DateTimeSorter;
  */
 class Data extends AbstractData
 {
-
-    /**
-     * @return false|ViewYear[]
-     */
-    public function viewYear()
-    {
-
-        return $this->getCachedEntityList(
-            __METHOD__, $this->getConnection()->getEntityManager(), 'ViewYear'
-        );
-    }
-
-    /**
-     * @return false|ViewYearPeriod[]
-     */
-    public function viewYearPeriod()
-    {
-
-        return $this->getCachedEntityList(
-            __METHOD__, $this->getConnection()->getEntityManager(), 'ViewYearPeriod'
-        );
-    }
 
     public function setupDatabaseContent()
     {
@@ -94,16 +71,16 @@ class Data extends AbstractData
         $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblPeriod')->findOneBy(array(
             TblPeriod::ATTR_NAME => $Name,
-            TblPeriod::ATTR_FROM_DATE => (new \DateTime($From)),
-            TblPeriod::ATTR_TO_DATE => (new \DateTime($To)),
+            TblPeriod::ATTR_FROM_DATE => (new DateTime($From)),
+            TblPeriod::ATTR_TO_DATE => (new DateTime($To)),
             TblPeriod::ATTR_DESCRIPTION => $Description
         ));
         if (null === $Entity) {
             $Entity = new TblPeriod();
             $Entity->setName($Name);
             $Entity->setDescription($Description);
-            $Entity->setFromDate(new \DateTime($From));
-            $Entity->setToDate(new \DateTime($To));
+            $Entity->setFromDate(new DateTime($From));
+            $Entity->setToDate(new DateTime($To));
             $Entity->setIsLevel12($IsLevel12);
 
             $Manager->saveEntity($Entity);
@@ -170,8 +147,8 @@ class Data extends AbstractData
         if (null !== $Entity) {
             $Entity->setName($Name);
             $Entity->setDescription($Description);
-            $Entity->setFromDate(new \DateTime($From));
-            $Entity->setToDate(new \DateTime($To));
+            $Entity->setFromDate(new DateTime($From));
+            $Entity->setToDate(new DateTime($To));
             $Entity->setIsLevel12($IsLevel12);
 
             $Manager->saveEntity($Entity);
@@ -275,6 +252,8 @@ class Data extends AbstractData
     }
 
     /**
+     * @deprecated
+     *
      * @param TblYear $tblYear
      * @param bool $IsLevel12
      * @param bool $IsAll
@@ -356,6 +335,45 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblYear $tblYear
+     * @param bool $isShortYear
+     * @param bool $isAllYear
+     *
+     * @return false|TblPeriod[]
+     */
+    public function getPeriodListByYear(TblYear $tblYear, bool $isShortYear = false, bool $isAllYear = false)
+    {
+        $periodAllList = array();
+        $periodNormalList = array();
+        $periodShortList = array();
+        if (($list =  $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblYearPeriod',
+            array(TblYearPeriod::ATTR_TBL_YEAR => $tblYear->getId())))
+        ) {
+            /** @var TblYearPeriod $tblYearPeriod */
+            foreach ($list as $tblYearPeriod) {
+                if (($tblPeriod = $tblYearPeriod->getTblPeriod())) {
+                    if ($tblPeriod->isLevel12()) {
+                        $periodShortList[$tblPeriod->getId()] = $tblPeriod;
+                    } else {
+                        $periodNormalList[$tblPeriod->getId()] = $tblPeriod;
+                    }
+                    $periodAllList[$tblPeriod->getId()] = $tblPeriod;
+                }
+            }
+
+            if ($isAllYear) {
+                return $this->getSorter($periodAllList)->sortObjectBy(TblPeriod::ATTR_FROM_DATE, new DateTimeSorter());
+            } elseif ($isShortYear) {
+                return $this->getSorter(empty($periodShortList) ? $periodNormalList : $periodShortList)->sortObjectBy(TblPeriod::ATTR_FROM_DATE, new DateTimeSorter());
+            } else {
+                return $this->getSorter($periodNormalList)->sortObjectBy(TblPeriod::ATTR_FROM_DATE, new DateTimeSorter());
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * @param TblPeriod $tblPeriod
      *
      * @return bool
@@ -401,15 +419,17 @@ class Data extends AbstractData
     }
 
     /**
-     * @param $Year
+     * @param string $Year
+     * @param string $Description
      *
      * @return false|TblYear
      */
-    public function checkYearExist($Year)
+    public function checkYearExist($Year, $Description = '')
     {
 
         return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblYear', array(
-            TblYear::ATTR_YEAR => $Year
+            TblYear::ATTR_YEAR => $Year,
+            TblYear::ATTR_DESCRIPTION => $Description
         ));
 
     }
@@ -446,11 +466,13 @@ class Data extends AbstractData
      */
     public function getYearByName($String)
     {
+        /** @var TblYear[] $list */
         $list = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
             'TblYear', array(
                 TblYear::ATTR_YEAR => $String
             ));
 
+        /** @var TblYear[] $listByName */
         $listByName = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
             'TblYear', array(
                 TblYear::ATTR_NAME => $String
@@ -535,6 +557,20 @@ class Data extends AbstractData
     }
 
     /**
+     * @param $Name
+     *
+     * @return false|TblHolidayType
+     */
+    public function getHolidayTypeByName($Name)
+    {
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblHolidayType',
+            array(
+                TblHolidayType::ATTR_NAME => $Name
+            )
+        );
+    }
+
+    /**
      * @return false|TblHolidayType[]
      */
     public function getHolidayTypeAll()
@@ -566,14 +602,15 @@ class Data extends AbstractData
 
     /**
      * @param TblYear $tblYear
+     * @param TblCompany|null $tblCompany
      *
      * @return false|TblHoliday[]
      */
-    public function getHolidayAllByYear(TblYear $tblYear)
+    public function getHolidayAllByYear(TblYear $tblYear, TblCompany $tblCompany = null)
     {
 
         $resultList = array();
-        $list = $this->getYearHolidayAllByYear($tblYear);
+        $list = $this->getYearHolidayAllByYear($tblYear, $tblCompany);
         if ($list) {
             foreach ($list as $tblYearHoliday) {
                 $resultList[$tblYearHoliday->getTblHoliday()->getId()] = $tblYearHoliday->getTblHoliday();
@@ -595,23 +632,23 @@ class Data extends AbstractData
 
         $fromDate = false;
         $toDate = false;
-        $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear, false, true);
+        $tblPeriodList = Term::useService()->getPeriodListByYear($tblYear, false, true);
         if ($tblPeriodList) {
             foreach ($tblPeriodList as $tblPeriod) {
                 if ($fromDate) {
-                    if ($fromDate > new \DateTime($tblPeriod->getFromDate())) {
-                        $fromDate = new \DateTime($tblPeriod->getFromDate());
+                    if ($fromDate > new DateTime($tblPeriod->getFromDate())) {
+                        $fromDate = new DateTime($tblPeriod->getFromDate());
                     }
                 } else {
-                    $fromDate = new \DateTime($tblPeriod->getFromDate());
+                    $fromDate = new DateTime($tblPeriod->getFromDate());
                 }
 
                 if ($toDate) {
-                    if ($toDate < new \DateTime($tblPeriod->getToDate())) {
-                        $toDate = new \DateTime($tblPeriod->getToDate());
+                    if ($toDate < new DateTime($tblPeriod->getToDate())) {
+                        $toDate = new DateTime($tblPeriod->getToDate());
                     }
                 } else {
-                    $toDate = new \DateTime($tblPeriod->getToDate());
+                    $toDate = new DateTime($tblPeriod->getToDate());
                 }
             }
         }
@@ -639,49 +676,81 @@ class Data extends AbstractData
 
     /**
      * @param TblYear $tblYear
-     * @param \DateTime $date
+     * @param DateTime $date
+     * @param TblCompany|null $tblCompany
      *
      * @return false|TblHoliday
      */
-    public function getHolidayByDay(TblYear $tblYear, \DateTime $date)
+    public function getHolidayByDay(TblYear $tblYear, DateTime $date, TblCompany $tblCompany = null)
     {
 
         $Manager = $this->getConnection()->getEntityManager();
         $queryBuilder = $Manager->getQueryBuilder();
 
-        $query = $queryBuilder->select('y')
-            ->from(__NAMESPACE__ . '\Entity\TblHoliday', 'h')
-            ->join(__NAMESPACE__ . '\Entity\TblYearHoliday', 'y')
-            ->where(
-                $queryBuilder->expr()->orX(
-                    $queryBuilder->expr()->andX(
-                        $queryBuilder->expr()->eq('h.FromDate', '?1'),
-                        $queryBuilder->expr()->isNull('h.ToDate'),
+        if ($tblCompany) {
+            $query = $queryBuilder->select('y')
+                ->from(__NAMESPACE__ . '\Entity\TblHoliday', 'h')
+                ->join(__NAMESPACE__ . '\Entity\TblYearHoliday', 'y')
+                ->where(
+                    $queryBuilder->expr()->orX(
+                        $queryBuilder->expr()->andX(
+                            $queryBuilder->expr()->eq('h.FromDate', '?1'),
+                            $queryBuilder->expr()->isNull('h.ToDate'),
 
-                        $queryBuilder->expr()->eq('y.tblHoliday', 'h.Id'),
-                        $queryBuilder->expr()->eq('y.tblYear', '?2')
-                    ),
-                    $queryBuilder->expr()->andX(
-                        $queryBuilder->expr()->lte('h.FromDate', '?1'),
-                        $queryBuilder->expr()->gte('h.ToDate', '?1'),
+                            $queryBuilder->expr()->eq('y.tblHoliday', 'h.Id'),
+                            $queryBuilder->expr()->eq('y.tblYear', '?2'),
+                            $queryBuilder->expr()->eq('y.serviceTblCompany', '?3')
+                        ),
+                        $queryBuilder->expr()->andX(
+                            $queryBuilder->expr()->lte('h.FromDate', '?1'),
+                            $queryBuilder->expr()->gte('h.ToDate', '?1'),
 
-                        $queryBuilder->expr()->eq('y.tblHoliday', 'h.Id'),
-                        $queryBuilder->expr()->eq('y.tblYear', '?2')
+                            $queryBuilder->expr()->eq('y.tblHoliday', 'h.Id'),
+                            $queryBuilder->expr()->eq('y.tblYear', '?2'),
+                            $queryBuilder->expr()->eq('y.serviceTblCompany', '?3')
+                        )
                     )
                 )
-            )
-            ->setParameter(1, $date)
-            ->setParameter(2, $tblYear->getId())
-            ->getQuery();
+                ->setParameter(1, $date)
+                ->setParameter(2, $tblYear->getId())
+                ->setParameter(3, $tblCompany->getId())
+                ->getQuery();
+        } else {
+            $query = $queryBuilder->select('y')
+                ->from(__NAMESPACE__ . '\Entity\TblHoliday', 'h')
+                ->join(__NAMESPACE__ . '\Entity\TblYearHoliday', 'y')
+                ->where(
+                    $queryBuilder->expr()->orX(
+                        $queryBuilder->expr()->andX(
+                            $queryBuilder->expr()->eq('h.FromDate', '?1'),
+                            $queryBuilder->expr()->isNull('h.ToDate'),
+
+                            $queryBuilder->expr()->eq('y.tblHoliday', 'h.Id'),
+                            $queryBuilder->expr()->eq('y.tblYear', '?2'),
+                            $queryBuilder->expr()->isNull('y.serviceTblCompany')
+                        ),
+                        $queryBuilder->expr()->andX(
+                            $queryBuilder->expr()->lte('h.FromDate', '?1'),
+                            $queryBuilder->expr()->gte('h.ToDate', '?1'),
+
+                            $queryBuilder->expr()->eq('y.tblHoliday', 'h.Id'),
+                            $queryBuilder->expr()->eq('y.tblYear', '?2'),
+                            $queryBuilder->expr()->isNull('y.serviceTblCompany')
+                        )
+                    )
+                )
+                ->setParameter(1, $date)
+                ->setParameter(2, $tblYear->getId())
+                ->getQuery();
+        }
 
         $resultList = $query->getResult();
 
         if (!empty($resultList)) {
             /** @var TblYearHoliday $tblYearHoliday */
             $tblYearHoliday = current($resultList);
-            $tblHoliday = $tblYearHoliday->getTblHoliday();
 
-            return $tblHoliday;
+            return $tblYearHoliday->getTblHoliday();
         }
 
         return false;
@@ -701,15 +770,17 @@ class Data extends AbstractData
 
     /**
      * @param TblYear $tblYear
+     * @param TblCompany $tblCompany
      *
      * @return false|TblYearHoliday[]
      */
-    public function getYearHolidayAllByYear(TblYear $tblYear)
+    public function getYearHolidayAllByYear(TblYear $tblYear, TblCompany $tblCompany = null)
     {
 
         return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblYearHoliday',
             array(
-                TblYearHoliday::ATTR_TBL_YEAR => $tblYear->getId()
+                TblYearHoliday::ATTR_TBL_YEAR => $tblYear->getId(),
+                TblYearHoliday::ATTR_SERVICE_TBL_COMPANY => $tblCompany ? $tblCompany->getId() : null
             )
         );
     }
@@ -777,8 +848,8 @@ class Data extends AbstractData
         $Entity = new TblHoliday();
         $Entity->setTblHolidayType($tblHolidayType);
         $Entity->setName($Name);
-        $Entity->setFromDate($FromDate ? new \DateTime($FromDate) : null);
-        $Entity->setToDate($ToDate ? new \DateTime($ToDate) : null);
+        $Entity->setFromDate($FromDate ? new DateTime($FromDate) : null);
+        $Entity->setToDate($ToDate ? new DateTime($ToDate) : null);
 
         $Manager->saveEntity($Entity);
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
@@ -811,8 +882,8 @@ class Data extends AbstractData
         if (null !== $Entity) {
             $Entity->setTblHolidayType($tblHolidayType);
             $Entity->setName($Name);
-            $Entity->setFromDate($FromDate ? new \DateTime($FromDate) : null);
-            $Entity->setToDate($ToDate ? new \DateTime($ToDate) : null);
+            $Entity->setFromDate($FromDate ? new DateTime($FromDate) : null);
+            $Entity->setToDate($ToDate ? new DateTime($ToDate) : null);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
@@ -832,23 +903,14 @@ class Data extends AbstractData
      */
     public function addYearHoliday(TblYear $tblYear, TblHoliday $tblHoliday, TblCompany $tblCompany = null)
     {
-
         $Manager = $this->getConnection()->getEntityManager();
 
-        if ($tblCompany === null) {
-            $Entity = $Manager->getEntity('TblYearHoliday')
-                ->findOneBy(array(
-                    TblYearHoliday::ATTR_TBL_YEAR => $tblYear->getId(),
-                    TblYearHoliday::ATTR_TBL_HOLIDAY => $tblHoliday->getId()
-                ));
-        } else {
-            $Entity = $Manager->getEntity('TblYearHoliday')
-                ->findOneBy(array(
-                    TblYearHoliday::ATTR_TBL_YEAR => $tblYear->getId(),
-                    TblYearHoliday::ATTR_TBL_HOLIDAY => $tblHoliday->getId(),
-                    TblYearHoliday::ATTR_SERVICE_TBL_COMPANY => $tblCompany->getId()
-                ));
-        }
+        $Entity = $Manager->getEntity('TblYearHoliday')
+            ->findOneBy(array(
+                TblYearHoliday::ATTR_TBL_YEAR => $tblYear->getId(),
+                TblYearHoliday::ATTR_TBL_HOLIDAY => $tblHoliday->getId(),
+                TblYearHoliday::ATTR_SERVICE_TBL_COMPANY => $tblCompany ? $tblCompany->getId() : null
+            ));
 
         if (null === $Entity) {
             $Entity = new TblYearHoliday();
@@ -864,24 +926,29 @@ class Data extends AbstractData
     }
 
     /**
-     * @param TblYearHoliday $tblYearHoliday
+     * @param TblYear $tblYear
+     * @param TblHoliday $tblHoliday
+     * @param TblCompany|null $tblCompany
      *
      * @return bool
      */
-    public function removeYearHoliday(TblYearHoliday $tblYearHoliday)
+    public function removeYearHoliday(TblYear $tblYear, TblHoliday $tblHoliday, TblCompany $tblCompany = null)
     {
-
         $Manager = $this->getConnection()->getEntityManager();
-        /** @var TblHoliday $Entity */
+        /** @var TblYearHoliday $Entity */
         $Entity = $Manager->getEntity('TblYearHoliday')
             ->findOneBy(array(
-                'Id' => $tblYearHoliday->getId(),
+                TblYearHoliday::ATTR_TBL_YEAR => $tblYear->getId(),
+                TblYearHoliday::ATTR_TBL_HOLIDAY => $tblHoliday->getId(),
+                TblYearHoliday::ATTR_SERVICE_TBL_COMPANY => $tblCompany ? $tblCompany->getId() : null
             ));
+
         if (null !== $Entity) {
             Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
             $Manager->killEntity($Entity);
             return true;
         }
+
         return false;
     }
 
@@ -905,5 +972,21 @@ class Data extends AbstractData
         }
 
         return false;
+    }
+
+    /**
+     * @param TblHolidayType $tblHolidayType
+     * @param $fromDate
+     * @param $toDate
+     *
+     * @return false|TblHoliday
+     */
+    public function getHolidayBy(TblHolidayType $tblHolidayType, $fromDate, $toDate)
+    {
+        return $this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblHoliday', array(
+            TblHoliday::ATTR_TBL_HOLIDAY_TYPE => $tblHolidayType->getId(),
+            TblHoliday::ATTR_FROM_DATE => $fromDate,
+            TblHoliday::ATTR_TO_DATE => $toDate
+        ));
     }
 }

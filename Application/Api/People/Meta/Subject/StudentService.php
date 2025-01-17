@@ -2,7 +2,6 @@
 
 namespace SPHERE\Application\Api\People\Meta\Subject;
 
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblLevel;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubject;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubjectRanking;
@@ -22,8 +21,8 @@ class StudentService
      * @return bool
      */
     public function replaceSubjectByPersonIdList(
-        $PersonIdArray = array(),
-        TblSubject $tblSubject = null,
+        $PersonIdArray,
+        ?TblSubject $tblSubject,
         TblStudentSubjectType $tblStudentSubjectType,
         TblStudentSubjectRanking $tblStudentSubjectRanking
     ) {
@@ -68,18 +67,18 @@ class StudentService
 
     /**
      * @param array $PersonIdArray
-     * @param TblLevel|null $tblLevel
+     * @param int|null $LevelFrom
      * @param TblStudentSubjectType $tblStudentSubjectType
      * @param TblStudentSubjectRanking $tblStudentSubjectRanking
      *
      * @return bool
      */
     public function replaceLevelFromByPersonIdList(
-        $PersonIdArray = array(),
-        TblLevel $tblLevel = null,
+        $PersonIdArray,
+        ?int $LevelFrom,
         TblStudentSubjectType $tblStudentSubjectType,
         TblStudentSubjectRanking $tblStudentSubjectRanking
-    ) {
+    ): bool {
 
         $BulkSave = array();
         $BulkProtocol = array();
@@ -99,7 +98,7 @@ class StudentService
                         $tblStudentSubjectType, $tblStudentSubjectRanking);
                     if ($tblStudentSubject && $tblStudentSubject->getServiceTblSubject()) {
                         $BulkProtocol[] = clone $tblStudentSubject;
-                        $tblStudentSubject->setServiceTblLevelFrom($tblLevel);
+                        $tblStudentSubject->setLevelFrom($LevelFrom);
                         $BulkSave[] = $tblStudentSubject;
                     }
                 }
@@ -114,18 +113,18 @@ class StudentService
 
     /**
      * @param array $PersonIdArray
-     * @param TblLevel|null $tblLevel
+     * @param int|null $LevelTill
      * @param TblStudentSubjectType $tblStudentSubjectType
      * @param TblStudentSubjectRanking $tblStudentSubjectRanking
      *
      * @return bool
      */
     public function replaceLevelTillByPersonIdList(
-        $PersonIdArray = array(),
-        TblLevel $tblLevel = null,
+        $PersonIdArray,
+        ?int $LevelTill,
         TblStudentSubjectType $tblStudentSubjectType,
         TblStudentSubjectRanking $tblStudentSubjectRanking
-    ) {
+    ): bool {
 
         $BulkSave = array();
         $BulkProtocol = array();
@@ -145,7 +144,7 @@ class StudentService
                         $tblStudentSubjectType, $tblStudentSubjectRanking);
                     if ($tblStudentSubject && $tblStudentSubject->getServiceTblSubject()) {
                         $BulkProtocol[] = clone $tblStudentSubject;
-                        $tblStudentSubject->setServiceTblLevelTill($tblLevel);
+                        $tblStudentSubject->setLevelTill($LevelTill);
                         $BulkSave[] = $tblStudentSubject;
                     }
                 }

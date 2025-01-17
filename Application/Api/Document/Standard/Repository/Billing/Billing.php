@@ -1,15 +1,8 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: Kauschke
- * Date: 13.03.2019
- * Time: 13:05
- */
-
 namespace SPHERE\Application\Api\Document\Standard\Repository\Billing;
 
+use SPHERE\Application\Api\Document\AbstractDocument;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Invoice;
-use SPHERE\Application\Billing\Inventory\Document\Service\Entity\TblDocument;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItem;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Document\Generator\Repository\Document;
@@ -18,15 +11,19 @@ use SPHERE\Application\Document\Generator\Repository\Frame;
 use SPHERE\Application\Document\Generator\Repository\Page;
 use SPHERE\Application\Document\Generator\Repository\Section;
 use SPHERE\Application\Document\Generator\Repository\Slice;
+use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer as GatekeeperConsumer;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Setting\Consumer\Consumer;
+use SPHERE\Library\NumberToWord\NumberToWord;
 
 /**
  * Class Billing
  *
  * @package SPHERE\Application\Api\Document\Standard\Repository\Billing
  */
-class Billing
+class Billing extends AbstractDocument
 {
 
     /** @var null|Frame $Document */
@@ -35,19 +32,24 @@ class Billing
     /** @var null|TblItem $tblItem */
     private $tblItem = null;
 
-    /** @var null|TblDocument $tblDocument */
-    private $tblDocument = null;
-
     /** @var null|array $Data  */
     private $Data = null;
 
     const TEXT_SIZE = '14px';
 
-    public function __construct(TblItem $tblItem, TblDocument $tblDocument, $Data)
+    public function __construct(TblItem $tblItem, $Data)
     {
         $this->tblItem = $tblItem;
-        $this->tblDocument = $tblDocument;
         $this->Data = $Data;
+    }
+
+    /**
+     * @return string
+     */
+    public function getName()
+    {
+
+        return 'Bescheinigung_' . $this->tblItem . '_' . date("Y-m-d") . ".pdf";
     }
 
     /**
@@ -71,10 +73,11 @@ class Billing
 
     /**
      * @param array $pageList
+     * @param string $part
      *
      * @return Frame
      */
-    private function buildDocument($pageList = array())
+    public function buildDocument(array $pageList = array(), string $part = '0'): Frame
     {
         $document = new Document();
 
@@ -88,58 +91,52 @@ class Billing
             }
         }
 
-        $InjectStyle = 'body { margin-left: 1.0cm !important; margin-right: 1.0cm !important; }';
+        if(GatekeeperConsumer::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'HOGA')){
+            $InjectStyle = 'body { margin-left: 1.0cm !important; margin-right: -0.5cm !important; }';
+        } else {
+            $InjectStyle = 'body { margin-left: 1.0cm !important; margin-right: 1.0cm !important; }';
+        }
 
         return (new Frame($InjectStyle))->addDocument($document);
     }
 
     /**
-     * @param $Text
-     * @param $ItemName
-     * @param $Year
-     * @param $TotalPrice
-     * @param $DebtorSalutation
-     * @param $DebtorFirstName
-     * @param $DebtorLastName
-     * @param $CauserSalutation
-     * @param $CauserFirstName
-     * @param $CauserLastName
-     * @param $Birthday
-     * @param $From
-     * @param $To
-     * @param $Date
-     * @param $Location
-     * @param $CompanyName
-     * @param $CompanyExtendedName
-     * @param $CompanyAddress
+     * @param string $Text
+     * @param string $ItemName
+     * @param string $InvoiceNumber
+     * @param string $Year
+     * @param string $TotalPrice
+     * @param string $DebtorSalutation
+     * @param string $DebtorFirstName
+     * @param string $DebtorLastName
+     * @param string $CauserSalutation
+     * @param string $CauserFirstName
+     * @param string $CauserLastName
+     * @param string $Birthday
+     * @param string $From
+     * @param string $To
+     * @param string $Date
+     * @param string $Location
+     * @param string $CompanyName
+     * @param string $CompanyExtendedName
+     * @param string $CompanyAddress
+     * @param string $StudentIdentifier
      *
      * @return string
      */
-    private function setPlaceholders(
-        $Text,
-        $ItemName,
-        $Year,
-        $TotalPrice,
-        $DebtorSalutation,
-        $DebtorFirstName,
-        $DebtorLastName,
-        $CauserSalutation,
-        $CauserFirstName,
-        $CauserLastName,
-        $Birthday,
-        $From,
-        $To,
-        $Date,
-        $Location,
-        $CompanyName,
-        $CompanyExtendedName,
-        $CompanyAddress
-    ) {
+    private function setPlaceholders($Text, $ItemName, $InvoiceNumber, $Year, $TotalPrice, $PriceTable, $DebtorSalutation, $DebtorFirstName,
+                                     $DebtorLastName, $CauserSalutation, $CauserFirstName, $CauserLastName, $Birthday, $From, $To, $Date, $Location,
+                                     $CompanyName, $CompanyExtendedName, $CompanyAddress, $StudentIdentifier)
+    {
+        $Text = str_replace('[Rechnungsnummer]', $InvoiceNumber, $Text);
         $Text = str_replace('[Jahr]', $Year, $Text);
         $Text = str_replace('[Zeitraum von]', $From, $Text);
         $Text = str_replace('[Zeitraum bis]', $To, $Text);
         $Text = str_replace('[Beitragsart]', $ItemName, $Text);
         $Text = str_replace('[Beitragssumme]', $TotalPrice, $Text);
+        $Text = str_replace('[PreisTabelle]', $PriceTable, $Text);
+        $TotalPrice2Word = NumberToWord::float2Text($TotalPrice, true);
+        $Text = str_replace('[Beitragssumme als Wort]', $TotalPrice2Word, $Text);
         $Text = str_replace('[Beitragszahler Anrede]', $DebtorSalutation, $Text);
         $Text = str_replace('[Beitragszahler Vorname]', $DebtorFirstName, $Text);
         $Text = str_replace('[Beitragszahler Nachname]', $DebtorLastName, $Text);
@@ -147,6 +144,7 @@ class Billing
         $Text = str_replace('[Beitragsverursacher Vorname]', $CauserFirstName, $Text);
         $Text = str_replace('[Beitragsverursacher Nachname]', $CauserLastName, $Text);
         $Text = str_replace('[Beitragsverursacher Geburtstag]', $Birthday, $Text);
+        $Text = str_replace('[Schülernummer]', $StudentIdentifier, $Text);
         $Text = str_replace('[Datum]', $Date, $Text);
         $Text = str_replace('[Ort]', $Location, $Text);
         $Text = str_replace('[Trägername]', $CompanyName, $Text);
@@ -159,16 +157,20 @@ class Billing
     /**
      * @param TblPerson $tblPersonDebtor
      * @param TblPerson $tblPersonCauser
-     * @param $TotalPrice
+     * @param string $TotalPrice
+     * @param string $InvoiceNumber
      *
      * @return Page
      */
-    private function buildPage(
+    public function buildPage(
         TblPerson $tblPersonDebtor,
         TblPerson $tblPersonCauser,
-        $TotalPrice
+        string $TotalPrice = '',
+        string $InvoiceNumber = '',
+        string $PriceTable = ''
     ) {
         $Data = $this->Data;
+        $PriceTable = $PriceTable??'';
         $CompanyName = $Data['CompanyName'];
         $CompanyExtendedName = $Data['CompanyExtendedName'];
         $CompanyAddress = $Data['CompanyAddress'];
@@ -193,8 +195,12 @@ class Billing
         $Birthday = '';
         if(($tblCommon = $tblPersonCauser->getCommon())){
             if(($tblCommonBirthDates = $tblCommon->getTblCommonBirthDates())){
-                $Birthday = $tblCommonBirthDates->getBirthday();
+                $Birthday = $tblCommonBirthDates->getBirthday()?: '';
             }
+        }
+        $StudentIdentifier = '';
+        if(($tblStudent = Student::useService()->getStudentByPerson($tblPersonCauser))){
+            $StudentIdentifier = $tblStudent->getIdentifier()?: '';
         }
 
         // Umgang mit nicht gefüllten Werten
@@ -207,75 +213,61 @@ class Billing
         $CauserLastName = $this->setEmptyString($CauserLastName);
         $Birthday = $this->setEmptyString($Birthday);
 
+        $Subject = $this->setPlaceholders($Subject, $ItemName, $InvoiceNumber, $Year, $TotalPrice, $PriceTable, $DebtorSalutation, $DebtorFirstName,
+            $DebtorLastName, $CauserSalutation, $CauserFirstName, $CauserLastName, $Birthday, $From, $To, $Date,
+            $Location, $CompanyName, $CompanyExtendedName, $CompanyAddress, $StudentIdentifier);
 
+        $Content = $this->setPlaceholders($Content, $ItemName, $InvoiceNumber, $Year, $TotalPrice, $PriceTable, $DebtorSalutation, $DebtorFirstName,
+            $DebtorLastName, $CauserSalutation, $CauserFirstName, $CauserLastName, $Birthday, $From, $To, $Date,
+            $Location, $CompanyName, $CompanyExtendedName, $CompanyAddress, $StudentIdentifier);
 
-        $Subject = $this->setPlaceholders(
-            $Subject,
-            $ItemName,
-            $Year,
-            $TotalPrice,
-            $DebtorSalutation,
-            $DebtorFirstName,
-            $DebtorLastName,
-            $CauserSalutation,
-            $CauserFirstName,
-            $CauserLastName,
-            $Birthday,
-            $From,
-            $To,
-            $Date,
-            $Location,
-            $CompanyName,
-            $CompanyExtendedName,
-            $CompanyAddress
-        );
-
-        $Content = $this->setPlaceholders(
-            $Content,
-            $ItemName,
-            $Year,
-            $TotalPrice,
-            $DebtorSalutation,
-            $DebtorFirstName,
-            $DebtorLastName,
-            $CauserSalutation,
-            $CauserFirstName,
-            $CauserLastName,
-            $Birthday,
-            $From,
-            $To,
-            $Date,
-            $Location,
-            $CompanyName,
-            $CompanyExtendedName,
-            $CompanyAddress
-        );
+        $TextWith = '100%';
+        $EmptyWith = '0%';
+        if(GatekeeperConsumer::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'HOGA')){
+            $TextWith = '70%';
+            $EmptyWith = '30%';
+        }
 
         return (new Page())
             ->addSlice($this->getHeaderSlice('150px'))
             ->addSlice($this->getAddressSlice($CompanyName, $CompanyExtendedName, $CompanyAddress, $tblPersonDebtor))
             ->addSlice((new Slice())
-                ->addElement((new Element())
-                    ->setContent($Location . ', den ' . $Date)
-                    ->styleTextSize(self::TEXT_SIZE)
-                    ->styleAlignRight()
-                    ->styleMarginTop('50px')
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent($Location . ', den ' . $Date)
+                        ->styleTextSize(self::TEXT_SIZE)
+                        ->styleAlignRight()
+                        ->styleMarginTop('50px')
+                    )
+                    ->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
+                    , $EmptyWith)
                 )
             )
             ->addSlice((new Slice())
-                ->addElement((new Element())
-                    ->setContent($Subject)
-                    ->styleTextSize('18px')
-                    ->styleTextBold()
-                    ->styleMarginTop('30px')
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent($Subject)
+                        ->styleTextSize('18px')
+                        ->styleTextBold()
+                        ->styleMarginTop('30px')
+                        , $TextWith)
+                    ->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
+                        , $EmptyWith)
                 )
             )
             ->addSlice((new Slice())
-                ->addElement((new Element())
-                    ->setContent(nl2br($Content))
-                    ->styleTextSize(self::TEXT_SIZE)
-                    ->styleAlignJustify()
-                    ->styleMarginTop('25px')
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent(nl2br($Content))
+                        ->styleTextSize(self::TEXT_SIZE)
+                        ->styleAlignJustify()
+                        ->styleMarginTop('25px')
+                        , $TextWith)
+                    ->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
+                        , $EmptyWith)
                 )
             );
     }
@@ -301,20 +293,25 @@ class Billing
      */
     private function getHeaderSlice($Height = '200px')
     {
-        if (($tblSetting = Consumer::useService()->getSetting(
-            'Api', 'Document', 'Standard', 'Billing_PictureAddress'))
-        ) {
-            $pictureAddress = (string)$tblSetting->getValue();
+        if(GatekeeperConsumer::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'HOGA')){
+            $pictureAddress = 'Common/Style/Resource/Document/Hoga/HOGA-Briefbogen_2024_without_space.png';
+            $pictureHeight = '370';
         } else {
-            $pictureAddress = '';
-        }
+            if(($tblSetting = Consumer::useService()->getSetting(
+                'Api', 'Document', 'Standard', 'Billing_PictureAddress'))
+            ){
+                $pictureAddress = (string)$tblSetting->getValue();
+            } else {
+                $pictureAddress = '';
+            }
 
-        if (($tblSetting = Consumer::useService()->getSetting(
-            'Api', 'Document', 'Standard', 'Billing_PictureHeight'))
-        ) {
-            $pictureHeight = (string)$tblSetting->getValue();
-        } else {
-            $pictureHeight = '';
+            if(($tblSetting = Consumer::useService()->getSetting(
+                'Api', 'Document', 'Standard', 'Billing_PictureHeight'))
+            ){
+                $pictureHeight = (string)$tblSetting->getValue();
+            } else {
+                $pictureHeight = '';
+            }
         }
 
         if ($pictureAddress != '') {

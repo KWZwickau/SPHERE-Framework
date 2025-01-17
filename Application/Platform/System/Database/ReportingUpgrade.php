@@ -3,6 +3,7 @@
 namespace SPHERE\Application\Platform\System\Database;
 
 use Doctrine\DBAL\Schema\View;
+use Exception;
 use MOC\V\Component\Database\Component\IBridgeInterface;
 use MOC\V\Component\Database\Database as MocDatabase;
 use MOC\V\Component\Template\Template;
@@ -32,28 +33,35 @@ class ReportingUpgrade
      * @var array $TemplateList array( 'viewNameInDatabase' => 'TemplateFileName.sql' )
      */
     private $TemplateList = array(
+        'viewPeopleGroupMember' => 'viewPeopleGroupMember.twig',
         'viewContactAddress' => 'viewContactAddress.twig',
         'viewContactMail' => 'viewContactMail.twig',
         'viewContactPhone' => 'viewContactPhone.twig',
         'viewEducationStudent' => 'viewEducationStudent.twig',
-        'viewEducationTeacher' => 'viewEducationTeacher.twig',
+//        'viewEducationTeacher' => 'viewEducationTeacher.twig',    // wird aktuell nicht benutzt
         'viewGroup' => 'viewGroup.twig',
         'viewGroupClub' => 'viewGroupClub.twig',
         'viewGroupCustody' => 'viewGroupCustody.twig',
         'viewGroupProspect' => 'viewGroupProspect.twig',
+        'viewGroupProspectTransfer' => 'viewGroupProspectTransfer.twig',
         'viewGroupStudentTransfer' => 'viewGroupStudentTransfer.twig',
         'viewGroupStudent' => 'viewGroupStudent.twig',
         'viewGroupStudentBasic' => 'viewGroupStudentBasic.twig',
 //        'viewGroupStudentIntegration' => 'viewGroupStudentIntegration.twig',
+        'viewGroupStudentSpecialNeeds' => 'viewGroupStudentSpecialNeeds.twig',
         'viewGroupStudentSubject' => 'viewGroupStudentSubject.twig',
+        'viewGroupStudentTechnicalSchool' => 'viewGroupStudentTechnicalSchool.twig',
         'viewGroupTeacher' => 'viewGroupTeacher.twig',
+        'viewPeopleMetaCommon' => 'viewPeopleMetaCommon.twig',
         'viewPerson' => 'viewPerson.twig',
         'viewPersonContact' => 'viewPersonContact.twig',
         'viewRelationshipToPerson' => 'viewRelationshipToPerson.twig',
         'viewStudent' => 'viewStudent.twig',
         'viewStudentCustody' => 'viewStudentCustody.twig',
         'viewStudentAuthorized' => 'viewStudentAuthorized.twig',
-        'viewProspectCustody' => 'viewProspectCustody.twig'
+        'viewProspectCustody' => 'viewProspectCustody.twig',
+        // View speziell für Personengruppen unter Navigation Personen
+        'viewPersonSearch' => 'viewPersonSearch.twig'
     );
 
     /**
@@ -77,7 +85,7 @@ class ReportingUpgrade
         // All available Consumer
         try {
             $ConsumerList = $this->getConsumerList();
-        } catch (\Exception $Exception) {
+        } catch (Exception $Exception) {
             $ConsumerList = array();
         }
         if (empty($ConsumerList)) {
@@ -97,7 +105,7 @@ class ReportingUpgrade
             // Connect to DB Server
             try {
                 $Connection = $this->getConnection($this->Host, $this->User, $this->Password, $Acronym);
-            } catch (\Exception $Exception) {
+            } catch (Exception $Exception) {
                 $Connection = null;
             }
             if (empty($Connection)) {
@@ -139,10 +147,10 @@ class ReportingUpgrade
                     // Create/Upgrade View
                     if (array_key_exists(strtolower($ViewName), $SchemaManager->listViews())) {
                         // View exists
-                        $ProtocolList[] = new Task() . ' Update existing ' . $ViewName . ' @ SettingConsumer_' . strtoupper($Acronym) . new Scrollable('<pre><code class="sql">' . $View->getSql() . '</code></pre>', 100);
+                        $ProtocolList[] = new Task() . ' Update existing ' . $ViewName . ' @ '. strtoupper($Acronym) .'_SettingConsumer' .new Scrollable('<pre><code class="sql">' . $View->getSql() . '</code></pre>', 100);
                         try {
                             $SchemaManager->dropAndCreateView($View);
-                        } catch (\Exception $Exception) {
+                        } catch (Exception $Exception) {
                             $ProtocolList[] = new Danger('Schema Upgrade failed!')
                                 . (isset($Exception) ? $this->parseException($Exception, 'Schema') : '');
                             $ProtocolError++;
@@ -150,10 +158,10 @@ class ReportingUpgrade
                         }
                     } else {
                         // View is missing
-                        $ProtocolList[] = new FileExtension() . ' Create new ' . $ViewName . ' @ SettingConsumer_' . strtoupper($Acronym) . new Scrollable('<pre><code class="sql">' . $View->getSql() . '</code></pre>', 100);
+                        $ProtocolList[] = new FileExtension() . ' Create new ' . $ViewName . ' @ '. strtoupper($Acronym) .'_SettingConsumer' . new Scrollable('<pre><code class="sql">' . $View->getSql() . '</code></pre>', 100);
                         try {
                             $SchemaManager->createView($View);
-                        } catch (\Exception $Exception) {
+                        } catch (Exception $Exception) {
                             $ProtocolList[] = new Danger('Schema Upgrade failed!')
                                 . (isset($Exception) ? $this->parseException($Exception, 'Schema') : '');
                             $ProtocolError++;
@@ -164,6 +172,198 @@ class ReportingUpgrade
                     return new Danger('Template ' . $File . ' not available!')
                         . (isset($Exception) ? $this->parseException($Exception, 'Template') : '');
                 }
+            }
+        }
+
+        if( $ProtocolError > 0 ) {
+            return new Danger('Migration failed on '.$ProtocolError.' Views') . new Listing($ProtocolList);
+        } else {
+            return new Success('Migration finished') . new Listing($ProtocolList);
+        }
+    }
+
+    /**
+     * @param $Acronym
+     * @param $isPassed
+     *
+     * @return string
+     */
+    public function migrateActiveReportingSingleResult($Acronym, &$isPassed)
+    {
+
+        // Location of SQL Templates
+        $TemplateDirectory = __DIR__ . DIRECTORY_SEPARATOR . 'ReportingUpgrade';
+
+        // Execution Protocol
+        $ProtocolList = array();
+        $ProtocolError = 0;
+
+        // Repeat for every Consumer
+        // Connect to DB Server
+        try {
+            $Connection = $this->getConnection($this->Host, $this->User, $this->Password, $Acronym);
+        } catch (Exception $Exception) {
+            $Connection = null;
+        }
+        if (empty($Connection)) {
+            return new Danger('No Connection to Server!')
+                . (isset($Exception) ? $this->parseException($Exception, 'Database') : '');
+        }
+
+        // Get Schema DBAL
+        $SchemaManager = $Connection->getSchemaManager();
+        if (empty($Connection)) {
+            return new Danger('No Schema Manager available!')
+                . (isset($Exception) ? $this->parseException($Exception, 'Schema') : '');
+        }
+
+        // Repeate for every Template
+        if (empty($this->TemplateList)) {
+            return new Warning('No Template available!')
+                . (isset($Exception) ? $this->parseException($Exception, 'Template') : '');
+        }
+        foreach ($this->TemplateList as $ViewName => $TemplateFile) {
+
+            // Check Template-File
+            $File = $TemplateDirectory . DIRECTORY_SEPARATOR . $TemplateFile;
+            if (file_exists($File) && is_readable($File)) {
+
+                // Open Template
+                $Content = file_get_contents($TemplateDirectory . DIRECTORY_SEPARATOR . $TemplateFile);
+
+                // Set View-Name & Consumer-Acronym
+                $Template = Template::getTwigTemplateString($Content);
+                $Template->setVariable('ConsumerAcronym', $Acronym);
+                $Template->setVariable('ViewName', $ViewName);
+
+                // Build View
+                $View = new View($ViewName, $Template->getContent());
+
+                // Create/Upgrade View
+                if (array_key_exists(strtolower($ViewName), $SchemaManager->listViews())) {
+                    // View exists
+                    $ProtocolList[] = new Task() . ' Update existing ' . $ViewName . ' @ '. strtoupper($Acronym) .'_SettingConsumer' . new Scrollable('<pre><code class="sql">' . $View->getSql() . '</code></pre>', 100);
+                    try {
+                        $SchemaManager->dropAndCreateView($View);
+                    } catch (Exception $Exception) {
+                        $ProtocolList[] = new Danger('Schema Upgrade failed!')
+                            . (isset($Exception) ? $this->parseException($Exception, 'Schema') : '');
+                        $ProtocolError++;
+                        continue;
+                    }
+                } else {
+                    // View is missing
+                    $ProtocolList[] = new FileExtension() . ' Create new ' . $ViewName . ' @ '. strtoupper($Acronym) .'_SettingConsumer' . new Scrollable('<pre><code class="sql">' . $View->getSql() . '</code></pre>', 100);
+                    try {
+                        $SchemaManager->createView($View);
+                    } catch (Exception $Exception) {
+                        $ProtocolList[] = new Danger('Schema Upgrade failed!')
+                            . (isset($Exception) ? $this->parseException($Exception, 'Schema') : '');
+                        $ProtocolError++;
+                        continue;
+                    }
+                }
+            } else {
+                return new Danger('Template ' . $File . ' not available!')
+                    . (isset($Exception) ? $this->parseException($Exception, 'Template') : '');
+            }
+        }
+
+        if( $ProtocolError > 0 ) {
+            return new Danger('Migration failed on '.$ProtocolError.' Views') . new Listing($ProtocolList);
+        } else {
+            $isPassed = true;
+            return new Success('Migration finished') . new Listing($ProtocolList);
+        }
+    }
+
+    /**
+     * @return string
+     */
+    public function activeMigrateReporting()
+    {
+        $tblConsumer = Consumer::useService()->getConsumerBySession();
+        if (!$tblConsumer) {
+            return new Warning('No Consumer available!');
+        }
+
+        // Location of SQL Templates
+        $TemplateDirectory = __DIR__ . DIRECTORY_SEPARATOR . 'ReportingUpgrade';
+
+        // Execution Protocol
+        $ProtocolList = array();
+        $ProtocolError = 0;
+
+        // do for aktive Consumer
+        $Acronym = $tblConsumer->getAcronym();
+        // Connect to DB Server
+        try {
+            $Connection = $this->getConnection($this->Host, $this->User, $this->Password, $Acronym);
+        } catch (Exception $Exception) {
+            $Connection = null;
+        }
+        if (empty($Connection)) {
+            return new Danger('No Connection to Server!')
+                . (isset($Exception) ? $this->parseException($Exception, 'Database') : '');
+        }
+
+        // Get Schema DBAL
+        $SchemaManager = $Connection->getSchemaManager();
+        if (empty($Connection)) {
+            return new Danger('No Schema Manager available!')
+                . (isset($Exception) ? $this->parseException($Exception, 'Schema') : '');
+
+        }
+
+        // Repeate for every Template
+        if (empty($this->TemplateList)) {
+            return new Warning('No Template available!')
+                . (isset($Exception) ? $this->parseException($Exception, 'Template') : '');
+        }
+        foreach ($this->TemplateList as $ViewName => $TemplateFile) {
+
+            // Check Template-File
+            $File = $TemplateDirectory . DIRECTORY_SEPARATOR . $TemplateFile;
+            if (file_exists($File) && is_readable($File)) {
+
+                // Open Template
+                $Content = file_get_contents($TemplateDirectory . DIRECTORY_SEPARATOR . $TemplateFile);
+
+                // Set View-Name & Consumer-Acronym
+                $Template = Template::getTwigTemplateString($Content);
+                $Template->setVariable('ConsumerAcronym', $Acronym);
+                $Template->setVariable('ViewName', $ViewName);
+
+                // Build View
+                $View = new View($ViewName, $Template->getContent());
+
+                // Create/Upgrade View
+                if (array_key_exists(strtolower($ViewName), $SchemaManager->listViews())) {
+                    // View exists
+                    $ProtocolList[] = new Task() . ' Update existing ' . $ViewName . ' @ '.strtoupper($Acronym).'_SettingConsumer' . new Scrollable('<pre><code class="sql">' . $View->getSql() . '</code></pre>', 100);
+                    try {
+                        $SchemaManager->dropAndCreateView($View);
+                    } catch (Exception $Exception) {
+                        $ProtocolList[] = new Danger('Schema Upgrade failed!')
+                            . (isset($Exception) ? $this->parseException($Exception, 'Schema') : '');
+                        $ProtocolError++;
+                        continue;
+                    }
+                } else {
+                    // View is missing
+                    $ProtocolList[] = new FileExtension() . ' Create new ' . $ViewName . ' @ '.strtoupper($Acronym).'_SettingConsumer' . new Scrollable('<pre><code class="sql">' . $View->getSql() . '</code></pre>', 100);
+                    try {
+                        $SchemaManager->createView($View);
+                    } catch (Exception $Exception) {
+                        $ProtocolList[] = new Danger('Schema Upgrade failed!')
+                            . (isset($Exception) ? $this->parseException($Exception, 'Schema') : '');
+                        $ProtocolError++;
+                        continue;
+                    }
+                }
+            } else {
+                return new Danger('Template ' . $File . ' not available!')
+                    . (isset($Exception) ? $this->parseException($Exception, 'Template') : '');
             }
         }
 
@@ -190,11 +390,11 @@ class ReportingUpgrade
     }
 
     /**
-     * @param \Exception $Exception
+     * @param Exception $Exception
      * @param string $Name
      * @return Error
      */
-    private function parseException(\Exception $Exception, $Name = '')
+    private function parseException(Exception $Exception, $Name = '')
     {
 
         $TraceList = '';
@@ -217,13 +417,13 @@ class ReportingUpgrade
      * @param string $Host Server-Address (IP)
      * @param string $User
      * @param string $Password
-     * @param string $Acronym DatabaseName will get prefix 'SettingConsumer_' e.g. SettingConsumer_{Acronym}
+     * @param string $Acronym DatabaseName will get prefix '_SettingConsumer' e.g. {Acronym}_SettingConsumer
      * @return bool|IBridgeInterface
      */
     private function getConnection($Host, $User, $Password, $Acronym)
     {
         $Connection = MocDatabase::getDatabase(
-            $User, $Password, 'SettingConsumer_' . strtoupper($Acronym), (new MySql())->getIdentifier(), $Host
+            $User, $Password, strtoupper($Acronym).'_SettingConsumer', (new MySql())->getIdentifier(), $Host
         );
         if ($Connection->getConnection()->isConnected()) {
             return $Connection;

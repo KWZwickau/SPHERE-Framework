@@ -1,50 +1,39 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: Kauschke
- * Date: 12.07.2016
- * Time: 11:18
- */
-
 namespace SPHERE\Application\Education\Certificate\Prepare\Service;
 
+use DateTime;
+use SPHERE\Application\Education\Absence\Absence;
 use SPHERE\Application\Education\Certificate\Generate\Service\Entity\TblGenerateCertificate;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificate;
-use SPHERE\Application\Education\Certificate\Prepare\Prepare;
-use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblLeaveAdditionalGrade;
-use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblLeaveGrade;
-use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblLeaveInformation;
-use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblLeaveStudent;
+use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificateType;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareAdditionalGrade;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareAdditionalGradeType;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCertificate;
+use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareComplexExam;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareGrade;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareInformation;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareStudent;
-use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
-use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTask;
-use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTestType;
-use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
-use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeType;
-use SPHERE\Application\Education\Lesson\Division\Division;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblGradeType;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTask;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
-use SPHERE\Application\People\Meta\Student\Student;
+use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
+use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
-use SPHERE\System\Database\Binding\AbstractData;
+use SPHERE\Application\Setting\Consumer\Consumer;
+use SPHERE\System\Database\Fitting\Element;
 
 /**
  * Class Data
  * @package SPHERE\Application\Education\Certificate\Prepare\Service
  */
-class Data extends AbstractData
+class Data extends DataLeave
 {
-
     public function setupDatabaseContent()
     {
-
         $this->createPrepareAdditionalGradeType('Vorjahres Note', 'PRIOR_YEAR_GRADE');
 
         // Realschulabschluss
@@ -66,10 +55,13 @@ class Data extends AbstractData
         $this->createPrepareAdditionalGradeType('11/2', '11-2');
         $this->createPrepareAdditionalGradeType('12/1', '12-1');
         $this->createPrepareAdditionalGradeType('12/2', '12-2');
+        $this->createPrepareAdditionalGradeType('13/1', '13-1'); // Berufliches Abitur
+        $this->createPrepareAdditionalGradeType('13/2', '13-2'); // Berufliches Abitur
         $this->createPrepareAdditionalGradeType('schriftliche Prüfung', 'WRITTEN_EXAM');
         $this->createPrepareAdditionalGradeType('mündliche Prüfung', 'VERBAL_EXAM');
         $this->createPrepareAdditionalGradeType('zusätzliche mündliche Prüfung', 'EXTRA_VERBAL_EXAM');
         $this->createPrepareAdditionalGradeType('Klasse 10', 'LEVEL-10');
+        $this->createPrepareAdditionalGradeType('Klasse 11', 'LEVEL-11'); // Berufliches Abitur
     }
 
     /**
@@ -79,74 +71,20 @@ class Data extends AbstractData
      */
     public function getPrepareById($Id)
     {
-
-        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(),
-            'TblPrepareCertificate', $Id);
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPrepareCertificate', $Id);
     }
 
     /**
-     * @param TblDivision $tblDivision
-     * @param bool $IsGradeInformation
-     *
-     * @return false|Entity\TblPrepareCertificate[]
-     */
-    public function getPrepareAllByDivision(TblDivision $tblDivision, $IsGradeInformation = false)
-    {
-
-        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
-            'TblPrepareCertificate',
-            array(
-                TblPrepareCertificate::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId(),
-                TblPrepareCertificate::ATTR_IS_GRADE_INFORMATION => $IsGradeInformation
-            )
-        );
-    }
-
-    /**
-     *
      * @return false|TblPrepareCertificate[]
      */
     public function getPrepareAll()
     {
-
-        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(),
-            'TblPrepareCertificate'
-        );
+        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPrepareCertificate');
     }
 
     /**
      * @param TblPrepareCertificate $tblPrepare
      * @param TblPerson $tblPerson
-     * @param TblDivision $tblDivision
-     * @param TblSubject $tblSubject
-     * @param TblTestType $tblTestType
-     *
-     * @return false|TblPrepareGrade
-     */
-    public function getPrepareGradeBySubject(
-        TblPrepareCertificate $tblPrepare,
-        TblPerson $tblPerson,
-        TblDivision $tblDivision,
-        TblSubject $tblSubject,
-        TblTestType $tblTestType
-    ) {
-
-        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPrepareGrade',
-            array(
-                TblPrepareGrade::ATTR_TBL_PREPARE_CERTIFICATE => $tblPrepare->getId(),
-                TblPrepareGrade::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
-                TblPrepareGrade::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId(),
-                TblPrepareGrade::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId(),
-                TblPrepareGrade::ATTR_SERVICE_TBL_TEST_TYPE => $tblTestType->getId(),
-            )
-        );
-    }
-
-    /**
-     * @param TblPrepareCertificate $tblPrepare
-     * @param TblPerson $tblPerson
-     * @param TblDivision $tblDivision
-     * @param TblTestType $tblTestType
      * @param TblGradeType $tblGradeType
      *
      * @return false|TblPrepareGrade
@@ -154,93 +92,13 @@ class Data extends AbstractData
     public function getPrepareGradeByGradeType(
         TblPrepareCertificate $tblPrepare,
         TblPerson $tblPerson,
-        TblDivision $tblDivision,
-        TblTestType $tblTestType,
         TblGradeType $tblGradeType
     ) {
-
         return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPrepareGrade',
             array(
                 TblPrepareGrade::ATTR_TBL_PREPARE_CERTIFICATE => $tblPrepare->getId(),
                 TblPrepareGrade::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
-                TblPrepareGrade::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId(),
-                TblPrepareGrade::ATTR_SERVICE_TBL_TEST_TYPE => $tblTestType->getId(),
                 TblPrepareGrade::ATTR_SERVICE_TBL_GRADE_TYPE => $tblGradeType->getId(),
-            )
-        );
-    }
-
-    /**
-     * @param TblPrepareCertificate $tblPrepare
-     * @param TblTestType $tblTestType
-     *
-     * @return false|TblPrepareGrade[]
-     */
-    public function getPrepareGradesByPrepare(
-        TblPrepareCertificate $tblPrepare,
-        TblTestType $tblTestType
-    ) {
-
-        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPrepareGrade',
-            array(
-                TblPrepareGrade::ATTR_TBL_PREPARE_CERTIFICATE => $tblPrepare->getId(),
-                TblPrepareGrade::ATTR_SERVICE_TBL_TEST_TYPE => $tblTestType->getId(),
-            )
-        );
-    }
-
-    /**
-     * @param TblPrepareCertificate $tblPrepare
-     * @param TblPerson $tblPerson
-     * @param TblTestType $tblTestType
-     * @param bool $IsForced
-     *
-     * @return false|TblPrepareGrade[]
-     * @throws \Exception
-     */
-    public function getPrepareGradeAllByPerson(
-        TblPrepareCertificate $tblPrepare,
-        TblPerson $tblPerson,
-        TblTestType $tblTestType,
-        $IsForced = false
-    ) {
-
-        if ($IsForced) {
-            return $this->getForceEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
-                'TblPrepareGrade',
-                array(
-                    TblPrepareGrade::ATTR_TBL_PREPARE_CERTIFICATE => $tblPrepare->getId(),
-                    TblPrepareGrade::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
-                    TblPrepareGrade::ATTR_SERVICE_TBL_TEST_TYPE => $tblTestType->getId(),
-                )
-            );
-        } else {
-            return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
-                'TblPrepareGrade',
-                array(
-                    TblPrepareGrade::ATTR_TBL_PREPARE_CERTIFICATE => $tblPrepare->getId(),
-                    TblPrepareGrade::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
-                    TblPrepareGrade::ATTR_SERVICE_TBL_TEST_TYPE => $tblTestType->getId(),
-                )
-            );
-        }
-    }
-
-    /**
-     * @param TblPrepareCertificate $tblPrepare
-     * @param TblTestType $tblTestType
-     *
-     * @return false|TblPrepareGrade[]
-     */
-    public function getPrepareGradeAllByPrepare(
-        TblPrepareCertificate $tblPrepare,
-        TblTestType $tblTestType
-    ) {
-
-        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPrepareGrade',
-            array(
-                TblPrepareGrade::ATTR_TBL_PREPARE_CERTIFICATE => $tblPrepare->getId(),
-                TblPrepareGrade::ATTR_SERVICE_TBL_TEST_TYPE => $tblTestType->getId()
             )
         );
     }
@@ -252,9 +110,8 @@ class Data extends AbstractData
      *
      * @return false|TblPrepareStudent
      */
-    public function getPrepareStudentBy(TblPrepareCertificate $tblPrepare, TblPerson $tblPerson, $isForced = false)
+    public function getPrepareStudentBy(TblPrepareCertificate $tblPrepare, TblPerson $tblPerson, bool $isForced = false)
     {
-
         if ($isForced) {
             return $this->getForceEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPrepareStudent',
                 array(
@@ -273,25 +130,43 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblPerson $tblPerson
+     * @param TblCertificate|null $tblCertificate
+     *
+     * @return false|TblPrepareStudent[]
+     */
+    public function getPrepareStudentAllByPerson(TblPerson $tblPerson, TblCertificate $tblCertificate = null)
+    {
+        if ($tblCertificate) {
+            return $this->getForceEntityListBy(__METHOD__, $this->getEntityManager(), 'TblPrepareStudent', array(
+                TblPrepareStudent::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
+                TblPrepareStudent::ATTR_SERVICE_TBL_CERTIFICATE => $tblCertificate->getId()
+            ));
+        } else {
+            return $this->getForceEntityListBy(__METHOD__, $this->getEntityManager(), 'TblPrepareStudent', array(
+                TblPrepareStudent::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()
+            ));
+        }
+    }
+
+    /**
      * @param $Id
      *
      * @return false|TblPrepareStudent
      */
     public function getPrepareStudentById($Id)
     {
-
         return $this->getCachedEntityById(__METHOD__, $this->getEntityManager(), 'TblPrepareStudent', $Id);
     }
 
     /**
-     * @param bool|false $IsApproved
-     * @param bool|false $IsPrinted
+     * @param bool $IsApproved
+     * @param bool $IsPrinted
      *
      * @return false|TblPrepareStudent[]
      */
-    public function getPrepareStudentAllWhere($IsApproved = false, $IsPrinted = false)
+    public function getPrepareStudentAllWhere(bool $IsApproved = false, bool $IsPrinted = false)
     {
-
         return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPrepareStudent',
             array(
                 TblPrepareStudent::ATTR_IS_APPROVED => $IsApproved,
@@ -309,7 +184,6 @@ class Data extends AbstractData
      */
     public function getPrepareInformationBy(TblPrepareCertificate $tblPrepare, TblPerson $tblPerson, $Field)
     {
-
         return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPrepareInformation',
             array(
                 TblPrepareInformation::ATTR_TBL_PREPARE_CERTIFICATE => $tblPrepare->getId(),
@@ -327,14 +201,10 @@ class Data extends AbstractData
      */
     public function getPrepareInformationAllByPerson(TblPrepareCertificate $tblPrepare, TblPerson $tblPerson)
     {
-
-        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
-            'TblPrepareInformation',
-            array(
-                TblPrepareInformation::ATTR_TBL_PREPARE_CERTIFICATE => $tblPrepare->getId(),
-                TblPrepareInformation::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
-            )
-        );
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPrepareInformation', array(
+            TblPrepareInformation::ATTR_TBL_PREPARE_CERTIFICATE => $tblPrepare->getId(),
+            TblPrepareInformation::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
+        ));
     }
 
     /**
@@ -344,52 +214,36 @@ class Data extends AbstractData
      */
     public function getPrepareInformationAllByPrepare(TblPrepareCertificate $tblPrepare)
     {
-        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
-            'TblPrepareInformation',
-            array(
-                TblPrepareInformation::ATTR_TBL_PREPARE_CERTIFICATE => $tblPrepare->getId()
-            )
-        );
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPrepareInformation', array(
+            TblPrepareInformation::ATTR_TBL_PREPARE_CERTIFICATE => $tblPrepare->getId()
+        ));
     }
 
     /**
-     * @param TblDivision $tblDivision
-     * @param $Date
-     * @param $Name
-     * @param bool $IsGradeInformation
-     * @param TblGenerateCertificate $tblGenerateCertificate
-     * @param TblTask $tblAppointedDateTask
-     * @param TblTask $tblBehaviorTask
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param TblGenerateCertificate|null $tblGenerateCertificate
+     * @param TblPerson|null $tblPersonSigner
      *
      * @return TblPrepareCertificate
      */
     public function createPrepare(
-        TblDivision $tblDivision,
-        $Date,
-        $Name,
-        $IsGradeInformation = false,
-        TblGenerateCertificate $tblGenerateCertificate = null,
-        TblTask $tblAppointedDateTask = null,
-        TblTask $tblBehaviorTask = null
-    ) {
-
+        TblDivisionCourse $tblDivisionCourse,
+        ?TblGenerateCertificate $tblGenerateCertificate,
+        ?TblPerson $tblPersonSigner
+    ): TblPrepareCertificate {
         $Manager = $this->getConnection()->getEntityManager();
 
         /** @var TblPrepareCertificate $Entity */
         $Entity = $Manager->getEntity('TblPrepareCertificate')->findOneBy(array(
             TblPrepareCertificate::ATTR_SERVICE_TBL_GENERATE_CERTIFICATE => $tblGenerateCertificate->getId(),
-            TblPrepareCertificate::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId()
+            TblPrepareCertificate::ATTR_SERVICE_TBL_DIVISION => $tblDivisionCourse->getId()
         ));
 
         if ($Entity === null) {
             $Entity = new TblPrepareCertificate();
-            $Entity->setServiceTblGenerateCertificate($tblGenerateCertificate ? $tblGenerateCertificate : null);
-            $Entity->setServiceTblDivision($tblDivision);
-            $Entity->setDate($Date ? new \DateTime($Date) : null);
-            $Entity->setName($Name);
-            $Entity->setIsGradeInformation($IsGradeInformation);
-            $Entity->setServiceTblAppointedDateTask($tblAppointedDateTask ? $tblAppointedDateTask : null);
-            $Entity->setServiceTblBehaviorTask($tblBehaviorTask ? $tblBehaviorTask : null);
+            $Entity->setServiceTblGenerateCertificate($tblGenerateCertificate);
+            $Entity->setServiceTblDivision($tblDivisionCourse);
+            $Entity->setServiceTblPersonSigner($tblPersonSigner);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
@@ -400,34 +254,49 @@ class Data extends AbstractData
 
     /**
      * @param TblPrepareCertificate $tblPrepare
-     * @param $Date
-     * @param $Name
-     * @param TblTask|null $tblAppointedDateTask
-     * @param TblTask|null $tblBehaviorTask
      * @param TblPerson|null $tblPersonSigner
+     * @param bool $IsPrepared
      *
      * @return bool
      */
     public function updatePrepare(
         TblPrepareCertificate $tblPrepare,
-        $Date,
-        $Name,
-        TblTask $tblAppointedDateTask = null,
-        TblTask $tblBehaviorTask = null,
-        TblPerson $tblPersonSigner = null
-    ) {
-
+        ?TblPerson $tblPersonSigner,
+        bool $IsPrepared
+    ): bool {
         $Manager = $this->getConnection()->getEntityManager();
 
         /** @var TblPrepareCertificate $Entity */
         $Entity = $Manager->getEntityById('TblPrepareCertificate', $tblPrepare->getId());
         $Protocol = clone $Entity;
         if (null !== $Entity) {
-            $Entity->setDate($Date ? new \DateTime($Date) : null);
-            $Entity->setName($Name);
-            $Entity->setServiceTblAppointedDateTask($tblAppointedDateTask);
-            $Entity->setServiceTblBehaviorTask($tblBehaviorTask);
             $Entity->setServiceTblPersonSigner($tblPersonSigner);
+            $Entity->setIsPrepared($IsPrepared);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param TblPrepareCertificate $tblPrepare
+     *
+     * @return bool
+     */
+    public function updatePrepareResetRemove(
+        TblPrepareCertificate $tblPrepare
+    ): bool {
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblPrepareCertificate $Entity */
+        $Entity = $Manager->getEntityById('TblPrepareCertificate', $tblPrepare->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setEntityRemove(false);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
@@ -441,8 +310,6 @@ class Data extends AbstractData
     /**
      * @param TblPrepareCertificate $tblPrepare
      * @param TblPerson $tblPerson
-     * @param TblDivision $tblDivision
-     * @param TblTestType $tblTestType
      * @param TblGradeType $tblGradeType
      * @param $Grade
      *
@@ -451,11 +318,9 @@ class Data extends AbstractData
     public function updatePrepareGradeForBehavior(
         TblPrepareCertificate $tblPrepare,
         TblPerson $tblPerson,
-        TblDivision $tblDivision,
-        TblTestType $tblTestType,
         TblGradeType $tblGradeType,
         $Grade
-    ) {
+    ): TblPrepareGrade {
 
         $Manager = $this->getConnection()->getEntityManager();
 
@@ -463,16 +328,12 @@ class Data extends AbstractData
         $Entity = $Manager->getEntity('TblPrepareGrade')->findOneBy(array(
             TblPrepareGrade::ATTR_TBL_PREPARE_CERTIFICATE => $tblPrepare->getId(),
             TblPrepareGrade::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
-            TblPrepareGrade::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId(),
-            TblPrepareGrade::ATTR_SERVICE_TBL_TEST_TYPE => $tblTestType->getId(),
             TblPrepareGrade::ATTR_SERVICE_TBL_GRADE_TYPE => $tblGradeType->getId(),
         ));
         if ($Entity === null) {
             $Entity = new TblPrepareGrade();
             $Entity->setTblPrepareCertificate($tblPrepare);
             $Entity->setServiceTblPerson($tblPerson);
-            $Entity->setServiceTblDivision($tblDivision);
-            $Entity->setServiceTblTestType($tblTestType);
             $Entity->setServiceTblGradeType($tblGradeType);
             $Entity->setGrade($Grade);
 
@@ -504,12 +365,11 @@ class Data extends AbstractData
         TblPrepareCertificate $tblPrepare,
         TblPerson $tblPerson,
         TblCertificate $tblCertificate = null,
-        $IsApproved = false,
-        $IsPrinted = false,
+        bool $IsApproved = false,
+        bool $IsPrinted = false,
         $ExcusedDays = null,
         $UnexcusedDays = null
-    ) {
-
+    ): TblPrepareStudent {
         $Manager = $this->getConnection()->getEntityManager();
 
         $Entity = $Manager->getEntity('TblPrepareStudent')->findOneBy(array(
@@ -520,7 +380,7 @@ class Data extends AbstractData
             $Entity = new TblPrepareStudent();
             $Entity->setTblPrepareCertificate($tblPrepare);
             $Entity->setServiceTblPerson($tblPerson);
-            $Entity->setServiceTblCertificate($tblCertificate ? $tblCertificate : null);
+            $Entity->setServiceTblCertificate($tblCertificate ?: null);
             $Entity->setApproved($IsApproved);
             $Entity->setPrinted($IsPrinted);
             $Entity->setExcusedDays($ExcusedDays);
@@ -539,7 +399,9 @@ class Data extends AbstractData
      * @param bool|false $IsApproved
      * @param bool|false $IsPrinted
      * @param null $ExcusedDays
+     * @param null $ExcusedDaysFromLessons
      * @param null $UnexcusedDays
+     * @param null $UnexcusedDaysFromLessons
      * @param TblPerson|null $tblPersonSigner
      *
      * @return bool
@@ -547,13 +409,14 @@ class Data extends AbstractData
     public function updatePrepareStudent(
         TblPrepareStudent $tblPrepareStudent,
         TblCertificate $tblCertificate = null,
-        $IsApproved = false,
-        $IsPrinted = false,
+        bool $IsApproved = false,
+        bool $IsPrinted = false,
         $ExcusedDays = null,
+        $ExcusedDaysFromLessons = null,
         $UnexcusedDays = null,
+        $UnexcusedDaysFromLessons = null,
         TblPerson $tblPersonSigner = null
-    ) {
-
+    ): bool {
         $Manager = $this->getConnection()->getEntityManager();
 
         /** @var TblPrepareStudent $Entity */
@@ -564,7 +427,9 @@ class Data extends AbstractData
             $Entity->setApproved($IsApproved);
             $Entity->setPrinted($IsPrinted);
             $Entity->setExcusedDays($ExcusedDays);
+            $Entity->setExcusedDaysFromLessons($ExcusedDaysFromLessons);
             $Entity->setUnexcusedDays($UnexcusedDays);
+            $Entity->setUnexcusedDaysFromLessons($UnexcusedDaysFromLessons);
             $Entity->setServiceTblPersonSigner($tblPersonSigner);
 
             $Manager->saveEntity($Entity);
@@ -580,10 +445,8 @@ class Data extends AbstractData
     /**
      * @param array $Data
      */
-    public function createPrepareStudentSetBulkTemplates(
-        $Data
-    ) {
-
+    public function createPrepareStudentSetBulkTemplates(array $Data)
+    {
         $Manager = $this->getConnection()->getEntityManager();
 
         foreach ($Data as $prepareId => $personList) {
@@ -628,8 +491,7 @@ class Data extends AbstractData
         TblPerson $tblPerson,
         $Field,
         $Value
-    ) {
-
+    ): TblPrepareInformation {
         $Manager = $this->getConnection()->getEntityManager();
 
         $Entity = $Manager->getEntity('TblPrepareInformation')->findOneBy(array(
@@ -662,8 +524,7 @@ class Data extends AbstractData
         TblPrepareInformation $tblPrepareInformation,
         $Field,
         $Value
-    ) {
-
+    ): bool {
         $Manager = $this->getConnection()->getEntityManager();
 
         /** @var TblPrepareInformation $Entity */
@@ -689,7 +550,6 @@ class Data extends AbstractData
      */
     public function getPrepareAllByGenerateCertificate(TblGenerateCertificate $tblGenerateCertificate)
     {
-
         return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
             'TblPrepareCertificate', array(
                 TblPrepareCertificate::ATTR_SERVICE_TBL_GENERATE_CERTIFICATE => $tblGenerateCertificate->getId()
@@ -698,72 +558,89 @@ class Data extends AbstractData
     }
 
     /**
-     * @param TblPrepareCertificate $tblPrepare
-     * @param bool $isDiploma
+     * @param TblPrepareStudent $tblPrepareStudent
      *
      * @return bool
      */
-    public function copySubjectGradesByPrepare(TblPrepareCertificate $tblPrepare, $isDiploma = false)
+    public function updatePrepareStudentSetApproved(TblPrepareStudent $tblPrepareStudent): bool
     {
-
         $Manager = $this->getConnection()->getEntityManager();
 
-        // nicht freigebene Fachnoten löschen
-        if (($tblTestType = Evaluation::useService()->getTestTypeByIdentifier('APPOINTED_DATE_TASK'))) {
-            $tblPrepareGradeList = $this->getPrepareGradeAllByPrepare(
-                $tblPrepare, $tblTestType
-            );
-            if ($tblPrepareGradeList) {
-                $isApprovedArray = array();
-                foreach ($tblPrepareGradeList as $tblPrepareGrade) {
-                    if (($tblPerson = $tblPrepareGrade->getServiceTblPerson())) {
-                        if (!isset($isApprovedArray[$tblPerson->getId()])) {
-                            if (($tblPersonStudent = $this->getPrepareStudentBy($tblPrepare, $tblPerson))) {
-                                $isApprovedArray[$tblPerson->getId()] = $tblPersonStudent->isApproved();
-                            } else {
-                                $isApprovedArray[$tblPerson->getId()] = false;
-                            }
-                        }
+        $useClassRegisterForAbsence = ($tblSettingAbsence = Consumer::useService()->getSetting('Education', 'ClassRegister', 'Absence', 'UseClassRegisterForAbsence'))
+            && $tblSettingAbsence->getValue();
+
+        // Update
+        /** @var TblPrepareStudent $Entity */
+        $Entity = $Manager->getEntityById('TblPrepareStudent', $tblPrepareStudent->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setApproved(true);
+            $Entity->setPrinted(false);
+
+            // Fehlzeiten aus dem Klassenbuch übernehmen
+            if ($useClassRegisterForAbsence) {
+                if (($tblPerson = $tblPrepareStudent->getServiceTblPerson())
+                    && ($tblPrepare = $tblPrepareStudent->getTblPrepareCertificate())
+                    && ($tblYear = $tblPrepare->getYear())
+                ) {
+                    if (($tblGenerateCertificate = $tblPrepare->getServiceTblGenerateCertificate())
+                        && $tblGenerateCertificate->getAppointedDateForAbsence()
+                    ) {
+                        $tillDateAbsence = new DateTime($tblGenerateCertificate->getAppointedDateForAbsence());
+                    } else {
+                        $tillDateAbsence = new DateTime($tblPrepare->getDate());
+                    }
+                    list($startDateAbsence) = Term::useService()->getStartDateAndEndDateOfYear($tblYear);
+
+                    $tblCompany = false;
+                    $tblSchoolType = false;
+                    if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))) {
+                        $tblCompany = $tblStudentEducation->getServiceTblCompany();
+                        $tblSchoolType = $tblStudentEducation->getServiceTblSchoolType();
                     }
 
-                    // Freigegebene nicht löschen
-                    if (!$isApprovedArray[$tblPerson->getId()]) {
-                        // nur Freigabe protokollieren
-                        $Manager->bulkKillEntity($tblPrepareGrade);
-                    }
+                    $Entity->setExcusedDays(Absence::useService()->getExcusedDaysByPerson($tblPerson, $tblYear, $tblCompany ?: null, $tblSchoolType ?: null,
+                        $startDateAbsence, $tillDateAbsence));
+                    $Entity->setUnexcusedDays(Absence::useService()->getUnexcusedDaysByPerson($tblPerson, $tblYear, $tblCompany ?: null, $tblSchoolType ?: null,
+                        $startDateAbsence, $tillDateAbsence));
                 }
             }
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
         }
 
-        if (($tblDivision = $tblPrepare->getServiceTblDivision())
-            && ($tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision))
+        return true;
+    }
+
+    /**
+     * @param TblPrepareCertificate $tblPrepare
+     *
+     * @return bool
+     */
+    public function updatePrepareStudentListSetApproved(TblPrepareCertificate $tblPrepare): bool
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $useClassRegisterForAbsence = ($tblSettingAbsence = Consumer::useService()->getSetting('Education', 'ClassRegister', 'Absence', 'UseClassRegisterForAbsence'))
+            && $tblSettingAbsence->getValue();
+
+        if (($tblPrepareStudentList = $this->getPrepareStudentAllByPrepare($tblPrepare))
+            && ($tblYear = $tblPrepare->getYear())
         ) {
+            if (($tblGenerateCertificate = $tblPrepare->getServiceTblGenerateCertificate())
+                && $tblGenerateCertificate->getAppointedDateForAbsence()
+            ) {
+                $tillDateAbsence = new DateTime($tblGenerateCertificate->getAppointedDateForAbsence());
+            } else {
+                $tillDateAbsence = new DateTime($tblPrepare->getDate());
+            }
+            list($startDateAbsence) = Term::useService()->getStartDateAndEndDateOfYear($tblYear);
 
-            // Klassen ermitteln in denen die Schüler Unterricht haben
-            $divisionList = array();
-            $divisionPersonList = array();
-            foreach ($tblPersonList as $tblPerson) {
-                // bereits Freigebene überspringen
-                if (($tblPrepareStudent = $this->getPrepareStudentBy($tblPrepare, $tblPerson))
-                    && $tblPrepareStudent->isApproved()
+            foreach ($tblPrepareStudentList as $tblPrepareStudent) {
+                if (($tblPerson = $tblPrepareStudent->getServiceTblPerson())
+                    && !$tblPrepareStudent->isApproved()
                 ) {
-                    continue;
-                }
-
-                if (($tblYear = $tblDivision->getServiceTblYear())
-                    && ($tblPersonDivisionList = Student::useService()->getDivisionListByPersonAndYear($tblPerson, $tblYear))
-                ) {
-                    foreach ($tblPersonDivisionList as $tblDivisionItem) {
-                        if (!isset($divisionList[$tblDivisionItem->getId()])) {
-                            $divisionList[$tblDivisionItem->getId()] = $tblDivisionItem;
-                        }
-                    }
-                }
-
-                $divisionPersonList[$tblPerson->getId()] = 1;
-
-                // Freigabe setzen
-                if ($tblPrepareStudent) {
                     // Update
                     /** @var TblPrepareStudent $Entity */
                     $Entity = $Manager->getEntityById('TblPrepareStudent', $tblPrepareStudent->getId());
@@ -772,95 +649,23 @@ class Data extends AbstractData
                         $Entity->setApproved(true);
                         $Entity->setPrinted(false);
 
-                        $Manager->bulkSaveEntity($Entity);
-                        Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol,
-                            $Entity, true);
-                    }
-                } else {
-                    // Create
-                    $Entity = $Manager->getEntity('TblPrepareStudent')->findOneBy(array(
-                        TblPrepareStudent::ATTR_TBL_PREPARE_CERTIFICATE => $tblPrepare->getId(),
-                        TblPrepareStudent::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
-                    ));
-                    if ($Entity === null) {
-                        $Entity = new TblPrepareStudent();
-                        $Entity->setTblPrepareCertificate($tblPrepare);
-                        $Entity->setServiceTblPerson($tblPerson);
-                        $Entity->setApproved(true);
-                        $Entity->setPrinted(false);
+                        // Fehlzeiten aus dem Klassenbuch übernehmen
+                        if ($useClassRegisterForAbsence) {
+                            $tblCompany = false;
+                            $tblSchoolType = false;
+                            if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))) {
+                                $tblCompany = $tblStudentEducation->getServiceTblCompany();
+                                $tblSchoolType = $tblStudentEducation->getServiceTblSchoolType();
+                            }
+
+                            $Entity->setExcusedDays(Absence::useService()->getExcusedDaysByPerson($tblPerson, $tblYear, $tblCompany ?: null, $tblSchoolType ?: null,
+                                $startDateAbsence, $tillDateAbsence));
+                            $Entity->setUnexcusedDays(Absence::useService()->getUnexcusedDaysByPerson($tblPerson, $tblYear, $tblCompany ?: null, $tblSchoolType ?: null,
+                                $startDateAbsence, $tillDateAbsence));
+                        }
 
                         $Manager->bulkSaveEntity($Entity);
-                        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity, true);
-                    }
-                }
-            }
-
-            // kopieren der nicht freigegeben Fachnoten
-            foreach ($divisionList as $tblDivisionItem) {
-                // Abschlusszeugnisse
-                if ($isDiploma) {
-                    if ((($tblDivisionPersonList = Division::useService()->getStudentAllByDivision($tblDivisionItem)))
-                        && ($tblPrepareAdditionalGradeType = $this->getPrepareAdditionalGradeTypeByIdentifier('EN'))
-                    ) {
-                        foreach ($tblDivisionPersonList as $tblPersonItem) {
-                            if (($tblPrepareAdditionalGradeList = $this->getPrepareAdditionalGradeListBy(
-                                $tblPrepare, $tblPersonItem, $tblPrepareAdditionalGradeType
-                            ))
-                            ) {
-                                foreach ($tblPrepareAdditionalGradeList as $tblPrepareAdditionalGrade) {
-                                    if (($tblSubject = $tblPrepareAdditionalGrade->getServiceTblSubject())) {
-                                        $Entity = new TblPrepareGrade();
-                                        $Entity->settblPrepareCertificate($tblPrepare);
-                                        $Entity->setServiceTblDivision($tblDivision);
-                                        $Entity->setServiceTblSubject($tblSubject);
-                                        $Entity->setServiceTblPerson($tblPersonItem);
-                                        $Entity->setServiceTblTestType($tblTestType);
-                                        $Entity->setGrade($tblPrepareAdditionalGrade->getGrade());
-
-                                        $Manager->bulkSaveEntity($Entity);
-                                        // nur Freigabe protokollieren
-                                    }
-                                }
-                            }
-                        }
-                    }
-                } else {
-                    if (($tblTask = ($tblPrepare->getServiceTblAppointedDateTask()))
-                        && ($tblTestAllByTask = Evaluation::useService()->getTestAllByTask($tblTask, $tblDivisionItem))
-                    ) {
-                        foreach ($tblTestAllByTask as $tblTest) {
-                            if (($tblSubject = $tblTest->getServiceTblSubject())
-                                && ($tblDivisionPersonList = Division::useService()->getStudentAllByDivision($tblDivisionItem))
-                            ) {
-                                foreach ($tblDivisionPersonList as $tblPersonItem) {
-                                    if (isset($divisionPersonList[$tblPersonItem->getId()])
-                                        && ($tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTest,
-                                            $tblPersonItem))
-                                    ) {
-                                        $Entity = new TblPrepareGrade();
-                                        $Entity->settblPrepareCertificate($tblPrepare);
-                                        $Entity->setServiceTblDivision($tblGrade->getServiceTblDivision() ? $tblGrade->getServiceTblDivision() : null);
-                                        $Entity->setServiceTblSubject($tblGrade->getServiceTblSubject() ? $tblGrade->getServiceTblSubject() : null);
-                                        $Entity->setServiceTblPerson($tblGrade->getServiceTblPerson() ? $tblGrade->getServiceTblPerson() : null);
-                                        $Entity->setServiceTblTestType($tblTestType);
-                                        // keine Tendenzen auf Zeugnissen
-                                        $withTrend = true;
-                                        if ($tblGrade->getServiceTblPerson()
-                                            && ($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare,
-                                                $tblGrade->getServiceTblPerson()))
-                                            && ($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())
-                                            && !$tblCertificate->isInformation()
-                                        ) {
-                                            $withTrend = false;
-                                        }
-                                        $Entity->setGrade($tblGrade->getDisplayGrade($withTrend));
-
-                                        $Manager->bulkSaveEntity($Entity);
-                                        // nur Freigabe protokollieren
-                                    }
-                                }
-                            }
-                        }
+                        Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity, true);
                     }
                 }
             }
@@ -877,17 +682,16 @@ class Data extends AbstractData
      *
      * @return bool
      */
-    public function updatePrepareStudentDivisionResetApproved(TblPrepareCertificate $tblPrepare)
+    public function updatePrepareStudentListResetApproved(TblPrepareCertificate $tblPrepare): bool
     {
+        $Manager = $this->getConnection()->getEntityManager();
 
-        if (($tblDivision = $tblPrepare->getServiceTblDivision())
-            && ($tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision))
-        ) {
+        $useClassRegisterForAbsence = ($tblSettingAbsence = Consumer::useService()->getSetting('Education', 'ClassRegister', 'Absence', 'UseClassRegisterForAbsence'))
+            && $tblSettingAbsence->getValue();
 
-            $Manager = $this->getConnection()->getEntityManager();
-
-            foreach ($tblPersonList as $tblPerson) {
-                if (($tblPrepareStudent = $this->getPrepareStudentBy($tblPrepare, $tblPerson))) {
+        if (($tblPrepareStudentList = $this->getPrepareStudentAllByPrepare($tblPrepare))) {
+            foreach ($tblPrepareStudentList as $tblPrepareStudent) {
+                if ($tblPrepareStudent->isApproved()) {
                     // Update
                     /** @var TblPrepareStudent $Entity */
                     $Entity = $Manager->getEntityById('TblPrepareStudent', $tblPrepareStudent->getId());
@@ -896,145 +700,14 @@ class Data extends AbstractData
                         $Entity->setApproved(false);
                         $Entity->setPrinted(false);
 
+                        // Fehlzeiten zurücksetzen, bei automatischer Übernahme der Fehlzeiten
+                        if ($useClassRegisterForAbsence) {
+                            $Entity->setExcusedDays(null);
+                            $Entity->setUnexcusedDays(null);
+                        }
+
                         $Manager->bulkSaveEntity($Entity);
-                        Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol,
-                            $Entity, true);
-                    }
-                }
-            }
-
-            $Manager->flushCache();
-            Protocol::useService()->flushBulkEntries();
-        }
-
-        return true;
-    }
-
-    /**
-     * @param TblPrepareCertificate $tblPrepare
-     * @param TblPerson $tblPerson
-     * @param bool $isDiploma
-     *
-     * @return bool
-     */
-    public function copySubjectGradesByPerson(TblPrepareCertificate $tblPrepare, TblPerson $tblPerson, $isDiploma = false)
-    {
-
-        $Manager = $this->getConnection()->getEntityManager();
-
-        // Fachnoten löschen
-        if (($tblTestType = Evaluation::useService()->getTestTypeByIdentifier('APPOINTED_DATE_TASK'))) {
-            $tblPrepareGradeList = $this->getPrepareGradeAllByPerson(
-                $tblPrepare, $tblPerson, $tblTestType, true
-            );
-            if ($tblPrepareGradeList) {
-                foreach ($tblPrepareGradeList as $tblPrepareGrade) {
-                    // nur Freigabe protokollieren
-                    $Manager->bulkKillEntity($tblPrepareGrade);
-                }
-            }
-        }
-
-        if ($tblTestType
-            && ($tblDivision = $tblPrepare->getServiceTblDivision())
-            && ($tblYear = $tblDivision->getServiceTblYear())
-        ) {
-
-            // Klassen ermitteln in denen der Schüler Unterricht hat
-            $divisionList = array();
-            if (($tblPersonDivisionList = Student::useService()->getDivisionListByPersonAndYear($tblPerson, $tblYear))) {
-                foreach ($tblPersonDivisionList as $tblDivisionItem) {
-                    if (!isset($divisionList[$tblDivisionItem->getId()])) {
-                        $divisionList[$tblDivisionItem->getId()] = $tblDivisionItem;
-                    }
-                }
-            }
-
-            // Freigabe setzen
-            if (($tblPrepareStudent = $this->getPrepareStudentBy($tblPrepare, $tblPerson))) {
-                // Update
-                /** @var TblPrepareStudent $Entity */
-                $Entity = $Manager->getEntityById('TblPrepareStudent', $tblPrepareStudent->getId());
-                $Protocol = clone $Entity;
-                if (null !== $Entity) {
-                    $Entity->setApproved(true);
-                    $Entity->setPrinted(false);
-
-                    $Manager->bulkSaveEntity($Entity);
-                    Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol,
-                        $Entity, true);
-                }
-            } else {
-                // Create
-                $Entity = $Manager->getEntity('TblPrepareStudent')->findOneBy(array(
-                    TblPrepareStudent::ATTR_TBL_PREPARE_CERTIFICATE => $tblPrepare->getId(),
-                    TblPrepareStudent::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
-                ));
-                if ($Entity === null) {
-                    $Entity = new TblPrepareStudent();
-                    $Entity->setTblPrepareCertificate($tblPrepare);
-                    $Entity->setServiceTblPerson($tblPerson);
-                    $Entity->setApproved(true);
-                    $Entity->setPrinted(false);
-
-                    $Manager->bulkSaveEntity($Entity);
-                    Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity, true);
-                }
-            }
-
-            // kopieren der  Fachnoten
-            foreach ($divisionList as $tblDivisionItem) {
-                // Abschlusszeugnisse
-                if ($isDiploma) {
-                    if (($tblPrepareAdditionalGradeType = $this->getPrepareAdditionalGradeTypeByIdentifier('EN'))
-                        && ($tblPrepareAdditionalGradeList = $this->getPrepareAdditionalGradeListBy(
-                            $tblPrepare, $tblPerson, $tblPrepareAdditionalGradeType
-                        ))) {
-                        foreach ($tblPrepareAdditionalGradeList as $tblPrepareAdditionalGrade) {
-                            if (($tblSubject = $tblPrepareAdditionalGrade->getServiceTblSubject())) {
-                                $Entity = new TblPrepareGrade();
-                                $Entity->settblPrepareCertificate($tblPrepare);
-                                $Entity->setServiceTblDivision($tblDivision);
-                                $Entity->setServiceTblSubject($tblSubject);
-                                $Entity->setServiceTblPerson($tblPerson);
-                                $Entity->setServiceTblTestType($tblTestType);
-                                $Entity->setGrade($tblPrepareAdditionalGrade->getGrade());
-
-                                $Manager->bulkSaveEntity($Entity);
-                                // nur Freigabe protokollieren
-                            }
-                        }
-                    }
-                } else {
-                    if (($tblTask = ($tblPrepare->getServiceTblAppointedDateTask()))
-                        && ($tblTestAllByTask = Evaluation::useService()->getTestAllByTask($tblTask, $tblDivisionItem))
-                    ) {
-                        foreach ($tblTestAllByTask as $tblTest) {
-                            if (($tblSubject = $tblTest->getServiceTblSubject())) {
-                                if (($tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTest,
-                                    $tblPerson))
-                                ) {
-                                    $Entity = new TblPrepareGrade();
-                                    $Entity->settblPrepareCertificate($tblPrepare);
-                                    $Entity->setServiceTblDivision($tblGrade->getServiceTblDivision() ? $tblGrade->getServiceTblDivision() : null);
-                                    $Entity->setServiceTblSubject($tblGrade->getServiceTblSubject() ? $tblGrade->getServiceTblSubject() : null);
-                                    $Entity->setServiceTblPerson($tblGrade->getServiceTblPerson() ? $tblGrade->getServiceTblPerson() : null);
-                                    $Entity->setServiceTblTestType($tblTestType);
-
-                                    // keine Tendenzen auf Zeugnissen
-                                    $withTrend = true;
-                                    if (($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())
-                                        && !$tblCertificate->isInformation()
-                                    ) {
-                                        $withTrend = false;
-                                    }
-                                    $Entity->setGrade($tblGrade->getDisplayGrade($withTrend));
-
-                                    $Manager->bulkSaveEntity($Entity);
-                                    // nur Freigabe protokollieren
-                                }
-                            }
-                        }
+                        Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity, true);
                     }
                 }
             }
@@ -1051,15 +724,13 @@ class Data extends AbstractData
      *
      * @return bool
      */
-    public function isPreparePrinted(TblPrepareCertificate $tblPrepareCertificate)
+    public function isPreparePrinted(TblPrepareCertificate $tblPrepareCertificate): bool
     {
-
-        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPrepareStudent',
+        return (bool)$this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPrepareStudent',
             array(
                 TblPrepareStudent::ATTR_TBL_PREPARE_CERTIFICATE => $tblPrepareCertificate->getId(),
                 TblPrepareStudent::ATTR_IS_PRINTED => true
-            ))
-            ? true : false;
+            ));
     }
 
     /**
@@ -1069,7 +740,6 @@ class Data extends AbstractData
      */
     public function getPrepareStudentAllByPrepare(TblPrepareCertificate $tblPrepareCertificate)
     {
-
         return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPrepareStudent',
             array(
                 TblPrepareStudent::ATTR_TBL_PREPARE_CERTIFICATE => $tblPrepareCertificate->getId(),
@@ -1082,17 +752,13 @@ class Data extends AbstractData
      *
      * @return bool
      */
-    public function isGradeTypeUsed(TblGradeType $tblGradeType)
+    public function isGradeTypeUsed(TblGradeType $tblGradeType): bool
     {
-
-        return $this->getCachedEntityBy(
-            __METHOD__,
-            $this->getConnection()->getEntityManager(),
-            'TblPrepareGrade',
+        return (bool)$this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPrepareGrade',
             array(
                 TblPrepareGrade::ATTR_SERVICE_TBL_GRADE_TYPE => $tblGradeType->getId()
             )
-        ) ? true : false;
+        );
     }
 
     /**
@@ -1114,10 +780,9 @@ class Data extends AbstractData
         TblPrepareAdditionalGradeType $tblPrepareAdditionalGradeType,
         $ranking,
         $grade,
-        $isSelected = false,
-        $isLocked = false
-    ) {
-
+        bool $isSelected = false,
+        bool $isLocked = false
+    ): TblPrepareAdditionalGrade {
         $Manager = $this->getEntityManager();
 
         /** @var TblPrepareAdditionalGrade $Entity */
@@ -1152,16 +817,44 @@ class Data extends AbstractData
      * @param bool $isSelected
      *
      * @return bool
-     *
-     * @throws \Doctrine\ORM\ORMException
-     * @throws \Doctrine\ORM\OptimisticLockException
-     * @throws \Doctrine\ORM\TransactionRequiredException
      */
     public function updatePrepareAdditionalGrade(
         TblPrepareAdditionalGrade $tblPrepareAdditionalGrade,
         $grade,
-        $isSelected = false
-    ) {
+        bool $isSelected = false
+    ): bool {
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblPrepareAdditionalGrade $Entity */
+        $Entity = $Manager->getEntityById('TblPrepareAdditionalGrade', $tblPrepareAdditionalGrade->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setGrade($grade);
+            $Entity->setSelected($isSelected);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param TblPrepareAdditionalGrade $tblPrepareAdditionalGrade
+     * @param TblSubject $tblSubject
+     * @param $grade
+     * @param bool $isSelected
+     *
+     * @return bool
+     */
+    public function updatePrepareAdditionalGradeAndSubject(
+        TblPrepareAdditionalGrade $tblPrepareAdditionalGrade,
+        TblSubject $tblSubject,
+        $grade,
+        bool $isSelected = false
+    ): bool {
 
         $Manager = $this->getConnection()->getEntityManager();
 
@@ -1169,6 +862,7 @@ class Data extends AbstractData
         $Entity = $Manager->getEntityById('TblPrepareAdditionalGrade', $tblPrepareAdditionalGrade->getId());
         $Protocol = clone $Entity;
         if (null !== $Entity) {
+            $Entity->setServiceTblSubject($tblSubject);
             $Entity->setGrade($grade);
             $Entity->setSelected($isSelected);
 
@@ -1193,7 +887,6 @@ class Data extends AbstractData
         TblPerson $tblPerson,
         TblPrepareAdditionalGradeType $tblPrepareAdditionalGradeType = null
     ) {
-
         if ($tblPrepareAdditionalGradeType) {
             $parameters =  array(
                 TblPrepareAdditionalGrade::ATTR_TBL_PREPARE_CERTIFICATE => $tblPrepareCertificate->getId(),
@@ -1207,13 +900,7 @@ class Data extends AbstractData
             );
         }
 
-        return $this->getCachedEntityListBy(
-            __METHOD__,
-            $this->getEntityManager(),
-            'TblPrepareAdditionalGrade',
-           $parameters,
-            array('Ranking' => self::ORDER_ASC)
-        );
+        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblPrepareAdditionalGrade', $parameters, array('Ranking' => self::ORDER_ASC));
     }
 
     /**
@@ -1221,6 +908,7 @@ class Data extends AbstractData
      * @param TblPerson $tblPerson
      * @param TblSubject $tblSubject
      * @param TblPrepareAdditionalGradeType $tblPrepareAdditionalGradeType
+     * @param bool $isForced
      *
      * @return false|TblPrepareAdditionalGrade
      */
@@ -1228,20 +916,35 @@ class Data extends AbstractData
         TblPrepareCertificate $tblPrepareCertificate,
         TblPerson $tblPerson,
         TblSubject $tblSubject,
-        TblPrepareAdditionalGradeType $tblPrepareAdditionalGradeType
+        TblPrepareAdditionalGradeType $tblPrepareAdditionalGradeType,
+        bool $isForced = false
     ) {
 
-        return $this->getCachedEntityBy(
-            __METHOD__,
-            $this->getEntityManager(),
-            'TblPrepareAdditionalGrade',
-            array(
-                TblPrepareAdditionalGrade::ATTR_TBL_PREPARE_CERTIFICATE => $tblPrepareCertificate->getId(),
-                TblPrepareAdditionalGrade::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
-                TblPrepareAdditionalGrade::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId(),
-                TblPrepareAdditionalGrade::ATTR_TBL_PREPARE_ADDITIONAL_GRADE_TYPE => $tblPrepareAdditionalGradeType->getId()
-            )
-        );
+        if ($isForced) {
+            return $this->getForceEntityBy(
+                __METHOD__,
+                $this->getEntityManager(),
+                'TblPrepareAdditionalGrade',
+                array(
+                    TblPrepareAdditionalGrade::ATTR_TBL_PREPARE_CERTIFICATE => $tblPrepareCertificate->getId(),
+                    TblPrepareAdditionalGrade::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
+                    TblPrepareAdditionalGrade::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId(),
+                    TblPrepareAdditionalGrade::ATTR_TBL_PREPARE_ADDITIONAL_GRADE_TYPE => $tblPrepareAdditionalGradeType->getId()
+                )
+            );
+        } else {
+            return $this->getCachedEntityBy(
+                __METHOD__,
+                $this->getEntityManager(),
+                'TblPrepareAdditionalGrade',
+                array(
+                    TblPrepareAdditionalGrade::ATTR_TBL_PREPARE_CERTIFICATE => $tblPrepareCertificate->getId(),
+                    TblPrepareAdditionalGrade::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
+                    TblPrepareAdditionalGrade::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId(),
+                    TblPrepareAdditionalGrade::ATTR_TBL_PREPARE_ADDITIONAL_GRADE_TYPE => $tblPrepareAdditionalGradeType->getId()
+                )
+            );
+        }
     }
 
     /**
@@ -1251,7 +954,6 @@ class Data extends AbstractData
      * @param $ranking
      *
      * @return false|TblPrepareAdditionalGrade
-     * @throws \Exception
      */
     public function getPrepareAdditionalGradeByRanking(
         TblPrepareCertificate $tblPrepareCertificate,
@@ -1259,11 +961,7 @@ class Data extends AbstractData
         TblPrepareAdditionalGradeType $tblPrepareAdditionalGradeType,
         $ranking
     ) {
-
-        return $this->getCachedEntityBy(
-            __METHOD__,
-            $this->getEntityManager(),
-            'TblPrepareAdditionalGrade',
+        return $this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblPrepareAdditionalGrade',
             array(
                 TblPrepareAdditionalGrade::ATTR_TBL_PREPARE_CERTIFICATE => $tblPrepareCertificate->getId(),
                 TblPrepareAdditionalGrade::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
@@ -1275,17 +973,12 @@ class Data extends AbstractData
 
     /**
      * @param $Id
+     *
      * @return false|TblPrepareAdditionalGrade
      */
     public function getPrepareAdditionalGradeById($Id)
     {
-
-        return $this->getCachedEntityById(
-            __METHOD__,
-            $this->getEntityManager(),
-            'TblPrepareAdditionalGrade',
-            $Id
-        );
+        return $this->getCachedEntityById(__METHOD__, $this->getEntityManager(), 'TblPrepareAdditionalGrade', $Id);
     }
 
     /**
@@ -1293,18 +986,18 @@ class Data extends AbstractData
      *
      * @return bool
      */
-    public function destroyPrepareAdditionalGrade(TblPrepareAdditionalGrade $tblPrepareAdditionalGrade)
+    public function destroyPrepareAdditionalGrade(TblPrepareAdditionalGrade $tblPrepareAdditionalGrade): bool
     {
-
         $Manager = $this->getEntityManager();
-
         /** @var TblPrepareAdditionalGrade $Entity */
         $Entity = $Manager->getEntityById('TblPrepareAdditionalGrade', $tblPrepareAdditionalGrade->getId());
         if (null !== $Entity) {
             Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
             $Manager->killEntity($Entity);
+
             return true;
         }
+
         return false;
     }
 
@@ -1314,22 +1007,20 @@ class Data extends AbstractData
      *
      * @return bool
      */
-    public function updatePrepareAdditionalGradeRanking(TblPrepareAdditionalGrade $tblPrepareAdditionalGrade, $Ranking)
+    public function updatePrepareAdditionalGradeRanking(TblPrepareAdditionalGrade $tblPrepareAdditionalGrade, $Ranking): bool
     {
-
         $Manager = $this->getEntityManager();
-
         /** @var TblPrepareAdditionalGrade $Entity */
         $Entity = $Manager->getEntityById('TblPrepareAdditionalGrade', $tblPrepareAdditionalGrade->getId());
         $Protocol = clone $Entity;
         if (null !== $Entity) {
             $Entity->setRanking($Ranking);
             $Manager->saveEntity($Entity);
-            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
-                $Protocol,
-                $Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+
             return true;
         }
+
         return false;
     }
 
@@ -1340,7 +1031,6 @@ class Data extends AbstractData
      */
     public function getPrepareAdditionalGradeTypeByIdentifier($Identifier)
     {
-
         return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPrepareAdditionalGradeType',
             array(
                 TblPrepareAdditionalGradeType::ATTR_IDENTIFIER => strtoupper($Identifier)
@@ -1355,25 +1045,20 @@ class Data extends AbstractData
      */
     public function getPrepareAdditionalGradeTypeById($Id)
     {
-
-        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPrepareAdditionalGradeType',
-            $Id
-        );
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPrepareAdditionalGradeType', $Id);
     }
 
     /**
      * @param $Name
      * @param $Identifier
      *
-     * @return null|TblPrepareAdditionalGradeType
+     * @return false|TblPrepareAdditionalGradeType
      */
     public function createPrepareAdditionalGradeType($Name, $Identifier)
     {
-
         $Manager = $this->getEntityManager();
 
-        $Entity = $Manager->getEntity('TblPrepareAdditionalGradeType')
-            ->findOneBy(array(TblPrepareAdditionalGradeType::ATTR_IDENTIFIER => $Identifier));
+        $Entity = $Manager->getEntity('TblPrepareAdditionalGradeType')->findOneBy(array(TblPrepareAdditionalGradeType::ATTR_IDENTIFIER => $Identifier));
 
         if (null === $Entity) {
             $Entity = new TblPrepareAdditionalGradeType();
@@ -1393,11 +1078,9 @@ class Data extends AbstractData
      *
      * @return bool
      */
-    public function destroyPrepareCertificate(TblPrepareCertificate $tblPrepareCertificate)
+    public function destroyPrepareCertificate(TblPrepareCertificate $tblPrepareCertificate): bool
     {
-
         $Manager = $this->getEntityManager();
-
         /** @var TblPrepareCertificate $Entity */
         $Entity = $Manager->getEntityById('TblPrepareCertificate', $tblPrepareCertificate->getId());
         if (null !== $Entity) {
@@ -1406,408 +1089,33 @@ class Data extends AbstractData
 
             return true;
         }
-        return false;
-    }
-
-    /**
-     * @param TblPerson $tblPerson
-     * @param TblDivision $tblDivision
-     *
-     * @return false|TblLeaveStudent
-     */
-    public function getLeaveStudentBy(TblPerson $tblPerson, TblDivision $tblDivision)
-    {
-
-        return $this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblLeaveStudent',
-            array(
-                TblLeaveStudent::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
-                TblLeaveStudent::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId()
-            )
-        );
-    }
-
-    /**
-     * @param $Id
-     *
-     * @return false|TblLeaveStudent
-     */
-    public function getLeaveStudentById($Id)
-    {
-
-        return $this->getCachedEntityById(__METHOD__, $this->getEntityManager(), 'TblLeaveStudent', $Id);
-    }
-
-    /**
-     * @return false|TblLeaveStudent[]
-     */
-    public function  getLeaveStudentAll()
-    {
-
-        return $this->getCachedEntityList(__METHOD__, $this->getEntityManager(), 'TblLeaveStudent');
-    }
-
-    /**
-     * @param TblDivision $tblDivision
-     *
-     * @return false|TblLeaveStudent[]
-     */
-    public function  getLeaveStudentAllByDivision(TblDivision $tblDivision)
-    {
-
-        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblLeaveStudent',
-            array(TblLeaveStudent::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId()));
-    }
-
-    /**
-     * @param bool $IsApproved
-     * @param bool $IsPrinted
-     *
-     * @return false|TblLeaveStudent[]
-     */
-    public function getLeaveStudentAllBy($IsApproved = false, $IsPrinted = false)
-    {
-
-        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblLeaveStudent',
-            array(
-                TblLeaveStudent::ATTR_IS_APPROVED => $IsApproved,
-                TblLeaveStudent::ATTR_IS_PRINTED => $IsPrinted
-            )
-        );
-    }
-
-    /**
-     * @param TblPerson $tblPerson
-     * @param TblDivision $tblDivision
-     * @param TblCertificate $tblCertificate
-     * @param bool $IsApproved
-     * @param bool $IsPrinted
-     *
-     * @return null|TblLeaveStudent
-     */
-    public function createLeaveStudent(
-        TblPerson $tblPerson,
-        TblDivision $tblDivision,
-        TblCertificate $tblCertificate,
-        $IsApproved = false,
-        $IsPrinted = false
-    ) {
-
-        $Manager = $this->getEntityManager();
-
-        $Entity = $Manager->getEntity('TblLeaveStudent')
-            ->findOneBy(array(
-                TblLeaveStudent::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
-                TblLeaveStudent::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId()
-            ));
-
-        if (null === $Entity) {
-            $Entity = new TblLeaveStudent();
-            $Entity->setServiceTblPerson($tblPerson);
-            $Entity->setServiceTblDivision($tblDivision);
-            $Entity->setServiceTblCertificate($tblCertificate);
-            $Entity->setApproved($IsApproved);
-            $Entity->setPrinted($IsPrinted);
-
-            $Manager->saveEntity($Entity);
-            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
-        }
-
-        return $Entity;
-    }
-
-    /**
-     * @param TblLeaveStudent $tblLeaveStudent
-     * @param bool $IsApproved
-     * @param bool $IsPrinted
-     *
-     * @return bool
-     */
-    public function updateLeaveStudent(
-        TblLeaveStudent $tblLeaveStudent,
-        $IsApproved = false,
-        $IsPrinted = false
-    ) {
-
-        $Manager = $this->getConnection()->getEntityManager();
-
-        /** @var TblLeaveStudent $Entity */
-        $Entity = $Manager->getEntityById('TblLeaveStudent', $tblLeaveStudent->getId());
-        $Protocol = clone $Entity;
-        if (null !== $Entity) {
-            $Entity->setApproved($IsApproved);
-            $Entity->setPrinted($IsPrinted);
-
-            $Manager->saveEntity($Entity);
-            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
-
-            return true;
-        }
 
         return false;
     }
 
     /**
-     * @param TblLeaveStudent $tblLeaveStudent
-     * @param TblCertificate $tblCertificate
-     *
-     * @return bool
-     */
-    public function updateLeaveStudentCertificate(
-        TblLeaveStudent $tblLeaveStudent,
-        TblCertificate $tblCertificate
-    ) {
-
-        $Manager = $this->getConnection()->getEntityManager();
-
-        /** @var TblLeaveStudent $Entity */
-        $Entity = $Manager->getEntityById('TblLeaveStudent', $tblLeaveStudent->getId());
-        $Protocol = clone $Entity;
-        if (null !== $Entity) {
-            $Entity->setServiceTblCertificate($tblCertificate);
-
-            $Manager->saveEntity($Entity);
-            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
-
-            return true;
-        }
-
-        return false;
-    }
-
-    /**
-     * @param TblLeaveStudent $tblLeaveStudent
-     * @param TblSubject $tblSubject
-     *
-     * @return false|TblLeaveGrade
-     */
-    public function  getLeaveGradeBy(TblLeaveStudent $tblLeaveStudent, TblSubject $tblSubject)
-    {
-
-        return $this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblLeaveGrade', array(
-            TblLeaveGrade::ATTR_TBL_LEAVE_STUDENT => $tblLeaveStudent->getId(),
-            TblLeaveGrade::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId()
-        ));
-    }
-
-    /**
-     * @param TblLeaveStudent $tblLeaveStudent
-     *
-     * @return false|TblLeaveGrade[]
-     */
-    public function getLeaveGradeAllByLeaveStudent(TblLeaveStudent $tblLeaveStudent)
-    {
-
-        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblLeaveGrade', array(
-            TblLeaveGrade::ATTR_TBL_LEAVE_STUDENT => $tblLeaveStudent->getId()
-        ));
-    }
-
-    /**
-     * @param TblLeaveStudent $tblLeaveStudent
-     * @param TblSubject $tblSubject
-     * @param $Grade
-     *
-     * @return TblLeaveGrade
-     */
-    public function createLeaveGrade(TblLeaveStudent $tblLeaveStudent, TblSubject $tblSubject, $Grade)
-    {
-
-        $Manager = $this->getEntityManager();
-
-        $Entity = $Manager->getEntity('TblLeaveGrade')
-            ->findOneBy(array(
-                TblLeaveGrade::ATTR_TBL_LEAVE_STUDENT => $tblLeaveStudent->getId(),
-                TblLeaveGrade::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId()
-            ));
-
-        if (null === $Entity) {
-            $Entity = new TblLeaveGrade();
-            $Entity->setTblLeaveStudent($tblLeaveStudent);
-            $Entity->setServiceTblSubject($tblSubject);
-            $Entity->setGrade($Grade);
-
-            $Manager->saveEntity($Entity);
-            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
-        }
-
-        return $Entity;
-    }
-
-    /**
-     * @param TblLeaveGrade $tblLeaveGrade
-     * @param $Grade
-     *
-     * @return bool
-     */
-    public function updateLeaveGrade(
-        TblLeaveGrade $tblLeaveGrade,
-        $Grade
-    ) {
-
-        $Manager = $this->getConnection()->getEntityManager();
-
-        /** @var TblLeaveGrade $Entity */
-        $Entity = $Manager->getEntityById('TblLeaveGrade', $tblLeaveGrade->getId());
-        $Protocol = clone $Entity;
-        if (null !== $Entity) {
-            $Entity->setGrade($Grade);
-
-            $Manager->saveEntity($Entity);
-            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
-
-            return true;
-        }
-
-        return false;
-    }
-
-    /**
-     * @param TblLeaveStudent $tblLeaveStudent
-     * @param $Field
-     *
-     * @return false|TblLeaveInformation
-     */
-    public function getLeaveInformationBy(TblLeaveStudent $tblLeaveStudent, $Field)
-    {
-
-        return $this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblLeaveInformation', array(
-            TblLeaveInformation::ATTR_TBL_LEAVE_STUDENT => $tblLeaveStudent->getId(),
-            TblLeaveInformation::ATTR_FIELD => $Field
-        ));
-    }
-
-    /**
-     * @param TblLeaveStudent $tblLeaveStudent
-     *
-     * @return false|TblLeaveInformation[]
-     */
-    public function getLeaveInformationAllByLeaveStudent(TblLeaveStudent $tblLeaveStudent)
-    {
-
-        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblLeaveInformation', array(
-            TblLeaveInformation::ATTR_TBL_LEAVE_STUDENT => $tblLeaveStudent->getId()
-        ));
-    }
-
-    /**
-     * @param TblLeaveStudent $tblLeaveStudent
-     * @param $Field
-     * @param $Value
-     *
-     * @return TblLeaveInformation
-     */
-    public function createLeaveInformation(TblLeaveStudent $tblLeaveStudent, $Field, $Value)
-    {
-
-        $Manager = $this->getEntityManager();
-
-        $Entity = $Manager->getEntity('TblLeaveInformation')
-            ->findOneBy(array(
-                TblLeaveInformation::ATTR_TBL_LEAVE_STUDENT => $tblLeaveStudent->getId(),
-                TblLeaveInformation::ATTR_FIELD => $Field
-            ));
-
-        if (null === $Entity) {
-            $Entity = new TblLeaveInformation();
-            $Entity->setTblLeaveStudent($tblLeaveStudent);
-            $Entity->setField($Field);
-            $Entity->setValue($Value);
-
-            $Manager->saveEntity($Entity);
-            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
-        }
-
-        return $Entity;
-    }
-
-    /**
-     * @param TblLeaveInformation $tblLeaveInformation
-     * @param $Value
-     *
-     * @return bool
-     */
-    public function updateLeaveInformation(
-        TblLeaveInformation $tblLeaveInformation,
-        $Value
-    ) {
-
-        $Manager = $this->getConnection()->getEntityManager();
-
-        /** @var TblLeaveInformation $Entity */
-        $Entity = $Manager->getEntityById('TblLeaveInformation', $tblLeaveInformation->getId());
-        $Protocol = clone $Entity;
-        if (null !== $Entity) {
-            $Entity->setValue($Value);
-
-            $Manager->saveEntity($Entity);
-            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
-
-            return true;
-        }
-
-        return false;
-    }
-
-    /**
-     * @param TblLeaveStudent $tblLeaveStudent
-     * @param TblSubject $tblSubject
-     * @param TblPrepareAdditionalGradeType $tblPrepareAdditionalGradeType
-     * @param bool $isForced
-     * @return false|TblLeaveAdditionalGrade
-     * @throws \Exception
-     */
-    public function getLeaveAdditionalGradeBy(
-        TblLeaveStudent $tblLeaveStudent,
-        TblSubject $tblSubject,
-        TblPrepareAdditionalGradeType $tblPrepareAdditionalGradeType,
-        $isForced = false
-    ) {
-
-        if ($isForced) {
-            return $this->getForceEntityBy(
-                __METHOD__,
-                $this->getEntityManager(),
-                'TblLeaveAdditionalGrade',
-                array(
-                    TblLeaveAdditionalGrade::ATTR_TBL_LEAVE_STUDENT => $tblLeaveStudent->getId(),
-                    TblLeaveAdditionalGrade::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId(),
-                    TblLeaveAdditionalGrade::ATTR_TBL_PREPARE_ADDITIONAL_GRADE_TYPE => $tblPrepareAdditionalGradeType->getId()
-                )
-            );
-        } else {
-            return $this->getCachedEntityBy(
-                __METHOD__,
-                $this->getEntityManager(),
-                'TblLeaveAdditionalGrade',
-                array(
-                    TblLeaveAdditionalGrade::ATTR_TBL_LEAVE_STUDENT => $tblLeaveStudent->getId(),
-                    TblLeaveAdditionalGrade::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId(),
-                    TblLeaveAdditionalGrade::ATTR_TBL_PREPARE_ADDITIONAL_GRADE_TYPE => $tblPrepareAdditionalGradeType->getId()
-                )
-            );
-        }
-    }
-
-    /**
-     * @param TblLeaveAdditionalGrade $tblLeaveAdditionalGrade
+     * @param TblPrepareComplexExam $tblPrepareComplexExam
      * @param $grade
+     * @param TblSubject|null $tblFirstSubject
+     * @param TblSubject|null $tblSecondSubject
+     *
      * @return bool
-     * @throws \Doctrine\ORM\ORMException
-     * @throws \Doctrine\ORM\OptimisticLockException
-     * @throws \Doctrine\ORM\TransactionRequiredException
      */
-    public function updateLeaveAdditionalGrade(
-        TblLeaveAdditionalGrade $tblLeaveAdditionalGrade,
-        $grade
-    ) {
-
+    public function updatePrepareComplexExam(
+        TblPrepareComplexExam $tblPrepareComplexExam,
+        $grade,
+        TblSubject $tblFirstSubject = null,
+        TblSubject $tblSecondSubject = null
+    ): bool {
         $Manager = $this->getConnection()->getEntityManager();
 
-        /** @var TblLeaveAdditionalGrade $Entity */
-        $Entity = $Manager->getEntityById('TblLeaveAdditionalGrade', $tblLeaveAdditionalGrade->getId());
+        /** @var TblPrepareComplexExam $Entity */
+        $Entity = $Manager->getEntityById('TblPrepareComplexExam', $tblPrepareComplexExam->getId());
         $Protocol = clone $Entity;
         if (null !== $Entity) {
             $Entity->setGrade($grade);
+            $Entity->setServiceTblFirstSubject($tblFirstSubject);
+            $Entity->setServiceTblSecondSubject($tblSecondSubject);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
@@ -1819,43 +1127,242 @@ class Data extends AbstractData
     }
 
     /**
-     * @param TblLeaveStudent $tblLeaveStudent
-     * @param TblSubject $tblSubject
-     * @param TblPrepareAdditionalGradeType $tblPrepareAdditionalGradeType
+     * @param TblPrepareStudent $tblPrepareStudent
+     * @param $identifier
+     * @param $ranking
      * @param $grade
-     * @param bool $isLocked
+     * @param TblSubject|null $tblFirstSubject
+     * @param TblSubject|null $tblSecondSubject
      *
-     * @return TblLeaveAdditionalGrade
+     * @return TblPrepareComplexExam
      */
-    public function createLeaveAdditionalGrade(
-        TblLeaveStudent $tblLeaveStudent,
-        TblSubject $tblSubject,
-        TblPrepareAdditionalGradeType $tblPrepareAdditionalGradeType,
+    public function createPrepareComplexExam(
+        TblPrepareStudent $tblPrepareStudent,
+        $identifier,
+        $ranking,
         $grade,
-        $isLocked = false
-    ) {
-
+        TblSubject $tblFirstSubject = null,
+        TblSubject $tblSecondSubject = null
+    ): TblPrepareComplexExam {
         $Manager = $this->getEntityManager();
-
-        /** @var TblLeaveAdditionalGrade $Entity */
-        $Entity = $Manager->getEntity('TblLeaveAdditionalGrade')->findOneBy(array(
-            TblLeaveAdditionalGrade::ATTR_TBL_LEAVE_STUDENT => $tblLeaveStudent->getId(),
-            TblLeaveAdditionalGrade::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId(),
-        TblLeaveAdditionalGrade::ATTR_TBL_PREPARE_ADDITIONAL_GRADE_TYPE => $tblPrepareAdditionalGradeType->getId()
+        /** @var TblPrepareComplexExam $Entity */
+        $Entity = $Manager->getEntity('TblPrepareComplexExam')->findOneBy(array(
+            TblPrepareComplexExam::ATTR_TBL_PREPARE_STUDENT => $tblPrepareStudent->getId(),
+            TblPrepareComplexExam::ATTR_IDENTIFIER => $identifier,
+            TblPrepareComplexExam::ATTR_RANKING => $ranking
         ));
 
         if ($Entity === null) {
-            $Entity = new TblLeaveAdditionalGrade();
-            $Entity->setTblLeaveStudent($tblLeaveStudent);
-            $Entity->setServiceTblSubject($tblSubject);
-            $Entity->setTblPrepareAdditionalGradeType($tblPrepareAdditionalGradeType);
+            $Entity = new TblPrepareComplexExam();
+            $Entity->setTblPrepareStudent($tblPrepareStudent);
+            $Entity->setIdentifier($identifier);
+            $Entity->setRanking($ranking);
             $Entity->setGrade($grade);
-            $Entity->setLocked($isLocked);
+            $Entity->setServiceTblFirstSubject($tblFirstSubject);
+            $Entity->setServiceTblSecondSubject($tblSecondSubject);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         }
 
         return $Entity;
+    }
+
+    /**
+     * @param TblDivisionCourse $tblDivisionCourse
+     *
+     * @return false|TblPrepareCertificate[]
+     */
+    public function getPrepareAllByDivisionCourse(TblDivisionCourse $tblDivisionCourse)
+    {
+        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblPrepareCertificate', array(
+            TblPrepareCertificate::ATTR_SERVICE_TBL_DIVISION => $tblDivisionCourse->getId()
+        ));
+    }
+
+    /**
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param TblGenerateCertificate $tblGenerateCertificate
+     *
+     * @return false|TblPrepareCertificate
+     */
+    public function getForcedPrepareByDivisionCourseAndGenerateCertificate(TblDivisionCourse $tblDivisionCourse, TblGenerateCertificate $tblGenerateCertificate)
+    {
+        return $this->getForceEntityBy(__METHOD__, $this->getEntityManager(), 'TblPrepareCertificate', array(
+            TblPrepareCertificate::ATTR_SERVICE_TBL_DIVISION => $tblDivisionCourse->getId(),
+            TblPrepareCertificate::ATTR_SERVICE_TBL_GENERATE_CERTIFICATE => $tblGenerateCertificate->getId()
+        ));
+    }
+
+    /**
+     * @param TblPrepareCertificate $tblPrepareCertificate
+     * @param TblPerson $tblPerson
+     *
+     * @return false|TblPrepareGrade[]
+     */
+    public function getBehaviorGradeAllByPrepareCertificateAndPerson(TblPrepareCertificate $tblPrepareCertificate, TblPerson $tblPerson)
+    {
+        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblPrepareGrade', array(
+            TblPrepareGrade::ATTR_TBL_PREPARE_CERTIFICATE => $tblPrepareCertificate->getId(),
+            TblPrepareGrade::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
+            // nur Kopfnoten
+            TblPrepareGrade::ATTR_SERVICE_TBL_SUBJECT => null
+        ));
+    }
+
+    /**
+     * @param TblPrepareCertificate $tblPrepareCertificate
+     *
+     * @return false|TblPrepareGrade[]
+     */
+    public function getBehaviorGradeAllByPrepareCertificate(TblPrepareCertificate $tblPrepareCertificate)
+    {
+        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblPrepareGrade', array(
+            TblPrepareGrade::ATTR_TBL_PREPARE_CERTIFICATE => $tblPrepareCertificate->getId(),
+            // nur Kopfnoten
+            TblPrepareGrade::ATTR_SERVICE_TBL_SUBJECT => null
+        ));
+    }
+
+    /**
+     * @param array $tblEntityList
+     *
+     * @return bool
+     */
+    public function updateEntityListBulk(array $tblEntityList): bool
+    {
+        $Manager = $this->getEntityManager();
+        /** @var Element $tblElement */
+        foreach ($tblEntityList as $tblElement) {
+            $Manager->bulkSaveEntity($tblElement);
+            /** @var Element $Entity */
+            $Entity = $Manager->getEntityById($tblElement->getEntityShortName(), $tblElement->getId());
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Entity, $tblElement, true);
+        }
+
+        $Manager->flushCache();
+        Protocol::useService()->flushBulkEntries();
+
+        return true;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblCertificateType $tblCertificateType
+     *
+     * @return TblPrepareStudent[]|false
+     */
+    public function getPrepareStudentListByPersonAndCertificateType(TblPerson $tblPerson, TblCertificateType $tblCertificateType)
+    {
+        $Manager = $this->getEntityManager();
+        $queryBuilder = $Manager->getQueryBuilder();
+
+        $query = $queryBuilder->select('ps')
+            ->from(TblPrepareStudent::class, 'ps')
+            ->leftJoin(TblPrepareCertificate::class, 'pc', 'WITH', 'ps.tblPrepareCertificate = pc.Id')
+            ->leftJoin(TblGenerateCertificate::class, 'gc', 'WITH', 'pc.serviceTblGenerateCertificate = gc.Id')
+            ->where(
+                $queryBuilder->expr()->andX(
+                    $queryBuilder->expr()->eq('ps.serviceTblPerson', '?1'),
+                    $queryBuilder->expr()->eq('gc.serviceTblCertificateType', '?2')
+                ),
+            )
+            ->setParameter(1, $tblPerson->getId())
+            ->setParameter(2, $tblCertificateType->getId())
+            ->orderBy('gc.Date', 'DESC')
+            ->getQuery();
+
+        $resultList = $query->getResult();
+
+        return empty($resultList) ? false : $resultList;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblCertificateType $tblCertificateType
+     * @param TblYear $tblYear
+     *
+     * @return TblPrepareStudent[]|false
+     */
+    public function getPrepareStudentListByPersonAndCertificateTypeAndYear(
+        TblPerson $tblPerson, TblCertificateType $tblCertificateType, TblYear $tblYear, $sort
+    ) {
+        $Manager = $this->getEntityManager();
+        $queryBuilder = $Manager->getQueryBuilder();
+
+        $query = $queryBuilder->select('ps')
+            ->from(TblPrepareStudent::class, 'ps')
+            ->leftJoin(TblPrepareCertificate::class, 'pc', 'WITH', 'ps.tblPrepareCertificate = pc.Id')
+            ->leftJoin(TblGenerateCertificate::class, 'gc', 'WITH', 'pc.serviceTblGenerateCertificate = gc.Id')
+            ->where(
+                $queryBuilder->expr()->andX(
+                    $queryBuilder->expr()->eq('ps.serviceTblPerson', '?1'),
+                    $queryBuilder->expr()->eq('gc.serviceTblCertificateType', '?2'),
+                    $queryBuilder->expr()->eq('gc.serviceTblYear', '?3')
+                ),
+            )
+            ->setParameter(1, $tblPerson->getId())
+            ->setParameter(2, $tblCertificateType->getId())
+            ->setParameter(3, $tblYear->getId())
+            ->orderBy('gc.Date', $sort)
+            ->getQuery();
+
+        $resultList = $query->getResult();
+
+        return empty($resultList) ? false : $resultList;
+    }
+
+    /**
+     * @param array $tblEntityList
+     *
+     * @return bool
+     */
+    public function createEntityListBulk(array $tblEntityList): bool
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+
+        foreach ($tblEntityList as $tblEntity) {
+            $Manager->bulkSaveEntity($tblEntity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $tblEntity, true);
+        }
+
+        $Manager->flushCache();
+        Protocol::useService()->flushBulkEntries();
+
+        return true;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblTask $tblTask
+     *
+     * @return bool
+     */
+    public function getIsAppointedDateTaskGradeApproved(TblPerson $tblPerson, TblTask $tblTask): bool
+    {
+        $Manager = $this->getEntityManager();
+        $queryBuilder = $Manager->getQueryBuilder();
+
+        $query = $queryBuilder->select('ps')
+            ->from(TblPrepareStudent::class, 'ps')
+            ->leftJoin(TblPrepareCertificate::class, 'pc', 'WITH', 'ps.tblPrepareCertificate = pc.Id')
+            ->leftJoin(TblGenerateCertificate::class, 'gc', 'WITH', 'pc.serviceTblGenerateCertificate = gc.Id')
+            ->where(
+                $queryBuilder->expr()->andX(
+                    $queryBuilder->expr()->eq('ps.serviceTblPerson', '?1'),
+                    $queryBuilder->expr()->eq('ps.IsApproved', 1),
+                    $queryBuilder->expr()->eq('gc.serviceTblAppointedDateTask', '?2'),
+                    // gelöschter Zeugnisauftrag
+                    $queryBuilder->expr()->isNull('gc.EntityRemove')
+                ),
+            )
+            ->setParameter(1, $tblPerson->getId())
+            ->setParameter(2, $tblTask->getId())
+            ->orderBy('gc.Date', 'DESC')
+            ->getQuery();
+
+        $resultList = $query->getResult();
+
+        return !empty($resultList);
     }
 }

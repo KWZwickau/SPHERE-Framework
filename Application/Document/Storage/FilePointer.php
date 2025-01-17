@@ -46,7 +46,7 @@ class FilePointer extends DummyFile
                 $this->FileName = $Prefix . '-' . md5(uniqid($Prefix, true)) . '.' . $Extension;
                 break;
             case FilePointer::TYPE_DATE:
-                $this->FileName = $Prefix . '-' . date('dmy') . '.' . $Extension;
+                $this->FileName = $Prefix . '-' . date('ymd') . '.' . $Extension;
                 break;
             default:
                 $this->FileName = $Prefix . '-' . md5(uniqid($Prefix, true)) . '.' . $Extension;
@@ -124,7 +124,7 @@ class FilePointer extends DummyFile
     public function saveFile()
     {
 
-        if (!$this->getRealPath()) {
+        if (empty($this->getRealPath())) {
             touch($this->getFileLocation());
         }
         file_put_contents($this->getRealPath(), $this->getFileContent(), LOCK_EX);
@@ -145,6 +145,21 @@ class FilePointer extends DummyFile
     public function setFileContent($FileContent)
     {
 
+        $this->FileContent = (string)$FileContent;
+    }
+
+    /**
+     * @param string $FileContent
+     * @param string $From
+     * @param string $To
+     *
+     * @return void
+     */
+    public function setFileContentWithEncoding(string $FileContent, string $From = 'CP1252', string $To = 'UTF-8'): void
+    {
+
+        // Zeichenkodierung umwandeln
+        $FileContent = mb_convert_encoding($FileContent, $To, $From);
         $this->FileContent = (string)$FileContent;
     }
 

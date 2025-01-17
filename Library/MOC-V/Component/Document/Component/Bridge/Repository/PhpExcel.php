@@ -4,6 +4,11 @@ namespace MOC\V\Component\Document\Component\Bridge\Repository;
 use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel\Cell;
 use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel\Style;
 use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel\Worksheet;
+use PhpOffice\PhpSpreadsheet\Cell\CellAddress;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet as WorksheetPhpOffice;
 
 /**
  * Class PhpExcel
@@ -13,13 +18,18 @@ use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel\Worksheet;
 class PhpExcel extends Worksheet
 {
 
+    protected $SpreadSheet = null;
+
     /**
      * PhpExcel constructor.
      */
     public function __construct()
     {
 
-        require_once( __DIR__.'/../../../Vendor/PhpExcel/1.8.0/Classes/PHPExcel.php' );
+//        require_once(__DIR__.'/../../../Vendor/PhpExcel/1.8.0/Classes/PHPExcel.php');
+//        require_once(__DIR__.DIRECTORY_SEPARATOR.'../../../../../Php8Combined/vendor/autoload.php');
+        require_once(__DIR__.DIRECTORY_SEPARATOR.'../../../Vendor/PhpSpreadSheet/1.29.0/vendor/autoload.php');
+        $this->SpreadSheet = new Spreadsheet();
     }
 
     /**
@@ -32,11 +42,12 @@ class PhpExcel extends Worksheet
     {
 
         if (preg_match('![a-z]!is', $Column)) {
-            $Coordinate = \PHPExcel_Cell::coordinateFromString($Column);
-            $Column = \PHPExcel_Cell::columnIndexFromString($Coordinate[0]) - 1;
+            $Coordinate = Coordinate::coordinateFromString($Column);
+            $Column = Coordinate::columnIndexFromString($Coordinate[0]);
             $Row = $Coordinate[1];
         } else {
-            $Row += 1;
+            $Column++;
+            $Row++;
         }
         return new Cell($Column, $Row);
     }
@@ -46,9 +57,9 @@ class PhpExcel extends Worksheet
      * @param mixed  $Value
      * @param string $TypeString
      *
-     * @return $this
+     * @return PhpExcel
      */
-    public function setValue(Cell $Cell, $Value, $TypeString = \PHPExcel_Cell_DataType::TYPE_STRING)
+    public function setValue(Cell $Cell, mixed $Value, string $TypeString = DataType::TYPE_STRING):PhpExcel
     {
 
         $this->Source->getActiveSheet()->setCellValueExplicitByColumnAndRow($Cell->getColumn(), $Cell->getRow(),
@@ -59,22 +70,23 @@ class PhpExcel extends Worksheet
     /**
      * @param Cell $Cell
      *
-     * @return mixed
+     * @return string
      */
     public function getValue(Cell $Cell)
     {
 
-        return $this->Source->getActiveSheet()->getCellByColumnAndRow($Cell->getColumn(),
-            $Cell->getRow())->getValue();
+        $Value = $this->Source->getActiveSheet()->getCell(new CellAddress($Cell->getCellName()))->getValue();
+        // NULL durch leeren string ersetzen, da es ein unerwarteter Typ ist
+        return $Value ?? '';
     }
 
     /**
      * @param Cell      $Cell  Single Cell or Top-Left
      * @param Cell|null $Range Bottom-Right
      *
-     * @return Style
+     * @return PhpExcel\Style
      */
-    public function setStyle(Cell $Cell, Cell $Range = null)
+    public function setStyle(Cell $Cell, Cell $Range = null): PhpExcel\Style
     {
 
         return new Style($this->Source->getActiveSheet(), $Cell, $Range);
@@ -86,9 +98,7 @@ class PhpExcel extends Worksheet
     public function getSheetColumnCount()
     {
 
-        return \PHPExcel_Cell::columnIndexFromString(
-            $this->Source->getActiveSheet()->getHighestColumn()
-        );
+        return Coordinate::columnIndexFromString($this->Source->getActiveSheet()->getHighestColumn()) + 1;
     }
 
     /**
@@ -98,5 +108,14 @@ class PhpExcel extends Worksheet
     {
 
         return $this->Source->getActiveSheet()->getHighestRow();
+    }
+
+    /**
+     * @return WorksheetPhpOffice
+     */
+    public function getActiveSheet():WorksheetPhpOffice
+    {
+
+        return $this->SpreadSheet->getActiveSheet();
     }
 }

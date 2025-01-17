@@ -2,6 +2,7 @@
 namespace SPHERE\Application\Transfer;
 
 use SPHERE\Application\IClusterInterface;
+use SPHERE\Application\Transfer\Education\Education;
 use SPHERE\Application\Transfer\Export\Export;
 use SPHERE\Application\Transfer\Import\Import;
 use SPHERE\Application\Transfer\Indiware\Indiware;
@@ -25,6 +26,7 @@ class Transfer implements IClusterInterface
         Export::registerApplication();
         Untis::registerApplication();
         Indiware::registerApplication();
+        Education::registerApplication();
 
         Main::getDisplay()->addClusterNavigation(
             new Link(new Link\Route(__NAMESPACE__), new Link\Name('Datentransfer'))

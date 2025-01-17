@@ -67,12 +67,16 @@ class Service extends AbstractService
     public function updateMetaService(TblPerson $tblPerson, $Meta)
     {
         $tblCommon = $this->getCommonByPerson($tblPerson, true);
+        // bei deativiertem Feld erforderlich, vorerst anders umgesetzt
+//        if(!isset($Meta['Information']['AuthorizedToCollect'])){
+//            $Meta['Information']['AuthorizedToCollect'] = '';
+//        }
         if ($tblCommon) {
             (new Data($this->getBinding()))->updateCommonBirthDates(
                 $tblCommon->getTblCommonBirthDates(),
                 $Meta['BirthDates']['Birthday'],
                 $Meta['BirthDates']['Birthplace'],
-                $Meta['BirthDates']['Gender']
+                ($tblCommonGender = $this->getCommonGenderById($Meta['BirthDates']['Gender'])) ? $tblCommonGender : null
             );
             (new Data($this->getBinding()))->updateCommonInformation(
                 $tblCommon->getTblCommonInformation(),
@@ -90,7 +94,7 @@ class Service extends AbstractService
             $tblCommonBirthDates = (new Data($this->getBinding()))->createCommonBirthDates(
                 $Meta['BirthDates']['Birthday'],
                 $Meta['BirthDates']['Birthplace'],
-                $Meta['BirthDates']['Gender']
+                ($tblCommonGender = $this->getCommonGenderById($Meta['BirthDates']['Gender'])) ? $tblCommonGender : null
             );
             $tblCommonInformation = (new Data($this->getBinding()))->createCommonInformation(
                 $Meta['Information']['Nationality'],
@@ -121,39 +125,41 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblPerson $tblPerson
-     * @param           $Birthday
-     * @param           $Birthplace
-     * @param           $Gender
-     * @param           $Nationality
-     * @param           $Denomination
-     * @param           $IsAssistance
-     * @param           $AssistanceActivity
-     *
-     * @param           $Remark
+     * @param TblPerson            $tblPerson
+     * @param string               $Birthday
+     * @param string               $Birthplace
+     * @param TblCommonGender|null $tblCommonGender
+     * @param string               $Nationality
+     * @param string               $Denomination
+     * @param int                  $IsAssistance
+     * @param string               $AssistanceActivity
+     * @param string               $Remark
+     * @param string               $ContactNumber
      */
     public function insertMeta(
         TblPerson $tblPerson,
         $Birthday,
         $Birthplace,
-        $Gender,
+        TblCommonGender $tblCommonGender = null,
         $Nationality,
         $Denomination,
         $IsAssistance,
         $AssistanceActivity,
-        $Remark
+        $Remark,
+        $ContactNumber = ''
     ) {
 
         $tblCommonBirthDates = (new Data($this->getBinding()))->createCommonBirthDates(
             $Birthday,
             $Birthplace,
-            $Gender
+            $tblCommonGender
         );
         $tblCommonInformation = (new Data($this->getBinding()))->createCommonInformation(
             $Nationality,
             $Denomination,
             $IsAssistance,
-            $AssistanceActivity
+            $AssistanceActivity,
+            $ContactNumber
         );
         (new Data($this->getBinding()))->createCommon(
             $tblPerson,
@@ -161,6 +167,16 @@ class Service extends AbstractService
             $tblCommonInformation,
             $Remark
         );
+    }
+
+    /**
+     * @param TblCommon $tblCommon
+     * @param string $Remark
+     */
+    public function insertUpdateCommon($tblCommon, $Remark)
+    {
+
+        (new Data($this->getBinding()))->updateCommon($tblCommon, $Remark);
     }
 
     /**
@@ -188,8 +204,28 @@ class Service extends AbstractService
     /**
      * @return bool|TblCommonGender[]
      */
-    public function getCommonGenderAll()
+    public function getCommonGenderAll(bool $isPreSort = false)
     {
+
+        if($isPreSort){
+            $tblCommonGenderAll = (new Data($this->getBinding()))->getCommonGenderAll();
+            $returnList = array();
+            foreach($tblCommonGenderAll as $tblCommonGender){
+                if($tblCommonGender->getName() == 'Weiblich'){
+                    $returnList[0] = $tblCommonGender;
+                } elseif($tblCommonGender->getName() == 'Männlich'){
+                    $returnList[1] = $tblCommonGender;
+                } elseif($tblCommonGender->getName() == 'Divers'){
+                    $returnList[2] = $tblCommonGender;
+                } elseif($tblCommonGender->getName() == 'Ohne Angabe'){
+                    $returnList[3] = $tblCommonGender;
+                } else {
+                    $returnList[$tblCommonGender->getId()] = $tblCommonGender;
+                }
+            }
+            ksort($returnList);
+            return $returnList;
+        }
 
         return (new Data($this->getBinding()))->getCommonGenderAll();
     }
@@ -235,6 +271,15 @@ class Service extends AbstractService
     }
 
     /**
+     * @return bool|ViewPeopleMetaCommon[]
+     */
+    public function getViewPeopleMetaCommonAll()
+    {
+
+        return (new Data($this->getBinding()))->getViewPeopleMetaCommonAll();
+    }
+
+    /**
      * @param TblCommon $tblCommon
      * @param string $Remark
      *
@@ -246,10 +291,10 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblCommonBirthDates $tblCommonBirthDates
-     * @param string              $Birthday
-     * @param string              $Birthplace
-     * @param int                 $Gender
+     * @param TblCommonBirthDates  $tblCommonBirthDates
+     * @param string               $Birthday
+     * @param string               $Birthplace
+     * @param TblCommonGender|null $tblCommonGender
      *
      * @return bool
      */
@@ -257,9 +302,28 @@ class Service extends AbstractService
         TblCommonBirthDates $tblCommonBirthDates,
         $Birthday,
         $Birthplace,
-        $Gender
+        TblCommonGender $tblCommonGender = null
     ) {
-        return (new Data($this->getBinding()))->updateCommonBirthDates( $tblCommonBirthDates, $Birthday, $Birthplace, $Gender );
+        return (new Data($this->getBinding()))->updateCommonBirthDates( $tblCommonBirthDates, $Birthday, $Birthplace, $tblCommonGender );
+    }
+
+    /**
+     * @param TblCommonInformation $tblCommonInformation
+     * @param string               $Nationality
+     * @param string               $Denomination
+     * @param int                  $IsAssistance
+     * @param string               $AssistanceActivity
+     *
+     * @return bool
+     */
+    public function updateCommonInformation(
+        TblCommonInformation $tblCommonInformation,
+        $Nationality,
+        $Denomination,
+        $IsAssistance,
+        $AssistanceActivity
+    ) {
+        return (new Data($this->getBinding()))->updateCommonInformation($tblCommonInformation, $Nationality, $Denomination, $IsAssistance, $AssistanceActivity);
     }
 
     /**

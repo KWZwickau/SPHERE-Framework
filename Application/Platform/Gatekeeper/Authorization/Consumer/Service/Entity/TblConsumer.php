@@ -14,29 +14,37 @@ use SPHERE\System\Database\Fitting\Element;
  */
 class TblConsumer extends Element
 {
-
     const ATTR_ACRONYM = 'Acronym';
     const ATTR_NAME = 'Name';
 
-    /**
-     * @Column(type="string")
-     */
-    protected $Acronym;
+    const TYPE_SACHSEN = 'Sachsen';
+    const TYPE_THUERINGEN = 'Thüringen';
+    const TYPE_BERLIN = 'Berlin';
 
     /**
      * @Column(type="string")
      */
-    protected $Name;
+    protected string $Acronym;
 
     /**
      * @Column(type="string")
      */
-    protected $Alias;
+    protected string $Name;
+
+    /**
+     * @Column(type="string")
+     */
+    protected string $Alias;
+
+    /**
+     * @Column(type="string")
+     */
+    protected string $Type;
 
     /**
      * @param string $Acronym
      */
-    public function __construct($Acronym)
+    public function __construct(string $Acronym)
     {
 
         $this->Acronym = $Acronym;
@@ -45,7 +53,7 @@ class TblConsumer extends Element
     /**
      * @return string
      */
-    public function getAcronym()
+    public function getAcronym(): string
     {
 
         return $this->Acronym;
@@ -54,7 +62,7 @@ class TblConsumer extends Element
     /**
      * @param string $Acronym
      */
-    public function setAcronym($Acronym)
+    public function setAcronym(string $Acronym)
     {
 
         $this->Acronym = $Acronym;
@@ -63,7 +71,7 @@ class TblConsumer extends Element
     /**
      * @return string
      */
-    public function getName()
+    public function getName(): string
     {
 
         return $this->Name;
@@ -72,7 +80,7 @@ class TblConsumer extends Element
     /**
      * @param string $Name
      */
-    public function setName($Name)
+    public function setName(string $Name)
     {
 
         $this->Name = $Name;
@@ -81,7 +89,7 @@ class TblConsumer extends Element
     /**
      * @return string
      */
-    public function getAlias()
+    public function getAlias(): string
     {
         return $this->Alias;
     }
@@ -89,8 +97,35 @@ class TblConsumer extends Element
     /**
      * @param string $Alias
      */
-    public function setAlias($Alias)
+    public function setAlias(string $Alias)
     {
         $this->Alias = $Alias;
+    }
+
+    /**
+     * @return string
+     */
+    public function getType(): string
+    {
+        return $this->Type;
+    }
+
+    /**
+     * @param string $Type
+     */
+    public function setType($Type): void
+    {
+        $this->Type = $Type;
+    }
+
+    /**
+     * @param string $Type
+     * @param string $Acronym
+     *
+     * @return bool
+     */
+    public function isConsumer(string $Type, string $Acronym): bool
+    {
+        return $this->getType() == $Type && strtoupper($this->getAcronym()) == strtoupper($Acronym);
     }
 }

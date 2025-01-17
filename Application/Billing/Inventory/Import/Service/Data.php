@@ -51,7 +51,7 @@ class Data extends AbstractData
             foreach ($ImportList as $Result) {
 
                 $Entity = new TblImport();
-                $Entity->setRow($Result['Row']);
+                $Entity->setNumber($Result['Number']);
                 $Entity->setFirstName($Result['FirstName']);
                 $Entity->setLastName($Result['LastName']);
                 $Entity->setBirthday($Result['Birthday']);
@@ -71,10 +71,12 @@ class Data extends AbstractData
                 if(isset($Result['serviceTblPersonDebtor'])){
                     $Entity->setServiceTblPersonDebtor($Result['serviceTblPersonDebtor']);
                 }
+                $Entity->setOwner($Result['Owner']);
                 $Entity->setDebtorNumber($Result['DebtorNumber']);
                 $Entity->setIBAN($Result['IBAN']);
                 $Entity->setBIC($Result['BIC']);
                 $Entity->setBank($Result['Bank']);
+                $Entity->setIsYear($Result['IsYear']);
                 $Manager->bulkSaveEntity($Entity);
                 Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity, true);
             }

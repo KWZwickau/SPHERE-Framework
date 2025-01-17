@@ -1,114 +1,181 @@
 SELECT
-    vP.TblPerson_Id AS TblPerson_Id,
+    tP.Id AS TblPerson_Id,
 
     (select vCA.TblAddress_StreetName
-        from SettingConsumer_{{ ConsumerAcronym }}.viewContactAddress vCA
-        where vP.TblPerson_Id = vCA.TblPerson_Id
+        from {{ ConsumerAcronym }}_SettingConsumer.viewContactAddress vCA
+        where tP.Id = vCA.TblPerson_Id
         and vCA.TblType_Name = 'Hauptadresse'
     ) TblAddress_StreetName,
 
     (select vCA.TblAddress_StreetNumber
-        from SettingConsumer_{{ ConsumerAcronym }}.viewContactAddress vCA
-        where vP.TblPerson_Id = vCA.TblPerson_Id
+        from {{ ConsumerAcronym }}_SettingConsumer.viewContactAddress vCA
+        where tP.Id = vCA.TblPerson_Id
         and vCA.TblType_Name = 'Hauptadresse'
     ) TblAddress_StreetNumber,
 
     (select vCA.TblCity_Name
-        from SettingConsumer_{{ ConsumerAcronym }}.viewContactAddress vCA
-        where vP.TblPerson_Id = vCA.TblPerson_Id
+        from {{ ConsumerAcronym }}_SettingConsumer.viewContactAddress vCA
+        where tP.Id = vCA.TblPerson_Id
         and vCA.TblType_Name = 'Hauptadresse'
-    ) TblCity_City,
+    ) TblCity_Name,
 
-    (select vCA.TblCity_District from SettingConsumer_{{ ConsumerAcronym }}.viewContactAddress vCA
-        where vP.TblPerson_Id = vCA.TblPerson_Id
+    (select vCA.TblCity_District from {{ ConsumerAcronym }}_SettingConsumer.viewContactAddress vCA
+        where tP.Id = vCA.TblPerson_Id
         and vCA.TblType_Name = 'Hauptadresse'
     ) TblCity_District,
 
-    (select vCA.TblCity_Code from SettingConsumer_{{ ConsumerAcronym }}.viewContactAddress vCA
-        where vP.TblPerson_Id = vCA.TblPerson_Id
+    (select vCA.TblCity_Code from {{ ConsumerAcronym }}_SettingConsumer.viewContactAddress vCA
+        where tP.Id = vCA.TblPerson_Id
         and vCA.TblType_Name = 'Hauptadresse'
     ) TblCity_Code,
 
-    (select vCA.TblAddress_County from SettingConsumer_{{ ConsumerAcronym }}.viewContactAddress vCA
-        where vP.TblPerson_Id = vCA.TblPerson_Id
+    (select vCA.TblAddress_County from {{ ConsumerAcronym }}_SettingConsumer.viewContactAddress vCA
+        where tP.Id = vCA.TblPerson_Id
         and vCA.TblType_Name = 'Hauptadresse'
     ) TblAddress_County,
 
-    (select vCA.TblState_Name from SettingConsumer_{{ ConsumerAcronym }}.viewContactAddress vCA
-        where vP.TblPerson_Id = vCA.TblPerson_Id
+    (select vCA.TblState_Name from {{ ConsumerAcronym }}_SettingConsumer.viewContactAddress vCA
+        where tP.Id = vCA.TblPerson_Id
         and vCA.TblType_Name = 'Hauptadresse'
     ) TblState_Name,
+    (select vCA.TblAddress_Region from {{ ConsumerAcronym }}_SettingConsumer.viewContactAddress vCA
+        where tP.Id = vCA.TblPerson_Id
+        and vCA.TblType_Name = 'Hauptadresse'
+    ) TblAddress_Region,
 
-    (select vCA.TblAddress_Nation from SettingConsumer_{{ ConsumerAcronym }}.viewContactAddress vCA
-        where vP.TblPerson_Id = vCA.TblPerson_Id
+    (select vCA.TblAddress_Nation from {{ ConsumerAcronym }}_SettingConsumer.viewContactAddress vCA
+        where tP.Id = vCA.TblPerson_Id
         and vCA.TblType_Name = 'Hauptadresse'
     ) TblAddress_Nation,
     -- ----------------------------------------
     (select vCA.TblAddress_StreetName
-        from SettingConsumer_{{ ConsumerAcronym }}.viewContactAddress vCA
-        where vP.TblPerson_Id = vCA.TblPerson_Id
+        from {{ ConsumerAcronym }}_SettingConsumer.viewContactAddress vCA
+        where tP.Id = vCA.TblPerson_Id
         and vCA.TblType_Name = 'Zweit-/Nebenadresse'
         LIMIT 0, 1
     ) TblAddress_StreetName2,
 
     (select vCA.TblAddress_StreetNumber
-        from SettingConsumer_{{ ConsumerAcronym }}.viewContactAddress vCA
-        where vP.TblPerson_Id = vCA.TblPerson_Id
+        from {{ ConsumerAcronym }}_SettingConsumer.viewContactAddress vCA
+        where tP.Id = vCA.TblPerson_Id
         and vCA.TblType_Name = 'Zweit-/Nebenadresse'
         LIMIT 0, 1
     ) TblAddress_StreetNumber2,
 
     (select vCA.TblCity_Name
-        from SettingConsumer_{{ ConsumerAcronym }}.viewContactAddress vCA
-        where vP.TblPerson_Id = vCA.TblPerson_Id
+        from {{ ConsumerAcronym }}_SettingConsumer.viewContactAddress vCA
+        where tP.Id = vCA.TblPerson_Id
         and vCA.TblType_Name = 'Zweit-/Nebenadresse'
         LIMIT 0, 1
-    ) TblCity_City2,
+    ) TblCity_Name2,
 
-    (select vCA.TblCity_District from SettingConsumer_{{ ConsumerAcronym }}.viewContactAddress vCA
-        where vP.TblPerson_Id = vCA.TblPerson_Id
+    (select vCA.TblCity_District from {{ ConsumerAcronym }}_SettingConsumer.viewContactAddress vCA
+        where tP.Id = vCA.TblPerson_Id
         and vCA.TblType_Name = 'Zweit-/Nebenadresse'
         LIMIT 0, 1
     ) TblCity_District2,
 
-    (select vCA.TblCity_Code from SettingConsumer_{{ ConsumerAcronym }}.viewContactAddress vCA
-        where vP.TblPerson_Id = vCA.TblPerson_Id
+    (select vCA.TblCity_Code from {{ ConsumerAcronym }}_SettingConsumer.viewContactAddress vCA
+        where tP.Id = vCA.TblPerson_Id
         and vCA.TblType_Name = 'Zweit-/Nebenadresse'
         LIMIT 0, 1
     ) TblCity_Code2,
 
-    (select vCA.TblAddress_County from SettingConsumer_{{ ConsumerAcronym }}.viewContactAddress vCA
-        where vP.TblPerson_Id = vCA.TblPerson_Id
+    (select vCA.TblAddress_County from {{ ConsumerAcronym }}_SettingConsumer.viewContactAddress vCA
+        where tP.Id = vCA.TblPerson_Id
         and vCA.TblType_Name = 'Zweit-/Nebenadresse'
         LIMIT 0, 1
     ) TblAddress_County2,
 
-    (select vCA.TblState_Name from SettingConsumer_{{ ConsumerAcronym }}.viewContactAddress vCA
-        where vP.TblPerson_Id = vCA.TblPerson_Id
+    (select vCA.TblState_Name from {{ ConsumerAcronym }}_SettingConsumer.viewContactAddress vCA
+        where tP.Id = vCA.TblPerson_Id
         and vCA.TblType_Name = 'Zweit-/Nebenadresse'
         LIMIT 0, 1
     ) TblState_Name2,
 
-    (select vCA.TblAddress_Nation from SettingConsumer_{{ ConsumerAcronym }}.viewContactAddress vCA
-        where vP.TblPerson_Id = vCA.TblPerson_Id
+
+    (select vCA.TblAddress_Region from {{ ConsumerAcronym }}_SettingConsumer.viewContactAddress vCA
+        where tP.Id = vCA.TblPerson_Id
+        and vCA.TblType_Name = 'Zweit-/Nebenadresse'
+        LIMIT 0, 1
+    ) TblAddress_Region2,
+
+    (select vCA.TblAddress_Nation from {{ ConsumerAcronym }}_SettingConsumer.viewContactAddress vCA
+        where tP.Id = vCA.TblPerson_Id
         and vCA.TblType_Name = 'Zweit-/Nebenadresse'
         LIMIT 0, 1
     ) TblAddress_Nation2,
     -- ----------------------------------------
-    (select
-        group_concat(
-            concat(
+    -- Phone
+    (select group_concat(concat(
             vCP.TblType_Name,
             ': ',
             vCP.TblPhone_Number,
             -- case when vCP.TblToPerson_Remark then ' - ' else '' end, doesn't work if searched
             ' ',
             vCP.TblToPerson_Remark
-            ) separator '<br/>'
-        ) from SettingConsumer_{{ ConsumerAcronym }}.viewContactPhone vCP
-        where vP.TblPerson_Id = vCP.TblPerson_Id
+            ) separator ' - \n')
+        from {{ ConsumerAcronym }}_SettingConsumer.viewContactPhone vCP
+        where tP.Id = vCP.TblPerson_Id
     ) TblPhone_Number,
 
+    (select group_concat(concat(vCP.TblPhone_Number) separator ';\n')
+        from {{ ConsumerAcronym }}_SettingConsumer.viewContactPhone vCP
+        where tP.Id = vCP.TblPerson_Id
+        and vCP.TblType_Name = 'Privat'
+        and vCP.TblType_Description = 'Festnetz'
+    ) TblPhone_Number_PF,
+
+    (select group_concat(concat(vCP.TblPhone_Number) separator ';\n')
+        from {{ ConsumerAcronym }}_SettingConsumer.viewContactPhone vCP
+        where tP.Id = vCP.TblPerson_Id
+        and vCP.TblType_Name = 'Privat'
+        and vCP.TblType_Description = 'Mobil'
+    ) TblPhone_Number_PM,
+
+    (select group_concat(concat(vCP.TblPhone_Number) separator ';\n')
+        from {{ ConsumerAcronym }}_SettingConsumer.viewContactPhone vCP
+        where tP.Id = vCP.TblPerson_Id
+        and vCP.TblType_Name = 'Geschäftlich'
+        and vCP.TblType_Description = 'Festnetz'
+    ) TblPhone_Number_GF,
+
+    (select group_concat(concat(vCP.TblPhone_Number) separator ';\n')
+        from {{ ConsumerAcronym }}_SettingConsumer.viewContactPhone vCP
+        where tP.Id = vCP.TblPerson_Id
+        and vCP.TblType_Name = 'Geschäftlich'
+        and vCP.TblType_Description = 'Mobil'
+    ) TblPhone_Number_GM,
+
+    (select group_concat(concat(vCP.TblPhone_Number) separator ';\n')
+        from {{ ConsumerAcronym }}_SettingConsumer.viewContactPhone vCP
+        where tP.Id = vCP.TblPerson_Id
+        and vCP.TblType_Is_Emergency_Contact = 1
+        and vCP.TblType_Description = 'Festnetz'
+    ) TblPhone_Number_NF,
+
+    (select group_concat(concat(vCP.TblPhone_Number) separator ';\n')
+        from {{ ConsumerAcronym }}_SettingConsumer.viewContactPhone vCP
+        where tP.Id = vCP.TblPerson_Id
+        and vCP.TblType_Is_Emergency_Contact = 1
+        and vCP.TblType_Description = 'Mobil'
+    ) TblPhone_Number_NM,
+
+    (select group_concat(concat(vCP.TblPhone_Number) separator ';\n')
+        from {{ ConsumerAcronym }}_SettingConsumer.viewContactPhone vCP
+        where tP.Id = vCP.TblPerson_Id
+        and vCP.TblType_Name = 'Fax'
+        and vCP.TblType_Description = 'Privat'
+    ) TblPhone_Number_FP,
+
+    (select group_concat(concat(vCP.TblPhone_Number) separator ';\n')
+        from {{ ConsumerAcronym }}_SettingConsumer.viewContactPhone vCP
+        where tP.Id = vCP.TblPerson_Id
+        and vCP.TblType_Name = 'Fax'
+        and vCP.TblType_Description = 'Geschäftlich'
+    ) TblPhone_Number_FG,
+
+    -- Mail
     (select
         group_concat(
             concat(
@@ -118,9 +185,9 @@ SELECT
             -- case when vCM.TblToPerson_Remark <> '' then ' - ' else '' end, doesn't work if searched
             ' ',
             vCM.TblToPerson_Remark
-            ) separator '<br/>'
-        ) from SettingConsumer_{{ ConsumerAcronym }}.viewContactMail vCM
-        where vP.TblPerson_Id = vCM.TblPerson_Id
+            ) separator ';\n'
+        ) from {{ ConsumerAcronym }}_SettingConsumer.viewContactMail vCM
+        where tP.Id = vCM.TblPerson_Id
     ) TblMail_Address,
 
     (select
@@ -128,8 +195,8 @@ SELECT
             concat(
             vCM.TblMail_Address
             ) separator '; '
-        ) from SettingConsumer_{{ ConsumerAcronym }}.viewContactMail vCM
-        where vP.TblPerson_Id = vCM.TblPerson_Id
+        ) from {{ ConsumerAcronym }}_SettingConsumer.viewContactMail vCM
+        where tP.Id = vCM.TblPerson_Id
         and vCM.TblType_Name = 'Privat'
     ) TblMail_AddressPrivate,
 
@@ -138,12 +205,15 @@ SELECT
             concat(
             vCM.TblMail_Address
             ) separator '; '
-        ) from SettingConsumer_{{ ConsumerAcronym }}.viewContactMail vCM
-        where vP.TblPerson_Id = vCM.TblPerson_Id
+        ) from {{ ConsumerAcronym }}_SettingConsumer.viewContactMail vCM
+        where tP.Id = vCM.TblPerson_Id
         and vCM.TblType_Name like 'Gesch%ftlich'
     ) TblMail_AddressCompany
 
-    FROM PeoplePerson_{{ ConsumerAcronym }}.viewPerson vP
-        LEFT JOIN SettingConsumer_{{ ConsumerAcronym }}.viewContactAddress vCA ON vP.TblPerson_Id = vCA.TblPerson_Id
+    FROM {{ ConsumerAcronym }}_PeoplePerson.tblPerson tP
 
-    group by vP.TblPerson_Id
+	WHERE tP.EntityRemove IS NULL
+
+--     group by TblPerson_Id, TblAddress_StreetName, TblAddress_StreetNumber, TblCity_Name, TblCity_District, TblCity_Code, TblAddress_County, TblState_Name, TblAddress_Nation,
+--     TblAddress_StreetName2, TblAddress_StreetNumber2, TblCity_Name2, TblCity_District2, TblCity_Code2, TblAddress_County2, TblState_Name2, TblAddress_Nation2,
+--     TblPhone_Number, TblMail_Address, TblMail_AddressPrivate, TblMail_AddressCompany

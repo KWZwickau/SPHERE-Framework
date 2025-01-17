@@ -46,7 +46,7 @@ use SPHERE\Common\Frontend\Link\Repository\Link;
  */
 class FrontendCustody  extends FrontendReadOnly
 {
-    const TITLE = 'Sorgerecht-Daten';
+    const TITLE = 'Sorgerecht - Daten';
 
     /**
      * @param null $PersonId
@@ -85,12 +85,13 @@ class FrontendCustody  extends FrontendReadOnly
 
             $editLink = (new Link(new Edit() . ' Bearbeiten', ApiPersonEdit::getEndpoint()))
                 ->ajaxPipelineOnClick(ApiPersonEdit::pipelineEditCustodyContent($PersonId));
+            $DivisionString = FrontendReadOnly::getDivisionString($tblPerson);
 
             return TemplateReadOnly::getContent(
                 self::TITLE,
                 self::getSubContent(self::TITLE, $content),
                 array($editLink),
-                'der Person ' . new Bold(new Success($tblPerson->getFullName())),
+                'der Person ' . new Bold(new Success($tblPerson->getFullName())).$DivisionString,
                 new Tag()
             );
         }

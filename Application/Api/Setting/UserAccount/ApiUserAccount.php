@@ -26,6 +26,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\TileBig;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
+use SPHERE\Common\Frontend\Layout\Repository\Listing;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\ProgressBar;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
@@ -36,7 +37,6 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger as DangerMessage;
 use SPHERE\Common\Frontend\Message\Repository\Info as InfoMessage;
-use SPHERE\Common\Frontend\Message\Repository\Success as SuccessMessage;
 use SPHERE\Common\Frontend\Message\Repository\Warning as WarningMessage;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Center;
@@ -45,7 +45,7 @@ use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\System\Extension\Extension;
 
 /**
- * Class SerialLetter
+ * Class ApiUserAccount
  * @package SPHERE\Application\Api\Setting\UserAccount
  */
 class ApiUserAccount extends Extension implements IApiInterface
@@ -351,6 +351,8 @@ class ApiUserAccount extends Extension implements IApiInterface
         if(!isset($Data)){
             $Global = $this->getGlobal();
             // HiddenField
+            // pre select first entry
+            $Global->POST['Data']['GroupByCount'] = 1;
             $Global->POST['Data']['GroupByTime'] = $GroupByTime;
             $Global->POST['Data']['IsParent'] = $IsParent;
 //            $Global->POST['Data']['PersonId'] = $tblPerson->getId();
@@ -490,13 +492,19 @@ class ApiUserAccount extends Extension implements IApiInterface
     }
 
     /**
-     * @param array $PersonIdArray
-     * @param       $Type
+     * @param array  $PersonIdArray
+     * @param string $Type (S = Student; C = Custody)
      *
      * @return Pipeline
      */
-    public function serviceAccount($PersonIdArray = array(), $Type)
+    public function serviceAccount($PersonIdArray = array(), $Type = 'S')
     {
+
+        if($Type == 'S'){
+            $PersonIdArray = Account::useService()->sortPersonIdListByDivisionAndName($PersonIdArray);
+        } else {
+            $PersonIdArray = Account::useService()->sortGuardianPersonIdListByDivisionAndName($PersonIdArray);
+        }
 
         $result = Account::useService()->createAccount($PersonIdArray, $Type);
         return self::pipelineSaveAccountResult($result, $Type);
@@ -506,7 +514,7 @@ class ApiUserAccount extends Extension implements IApiInterface
      *
      * @var array    $result
      *
-     * @param string $Type
+     * @param string $Type (S = Student; C = Custody)
      *
      * @return Pipeline
      */
@@ -528,7 +536,7 @@ class ApiUserAccount extends Extension implements IApiInterface
 
     /**
      * @param array  $result
-     * @param string $Type
+     * @param string $Type (S = Student; C = Custody)
      *
      * @return string
      */
@@ -542,13 +550,40 @@ class ApiUserAccount extends Extension implements IApiInterface
         }
 
         if (isset($result['AccountExistCount']) && $result['AccountExistCount'] > 0) {
-            $Content .= new WarningMessage($result['AccountExistCount'].' Personen haben bereits einen Account (ignoriert)');
-        }
-        if (isset($result['AddressMissCount']) && $result['AddressMissCount'] > 0) {
-            $Content .= new WarningMessage($result['AddressMissCount'].' Personen ohne Hauptadresse (ignoriert)');
+            $Content .= new WarningMessage($result['AccountExistCount'].' Personen haben bereits einen Benutzer-Account (wird ignoriert)');
         }
         if (isset($result['SuccessCount']) && $result['SuccessCount'] > 0) {
-            $Content .= new SuccessMessage($result['SuccessCount'].' Benutzer wurden erfolgreich angelegt.');
+
+            // Warnung wird im Success dargestellt, da sie nur abhängig mit erfolgreichem Anlegen erzeugt werden kann
+            $WarningPanel = '';
+            $WarningLog = array();
+            if (isset($result['AccountWarning']) && $result['AccountWarning'] > 0) {
+                $WarningPanel = new WarningMessage('Davon wurden '.$result['AccountWarning'].
+                    ' Benutzer ohne Hauptadresse angelegt!', null, false, 7,7);
+                if(isset($result['Address']) && !empty($result['Address'])){
+                    foreach($result['Address'] as $Key => $item){
+                        if(is_numeric($Key)){
+                            $WarningLog[] = $item;
+                        }
+                    }
+                }
+                $Warning = '';
+                if(!empty($WarningLog)){
+                    $Warning = new Listing($WarningLog);
+                }
+                $WarningPanel .= $Warning;
+            }
+            $Content .= new Panel($result['SuccessCount'].' Benutzer wurden erfolgreich angelegt.',$WarningPanel, Panel::PANEL_TYPE_SUCCESS);
+        }
+        if (isset($result['AccountError']) && $result['AccountError'] > 0) {
+
+            $ErrorLog = array();
+            foreach($result as $Key => $item){
+                if(is_numeric($Key)){
+                    $ErrorLog[] = $item;
+                }
+            }
+            $Content .= new Panel($result['AccountError'].' Benutzer konnten nicht angelegt werden.', $ErrorLog, Panel::PANEL_TYPE_DANGER);
         }
 
         $BackwardRoute = '/Setting/User/Account/Student/Add';

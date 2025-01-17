@@ -19,6 +19,20 @@ class TableColumn extends Extension implements ITemplateInterface
     /** @var string $Width */
     private $Width = 'auto';
 
+    /** @var string $BackgroundColor */
+    private $BackgroundColor = 'inherit'; // initial
+    /** @var string $VerticalAlign */
+    private $VerticalAlign = 'baseline';
+    /** @var string $Color */
+    private $Color = 'inherit'; // initial
+    /** @var string $Opacity */
+    private $Opacity = '1';
+    /** @var string $MinHeight */
+    private $MinHeight = '0';
+    /** @var string $Padding */
+    private $Padding = '0';
+
+
     /**
      * @param string $Content
      * @param int    $Size
@@ -35,7 +49,7 @@ class TableColumn extends Extension implements ITemplateInterface
          */
         $Content = preg_replace(
             '!<table(.*?)class="(.*?)\ssmall"(.*?)>!is',
-            '<table${1}class="${2}"${3}>', $Content);
+            '<table${1}class="${2}"${3}>', ($Content ?? ''));
         $this->Content = $Content;
         $this->Size = $Size;
         $this->Width = $Width;
@@ -75,5 +89,119 @@ class TableColumn extends Extension implements ITemplateInterface
     {
 
         return (string)$this->Content;
+    }
+
+    /**
+     * @return string
+     */
+    public function getBackgroundColor()
+    {
+        return $this->BackgroundColor;
+    }
+
+    /**
+     * @param string $BackgroundColor
+     *
+     * @return TableColumn
+     */
+    public function setBackgroundColor($BackgroundColor)
+    {
+        $this->BackgroundColor = $BackgroundColor;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getVerticalAlign()
+    {
+        return $this->VerticalAlign;
+    }
+
+    /**
+     * @param string $VerticalAlign
+     *
+     * @return TableColumn
+     */
+    public function setVerticalAlign($VerticalAlign)
+    {
+        $this->VerticalAlign = $VerticalAlign;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getColor()
+    {
+        return $this->Color;
+    }
+
+    /**
+     * @param string $Color
+     *
+     * @return TableColumn
+     */
+    public function setColor($Color)
+    {
+        $this->Color = $Color;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getOpacity()
+    {
+        return $this->Opacity;
+    }
+
+    /**
+     * @param string $Opacity
+     *
+     * @return
+     */
+    public function setOpacity($Opacity)
+    {
+        $this->Opacity = $Opacity;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getMinHeight()
+    {
+        return $this->MinHeight;
+    }
+
+    /**
+     * @param string $MinHeight
+     *
+     * @return TableColumn
+     */
+    public function setMinHeight($MinHeight)
+    {
+        $this->MinHeight = $MinHeight;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getPadding()
+    {
+        return $this->Padding;
+    }
+
+    /**
+     * @param string $Padding
+     *
+     * @return TableColumn
+     */
+    public function setPadding($Padding)
+    {
+        $this->Padding = $Padding;
+        return $this;
     }
 }

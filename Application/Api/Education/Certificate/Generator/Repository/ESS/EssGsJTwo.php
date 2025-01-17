@@ -32,7 +32,8 @@ class EssGsJTwo extends Certificate
     {
         return array(
             1 => "wird nach Klasse 3 versetzt",
-            2 => "wiederholt freiwillig die Klassenstufe 2"
+            2 => "wiederholt freiwillig die Klassenstufe 2",
+            3 => "&nbsp;"
         );
     }
 
@@ -54,6 +55,7 @@ class EssGsJTwo extends Certificate
                     ->addElementColumn((new Element\Sample())
                         ->styleTextSize('30px')
                         ->styleHeight('1px')
+                        ->styleMarginTop('-110px')
                     )
                     ->addElementColumn((new Element())
                         , '25%')
@@ -63,7 +65,6 @@ class EssGsJTwo extends Certificate
         }
 
         return (new Page())
-            ->addSlice($Header)
             ->addSlice((new Slice())
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
@@ -73,6 +74,7 @@ class EssGsJTwo extends Certificate
                     ->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/ESS_Grundschule_Head.jpg', '700px')))
                 )
             )
+            ->addSlice($Header)
             ->addSlice((new Slice())
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
@@ -81,10 +83,10 @@ class EssGsJTwo extends Certificate
                     )
                     ->addElementColumn((new Element())
                         ->setContent('JAHRESZEUGNIS')
-                        ->styleLineHeight('105%')
+                        ->styleLineHeight('90%')
                         ->styleFontFamily(self::TEXT_FAMILY)
                         ->styleTextSize(self::TEXT_SIZE_BIG)
-                        ->styleMarginTop('25px')
+                        ->styleMarginTop('10px')
                         , '75%'
                     )
                 )
@@ -92,13 +94,13 @@ class EssGsJTwo extends Certificate
             ->addSlice((new Slice())
                 ->addElement((new Element())
                     ->setContent('&nbsp;')
-                    ->stylePaddingTop('8px')
+                    ->stylePaddingTop('3px')
                 )
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
                         ->setContent('Klasse {{ Content.P' . $personId . '.Division.Data.Level.Name }}')
                         ->styleTextSize(self::TEXT_SIZE)
-                        ->styleLineHeight('105%')
+                        ->styleLineHeight('90%')
                         ->styleFontFamily(self::TEXT_FAMILY)
                         ->styleTextBold()
                         , '100%'
@@ -110,7 +112,7 @@ class EssGsJTwo extends Certificate
                     ->addElementColumn((new Element())
                         ->setContent('2. Schulhalbjahr')
                         ->styleTextSize(self::TEXT_SIZE)
-                        ->styleLineHeight('105%')
+                        ->styleLineHeight('90%')
                         ->styleFontFamily(self::TEXT_FAMILY)
                         ->styleTextBold()
                         , '25%')
@@ -118,13 +120,13 @@ class EssGsJTwo extends Certificate
                         ->setContent('{{ Content.P' . $personId . '.Person.Data.Name.First }}
                                           {{ Content.P' . $personId . '.Person.Data.Name.Last }}')
                         ->styleTextSize(self::TEXT_SIZE_BIG)
-                        ->styleLineHeight('105%')
+                        ->styleLineHeight('90%')
                         ->styleFontFamily(self::TEXT_FAMILY)
                         , '50%')
                     ->addElementColumn((new Element())
                         ->setContent('Schuljahr {{ Content.P' . $personId . '.Division.Data.Year }}')
                         ->styleTextSize(self::TEXT_SIZE)
-                        ->styleLineHeight('105%')
+                        ->styleLineHeight('90%')
                         ->styleFontFamily(self::TEXT_FAMILY)
                         ->styleTextBold()
                         ->styleAlignRight()
@@ -136,9 +138,9 @@ class EssGsJTwo extends Certificate
                     ->addElementColumn((new Element())
                         ->setContent('Allgemeine <br/> Einschätzung:')
                         ->styleTextSize(self::TEXT_SIZE)
-                        ->styleLineHeight('105%')
+                        ->styleLineHeight('90%')
                         ->styleFontFamily(self::TEXT_FAMILY)
-                        ->styleMarginTop('25px')
+                        ->styleMarginTop('20px')
                         ->styleTextBold()
                         , '25%'
                     )
@@ -152,14 +154,14 @@ class EssGsJTwo extends Certificate
                         ->styleLineHeight(self::LINE_HEIGHT_RATING)
                         ->styleFontFamily(self::TEXT_FAMILY)
                         ->styleAlignJustify()
-                        ->styleMarginTop('25px')
+                        ->styleMarginTop('20px')
                         ->styleHeight('205px')
                         , '75%'
                     )
                 )
             )
             ->addSlice((new Slice())
-                ->addElement((new Element\Image('/Common/Style/Resource/Logo/ESS_Grundschule_down.jpg', '700px'))
+                ->addElement((new Element\Image('/Common/Style/Resource/Logo/ESS_Grundschule_Down.jpg', '700px'))
                     ->styleAlignCenter()
                     ->stylePaddingTop('2px')
                     ->stylePaddingBottom('27px')
@@ -170,7 +172,7 @@ class EssGsJTwo extends Certificate
                     ->addElementColumn((new Element())
                         ->setContent('Fachliche <br/> Einschätzung:')
                         ->styleTextSize(self::TEXT_SIZE)
-                        ->styleLineHeight('105%')
+                        ->styleLineHeight('90%')
                         ->styleFontFamily(self::TEXT_FAMILY)
                         ->styleTextBold()
                         , '25%'
@@ -195,18 +197,18 @@ class EssGsJTwo extends Certificate
                     ->addElementColumn((new Element())
                         ->setContent('Versetzungsvermerk')
                         ->styleTextSize(self::TEXT_SIZE)
-                        ->styleLineHeight('105%')
+                        ->styleLineHeight('90%')
                         ->styleFontFamily(self::TEXT_FAMILY)
                         , '25%'
                     )
                     ->addElementColumn((new Element())
                         ->setContent('{% if(Content.P' . $personId . '.Input.Transfer) %}
-                            {{ Content.P' . $personId . '.Input.Transfer }}
+                            {{ Content.P' . $personId . '.Input.Transfer }}.
                         {% else %}
                               &nbsp;
                         {% endif %}')
                         ->styleTextSize(self::TEXT_SIZE_RATING)
-                        ->styleLineHeight('105%')
+                        ->styleLineHeight('90%')
                         ->styleFontFamily(self::TEXT_FAMILY)
                         , '75%'
                     )
@@ -222,7 +224,7 @@ class EssGsJTwo extends Certificate
                             &nbsp;
                         {% endif %}')
                         ->styleTextSize(self::TEXT_SIZE)
-                        ->styleLineHeight('105%')
+                        ->styleLineHeight('90%')
                         ->styleFontFamily(self::TEXT_FAMILY)
                         ->stylePaddingBottom('20px')
                         ->stylePaddingTop('20px')
@@ -243,7 +245,7 @@ class EssGsJTwo extends Certificate
                             {% endif %}
                             ')
                         ->styleTextSize(self::TEXT_SIZE_SMALL)
-                        ->styleLineHeight('105%')
+                        ->styleLineHeight('90%')
                         ->styleFontFamily(self::TEXT_FAMILY)
                         , '25%')
                     ->addElementColumn((new Element())
@@ -255,24 +257,24 @@ class EssGsJTwo extends Certificate
                             {% endif %}
                             ')
                         ->styleTextSize(self::TEXT_SIZE_SMALL)
-                        ->styleLineHeight('105%')
+                        ->styleLineHeight('90%')
                         ->styleFontFamily(self::TEXT_FAMILY)
                         , '25%')
                     ->addElementColumn((new Element())
                         ->setContent('Dienstsiegel')
                         ->styleTextSize(self::TEXT_SIZE)
-                        ->styleLineHeight('105%')
+                        ->styleLineHeight('90%')
                         ->styleFontFamily(self::TEXT_FAMILY)
                         , '25%')
                 )
-                ->stylePaddingBottom('35px')
+                ->stylePaddingBottom('30px')
             )
             ->addSlice((new Slice())
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
                         ->setContent('Zur Kenntnis genommen:')
                         ->styleTextSize(self::TEXT_SIZE)
-                        ->styleLineHeight('105%')
+                        ->styleLineHeight('90%')
                         ->styleFontFamily(self::TEXT_FAMILY)
                         , '25%')
                     ->addElementColumn((new Element())
@@ -289,7 +291,7 @@ class EssGsJTwo extends Certificate
                         ->setContent('Eltern')
                         ->styleAlignCenter()
                         ->styleTextSize(self::TEXT_SIZE_SMALL)
-                        ->styleLineHeight('105%')
+                        ->styleLineHeight('90%')
                         ->styleFontFamily(self::TEXT_FAMILY)
                         ->styleHeight('1px')
                         , '45%')

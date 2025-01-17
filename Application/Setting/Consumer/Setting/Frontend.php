@@ -3,10 +3,13 @@
 namespace SPHERE\Application\Setting\Consumer\Setting;
 
 use SPHERE\Application\Contact\Address\Service\Entity\TblAddress;
+use SPHERE\Application\Education\Absence\Service\Entity\TblAbsence;
 use SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount\SelectBoxItem;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblIdentification;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer as GatekeeperConsumer;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Application\Setting\Consumer\Service\Entity\TblSetting;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
@@ -58,16 +61,14 @@ class Frontend extends Extension implements IFrontendInterface
         $stage = new Stage('Mandant' , 'Einstellungen');
 
         if (($tblAccount = Account::useService()->getAccountBySession())
-            && ($tblIdentification = $tblAccount->getServiceTblIdentification())
-            && $tblIdentification->getName() == 'System'
+            && $tblAccount->getHasAuthentication(TblIdentification::NAME_SYSTEM)
         ) {
             $isSystem = true;
 
             $stage->setMessage(new Warning(
-                'Für die Mandanten Hormersdorf (FESH) und Radebeul (EVSR) gibt es jeweils noch eigene Einstellungen:' . '</br>'
+                'Für den Mandanten Hormersdorf (FESH) gibt es jeweils noch eigene Einstellungen:' . '<br />'
                 . '&nbsp;&nbsp;&nbsp;&nbsp; &#9679; Hormersdorf: Schriftgröße des Bemerkungsfeldes für jede einzelne Zeugnisvorlage
-                    (RemarkTextSizeHorHj, RemarkTextSizeHorHjOne, RemarkTextSizeHorJ, RemarkTextSizeHorJOne)' . '</br>'
-                . '&nbsp;&nbsp;&nbsp;&nbsp; &#9679; Radebeul: Sind die Zensuren auf Zeugnissen im Wortlaut (IsGradeVerbal).'
+                    (RemarkTextSizeHorHj, RemarkTextSizeHorHjOne, RemarkTextSizeHorJ, RemarkTextSizeHorJOne)' . '<br />'
             ));
         } else {
             $isSystem = false;
@@ -84,6 +85,9 @@ class Frontend extends Extension implements IFrontendInterface
 
             $selectBoxContent[] = new SelectBoxItem(TblAddress::VALUE_PLZ_ORT_OT_STR_NR, 'PLZ_ORT_OT_STR_NR');
             $selectBoxContent[] = new SelectBoxItem(TblAddress::VALUE_OT_STR_NR_PLZ_ORT, 'OT_STR_NR_PLZ_ORT');
+
+            $selectBoxAbsence[] = new SelectBoxItem(TblAbsence::VALUE_STATUS_EXCUSED, 'entschuldigt');
+            $selectBoxAbsence[] = new SelectBoxItem(TblAbsence::VALUE_STATUS_UNEXCUSED, 'unentschuldigt');
 
             $fields = array();
             foreach ($tblSettingList as $tblSetting) {
@@ -111,9 +115,12 @@ class Frontend extends Extension implements IFrontendInterface
                         Common::useService()->getCommonGenderAll()
                     ));
                 } elseif ($tblSetting->getIdentifier() == 'YearOfUserView') {
-                    $field = new SelectBox('Data[' . $tblSetting->getId() . ']', $description, array('{{ Year }}' =>
-                        Term::useService()->getYearAll()
+                    $field = new SelectBox('Data[' . $tblSetting->getId() . ']', $description, array(
+                        '{{ Year }}' =>
+                            Term::useService()->getYearAll()
                     ));
+                } elseif ($tblSetting->getIdentifier() == 'DefaultStatusForNewOnlineAbsence' || $tblSetting->getIdentifier() == 'DefaultStatusForNewAbsence') {
+                    $field = new SelectBox('Data[' . $tblSetting->getId() . ']', $description, array('{{ Name }}' => $selectBoxAbsence));
                 } elseif ($tblSetting->getType() == TblSetting::TYPE_BOOLEAN) {
                     $field = new CheckBox('Data[' . $tblSetting->getId() . ']', $description, 1);
                 } elseif ($tblSetting->getType() == TblSetting::TYPE_STRING) {
@@ -180,27 +187,9 @@ class Frontend extends Extension implements IFrontendInterface
         $stage->addButton(new Standard('Zurück', '/Setting/Consumer/Setting', new ChevronLeft()));
         if (($tblSetting = Consumer::useService()->getSettingById($SettingId))) {
             $content = array();
-            if (($tblConsumerAll = \SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer::useService()->getConsumerAll())) {
-                //  aktuell nicht genutzte Mandanten
-                $blackList = array();
-                $blackList['DWO'] = 1;
-                $blackList['EMSP'] = 1;
-                $blackList['ESA'] = 1;
-                $blackList['ESL'] = 1;
-                $blackList['ESVL'] = 1;
-                $blackList['EVAP'] = 1;
-                $blackList['EVMS'] = 1;
-                $blackList['EVMSH'] = 1;
-                $blackList['EVOSG'] = 1;
-                $blackList['EVSB'] = 1;
-                $blackList['EVSL'] = 1;
-                $blackList['EWM'] = 1;
-                $blackList['EWS'] = 1;
-                $blackList['FV'] = 1;
-
-                $selectBoxContent[] = new SelectBoxItem(TblAddress::VALUE_PLZ_ORT_OT_STR_NR, 'PLZ_ORT_OT_STR_NR');
-                $selectBoxContent[] = new SelectBoxItem(TblAddress::VALUE_OT_STR_NR_PLZ_ORT, 'OT_STR_NR_PLZ_ORT');
-
+            if (($tblConsumerAll = GatekeeperConsumer::useService()->getConsumerAll())) {
+                // aktuell nicht genutzte Mandanten
+                $blackList = Consumer::useService()->getConsumerBlackList();
                 foreach ($tblConsumerAll as $tblConsumer) {
                     if (!isset($blackList[$tblConsumer->getAcronym()])) {
                         $value =  Consumer::useService()->getSettingByConsumer($tblSetting, $tblConsumer);

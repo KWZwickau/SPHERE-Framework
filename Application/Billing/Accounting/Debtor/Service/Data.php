@@ -2,6 +2,7 @@
 
 namespace SPHERE\Application\Billing\Accounting\Debtor\Service;
 
+use DateTime;
 use SPHERE\Application\Billing\Accounting\Debtor\Service\Entity\TblBankAccount;
 use SPHERE\Application\Billing\Accounting\Debtor\Service\Entity\TblBankReference;
 use SPHERE\Application\Billing\Accounting\Debtor\Service\Entity\TblDebtorNumber;
@@ -60,9 +61,14 @@ class Data extends AbstractData
      *
      * @return false|TblDebtorNumber[]
      */
-    public function getDebtorNumberByPerson(TblPerson $tblPerson)
+    public function getDebtorNumberByPerson(TblPerson $tblPerson, $isForced = false)
     {
-
+        if($isForced){
+            return $this->getForceEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDebtorNumber',
+                array(
+                    TblDebtorNumber::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()
+                ));
+        }
         return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDebtorNumber',
             array(
                 TblDebtorNumber::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()
@@ -194,6 +200,21 @@ class Data extends AbstractData
             'TblDebtorSelection',
             array(
                 TblDebtorSelection::ATTR_SERVICE_TBL_PERSON_CAUSER => $tblPersonCauser->getId()
+            ));
+    }
+
+    /**
+     * @param TblPerson $tblPersonDebtor
+     *
+     * @return false|TblDebtorSelection[]
+     */
+    public function getDebtorSelectionByPersonDebtor(TblPerson $tblPersonDebtor)
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblDebtorSelection',
+            array(
+                TblDebtorSelection::ATTR_SERVICE_TBL_PERSON_DEBTOR => $tblPersonDebtor->getId()
             ));
     }
 
@@ -441,7 +462,7 @@ class Data extends AbstractData
             $Entity = new TblBankReference();
             $Entity->setReference($ReferenceNumber);
             $Entity->setDescription($Description);
-            $Entity->setReferenceDate(($ReferenceDate ? new \DateTime($ReferenceDate) : new \DateTime()));
+            $Entity->setReferenceDate(($ReferenceDate ? new DateTime($ReferenceDate) : new DateTime()));
             $Entity->setServiceTblPerson($tblPerson);
             $Manager->saveEntity($Entity);
 
@@ -481,6 +502,10 @@ class Data extends AbstractData
         TblBankReference $tblBankReference = null
     ){
 
+        if($Value == ''){
+            $Value = '0';
+        }
+
         $Manager = $this->getConnection()->getEntityManager();
         // Es dürfen meherere Zahlungszuweisungen vorhanden sein.
 //        $Entity = $Manager->getEntity('TblDebtorSelection')->findOneBy(array(
@@ -495,11 +520,12 @@ class Data extends AbstractData
         $Entity->setServiceTblPaymentType($tblPaymentType);
         $Entity->setServiceTblItem($tblItem);
         $Entity->setTblDebtorPeriodType($tblDebtorPeriodType);
-        $Entity->setFromDate(new \DateTime($FromDate));
+        $Entity->setFromDate(new DateTime($FromDate));
         if($ToDate){
-            $Entity->setToDate(new \DateTime($ToDate));
+            $Entity->setToDate(new DateTime($ToDate));
         }
         $Entity->setServiceTblItemVariant($tblItemVariant);
+
         $Entity->setValue($Value);
         $Entity->setTblBankAccount($tblBankAccount);
         $Entity->setTblBankReference($tblBankReference);
@@ -594,7 +620,7 @@ class Data extends AbstractData
         if(null !== $Entity){
             $Entity->setReference($ReferenceNumber);
             $Entity->setDescription($Description);
-            $Entity->setReferenceDate(($ReferenceDate ? new \DateTime($ReferenceDate) : new \DateTime()));
+            $Entity->setReferenceDate(($ReferenceDate ? new DateTime($ReferenceDate) : new DateTime()));
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
                 $Protocol,
@@ -610,8 +636,8 @@ class Data extends AbstractData
      * @param TblPerson             $tblPerson
      * @param TblPaymentType        $tblPaymentType
      * @param TblDebtorPeriodType   $tblDebtorPeriodType
-     * @param \DateTime             $FromDate
-     * @param \DateTime|null        $ToDate
+     * @param DateTime             $FromDate
+     * @param DateTime|null        $ToDate
      * @param TblItemVariant|null   $tblItemVariant
      * @param string                $Value
      * @param TblBankAccount|null   $tblBankAccount
@@ -624,13 +650,17 @@ class Data extends AbstractData
         TblPerson $tblPerson,
         TblPaymentType $tblPaymentType,
         TblDebtorPeriodType $tblDebtorPeriodType,
-        \DateTime $FromDate,
-        $ToDate = null,
+        DateTime $FromDate,
+        DateTime $ToDate = null,
         TblItemVariant $tblItemVariant = null,
         $Value = '0',
         TblBankAccount $tblBankAccount = null,
         TblBankReference $tblBankReference = null
     ){
+
+        if($Value == ''){
+            $Value = '0';
+        }
 
         $Manager = $this->getConnection()->getEntityManager();
         /** @var TblDebtorSelection $Entity */

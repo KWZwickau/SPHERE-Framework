@@ -24,7 +24,7 @@ class E02_1
             ->styleMarginBottom('5px')
             ->addElement((new Element())
                 ->setContent('E02.1 Darunter <u>Schüler, deren Herkunftssprache nicht oder nicht ausschließlich Deutsch ist,</u>
-                    im </br> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                    im <br /> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                     Schuljahr {{Content.SchoolYear.Current}} nach Geburtsjahren und Klassenstufen')
 
             );
@@ -39,6 +39,7 @@ class E02_1
             ->addSection((new Section())
                 ->addElementColumn((new Element())
                     ->setContent('Geburtsjahr')
+                    ->styleAlignCenter()
                     ->styleBorderRight()
                     ->stylePaddingTop('34.7px')
                     ->stylePaddingBottom('34.7px'), '20%'
@@ -47,6 +48,7 @@ class E02_1
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('Klassenstufe')
+                            ->styleAlignCenter()
                             ->styleBorderRight()
                             , '70%'
                         )
@@ -54,6 +56,7 @@ class E02_1
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('5')
+                            ->styleAlignCenter()
                             ->styleBorderBottom()
                             ->styleBorderRight()
                             ->stylePaddingTop('17.1px')
@@ -61,6 +64,7 @@ class E02_1
                         )
                         ->addElementColumn((new Element())
                             ->setContent('6')
+                            ->styleAlignCenter()
                             ->styleBorderBottom()
                             ->styleBorderRight()
                             ->stylePaddingTop('17.1px')
@@ -68,6 +72,7 @@ class E02_1
                         )
                         ->addElementColumn((new Element())
                             ->setContent('7')
+                            ->styleAlignCenter()
                             ->styleBorderBottom()
                             ->styleBorderRight()
                             ->stylePaddingTop('17.1px')
@@ -75,6 +80,7 @@ class E02_1
                         )
                         ->addElementColumn((new Element())
                             ->setContent('8')
+                            ->styleAlignCenter()
                             ->styleBorderBottom()
                             ->styleBorderRight()
                             ->stylePaddingTop('17.1px')
@@ -82,6 +88,7 @@ class E02_1
                         )
                         ->addElementColumn((new Element())
                             ->setContent('9')
+                            ->styleAlignCenter()
                             ->styleBorderBottom()
                             ->styleBorderRight()
                             ->stylePaddingTop('17.1px')
@@ -89,6 +96,7 @@ class E02_1
                         )
                         ->addElementColumn((new Element())
                             ->setContent('10')
+                            ->styleAlignCenter()
                             ->styleBorderBottom()
                             ->styleBorderRight()
                             ->stylePaddingTop('17.1px')
@@ -101,6 +109,7 @@ class E02_1
 //                        )
                         ->addElementColumn((new Element())
                             ->setContent('Sonder-<br/>klassen<br/>&nbsp;')
+                            ->styleAlignCenter()
                             ->styleBorderBottom()
                             ->styleBorderRight(), '10%'
                         )
@@ -108,58 +117,72 @@ class E02_1
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('m')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '5%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('w')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '5%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('m')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '5%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('w')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '5%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('m')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '5%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('w')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '5%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('m')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '5%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('w')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '5%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('m')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '5%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('w')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '5%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('m')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '5%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('w')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '5%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('m')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '5%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('w')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '5%'
                         )
                     )
@@ -169,6 +192,7 @@ class E02_1
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('Insgesamt')
+                            ->styleAlignCenter()
                             ->styleBorderBottom()
                             ->stylePaddingTop('25.7px')
                             ->stylePaddingBottom('25.6px'), '100%'
@@ -177,10 +201,12 @@ class E02_1
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('m')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '50%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('w'), '50%'
+                            ->setContent('w')
+                            ->styleAlignCenter(), '50%'
                         )
                     ), '10%'
                 )
@@ -201,6 +227,7 @@ class E02_1
                                 &nbsp;
                             {% endif %}
                         ')
+                        ->styleAlignCenter()
                         ->styleBorderRight(), '20%'
                     )
                     ->addElementColumn((new Element())
@@ -211,6 +238,7 @@ class E02_1
                                 &nbsp;
                             {% endif %}
                         ')
+                        ->styleAlignCenter()
                         ->styleBorderRight(), '5%'
                     )
                     ->addElementColumn((new Element())
@@ -221,6 +249,7 @@ class E02_1
                                 &nbsp;
                             {% endif %}
                         ')
+                        ->styleAlignCenter()
                         ->styleBorderRight(), '5%'
                     )
                     ->addElementColumn((new Element())
@@ -231,6 +260,7 @@ class E02_1
                                 &nbsp;
                             {% endif %}
                         ')
+                        ->styleAlignCenter()
                         ->styleBorderRight(), '5%'
                     )
                     ->addElementColumn((new Element())
@@ -241,6 +271,7 @@ class E02_1
                                 &nbsp;
                             {% endif %}
                         ')
+                        ->styleAlignCenter()
                         ->styleBorderRight(), '5%'
                     )
                     ->addElementColumn((new Element())
@@ -251,6 +282,7 @@ class E02_1
                                 &nbsp;
                             {% endif %}
                         ')
+                        ->styleAlignCenter()
                         ->styleBorderRight(), '5%'
                     )
                     ->addElementColumn((new Element())
@@ -261,6 +293,7 @@ class E02_1
                                 &nbsp;
                             {% endif %}
                         ')
+                        ->styleAlignCenter()
                         ->styleBorderRight(), '5%'
                     )
                     ->addElementColumn((new Element())
@@ -271,6 +304,7 @@ class E02_1
                                 &nbsp;
                             {% endif %}
                         ')
+                        ->styleAlignCenter()
                         ->styleBorderRight(), '5%'
                     )
                     ->addElementColumn((new Element())
@@ -281,6 +315,7 @@ class E02_1
                                 &nbsp;
                             {% endif %}
                         ')
+                        ->styleAlignCenter()
                         ->styleBorderRight(), '5%'
                     )
                     ->addElementColumn((new Element())
@@ -291,6 +326,7 @@ class E02_1
                                 &nbsp;
                             {% endif %}
                         ')
+                        ->styleAlignCenter()
                         ->styleBorderRight(), '5%'
                     )
                     ->addElementColumn((new Element())
@@ -301,6 +337,7 @@ class E02_1
                                 &nbsp;
                             {% endif %}
                         ')
+                        ->styleAlignCenter()
                         ->styleBorderRight(), '5%'
                     )
                     ->addElementColumn((new Element())
@@ -311,6 +348,7 @@ class E02_1
                                 &nbsp;
                             {% endif %}
                         ')
+                        ->styleAlignCenter()
                         ->styleBorderRight(), '5%'
                     )
                     ->addElementColumn((new Element())
@@ -321,6 +359,7 @@ class E02_1
                                 &nbsp;
                             {% endif %}
                         ')
+                        ->styleAlignCenter()
                         ->styleBorderRight(), '5%'
                     )
                     ->addElementColumn((new Element())
@@ -333,6 +372,7 @@ class E02_1
 //                            {% endif %}
 //                        ')
 //                        ->styleBackgroundColor('lightgrey')
+                        ->styleAlignCenter()
                         ->styleBorderRight(), '5%'
                     )
                     ->addElementColumn((new Element())
@@ -345,6 +385,7 @@ class E02_1
 //                            {% endif %}
 //                        ')
 //                        ->styleBackgroundColor('lightgrey')
+                        ->styleAlignCenter()
                         ->styleBorderRight(), '5%'
                     )
                     ->addElementColumn((new Element())
@@ -355,6 +396,7 @@ class E02_1
                                 &nbsp;
                             {% endif %}
                         ')
+                        ->styleAlignCenter()
                         ->styleBackgroundColor('lightgrey')
                         ->styleBorderRight(), '5%'
                     )
@@ -366,6 +408,7 @@ class E02_1
                                 &nbsp;
                             {% endif %}
                         ')
+                        ->styleAlignCenter()
                         ->styleBackgroundColor('lightgrey'), '5%'
                     )
                 );
@@ -381,6 +424,7 @@ class E02_1
             ->addSection((new Section())
                 ->addElementColumn((new Element())
                     ->setContent('Insgesamt')
+                    ->styleAlignCenter()
                     ->styleBorderRight(), '20%'
                 )
                 ->addElementColumn((new Element())
@@ -391,6 +435,7 @@ class E02_1
                                 &nbsp;
                             {% endif %}
                         ')
+                    ->styleAlignCenter()
                     ->styleBorderRight(), '5%'
                 )
                 ->addElementColumn((new Element())
@@ -401,6 +446,7 @@ class E02_1
                                 &nbsp;
                             {% endif %}
                         ')
+                    ->styleAlignCenter()
                     ->styleBorderRight(), '5%'
                 )
                 ->addElementColumn((new Element())
@@ -411,6 +457,7 @@ class E02_1
                                 &nbsp;
                             {% endif %}
                         ')
+                    ->styleAlignCenter()
                     ->styleBorderRight(), '5%'
                 )
                 ->addElementColumn((new Element())
@@ -421,6 +468,7 @@ class E02_1
                                 &nbsp;
                             {% endif %}
                         ')
+                    ->styleAlignCenter()
                     ->styleBorderRight(), '5%'
                 )
                 ->addElementColumn((new Element())
@@ -431,6 +479,7 @@ class E02_1
                                 &nbsp;
                             {% endif %}
                         ')
+                    ->styleAlignCenter()
                     ->styleBorderRight(), '5%'
                 )
                 ->addElementColumn((new Element())
@@ -441,6 +490,7 @@ class E02_1
                                 &nbsp;
                             {% endif %}
                         ')
+                    ->styleAlignCenter()
                     ->styleBorderRight(), '5%'
                 )
                 ->addElementColumn((new Element())
@@ -451,6 +501,7 @@ class E02_1
                                 &nbsp;
                             {% endif %}
                         ')
+                    ->styleAlignCenter()
                     ->styleBorderRight(), '5%'
                 )
                 ->addElementColumn((new Element())
@@ -461,6 +512,7 @@ class E02_1
                                 &nbsp;
                             {% endif %}
                         ')
+                    ->styleAlignCenter()
                     ->styleBorderRight(), '5%'
                 )
                 ->addElementColumn((new Element())
@@ -471,6 +523,7 @@ class E02_1
                                 &nbsp;
                             {% endif %}
                         ')
+                    ->styleAlignCenter()
                     ->styleBorderRight(), '5%'
                 )
                 ->addElementColumn((new Element())
@@ -481,6 +534,7 @@ class E02_1
                                 &nbsp;
                             {% endif %}
                         ')
+                    ->styleAlignCenter()
                     ->styleBorderRight(), '5%'
                 )
                 ->addElementColumn((new Element())
@@ -491,6 +545,7 @@ class E02_1
                                 &nbsp;
                             {% endif %}
                         ')
+                    ->styleAlignCenter()
                     ->styleBorderRight(), '5%'
                 )
                 ->addElementColumn((new Element())
@@ -501,10 +556,12 @@ class E02_1
                                 &nbsp;
                             {% endif %}
                         ')
+                    ->styleAlignCenter()
                     ->styleBorderRight(), '5%'
                 )
                 ->addElementColumn((new Element())
                     ->setContent('&nbsp;')
+                    ->styleAlignCenter()
 //                    ->setContent('
 //                        {% if (Content.E02_1.TotalCount.LMigration.m is not empty) %}
 //                            {{ Content.E02_1.TotalCount.LMigration.m }}
@@ -516,6 +573,7 @@ class E02_1
                 )
                 ->addElementColumn((new Element())
                     ->setContent('&nbsp;')
+                    ->styleAlignCenter()
 //                    ->setContent('
 //                        {% if (Content.E02_1.TotalCount.LMigration.w is not empty) %}
 //                            {{ Content.E02_1.TotalCount.LMigration.w }}
@@ -533,6 +591,7 @@ class E02_1
                                 &nbsp;
                             {% endif %}
                         ')
+                    ->styleAlignCenter()
                     ->styleBorderRight(), '5%'
                 )
                 ->addElementColumn((new Element())
@@ -542,7 +601,8 @@ class E02_1
                             {% else %}
                                 &nbsp;
                             {% endif %}
-                        '), '5%'
+                        ')
+                    ->styleAlignCenter(), '5%'
                 )
             );
 

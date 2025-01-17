@@ -8,9 +8,7 @@ use SPHERE\Application\People\Relationship\Service\Entity\TblSiblingRank;
 use SPHERE\Application\People\Relationship\Service\Entity\TblToCompany;
 use SPHERE\Application\People\Relationship\Service\Entity\TblToPerson;
 use SPHERE\Application\People\Relationship\Service\Entity\TblType;
-use SPHERE\Application\People\Relationship\Service\Entity\ViewRelationshipFromPerson;
 use SPHERE\Application\People\Relationship\Service\Entity\ViewRelationshipToCompany;
-use SPHERE\Application\People\Relationship\Service\Entity\ViewRelationshipToPerson;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Database\Binding\AbstractData;
 
@@ -21,28 +19,6 @@ use SPHERE\System\Database\Binding\AbstractData;
  */
 class Data extends AbstractData
 {
-
-    /**
-     * @return false|ViewRelationshipToPerson[]
-     */
-    public function viewRelationshipToPerson()
-    {
-
-        return $this->getCachedEntityList(
-            __METHOD__, $this->getConnection()->getEntityManager(), 'ViewRelationshipToPerson'
-        );
-    }
-
-    /**
-     * @return false|ViewRelationshipFromPerson[]
-     */
-    public function viewRelationshipFromPerson()
-    {
-
-        return $this->getCachedEntityList(
-            __METHOD__, $this->getConnection()->getEntityManager(), 'ViewRelationshipFromPerson'
-        );
-    }
 
     /**
      * @return false|ViewRelationshipToCompany[]
@@ -83,7 +59,7 @@ class Data extends AbstractData
         $this->updateType($tblType, true);
 
         $tblType = $this->createType('Beitragszahler', 'z.B. Großeltern / Amt', $tblGroupPerson);
-        $this->updateType($tblType, true);
+        $this->updateType($tblType, false);
 
         $this->createType('Notfallkontakt', 'z.B. Elternteil ohne Sorgerecht', $tblGroupPerson, false, false);
 
@@ -111,6 +87,9 @@ class Data extends AbstractData
         $this->createType('Inhaber', '', $tblGroupCompany);
         $this->createType('Kuratoriumsmitglied', '', $tblGroupCompany);
         $this->createType('Partner', '', $tblGroupCompany);
+        $this->createType('Verwaltungsleiter', '', $tblGroupCompany);
+        $this->createType('Auszubildender', '', $tblGroupCompany);
+        $this->createType('Praktikant', '', $tblGroupCompany);
 
         $this->createSiblingRank('1. Geschwisterkind');
         $this->createSiblingRank('2. Geschwisterkind');
@@ -375,6 +354,22 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblCompany $tblCompany
+     *
+     * @return TblToCompany[]|false
+     */
+    public function getRelationshipToCompanyByCompany(TblCompany $tblCompany)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblToCompany[] $EntityList */
+        $EntityList = $this->getCachedEntityListBy(__METHOD__, $Manager, 'TblToCompany', array(
+            TblToCompany::SERVICE_TBL_COMPANY => $tblCompany->getId()
+        ));
+        return $EntityList;
+    }
+
+    /**
      * @param TblPerson $tblPerson
      * @param TblType|null $tblType
      * @param bool $isForced
@@ -410,6 +405,37 @@ class Data extends AbstractData
         return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblToPerson', array(
              TblToPerson::ATTR_TBL_TYPE => $tblType->getId()
         ));
+    }
+
+    /**
+     * @param TblType $tblType
+     *
+     * @return array array[PersonFromId[PersonToId]]
+     */
+    public function getPersonRelationshipArrayByType(TblType $tblType)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $queryBuilder = $Manager->getQueryBuilder();
+        $tblToPerson = new TblToPerson();
+
+        $query = $queryBuilder->select('tTP.serviceTblPersonFrom, tTP.serviceTblPersonTo')
+            ->from($tblToPerson->getEntityFullName(), 'tTP')
+            ->where($queryBuilder->expr()->eq('tTP.tblType', '?1'))
+            ->setParameter(1, $tblType->getId())
+            ->getQuery();
+
+        $FromToList = $query->getResult();
+
+        // Combined "fromPerson" with multiple "toPerson"
+        $resultList = array();
+        if(!empty($FromToList)){
+            foreach($FromToList as $Value){
+                $resultList[$Value['serviceTblPersonFrom']][$Value['serviceTblPersonTo']] = $Value['serviceTblPersonTo'];
+            }
+        }
+
+        return $resultList;
     }
 
     /**
@@ -493,13 +519,14 @@ class Data extends AbstractData
      *
      * @return bool|TblToCompany[]
      */
-    public function getCompanyRelationshipAllByCompany(TblCompany $tblCompany)
+    public function getCompanyRelationshipAllByCompany(TblCompany $tblCompany, TblType $tblType = null)
     {
 
-        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblToCompany',
-            array(
-                TblToCompany::SERVICE_TBL_COMPANY => $tblCompany->getId()
-            ));
+        $Filter[TblToCompany::SERVICE_TBL_COMPANY] = $tblCompany->getId();
+        if(null !== $tblType){
+            $Filter[TblToCompany::ATT_TBL_TYPE] = $tblType->getId();
+        }
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblToCompany', $Filter);
     }
 
     /**

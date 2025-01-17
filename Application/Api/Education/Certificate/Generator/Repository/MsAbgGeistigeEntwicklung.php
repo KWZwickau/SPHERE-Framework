@@ -14,6 +14,8 @@ use SPHERE\Application\Education\Certificate\Generator\Repository\Page;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Section;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer as ConsumerGatekeeper;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 
 /**
@@ -34,10 +36,8 @@ class MsAbgGeistigeEntwicklung extends Certificate
 
         $personId = $tblPerson ? $tblPerson->getId() : 0;
 
-        $Header = $this->getHead($this->isSample(), true, 'auto', '50px');
-
         $pageList[] = (new Page())
-            ->addSlice($Header)
+            ->addSlice($this->getHeadForLeave($this->isSample()))
             ->addSlice((new Slice())
                 ->addElement((new Element())
                     ->setContent('ZEUGNIS')
@@ -120,27 +120,17 @@ class MsAbgGeistigeEntwicklung extends Certificate
                     ->setContent(
                         new Container('und verlässt nach Erfüllung der Vollzeitschulpflicht gemäß')
                         . new Container('§ 28 Absatz 1 Nummer 1 des Sächsischen Schulgesetzes und')
-                        . new Container('§ 63 der Schulordnung Ober- und Abendoberschulen')
+                        . new Container('§ 64 der Schulordnung Ober- und Abendoberschulen')
                         . new Container('die Oberschule.')
                     )
                     ->styleMarginTop('8px')
                     ->styleAlignCenter()
                 )->styleMarginTop('60px')
             )
-            ->addSlice((new Slice())
-                ->addElement((new Element())
-                    ->setContent('Inklusive Unterrichtung¹:
-                    {% if(Content.P' . $personId . '.Input.Support is not empty) %}
-                        {{ Content.P' . $personId . '.Input.Support|nl2br }}
-                    {% else %}
-                        &nbsp;
-                    {% endif %}')
-                    ->styleHeight('200px')
-                    ->styleMarginTop('55px')
-                ))
+            ->addSlice($this->getSupportContent($personId, '200px', '55px', 'Inklusive Unterrichtung¹: '))
             ->addSlice($this->getDateLine($personId))
             ->addSlice($this->getSignPart($personId, true, '30px'))
-            ->addSlice($this->getInfo('190px',
+            ->addSlice($this->getInfo('187px',
                 '¹ &nbsp;&nbsp;&nbsp; gemäß § 27 Absatz 6 der Schulordnung Ober- und Abendoberschulen'
             ));
 

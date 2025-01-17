@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\Platform\Gatekeeper\Authorization\Account;
 
+use SPHERE\Application\Contact\Mail\Mail;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\TblRole;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Data;
@@ -18,6 +19,7 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Service\Entity\TblToken;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Token;
+use SPHERE\Application\Setting\User\Account\Service\Entity\TblUserAccount;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
 use SPHERE\Common\Frontend\Ajax\Template\Notify;
 use SPHERE\Common\Frontend\Form\IFormInterface;
@@ -103,7 +105,6 @@ class Service extends AbstractService
         return (new Data($this->getBinding()))->destroyGroup($tblGroup);
     }
 
-
     /**
      * @param null|string $Session
      *
@@ -113,6 +114,32 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getAccountBySession($Session);
+    }
+
+    /**
+     * @param $Session
+     *
+     * @return void
+     * @throws \Exception
+     */
+    public function refreshSession($Session = null)
+    {
+
+        (new Data($this->getBinding()))->refreshSession($Session);
+    }
+
+    /**
+     * @return bool|string
+     */
+    public function getMandantAcronym()
+    {
+
+        if(($tblAccount = $this->getAccountBySession())){
+            if(($tblConsumer = $tblAccount->getServiceTblConsumer())){
+                return $tblConsumer->getAcronym();
+            }
+        }
+        return false;
     }
 
     /**
@@ -238,7 +265,6 @@ class Service extends AbstractService
                 }
                 case true: {
                     return new Redirect('/', Redirect::TIMEOUT_SUCCESS);
-                    break;
                 }
             }
         } else {
@@ -307,21 +333,9 @@ class Service extends AbstractService
      *
      * @return bool|TblAccount
      */
-    public function getAccountByCredential($Username, $Password, TblIdentification $tblIdentification = null)
+    public function getAccountByCredential(string $Username, string $Password, TblIdentification $tblIdentification = null)
     {
-
-        $tblAccount = (new Data($this->getBinding()))->getAccountByCredential($Username, $Password, $tblIdentification);
-
-        // Credential can be also UserCredential
-        if (!$tblAccount && null !== $tblIdentification && $tblIdentification->getName() == 'Credential') {
-            $tblIdentification = Account::useService()->getIdentificationByName('UserCredential');
-            if ($tblIdentification) {
-                $tblAccount = (new Data($this->getBinding()))->getAccountByCredential($Username, $Password,
-                    $tblIdentification);
-            }
-        }
-
-        return $tblAccount;
+        return (new Data($this->getBinding()))->getAccountByCredential($Username, $Password, $tblIdentification);
     }
 
     /**
@@ -427,20 +441,20 @@ class Service extends AbstractService
      */
     public function hasAuthorization(TblAccount $tblAccount, TblRole $tblRole)
     {
-
         $tblAuthorization = $this->getAuthorizationAllByAccount($tblAccount);
-        /** @noinspection PhpUnusedParameterInspection */
-        array_walk($tblAuthorization, function (TblAuthorization &$tblAuthorization) use ($tblRole) {
+        if ($tblAuthorization) {
+            array_walk($tblAuthorization, function (TblAuthorization &$tblAuthorization) use ($tblRole) {
 
-            if ($tblAuthorization->getServiceTblRole()
-                && $tblAuthorization->getServiceTblRole()->getId() != $tblRole->getId()
-            ) {
-                $tblAuthorization = false;
+                if ($tblAuthorization->getServiceTblRole()
+                    && $tblAuthorization->getServiceTblRole()->getId() != $tblRole->getId()
+                ) {
+                    $tblAuthorization = false;
+                }
+            });
+            $tblAuthorization = array_filter($tblAuthorization);
+            if (!empty($tblAuthorization)) {
+                return true;
             }
-        });
-        $tblAuthorization = array_filter($tblAuthorization);
-        if (!empty($tblAuthorization)) {
-            return true;
         }
         return false;
     }
@@ -459,13 +473,22 @@ class Service extends AbstractService
     /**
      * @param TblAccount $tblAccount
      *
-     * @return bool|TblAuthentication
+     * @return bool|TblAuthentication[]
      */
-    public function getAuthenticationByAccount(TblAccount $tblAccount)
+    public function getAuthenticationListByAccount(TblAccount $tblAccount)
     {
+        return (new Data($this->getBinding()))->getAuthenticationListByAccount($tblAccount);
+    }
 
-        return (new Data($this->getBinding()))->getAuthenticationByAccount($tblAccount);
-
+    /**
+     * @param TblAccount $tblAccount
+     * @param string $IdentificationName
+     *
+     * @return bool
+     */
+    public function getHasAuthenticationByAccountAndIdentificationName(TblAccount $tblAccount, string $IdentificationName): bool
+    {
+        return (new Data($this->getBinding()))->getHasAuthenticationByAccountAndIdentificationName($tblAccount, $IdentificationName);
     }
 
     /**
@@ -629,18 +652,23 @@ class Service extends AbstractService
 
 
     /**
-     * @param string           $Username
-     * @param string           $Password
-     * @param null|TblToken    $tblToken
+     * @param string $Username
+     * @param string $Password
+     * @param null|TblToken $tblToken
      * @param null|TblConsumer $tblConsumer
-     * @param bool             $SaveInitialPW
+     * @param bool $SaveInitialPW
+     * @param bool $isAuthenticatorApp
+     * @param null $UserAlias
+     * @param null $RecoveryMail
      *
      * @return TblAccount
      */
-    public function insertAccount($Username, $Password, TblToken $tblToken = null, TblConsumer $tblConsumer = null, $SaveInitialPW = false)
-    {
+    public function insertAccount($Username, $Password, TblToken $tblToken = null, TblConsumer $tblConsumer = null,
+        $SaveInitialPW = false, $isAuthenticatorApp = false, $UserAlias = null, $RecoveryMail = null
+    ) {
 
-        $tblAccount = (new Data($this->getBinding()))->createAccount($Username, $Password, $tblToken, $tblConsumer);
+        $tblAccount = (new Data($this->getBinding()))->createAccount($Username, $Password, $tblToken, $tblConsumer,
+            $isAuthenticatorApp, $UserAlias, $RecoveryMail);
         if($SaveInitialPW){
             (new Data($this->getBinding()))->createAccountInitial($tblAccount);
         }
@@ -716,6 +744,7 @@ class Service extends AbstractService
     }
 
     /**
+     * @deprecated -> no person change from account
      * @param TblAccount $tblAccount
      * @param TblPerson $tblPerson
      *
@@ -739,16 +768,90 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblAccount $tblAccount
+     *
+     * @return false|TblPerson
+     */
+    public function getFirstPersonByAccount(TblAccount $tblAccount)
+    {
+        if (($tblPersonList = $this->getPersonAllByAccount($tblAccount))) {
+            return reset($tblPersonList);
+        } else {
+            return false;
+        }
+    }
+
+    /**
      * @param TblPerson $tblPerson
      * @param bool      $isForce
      *
-     * @return bool|TblAccount[]
+     * @return false|TblAccount[]
      */
     public function getAccountAllByPerson(TblPerson $tblPerson, $isForce = false)
     {
 
         $tblConsumer = Consumer::useService()->getConsumerBySession();
         return (new Data($this->getBinding()))->getAccountAllByPerson($tblPerson, $tblConsumer, $isForce);
+    }
+
+    /**
+     * @deprecated (SSW-1540)
+     * Eltern-Accounts werden ignoriert, es kann sein das Mitarbeiter auch zusätzlich einen Elternaccount haben
+     *
+     * @param TblPerson $tblPerson
+     * @param false     $isForce
+     *
+     * @return false|TblAccount[]
+     */
+    public function getAccountAllByPersonForUCS(TblPerson $tblPerson, $isForce = false)
+    {
+        $result = array();
+        if (($list = $this->getAccountAllByPerson($tblPerson, $isForce))) {
+            foreach ($list as $tblAccount) {
+                if ((($tblUserAccount = \SPHERE\Application\Setting\User\Account\Account::useService()->getUserAccountByAccount($tblAccount)))
+                    && ($tblUserAccount->getType() == TblUserAccount::VALUE_TYPE_CUSTODY)
+                ) {
+                    // ignore Account
+                    continue;
+                } else {
+                    $result[] = $tblAccount;
+                }
+            }
+        }
+
+        return empty($result) ? false : $result;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     *
+     * @return bool|TblAccount[]
+     */
+    public function getAccountListByActiveConsumer()
+    {
+
+        $tblConsumer = Consumer::useService()->getConsumerBySession();
+        return (new Data($this->getBinding()))->getAccountListByConsumer($tblConsumer);
+    }
+
+    /**
+     * @param TblIdentification $tblIdentification
+     *
+     * @return TblAccount[]|bool
+     */
+    public function getAccountListByIdentification(TblIdentification $tblIdentification)
+    {
+
+        $returnList = array();
+        if(($tblAccountList = $this->getAccountListByActiveConsumer())){
+            foreach($tblAccountList as $tblAccount){
+                if ($tblAccount->getHasAuthentication($tblIdentification->getName())) {
+                    $returnList[] = $tblAccount;
+                }
+            }
+        }
+
+        return (!empty($returnList) ? $returnList : false);
     }
 
     /**
@@ -905,11 +1008,191 @@ class Service extends AbstractService
     }
 
     /**
+     * @param $UserAlias
+     *
+     * @return false|TblAccount[]
+     */
+    public function getAccountAllByUserAlias($UserAlias)
+    {
+
+        return (new Data($this->getBinding()))->getAccountAllByUserAlias($UserAlias);
+    }
+
+    /**
      * @return int
      */
     public function countSessionAll()
     {
 
         return (new Data($this->getBinding()))->countSessionAll();
+    }
+
+    /**
+     * @param TblAccount $tblAccount
+     * @param string     $userAlias
+     *
+     * @return bool
+     */
+    public function changeUserAlias(TblAccount $tblAccount, $userAlias)
+    {
+        return (new Data($this->getBinding()))->changeUserAlias($tblAccount, $userAlias);
+    }
+
+    /**
+     * @param TblAccount $tblAccount
+     * @param string     $RecoveryMail
+     *
+     * @return bool
+     */
+    public function changeRecoveryMail(TblAccount $tblAccount, $RecoveryMail)
+    {
+        return (new Data($this->getBinding()))->changeRecoveryMail($tblAccount, $RecoveryMail);
+    }
+
+    /**
+     * @param TblAccount $tblAccount
+     * @param $secret
+     *
+     * @return bool
+     */
+    public function changeAuthenticatorAppSecret(TblAccount $tblAccount, $secret)
+    {
+        return (new Data($this->getBinding()))->changeAuthenticatorAppSecret($tblAccount, $secret);
+    }
+
+    /**
+     * @param TblRole $tblRole
+     * @param $tblAccountList
+     *
+     * @return int
+     */
+    public function bulkAddAccountAuthorization(TblRole $tblRole, $tblAccountList)
+    {
+        return (new Data($this->getBinding()))->bulkAddAccountAuthorization($tblRole, $tblAccountList);
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param string $mailAddress
+     * @param string $errorMessage
+     *
+     * @return bool
+     */
+    public function isUserAliasUnique(TblPerson $tblPerson, string $mailAddress, string &$errorMessage) : bool {
+        $error = false;
+
+//        if (($tblAccountListByPerson = Account::useService()->getAccountAllByPersonForUCS($tblPerson))) {
+        if (($tblAccountListByPerson = Account::useService()->getAccountAllByPerson($tblPerson))) {
+            if (count($tblAccountListByPerson) > 1) {
+                $errorMessage = 'Die Person besitzt mehrere Benutzerkonten.';
+                return false;
+            }
+            /** @var TblAccount|false $tblAccount */
+            $tblAccount = current($tblAccountListByPerson);
+        } else {
+            $tblAccount = false;
+        }
+
+        if ($tblAccount) {
+            $tblConsumer = $tblAccount->getServiceTblConsumer();
+        } else {
+            $tblConsumer = Consumer::useService()->getConsumerBySession();
+        }
+
+        // Eindeutig im Gatekeeper
+        if (($tblAccountList = $this->getAccountAllByUserAlias($mailAddress))) {
+            foreach ($tblAccountList as $item) {
+                if (!$tblAccount
+                    || ($tblAccount && $tblAccount->getId() != $item->getId())
+                ) {
+                    if($tblConsumer &&  $item->getServiceTblConsumer()
+                        && $tblConsumer->getId() == $item->getServiceTblConsumer()->getId()
+                    ){
+                        $PersonString = 'Person nicht gefunden';
+                        if(($tblPersonList = Account::useService()->getPersonAllByAccount($item))){
+                            $foundPerson = current($tblPersonList);
+                            /** @var TblPerson $foundPerson */
+                            $PersonString = $foundPerson->getLastFirstName();
+                        }
+                        $errorMessage = 'Diese E-Mail Adresse wird bereits als UCS Benutzername verwendet. ('
+                            . $item->getUsername() . ' - ' . $PersonString.')';
+                    } else {
+                        $errorMessage = 'Diese E-Mail Adresse wird bereits als UCS Benutzername verwendet.';
+                    }
+                    $error = true;
+                }
+            }
+        }
+
+        // Eindeutig als vorgemerkter Alias im Consumer
+        if (!$error
+            && ($tblToPersonList = Mail::useService()->getToPersonListByAddress($mailAddress))
+        ) {
+            foreach ($tblToPersonList as $tblToPerson) {
+                if ($tblToPerson->isAccountUserAlias()
+                    && ($tblPersonMail = $tblToPerson->getServiceTblPerson())
+                    && $tblPersonMail->getId() != $tblPerson->getId()
+                ) {
+                    $error = true;
+                    $errorMessage = 'Diese E-Mail Adresse wurde bereits als UCS Benutzername vorgemerkt. (' . $tblPersonMail->getLastFirstName() . ')';
+                    break;
+                }
+            }
+        }
+
+        return !$error;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     *
+     * @return false|string
+     */
+    public function getAccountUserAliasFromMails(TblPerson $tblPerson) {
+        if(($tblToPersonList = Mail::useService()->getMailAllByPerson($tblPerson))) {
+            foreach ($tblToPersonList as $tblToPerson) {
+                if ($tblToPerson->isAccountUserAlias()
+                    && ($tblMail = $tblToPerson->getTblMail())
+                ) {
+                    return $tblMail->getAddress();
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     *
+     * @return false|string
+     */
+    public function getAccountRecoveryMailFromMails(TblPerson $tblPerson) {
+        if(($tblToPersonList = Mail::useService()->getMailAllByPerson($tblPerson))) {
+            foreach ($tblToPersonList as $tblToPerson) {
+                if ($tblToPerson->isAccountRecoveryMail()
+                    && ($tblMail = $tblToPerson->getTblMail())
+                ) {
+                    return $tblMail->getAddress();
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @return false|TblPerson
+     */
+    public function getPersonByLogin()
+    {
+        $tblPerson = false;
+        if (($tblAccount = $this->getAccountBySession())
+            && ($tblPersonAllByAccount = $this->getPersonAllByAccount($tblAccount))
+        ) {
+            $tblPerson = $tblPersonAllByAccount[0];
+        }
+
+        return $tblPerson;
     }
 }

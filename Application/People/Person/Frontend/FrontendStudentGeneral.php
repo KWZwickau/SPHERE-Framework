@@ -18,7 +18,6 @@ use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Person\TemplateReadOnly;
 use SPHERE\Application\People\Relationship\Relationship;
-use SPHERE\Common\Frontend\Form\Repository\Aspect;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
@@ -44,12 +43,16 @@ use SPHERE\Common\Frontend\Icon\Repository\TempleChurch;
 use SPHERE\Common\Frontend\Icon\Repository\TileSmall;
 use SPHERE\Common\Frontend\Icon\Repository\Unchecked;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\PullClear;
+use SPHERE\Common\Frontend\Layout\Repository\PullLeft;
+use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Primary;
+use SPHERE\Common\Frontend\Link\Repository\ToggleSelective;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Frontend\Link\Repository\Link;
@@ -66,18 +69,20 @@ class FrontendStudentGeneral extends FrontendReadOnly
 
     /**
      * @param null $PersonId
+     * @param int  $AllowEdit
      *
      * @return string
      */
-    public static function getStudentGeneralContent($PersonId = null)
+    public static function getStudentGeneralContent($PersonId = null, $AllowEdit = 1)
     {
 
         if (($tblPerson = Person::useService()->getPersonById($PersonId))) {
-            $billingSiblingRank = '';
+//            $billingSiblingRank = '';
 
             $lockerNumber = '';
             $lockerLocation = '';
             $lockerKeyNumber = '';
+            $lockerCombinationLockNumber = '';
 
             $baptismDate = '';
             $baptismLocation = '';
@@ -86,16 +91,18 @@ class FrontendStudentGeneral extends FrontendReadOnly
             $transportStationEntrance = '';
             $transportStationExit = '';
             $transportRemark = '';
+            $transportIsDriverStudent = '';
 
             if (($tblStudent = Student::useService()->getStudentByPerson($tblPerson))) {
-                if (($tblStudentBilling = $tblStudent->getTblStudentBilling())) {
-                    $billingSiblingRank = $tblStudentBilling->getServiceTblSiblingRank() ? $tblStudentBilling->getServiceTblSiblingRank()->getName() : '';
-                }
+//                if (($tblStudentBilling = $tblStudent->getTblStudentBilling())) {
+//                    $billingSiblingRank = $tblStudentBilling->getServiceTblSiblingRank() ? $tblStudentBilling->getServiceTblSiblingRank()->getName() : '';
+//                }
 
                 if (($tblStudentLocker = $tblStudent->getTblStudentLocker())) {
                     $lockerNumber = $tblStudentLocker->getLockerNumber();
                     $lockerLocation = $tblStudentLocker->getLockerLocation();
                     $lockerKeyNumber = $tblStudentLocker->getKeyNumber();
+                    $lockerCombinationLockNumber = $tblStudentLocker->getCombinationLockNumber();
                 }
 
                 if (($tblStudentBaptism = $tblStudent->getTblStudentBaptism())) {
@@ -104,40 +111,12 @@ class FrontendStudentGeneral extends FrontendReadOnly
                 }
 
                 if (($tblStudentTransport = $tblStudent->getTblStudentTransport())) {
+                    $transportIsDriverStudent = $tblStudentTransport->getIsDriverStudent() ? 'Ja' : 'Nein';
                     $transportRoute = $tblStudentTransport->getRoute();
                     $transportStationEntrance = $tblStudentTransport->getStationEntrance();
                     $transportStationExit = $tblStudentTransport->getStationExit();
                     $transportRemark = $tblStudentTransport->getRemark();
                 }
-            }
-
-            $AgreementPanel = array();
-            if(($tblAgreementCategoryAll = Student::useService()->getStudentAgreementCategoryAll())){
-                array_walk($tblAgreementCategoryAll,
-                    function (TblStudentAgreementCategory $tblStudentAgreementCategory) use (&$AgreementPanel, $tblStudent) {
-                        $rows[] = new LayoutRow(new LayoutColumn(new Bold($tblStudentAgreementCategory->getName())));
-                        $tblAgreementTypeAll = Student::useService()->getStudentAgreementTypeAllByCategory($tblStudentAgreementCategory);
-                        if ($tblAgreementTypeAll) {
-                            $tblAgreementTypeAll = (new Extension)->getSorter($tblAgreementTypeAll)->sortObjectBy('Name');
-                            array_walk($tblAgreementTypeAll,
-                                function (TblStudentAgreementType $tblStudentAgreementType) use (
-                                    &$rows,
-                                    $tblStudentAgreementCategory,
-                                    $tblStudent
-                                ) {
-                                    if ($tblStudent) {
-                                        $isChecked = Student::useService()->getStudentAgreementByTypeAndStudent($tblStudentAgreementType, $tblStudent);
-                                    } else {
-                                        $isChecked = false;
-                                    }
-                                    $rows[] = new LayoutRow(new LayoutColumn(($isChecked ? new Check() : new Unchecked()) . ' ' . $tblStudentAgreementType->getName()));
-                                }
-                            );
-                        }
-
-                        $AgreementPanel[] = new Layout(new LayoutGroup($rows));
-                    }
-                );
             }
 
             $LiberationPanel = array();
@@ -165,15 +144,15 @@ class FrontendStudentGeneral extends FrontendReadOnly
             $content = new Layout(new LayoutGroup(array(
                 new LayoutRow(array(
                     new LayoutColumn(array(
-                        FrontendReadOnly::getSubContent(
-                            'Fakturierung',
-                            new Layout(new LayoutGroup(array(
-                                new LayoutRow(array(
-                                    self::getLayoutColumnLabel('Geschwisterkind', 6),
-                                    self::getLayoutColumnValue($billingSiblingRank, 6),
-                                ))
-                            )))
-                        ),
+//                        FrontendReadOnly::getSubContent(
+//                            'Geschwisterkind',
+//                            new Layout(new LayoutGroup(array(
+//                                new LayoutRow(array(
+////                                    self::getLayoutColumnLabel('Geschwisterkind', 6),
+//                                    self::getLayoutColumnValue($billingSiblingRank, 12),
+//                                ))
+//                            )))
+//                        ),
                         FrontendReadOnly::getSubContent(
                             'Schließfach',
                             new Layout(new LayoutGroup(array(
@@ -189,8 +168,14 @@ class FrontendStudentGeneral extends FrontendReadOnly
                                     self::getLayoutColumnLabel('Schlüssel Nummer', 6),
                                     self::getLayoutColumnValue($lockerKeyNumber, 6),
                                 )),
+                                new LayoutRow(array(
+                                    self::getLayoutColumnLabel('Zahlenschloss Nummer', 6),
+                                    self::getLayoutColumnValue($lockerCombinationLockNumber, 6),
+                                )),
                             )))
                         ),
+                    ), 4),
+                    new LayoutColumn(array(
                         FrontendReadOnly::getSubContent(
                             'Taufe',
                             new Layout(new LayoutGroup(array(
@@ -204,11 +189,16 @@ class FrontendStudentGeneral extends FrontendReadOnly
                                 )),
                             )))
                         ),
+                        FrontendReadOnly::getSubContent('Unterrichtsbefreiung', $LiberationPanel)
                     ), 4),
-                    new LayoutColumn(array(
+                    new LayoutColumn(
                         FrontendReadOnly::getSubContent(
                             'Schulbeförderung',
                             new Layout(new LayoutGroup(array(
+                                new LayoutRow(array(
+                                    self::getLayoutColumnLabel('Fahrschüler', 6),
+                                    self::getLayoutColumnValue($transportIsDriverStudent, 6),
+                                )),
                                 new LayoutRow(array(
                                     self::getLayoutColumnLabel('Buslinie', 6),
                                     self::getLayoutColumnValue($transportRoute, 6),
@@ -226,23 +216,23 @@ class FrontendStudentGeneral extends FrontendReadOnly
                                     self::getLayoutColumnValue($transportRemark, 6),
                                 )),
                             )))
-                        ),
-                        FrontendReadOnly::getSubContent('Unterrichtsbefreiung', $LiberationPanel)
-                    ), 4),
-                    new LayoutColumn(
-                        FrontendReadOnly::getSubContent('Einverständniserklärung zur Datennutzung', $AgreementPanel)
+                        )
                     , 4),
                 )),
             )));
 
-            $editLink = (new Link(new Edit() . ' Bearbeiten', ApiPersonEdit::getEndpoint()))
-                ->ajaxPipelineOnClick(ApiPersonEdit::pipelineEditStudentGeneralContent($PersonId));
+            $editLink = '';
+            if($AllowEdit == 1){
+                $editLink = (new Link(new Edit() . ' Bearbeiten', ApiPersonEdit::getEndpoint()))
+                    ->ajaxPipelineOnClick(ApiPersonEdit::pipelineEditStudentGeneralContent($PersonId));
+            }
+            $DivisionString = FrontendReadOnly::getDivisionString($tblPerson);
 
             return TemplateReadOnly::getContent(
                 self::TITLE,
                 $content,
                 array($editLink),
-                'der Person ' . new Bold(new Success($tblPerson->getFullName())),
+                'der Person ' . new Bold(new Success($tblPerson->getFullName())).$DivisionString,
                 new TileSmall()
             );
         }
@@ -267,6 +257,7 @@ class FrontendStudentGeneral extends FrontendReadOnly
                     $Global->POST['Meta']['Additional']['Locker']['Number'] = $tblStudentLocker->getLockerNumber();
                     $Global->POST['Meta']['Additional']['Locker']['Location'] = $tblStudentLocker->getLockerLocation();
                     $Global->POST['Meta']['Additional']['Locker']['Key'] = $tblStudentLocker->getKeyNumber();
+                    $Global->POST['Meta']['Additional']['Locker']['CombinationLockNumber'] = $tblStudentLocker->getCombinationLockNumber();
                 }
 
                 if (($tblStudentBaptism = $tblStudent->getTblStudentBaptism())) {
@@ -275,25 +266,18 @@ class FrontendStudentGeneral extends FrontendReadOnly
                 }
 
                 if (($tblStudentTransport = $tblStudent->getTblStudentTransport())) {
+                    $Global->POST['Meta']['Transport']['IsDriverStudent'] = $tblStudentTransport->getIsDriverStudent() ? 1 : 0;
                     $Global->POST['Meta']['Transport']['Route'] = $tblStudentTransport->getRoute();
                     $Global->POST['Meta']['Transport']['Station']['Entrance'] = $tblStudentTransport->getStationEntrance();
                     $Global->POST['Meta']['Transport']['Station']['Exit'] = $tblStudentTransport->getStationExit();
                     $Global->POST['Meta']['Transport']['Remark'] = $tblStudentTransport->getRemark();
                 }
 
-                if ($tblStudentBilling = $tblStudent->getTblStudentBilling()) {
-                    if ($tblStudentBilling->getServiceTblSiblingRank()) {
-                        $Global->POST['Meta']['Billing'] = $tblStudentBilling->getServiceTblSiblingRank()->getId();
-                    }
-                }
-
-                if ($tblStudentAgreementAll = Student::useService()->getStudentAgreementAllByStudent($tblStudent)) {
-                    foreach ($tblStudentAgreementAll as $tblStudentAgreement) {
-                        $Global->POST['Meta']['Agreement']
-                        [$tblStudentAgreement->getTblStudentAgreementType()->getTblStudentAgreementCategory()->getId()]
-                        [$tblStudentAgreement->getTblStudentAgreementType()->getId()] = 1;
-                    }
-                }
+//                if ($tblStudentBilling = $tblStudent->getTblStudentBilling()) {
+//                    if ($tblStudentBilling->getServiceTblSiblingRank()) {
+//                        $Global->POST['Meta']['Billing'] = $tblStudentBilling->getServiceTblSiblingRank()->getId();
+//                    }
+//                }
 
                 if (($tblStudentLiberationAll = Student::useService()->getStudentLiberationAllByStudent($tblStudent))) {
                     foreach ($tblStudentLiberationAll as $tblStudentLiberation) {
@@ -331,35 +315,6 @@ class FrontendStudentGeneral extends FrontendReadOnly
     {
 
         /**
-         * Panel: Agreement
-         */
-        $AgreementPanel = array();
-        if(($tblAgreementCategoryAll = Student::useService()->getStudentAgreementCategoryAll())){
-            array_walk($tblAgreementCategoryAll,
-                function (TblStudentAgreementCategory $tblStudentAgreementCategory) use (&$AgreementPanel) {
-                    array_push($AgreementPanel, new Aspect(new Bold($tblStudentAgreementCategory->getName())));
-                    $tblAgreementTypeAll = Student::useService()->getStudentAgreementTypeAllByCategory($tblStudentAgreementCategory);
-                    if ($tblAgreementTypeAll) {
-                        $tblAgreementTypeAll = $this->getSorter($tblAgreementTypeAll)->sortObjectBy('Name');
-                        array_walk($tblAgreementTypeAll,
-                            function (TblStudentAgreementType $tblStudentAgreementType) use (
-                                &$AgreementPanel,
-                                $tblStudentAgreementCategory
-                            ) {
-                                array_push($AgreementPanel,
-                                    new CheckBox('Meta[Agreement]['.$tblStudentAgreementCategory->getId().']['.$tblStudentAgreementType->getId().']',
-                                        $tblStudentAgreementType->getName(), 1)
-                                );
-                            }
-                        );
-                    }
-                }
-            );
-        }
-        $AgreementPanel = new Panel('Einverständniserklärung zur Datennutzung', $AgreementPanel,
-            Panel::PANEL_TYPE_INFO);
-
-        /**
          * Panel: Liberation
          */
         $tblLiberationCategoryAll = Student::useService()->getStudentLiberationCategoryAll();
@@ -378,14 +333,14 @@ class FrontendStudentGeneral extends FrontendReadOnly
         );
         $LiberationPanel = new Panel('Unterrichtsbefreiung', $LiberationPanel, Panel::PANEL_TYPE_INFO);
 
-        return (new Form(array(
+        $Form = (new Form(array(
             new FormGroup(array(
                 new FormRow(array(
                     new FormColumn(array(
-                        new Panel('Fakturierung', array(
-                            new SelectBox('Meta[Billing]', 'Geschwisterkind', array('{{Name}}' => Relationship::useService()->getSiblingRankAll()),
-                                new Child()),
-                        ), Panel::PANEL_TYPE_INFO),
+//                        new Panel('Geschwisterkind', array(
+//                            new SelectBox('Meta[Billing]', '', array('{{Name}}' => Relationship::useService()->getSiblingRankAll()),
+//                                new Child()),
+//                        ), Panel::PANEL_TYPE_INFO),
                         new Panel('Schließfach', array(
                             new TextField('Meta[Additional][Locker][Number]', 'Schließfachnummer', 'Schließfachnummer',
                                 new Lock()),
@@ -393,26 +348,30 @@ class FrontendStudentGeneral extends FrontendReadOnly
                                 'Schließfach Standort', new MapMarker()),
                             new TextField('Meta[Additional][Locker][Key]', 'Schlüssel Nummer', 'Schlüssel Nummer',
                                 new Key()),
+                            new TextField('Meta[Additional][Locker][CombinationLockNumber]', 'Zahlenschloss Nummer', 'Zahlenschloss Nummer',
+                                new Key())
                         ), Panel::PANEL_TYPE_INFO),
+                    ), 4),
+                    new FormColumn(array(
                         new Panel('Taufe', array(
                             new DatePicker('Meta[Additional][Baptism][Date]', 'Taufdatum', 'Taufdatum',
                                 new TempleChurch()
                             ),
                             new TextField('Meta[Additional][Baptism][Location]', 'Taufort', 'Taufort', new MapMarker()),
                         ), Panel::PANEL_TYPE_INFO),
+                        $LiberationPanel
                     ), 4),
-                    new FormColumn(array(
+                    new FormColumn(
                         new Panel('Schulbeförderung', array(
+                            new CheckBox('Meta[Transport][IsDriverStudent]', 'Fahrschüler', 1),
                             new TextField('Meta[Transport][Route]', 'Buslinie', 'Buslinie', new Bus()),
                             new TextField('Meta[Transport][Station][Entrance]', 'Einstiegshaltestelle',
                                 'Einstiegshaltestelle', new StopSign()),
                             new TextField('Meta[Transport][Station][Exit]', 'Ausstiegshaltestelle',
                                 'Ausstiegshaltestelle', new StopSign()),
                             new TextArea('Meta[Transport][Remark]', 'Bemerkungen', 'Bemerkungen', new Pencil()),
-                        ), Panel::PANEL_TYPE_INFO),
-                        $LiberationPanel
-                    ), 4),
-                    new FormColumn($AgreementPanel, 4),
+                        ), Panel::PANEL_TYPE_INFO)
+                    , 4),
                 )),
                 new FormRow(array(
                     new FormColumn(array(
@@ -424,5 +383,7 @@ class FrontendStudentGeneral extends FrontendReadOnly
                 ))
             ))
         )))->disableSubmitAction();
+
+        return $Form;
     }
 }

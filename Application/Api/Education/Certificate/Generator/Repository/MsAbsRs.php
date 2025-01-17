@@ -10,6 +10,8 @@ use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer as ConsumerGatekeeper;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Setting\Consumer\Consumer;
 
 /**
@@ -38,7 +40,7 @@ class MsAbsRs extends Certificate
             $showPictureOnSecondPage = $tblSetting->getValue();
         }
 
-        $Header = self::getHeadForDiploma($this->isSample(), !$showPictureOnSecondPage);
+        $Header = $this->getHeadForDiploma($this->isSample(), !$showPictureOnSecondPage);
 
         // leere Seite
         $pageList[] = new Page();
@@ -155,13 +157,14 @@ class MsAbsRs extends Certificate
                         ->setContent('{{ Content.P' . $personId . '.Person.Data.Name.First }}
                                           {{ Content.P' . $personId . '.Person.Data.Name.Last }}')
                         ->styleBorderBottom()
+                        ->styleAlignCenter()
                         , '45%')
                     ->addElementColumn((new Element())
                         ->setContent('Klasse:')
                         ->styleAlignCenter()
                         , '10%')
                     ->addElementColumn((new Element())
-                        ->setContent('{{ Content.P' . $personId . '.Division.Data.Level.Name }}{{ Content.P' . $personId . '.Division.Data.Name }}')
+                        ->setContent('{{ Content.P' . $personId . '.Division.Data.Name }}')
                         ->styleBorderBottom()
                         ->styleAlignCenter()
                     )
@@ -183,8 +186,8 @@ class MsAbsRs extends Certificate
                     ->styleTextBold()
                 )
             )
-            ->addSlice($this->getAdditionalSubjectLanes($personId))
-            ->addSlice((new Slice())->styleHeight('15px'))
+            ->addSlice($this->getAdditionalSubjectLanes($personId)->styleHeight('100px'))
+//            ->addSlice((new Slice())->styleHeight('15px'))
             /////////////////////////
             ->addSlice($this->getDescriptionHead($personId))
             ->addSlice($this->getDescriptionContent($personId, '200px', '15px'))
@@ -199,7 +202,7 @@ class MsAbsRs extends Certificate
         return $pageList;
     }
 
-    public static function getSchoolPart($personId)
+    public static function getSchoolPart($personId, $isLastLine = true)
     {
 
         $sliceList = array();
@@ -334,15 +337,17 @@ class MsAbsRs extends Certificate
                 )
                 ->styleMarginTop('10px');
 
-        $sliceList[] = (new Slice())
-            ->addElement((new Element())
-                ->setContent('Name und Anschrift der Schule')
-                ->styleTextSize('9px')
-//                ->styleTextColor('#999')
-                ->styleAlignCenter()
-                ->styleMarginTop('5px')
-                ->styleMarginBottom($hasExtraRow ? '10px' : '30px')
-            );
+        if($isLastLine){
+            $sliceList[] = (new Slice())
+                ->addElement((new Element())
+                    ->setContent('Name und Anschrift der Schule')
+                    ->styleTextSize('9px')
+                    //                ->styleTextColor('#999')
+                    ->styleAlignCenter()
+                    ->styleMarginTop('5px')
+                    ->styleMarginBottom($hasExtraRow ? '10px' : '30px')
+                );
+        }
 
         return $sliceList;
     }
@@ -395,7 +400,8 @@ class MsAbsRs extends Certificate
                     }
 
                     $section->addElementColumn((new Element())
-                        ->setContent($tblSubject->getName())
+                        ->setContent($tblSubject->getName() == 'Gemeinschaftskunde/Rechtserziehung/Wirtschaft'
+                            ? 'Gemeinschaftskunde/ Rechtserziehung/Wirtschaft' : $tblSubject->getName())
                         ->stylePaddingTop()
                         ->styleMarginTop('10px')
                         ->styleTextSize($TextSize)
@@ -408,7 +414,7 @@ class MsAbsRs extends Certificate
                                              &ndash;
                                          {% endif %}')
                         ->styleAlignCenter()
-                        ->styleBackgroundColor('#BBB')
+                        ->styleBackgroundColor(self::BACKGROUND_GRADE_FIELD)
                         ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', '#000')
                         ->stylePaddingTop(
                             '{% if(Content.P' . $personId . '.AdditionalGrade.Data.IsShrinkSize["' . $tblSubject->getAcronym() . '"] is not empty) %}
@@ -466,7 +472,7 @@ class MsAbsRs extends Certificate
             if (($tblGenerateCertificateSettingLeader = Generate::useService()->getGenerateCertificateSettingBy($tblGenerateCertificate, 'Leader'))
                 && ($tblPersonLeader = Person::useService()->getPersonById($tblGenerateCertificateSettingLeader->getValue()))
             ) {
-                $leaderName = $tblPersonLeader->getFullName();
+                $leaderName = $this->getPersonDisplayName($tblPersonLeader);
                 if (($tblCommon = $tblPersonLeader->getCommon())
                     && ($tblCommonBirthDates = $tblCommon->getTblCommonBirthDates())
                     && ($tblGender = $tblCommonBirthDates->getTblCommonGender())
@@ -478,17 +484,16 @@ class MsAbsRs extends Certificate
                     }
                 }
             }
-
             if (($tblGenerateCertificateSettingFirstMember = Generate::useService()->getGenerateCertificateSettingBy($tblGenerateCertificate, 'FirstMember'))
                 && ($tblPersonFirstMember = Person::useService()->getPersonById($tblGenerateCertificateSettingFirstMember->getValue()))
             ) {
-                $firstMemberName = $tblPersonFirstMember->getFullName();
+                $firstMemberName = $this->getPersonDisplayName($tblPersonFirstMember);
             }
 
             if (($tblGenerateCertificateSettingSecondMember = Generate::useService()->getGenerateCertificateSettingBy($tblGenerateCertificate, 'SecondMember'))
                 && ($tblPersonSecondMember = Person::useService()->getPersonById($tblGenerateCertificateSettingSecondMember->getValue()))
             ) {
-                $secondMemberName = $tblPersonSecondMember->getFullName();
+                $secondMemberName = $this->getPersonDisplayName($tblPersonSecondMember);
             }
         }
 
@@ -597,6 +602,20 @@ class MsAbsRs extends Certificate
     }
 
     /**
+     * @param TblPerson $tblPerson
+     *
+     * @return string
+     */
+    private function getPersonDisplayName(TblPerson $tblPerson): string
+    {
+        if (ConsumerGatekeeper::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'CSW')) {
+            return $tblPerson->getFirstSecondName() . ' ' . $tblPerson->getLastName();
+        } else {
+            return $tblPerson->getFullName();
+        }
+    }
+
+    /**
      * @param string $marginTop
      *
      * @return Slice
@@ -631,86 +650,5 @@ class MsAbsRs extends Certificate
         } else {
             return new Slice();
         }
-    }
-
-    /**
-     * @param $IsSample
-     * @param $showPicture
-     *
-     * @return Slice
-     */
-    public static function getHeadForDiploma($IsSample, $showPicture)
-    {
-
-        if ($showPicture) {
-            $pictureAddress = '';
-            if (($tblSettingAddress = \SPHERE\Application\Setting\Consumer\Consumer::useService()->getSetting(
-                'Education', 'Certificate', 'Generate', 'PictureAddressForDiplomaCertificate'))
-            ) {
-                $pictureAddress = trim($tblSettingAddress->getValue());
-            }
-            $pictureHeight = '50px';
-            if (($tblSettingHeight = \SPHERE\Application\Setting\Consumer\Consumer::useService()->getSetting(
-                    'Education', 'Certificate', 'Generate', 'PictureHeightForDiplomaCertificate'))
-                && ($value = trim($tblSettingHeight->getValue()))
-            ) {
-                $pictureHeight = $value;
-            }
-
-            if ($pictureAddress !== '') {
-                if ($IsSample) {
-                    $Header = (new Slice())
-                        ->addSection((new Section())
-                            ->addElementColumn((new Element\Image($pictureAddress, 'auto', $pictureHeight))
-                                ->styleAlignCenter()
-                                , '25%')
-                            ->addElementColumn((new Element\Sample())
-                                ->styleTextSize('30px')
-                            )
-                            ->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/ClaimFreistaatSachsen.jpg',
-                                '165px', '50px'))
-                                , '25%')
-                        );
-                } else {
-                    $Header = (new Slice())
-                        ->addSection((new Section())
-                            ->addElementColumn((new Element\Image($pictureAddress, 'auto', $pictureHeight))
-                                ->styleAlignCenter()
-                                , '25%')
-                            ->addElementColumn((new Element()), '50%')
-                            ->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/ClaimFreistaatSachsen.jpg',
-                                '165px', '50px'))
-                                , '25%')
-                        );
-                }
-
-                return $Header;
-            }
-        }
-
-        if ($IsSample) {
-            $Header = (new Slice())
-                ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        , '25%'
-                    )
-                    ->addElementColumn((new Element\Sample())
-                        ->styleTextSize('30px')
-                    )
-                    ->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/ClaimFreistaatSachsen.jpg',
-                        '165px', '50px'))
-                        , '25%')
-                );
-        } else {
-            $Header = (new Slice())
-                ->addSection((new Section())
-                    ->addElementColumn((new Element()), '75%')
-                    ->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/ClaimFreistaatSachsen.jpg',
-                        '165px', '50px'))
-                        , '25%')
-                );
-        }
-
-        return $Header;
     }
 }

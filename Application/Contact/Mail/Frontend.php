@@ -1,14 +1,22 @@
 <?php
 namespace SPHERE\Application\Contact\Mail;
 
+use SPHERE\Application\Api\Contact\ApiContactDetails;
 use SPHERE\Application\Api\Contact\ApiMailToCompany;
 use SPHERE\Application\Api\Contact\ApiMailToPerson;
+use SPHERE\Application\Contact\Mail\Service\Entity\TblMail;
 use SPHERE\Application\Contact\Mail\Service\Entity\TblToPerson;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
+use SPHERE\Application\ParentStudentAccess\OnlineContactDetails\OnlineContactDetails;
+use SPHERE\Application\ParentStudentAccess\OnlineContactDetails\Service\Entity\TblOnlineContact;
 use SPHERE\Application\People\Person\FrontendReadOnly;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Relationship;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumerLogin;
+use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\MailField;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextArea;
@@ -16,6 +24,7 @@ use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
+use SPHERE\Common\Frontend\Icon\Repository\Check;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Envelope;
 use SPHERE\Common\Frontend\Icon\Repository\Mail as MailIcon;
@@ -24,7 +33,9 @@ use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\TileBig;
 use SPHERE\Common\Frontend\IFrontendInterface;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
@@ -32,8 +43,8 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Link\Repository\Mailto;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
+use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
-use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\System\Extension\Extension;
 use SPHERE\Common\Frontend\Link\Repository\Primary as PrimaryLink;
 
@@ -49,57 +60,94 @@ class Frontend extends Extension implements IFrontendInterface
      * @param $PersonId
      * @param null $ToPersonId
      * @param bool $setPost
+     * @param null $OnlineContactId
+     * @param bool $isOnlineContactPosted
      *
      * @return Form
      */
-    public function formAddressToPerson($PersonId, $ToPersonId = null, $setPost = false)
+    public function formAddressToPerson($PersonId, $ToPersonId = null, $setPost = false, $OnlineContactId = null, $isOnlineContactPosted = false): Form
     {
+        $tblOnlineContact = $OnlineContactId ? OnlineContactDetails::useService()->getOnlineContactById($OnlineContactId) : false;
 
         if ($ToPersonId && ($tblToPerson = Mail::useService()->getMailToPersonById($ToPersonId))) {
             // beim Checken der Inputfeldern darf der Post nicht gesetzt werden
             if ($setPost) {
                 $Global = $this->getGlobal();
-                $Global->POST['Address'] = $tblToPerson->getTblMail()->getAddress();
+                if ($isOnlineContactPosted) {
+                    $Global->POST['Address']['Mail'] = $tblOnlineContact->getContactContent();
+                } else {
+                    $Global->POST['Address']['Mail'] = $tblToPerson->getTblMail()->getAddress();
+                }
+                $Global->POST['Address']['Alias'] = $tblToPerson->isAccountUserAlias();
+                $Global->POST['Address']['IsRecoveryMail'] = $tblToPerson->isAccountRecoveryMail();
                 $Global->POST['Type']['Type'] = $tblToPerson->getTblType()->getId();
                 $Global->POST['Type']['Remark'] = $tblToPerson->getRemark();
+                $Global->savePost();
+            }
+        } elseif ($tblOnlineContact) {
+            if ($setPost) {
+                $Global = $this->getGlobal();
+                /** @var TblMail $tblContact */
+                $Global->POST['Address']['Mail'] = ($tblContact = $tblOnlineContact->getServiceTblContact()) ? $tblContact->getAddress() : '';
+                $Global->POST['Type']['Type'] = ($tblNewContactType = $tblOnlineContact->getServiceTblNewContactType()) ? $tblNewContactType->getId() : 0;
                 $Global->savePost();
             }
         }
 
         if ($ToPersonId) {
             $saveButton = (new PrimaryLink('Speichern', ApiMailToPerson::getEndpoint(), new Save()))
-                ->ajaxPipelineOnClick(ApiMailToPerson::pipelineEditMailToPersonSave($PersonId, $ToPersonId));
+                ->ajaxPipelineOnClick(ApiMailToPerson::pipelineEditMailToPersonSave($PersonId, $ToPersonId, $OnlineContactId));
         } else {
             $saveButton = (new PrimaryLink('Speichern', ApiMailToPerson::getEndpoint(), new Save()))
-                ->ajaxPipelineOnClick(ApiMailToPerson::pipelineCreateMailToPersonSave($PersonId));
+                ->ajaxPipelineOnClick(ApiMailToPerson::pipelineCreateMailToPersonSave($PersonId, $OnlineContactId));
         }
 
         $tblTypeAll = Mail::useService()->getTypeAll();
 
-        return (new Form(
+        // Consumer with UCS?
+        $isUCS = false;
+        if(($tblConsumer = Consumer::useService()->getConsumerBySession())){
+            if(Consumer::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_UCS)){
+                $isUCS = true;
+            }
+        }
+
+        $CheckBoxAlias = '';
+        $CheckBoxRecoveryMail = '';
+        if($isUCS){
+            $tblPerson = Person::useService()->getPersonById($PersonId);
+            $hasAccount = Account::useService()->getAccountAllByPerson($tblPerson);
+
+            $CheckBoxAlias = new CheckBox('Address[Alias]', 'E-Mail als '
+                . ($hasAccount ? '' : new Bold('späteren')) . ' UCS Benutzername verwenden', 1);
+            $CheckBoxRecoveryMail = new CheckBox('Address[IsRecoveryMail]', 'E-Mail als '
+                . ($hasAccount ? '' : new Bold('späteres')) . ' UCS "Passwort vergessen" verwenden', 1);
+        }
+
+        $typeSelectBox = (new SelectBox('Type[Type]', 'Typ', array('{{ Name }} {{ Description }}' => $tblTypeAll), new TileBig()))->setRequired();
+        $mailField = (new MailField('Address[Mail]', 'E-Mail Adresse', 'E-Mail Adresse', new MailIcon() ))->setRequired();
+        $remarkTextArea = new TextArea('Type[Remark]', 'Bemerkungen', 'Bemerkungen', new Edit());
+
+        $form = new Form(
             new FormGroup(array(
                 new FormRow(array(
                     new FormColumn(
                         new Panel('E-Mail Adresse',
                             array(
-                                (new SelectBox('Type[Type]', 'Typ',
-                                    array('{{ Name }} {{ Description }}' => $tblTypeAll), new TileBig()
-                                ))->setRequired(),
-                                (new MailField('Address', 'E-Mail Adresse', 'E-Mail Adresse', new MailIcon() ))->setRequired()
+                                $typeSelectBox,
+                                $mailField,
+                                $CheckBoxAlias,
+                                $CheckBoxRecoveryMail
                             ), Panel::PANEL_TYPE_INFO
-                        ), 6),
-                    new FormColumn(
-                        new Panel('Sonstiges',
-                            new TextArea('Type[Remark]', 'Bemerkungen', 'Bemerkungen', new Edit())
-                            , Panel::PANEL_TYPE_INFO
                         ), 6
                     ),
-                    new FormColumn(
-                        $saveButton
-                    )
+                    new FormColumn(new Panel('Sonstiges', $remarkTextArea, Panel::PANEL_TYPE_INFO), 6),
+                    new FormColumn($saveButton)
                 )),
             ))
-        ))->disableSubmitAction();
+        );
+
+        return $form->disableSubmitAction();
     }
 
     /**
@@ -167,6 +215,8 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendLayoutPersonNew(TblPerson $tblPerson)
     {
 
+        $hasAccount = Account::useService()->getAccountAllByPerson($tblPerson);
+
         $mailList = array();
         if (($tblMailList = Mail::useService()->getMailAllByPerson($tblPerson))){
             foreach ($tblMailList as $tblToPerson) {
@@ -203,11 +253,20 @@ class Frontend extends Extension implements IFrontendInterface
             $LayoutRowCount = 0;
             $LayoutRow = null;
 
+            // Consumer with UCS?
+            $isUCS = false;
+            if(($tblConsumer = Consumer::useService()->getConsumerBySession())){
+                if(Consumer::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_UCS)){
+                    $isUCS = true;
+                }
+            }
+
             foreach ($mailList as $mailId => $typeArray) {
                 if (($tblMail = Mail::useService()->getMailById($mailId))) {
                     foreach ($typeArray as $typeId => $personArray) {
                         if (($tblType = Mail::useService()->getTypeById($typeId))) {
                             $content = array();
+                            $hasOnlineContacts = false;
                             if (isset($personArray[$tblPerson->getId()])) {
                                 /** @var TblToPerson $tblToPerson */
                                 $tblToPerson = $personArray[$tblPerson->getId()];
@@ -234,16 +293,35 @@ class Frontend extends Extension implements IFrontendInterface
                                         $tblPerson->getId(),
                                         $tblToPerson->getId()
                                     ));
+                                $hasOnlineContactsOptions = true;
                             } else {
+                                $tblToPerson = false;
                                 $panelType = Panel::PANEL_TYPE_DEFAULT;
                                 $options = '';
+                                $hasOnlineContactsOptions = false;
                             }
 
                             $content[] = new Mailto($tblMail->getAddress(), $tblMail->getAddress(), new Envelope());
+                            if ($isUCS && isset($personArray[$tblPerson->getId()])) {
+                                if(($tblToPersonCurrent =  $personArray[$tblPerson->getId()])){
+                                    /** @var $tblToPersonCurrent TblToPerson */
+                                    if($tblToPersonCurrent->isAccountUserAlias()){
+                                        $content[] = new Check() . ' E-Mail als '
+                                            . ($hasAccount ? '' : new Bold('späteren'))
+                                            . ' UCS Benutzername verwenden';
+                                    }
+                                    if($tblToPersonCurrent->isAccountRecoveryMail()){
+                                        $content[] = new Check() . ' E-Mail als '
+                                            . ($hasAccount ? '' : new Bold('späteres'))
+                                            . ' UCS "Passwort vergessen" verwenden';
+                                    }
+                                }
+                            }
+
                             /**
-                             * @var TblToPerson $tblToPerson
+                             * @var TblToPerson $tblToPersonTemp
                              */
-                            foreach ($personArray as $personId => $tblToPerson) {
+                            foreach ($personArray as $personId => $tblToPersonTemp) {
                                 if (($tblPersonMail = Person::useService()->getPersonById($personId))) {
                                     $content[] = ($tblPerson->getId() != $tblPersonMail->getId()
                                             ? new Link(
@@ -254,8 +332,33 @@ class Frontend extends Extension implements IFrontendInterface
                                                 'Zur Person'
                                             )
                                             : $tblPersonMail->getFullName())
-//                                        . (($remark = $tblToPerson->getRemark())  ? ' ' . new ToolTip(new Info(), $remark) : '');
-                                        . (($remark = $tblToPerson->getRemark())  ? ' ' . new Small(new Muted($remark)) : '');
+                                        . Relationship::useService()->getRelationshipInformationForContact($tblPerson, $tblPersonMail, $tblToPersonTemp->getRemark());
+                                    if (!$tblToPerson) {
+                                        $tblToPerson = $tblToPersonTemp;
+                                    }
+                                }
+                            }
+
+                            if ($tblToPerson
+                                && ($tblOnlineContactList = OnlineContactDetails::useService()->getOnlineContactAllByToPerson(TblOnlineContact::VALUE_TYPE_MAIL, $tblToPerson))
+                            ) {
+                                foreach ($tblOnlineContactList as $tblOnlineContact) {
+                                    $hasOnlineContacts = true;
+                                    if ($hasOnlineContactsOptions) {
+                                        $links = (new Link(new Edit(), ApiMailToPerson::getEndpoint(), null, array(), 'Bearbeiten'))
+                                                ->ajaxPipelineOnClick(ApiMailToPerson::pipelineOpenEditMailToPersonModal($tblPerson->getId(), $tblToPerson->getId(), $tblOnlineContact->getId()))
+                                            . ' | '
+                                            . (new Link(new \SPHERE\Common\Frontend\Text\Repository\Warning(new Remove()), ApiContactDetails::getEndpoint(),
+                                                null, array(), 'Löschen'))
+                                                ->ajaxPipelineOnClick(ApiContactDetails::pipelineOpenDeleteContactDetailModal($tblPerson->getId(), $tblOnlineContact->getId()));
+                                    } else {
+                                        $links = '';
+                                    }
+                                    $content[] = new Container(
+                                            'Änderungswunsch für ' . OnlineContactDetails::useService()->getPersonListForOnlineContact($tblOnlineContact, true) .  ': '
+                                        )
+                                        . new Container(new MailIcon() . ' ' . $tblOnlineContact->getContactContent() . new PullRight($links))
+                                        . new Container($tblOnlineContact->getContactCreate());
                                 }
                             }
 
@@ -263,7 +366,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 new MailIcon() . ' ' . $tblType->getName(),
                                 $content,
                                 $options,
-                                $panelType
+                                $hasOnlineContacts ? Panel::PANEL_TYPE_WARNING : $panelType
                             );
 
                             if ($LayoutRowCount % 4 == 0) {
@@ -289,22 +392,34 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendLayoutCompanyNew(TblCompany $tblCompany)
     {
 
-        if (($tblMailList = Mail::useService()->getMailAllByCompany($tblCompany))){
-            $LayoutRowList = array();
-            $LayoutRowCount = 0;
-            $LayoutRow = null;
+        $mailBusiness = array();
+        if (($tblRelationshipAll = Relationship::useService()->getCompanyRelationshipAllByCompany($tblCompany))) {
+            foreach ($tblRelationshipAll as $tblRelationship) {
+                if(($tblPerson = $tblRelationship->getServiceTblPerson())){
+                    $tblRelationshipMailAll = Mail::useService()->getMailAllByPerson($tblPerson);
+                    if ($tblRelationshipMailAll) {
+                        foreach ($tblRelationshipMailAll as $tblToPerson) {
+                            if (($tblMail = $tblToPerson->getTblMail())
+                            && $tblToPerson->getTblType()->getName() == 'Geschäftlich') {
+                                $mailBusiness[$tblMail->getId()] = $tblToPerson;
+                            }
+                        }
+                    }
+                }
+            }
+        }
 
-            foreach ($tblMailList as $tblToCompany) {
-                if (($tblMail = $tblToCompany->getTblMail())
+        $LayoutRowList = array();
+        $LayoutRowCount = 0;
+        $LayoutRow = null;
+        if (($tblMailList = Mail::useService()->getMailAllByCompany($tblCompany))){
+            foreach($tblMailList as $tblToCompany) {
+                if(($tblMail = $tblToCompany->getTblMail())
                     && ($tblType = $tblToCompany->getTblType())
-                ) {
+                ){
                     $content = array();
 
-                    $panelType = (preg_match('!Notfall!is',
-                        $tblType->getName() . ' ' . $tblType->getDescription())
-                        ? Panel::PANEL_TYPE_DANGER
-                        : Panel::PANEL_TYPE_SUCCESS
-                    );
+                    $panelType = Panel::PANEL_TYPE_SUCCESS;
 
                     $options =
                         (new Link(
@@ -317,8 +432,8 @@ class Frontend extends Extension implements IFrontendInterface
                             $tblCompany->getId(),
                             $tblToCompany->getId()
                         ))
-                        . ' | '
-                        . (new Link(
+                        .' | '
+                        .(new Link(
                             new \SPHERE\Common\Frontend\Text\Repository\Warning(new Remove()),
                             ApiMailToCompany::getEndpoint(),
                             null,
@@ -330,18 +445,18 @@ class Frontend extends Extension implements IFrontendInterface
                         ));
 
                     $content[] = new Mailto($tblMail->getAddress(), $tblMail->getAddress(), new Envelope());
-                    if (($remark = $tblToCompany->getRemark())) {
+                    if(($remark = $tblToCompany->getRemark())){
                         $content[] = new Muted($remark);
                     }
 
                     $panel = FrontendReadOnly::getContactPanel(
-                        new MailIcon() . ' ' . $tblType->getName(),
+                        new MailIcon().' '.$tblType->getName(),
                         $content,
                         $options,
                         $panelType
                     );
 
-                    if ($LayoutRowCount % 4 == 0) {
+                    if($LayoutRowCount % 4 == 0){
                         $LayoutRow = new LayoutRow(array());
                         $LayoutRowList[] = $LayoutRow;
                     }
@@ -349,10 +464,47 @@ class Frontend extends Extension implements IFrontendInterface
                     $LayoutRowCount++;
                 }
             }
-
-            return (string) (new Layout(new LayoutGroup($LayoutRowList)));
-        } else {
-            return new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(new Warning('Keine E-Mail Adressen hinterlegt')))));
         }
+        if(!empty($mailBusiness)){
+            /**
+             * @var TblToPerson $tblToPerson
+             */
+            foreach($mailBusiness as $tblToPerson) {
+                $content = array();
+                $tblPerson = $tblToPerson->getServiceTblPerson();
+                $tblMail = $tblToPerson->getTblMail();
+                $tblType = $tblToPerson->getTblType();
+
+                $content[] = new Mailto($tblMail->getAddress(), $tblMail->getAddress(), new Envelope());
+                if(($remark = $tblToPerson->getRemark())){
+                    $content[] = new Muted($remark);
+                }
+                $content[] = new Link(
+                    new PersonIcon().' '.$tblPerson->getFullName(),
+                    '/People/Person',
+                    null,
+                    array('Id' => $tblPerson->getId()),
+                    'Zur Person'
+                );
+
+                $panel = FrontendReadOnly::getContactPanel(
+                    new MailIcon().' '.$tblType->getName().' '.$tblType->getDescription(),
+                    $content,
+                    '',
+                    Panel::PANEL_TYPE_DEFAULT
+                );
+
+                if($LayoutRowCount % 4 == 0){
+                    $LayoutRow = new LayoutRow(array());
+                    $LayoutRowList[] = $LayoutRow;
+                }
+                $LayoutRow->addColumn(new LayoutColumn($panel, 3));
+                $LayoutRowCount++;
+            }
+        }
+        if(!empty($LayoutRowList)){
+            return (string) (new Layout(new LayoutGroup($LayoutRowList)));
+        }
+        return new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(new Warning('Keine E-Mail Adressen hinterlegt')))));
     }
 }

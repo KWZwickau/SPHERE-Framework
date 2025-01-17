@@ -17,6 +17,18 @@ use SPHERE\Common\Frontend\Layout\Repository\Container;
  */
 class BeGs extends Certificate
 {
+    /**
+     * @return array
+     */
+    public function getApiModalColumns()
+    {
+        return array(
+            'Type' => 'Bezieht sich auf',
+            'DateCertifcate' => 'Datum des Zeugnisses',
+            'DateConference' => 'Datum der Klassenkonferenz',
+            'DateConsulting' => 'Datum der Bildungsberatung'
+        );
+    }
 
     /**
      * @return array
@@ -83,7 +95,7 @@ class BeGs extends Certificate
                     ->addElementColumn((new Element())
                         , '4%')
                     ->addElementColumn((new Element())
-                        ->setContent('{{ Content.P' . $personId . '.Division.Data.Level.Name }}{{ Content.P' . $personId . '.Division.Data.Name }}')
+                        ->setContent('{{ Content.P' . $personId . '.Division.Data.Name }}')
                         ->stylePaddingTop($PaddingTopInfo)
                         ->stylePaddingLeft()
                         ->styleBorderBottom()
@@ -463,7 +475,7 @@ class BeGs extends Certificate
                         , '30%')
                     ->addElementColumn((new Element())
                         , '70%')
-                )->styleMarginTop('50px')
+                )->styleMarginTop('47px')
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
                         ->setContent(

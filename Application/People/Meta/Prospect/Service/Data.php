@@ -1,11 +1,11 @@
 <?php
 namespace SPHERE\Application\People\Meta\Prospect\Service;
 
+use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\People\Meta\Prospect\Service\Entity\TblProspect;
 use SPHERE\Application\People\Meta\Prospect\Service\Entity\TblProspectAppointment;
 use SPHERE\Application\People\Meta\Prospect\Service\Entity\TblProspectReservation;
-use SPHERE\Application\People\Meta\Prospect\Service\Entity\ViewPeopleMetaProspect;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Database\Binding\AbstractData;
@@ -17,17 +17,6 @@ use SPHERE\System\Database\Binding\AbstractData;
  */
 class Data extends AbstractData
 {
-
-    /**
-     * @return false|ViewPeopleMetaProspect[]
-     */
-    public function viewPeopleMetaProspect()
-    {
-
-        return $this->getCachedEntityList(
-            __METHOD__, $this->getConnection()->getEntityManager(), 'ViewPeopleMetaProspect'
-        );
-    }
 
     public function setupDatabaseContent()
     {
@@ -84,10 +73,11 @@ class Data extends AbstractData
     }
 
     /**
-     * @param string       $ReservationYear
-     * @param string       $ReservationDivision
-     * @param null|TblType $tblTypeOptionA
-     * @param null|TblType $tblTypeOptionB
+     * @param string          $ReservationYear
+     * @param string          $ReservationDivision
+     * @param null|TblType    $tblTypeOptionA
+     * @param null|TblType    $tblTypeOptionB
+     * @param TblCompany|null $tblCompany
      *
      * @return TblProspectReservation
      */
@@ -95,7 +85,8 @@ class Data extends AbstractData
         $ReservationYear,
         $ReservationDivision,
         TblType $tblTypeOptionA = null,
-        TblType $tblTypeOptionB = null
+        TblType $tblTypeOptionB = null,
+        TblCompany $tblCompany = null
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -105,6 +96,7 @@ class Data extends AbstractData
         $Entity->setReservationDivision($ReservationDivision);
         $Entity->setServiceTblTypeOptionA($tblTypeOptionA);
         $Entity->setServiceTblTypeOptionB($tblTypeOptionB);
+        $Entity->setServiceTblCompany($tblCompany);
         $Manager->saveEntity($Entity);
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
 
@@ -212,6 +204,7 @@ class Data extends AbstractData
      * @param string                 $ReservationDivision
      * @param null|TblType           $tblTypeOptionA
      * @param null|TblType           $tblTypeOptionB
+     * @param TblCompany|null        $tblCompany
      *
      * @return bool
      */
@@ -220,7 +213,8 @@ class Data extends AbstractData
         $ReservationYear,
         $ReservationDivision,
         TblType $tblTypeOptionA = null,
-        TblType $tblTypeOptionB = null
+        TblType $tblTypeOptionB = null,
+        TblCompany $tblCompany = null
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -232,6 +226,7 @@ class Data extends AbstractData
             $Entity->setReservationDivision($ReservationDivision);
             $Entity->setServiceTblTypeOptionA($tblTypeOptionA);
             $Entity->setServiceTblTypeOptionB($tblTypeOptionB);
+            $Entity->setServiceTblCompany($tblCompany);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
             return true;
@@ -271,6 +266,51 @@ class Data extends AbstractData
 
         return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(),
             'TblProspectReservation');
+    }
+
+    /**
+     * @param array $FilterList
+     *
+     * @return array|float|int|string
+     */
+    public function fetchIdPersonByFilter(array $FilterList = array())
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $queryBuilder = $Manager->getQueryBuilder();
+        $Prospect = new TblProspect();
+        $ProspectReservation = new TblProspectReservation();
+        $ProspectAppointment = new TblProspectAppointment();
+        $query = $queryBuilder->select('tP.serviceTblPerson as PersonId, tPR.ReservationYear, tPR.ReservationDivision,
+        tPR.serviceTblTypeOptionA as ReservationOptionA, tPR.serviceTblTypeOptionB as ReservationOptionB, tPA.ReservationDate, tPA.InterviewDate, tPA.TrialDate')
+            ->from($Prospect->getEntityFullName(), 'tP')
+            ->leftJoin($ProspectReservation->getEntityFullName(), 'tPR', 'WITH', 'tPR.Id = tP.tblProspectReservation')
+            ->leftJoin($ProspectAppointment->getEntityFullName(), 'tPA', 'WITH', 'tPA.Id = tP.tblProspectAppointment')
+            ->where($queryBuilder->expr()->isNull('tP.EntityRemove'));
+        $ParameterCount = 1;
+        foreach($FilterList as $FilterName => $FilterValue){
+            if($FilterValue != null){
+                if($FilterName == 'TblProspectReservation_ReservationYear'){
+                    $query->andWhere($queryBuilder->expr()->eq('tPR.ReservationYear', '?'.$ParameterCount))
+                        ->setParameter($ParameterCount++, $FilterValue);
+                }
+                if($FilterName == 'TblProspectReservation_ReservationDivision'){
+                    $query->andWhere($queryBuilder->expr()->eq('tPR.ReservationDivision', '?'.$ParameterCount))
+                        ->setParameter($ParameterCount++, $FilterValue);
+                }
+                if($FilterName == 'TblProspectReservation_serviceTblTypeOptionA'
+                && $FilterValue != 0){
+                    $query->andWhere(
+                        $queryBuilder->expr()->orX(
+                            $queryBuilder->expr()->eq('tPR.serviceTblTypeOptionA', '?'.$ParameterCount),
+                            $queryBuilder->expr()->eq('tPR.serviceTblTypeOptionB', '?'.$ParameterCount)
+                        ))
+                        ->setParameter($ParameterCount++, $FilterValue);
+                }
+            }
+        }
+        $query = $query->getQuery();
+        return $query->getResult();
     }
 
     /**

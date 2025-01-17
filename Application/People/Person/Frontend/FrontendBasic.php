@@ -168,7 +168,7 @@ class FrontendBasic extends FrontendReadOnly
                     ViewPerson::TBL_PERSON_SECOND_NAME => 'Zweiter Vorname',
                     ViewPerson::TBL_PERSON_LAST_NAME => 'Nachname',
                     ViewPerson::TBL_PERSON_BIRTH_NAME => 'Geburtsname',
-                    'BirthDay' => 'Geburtstag',
+                    'BirthDay' => 'Geburtsdatum',
                     'Address' => 'Adresse',
                     'Option' => '',
                 ), array('order'      => array(
@@ -197,7 +197,7 @@ class FrontendBasic extends FrontendReadOnly
     public static function getSimilarPersonMessage($countSimilarPerson, $name, $hash) {
         if ($countSimilarPerson > 0) {
             return new Danger(new Bold($countSimilarPerson . ' Personen mit ähnlichem Namen gefunden. Ist diese Person schon angelegt?')
-                . new Link('Zur Liste springen', null, null, array(), false, $hash)
+                . new Link('Zur Liste springen', '', null, array(), false, $hash)
             );
         } else {
             return new \SPHERE\Common\Frontend\Message\Repository\Success('Keine Personen zu ' . $name . ' gefunden');
@@ -206,10 +206,11 @@ class FrontendBasic extends FrontendReadOnly
 
     /**
      * @param null $PersonId
+     * @param null $GroupId
      *
      * @return string
      */
-    public static function getBasicContent($PersonId = null)
+    public static function getBasicContent($PersonId = null, $GroupId = null)
     {
         if (($tblPerson = Person::useService()->getPersonById($PersonId, true))) {
             $groups = array();
@@ -251,13 +252,14 @@ class FrontendBasic extends FrontendReadOnly
             )));
 
             $editLink = (new Link(new Edit() . ' Bearbeiten', ApiPersonEdit::getEndpoint()))
-                ->ajaxPipelineOnClick(ApiPersonEdit::pipelineEditBasicContent($PersonId));
+                ->ajaxPipelineOnClick(ApiPersonEdit::pipelineEditBasicContent($PersonId, $GroupId));
+            $DivisionString = FrontendReadOnly::getDivisionString($tblPerson);
 
             return TemplateReadOnly::getContent(
                 self::TITLE,
                 self::getSubContent('Grunddaten', $content),
                 array($editLink),
-                'der Person ' . new Bold(new Success($tblPerson->getFullName())),
+                'der Person ' . new Bold(new Success($tblPerson->getFullName())).$DivisionString,
                 new PersonParent()
             );
         }
@@ -267,10 +269,11 @@ class FrontendBasic extends FrontendReadOnly
 
     /**
      * @param null $PersonId
+     * @param null $GroupId
      *
      * @return string
      */
-    public function getEditBasicContent($PersonId = null)
+    public function getEditBasicContent($PersonId = null, $GroupId = null)
     {
 
         $tblPerson = false;
@@ -298,7 +301,7 @@ class FrontendBasic extends FrontendReadOnly
         }
 
         return $this->getEditBasicTitle($tblPerson ? $tblPerson : null)
-            . new Well($this->getEditBasicForm($tblPerson ? $tblPerson : null));
+            . new Well($this->getEditBasicForm($tblPerson ? $tblPerson : null, $GroupId));
     }
 
     /**
@@ -309,17 +312,19 @@ class FrontendBasic extends FrontendReadOnly
      */
     private function getEditBasicTitle(TblPerson $tblPerson = null, $isCreatePerson = false)
     {
+        $DivisionString = $this->getDivisionString($tblPerson);
         return new Title(new PersonParent() . ' ' . self::TITLE, 'der Person '
-            . ($tblPerson ? new Bold(new Success($tblPerson->getFullName())) : '')
+            . ($tblPerson ? new Bold(new Success($tblPerson->getFullName())) : '').$DivisionString
             . ($isCreatePerson ? ' anlegen' : ' bearbeiten'));
     }
 
     /**
      * @param TblPerson|null $tblPerson
+     * @param $GroupId
      *
      * @return Form
      */
-    private function getEditBasicForm(TblPerson $tblPerson = null)
+    private function getEditBasicForm(TblPerson $tblPerson = null, $GroupId)
     {
 
         return new Form(
@@ -328,7 +333,7 @@ class FrontendBasic extends FrontendReadOnly
                 new FormRow(array(
                     new FormColumn(array(
                         (new Primary('Speichern', ApiPersonEdit::getEndpoint(), new Save()))
-                            ->ajaxPipelineOnClick(ApiPersonEdit::pipelineSaveBasicContent($tblPerson ? $tblPerson->getId() : 0)),
+                            ->ajaxPipelineOnClick(ApiPersonEdit::pipelineSaveBasicContent($tblPerson ? $tblPerson->getId() : 0, $GroupId)),
                         (new Primary('Abbrechen', ApiPersonEdit::getEndpoint(), new Disable()))
                             ->ajaxPipelineOnClick(ApiPersonEdit::pipelineCancelBasicContent($tblPerson ? $tblPerson->getId() : 0))
                     ))
@@ -343,7 +348,7 @@ class FrontendBasic extends FrontendReadOnly
      */
     private function getBasicFormRow($isCreate)
     {
-        $tblSalutationAll = Person::useService()->getSalutationAll();
+        $tblSalutationAll = Person::useService()->getSalutationAll(true);
 
         $tblGroupList = Group::useService()->getGroupAllSorted();
         if ($tblGroupList) {
@@ -366,7 +371,7 @@ class FrontendBasic extends FrontendReadOnly
                     default:
                         $tblGroup = (new CheckBox(
                             'Person[Group][' . $tblGroup->getId() . ']',
-                            $tblGroup->getName() . ' ' . new Muted(new Small($tblGroup->getDescription())),
+                            $tblGroup->getName() . ' ' . new Muted(new Small($tblGroup->getDescription(true))),
                             $tblGroup->getId()
                         ))->setTabIndex($tabIndex++);
                 }
@@ -380,18 +385,19 @@ class FrontendBasic extends FrontendReadOnly
         $lastNameInput = (new TextField('Person[LastName]', 'Nachname', 'Nachname'))->setRequired()
             ->setTabIndex(3);
         $salutationSelectBox = (new SelectBox('Person[Salutation]', 'Anrede', array('Salutation' => $tblSalutationAll),
-            new Conversation()))->setTabIndex(1);
+            new Conversation(), true, null))->setTabIndex(1);
         if ($isCreate) {
             $firstNameInput->ajaxPipelineOnKeyUp(ApiPersonEdit::pipelineLoadSimilarPersonContent());
             $lastNameInput->ajaxPipelineOnKeyUp(ApiPersonEdit::pipelineLoadSimilarPersonContent());
             $salutationSelectBox->ajaxPipelineOnChange(ApiPersonEdit::pipelineChangeSelectedGender());
         }
+        $TitleAll = Person::useService()->getTitleAll();
 
         return new FormRow(array(
             new FormColumn(
                 new Panel('Anrede', array(
                     $salutationSelectBox,
-                    (new AutoCompleter('Person[Title]', 'Titel', 'Titel', array('Dipl.- Ing.'),
+                    (new AutoCompleter('Person[Title]', 'Titel', 'Titel', $TitleAll,
                         new Conversation()))->setTabIndex(4),
                 ), Panel::PANEL_TYPE_INFO), 2),
             new FormColumn(
@@ -415,13 +421,14 @@ class FrontendBasic extends FrontendReadOnly
     /**
      * @param TblPerson|null $tblPerson
      * @param $Person
+     * @param $GroupId
      *
      * @return bool|string
      */
-    public function checkInputBasicContent(TblPerson $tblPerson = null, $Person)
+    public function checkInputBasicContent(TblPerson $tblPerson = null, $Person, $GroupId)
     {
         $error = false;
-        $form = $this->getEditBasicForm($tblPerson ? $tblPerson : null);
+        $form = $this->getEditBasicForm($tblPerson ? $tblPerson : null, $GroupId);
         if (isset($Person['FirstName'] ) && empty($Person['FirstName'] )) {
             $form->setError('Person[FirstName]', 'Bitte geben Sie einen Vornamen an');
             $error = true;

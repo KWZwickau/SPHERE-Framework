@@ -21,7 +21,8 @@ class TblSchool extends Element
 
     const ATTR_SERVICE_TBL_COMPANY = 'serviceTblCompany';
     const ATTR_SERVICE_TBL_TYPE = 'serviceTblType';
-    const ATTR_COMPANY_NUMBER = 'CompanyNumber';
+    const ATTR_COMPANY_NUMBER = 'CompanyNumber'; // Unternehmensnummer
+    const ATTR_SCHOOL_CODE = 'SchoolCode'; // Dienststellenschlüssel
 
     /**
      * @Column(type="bigint")
@@ -35,6 +36,10 @@ class TblSchool extends Element
      * @Column(type="string")
      */
     protected $CompanyNumber;
+    /**
+     * @Column(type="string")
+     */
+    protected $SchoolCode;
 
     /**
      * @return bool|TblCompany
@@ -81,6 +86,7 @@ class TblSchool extends Element
     }
 
     /**
+     * Unternehmensnummer
      * @return string
      */
     public function getCompanyNumber()
@@ -94,6 +100,23 @@ class TblSchool extends Element
     public function setCompanyNumber($CompanyNumber)
     {
         $this->CompanyNumber = $CompanyNumber;
+    }
+
+    /**
+     * Dienststellenschlüssel
+     * @return string
+     */
+    public function getSchoolCode()
+    {
+        return $this->SchoolCode;
+    }
+
+    /**
+     * @param string $SchoolCode
+     */
+    public function setSchoolCode($SchoolCode)
+    {
+        $this->SchoolCode = $SchoolCode;
     }
 
 }

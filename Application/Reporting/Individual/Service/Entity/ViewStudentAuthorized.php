@@ -24,6 +24,7 @@ class ViewStudentAuthorized extends AbstractView
     const TBL_PERSON_ID = 'TblPerson_Id';
 
     // S1
+    const TBL_PERSON_BEV_ID = 'TblPerson_Authorized_Id';
     const TBL_SALUTATION_SALUTATION_BEV = 'TblSalutation_Salutation_Bev';
     const TBL_PERSON_TITLE_BEV = 'TblPerson_Title_Bev';
     const TBL_PERSON_FIRST_NAME_BEV = 'TblPerson_FirstName_Bev';
@@ -35,12 +36,20 @@ class ViewStudentAuthorized extends AbstractView
     const TBL_ADDRESS_STREET_NAME_BEV = 'TblAddress_StreetName_Bev';
     const TBL_ADDRESS_STREET_NUMBER_BEV = 'TblAddress_StreetNumber_Bev';
     const TBL_CITY_CODE_BEV = 'TblCity_Code_Bev';
-    const TBL_CITY_CITY_BEV = 'TblCity_City_Bev';
+    const TBL_CITY_NAME_BEV = 'TblCity_Name_Bev';
     const TBL_CITY_DISTRICT_BEV = 'TblCity_District_Bev';
     const TBL_ADDRESS_COUNTY_BEV = 'TblAddress_County_Bev';
     const TBL_ADDRESS_STATE_BEV = 'TblState_Name_Bev';
     const TBL_ADDRESS_NATION_BEV = 'TblAddress_Nation_Bev';
     const TBL_PHONE_NUMBER_BEV = 'TblPhone_Number_Bev';
+    const TBL_PHONE_NUMBER_PF_BEV = 'TblPhone_Number_PF_Bev';
+    const TBL_PHONE_NUMBER_PM_BEV = 'TblPhone_Number_PM_Bev';
+    const TBL_PHONE_NUMBER_GF_BEV = 'TblPhone_Number_GF_Bev';
+    const TBL_PHONE_NUMBER_GM_BEV = 'TblPhone_Number_GM_Bev';
+    const TBL_PHONE_NUMBER_NF_BEV = 'TblPhone_Number_NF_Bev';
+    const TBL_PHONE_NUMBER_NM_BEV = 'TblPhone_Number_NM_Bev';
+    const TBL_PHONE_NUMBER_FP_BEV = 'TblPhone_Number_FP_Bev';
+    const TBL_PHONE_NUMBER_FG_BEV = 'TblPhone_Number_FG_Bev';
     const TBL_MAIL_ADDRESS_BEV = 'TblMail_Address_Bev';
     const TBL_MAIL_ADDRESS_PRIVATE_BEV = 'TblMail_AddressPrivate_Bev';
     const TBL_MAIL_ADDRESS_COMPANY_BEV = 'TblMail_AddressCompany_Bev';
@@ -59,6 +68,10 @@ class ViewStudentAuthorized extends AbstractView
      * @Column(type="string")
      */
     protected $TblPerson_Id;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblPerson_Authorized_Id;
     /**
      * @Column(type="string")
      */
@@ -106,7 +119,7 @@ class ViewStudentAuthorized extends AbstractView
     /**
      * @Column(type="string")
      */
-    protected $TblCity_City_Bev;
+    protected $TblCity_Name_Bev;
     /**
      * @Column(type="string")
      */
@@ -127,6 +140,38 @@ class ViewStudentAuthorized extends AbstractView
      * @Column(type="string")
      */
     protected $TblPhone_Number_Bev;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblPhone_Number_PF_Bev;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblPhone_Number_PM_Bev;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblPhone_Number_GF_Bev;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblPhone_Number_GM_Bev;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblPhone_Number_NF_Bev;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblPhone_Number_NM_Bev;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblPhone_Number_FP_Bev;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblPhone_Number_FG_Bev;
     /**
      * @Column(type="string")
      */
@@ -153,6 +198,7 @@ class ViewStudentAuthorized extends AbstractView
     {
 
         // S1
+        $this->setNameDefinition(self::TBL_PERSON_BEV_ID, 'Bev: Id');
         $this->setNameDefinition(self::TBL_SALUTATION_SALUTATION_BEV, 'Bev: Anrede');
         $this->setNameDefinition(self::TBL_PERSON_TITLE_BEV, 'Bev: Titel');
         $this->setNameDefinition(self::TBL_PERSON_FIRST_NAME_BEV, 'Bev: Vorname');
@@ -160,16 +206,24 @@ class ViewStudentAuthorized extends AbstractView
         $this->setNameDefinition(self::TBL_PERSON_CALL_NAME_BEV, 'Bev: Rufname');
         $this->setNameDefinition(self::TBL_PERSON_LAST_NAME_BEV, 'Bev: Nachname');
         $this->setNameDefinition(self::TBL_PERSON_BIRTH_NAME_BEV, 'Bev: Geburtsname');
-        $this->setNameDefinition(self::TBL_PERSON_BIRTH_DAY_BEV, 'Bev: Geburtstag');
+        $this->setNameDefinition(self::TBL_PERSON_BIRTH_DAY_BEV, 'Bev: Geburtsdatum');
         $this->setNameDefinition(self::TBL_ADDRESS_STREET_NAME_BEV, 'Bev: Straße');
         $this->setNameDefinition(self::TBL_ADDRESS_STREET_NUMBER_BEV, 'Bev: Hausnummer');
         $this->setNameDefinition(self::TBL_CITY_CODE_BEV, 'Bev: PLZ');
-        $this->setNameDefinition(self::TBL_CITY_CITY_BEV, 'Bev: Ort');
+        $this->setNameDefinition(self::TBL_CITY_NAME_BEV, 'Bev: Ort');
         $this->setNameDefinition(self::TBL_CITY_DISTRICT_BEV, 'Bev: Ortsteil');
         $this->setNameDefinition(self::TBL_ADDRESS_COUNTY_BEV, 'Bev: Landkreis');
         $this->setNameDefinition(self::TBL_ADDRESS_STATE_BEV, 'Bev: Bundesland');
         $this->setNameDefinition(self::TBL_ADDRESS_NATION_BEV, 'Bev: Land');
         $this->setNameDefinition(self::TBL_PHONE_NUMBER_BEV, 'Bev: Telefon');
+        $this->setNameDefinition(self::TBL_PHONE_NUMBER_PF_BEV, 'Bev: Telefon Privat Festnetz');
+        $this->setNameDefinition(self::TBL_PHONE_NUMBER_PM_BEV, 'Bev: Telefon Privat Mobil');
+        $this->setNameDefinition(self::TBL_PHONE_NUMBER_GF_BEV, 'Bev: Telefon Geschäftlich Festnetz');
+        $this->setNameDefinition(self::TBL_PHONE_NUMBER_GM_BEV, 'Bev: Telefon Geschäftlich Mobil');
+        $this->setNameDefinition(self::TBL_PHONE_NUMBER_NF_BEV, 'Bev: Telefon Notfall Festnetz');
+        $this->setNameDefinition(self::TBL_PHONE_NUMBER_NM_BEV, 'Bev: Telefon Notfall Mobil');
+        $this->setNameDefinition(self::TBL_PHONE_NUMBER_FP_BEV, 'Bev: Telefon Fax Privat');
+        $this->setNameDefinition(self::TBL_PHONE_NUMBER_FG_BEV, 'Bev: Telefon Fax Geschäftlich');
         $this->setNameDefinition(self::TBL_MAIL_ADDRESS_BEV, 'Bev: E-Mail');
         $this->setNameDefinition(self::TBL_MAIL_ADDRESS_PRIVATE_BEV, 'Bev: E-Mail Privat');
         $this->setNameDefinition(self::TBL_MAIL_ADDRESS_COMPANY_BEV, 'Bev: E-Mail Geschäftlich');
@@ -178,6 +232,7 @@ class ViewStudentAuthorized extends AbstractView
         //GroupDefinition
 
         $this->setGroupDefinition('Bevollmächtigter (Zusatzinfo)', array(
+            self::TBL_PERSON_BEV_ID,
             self::TBL_SALUTATION_SALUTATION_BEV,
             self::TBL_PERSON_TITLE_BEV,
             self::TBL_PERSON_FIRST_NAME_BEV,
@@ -189,12 +244,20 @@ class ViewStudentAuthorized extends AbstractView
             self::TBL_ADDRESS_STREET_NAME_BEV,
             self::TBL_ADDRESS_STREET_NUMBER_BEV,
             self::TBL_CITY_CODE_BEV,
-            self::TBL_CITY_CITY_BEV,
+            self::TBL_CITY_NAME_BEV,
             self::TBL_CITY_DISTRICT_BEV,
             self::TBL_ADDRESS_COUNTY_BEV,
             self::TBL_ADDRESS_STATE_BEV,
             self::TBL_ADDRESS_NATION_BEV,
             self::TBL_PHONE_NUMBER_BEV,
+            self::TBL_PHONE_NUMBER_PF_BEV,
+            self::TBL_PHONE_NUMBER_PM_BEV,
+            self::TBL_PHONE_NUMBER_GF_BEV,
+            self::TBL_PHONE_NUMBER_GM_BEV,
+            self::TBL_PHONE_NUMBER_NF_BEV,
+            self::TBL_PHONE_NUMBER_NM_BEV,
+            self::TBL_PHONE_NUMBER_FP_BEV,
+            self::TBL_PHONE_NUMBER_FG_BEV,
             self::TBL_MAIL_ADDRESS_BEV,
             self::TBL_MAIL_ADDRESS_PRIVATE_BEV,
             self::TBL_MAIL_ADDRESS_COMPANY_BEV,
@@ -202,6 +265,7 @@ class ViewStudentAuthorized extends AbstractView
         ));
 
         // Flag um Filter zu deaktivieren (nur Anzeige von Informationen)
+        $this->setDisableDefinition(self::TBL_PERSON_BEV_ID);
         $this->setDisableDefinition(self::TBL_SALUTATION_SALUTATION_BEV);
         $this->setDisableDefinition(self::TBL_PERSON_TITLE_BEV);
         $this->setDisableDefinition(self::TBL_PERSON_FIRST_NAME_BEV);
@@ -213,12 +277,20 @@ class ViewStudentAuthorized extends AbstractView
         $this->setDisableDefinition(self::TBL_ADDRESS_STREET_NAME_BEV);
         $this->setDisableDefinition(self::TBL_ADDRESS_STREET_NUMBER_BEV);
         $this->setDisableDefinition(self::TBL_CITY_CODE_BEV);
-        $this->setDisableDefinition(self::TBL_CITY_CITY_BEV);
+        $this->setDisableDefinition(self::TBL_CITY_NAME_BEV);
         $this->setDisableDefinition(self::TBL_CITY_DISTRICT_BEV);
         $this->setDisableDefinition(self::TBL_ADDRESS_COUNTY_BEV);
         $this->setDisableDefinition(self::TBL_ADDRESS_STATE_BEV);
         $this->setDisableDefinition(self::TBL_ADDRESS_NATION_BEV);
         $this->setDisableDefinition(self::TBL_PHONE_NUMBER_BEV);
+        $this->setDisableDefinition(self::TBL_PHONE_NUMBER_PF_BEV,);
+        $this->setDisableDefinition(self::TBL_PHONE_NUMBER_PM_BEV,);
+        $this->setDisableDefinition(self::TBL_PHONE_NUMBER_GF_BEV,);
+        $this->setDisableDefinition(self::TBL_PHONE_NUMBER_GM_BEV,);
+        $this->setDisableDefinition(self::TBL_PHONE_NUMBER_NF_BEV,);
+        $this->setDisableDefinition(self::TBL_PHONE_NUMBER_NM_BEV,);
+        $this->setDisableDefinition(self::TBL_PHONE_NUMBER_FP_BEV,);
+        $this->setDisableDefinition(self::TBL_PHONE_NUMBER_FG_BEV,);
         $this->setDisableDefinition(self::TBL_MAIL_ADDRESS_BEV);
         $this->setDisableDefinition(self::TBL_MAIL_ADDRESS_PRIVATE_BEV);
         $this->setDisableDefinition(self::TBL_MAIL_ADDRESS_COMPANY_BEV);

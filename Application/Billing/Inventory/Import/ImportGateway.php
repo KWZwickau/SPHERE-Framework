@@ -6,6 +6,8 @@
 
 namespace SPHERE\Application\Billing\Inventory\Import;
 
+use PhpOffice\PhpSpreadsheet\Shared\Date;
+use SPHERE\Application\Billing\Accounting\Debtor\Debtor;
 use SPHERE\Application\Billing\Inventory\Item\Item;
 use SPHERE\Application\Billing\Inventory\Setting\Service\Entity\TblSetting;
 use SPHERE\Application\Billing\Inventory\Setting\Setting;
@@ -41,6 +43,7 @@ class ImportGateway extends AbstractConverter
     private $IsError = false;
     private $IsIgnore = false;
     private $ItemName = '';
+    private $DebtorNumberArray = array();
 
     /**
      * @return array
@@ -96,7 +99,7 @@ class ImportGateway extends AbstractConverter
 
         $this->addSanitizer(array($this, 'sanitizeFullTrim'));
 
-        $this->setPointer(new FieldPointer($ColumnList['Zählung'], 'Row'));
+        $this->setPointer(new FieldPointer($ColumnList['Zählung'], 'Number'));
         $this->setPointer(new FieldPointer($ColumnList['Beitragsverursacher Vorname'], 'FirstName'));
         $this->setPointer(new FieldPointer($ColumnList['Beitragsverursacher Nachname'], 'LastName'));
         if(isset($ColumnList['Beitragsverursacher Geburtstag'])){
@@ -125,17 +128,21 @@ class ImportGateway extends AbstractConverter
         }
         $this->setPointer(new FieldPointer($ColumnList['Beitragszahler Vorname'], 'DebtorFirstName'));
         $this->setPointer(new FieldPointer($ColumnList['Beitragszahler Nachname'], 'DebtorLastName'));
+        $this->setPointer(new FieldPointer($ColumnList['Kontoinhaber'], 'Owner'));
         if(isset($ColumnList['Debitorennummer'])){
             $this->setPointer(new FieldPointer($ColumnList['Debitorennummer'], 'DebtorNumber'));
             $this->setPointer(new FieldPointer($ColumnList['Debitorennummer'], 'DebtorNumberControl'));
-            $this->setSanitizer(new FieldSanitizer($ColumnList['Debitorennummer'], 'DebtorNumberControl', array($this, 'sanitizeDebtorNumber')));
+//            $this->setSanitizer(new FieldSanitizer($ColumnList['Debitorennummer'], 'DebtorNumberControl', array($this, 'sanitizeDebtorNumber')));
         }
         $this->setPointer(new FieldPointer($ColumnList['IBAN'], 'IBAN'));
         $this->setSanitizer(new FieldSanitizer($ColumnList['IBAN'], 'IBAN', array($this, 'sanitizeTrimSpace')));
         $this->setPointer(new FieldPointer($ColumnList['BIC'], 'BIC'));
         $this->setSanitizer(new FieldSanitizer($ColumnList['BIC'], 'BIC', array($this, 'sanitizeTrimSpace')));
-        if(isset($ColumnList['Debitorennummer'])){
+        if(isset($ColumnList['Bank Name'])){
             $this->setPointer(new FieldPointer($ColumnList['Bank Name'], 'Bank'));
+        }
+        if(isset($ColumnList['Zahlung Jährlich'])){
+            $this->setPointer(new FieldPointer($ColumnList['Zahlung Jährlich'], 'IsYear'));
         }
         // Beispiel funktionalität (mach noch was mit dem ausgelesenem Wert:)
         $this->setPointer(new FieldPointer($ColumnList['IBAN'], 'IBANControl'));
@@ -189,9 +196,15 @@ class ImportGateway extends AbstractConverter
         if(!$tblPersonDebtor){
             $tblPersonDebtor = null;
         }
+        if($tblPersonDebtor && null === $tblPerson){
+            $tblPerson = $this->getPerson($Result['FirstName'], $Result['LastName'], $Result['Birthday'], $tblPersonDebtor);
+            if(!$tblPerson){
+                $tblPerson = null;
+            }
+        }
 
         $ImportRow = array(
-            'Row'                    => $Result['Row'],
+            'Number'                 => $Result['Number'],
             'FirstName'              => $Result['FirstName'],
             'LastName'               => $Result['LastName'],
             'serviceTblPerson'       => $tblPerson,
@@ -207,10 +220,12 @@ class ImportGateway extends AbstractConverter
             'DebtorFirstName'        => $Result['DebtorFirstName'],
             'DebtorLastName'         => $Result['DebtorLastName'],
             'serviceTblPersonDebtor' => $tblPersonDebtor,
+            'Owner'                  => $Result['Owner'],
             'DebtorNumber'           => $Result['DebtorNumber'],
             'IBAN'                   => $Result['IBAN'],
             'BIC'                    => $Result['BIC'],
             'Bank'                   => $Result['Bank'],
+            'IsYear'                 => (isset($Result['IsYear']) ?$Result['IsYear']: ''),
         );
 
         $Birthday = '';
@@ -236,6 +251,45 @@ class ImportGateway extends AbstractConverter
                 , null, false, 2, 0), 'Person nicht oder nicht eindeutig vorhanden');
         }
         $Result['DebtorFrontend'] = $DebtorMessage;
+
+        $DebtorNumber = $Result['DebtorNumber'];
+        $isDebtorForItem = true;
+        if($Result['Item'] != $this->ItemName){
+            // Debitoren, welche nicht verwendet werden können für die Validierung ignoriert werden
+        $isDebtorForItem = false;
+        }
+        if($isDebtorForItem && ($Setting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_DEBTOR_NUMBER_COUNT))){
+            if(strlen($DebtorNumber) > $Setting->getValue()){
+                $this->addErrorCount();
+                $Result['DebtorNumberControl'] = new ToolTip(new Danger($DebtorNumber, null, false, 2, 0), 'Debitorennummer ist zu lang (max '.$Setting->getValue().')');
+            } elseif($DebtorNumber && strlen($DebtorNumber) < $Setting->getValue()) {
+                $Result['DebtorNumberControl'] = new ToolTip(new Warning($DebtorNumber, null, false, 2, 0), 'Debitorennummer ist zu kurz ('.$Setting->getValue().') dies stellt aber kein Problem dar');
+            } elseif(strlen($DebtorNumber) == $Setting->getValue()){
+                $Result['DebtorNumberControl'] = new Success($DebtorNumber, null, false, 2, 0);
+            }
+        }
+
+        // Add Check on existing
+        $IsSwitchedDebtorNumber = false;
+        if($isDebtorForItem && $tblPersonDebtor && ($DebtorNumberCheck = Debtor::useService()->getDebtorNumberByPerson($tblPersonDebtor))){
+            if(($DebtorNumberCheckString = current($DebtorNumberCheck)->getDebtorNumber()) != $DebtorNumber){
+                $IsSwitchedDebtorNumber = true;
+                $this->addErrorCount();
+                $Result['DebtorNumberControl'] = new ToolTip(new Danger($DebtorNumber, null, false, 2, 0),
+                    'Vorhandene Debitorennummer weicht ab (' . $DebtorNumberCheckString . ')');
+            }
+        }
+        // Add Check on reusing other Debtornumbers
+        if($isDebtorForItem && !$IsSwitchedDebtorNumber && $tblPersonDebtor
+            && !isset($this->DebtorNumberArray[$Result['Item'].$tblPersonDebtor->getId()])){
+            $this->DebtorNumberArray[$Result['Item'].$tblPersonDebtor->getId()] = $DebtorNumber;
+        } elseif($isDebtorForItem && !$IsSwitchedDebtorNumber && $tblPersonDebtor) {
+            if($this->DebtorNumberArray[$Result['Item'].$tblPersonDebtor->getId()] != $DebtorNumber){
+                $this->addErrorCount();
+                $Result['DebtorNumberControl'] = new ToolTip(new Danger($DebtorNumber, null, false, 2, 0), 'Debtornummer unterscheidet sich im Import '
+                    .$this->DebtorNumberArray[$Result['Item'].$tblPersonDebtor->getId()].' => '.$DebtorNumber);
+            }
+        }
 
         $IsValueNeed = true;
         $Result['ItemVariantFrontend'] = new ToolTip(new Warning($Result['PriceVariant'].'&nbsp;', null, false, 2, 0)
@@ -282,31 +336,43 @@ class ImportGateway extends AbstractConverter
     private function getPerson($FirstName, $LastName, $Birthday = '', TblPerson $tblPersonStudent = null)
     {
 
-        $tblPersonList = array();
-        if ($Birthday){
-            $tblPersonList = Person::useService()->getPersonAllByNameAndBirthday($FirstName, $LastName, $Birthday);
-        }
-        if (empty($tblPersonList)){
-            $tblPersonList = Person::useService()->getPersonAllByName($FirstName, $LastName);
-        }
-        /** @var TblPerson|false $tblPerson */
         $tblPerson = false;
-        if ($tblPersonList && count($tblPersonList) == 1){
-            $tblPerson = current($tblPersonList);
-        } elseif($tblPersonList) {
-            //ToDO zu viele Personen die zugeordnet sein können (bei Schülern)
-
-
-            // Wenn ein Schüler vorhanden ist, kann geprüft werden ob die gefundene Person über Personenverknüpfungen miteinander verbunden ist
-            // wird nur geprüft, wenn keine eindeutigen treffer vorliegen
-            if($tblPersonStudent){
-                foreach($tblPersonList as $tblPersonDebtor){
-                    if(Relationship::useService()->getRelationshipToPersonByPersonFromAndPersonTo($tblPersonDebtor, $tblPersonStudent)){
-                        $tblPerson = $tblPersonDebtor;
-                        continue;
+        // bei vorhandenem Schüler wird geprüft ob Person über Personenverknüpfungen vorhanden ist
+        if($tblPersonStudent){
+            // Suchen einer Person, wenn gefunden dann abgleich auf Personenbeziehung
+            $tblPersonGuard = Person::useService()->getPersonByName($FirstName, $LastName);
+            if($tblPersonGuard && $tblPersonGuard->getId() === $tblPersonStudent->getId()){
+                $tblPerson = $tblPersonGuard;
+            } elseif ($tblPersonGuard){
+                if(Relationship::useService()->getRelationshipToPersonByPersonFromAndPersonTo($tblPersonGuard, $tblPersonStudent)){
+                    $tblPerson = $tblPersonGuard;
+                    // Rückwärtssuche für den fall das Sorgeberechtigter eindeutig ist, der Schüler aber nicht
+                } elseif(Relationship::useService()->getRelationshipToPersonByPersonFromAndPersonTo($tblPersonStudent, $tblPersonGuard)){
+                    $tblPerson = $tblPersonGuard;
+                }
+            }
+            if(!$tblPerson){
+                // wird nur geprüft, wenn keine eindeutigen treffer vorliegen
+                // Suchen aller Person, wenn gefunden dann abgleich auf Personenbeziehung
+                if(($tblPersonList = Person::useService()->getPersonAllByName($FirstName, $LastName))){
+                    foreach($tblPersonList as $tblPersonGuard){
+                        if($tblPersonGuard && $tblPersonGuard->getId() === $tblPersonStudent->getId()){
+                            $tblPerson = $tblPersonGuard;
+                        } elseif (Relationship::useService()->getRelationshipToPersonByPersonFromAndPersonTo($tblPersonGuard, $tblPersonStudent)){
+                            $tblPerson = $tblPersonGuard;
+                            break;
+                            // Rückwärtssuche für den fall das Sorgeberechtigter eindeutig ist, der Schüler aber nicht
+                        } elseif(Relationship::useService()->getRelationshipToPersonByPersonFromAndPersonTo($tblPersonStudent, $tblPersonGuard)){
+                            $tblPerson = $tblPersonGuard;
+                            break;
+                        }
                     }
                 }
             }
+        } else {
+            // Schüler
+            // oder Person ohne erkannten Schüler
+            $tblPerson = Person::useService()->getPersonByName($FirstName, $LastName, $Birthday);
         }
         return $tblPerson;
     }
@@ -331,7 +397,7 @@ class ImportGateway extends AbstractConverter
     {
         $iban = strtoupper(str_replace(' ', '', $Value));
         // Todo Wie gehen wir mit fehlerwerten um?
-        if (preg_match('!(DE)([0-9]){20}!is', $iban, $Match)){
+        if (preg_match('!^(DE)([0-9]){20}!is', $iban, $Match)){
             // IBAN mit leerzeichen anzeigen
             $ibanDisplay = $Match[0];
             $countLetter = strlen($ibanDisplay);
@@ -341,6 +407,10 @@ class ImportGateway extends AbstractConverter
             }
             $ibanDisplay = implode('&nbsp;', $IBANParts);
             return new Success($ibanDisplay, null, false, 2, 0);
+        }
+        // Iban ohne DE am Anfang
+        if(!preg_match('!^(DE)!is', $iban, $Match)){
+            return new Success($iban, null, false, 2, 0);
         }
 
         // Fehlerzählung
@@ -392,36 +462,34 @@ class ImportGateway extends AbstractConverter
     /**
      * @param $Value
      *
-     * @return Warning|string
-     */
-    protected function sanitizeDebtorNumber($Value)
-    {
-
-        if(($Setting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_DEBTOR_NUMBER_COUNT))){
-            if(strlen($Value) > $Setting->getValue()){
-                $this->addErrorCount();
-                return new ToolTip(new Danger($Value, null, false, 2, 0), 'Debitorennummer ist zu lang (max '.$Setting->getValue().')');
-            } elseif($Value && strlen($Value) < $Setting->getValue()) {
-                return new ToolTip(new Warning($Value, null, false, 2, 0), 'Debitorennummer ist zu kurz ('.$Setting->getValue().') dies stellt aber kein Problem dar');
-            } elseif(strlen($Value) == $Setting->getValue()){
-                return new Success($Value, null, false, 2, 0);
-            }
-        }
-        return $Value;
-    }
-
-    /**
-     * @param $Value
-     *
      * @return bool|false|string
      */
     protected function sanitizeDate($Value)
     {
         if($Value){
-            if(($Date = date('d.m.Y', \PHPExcel_Shared_Date::ExcelToPHP($Value)))){
-                return $Date;
+            $len = strlen($Value);
+            switch ($len) {
+                case 5:
+                    $result = date('d.m.Y', Date::excelToTimestamp($Value));
+                    break;
+                case 6:
+                    $result = substr($Value, 0, 2) . '.' . substr($Value, 2, 2) . '.' . substr($Value, 4, 2);
+                    break;
+                case 7:
+                    $Value = '0' . $Value;
+                case 8:
+                    $result = substr($Value, 0, 2) . '.' . substr($Value, 2, 2) . '.' . substr($Value, 4, 4);
+                    break;
+                case 10:
+                    $result = $Value;
+                    break;
+                default:
+                    $result = '';
             }
+
+            return $result;
         }
+
         return $Value;
     }
 

@@ -58,6 +58,13 @@ class Thumbnail extends Extension implements ITemplateInterface
         $this->Template->setVariable('ButtonList', $ButtonList);
     }
 
+    public function setPictureHeight($Height = '150px')
+    {
+
+        $this->Template->setVariable('Height', $Height);
+        return $this;
+    }
+
     /**
      * @return string
      */

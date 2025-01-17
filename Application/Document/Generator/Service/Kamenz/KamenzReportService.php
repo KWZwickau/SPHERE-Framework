@@ -2,14 +2,14 @@
 
 namespace SPHERE\Application\Document\Generator\Service\Kamenz;
 
+use DateInterval;
+use DateTime;
+use SPHERE\Application\Api\Education\Certificate\Generator\Repository\GymAbgSekI;
 use SPHERE\Application\Corporation\Group\Group;
 use SPHERE\Application\Education\Certificate\Generate\Generate;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
-use SPHERE\Application\Education\Lesson\Division\Division;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionStudent;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblLevel;
-use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
@@ -17,8 +17,11 @@ use SPHERE\Application\Education\School\Course\Service\Entity\TblCourse;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Meta\Common\Common;
+use SPHERE\Application\People\Meta\Common\Service\Entity\TblCommonGender;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudent;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubject;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTenseOfLesson;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTrainingStatus;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -30,20 +33,17 @@ use SPHERE\Application\People\Person\Service\Entity\TblPerson;
  */
 class KamenzReportService
 {
-
     /**
      * @param array $Content
      *
      * @return array
      */
-    public static function setKamenzReportOsContent(
-        $Content
-    ) {
+    public static function setKamenzReportOsContent(array $Content): array
+    {
+        $tblCurrentYearList = array();
+        $tblPastYearList = array();
 
-        $tblCurrentYearList = false;
-        $tblPastYearList = false;
-
-        $tblKamenzSchoolType = Type::useService()->getTypeByName('Mittelschule / Oberschule');
+        $tblKamenzSchoolType = Type::useService()->getTypeByName(TblType::IDENT_OBER_SCHULE);
 
         self::setYears($Content, $tblCurrentYearList, $tblPastYearList);
 
@@ -65,95 +65,80 @@ class KamenzReportService
             $countDivisionStudentArray = array();
             $countDivisionStudentArrayForSecondarySchool = array();
 
-            $tblTransferTypeProcess = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS');
             /** @var TblYear[] $tblCurrentYearList */
             foreach ($tblCurrentYearList as $tblYear) {
-                if (($tblDivisionList = Division::useService()->getDivisionAllByYear($tblYear))) {
-                    foreach ($tblDivisionList as $tblDivision) {
-                        if (($tblLevel = $tblDivision->getTblLevel())
-                            && ($tblSchoolType = $tblLevel->getServiceTblType())
-                            && $tblSchoolType->getId() == $tblKamenzSchoolType->getId()
+                if (($tblStudentEducationList = DivisionCourse::useService()->getStudentEducationListBy($tblYear, $tblKamenzSchoolType))) {
+                    foreach ($tblStudentEducationList as $tblStudentEducation) {
+                        if (($tblPerson = $tblStudentEducation->getServiceTblPerson())
+                            && ($level = $tblStudentEducation->getLevel())
+                            && (($tblDivision = $tblStudentEducation->getTblDivision())
+                                || ($tblDivision = $tblStudentEducation->getTblCoreGroup()))
                         ) {
-                            if (($tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision))) {
-                                $countDivisionStudentArray[$tblDivision->getId()][$tblLevel->getName()] = count($tblPersonList);
+                            if (isset($countDivisionStudentArray[$tblDivision->getId()][$level])) {
+                                $countDivisionStudentArray[$tblDivision->getId()][$level]++;
+                            } else {
+                                $countDivisionStudentArray[$tblDivision->getId()][$level] = 1;
+                            }
 
-                                foreach ($tblPersonList as $tblPerson) {
+                            $tblStudent = $tblPerson->getStudent();
 
-                                    $isInPreparationDivisionForMigrants = false;
-                                    $tblStudent = $tblPerson->getStudent();
+                            $isInPreparationDivisionForMigrants = false;
+                            if ($tblStudent && $tblStudent->isInPreparationDivisionForMigrants()) {
+                                $isInPreparationDivisionForMigrants = true;
+                            }
 
-                                    if ($tblStudent
-                                        && $tblStudent->isInPreparationDivisionForMigrants()
-                                    ) {
-                                        $isInPreparationDivisionForMigrants = true;
-                                    }
+                            $hasMigrationBackground = false;
+                            if ($tblStudent && $tblStudent->getHasMigrationBackground()) {
+                                $hasMigrationBackground = true;
+                            }
 
-                                    $hasMigrationBackground = false;
-                                    if ($tblStudent
-                                        && $tblStudent->getHasMigrationBackground()
-                                    ) {
-                                        $hasMigrationBackground = true;
-                                    }
+                            $gender = false;
+                            $birthDay = false;
+                            self::countStudentLevels(
+                                $tblPerson, $level, $gender, $hasMigrationBackground, $isInPreparationDivisionForMigrants, $birthDay, $countArray,
+                                $countMigrantsArray, $countMigrantsNationalityArray
+                            );
 
-                                    $gender = false;
-                                    $birthDay = false;
-                                    self::countStudentLevels($tblPerson, $tblLevel, $gender, $hasMigrationBackground,
-                                        $isInPreparationDivisionForMigrants, $birthDay, $countArray,
-                                        $countMigrantsArray,
-                                        $countMigrantsNationalityArray);
+                            if ($tblStudent) {
+                                self::countForeignLanguages(
+                                    $tblStudent, $level, $tblKamenzSchoolType, $Content, $gender, $isInPreparationDivisionForMigrants,
+                                    $countForeignSubjectArray, $countSecondForeignSubjectArray
+                                );
 
-                                    $tblCourse = false;
-                                    if ($tblStudent) {
-                                        self::countForeignLanguages($tblStudent, $tblLevel, $tblKamenzSchoolType, $Content, $gender,
-                                            $isInPreparationDivisionForMigrants, $countForeignSubjectArray,
-                                            $countSecondForeignSubjectArray);
+                                $countReligionArray = self::countReligion($tblStudent, $level, $countReligionArray);
 
-                                        $countReligionArray = self::countReligion($tblStudent, $tblLevel,
-                                            $countReligionArray);
-
-                                        if (preg_match('!(0?(7|8|9))!is', $tblLevel->getName())) {
-                                            $countOrientationArray = self::countOrientation($tblStudent, $tblLevel,
-                                                $gender, $countOrientationArray);
-                                        }
-
-                                        if ($tblTransferTypeProcess
-                                            && ($tblTransfer = Student::useService()->getStudentTransferByType($tblStudent, $tblTransferTypeProcess))
-                                        ) {
-                                            $tblCourse = $tblTransfer->getServiceTblCourse();
-                                        }
-
-                                        self::countDivisionStudentsForSecondarySchool($countDivisionStudentArrayForSecondarySchool,
-                                            $tblDivision, $tblLevel, $tblCourse ? $tblCourse : null, $gender, $isInPreparationDivisionForMigrants);
-
-                                    } else {
-                                        if (isset($countReligionArray['ZZ_Keine_Teilnahme'][$tblLevel->getName()])) {
-                                            $countReligionArray['ZZ_Keine_Teilnahme'][$tblLevel->getName()]++;
-                                        } else {
-                                            $countReligionArray['ZZ_Keine_Teilnahme'][$tblLevel->getName()] = 1;
-                                        }
-                                    }
-
-                                    self::setRepeatersOs($tblPerson, $tblLevel, $tblDivision, $Content, $gender);
-
-                                    self::setStudentFocus($tblPerson, $tblLevel, $Content, $gender,
-                                        $hasMigrationBackground,
-                                        $isInPreparationDivisionForMigrants);
-
-                                    // get last Level
-                                    self::setSchoolTypeLastYear($Content, $tblPastYearList, $tblPerson, $tblCourse,
-                                        $tblLevel, $gender, $isInPreparationDivisionForMigrants, $tblKamenzSchoolType);
+                                if (preg_match('!(0?([789]))!is', (string) $level)) {
+                                    $countOrientationArray = self::countOrientation($tblStudent, $level, $gender, $countOrientationArray);
                                 }
                             } else {
-                                $countDivisionStudentArray[$tblDivision->getId()][$tblLevel->getName()] = 0;
+                                if (isset($countReligionArray['ZZ_Keine_Teilnahme'][$level])) {
+                                    $countReligionArray['ZZ_Keine_Teilnahme'][$level]++;
+                                } else {
+                                    $countReligionArray['ZZ_Keine_Teilnahme'][$level] = 1;
+                                }
                             }
+
+                            $tblCourse = $tblStudentEducation->getServiceTblCourse();
+
+                            self::countDivisionStudentsForSecondarySchool(
+                                $countDivisionStudentArrayForSecondarySchool, $tblDivision, $level, $gender, $isInPreparationDivisionForMigrants,
+                                $tblCourse ?: null
+                            );
+
+                            self::setRepeatersOs($tblPerson, $level, $tblPastYearList, $Content, $gender, $tblCourse ?: null, $tblKamenzSchoolType);
+
+                            self::setStudentFocus($tblPerson, $level, $Content, $gender, $hasMigrationBackground, $isInPreparationDivisionForMigrants);
+
+                            self::setSchoolTypeLastYear(
+                                $Content, $tblPastYearList, $tblPerson, $level, $gender, $isInPreparationDivisionForMigrants, $tblKamenzSchoolType
+                            );
                         }
                     }
                 }
             }
 
             self::setStudentLevels($Content, $countArray, $countMigrantsArray, $countMigrantsNationalityArray);
-            self::setForeignLanguages($Content, $countForeignSubjectArray, $countSecondForeignSubjectArray,
-                $tblKamenzSchoolType);
+            self::setForeignLanguages($Content, $countForeignSubjectArray, $countSecondForeignSubjectArray, $tblKamenzSchoolType);
             self::setReligion($Content, $countReligionArray);
             self::setOrientation($Content, $countOrientationArray);
             self::setDivisionFrequency($Content, $countDivisionStudentArray);
@@ -168,12 +153,10 @@ class KamenzReportService
      *
      * @return array
      */
-    public static function setKamenzReportGsContent(
-        $Content
-    ) {
-
-        $tblCurrentYearList = false;
-        $tblPastYearList = false;
+    public static function setKamenzReportGsContent(array $Content): array
+    {
+        $tblCurrentYearList = array();
+        $tblPastYearList = array();
         $year = false;
 
         $tblKamenzSchoolType = Type::useService()->getTypeByName('Grundschule');
@@ -190,90 +173,78 @@ class KamenzReportService
             $countSecondForeignSubjectArray = array();
             $countReligionArray = array();
             $countDivisionStudentArray = array();
+            $countDivisionByLevelArray = array();
+
             /** @var TblYear[] $tblCurrentYearList */
             foreach ($tblCurrentYearList as $tblYear) {
-                if (($tblDivisionList = Division::useService()->getDivisionAllByYear($tblYear))) {
-                    foreach ($tblDivisionList as $tblDivision) {
-                        if (($tblLevel = $tblDivision->getTblLevel())
-                            && ($tblSchoolType = $tblLevel->getServiceTblType())
-                            && $tblSchoolType->getId() == $tblKamenzSchoolType->getId()
+                if (($tblStudentEducationList = DivisionCourse::useService()->getStudentEducationListBy($tblYear, $tblKamenzSchoolType))) {
+                    foreach ($tblStudentEducationList as $tblStudentEducation) {
+                        if (($tblPerson = $tblStudentEducation->getServiceTblPerson())
+                            && ($level = $tblStudentEducation->getLevel())
+                            && (($tblDivision = $tblStudentEducation->getTblDivision())
+                                || ($tblDivision = $tblStudentEducation->getTblCoreGroup()))
                         ) {
-                            if (($tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision))) {
+                            $countDivisionByLevelArray[$level][$tblDivision->getId()] = 1;
 
-                                if (isset($Content['E01']['Division']['L' . $tblLevel->getName()])) {
-                                    $Content['E01']['Division']['L' . $tblLevel->getName()]++;
-                                } else {
-                                    $Content['E01']['Division']['L' . $tblLevel->getName()] = 1;
-                                }
-                                if (isset($Content['E01']['Division']['TotalCount'])) {
-                                    $Content['E01']['Division']['TotalCount']++;
-                                } else {
-                                    $Content['E01']['Division']['TotalCount'] = 1;
-                                }
-
-                                $countDivisionStudentArray[$tblDivision->getId()][$tblLevel->getName()] = count($tblPersonList);
-
-                                foreach ($tblPersonList as $tblPerson) {
-
-                                    $isInPreparationDivisionForMigrants = false;
-                                    $tblStudent = $tblPerson->getStudent();
-
-                                    if ($tblStudent
-                                        && $tblStudent->isInPreparationDivisionForMigrants()
-                                    ) {
-                                        $isInPreparationDivisionForMigrants = true;
-                                    }
-
-                                    $hasMigrationBackground = false;
-                                    if ($tblStudent
-                                        && $tblStudent->getHasMigrationBackground()
-                                    ) {
-                                        $hasMigrationBackground = true;
-                                    }
-
-                                    $gender = false;
-                                    $birthDay = false;
-                                    self::countStudentLevels($tblPerson, $tblLevel, $gender, $hasMigrationBackground,
-                                        $isInPreparationDivisionForMigrants, $birthDay, $countArray,
-                                        $countMigrantsArray,
-                                        $countMigrantsNationalityArray);
-
-                                    self::setDivisionStudents($Content, $tblPerson, $tblLevel, $tblDivision, $gender,
-                                        $isInPreparationDivisionForMigrants, $tblKamenzSchoolType);
-
-                                    if ($tblStudent) {
-                                        self::countForeignLanguages($tblStudent, $tblLevel, $tblKamenzSchoolType, $Content, $gender,
-                                            $isInPreparationDivisionForMigrants, $countForeignSubjectArray,
-                                            $countSecondForeignSubjectArray);
-
-                                        $countReligionArray = self::countReligion($tblStudent, $tblLevel,
-                                            $countReligionArray);
-
-                                        // Schulanfänger
-                                        self::setNewSchoolStarter(
-                                            $Content,
-                                            $tblPerson,
-                                            $tblStudent,
-                                            $tblLevel,
-                                            $tblDivision,
-                                            $gender,
-                                            $birthDay,
-                                            $year
-                                        );
-
-                                        self::setStudentFocus($tblPerson, $tblLevel, $Content, $gender,
-                                            $hasMigrationBackground,
-                                            $isInPreparationDivisionForMigrants);
-                                    } else {
-                                        if (isset($countReligionArray['ZZ_Keine_Teilnahme'][$tblLevel->getName()])) {
-                                            $countReligionArray['ZZ_Keine_Teilnahme'][$tblLevel->getName()]++;
-                                        } else {
-                                            $countReligionArray['ZZ_Keine_Teilnahme'][$tblLevel->getName()] = 1;
-                                        }
-                                    }
-                                }
+                            if (isset($countDivisionStudentArray[$tblDivision->getId()][$level])) {
+                                $countDivisionStudentArray[$tblDivision->getId()][$level]++;
                             } else {
-                                $countDivisionStudentArray[$tblDivision->getId()][$tblLevel->getName()] = 0;
+                                $countDivisionStudentArray[$tblDivision->getId()][$level] = 1;
+                            }
+
+                            $tblStudent = $tblPerson->getStudent();
+
+                            $isInPreparationDivisionForMigrants = false;
+                            if ($tblStudent && $tblStudent->isInPreparationDivisionForMigrants()) {
+                                $isInPreparationDivisionForMigrants = true;
+                            }
+
+                            $hasMigrationBackground = false;
+                            if ($tblStudent && $tblStudent->getHasMigrationBackground()) {
+                                $hasMigrationBackground = true;
+                            }
+
+                            $gender = false;
+                            $birthDay = false;
+                            self::countStudentLevels(
+                                $tblPerson, $level, $gender, $hasMigrationBackground, $isInPreparationDivisionForMigrants, $birthDay, $countArray,
+                                $countMigrantsArray, $countMigrantsNationalityArray
+                            );
+
+                            self::setDivisionStudents(
+                                $Content, $tblPerson, $level, $tblPastYearList, $gender, $isInPreparationDivisionForMigrants, $tblKamenzSchoolType
+                            );
+
+                            if ($tblStudent) {
+                                self::countForeignLanguages(
+                                    $tblStudent, $level, $tblKamenzSchoolType, $Content, $gender, $isInPreparationDivisionForMigrants,
+                                    $countForeignSubjectArray, $countSecondForeignSubjectArray
+                                );
+
+                                $countReligionArray = self::countReligion($tblStudent, $level, $countReligionArray);
+
+                                // Schulanfänger
+                                self::setNewSchoolStarter(
+                                    $Content,
+                                    $tblPerson,
+                                    $tblStudent,
+                                    $level,
+                                    $tblPastYearList,
+                                    $gender,
+                                    $birthDay,
+                                    $year,
+                                    $tblKamenzSchoolType
+                                );
+
+                                self::setStudentFocus(
+                                    $tblPerson, $level, $Content, $gender, $hasMigrationBackground, $isInPreparationDivisionForMigrants
+                                );
+                            } else {
+                                if (isset($countReligionArray['ZZ_Keine_Teilnahme'][$level])) {
+                                    $countReligionArray['ZZ_Keine_Teilnahme'][$level]++;
+                                } else {
+                                    $countReligionArray['ZZ_Keine_Teilnahme'][$level] = 1;
+                                }
                             }
                         }
                     }
@@ -281,10 +252,10 @@ class KamenzReportService
             }
 
             self::setStudentLevels($Content, $countArray, $countMigrantsArray, $countMigrantsNationalityArray);
-            self::setForeignLanguages($Content, $countForeignSubjectArray, $countSecondForeignSubjectArray,
-                $tblKamenzSchoolType);
+            self::setForeignLanguages($Content, $countForeignSubjectArray, $countSecondForeignSubjectArray, $tblKamenzSchoolType);
             self::setReligion($Content, $countReligionArray);
             self::setDivisionFrequency($Content, $countDivisionStudentArray);
+            self::setDivisionByLevel($Content, $countDivisionByLevelArray);
         }
 
         return $Content;
@@ -295,12 +266,10 @@ class KamenzReportService
      *
      * @return array
      */
-    public static function setKamenzReportGymContent(
-        $Content
-    ) {
-
-        $tblCurrentYearList = false;
-        $tblPastYearList = false;
+    public static function setKamenzReportGymContent(array $Content): array
+    {
+        $tblCurrentYearList = array();
+        $tblPastYearList = array();
 
         $tblKamenzSchoolType = Type::useService()->getTypeByName('Gymnasium');
 
@@ -323,117 +292,447 @@ class KamenzReportService
             $countProfileArray = array();
             $countReligionArray = array();
             $countDivisionStudentArray = array();
+            $countDivisionByLevelArray = array();
             $countAdvancedCourseArray = array();
             $countBasisCourseArray = array();
             $personAdvancedCourseList = array();
             /** @var TblYear[] $tblCurrentYearList */
             foreach ($tblCurrentYearList as $tblYear) {
-                if (($tblDivisionList = Division::useService()->getDivisionAllByYear($tblYear))) {
-                    foreach ($tblDivisionList as $tblDivision) {
-                        if (($tblLevel = $tblDivision->getTblLevel())
-                            && ($tblSchoolType = $tblLevel->getServiceTblType())
-                            && $tblSchoolType->getId() == $tblKamenzSchoolType->getId()
+                if (($tblStudentEducationList = DivisionCourse::useService()->getStudentEducationListBy($tblYear, $tblKamenzSchoolType))) {
+                    foreach ($tblStudentEducationList as $tblStudentEducation) {
+                        if (($tblPerson = $tblStudentEducation->getServiceTblPerson())
+                            && ($level = $tblStudentEducation->getLevel())
+                            && (($tblDivision = $tblStudentEducation->getTblDivision())
+                                || ($tblDivision = $tblStudentEducation->getTblCoreGroup()))
                         ) {
+                            $countDivisionByLevelArray[$level][$tblDivision->getId()] = 1;
 
-                            self::countCourses($tblLevel, $tblDivision, $countAdvancedCourseArray,
-                                $countBasisCourseArray, $personAdvancedCourseList);
-
-                            if (($tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision))) {
-
-                                if (isset($Content['E01']['Division']['L' . $tblLevel->getName()])) {
-                                    $Content['E01']['Division']['L' . $tblLevel->getName()]++;
-                                } else {
-                                    $Content['E01']['Division']['L' . $tblLevel->getName()] = 1;
-                                }
-                                if (intval($tblLevel->getName()) < 11) {
-                                    if (isset($Content['E01']['Division']['TotalCount'])) {
-                                        $Content['E01']['Division']['TotalCount']++;
-                                    } else {
-                                        $Content['E01']['Division']['TotalCount'] = 1;
-                                    }
-                                }
-
-                                $countDivisionStudentArray[$tblDivision->getId()][$tblLevel->getName()] = count($tblPersonList);
-
-                                foreach ($tblPersonList as $tblPerson) {
-
-                                    $isInPreparationDivisionForMigrants = false;
-                                    $tblStudent = $tblPerson->getStudent();
-
-                                    if ($tblStudent
-                                        && $tblStudent->isInPreparationDivisionForMigrants()
-                                    ) {
-                                        $isInPreparationDivisionForMigrants = true;
-                                    }
-
-                                    $hasMigrationBackground = false;
-                                    if ($tblStudent
-                                        && $tblStudent->getHasMigrationBackground()
-                                    ) {
-                                        $hasMigrationBackground = true;
-                                    }
-
-                                    $gender = false;
-                                    $birthDay = false;
-                                    self::countStudentLevels($tblPerson, $tblLevel, $gender, $hasMigrationBackground,
-                                        $isInPreparationDivisionForMigrants, $birthDay, $countArray,
-                                        $countMigrantsArray,
-                                        $countMigrantsNationalityArray);
-
-                                    self::setDivisionStudents($Content, $tblPerson, $tblLevel, $tblDivision, $gender,
-                                        $isInPreparationDivisionForMigrants, $tblKamenzSchoolType);
-
-                                    self::setRepeatersGym($tblPerson, $tblLevel, $tblDivision, $Content, $gender);
-
-                                    if ($tblStudent) {
-                                        self::countForeignLanguages($tblStudent, $tblLevel, $tblKamenzSchoolType, $Content, $gender,
-                                            $isInPreparationDivisionForMigrants, $countForeignSubjectArray,
-                                            $countSecondForeignSubjectArray);
-
-                                        $countReligionArray = self::countReligion($tblStudent, $tblLevel,
-                                            $countReligionArray);
-
-                                        $countProfileArray = self::countProfile($tblStudent, $tblLevel, $gender,
-                                            $countProfileArray);
-
-                                        self::setStudentFocus($tblPerson, $tblLevel, $Content, $gender,
-                                            $hasMigrationBackground,
-                                            $isInPreparationDivisionForMigrants);
-
-                                        if (intval($tblLevel->getName()) < 11) {
-                                            $countForeignSubjectMatrix = self::countForeignLanguagesMatrix($tblPerson,
-                                                $tblLevel, $countForeignSubjectMatrix);
-                                        }
-
-                                    } else {
-                                        if (isset($countReligionArray['ZZ_Keine_Teilnahme'][$tblLevel->getName()])) {
-                                            $countReligionArray['ZZ_Keine_Teilnahme'][$tblLevel->getName()]++;
-                                        } else {
-                                            $countReligionArray['ZZ_Keine_Teilnahme'][$tblLevel->getName()] = 1;
-                                        }
-                                    }
-
-                                    // get last Level
-                                    self::setSchoolTypeLastYear($Content, $tblPastYearList, $tblPerson, null,
-                                        $tblLevel, $gender, $isInPreparationDivisionForMigrants, $tblKamenzSchoolType);
-                                }
+                            if (isset($countDivisionStudentArray[$tblDivision->getId()][$level])) {
+                                $countDivisionStudentArray[$tblDivision->getId()][$level]++;
                             } else {
-                                $countDivisionStudentArray[$tblDivision->getId()][$tblLevel->getName()] = 0;
+                                $countDivisionStudentArray[$tblDivision->getId()][$level] = 1;
                             }
+
+                            $tblStudent = $tblPerson->getStudent();
+
+                            $isInPreparationDivisionForMigrants = false;
+                            if ($tblStudent && $tblStudent->isInPreparationDivisionForMigrants()) {
+                                $isInPreparationDivisionForMigrants = true;
+                            }
+
+                            $hasMigrationBackground = false;
+                            if ($tblStudent && $tblStudent->getHasMigrationBackground()) {
+                                $hasMigrationBackground = true;
+                            }
+
+                            $gender = false;
+                            $birthDay = false;
+                            self::countStudentLevels(
+                                $tblPerson, $level, $gender, $hasMigrationBackground, $isInPreparationDivisionForMigrants, $birthDay, $countArray,
+                                $countMigrantsArray, $countMigrantsNationalityArray
+                            );
+
+                            self::setDivisionStudents(
+                                $Content, $tblPerson, $level, $tblPastYearList, $gender, $isInPreparationDivisionForMigrants, $tblKamenzSchoolType
+                            );
+
+                            self::setRepeatersGym($tblPerson, $level, $tblPastYearList, $Content, $gender, $tblKamenzSchoolType);
+
+                            self::countCourses($tblPerson, $level, $tblYear, $gender, $countAdvancedCourseArray, $countBasisCourseArray, $personAdvancedCourseList);
+
+                            if ($tblStudent) {
+                                self::countForeignLanguages(
+                                    $tblStudent, $level, $tblKamenzSchoolType, $Content, $gender, $isInPreparationDivisionForMigrants,
+                                    $countForeignSubjectArray, $countSecondForeignSubjectArray
+                                );
+
+                                $countReligionArray = self::countReligion($tblStudent, $level, $countReligionArray);
+
+                                $countProfileArray = self::countProfile($tblStudent, $level, $gender, $countProfileArray);
+
+                                self::setStudentFocus(
+                                    $tblPerson, $level, $Content, $gender, $hasMigrationBackground, $isInPreparationDivisionForMigrants
+                                );
+
+                                if ($level < 11) {
+                                    $countForeignSubjectMatrix = self::countForeignLanguagesMatrix($tblPerson, $level, $countForeignSubjectMatrix);
+                                }
+
+                            } else {
+                                if (isset($countReligionArray['ZZ_Keine_Teilnahme'][$level])) {
+                                    $countReligionArray['ZZ_Keine_Teilnahme'][$level]++;
+                                } else {
+                                    $countReligionArray['ZZ_Keine_Teilnahme'][$level] = 1;
+                                }
+                            }
+
+                            // get last Level
+                            self::setSchoolTypeLastYear(
+                                $Content, $tblPastYearList, $tblPerson, $level, $gender, $isInPreparationDivisionForMigrants, $tblKamenzSchoolType
+                            );
                         }
                     }
                 }
             }
 
             self::setStudentLevels($Content, $countArray, $countMigrantsArray, $countMigrantsNationalityArray);
-            self::setForeignLanguages($Content, $countForeignSubjectArray, $countSecondForeignSubjectArray,
-                $tblKamenzSchoolType);
+            self::setForeignLanguages($Content, $countForeignSubjectArray, $countSecondForeignSubjectArray, $tblKamenzSchoolType);
             self::setReligion($Content, $countReligionArray);
             self::setProfile($Content, $countProfileArray);
             self::setCourses($Content, $countAdvancedCourseArray, $countBasisCourseArray);
             self::setDivisionFrequency($Content, $countDivisionStudentArray);
             self::setForeignLanguagesMatrix($Content, $countForeignSubjectMatrix);
             self::setCoursesMatrix($Content, $personAdvancedCourseList);
+            self::setDivisionByLevel($Content, $countDivisionByLevelArray);
+        }
+
+        return $Content;
+    }
+
+    /**
+     * @param array $Content
+     * @param TblType $tblKamenzSchoolType
+     *
+     * @return array
+     */
+    public static function setKamenzReportBFSContent(
+        array $Content,
+        TblType $tblKamenzSchoolType
+    ): array {
+        $tblCurrentYearList = array();
+        $tblPastYearList = array();
+
+        self::setYears($Content, $tblCurrentYearList, $tblPastYearList);
+
+        /**
+         * B
+         */
+        self::setGraduateTechnicalSchool($tblPastYearList, $Content, $tblKamenzSchoolType);
+
+        if ($tblCurrentYearList) {
+            /** @var TblYear[] $tblCurrentYearList */
+            foreach ($tblCurrentYearList as $tblYear) {
+                if (($tblStudentEducationList = DivisionCourse::useService()->getStudentEducationListBy($tblYear, $tblKamenzSchoolType))) {
+                    foreach ($tblStudentEducationList as $tblStudentEducation) {
+                        if (($tblPerson = $tblStudentEducation->getServiceTblPerson())
+                            && ($level = $tblStudentEducation->getLevel())
+                        ) {
+                            $tblStudent = $tblPerson->getStudent();
+
+                            $hasMigrationBackground = false;
+                            if ($tblStudent && $tblStudent->getHasMigrationBackground()) {
+                                $hasMigrationBackground = true;
+                            }
+
+                            $tblCommonGender = false;
+                            $birthYear = false;
+                            $nationality = false;
+                            if (($tblCommon = Common::useService()->getCommonByPerson($tblPerson))) {
+                                if (($tblCommonInformation = $tblCommon->getTblCommonInformation())) {
+                                    $nationality = $tblCommonInformation->getNationality();
+                                }
+                                if (($tblCommonBirthDates = $tblCommon->getTblCommonBirthDates())) {
+                                    $tblCommonGender = $tblCommonBirthDates->getTblCommonGender();
+                                    if (($birthDay = $tblCommonBirthDates->getBirthday())) {
+                                        $birthYear = (new DateTime($birthDay))->format('Y');
+                                    }
+                                }
+                            }
+
+                            if ($tblStudent && ($tblStudentTechnicalSchool = $tblStudent->getTblStudentTechnicalSchool())
+                                && ($tblStudentTenseOfLesson = $tblStudentTechnicalSchool->getTblStudentTenseOfLesson())
+                                && ($tblStudentTrainingStatus = $tblStudentTechnicalSchool->getTblStudentTrainingStatus())
+                                && $tblCommonGender
+                            ) {
+                                $isFullTime = $tblStudentTenseOfLesson->getIdentifier() == TblStudentTenseOfLesson::FULL_TIME;
+                                $isChangeStudent = $tblStudentTrainingStatus->getIdentifier() == TblStudentTrainingStatus::CHANGE_STUDENT;
+                                $schoolDiploma = ($tblSchoolDiploma = $tblStudentTechnicalSchool->getServiceTblSchoolDiploma())
+                                    ? $tblSchoolDiploma->getName() : '&nbsp;';
+                                $schoolType = ($tblSchoolType = $tblStudentTechnicalSchool->getServiceTblSchoolType())
+                                    ? $tblSchoolType->getName() : '&nbsp;';
+                                $technicalDiploma = ($tblTechnicalDiploma = $tblStudentTechnicalSchool->getServiceTblTechnicalDiploma())
+                                    ? $tblTechnicalDiploma->getName() : '&nbsp;';
+                                $technicalType = ($tblTechnicalType = $tblStudentTechnicalSchool->getServiceTblTechnicalType())
+                                    ? $tblTechnicalType->getName() : '&nbsp;';
+                                $course = ($tblTechnicalCourse = $tblStudentTechnicalSchool->getServiceTblTechnicalCourse())
+                                    ? $tblTechnicalCourse->getName() : '&nbsp;';
+                                $time = $tblStudentTechnicalSchool->getDurationOfTraining();
+
+                                if (($tblSupport = Student::useService()->getSupportForReportingByPerson($tblPerson))
+                                    && ($tblSupportFocus = Student::useService()->getSupportPrimaryFocusBySupport($tblSupport))
+                                    && ($tblSupportFocusType = $tblSupportFocus->getTblSupportFocusType())
+                                ) {
+                                    $support = $tblSupportFocusType->getName();
+                                } else {
+                                    $support = '&nbsp;';
+                                }
+
+                                self::setDivisionStudentsForTechnicalSchool(
+                                    $Content, $level, $isFullTime ? 'FullTime' : 'PartTime', $isChangeStudent ? 'ChangeStudent' : 'Student'
+                                );
+
+                                self::setStudentFocusBFS(
+                                    $tblPerson, $level, $Content, $tblCommonGender->getShortName(), $hasMigrationBackground, $isFullTime ? 'F01_1' : 'F01_2'
+                                );
+
+                                // Neuanfänger
+                                if (self::isNewSchoolStarterForTechnicalSchool($tblPerson, $tblPastYearList)) {
+                                    // N01
+                                    self::setNewSchoolStarterDiplomaForTechnicalSchool(
+                                        $Content,
+                                        'N01_' . ($isFullTime ? '1' : '2') . '_' . ($isChangeStudent ? 'U' : 'A'),
+                                        $schoolDiploma,
+                                        $schoolType,
+                                        $support,
+                                        $tblCommonGender,
+                                        $level
+                                    );
+                                    if ($hasMigrationBackground) {
+                                        self::setNewSchoolStarterDiplomaForTechnicalSchool(
+                                            $Content,
+                                            'N01_' . ($isFullTime ? '1' : '2') . '_1_' . ($isChangeStudent ? 'U' : 'A'),
+                                            $schoolDiploma,
+                                            $schoolType,
+                                            $support,
+                                            $tblCommonGender,
+                                            $level
+                                        );
+                                    }
+
+                                    // N02
+                                    self::setNewSchoolStarterDiplomaForTechnicalSchool(
+                                        $Content,
+                                        'N02_' . ($isFullTime ? '1' : '2') . '_' . ($isChangeStudent ? 'U' : 'A'),
+                                        $technicalDiploma,
+                                        $technicalType,
+                                        $support,
+                                        $tblCommonGender,
+                                        $level
+                                    );
+                                    if ($hasMigrationBackground) {
+                                        self::setNewSchoolStarterDiplomaForTechnicalSchool(
+                                            $Content,
+                                            'N02_' . ($isFullTime ? '1' : '2') . '_1_' . ($isChangeStudent ? 'U' : 'A'),
+                                            $schoolDiploma,
+                                            $schoolType,
+                                            $support,
+                                            $tblCommonGender,
+                                            $level
+                                        );
+                                    }
+
+                                    // N03
+                                    if ($birthYear) {
+                                        self::setBirthYearOrNationalityForTechnicalSchool(
+                                            $Content,
+                                            'N03_' . ($isFullTime ? '1' : '2') . '_' . ($isChangeStudent ? 'U' : 'A'),
+                                            $birthYear,
+                                            $tblCommonGender,
+                                            $level
+                                        );
+                                        if ($hasMigrationBackground) {
+                                            self::setBirthYearOrNationalityForTechnicalSchool(
+                                                $Content,
+                                                'N03_' . ($isFullTime ? '1' : '2') . '_1_' . ($isChangeStudent ? 'U' : 'A'),
+                                                $birthYear,
+                                                $tblCommonGender,
+                                                $level
+                                            );
+                                        }
+                                    }
+
+                                    // N04
+                                    if ($nationality && $hasMigrationBackground) {
+                                        self::setBirthYearOrNationalityForTechnicalSchool(
+                                            $Content,
+                                            'N04_' . ($isFullTime ? '1' : '2') . '_1_' . ($isChangeStudent ? 'U' : 'A'),
+                                            $nationality,
+                                            $tblCommonGender,
+                                            $level
+                                        );
+                                    }
+
+                                    // N05
+                                    if ($course && $time) {
+                                        self::setCourseForTechnicalSchool(
+                                            $Content,
+                                            'N05_' . ($isFullTime ? '1' : '2') . '_' . ($isChangeStudent ? 'U' : 'A'),
+                                            $course,
+                                            $time,
+                                            $support,
+                                            $tblCommonGender,
+                                            $level
+                                        );
+                                        if ($hasMigrationBackground) {
+                                            self::setCourseForTechnicalSchool(
+                                                $Content,
+                                                'N05_' . ($isFullTime ? '1' : '2') . '_1_' . ($isChangeStudent ? 'U' : 'A'),
+                                                $course,
+                                                $time,
+                                                $support,
+                                                $tblCommonGender,
+                                                $level
+                                            );
+                                        }
+                                    }
+                                }
+
+                                // S01
+                                if ($course && $time) {
+                                    self::setCourseForTechnicalSchool(
+                                        $Content,
+                                        'S01_' . ($isFullTime ? '1' : '2') . '_' . ($isChangeStudent ? 'U' : 'A'),
+                                        $course,
+                                        $time,
+                                        $support,
+                                        $tblCommonGender,
+                                        $level
+                                    );
+                                    if ($hasMigrationBackground) {
+                                        self::setCourseForTechnicalSchool(
+                                            $Content,
+                                            'S01_' . ($isFullTime ? '1' : '2') . '_1_' . ($isChangeStudent ? 'U' : 'A'),
+                                            $course,
+                                            $time,
+                                            $support,
+                                            $tblCommonGender,
+                                            $level
+                                        );
+                                    }
+                                }
+
+                                // S02
+                                if ($birthYear) {
+                                    self::setBirthYearOrNationalityForTechnicalSchool(
+                                        $Content,
+                                        'S02_' . ($isFullTime ? '1' : '2') . '_' . ($isChangeStudent ? 'U' : 'A'),
+                                        $birthYear,
+                                        $tblCommonGender,
+                                        $level
+                                    );
+                                    if ($hasMigrationBackground) {
+                                        self::setBirthYearOrNationalityForTechnicalSchool(
+                                            $Content,
+                                            'S02_' . ($isFullTime ? '1' : '2') . '_1_' . ($isChangeStudent ? 'U' : 'A'),
+                                            $birthYear,
+                                            $tblCommonGender,
+                                            $level
+                                        );
+                                    }
+                                }
+
+                                // S03
+                                if ($nationality && $hasMigrationBackground) {
+                                    self::setBirthYearOrNationalityForTechnicalSchool(
+                                        $Content,
+                                        'S03_' . ($isFullTime ? '1' : '2') . '_1_' . ($isChangeStudent ? 'U' : 'A'),
+                                        $nationality,
+                                        $tblCommonGender,
+                                        $level
+                                    );
+                                }
+
+                                // S04
+                                $countLanguages = self::setForeignLanguagesForTechnicalSchool(
+                                    $Content,
+                                    'S04_' . ($isFullTime ? '1' : '2') . '_' . ($isChangeStudent ? 'U' : 'A'),
+                                    $tblStudent,
+                                    $level
+                                );
+
+                                // S04-1.1
+                                $name = 'S04_' . ($isFullTime ? '1' : '2') . '_1';
+                                if (isset($Content[$name][($isChangeStudent ? 'ChangeStudent' : 'Student')]['F' . $countLanguages]['L' . $level])) {
+                                    $Content[$name][($isChangeStudent ? 'ChangeStudent' : 'Student')]['F' . $countLanguages]['L' . $level]++;
+                                } else {
+                                    $Content[$name][($isChangeStudent ? 'ChangeStudent' : 'Student')]['F' . $countLanguages]['L' . $level] = 1;
+                                }
+                                if (isset($Content[$name][($isChangeStudent ? 'ChangeStudent' : 'Student')]['F' . $countLanguages]['TotalCount'])) {
+                                    $Content[$name][($isChangeStudent ? 'ChangeStudent' : 'Student')]['F' . $countLanguages]['TotalCount']++;
+                                } else {
+                                    $Content[$name][($isChangeStudent ? 'ChangeStudent' : 'Student')]['F' . $countLanguages]['TotalCount'] = 1;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            self::sumNewSchoolStarterDiplomaForTechnicalSchool($Content, 'N01_1_A');
+            self::sumNewSchoolStarterDiplomaForTechnicalSchool($Content, 'N01_1_U');
+            self::sumNewSchoolStarterDiplomaForTechnicalSchool($Content, 'N01_1_1_A');
+            self::sumNewSchoolStarterDiplomaForTechnicalSchool($Content, 'N01_1_1_U');
+
+            self::sumNewSchoolStarterDiplomaForTechnicalSchool($Content, 'N01_2_A');
+            self::sumNewSchoolStarterDiplomaForTechnicalSchool($Content, 'N01_2_U');
+            self::sumNewSchoolStarterDiplomaForTechnicalSchool($Content, 'N01_2_1_A');
+            self::sumNewSchoolStarterDiplomaForTechnicalSchool($Content, 'N01_2_1_U');
+
+            self::sumNewSchoolStarterDiplomaForTechnicalSchool($Content, 'N02_1_A');
+            self::sumNewSchoolStarterDiplomaForTechnicalSchool($Content, 'N02_1_U');
+            self::sumNewSchoolStarterDiplomaForTechnicalSchool($Content, 'N02_1_1_A');
+            self::sumNewSchoolStarterDiplomaForTechnicalSchool($Content, 'N02_1_1_U');
+
+            self::sumNewSchoolStarterDiplomaForTechnicalSchool($Content, 'N02_2_A');
+            self::sumNewSchoolStarterDiplomaForTechnicalSchool($Content, 'N02_2_U');
+            self::sumNewSchoolStarterDiplomaForTechnicalSchool($Content, 'N02_2_1_A');
+            self::sumNewSchoolStarterDiplomaForTechnicalSchool($Content, 'N02_2_1_U');
+
+            self::sumBirthYearOrNationalityForTechnicalSchool($Content, 'N03_1_A');
+            self::sumBirthYearOrNationalityForTechnicalSchool($Content, 'N03_1_U');
+            self::sumBirthYearOrNationalityForTechnicalSchool($Content, 'N03_1_1_A');
+            self::sumBirthYearOrNationalityForTechnicalSchool($Content, 'N03_1_1_U');
+
+            self::sumBirthYearOrNationalityForTechnicalSchool($Content, 'N03_2_A');
+            self::sumBirthYearOrNationalityForTechnicalSchool($Content, 'N03_2_U');
+            self::sumBirthYearOrNationalityForTechnicalSchool($Content, 'N03_2_1_A');
+            self::sumBirthYearOrNationalityForTechnicalSchool($Content, 'N03_2_1_U');
+
+            self::sumBirthYearOrNationalityForTechnicalSchool($Content, 'N04_1_1_A');
+            self::sumBirthYearOrNationalityForTechnicalSchool($Content, 'N04_1_1_U');
+            self::sumBirthYearOrNationalityForTechnicalSchool($Content, 'N04_2_1_A');
+            self::sumBirthYearOrNationalityForTechnicalSchool($Content, 'N04_2_1_U');
+
+            self::sumCourseForTechnicalSchool($Content, 'N05_1_A');
+            self::sumCourseForTechnicalSchool($Content, 'N05_1_U');
+            self::sumCourseForTechnicalSchool($Content, 'N05_1_1_A');
+            self::sumCourseForTechnicalSchool($Content, 'N05_1_1_U');
+
+            self::sumCourseForTechnicalSchool($Content, 'N05_2_A');
+            self::sumCourseForTechnicalSchool($Content, 'N05_2_U');
+            self::sumCourseForTechnicalSchool($Content, 'N05_2_1_A');
+            self::sumCourseForTechnicalSchool($Content, 'N05_2_1_U');
+
+            self::sumCourseForTechnicalSchool($Content, 'S01_1_A');
+            self::sumCourseForTechnicalSchool($Content, 'S01_1_U');
+            self::sumCourseForTechnicalSchool($Content, 'S01_1_1_A');
+            self::sumCourseForTechnicalSchool($Content, 'S01_1_1_U');
+
+            self::sumCourseForTechnicalSchool($Content, 'S01_2_A');
+            self::sumCourseForTechnicalSchool($Content, 'S01_2_U');
+            self::sumCourseForTechnicalSchool($Content, 'S01_2_1_A');
+            self::sumCourseForTechnicalSchool($Content, 'S01_2_1_U');
+
+            self::sumBirthYearOrNationalityForTechnicalSchool($Content, 'S02_1_A');
+            self::sumBirthYearOrNationalityForTechnicalSchool($Content, 'S02_1_U');
+            self::sumBirthYearOrNationalityForTechnicalSchool($Content, 'S02_1_1_A');
+            self::sumBirthYearOrNationalityForTechnicalSchool($Content, 'S02_1_1_U');
+
+            self::sumBirthYearOrNationalityForTechnicalSchool($Content, 'S02_2_A');
+            self::sumBirthYearOrNationalityForTechnicalSchool($Content, 'S02_2_U');
+            self::sumBirthYearOrNationalityForTechnicalSchool($Content, 'S02_2_1_A');
+            self::sumBirthYearOrNationalityForTechnicalSchool($Content, 'S02_2_1_U');
+
+            self::sumBirthYearOrNationalityForTechnicalSchool($Content, 'S03_1_1_A');
+            self::sumBirthYearOrNationalityForTechnicalSchool($Content, 'S03_1_1_U');
+            self::sumBirthYearOrNationalityForTechnicalSchool($Content, 'S03_2_1_A');
+            self::sumBirthYearOrNationalityForTechnicalSchool($Content, 'S03_2_1_U');
+
+            self::sumForeignLanguagesForTechnicalSchool($Content, 'S04_1_A');
+            self::sumForeignLanguagesForTechnicalSchool($Content, 'S04_1_U');
+
+            self::sumForeignLanguagesForTechnicalSchool($Content, 'S04_2_A');
+            self::sumForeignLanguagesForTechnicalSchool($Content, 'S04_2_U');
         }
 
         return $Content;
@@ -449,28 +748,24 @@ class KamenzReportService
         &$Content,
         &$tblCurrentYearList,
         &$tblPastYearList,
-        &$currentYear = false
+        bool &$currentYear = false
     ) {
-        // SchoolYears
-        if (($tblCurrentYearList = Term::useService()->getYearByNow())) {
-            $tblCurrentYear = reset($tblCurrentYearList);
-            $currentYearName = $tblCurrentYear->getName();
 
-            if ($currentYearName
-                && ($pos = strpos($currentYearName, '/'))
-            ) {
-                $year[0] = substr($currentYearName, 0, $pos);
-                $year[1] = substr($currentYearName, $pos + 1);
-
-                $currentYear = $year[0];
-
-                $pastYearName = (string)($year[0] - 1) . '/' . (string)($year[1] - 1);
-                $tblPastYearList = Term::useService()->getYearByName($pastYearName);
-                $Content['SchoolYear']['Current'] = $currentYearName;
-                $Content['SchoolYear']['Past'] = $pastYearName;
-                $Content['Year']['Current'] = $currentYear;
-            }
+        $Date = Term::useService()->getYearStringAsArray();
+        //past year as string
+        $PastDisplayYear = $Date['PastDisplayYear'];
+        //current year as string
+        $CurrentDisplayYear = $Date['CurrentDisplayYear'];
+        //current year exact year
+        $currentYear = $Date['CurrentYear'];
+        $tblCurrentYearList = Term::useService()->getYearByName($CurrentDisplayYear);
+        if (($temp = Term::useService()->getYearByName($PastDisplayYear))) {
+            $tblPastYearList = $temp;
         }
+
+        $Content['SchoolYear']['Current'] = $CurrentDisplayYear;
+        $Content['SchoolYear']['Past'] = $PastDisplayYear;
+        $Content['Year']['Current'] = $currentYear;
     }
 
     /**
@@ -480,7 +775,6 @@ class KamenzReportService
      */
     private static function setRepeatersFromCertificates(&$Content, $tblPastYearList, TblType $tblKamenzSchoolType)
     {
-
         if ($tblPastYearList) {
             foreach ($tblPastYearList as $tblPastYear) {
                 if (($tblGeneratePrepareList = Generate::useService()->getGenerateCertificateAllByYear($tblPastYear))) {
@@ -490,50 +784,37 @@ class KamenzReportService
                             && ($tblPrepareList = Prepare::useService()->getPrepareAllByGenerateCertificate($tblGenerateCertificate))
                         ) {
                             foreach ($tblPrepareList as $tblPrepare) {
-                                if (($tblDivision = $tblPrepare->getServiceTblDivision())
-                                    && ($tblLevel = $tblDivision->getTblLevel())
-                                    && ($tblSchoolType = $tblLevel->getServiceTblType())
-                                    && $tblSchoolType->getId() == $tblKamenzSchoolType->getId()
+                                if (($tblDivisionCourse = $tblPrepare->getServiceTblDivision())
+                                    && ($tblSchoolTypeList = $tblDivisionCourse->getSchoolTypeListFromStudents())
+                                    && isset($tblSchoolTypeList[$tblKamenzSchoolType->getId()])
                                     && ($tblPrepareStudentList = Prepare::useService()->getPrepareStudentAllByPrepare($tblPrepare))
                                 ) {
                                     foreach ($tblPrepareStudentList as $tblPrepareStudent) {
-                                        if ($tblPrepareStudent->isPrinted()
-                                            && ($tblPerson = $tblPrepareStudent->getServiceTblPerson())
-                                            && ((($tblPrepareInformationTransfer = Prepare::useService()->getPrepareInformationBy(
-                                                        $tblPrepare, $tblPerson, 'Transfer'
-                                                    ))
-                                                    && (strpos($tblPrepareInformationTransfer->getValue(),
-                                                            'nicht versetzt') !== false))
+                                        if (($tblPerson = $tblPrepareStudent->getServiceTblPerson())
+                                            && ((($tblPrepareInformationTransfer = Prepare::useService()->getPrepareInformationBy($tblPrepare, $tblPerson, 'Transfer'))
+                                                    && (strpos($tblPrepareInformationTransfer->getValue(), 'nicht versetzt') !== false))
                                                 || (($tblPrepareInformationIndividualTransfer = Prepare::useService()->getPrepareInformationBy(
                                                         $tblPrepare, $tblPerson, 'IndividualTransfer'
                                                     ))
-                                                    && (strpos($tblPrepareInformationIndividualTransfer->getValue(),
-                                                            'nicht versetzt') !== false))
+                                                    && (strpos($tblPrepareInformationIndividualTransfer->getValue(), 'nicht versetzt') !== false))
                                             )
                                         ) {
-
-                                            $gender = 'x';
-                                            if (($tblCommon = Common::useService()->getCommonByPerson($tblPerson))
-                                                && (($tblCommonBirthDates = $tblCommon->getTblCommonBirthDates()))
-                                                && ($tblCommonGender = $tblCommonBirthDates->getTblCommonGender())
-                                                && ($birthDay = $tblCommonBirthDates->getBirthday())
-                                            ) {
-
-                                                if ($tblCommonGender->getName() == 'Männlich') {
-                                                    $gender = 'm';
-                                                } elseif ($tblCommonGender->getName() == 'Weiblich') {
-                                                    $gender = 'w';
-                                                }
+                                            $level = 0;
+                                            $tblCourse = false;
+                                            if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblPastYear))) {
+                                                $level = $tblStudentEducation->getLevel();
+                                                $tblCourse = $tblStudentEducation->getServiceTblCourse();
                                             }
 
-                                            if ($tblKamenzSchoolType->getName() == 'Mittelschule / Oberschule') {
-                                                $course = 'NoCourse';
-                                                if ($tblLevel->getName() == '5' || $tblLevel->getName() == '6') {
+                                            $gender = 'x';
+                                            if (($tblCommonGender = $tblPerson->getGender())) {
+                                                $gender = $tblCommonGender->getShortName();
+                                            }
 
-                                                } else {
-                                                    if (($tblStudent = $tblPerson->getStudent())
-                                                        && ($tblCourse = $tblStudent->getCourse())
-                                                    ) {
+                                            if ($tblKamenzSchoolType->getName() == TblType::IDENT_OBER_SCHULE) {
+                                                $course = 'NoCourse';
+                                                if (!($level == 5 || $level == 6)) {
+                                                    if ($tblCourse) {
                                                         if ($tblCourse->getName() == 'Hauptschule') {
                                                             $course = 'HS';
                                                         } elseif ($tblCourse->getName() == 'Realschule') {
@@ -542,10 +823,10 @@ class KamenzReportService
                                                     }
                                                 }
 
-                                                if (isset($Content['C01'][$course]['L' . $tblLevel->getName()][$gender])) {
-                                                    $Content['C01'][$course]['L' . $tblLevel->getName()][$gender]++;
+                                                if (isset($Content['C01'][$course]['L' . $level][$gender])) {
+                                                    $Content['C01'][$course]['L' . $level][$gender]++;
                                                 } else {
-                                                    $Content['C01'][$course]['L' . $tblLevel->getName()][$gender] = 1;
+                                                    $Content['C01'][$course]['L' . $level][$gender] = 1;
                                                 }
 
                                                 if (isset($Content['C01'][$course]['TotalCount'][$gender])) {
@@ -555,10 +836,10 @@ class KamenzReportService
                                                 }
 
                                             } else {
-                                                if (isset($Content['C01']['L' . $tblLevel->getName()][$gender])) {
-                                                    $Content['C01']['L' . $tblLevel->getName()][$gender]++;
+                                                if (isset($Content['C01']['L' . $level][$gender])) {
+                                                    $Content['C01']['L' . $level][$gender]++;
                                                 } else {
-                                                    $Content['C01']['L' . $tblLevel->getName()][$gender] = 1;
+                                                    $Content['C01']['L' . $level][$gender] = 1;
                                                 }
 
                                                 if (isset($Content['C01']['TotalCount'][$gender])) {
@@ -583,19 +864,21 @@ class KamenzReportService
      * Förderschwerpunkten und Klassenstufen
      *
      * @param TblPerson $tblPerson
-     * @param TblLevel $tblLevel
+     * @param int $level
      * @param $Content
      * @param $gender
      * @param $hasMigrationBackground
      * @param $isInPreparationDivisionForMigrants
+     * @param string $name
      */
     private static function setStudentFocus(
         TblPerson $tblPerson,
-        TblLevel $tblLevel,
+        int $level,
         &$Content,
         $gender,
         $hasMigrationBackground,
-        $isInPreparationDivisionForMigrants
+        $isInPreparationDivisionForMigrants,
+        string $name = 'F01'
     ) {
 
         if (($tblSupport = Student::useService()->getSupportForReportingByPerson($tblPerson))
@@ -603,59 +886,59 @@ class KamenzReportService
             && ($tblSupportFocusType = $tblSupportFocus->getTblSupportFocusType())
         ) {
 
-            $name = preg_replace('/[^a-zA-Z]/', '', $tblSupportFocusType->getName());
+            $text = preg_replace('/[^a-zA-Z]/', '', $tblSupportFocusType->getName());
 
             /**
              * Schüler
              */
-            if (isset($Content['F01'][$name]['Student']['L' . $tblLevel->getName()][$gender])) {
-                $Content['F01'][$name]['Student']['L' . $tblLevel->getName()][$gender]++;
+            if (isset($Content[$name][$text]['Student']['L' . $level][$gender])) {
+                $Content[$name][$text]['Student']['L' . $level][$gender]++;
             } else {
-                $Content['F01'][$name]['Student']['L' . $tblLevel->getName()][$gender] = 1;
+                $Content[$name][$text]['Student']['L' . $level][$gender] = 1;
             }
             if ($isInPreparationDivisionForMigrants) {
-                if (isset($Content['F01'][$name]['Student']['IsInPreparationDivisionForMigrants'][$gender])) {
-                    $Content['F01'][$name]['Student']['IsInPreparationDivisionForMigrants'][$gender]++;
+                if (isset($Content[$name][$text]['Student']['IsInPreparationDivisionForMigrants'][$gender])) {
+                    $Content[$name][$text]['Student']['IsInPreparationDivisionForMigrants'][$gender]++;
                 } else {
-                    $Content['F01'][$name]['Student']['IsInPreparationDivisionForMigrants'][$gender] = 1;
+                    $Content[$name][$text]['Student']['IsInPreparationDivisionForMigrants'][$gender] = 1;
                 }
             }
-            if (isset($Content['F01'][$name]['Student']['TotalCount'][$gender])) {
-                $Content['F01'][$name]['Student']['TotalCount'][$gender]++;
+            if (isset($Content[$name][$text]['Student']['TotalCount'][$gender])) {
+                $Content[$name][$text]['Student']['TotalCount'][$gender]++;
             } else {
-                $Content['F01'][$name]['Student']['TotalCount'][$gender] = 1;
+                $Content[$name][$text]['Student']['TotalCount'][$gender] = 1;
             }
-            if (isset($Content['F01']['TotalCount']['Student']['TotalCount'][$gender])) {
-                $Content['F01']['TotalCount']['Student']['TotalCount'][$gender]++;
+            if (isset($Content[$name]['TotalCount']['Student']['TotalCount'][$gender])) {
+                $Content[$name]['TotalCount']['Student']['TotalCount'][$gender]++;
             } else {
-                $Content['F01']['TotalCount']['Student']['TotalCount'][$gender] = 1;
+                $Content[$name]['TotalCount']['Student']['TotalCount'][$gender] = 1;
             }
 
             /**
              * Schüler mit Migrationshintergrund
              */
             if ($hasMigrationBackground) {
-                if (isset($Content['F01'][$name]['HasMigrationBackground']['L' . $tblLevel->getName()][$gender])) {
-                    $Content['F01'][$name]['HasMigrationBackground']['L' . $tblLevel->getName()][$gender]++;
+                if (isset($Content[$name][$text]['HasMigrationBackground']['L' . $level][$gender])) {
+                    $Content[$name][$text]['HasMigrationBackground']['L' . $level][$gender]++;
                 } else {
-                    $Content['F01'][$name]['HasMigrationBackground']['L' . $tblLevel->getName()][$gender] = 1;
+                    $Content[$name][$text]['HasMigrationBackground']['L' . $level][$gender] = 1;
                 }
                 if ($isInPreparationDivisionForMigrants) {
-                    if (isset($Content['F01'][$name]['HasMigrationBackground']['IsInPreparationDivisionForMigrants'][$gender])) {
-                        $Content['F01'][$name]['HasMigrationBackground']['IsInPreparationDivisionForMigrants'][$gender]++;
+                    if (isset($Content[$name][$text]['HasMigrationBackground']['IsInPreparationDivisionForMigrants'][$gender])) {
+                        $Content[$name][$text]['HasMigrationBackground']['IsInPreparationDivisionForMigrants'][$gender]++;
                     } else {
-                        $Content['F01'][$name]['HasMigrationBackground']['IsInPreparationDivisionForMigrants'][$gender] = 1;
+                        $Content[$name][$text]['HasMigrationBackground']['IsInPreparationDivisionForMigrants'][$gender] = 1;
                     }
                 }
-                if (isset($Content['F01'][$name]['HasMigrationBackground']['TotalCount'][$gender])) {
-                    $Content['F01'][$name]['HasMigrationBackground']['TotalCount'][$gender]++;
+                if (isset($Content[$name][$text]['HasMigrationBackground']['TotalCount'][$gender])) {
+                    $Content[$name][$text]['HasMigrationBackground']['TotalCount'][$gender]++;
                 } else {
-                    $Content['F01'][$name]['HasMigrationBackground']['TotalCount'][$gender] = 1;
+                    $Content[$name][$text]['HasMigrationBackground']['TotalCount'][$gender] = 1;
                 }
-                if (isset($Content['F01']['TotalCount']['HasMigrationBackground']['TotalCount'][$gender])) {
-                    $Content['F01']['TotalCount']['HasMigrationBackground']['TotalCount'][$gender]++;
+                if (isset($Content[$name]['TotalCount']['HasMigrationBackground']['TotalCount'][$gender])) {
+                    $Content[$name]['TotalCount']['HasMigrationBackground']['TotalCount'][$gender]++;
                 } else {
-                    $Content['F01']['TotalCount']['HasMigrationBackground']['TotalCount'][$gender] = 1;
+                    $Content[$name]['TotalCount']['HasMigrationBackground']['TotalCount'][$gender] = 1;
                 }
             }
 
@@ -681,27 +964,148 @@ class KamenzReportService
                 }
 
                 if ($hasAutism) {
-                    if (isset($Content['F01'][$name]['Autism']['L' . $tblLevel->getName()][$gender])) {
-                        $Content['F01'][$name]['Autism']['L' . $tblLevel->getName()][$gender]++;
+                    if (isset($Content[$name][$text]['Autism']['L' . $level][$gender])) {
+                        $Content[$name][$text]['Autism']['L' . $level][$gender]++;
                     } else {
-                        $Content['F01'][$name]['Autism']['L' . $tblLevel->getName()][$gender] = 1;
+                        $Content[$name][$text]['Autism']['L' . $level][$gender] = 1;
                     }
                     if ($isInPreparationDivisionForMigrants) {
-                        if (isset($Content['F01'][$name]['Autism']['IsInPreparationDivisionForMigrants'][$gender])) {
-                            $Content['F01'][$name]['Autism']['IsInPreparationDivisionForMigrants'][$gender]++;
+                        if (isset($Content[$name][$text]['Autism']['IsInPreparationDivisionForMigrants'][$gender])) {
+                            $Content[$name][$text]['Autism']['IsInPreparationDivisionForMigrants'][$gender]++;
                         } else {
-                            $Content['F01'][$name]['Autism']['IsInPreparationDivisionForMigrants'][$gender] = 1;
+                            $Content[$name][$text]['Autism']['IsInPreparationDivisionForMigrants'][$gender] = 1;
                         }
                     }
-                    if (isset($Content['F01'][$name]['Autism']['TotalCount'][$gender])) {
-                        $Content['F01'][$name]['Autism']['TotalCount'][$gender]++;
+                    if (isset($Content[$name][$text]['Autism']['TotalCount'][$gender])) {
+                        $Content[$name][$text]['Autism']['TotalCount'][$gender]++;
                     } else {
-                        $Content['F01'][$name]['Autism']['TotalCount'][$gender] = 1;
+                        $Content[$name][$text]['Autism']['TotalCount'][$gender] = 1;
                     }
-                    if (isset($Content['F01']['TotalCount']['Autism']['TotalCount'][$gender])) {
-                        $Content['F01']['TotalCount']['Autism']['TotalCount'][$gender]++;
+                    if (isset($Content[$name]['TotalCount']['Autism']['TotalCount'][$gender])) {
+                        $Content[$name]['TotalCount']['Autism']['TotalCount'][$gender]++;
                     } else {
-                        $Content['F01']['TotalCount']['Autism']['TotalCount'][$gender] = 1;
+                        $Content[$name]['TotalCount']['Autism']['TotalCount'][$gender] = 1;
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param int $level
+     * @param $Content
+     * @param $gender
+     * @param $hasMigrationBackground
+     * @param string $name
+     */
+    private static function setStudentFocusBFS(
+        TblPerson $tblPerson,
+        int $level,
+        &$Content,
+        $gender,
+        $hasMigrationBackground,
+        string $name = 'F01_1'
+    ) {
+
+        if (($tblSupport = Student::useService()->getSupportForReportingByPerson($tblPerson))
+            && ($tblSupportFocus = Student::useService()->getSupportPrimaryFocusBySupport($tblSupport))
+            && ($tblSupportFocusType = $tblSupportFocus->getTblSupportFocusType())
+        ) {
+
+            $text = preg_replace('/[^a-zA-Z]/', '', $tblSupportFocusType->getName());
+
+            /**
+             * Schüler
+             */
+            if (isset($Content[$name][$text]['Student']['L' . $level][$gender])) {
+                $Content[$name][$text]['Student']['L' . $level][$gender]++;
+            } else {
+                $Content[$name][$text]['Student']['L' . $level][$gender] = 1;
+            }
+            if (isset($Content[$name][$text]['Student']['L' . $level]['TotalCount'])) {
+                $Content[$name][$text]['Student']['L' . $level]['TotalCount']++;
+            } else {
+                $Content[$name][$text]['Student']['L' . $level]['TotalCount'] = 1;
+            }
+            if (isset($Content[$name][$text]['Student']['TotalCount'][$gender])) {
+                $Content[$name][$text]['Student']['TotalCount'][$gender]++;
+            } else {
+                $Content[$name][$text]['Student']['TotalCount'][$gender] = 1;
+            }
+            if (isset($Content[$name]['TotalCount']['Student']['TotalCount'][$gender])) {
+                $Content[$name]['TotalCount']['Student']['TotalCount'][$gender]++;
+            } else {
+                $Content[$name]['TotalCount']['Student']['TotalCount'][$gender] = 1;
+            }
+
+            /**
+             * Schüler mit Migrationshintergrund
+             */
+            if ($hasMigrationBackground) {
+                if (isset($Content[$name][$text]['HasMigrationBackground']['L' . $level]['TotalCount'])) {
+                    $Content[$name][$text]['HasMigrationBackground']['L' . $level]['TotalCount']++;
+                } else {
+                    $Content[$name][$text]['HasMigrationBackground']['L' . $level]['TotalCount'] = 1;
+                }
+                if (isset($Content[$name][$text]['HasMigrationBackground']['TotalCount']['TotalCount'])) {
+                    $Content[$name][$text]['HasMigrationBackground']['TotalCount']['TotalCount']++;
+                } else {
+                    $Content[$name][$text]['HasMigrationBackground']['TotalCount']['TotalCount'] = 1;
+                }
+                if (isset($Content[$name]['TotalCount']['HasMigrationBackground']['L' . $level]['TotalCount'])) {
+                    $Content[$name]['TotalCount']['HasMigrationBackground']['L' . $level]['TotalCount']++;
+                } else {
+                    $Content[$name]['TotalCount']['HasMigrationBackground']['L' . $level]['TotalCount'] = 1;
+                }
+                if (isset($Content[$name]['TotalCount']['HasMigrationBackground']['TotalCount']['TotalCount'])) {
+                    $Content[$name]['TotalCount']['HasMigrationBackground']['TotalCount']['TotalCount']++;
+                } else {
+                    $Content[$name]['TotalCount']['HasMigrationBackground']['TotalCount']['TotalCount'] = 1;
+                }
+            }
+
+            /**
+             * Schüler mit gutachterl. best. Autismus
+             */
+            if (($tblSpecialList = Student::useService()->getSpecialByPerson($tblPerson))) {
+
+                $hasAutism = false;
+                foreach ($tblSpecialList as $tblSpecial) {
+                    if (($tblSpecialDisorderTypeList = Student::useService()->getSpecialDisorderTypeAllBySpecial($tblSpecial))) {
+                        foreach ($tblSpecialDisorderTypeList as $tblSpecialDisorderType) {
+                            if ($tblSpecialDisorderType->getName() == 'Störungen aus dem Autismusspektrum') {
+                                $hasAutism = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    if ($hasAutism) {
+                        break;
+                    }
+                }
+
+                if ($hasAutism) {
+                    if (isset($Content[$name][$text]['Autism']['L' . $level]['TotalCount'])) {
+                        $Content[$name][$text]['Autism']['L' . $level]['TotalCount']++;
+                    } else {
+                        $Content[$name][$text]['Autism']['L' . $level]['TotalCount'] = 1;
+                    }
+                    if (isset($Content[$name][$text]['Autism']['TotalCount']['TotalCount'])) {
+                        $Content[$name][$text]['Autism']['TotalCount']['TotalCount']++;
+                    } else {
+                        $Content[$name][$text]['Autism']['TotalCount']['TotalCount'] = 1;
+                    }
+                    if (isset($Content[$name]['TotalCount']['Autism']['L' . $level]['TotalCount'])) {
+                        $Content[$name]['TotalCount']['Autism']['L' . $level]['TotalCount']++;
+                    } else {
+                        $Content[$name]['TotalCount']['Autism']['L' . $level]['TotalCount'] = 1;
+                    }
+                    if (isset($Content[$name]['TotalCount']['Autism']['TotalCount']['TotalCount'])) {
+                        $Content[$name]['TotalCount']['Autism']['TotalCount']['TotalCount']++;
+                    } else {
+                        $Content[$name]['TotalCount']['Autism']['TotalCount']['TotalCount'] = 1;
                     }
                 }
             }
@@ -710,7 +1114,7 @@ class KamenzReportService
 
     /**
      * @param TblStudent $tblStudent
-     * @param TblLevel $tblLevel
+     * @param int $level
      * @param TblType $tblType
      * @param $Content
      * @param $gender
@@ -720,7 +1124,7 @@ class KamenzReportService
      */
     private static function countForeignLanguages(
         TblStudent $tblStudent,
-        TblLevel $tblLevel,
+        int $level,
         TblType $tblType,
         &$Content,
         $gender,
@@ -732,44 +1136,41 @@ class KamenzReportService
          * E04 Schüler mit der ersten Fremdsprache im Schuljahr nach Klassenstufen
          */
         if (($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('FOREIGN_LANGUAGE'))) {
-            if ($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType(
-                $tblStudent, $tblStudentSubjectType
-            )
-            ) {
-                $countForeignSubjectsByStudent = 0;
+            $countForeignSubjectsByStudent = 0;
+            if ($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType($tblStudent, $tblStudentSubjectType)) {
                 foreach ($tblStudentSubjectList as $tblStudentSubject) {
                     if (($tblSubject = $tblStudentSubject->getServiceTblSubject())
                         && ($tblStudentSubjectRanking = $tblStudentSubject->getTblStudentSubjectRanking())
                     ) {
-                        // #SSW-1596 Abgeschlossene und noch nicht begonne Fremdsprachen ignorieren
-                        if (($tblLevelFrom = $tblStudentSubject->getServiceTblLevelFrom())
-                            && intval($tblLevelFrom->getName()) > intval($tblLevel->getName())
+                        // #SSW-1596 abgeschlossene und noch nicht begonnene Fremdsprachen ignorieren
+                        if (($LevelFrom = $tblStudentSubject->getLevelFrom())
+                            && $LevelFrom > $level
                         ) {
                             continue;
                         }
-                        if (($tblLevelTill = $tblStudentSubject->getServiceTblLevelTill())
-                            && intval($tblLevelTill->getName()) < intval($tblLevel->getName())
+                        if (($LevelTill = $tblStudentSubject->getLevelTill())
+                            && $LevelTill < $level
                         ) {
                             continue;
                         }
 
                         $countForeignSubjectsByStudent++;
 
-                        if ($tblType->getName() == 'Mittelschule / Oberschule') {
-                            // bei Mittelschule nur 1. Fremdsprache
+                        if ($tblType->getShortName() == 'OS') {
+                            // bei Oberschule nur 1. Fremdsprache
                             if ($tblStudentSubjectRanking->getIdentifier() == 1) {
-                                if (isset($countForeignSubjectArray[$tblSubject->getName()][$tblLevel->getName()])) {
-                                    $countForeignSubjectArray[$tblSubject->getName()][$tblLevel->getName()]++;
+                                if (isset($countForeignSubjectArray[$tblSubject->getName()][$level])) {
+                                    $countForeignSubjectArray[$tblSubject->getName()][$level]++;
                                 } else {
-                                    $countForeignSubjectArray[$tblSubject->getName()][$tblLevel->getName()] = 1;
+                                    $countForeignSubjectArray[$tblSubject->getName()][$level] = 1;
                                 }
                             }
                         } else {
-                            if (intval($tblLevel->getName()) < 11) {
-                                if (isset($countForeignSubjectArray[$tblSubject->getName()][$tblLevel->getName()])) {
-                                    $countForeignSubjectArray[$tblSubject->getName()][$tblLevel->getName()]++;
+                            if ($level < 11) {
+                                if (isset($countForeignSubjectArray[$tblSubject->getName()][$level])) {
+                                    $countForeignSubjectArray[$tblSubject->getName()][$level]++;
                                 } else {
-                                    $countForeignSubjectArray[$tblSubject->getName()][$tblLevel->getName()] = 1;
+                                    $countForeignSubjectArray[$tblSubject->getName()][$level] = 1;
                                 }
                             }
                         }
@@ -779,17 +1180,15 @@ class KamenzReportService
                              * E11. Schüler in der zweiten FREMDSPRACHE - abschlussorientiert im Schuljahr nach Klassenstufen
                              */
                             if ($gender) {
-                                if (isset($countSecondForeignSubjectArray[$tblSubject->getAcronym()][$tblLevel->getName()][$gender])) {
-                                    $countSecondForeignSubjectArray[$tblSubject->getAcronym()][$tblLevel->getName()][$gender]++;
+                                if (isset($countSecondForeignSubjectArray[$tblSubject->getAcronym()][$level][$gender])) {
+                                    $countSecondForeignSubjectArray[$tblSubject->getAcronym()][$level][$gender]++;
                                 } else {
-                                    $countSecondForeignSubjectArray[$tblSubject->getAcronym()][$tblLevel->getName()][$gender] = 1;
+                                    $countSecondForeignSubjectArray[$tblSubject->getAcronym()][$level][$gender] = 1;
                                 }
                             }
                         }
                     }
                 }
-            } else {
-                $countForeignSubjectsByStudent = 0;
             }
 
             /**
@@ -798,20 +1197,20 @@ class KamenzReportService
             if ($countForeignSubjectsByStudent > 4) {
                 $countForeignSubjectsByStudent = 4;
             }
-            if (isset($Content['E04_1']['F' . $countForeignSubjectsByStudent]['L' . $tblLevel->getName()])) {
-                $Content['E04_1']['F' . $countForeignSubjectsByStudent]['L' . $tblLevel->getName()]++;
+            if (isset($Content['E04_1']['F' . $countForeignSubjectsByStudent]['L' . $level])) {
+                $Content['E04_1']['F' . $countForeignSubjectsByStudent]['L' . $level]++;
             } else {
-                $Content['E04_1']['F' . $countForeignSubjectsByStudent]['L' . $tblLevel->getName()] = 1;
+                $Content['E04_1']['F' . $countForeignSubjectsByStudent]['L' . $level] = 1;
             }
             if (isset($Content['E04_1']['F' . $countForeignSubjectsByStudent]['TotalCount'])) {
                 $Content['E04_1']['F' . $countForeignSubjectsByStudent]['TotalCount']++;
             } else {
                 $Content['E04_1']['F' . $countForeignSubjectsByStudent]['TotalCount'] = 1;
             }
-            if (isset($Content['E04_1']['TotalCount']['L' . $tblLevel->getName()])) {
-                $Content['E04_1']['TotalCount']['L' . $tblLevel->getName()]++;
+            if (isset($Content['E04_1']['TotalCount']['L' . $level])) {
+                $Content['E04_1']['TotalCount']['L' . $level]++;
             } else {
-                $Content['E04_1']['TotalCount']['L' . $tblLevel->getName()] = 1;
+                $Content['E04_1']['TotalCount']['L' . $level] = 1;
             }
 
             if ($isInPreparationDivisionForMigrants) {
@@ -835,21 +1234,17 @@ class KamenzReportService
      *
      * @return array
      */
-    private static function getForeignLanguages(TblPerson $tblPerson)
+    private static function getForeignLanguages(TblPerson $tblPerson): array
     {
         $subjects = array();
         if (($tblStudent = $tblPerson->getStudent())
             && ($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('FOREIGN_LANGUAGE'))
-            && ($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType(
-                $tblStudent, $tblStudentSubjectType
-            ))
+            && ($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType($tblStudent, $tblStudentSubjectType))
         ) {
-
             foreach ($tblStudentSubjectList as $tblStudentSubject) {
                 if (($tblSubject = $tblStudentSubject->getServiceTblSubject())
                     && ($tblStudentSubjectRanking = $tblStudentSubject->getTblStudentSubjectRanking())
                 ) {
-
                     $subjects[$tblStudentSubjectRanking->getIdentifier()] = $tblSubject->getAcronym();
                 }
             }
@@ -860,16 +1255,16 @@ class KamenzReportService
 
     /**
      * @param TblPerson $tblPerson
-     * @param TblLevel $tblLevel
+     * @param int $level
      * @param $countForeignSubjectMatrix
      *
      * @return array
      */
     private static function countForeignLanguagesMatrix(
         TblPerson $tblPerson,
-        TblLevel $tblLevel,
+        int $level,
         $countForeignSubjectMatrix
-    ) {
+    ): array {
         /**
          * E15. Schüler in Sprachenfolgen im Schuljahr nach Klassenstufen
          */
@@ -888,10 +1283,10 @@ class KamenzReportService
                 }
             }
 
-            if (isset($countForeignSubjectMatrix[$count][$identifier]['Levels'][$tblLevel->getName()])) {
-                $countForeignSubjectMatrix[$count][$identifier]['Levels'][$tblLevel->getName()]++;
+            if (isset($countForeignSubjectMatrix[$count][$identifier]['Levels'][$level])) {
+                $countForeignSubjectMatrix[$count][$identifier]['Levels'][$level]++;
             } else {
-                $countForeignSubjectMatrix[$count][$identifier]['Levels'][$tblLevel->getName()] = 1;
+                $countForeignSubjectMatrix[$count][$identifier]['Levels'][$level] = 1;
             }
         }
 
@@ -926,7 +1321,7 @@ class KamenzReportService
             $count++;
         }
 
-        if ($tblSchoolType->getName() == 'Mittelschule / Oberschule') {
+        if ($tblSchoolType->getName() == TblType::IDENT_OBER_SCHULE) {
             /**
              * E11 Schüler in der zweiten FREMDSPRACHE - abschlussorientiert im Schuljahr nach Klassenstufen
              */
@@ -1003,41 +1398,38 @@ class KamenzReportService
      * E05 Schüler im Ethik- bzw. Religionsunterricht im Schuljahr nach Klassenstufen
      *
      * @param TblStudent $tblStudent
-     * @param TblLevel $tblLevel
+     * @param int $level
      * @param $countReligionArray
      *
      * @return array
      */
     private static function countReligion(
         TblStudent $tblStudent,
-        TblLevel $tblLevel,
+        int $level,
         $countReligionArray
-    ) {
+    ): array {
 
         if (($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('RELIGION'))
-            && ($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType(
-                $tblStudent, $tblStudentSubjectType
-            ))
+            && ($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType($tblStudent, $tblStudentSubjectType))
         ) {
-
             /** @var TblStudentSubject $tblStudentSubject */
             if (($tblStudentSubject = reset($tblStudentSubjectList))
                 && ($tblSubject = $tblStudentSubject->getServiceTblSubject())
             ) {
-                if (isset($countReligionArray[$tblSubject->getAcronym()][$tblLevel->getName()])) {
-                    $countReligionArray[$tblSubject->getAcronym()][$tblLevel->getName()]++;
+                if (isset($countReligionArray[$tblSubject->getAcronym()][$level])) {
+                    $countReligionArray[$tblSubject->getAcronym()][$level]++;
                 } else {
-                    $countReligionArray[$tblSubject->getAcronym()][$tblLevel->getName()] = 1;
+                    $countReligionArray[$tblSubject->getAcronym()][$level] = 1;
                 }
             }
 
             return $countReligionArray;
         }
 
-        if (isset($countReligionArray['ZZ_Keine_Teilnahme'][$tblLevel->getName()])) {
-            $countReligionArray['ZZ_Keine_Teilnahme'][$tblLevel->getName()]++;
+        if (isset($countReligionArray['ZZ_Keine_Teilnahme'][$level])) {
+            $countReligionArray['ZZ_Keine_Teilnahme'][$level]++;
         } else {
-            $countReligionArray['ZZ_Keine_Teilnahme'][$tblLevel->getName()] = 1;
+            $countReligionArray['ZZ_Keine_Teilnahme'][$level] = 1;
         }
 
         return $countReligionArray;
@@ -1080,43 +1472,52 @@ class KamenzReportService
      * E08. Wiederholer im Schuljahr 2016/17 nach Klassenstufen
      *
      * @param TblPerson $tblPerson
-     * @param TblLevel $tblLevel
-     * @param TblDivision $tblDivision
+     * @param int $level
+     * @param array $tblPastYearList
      * @param $Content
      * @param $gender
+     * @param TblCourse|null $tblCourse
+     * @param TblType $tblSchoolTypeKamenz
      */
     private static function setRepeatersOs(
         TblPerson $tblPerson,
-        TblLevel $tblLevel,
-        TblDivision $tblDivision,
+        int $level,
+        array $tblPastYearList,
         &$Content,
-        $gender
+        $gender,
+        ?TblCourse $tblCourse,
+        TblType $tblSchoolTypeKamenz
     ) {
+        foreach ($tblPastYearList as $tblPastYear) {
+            if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblPastYear))
+                && $level == $tblStudentEducation->getLevel()
+                && ($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())
+                && $tblSchoolType->getId() == $tblSchoolTypeKamenz->getId()
+            ) {
+                $course = 'WithoutCourse';
+                if ($level > 6 && $tblCourse) {
+                    if ($tblCourse->getName() == 'Hauptschule') {
+                        $course = 'HS';
+                    } elseif ($tblCourse->getName() == 'Realschule') {
+                        $course = 'RS';
+                    }
+                }
 
-        if (($tblDivisionStudentAllByPerson = Division::useService()->getDivisionStudentAllByPerson($tblPerson))) {
-            /**@var TblDivisionStudent $tblDivisionStudent * */
-            foreach ($tblDivisionStudentAllByPerson as $tblDivisionStudent) {
-                if (($tblDivisionTemp = $tblDivisionStudent->getTblDivision())
-                    && $tblDivisionTemp->getId() != $tblDivision->getId()
-                    && ($tblTempLevel = $tblDivisionTemp->getTblLevel())
-                    && $tblLevel->getId() == $tblTempLevel->getId()
-                ) {
-                    if ($gender) {
-                        if (isset($Content['E08']['WithoutCourse']['L' . $tblLevel->getName()][$gender])) {
-                            $Content['E08']['WithoutCourse']['L' . $tblLevel->getName()][$gender]++;
-                        } else {
-                            $Content['E08']['WithoutCourse']['L' . $tblLevel->getName()][$gender] = 1;
-                        }
-
-                        if (isset($Content['E08']['WithoutCourse']['TotalCount'][$gender])) {
-                            $Content['E08']['WithoutCourse']['TotalCount'][$gender]++;
-                        } else {
-                            $Content['E08']['WithoutCourse']['TotalCount'][$gender] = 1;
-                        }
+                if ($gender) {
+                    if (isset($Content['E08'][$course]['L' . $level][$gender])) {
+                        $Content['E08'][$course]['L' . $level][$gender]++;
+                    } else {
+                        $Content['E08'][$course]['L' . $level][$gender] = 1;
                     }
 
-                    break;
+                    if (isset($Content['E08'][$course]['TotalCount'][$gender])) {
+                        $Content['E08'][$course]['TotalCount'][$gender]++;
+                    } else {
+                        $Content['E08'][$course]['TotalCount'][$gender] = 1;
+                    }
                 }
+
+                break;
             }
         }
     }
@@ -1125,71 +1526,66 @@ class KamenzReportService
      * E08. Wiederholer im Schuljahr 2016/17 nach Klassenstufen
      *
      * @param TblPerson $tblPerson
-     * @param TblLevel $tblLevel
-     * @param TblDivision $tblDivision
+     * @param int $level
+     * @param array $tblPastYearList
      * @param $Content
      * @param $gender
+     * @param TblType $tblSchoolTypeKamenz
      */
     private static function setRepeatersGym(
         TblPerson $tblPerson,
-        TblLevel $tblLevel,
-        TblDivision $tblDivision,
+        int $level,
+        array $tblPastYearList,
         &$Content,
-        $gender
+        $gender,
+        TblType $tblSchoolTypeKamenz
     ) {
-
-        if (($tblDivisionStudentAllByPerson = Division::useService()->getDivisionStudentAllByPerson($tblPerson))) {
-            /**@var TblDivisionStudent $tblDivisionStudent * */
-            foreach ($tblDivisionStudentAllByPerson as $tblDivisionStudent) {
-                if (($tblDivisionTemp = $tblDivisionStudent->getTblDivision())
-                    && $tblDivisionTemp->getId() != $tblDivision->getId()
-                    && ($tblTempLevel = $tblDivisionTemp->getTblLevel())
-                    && $tblLevel->getId() == $tblTempLevel->getId()
-                ) {
-                    if ($gender) {
-                        if (isset($Content['E08']['L' . $tblLevel->getName()][$gender])) {
-                            $Content['E08']['L' . $tblLevel->getName()][$gender]++;
-                        } else {
-                            $Content['E08']['L' . $tblLevel->getName()][$gender] = 1;
-                        }
-
-                        if (isset($Content['E08']['TotalCount'][$gender])) {
-                            $Content['E08']['TotalCount'][$gender]++;
-                        } else {
-                            $Content['E08']['TotalCount'][$gender] = 1;
-                        }
+        foreach ($tblPastYearList as $tblPastYear) {
+            if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblPastYear))
+                && $level == $tblStudentEducation->getLevel()
+                && ($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())
+                && $tblSchoolType->getId() == $tblSchoolTypeKamenz->getId()
+            ) {
+                if ($gender) {
+                    if (isset($Content['E08']['L' . $level][$gender])) {
+                        $Content['E08']['L' . $level][$gender]++;
+                    } else {
+                        $Content['E08']['L' . $level][$gender] = 1;
                     }
 
-                    break;
+                    if (isset($Content['E08']['TotalCount'][$gender])) {
+                        $Content['E08']['TotalCount'][$gender]++;
+                    } else {
+                        $Content['E08']['TotalCount'][$gender] = 1;
+                    }
                 }
+
+                break;
             }
         }
     }
 
     /**
      * @param TblPerson $tblPerson
-     * @param TblLevel $tblLevel
-     * @param TblDivision $tblDivision
+     * @param int $level
+     * @param array $tblPastYearList
+     * @param TblType $tblSchoolTypeKamenz
      *
      * @return bool
      */
     private static function hasRepeaters(
         TblPerson $tblPerson,
-        TblLevel $tblLevel,
-        TblDivision $tblDivision
-    ) {
-
-        if (($tblDivisionStudentAllByPerson = Division::useService()->getDivisionStudentAllByPerson($tblPerson))) {
-            /**@var TblDivisionStudent $tblDivisionStudent * */
-            foreach ($tblDivisionStudentAllByPerson as $tblDivisionStudent) {
-                if (($tblDivisionTemp = $tblDivisionStudent->getTblDivision())
-                    && $tblDivisionTemp->getId() != $tblDivision->getId()
-                    && ($tblTempLevel = $tblDivisionTemp->getTblLevel())
-                    && $tblLevel->getId() == $tblTempLevel->getId()
-                ) {
-
-                    return true;
-                }
+        int $level,
+        array $tblPastYearList,
+        TblType $tblSchoolTypeKamenz
+    ): bool {
+        foreach ($tblPastYearList as $tblPastYear) {
+            if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblPastYear))
+                && $level == $tblStudentEducation->getLevel()
+                && ($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())
+                && $tblSchoolType->getId() == $tblSchoolTypeKamenz->getId()
+            ) {
+                return true;
             }
         }
 
@@ -1200,7 +1596,7 @@ class KamenzReportService
      * E12 Schüler im NEIGUNGSKURSBEREICH im Schuljahr nach Klassenstufen
      *
      * @param TblStudent $tblStudent
-     * @param TblLevel $tblLevel
+     * @param int $level
      * @param $gender
      * @param $countOrientationArray
      *
@@ -1208,10 +1604,10 @@ class KamenzReportService
      */
     private static function countOrientation(
         TblStudent $tblStudent,
-        TblLevel $tblLevel,
+        int $level,
         $gender,
         $countOrientationArray
-    ) {
+    ): array {
 
         if (($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('ORIENTATION'))
             && ($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType(
@@ -1232,10 +1628,10 @@ class KamenzReportService
                     }
 
                     if ($name != '') {
-                        if (isset($countOrientationArray[$name][$tblLevel->getName()][$gender])) {
-                            $countOrientationArray[$name][$tblLevel->getName()][$gender]++;
+                        if (isset($countOrientationArray[$name][$level][$gender])) {
+                            $countOrientationArray[$name][$level][$gender]++;
                         } else {
-                            $countOrientationArray[$name][$tblLevel->getName()][$gender] = 1;
+                            $countOrientationArray[$name][$level][$gender] = 1;
                         }
                     }
                 }
@@ -1247,7 +1643,7 @@ class KamenzReportService
 
     /**
      * @param TblStudent $tblStudent
-     * @param TblLevel $tblLevel
+     * @param int $level
      * @param $gender
      * @param $countProfileArray
      *
@@ -1255,25 +1651,22 @@ class KamenzReportService
      */
     private static function countProfile(
         TblStudent $tblStudent,
-        TblLevel $tblLevel,
+        int $level,
         $gender,
         $countProfileArray
-    ) {
-
+    ): array {
         if (($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('PROFILE'))
-            && ($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType(
-                $tblStudent, $tblStudentSubjectType
-            ))
+            && ($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType($tblStudent, $tblStudentSubjectType))
         ) {
             /** @var TblStudentSubject $tblStudentSubject */
             if (($tblStudentSubject = reset($tblStudentSubjectList))
                 && ($tblSubject = $tblStudentSubject->getServiceTblSubject())
             ) {
-                if (intval($tblLevel->getName()) < 11 && $gender) {
-                    if (isset($countProfileArray[$tblSubject->getAcronym()][$tblLevel->getName()][$gender])) {
-                        $countProfileArray[$tblSubject->getAcronym()][$tblLevel->getName()][$gender]++;
+                if ($level < 11 && $gender) {
+                    if (isset($countProfileArray[$tblSubject->getAcronym()][$level][$gender])) {
+                        $countProfileArray[$tblSubject->getAcronym()][$level][$gender]++;
                     } else {
-                        $countProfileArray[$tblSubject->getAcronym()][$tblLevel->getName()][$gender] = 1;
+                        $countProfileArray[$tblSubject->getAcronym()][$level][$gender] = 1;
                     }
                 }
             }
@@ -1328,7 +1721,6 @@ class KamenzReportService
         &$Content,
         $countProfileArray
     ) {
-
         ksort($countProfileArray);
         $countLanguageProfile = -1;
         $countOthers = -1;
@@ -1370,7 +1762,7 @@ class KamenzReportService
 
     /**
      * @param TblPerson $tblPerson
-     * @param TblLevel $tblLevel
+     * @param int $level
      * @param $gender
      * @param $hasMigrationBackground
      * @param $isInPreparationDivisionForMigrants
@@ -1378,10 +1770,12 @@ class KamenzReportService
      * @param $countArray
      * @param $countMigrantsArray
      * @param $countMigrantsNationalityArray
+     *
+     * @return bool|string
      */
     private static function countStudentLevels(
         TblPerson $tblPerson,
-        TblLevel $tblLevel,
+        int $level,
         &$gender,
         $hasMigrationBackground,
         $isInPreparationDivisionForMigrants,
@@ -1390,37 +1784,35 @@ class KamenzReportService
         &$countMigrantsArray,
         &$countMigrantsNationalityArray
     ) {
+        $nationality = false;
         /**
-         * E02  Schüler im Schuljahr 2016/2017 nach Geburtsjahren und Klassenstufen
+         * E02 Schüler im Schuljahr 2016/2017 nach Geburtsjahren und Klassenstufen
          */
         if (($tblCommon = Common::useService()->getCommonByPerson($tblPerson))) {
             if (($tblCommonInformation = $tblCommon->getTblCommonInformation())) {
                 $nationality = $tblCommonInformation->getNationality();
-            } else {
-                $nationality = false;
             }
 
             if (($tblCommonBirthDates = $tblCommon->getTblCommonBirthDates())
                 && ($tblCommonGender = $tblCommonBirthDates->getTblCommonGender())
             ) {
 
-                if ($tblCommonGender->getName() == 'Männlich') {
-                    $gender = 'm';
-                } elseif ($tblCommonGender->getName() == 'Weiblich') {
-                    $gender = 'w';
-                } else {
-                    $gender = 'x';
+                $gender = $tblCommonGender->getShortName();
+                // die Kamenzstatistik der allgemeinbildenden Schulen unterstützt aktuell nur männlich und weiblich
+                if ($gender != 'm' && $gender != 'w') {
+                    $gender = false;
+                    return $nationality;
                 }
 
                 if (($birthDay = $tblCommonBirthDates->getBirthday())) {
-                    $birthDayDate = new \DateTime($birthDay);
+                    $birthDayDate = new DateTime($birthDay);
                     if ($birthDayDate) {
                         $birthYear = $birthDayDate->format('Y');
 
-                        if (isset($countArray[$birthYear][$tblLevel->getName()][$gender])) {
-                            $countArray[$birthYear][$tblLevel->getName()][$gender]++;
+                        if (isset($countArray[$birthYear][$level][$gender])) {
+                            $countArray[$birthYear][$level][$gender]++;
                         } else {
-                            $countArray[$birthYear][$tblLevel->getName()][$gender] = 1;
+                            $countArray[$birthYear][$level][$gender] = 1;
                         }
 
                         if ($isInPreparationDivisionForMigrants) {
@@ -1435,20 +1827,20 @@ class KamenzReportService
                          * E02.1 Darunter Schüler mit Migrationshintergrund im Schuljahr 2016/17 nach Geburtsjahren und Klassenstufen
                          */
                         if ($hasMigrationBackground) {
-                            if (isset($countMigrantsArray[$birthYear][$tblLevel->getName()][$gender])) {
-                                $countMigrantsArray[$birthYear][$tblLevel->getName()][$gender]++;
+                            if (isset($countMigrantsArray[$birthYear][$level][$gender])) {
+                                $countMigrantsArray[$birthYear][$level][$gender]++;
                             } else {
-                                $countMigrantsArray[$birthYear][$tblLevel->getName()][$gender] = 1;
+                                $countMigrantsArray[$birthYear][$level][$gender] = 1;
                             }
 
                             /**
                              * E03. Schüler mit Migrationshintergrund im Schuljahr 2016/17 nach dem Land der Staatsangehörigkeit und Klassenstufen
                              */
                             if ($nationality) {
-                                if (isset($countMigrantsNationalityArray[$nationality][$tblLevel->getName()][$gender])) {
-                                    $countMigrantsNationalityArray[$nationality][$tblLevel->getName()][$gender]++;
+                                if (isset($countMigrantsNationalityArray[$nationality][$level][$gender])) {
+                                    $countMigrantsNationalityArray[$nationality][$level][$gender]++;
                                 } else {
-                                    $countMigrantsNationalityArray[$nationality][$tblLevel->getName()][$gender] = 1;
+                                    $countMigrantsNationalityArray[$nationality][$level][$gender] = 1;
                                 }
                             }
 
@@ -1472,6 +1864,8 @@ class KamenzReportService
                 }
             }
         }
+
+        return $nationality;
     }
 
     /**
@@ -1487,7 +1881,7 @@ class KamenzReportService
         $countMigrantsNationalityArray
     ) {
         /**
-         * E02  Schüler im Schuljahr 2016/2017 nach Geburtsjahren und Klassenstufen
+         * E02 Schüler im Schuljahr 2016/2017 nach Geburtsjahren und Klassenstufen
          */
         ksort($countArray);
         $count = 0;
@@ -1609,97 +2003,115 @@ class KamenzReportService
 
     /**
      * @param $Content
+     * @param $countDivisionByLevelArray
+     */
+    private static function setDivisionByLevel(
+        &$Content,
+        $countDivisionByLevelArray
+    ) {
+        /**
+         * Zusatz Klassen für E01. Schüler und Klassen im Schuljahr 2022/23 nach Klassenstufen
+         */
+        foreach ($countDivisionByLevelArray as $level => $divisionArray) {
+            $value = count($divisionArray);
+            $Content['E01']['Division']['L' . $level] = $value;
+
+            if (isset($Content['E01']['Division']['TotalCount'])) {
+                $Content['E01']['Division']['TotalCount'] += $value;
+            } else {
+                $Content['E01']['Division']['TotalCount'] = $value;
+            }
+        }
+    }
+
+    /**
+     * @param $Content
      * @param TblPerson $tblPerson
      * @param TblStudent $tblStudent
-     * @param TblLevel $tblLevel
-     * @param TblDivision $tblDivision
+     * @param int $level
+     * @param array $tblPastYearList
      * @param $gender
      * @param $birthDay
      * @param $year
+     * @param TblType $tblSchoolTypeKamenz
      */
     private static function setNewSchoolStarter(
         &$Content,
         TblPerson $tblPerson,
         TblStudent $tblStudent,
-        TblLevel $tblLevel,
-        TblDivision $tblDivision,
+        int $level,
+        array $tblPastYearList,
         $gender,
         $birthDay,
-        $year
+        $year,
+        TblType $tblSchoolTypeKamenz
     ) {
-        if ($tblLevel->getName() == '1' || $tblLevel->getName() == '01') {
-            if (!self::hasRepeaters($tblPerson, $tblLevel, $tblDivision)) {
+        if ($level == 1) {
+            if (!self::hasRepeaters($tblPerson, $level, $tblPastYearList, $tblSchoolTypeKamenz)) {
                 if (isset($Content['D01']['NewSchoolStarter'][$gender])) {
                     $Content['D01']['NewSchoolStarter'][$gender]++;
                 } else {
                     $Content['D01']['NewSchoolStarter'][$gender] = 1;
                 }
 
-                if ($tblStudent) {
-                    if (($tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('ARRIVE'))
-                        && ($tblStudentTransfer = Student::useService()->getStudentTransferByType(
-                            $tblStudent, $tblStudentTransferType
-                        ))
-                        && ($tblArriveCompany = $tblStudentTransfer->getServiceTblCompany())
-                        && ($tblGroup = Group::useService()->getGroupByMetaTable('NURSERY'))
-                        && Group::useService()->existsGroupCompany($tblGroup,
-                            $tblArriveCompany)
-                    ) {
-                        if (isset($Content['D01']['Nursery'][$gender])) {
-                            $Content['D01']['Nursery'][$gender]++;
-                        } else {
-                            $Content['D01']['Nursery'][$gender] = 1;
-                        }
+                if (($tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('ARRIVE'))
+                    && ($tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent, $tblStudentTransferType))
+                    && ($tblArriveCompany = $tblStudentTransfer->getServiceTblCompany())
+                    && ($tblGroup = Group::useService()->getGroupByMetaTable('NURSERY'))
+                    && Group::useService()->existsGroupCompany($tblGroup, $tblArriveCompany)
+                ) {
+                    if (isset($Content['D01']['Nursery'][$gender])) {
+                        $Content['D01']['Nursery'][$gender]++;
+                    } else {
+                        $Content['D01']['Nursery'][$gender] = 1;
                     }
+                }
 
-                    if (($tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('ENROLLMENT'))
-                        && ($tblStudentTransfer = Student::useService()->getStudentTransferByType(
-                            $tblStudent, $tblStudentTransferType
-                        ))
-                        && ($tblSchoolEnrollmentType = $tblStudentTransfer->getTblStudentSchoolEnrollmentType())
-                    ) {
-                        if ($tblSchoolEnrollmentType->getIdentifier() == 'PREMATURE') {
-                            if (isset($Content['D01']['Premature'][$gender])) {
-                                $Content['D01']['Premature'][$gender]++;
-                            } else {
-                                $Content['D01']['Premature'][$gender] = 1;
-                            }
-                        } elseif ($tblSchoolEnrollmentType->getIdentifier() == 'REGULAR') {
-                            if (isset($Content['D01']['Regular']['Total'][$gender])) {
-                                $Content['D01']['Regular']['Total'][$gender]++;
-                            } else {
-                                $Content['D01']['Regular']['Total'][$gender] = 1;
-                            }
+                if (($tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('ENROLLMENT'))
+                    && ($tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent, $tblStudentTransferType))
+                    && ($tblSchoolEnrollmentType = $tblStudentTransfer->getTblStudentSchoolEnrollmentType())
+                ) {
+                    if ($tblSchoolEnrollmentType->getIdentifier() == 'PREMATURE') {
+                        if (isset($Content['D01']['Premature'][$gender])) {
+                            $Content['D01']['Premature'][$gender]++;
+                        } else {
+                            $Content['D01']['Premature'][$gender] = 1;
+                        }
+                    } elseif ($tblSchoolEnrollmentType->getIdentifier() == 'REGULAR') {
+                        if (isset($Content['D01']['Regular']['Total'][$gender])) {
+                            $Content['D01']['Regular']['Total'][$gender]++;
+                        } else {
+                            $Content['D01']['Regular']['Total'][$gender] = 1;
+                        }
 
-                            $date = false;
-                            if ($tblStudent->getSchoolAttendanceStartDate()) {
-                                $date = new \DateTime($tblStudent->getSchoolAttendanceStartDate());
-                            } elseif ($birthDay) {
-                                $date = new \DateTime($birthDay);
-                                $date->add(new \DateInterval('P6Y'));
-                            }
+                        $date = false;
+                        if ($tblStudent->getSchoolAttendanceStartDate()) {
+                            $date = new DateTime($tblStudent->getSchoolAttendanceStartDate());
+                        } elseif ($birthDay) {
+                            $date = new DateTime($birthDay);
+                            $date->add(new DateInterval('P6Y'));
+                        }
 
-                            if ($date) {
-                                if ($year <= $date->format('Y') && $date->format('m') > 6) {
-                                    if (isset($Content['D01']['Regular']['Second'][$gender])) {
-                                        $Content['D01']['Regular']['Second'][$gender]++;
-                                    } else {
-                                        $Content['D01']['Regular']['Second'][$gender] = 1;
-                                    }
+                        if ($date) {
+                            if ($year <= $date->format('Y') && $date->format('m') > 6) {
+                                if (isset($Content['D01']['Regular']['Second'][$gender])) {
+                                    $Content['D01']['Regular']['Second'][$gender]++;
                                 } else {
-                                    if (isset($Content['D01']['Regular']['First'][$gender])) {
-                                        $Content['D01']['Regular']['First'][$gender]++;
-                                    } else {
-                                        $Content['D01']['Regular']['First'][$gender] = 1;
-                                    }
+                                    $Content['D01']['Regular']['Second'][$gender] = 1;
+                                }
+                            } else {
+                                if (isset($Content['D01']['Regular']['First'][$gender])) {
+                                    $Content['D01']['Regular']['First'][$gender]++;
+                                } else {
+                                    $Content['D01']['Regular']['First'][$gender] = 1;
                                 }
                             }
-                        } elseif ($tblSchoolEnrollmentType->getIdentifier() == 'POSTPONED') {
-                            if (isset($Content['D01']['Postponed'][$gender])) {
-                                $Content['D01']['Postponed'][$gender]++;
-                            } else {
-                                $Content['D01']['Postponed'][$gender] = 1;
-                            }
+                        }
+                    } elseif ($tblSchoolEnrollmentType->getIdentifier() == 'POSTPONED') {
+                        if (isset($Content['D01']['Postponed'][$gender])) {
+                            $Content['D01']['Postponed'][$gender]++;
+                        } else {
+                            $Content['D01']['Postponed'][$gender] = 1;
                         }
                     }
                 }
@@ -1708,10 +2120,261 @@ class KamenzReportService
     }
 
     /**
+     * @param TblPerson $tblPerson
+     * @param TblYear[] $tblPastYearList
+     *
+     * @return bool
+     */
+    private static function isNewSchoolStarterForTechnicalSchool(
+        TblPerson $tblPerson,
+        array $tblPastYearList
+    ): bool {
+        // Neuanfänger sind alle Schüler die im vergangenen Schuljahr noch nicht da waren
+        foreach ($tblPastYearList as $tblPastYear) {
+            if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblPastYear))
+                && ($tblStudentEducation->getTblDivision() || $tblStudentEducation->getTblCoreGroup())
+            ) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * N01, N02
+     *
+     * @param $Content
+     * @param string $name
+     * @param $schoolDiploma
+     * @param $schoolType
+     * @param string $support
+     * @param TblCommonGender $tblCommonGender
+     * @param int $level
+     */
+    private static function setNewSchoolStarterDiplomaForTechnicalSchool(
+        &$Content,
+        string $name,
+        $schoolDiploma,
+        $schoolType,
+        string $support,
+        TblCommonGender $tblCommonGender,
+        int $level
+    ) {
+        $gender = $tblCommonGender->getName();
+        $genderShort = $tblCommonGender->getShortName();
+        /**
+         * Neuanfänger im Ausbildungsstatus Umschüler im Vollzeitunterricht im Schuljahr 2020/2021 nach allgemeinbildenden
+         * Abschlüssen, Schularten, Förderschwerpunkten und Klassenstufen
+         */
+        if ($schoolDiploma && $schoolType) {
+            if (isset($Content[$name]['Temp'][$schoolDiploma . '_' . $schoolType . '_' . $support . '_' . $gender]['L' . $level])) {
+                $Content[$name]['Temp'][$schoolDiploma . '_' . $schoolType . '_' . $support . '_' . $gender]['L' . $level]++;
+            } else {
+                $Content[$name]['Temp'][$schoolDiploma . '_' . $schoolType . '_' . $support . '_' . $gender]['L' . $level] = 1;
+            }
+            if (isset($Content[$name]['Temp'][$schoolDiploma . '_' . $schoolType . '_' . $support . '_' . $gender]['TotalCount'])) {
+                $Content[$name]['Temp'][$schoolDiploma . '_' . $schoolType . '_' . $support . '_' . $gender]['TotalCount']++;
+            } else {
+                $Content[$name]['Temp'][$schoolDiploma . '_' . $schoolType . '_' . $support . '_' . $gender]['TotalCount'] = 1;
+            }
+
+            if (isset($Content[$name]['TotalCount']['L' . $level][$genderShort])) {
+                $Content[$name]['TotalCount']['L' . $level][$genderShort]++;
+            } else {
+                $Content[$name]['TotalCount']['L' . $level][$genderShort] = 1;
+            }
+            if (isset($Content[$name]['TotalCount']['L' . $level]['TotalCount'])) {
+                $Content[$name]['TotalCount']['L' . $level]['TotalCount']++;
+            } else {
+                $Content[$name]['TotalCount']['L' . $level]['TotalCount'] = 1;
+            }
+        }
+    }
+
+    /**
+     * N01, N02
+     * @param $Content
+     * @param string $name
+     */
+    private static function sumNewSchoolStarterDiplomaForTechnicalSchool(
+        &$Content,
+        string $name = 'N01'
+    ) {
+        if (isset($Content[$name]['Temp'])) {
+            $i = 0;
+            foreach ($Content[$name]['Temp'] as $key => $row) {
+                $array = explode('_', $key);
+                $Content[$name]['R' . $i] = array(
+                    'Diploma' => $array[0],
+                    'SchoolType' => $array[1],
+                    'Support' => $array[2],
+                    'Gender' => $array[3]
+                );
+                foreach ($row as $subKey => $subRow) {
+                    $Content[$name]['R' . $i][$subKey] = $subRow;
+                }
+                $i++;
+            }
+        }
+    }
+
+    /**
+     * N03, N04
+     *
+     * @param $Content
+     * @param string $name
+     * @param $item
+     * @param TblCommonGender $tblCommonGender
+     * @param int $level
+     */
+    private static function setBirthYearOrNationalityForTechnicalSchool(
+        &$Content,
+        string $name,
+        $item,
+        TblCommonGender $tblCommonGender,
+        int $level
+    ) {
+        $gender = $tblCommonGender->getName();
+        $genderShort = $tblCommonGender->getShortName();
+        /**
+         * N03-1-A. Neuanfänger im Ausbildungsstatus Auszubildende/Schüler im Vollzeitunterricht im Schuljahr 2020/2021
+         * nach Geburtsjahren und Klassenstufen
+         */
+        if (isset($Content[$name]['Temp'][$item . '_' . $gender]['L' . $level])) {
+            $Content[$name]['Temp'][$item . '_' . $gender]['L' . $level]++;
+        } else {
+            $Content[$name]['Temp'][$item . '_' . $gender]['L' . $level] = 1;
+        }
+        if (isset($Content[$name]['Temp'][$item . '_' . $gender]['TotalCount'])) {
+            $Content[$name]['Temp'][$item . '_' . $gender]['TotalCount']++;
+        } else {
+            $Content[$name]['Temp'][$item . '_' . $gender]['TotalCount'] = 1;
+        }
+
+        if (isset($Content[$name]['TotalCount']['L' . $level][$genderShort])) {
+            $Content[$name]['TotalCount']['L' . $level][$genderShort]++;
+        } else {
+            $Content[$name]['TotalCount']['L' . $level][$genderShort] = 1;
+        }
+        if (isset($Content[$name]['TotalCount']['L' . $level]['TotalCount'])) {
+            $Content[$name]['TotalCount']['L' . $level]['TotalCount']++;
+        } else {
+            $Content[$name]['TotalCount']['L' . $level]['TotalCount'] = 1;
+        }
+    }
+
+    /**
+     * N03, N04
+     *
+     * @param $Content
+     * @param string $name
+     */
+    private static function sumBirthYearOrNationalityForTechnicalSchool(
+        &$Content,
+        string $name
+    ) {
+        if (isset($Content[$name]['Temp'])) {
+            $i = 0;
+            ksort($Content[$name]['Temp']);
+            foreach ($Content[$name]['Temp'] as $key => $row) {
+                $array = explode('_', $key);
+                $Content[$name]['R' . $i] = array(
+                    'Name' => $array[0],
+                    'Gender' => $array[1],
+                );
+                foreach ($row as $subKey => $subRow) {
+                    $Content[$name]['R' . $i][$subKey] = $subRow;
+                }
+                $i++;
+            }
+        }
+    }
+
+    /**
+     * N05, S01
+     *
+     * @param $Content
+     * @param string $name
+     * @param $course
+     * @param $time
+     * @param $support
+     * @param TblCommonGender $tblCommonGender
+     * @param int $level
+     */
+    private static function setCourseForTechnicalSchool(
+        &$Content,
+        string $name,
+        $course,
+        $time,
+        $support,
+        TblCommonGender $tblCommonGender,
+        int $level
+    ) {
+        $gender = $tblCommonGender->getName();
+        $genderShort = $tblCommonGender->getShortName();
+        /**
+         * N05-1-A. Neuanfänger im Ausbildungsstatus Auszubildende/Schüler im Vollzeitunterricht im Schuljahr 2020/2021
+         * nach Bildungsgängen, planmäßiger Ausbildungsdauer, Förderschwerpunkten und Klassenstufen
+         */
+        if ($course && $time) {
+            if (isset($Content[$name]['Temp'][$course . '_' . $time . '_' . $support . '_' . $gender]['L' . $level])) {
+                $Content[$name]['Temp'][$course . '_' . $time . '_' . $support . '_' . $gender]['L' . $level]++;
+            } else {
+                $Content[$name]['Temp'][$course . '_' . $time . '_' . $support . '_' . $gender]['L' . $level] = 1;
+            }
+            if (isset($Content[$name]['Temp'][$course . '_' . $time . '_' . $support . '_' . $gender]['TotalCount'])) {
+                $Content[$name]['Temp'][$course . '_' . $time . '_' . $support . '_' . $gender]['TotalCount']++;
+            } else {
+                $Content[$name]['Temp'][$course . '_' . $time . '_' . $support . '_' . $gender]['TotalCount'] = 1;
+            }
+
+            if (isset($Content[$name]['TotalCount']['L' . $level][$genderShort])) {
+                $Content[$name]['TotalCount']['L' . $level][$genderShort]++;
+            } else {
+                $Content[$name]['TotalCount']['L' . $level][$genderShort] = 1;
+            }
+            if (isset($Content[$name]['TotalCount']['L' . $level]['TotalCount'])) {
+                $Content[$name]['TotalCount']['L' . $level]['TotalCount']++;
+            } else {
+                $Content[$name]['TotalCount']['L' . $level]['TotalCount'] = 1;
+            }
+        }
+    }
+
+    /**
+     * N05, S01
+     *
+     * @param $Content
+     * @param string $name
+     */
+    private static function sumCourseForTechnicalSchool(
+        &$Content,
+        string $name = 'N05'
+    ) {
+        if (isset($Content[$name]['Temp'])) {
+            $i = 0;
+            foreach ($Content[$name]['Temp'] as $key => $row) {
+                $array = explode('_', $key);
+                $Content[$name]['R' . $i] = array(
+                    'Course' => $array[0],
+                    'Time' => $array[1],
+                    'Support' => $array[2],
+                    'Gender' => $array[3]
+                );
+                foreach ($row as $subKey => $subRow) {
+                    $Content[$name]['R' . $i][$subKey] = $subRow;
+                }
+                $i++;
+            }
+        }
+    }
+
+    /**
      * @param $Content
      * @param TblPerson $tblPerson
-     * @param TblLevel $tblLevel
-     * @param TblDivision $tblDivision
+     * @param int $level
+     * @param array $tblPastYearList
      * @param $gender
      * @param $isInPreparationDivisionForMigrants
      * @param TblType $tblSchoolType
@@ -1719,17 +2382,17 @@ class KamenzReportService
     private static function setDivisionStudents(
         &$Content,
         TblPerson $tblPerson,
-        TblLevel $tblLevel,
-        TblDivision $tblDivision,
+        int $level,
+        array $tblPastYearList,
         $gender,
         $isInPreparationDivisionForMigrants,
         TblType $tblSchoolType
     ) {
         if ($gender) {
-            if (isset($Content['E01']['Student']['L' . $tblLevel->getName()][$gender])) {
-                $Content['E01']['Student']['L' . $tblLevel->getName()][$gender]++;
+            if (isset($Content['E01']['Student']['L' . $level][$gender])) {
+                $Content['E01']['Student']['L' . $level][$gender]++;
             } else {
-                $Content['E01']['Student']['L' . $tblLevel->getName()][$gender] = 1;
+                $Content['E01']['Student']['L' . $level][$gender] = 1;
             }
 
             if ($isInPreparationDivisionForMigrants) {
@@ -1750,18 +2413,18 @@ class KamenzReportService
                 /**
                  * E07
                  */
-                if (($tblLevel->getName() == '1' || $tblLevel->getName() == '01')
-                    && !self::hasRepeaters($tblPerson, $tblLevel, $tblDivision)
+                if ($level == 1
+                    && !self::hasRepeaters($tblPerson, $level, $tblPastYearList, $tblSchoolType)
                 ) {
                     $identifier = 'NewSchoolStarter';
                 } else {
                     $identifier = 'PrimarySchool';
                 }
 
-                if (isset($Content['E07'][$identifier]['L' . $tblLevel->getName()][$gender])) {
-                    $Content['E07'][$identifier]['L' . $tblLevel->getName()][$gender]++;
+                if (isset($Content['E07'][$identifier]['L' . $level][$gender])) {
+                    $Content['E07'][$identifier]['L' . $level][$gender]++;
                 } else {
-                    $Content['E07'][$identifier]['L' . $tblLevel->getName()][$gender] = 1;
+                    $Content['E07'][$identifier]['L' . $level][$gender] = 1;
                 }
 
                 if ($isInPreparationDivisionForMigrants) {
@@ -1782,10 +2445,10 @@ class KamenzReportService
                  * TotalCount
                  */
                 $identifier = 'TotalCount';
-                if (isset($Content['E07'][$identifier]['L' . $tblLevel->getName()][$gender])) {
-                    $Content['E07'][$identifier]['L' . $tblLevel->getName()][$gender]++;
+                if (isset($Content['E07'][$identifier]['L' . $level][$gender])) {
+                    $Content['E07'][$identifier]['L' . $level][$gender]++;
                 } else {
-                    $Content['E07'][$identifier]['L' . $tblLevel->getName()][$gender] = 1;
+                    $Content['E07'][$identifier]['L' . $level][$gender] = 1;
                 }
                 if ($isInPreparationDivisionForMigrants) {
                     if (isset($Content['E07'][$identifier]['Migration'][$gender])) {
@@ -1804,22 +2467,56 @@ class KamenzReportService
     }
 
     /**
+     * K01. Klassen im Schuljahr 2019/2020 nach Zeitform des Unterrichts, Ausbildungsstatus und Klassenstufen
+     *
+     * @param $Content
+     * @param int $level
+     * @param string $lesson
+     * @param string $type
+     */
+    private static function setDivisionStudentsForTechnicalSchool(
+        &$Content,
+        int $level,
+        string $lesson = 'FullTime',
+        string $type = 'ChangeStudent'
+    ) {
+        if (isset($Content['K01'][$lesson][$type]['L' . $level])) {
+            $Content['K01'][$lesson][$type]['L' . $level]++;
+        } else {
+            $Content['K01'][$lesson][$type]['L' . $level] = 1;
+        }
+
+        if (isset($Content['K01'][$lesson]['TotalCount']['L' . $level])) {
+            $Content['K01'][$lesson]['TotalCount']['L' . $level]++;
+        } else {
+            $Content['K01'][$lesson]['TotalCount']['L' . $level] = 1;
+        }
+
+        if (isset($Content['K01']['TotalCount'][$type])) {
+            $Content['K01']['TotalCount'][$type]++;
+        } else {
+            $Content['K01']['TotalCount'][$type] = 1;
+        }
+    }
+
+    /**
      * @param $countDivisionStudents
-     * @param TblDivision $tblDivision
-     * @param TblCourse|null $tblCourse
+     * @param TblDivisionCourse $tblDivision
+     * @param int $level
      * @param $gender
      * @param $isInPreparationDivisionForMigrants
+     * @param TblCourse|null $tblCourse
      */
     private static function countDivisionStudentsForSecondarySchool(
         &$countDivisionStudents,
-        TblDivision $tblDivision,
-        TblLevel $tblLevel,
-        TblCourse $tblCourse = null,
+        TblDivisionCourse $tblDivision,
+        int $level,
         $gender,
-        $isInPreparationDivisionForMigrants
+        $isInPreparationDivisionForMigrants,
+        ?TblCourse $tblCourse
     ) {
         if ($gender) {
-            if ($tblLevel->getName() == '5' || $tblLevel->getName() == '6') {
+            if ($level < 7) {
                 $course = 'NoCourse';
             }
             elseif ($tblCourse == null) {
@@ -1832,17 +2529,17 @@ class KamenzReportService
                 $course = 'NoCourse';
             }
 
-            if (isset($countDivisionStudents['Division'][$tblDivision->getId()][$course][$gender])) {
-                $countDivisionStudents['Division'][$tblDivision->getId()][$course][$gender]++;
+            if (isset($countDivisionStudents['Division'][$tblDivision->getId()][$level][$course][$gender])) {
+                $countDivisionStudents['Division'][$tblDivision->getId()][$level][$course][$gender]++;
             } else {
-                $countDivisionStudents['Division'][$tblDivision->getId()][$course][$gender] = 1;
+                $countDivisionStudents['Division'][$tblDivision->getId()][$level][$course][$gender] = 1;
             }
 
             if ($isInPreparationDivisionForMigrants) {
-                if (isset($countDivisionStudents['Migrants'][$tblDivision->getId()][$course][$gender])) {
-                    $countDivisionStudents['Migrants'][$tblDivision->getId()][$course][$gender]++;
+                if (isset($countDivisionStudents['Migrants'][$level][$course][$gender])) {
+                    $countDivisionStudents['Migrants'][$level][$course][$gender]++;
                 } else {
-                    $countDivisionStudents['Migrants'][$tblDivision->getId()][$course][$gender] = 1;
+                    $countDivisionStudents['Migrants'][$level][$course][$gender] = 1;
                 }
             }
         }
@@ -1856,13 +2553,9 @@ class KamenzReportService
         &$Content,
         $countDivisionStudents
     ) {
-
         if (isset($countDivisionStudents['Division'])) {
-            foreach ($countDivisionStudents['Division'] as $divisionId => $courseArray) {
-                if (($tblDivision = Division::useService()->getDivisionById($divisionId))
-                    && ($tblLevel = $tblDivision->getTblLevel())
-                    && ($level = $tblLevel->getName())
-                ) {
+            foreach ($countDivisionStudents['Division'] as $levelArray) {
+                foreach ($levelArray as $level => $courseArray) {
                     $courseString = 'Error';
                     if (isset($courseArray['RS']) && isset($courseArray['HS'])) {
                         $isMixed = true;
@@ -1879,16 +2572,16 @@ class KamenzReportService
 
                     foreach ($courseArray as $course => $genderArray) {
                         foreach ($genderArray as $gender => $count) {
-                            if (isset( $Content['E01'][$course][$isMixed ? 'Mixed' : 'Pure']['L' . $level][$gender])) {
-                                $Content['E01'][$course][$isMixed ? 'Mixed' : 'Pure']['L' . $level][$gender] += $count;
+                            if (isset( $Content['E01'][$course][$isMixed && $course != 'NoCourse'? 'Mixed' : 'Pure']['L' . $level][$gender])) {
+                                $Content['E01'][$course][$isMixed && $course != 'NoCourse' ? 'Mixed' : 'Pure']['L' . $level][$gender] += $count;
                             } else {
-                                $Content['E01'][$course][$isMixed ? 'Mixed' : 'Pure']['L' . $level][$gender] = $count;
+                                $Content['E01'][$course][$isMixed && $course != 'NoCourse' ? 'Mixed' : 'Pure']['L' . $level][$gender] = $count;
                             }
 
-                            if (isset($Content['E01'][$course][$isMixed ? 'Mixed' : 'Pure']['TotalCount'][$gender])) {
-                                $Content['E01'][$course][$isMixed ? 'Mixed' : 'Pure']['TotalCount'][$gender] += $count;
+                            if (isset($Content['E01'][$course][$isMixed && $course != 'NoCourse' ? 'Mixed' : 'Pure']['TotalCount'][$gender])) {
+                                $Content['E01'][$course][$isMixed && $course != 'NoCourse' ? 'Mixed' : 'Pure']['TotalCount'][$gender] += $count;
                             } else {
-                                $Content['E01'][$course][$isMixed ? 'Mixed' : 'Pure']['TotalCount'][$gender] = $count;
+                                $Content['E01'][$course][$isMixed && $course != 'NoCourse' ? 'Mixed' : 'Pure']['TotalCount'][$gender] = $count;
                             }
                         }
                     }
@@ -1921,146 +2614,138 @@ class KamenzReportService
     ) {
         if ($tblPastYearList) {
             $countArray = array();
-
-            // Abgangszeugnisse
-            if (($tblLeaveStudentList = Prepare::useService()->getLeaveStudentAllBy(true, true))) {
-                foreach ($tblLeaveStudentList as $tblLeaveStudent) {
-                    $isLeave = false;
-                    if (($tblDivision = $tblLeaveStudent->getServiceTblDivision())
-                        && ($tblLevel = $tblDivision->getTblLevel())
-                        && ($tblSchoolType = $tblLevel->getServiceTblType())
-                        && $tblSchoolType->getId() == $tblKamenzSchoolType->getId()
-                        && ($tblYear = $tblDivision->getServiceTblYear())
-                    ) {
-                        /** @var TblYear $tblPastYear */
-                        foreach ($tblPastYearList as $tblPastYear) {
-                            if ($tblPastYear->getId() == $tblYear->getId()) {
-                                $isLeave = true;
-                                break;
-                            }
-                        }
-                    }
-
-                    if ($isLeave
-                        && ($tblPerson = $tblLeaveStudent->getServiceTblPerson())
-                        && $tblLevel
-                    ) {
-                        $certificate = $tblLevel->getName();
-
-                        $hasMigrationBackground = false;
-                        if (($tblStudent = $tblPerson->getStudent())
-                            && $tblStudent->getHasMigrationBackground()
+            foreach ($tblPastYearList as $tblPastYear) {
+                // Abgangszeugnisse
+                if (($tblLeaveStudentList = Prepare::useService()->getLeaveStudentAllByYear($tblPastYear))) {
+                    foreach ($tblLeaveStudentList as $tblLeaveStudent) {
+                        if ($tblLeaveStudent->isApproved() && $tblLeaveStudent->isPrinted()
+                            && ($tblPerson = $tblLeaveStudent->getServiceTblPerson())
+                            && ($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblPastYear))
+                            && ($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())
+                            && $tblSchoolType->getId() == $tblKamenzSchoolType->getId()
                         ) {
-                            $hasMigrationBackground = true;
-                        }
+                            $levelName = $tblStudentEducation->getLevel();
 
-                        if (($tblCommon = Common::useService()->getCommonByPerson($tblPerson))
-                            && (($tblCommonBirthDates = $tblCommon->getTblCommonBirthDates()))
-                            && ($tblCommonGender = $tblCommonBirthDates->getTblCommonGender())
-                            && ($birthDay = $tblCommonBirthDates->getBirthday())
-                        ) {
-
-                            if ($tblCommonGender->getName() == 'Männlich') {
-                                $gender = 'm';
-                            } elseif ($tblCommonGender->getName() == 'Weiblich') {
-                                $gender = 'w';
-                            } else {
-                                $gender = 'x';
+                            $hasMigrationBackground = false;
+                            if (($tblStudent = $tblPerson->getStudent())
+                                && $tblStudent->getHasMigrationBackground()
+                            ) {
+                                $hasMigrationBackground = true;
                             }
 
-                            $birthDayDate = new \DateTime($birthDay);
-                            if ($birthDayDate) {
+                            $identifier = 'Leave';
+                            if (($tblCertificate = $tblLeaveStudent->getServiceTblCertificate())
+                                && $tblCertificate->getCertificate() == 'GymAbgSekI'
+                            ) {
+                                if (($tblLeaveInformation = Prepare::useService()->getLeaveInformationBy($tblLeaveStudent, 'EqualGraduation'))) {
+                                    if ($tblLeaveInformation->getValue() == GymAbgSekI::COURSE_RS) {
+                                        $identifier = 'LeaveRS';
+                                    } elseif ($tblLeaveInformation->getValue() == GymAbgSekI::COURSE_HS
+                                        || $tblLeaveInformation->getValue() == GymAbgSekI::COURSE_HSQ) {
+                                        $identifier = 'LeaveHS';
+                                    }
+                                }
+                            }
+
+                            if (($tblCommon = Common::useService()->getCommonByPerson($tblPerson))
+                                && (($tblCommonBirthDates = $tblCommon->getTblCommonBirthDates()))
+                                && ($tblCommonGender = $tblCommonBirthDates->getTblCommonGender())
+                                && ($birthDay = $tblCommonBirthDates->getBirthday())
+                            ) {
+
+                                $gender = $tblCommonGender->getShortName();
+
+                                $birthDayDate = new DateTime($birthDay);
                                 $birthYear = $birthDayDate->format('Y');
-                            } else {
-                                $birthYear = false;
-                            }
 
-                            if (isset($Content['B01']['Leave']['L' . $certificate][$gender])) {
-                                $Content['B01']['Leave']['L' . $certificate][$gender]++;
-                            } else {
-                                $Content['B01']['Leave']['L' . $certificate][$gender] = 1;
-                            }
-                            if (isset($Content['B01']['Leave']['TotalCount'][$gender])) {
-                                $Content['B01']['Leave']['TotalCount'][$gender]++;
-                            } else {
-                                $Content['B01']['Leave']['TotalCount'][$gender] = 1;
-                            }
-                            if (isset($Content['B01']['TotalCount']['L' . $certificate][$gender])) {
-                                $Content['B01']['TotalCount']['L' . $certificate][$gender]++;
-                            } else {
-                                $Content['B01']['TotalCount']['L' . $certificate][$gender] = 1;
-                            }
-                            if (isset($Content['B01']['TotalCount'][$gender])) {
-                                $Content['B01']['TotalCount'][$gender] += 1;
-                            } else {
-                                $Content['B01']['TotalCount'][$gender] = 1;
-                            }
+                                if (isset($Content['B01'][$identifier]['L' . $levelName][$gender])) {
+                                    $Content['B01'][$identifier]['L' . $levelName][$gender]++;
+                                } else {
+                                    $Content['B01'][$identifier]['L' . $levelName][$gender] = 1;
+                                }
+                                if (isset($Content['B01'][$identifier]['TotalCount'][$gender])) {
+                                    $Content['B01'][$identifier]['TotalCount'][$gender]++;
+                                } else {
+                                    $Content['B01'][$identifier]['TotalCount'][$gender] = 1;
+                                }
+                                if (isset($Content['B01']['TotalCount']['L' . $levelName][$gender])) {
+                                    $Content['B01']['TotalCount']['L' . $levelName][$gender]++;
+                                } else {
+                                    $Content['B01']['TotalCount']['L' . $levelName][$gender] = 1;
+                                }
+                                if (isset($Content['B01']['TotalCount'][$gender])) {
+                                    $Content['B01']['TotalCount'][$gender] += 1;
+                                } else {
+                                    $Content['B01']['TotalCount'][$gender] = 1;
+                                }
 
-                            /**
-                             * B02
-                             */
-                            if ($birthYear) {
-                                if (isset($countArray[$birthYear]['Leave'][$gender])) {
-                                    $countArray[$birthYear]['Leave'][$gender]++;
-                                } else {
-                                    $countArray[$birthYear]['Leave'][$gender] = 1;
+                                /**
+                                 * B02
+                                 */
+                                if ($birthYear) {
+                                    if (isset($countArray[$birthYear][$identifier][$gender])) {
+                                        $countArray[$birthYear][$identifier][$gender]++;
+                                    } else {
+                                        $countArray[$birthYear][$identifier][$gender] = 1;
+                                    }
                                 }
-                            }
 
-                            /**
-                             * B01.1
-                             */
-                            if ($hasMigrationBackground) {
-                                if (isset($Content['B01_1']['Leave']['L' . $certificate][$gender])) {
-                                    $Content['B01_1']['Leave']['L' . $certificate][$gender]++;
-                                } else {
-                                    $Content['B01_1']['Leave']['L' . $certificate][$gender] = 1;
-                                }
-                                if (isset($Content['B01_1']['Leave']['TotalCount'][$gender])) {
-                                    $Content['B01_1']['Leave']['TotalCount'][$gender]++;
-                                } else {
-                                    $Content['B01_1']['Leave']['TotalCount'][$gender] = 1;
-                                }
-                                if (isset($Content['B01_1']['TotalCount']['L' . $certificate][$gender])) {
-                                    $Content['B01_1']['TotalCount']['L' . $certificate][$gender]++;
-                                } else {
-                                    $Content['B01_1']['TotalCount']['L' . $certificate][$gender] = 1;
-                                }
-                                if (isset($Content['B01_1']['TotalCount'][$gender])) {
-                                    $Content['B01_1']['TotalCount'][$gender] += 1;
-                                } else {
-                                    $Content['B01_1']['TotalCount'][$gender] = 1;
+                                /**
+                                 * B01.1
+                                 */
+                                if ($hasMigrationBackground) {
+                                    if (isset($Content['B01_1'][$identifier]['L' . $levelName][$gender])) {
+                                        $Content['B01_1'][$identifier]['L' . $levelName][$gender]++;
+                                    } else {
+                                        $Content['B01_1'][$identifier]['L' . $levelName][$gender] = 1;
+                                    }
+                                    if (isset($Content['B01_1'][$identifier]['TotalCount'][$gender])) {
+                                        $Content['B01_1'][$identifier]['TotalCount'][$gender]++;
+                                    } else {
+                                        $Content['B01_1'][$identifier]['TotalCount'][$gender] = 1;
+                                    }
+                                    if (isset($Content['B01_1']['TotalCount']['L' . $levelName][$gender])) {
+                                        $Content['B01_1']['TotalCount']['L' . $levelName][$gender]++;
+                                    } else {
+                                        $Content['B01_1']['TotalCount']['L' . $levelName][$gender] = 1;
+                                    }
+                                    if (isset($Content['B01_1']['TotalCount'][$gender])) {
+                                        $Content['B01_1']['TotalCount'][$gender] += 1;
+                                    } else {
+                                        $Content['B01_1']['TotalCount'][$gender] = 1;
+                                    }
                                 }
                             }
                         }
                     }
                 }
-            }
 
-            foreach ($tblPastYearList as $tblPastYear) {
+                // Abschlusszeugnisse
                 if (($tblGenerateCertificateList = Generate::useService()->getGenerateCertificateAllByYear($tblPastYear))) {
                     foreach ($tblGenerateCertificateList as $tblGenerateCertificate) {
                         if (($tblCertificateType = $tblGenerateCertificate->getServiceTblCertificateType())
-                            && (
-//                              $tblCertificateType->getIdentifier() == 'LEAVE' ||
-                                $tblCertificateType->getIdentifier() == 'DIPLOMA')
+                            && $tblCertificateType->getIdentifier() == 'DIPLOMA'
                             && (($tblPrepareList = Prepare::useService()->getPrepareAllByGenerateCertificate($tblGenerateCertificate)))
                         ) {
 
                             foreach ($tblPrepareList as $tblPrepare) {
-                                if (($tblDivision = $tblPrepare->getServiceTblDivision())
-                                    && ($tblLevel = $tblDivision->getTblLevel())
-                                    && ($tblSchoolType = $tblLevel->getServiceTblType())
-                                    && $tblSchoolType->getId() == $tblKamenzSchoolType->getId()
+                                if (($tblDivisionCourse = $tblPrepare->getServiceTblDivision())
+                                    && ($tblSchoolTypeList = $tblDivisionCourse->getSchoolTypeListFromStudents())
+                                    && isset($tblSchoolTypeList[$tblKamenzSchoolType->getId()])
                                     && ($tblPrepareStudentList = Prepare::useService()->getPrepareStudentAllByPrepare($tblPrepare))
                                 ) {
                                     foreach ($tblPrepareStudentList as $tblPrepareStudent) {
-                                        if ($tblPrepareStudent->isPrinted()
-                                            && ($tblPerson = $tblPrepareStudent->getServiceTblPerson())
+                                        if (($tblPerson = $tblPrepareStudent->getServiceTblPerson())
                                             && ($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())
                                         ) {
-
-                                            $certificate = $tblLevel->getName();
+                                            $levelName = 0;
+                                            if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblPastYear))) {
+                                                $levelName = $tblStudentEducation->getLevel();
+                                            }
+                                            $certificate = $tblCertificate->getCertificate();
+                                            if ($certificate == 'MsAbsHsQ') {
+                                                $certificate = 'MsAbsHs';
+                                            }
 
                                             $hasMigrationBackground = false;
                                             if (($tblStudent = $tblPerson->getStudent())
@@ -2075,142 +2760,69 @@ class KamenzReportService
                                                 && ($birthDay = $tblCommonBirthDates->getBirthday())
                                             ) {
 
-                                                if ($tblCommonGender->getName() == 'Männlich') {
-                                                    $gender = 'm';
-                                                } elseif ($tblCommonGender->getName() == 'Weiblich') {
-                                                    $gender = 'w';
+                                                $gender = $tblCommonGender->getShortName();
+
+                                                $birthDayDate = new DateTime($birthDay);
+                                                $birthYear = $birthDayDate->format('Y');
+
+                                                if (isset($Content['B01'][$certificate]['L' . $levelName][$gender])) {
+                                                    $Content['B01'][$certificate]['L' . $levelName][$gender]++;
                                                 } else {
-                                                    $gender = 'x';
+                                                    $Content['B01'][$certificate]['L' . $levelName][$gender] = 1;
+                                                }
+                                                if (isset($Content['B01'][$certificate]['TotalCount'][$gender])) {
+                                                    $Content['B01'][$certificate]['TotalCount'][$gender]++;
+                                                } else {
+                                                    $Content['B01'][$certificate]['TotalCount'][$gender] = 1;
+                                                }
+                                                if (isset($Content['B01']['TotalCount']['L' . $levelName][$gender])) {
+                                                    $Content['B01']['TotalCount']['L' . $levelName][$gender]++;
+                                                } else {
+                                                    $Content['B01']['TotalCount']['L' . $levelName][$gender] = 1;
                                                 }
 
-                                                $birthDayDate = new \DateTime($birthDay);
-                                                if ($birthDayDate) {
-                                                    $birthYear = $birthDayDate->format('Y');
+                                                if (isset($Content['B01']['TotalCount'][$gender])) {
+                                                    $Content['B01']['TotalCount'][$gender] += 1;
                                                 } else {
-                                                    $birthYear = false;
+                                                    $Content['B01']['TotalCount'][$gender] = 1;
                                                 }
 
-//                                                if ($tblCertificateType->getIdentifier() == 'LEAVE') {
-//
-//                                                    if (isset($Content['B01']['Leave']['L' . $certificate][$gender])) {
-//                                                        $Content['B01']['Leave']['L' . $certificate][$gender]++;
-//                                                    } else {
-//                                                        $Content['B01']['Leave']['L' . $certificate][$gender] = 1;
-//                                                    }
-//                                                    if (isset($Content['B01']['Leave']['TotalCount'][$gender])) {
-//                                                        $Content['B01']['Leave']['TotalCount'][$gender]++;
-//                                                    } else {
-//                                                        $Content['B01']['Leave']['TotalCount'][$gender] = 1;
-//                                                    }
-//                                                    if (isset($Content['B01']['TotalCount']['L' . $certificate][$gender])) {
-//                                                        $Content['B01']['TotalCount']['L' . $certificate][$gender]++;
-//                                                    } else {
-//                                                        $Content['B01']['TotalCount']['L' . $certificate][$gender] = 1;
-//                                                    }
-//                                                    if (isset($Content['B01']['TotalCount'][$gender])) {
-//                                                        $Content['B01']['TotalCount'][$gender] += 1;
-//                                                    } else {
-//                                                        $Content['B01']['TotalCount'][$gender] = 1;
-//                                                    }
-//
-//                                                    /**
-//                                                     * B02
-//                                                     */
-//                                                    if ($birthYear) {
-//                                                        if (isset($countArray[$birthYear]['Leave'][$gender])) {
-//                                                            $countArray[$birthYear]['Leave'][$gender]++;
-//                                                        } else {
-//                                                            $countArray[$birthYear]['Leave'][$gender] = 1;
-//                                                        }
-//                                                    }
-//
-//                                                    /**
-//                                                     * B01.1
-//                                                     */
-//                                                    if ($hasMigrationBackground) {
-//                                                        if (isset($Content['B01_1']['Leave']['L' . $certificate][$gender])) {
-//                                                            $Content['B01_1']['Leave']['L' . $certificate][$gender]++;
-//                                                        } else {
-//                                                            $Content['B01_1']['Leave']['L' . $certificate][$gender] = 1;
-//                                                        }
-//                                                        if (isset($Content['B01_1']['Leave']['TotalCount'][$gender])) {
-//                                                            $Content['B01_1']['Leave']['TotalCount'][$gender]++;
-//                                                        } else {
-//                                                            $Content['B01_1']['Leave']['TotalCount'][$gender] = 1;
-//                                                        }
-//                                                        if (isset($Content['B01_1']['TotalCount']['L' . $certificate][$gender])) {
-//                                                            $Content['B01_1']['TotalCount']['L' . $certificate][$gender]++;
-//                                                        } else {
-//                                                            $Content['B01_1']['TotalCount']['L' . $certificate][$gender] = 1;
-//                                                        }
-//                                                        if (isset($Content['B01_1']['TotalCount'][$gender])) {
-//                                                            $Content['B01_1']['TotalCount'][$gender] += 1;
-//                                                        } else {
-//                                                            $Content['B01_1']['TotalCount'][$gender] = 1;
-//                                                        }
-//                                                    }
-//
-//                                                } else {
-
-                                                    if (isset($Content['B01'][$tblCertificate->getCertificate()]['L' . $certificate][$gender])) {
-                                                        $Content['B01'][$tblCertificate->getCertificate()]['L' . $certificate][$gender]++;
+                                                /**
+                                                 * B02
+                                                 */
+                                                if ($birthYear) {
+                                                    if (isset($countArray[$birthYear][$certificate][$gender])) {
+                                                        $countArray[$birthYear][$certificate][$gender]++;
                                                     } else {
-                                                        $Content['B01'][$tblCertificate->getCertificate()]['L' . $certificate][$gender] = 1;
+                                                        $countArray[$birthYear][$certificate][$gender] = 1;
                                                     }
-                                                    if (isset($Content['B01'][$tblCertificate->getCertificate()]['TotalCount'][$gender])) {
-                                                        $Content['B01'][$tblCertificate->getCertificate()]['TotalCount'][$gender]++;
-                                                    } else {
-                                                        $Content['B01'][$tblCertificate->getCertificate()]['TotalCount'][$gender] = 1;
-                                                    }
-                                                    if (isset($Content['B01']['TotalCount']['L' . $certificate][$gender])) {
-                                                        $Content['B01']['TotalCount']['L' . $certificate][$gender]++;
-                                                    } else {
-                                                        $Content['B01']['TotalCount']['L' . $certificate][$gender] = 1;
-                                                    }
+                                                }
 
-                                                    if (isset($Content['B01']['TotalCount'][$gender])) {
-                                                        $Content['B01']['TotalCount'][$gender] += 1;
+                                                /**
+                                                 * B01.1
+                                                 */
+                                                if ($hasMigrationBackground) {
+                                                    if (isset($Content['B01_1'][$certificate]['L' . $levelName][$gender])) {
+                                                        $Content['B01_1'][$certificate]['L' . $levelName][$gender]++;
                                                     } else {
-                                                        $Content['B01']['TotalCount'][$gender] = 1;
+                                                        $Content['B01_1'][$certificate]['L' . $levelName][$gender] = 1;
                                                     }
-
-                                                    /**
-                                                     * B02
-                                                     */
-                                                    if ($birthYear) {
-                                                        if (isset($countArray[$birthYear][$tblCertificate->getCertificate()][$gender])) {
-                                                            $countArray[$birthYear][$tblCertificate->getCertificate()][$gender]++;
-                                                        } else {
-                                                            $countArray[$birthYear][$tblCertificate->getCertificate()][$gender] = 1;
-                                                        }
+                                                    if (isset($Content['B01_1'][$certificate]['TotalCount'][$gender])) {
+                                                        $Content['B01_1'][$certificate]['TotalCount'][$gender]++;
+                                                    } else {
+                                                        $Content['B01_1'][$certificate]['TotalCount'][$gender] = 1;
                                                     }
-
-                                                    /**
-                                                     * B01.1
-                                                     */
-                                                    if ($hasMigrationBackground) {
-                                                        if (isset($Content['B01_1'][$tblCertificate->getCertificate()]['L' . $certificate][$gender])) {
-                                                            $Content['B01_1'][$tblCertificate->getCertificate()]['L' . $certificate][$gender]++;
-                                                        } else {
-                                                            $Content['B01_1'][$tblCertificate->getCertificate()]['L' . $certificate][$gender] = 1;
-                                                        }
-                                                        if (isset($Content['B01_1'][$tblCertificate->getCertificate()]['TotalCount'][$gender])) {
-                                                            $Content['B01_1'][$tblCertificate->getCertificate()]['TotalCount'][$gender]++;
-                                                        } else {
-                                                            $Content['B01_1'][$tblCertificate->getCertificate()]['TotalCount'][$gender] = 1;
-                                                        }
-                                                        if (isset($Content['B01_1']['TotalCount']['L' . $certificate][$gender])) {
-                                                            $Content['B01_1']['TotalCount']['L' . $certificate][$gender]++;
-                                                        } else {
-                                                            $Content['B01_1']['TotalCount']['L' . $certificate][$gender] = 1;
-                                                        }
-                                                        if (isset($Content['B01_1']['TotalCount'][$gender])) {
-                                                            $Content['B01_1']['TotalCount'][$gender] += 1;
-                                                        } else {
-                                                            $Content['B01_1']['TotalCount'][$gender] = 1;
-                                                        }
+                                                    if (isset($Content['B01_1']['TotalCount']['L' . $levelName][$gender])) {
+                                                        $Content['B01_1']['TotalCount']['L' . $levelName][$gender]++;
+                                                    } else {
+                                                        $Content['B01_1']['TotalCount']['L' . $levelName][$gender] = 1;
                                                     }
-//                                                }
+                                                    if (isset($Content['B01_1']['TotalCount'][$gender])) {
+                                                        $Content['B01_1']['TotalCount'][$gender] += 1;
+                                                    } else {
+                                                        $Content['B01_1']['TotalCount'][$gender] = 1;
+                                                    }
+                                                }
                                             }
                                         }
                                     }
@@ -2233,14 +2845,14 @@ class KamenzReportService
                 $Content['B02']['Y' . $count]['m'] = 0;
                 $Content['B02']['Y' . $count]['w'] = 0;
                 $Content['B02']['Y' . $count]['x'] = 0;
-                foreach ($certificateArray as $certificate => $genderArray) {
+                foreach ($certificateArray as $levelName => $genderArray) {
                     foreach ($genderArray as $gender => $value) {
-                        $Content['B02']['Y' . $count][$certificate][$gender] = $value;
+                        $Content['B02']['Y' . $count][$levelName][$gender] = $value;
 
-                        if (isset($Content['B02']['TotalCount'][$certificate][$gender])) {
-                            $Content['B02']['TotalCount'][$certificate][$gender] += $value;
+                        if (isset($Content['B02']['TotalCount'][$levelName][$gender])) {
+                            $Content['B02']['TotalCount'][$levelName][$gender] += $value;
                         } else {
-                            $Content['B02']['TotalCount'][$certificate][$gender] = $value;
+                            $Content['B02']['TotalCount'][$levelName][$gender] = $value;
                         }
 
                         $Content['B02']['Y' . $count][$gender] += $value;
@@ -2254,83 +2866,49 @@ class KamenzReportService
     }
 
     /**
-     * @param TblLevel $tblLevel
-     * @param TblDivision $tblDivision
+     * @param TblPerson $tblPerson
+     * @param int $level
+     * @param TblYear $tblYear
+     * @param $gender
      * @param $countAdvancedCourseArray
      * @param $countBasicCourseArray
      * @param $personAdvancedCourseList
      */
     private static function countCourses(
-        TblLevel $tblLevel,
-        TblDivision $tblDivision,
+        TblPerson $tblPerson,
+        int $level,
+        TblYear $tblYear,
+        $gender,
         &$countAdvancedCourseArray,
         &$countBasicCourseArray,
         &$personAdvancedCourseList
     ) {
-        if (preg_match('!(11|12)!is', $tblLevel->getName())) {
-            if (($tblDivisionSubjectList = Division::useService()->getDivisionSubjectByDivision($tblDivision))) {
-                foreach ($tblDivisionSubjectList as $tblDivisionSubject) {
-                    if (($tblSubject = $tblDivisionSubject->getServiceTblSubject())
-                        && ($tblSubjectGroup = $tblDivisionSubject->getTblSubjectGroup())
+        if ($level == 11 || $level == 12) {
+            if (($tblStudentSubjectList = DivisionCourse::useService()->getStudentSubjectListByPersonAndYear($tblPerson, $tblYear, true))) {
+                foreach ($tblStudentSubjectList as $tblStudentSubject) {
+                    if (($tblSubject = $tblStudentSubject->getServiceTblSubject())
+                        && ($tblDivisionCourse = $tblStudentSubject->getTblDivisionCourse())
+                        && strpos($tblStudentSubject->getPeriodIdentifier(), '/1')
                     ) {
-                        if ($tblSubjectGroup->isAdvancedCourse()) {
-                            if (isset($countAdvancedCourseArray[$tblSubject->getAcronym()][$tblLevel->getName()])) {
-                                $countAdvancedCourseArray[$tblSubject->getAcronym()][$tblLevel->getName()]++;
+                        if ($tblStudentSubject->getIsAdvancedCourse()) {
+                            $countAdvancedCourseArray[$tblSubject->getAcronym()][$level][$tblDivisionCourse->getId()] = 1;
+                            // mehr als 2 Leistungskurse möglich, deswegen muss das Array die Zählung übernehmen.
+                            // Platz 0 wird für Deutsch/Mathe reserviert.
+                            if(!isset($personAdvancedCourseList[$level][$tblPerson->getId()][0])){
+                                $personAdvancedCourseList[$level][$tblPerson->getId()][0] = '';
+                            }
+                            if ($tblSubject->getName() == 'Deutsch' || $tblSubject->getName() == 'Mathematik') {
+                                $personAdvancedCourseList[$level][$tblPerson->getId()][0] = $tblSubject->getAcronym();
                             } else {
-                                $countAdvancedCourseArray[$tblSubject->getAcronym()][$tblLevel->getName()] = 1;
+                                $personAdvancedCourseList[$level][$tblPerson->getId()][] = $tblSubject->getAcronym();
                             }
-
-                            /**
-                             * E18. Schüler in Leistungskursen im Schuljahr nach Jahrgangsstufen
-                             */
-                            $tblSubjectStudentsList = Division::useService()->getSubjectStudentByDivisionSubject($tblDivisionSubject);
-                            if ($tblSubjectStudentsList) {
-                                foreach ($tblSubjectStudentsList as $tblSubjectStudent) {
-                                    if ($tblSubjectStudent->getServiceTblPerson()) {
-                                        if (($tblPerson = $tblSubjectStudent->getServiceTblPerson())) {
-
-                                            if ($tblSubject->getName() == 'Deutsch' || $tblSubject->getName() == 'Mathematik') {
-                                                $personAdvancedCourseList[$tblLevel->getName()][$tblPerson->getId()][0]
-                                                    = $tblSubject->getAcronym();
-                                            } else {
-                                                $personAdvancedCourseList[$tblLevel->getName()][$tblPerson->getId()][1]
-                                                    = $tblSubject->getAcronym();
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-
                         } else {
-                            if (($tblStudentSubjectList = Division::useService()->getSubjectStudentByDivisionSubject($tblDivisionSubject))) {
-                                $count = array();
-                                $count['m'] = $count['w'] = $count['x'] = 0;
-                                foreach ($tblStudentSubjectList as $tblSubjectStudent) {
-                                    if (($tblPerson = $tblSubjectStudent->getServiceTblPerson())
-                                        && ($tblCommon = Common::useService()->getCommonByPerson($tblPerson))
-                                        && ($tblCommonBirthDates = $tblCommon->getTblCommonBirthDates())
-                                        && ($tblCommonGender = $tblCommonBirthDates->getTblCommonGender())
-                                    ) {
-                                        if ($tblCommonGender->getName() == 'Männlich') {
-                                            $gender = 'm';
-                                        } elseif ($tblCommonGender->getName() == 'Weiblich') {
-                                            $gender = 'w';
-                                        } else {
-                                            $gender = 'x';
-                                        }
+                            $countBasicCourseArray[$tblSubject->getAcronym()][$level]['CoursesCount'][$tblDivisionCourse->getId()] = 1;
 
-                                        $count[$gender]++;
-                                    }
-                                }
-
-                                $countBasicCourseArray = self::countGenderCourses($tblSubject, $tblLevel, $count,
-                                    $countBasicCourseArray);
-                            }
-
-                            if (isset($countBasicCourseArray[$tblSubject->getAcronym()][$tblLevel->getName()]['CoursesCount'])) {
-                                $countBasicCourseArray[$tblSubject->getAcronym()][$tblLevel->getName()]['CoursesCount']++;
+                            if (isset($countBasicCourseArray[$tblSubject->getAcronym()][$level][$gender])) {
+                                $countBasicCourseArray[$tblSubject->getAcronym()][$level][$gender] += 1;
                             } else {
-                                $countBasicCourseArray[$tblSubject->getAcronym()][$tblLevel->getName()]['CoursesCount'] = 1;
+                                $countBasicCourseArray[$tblSubject->getAcronym()][$level][$gender] = 1;
                             }
                         }
                     }
@@ -2363,11 +2941,7 @@ class KamenzReportService
                     && ($tblCommonBirthDates = $tblCommon->getTblCommonBirthDates())
                     && ($tblCommonGender = $tblCommonBirthDates->getTblCommonGender())
                 ) {
-                    if ($tblCommonGender->getName() == 'Männlich') {
-                        $gender = 'm';
-                    } elseif ($tblCommonGender->getName() == 'Weiblich') {
-                        $gender = 'w';
-                    }
+                    $gender = $tblCommonGender->getShortName();
                 }
 
                 $count = count($subjects);
@@ -2418,32 +2992,6 @@ class KamenzReportService
     }
 
     /**
-     * @param TblSubject $tblSubject
-     * @param TblLevel $tblLevel
-     * @param $count
-     * @param $countBasicCourseArray
-     *
-     * @return array
-     */
-    private static function countGenderCourses(
-        TblSubject $tblSubject,
-        TblLevel $tblLevel,
-        $count,
-        $countBasicCourseArray
-    ) {
-
-        foreach ($count as $gender => $value) {
-            if (isset($countBasicCourseArray[$tblSubject->getAcronym()][$tblLevel->getName()][$gender])) {
-                $countBasicCourseArray[$tblSubject->getAcronym()][$tblLevel->getName()][$gender] += $value;
-            } else {
-                $countBasicCourseArray[$tblSubject->getAcronym()][$tblLevel->getName()][$gender] = $value;
-            }
-        }
-
-        return $countBasicCourseArray;
-    }
-
-    /**
      * @param $Content
      * @param $countAdvancedCourseArray
      * @param $countBasisCourseArray
@@ -2467,6 +3015,10 @@ class KamenzReportService
             $Content['E16']['S' . $count]['SubjectName'] = $subjectName;
             foreach ($levelArray as $level => $valueArray) {
                 foreach ($valueArray as $identifier => $value) {
+                    if ($identifier == 'CoursesCount') {
+                        $value = count($value);
+                    }
+
                     $Content['E16']['S' . $count]['L' . $level][$identifier] = $value;
 
                     if (isset($Content['E16']['TotalCount']['L' . $level][$identifier])) {
@@ -2488,7 +3040,8 @@ class KamenzReportService
         foreach ($countAdvancedCourseArray as $acronym => $levelArray) {
             $Content['E17']['S' . $count]['SubjectName'] = ($tblSubject = Subject::useService()->getSubjectByAcronym($acronym))
                 ? $tblSubject->getName() : '';
-            foreach ($levelArray as $level => $value) {
+            foreach ($levelArray as $level => $divisionCourseArray) {
+                $value = count($divisionCourseArray);
                 $Content['E17']['S' . $count]['L' . $level] = $value;
 
                 if (isset($Content['E17']['S' . $count]['TotalCount'])) {
@@ -2518,62 +3071,43 @@ class KamenzReportService
      * @param $Content
      * @param $tblPastYearList
      * @param TblPerson $tblPerson
-     * @param $tblCourse
-     * @param TblLevel $tblLevel
+     * @param TblCourse|null $tblCourse
+     * @param int $level
      * @param $gender
      * @param $isInPreparationDivisionForMigrants
-     * @param TblType $tblSchoolType
+     * @param TblType $tblSchoolTypeKamenz
      */
     private static function setSchoolTypeLastYear(
         &$Content,
         $tblPastYearList,
         TblPerson $tblPerson,
-        $tblCourse,
-        TblLevel $tblLevel,
+        int $level,
         $gender,
         $isInPreparationDivisionForMigrants,
-        TblType $tblSchoolType
+        TblType $tblSchoolTypeKamenz
     ) {
-
-        $tblLevelLastYear = false;
+        $levelLastYear = false;
+        $tblSchoolTypeLastYear = false;
+        $tblCourse = false;
         if ($tblPastYearList && is_array($tblPastYearList)) {
             foreach ($tblPastYearList as $tblPastYear) {
-                if (($tblDivisionStudentList = Division::useService()->getDivisionStudentAllByPerson($tblPerson))) {
-                    foreach ($tblDivisionStudentList as $tblDivisionStudent) {
-                        if (($tblDivisionTemp = $tblDivisionStudent->getTblDivision())
-                            && ($tblYearTemp = $tblDivisionTemp->getServiceTblYear())
-                            && $tblYearTemp->getId() == $tblPastYear->getId()
-                            && ($tblLevelTemp = $tblDivisionTemp->getTblLevel())
-                            && !$tblLevelTemp->getIsChecked()
-                        ) {
-                            $tblLevelLastYear = $tblLevelTemp;
-                            break;
-                        }
-                    }
-
-                    if ($tblLevelLastYear) {
-                        break;
-                    }
+                if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblPastYear))) {
+                    $levelLastYear = $tblStudentEducation->getLevel();
+                    $tblSchoolTypeLastYear = $tblStudentEducation->getServiceTblSchoolType();
+                    $tblCourse = $tblStudentEducation->getServiceTblCourse();
                 }
             }
         }
 
         $identifier = false;
-        if ($tblLevelLastYear
-            && ($tblSchoolTypeLastYear = $tblLevelLastYear->getServiceTblType())
-        ) {
-
+        if ($levelLastYear && $tblSchoolTypeLastYear) {
             if ($tblSchoolTypeLastYear->getName() == 'Grundschule') {
                 $identifier = 'PrimarySchool';
             } elseif ($tblSchoolTypeLastYear->getName() == 'Gymnasium') {
                 $identifier = 'GrammarSchool';
-            } elseif ($tblSchoolTypeLastYear->getName() == 'Mittelschule / Oberschule') {
-                // führende Nullen entfernen
-                $level = ltrim($tblLevelLastYear->getName(), '0');
-
-                if ($tblSchoolType->getName() == 'Mittelschule / Oberschule') {
-                    /** @var TblCourse $tblCourse */
-                    if ($level != '5' && $level != '6' && $tblCourse) {
+            } elseif ($tblSchoolTypeLastYear->getName() == TblType::IDENT_OBER_SCHULE) {
+                if ($tblSchoolTypeKamenz->getName() == TblType::IDENT_OBER_SCHULE) {
+                    if ($level > 6 && $tblCourse) {
                         if ($tblCourse->getName() == 'Hauptschule') {
                             $identifier = 'SecondarySchoolHs';
                         } elseif ($tblCourse->getName() == 'Realschule') {
@@ -2599,8 +3133,8 @@ class KamenzReportService
                     $useUnknown = false;
                     // SSW-396 Datum überprüfen z.B. für Schüler im Auslandssemester
                     if (($date = $tblStudentTransfer->getTransferDate())) {
-                        $date = new \DateTime($date);
-                        $now = new \DateTime('now');
+                        $date = new DateTime($date);
+                        $now = new DateTime('now');
 
                         if ($date->format('Y') != $now->format('Y')) {
                             $useUnknown = true;
@@ -2613,9 +3147,9 @@ class KamenzReportService
                         $identifier = 'PrimarySchool';
                     } elseif ($tblSchoolTypeTransfer->getName() == 'Gymnasium') {
                         $identifier = 'GrammarSchool';
-                    } elseif ($tblSchoolTypeTransfer->getName() == 'Mittelschule / Oberschule') {
+                    } elseif ($tblSchoolTypeTransfer->getName() == TblType::IDENT_OBER_SCHULE) {
                         $identifier = 'SecondarySchool';
-                        if ($tblSchoolType->getName() == 'Mittelschule / Oberschule') {
+                        if ($tblSchoolTypeKamenz->getName() == TblType::IDENT_OBER_SCHULE) {
                             if (($tblCourseTransfer = $tblStudentTransfer->getServiceTblCourse())) {
                                 if($tblCourseTransfer->getName() == 'Hauptschule') {
                                     $identifier = 'SecondarySchoolHs';
@@ -2630,10 +3164,10 @@ class KamenzReportService
         }
 
         if ($identifier) {
-            if (isset($Content['E07'][$identifier]['L' . $tblLevel->getName()][$gender])) {
-                $Content['E07'][$identifier]['L' . $tblLevel->getName()][$gender]++;
+            if (isset($Content['E07'][$identifier]['L' . $level][$gender])) {
+                $Content['E07'][$identifier]['L' . $level][$gender]++;
             } else {
-                $Content['E07'][$identifier]['L' . $tblLevel->getName()][$gender] = 1;
+                $Content['E07'][$identifier]['L' . $level][$gender] = 1;
             }
             if ($isInPreparationDivisionForMigrants) {
                 if (isset($Content['E07'][$identifier]['Migration'][$gender])) {
@@ -2652,10 +3186,10 @@ class KamenzReportService
              * TotalCount
              */
             $identifier = 'TotalCount';
-            if (isset($Content['E07'][$identifier]['L' . $tblLevel->getName()][$gender])) {
-                $Content['E07'][$identifier]['L' . $tblLevel->getName()][$gender]++;
+            if (isset($Content['E07'][$identifier]['L' . $level][$gender])) {
+                $Content['E07'][$identifier]['L' . $level][$gender]++;
             } else {
-                $Content['E07'][$identifier]['L' . $tblLevel->getName()][$gender] = 1;
+                $Content['E07'][$identifier]['L' . $level][$gender] = 1;
             }
             if ($isInPreparationDivisionForMigrants) {
                 if (isset($Content['E07'][$identifier]['Migration'][$gender])) {
@@ -2668,6 +3202,334 @@ class KamenzReportService
                 $Content['E07'][$identifier]['TotalCount'][$gender]++;
             } else {
                 $Content['E07'][$identifier]['TotalCount'][$gender] = 1;
+            }
+        }
+    }
+
+    /**
+     * @param $tblPastYearList
+     * @param $Content
+     * @param TblType $tblKamenzSchoolType
+     */
+    private static function setGraduateTechnicalSchool(
+        $tblPastYearList,
+        &$Content,
+        TblType $tblKamenzSchoolType
+    ) {
+        if ($tblPastYearList) {
+            foreach ($tblPastYearList as $tblPastYear) {
+                /**
+                 * Abgangszeugnisse
+                 */
+                if (($tblLeaveStudentList = Prepare::useService()->getLeaveStudentAllByYear($tblPastYear))) {
+                    foreach ($tblLeaveStudentList as $tblLeaveStudent) {
+                        if ($tblLeaveStudent->isApproved() && $tblLeaveStudent->isPrinted()
+                            && ($tblPerson = $tblLeaveStudent->getServiceTblPerson())
+                            && ($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblPastYear))
+                            && ($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())
+                            && $tblSchoolType->getId() == $tblKamenzSchoolType->getId()
+                        ) {
+                            self::setTechnicalGraduationForPerson($tblPerson, 'Leave', $Content);
+                        }
+                    }
+                }
+
+                /**
+                 * Abschlusszeugnisse
+                 */
+                if (($tblGenerateCertificateList = Generate::useService()->getGenerateCertificateAllByYear($tblPastYear))) {
+                    foreach ($tblGenerateCertificateList as $tblGenerateCertificate) {
+                        if (($tblCertificateType = $tblGenerateCertificate->getServiceTblCertificateType())
+                            && ($tblCertificateType->getIdentifier() == 'DIPLOMA')
+                            && (($tblPrepareList = Prepare::useService()->getPrepareAllByGenerateCertificate($tblGenerateCertificate)))
+                        ) {
+                            foreach ($tblPrepareList as $tblPrepare) {
+                                if (($tblDivisionCourse = $tblPrepare->getServiceTblDivision())
+                                    && ($tblSchoolTypeList = $tblDivisionCourse->getSchoolTypeListFromStudents())
+                                    && isset($tblSchoolTypeList[$tblKamenzSchoolType->getId()])
+                                    && ($tblPrepareStudentList = Prepare::useService()->getPrepareStudentAllByPrepare($tblPrepare))
+                                ) {
+                                    foreach ($tblPrepareStudentList as $tblPrepareStudent) {
+                                        if (($tblPerson = $tblPrepareStudent->getServiceTblPerson())
+                                            && ($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())
+                                        ) {
+                                            self::setTechnicalGraduationForPerson($tblPerson, 'DiplomaTotal', $Content);
+                                            if ($tblCertificate->getCertificate() == 'FsAbsFhr') {
+                                                self::setTechnicalGraduationForPerson($tblPerson, 'DiplomaExtra', $Content);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Temp to Rows
+            self::sumGraduationCourseForTechnicalSchool($Content, 'B01_1_A');
+            self::sumGraduationCourseForTechnicalSchool($Content, 'B01_1_U');
+            self::sumGraduationCourseForTechnicalSchool($Content, 'B01_1_1_A');
+            self::sumGraduationCourseForTechnicalSchool($Content, 'B01_1_1_U');
+
+            self::sumGraduationCourseForTechnicalSchool($Content, 'B01_2_A');
+            self::sumGraduationCourseForTechnicalSchool($Content, 'B01_2_U');
+            self::sumGraduationCourseForTechnicalSchool($Content, 'B01_2_1_A');
+            self::sumGraduationCourseForTechnicalSchool($Content, 'B01_2_1_U');
+
+            self::sumGraduationBirthYearForTechnicalSchool($Content, 'B02_1_A');
+            self::sumGraduationBirthYearForTechnicalSchool($Content, 'B02_1_U');
+            self::sumGraduationBirthYearForTechnicalSchool($Content, 'B02_1_1_A');
+            self::sumGraduationBirthYearForTechnicalSchool($Content, 'B02_1_1_U');
+
+            self::sumGraduationBirthYearForTechnicalSchool($Content, 'B02_2_A');
+            self::sumGraduationBirthYearForTechnicalSchool($Content, 'B02_2_U');
+            self::sumGraduationBirthYearForTechnicalSchool($Content, 'B02_2_1_A');
+            self::sumGraduationBirthYearForTechnicalSchool($Content, 'B02_2_1_U');
+        }
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param $identifier
+     * @param $Content
+     */
+    private static function setTechnicalGraduationForPerson(TblPerson $tblPerson, $identifier, &$Content)
+    {
+        $hasMigrationBackground = false;
+        if (($tblStudent = $tblPerson->getStudent())
+            && $tblStudent->getHasMigrationBackground()
+        ) {
+            $hasMigrationBackground = true;
+        }
+
+        if ($tblStudent && ($tblStudentTechnicalSchool = $tblStudent->getTblStudentTechnicalSchool())
+            && ($tblStudentTenseOfLesson = $tblStudentTechnicalSchool->getTblStudentTenseOfLesson())
+            && ($tblStudentTrainingStatus = $tblStudentTechnicalSchool->getTblStudentTrainingStatus())
+        ) {
+            $isFullTime = $tblStudentTenseOfLesson->getIdentifier() == TblStudentTenseOfLesson::FULL_TIME;
+            $isChangeStudent = $tblStudentTrainingStatus->getIdentifier() == TblStudentTrainingStatus::CHANGE_STUDENT;
+            $course = ($tblTechnicalCourse = $tblStudentTechnicalSchool->getServiceTblTechnicalCourse())
+                ? $tblTechnicalCourse->getName() : '&nbsp;';
+            $time = $tblStudentTechnicalSchool->getDurationOfTraining();
+
+            if (($tblSupport = Student::useService()->getSupportForReportingByPerson($tblPerson))
+                && ($tblSupportFocus = Student::useService()->getSupportPrimaryFocusBySupport($tblSupport))
+                && ($tblSupportFocusType = $tblSupportFocus->getTblSupportFocusType())
+            ) {
+                $support = $tblSupportFocusType->getName();
+            } else {
+                $support = '&nbsp;';
+            }
+
+            if (($tblCommon = Common::useService()->getCommonByPerson($tblPerson))
+                && (($tblCommonBirthDates = $tblCommon->getTblCommonBirthDates()))
+                && ($tblCommonGender = $tblCommonBirthDates->getTblCommonGender())
+                && ($birthDay = $tblCommonBirthDates->getBirthday())
+            ) {
+
+                $gender = $tblCommonGender->getName();
+                $genderShort = $tblCommonGender->getShortName();
+
+                $birthDayDate = new DateTime($birthDay);
+                $birthYear = $birthDayDate->format('Y');
+
+                self::addTempCount(
+                    $Content,
+                    'B01_' . ($isFullTime ? '1' : '2') . '_' . ($isChangeStudent ? 'U' : 'A'),
+                    $course . '_' . $time . '_' . $support . '_' . $gender,
+                    $identifier,
+                    $genderShort
+                );
+
+                if ($hasMigrationBackground) {
+                    self::addTempCount(
+                        $Content,
+                        'B01_' . ($isFullTime ? '1' : '2') . '_1_' . ($isChangeStudent ? 'U' : 'A'),
+                        $course . '_' . $time . '_' . $support . '_' . $gender,
+                        $identifier,
+                        $genderShort
+                    );
+                }
+
+                if ($birthYear) {
+                    self::addTempCount(
+                        $Content,
+                        'B02_' . ($isFullTime ? '1' : '2') . '_' . ($isChangeStudent ? 'U' : 'A'),
+                        $birthYear . '_' . $gender,
+                        $identifier,
+                        $genderShort
+                    );
+
+                    if ($hasMigrationBackground) {
+                        self::addTempCount(
+                            $Content,
+                            'B02_' . ($isFullTime ? '1' : '2') . '_1_' . ($isChangeStudent ? 'U' : 'A'),
+                            $birthYear . '_' . $gender,
+                            $identifier,
+                            $genderShort
+                        );
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * @param $Content
+     * @param $name
+     * @param $preText
+     * @param $identifier
+     * @param $genderShort
+     */
+    private static function addTempCount(&$Content, $name, $preText, $identifier, $genderShort)
+    {
+        if (isset($Content[$name]['Temp'][$preText][$identifier])) {
+            $Content[$name]['Temp'][$preText][$identifier]++;
+        } else {
+            $Content[$name]['Temp'][$preText][$identifier] = 1;
+        }
+
+        /** TotalCount */
+        if (isset($Content[$name]['TotalCount'][$identifier][$genderShort])) {
+            $Content[$name]['TotalCount'][$identifier][$genderShort]++;
+        } else {
+            $Content[$name]['TotalCount'][$identifier][$genderShort] = 1;
+        }
+    }
+
+    /**
+     * @param $Content
+     * @param $name
+     */
+    private static function sumGraduationCourseForTechnicalSchool(
+        &$Content,
+        $name
+    ) {
+        if (isset($Content[$name]['Temp'])) {
+            $i = 0;
+            foreach ($Content[$name]['Temp'] as $key => $row) {
+                $array = explode('_', $key);
+                $Content[$name]['R' . $i] = array(
+                    'Course' => $array[0],
+                    'Time' => $array[1],
+                    'Support' => $array[2],
+                    'Gender' => $array[3]
+                );
+
+                $Content[$name]['R' . $i]['TotalCount'] = 0;
+                foreach ($row as $subKey => $subRow) {
+                    $Content[$name]['R' . $i][$subKey] = $subRow;
+                    $Content[$name]['R' . $i]['TotalCount'] += intval($subRow);
+                }
+
+                $i++;
+            }
+        }
+    }
+
+    /**
+     * @param $Content
+     * @param $name
+     */
+    private static function sumGraduationBirthYearForTechnicalSchool(
+        &$Content,
+        $name
+    ) {
+        if (isset($Content[$name]['Temp'])) {
+            $i = 0;
+            foreach ($Content[$name]['Temp'] as $key => $row) {
+                $array = explode('_', $key);
+                $Content[$name]['R' . $i] = array(
+                    'Year' => $array[0],
+                    'Gender' => $array[1]
+                );
+
+                $Content[$name]['R' . $i]['TotalCount'] = 0;
+                foreach ($row as $subKey => $subRow) {
+                    $Content[$name]['R' . $i][$subKey] = $subRow;
+                    $Content[$name]['R' . $i]['TotalCount'] += intval($subRow);
+                }
+
+                $i++;
+            }
+        }
+    }
+
+    /**
+     * @param $Content
+     * @param $name
+     * @param TblStudent $tblStudent
+     * @param int $level
+     *
+     * @return int
+     */
+    private static function setForeignLanguagesForTechnicalSchool(
+        &$Content,
+        $name,
+        TblStudent $tblStudent,
+        int $level
+    ): int {
+        $countLanguages = 0;
+        if (($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('FOREIGN_LANGUAGE'))
+           && ($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType(
+                $tblStudent, $tblStudentSubjectType
+            ))
+        ) {
+            foreach ($tblStudentSubjectList as $tblStudentSubject) {
+                if (($tblSubject = $tblStudentSubject->getServiceTblSubject())
+                    && $tblStudentSubject->getTblStudentSubjectRanking()
+                ) {
+                    // #SSW-1596 abgeschlossene und noch nicht begonnene Fremdsprachen ignorieren
+                    if (($LevelFrom = $tblStudentSubject->getLevelFrom())
+                        && $LevelFrom > $level
+                    ) {
+                        continue;
+                    }
+                    if (($LevelTill = $tblStudentSubject->getLevelTill())
+                        && $LevelTill < $level
+                    ) {
+                        continue;
+                    }
+
+                    if (isset($Content[$name]['Temp'][$tblSubject->getName()]['L' . $level])) {
+                        $Content[$name]['Temp'][$tblSubject->getName()]['L' . $level]++;
+                    } else {
+                        $Content[$name]['Temp'][$tblSubject->getName()]['L' . $level] = 1;
+                    }
+
+                    $countLanguages++;
+                }
+            }
+        }
+
+        return $countLanguages;
+    }
+
+    /**
+     * @param $Content
+     * @param string $name
+     */
+    private static function sumForeignLanguagesForTechnicalSchool(
+        &$Content,
+        string $name
+    ) {
+        if (isset($Content[$name]['Temp'])) {
+            $i = 0;
+            ksort($Content[$name]['Temp']);
+            foreach ($Content[$name]['Temp'] as $key => $row) {
+
+                $Content[$name]['R' . $i] = array(
+                    'Language' => $key
+                );
+
+                $Content[$name]['R' . $i]['TotalCount'] = 0;
+                foreach ($row as $subKey => $subRow) {
+                    $Content[$name]['R' . $i][$subKey] = $subRow;
+                    $Content[$name]['R' . $i]['TotalCount'] += intval($subRow);
+                }
+
+                $i++;
             }
         }
     }

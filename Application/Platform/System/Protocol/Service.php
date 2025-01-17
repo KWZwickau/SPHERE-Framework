@@ -4,7 +4,6 @@ namespace SPHERE\Application\Platform\System\Protocol;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
 use SPHERE\Application\Platform\System\Archive\Archive;
-use SPHERE\Application\Platform\System\Archive\Service\Entity\TblArchive;
 use SPHERE\Application\Platform\System\Protocol\Service\Data;
 use SPHERE\Application\Platform\System\Protocol\Service\Entity\LoginAttemptHistory;
 use SPHERE\Application\Platform\System\Protocol\Service\Entity\TblProtocol;
@@ -74,6 +73,15 @@ class Service extends AbstractService
     }
 
     /**
+     * @return bool|TblProtocol
+     */
+    public function getProtocolFirstEntry()
+    {
+
+        return (new Data($this->getBinding()))->getProtocolFirstEntry();
+    }
+
+    /**
      * @return TblProtocol[]|bool
      */
     public function getProtocolAllCreateSession()
@@ -134,13 +142,13 @@ class Service extends AbstractService
             $tblConsumer = null;
         }
 
-        Archive::useService()->createArchiveEntry(
-            $DatabaseName,
-            ( $tblAccount ? $tblAccount : null ),
-            ( $tblConsumer ? $tblConsumer : null ),
-            $Entity, TblArchive::ARCHIVE_TYPE_CREATE,
-            $useBulkSave
-        );
+//        Archive::useService()->createArchiveEntry(
+//            $DatabaseName,
+//            ( $tblAccount ? $tblAccount : null ),
+//            ( $tblConsumer ? $tblConsumer : null ),
+//            $Entity, TblArchive::ARCHIVE_TYPE_CREATE,
+//            $useBulkSave
+//        );
 
         return (new Data($this->getBinding()))->createProtocolEntry(
             $DatabaseName,
@@ -174,24 +182,33 @@ class Service extends AbstractService
             $tblConsumer = null;
         }
 
-        if (( $Protocol = (new Data($this->getBinding()))->createProtocolEntry(
+        return (new Data($this->getBinding()))->createProtocolEntry(
             $DatabaseName,
             ( $tblAccount ? $tblAccount : null ),
             ( $tblConsumer ? $tblConsumer : null ),
             $From,
             $To,
             $useBulkSave
-        ) )
-        ) {
-            Archive::useService()->createArchiveEntry(
-                $DatabaseName,
-                ( $tblAccount ? $tblAccount : null ),
-                ( $tblConsumer ? $tblConsumer : null ),
-                $To, TblArchive::ARCHIVE_TYPE_UPDATE,
-                $useBulkSave
-            );
-        };
-        return $Protocol;
+        );
+
+//        if (( $Protocol = (new Data($this->getBinding()))->createProtocolEntry(
+//            $DatabaseName,
+//            ( $tblAccount ? $tblAccount : null ),
+//            ( $tblConsumer ? $tblConsumer : null ),
+//            $From,
+//            $To,
+//            $useBulkSave
+//        ) )
+//        ) {
+//            Archive::useService()->createArchiveEntry(
+//                $DatabaseName,
+//                ( $tblAccount ? $tblAccount : null ),
+//                ( $tblConsumer ? $tblConsumer : null ),
+//                $To, TblArchive::ARCHIVE_TYPE_UPDATE,
+//                $useBulkSave
+//            );
+//        };
+//        return $Protocol;
     }
 
     /**
@@ -234,5 +251,22 @@ class Service extends AbstractService
     {
         (new Data($this->getBinding()))->flushBulkSave();
         Archive::useService()->flushBulkEntries();
+    }
+
+    public function getProtocolCountBeforeDate(\DateTime $DateTime = new \DateTime())
+    {
+        return (new Data($this->getBinding()))->getProtocolCountBeforeDate($DateTime);
+    }
+
+    private function getProtocolAllBeforeDate(\DateTime $DateTime, int $deleteMax)
+    {
+        return (new Data($this->getBinding()))->getProtocolAllBeforeDate($DateTime, $deleteMax);
+    }
+
+    public function deleteProtocolAllBeforeDate(\DateTime $DateTime, $deleteMax = 50000)
+    {
+
+        $tblProtocolList = $this->getProtocolAllBeforeDate($DateTime, $deleteMax);
+        return (new Data($this->getBinding()))->deleteProtocolList($tblProtocolList);
     }
 }

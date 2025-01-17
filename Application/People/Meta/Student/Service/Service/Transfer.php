@@ -6,6 +6,7 @@ use SPHERE\Application\Education\School\Course\Service\Entity\TblCourse;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\People\Meta\Student\Service\Data;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudent;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSchoolEnrollmentType;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransfer;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransferType;
 
@@ -41,6 +42,17 @@ abstract class Transfer extends Agreement
     }
 
     /**
+     * @param TblCompany $tblCompany
+     *
+     * @return bool|TblStudentTransfer[]
+     */
+    public function getStudentTransferByCompany(TblCompany $tblCompany)
+    {
+
+        return (new Data($this->getBinding()))->getStudentTransferByCompany($tblCompany);
+    }
+
+    /**
      * @param string $Identifier
      *
      * @return bool|TblStudentTransferType
@@ -63,14 +75,15 @@ abstract class Transfer extends Agreement
     }
 
     /**
-     * @param TblStudent $tblStudent
-     * @param TblStudentTransferType $tblStudentTransferType
-     * @param TblCompany|null $tblCompany
-     * @param TblType|null $tblType
-     * @param TblCourse|null $tblCourse
-     * @param                        $TransferDate
-     * @param                        $Remark
-     * @param TblCompany|null $tblStateCompany
+     * @param TblStudent                          $tblStudent
+     * @param TblStudentTransferType              $tblStudentTransferType
+     * @param TblCompany|null                     $tblCompany
+     * @param TblType|null                        $tblType
+     * @param TblCourse|null                      $tblCourse
+     * @param string                              $TransferDate
+     * @param string                              $Remark
+     * @param TblCompany|null                     $tblStateCompany
+     * @param TblStudentSchoolEnrollmentType|null $tblStudentSchoolEnrollmentType
      */
     public function insertStudentTransfer(
         TblStudent $tblStudent,
@@ -78,16 +91,13 @@ abstract class Transfer extends Agreement
         TblCompany $tblCompany = null,
         TblType $tblType = null,
         TblCourse $tblCourse = null,
-        $TransferDate,
-        $Remark,
-        TblCompany $tblStateCompany = null
+        $TransferDate = '',
+        $Remark = '',
+        TblCompany $tblStateCompany = null,
+        TblStudentSchoolEnrollmentType $tblStudentSchoolEnrollmentType = null
     ) {
 
-        $tblStudentTransfer = $this->getStudentTransferByType(
-            $tblStudent,
-            $tblStudentTransferType
-        );
-        if ($tblStudentTransfer) {
+        if(($tblStudentTransfer = $this->getStudentTransferByType($tblStudent, $tblStudentTransferType))) {
             (new Data($this->getBinding()))->updateStudentTransfer(
                 $tblStudentTransfer,
                 $tblStudent,
@@ -97,7 +107,8 @@ abstract class Transfer extends Agreement
                 $tblType,
                 $tblCourse,
                 $TransferDate,
-                $Remark
+                $Remark,
+                $tblStudentSchoolEnrollmentType
             );
         } else {
             (new Data($this->getBinding()))->createStudentTransfer(
@@ -108,7 +119,8 @@ abstract class Transfer extends Agreement
                 $tblType,
                 $tblCourse,
                 $TransferDate,
-                $Remark
+                $Remark,
+                $tblStudentSchoolEnrollmentType
             );
         }
     }

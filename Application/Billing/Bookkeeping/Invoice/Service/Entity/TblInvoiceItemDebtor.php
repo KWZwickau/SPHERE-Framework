@@ -31,6 +31,7 @@ class TblInvoiceItemDebtor extends Element
     const ATTR_VALUE = 'Value';
     const ATTR_QUANTITY = 'Quantity';
     const ATTR_IS_PAID = 'IsPaid';
+    const ATTR_IS_HISTORY = 'IsHistory';
     const ATTR_SERVICE_TBL_PERSON_DEBTOR = 'serviceTblPersonDebtor';
     const ATTR_SERVICE_TBL_BANKING_REFERENCE = 'serviceTblBankReference';
     const ATTR_SERVICE_TBL_PAYMENT_TYPE = 'serviceTblPaymentType';
@@ -84,6 +85,10 @@ class TblInvoiceItemDebtor extends Element
      * @Column(type="boolean")
      */
     protected $IsPaid;
+    /**
+     * @Column(type="boolean")
+     */
+    protected $IsHistory;
     /**
      * @Column(type="bigint")
      */
@@ -348,6 +353,24 @@ class TblInvoiceItemDebtor extends Element
     }
 
     /**
+     * @return boolean
+     */
+    public function getIsHistory()
+    {
+
+        return $this->IsHistory;
+    }
+
+    /**
+     * @param boolean $IsHistory
+     */
+    public function setIsHistory($IsHistory)
+    {
+
+        $this->IsHistory = $IsHistory;
+    }
+
+    /**
      * @return bool|TblPerson
      */
     public function getServiceTblPersonDebtor()
@@ -458,13 +481,18 @@ class TblInvoiceItemDebtor extends Element
     }
 
     /**
+     * @param string $Sign
+     * @param bool   $isFrontend
+     *
      * @return string
-     * single ItemPrice with " €"
      */
-    public function getPriceString()
+    public function getPriceString($Sign = '€', $isFrontend = false)
     {
 
-        return number_format($this->Value, 2).' €';
+        if($isFrontend){
+            return $Value = number_format($this->Value, 2, ',', '.').' '.$Sign;
+        }
+        return $Value = number_format($this->Value, 2, '.', '').' '.$Sign;
     }
 
     /**
@@ -479,6 +507,20 @@ class TblInvoiceItemDebtor extends Element
             $result = $this->Value;
         }
         return number_format($result, 2).' €';
+    }
+
+    /**
+     * @return string
+     * with " €"
+     */
+    public function getSummaryPriceFrontend()
+    {
+        if($this->Quantity !== 0){
+            $result = $this->Value * $this->Quantity;
+        } else {
+            $result = $this->Value;
+        }
+        return number_format($result, 2, ',', '.').' €';
     }
 
     /**

@@ -38,6 +38,20 @@ class Authentication implements IModuleInterface
             Main::getDispatcher()->registerRoute(
                 Main::getDispatcher()->createRoute('', __NAMESPACE__.'\Frontend::frontendWelcome')
             );
+            // SSO leitet erneut (über die Kachel) zu uns, muss die Weiterleitung zur Startseite funktionieren
+            Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+                __NAMESPACE__.'/Saml/Placeholder', __NAMESPACE__.'\Frontend::frontendIdentificationSamlPlaceholder'
+            ));
+            Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+                __NAMESPACE__.'/Saml/DLLP', __NAMESPACE__.'\Frontend::frontendIdentificationSamlDLLP'
+            ));
+            Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+                __NAMESPACE__.'/Saml/DLLPDemo', __NAMESPACE__.'\Frontend::frontendIdentificationSamlDLLPDemo'
+            ));
+//            // EKM -> Beispiel kann für zukünftige IDP's verwendet werden
+//            Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+//                __NAMESPACE__.'/Saml/EKM', __NAMESPACE__.'\Frontend::frontendIdentificationSamlEKM'
+//            ));
         } else {
             Main::getDispatcher()->registerRoute(
                 Main::getDispatcher()->createRoute('', __NAMESPACE__.'\Frontend::frontendIdentificationCredential')
@@ -48,6 +62,15 @@ class Authentication implements IModuleInterface
             ));
             Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
                 __NAMESPACE__.'/Token', __NAMESPACE__.'\Frontend::frontendIdentificationToken'
+            ));
+            Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+                __NAMESPACE__.'/Saml/Placeholder', __NAMESPACE__.'\Frontend::frontendIdentificationSamlPlaceholder'
+            ));
+            Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+                __NAMESPACE__.'/Saml/DLLP', __NAMESPACE__.'\Frontend::frontendIdentificationSamlDLLP'
+            ));
+            Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+                __NAMESPACE__.'/Saml/DLLPDemo', __NAMESPACE__.'\Frontend::frontendIdentificationSamlDLLPDemo'
             ));
             Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
                 __NAMESPACE__.'/Agb', __NAMESPACE__.'\Frontend::frontendIdentificationAgb'

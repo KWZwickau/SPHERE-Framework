@@ -3,7 +3,7 @@
 namespace SPHERE\Application\Api\Transfer\Indiware\AppointmentGrade;
 
 use MOC\V\Core\FileSystem\FileSystem;
-use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
+use SPHERE\Application\Education\Graduation\Grade\Grade;
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\IServiceInterface;
 use SPHERE\Application\Transfer\Indiware\Export\AppointmentGrade\AppointmentGrade as AppointmentGradeTask;
@@ -37,29 +37,20 @@ class AppointmentGrade implements IModuleInterface
     }
 
     /**
-     * @param int  $Period
-     * @param null $TaskId
+     * @param int $Period
+     * @param int $TaskId
      *
-     * @return bool|string
+     * @return string
      */
-    public function downloadAppointmentGrade($Period, $TaskId = null)
+    public function downloadAppointmentGrade(int $Period, int $TaskId)
     {
 
-        $fileLocation = AppointmentGradeTask::useService()
-            ->createGradeListCsv($Period, $TaskId);
-        $tblTask = Evaluation::useService()->getTaskById($TaskId);
+        $fileLocation = AppointmentGradeTask::useService()->createGradeListCsv($Period, $TaskId);
+        $tblTask = Grade::useService()->getTaskById($TaskId);
         if ($fileLocation && $tblTask) {
             return FileSystem::getDownload($fileLocation->getRealPath(),
-                "Stichtagsnoten"." Stichtag ".$tblTask->getDate().".csv")->__toString();
+                "Stichtagsnoten ".$tblTask->getDate()->format('d.m.Y')." ".$tblTask->getName().".csv")->__toString();
         }
-        return false;
-
-//        $Display = new Display();
-//        $Stage = new Stage('Notenexport für Indiware');
-//        $Stage->setContent(
-//            new Warning('Es ist keine Person aus der Importierten CSV-Datei im Stichtagsnotenauftrag enthalten')
-//            ."<button type=\"button\" class=\"btn btn-default\" onclick=\"window.open('', '_self', ''); window.close();\">Abbrechen</button>"
-//        );
-//        return $Display->setContent($Stage);
+        return 'Die zu erzeugende CSV ist leer, eine Datei konnte nicht erstellt werden.';
     }
 }

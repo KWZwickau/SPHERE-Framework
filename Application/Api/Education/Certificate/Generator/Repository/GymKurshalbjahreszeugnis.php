@@ -14,14 +14,13 @@ use SPHERE\Application\Education\Certificate\Generator\Repository\Element;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Page;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Section;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
-use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 
 class GymKurshalbjahreszeugnis extends Certificate
 {
-
     /**
      * @var array|false
      */
@@ -31,6 +30,36 @@ class GymKurshalbjahreszeugnis extends Certificate
      * @var array|false
      */
     private $BasicCourses = false;
+
+    /**
+     * @return false|TblSubject
+     */
+    protected function getFirstAdvancedCourse()
+    {
+        foreach ($this->AdvancedCourses as $tblSubject) {
+            $name = $tblSubject->getName();
+            if ($name == 'Deutsch' || $name == 'Mathematik') {
+                return $tblSubject;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @return false|TblSubject
+     */
+    protected function getSecondAdvancedCourse()
+    {
+        foreach ($this->AdvancedCourses as $tblSubject) {
+            $name = $tblSubject->getName();
+            if ($name != 'Deutsch' && $name != 'Mathematik') {
+                return $tblSubject;
+            }
+        }
+
+        return false;
+    }
 
     /**
      * @param TblPerson|null $tblPerson
@@ -43,7 +72,7 @@ class GymKurshalbjahreszeugnis extends Certificate
 
         $personId = $tblPerson ? $tblPerson->getId() : 0;
 
-        $Header = $this->getHead($this->isSample(), true, 'auto', '50px');
+        $Header = $this->getHead($this->isSample(), false);
 
         $this->setCourses($tblPerson);
 
@@ -119,18 +148,10 @@ class GymKurshalbjahreszeugnis extends Certificate
             ->addSlice((new Slice())
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
-                        ->setContent(
-                            '{% if Content.P' . $personId . '.Person.Common.BirthDates.Gender == 2 %}
-                                Die Schülerin
-                            {% else %}
-                                {% if Content.P' . $personId . '.Person.Common.BirthDates.Gender == 1 %}
-                                    Der Schüler
-                                {% else %}
-                                    Die Schülerin/Der Schüler¹ kann ihre/seine¹ Ausbildung am Gymnasium fortsetzen.
-                                {% endif %}
-                            {% endif %}
-                            erbringt eine Besondere Lernleistung mit dem Thema:'
-                        )
+                        ->setContent('
+                            <u>&nbsp;&nbsp;&nbsp;&nbsp; {{ Content.P' . $personId . '.Person.Data.Name.First }} {{ Content.P' . $personId . '.Person.Data.Name.Last }} &nbsp;&nbsp;&nbsp;&nbsp;</u>
+                            erbringt eine Besondere Lernleistung mit dem Thema:
+                        ')
                         ->styleMarginTop('10px')
                     )
                 )
@@ -150,27 +171,15 @@ class GymKurshalbjahreszeugnis extends Certificate
                     )
                 )
             )
-            ->addSlice((new Slice())
-                ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        ->setContent('Bemerkungen: &nbsp;&nbsp;&nbsp; {% if(Content.P' . $personId . '.Input.Remark is not empty) %}
-                                    {{ Content.P' . $personId . '.Input.Remark|nl2br }}
-                                {% else %}
-                                    &nbsp;
-                                {% endif %}')
-                        ->styleTextSize('11pt')
-                        ->styleHeight('45px')
-                    )
-                )
-                ->styleMarginTop('10px')
-            )
+            ->addSlice($this->getDescriptionContent($personId, '45px', '10px', 'Bemerkungen: &nbsp;&nbsp;&nbsp; ', '11pt'))
             ->addSlice($this->getDateLine($personId))
             ->addSlice($this->getOwnSignPart($personId))
             ->addSlice($this->getParentSign())
             ->addSlice($this->setPointsOverview())
             ->addSlice($this->getInfo('10px',
                 '¹ &nbsp;&nbsp;&nbsp;&nbsp; Bei Fächern, die nicht belegt wurden, ist das betreffende Feld zu sperren.',
-                '² &nbsp;&nbsp;&nbsp;&nbsp; für Schüler der vertieften Ausbildung nach § 4 der Schulordnung Gymnasien Abiturprüfung'
+                '² &nbsp;&nbsp;&nbsp;&nbsp; für Schülerinnen und Schüler der vertieften Ausbildung nach § 4 der Schulordnung Gymnasien Abiturprüfung und des Landesgymnasiums Sankt 
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Afra zu Meißen'
             //,'³ &nbsp;&nbsp;&nbsp;&nbsp; Nichtzutreffendes ist zu streichen.  '
             )
             );
@@ -181,45 +190,7 @@ class GymKurshalbjahreszeugnis extends Certificate
      */
     private function setCourses(TblPerson $tblPerson = null)
     {
-
-        $advancedCourses = array();
-        $basicCourses = array();
-        if ($tblPerson && ($tblDivision = $this->getTblDivision())
-            && ($tblDivisionSubjectList = Division::useService()->getDivisionSubjectByDivision($tblDivision))
-        ) {
-            foreach ($tblDivisionSubjectList as $tblDivisionSubjectItem) {
-                if (($tblSubjectGroup = $tblDivisionSubjectItem->getTblSubjectGroup())) {
-
-                    if (($tblSubjectStudentList = Division::useService()->getSubjectStudentByDivisionSubject(
-                        $tblDivisionSubjectItem))
-                    ) {
-                        foreach ($tblSubjectStudentList as $tblSubjectStudent) {
-                            if (($tblSubject = $tblDivisionSubjectItem->getServiceTblSubject())
-                                && ($tblPersonStudent = $tblSubjectStudent->getServiceTblPerson())
-                                && $tblPerson->getId() == $tblPersonStudent->getId()
-                            ) {
-                                if ($tblSubjectGroup->isAdvancedCourse()) {
-                                    if ($tblSubject->getName() == 'Deutsch' || $tblSubject->getName() == 'Mathematik') {
-                                        $advancedCourses[0] = $tblSubject->getAcronym();
-                                    } else {
-                                        $advancedCourses[1] = $tblSubject->getAcronym();
-                                    }
-                                } else {
-                                    $basicCourses[$tblSubject->getAcronym()] = $tblSubject->getAcronym();
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        if (!empty($advancedCourses)) {
-            $this->AdvancedCourses = $advancedCourses;
-        }
-        if (!empty($basicCourses)) {
-            $this->BasicCourses = $basicCourses;
-        }
+        list($this->AdvancedCourses, $this->BasicCourses) = DivisionCourse::useService()->getCoursesForStudent($tblPerson);
     }
 
     private function getAdvancedCourses(TblPerson $tblPerson = null, $IsGradeUnderlined = true)
@@ -229,9 +200,7 @@ class GymKurshalbjahreszeugnis extends Certificate
         $personId = $tblPerson ? $tblPerson->getId() : 0;
 
         $section = new Section();
-        if ($this->AdvancedCourses && isset($this->AdvancedCourses[0])
-            && ($tblSubject = Subject::useService()->getSubjectByAcronym($this->AdvancedCourses[0]))
-        ) {
+        if (($tblSubject = $this->getFirstAdvancedCourse())) {
             $this->setCourseSubject($tblSubject, $section, true, $IsGradeUnderlined, $personId);
         } else {
             $this->setCourseSubject(null, $section, true, $IsGradeUnderlined, $personId);
@@ -244,9 +213,7 @@ class GymKurshalbjahreszeugnis extends Certificate
         $slice->addSection($section);
 
         $section = new Section();
-        if ($this->AdvancedCourses && isset($this->AdvancedCourses[1])
-            && ($tblSubject = Subject::useService()->getSubjectByAcronym($this->AdvancedCourses[1]))
-        ) {
+        if (($tblSubject = $this->getSecondAdvancedCourse())) {
             $this->setCourseSubject($tblSubject, $section, true, $IsGradeUnderlined, $personId);
         } else {
             $this->setCourseSubject(null, $section, true, $IsGradeUnderlined, $personId);
@@ -281,7 +248,7 @@ class GymKurshalbjahreszeugnis extends Certificate
                 if ($tblSubject) {
                     $isAddSubject = false;
                     // Student has basicCourse? => Add Subject to Certificate
-                    if (isset($this->BasicCourses[$tblSubject->getAcronym()])) {
+                    if (isset($this->BasicCourses[$tblSubject->getId()])) {
                         $isAddSubject = true;
                     } else {
                         // Grade Missing, But Subject Essential => Add Subject to Certificate
@@ -331,9 +298,7 @@ class GymKurshalbjahreszeugnis extends Certificate
 
             foreach ($SubjectList as $Lane => $Subject) {
                 if (($tblSubject = Subject::useService()->getSubjectByAcronym($Subject['SubjectAcronym']))) {
-                    if (isset($this->AdvancedCourses[0]) && $this->AdvancedCourses[0] == $tblSubject->getAcronym()) {
-                        $isAdvancedCourse = true;
-                    } elseif (isset($this->AdvancedCourses[1]) && $this->AdvancedCourses[1] == $tblSubject->getAcronym()) {
+                    if (isset($this->AdvancedCourses[$tblSubject->getId()])) {
                         $isAdvancedCourse = true;
                     } else {
                         $isAdvancedCourse = false;
@@ -466,7 +431,7 @@ class GymKurshalbjahreszeugnis extends Certificate
                         {% endif %}'
                         : '&ndash;')
                 ->styleAlignCenter()
-                ->styleBackgroundColor('#BBB')
+                ->styleBackgroundColor(self::BACKGROUND_GRADE_FIELD)
                 ->styleBorderBottom($isGradeUnderlined ? '1px' : '0px', '#000')
                 ->styleMarginTop($marginTop)
                 , '12%');
@@ -590,7 +555,7 @@ class GymKurshalbjahreszeugnis extends Certificate
                                 Schulleiter(in)
                             {% endif %}'
                     )
-                    ->styleAlignCenter()
+//                    ->styleAlignCenter()
 //                    ->styleTextSize('11px')
                     , '30%')
                 ->addElementColumn((new Element())
@@ -610,7 +575,7 @@ class GymKurshalbjahreszeugnis extends Certificate
                                 Tutor(in)
                             {% endif %}'
                     )
-                    ->styleAlignCenter()
+//                    ->styleAlignCenter()
 //                        ->styleTextSize('11px')
                     , '30%')
             )
@@ -625,7 +590,7 @@ class GymKurshalbjahreszeugnis extends Certificate
                     )
 //                        ->styleTextSize('11px')
                     ->stylePaddingTop('2px')
-                    ->styleAlignCenter()
+//                    ->styleAlignCenter()
                     , '30%')
                 ->addElementColumn((new Element())
                     , '40%')
@@ -639,7 +604,7 @@ class GymKurshalbjahreszeugnis extends Certificate
                     )
 //                        ->styleTextSize('11px')
                     ->stylePaddingTop('2px')
-                    ->styleAlignCenter()
+//                    ->styleAlignCenter()
                     , '30%')
             );
 

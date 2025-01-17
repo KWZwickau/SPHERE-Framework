@@ -13,6 +13,7 @@ use SPHERE\Application\Education\Certificate\Generator\Repository\Element;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Page;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Section;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
+use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 
@@ -42,7 +43,7 @@ class RadebeulBildungsempfehlung extends Certificate
     {
         return array(
             1 => "am Gymnasium",
-            2 => "an der Mittelschule"
+            2 => "an der " . TblType::IDENT_OBER_SCHULE
         );
     }
 
@@ -317,7 +318,7 @@ class RadebeulBildungsempfehlung extends Certificate
                         ->stylePaddingBottom()
                         ->styleMarginTop('20px')
                         ->styleAlignCenter()
-                        ->styleBackgroundColor('#BBB')
+                        ->styleBackgroundColor(self::BACKGROUND_GRADE_FIELD)
                         , '9%')
                 )
                 ->addSection((new Section())

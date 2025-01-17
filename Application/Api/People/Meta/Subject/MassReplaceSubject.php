@@ -3,7 +3,6 @@
 namespace SPHERE\Application\Api\People\Meta\Subject;
 
 use SPHERE\Application\Api\MassReplace\ApiMassReplace;
-use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Common\Frontend\Form\Repository\AbstractField;
@@ -105,17 +104,15 @@ class MassReplaceSubject extends Extension
         $tblStudentSubjectRanking = Student::useService()->getStudentSubjectRankingById($RankingId);
 
         // get selected level
-        $tblLevel = Division::useService()->getLevelById($CloneField);
+        $LevelFrom = intval($CloneField);
 
         // change miss matched to null
-        if (!$tblLevel && null !== $tblLevel) {
-            $tblLevel = null;
+        if (!$LevelFrom) {
+            $LevelFrom = null;
         }
 
         if ($tblStudentSubjectType && $tblStudentSubjectRanking && !empty($PersonIdArray)) {
-            $this->useStudentService()->replaceLevelFromByPersonIdList($PersonIdArray, $tblLevel,
-                $tblStudentSubjectType,
-                $tblStudentSubjectRanking);
+            $this->useStudentService()->replaceLevelFromByPersonIdList($PersonIdArray, $LevelFrom, $tblStudentSubjectType, $tblStudentSubjectRanking);
         }
 
         /** @var AbstractField $Field */
@@ -157,17 +154,15 @@ class MassReplaceSubject extends Extension
         $tblStudentSubjectRanking = Student::useService()->getStudentSubjectRankingById($RankingId);
 
         // get selected level
-        $tblLevel = Division::useService()->getLevelById($CloneField);
+        $LevelTill = intval($CloneField);
 
         // change miss matched to null
-        if (!$tblLevel && null !== $tblLevel) {
-            $tblLevel = null;
+        if (!$LevelTill) {
+            $LevelTill = null;
         }
 
         if ($tblStudentSubjectType && $tblStudentSubjectRanking && !empty($PersonIdArray)) {
-            $this->useStudentService()->replaceLevelTillByPersonIdList($PersonIdArray, $tblLevel,
-                $tblStudentSubjectType,
-                $tblStudentSubjectRanking);
+            $this->useStudentService()->replaceLevelTillByPersonIdList($PersonIdArray, $LevelTill, $tblStudentSubjectType, $tblStudentSubjectRanking);
         }
 
         /** @var AbstractField $Field */

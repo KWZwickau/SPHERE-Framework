@@ -7,6 +7,7 @@ use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\People\Group\Group;
+use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Common\Frontend\Form\Repository\AbstractField;
 use SPHERE\Common\Frontend\Icon\IIconInterface;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
@@ -141,6 +142,10 @@ class ViewGroup extends AbstractView
 //                $Data = Group::useService()->getPropertyList( new TblGroup(''), TblGroup::ATTR_NAME );
                 $Field = $this->getFormFieldSelectBox( $Data, $PropertyName, $Label, $Icon, $doResetCount, false);
                 break;
+//            case self::TBL_GROUP_NAME:
+//                $Data = Group::useService()->getPropertyList(new TblGroup(''), TblGroup::ATTR_NAME);
+//                $Field = $this->getFormFieldSelectBox($Data, $PropertyName, $Label, $Icon, $doResetCount, true);
+//                break;
             default:
                 $Field = parent::getFormField( $PropertyName, $Placeholder, $Label, ($Icon?$Icon:new Pencil()), $doResetCount );
                 break;

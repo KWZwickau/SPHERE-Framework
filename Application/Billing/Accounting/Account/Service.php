@@ -144,6 +144,69 @@ class Service extends AbstractService
     }
 
     /**
+     * @param $Iban
+     *
+     * @return array
+     */
+    public function getControlIban($Iban)
+    {
+
+        $IbanArray = array();
+        $IbanArray['control'] = null;
+        $IbanArray['number'] = 'n.v.';
+        $IbanArray['controlNumber'] = 'n.v.';
+
+        /**
+         * Zuerst findet eine Verschiebung der Zeichenkette statt. Der Ländercode DE und 00 für den fehlenden Prüfcode rücken an das Ende der Zeichenkette.
+         * A	B	C	D	E	F	G	H	I	J	K	L	M	N	O	P	Q	R	S	T	U	V	W	..
+         * 10	11	12	13	14	15	16	17	18	19	20	21	22	23	24	25	26	27	28	29	30	31	32	..
+         * Aus DE wird demzufolge 1314 +Prüfziffer 00
+         */
+        $Iban = $Iban.'131400';
+        // pregmatch passt nur für deutsche IBAN
+        preg_match('!([A-Z]{2})([0-9]{2})([0-9]{9})([0-9]{7})([0-9]{7})([0-9]{1})!', $Iban, $Match);
+        if(isset($Match[3])
+            && isset($Match[4])
+            && isset($Match[5])
+            && isset($Match[6])
+        ){
+            $pre = '';
+            for($i = 3; $i<= 6; $i++){
+                $pre = $this->calculateModulo($Match[$i], $pre);
+            }
+            $controlNumber = 98 - $pre;
+            // setzen der Führenden 0 wenn Zahl nur einstellig ist
+            if($controlNumber < 10){
+                $controlNumber = '0'.$controlNumber;
+            }
+            if($controlNumber == $Match[2]){
+                $IbanArray['control'] = true;
+                $IbanArray['number'] = $Match[2];
+                $IbanArray['controlNumber'] = $controlNumber;
+                return $IbanArray;
+            } else {
+                $IbanArray['control'] = false;
+                $IbanArray['number'] = $Match[2];
+                $IbanArray['controlNumber'] = $controlNumber;
+                return $IbanArray;
+            }
+        }
+        return $IbanArray;
+    }
+
+    /**
+     * @param int $Number
+     * @param int|string $pre
+     *
+     * @return int
+     */
+    private function calculateModulo($Number, $pre = '')
+    {
+        $Number = $pre.$Number;
+        return $Number % 97;
+    }
+
+    /**
      * @param IFormInterface $Form
      * @param                $Account
      *

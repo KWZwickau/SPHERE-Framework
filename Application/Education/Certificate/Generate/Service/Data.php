@@ -8,10 +8,11 @@
 
 namespace SPHERE\Application\Education\Certificate\Generate\Service;
 
+use DateTime;
 use SPHERE\Application\Education\Certificate\Generate\Service\Entity\TblGenerateCertificate;
 use SPHERE\Application\Education\Certificate\Generate\Service\Entity\TblGenerateCertificateSetting;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificateType;
-use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTask;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTask;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\People\Meta\Common\Service\Entity\TblCommonGender;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
@@ -24,7 +25,6 @@ use SPHERE\System\Database\Binding\AbstractData;
  */
 class Data extends AbstractData
 {
-
     public function setupDatabaseContent()
     {
 
@@ -37,9 +37,7 @@ class Data extends AbstractData
      */
     public function getGenerateCertificateById($Id)
     {
-
-        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(),
-            'TblGenerateCertificate', $Id);
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblGenerateCertificate', $Id);
     }
 
     /**
@@ -49,7 +47,6 @@ class Data extends AbstractData
      */
     public function getGenerateCertificateAllByYear(TblYear $tblYear)
     {
-
         return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
             'TblGenerateCertificate',
             array(
@@ -63,7 +60,6 @@ class Data extends AbstractData
      */
     public function getGenerateCertificateAll()
     {
-
         return $this->getCachedEntityList(__METHOD__, $this->getEntityManager(), 'TblGenerateCertificate');
     }
 
@@ -76,8 +72,9 @@ class Data extends AbstractData
      * @param TblTask|null $tblBehaviorTask
      * @param string $HeadmasterName
      * @param bool $IsDivisionTeacherAvailable
+     * @param TblCommonGender|null $tblCommonGender
+     * @param null $AppointedDateForAbsence
      *
-     * @param TblCommonGender $tblCommonGender
      * @return TblGenerateCertificate
      */
     public function createGenerateCertificate(
@@ -87,16 +84,17 @@ class Data extends AbstractData
         TblCertificateType $tblCertificateType,
         TblTask $tblAppointedDateTask = null,
         TblTask $tblBehaviorTask = null,
-        $HeadmasterName = '',
-        $IsDivisionTeacherAvailable = false,
-        TblCommonGender $tblCommonGender = null
-    ) {
+        string $HeadmasterName = '',
+        bool $IsDivisionTeacherAvailable = false,
+        TblCommonGender $tblCommonGender = null,
+        $AppointedDateForAbsence = null
+    ): TblGenerateCertificate {
 
         $Manager = $this->getConnection()->getEntityManager();
 
         $Entity = new TblGenerateCertificate();
         $Entity->setServiceTblYear($tblYear);
-        $Entity->setDate($Date ? new \DateTime($Date) : null);
+        $Entity->setDate($Date ? new DateTime($Date) : null);
         $Entity->setName($Name);
         $Entity->setServiceTblCertificateType($tblCertificateType);
         $Entity->setServiceTblAppointedDateTask($tblAppointedDateTask);
@@ -104,7 +102,7 @@ class Data extends AbstractData
         $Entity->setHeadmasterName($HeadmasterName);
         $Entity->setIsDivisionTeacherAvailable($IsDivisionTeacherAvailable);
         $Entity->setServiceTblCommonGenderHeadmaster($tblCommonGender);
-        $Entity->setIsLocked(false);
+        $Entity->setAppointedDateForAbsence($AppointedDateForAbsence ? new DateTime($AppointedDateForAbsence) : null);
 
         $Manager->saveEntity($Entity);
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
@@ -121,6 +119,7 @@ class Data extends AbstractData
      * @param TblTask|null $tblAppointedDateTask
      * @param TblTask|null $tblBehaviorTask
      * @param string $Name
+     * @param null $AppointedDateForAbsence
      *
      * @return bool
      */
@@ -132,8 +131,9 @@ class Data extends AbstractData
         TblCommonGender $tblCommonGender = null,
         TblTask $tblAppointedDateTask = null,
         TblTask $tblBehaviorTask = null,
-        $Name = ''
-    ) {
+        string $Name = '',
+        $AppointedDateForAbsence = null
+    ): bool {
 
         $Manager = $this->getConnection()->getEntityManager();
 
@@ -141,13 +141,14 @@ class Data extends AbstractData
         $Entity = $Manager->getEntityById('TblGenerateCertificate', $tblGenerateCertificate->getId());
         $Protocol = clone $Entity;
         if (null !== $Entity) {
-            $Entity->setDate($Date ? new \DateTime($Date) : null);
+            $Entity->setDate($Date ? new DateTime($Date) : null);
             $Entity->setIsDivisionTeacherAvailable($IsDivisionTeacherAvailable);
             $Entity->setHeadmasterName($HeadmasterName);
             $Entity->setServiceTblCommonGenderHeadmaster($tblCommonGender);
             $Entity->setServiceTblAppointedDateTask($tblAppointedDateTask);
             $Entity->setServiceTblBehaviorTask($tblBehaviorTask);
             $Entity->setName($Name);
+            $Entity->setAppointedDateForAbsence($AppointedDateForAbsence ? new DateTime($AppointedDateForAbsence) : null);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
@@ -160,35 +161,11 @@ class Data extends AbstractData
 
     /**
      * @param TblGenerateCertificate $tblGenerateCertificate
-     * @param bool $IsLocked
      *
      * @return bool
      */
-    public function lockGenerateCertificate(
-        TblGenerateCertificate $tblGenerateCertificate,
-        $IsLocked = true
-    ) {
-
-        $Manager = $this->getConnection()->getEntityManager();
-
-        /** @var TblGenerateCertificate $Entity */
-        $Entity = $Manager->getEntityById('TblGenerateCertificate', $tblGenerateCertificate->getId());
-        $Protocol = clone $Entity;
-        if (null !== $Entity) {
-            $Entity->setIsLocked($IsLocked);
-
-            $Manager->saveEntity($Entity);
-            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
-
-            return true;
-        }
-
-        return false;
-    }
-
-    public function destroyGenerateCertificate(TblGenerateCertificate $tblGenerateCertificate)
+    public function destroyGenerateCertificate(TblGenerateCertificate $tblGenerateCertificate): bool
     {
-
         $Manager = $this->getEntityManager();
 
         /** @var TblGenerateCertificate $Entity */
@@ -199,6 +176,7 @@ class Data extends AbstractData
 
             return true;
         }
+
         return false;
     }
 
@@ -207,11 +185,9 @@ class Data extends AbstractData
      * @param $Field
      *
      * @return false|TblGenerateCertificateSetting
-     * @throws \Exception
      */
     public function getGenerateCertificateSettingBy(TblGenerateCertificate $tblGenerateCertificate, $Field)
     {
-
         return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblGenerateCertificateSetting',
             array(
                 TblGenerateCertificateSetting::ATTR_TBL_GENERATE_CERTIFICATE => $tblGenerateCertificate->getId(),
@@ -227,7 +203,6 @@ class Data extends AbstractData
      */
     public function getGenerateCertificateSettingAllByGenerateCertificate(TblGenerateCertificate $tblGenerateCertificate)
     {
-
         return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblGenerateCertificateSetting',
             array(
                 TblGenerateCertificateSetting::ATTR_TBL_GENERATE_CERTIFICATE => $tblGenerateCertificate->getId()
@@ -246,8 +221,7 @@ class Data extends AbstractData
         TblGenerateCertificate $tblGenerateCertificate,
         $Field,
         $Value
-    ) {
-
+    ): TblGenerateCertificateSetting {
         $Manager = $this->getConnection()->getEntityManager();
 
         $Entity = $Manager->getEntity('TblGenerateCertificateSetting')->findOneBy(array(
@@ -272,14 +246,11 @@ class Data extends AbstractData
      * @param $Value
      *
      * @return bool
-     * @throws \Doctrine\ORM\ORMException
-     * @throws \Doctrine\ORM\OptimisticLockException
-     * @throws \Doctrine\ORM\TransactionRequiredException
      */
     public function updateGenerateCertificateSetting(
         TblGenerateCertificateSetting $tblGenerateCertificateSetting,
         $Value
-    ) {
+    ): bool {
 
         $Manager = $this->getConnection()->getEntityManager();
 

@@ -52,6 +52,7 @@ class Panel extends Extension implements ITemplateInterface
         $this->Footer = ( is_array($Footer) ? array_filter($Footer) : $Footer );
         $this->Template->setVariable('Filter', $Filter);
         $this->Template->setVariable('Type', $Type);
+        $this->Template->setVariable('MarginBottom', '15px');
         $this->FormName = $this->getName();
     }
 
@@ -151,5 +152,18 @@ class Panel extends Extension implements ITemplateInterface
             $this->Hash = md5(json_encode($Content));
         }
         return $this->Hash;
+    }
+
+    /**
+     * 15 = 15px
+     * @param $MarginBottom
+     *
+     * @return $this
+     */
+    public function setMarginBottom($MarginBottom = '15')
+    {
+
+        $this->Template->setVariable('MarginBottom', $MarginBottom.'px');
+        return $this;
     }
 }

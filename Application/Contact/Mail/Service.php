@@ -6,11 +6,12 @@ use SPHERE\Application\Contact\Mail\Service\Entity\TblMail;
 use SPHERE\Application\Contact\Mail\Service\Entity\TblToCompany;
 use SPHERE\Application\Contact\Mail\Service\Entity\TblToPerson;
 use SPHERE\Application\Contact\Mail\Service\Entity\TblType;
-use SPHERE\Application\Contact\Mail\Service\Entity\ViewMailToCompany;
-use SPHERE\Application\Contact\Mail\Service\Entity\ViewMailToPerson;
 use SPHERE\Application\Contact\Mail\Service\Setup;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
+use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\System\Database\Binding\AbstractService;
 
 /**
@@ -39,24 +40,6 @@ class Service extends AbstractService
             (new Data($this->getBinding()))->setupDatabaseContent();
         }
         return $Protocol;
-    }
-
-    /**
-     * @return false|ViewMailToPerson[]
-     */
-    public function viewMailToPerson()
-    {
-
-        return ( new Data($this->getBinding()) )->viewMailToPerson();
-    }
-
-    /**
-     * @return false|ViewMailToCompany[]
-     */
-    public function viewMailToCompany()
-    {
-
-        return ( new Data($this->getBinding()) )->viewMailToCompany();
     }
 
     /**
@@ -100,6 +83,17 @@ class Service extends AbstractService
     }
 
     /**
+     * @param string $Name
+     *
+     * @return bool|TblType
+     */
+    public function getTypeByName($Name)
+    {
+
+        return (new Data($this->getBinding()))->getTypeByName($Name);
+    }
+
+    /**
      * @param TblPerson $tblPerson
      * @param bool $isForced
      *
@@ -123,35 +117,77 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblToPerson $tblToPerson
+     *
+     * @return string
+     */
+    public function getMailTypeShort(TblToPerson $tblToPerson)
+    {
+
+        $tblType = $tblToPerson->getTblType();
+        if ($tblType) {
+            if ($tblType->getName() == 'Privat') {
+                return 'p.';
+            } elseif ($tblType->getName() == 'Geschäftlich') {
+                return 'g.';
+            }
+        }
+        return '';
+    }
+
+    /**
      * @param TblPerson $tblPerson
-     * @param $Address
-     * @param $Type
+     * @param string $Address
+     * @param array $Type
+     * @param bool $IsAccountUserAlias
+     * @param $OnlineContactId
      * @param TblToPerson|null $tblToPerson
      *
-     * @return bool|\SPHERE\Common\Frontend\Form\Structure\Form
+     * @return bool|Form
      */
     public function checkFormMailToPerson(
         TblPerson $tblPerson,
-        $Address,
-        $Type,
+        string $Address,
+        array $Type,
+        bool $IsAccountUserAlias,
+        $OnlineContactId,
         TblToPerson $tblToPerson = null
     ) {
 
         $error = false;
 
-        $form = Mail::useFrontend()->formAddressToPerson($tblPerson->getId(), $tblToPerson ? $tblToPerson->getId() : null);
+        $form = Mail::useFrontend()->formAddressToPerson($tblPerson->getId(), $tblToPerson ? $tblToPerson->getId() : null, false, $OnlineContactId);
         $Address = $this->validateMailAddress($Address);
         if (isset($Address) && empty($Address)) {
-            $form->setError('Address', 'Bitte geben Sie eine gültige E-Mail Adresse an');
+            $form->setError('Address[Mail]', 'Bitte geben Sie eine gültige E-Mail Adresse an');
+            $isValidatedMailAddress = false;
             $error = true;
         } else {
-            $form->setSuccess('Address');
+            $isValidatedMailAddress = true;
         }
         if (!($tblType = $this->getTypeById($Type['Type']))) {
             $form->setError('Type[Type]', 'Bitte geben Sie einen Typ an');
             $error = true;
+        } elseif ($IsAccountUserAlias && $tblType && $tblType->getName() != 'Geschäftlich' ) {
+            // UCS Benutzername muss als geschäftliche E-Mail Adresse angelegt werden
+            $form->setError('Type[Type]', 'Zur Verwendung der E-Mail Adresse als UCS Benutzername muss der E-Mail Typ: 
+                Geschäftlich ausgewählt werden.');
+            $error = true;
         } else {
             $form->setSuccess('Type[Type]');
+        }
+
+        if(!$error && $IsAccountUserAlias){
+            $errorMessage = '';
+            // Eindeutigkeit UCS Alias
+            if (!Account::useService()->isUserAliasUnique($tblPerson, $Address, $errorMessage)) {
+                $error = true;
+                $form->setError('Address[Mail]', $errorMessage);
+            }
+        }
+
+        if (!$error && $isValidatedMailAddress) {
+            $form->setSuccess('Address[Mail]');
         }
 
         return $error ? $form : false;
@@ -163,7 +199,7 @@ class Service extends AbstractService
      * @param $Type
      * @param TblToCompany|null $tblToCompany
      *
-     * @return bool|\SPHERE\Common\Frontend\Form\Structure\Form
+     * @return bool|Form
      */
     public function checkFormMailToCompany(
         TblCompany $tblCompany,
@@ -194,16 +230,20 @@ class Service extends AbstractService
 
     /**
      * @param TblPerson $tblPerson
-     * @param $Address
-     * @param $Type
+     * @param           $Address
+     * @param           $Type
+     * @param bool      $IsAccountUserAlias
+     * @param bool      $IsAccountRecoveryMail
      *
      * @return bool
      */
     public function createMailToPerson(
         TblPerson $tblPerson,
         $Address,
-        $Type
-    ) {
+        $Type,
+        $IsAccountUserAlias = false,
+        $IsAccountRecoveryMail = false
+    ): bool {
 
         $tblType = $this->getTypeById($Type['Type']);
         $tblMail = (new Data($this->getBinding()))->createMail($Address);
@@ -215,7 +255,36 @@ class Service extends AbstractService
             return false;
         }
 
-        if ((new Data($this->getBinding()))->addMailToPerson($tblPerson, $tblMail, $tblType, $Type['Remark'])
+        if ($IsAccountUserAlias || $IsAccountRecoveryMail) {
+            $tblAccount = false;
+//            if(($tblAccountList = Account::useService()->getAccountAllByPersonForUCS($tblPerson))) {
+            if(($tblAccountList = Account::useService()->getAccountAllByPerson($tblPerson))) {
+                if (count($tblAccountList) > 1) {
+                    return false;
+                } else {
+                    $tblAccount = current($tblAccountList);
+                }
+            }
+
+            $errorMessage = '';
+            if (!Account::useService()->isUserAliasUnique($tblPerson, $Address, $errorMessage)) {
+                return false;
+            }
+
+            if ($tblAccount) {
+                if($IsAccountUserAlias){
+                    Account::useService()->changeUserAlias($tblAccount, $Address);
+                    $this->resetMailWithUserAlias($tblPerson);
+                }
+                if($IsAccountRecoveryMail){
+                    Account::useService()->changeRecoveryMail($tblAccount, $Address);
+                    $this->resetMailWithRecoveryMail($tblPerson);
+                }
+            }
+        }
+
+        if ((new Data($this->getBinding()))->addMailToPerson($tblPerson, $tblMail, $tblType, $Type['Remark'],
+            $IsAccountUserAlias, $IsAccountRecoveryMail)
         ) {
             return true;
         } else {
@@ -259,6 +328,8 @@ class Service extends AbstractService
      * @param           $Address
      * @param TblType   $tblType
      * @param           $Remark
+     * @param bool      $IsUserAlias
+     * @param bool      $IsRecoveryMail
      *
      * @return TblToPerson
      */
@@ -266,11 +337,30 @@ class Service extends AbstractService
         TblPerson $tblPerson,
         $Address,
         TblType $tblType,
-        $Remark
+        $Remark,
+        $IsUserAlias = false,
+        $IsRecoveryMail = false
     ) {
 
         $tblMail = (new Data($this->getBinding()))->createMail($Address);
-        return (new Data($this->getBinding()))->addMailToPerson($tblPerson, $tblMail, $tblType, $Remark);
+        // falls die Emailadresse bereits vorhanden ist, diese überschreiben
+        if (($tblToPersonList = $this->getMailAllByPerson($tblPerson))) {
+            foreach ($tblToPersonList as $tblToPerson) {
+                if (($tblMailTemp = $tblToPerson->getTblMail())
+                    && $tblMail->getId() == $tblMailTemp->getId()
+                ) {
+                    if($IsUserAlias){
+                        return (new Data($this->getBinding()))->updateMailToPersonAlias($tblToPerson, $tblType, $IsUserAlias);
+                    } elseif($IsRecoveryMail){
+                        return (new Data($this->getBinding()))->updateMailToPersonRecoveryMail($tblToPerson, $tblType, $IsRecoveryMail);
+                    } else {
+                        return (new Data($this->getBinding()))->updateMailToPerson($tblToPerson, $tblMail, $tblType, $Remark,
+                            $tblToPerson->isAccountUserAlias(), $tblToPerson->isAccountRecoveryMail());
+                    }
+                }
+            }
+        }
+        return (new Data($this->getBinding()))->addMailToPerson($tblPerson, $tblMail, $tblType, $Remark, $IsUserAlias, $IsRecoveryMail);
     }
 
     /**
@@ -294,36 +384,178 @@ class Service extends AbstractService
 
     /**
      * @param TblToPerson $tblToPerson
-     * @param $Address
-     * @param $Type
+     * @param             $Address
+     * @param             $Type
+     * @param bool        $IsAccountUserAlias
+     * @param bool        $IsAccountRecoveryMail
      *
      * @return bool
      */
     public function updateMailToPerson(
         TblToPerson $tblToPerson,
         $Address,
-        $Type
+        $Type,
+        $IsAccountUserAlias = false,
+        $IsAccountRecoveryMail = false
     ) {
 
         $tblMail = (new Data($this->getBinding()))->createMail($Address);
-        // Remove current
-        (new Data($this->getBinding()))->removeMailToPerson($tblToPerson);
 
-        if ($tblToPerson->getServiceTblPerson()
+        if (($tblPerson = $tblToPerson->getServiceTblPerson())
             && ($tblType = $this->getTypeById($Type['Type']))
         ) {
-            // Add new
-            if ((new Data($this->getBinding()))->addMailToPerson($tblToPerson->getServiceTblPerson(), $tblMail,
-                $tblType, $Type['Remark'])
-            ) {
-                return true;
-            } else {
-                return false;
+
+            if ($IsAccountUserAlias){
+                $errorMessage = '';
+                if(!Account::useService()->isUserAliasUnique($tblPerson, $Address, $errorMessage)){
+                    return false;
+                }
             }
+
+            /** @var TblAccount $tblAccount */
+            $tblAccount = false;
+//                if(($tblAccountList = Account::useService()->getAccountAllByPersonForUCS($tblPerson))) {
+            if(($tblAccountList = Account::useService()->getAccountAllByPerson($tblPerson))) {
+                if (count($tblAccountList) > 1) {
+                    return false;
+                } else {
+                    $tblAccount = current($tblAccountList);
+                }
+            }
+
+            if ($tblAccount) {
+                if($IsAccountUserAlias){
+                    Account::useService()->changeUserAlias($tblAccount, $Address);
+                    $this->resetMailWithUserAlias($tblPerson, $tblToPerson);
+                } else {
+                    // Entfernen vorhandener Einträge am Benutzeraccount Wenn E-Mail vergeben ist
+                    if($tblAccount->getUserAlias() == $Address){
+                        Account::useService()->changeUserAlias($tblAccount, '');
+                    }
+                }
+                if($IsAccountRecoveryMail){
+                    Account::useService()->changeRecoveryMail($tblAccount, $Address);
+                    $this->resetMailWithRecoveryMail($tblPerson, $tblToPerson);
+                } else {
+                    // Entfernen vorhandener Einträge am Benutzeraccount Wenn E-Mail vergeben ist
+                    if($tblAccount->getRecoveryMail() == $Address){
+                        Account::useService()->changeRecoveryMail($tblAccount, '');
+                    }
+                }
+            }
+
+
+
+            // update
+            if ((new Data($this->getBinding()))->updateMailToPerson($tblToPerson, $tblMail,
+                $tblType, $Type['Remark'], $IsAccountUserAlias, $IsAccountRecoveryMail)
+            ){
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblToPerson|null $tblToPerson
+     */
+    public function resetMailWithUserAlias(TblPerson $tblPerson, TblToPerson $tblToPerson = null) {
+        if(($tblToPersonList = $this->getMailAllByPerson($tblPerson))){
+            foreach($tblToPersonList as $tblToPersonTemp){
+                if($tblToPersonTemp->isAccountUserAlias()
+                    && (!$tblToPerson || ($tblToPerson->getId() != $tblToPersonTemp->getId()))
+                ){
+                    $this->updateMailToPersonAlias($tblToPersonTemp, false);
+                }
+            }
+        }
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblToPerson|null $tblToPerson
+     */
+    private function resetMailWithRecoveryMail(TblPerson $tblPerson, TblToPerson $tblToPerson = null) {
+        if(($tblToPersonList = $this->getMailAllByPerson($tblPerson))){
+            foreach($tblToPersonList as $tblToPersonTemp){
+                if($tblToPersonTemp->isAccountRecoveryMail()
+                    && (!$tblToPerson || ($tblToPerson->getId() != $tblToPersonTemp->getId()))
+                ){
+                    $this->updateMailToPersonRecoveryMail($tblToPersonTemp, false);
+                }
+            }
+        }
+    }
+
+    /**
+     * @param TblToPerson $tblToPerson
+     * @param bool $IsAccountUserAlias
+     *
+     * @return bool
+     */
+    public function updateMailToPersonAlias(
+        TblToPerson $tblToPerson,
+        $IsAccountUserAlias = false
+    ) {
+
+        if ((new Data($this->getBinding()))->updateMailToPersonAlias($tblToPerson, $tblToPerson->getTblType(), $IsAccountUserAlias)
+        ) {
+            return true;
         } else {
             return false;
         }
     }
+
+    /**
+     * @param TblToPerson $tblToPerson
+     * @param bool        $IsAccountRecoveryMail
+     *
+     * @return bool
+     */
+    public function updateMailToPersonRecoveryMail(
+        TblToPerson $tblToPerson,
+        $IsAccountRecoveryMail = false
+    ) {
+
+        if ((new Data($this->getBinding()))->updateMailToPersonRecoveryMail($tblToPerson, $tblToPerson->getTblType(), $IsAccountRecoveryMail)
+        ) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * @param TblToPerson $tblToPerson
+     * @param             $Address
+     * @param TblType     $tblType
+     * @param             $Remark
+     * @param bool        $IsAccountUserAlias
+     * @param bool        $IsAccountRecoveryMail
+     *
+     * @return bool
+     */
+    public function updateMailToPersonService(
+        TblToPerson $tblToPerson,
+        $Address,
+        TblType $tblType,
+        $Remark,
+        $IsAccountUserAlias = false,
+        $IsAccountRecoveryMail = false
+    ) {
+
+        $tblMail = (new Data($this->getBinding()))->createMail($Address);
+
+        if ($tblToPerson->getServiceTblPerson()) {
+            return (new Data($this->getBinding()))->updateMailToPerson($tblToPerson, $tblMail, $tblType, $Remark,
+                $IsAccountUserAlias, $IsAccountRecoveryMail);
+        } else {
+            return false;
+        }
+    }
+
 
     /**
      * @param TblToCompany $tblToCompany
@@ -390,6 +622,16 @@ class Service extends AbstractService
     public function removeMailToPerson(TblToPerson $tblToPerson, $IsSoftRemove = false)
     {
 
+
+        if(($tblAccountList = Account::useService()->getAccountAllByPerson($tblToPerson->getServiceTblPerson()))){
+            $tblAccount = current($tblAccountList);
+            if($tblToPerson->isAccountUserAlias()){
+                Account::useService()->changeUserAlias($tblAccount, '');
+            }
+            if($tblToPerson->isAccountRecoveryMail()){
+                Account::useService()->changeRecoveryMail($tblAccount, '');
+            }
+        }
         return (new Data($this->getBinding()))->removeMailToPerson($tblToPerson, $IsSoftRemove);
     }
 
@@ -427,5 +669,92 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->restoreToPerson($tblToPerson);
+    }
+
+    /**
+     * @param $Address
+     * @param TblType $tblType
+     * @param $Remark
+     * @param array $tblPersonList
+     *
+     * @return bool
+     */
+    public function insertMailToPersonList(
+        $Address,
+        TblType $tblType,
+        $Remark,
+        $IsAccountUserAlias,
+        $IsAccountRecoveryMail,
+        $tblPersonList = array()
+    ) {
+        if (($tblMail = (new Data($this->getBinding()))->createMail($Address))) {
+            foreach ($tblPersonList as $tblPerson) {
+                (new Data($this->getBinding()))->addMailToPerson($tblPerson, $tblMail, $tblType, $Remark, $IsAccountUserAlias, $IsAccountRecoveryMail);
+            }
+
+            return  true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param string $address
+     *
+     * @return false|TblToPerson[]
+     */
+    public function getToPersonListByAddress(string $address) {
+        return (new Data($this->getBinding()))->getToPersonListByAddress($address);
+    }
+
+    /**
+     * @param TblMail $tblMail
+     *
+     * @return false|TblToPerson[]
+     */
+    public function getToPersonAllByMail(TblMail $tblMail)
+    {
+        return (new Data($this->getBinding()))->getToPersonAllByMail($tblMail);
+    }
+
+    /**
+     * @param TblMail $tblMail
+     *
+     * @return false|TblPerson[]
+     */
+    public function getPersonAllByMail(TblMail $tblMail)
+    {
+        $result = array();
+        if (($tblToPersonList = $this->getToPersonAllByMail($tblMail))) {
+            foreach ($tblToPersonList as $tblToPerson) {
+                if (($tblPerson = $tblToPerson->getServiceTblPerson())) {
+                    $result[$tblPerson->getId()] = $tblPerson;
+                }
+            }
+        }
+
+        return empty($result) ? false : $result;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblMail $tblMail
+     *
+     * @return false|TblToPerson
+     */
+    public function getMailToPersonByPersonAndMail(TblPerson $tblPerson, TblMail $tblMail)
+    {
+        return (new Data($this->getBinding()))->getMailToPersonByPersonAndMail($tblPerson, $tblMail);
+    }
+
+    /**
+     * @param $Address
+     *
+     * @return TblMail
+     */
+    public function insertMail(
+        $Address
+    ): TblMail {
+        return (new Data($this->getBinding()))->createMail($Address);
     }
 }

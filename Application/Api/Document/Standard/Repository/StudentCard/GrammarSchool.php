@@ -257,11 +257,13 @@ class GrammarSchool extends AbstractStudentCard
     }
 
     /**
+     *
      * @param array $pageList
+     * @param string $Part
      *
      * @return Frame
      */
-    public function buildDocument($pageList = array())
+    public function buildDocument(array $pageList = array(), string $Part = '0'): Frame
     {
         return (new Frame())->addDocument((new Document())
             ->addPage($this->buildPage())
@@ -288,7 +290,7 @@ class GrammarSchool extends AbstractStudentCard
         $widthFirstColumns = 6,
         $widthLastColumns = 5,
         $heightHeader = '170px',
-        $paddingLeftHeader = '-160px',
+        $paddingLeftHeader = '-90px',
         $thicknessOutLines = '1.2px',
         $thicknessInnerLines = '0.5px',
         $textSizeSmall = '9px'
@@ -347,7 +349,7 @@ class GrammarSchool extends AbstractStudentCard
                 case 3: $text = 'Kurshalbjahr'; break;
             }
             $element = (new Element())
-                ->setContent($this->setRotatedContend($text, '10px', $paddingLeftHeader))
+                ->setContent($this->setRotatedContend($text, '155px', '27px'))
                 ->styleHeight($heightHeader)
                 ->styleTextSize($textSizeSmall)
                 ->styleBorderLeft($i == 1 ? $thicknessOutLines : $thicknessInnerLines);
@@ -366,6 +368,9 @@ class GrammarSchool extends AbstractStudentCard
                 $tblSubject = $tblSubjectList[$i];
                 if ($tblSubject) {
                     $text = $tblSubject->getName();
+                    if ($text == 'Gemeinschaftskunde/Rechtserziehung/Wirtschaft') {
+                        $text = 'Gemeinschaftskunde / Rechtserziehung / Wirtschaft';
+                    }
                     $subjectPosition[$i] = $tblSubject;
 
                     if ($i == 0) {
@@ -378,7 +383,7 @@ class GrammarSchool extends AbstractStudentCard
             }
 
             $element = (new Element())
-                ->setContent($this->setRotatedContend($text, '-2px', $paddingLeftHeader))
+                ->setContent($this->setRotatedContend($text, '155px'))
                 ->styleHeight($heightHeader)
                 ->styleTextSize(strlen($text) > 35 ? '7px' : $textSizeSmall)
                 ->styleBorderLeft($i == 0 ? $thicknessOutLines : $thicknessInnerLines);
@@ -389,10 +394,10 @@ class GrammarSchool extends AbstractStudentCard
             $text = '&nbsp;';
             switch ($i) {
                 case 1: $text = 'Datum des Zeugnisses'; break;
-                case 2: $text = 'Signums des Lehrers'; break;
+                case 2: $text = 'Signum des Lehrers'; break;
             }
             $element = (new Element())
-                ->setContent($this->setRotatedContend($text, '6px', $paddingLeftHeader))
+                ->setContent($this->setRotatedContend($text, '155px', '22px'))
                 ->styleHeight($heightHeader)
                 ->styleTextSize($textSizeSmall)
                 ->styleBorderLeft($i == 1 ? $thicknessOutLines : $thicknessInnerLines)

@@ -28,6 +28,7 @@ class ViewGroupStudentBasic extends AbstractView
     const TBL_STUDENT_IDENTIFIER = 'TblStudent_Identifier';
     const TBL_STUDENT_SCHOOL_ATTENDANCE_START_DATE = 'TblStudent_SchoolAttendanceStartDate';
     const TBL_STUDENT_HAS_MIGRATION_BACKGROUND = 'TblStudent_HasMigrationBackground';
+    const TBL_STUDENT_MIGRATION_BACKGROUND = 'TblStudent_MigrationBackground';
     const TBL_STUDENT_IS_IN_PREPARATION_DIVISION_FOR_MIGRANTS = 'TblStudent_IsInPreparationDivisionForMigrants';
 
     /**
@@ -62,6 +63,10 @@ class ViewGroupStudentBasic extends AbstractView
     /**
      * @Column(type="string")
      */
+    protected $TblStudent_MigrationBackground;
+    /**
+     * @Column(type="string")
+     */
     protected $TblStudent_IsInPreparationDivisionForMigrants;
 
     /**
@@ -74,16 +79,18 @@ class ViewGroupStudentBasic extends AbstractView
 
 //        //NameDefinition
         $this->setNameDefinition(self::TBL_STUDENT_IDENTIFIER, 'Grunddaten: Schülernummer');
-        $this->setNameDefinition(self::TBL_STUDENT_SCHOOL_ATTENDANCE_START_DATE, 'Grunddaten: Schulpflicht beginn');
-        $this->setNameDefinition(self::TBL_STUDENT_HAS_MIGRATION_BACKGROUND, 'Grunddaten: Migrationshintergrund');
-        $this->setNameDefinition(self::TBL_STUDENT_IS_IN_PREPARATION_DIVISION_FOR_MIGRANTS, 'Grunddaten: Besucht Vorbereitungsklasse für Migranten');
+        $this->setNameDefinition(self::TBL_STUDENT_SCHOOL_ATTENDANCE_START_DATE, 'Grunddaten: Schulpflichtbeginn');
+        $this->setNameDefinition(self::TBL_STUDENT_HAS_MIGRATION_BACKGROUND, 'Grunddaten: Herkunftssprache ist nicht oder nicht ausschließlich Deutsch');
+        $this->setNameDefinition(self::TBL_STUDENT_MIGRATION_BACKGROUND, 'Grunddaten: Herkunftssprache');
+//        $this->setNameDefinition(self::TBL_STUDENT_IS_IN_PREPARATION_DIVISION_FOR_MIGRANTS, 'Grunddaten: Besucht Vorbereitungsklasse für Migranten');
 
 //        //GroupDefinition
         $this->setGroupDefinition('&nbsp;', array(
             self::TBL_STUDENT_IDENTIFIER,
             self::TBL_STUDENT_SCHOOL_ATTENDANCE_START_DATE,
             self::TBL_STUDENT_HAS_MIGRATION_BACKGROUND,
-            self::TBL_STUDENT_IS_IN_PREPARATION_DIVISION_FOR_MIGRANTS
+            self::TBL_STUDENT_MIGRATION_BACKGROUND,
+//            self::TBL_STUDENT_IS_IN_PREPARATION_DIVISION_FOR_MIGRANTS
         ));
     }
 
@@ -128,11 +135,11 @@ class ViewGroupStudentBasic extends AbstractView
                 $Data[2] = 'Nein';
                 $Field = $this->getFormFieldSelectBox($Data, $PropertyName, $Label, $Icon, $doResetCount);
                 break;
-            case self::TBL_STUDENT_IS_IN_PREPARATION_DIVISION_FOR_MIGRANTS:
-                $Data[1] = 'Ja';
-                $Data[2] = 'Nein';
-                $Field = $this->getFormFieldSelectBox($Data, $PropertyName, $Label, $Icon, $doResetCount);
-                break;
+//            case self::TBL_STUDENT_IS_IN_PREPARATION_DIVISION_FOR_MIGRANTS:
+//                $Data[1] = 'Ja';
+//                $Data[2] = 'Nein';
+//                $Field = $this->getFormFieldSelectBox($Data, $PropertyName, $Label, $Icon, $doResetCount);
+//                break;
             default:
                 $Field = parent::getFormField($PropertyName, $Placeholder, $Label, ($Icon?$Icon:new Pencil()), $doResetCount );
                 break;

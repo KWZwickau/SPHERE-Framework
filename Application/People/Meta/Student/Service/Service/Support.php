@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\People\Meta\Student\Service\Service;
 
+use DateTime;
 use SPHERE\Application\People\Meta\Student\Service\Data;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblHandyCap;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblSpecial;
@@ -29,7 +30,7 @@ use SPHERE\Common\Window\Redirect;
  *
  * @package SPHERE\Application\People\Meta\Student\Service\Service
  */
-abstract class Support extends Integration
+abstract class Support extends Subject
 {
 
     /**
@@ -108,17 +109,18 @@ abstract class Support extends Integration
         $tblAccount = Account::useService()->getAccountBySession();
         $PersonEditor = '';
         if($tblAccount){
-            $tblPersonList = Account::useService()->getPersonAllByAccount($tblAccount);
-            $tblPersonEditor = $tblPersonList[0];
-            if($tblPersonEditor){
-                $PersonEditor = $tblPersonEditor->getLastFirstName();
-                if(($tblTeacher = Teacher::useService()->getTeacherByPerson($tblPersonEditor))){
-                    $PersonEditor .= ' ('.$tblTeacher->getAcronym().')';
+            if(($tblPersonList = Account::useService()->getPersonAllByAccount($tblAccount))){
+                $tblPersonEditor = current($tblPersonList);
+                if($tblPersonEditor){
+                    $PersonEditor = $tblPersonEditor->getLastFirstName();
+                    if(($tblTeacher = Teacher::useService()->getTeacherByPerson($tblPersonEditor))){
+                        $PersonEditor .= ' ('.$tblTeacher->getAcronym().')';
+                    }
                 }
             }
         }
 
-        $Date = new \DateTime($Data['Date']);
+        $Date = new DateTime($Data['Date']);
         $tblSupportType = $this->getSupportTypeById($Data['SupportType']);
         $Company = $Data['Company'];
         $PersonSupport = $Data['PersonSupport'];
@@ -176,7 +178,7 @@ abstract class Support extends Integration
         if($PersonEditor == ''){
             $PersonEditor = 'Datenübernahme';   //ToDO Abstimmung mit JK
         }
-        $Date = new \DateTime($Date);
+        $Date = new DateTime($Date);
 
         if($tblPerson && $tblSupportType && $Date){
             return (new Data($this->getBinding()))->createSupport($tblPerson, $tblSupportType, $Date, $PersonEditor, $Company, $PersonSupport, $SupportTime, $Remark);
@@ -222,7 +224,7 @@ abstract class Support extends Integration
             }
         }
 
-        $Date = new \DateTime($Data['Date']);
+        $Date = new DateTime($Data['Date']);
         if (($IsCanceled = isset($Data['IsCanceled']))) {
             $Remark = 'Aufhebung';
         } else {
@@ -261,7 +263,7 @@ abstract class Support extends Integration
         if($PersonEditor == ''){
             $PersonEditor = 'Datenübernahme';   //ToDO Abstimmung mit JK
         }
-        $Date = new \DateTime($Date);
+        $Date = new DateTime($Date);
 
         if($tblPerson && $Date){
             return (new Data($this->getBinding()))->createSpecial($tblPerson, $Date, $PersonEditor, $Remark);
@@ -306,13 +308,15 @@ abstract class Support extends Integration
             }
         }
 
-        $Date = new \DateTime($Data['Date']);
+        $Date = new DateTime($Data['Date']);
         if (($IsCanceled = isset($Data['IsCanceled']))) {
             $RemarkLesson = 'Aufhebung';
             $RemarkRating = 'Aufhebung';
+            $RemarkCertificate = 'Aufhebung';
         } else {
             $RemarkLesson = isset($Data['RemarkLesson']) ? $Data['RemarkLesson'] : '';
             $RemarkRating = isset($Data['RemarkRating']) ? $Data['RemarkRating'] : '';
+            $RemarkCertificate = isset($Data['RemarkCertificate']) ? $Data['RemarkCertificate'] : '';
         }
 
         $LegalBasis = (isset($Data['LegalBasis']) ? $Data['LegalBasis'] : '' );
@@ -320,7 +324,7 @@ abstract class Support extends Integration
 
         if($tblPerson && $Date){
             (new Data($this->getBinding()))->createHandyCap($tblPerson, $Date, $PersonEditor, $LegalBasis, $LearnTarget,
-                $RemarkLesson, $RemarkRating, $IsCanceled);
+                $RemarkLesson, $RemarkRating, $RemarkCertificate, $IsCanceled);
         }
 
         return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success().' Die Daten wurde erfolgreich gespeichert');
@@ -339,20 +343,15 @@ abstract class Support extends Integration
 
         $tblSupport = Student::useService()->getSupportById($SupportId);
         $tblPerson = Person::useService()->getPersonById($PersonId);
-        $tblAccount = Account::useService()->getAccountBySession();
         $PersonEditor = '';
-        if($tblAccount){
-            $tblPersonList = Account::useService()->getPersonAllByAccount($tblAccount);
-            $tblPersonEditor = $tblPersonList[0];
-            if($tblPersonEditor){
-                $PersonEditor = $tblPersonEditor->getLastFirstName();
-                if(($tblTeacher = Teacher::useService()->getTeacherByPerson($tblPersonEditor))){
-                    $PersonEditor .= ' ('.$tblTeacher->getAcronym().')';
-                }
+        if(($tblPersonEditor = Account::useService()->getPersonByLogin())){
+            $PersonEditor = $tblPersonEditor->getLastFirstName();
+            if(($tblTeacher = Teacher::useService()->getTeacherByPerson($tblPersonEditor))){
+                $PersonEditor .= ' ('.$tblTeacher->getAcronym().')';
             }
         }
 
-        $Date = new \DateTime($Data['Date']);
+        $Date = new DateTime($Data['Date']);
         $tblSupportType = $this->getSupportTypeById($Data['SupportType']);
         $Company = $Data['Company'];
         $PersonSupport = $Data['PersonSupport'];
@@ -420,7 +419,7 @@ abstract class Support extends Integration
             }
         }
 
-        $Date = new \DateTime($Data['Date']);
+        $Date = new DateTime($Data['Date']);
         if (($IsCanceled = isset($Data['IsCanceled']))) {
             $Remark = 'Aufhebung';
         } else {
@@ -478,20 +477,22 @@ abstract class Support extends Integration
             }
         }
 
-        $Date = new \DateTime($Data['Date']);
+        $Date = new DateTime($Data['Date']);
         if (($IsCanceled = isset($Data['IsCanceled']))) {
             $RemarkLesson = 'Aufhebung';
             $RemarkRating = 'Aufhebung';
+            $RemarkCertificate = 'Aufhebung';
         } else {
             $RemarkLesson = isset($Data['RemarkLesson']) ? $Data['RemarkLesson'] : '';
             $RemarkRating = isset($Data['RemarkRating']) ? $Data['RemarkRating'] : '';
+            $RemarkCertificate = isset($Data['RemarkCertificate']) ? $Data['RemarkCertificate'] : '';
         }
         $LegalBasis = (isset($Data['LegalBasis']) ? $Data['LegalBasis'] : '' );
         $LearnTarget = (isset($Data['LearnTarget']) ? $Data['LearnTarget'] : '' );
 
         if($tblHandyCap && $tblPerson && $Date){
             (new Data($this->getBinding()))->updateHandyCap($tblHandyCap, $Date, $PersonEditor, $LegalBasis,
-                $LearnTarget, $RemarkLesson, $RemarkRating, $IsCanceled);
+                $LearnTarget, $RemarkLesson, $RemarkRating, $RemarkCertificate, $IsCanceled);
         }
 
         return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success().' Die Daten wurde erfolgreich gespeichert');
@@ -621,7 +622,7 @@ abstract class Support extends Integration
                 if(!empty($Type) && ($tblSupportType = $tblSupport->getTblSupportType()) && in_array( $tblSupportType->getName(), $Type)){
                     /** @var TblSupport $tblSupportMatch */
                     if($tblSupportMatch){
-                        if(new \DateTime($tblSupportMatch->getDate()) < new \DateTime($tblSupport->getDate())) {
+                        if(new DateTime($tblSupportMatch->getDate()) < new DateTime($tblSupport->getDate())) {
                             $tblSupportMatch = $tblSupport;
                         }
                     } else {
@@ -630,7 +631,7 @@ abstract class Support extends Integration
                 } elseif(empty($Type)) {
                     /** @var TblSupport $tblSupportMatch */
                     if($tblSupportMatch){
-                        if (new \DateTime($tblSupportMatch->getDate()) < new \DateTime($tblSupport->getDate())) {
+                        if (new DateTime($tblSupportMatch->getDate()) < new DateTime($tblSupport->getDate())) {
                             $tblSupportMatch = $tblSupport;
                         }
                     } else {
@@ -693,7 +694,7 @@ abstract class Support extends Integration
         if ($tblSupport) {
             // canceled
             if (($tblSupportCancel = Student::useService()->getSupportByPersonNewest($tblPerson, array('Aufhebung')))
-                && new \DateTime($tblSupportCancel->getDate()) >= new \DateTime($tblSupport->getDate())
+                && new DateTime($tblSupportCancel->getDate()) >= new DateTime($tblSupport->getDate())
             ) {
                 $tblSupport = false;
             }
@@ -1008,20 +1009,23 @@ abstract class Support extends Integration
      * ist der Förderbescheid nicht mehr gültig und darf nicht mit herangezogen werden.
      *
      * @param TblPerson $tblPerson
+     * @param DateTime|null $dateTime
      *
      * @return TblSupport|false $tblSupport
      */
-    public function getSupportForReportingByPerson(TblPerson $tblPerson)
+    public function getSupportForReportingByPerson(TblPerson $tblPerson, DateTime $dateTime = null)
     {
         $tblSupport = false;
         if (($tblSupportType = Student::useService()->getSupportTypeByName('Förderbescheid'))
             && ($tblSupportList = Student::useService()->getSupportAllByPersonAndSupportType($tblPerson, $tblSupportType))
         ) {
 
-            $now = new \DateTime();
+            if ($dateTime == null) {
+                $dateTime = new DateTime('now');
+            }
 
             foreach ($tblSupportList as $item) {
-                if(new \DateTime($item->getDate()) <= $now){
+                if(new DateTime($item->getDate()) <= $dateTime){
                     $tblSupport = $item;
 
                     break;
@@ -1033,9 +1037,9 @@ abstract class Support extends Integration
                 && ($tblSupportCancelList = Student::useService()->getSupportAllByPersonAndSupportType($tblPerson, $tblSupportTypeCancel))
             ) {
                 foreach ($tblSupportCancelList as $itemCancel) {
-                    $cancelDate = new \DateTime($itemCancel->getDate());
-                    if($cancelDate <= $now
-                        && $cancelDate >= new \DateTime($tblSupport->getDate())
+                    $cancelDate = new DateTime($itemCancel->getDate());
+                    if($cancelDate <= $dateTime
+                        && $cancelDate >= new DateTime($tblSupport->getDate())
                     ){
                         $tblSupport = false;
 

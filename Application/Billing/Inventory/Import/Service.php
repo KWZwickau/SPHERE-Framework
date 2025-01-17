@@ -77,13 +77,17 @@ class Service extends AbstractService
     public function importBillingData()
     {
 
-//        $InfoList = array();
         $tblImportList = $this->getImportAll();
         if ($tblImportList) {
             $tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_DEBTOR);
             foreach ($tblImportList as $tblImport) {
                 $tblPerson = $tblImport->getServiceTblPerson();
                 $tblPersonDebtor = $tblImport->getServiceTblPersonDebtor();
+                if($tblImport->getOwner()){
+                    $Owner = $tblImport->getOwner();
+                } else {
+                    $Owner = $tblPersonDebtor->getFirstName().' '.$tblPersonDebtor->getLastName();
+                }
                 $tblBankAccount = $tblBankReference = false;
                 if($tblPersonDebtor){
                     // Debitor als Beitragszahler hinzufügen
@@ -92,14 +96,13 @@ class Service extends AbstractService
                     //Debitornummer zum Debitor
                     if(($DebtorNumber = $tblImport->getDebtorNumber())){
                         // Debitornummer wird nur gespeichert, wenn noch keine hinterlegt ist.
-                        if(!Debtor::useService()->getDebtorNumberByPerson($tblPersonDebtor)){
+                        if(!Debtor::useService()->getDebtorNumberByPerson($tblPersonDebtor, true)){
                             Debtor::useService()->createDebtorNumber($tblPersonDebtor, $DebtorNumber);
                         }
                     }
                     // Kontodaten zum Debitor
                     if($tblImport->getIBAN()){
-                        $tblBankAccount = Debtor::useService()->createBankAccount($tblPersonDebtor,
-                            $tblPersonDebtor->getFirstName().' '.$tblPersonDebtor->getLastName(),
+                        $tblBankAccount = Debtor::useService()->createBankAccount($tblPersonDebtor, $Owner,
                             $tblImport->getBank(), $tblImport->getIBAN(), $tblImport->getBIC());
                     }
                 }
@@ -112,12 +115,15 @@ class Service extends AbstractService
                             $tblImport->getReferenceDate());
                     }
                 }
-
                 $tblItem = Item::useService()->getItemByName($tblImport->getItem());
                 // Zahlungszuweisungen (SEPA) // andere Zahlungsarten werden nicht importiert!
                 if($tblBankAccount && $tblBankReference && $tblItem){
                     $tblPaymentType = Balance::useService()->getPaymentTypeByName('SEPA-Lastschrift');
-                    $tblDebtorPeriodType = Debtor::useService()->getDebtorPeriodTypeByName(TblDebtorPeriodType::ATTR_MONTH);
+                    if($tblImport->getIsYear()){
+                        $tblDebtorPeriodType = Debtor::useService()->getDebtorPeriodTypeByName(TblDebtorPeriodType::ATTR_YEAR);
+                    } else {
+                        $tblDebtorPeriodType = Debtor::useService()->getDebtorPeriodTypeByName(TblDebtorPeriodType::ATTR_MONTH);
+                    }
                     $Value = 0;
                     if(!($tblVariant = Item::useService()->getItemVariantByItemAndName($tblItem, $tblImport->getPriceVariant()))){
                         $tblVariant = null;
@@ -128,62 +134,9 @@ class Service extends AbstractService
                         $tblImport->getPaymentFromDate(), $tblImport->getPaymentTillDate(), $tblVariant, $Value, $tblBankAccount, $tblBankReference);
                 }
             }
-
             //Delete tblImport
             Import::useService()->destroyImport();
         }
-
-        //ToDO Aufräumen wenn es gar nicht mehr gebraucht wird
-        // Wird noch eine Ausgabe benötigt? Ausgabe aller importierten Daten würde einfach riesig und unübersichtlich
-        // werden, zumal das in der Tabelle davor schon ersichtlich gemacht wurde.
-//        $LayoutColumnArray = array();
-//        if (!empty($InfoList)) {
-//            // better show result
-//            foreach ($InfoList as $key => $Info) {
-//                $divisionName[$key] = strtoupper($Info['DivisionName']);
-//            }
-//            array_multisort($divisionName, SORT_NATURAL, $InfoList);
-//            foreach ($InfoList as $Info) {
-//
-//                if (isset($Info['DivisionName']) && isset($Info['SubjectList'])) {
-//                    $LayoutColumnList = array();
-//                    $PanelContent = array();
-//                    if (!empty($Info['SubjectList'])) {
-//                        foreach ($Info['SubjectList'] as $SubjectAndTeacherArray) {
-//                            if (!empty($SubjectAndTeacherArray)) {
-//                                foreach ($SubjectAndTeacherArray as $SubjectAndTeacher) {
-//                                    $PanelContent[] = $SubjectAndTeacher;
-//                                }
-//                            }
-//                        }
-//                        $LayoutColumnList[] = new LayoutColumn(array(
-//                                new Title('Klasse: '.$Info['DivisionName']),
-//                                new Panel('Acronym - Fach'.new PullRight('Lehrer'),
-//                                    $PanelContent, Panel::PANEL_TYPE_SUCCESS)
-//                            )
-//                            , 4);
-//                    }
-//                    $LayoutColumnArray = array_merge($LayoutColumnArray, $LayoutColumnList);
-//                }
-//            }
-//        }
-//
-//        // save clean view by LayoutRows
-//        $LayoutRowList = array();
-//        $LayoutRowCount = 0;
-//        $LayoutRow = null;
-//        /**
-//         * @var LayoutColumn $tblPhone
-//         */
-//        foreach ($LayoutColumnArray as $LayoutColumn) {
-//            if ($LayoutRowCount % 3 == 0) {
-//                $LayoutRow = new LayoutRow(array());
-//                $LayoutRowList[] = $LayoutRow;
-//            }
-//            $LayoutRow->addColumn($LayoutColumn);
-//            $LayoutRowCount++;
-//        }
-//        return $LayoutRowList;
         return '';
     }
 

@@ -75,12 +75,17 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param string $GroupId
+     * @param array $GroupId
      *
      * @return Layout
      */
-    public static function layoutPersonGroupList($GroupId = '')
+    public static function layoutPersonGroupList($GroupId = array())
     {
+        if(!empty($GroupId)){
+            $GroupId = current($GroupId);
+        } else {
+            $GroupId = '';
+        }
 
         $tblGroupList = array();
 
@@ -143,19 +148,17 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
         // Standard Gruppen Auswahl über Selectbox
-        $tblGroupLockedList[] = Debtor::useService()->directRoute(
-            new Form(new FormGroup(new FormRow(array(
-                new FormColumn(new SelectBox('GroupId', '', array('{{ Name }}' => $leftBoxList)), 10)
-            ,
+        $FormGroupLocked = new Form(new FormGroup(new FormRow(array(
+                new FormColumn(new SelectBox('GroupId[1]', '', array('{{ Name }}' => $leftBoxList)), 10),
                 new FormColumn(new PullRight(new StandardForm('', new GroupIcon())), 2)
-            )))), $GroupId,'left');
+        ))));
+        $tblGroupLockedList[] = Debtor::useService()->directRoute($FormGroupLocked, $GroupId,'left');
         // Individuelle Gruppen Auswahl über Selectbox
-        $tblGroupCustomList[] = Debtor::useService()->directRoute(
-            new Form(new FormGroup(new FormRow(array(
-                new FormColumn(new SelectBox('GroupId', '', array('{{ Name }}' => $rightBoxList)), 10)
-            ,
-                new FormColumn(new PullRight(new StandardForm('', new GroupIcon())), 2)
-            )))), $GroupId, 'right');
+        $FormGroupCustom = new Form(new FormGroup(new FormRow(array(
+            new FormColumn(new SelectBox('GroupId[2]', '', array('{{ Name }}' => $rightBoxList)), 10),
+            new FormColumn(new PullRight(new StandardForm('', new GroupIcon())), 2)
+        ))));
+        $tblGroupCustomList[] = Debtor::useService()->directRoute($FormGroupCustom, $GroupId, 'right');
 
         return new Layout(new LayoutGroup(new LayoutRow(array(
             new LayoutColumn(
@@ -167,12 +170,14 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutColumn(
                     new Panel('Personen in individuellen Gruppen', $tblGroupCustomList)
                     // platz, damit die Selectbox nach unten auf geht
-                    .'<div style="height: 240px"></div>', 6) : null
+                    .'<div style="height: 240px"></div>', 6)
+                : null
         ))));
     }
 
     public function frontendDebtorView($GroupId = null)
     {
+        ini_set('memory_limit', '256M');
 
         $GroupName = '';
         if(($tblGroup = Group::useService()->getGroupById($GroupId))){
@@ -203,7 +208,7 @@ class Frontend extends Extension implements IFrontendInterface
             if(($tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup))){
 
                 $IsDebtorNumberNeed = false;
-                if($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_IS_DATEV)){
+                if($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_FIBU_ACCOUNT_AS_DEBTOR)){
                     if($tblSetting->getValue() == 1){
                         $IsDebtorNumberNeed = true;
                     }
@@ -315,7 +320,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         if(($tblPerson = Person::useService()->getPersonById($PersonId))){
             $IsDebtorNumberNeed = false;
-            if($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_IS_DATEV)){
+            if($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_FIBU_ACCOUNT_AS_DEBTOR)){
                 if($tblSetting->getValue() == 1){
                     $IsDebtorNumberNeed = true;
                 }

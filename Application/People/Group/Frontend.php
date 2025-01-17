@@ -1,11 +1,11 @@
 <?php
 namespace SPHERE\Application\People\Group;
 
-use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Meta\Common\Common;
-use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person as PeoplePerson;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Relationship;
@@ -85,7 +85,7 @@ class Frontend extends Extension implements IFrontendInterface
             array_walk($tblGroupAll, function (TblGroup &$tblGroup) {
 
                 $Content = array(
-                    ($tblGroup->getDescription() ? new Small(new Muted($tblGroup->getDescription())) : false),
+                    ($tblGroup->getDescription(true) ? new Small(new Muted($tblGroup->getDescription(true))) : false),
                     ($tblGroup->getRemark() ? nl2br($tblGroup->getRemark()) : false),
                 );
                 $Content = array_filter($Content);
@@ -177,7 +177,8 @@ class Frontend extends Extension implements IFrontendInterface
                     new FormColumn(
                         new Panel('Gruppe', array(
                             new TextField('Group[Name]', 'Name', 'Name'),
-                            new TextField('Group[Description]', 'Beschreibung', 'Beschreibung')
+                            new TextField('Group[Description]', 'Beschreibung', 'Beschreibung'),
+//                            new CheckBox('Group[IsCoreGroup]', 'Stammgruppe', 1)
                         ), Panel::PANEL_TYPE_INFO)
                         , 4),
                     new FormColumn(
@@ -210,6 +211,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $Global->POST['Group']['Name'] = $tblGroup->getName();
                 $Global->POST['Group']['Description'] = $tblGroup->getDescription();
                 $Global->POST['Group']['Remark'] = $tblGroup->getRemark();
+                $Global->POST['Group']['IsCoreGroup'] = $tblGroup->isCoreGroup();
                 $Global->savePost();
             }
 
@@ -219,8 +221,8 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutRow(
                             new LayoutColumn(
                                 new Panel('Gruppe', new Bold($tblGroup->getName()) .
-                                    ($tblGroup->getDescription() !== '' ? '&nbsp;&nbsp;'
-                                        . new Muted(new Small(new Small($tblGroup->getDescription()))) : ''),
+                                    ($tblGroup->getDescription(true) !== '' ? '&nbsp;&nbsp;'
+                                        . new Muted(new Small(new Small($tblGroup->getDescription(true)))) : ''),
                                     Panel::PANEL_TYPE_INFO),
                                 12
                             )
@@ -243,7 +245,6 @@ class Frontend extends Extension implements IFrontendInterface
                 ))
             );
         } else {
-            // TODO: Error-Message
             $Stage->setContent(
                 new Layout(
                     new LayoutGroup(
@@ -273,13 +274,12 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage('Gruppe', 'Löschen');
         $Stage->addButton(new Standard('Zurück', '/People/Group', new ChevronLeft()));
 
-        if ($Id) {
-            $tblGroup = Group::useService()->getGroupById($Id);
+        if ($Id && $tblGroup = Group::useService()->getGroupById($Id)) {
             if (!$Confirm) {
                 $Stage->setContent(
                     new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
                         new Panel(new Question() . ' Diese Gruppe wirklich löschen?', array(
-                            $tblGroup->getName() . ' ' . $tblGroup->getDescription(),
+                            $tblGroup->getName() . ' ' . $tblGroup->getDescription(true),
                             new Muted(new Small($tblGroup->getRemark()))
                         ),
                             Panel::PANEL_TYPE_DANGER,
@@ -307,14 +307,14 @@ class Frontend extends Extension implements IFrontendInterface
                 // Destroy Group
                 $Stage->setContent(
                     new Layout(new LayoutGroup(array(
-                        new LayoutRow(new LayoutColumn(array(
+                        new LayoutRow(new LayoutColumn(
                             (Group::useService()->destroyGroup($tblGroup)
                                 ? new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Gruppe wurde gelöscht')
                                 . new Redirect('/People/Group', Redirect::TIMEOUT_SUCCESS)
                                 : new Danger(new Ban() . ' Die Gruppe konnte nicht gelöscht werden')
                                 . new Redirect('/People/Group', Redirect::TIMEOUT_ERROR)
                             )
-                        )))
+                        ))
                     )))
                 );
             }
@@ -337,7 +337,7 @@ class Frontend extends Extension implements IFrontendInterface
      * @param null $DataRemovePerson
      * @param null $Filter
      * @param null $FilterGroupId
-     * @param null $FilterDivisionId
+     * @param null $FilterDivisionCourseId
      *
      * @return Stage|string
      */
@@ -347,40 +347,58 @@ class Frontend extends Extension implements IFrontendInterface
         $DataRemovePerson = null,
         $Filter = null,
         $FilterGroupId = null,
-        $FilterDivisionId = null
+        $FilterDivisionCourseId = null
     ) {
 
         $Stage = new Stage('Gruppe', 'Personen zuweisen');
         $Stage->addButton(new Standard('Zurück', '/People/Group', new ChevronLeft()));
 
         if (($tblGroup = Group::useService()->getGroupById($Id))) {
+            $FilterForm = Group::useService()->getFilter( $this->formFilter(), $tblGroup, $Filter);
+            if($Filter != null){
+                return $Stage->setContent($FilterForm);
+            }
 
             $tblFilterGroup = Group::useService()->getGroupById($FilterGroupId);
-            $tblFilterDivision = Division::useService()->getDivisionById($FilterDivisionId);
+            $tblFilterDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($FilterDivisionCourseId);
 
             // Set Filter Post
-            if ($Filter == null && ($tblFilterGroup || $tblFilterDivision)) {
+            if ($Filter == null && ($tblFilterGroup || $tblFilterDivisionCourse)) {
                 $GLOBAL = $this->getGlobal();
                 $GLOBAL->POST['Filter']['Group'] = $tblFilterGroup ? $tblFilterGroup->getId() : 0;
-                $GLOBAL->POST['Filter']['Division'] = $tblFilterDivision ? $tblFilterDivision->getId() : 0;
+                $GLOBAL->POST['Filter']['Division'] = $tblFilterDivisionCourse ? $tblFilterDivisionCourse->getId() : 0;
 
                 $GLOBAL->savePost();
             }
 
-            $tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup);
-            $tblPersonAll = Group::useService()->getPersonAllByGroup(Group::useService()->getGroupByMetaTable('COMMON'));
+            $tblPersonAssignedList = Group::useService()->getPersonAllByGroup($tblGroup);
+            $tblPersonAvailableList = array();
 
             // filter
-            if ($tblFilterGroup || $tblFilterDivision) {
-                $tblPersonAll = Group::useService()->filterPersonListByGroupAndDivision(
-                    $tblPersonAll,
-                    $tblFilterGroup ? $tblFilterGroup : null,
-                    $tblFilterDivision ? $tblFilterDivision : null
-                );
+            if ($tblFilterGroup && $tblFilterDivisionCourse) {
+                if (($tblPersonList = $tblFilterDivisionCourse->getStudentsWithSubCourses())) {
+                    foreach ($tblPersonList as $tblPerson) {
+                        if (Group::useService()->existsGroupPerson($tblGroup, $tblPerson)) {
+                            $tblPersonAvailableList[$tblPerson->getId()] = $tblPerson;
+                        }
+                    }
+                }
+            } elseif ($tblFilterDivisionCourse) {
+                if (($tblPersonList = $tblFilterDivisionCourse->getStudentsWithSubCourses())) {
+                    foreach ($tblPersonList as $tblPerson) {
+                        $tblPersonAvailableList[$tblPerson->getId()] = $tblPerson;
+                    }
+                }
+            } elseif ($tblFilterGroup) {
+                if (($tblPersonList = $tblFilterGroup->getPersonList())) {
+                    foreach ($tblPersonList as $tblPerson) {
+                        $tblPersonAvailableList[$tblPerson->getId()] = $tblPerson;
+                    }
+                }
             }
 
-            if ($tblPersonList && $tblPersonAll) {
-                $tblPersonAll = array_udiff($tblPersonAll, $tblPersonList,
+            if ($tblPersonAssignedList && $tblPersonAvailableList) {
+                $tblPersonAvailableList = array_udiff($tblPersonAvailableList, $tblPersonAssignedList,
                     function (TblPerson $tblPersonA, TblPerson $tblPersonB) {
 
                         return $tblPersonA->getId() - $tblPersonB->getId();
@@ -388,37 +406,37 @@ class Frontend extends Extension implements IFrontendInterface
                 );
             }
 
-            if ($tblPersonList) {
+            if ($tblPersonAssignedList) {
                 $tempList = array();
-                foreach ($tblPersonList as $personListPerson) {
+                foreach ($tblPersonAssignedList as $personListPerson) {
                     $tempList[] = $this->setPersonData($personListPerson, 'DataRemovePerson');
                 }
-                $tblPersonList = $tempList;
+                $tblPersonAssignedList = $tempList;
             }
 
-            if (is_array($tblPersonAll)) {
+            if (is_array($tblPersonAvailableList)) {
                 $tempList = array();
-                foreach ($tblPersonAll as $personAllPerson) {
+                foreach ($tblPersonAvailableList as $personAllPerson) {
                     $tempList[] = $this->setPersonData($personAllPerson, 'DataAddPerson');
                 }
-                $tblPersonAll = $tempList;
+                $tblPersonAvailableList = $tempList;
             }
 
-            if (!$tblFilterGroup && !$tblFilterDivision){
+            if (!$tblFilterGroup && !$tblFilterDivisionCourse){
                 $displayAvailablePersons = new Warning(
-                    'Zum Hinzufügen von Personen zur Gruppe: ' . $tblGroup->getName() . ' schränken Sie bitte den Personenkreis über die Suche (Gruppe und/oder Klasse) ein.',
+                    'Zum Hinzufügen von Personen zur Gruppe: ' . $tblGroup->getName() . ' schränken Sie bitte den Personenkreis über die Suche (Gruppe und/oder Kurs) ein.',
                     new Exclamation()
                 );
-            } elseif ($tblPersonAll) {
+            } elseif ($tblPersonAvailableList) {
 
                 $displayAvailablePersons = new TableData(
-                    $tblPersonAll,
+                    $tblPersonAvailableList,
                     new \SPHERE\Common\Frontend\Table\Repository\Title('Weitere Personen', 'hinzufügen'),
                     array(
                         'Check'       => new Center(new Small('Hinzufügen ').new Enable()),
                         'DisplayName' => 'Name',
                         'Address'     => 'Adresse',
-                        'Groups'      => 'Gruppen/Klasse '
+                        'Groups'      => 'Gruppen/Kurs '
                     ),
                     array(
                         "columnDefs"     => array(
@@ -453,16 +471,16 @@ class Frontend extends Extension implements IFrontendInterface
                 new FormGroup(
                     new FormRow(array(
                         new FormColumn(array(
-                            ($tblPersonList
+                            ($tblPersonAssignedList
                                 ? $TableCurrent = new TableData(
-                                    $tblPersonList,
+                                    $tblPersonAssignedList,
                                     new \SPHERE\Common\Frontend\Table\Repository\Title('Mitglieder der Gruppe "'.$tblGroup->getName().'"',
                                         'entfernen'),
                                     array(
                                         'Check'       => new Center(new Small('Entfernen ').new Disable()),
                                         'DisplayName' => 'Name',
                                         'Address'     => 'Adresse',
-                                        'Groups'      => 'Gruppen/Klasse'
+                                        'Groups'      => 'Gruppen/Kurs'
                                     ),
                                     array(
                                         "columnDefs"     => array(
@@ -508,7 +526,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutColumn(
                             new Panel(
                                 'Gruppe',
-                                $tblGroup->getName() . ' ' . new Small(new Muted($tblGroup->getDescription())),
+                                $tblGroup->getName() . ' ' . new Small(new Muted($tblGroup->getDescription(true))),
                                 Panel::PANEL_TYPE_INFO
                             ), 12
                         ),
@@ -518,9 +536,7 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutRow(array(
                         new LayoutColumn(
                             new Well(
-                                Group::useService()->getFilter(
-                                    $this->formFilter(), $tblGroup, $Filter
-                                )
+                                $FilterForm
                             ), 12
                         )
                     ))
@@ -541,13 +557,6 @@ class Frontend extends Extension implements IFrontendInterface
                                 )
                                 ,6),
                         )),
-
-                        // TODO: Describe possible Action
-//                        new LayoutRow(array(
-//                            new LayoutColumn(
-//                                new Info('Links können neue Personsn... rechts ...')
-//                            )
-//                        )),
                         new LayoutRow(array(
                             new LayoutColumn(array(
                                 new Well(
@@ -556,8 +565,8 @@ class Frontend extends Extension implements IFrontendInterface
                                         $tblGroup,
                                         $DataAddPerson,
                                         $DataRemovePerson,
-                                        $tblFilterGroup ? $tblFilterGroup : null,
-                                        $tblFilterDivision ? $tblFilterDivision : null
+                                        $tblFilterGroup ?: null,
+                                        $tblFilterDivisionCourse ?: null
                                     )
                                 )
                             ))
@@ -601,8 +610,7 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
-        // current Divisions
-        $displayDivisionList = Student::useService()->getDisplayCurrentDivisionListByPerson($tblPerson);
+        $displayDivisionList = DivisionCourse::useService()->getCurrentMainCoursesByPersonAndDate($tblPerson);
 
         $result['Groups'] = (!empty($groups) ? implode(', ', $groups) . ($displayDivisionList ? ', ' . $displayDivisionList : '') : '');
 
@@ -611,17 +619,21 @@ class Frontend extends Extension implements IFrontendInterface
 
     private function formFilter()
     {
-
         $tblGroupAll = Group::useService()->getGroupAllSorted();
-        $tblDivisionList = array();
-        $tblYearList = Term::useService()->getYearByNow();
+        $tblDivisionCourseList = array();
+        $tblYearList = Term::useService()->getYearAllSinceYears(1);
         if ($tblYearList) {
             foreach ($tblYearList as $tblYear) {
-                $tblDivisionAllByYear = Division::useService()->getDivisionByYear($tblYear);
-                if ($tblDivisionAllByYear) {
-                    foreach ($tblDivisionAllByYear as $tblDivision) {
-                        $tblDivisionList[$tblDivision->getId()] = $tblDivision;
-                    }
+                $tblDivisionCourseYearList = array();
+                if (($tblDivisionCourseListDivision = DivisionCourse::useService()->getDivisionCourseListBy($tblYear, TblDivisionCourseType::TYPE_DIVISION))) {
+                    $tblDivisionCourseYearList = array_merge($tblDivisionCourseYearList, $tblDivisionCourseListDivision);
+                }
+                if (($tblDivisionCourseListCoreGroup = DivisionCourse::useService()->getDivisionCourseListBy($tblYear, TblDivisionCourseType::TYPE_CORE_GROUP))) {
+                    $tblDivisionCourseYearList = array_merge($tblDivisionCourseYearList, $tblDivisionCourseListCoreGroup);
+                }
+                if ($tblDivisionCourseYearList) {
+                    $tblDivisionCourseYearList = $this->getSorter($tblDivisionCourseYearList)->sortObjectBy('Name');
+                    $tblDivisionCourseList = array_merge($tblDivisionCourseList, $tblDivisionCourseYearList);
                 }
             }
         }
@@ -633,7 +645,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new SelectBox('Filter[Group]', 'Gruppe', array('Name' => $tblGroupAll)), 6
                     ),
                     new FormColumn(
-                        new SelectBox('Filter[Division]', 'Klasse', array('DisplayName' => $tblDivisionList)), 6
+                        new SelectBox('Filter[Division]', 'Kurs', array('{{ YearName}} - {{ Name }}' => $tblDivisionCourseList), null, true, null), 6
                     ),
                     new FormColumn(
                         new Primary('Suchen', new Filter())

@@ -1,15 +1,7 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: Kauschke
- * Date: 20.05.2016
- * Time: 08:15
- */
-
 namespace SPHERE\Application\People\Meta\Teacher\Service;
 
 use SPHERE\Application\People\Meta\Teacher\Service\Entity\TblTeacher;
-use SPHERE\Application\People\Meta\Teacher\Service\Entity\ViewPeopleMetaTeacher;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Database\Binding\AbstractData;
@@ -20,17 +12,6 @@ use SPHERE\System\Database\Binding\AbstractData;
  */
 class Data  extends AbstractData
 {
-
-    /**
-     * @return false|ViewPeopleMetaTeacher[]
-     */
-    public function viewPeopleMetaTeacher()
-    {
-
-        return $this->getCachedEntityList(
-            __METHOD__, $this->getConnection()->getEntityManager(), 'ViewPeopleMetaTeacher'
-        );
-    }
 
     public function setupDatabaseContent()
     {
@@ -85,10 +66,20 @@ class Data  extends AbstractData
      */
     public function getTeacherByAcronym($Acronym)
     {
-
-        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblTeacher', array(
+        $list = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblTeacher', array(
             TblTeacher::ATTR_ACRONYM => $Acronym
         ));
+
+        if ($list) {
+            /** @var TblTeacher $item */
+            foreach ($list as  $item) {
+                if ($Acronym == $item->getAcronym()) {
+                    return $item;
+                }
+            }
+        }
+
+        return false;
     }
 
     /**

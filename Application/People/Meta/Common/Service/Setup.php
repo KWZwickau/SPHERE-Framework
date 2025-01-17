@@ -3,7 +3,6 @@ namespace SPHERE\Application\People\Meta\Common\Service;
 
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
-use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Common\Service\Entity\TblCommon;
 use SPHERE\Application\People\Meta\Common\Service\Entity\TblCommonBirthDates;
 use SPHERE\Application\People\Meta\Common\Service\Entity\TblCommonGender;
@@ -57,29 +56,29 @@ class Setup extends AbstractSetup
         /**
          * Upgrade Column Gender
          */
-        if( !$Simulate ) {
-            if (
-                $this->hasColumn($tblCommonBirthDates, 'Gender')
-                && $this->hasColumn($tblCommonBirthDates, 'tblCommonGender')
-            ) {
-                Common::useService()->createCommonGender( 'Männlich' );
-                Common::useService()->createCommonGender( 'Weiblich' );
-                $tblCommonBirthDatesAll = Common::useService()->getCommonBirthDatesAll();
-                if ($tblCommonBirthDatesAll) {
-                    foreach ($tblCommonBirthDatesAll as $tblCommonBirthDates) {
-                        if( $tblCommonBirthDates->isGenderInSync() ) {
-                            continue;
-                        }
-                        Common::useService()->updateCommonBirthDates(
-                            $tblCommonBirthDates,
-                            $tblCommonBirthDates->getBirthday(),
-                            $tblCommonBirthDates->getBirthplace(),
-                            $tblCommonBirthDates->getGender()
-                        );
-                    }
-                }
-            }
-        }
+//        if( !$Simulate ) {
+//            if (
+//                $this->hasColumn($tblCommonBirthDates, 'Gender')
+//                && $this->hasColumn($tblCommonBirthDates, 'tblCommonGender')
+//            ) {
+//                Common::useService()->createCommonGender( 'Männlich' );
+//                Common::useService()->createCommonGender( 'Weiblich' );
+//                $tblCommonBirthDatesAll = Common::useService()->getCommonBirthDatesAll();
+//                if ($tblCommonBirthDatesAll) {
+//                    foreach ($tblCommonBirthDatesAll as $tblCommonBirthDates) {
+//                        if( $tblCommonBirthDates->isGenderInSync() ) {
+//                            continue;
+//                        }
+//                        Common::useService()->updateCommonBirthDates(
+//                            $tblCommonBirthDates,
+//                            $tblCommonBirthDates->getBirthday(),
+//                            $tblCommonBirthDates->getBirthplace(),
+//                            $tblCommonBirthDates->getGender()
+//                        );
+//                    }
+//                }
+//            }
+//        }
 
         return $this->getConnection()->getProtocol($Simulate);
     }
@@ -117,10 +116,10 @@ class Setup extends AbstractSetup
 
         if( $this->hasColumn( $Table, 'Gender' ) && !$this->hasColumn( $Table, $tblCommonGender->getName() ) ) {
             $this->createColumn($Table, 'Gender', self::FIELD_TYPE_INTEGER, true);
-        } else {
-            if ($this->hasColumn($Table, 'Gender') && $this->hasColumn($Table, $tblCommonGender->getName())) {
-                $this->getConnection()->deadProtocol('tblCommonBirthDates.Gender');
-            }
+//        } else {
+//            if ($this->hasColumn($Table, 'Gender') && $this->hasColumn($Table, $tblCommonGender->getName())) {
+//                $this->getConnection()->deadProtocol('tblCommonBirthDates.Gender');
+//            }
         }
         $this->createForeignKey( $Table, $tblCommonGender, true );
 
@@ -135,19 +134,19 @@ class Setup extends AbstractSetup
     private function setTableCommonInformation(Schema &$Schema)
     {
 
-        $Table = $this->getConnection()->createTable($Schema, 'tblCommonInformation');
-        if (!$this->getConnection()->hasColumn('tblCommonInformation', 'Nationality')) {
-            $Table->addColumn('Nationality', 'string');
+        $Table = $this->createTable($Schema, 'tblCommonInformation');
+        $this->createColumn( $Table, 'Nationality', self::FIELD_TYPE_STRING);
+        $this->createColumn( $Table, 'Denomination', self::FIELD_TYPE_STRING);
+        if ($this->getConnection()->hasColumn('tblCommonInformation', 'ContractNumber')) {
+            $Table->dropColumn('ContractNumber');
         }
-        if (!$this->getConnection()->hasColumn('tblCommonInformation', 'Denomination')) {
-            $Table->addColumn('Denomination', 'string');
+        $this->createColumn( $Table, 'ContactNumber', self::FIELD_TYPE_STRING);
+        $this->createColumn( $Table, 'AssistanceActivity', self::FIELD_TYPE_TEXT);
+        $this->createColumn( $Table, 'IsAssistance', self::FIELD_TYPE_SMALLINT);
+        if ($Table->hasColumn('AuthorizedToCollect')) {
+            $Table->dropColumn('AuthorizedToCollect');
         }
-        if (!$this->getConnection()->hasColumn('tblCommonInformation', 'AssistanceActivity')) {
-            $Table->addColumn('AssistanceActivity', 'text');
-        }
-        if (!$this->getConnection()->hasColumn('tblCommonInformation', 'IsAssistance')) {
-            $Table->addColumn('IsAssistance', 'smallint');
-        }
+
         return $Table;
     }
 

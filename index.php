@@ -63,6 +63,9 @@ if ($DebuggerConfig->getConfig()->getContainer('Debugger')->getContainer('Enable
 } else {
     Debugger::$Enabled = false;
 }
+if(($DeveloperString = $DebuggerConfig->getConfig()->getContainer('Debugger')->getContainer('Developer')->getValue())){
+    Debugger::$DeveloperList = explode(', ', $DeveloperString);
+}
 
 // Run Application
 $Main->runPlatform();

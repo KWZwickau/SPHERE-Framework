@@ -272,6 +272,18 @@ class Frontend
             '/Platform/Assistance/Support',
             '/Platform/Gatekeeper/Authentication/Offline',
             '/Document/DataProtectionOrdinance',
+            '/Manual/Request',
+            '/Platform/Gatekeeper/Saml/DLLP/MetaData',
+            '/Platform/Gatekeeper/Saml/Login/DLLP',
+            '/Platform/Gatekeeper/Authentication/Saml/DLLP',
+            '/Platform/Gatekeeper/Saml/DLLPDemo/MetaData',
+            '/Platform/Gatekeeper/Saml/Login/DLLPDemo',
+            '/Platform/Gatekeeper/Authentication/Saml/DLLPDemo',
+            '/Platform/Gatekeeper/Saml/Placeholder/MetaData',
+            '/Platform/Gatekeeper/Saml/Login/Placeholder',
+            '/Platform/Gatekeeper/Authentication/Saml/Placeholder',
+            '/Platform/Gatekeeper/OAuth2/Vidis',
+            '/Platform/Gatekeeper/OAuth2/OAuthSite',
         );
         if ($PublicRouteAll) {
             array_walk($PublicRouteAll, function (&$Route) use (&$publicRightList, $publicRouteList) {
