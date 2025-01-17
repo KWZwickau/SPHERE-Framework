@@ -54,7 +54,7 @@ abstract class AccountDocument extends AbstractDocument
     {
         return (new Slice())
             ->addElement((new Element())
-                ->setContent(new Bold($this->tblCompany->getName()))
+                ->setContent(new Bold($this->tblCompany ? $this->tblCompany->getName() : ''))
                 ->styleMarginTop($marginTop)
             )
             ->addElement((new Element())
@@ -67,7 +67,8 @@ abstract class AccountDocument extends AbstractDocument
             )
             ->addElement((new Element())
                 ->setContent($this->tblAddress
-                    ? $this->tblAddress->getGuiTwoRowString(false, false)
+                    ? $this->tblAddress->getStreetName().' '.$this->tblAddress->getStreetNumber().'<br/>'.
+                    $this->tblAddress->getTblCity()->getCode().' '.$this->tblAddress->getTblCity()->getDisplayName()
                     : ''
                 )
             )
@@ -134,7 +135,8 @@ abstract class AccountDocument extends AbstractDocument
         $Live = 'https://schulsoftware.schule';
         $Demo = 'https://demo.schulsoftware.schule';
 
-        if (GatekeeperConsumer::useService()->getConsumerBySessionIsConsumerType(TblConsumer::TYPE_BERLIN)) {
+        $tblConsumer = GatekeeperConsumer::useService()->getConsumerBySession();
+        if ($tblConsumer && $tblConsumer->getType() == TblConsumer::TYPE_BERLIN && $tblConsumer->getAcronym() !== 'SSB') {
             $Live = 'https://ekbo.schulsoftware.schule';
             $Demo = 'https://ekbodemo.schulsoftware.schule';
         }
@@ -151,13 +153,13 @@ abstract class AccountDocument extends AbstractDocument
                 ->setContent('Die Live-Version der Schulsoftware erreichen Sie unter folgender Internetadresse: '.$Live.'<br>
                     Die Demo-Version der Schulsoftware erreichen Sie unter folgender Internetadresse: '.$Demo
                 )
-                ->styleMarginTop('25px')
+                ->styleMarginTop('15px')
             )
             ->addElement((new Element())
                 ->setContent('Sie gelangen automatisch zu folgender Anmeldeoberfläche. Bitte geben Sie im 1. Schritt
                     Ihren Benutzernamen und Ihr Passwort ein.')
                 ->styleMarginTop('15px')
-            )
-            ->addElement((new Element\Image('/Common/Style/Resource/Document/login_username.png')));
+            );
+//            ->addElement((new Element\Image('/Common/Style/Resource/Document/login_username.png')));
     }
 }

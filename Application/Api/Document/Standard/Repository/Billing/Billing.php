@@ -3,7 +3,6 @@ namespace SPHERE\Application\Api\Document\Standard\Repository\Billing;
 
 use SPHERE\Application\Api\Document\AbstractDocument;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Invoice;
-use SPHERE\Application\Billing\Inventory\Document\Service\Entity\TblDocument;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItem;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Document\Generator\Repository\Document;
@@ -74,10 +73,11 @@ class Billing extends AbstractDocument
 
     /**
      * @param array $pageList
+     * @param string $part
      *
      * @return Frame
      */
-    public function buildDocument($pageList = array(), $part = '0')
+    public function buildDocument(array $pageList = array(), string $part = '0'): Frame
     {
         $document = new Document();
 
@@ -103,6 +103,7 @@ class Billing extends AbstractDocument
     /**
      * @param string $Text
      * @param string $ItemName
+     * @param string $InvoiceNumber
      * @param string $Year
      * @param string $TotalPrice
      * @param string $DebtorSalutation
@@ -123,15 +124,17 @@ class Billing extends AbstractDocument
      *
      * @return string
      */
-    private function setPlaceholders($Text, $ItemName, $Year, $TotalPrice, $DebtorSalutation, $DebtorFirstName,
-        $DebtorLastName, $CauserSalutation, $CauserFirstName, $CauserLastName, $Birthday, $From, $To, $Date, $Location,
-        $CompanyName, $CompanyExtendedName, $CompanyAddress, $StudentIdentifier)
+    private function setPlaceholders($Text, $ItemName, $InvoiceNumber, $Year, $TotalPrice, $PriceTable, $DebtorSalutation, $DebtorFirstName,
+                                     $DebtorLastName, $CauserSalutation, $CauserFirstName, $CauserLastName, $Birthday, $From, $To, $Date, $Location,
+                                     $CompanyName, $CompanyExtendedName, $CompanyAddress, $StudentIdentifier)
     {
+        $Text = str_replace('[Rechnungsnummer]', $InvoiceNumber, $Text);
         $Text = str_replace('[Jahr]', $Year, $Text);
         $Text = str_replace('[Zeitraum von]', $From, $Text);
         $Text = str_replace('[Zeitraum bis]', $To, $Text);
         $Text = str_replace('[Beitragsart]', $ItemName, $Text);
         $Text = str_replace('[Beitragssumme]', $TotalPrice, $Text);
+        $Text = str_replace('[PreisTabelle]', $PriceTable, $Text);
         $TotalPrice2Word = NumberToWord::float2Text($TotalPrice, true);
         $Text = str_replace('[Beitragssumme als Wort]', $TotalPrice2Word, $Text);
         $Text = str_replace('[Beitragszahler Anrede]', $DebtorSalutation, $Text);
@@ -154,16 +157,20 @@ class Billing extends AbstractDocument
     /**
      * @param TblPerson $tblPersonDebtor
      * @param TblPerson $tblPersonCauser
-     * @param $TotalPrice
+     * @param string $TotalPrice
+     * @param string $InvoiceNumber
      *
      * @return Page
      */
     public function buildPage(
         TblPerson $tblPersonDebtor,
         TblPerson $tblPersonCauser,
-        $TotalPrice
+        string $TotalPrice = '',
+        string $InvoiceNumber = '',
+        string $PriceTable = ''
     ) {
         $Data = $this->Data;
+        $PriceTable = $PriceTable??'';
         $CompanyName = $Data['CompanyName'];
         $CompanyExtendedName = $Data['CompanyExtendedName'];
         $CompanyAddress = $Data['CompanyAddress'];
@@ -188,12 +195,12 @@ class Billing extends AbstractDocument
         $Birthday = '';
         if(($tblCommon = $tblPersonCauser->getCommon())){
             if(($tblCommonBirthDates = $tblCommon->getTblCommonBirthDates())){
-                $Birthday = $tblCommonBirthDates->getBirthday();
+                $Birthday = $tblCommonBirthDates->getBirthday()?: '';
             }
         }
         $StudentIdentifier = '';
         if(($tblStudent = Student::useService()->getStudentByPerson($tblPersonCauser))){
-            $StudentIdentifier = $tblStudent->getIdentifier();
+            $StudentIdentifier = $tblStudent->getIdentifier()?: '';
         }
 
         // Umgang mit nicht gefüllten Werten
@@ -206,13 +213,11 @@ class Billing extends AbstractDocument
         $CauserLastName = $this->setEmptyString($CauserLastName);
         $Birthday = $this->setEmptyString($Birthday);
 
-
-
-        $Subject = $this->setPlaceholders($Subject, $ItemName, $Year, $TotalPrice, $DebtorSalutation, $DebtorFirstName,
+        $Subject = $this->setPlaceholders($Subject, $ItemName, $InvoiceNumber, $Year, $TotalPrice, $PriceTable, $DebtorSalutation, $DebtorFirstName,
             $DebtorLastName, $CauserSalutation, $CauserFirstName, $CauserLastName, $Birthday, $From, $To, $Date,
             $Location, $CompanyName, $CompanyExtendedName, $CompanyAddress, $StudentIdentifier);
 
-        $Content = $this->setPlaceholders($Content, $ItemName, $Year, $TotalPrice, $DebtorSalutation, $DebtorFirstName,
+        $Content = $this->setPlaceholders($Content, $ItemName, $InvoiceNumber, $Year, $TotalPrice, $PriceTable, $DebtorSalutation, $DebtorFirstName,
             $DebtorLastName, $CauserSalutation, $CauserFirstName, $CauserLastName, $Birthday, $From, $To, $Date,
             $Location, $CompanyName, $CompanyExtendedName, $CompanyAddress, $StudentIdentifier);
 
@@ -289,7 +294,7 @@ class Billing extends AbstractDocument
     private function getHeaderSlice($Height = '200px')
     {
         if(GatekeeperConsumer::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'HOGA')){
-            $pictureAddress = 'Common/Style/Resource/Document/Hoga/HOGA-Briefbogen_without_space.png';
+            $pictureAddress = 'Common/Style/Resource/Document/Hoga/HOGA-Briefbogen_2024_without_space.png';
             $pictureHeight = '370';
         } else {
             if(($tblSetting = Consumer::useService()->getSetting(

@@ -38,6 +38,10 @@ SELECT
         where tP.Id = vCA.TblPerson_Id
         and vCA.TblType_Name = 'Hauptadresse'
     ) TblState_Name,
+    (select vCA.TblAddress_Region from {{ ConsumerAcronym }}_SettingConsumer.viewContactAddress vCA
+        where tP.Id = vCA.TblPerson_Id
+        and vCA.TblType_Name = 'Hauptadresse'
+    ) TblAddress_Region,
 
     (select vCA.TblAddress_Nation from {{ ConsumerAcronym }}_SettingConsumer.viewContactAddress vCA
         where tP.Id = vCA.TblPerson_Id
@@ -89,6 +93,13 @@ SELECT
         LIMIT 0, 1
     ) TblState_Name2,
 
+
+    (select vCA.TblAddress_Region from {{ ConsumerAcronym }}_SettingConsumer.viewContactAddress vCA
+        where tP.Id = vCA.TblPerson_Id
+        and vCA.TblType_Name = 'Zweit-/Nebenadresse'
+        LIMIT 0, 1
+    ) TblAddress_Region2,
+
     (select vCA.TblAddress_Nation from {{ ConsumerAcronym }}_SettingConsumer.viewContactAddress vCA
         where tP.Id = vCA.TblPerson_Id
         and vCA.TblType_Name = 'Zweit-/Nebenadresse'
@@ -139,14 +150,14 @@ SELECT
     (select group_concat(concat(vCP.TblPhone_Number) separator ';\n')
         from {{ ConsumerAcronym }}_SettingConsumer.viewContactPhone vCP
         where tP.Id = vCP.TblPerson_Id
-        and vCP.TblType_Name = 'Notfall'
+        and vCP.TblType_Is_Emergency_Contact = 1
         and vCP.TblType_Description = 'Festnetz'
     ) TblPhone_Number_NF,
 
     (select group_concat(concat(vCP.TblPhone_Number) separator ';\n')
         from {{ ConsumerAcronym }}_SettingConsumer.viewContactPhone vCP
         where tP.Id = vCP.TblPerson_Id
-        and vCP.TblType_Name = 'Notfall'
+        and vCP.TblType_Is_Emergency_Contact = 1
         and vCP.TblType_Description = 'Mobil'
     ) TblPhone_Number_NM,
 

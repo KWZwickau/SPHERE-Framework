@@ -290,6 +290,24 @@ class Display extends Extension implements ITemplateInterface
         $this->Template->setVariable('BreadcrumbModule', $this->ModuleBreadcrumb);
         $this->Template->setVariable('NavigationService', implode('', $this->ServiceNavigation));
 
+        $tblAccount = Account::useService()->getAccountBySession();
+        $tblConsumer = Consumer::useService()->getConsumerBySession();
+        $UpdateDate = $tblConsumer->getEntityUpdate();
+        // Anzeige nur eingeloggt
+        if($tblAccount){
+            // Anzeige ab Datum anzeigen (ältere Datenabgleiche nicht bekannt)
+            if($UpdateDate >= new \DateTime('01.10.2024')) {
+                // Wo darf die Anzeige abgebildet werden: Server DEMO / Entwicklerumgebungen
+                switch (strtolower($this->getRequest()->getHost())) {
+                    case 'demo.schulsoftware.schule':
+                    case '192.168.109.128':
+                        $this->Template->setVariable('ConsumerUpdate', '<i>- Stand: '.$UpdateDate->format('d.m.Y').'</i>');
+                        break;
+                }
+            }
+        }
+
+
         $Debug = $this->getDebugger();
         $Runtime = $Debug->getRuntime();
 
@@ -427,7 +445,7 @@ class Display extends Extension implements ITemplateInterface
             case 'nightly.schulsoftware.schule':
             case 'nightly.kreda.schule':
                 $BrandTitle = '<a class="navbar-brand-icon" href="/">
-                <img src="/Common/Style/Resource/Schulsoftware-font.svg" alt="Schulsottware" style="height: 40px">
+                <img src="/Common/Style/Resource/Schulsoftware-font_dev_r.svg" alt="Schulsottware" style="height: 40px">
                 </a><a class="navbar-brand" href="/">
                 <span class="text-danger">Nightly</span></a>';
                 $this->Template->setVariable('RoadmapVersion', $VersionPreview ? $VersionPreview : 'Roadmap');
@@ -436,16 +454,17 @@ class Display extends Extension implements ITemplateInterface
                 $BrandTitle = '<a class="navbar-brand-icon" href="/">
                 <img src="/Common/Style/Resource/Schulsoftware-font_dev_g.svg" alt="Schulsottware" style="height: 40px">
                 </a><a class="navbar-brand" href="/">
-                <span class="text-warning" style="padding-top: 11px">'.$this->getRequest()->getHost().'
+                <span class="text-warning" style="padding-top: 11px;">'.$this->getRequest()->getHost().'
                 </span></a>';
                 $this->Template->setVariable('RoadmapVersion', 'Roadmap');
                 break;
-            case '192.168.37.128':
+            case '192.168.109.128':
+            case '192.168.150.128':
                 $BrandTitle = '<a class="navbar-brand-icon" href="/">
-                <img src="/Common/Style/Resource/Schulsoftware-font_dev_b.svg" alt="Schulsottware" style="height: 40px">
+                <img src="/Common/Style/Resource/Schulsoftware-font_dev_o.svg" alt="Schulsottware" style="height: 40px">
                 </a><a class="navbar-brand" href="/">
-                <span class="text-primary" style="padding-top: 11px">'.$this->getRequest()->getHost().'
-                </span></a>';
+                <span style="padding-top: 11px; color: #ff9944">'.$this->getRequest()->getHost().'
+                </span></a>';   // class="text-primary"
                 $this->Template->setVariable('RoadmapVersion', 'Roadmap');
                 break;
             default:

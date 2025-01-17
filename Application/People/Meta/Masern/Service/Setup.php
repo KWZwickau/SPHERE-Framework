@@ -3,9 +3,8 @@ namespace SPHERE\Application\People\Meta\Masern\Service;
 
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
-use Doctrine\DBAL\Types\Type;
+use Doctrine\DBAL\Types\Types;
 use SPHERE\System\Database\Binding\AbstractSetup;
-use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Setup
@@ -55,9 +54,9 @@ class Setup extends AbstractSetup
 
         $Table = $this->getConnection()->createTable($Schema, 'tblPersonMasern');
         $this->createColumn($Table, 'serviceTblPerson', self::FIELD_TYPE_BIGINT);
-        $this->createColumn($Table, 'MasernDate', Type::DATETIME, true);
-        $this->createColumn($Table, 'MasernDocumentType', Type::BIGINT, true);
-        $this->createColumn($Table, 'MasernCreatorType', Type::BIGINT, true);
+        $this->createColumn($Table, 'MasernDate', self::FIELD_TYPE_DATETIME, true);
+        $this->createColumn($Table, 'MasernDocumentType', self::FIELD_TYPE_BIGINT, true);
+        $this->createColumn($Table, 'MasernCreatorType', self::FIELD_TYPE_BIGINT, true);
 
         return $Table;
     }

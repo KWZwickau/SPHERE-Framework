@@ -77,7 +77,7 @@ class FrontendStudentGeneral extends FrontendReadOnly
     {
 
         if (($tblPerson = Person::useService()->getPersonById($PersonId))) {
-            $billingSiblingRank = '';
+//            $billingSiblingRank = '';
 
             $lockerNumber = '';
             $lockerLocation = '';
@@ -94,9 +94,9 @@ class FrontendStudentGeneral extends FrontendReadOnly
             $transportIsDriverStudent = '';
 
             if (($tblStudent = Student::useService()->getStudentByPerson($tblPerson))) {
-                if (($tblStudentBilling = $tblStudent->getTblStudentBilling())) {
-                    $billingSiblingRank = $tblStudentBilling->getServiceTblSiblingRank() ? $tblStudentBilling->getServiceTblSiblingRank()->getName() : '';
-                }
+//                if (($tblStudentBilling = $tblStudent->getTblStudentBilling())) {
+//                    $billingSiblingRank = $tblStudentBilling->getServiceTblSiblingRank() ? $tblStudentBilling->getServiceTblSiblingRank()->getName() : '';
+//                }
 
                 if (($tblStudentLocker = $tblStudent->getTblStudentLocker())) {
                     $lockerNumber = $tblStudentLocker->getLockerNumber();
@@ -144,15 +144,15 @@ class FrontendStudentGeneral extends FrontendReadOnly
             $content = new Layout(new LayoutGroup(array(
                 new LayoutRow(array(
                     new LayoutColumn(array(
-                        FrontendReadOnly::getSubContent(
-                            'Geschwisterkind',
-                            new Layout(new LayoutGroup(array(
-                                new LayoutRow(array(
-//                                    self::getLayoutColumnLabel('Geschwisterkind', 6),
-                                    self::getLayoutColumnValue($billingSiblingRank, 12),
-                                ))
-                            )))
-                        ),
+//                        FrontendReadOnly::getSubContent(
+//                            'Geschwisterkind',
+//                            new Layout(new LayoutGroup(array(
+//                                new LayoutRow(array(
+////                                    self::getLayoutColumnLabel('Geschwisterkind', 6),
+//                                    self::getLayoutColumnValue($billingSiblingRank, 12),
+//                                ))
+//                            )))
+//                        ),
                         FrontendReadOnly::getSubContent(
                             'Schließfach',
                             new Layout(new LayoutGroup(array(
@@ -273,11 +273,11 @@ class FrontendStudentGeneral extends FrontendReadOnly
                     $Global->POST['Meta']['Transport']['Remark'] = $tblStudentTransport->getRemark();
                 }
 
-                if ($tblStudentBilling = $tblStudent->getTblStudentBilling()) {
-                    if ($tblStudentBilling->getServiceTblSiblingRank()) {
-                        $Global->POST['Meta']['Billing'] = $tblStudentBilling->getServiceTblSiblingRank()->getId();
-                    }
-                }
+//                if ($tblStudentBilling = $tblStudent->getTblStudentBilling()) {
+//                    if ($tblStudentBilling->getServiceTblSiblingRank()) {
+//                        $Global->POST['Meta']['Billing'] = $tblStudentBilling->getServiceTblSiblingRank()->getId();
+//                    }
+//                }
 
                 if (($tblStudentLiberationAll = Student::useService()->getStudentLiberationAllByStudent($tblStudent))) {
                     foreach ($tblStudentLiberationAll as $tblStudentLiberation) {
@@ -337,10 +337,10 @@ class FrontendStudentGeneral extends FrontendReadOnly
             new FormGroup(array(
                 new FormRow(array(
                     new FormColumn(array(
-                        new Panel('Geschwisterkind', array(
-                            new SelectBox('Meta[Billing]', '', array('{{Name}}' => Relationship::useService()->getSiblingRankAll()),
-                                new Child()),
-                        ), Panel::PANEL_TYPE_INFO),
+//                        new Panel('Geschwisterkind', array(
+//                            new SelectBox('Meta[Billing]', '', array('{{Name}}' => Relationship::useService()->getSiblingRankAll()),
+//                                new Child()),
+//                        ), Panel::PANEL_TYPE_INFO),
                         new Panel('Schließfach', array(
                             new TextField('Meta[Additional][Locker][Number]', 'Schließfachnummer', 'Schließfachnummer',
                                 new Lock()),

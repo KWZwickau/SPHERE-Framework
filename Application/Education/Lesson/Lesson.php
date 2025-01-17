@@ -2,7 +2,7 @@
 namespace SPHERE\Application\Education\Lesson;
 
 use SPHERE\Application\Education\Lesson\Course\Course;
-use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\IApplicationInterface;
@@ -24,10 +24,11 @@ class Lesson implements IApplicationInterface
 
         Subject::registerModule();
         Term::registerModule();
-        Division::registerModule();
+//        Division::registerModule();
         if (School::useService()->hasConsumerTechnicalSchool()){
             Course::registerModule();
         }
+        DivisionCourse::registerModule();
 
         Main::getDisplay()->addApplicationNavigation(
             new Link(new Link\Route(__NAMESPACE__), new Link\Name('Unterricht'))
@@ -42,7 +43,6 @@ class Lesson implements IApplicationInterface
      */
     public function frontendDashboard()
     {
-
         $Stage = new Stage('Dashboard', 'Unterricht');
 
         return $Stage;

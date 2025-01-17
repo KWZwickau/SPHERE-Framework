@@ -5,6 +5,7 @@ use SPHERE\Application\Api\Contact\ApiAddressToCompany;
 use SPHERE\Application\Api\Contact\ApiAddressToPerson;
 use SPHERE\Application\Api\Contact\ApiContactDetails;
 use SPHERE\Application\Contact\Address\Service\Entity\TblAddress;
+use SPHERE\Application\Contact\Address\Service\Entity\TblCity;
 use SPHERE\Application\Contact\Address\Service\Entity\TblState;
 use SPHERE\Application\Contact\Address\Service\Entity\TblToPerson;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
@@ -45,6 +46,7 @@ use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Link\Repository\Primary as PrimaryLink;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
+use SPHERE\Common\Frontend\Text\Repository\Italic;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\System\Extension\Extension;
@@ -107,8 +109,9 @@ class Frontend extends Extension implements IFrontendInterface
                 if ($tblToPerson->getTblAddress()->getTblState()) {
                     $Global->POST['State'] = $tblToPerson->getTblAddress()->getTblState()->getId();
                 }
-                $Global->POST['County'] = $tblToPerson->getTblAddress()->getCounty();
-                $Global->POST['Nation'] = $tblToPerson->getTblAddress()->getNation();
+                $Global->POST['Region'] = $tblAddress->getRegion();
+                $Global->POST['County'] = $tblAddress->getCounty();
+                $Global->POST['Nation'] = $tblAddress->getNation();
 
                 $Global->savePost();
             }
@@ -127,7 +130,7 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
-        $tblViewAddressToPersonAll = Address::useService()->getViewAddressToPersonAll();
+        list($StreetNameList, $CountyList, $NationList, $CityList, $CodeList, $DistrictList) = Address::useService()->getAddressForAutoCompleter();
         $tblState = Address::useService()->getStateAll();
         array_push($tblState, new TblState(''));
         $tblType = Address::useService()->getTypeAll();
@@ -140,48 +143,50 @@ class Frontend extends Extension implements IFrontendInterface
                 ->ajaxPipelineOnClick(ApiAddressToPerson::pipelineCreateAddressToPersonSave($PersonId, $OnlineContactId));
         }
 
+        $leftPanel = new Panel('Anschrift', array(
+            (new SelectBox('Type[Type]', 'Typ', array('{{ Name }} {{ Description }}' => $tblType),
+                new TileBig(), true))
+                ->setRequired()
+                ->ajaxPipelineOnChange(ApiAddressToPerson::pipelineLoadRelationshipsContent($PersonId,
+                    $isOnlineContactPosted && $tblOnlineContact ? $OnlineContactId : null)),
+            (new AutoCompleter('Street[Name]', 'Straße', 'Straße', $StreetNameList, new MapMarker()
+            ))->setRequired(),
+            (new TextField('Street[Number]', 'Hausnummer', 'Hausnummer', new MapMarker()))->setRequired()
+        ), Panel::PANEL_TYPE_INFO);
+
+        $centerPanelContent[] = (new AutoCompleter('City[Code]', 'Postleitzahl', 'Postleitzahl', $CodeList, new MapMarker()))->setRequired();
+        $centerPanelContent[] = (new AutoCompleter('City[Name]', 'Ort', 'Ort', $CityList, new MapMarker()))->setRequired();
+        $centerPanelContent[] = new AutoCompleter('City[District]', 'Ortsteil', 'Ortsteil', $DistrictList, new MapMarker());
+        $centerPanelContent[] = new AutoCompleter('County', 'Landkreis', 'Landkreis', $CountyList, new Map());
+        $centerPanelContent[] = new SelectBox('State', 'Bundesland', array('Name' => $tblState), new Map());
+        $centerPanelContent[] = new AutoCompleter('Nation', 'Land', 'Land', $NationList, new Map());
+        $centerPanel = new Panel('Stadt', $centerPanelContent, Panel::PANEL_TYPE_INFO);
+
+        if($setPost && isset($tblToPerson) && $tblToPerson && isset($tblAddress)){
+            // Verwendbar nur bei vorhandenen Bezirken
+            if(($tblCity = $tblAddress->getTblCity()) && ($tblRegionList = Address::useService()->getRegionListByCode($tblCity->getCode()))){
+                $RegionList = array();
+                foreach ($tblRegionList as $tblRegion){
+                    $RegionList[] = $tblRegion->getName();
+                }
+                $tblRegionAll = Address::useService()->getRegionAll();
+                $rightPanelContent[] = new AutoCompleter('Region', 'Bezirk', implode(', ', $RegionList), array('Name' => $tblRegionAll), new Map());
+            }
+        }
+        $rightPanelContent[] = new TextArea('Type[Remark]', 'Bemerkungen', 'Bemerkungen', new Edit());
+        $rightPanel = new Panel('Sonstiges', $rightPanelContent, Panel::PANEL_TYPE_INFO);
+
         return (new Form(
             new FormGroup(array(
                 new FormRow(array(
                     new FormColumn(
-                        new Panel('Anschrift', array(
-                            (new SelectBox('Type[Type]', 'Typ', array('{{ Name }} {{ Description }}' => $tblType),
-                                new TileBig(), true))
-                                ->setRequired()
-                                ->ajaxPipelineOnChange(ApiAddressToPerson::pipelineLoadRelationshipsContent($PersonId,
-                                    $isOnlineContactPosted && $tblOnlineContact ? $OnlineContactId : null)),
-                            (new AutoCompleter('Street[Name]', 'Straße', 'Straße',
-                                array('AddressStreetName' => $tblViewAddressToPersonAll), new MapMarker()
-                            ))->setRequired(),
-                                (new TextField('Street[Number]', 'Hausnummer', 'Hausnummer', new MapMarker()))->setRequired()
-                        ), Panel::PANEL_TYPE_INFO)
+                        $leftPanel
                         , 4),
                     new FormColumn(
-                        new Panel('Stadt', array(
-                            (new AutoCompleter('City[Code]', 'Postleitzahl', 'Postleitzahl',
-                                array('CityCode' => $tblViewAddressToPersonAll), new MapMarker()
-                            ))->setRequired(),
-                            (new AutoCompleter('City[Name]', 'Ort', 'Ort',
-                                array('CityName' => $tblViewAddressToPersonAll), new MapMarker()
-                            ))->setRequired(),
-                            new AutoCompleter('City[District]', 'Ortsteil', 'Ortsteil',
-                                array('CityDistrict' => $tblViewAddressToPersonAll), new MapMarker()
-                            ),
-                            new AutoCompleter('County', 'Landkreis', 'Landkreis',
-                                array('AddressCounty' => $tblViewAddressToPersonAll), new Map()
-                            ),
-                            new SelectBox('State', 'Bundesland',
-                                array('Name' => $tblState), new Map()
-                            ),
-                            new AutoCompleter('Nation', 'Land', 'Land',
-                                array('AddressNation' => $tblViewAddressToPersonAll), new Map()
-                            ),
-                        ), Panel::PANEL_TYPE_INFO)
+                        $centerPanel
                         , 4),
                     new FormColumn(
-                        new Panel('Sonstiges', array(
-                            new TextArea('Type[Remark]', 'Bemerkungen', 'Bemerkungen', new Edit())
-                        ), Panel::PANEL_TYPE_INFO)
+                        $rightPanel
                         , 4),
                 )),
                 new FormRow(array(
@@ -242,7 +247,7 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
-        $tblViewAddressToCompanyAll = Address::useService()->getViewAddressToCompanyAll();
+        $tblAddressAll = Address::useService()->getAddressAll();
         $tblState = Address::useService()->getStateAll();
         array_push($tblState, new TblState(''));
         $tblType = Address::useService()->getTypeAll();
@@ -254,7 +259,6 @@ class Frontend extends Extension implements IFrontendInterface
             $saveButton = (new PrimaryLink('Speichern', ApiAddressToCompany::getEndpoint(), new Save()))
                 ->ajaxPipelineOnClick(ApiAddressToCompany::pipelineCreateAddressToCompanySave($CompanyId));
         }
-
         return (new Form(
             new FormGroup(array(
                 new FormRow(array(
@@ -263,7 +267,7 @@ class Frontend extends Extension implements IFrontendInterface
                             (new SelectBox('Type[Type]', 'Typ', array('{{ Name }} {{ Description }}' => $tblType),
                                 new TileBig(), true))->setRequired(),
                             (new AutoCompleter('Street[Name]', 'Straße', 'Straße',
-                                array('AddressStreetName' => $tblViewAddressToCompanyAll), new MapMarker()
+                                array('StreetName' => $tblAddressAll), new MapMarker()
                             ))->setRequired(),
                             (new TextField('Street[Number]', 'Hausnummer', 'Hausnummer', new MapMarker()))->setRequired()
                         ), Panel::PANEL_TYPE_INFO)
@@ -271,22 +275,22 @@ class Frontend extends Extension implements IFrontendInterface
                     new FormColumn(
                         new Panel('Stadt', array(
                             (new AutoCompleter('City[Code]', 'Postleitzahl', 'Postleitzahl',
-                                array('CityCode' => $tblViewAddressToCompanyAll), new MapMarker()
+                                array('CodeString' => $tblAddressAll), new MapMarker()
                             ))->setRequired(),
                             (new AutoCompleter('City[Name]', 'Ort', 'Ort',
-                                array('CityName' => $tblViewAddressToCompanyAll), new MapMarker()
+                                array('CityString' => $tblAddressAll), new MapMarker()
                             ))->setRequired(),
                             new AutoCompleter('City[District]', 'Ortsteil', 'Ortsteil',
-                                array('CityDistrict' => $tblViewAddressToCompanyAll), new MapMarker()
+                                array('DistrictString' => $tblAddressAll), new MapMarker()
                             ),
                             new AutoCompleter('County', 'Landkreis', 'Landkreis',
-                                array('AddressCounty' => $tblViewAddressToCompanyAll), new Map()
+                                array('County' => $tblAddressAll), new Map()
                             ),
                             new SelectBox('State', 'Bundesland',
                                 array('Name' => $tblState), new Map()
                             ),
                             new AutoCompleter('Nation', 'Land', 'Land',
-                                array('AddressNation' => $tblViewAddressToCompanyAll), new Map()
+                                array('Nation' => $tblAddressAll), new Map()
                             ),
                         ), Panel::PANEL_TYPE_INFO)
                         , 4),
@@ -413,7 +417,12 @@ class Frontend extends Extension implements IFrontendInterface
                                 $hasOnlineContactsOptions = false;
                             }
 
-                            $content[] = $tblAddress->getGuiLayout();
+                            $Address = $tblAddress->getStreetName().' '.$tblAddress->getStreetNumber().' '.$tblAddress->getPostOfficeBox();
+                            if(($tblCity = $tblAddress->getTblCity())){
+                                $Address .= new Container($tblCity->getCode().' '.$tblCity->getDisplayName().' '.new Italic($tblAddress->getRegionString()));
+                                $Address .= new Container($tblAddress->getLocation());
+                            }
+                            $content[] = $Address;
                             /**
                              * @var TblToPerson $tblToPersonTemp
                              */

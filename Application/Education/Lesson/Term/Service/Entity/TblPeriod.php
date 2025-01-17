@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\Education\Lesson\Term\Service\Entity;
 
+use DateTime;
 use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
@@ -72,9 +73,9 @@ class TblPeriod extends Element
         if (null === $this->FromDate) {
             return false;
         }
-        /** @var \DateTime $From */
+        /** @var DateTime $From */
         $From = $this->FromDate;
-        if ($From instanceof \DateTime) {
+        if ($From instanceof DateTime) {
             return $From->format('d.m.Y');
         } else {
             return (string)$From;
@@ -82,9 +83,17 @@ class TblPeriod extends Element
     }
 
     /**
-     * @param null|\DateTime $FromDate
+     * @return DateTime|null
      */
-    public function setFromDate(\DateTime $FromDate = null)
+    public function getFromDateTime(): ?DateTime
+    {
+        return $this->FromDate;
+    }
+
+    /**
+     * @param null|DateTime $FromDate
+     */
+    public function setFromDate(DateTime $FromDate = null)
     {
 
         $this->FromDate = $FromDate;
@@ -99,9 +108,9 @@ class TblPeriod extends Element
         if (null === $this->ToDate) {
             return false;
         }
-        /** @var \DateTime $To */
+        /** @var DateTime $To */
         $To = $this->ToDate;
-        if ($To instanceof \DateTime) {
+        if ($To instanceof DateTime) {
             return $To->format('d.m.Y');
         } else {
             return (string)$To;
@@ -109,9 +118,17 @@ class TblPeriod extends Element
     }
 
     /**
-     * @param null|\DateTime $ToDate
+     * @return DateTime|null
      */
-    public function setToDate(\DateTime $ToDate = null)
+    public function getToDateTime(): ?DateTime
+    {
+        return $this->ToDate;
+    }
+
+    /**
+     * @param null|DateTime $ToDate
+     */
+    public function setToDate(DateTime $ToDate = null)
     {
 
         $this->ToDate = $ToDate;

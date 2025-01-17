@@ -9,6 +9,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
+use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Holiday;
 use SPHERE\Common\Frontend\Icon\Repository\Upload;
@@ -18,6 +19,7 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\External;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Warning;
@@ -96,6 +98,7 @@ class Frontend extends Extension implements IFrontendInterface
     {
         $Stage = new Stage('Import', 'Unterrichtsfreie Zeiträume');
         $Stage->addButton(new Standard('Zurück', new Link\Route(__NAMESPACE__ . '\Holiday'), new ChevronLeft()));
+        $Stage->addButton(new External('Importvorlage', '/Api/Transfer/Standard/DownloadTemplateHoliday', new Download(), array(), false));
 
         $Stage->setContent(
             new Layout(

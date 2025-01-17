@@ -1,7 +1,10 @@
 <?php
 namespace SPHERE\Application\Setting\Univention;
 
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblIdentification;
 use SPHERE\Application\Setting\Univention\Service\Entity\TblUnivention;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 
 class UniventionUser
@@ -73,18 +76,19 @@ class UniventionUser
      * @param array  $schools
      * @param array  $school_classes
      * @param string $recoveryMail
+     * @param string $schoolCode
      *
      * @return string|null
      */
     public function createUser($name = '', $email = '', $firstname = '', $lastname = '', $record_uid = '', $roles = array(),
-        $schools = array(), $school_classes = array(), $recoveryMail = '')
+        $schools = array(), $school_classes = array(), $recoveryMail = '', $schoolCode = '')
     {
         curl_reset($this->curlhandle);
 
         $PersonContent = array(
             'name' => $name,
 //            'mailPrimaryAddress' => $email,
-            'email' => $email,
+            'email' => $email?: null,
             'firstname' => $firstname,
             'lastname' => $lastname,
             // AccountId
@@ -92,7 +96,10 @@ class UniventionUser
             'roles' => $roles,
             'schools' => $schools,
             'school_classes' => $school_classes,
-            'udm_properties' => array("PasswordRecoveryEmail" => $recoveryMail)
+            'udm_properties' => array(
+                "PasswordRecoveryEmail" => $recoveryMail?: null,
+                "DllpDienststellenschluessel" => $schoolCode
+            )
 //            'udm_properties' => array('pwdChangeNextLogin' => true),
 //            'kelvin_password_hashes' => array(
 //                'user_password' => array($password),
@@ -104,6 +111,7 @@ class UniventionUser
             // Mandant + AccountId
 //            'source_uid' => $source_uid // kann raus, ist nur für den CSV Import wichtig
         );
+        $UserData = $PersonContent;
         $PersonContent = json_encode($PersonContent);
 //        echo'<pre>';
 //        echo 'Gesendete Daten:';
@@ -160,17 +168,42 @@ class UniventionUser
         // Object to Array
         $StdClassArray = json_decode($Json, true);
         $Error = null;
-        if(isset($StdClassArray['detail'])){
-            if(is_string($StdClassArray['detail'])){
-                $Error = new Bold($name.': ').$StdClassArray['detail'];
-            }elseif(is_array($StdClassArray['detail'])){
-                $Error = '';
-                foreach($StdClassArray['detail'] as $Detail){
-                    if($Detail['msg']){
-                        $Error .= new Bold($name.': ').$Detail['msg'];
+        try{
+            if(isset($StdClassArray['detail'])){
+                if(is_string($StdClassArray['detail'])){
+                    $Error = new Bold($name.': ').$StdClassArray['detail'];
+                }elseif(is_array($StdClassArray['detail'])){
+                    $Error = '';
+                    foreach($StdClassArray['detail'] as $Detail){
+                        if($Detail['msg']){
+                            $loc = '';
+                            if ($Detail['loc']) {
+                                $loc = is_array($Detail['loc']) ? implode('; ', $Detail['loc']) : $Detail['loc'];
+                            }
+                            $Error .= new Bold($name.'-> '). $loc. ':'. (is_array($Detail['msg']) ? implode('; ', $Detail['msg']) : $Detail['msg']);
+                        }
                     }
                 }
             }
+        } catch (\Exception $e) {
+            $Error = $e;
+            $Error .= new Container($Json);
+            return $Error;
+        }
+        if($Error !== null
+            && ($tblAccount = Account::useService()->getAccountBySession())
+            && $tblAccount->getHasAuthentication(TblIdentification::NAME_SYSTEM)
+        ) {
+            $Error .= '<pre>'.print_r($UserData, true).'</pre>';
+        } elseif($Error !== null) {
+            $Error .= '<pre>'.print_r(array(
+                    'record_uid'  => $UserData['record_uid'],
+                    'AccountName' => $UserData['name'],
+                    'Vorname'     => $UserData['firstname'],
+                    'Nachname'    => $UserData['lastname'],
+                    'User-Email'  => $UserData['email'],
+                    'Reco-Email'  => $UserData['udm_properties']['PasswordRecoveryEmail']
+                ), true).'</pre>';
         }
 
         return $Error;
@@ -186,11 +219,12 @@ class UniventionUser
      * @param array  $schools
      * @param array  $school_classes
      * @param string $recoveryMail
+     * @param string $schoolCode
      *
      * @return string|null
      */
     public function updateUser($name = '', $email = '', $firstname = '', $lastname = '', $record_uid = '', $roles = array(),
-        $schools = array(), $school_classes = array(), $recoveryMail = '')
+        $schools = array(), $school_classes = array(), $recoveryMail = '', $schoolCode = '')
     {
         curl_reset($this->curlhandle);
 
@@ -202,7 +236,7 @@ class UniventionUser
         // keine reaktion der API auf dieses Feld
 //            'mailPrimaryAddress' => $email,
         // letze Info email = mailPrimaryAddress,
-            'email' => $email,
+            'email' => $email?: null,
             // Weiteres E-Mail feld, welches als UDM Propertie zurück kommt ("e-mail") ist aber ein Array und für unsere Zwecke nicht zu verwenden
 //            'mail' => $email,
             'firstname' => $firstname,
@@ -215,16 +249,21 @@ class UniventionUser
             'school' => $school, // one school
             'schools' => $schools, // array school
             'school_classes' => $school_classes,
-            'udm_properties' => array("PasswordRecoveryEmail" => $recoveryMail)
+            'udm_properties' => array(
+                "PasswordRecoveryEmail" => $recoveryMail?: null,
+                "DllpDienststellenschluessel" => $schoolCode
+            )
             // Mandant + AccountId to human resolve problems?
 //            'source_uid' => $source_uid
         );
+        $UserData = $PersonContent;
 
 //        Debugger::devDump($PersonContent);
 
         $PersonContent = json_encode($PersonContent);
 //        $PersonContent = http_build_query($PersonContent);
 
+//        if('REF-Lehrer1' != $name)
 //        Debugger::devDump($PersonContent);
 
         curl_setopt_array($this->curlhandle, array(
@@ -274,17 +313,42 @@ class UniventionUser
         // Object to Array
         $StdClassArray = json_decode($Json, true);
         $Error = null;
-        if(isset($StdClassArray['detail'])){
-            if(is_string($StdClassArray['detail'])){
-                $Error = new Bold($name.': ').$StdClassArray['detail'];
-            }elseif(is_array($StdClassArray['detail'])){
-                $Error = '';
-                foreach($StdClassArray['detail'] as $Detail){
-                    if($Detail['msg']){
-                        $Error .= new Bold($name.'-> ').$Detail['loc'].':'.$Detail['msg'];
+        try{
+            if(isset($StdClassArray['detail'])){
+                if(is_string($StdClassArray['detail'])){
+                    $Error = new Bold($name.': ').$StdClassArray['detail'];
+                }elseif(is_array($StdClassArray['detail'])){
+                    $Error = '';
+                    foreach($StdClassArray['detail'] as $Detail){
+                        if($Detail['msg']){
+                            $loc = '';
+                            if ($Detail['loc']) {
+                                $loc = is_array($Detail['loc']) ? implode('; ', $Detail['loc']) : $Detail['loc'];
+                            }
+                            $Error .= new Bold($name.'-> '). $loc. ':'. (is_array($Detail['msg']) ? implode('; ', $Detail['msg']) : $Detail['msg']);
+                        }
                     }
                 }
             }
+        } catch (\Exception $e) {
+            $Error = $e;
+            $Error .= new Container($Json);
+            return $Error;
+        }
+        if($Error !== null
+            && ($tblAccount = Account::useService()->getAccountBySession())
+            && $tblAccount->getHasAuthentication(TblIdentification::NAME_SYSTEM)
+        ) {
+            $Error .= '<pre>'.print_r($UserData, true).'</pre>';
+        } elseif($Error !== null) {
+            $Error .= '<pre>'.print_r(array(
+                    'record_uid'  => $UserData['record_uid'],
+                    'AccountName' => $UserData['name'],
+                    'Vorname'     => $UserData['firstname'],
+                    'Nachname'    => $UserData['lastname'],
+                    'User-Email'  => $UserData['email'],
+                    'Reco-Email'  => $UserData['udm_properties']['PasswordRecoveryEmail']
+                ), true).'</pre>';
         }
 
         return $Error;
@@ -330,17 +394,23 @@ class UniventionUser
         // Object to Array
         $StdClassArray = json_decode($Json, true);
         $Error = null;
-        if(isset($StdClassArray['detail'])){
-            if(is_string($StdClassArray['detail'])){
-                $Error = new Bold($AccountName.': ').$StdClassArray['detail'];
-            }elseif(is_array($StdClassArray['detail'])){
-                $Error = '';
-                foreach($StdClassArray['detail'] as $Detail){
-                    if($Detail['msg']){
-                        $Error .= new Bold($AccountName.': ').$Detail['msg'];
+        try{
+            if(isset($StdClassArray['detail'])){
+                if(is_string($StdClassArray['detail'])){
+                    $Error = new Bold($AccountName.': ').$StdClassArray['detail'];
+                }elseif(is_array($StdClassArray['detail'])){
+                    $Error = '';
+                    foreach($StdClassArray['detail'] as $Detail){
+                        if($Detail['msg']){
+                            $Error .= new Bold($AccountName.'-> ').$Detail['loc'].':'.$Detail['msg'];
+                        }
                     }
                 }
             }
+        } catch (\Exception $e) {
+            $Error = $e;
+            $Error .= new Container($Json);
+            return $Error;
         }
 
         return $Error;
@@ -370,17 +440,23 @@ class UniventionUser
         // Object to Array
         $StdClassArray = json_decode($Json, true);
         $Error = null;
-        if(isset($StdClassArray['detail'])){
-            if(is_string($StdClassArray['detail'])){
-                $Error = $name.' - '.$StdClassArray['detail'];
-            }elseif(is_array($StdClassArray['detail'])){
-                $Error = '';
-                foreach($StdClassArray['detail'] as $Detail){
-                    if($Detail['msg']){
-                        $Error .= $name.' - '.$Detail['msg'];
+        try{
+            if(isset($StdClassArray['detail'])){
+                if(is_string($StdClassArray['detail'])){
+                    $Error = new Bold($name.': ').$StdClassArray['detail'];
+                }elseif(is_array($StdClassArray['detail'])){
+                    $Error = '';
+                    foreach($StdClassArray['detail'] as $Detail){
+                        if($Detail['msg']){
+                            $Error .= new Bold($name.'-> ').$Detail['loc'].':'.$Detail['msg'];
+                        }
                     }
                 }
             }
+        } catch (\Exception $e) {
+            $Error = $e;
+            $Error .= new Container($Json);
+            return $Error;
         }
 
         return $Error;

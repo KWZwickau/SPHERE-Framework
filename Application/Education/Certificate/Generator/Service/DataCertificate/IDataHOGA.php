@@ -4,7 +4,7 @@ namespace SPHERE\Application\Education\Certificate\Generator\Service\DataCertifi
 
 use SPHERE\Application\Education\Certificate\Generator\Service\Data;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificate;
-use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 
@@ -42,6 +42,9 @@ class IDataHOGA
             self::setFosJ($Data, $tblConsumerCertificate);
             self::setFosAbg($Data, $tblConsumerCertificate);
             self::setFosAbs($Data, $tblConsumerCertificate);
+
+            self::setVklbaHjInfo($Data, $tblConsumerCertificate);
+            self::setVklbaJ($Data, $tblConsumerCertificate);
         }
     }
 
@@ -59,21 +62,11 @@ class IDataHOGA
                     $Data->getTblSchoolTypeSecondary(),
                     null, true);
                 if (!$Data->getCertificateLevelAllByCertificate($tblCertificate)){
-                    if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeSecondary(), '5'))){
-                        $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                    }
-                    if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeSecondary(), '6'))){
-                        $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                    }
-                    if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeSecondary(), '7'))){
-                        $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                    }
-                    if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeSecondary(), '8'))){
-                        $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                    }
-                    if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeSecondary(), '9'))){
-                        $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                    }
+                    $Data->createCertificateLevel($tblCertificate, 5);
+                    $Data->createCertificateLevel($tblCertificate, 6);
+                    $Data->createCertificateLevel($tblCertificate, 7);
+                    $Data->createCertificateLevel($tblCertificate, 8);
+                    $Data->createCertificateLevel($tblCertificate, 9);
                 }
             }
             // Kopfnoten
@@ -100,12 +93,8 @@ class IDataHOGA
                 $Data->updateCertificate($tblCertificate, $Data->getTblCertificateTypeHalfYear(),
                     $Data->getTblSchoolTypeSecondary());
                 if (!$Data->getCertificateLevelAllByCertificate($tblCertificate)){
-                    if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeSecondary(), '9'))){
-                        $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                    }
-                    if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeSecondary(), '10'))){
-                        $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                    }
+                    $Data->createCertificateLevel($tblCertificate, 9);
+                    $Data->createCertificateLevel($tblCertificate, 10);
                 }
             }
             // Kopfnoten
@@ -130,21 +119,11 @@ class IDataHOGA
             if ($Data->getTblSchoolTypeSecondary()){
                 $Data->updateCertificate($tblCertificate, $Data->getTblCertificateTypeYear(), $Data->getTblSchoolTypeSecondary());
                 if (!$Data->getCertificateLevelAllByCertificate($tblCertificate)){
-                    if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeSecondary(), '5'))){
-                        $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                    }
-                    if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeSecondary(), '6'))){
-                        $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                    }
-                    if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeSecondary(), '7'))){
-                        $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                    }
-                    if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeSecondary(), '8'))){
-                        $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                    }
-                    if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeSecondary(), '9'))){
-                        $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                    }
+                    $Data->createCertificateLevel($tblCertificate, 5);
+                    $Data->createCertificateLevel($tblCertificate, 6);
+                    $Data->createCertificateLevel($tblCertificate, 7);
+                    $Data->createCertificateLevel($tblCertificate, 8);
+                    $Data->createCertificateLevel($tblCertificate, 9);
                 }
             }
             // Kopfnoten
@@ -183,9 +162,7 @@ class IDataHOGA
             $Data->getTblCourseMain());
         if ($tblCertificate) {
             if (!$Data->getCertificateLevelAllByCertificate($tblCertificate)){
-                if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeSecondary(), '9'))){
-                    $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                }
+                $Data->createCertificateLevel($tblCertificate, 9);
             }
             if (!$Data->getCertificateSubjectAll($tblCertificate)) {
                 self::setCertificateSubjectsStandardMs($tblCertificate, $Data);
@@ -204,9 +181,7 @@ class IDataHOGA
             $Data->getTblCourseMain());
         if ($tblCertificate) {
             if (!$Data->getCertificateLevelAllByCertificate($tblCertificate)){
-                if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeSecondary(), '9'))){
-                    $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                }
+                $Data->createCertificateLevel($tblCertificate, 9);
             }
             if (!$Data->getCertificateSubjectAll($tblCertificate)) {
                 self::setCertificateSubjectsStandardMs($tblCertificate, $Data);
@@ -225,9 +200,7 @@ class IDataHOGA
             $Data->getTblCourseReal());
         if ($tblCertificate) {
             if (!$Data->getCertificateLevelAllByCertificate($tblCertificate)){
-                if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeSecondary(), '10'))){
-                    $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                }
+                $Data->createCertificateLevel($tblCertificate, 10);
             }
             if (!$Data->getCertificateSubjectAll($tblCertificate)) {
                 self::setCertificateSubjectsStandardMs($tblCertificate, $Data);
@@ -289,21 +262,11 @@ class IDataHOGA
             if ($Data->getTblSchoolTypeGym()) {
                 $Data->updateCertificate($tblCertificate, $Data->getTblCertificateTypeHalfYear(), $Data->getTblSchoolTypeGym(), null, true);
                 if (!$Data->getCertificateLevelAllByCertificate($tblCertificate)) {
-                    if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeGym(), '5'))) {
-                        $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                    }
-                    if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeGym(), '6'))) {
-                        $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                    }
-                    if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeGym(), '7'))) {
-                        $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                    }
-                    if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeGym(), '8'))) {
-                        $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                    }
-                    if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeGym(), '9'))) {
-                        $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                    }
+                    $Data->createCertificateLevel($tblCertificate, 5);
+                    $Data->createCertificateLevel($tblCertificate, 6);
+                    $Data->createCertificateLevel($tblCertificate, 7);
+                    $Data->createCertificateLevel($tblCertificate, 8);
+                    $Data->createCertificateLevel($tblCertificate, 9);
                 }
             }
         }
@@ -326,9 +289,7 @@ class IDataHOGA
             if ($Data->getTblSchoolTypeGym()) {
                 $Data->updateCertificate($tblCertificate, $Data->getTblCertificateTypeHalfYear(), $Data->getTblSchoolTypeGym());
                 if (!$Data->getCertificateLevelAllByCertificate($tblCertificate)) {
-                    if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeGym(), '10'))) {
-                        $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                    }
+                    $Data->createCertificateLevel($tblCertificate, 10);
                 }
             }
         }
@@ -352,24 +313,12 @@ class IDataHOGA
             if ($Data->getTblSchoolTypeGym()) {
                 $Data->updateCertificate($tblCertificate, $Data->getTblCertificateTypeYear(), $Data->getTblSchoolTypeGym());
                 if (!$Data->getCertificateLevelAllByCertificate($tblCertificate)) {
-                    if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeGym(), '5'))) {
-                        $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                    }
-                    if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeGym(), '6'))) {
-                        $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                    }
-                    if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeGym(), '7'))) {
-                        $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                    }
-                    if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeGym(), '8'))) {
-                        $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                    }
-                    if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeGym(), '9'))) {
-                        $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                    }
-                    if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeGym(), '10'))) {
-                        $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                    }
+                    $Data->createCertificateLevel($tblCertificate, 5);
+                    $Data->createCertificateLevel($tblCertificate, 6);
+                    $Data->createCertificateLevel($tblCertificate, 7);
+                    $Data->createCertificateLevel($tblCertificate, 8);
+                    $Data->createCertificateLevel($tblCertificate, 9);
+                    $Data->createCertificateLevel($tblCertificate, 10);
                 }
             }
         }
@@ -548,9 +497,7 @@ class IDataHOGA
             if ($Data->getTblSchoolTypeBeruflichesGymnasium()) {
                 $Data->updateCertificate($tblCertificate, $Data->getTblCertificateTypeHalfYear(), $Data->getTblSchoolTypeBeruflichesGymnasium());
                 if (!$Data->getCertificateLevelAllByCertificate($tblCertificate)) {
-                    if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeBeruflichesGymnasium(), '11'))) {
-                        $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                    }
+                    $Data->createCertificateLevel($tblCertificate, 11);
                 }
             }
         }
@@ -571,9 +518,7 @@ class IDataHOGA
             if ($Data->getTblSchoolTypeBeruflichesGymnasium()) {
                 $Data->updateCertificate($tblCertificate, $Data->getTblCertificateTypeYear(), $Data->getTblSchoolTypeBeruflichesGymnasium());
                 if (!$Data->getCertificateLevelAllByCertificate($tblCertificate)) {
-                    if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypeBeruflichesGymnasium(), '11'))) {
-                        $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                    }
+                    $Data->createCertificateLevel($tblCertificate, 11);
                 }
             }
         }
@@ -700,5 +645,53 @@ class IDataHOGA
         $Data->setCertificateSubject($tblCertificate, 'MA', 2, $i++);
         $Data->setCertificateSubject($tblCertificate, 'INF', 2, $i++);
         $Data->setCertificateSubject($tblCertificate, 'ETH', 2, $i++);
+    }
+
+    /**
+     * @param Data        $Data
+     * @param TblConsumer $tblConsumerCertificate
+     */
+    private static function setVklbaHjInfo(Data $Data, TblConsumer $tblConsumerCertificate)
+    {
+        $tblCertificate = $Data->createCertificate('Vorbereitungsklasse Halbjahresinformation', '', 'HOGA\VklbaHjInfo',
+            $tblConsumerCertificate, false, true, false, $Data->getTblCertificateTypeHalfYear(),
+            Type::useService()->getTypeByShortName('VKlbA')
+        );
+        if ($tblCertificate) {
+            if (!$Data->getCertificateSubjectAll($tblCertificate)) {
+                $i = 1;
+                $Data->setCertificateSubject($tblCertificate, 'DE-Z', 1, $i++);
+                $Data->setCertificateSubject($tblCertificate, 'EN', 1, $i++);
+                $Data->setCertificateSubject($tblCertificate, 'LK', 1, $i++);
+
+                $i = 1;
+                $Data->setCertificateSubject($tblCertificate, 'MA', 2, $i++);
+                $Data->setCertificateSubject($tblCertificate, 'SPO', 2, $i++);
+            }
+        }
+    }
+
+    /**
+     * @param Data        $Data
+     * @param TblConsumer $tblConsumerCertificate
+     */
+    private static function setVklbaJ(Data $Data, TblConsumer $tblConsumerCertificate)
+    {
+        $tblCertificate = $Data->createCertificate('Vorbereitungsklasse Jahreszeugnis', '', 'HOGA\VklbaJ',
+            $tblConsumerCertificate, false, false, false, $Data->getTblCertificateTypeYear(),
+            Type::useService()->getTypeByShortName('VKlbA')
+        );
+        if ($tblCertificate) {
+            if (!$Data->getCertificateSubjectAll($tblCertificate)) {
+                $i = 1;
+                $Data->setCertificateSubject($tblCertificate, 'DE-Z', 1, $i++);
+                $Data->setCertificateSubject($tblCertificate, 'EN', 1, $i++);
+                $Data->setCertificateSubject($tblCertificate, 'LK', 1, $i++);
+
+                $i = 1;
+                $Data->setCertificateSubject($tblCertificate, 'MA', 2, $i++);
+                $Data->setCertificateSubject($tblCertificate, 'SPO', 2, $i++);
+            }
+        }
     }
 }

@@ -156,12 +156,12 @@ class Service extends AbstractService
     /**
      * @param IFormInterface $Form
      * @param TblSchool      $tblSchool
-     * @param string         $CompanyNumber
+     * @param array          $Data
      * @param array          $School
      *
      * @return IFormInterface|string
      */
-    public function updateSchool(IFormInterface $Form, TblSchool $tblSchool, $CompanyNumber = '', $School)
+    public function updateSchool(IFormInterface $Form, TblSchool $tblSchool, $Data = array(), $School = array())
     {
         /**
          * Skip to Frontend
@@ -170,11 +170,21 @@ class Service extends AbstractService
             return $Form;
         }
 
-        if ((new Data($this->getBinding()))->updateSchool($tblSchool, $CompanyNumber)) {
-            return new Success('Die Unternehmensnr. des Unfallversicherungsträgers wurde erfolgreich gespeichert')
+        $CompanyNumber = '';
+        if(isset($Data['CompanyNumber']) && !empty($Data['CompanyNumber'])){
+            $CompanyNumber = $Data['CompanyNumber'];;
+        }
+        $SchoolCode = '';
+        if(isset($Data['CompanyNumber']) && !empty($Data['SchoolCode'])){
+            $SchoolCode = $Data['SchoolCode'];;
+        }
+
+
+        if ((new Data($this->getBinding()))->updateSchool($tblSchool, $CompanyNumber, $SchoolCode)) {
+            return new Success('Die Unternehmensnr. des Unfallversicherungsträgers sowie der Dienststellenschlüssel wurde erfolgreich gespeichert')
                 .new Redirect('/Setting/Consumer/School', Redirect::TIMEOUT_SUCCESS);
         }
-        return new Danger('Die Unternehmensnr. des Unfallversicherungsträgers konnte nicht gespeichert werden')
+        return new Danger('Die Unternehmensnr. des Unfallversicherungsträgers sowie der Dienststellenschlüssel konnte nicht gespeichert werden')
             .new Redirect('/Setting/Consumer/School', Redirect::TIMEOUT_ERROR);
     }
 
@@ -233,6 +243,41 @@ class Service extends AbstractService
     }
 
     /**
+     * @return bool
+     */
+    public function hasConsumerSupportSchool()
+    {
+        if (($tblSchoolAll = $this->getSchoolAll())) {
+            foreach($tblSchoolAll as $tblSchool) {
+                if (($tblType = $tblSchool->getServiceTblType())
+                    && $tblType->getName() == TblType::IDENT_ALLGEMEIN_BILDENDE_FOERDERSCHULE
+                ) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * @return bool
+     */
+    public function getIsConsumerSpecialNeedSchool()
+    {
+        if (($tblSchoolAll = $this->getSchoolAll())) {
+            foreach($tblSchoolAll as $tblSchool) {
+                if (($tblType = $tblSchool->getServiceTblType())
+                    && $tblType->getShortName() == 'FöS'
+                ) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * @return TblType[]|false
      */
     public function getConsumerSchoolTypeAll()
@@ -243,6 +288,30 @@ class Service extends AbstractService
                 if (($tblType = $tblSchool->getServiceTblType())
                 ) {
                    $list[$tblType->getShortName()] = $tblType;
+                }
+            }
+
+            return $list;
+        }
+
+        return false;
+    }
+
+    /**
+     * nur allgemeinbildende Schularten
+     *
+     * @return TblType[]|false
+     */
+    public function getConsumerSchoolTypeCommonAll()
+    {
+        if (($tblSchoolAll = $this->getSchoolAll())) {
+            $list = array();
+            foreach($tblSchoolAll as $tblSchool) {
+                if (($tblType = $tblSchool->getServiceTblType())
+                    && ($tblCategory = $tblType->getTblCategory())
+                    && $tblCategory->getIdentifier() == 'COMMON'
+                ) {
+                    $list[$tblType->getShortName()] = $tblType;
                 }
             }
 

@@ -6,6 +6,7 @@ use DateTime;
 use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel;
 use MOC\V\Component\Document\Component\Parameter\Repository\FileParameter;
 use MOC\V\Component\Document\Document;
+use SPHERE\Application\Api\Billing\Invoice\ApiInvoiceIsHistory;
 use SPHERE\Application\Api\Billing\Invoice\ApiInvoiceIsPaid;
 use SPHERE\Application\Billing\Accounting\Debtor\Debtor;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Basket;
@@ -23,8 +24,13 @@ use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
+use SPHERE\Common\Frontend\Icon\Repository\FolderClosed;
+use SPHERE\Common\Frontend\Icon\Repository\FolderOpen;
 use SPHERE\Common\Frontend\Icon\Repository\Info;
 use SPHERE\Common\Frontend\Link\Repository\External;
+use SPHERE\Common\Frontend\Link\Repository\Standard;
+use SPHERE\Common\Frontend\Text\Repository\Muted;
+use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
@@ -83,10 +89,22 @@ class Service extends AbstractService
      *
      * @return bool|TblInvoice[]
      */
-    public function getInvoiceAllByPersonCauserAndTime(TblPerson $tblPerson, $Year = '', $Month = '')
+    public function getInvoiceAllByPersonCauserAndYearAndMonth(TblPerson $tblPerson, $Year = '', $Month = '')
     {
 
-        return (new Data($this->getBinding()))->getInvoiceAllByPersonCauserAndTime($tblPerson, $Year, $Month);
+        return (new Data($this->getBinding()))->getInvoiceAllByPersonCauserAndYearAndMonth($tblPerson, $Year, $Month);
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param string    $Year
+     *
+     * @return bool|TblInvoice[]
+     */
+    public function getInvoiceAllByPersonCauserAndYear(TblPerson $tblPerson, $Year = '')
+    {
+
+        return (new Data($this->getBinding()))->getInvoiceAllByPersonCauserAndYear($tblPerson, $Year);
     }
 
     /**
@@ -111,7 +129,91 @@ class Service extends AbstractService
         if(($tblBasketType = $tblBasket->getTblBasketType())){
             $BasketTypeId = $tblBasketType->getId();
         }
-        if(($tblInvoiceList = $this->getInvoiceAllByPersonCauserAndTime($tblPerson, $Year, $Month))){
+        if(($tblInvoiceList = $this->getInvoiceAllByPersonCauserAndYearAndMonth($tblPerson, $Year, $Month))){
+            foreach($tblInvoiceList as $tblInvoice) {
+                // wird der gleiche Abrechnungstyp gesucht?
+                $IsSameType = false;
+                if(($tempTblBasket = $tblInvoice->getServiceTblBasket())){
+                    if(($tempTblBasketType = $tempTblBasket->getTblBasketType())){
+                        if($BasketTypeId == $tempTblBasketType->getId()){
+                            $IsSameType = true;
+                        }
+                    }
+                }
+                // Doppelte Invoice mit gleichem Abrechnungstyp
+                if($IsSameType && ($tblInvoiceItemDebtorList = Invoice::useService()->getInvoiceItemDebtorByInvoice($tblInvoice))){
+                    foreach($tblInvoiceItemDebtorList as $tblInvoiceItemDebtor) {
+                        if(($tblInvoiceItem = $tblInvoiceItemDebtor->getServiceTblItem())){
+                            if($tblInvoiceItem->getId() == $tblItem->getId()){
+                                $isInvoice = true;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return $isInvoice;
+    }
+
+    /**
+     * @param TblBasket $tblBasket
+     * @param TblPerson $tblPerson
+     * @param TblItem   $tblItem
+     * @param string    $Year
+     * @param string    $Month
+     *
+     * @return TblInvoice|null $tblInvoice
+     */
+    public function getInvoiceObjectByPersonCauserAndItemAndYearAndMonth(
+        TblBasket $tblBasket,
+        TblPerson $tblPerson,
+        TblItem $tblItem,
+        string $Year,
+        string $Month
+    ): ?TblInvoice{
+        $tblInvoice = null;
+        if(($tblInvoiceList = $this->getInvoiceAllByPersonCauserAndYearAndMonth($tblPerson, $Year, $Month))) {
+            foreach ($tblInvoiceList as $tempTblInvoice) {
+                if(($tblInvoiceItemDebtorList = Invoice::useService()->getInvoiceItemDebtorByInvoice($tempTblInvoice))) {
+                    foreach ($tblInvoiceItemDebtorList as $tempTblInvoiceItemDebtor) {
+                        $tblInvoiceItem = $tempTblInvoiceItemDebtor->getServiceTblItem();
+                        if(($tempTblBasket = $tempTblInvoice->getServiceTblBasket())
+                            && $tempTblBasket->getId() == $tblBasket->getId()
+                            && $tblInvoiceItem
+                            && $tblInvoiceItem->getId() == $tblItem->getId()
+                        ) {
+                            $tblInvoice = $tempTblInvoice;
+                        }
+                    }
+                }
+            }
+        }
+
+        return $tblInvoice;
+    }
+
+    /**
+     * @param TblBasket $tblBasket
+     * @param TblPerson $tblPerson
+     * @param TblItem   $tblItem
+     * @param string    $Year
+     *
+     * @return TblInvoice[]|bool
+     */
+    public function getInvoiceByPersonCauserAndItemAndYear(
+        TblBasket $tblBasket,
+        TblPerson $tblPerson,
+        TblItem $tblItem,
+        $Year
+    ){
+        $isInvoice = false;
+        // Abrechnung als Default
+        $BasketTypeId = 1;
+        if(($tblBasketType = $tblBasket->getTblBasketType())){
+            $BasketTypeId = $tblBasketType->getId();
+        }
+        if(($tblInvoiceList = $this->getInvoiceAllByPersonCauserAndYear($tblPerson, $Year))){
             foreach($tblInvoiceList as $tblInvoice) {
                 // wird der gleiche Abrechnungstyp gesucht?
                 $IsSameType = false;
@@ -167,10 +269,22 @@ class Service extends AbstractService
      *
      * @return bool
      */
-    public function changeInvoiceItemDebtorIsPaid(TblInvoiceItemDebtor $tblInvoiceItemDebtor, $IsPaid = false)
+    public function changeInvoiceItemDebtorIsPaid(TblInvoiceItemDebtor $tblInvoiceItemDebtor, bool $IsPaid = false): bool
     {
 
         return (new Data($this->getBinding()))->changeInvoiceItemDebtorIsPaid($tblInvoiceItemDebtor, $IsPaid);
+    }
+
+    /**
+     * @param TblInvoiceItemDebtor $tblInvoiceItemDebtor
+     * @param bool                 $IsHistory
+     *
+     * @return bool
+     */
+    public function changeInvoiceItemDebtorIsHistory(TblInvoiceItemDebtor $tblInvoiceItemDebtor, bool $IsHistory = false): bool
+    {
+
+        return (new Data($this->getBinding()))->changeInvoiceItemDebtorIsHistory($tblInvoiceItemDebtor, $IsHistory);
     }
 
     /**
@@ -211,10 +325,10 @@ class Service extends AbstractService
      *
      * @return false|TblInvoiceItemDebtor[]
      */
-    public function getInvoiceItemDebtorByIsPaid($IsPaid = false)
+    public function getInvoiceItemDebtorByIsPaid($IsPaid = false, $isHistory = false)
     {
 
-        return (new Data($this->getBinding()))->getInvoiceItemDebtorByIsPaid($IsPaid);
+        return (new Data($this->getBinding()))->getInvoiceItemDebtorByIsPaid($IsPaid, $isHistory);
     }
 
     /**
@@ -618,12 +732,6 @@ class Service extends AbstractService
                             continue;
                         }
 
-                        $item['DebtorPerson'] = '';
-                        $item['Item'] = '';
-                        $item['ItemQuantity'] = '';
-                        $item['ItemPrice'] = 0;
-                        $item['ItemSumPrice'] = 0;
-
                         $item['DebtorPerson'] = $tblInvoiceItemDebtor->getDebtorPerson();
                         $item['Item'] = $tblInvoiceItemDebtor->getName();
                         $item['ItemQuantity'] = $tblInvoiceItemDebtor->getQuantity();
@@ -646,8 +754,8 @@ class Service extends AbstractService
 
 //                        $item['Option'] = '';
                         // convert to Frontend
-                        $item['ItemPrice'] = str_replace('.',',', number_format($item['ItemPrice'], 2) . ($IsFrontend ? '&nbsp;€' : ''));
-                        $item['ItemSumPrice'] = str_replace('.',',', number_format($item['ItemSumPrice'], 2) . ($IsFrontend ? '&nbsp;€' : ''));
+                        $item['ItemPrice'] = number_format($item['ItemPrice'], 2, ',', '.').($IsFrontend ? '&nbsp;€' : '');
+                        $item['ItemSumPrice'] = number_format($item['ItemSumPrice'], 2, ',', '.').($IsFrontend ? '&nbsp;€' : '');
                         array_push($TableContent, $item);
                     }
                 }
@@ -797,19 +905,19 @@ class Service extends AbstractService
                         $price = $tblInvoiceItemDebtor->getQuantity() * $tblInvoiceItemDebtor->getValue();
                         $ItemPrice += $price;
                         $ItemList[] = $tblInvoiceItemDebtor->getName() . ': '
-                            . str_replace('.',',', number_format($price, 2)) . '&nbsp;€';
+                            .number_format($price, 2, ',', '.').'&nbsp;€';
                         $itemsForExcel[] = array(
                             'Name' => $tblInvoiceItemDebtor->getName(),
-                            'DisplayPrice' => str_replace('.',',', number_format($price, 2)),
+                            'DisplayPrice' => number_format($price, 2, ',', '.'),
                             'Price' => $price
                         );
                     }
                     $item['PaymentType'] = implode(', ', $PaymentList);
                     // convert to Frontend
                     $ItemString = implode(',<br>', $ItemList);
-                    $item['DisplaySumPrice'] = str_replace('.',',', number_format($ItemPrice, 2))
+                    $item['DisplaySumPrice'] = number_format($ItemPrice, 2, ',', '.')
                         . ($IsFrontend ? ' €&nbsp;&nbsp;&nbsp;' . (new ToolTip(new Info(), $ItemString))->enableHtml() : '');
-                    $item['SumPrice'] = number_format($ItemPrice, 2);
+                    $item['SumPrice'] = number_format($ItemPrice, 2, '.', '');
                     $item['ItemsForExcel'] = $itemsForExcel;
                 }
 //                $item['Option'] = '';
@@ -927,9 +1035,9 @@ class Service extends AbstractService
             $column = 15;
             $row++;
             $export->setValue($export->getCell($column++, $row), 'Summe');
-            $export->setValue($export->getCell($column++, $row), str_replace('.', ',', number_format($sum['Total'], 2)));
+            $export->setValue($export->getCell($column++, $row), number_format($sum['Total'], 2, ',', '.'));
             foreach ($extraHeaderList as $headerItem) {
-                $export->setValue($export->getCell($column++, $row), str_replace('.', ',', number_format($sum[$headerItem], 2)));
+                $export->setValue($export->getCell($column++, $row), number_format($sum[$headerItem], 2, ',', '.'));
             }
             $export->setStyle($export->getCell(7, $row), $export->getCell($column - 1, $row))->setFontBold();
 
@@ -943,18 +1051,18 @@ class Service extends AbstractService
     /**
      * @return array
      */
-    public function getInvoiceUpPaidList()
+    public function getInvoiceUnPaidList($isHistory = false)
     {
 
         $TableContent = array();
-        if($tblInvoiceItemDebtorList = Invoice::useService()->getInvoiceItemDebtorByIsPaid()){
-            array_walk($tblInvoiceItemDebtorList, function(TblInvoiceItemDebtor $tblInvoiceItemDebtor) use (&$TableContent){
+        if($tblInvoiceItemDebtorList = Invoice::useService()->getInvoiceItemDebtorByIsPaid(false, $isHistory)){
+            array_walk($tblInvoiceItemDebtorList, function(TblInvoiceItemDebtor $tblInvoiceItemDebtor) use (&$TableContent, $isHistory){
                 $item['Salutation'] = $item['Title'] = '';
                 $item['DebtorPerson'] = '';
                 $item['Item'] = $tblInvoiceItemDebtor->getName();
                 $item['ItemQuantity'] = $tblInvoiceItemDebtor->getQuantity();
-                $item['ItemPrice'] = $tblInvoiceItemDebtor->getPriceString();
-                $item['ItemSumPrice'] = $tblInvoiceItemDebtor->getSummaryPrice();
+                $item['ItemPrice'] = $tblInvoiceItemDebtor->getPriceString('€', true);
+                $item['ItemSumPrice'] = $tblInvoiceItemDebtor->getSummaryPriceFrontend();
                 $item['PaymentType'] = ($tblInvoiceItemDebtor->getServiceTblPaymentType()
                     ? $tblInvoiceItemDebtor->getServiceTblPaymentType()->getName()
                     : 'Zahlungsart nicht gefunden');
@@ -989,21 +1097,14 @@ class Service extends AbstractService
                     $item['Time'] = $tblInvoice->getYear().'/'.$tblInvoice->getMonth(true);
                     $item['BasketName'] = $tblInvoice->getBasketName();
                 }
-                $CheckBox = (new CheckBox('IsPaid', ' ',
-                    $tblInvoiceItemDebtor->getId()))->ajaxPipelineOnClick(
-                    ApiInvoiceIsPaid::pipelineChangeIsPaid($tblInvoiceItemDebtor->getId(), 'true'));
-                if (!$tblInvoiceItemDebtor->getIsPaid()) {
-                    $CheckBox->setChecked();
+                if($isHistory){
+                    // ToDO
+                    $item['IsPaid'] = (new Standard('', '#', new FolderOpen(), array(), 'Unbezahlte Rechnung aus dem Archiv holen'))
+                    ->ajaxPipelineOnClick(ApiInvoiceIsHistory::pipelinesetClearHistory($tblInvoiceItemDebtor->getId()));
+                } else {
+                    $ColumnContent = $this->getIsPaidColumnContent($tblInvoiceItemDebtor);
+                    $item['IsPaid'] = ApiInvoiceIsPaid::receiverIsPaid($ColumnContent, $tblInvoiceItemDebtor->getId());
                 }
-
-                $CheckBox = $CheckBox.'&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'.(new External('', '/Api/Document/Standard/BillingDocumentWarning/Create',
-                    new Download(), array('Data' => array('InvoiceItemDebtorId' => $tblInvoiceItemDebtor->getId()))
-                        , 'Download Mahnung', External::STYLE_BUTTON_PRIMARY));
-                // no line break
-                $CheckBox = '<div style="width: 100px">'.$CheckBox.'</div>';
-
-                $item['IsPaid'] = ApiInvoiceIsPaid::receiverIsPaid($CheckBox,
-                    $tblInvoiceItemDebtor->getId());
 
                 array_push($TableContent, $item);
             });
@@ -1012,10 +1113,48 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblInvoiceItemDebtor $tblInvoiceItemDebtor
+     *
+     * @return string
+     */
+    public function getIsPaidColumnContent($tblInvoiceItemDebtor, $showHistory = true)
+    {
+
+        $space = '<span style="min-width:15px; display: inline-block;"></span>';
+        $CheckBox = (new CheckBox('IsPaid', ' ',
+            $tblInvoiceItemDebtor->getId()))->ajaxPipelineOnClick(ApiInvoiceIsPaid::pipelineChangeIsPaid($tblInvoiceItemDebtor->getId()));
+        if (!$tblInvoiceItemDebtor->getIsPaid()) {
+            $CheckBox->setChecked();
+            $Content = new ToolTip($CheckBox, 'nicht Bezahlt');
+        } else {
+            $Content = new ToolTip($CheckBox, 'Bezahlt');
+        }
+        $History = '';
+        if($showHistory){
+            $History = (new Standard('', '#', new FolderClosed(), array(), 'Posten unbezahlt archivieren'))
+                ->ajaxPipelineOnClick(ApiInvoiceIsHistory::pipelinesetIsHistory($tblInvoiceItemDebtor->getId()));
+        } else {
+            if($tblInvoiceItemDebtor->getIsHistory()){
+                $Content = '';
+                $History = new Muted(new Small('(offen im Archiv)'));
+            }
+        }
+
+        if(!$tblInvoiceItemDebtor->getIsPaid()){
+            $Content .= $space.(new External('', '/Api/Document/Standard/BillingDocumentWarning/Create',
+                    new Download(), array('Data' => array('InvoiceItemDebtorId' => $tblInvoiceItemDebtor->getId()))
+                    , 'Download Mahnung', External::STYLE_BUTTON_PRIMARY))
+            .$History;
+        }
+        // no line break
+        return '<div style="width: 140px;">'.$Content.'</div>';
+    }
+
+    /**
  * @return bool|\SPHERE\Application\Document\Storage\FilePointer
  */
-    public function createInvoiceUpPaidListExcel() {
-        $resultList = $this->getInvoiceUpPaidList();
+    public function createInvoiceUnPaidListExcel() {
+        $resultList = $this->getInvoiceUnPaidList();
         if(!empty($resultList)){
             $fileLocation = Storage::createFilePointer('xlsx');
             /** @var PhpExcel $export */
@@ -1096,5 +1235,33 @@ class Service extends AbstractService
         (new Data($this->getBinding()))->destroyInvoiceItemDebtorBulk($InvoiceItemDebtorIdList);
         // tblInvoice
         (new Data($this->getBinding()))->destroyInvoiceBulk($InvoiceIdList);
+    }
+
+    /**
+     * @param TblInvoice $tblInvoice
+     * @param TblItem    $tblItem
+     *
+     * @return void
+     */
+    public function destroyInvoiceByInvoiceAndItem(TblInvoice $tblInvoice, TblItem $tblItem)
+    {
+
+        $InvoiceItemDebtorIdList = array();
+        $countItemDebtor = 0;
+        if(($tblInvoiceItemDebtorList = Invoice::useService()->getInvoiceItemDebtorByInvoice($tblInvoice))){
+            $countItemDebtor = count($tblInvoiceItemDebtorList);
+            foreach($tblInvoiceItemDebtorList as $tblInvoiceItemDebtor){
+                if(($tblInvoiceItem = $tblInvoiceItemDebtor->getServiceTblItem())
+                && $tblInvoiceItem->getId() == $tblItem->getId()){
+                    $InvoiceItemDebtorIdList[] = $tblInvoiceItemDebtor->getId();
+                }
+            }
+        }
+        // tblInvoiceItemDebtor
+        (new Data($this->getBinding()))->destroyInvoiceItemDebtorBulk($InvoiceItemDebtorIdList);
+        // tblInvoice
+        if($countItemDebtor == count($InvoiceItemDebtorIdList)){
+            (new Data($this->getBinding()))->destroyInvoiceBulk(array($tblInvoice));
+        }
     }
 }

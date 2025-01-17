@@ -6,6 +6,7 @@ use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\Billing\Accounting\Creditor\Creditor;
 use SPHERE\Application\Billing\Accounting\Debtor\Debtor;
+use SPHERE\Application\Billing\Accounting\Debtor\Service\Entity\TblDebtorPeriodType;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Basket;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasketType;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Invoice;
@@ -13,14 +14,14 @@ use SPHERE\Application\Billing\Inventory\Item\Item;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItem;
 use SPHERE\Application\Billing\Inventory\Setting\Service\Entity\TblSetting;
 use SPHERE\Application\Billing\Inventory\Setting\Setting;
-use SPHERE\Application\Education\Lesson\Division\Division;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
-use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\IApiInterface;
 use SPHERE\Application\People\Person\Person;
+use SPHERE\Application\Setting\Consumer\School\School;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
 use SPHERE\Common\Frontend\Ajax\Receiver\AbstractReceiver;
@@ -42,7 +43,9 @@ use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\ProgressBar;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
@@ -51,10 +54,12 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Danger as DangerLink;
 use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
+use SPHERE\Common\Frontend\Message\Repository\Info;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Danger as DangerText;
+use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Extension\Extension;
 
 /**
@@ -80,6 +85,8 @@ class ApiBasket extends Extension implements IApiInterface
         $Dispatcher->registerMethod('showDeleteBasket');
         $Dispatcher->registerMethod('deleteBasket');
         $Dispatcher->registerMethod('setArchiveBasket');
+        $Dispatcher->registerMethod('showDeleteBasketVerification');
+        $Dispatcher->registerMethod('deleteBasketVerification');
 
         $Dispatcher->registerMethod('reloadPersonFilterSelect');
 
@@ -160,7 +167,7 @@ class ApiBasket extends Extension implements IApiInterface
      *
      * @return Pipeline
      */
-    public static function pipelineSaveAddBasket($Identifier = '', $Type = '')
+    public static function pipelineSaveAddBasket(string $Identifier = '', string $Type = '', $Basket = array(), $isLoad = 'true')
     {
 
         $Receiver = self::receiverModal(null, $Identifier);
@@ -170,10 +177,21 @@ class ApiBasket extends Extension implements IApiInterface
         $Emitter->setGetPayload(array(
             self::API_TARGET => 'saveAddBasket'
         ));
-        $Emitter->setPostPayload(array(
-            'Identifier' => $Identifier,
-            'Type'       => $Type,
-        ));
+//        if(!empty($Basket)){
+            $Emitter->setPostPayload(array(
+                'Identifier' => $Identifier,
+                'Type'       => $Type,
+                'Basket'     => $Basket,
+                'isLoad'     => $isLoad,
+            ));
+//        } else {
+//            $Emitter->setPostPayload(array(
+//                'Identifier' => $Identifier,
+//                'Type'       => $Type,
+//                'isLoad'     => $isLoad,
+//            ));
+//        }
+
         $Pipeline->appendEmitter($Emitter);
 
         return $Pipeline;
@@ -326,6 +344,54 @@ class ApiBasket extends Extension implements IApiInterface
             'IsArchive' => $IsArchive
         ));
         $Pipeline->appendEmitter($Emitter);
+        return $Pipeline;
+    }
+
+    /**
+     * @param string     $Identifier
+     * @param int|string $BasketVerificationId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineOpenDeleteBasketVerificationModal($Identifier = '', $BasketVerificationId = '')
+    {
+
+        $Receiver = self::receiverModal(null, $Identifier);
+        $Pipeline = new Pipeline();
+        $Emitter = new ServerEmitter($Receiver, self::getEndpoint());
+        $Emitter->setGetPayload(array(
+            self::API_TARGET => 'showDeleteBasketVerification'
+        ));
+        $Emitter->setPostPayload(array(
+            'Identifier'           => $Identifier,
+            'BasketVerificationId' => $BasketVerificationId,
+        ));
+        $Pipeline->appendEmitter($Emitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param string     $Identifier
+     * @param int|string $BasketId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineDeleteBasketVerification($Identifier = '', $BasketVerificationId = '')
+    {
+
+        $Receiver = self::receiverModal(null, $Identifier);
+        $Pipeline = new Pipeline();
+        $Emitter = new ServerEmitter($Receiver, self::getEndpoint());
+        $Emitter->setGetPayload(array(
+            self::API_TARGET => 'deleteBasketVerification'
+        ));
+        $Emitter->setPostPayload(array(
+            'Identifier'           => $Identifier,
+            'BasketVerificationId' => $BasketVerificationId,
+        ));
+        $Pipeline->appendEmitter($Emitter);
+
         return $Pipeline;
     }
 
@@ -519,7 +585,12 @@ class ApiBasket extends Extension implements IApiInterface
             $PeriodRadioBox = array();
             if(($tblDebtorPeriodTypeAll = Debtor::useService()->getDebtorPeriodTypeAll())){
                 foreach($tblDebtorPeriodTypeAll as $tblDebtorPeriodType){
-                    $PeriodRadioBox[] = new RadioBox('Basket[DebtorPeriodType]', $tblDebtorPeriodType->getName(), $tblDebtorPeriodType->getId());
+                    if($tblDebtorPeriodType->getName() == TblDebtorPeriodType::ATTR_YEAR){
+                        $PeriodRadioBox[] = new RadioBox('Basket[DebtorPeriodType]', $tblDebtorPeriodType->getName().' (Schuljahr)', $tblDebtorPeriodType->getId().';SJ');
+                        $PeriodRadioBox[] = new RadioBox('Basket[DebtorPeriodType]', $tblDebtorPeriodType->getName().' (Kalenderjahr)', $tblDebtorPeriodType->getId().';KJ');
+                    } else {
+                        $PeriodRadioBox[] = new RadioBox('Basket[DebtorPeriodType]', $tblDebtorPeriodType->getName(), $tblDebtorPeriodType->getId());
+                    }
                 }
             }
 
@@ -530,12 +601,15 @@ class ApiBasket extends Extension implements IApiInterface
             if(empty($YearList)){
                 $YearList[] = new TblYear();
             }
+            $tblTypeList = School::useService()->getConsumerSchoolTypeAll();
             return array(
                 new Panel('Beitragsarten '.new DangerText('*'), $CheckboxList, Panel::PANEL_TYPE_INFO),
                 new Panel('Erweiterte Personenfilterung', array(
                     (new SelectBox('Basket[SchoolYear]', 'Schuljahr', array('{{ Year }} {{ Description }}' => $YearList)))
                         ->ajaxPipelineOnChange(ApiBasket::pipelineLoadPersonFilterSelect($receiverPersonFilter)),
-                    $receiverPersonFilter)
+                    $receiverPersonFilter,
+                    new SelectBox('Basket[SchoolType]', 'Schulart', array('{{ Name }}' => $tblTypeList))
+                        )
                     , Panel::PANEL_TYPE_INFO
                 ),
                 new Panel('Zahlungszeitraum '.new DangerText('*'), $PeriodRadioBox, Panel::PANEL_TYPE_INFO),
@@ -656,10 +730,11 @@ class ApiBasket extends Extension implements IApiInterface
      * @param string $Identifier
      * @param string $Type
      * @param array  $Basket
+     * @param string $isLoad
      *
      * @return string
      */
-    public function saveAddBasket($Identifier = '', $Type = '', $Basket = array())
+    public function saveAddBasket($Identifier = '', $Type = '', $Basket = array(), $isLoad = 'true')
     {
 
         // Handle error's
@@ -674,7 +749,7 @@ class ApiBasket extends Extension implements IApiInterface
             $Global->POST['Basket']['TargetTime'] = $Basket['TargetTime'];
             $Global->POST['Basket']['BillTime'] = $Basket['BillTime'];
             $Global->POST['Basket']['Creditor'] = $Basket['Creditor'];
-            $Global->POST['Basket']['Division'] = (isset($Basket['Division']) ? $Basket['Division'] : '');
+            $Global->POST['Basket']['DivisionCourse'] = (isset($Basket['DivisionCourse']) ? $Basket['DivisionCourse'] : '');
             $Global->POST['Basket']['SchoolType'] = $Basket['SchoolType'];
             $Global->POST['Basket']['DebtorPeriodType'] = $Basket['DebtorPeriodType'];
             $Global->POST['Basket']['SchoolYear'] = $Basket['SchoolYear'];
@@ -687,13 +762,18 @@ class ApiBasket extends Extension implements IApiInterface
             return $form;
         }
 
+        if($isLoad == 'true'){
+            return new Info('Dieser Vorgang kann einige Zeit in Anspruch nehmen'
+                .new Container((new ProgressBar(0, 100, 0, 10))
+                    ->setColor(ProgressBar::BAR_COLOR_SUCCESS, ProgressBar::BAR_COLOR_SUCCESS))
+            ).self::pipelineSaveAddBasket($Identifier, $Type, $Basket, 'false');
+        }
+
         $tblBasketType = Basket::useService()->getBasketTypeByName($Type);
-
-
-        if(!isset($Basket['Division'])
-            || !$Basket['Division']
-            || !($tblDivision = Division::useService()->getDivisionById($Basket['Division']))){
-            $tblDivision = null;
+        if(!isset($Basket['DivisionCourse'])
+            || !$Basket['DivisionCourse']
+            || !($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($Basket['DivisionCourse']))){
+            $tblDivisionCourse = null;
         }
         if(!isset($Basket['SchoolType'])
             || !$Basket['SchoolType']
@@ -704,13 +784,19 @@ class ApiBasket extends Extension implements IApiInterface
         if(isset($Basket['SchoolYear']) && $Basket['SchoolYear']){
             $tblYear = Term::useService()->getYearById($Basket['SchoolYear']);
         }
-        if(!($tblDebtorPeriodType = Debtor::useService()->getDebtorPeriodTypeById($Basket['DebtorPeriodType']))){
+
+        $DebtorPeriodType = explode(';', $Basket['DebtorPeriodType']);
+        if(!($tblDebtorPeriodType = Debtor::useService()->getDebtorPeriodTypeById($DebtorPeriodType[0]))){
             $tblDebtorPeriodType = null;
         }
-        $tblBasket = Basket::useService()->createBasket($Basket['Name'], $Basket['Description'], $Basket['Year']
-            , $Basket['Month'], $Basket['TargetTime'], $Basket['BillTime'], $tblBasketType, $Basket['Creditor'], $tblDivision, $tblType,
-            $tblDebtorPeriodType);
+        $PeriodExtended = '';
+        if($tblDebtorPeriodType->getName() == TblDebtorPeriodType::ATTR_YEAR){
+            $PeriodExtended = $DebtorPeriodType[1];
+        }
 
+        $tblBasket = Basket::useService()->createBasket($Basket['Name'], $Basket['Description'], $Basket['Year']
+            , $Basket['Month'], $Basket['TargetTime'], $Basket['BillTime'], $tblBasketType, $Basket['Creditor'], $tblDivisionCourse, $tblType,
+            $tblDebtorPeriodType);
 
         foreach($Basket['Item'] as $ItemId) {
             if(($tblItem = Item::useService()->getItemById($ItemId))){
@@ -764,7 +850,8 @@ class ApiBasket extends Extension implements IApiInterface
 
             /** @var TblItem $tblItem */
             foreach($tblItemList as $tblItem) {
-                $VerificationResult = Basket::useService()->createBasketVerificationBulk($tblBasket, $tblItem, $tblDivision, $tblType, $tblYear);
+                $VerificationResult = Basket::useService()->createBasketVerificationBulk($tblBasket, $tblItem, $tblDivisionCourse,
+                    $tblType, $tblYear, $PeriodExtended);
                 if($isCreate == false){
                     $isCreate = $VerificationResult['IsCreate'];
                 }
@@ -926,6 +1013,14 @@ class ApiBasket extends Extension implements IApiInterface
                 new LayoutColumn(new Bold($ItemString), 8),
             ))));
 
+            $LayoutColumnWarning = new LayoutColumn('');
+            if($tblBasket->getIsDone()){
+                $LayoutColumnWarning = new LayoutColumn(new Danger(
+                    new Container(new Bold('Achtung! ').'Eventuelle Korrekturen für SEPA oder DATEV müssen externen übernommen werden.')
+                    .new Container(new Bold('Das Löschen ist unwiderruflich!'))));
+            }
+
+
             return new Layout(
                 new LayoutGroup(
                     new LayoutRow(array(
@@ -933,6 +1028,7 @@ class ApiBasket extends Extension implements IApiInterface
                             new Panel('Soll die Abrechnung '.new Bold($tblBasket->getName()).' wirklich entfernt werden?'
                                 , $Content, Panel::PANEL_TYPE_DANGER)
                         ),
+                        $LayoutColumnWarning,
                         new LayoutColumn(
                             (new DangerLink('Ja', self::getEndpoint(), new Ok()))
                                 ->ajaxPipelineOnClick(self::pipelineDeleteBasket($Identifier, $BasketId))
@@ -993,53 +1089,103 @@ class ApiBasket extends Extension implements IApiInterface
      *
      * @return string
      */
-    public function reloadPersonFilterSelect($Basket = array())
+    public function reloadPersonFilterSelect(array $Basket = array())
     {
 
         $tblYearList = array();
-        $tblDivisionList = array();
-        $tblTypeList = array();
         if (isset($Basket['SchoolYear']) && 0 != $Basket['SchoolYear']) {
             if(($tblYear = Term::useService()->getYearById($Basket['SchoolYear']))){
                 $tblYearList[] = $tblYear;
-            } else {
-                $tblDivisionList = new TblDivision();
-                $tblTypeList = new TblType();
             }
         } else {
             if(($tblYearListTmp = Term::useService()->getYearByNow())){
                 $tblYearList = $tblYearListTmp;
             }
         }
-
-
+        $tblDivisionCourseList = array(0 => new TblDivisionCourse());
         if(!empty($tblYearList)){
             foreach($tblYearList as $tblYear){
-                if(($tblDivisionTempList = Division::useService()->getDivisionByYear($tblYear))){
-                    $tblDivisionList = array_merge($tblDivisionList, $tblDivisionTempList);
+                if(($tblDivisionCourseTempList = DivisionCourse::useService()->getDivisionCourseListBy($tblYear, 'Klasse'))){
+                    $tblDivisionCourseList = array_merge($tblDivisionCourseList, $tblDivisionCourseTempList);
                 }
-            }
-            if(!empty($tblDivisionList)){
-                foreach($tblDivisionList as $tblDivision){
-                    $tblType = $tblDivision->getType();
-                    $tblTypeList[$tblType->getId()] = $tblType;
+                if(($tblDivisionCourseTempList = DivisionCourse::useService()->getDivisionCourseListBy($tblYear, 'Stammgruppe'))){
+                    $tblDivisionCourseList = array_merge($tblDivisionCourseList, $tblDivisionCourseTempList);
                 }
+                // Filterung dazu würde ganz anders funktionieren, erstmal deaktiviert.
+//                if(($tblDivisionCourseTempList = DivisionCourse::useService()->getDivisionCourseListBy($tblYear, 'BASIC_COURSE'))){
+//                    $tblDivisionCourseList = array_merge($tblDivisionCourseList, $tblDivisionCourseTempList);
+//                }
+//                if(($tblDivisionCourseTempList = DivisionCourse::useService()->getDivisionCourseListBy($tblYear, 'ADVANCED_COURSE'))){
+//                    $tblDivisionCourseList = array_merge($tblDivisionCourseList, $tblDivisionCourseTempList);
+//                }
             }
         }
+        return new SelectBox('Basket[DivisionCourse]', 'Klasse / Stammgruppe / Kurs', array('{{ DisplayName }}' => $tblDivisionCourseList));
+    }
 
-        // gegen Preselect nach Auswahl entschieden
-//        if(isset($tblDivisionList[0]) && $IsYear){
-//            $_POST['Basket']['Division'] = $tblDivisionList[0];
-//        }
+    public function showDeleteBasketVerification($Identifier, $BasketVerificationId)
+    {
 
-        if(empty($tblDivisionList)){
-            $tblDivisionList[] = new TblDivision();
+        if(!($tblBasketVerification = Basket::useService()->getBasketVerificationById($BasketVerificationId))){
+            return new Warning('Zahlungszuweisung wurde nicht gefunden');
         }
-        if(empty($tblTypeList)){
-            $tblTypeList[] = new TblType();
+        if(!($tblBasket = $tblBasketVerification->getTblBasket())){
+            return new Warning('Abrechnung wurde nicht gefunden');
         }
 
-        return new SelectBox('Basket[Division]', 'Klasse', array('{{ DisplayName }}' => $tblDivisionList)).
-        new SelectBox('Basket[SchoolType]', 'Schulart', array('{{ Name }}' => $tblTypeList));
+        $LayoutColumnWarning = new LayoutColumn(new Danger(
+            new Container(new Bold('Achtung! ').'Eventuelle Korrekturen für SEPA oder DATEV müssen externen übernommen werden.')
+            .new Container(new Bold('Das Löschen ist unwiderruflich!'))));
+
+        $Causer = $tblBasketVerification->getServiceTblPersonCauser()->getLastFirstName();
+        $Item = $tblBasketVerification->getServiceTblItem()->getName();
+        $Price = $tblBasketVerification->getSummaryPrice();
+
+        return new Layout(new LayoutGroup(new LayoutRow(array(
+            new LayoutColumn(
+                new Panel('Soll die Rechnung '.new Bold($Causer.' "'.$Item.'": '.$Price).' wirklich entfernt werden?', '', Panel::PANEL_TYPE_DANGER)
+            ),
+            $LayoutColumnWarning,
+            new LayoutColumn(
+                (new DangerLink('Ja', self::getEndpoint(), new Ok()))
+                    ->ajaxPipelineOnClick(self::pipelineDeleteBasketVerification($Identifier, $BasketVerificationId))
+                .new Close('Nein', new Disable())
+            )
+        ))));
+    }
+
+    /**
+     * @param $Identifier
+     * @param $BasketVerificationId
+     *
+     * @return string
+     */
+    public function deleteBasketVerification($Identifier, $BasketVerificationId)
+    {
+
+        if(!($tblBasketVerification = Basket::useService()->getBasketVerificationById($BasketVerificationId))){
+            return new Warning('Zahlungszuweisung wurde nicht gefunden');
+        }
+        if(!($tblBasket = $tblBasketVerification->getTblBasket())){
+            return new Warning('Abrechnung wurde nicht gefunden');
+        }
+        $tblPersonCauser = $tblBasketVerification->getServiceTblPersonCauser();
+        $tblItem = $tblBasketVerification->getServiceTblItem();
+        $Year = $tblBasket->getYear();
+        $Month = $tblBasket->getMonth();
+        $tblInvoice = Invoice::useService()
+            ->getInvoiceObjectByPersonCauserAndItemAndYearAndMonth($tblBasket, $tblPersonCauser, $tblItem, $Year, $Month);
+        if($tblInvoice){
+            Invoice::useService()->destroyInvoiceByInvoiceAndItem($tblInvoice, $tblItem);
+        }
+        Basket::useService()->destroyBasketVerification($tblBasketVerification);
+        // table reload not as easy as expected -> reload whole page
+        if(Basket::useService()->getBasketVerificationAllByBasket($tblBasket)){
+            return new Success('Rechnung entfernt')
+                .new Redirect('/Billing/Bookkeeping/Basket/View', Redirect::TIMEOUT_SUCCESS, array('BasketId' => $tblBasket->getId()));
+        }
+        // else Basket is empty -> remove Basket
+        Basket::useService()->destroyBasket($tblBasket);
+        return new Success('Rechnung inclusive Abrechnung entfernt').new Redirect('/Billing/Bookkeeping/Basket', Redirect::TIMEOUT_SUCCESS);
     }
 }

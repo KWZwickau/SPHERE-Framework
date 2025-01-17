@@ -5,13 +5,19 @@ namespace SPHERE\Application\Platform\Gatekeeper\Authentication\TwoFactorApp;
 require_once( __DIR__.'/../../../../../Library/TwoFactorAuth/demo/loader.php' );
 \Loader::register('../lib','RobThree\\Auth');
 
-use BaconQrCode\Renderer\Image\Png;
-use BaconQrCode\Writer;
+use Endroid\QrCode\Color\Color;
+use Endroid\QrCode\Encoding\Encoding;
+use Endroid\QrCode\ErrorCorrectionLevel;
+use Endroid\QrCode\QrCode;
+use Endroid\QrCode\RoundBlockSizeMode;
+use Endroid\QrCode\Writer\PngWriter;
 use RobThree\Auth\TwoFactorAuth;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
 
-require_once ( __DIR__.'/../../../../../Library/QrCode/autoload_function.php');
-require_once ( __DIR__.'/../../../../../Library/QrCode/autoload_register.php');
+require_once(__DIR__.DIRECTORY_SEPARATOR.'../../../../../Library/QrCode/endroid/vendor/autoload.php');
+//require_once(__DIR__.DIRECTORY_SEPARATOR.'../../../../../Library/QrCode/2.0.8/vendor/autoload.php');
+//require_once ( __DIR__.'/../../../../../Library/QrCode/autoload_function.php');
+//require_once ( __DIR__.'/../../../../../Library/QrCode/autoload_register.php');
 
 /**
  * Class TwoFactorApp
@@ -89,22 +95,64 @@ class TwoFactorApp
     /**
      * @param TblAccount $tblAccount
      * @param string     $secret
-     * @param int        $size
+     * @param int        $size sharp in 196, 147, 245
      *
      * @return string
      */
-    public function getBaconQrCode(TblAccount $tblAccount, $secret, $size = 200)
+    public function getBaconQrCode(TblAccount $tblAccount, $secret, $size = 190)
     {
 
         $User = $tblAccount->getUsername();
-        $renderer = new Png();
-        $renderer->setHeight($size);
-        $renderer->setWidth($size);
+//        // use beacon directly (contra sharpness)
+//        // FarbenTest
+////        $eye = SquareEye::instance();
+////        $squareModule = SquareModule::instance();
+////        $eyeFill = new EyeFill(new Rgb(71, 180, 154), new Rgb(53, 142, 124));
+////        $gradient = new Gradient(new Rgb(90, 210, 190), new Rgb(53, 142, 124), GradientType::DIAGONAL());
+//        $renderer = new ImageRenderer(
+//            new RendererStyle($size
+////                , 4, $squareModule, $eye, Fill::withForegroundGradient(new Rgb(255, 255, 255), $gradient, $eyeFill, $eyeFill, $eyeFill)
+//            ),
+//            new ImagickImageBackEnd('png', 100)
+//        );
+//        $writer = new Writer($renderer);
+//        $qr_image = base64_encode($writer->writeString($this->tfa->getQRText('Schulsoftware:'.$User, $secret)));
+//        return '<img src="data:image/png;base64, ' . $qr_image . '" />';
 
-        $writer = new Writer($renderer);
+//        // use endroid with builder:
+//        $result = Builder::create()
+//            ->writer(new PngWriter())
+//            ->writerOptions([])
+//            ->data($this->tfa->getQRText('Schulsoftware:'.$User, $secret))
+//            ->encoding(new Encoding('UTF-8'))
+//            ->errorCorrectionLevel(ErrorCorrectionLevel::Low)
+//            ->size($size)
+//            ->margin(4)
+//            ->roundBlockSizeMode(RoundBlockSizeMode::Margin)
+////            ->logoPath(__DIR__.'/assets/symfony.png')
+////            ->logoResizeToWidth(50)
+////            ->logoPunchoutBackground(true)
+//            ->labelText($size)
+//            ->labelFont(new NotoSans(13))
+//            ->labelAlignment(LabelAlignment::Center)
+////            ->validateResult(false)
+//            ->build();
+//        return '<img src="data:image/png;base64, ' . base64_encode($result->getString()) . '" />';
 
-        $qr_image = base64_encode($writer->writeString($this->tfa->getQRText('Schulsoftware:'.$User, $secret)));
-
-        return '<img src="data:image/png;base64, ' . $qr_image . '" />';
+        // use without builder:
+        $writer = new PngWriter();
+        // Create QR code
+        $qrCode = QrCode::create($this->tfa->getQRText('Schulsoftware:'.$User, $secret))
+            ->setEncoding(new Encoding('UTF-8'))
+            ->setErrorCorrectionLevel(ErrorCorrectionLevel::Low)
+            ->setSize($size)
+            ->setMargin(0)
+            ->setRoundBlockSizeMode(RoundBlockSizeMode::Margin)
+            ->setForegroundColor(new Color(0, 0, 0))
+            ->setBackgroundColor(new Color(255, 255, 255));
+//        $Label = Label::create($size);
+//        $result = $writer->write($qrCode, null, $Label);
+        $result = $writer->write($qrCode);
+        return '<img src="data:image/png;base64, ' . base64_encode($result->getString()) . '" />';
     }
 }

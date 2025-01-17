@@ -3,302 +3,257 @@ namespace SPHERE\Application\Api\Reporting\Standard\Person;
 
 use DateTime;
 use MOC\V\Core\FileSystem\FileSystem;
+use SPHERE\Application\Api\Reporting\Standard\ExcelBuilder;
+use SPHERE\Application\Education\Absence\Absence;
 use SPHERE\Application\Education\Certificate\Reporting\Reporting;
 use SPHERE\Application\Education\Certificate\Reporting\View;
-use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Course\Course;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
-use SPHERE\Application\Reporting\Individual\Individual;
 use SPHERE\Application\Reporting\Standard\Person\Person as ReportingPerson;
+use SPHERE\System\Extension\Extension;
 
 /**
  * Class Person
  *
  * @package SPHERE\Application\Api\Reporting\Standard\Person
  */
-class Person
+class Person extends Extension
 {
     /**
-     * @param null $DivisionId
-     * @param null $GroupId
-     * @param null $DivisionSubjectId
+     * @param TblDivisionCourse     $tblDivisionCourse
+     * @param TblDivisionCourseType $tblDivisionCourseType
+     *
+     * @return string
+     */
+    private function getDivisionCourseTypeNameList(TblDivisionCourse $tblDivisionCourse, TblDivisionCourseType $tblDivisionCourseType)
+    {
+
+        switch ($tblDivisionCourseType->getIdentifier()) {
+            case TblDivisionCourseType::TYPE_DIVISION:          // Klasse
+            case TblDivisionCourseType::TYPE_CORE_GROUP:        // Stammgruppe
+            case TblDivisionCourseType::TYPE_TEACHING_GROUP:    // Unterrichtsgruppe
+            case TblDivisionCourseType::TYPE_TEACHER_GROUP:     // Lerngruppe
+                $name = $tblDivisionCourseType->getName() . 'nliste_';
+                break;
+            case TblDivisionCourseType::TYPE_BASIC_COURSE:      // SekII-Grundkurs
+            case TblDivisionCourseType::TYPE_ADVANCED_COURSE:   // SekII-Leistungskurs
+                $name = $tblDivisionCourseType->getName() . ' Liste_';
+                break;
+            default:
+                $name = 'Gruppenliste_';
+        }
+        $name .= $tblDivisionCourse->getDisplayName();
+        return $name;
+    }
+
+    /**
+     * @param int $DivisionCourseId
      *
      * @return false|string
      */
-    public function downloadClassList($DivisionId = null, $GroupId = null, $DivisionSubjectId = null)
+    public function downloadClassList(int  $DivisionCourseId)
     {
-        $tblDivision = false;
-        $tblGroup = false;
-        if (($tblDivisionSubject = Division::useService()->getDivisionSubjectById($DivisionSubjectId))) {
-            $tblPersonList = Division::useService()->getStudentByDivisionSubject($tblDivisionSubject);
-            $name = 'Kursliste '
-                . (($tblSubjectGroup = $tblDivisionSubject->getTblSubjectGroup()) ? $tblSubjectGroup->getName() : '');
-        } elseif (($tblDivision = Division::useService()->getDivisionById($DivisionId))) {
-            $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
-            $name = 'Klassenliste ' . $tblDivision->getDisplayName();
-        } elseif (($tblGroup = Group::useService()->getGroupById($GroupId))) {
-            $tblPersonList = $tblGroup->getStudentOnlyList();
-            $name = 'Stammgruppenliste ' . $tblGroup->getName();
-        } else {
-            return false;
-        }
-
-        if ($tblPersonList
-            && ($DataList = ReportingPerson::useService()->createClassList($tblPersonList))
+        if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
+            $tblType = $tblDivisionCourse->getType();
+            $name = $this->getDivisionCourseTypeNameList($tblDivisionCourse, $tblType);
+        } else {return false;}
+        if (($tblPersonList = $tblDivisionCourse->getStudents())
+            && ($tblYear = $tblDivisionCourse->getServiceTblYear())
+            && ($dataList = ReportingPerson::useService()->createClassList($tblDivisionCourse, $tblPersonList, $tblYear))
         ) {
-            $fileLocation = ReportingPerson::useService()->createClassListExcel($DataList, $tblPersonList,
-                $tblDivision ?: null, $tblGroup ?: null, $tblDivisionSubject ?: null);
-
-            return FileSystem::getDownload($fileLocation->getRealPath(),
-                $name . ' ' . date("Y-m-d H:i:s").".xlsx")->__toString();
+            $fileLocation = ReportingPerson::useService()->createClassListExcel($dataList, $tblPersonList, $tblDivisionCourse);
+            return FileSystem::getDownload($fileLocation->getRealPath(), $name . '_' . date("Y-m-d").".xlsx")->__toString();
         }
-
         return false;
     }
 
     /**
-     * @param null $DivisionId
+     * @param int $DivisionCourseId
      *
-     * @return bool|string
+     * @return false|string
      */
-    public function downloadExtendedClassList($DivisionId = null)
+    public function downloadExtendedClassList(int $DivisionCourseId)
+    {
+        if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
+            $tblType = $tblDivisionCourse->getType();
+            $name = $this->getDivisionCourseTypeNameList($tblDivisionCourse, $tblType);
+        } else {return false;}
+        if (($dataList = ReportingPerson::useService()->createExtendedClassList($tblDivisionCourse))) {
+            $fileLocation = ReportingPerson::useService()->createExtendedClassListExcel($dataList, $tblDivisionCourse);
+            return FileSystem::getDownload($fileLocation->getRealPath(), "Erweiterte_".$name.'_'.date("Y-m-d").".xlsx")->__toString();
+        }
+        return false;
+    }
+
+    /**
+     * @param int $DivisionCourseId
+     *
+     * @return false|string
+     */
+    public function downloadElectiveClassList(int $DivisionCourseId)
     {
 
-        $tblDivision = Division::useService()->getDivisionById($DivisionId);
-        if ($tblDivision) {
-            $PersonList = ReportingPerson::useService()->createExtendedClassList($tblDivision);
-            if ($PersonList) {
-                $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
-                if ($tblPersonList) {
-                    $fileLocation = ReportingPerson::useService()->createExtendedClassListExcel($PersonList, $tblPersonList, $tblDivision);
-                    return FileSystem::getDownload($fileLocation->getRealPath(),
-                        "Erweiterte_Klassenliste ".$tblDivision->getDisplayName()
-                        ." ".date("Y-m-d H:i:s").".xlsx")->__toString();
-                }
-            }
+        if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
+            $tblType = $tblDivisionCourse->getType();
+            $name = $this->getDivisionCourseTypeNameList($tblDivisionCourse, $tblType);
+        } else {return false;}
+        if (($dataList = ReportingPerson::useService()->createElectiveClassList($tblDivisionCourse))) {
+            $fileLocation = ReportingPerson::useService()->createElectiveClassListExcel($dataList, $tblDivisionCourse);
+            return FileSystem::getDownload($fileLocation->getRealPath(), "Wahlfächer_".$name.'_'.date("Y-m-d").".xlsx")->__toString();
         }
-
         return false;
     }
 
     /**
-     * @param null $DivisionId
+     * @param int $DivisionCourseId
      *
-     * @return bool|string
+     * @return false|string
      */
-    public function downloadBirthdayClassList($DivisionId = null)
+    public function downloadBirthdayClassList(int $DivisionCourseId)
     {
 
-        $tblDivision = Division::useService()->getDivisionById($DivisionId);
-        if ($tblDivision) {
-            $PersonList = ReportingPerson::useService()->createBirthdayClassList($tblDivision);
-            if ($PersonList) {
-                $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
-                if ($tblPersonList) {
-                    $fileLocation = ReportingPerson::useService()->createBirthdayClassListExcel($PersonList, $tblPersonList);
-
-                    return FileSystem::getDownload($fileLocation->getRealPath(),
-                        "Birthday_Klassenliste ".$tblDivision->getDisplayName()
-                        ." ".date("Y-m-d H:i:s").".xlsx")->__toString();
-                }
-            }
+        if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
+            $tblType = $tblDivisionCourse->getType();
+            $name = $this->getDivisionCourseTypeNameList($tblDivisionCourse, $tblType);
+        } else {return false;}
+        if(($tblPersonList = $tblDivisionCourse->getStudents())
+        && ($dataList = ReportingPerson::useService()->createBirthdayClassList($tblDivisionCourse))){
+            $fileLocation = ReportingPerson::useService()->createBirthdayClassListExcel($dataList, $tblPersonList);
+            return FileSystem::getDownload($fileLocation->getRealPath(), "Geburtstag_".$name.'_'.date("Y-m-d").".xlsx")->__toString();
         }
-
         return false;
     }
 
     /**
-     * @param null $DivisionId
+     * @param int|null $DivisionCourseId
      *
-     * @return bool|string
+     * @return false|string
      */
-    public function downloadMedicalInsuranceClassList($DivisionId = null)
+    public function downloadMedicalInsuranceClassList(?int $DivisionCourseId = null)
     {
 
-        $tblDivision = Division::useService()->getDivisionById($DivisionId);
-        if ($tblDivision) {
-            $PersonList = ReportingPerson::useService()->createMedicalInsuranceClassList($tblDivision);
-            if ($PersonList) {
-                $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
-                if ($tblPersonList) {
-                    $fileLocation = ReportingPerson::useService()->createMedicalInsuranceClassListExcel($PersonList, $tblPersonList);
-
-                    return FileSystem::getDownload($fileLocation->getRealPath(),
-                        "Krankenkasse_Klassenliste ".$tblDivision->getDisplayName()
-                        ." ".date("Y-m-d H:i:s").".xlsx")->__toString();
-                }
-            }
+        if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
+            $tblType = $tblDivisionCourse->getType();
+            $name = $this->getDivisionCourseTypeNameList($tblDivisionCourse, $tblType);
+        } else {return false;}
+        if(($tblPersonList = $tblDivisionCourse->getStudents())
+            && ($dataList = ReportingPerson::useService()->createMedicalInsuranceClassList($tblDivisionCourse))){
+            $fileLocation = ReportingPerson::useService()->createMedicalInsuranceClassListExcel($dataList, $tblPersonList);
+            return FileSystem::getDownload($fileLocation->getRealPath(), "Krankenkasse_".$name.'_'.date("Y-m-d").".xlsx")->__toString();
         }
-
         return false;
     }
 
     /**
-     * @param null $GroupId
-     *
-     * @return bool|string
-     */
-    public function downloadGroupList($GroupId = null)
-    {
-
-        $tblGroup = Group::useService()->getGroupById($GroupId);
-        if ($tblGroup) {
-            $PersonList = ReportingPerson::useService()->createGroupList($tblGroup);
-            if ($PersonList) {
-                $tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup);
-                if ($tblPersonList) {
-                    $fileLocation = ReportingPerson::useService()->createGroupListExcel($PersonList, $tblPersonList, $GroupId);
-
-                    return FileSystem::getDownload($fileLocation->getRealPath(),
-                        "Gruppenliste ".$tblGroup->getName()
-                        ." ".date("Y-m-d H:i:s").".xlsx")->__toString();
-                }
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * @return string|bool
+     * @return false|string
      */
     public function downloadInterestedPersonList()
     {
 
         $hasGuardian = false;
         $hasAuthorizedPerson = false;
-        $PersonList = ReportingPerson::useService()->createInterestedPersonList($hasGuardian, $hasAuthorizedPerson);
-        if ($PersonList) {
-            $firstName = array();
-            foreach ($PersonList as $key => $row) {
+        if (!empty($dataList = ReportingPerson::useService()->createInterestedPersonList($hasGuardian, $hasAuthorizedPerson))) {
+            // multisort
+            foreach ($dataList as $key => $row) {
                 $name[$key] = strtoupper($row['LastName']);
                 $firstName[$key] = strtoupper($row['FirstName']);
             }
-            array_multisort($name, SORT_ASC, $firstName, SORT_ASC, $PersonList);
-
+            array_multisort($name, SORT_ASC, $firstName, SORT_ASC, $dataList);
             $tblPersonList = Group::useService()->getPersonAllByGroup(Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_PROSPECT));
-            if ($tblPersonList) {
-                $fileLocation = ReportingPerson::useService()->createInterestedPersonListExcel($PersonList, $tblPersonList, $hasGuardian, $hasAuthorizedPerson);
-
-                return FileSystem::getDownload($fileLocation->getRealPath(),
-                    "Interessentenliste ".date("Y-m-d H:i:s").".xlsx")->__toString();
-            }
+            $fileLocation = ReportingPerson::useService()->createInterestedPersonListExcel($dataList, $tblPersonList, $hasGuardian, $hasAuthorizedPerson);
+            return FileSystem::getDownload($fileLocation->getRealPath(), "Interessentenliste ".date("Y-m-d").".xlsx")->__toString();
         }
-
         return false;
     }
 
     /**
-     * @param null $DivisionId
+     * @param int $GroupId
      *
      * @return bool|string
      */
-    public function downloadElectiveClassList($DivisionId = null)
+    public function downloadGroupList(int $GroupId)
     {
 
-        $tblDivision = Division::useService()->getDivisionById($DivisionId);
-        if ($tblDivision) {
-            $PersonList = ReportingPerson::useService()->createElectiveClassList($tblDivision);
-            if ($PersonList) {
-                $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
-                if ($tblPersonList) {
-                    $fileLocation = ReportingPerson::useService()->createElectiveClassListExcel($PersonList,
-                        $tblPersonList
-                        , $tblDivision->getId());
-                    return FileSystem::getDownload($fileLocation->getRealPath(),
-                        "Wahlfächer_Klassenliste ".$tblDivision->getDisplayName()
-                        ." ".date("Y-m-d H:i:s").".xlsx")->__toString();
-                }
-            }
+        if (($tblGroup = Group::useService()->getGroupById($GroupId))
+        && ($tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup))
+        && !empty($TableContent = ReportingPerson::useService()->createGroupList($tblGroup))) {
+            $fileLocation = ReportingPerson::useService()->createGroupListExcel($TableContent, $tblPersonList, $tblGroup);
+            return FileSystem::getDownload($fileLocation->getRealPath(), "Gruppenliste ".$tblGroup->getName() ." ".date("Y-m-d").".xlsx")->__toString();
         }
-
         return false;
     }
 
     /**
-     * @param null $Person
-     * @param null $Year
-     * @param null $Division
-     * @param null $Option
-     * @param null $PersonGroup
+     * @param array $Data
      *
      * @return string
      */
-    public function downloadMetaDataComparison($Person = null, $Year = null, $Division = null, $Option = null, $PersonGroup = null)
+    public function downloadMetaDataComparison(array $Data = array())
     {
 
-        $fileLocation = ReportingPerson::useService()->createMetaDataComparisonExcel($Person, $Year, $Division, $Option, $PersonGroup);
-        return FileSystem::getDownload($fileLocation->getRealPath(),"Stammdatenabfrage"." ".date("Y-m-d H:i:s").".xlsx")->__toString();
+        $fileLocation = ReportingPerson::useService()->createMetaDataComparisonExcel($Data);
+        return FileSystem::getDownload($fileLocation->getRealPath(),"Stammdatenabfrage ".date("Y-m-d").".xlsx")->__toString();
     }
 
     /**
-     * @param null $DivisionId
-     * @param null $GroupId
-     * @param null $DivisionSubjectId
+     * @param null $DivisionCourseId
      *
      * @return false|string
      */
-    public function downloadMedicalRecordClassList($DivisionId = null, $GroupId = null, $DivisionSubjectId = null)
+    public function downloadMedicalRecordClassList($DivisionCourseId = null)
     {
-        if (($tblDivisionSubject = Division::useService()->getDivisionSubjectById($DivisionSubjectId))) {
-            $tblPersonList = Division::useService()->getStudentByDivisionSubject($tblDivisionSubject);
-            $name = 'Krankenakte_Kursliste '
-                . (($tblSubjectGroup = $tblDivisionSubject->getTblSubjectGroup()) ? $tblSubjectGroup->getName() : '');
-        } elseif (($tblDivision = Division::useService()->getDivisionById($DivisionId))) {
-            $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
-            $name = 'Krankenakte_Klassenliste ' . $tblDivision->getDisplayName();
-        } elseif (($tblGroup = Group::useService()->getGroupById($GroupId))) {
-            $tblPersonList = $tblGroup->getStudentOnlyList();
-            $name = 'Krankenakte_Stammgruppenliste ' . $tblGroup->getName();
-        } else {
-            return false;
+        if (!($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
+            return 'Der Kurs wurde nicht gefunden';
         }
 
-        if ($tblPersonList
-            && ($DataList = ReportingPerson::useService()->createMedicalRecordClassList($tblPersonList))
+        switch ($tblDivisionCourse->getTypeIdentifier()) {
+            case TblDivisionCourseType::TYPE_DIVISION: $preName = 'Krankenakte_Klassenliste '; break;
+            case TblDivisionCourseType::TYPE_CORE_GROUP: $preName = 'Krankenakte_Stammgruppenliste '; break;
+            default: $preName = 'Krankenakte_Kursliste ';
+        }
+
+        if (($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses())
+            && ($dataList = ReportingPerson::useService()->createMedicalRecordClassList($tblPersonList))
         ) {
-            $fileLocation = ReportingPerson::useService()->createMedicalRecordClassListExcel($DataList, $tblPersonList);
+            $fileLocation = ReportingPerson::useService()->createMedicalRecordClassListExcel($dataList, $tblPersonList);
 
             return FileSystem::getDownload($fileLocation->getRealPath(),
-                $name . ' ' . date("Y-m-d H:i:s").".xlsx")->__toString();
+                $preName . $tblDivisionCourse->getName() . ' ' . date("Y-m-d H:i:s").".xlsx")->__toString();
         }
 
         return false;
     }
 
     /**
-     * @param null $DivisionId
-     * @param null $GroupId
-     * @param null $DivisionSubjectId
+     * @param null $DivisionCourseId
      *
      * @return false|string
      */
-    public function downloadAgreementClassList($DivisionId = null, $GroupId = null, $DivisionSubjectId = null)
+    public function downloadAgreementClassList($DivisionCourseId = null)
     {
-        if (($tblDivisionSubject = Division::useService()->getDivisionSubjectById($DivisionSubjectId))) {
-            $tblPersonList = Division::useService()->getStudentByDivisionSubject($tblDivisionSubject);
-            $name = 'Einverständniserklärung_Kursliste '
-                . (($tblSubjectGroup = $tblDivisionSubject->getTblSubjectGroup()) ? $tblSubjectGroup->getName() : '');
-        } elseif (($tblDivision = Division::useService()->getDivisionById($DivisionId))) {
-            $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
-            $name = 'Einverständniserklärung_Klassenliste ' . $tblDivision->getDisplayName();
-        } elseif (($tblGroup = Group::useService()->getGroupById($GroupId))) {
-            $tblPersonList = $tblGroup->getStudentOnlyList();
-            $name = 'Einverständniserklärung_Stammgruppenliste ' . $tblGroup->getName();
-        } else {
-            return false;
+        if (!($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
+            return 'Der Kurs wurde nicht gefunden';
         }
 
-        if ($tblPersonList
-            && ($DataList = ReportingPerson::useService()->createAgreementClassList($tblPersonList))
+        switch ($tblDivisionCourse->getTypeIdentifier()) {
+            case TblDivisionCourseType::TYPE_DIVISION: $preName = 'Einverständniserklärung_Klassenliste '; break;
+            case TblDivisionCourseType::TYPE_CORE_GROUP: $preName = 'Einverständniserklärung_Stammgruppenliste '; break;
+            default: $preName = 'Einverständniserklärung_Kursliste ';
+        }
+
+        if (($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses())
+            && ($dataList = ReportingPerson::useService()->createAgreementClassList($tblPersonList))
         ) {
-            $fileLocation = ReportingPerson::useService()->createAgreementClassListExcel($DataList, $tblPersonList);
+            $fileLocation = ReportingPerson::useService()->createAgreementClassListExcel($dataList, $tblPersonList);
 
             return FileSystem::getDownload($fileLocation->getRealPath(),
-                $name . ' ' . date("Y-m-d H:i:s").".xlsx")->__toString();
+                $preName . $tblDivisionCourse->getName() . ' ' . date("Y-m-d H:i:s").".xlsx")->__toString();
         }
 
         return false;
@@ -315,25 +270,11 @@ class Person
     public function downloadAgreementStudentList($Data = array())
     {
 
-        $tblYear = $tblGroup = $tblType = false;
-        if(!empty($Data['Year'])){
-            $tblYear = Term::useService()->getYearById($Data['Year']);
-        }
-        if(!empty($Data['Group'])){
-            $tblGroup = \SPHERE\Application\People\Search\Group\Group::useService()->getGroupById($Data['Group']);
-        }
-        if(!empty($Data['Type'])){
-            $tblType = Type::useService()->getTypeById($Data['Type']);
-        }
-        $Level = !empty($Data['Level']) ? $Data['Level'] : '';
-        $Division = !empty($Data['Division']) ? $Data['Division'] : '';
-        if($tblYear){
-            $tblPersonList = Individual::useService()->getStudentPersonListByFilter($tblYear, $tblGroup, $tblType,
-                $Level, $Division);
-            if($tblPersonList && ($DataList = ReportingPerson::useService()->createAgreementList($tblPersonList))){
-                $fileLocation = ReportingPerson::useService()->createAgreementClassListExcel($DataList, $tblPersonList);
+        if(!empty(($tblPersonList = ReportingPerson::useService()->getStudentFilterResult($Data)))){
+            if(!empty(($dataList = ReportingPerson::useService()->createAgreementList($tblPersonList)))){
+                $fileLocation = ReportingPerson::useService()->createAgreementClassListExcel($dataList, $tblPersonList);
                 return FileSystem::getDownload($fileLocation->getRealPath(),
-                    'Einverständniserklärung_Schüler ' . date("Y-m-d H:i:s").".xlsx")->__toString();
+                    'Einverständniserklärung_Schüler ' . date("Y-m-d").".xlsx")->__toString();
             }
         }
         return false;
@@ -350,8 +291,8 @@ class Person
 
         $tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_STAFF);
         $tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup);
-        if($tblPersonList && ($DataList = ReportingPerson::useService()->createPersonAgreementList($tblPersonList))){
-            $fileLocation = ReportingPerson::useService()->createAgreementPersonListExcel($DataList, $tblPersonList);
+        if($tblPersonList && ($dataList = ReportingPerson::useService()->createPersonAgreementList($tblPersonList))){
+            $fileLocation = ReportingPerson::useService()->createAgreementPersonListExcel($dataList, $tblPersonList);
             return FileSystem::getDownload($fileLocation->getRealPath(),
                 'Einverständniserklärung_Mitarbeiter ' . date("Y-m-d H:i:s").".xlsx")->__toString();
         }
@@ -363,27 +304,24 @@ class Person
      * @param null $DateTo
      * @param null $Type
      * @param string $DivisionName
-     * @param string $GroupName
      * @param int $IsCertificateRelevant
      * @param bool $IsAbsenceOnlineOnly
      *
      * @return bool|string
      */
-    public function downloadAbsenceList($Date = null, $DateTo = null, $Type = null, $DivisionName = '', $GroupName = '',
+    public function downloadAbsenceList($Date = null, $DateTo = null, $Type = null, string $DivisionName = '',
         int $IsCertificateRelevant = 0, bool $IsAbsenceOnlineOnly = false)
     {
         // das Datum darf keine Uhrzeit enthalten
-        $dateTime = new DateTime((new DateTime($Date))->format('d.m.Y'));
+        $dateTimeFrom = new DateTime((new DateTime($Date))->format('d.m.Y'));
         if ($DateTo == null || $DateTo == '') {
             $dateTimeTo = null;
         } else {
             $dateTimeTo = new DateTime((new DateTime($DateTo))->format('d.m.Y'));
         }
-        if (($fileLocation = ReportingPerson::useService()->createAbsenceListExcel($dateTime, $dateTimeTo, $Type,
-            $DivisionName, $GroupName, $IsCertificateRelevant, $IsAbsenceOnlineOnly))
-        ) {
-            return FileSystem::getDownload($fileLocation->getRealPath(),
-                "Fehlzeiten " . $dateTime->format("Y-m-d") . ".xlsx")->__toString();
+
+        if (($fileLocation = ReportingPerson::useService()->createAbsenceListExcel($dateTimeFrom, $dateTimeTo, $Type, $DivisionName, $IsCertificateRelevant, $IsAbsenceOnlineOnly))) {
+            return FileSystem::getDownload($fileLocation->getRealPath(), "Fehlzeiten " . $dateTimeFrom->format("Y-m-d") . ".xlsx")->__toString();
         }
 
         return false;
@@ -400,8 +338,7 @@ class Person
         if ($StartDate && $EndDate) {
             $StartDate = new DateTime($StartDate);
             $EndDate = new DateTime($EndDate);
-
-            if (($fileLocation = ReportingPerson::useService()->createAbsenceBetweenListExcel($StartDate, $EndDate))) {
+            if (($fileLocation = ReportingPerson::useService()->createAbsenceListExcel($StartDate, $EndDate))) {
                 return FileSystem::getDownload($fileLocation->getRealPath(),
                     "Fehlzeiten " . $StartDate->format("Y-m-d") . " - " . $EndDate->format("Y-m-d") . ".xlsx")->__toString();
             }
@@ -416,14 +353,11 @@ class Person
     public function downloadClubList()
     {
 
-        $PersonList = ReportingPerson::useService()->createClubList();
-        if ($PersonList) {
-            $fileLocation = ReportingPerson::useService()->createClubListExcel($PersonList);
-
+        if (($dataList = ReportingPerson::useService()->createClubList())) {
+            $fileLocation = ReportingPerson::useService()->createClubListExcel($dataList);
             return FileSystem::getDownload($fileLocation->getRealPath(),
-                "Fördervereinsmitgliedschaft ".date("Y-m-d H:i:s").".xlsx")->__toString();
+                "Fördervereinsmitgliedschaft ".date("Y-m-d").".xlsx")->__toString();
         }
-
         return false;
     }
 
@@ -433,61 +367,68 @@ class Person
     public function downloadStudentArchive(?string $YearId = null)
     {
         if (($tblYear = Term::useService()->getYearById($YearId))
-            && ($personList = Division::useService()->getLeaveStudents($tblYear))
+        && !empty(($personList = DivisionCourse::useService()->getLeaveStudents($tblYear)))
         ) {
             $dataList = ReportingPerson::useService()->createStudentArchiveList($personList);
-
             $fileLocation = ReportingPerson::useService()->createStudentArchiveExcel($dataList);
-
             return FileSystem::getDownload($fileLocation->getRealPath(),
-                "Ehemalige Schüler " . $tblYear->getName() . ' ' . date("Y-m-d H:i:s").".xlsx")->__toString();
+                "Ehemalige Schüler " . $tblYear->getName() . ' ' . date("Y-m-d").".xlsx")->__toString();
         }
-
         return false;
     }
 
     /**
-     * @param null $DivisionId
-     * @param null $GroupId
+     * @param null $DivisionCourseId
      *
      * @return bool|string
      */
-    public function downloadClassRegisterAbsence($DivisionId = null, $GroupId = null, $DivisionSubjectId = null)
+    public function downloadClassRegisterAbsence($DivisionCourseId = null)
     {
-        $tblDivision = false;
-        if (($tblDivisionSubject = Division::useService()->getDivisionSubjectById($DivisionSubjectId))) {
-            $tblPersonList = Division::useService()->getStudentByDivisionSubject($tblDivisionSubject);
-            $name = 'Fehlzeiten des Kurses '
-                . (($tblSubjectGroup = $tblDivisionSubject->getTblSubjectGroup()) ? $tblSubjectGroup->getName() : '');
-        } elseif (($tblDivision = Division::useService()->getDivisionById($DivisionId))) {
-            $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
-            $name = 'Fehlzeiten der Klasse ' . $tblDivision->getDisplayName();
-        } elseif (($tblGroup = Group::useService()->getGroupById($GroupId))) {
-            $tblPersonList = $tblGroup->getStudentOnlyList();
-            $name = 'Fehlzeiten der Stammgruppe ' . $tblGroup->getName();
-        } else {
-            return false;
-        }
-
-        if ($tblPersonList
-            && ($DataList = ReportingPerson::useService()->createAbsenceContentList($tblPersonList, $tblDivision ?: null))
+        if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))
+            && ($tblYear = $tblDivisionCourse->getServiceTblYear())
+            && ($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses())
+            && ($dataList = ReportingPerson::useService()->createAbsenceContentList($tblPersonList, $tblYear))
         ) {
-            $fileLocation = ReportingPerson::useService()->createAbsenceContentExcel($DataList);
+            $name = 'Fehlzeiten der ' . $tblDivisionCourse->getTypeName() . $tblDivisionCourse->getName();
+            $fileLocation = ReportingPerson::useService()->createAbsenceContentExcel($dataList);
 
-            return FileSystem::getDownload($fileLocation->getRealPath(),
-                $name . ' ' . date("Y-m-d H:i:s").".xlsx")->__toString();
+            return FileSystem::getDownload($fileLocation->getRealPath(), $name . ' ' . date("Y-m-d H:i:s").".xlsx")->__toString();
         }
 
         return false;
     }
 
     /**
-     * @param int $View
+     * @param null $DivisionCourseId
+     *
+     * @return bool|string
+     */
+    public function downloadClassRegisterAbsenceMonthly($DivisionCourseId = null)
+    {
+        if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))
+            && ($tblYear = $tblDivisionCourse->getServiceTblYear())
+            && ($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses())
+        ) {
+            $name = 'Fehlzeiten der ' . $tblDivisionCourse->getTypeName() . $tblDivisionCourse->getName();
+
+            list($dataList, $countList) = Absence::useService()->getMonthAbsencesForExcelDownload($tblDivisionCourse);
+            $fileLocation = ReportingPerson::useService()->createAbsenceContentExcelMonthly($tblPersonList, $dataList, $countList, $tblYear);
+
+            return FileSystem::getDownload($fileLocation->getRealPath(), $name . ' ' . date("Y-m-d H:i:s").".xlsx")->__toString();
+        }
+
+        return false;
+    }
+
+    /**
+     * @param null $View
+     * @param null $YearId
      *
      * @return string
      */
-    public function downloadDiplomaSerialMail(int $View): string
+    public function downloadDiplomaSerialMail($View = null, $YearId = null): string
     {
+        $View = intval($View);
         $tblCourse = false;
         switch ($View) {
             case View::HS: $tblCourse = Course::useService()->getCourseByName('Hauptschule');
@@ -503,7 +444,8 @@ class Person
 
         $subjectList = array();
         if($tblSchoolType
-            && ($content = Reporting::useService()->getDiplomaSerialMailContent($tblSchoolType, $tblCourse ?: null, $subjectList))
+            && ($tblYear = Term::useService()->getYearById($YearId))
+            && ($content = Reporting::useService()->getDiplomaSerialMailContent($tblSchoolType, $tblYear, $tblCourse ?: null, $subjectList))
             && ($fileLocation = Reporting::useService()->createDiplomaSerialMailContentExcel($content, $subjectList))
         ){
             return FileSystem::getDownload($fileLocation->getRealPath(),
@@ -515,12 +457,14 @@ class Person
     }
 
     /**
-     * @param int $View
+     * @param null $View
+     * @param null $YearId
      *
      * @return string
      */
-    public function downloadDiplomaStatistic(int $View): string
+    public function downloadDiplomaStatistic($View = null, $YearId = null): string
     {
+        $View = intval($View);
         $tblCourse = false;
         switch ($View) {
             case View::HS: $tblCourse = Course::useService()->getCourseByName('Hauptschule');
@@ -535,7 +479,8 @@ class Person
         }
 
         if($tblSchoolType
-            && ($content = Reporting::useService()->getDiplomaStatisticContent($tblSchoolType, $tblCourse ?: null))
+            && ($tblYear = Term::useService()->getYearById($YearId))
+            && ($content = Reporting::useService()->getDiplomaStatisticContent($tblSchoolType, $tblYear, $tblCourse ?: null))
             && ($fileLocation = Reporting::useService()->createDiplomaStatisticContentExcel($content))
         ){
             return FileSystem::getDownload($fileLocation->getRealPath(),
@@ -553,14 +498,128 @@ class Person
      */
     public function downloadCourseGrades($DivisionId): string
     {
-        if(($tblDivision = Division::useService()->getDivisionById($DivisionId))
-            && ($content = Reporting::useService()->getCourseGradesContent($tblDivision))
+        if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionId))
+            && ($content = Reporting::useService()->getCourseGradesContent($tblDivisionCourse))
             && ($fileLocation = Reporting::useService()->createCourseGradesContentExcel($content))
-        ){
+        ) {
             return FileSystem::getDownload($fileLocation->getRealPath(), 'Kursnoten '
-                . $tblDivision->getTypeName() . ' Klasse ' . $tblDivision->getDisplayName() . ' ' . date("Y-m-d H:i:s").".xlsx")->__toString();
+                . $tblDivisionCourse->getTypeName() . ' ' . $tblDivisionCourse->getName() . ' ' . date("Y-m-d H:i:s").".xlsx")->__toString();
         }
 
         return 'Keine Daten vorhanden!';
+    }
+
+    /**
+     * @return string|bool
+     */
+    public function downloadDivisionTeacherList()
+    {
+
+        list($TableContent, $headers) = ReportingPerson::useService()->createDivisionTeacherList();
+        if (!empty($TableContent)) {
+            $fileLocation = ReportingPerson::useService()->createDivisionTeacherExcelList($TableContent, $headers);
+            return FileSystem::getDownload($fileLocation->getRealPath(),
+                "Klassenlehrer ".date("Y-m-d").".xlsx")->__toString();
+        }
+        return false;
+    }
+
+    /**
+     * @param $PersonId
+     * @param $YearId
+     *
+     * @return false|string
+     */
+    public function downloadClassRegisterAbsenceStudent($PersonId = null, $YearId = null)
+    {
+        if (($tblPerson = \SPHERE\Application\People\Person\Person::useService()->getPersonById($PersonId))
+            && ($tblYear = Term::useService()->getYearById($YearId))
+            && ($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYearWithLeaved($tblPerson, $tblYear))
+        ) {
+            $hasAbsenceTypeOptions = false;
+            $dataList = Absence::useService()->getStudentAbsenceDataForParentStudentAccess($tblPerson, $tblStudentEducation, $hasAbsenceTypeOptions);
+            if ($hasAbsenceTypeOptions) {
+                $headerList = array(
+                    'FromDate' => 'Datum von',
+                    'ToDate' => 'Datum bis',
+                    'Days' => 'Tage',
+                    'Lessons' => 'Unterrichtseinheiten',
+                    'Type' => 'Typ',
+                    'PersonCreator' => 'Ersteller',
+                    'IsCertificateRelevant' => 'Zeugnisrelevant',
+                    'Status' => 'Status',
+                );
+            } else {
+                $headerList = array(
+                    'FromDate' => 'Datum von',
+                    'ToDate' => 'Datum bis',
+                    'Days' => 'Tage',
+                    'Lessons' => 'Unterrichtseinheiten',
+                    'PersonCreator' => 'Ersteller',
+                    'IsCertificateRelevant' => 'Zeugnisrelevant',
+                    'Status' => 'Status',
+                );
+            }
+
+            $preTextList[] = 'Fehlzeiten Übersicht für ' . $tblPerson->getLastFirstName()
+                . ' (' . DivisionCourse::useService()->getCurrentMainCoursesByStudentEducation($tblStudentEducation) . ')';
+            $preTextList[] = 'Stand: ' . (new DateTime())->format('d.m.Y');
+
+            $headerWidthList['FromDate'] = 11;
+            $headerWidthList['ToDate'] = 11;
+            $headerWidthList['Days'] = 14;
+            $headerWidthList['Lessons'] = 22;
+            $headerWidthList['PersonCreator'] = 20;
+            $headerWidthList['IsCertificateRelevant'] = 16;
+            $headerWidthList['Status'] = 16;
+
+            return ExcelBuilder::getDownloadFile(
+                'Fehlzeiten ' . $tblPerson->getLastName() . ' ' . $tblPerson->getFirstName() . ' ' . (new DateTime())->format('d-m-Y'),
+                $headerList,
+                $dataList,
+                $preTextList,
+                $headerWidthList
+            );
+        }
+
+        return 'Keine Daten vorhanden!';
+    }
+
+    /**
+     * @return false|string
+     */
+    public function downloadRepresentativeList()
+    {
+        list ($dataList, $headerList) = ReportingPerson::useService()->createRepresentativeList(true);
+
+        $preTextList[] = 'Elternsprecher / Klassensprecher';
+        $preTextList[] = 'Stand: ' . (new DateTime())->format('d.m.Y');
+
+        $headerWidthList = array(
+            'DivisionCourse' => 10,
+            'SchoolTypes' => 8,
+            'Type' => 16,
+            'Description' => 18,
+            'Salutation' => 9,
+            'FirstName' => 20,
+            'LastName' => 20,
+            'District' => 20,
+            'Street' => 20,
+            'Number' => 8,
+            'ZipCode' => 8,
+            'City' => 20,
+            'EmailPrivate' => 30,
+            'EmailCompany' => 30,
+            'PhonePrivate' => 30,
+            'PhoneCompany' => 30
+        );
+
+        return ExcelBuilder::getDownloadFile(
+            'Elternsprecher-Klassensprecher ' . (new DateTime())->format('d-m-Y'),
+            $headerList,
+            $dataList,
+            $preTextList,
+            $headerWidthList
+        );
     }
 }

@@ -16,6 +16,7 @@ class TblCategory extends Element
 {
     const ATTR_IDENTIFIER = 'Identifier';
     const ATTR_NAME = 'Name';
+    const PRE_SCHOOL = 'PRE_SCHOOL';
     const COMMON = 'COMMON';
     const TECHNICAL = 'TECHNICAL';
     const SECOND_COURSE = 'SECOND_COURSE';

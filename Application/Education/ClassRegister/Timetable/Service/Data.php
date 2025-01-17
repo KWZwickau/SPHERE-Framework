@@ -6,10 +6,11 @@ use SPHERE\Application\Education\ClassRegister\Timetable\Service\Entity\TblTimet
 use SPHERE\Application\Education\ClassRegister\Timetable\Service\Entity\TblTimetable;
 use SPHERE\Application\Education\ClassRegister\Timetable\Service\Entity\TblTimetableReplacement;
 use SPHERE\Application\Education\ClassRegister\Timetable\Service\Entity\TblTimetableWeek;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Database\Binding\AbstractData;
+use SPHERE\System\Database\Fitting\Element;
 
 /**
  * Class Data
@@ -100,46 +101,47 @@ class Data extends AbstractData
 
     /**
      * @param TblTimetable $tblTimetable
-     * @param TblDivision $tblDivision
+     * @param TblDivisionCourse $tblDivisionCourse
      * @param Int $Day
      * @param int|null $lesson
      * @param TblPerson|null $tblPerson
      *
      * @return false|TblTimetableNode[]
      */
-    public function getTimetableNodeListBy(TblTimetable $tblTimetable, TblDivision $tblDivision, int $Day, ?int $lesson, ?TblPerson $tblPerson)
+    public function getTimetableNodeListBy(TblTimetable $tblTimetable, TblDivisionCourse $tblDivisionCourse, int $Day, ?int $lesson, ?TblPerson $tblPerson)
     {
+        $order = array('EntityCreate' => self::ORDER_ASC);
         if ($lesson !== null) {
             if ($tblPerson) {
                 return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblTimetableNode', array(
                     TblTimetableNode::ATTR_TBL_CLASS_REGISTER_TIMETABLE => $tblTimetable->getId(),
-                    TblTimetableNode::ATTR_SERVICE_TBL_COURSE => $tblDivision->getId(),
+                    TblTimetableNode::ATTR_SERVICE_TBL_COURSE => $tblDivisionCourse->getId(),
                     TblTimetableNode::ATTR_DAY => $Day,
                     TblTimetableNode::ATTR_HOUR => $lesson,
                     TblTimetableNode::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()
-                ));
+                ), $order);
             } else {
                 return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblTimetableNode', array(
                     TblTimetableNode::ATTR_TBL_CLASS_REGISTER_TIMETABLE => $tblTimetable->getId(),
-                    TblTimetableNode::ATTR_SERVICE_TBL_COURSE => $tblDivision->getId(),
+                    TblTimetableNode::ATTR_SERVICE_TBL_COURSE => $tblDivisionCourse->getId(),
                     TblTimetableNode::ATTR_DAY => $Day,
                     TblTimetableNode::ATTR_HOUR => $lesson
-                ));
+                ), $order);
             }
         } else {
             if ($tblPerson) {
                 return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblTimetableNode', array(
                     TblTimetableNode::ATTR_TBL_CLASS_REGISTER_TIMETABLE => $tblTimetable->getId(),
-                    TblTimetableNode::ATTR_SERVICE_TBL_COURSE => $tblDivision->getId(),
+                    TblTimetableNode::ATTR_SERVICE_TBL_COURSE => $tblDivisionCourse->getId(),
                     TblTimetableNode::ATTR_DAY => $Day,
                     TblTimetableNode::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()
-                ));
+                ), $order);
             } else {
                 return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblTimetableNode', array(
                     TblTimetableNode::ATTR_TBL_CLASS_REGISTER_TIMETABLE => $tblTimetable->getId(),
-                    TblTimetableNode::ATTR_SERVICE_TBL_COURSE => $tblDivision->getId(),
+                    TblTimetableNode::ATTR_SERVICE_TBL_COURSE => $tblDivisionCourse->getId(),
                     TblTimetableNode::ATTR_DAY => $Day,
-                ));
+                ), $order);
             }
         }
     }
@@ -158,6 +160,23 @@ class Data extends AbstractData
             TblTimetableNode::ATTR_DAY => $Day,
             TblTimetableNode::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()
         ), array(
+            TblTimetableNode::ATTR_HOUR => self::ORDER_ASC
+        ));
+    }
+
+    /**
+     * @param TblTimetable $tblTimetable
+     * @param TblDivisionCourse $tblDivisionCourse
+     *
+     * @return false|TblTimetableNode[]
+     */
+    public function getTimetableNodeListByTimetableAndDivisionCourse(TblTimetable $tblTimetable, TblDivisionCourse $tblDivisionCourse)
+    {
+        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblTimetableNode', array(
+            TblTimetableNode::ATTR_TBL_CLASS_REGISTER_TIMETABLE => $tblTimetable->getId(),
+            TblTimetableNode::ATTR_SERVICE_TBL_COURSE => $tblDivisionCourse->getId(),
+        ), array(
+            TblTimetableNode::ATTR_DAY => self::ORDER_ASC,
             TblTimetableNode::ATTR_HOUR => self::ORDER_ASC
         ));
     }
@@ -205,8 +224,7 @@ class Data extends AbstractData
 
         $Search = array(TblTimetableReplacement::ATTR_DATE => $Date);
         if($tblCourse){
-            //ToDO Course
-            /** @var TblDivision $tblCourse */
+            /** @var Element $tblCourse */
             $Search[TblTimetableReplacement::ATTR_SERVICE_TBL_COURSE] = $tblCourse->getId();
         }
         if($Hour){
@@ -396,7 +414,7 @@ class Data extends AbstractData
                     $Entity->setIsCanceled(false);
                 }
                 $Entity->setSubjectGroup($Row['SubjectGroup']);
-                if(!$Row['tblSubject']){
+                if(!isset($Row['tblSubject']) || !$Row['tblSubject']){
                     $Row['tblSubject'] = null;
                 }
                 $Entity->setServiceTblSubject($Row['tblSubject']);
@@ -405,7 +423,7 @@ class Data extends AbstractData
                 }
                 $Entity->setServiceTblSubstituteSubject($Row['tblSubstituteSubject']);
                 $Entity->setServiceTblCourse($Row['tblCourse']);
-                $Entity->setServiceTblPerson($Row['tblPerson']);
+                $Entity->setServiceTblPerson($Row['tblPerson'] ?? null);
                 $Manager->bulkSaveEntity($Entity);
                 Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity, true);
             }
@@ -415,6 +433,34 @@ class Data extends AbstractData
         }
         return false;
 
+    }
+
+    /**
+     * @param TblTimetable $tblTimeTable
+     * @param string       $Name
+     * @param string       $Description
+     * @param DateTime     $DateFrom
+     * @param DateTime     $DateTo
+     *
+     * @return TblTimetable|null
+     */
+    public function updateTimetable(TblTimetable $tblTimeTable, string $Name, string $Description, DateTime $DateFrom, DateTime $DateTo): ?TblTimetable
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblTimetable $Entity*/
+        $Entity = $Manager->getEntityById('TblTimetable', $tblTimeTable->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setName($Name);
+            $Entity->setDescription($Description);
+            $Entity->setDateFrom($DateFrom);
+            $Entity->setDateTo($DateTo);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+            return $Entity;
+        }
+        return null;
     }
 
     /**
@@ -509,5 +555,50 @@ class Data extends AbstractData
             return true;
         }
         return false;
+    }
+
+    /**
+     * @param array $tblEntityList
+     *
+     * @return bool
+     */
+    public function createEntityListBulk(array $tblEntityList): bool
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+
+        foreach ($tblEntityList as $tblEntity) {
+            $Manager->bulkSaveEntity($tblEntity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $tblEntity, true);
+        }
+
+        $Manager->flushCache();
+        Protocol::useService()->flushBulkEntries();
+
+        return true;
+    }
+
+    /**
+     * @param array $tblEntityList
+     *
+     * @return bool
+     */
+    public function deleteEntityListBulk(array $tblEntityList): bool
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var Element $tblElement */
+        foreach ($tblEntityList as $tblElement) {
+
+            /** @var Element $Entity */
+            $Entity = $Manager->getEntityById($tblElement->getEntityShortName(), $tblElement->getId());
+
+            $Manager->bulkKillEntity($Entity);
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity, true);
+        }
+
+        $Manager->flushCache();
+        Protocol::useService()->flushBulkEntries();
+
+        return true;
     }
 }

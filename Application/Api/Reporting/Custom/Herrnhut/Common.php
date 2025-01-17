@@ -2,7 +2,7 @@
 namespace SPHERE\Application\Api\Reporting\Custom\Herrnhut;
 
 use MOC\V\Core\FileSystem\FileSystem;
-use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Reporting\Custom\Herrnhut\Person\Person;
 
 /**
@@ -14,130 +14,100 @@ class Common
 {
 
     /**
-     * @param null $DivisionId
+     * @param null $DivisionCourseId
      *
      * @return string|bool
      */
-    public function downloadProfileList($DivisionId = null)
+    public function downloadProfileList($DivisionCourseId = null)
     {
 
-        $tblDivision = Division::useService()->getDivisionById($DivisionId);
-        if ($tblDivision) {
-            $PersonList = Person::useService()->createProfileList($tblDivision);
-            if ($PersonList) {
-                $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
-                if ($tblPersonList) {
-                    $fileLocation = Person::useService()->createProfileListExcel($PersonList, $tblPersonList);
+        if(($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))
+        && ($tblPersonList = $tblDivisionCourse->getStudents())
+        && !empty($TableContent = Person::useService()->createProfileList($tblDivisionCourse))) {
+            $fileLocation = Person::useService()->createProfileListExcel($TableContent, $tblPersonList);
+            return FileSystem::getDownload($fileLocation->getRealPath(),
+                "Herrnhut Klassenliste Profile ".$tblDivisionCourse->getDisplayName()
+                ." ".date("Y-m-d").".xlsx")->__toString();
+        }
+        return false;
+    }
 
-                    return FileSystem::getDownload($fileLocation->getRealPath(),
-                        "Herrnhut Klassenliste Profile ".$tblDivision->getDisplayName()
-                        ." ".date("Y-m-d H:i:s").".xlsx")->__toString();
-                }
-            }
+    /**
+     * @param null $DivisionCourseId
+     *
+     * @return string|bool
+     */
+    public function downloadSignList($DivisionCourseId = null)
+    {
+
+        if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))
+        && ($tblPersonList = $tblDivisionCourse->getStudents())
+        && !empty($TableContent = Person::useService()->createSignList($tblDivisionCourse))) {
+            $fileLocation = Person::useService()->createSignListExcel($TableContent, $tblPersonList);
+            return FileSystem::getDownload($fileLocation->getRealPath(),
+                "Herrnhut Unterschriftenliste ".$tblDivisionCourse->getDisplayName()
+                ." ".date("Y-m-d").".xlsx")->__toString();
+        }
+        return false;
+    }
+
+    /**
+     * @param null $DivisionCourseId
+     *
+     * @return string|bool
+     */
+    public function downloadLanguageList($DivisionCourseId = null)
+    {
+
+        if(($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))
+            && ($tblPersonList = $tblDivisionCourse->getStudents())
+            && !empty($TableContent = Person::useService()->createLanguageList($tblDivisionCourse))
+        ) {
+            $fileLocation = Person::useService()->createLanguageListExcel($TableContent, $tblPersonList);
+            return FileSystem::getDownload($fileLocation->getRealPath(),
+                "Herrnhut Klassenliste Fremdsprachen ".$tblDivisionCourse->getDisplayName()
+                ." ".date("Y-m-d").".xlsx")->__toString();
+        }
+        return false;
+    }
+
+    /**
+     * @param null $DivisionCourseId
+     *
+     * @return string|bool
+     */
+    public function downloadClassList($DivisionCourseId = null)
+    {
+
+        if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))
+            && ($tblPersonList = $tblDivisionCourse->getStudents())
+            && !empty($TableContent = Person::useService()->createClassList($tblDivisionCourse))
+        ) {
+            $fileLocation = Person::useService()->createClassListExcel($TableContent, $tblPersonList);
+            return FileSystem::getDownload($fileLocation->getRealPath(),
+                "Herrnhut Klassenliste ".$tblDivisionCourse->getDisplayName()
+                ." ".date("Y-m-d").".xlsx")->__toString();
         }
 
         return false;
     }
 
     /**
-     * @param null $DivisionId
+     * @param null $DivisionCourseId
      *
      * @return string|bool
      */
-    public function downloadSignList($DivisionId = null)
+    public function downloadExtendedClassList($DivisionCourseId = null)
     {
 
-        $tblDivision = Division::useService()->getDivisionById($DivisionId);
-        if ($tblDivision) {
-            $PersonList = Person::useService()->createSignList($tblDivision);
-            if ($PersonList) {
-                $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
-                if ($tblPersonList) {
-                    $fileLocation = Person::useService()->createSignListExcel($PersonList, $tblPersonList);
-
-                    return FileSystem::getDownload($fileLocation->getRealPath(),
-                        "Herrnhut Unterschriftenliste ".$tblDivision->getDisplayName()
-                        ." ".date("Y-m-d H:i:s").".xlsx")->__toString();
-                }
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * @param null $DivisionId
-     *
-     * @return string|bool
-     */
-    public function downloadLanguageList($DivisionId = null)
-    {
-
-        $tblDivision = Division::useService()->getDivisionById($DivisionId);
-        if ($tblDivision) {
-            $PersonList = Person::useService()->createLanguageList($tblDivision);
-            if ($PersonList) {
-                $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
-                if ($tblPersonList) {
-                    $fileLocation = Person::useService()->createLanguageListExcel($PersonList, $tblPersonList);
-
-                    return FileSystem::getDownload($fileLocation->getRealPath(),
-                        "Herrnhut Klassenliste Fremdsprachen ".$tblDivision->getDisplayName()
-                        ." ".date("Y-m-d H:i:s").".xlsx")->__toString();
-                }
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * @param null $DivisionId
-     *
-     * @return string|bool
-     */
-    public function downloadClassList($DivisionId = null)
-    {
-
-        $tblDivision = Division::useService()->getDivisionById($DivisionId);
-        if ($tblDivision) {
-            $PersonList = Person::useService()->createClassList($tblDivision);
-            if ($PersonList) {
-                $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
-                if ($tblPersonList) {
-                    $fileLocation = Person::useService()->createClassListExcel($PersonList, $tblPersonList);
-
-                    return FileSystem::getDownload($fileLocation->getRealPath(),
-                        "Herrnhut Klassenliste ".$tblDivision->getDisplayName()
-                        ." ".date("Y-m-d H:i:s").".xlsx")->__toString();
-                }
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * @param null $DivisionId
-     *
-     * @return string|bool
-     */
-    public function downloadExtendedClassList($DivisionId = null)
-    {
-
-        $tblDivision = Division::useService()->getDivisionById($DivisionId);
-        if ($tblDivision) {
-            $PersonList = Person::useService()->createExtendedClassList($tblDivision);
-            if ($PersonList) {
-                $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
-                if ($tblPersonList) {
-                    $fileLocation = Person::useService()->createExtendedClassListExcel($PersonList, $tblPersonList);
-
-                    return FileSystem::getDownload($fileLocation->getRealPath(),
-                        "Herrnhut Erweiterte Klassenliste ".$tblDivision->getDisplayName()
-                        ." ".date("Y-m-d H:i:s").".xlsx")->__toString();
-                }
-            }
+        if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))
+            && ($tblPersonList = $tblDivisionCourse->getStudents())
+            && !empty($TableContent = Person::useService()->createExtendedClassList($tblDivisionCourse))
+        ) {
+            $fileLocation = Person::useService()->createExtendedClassListExcel($TableContent, $tblPersonList);
+            return FileSystem::getDownload($fileLocation->getRealPath(),
+                "Herrnhut Erweiterte Klassenliste ".$tblDivisionCourse->getDisplayName()
+                ." ".date("Y-m-d").".xlsx")->__toString();
         }
 
         return false;

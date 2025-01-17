@@ -1,16 +1,17 @@
 <?php
 namespace SPHERE\Application\People\Group;
 
-use SPHERE\Application\Education\Lesson\Division\Division;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\People\Group\Service\Data;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Group\Service\Entity\TblMember;
-use SPHERE\Application\People\Group\Service\Entity\ViewPeopleGroupMember;
 use SPHERE\Application\People\Group\Service\Setup;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer as ConsumerGatekeeper;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumerLogin;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Icon\Repository\Ban;
@@ -28,15 +29,6 @@ use SPHERE\System\Extension\Repository\Sorter;
  */
 class Service extends AbstractService
 {
-
-    /**
-     * @return false|ViewPeopleGroupMember[]
-     */
-    public function viewPeopleGroupMember()
-    {
-
-        return (new Data($this->getBinding()))->viewPeopleGroupMember();
-    }
 
     /**
      * @param bool $doSimulation
@@ -166,7 +158,7 @@ class Service extends AbstractService
     }
 
     /**
-     * @param int $Id
+     * @param $Id
      *
      * @return bool|TblGroup
      */
@@ -213,15 +205,29 @@ class Service extends AbstractService
                 $Form->setError('Group[Name]', 'Bitte geben Sie einen eineindeutigen Namen für die Gruppe an');
                 $Error = true;
             }
+            // ist ein UCS Mandant?
+            $IsUCSMandant = false;
+            if(($tblConsumer = ConsumerGatekeeper::useService()->getConsumerBySession())){
+                if(ConsumerGatekeeper::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_UCS)){
+                    $IsUCSMandant = true;
+                }
+            }
+            // Gruppen Zeicheneingrenzung nur für UCS Mandanten
+            if (isset($Group['Name']) && $Group['Name'] != '' && $IsUCSMandant) {
+                if(!preg_match('!^[\w]+[\w -_]*[\w]+$!', $Group['Name'])){ // muss mit Buchstaben/Zahl anfangen und Aufhören + mindestens 2 Zeichen
+                    $Form->setError('Group[Name]', 'Erlaubte Zeichen [a-zA-Z0-9 -_]');
+                    $Error = true;
+                }
+            }
         }
 
         if (!$Error) {
-            $isCoreGroup = false;
-            if(isset($Group['IsCoreGroup'])){
-                $isCoreGroup = true;
-            }
+//            $isCoreGroup = false;
+//            if(isset($Group['IsCoreGroup'])){
+//                $isCoreGroup = true;
+//            }
             if ((new Data($this->getBinding()))
-                ->createGroup($Group['Name'], $Group['Description'], $Group['Remark'], false, '', $isCoreGroup)) {
+                ->createGroup($Group['Name'], $Group['Description'], $Group['Remark'], false, '')) {
                 return new Success(new SuccessIcon().' Die Gruppe wurde erfolgreich erstellt').new Redirect('/People/Group',
                     Redirect::TIMEOUT_SUCCESS);
             } else {
@@ -308,15 +314,27 @@ class Service extends AbstractService
                 $Form->setError('Group[Name]', 'Bitte geben Sie einen eineindeutigen Namen für die Gruppe an');
                 $Error = true;
             }
+
+            // Stammgruppen werden jetzt als Kurse in der Bildung gepflegt und nicht mehr als Personengruppen
+//            // ist ein UCS Mandant?
+//            $IsUCSMandant = false;
+//            if(($tblConsumer = ConsumerGatekeeper::useService()->getConsumerBySession())){
+//                if(ConsumerGatekeeper::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_UCS)){
+//                    $IsUCSMandant = true;
+//                }
+//            }
+//            // Gruppen Zeicheneingrenzung nur für UCS Mandanten
+//            if (isset($Group['Name']) && $Group['Name'] != '' && $IsUCSMandant) {
+//                if(!preg_match('!^[\w]+[\w -_]*[\w]+$!', $Group['Name'])){ // muss mit Buchstaben/Zahl anfangen und Aufhören + mindestens 2 Zeichen
+//                    $Form->setError('Group[Name]', 'Erlaubte Zeichen [a-zA-Z0-9 -_]');
+//                    $Error = true;
+//                }
+//            }
         }
 
         if (!$Error) {
-            $isCoreGroup = false;
-            if(isset($Group['IsCoreGroup'])){
-                $isCoreGroup = true;
-            }
             if ((new Data($this->getBinding()))->updateGroup(
-                $tblGroup, $Group['Name'], $Group['Description'], $Group['Remark'], $isCoreGroup
+                $tblGroup, $Group['Name'], $Group['Description'], $Group['Remark']
             )
             ) {
                 return new Success(new SuccessIcon().' Die Änderungen wurden erfolgreich gespeichert')
@@ -473,7 +491,7 @@ class Service extends AbstractService
      *
      * @return int
      */
-    private function setAutoStudentNumber(TblPerson $tblPerson, $MaxIdentifier = 0)
+    public function setAutoStudentNumber(TblPerson $tblPerson, $MaxIdentifier = 0)
     {
 
         $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
@@ -550,11 +568,11 @@ class Service extends AbstractService
      *
      * @return TblGroup
      */
-    public function insertGroup($Name, $Description = '', $Remark = '', $isCoreGroup = false)
+    public function insertGroup($Name, $Description = '', $Remark = '')
     {
 
         return (new Data($this->getBinding()))->createGroup(
-            $Name, $Description, $Remark, false, '', $isCoreGroup
+            $Name, $Description, $Remark
         );
     }
 
@@ -564,7 +582,7 @@ class Service extends AbstractService
      * @param null             $DataAddPerson
      * @param null             $DataRemovePerson
      * @param TblGroup|null    $tblFilterGroup
-     * @param TblDivision|null $tblFilterDivision
+     * @param TblDivisionCourse|null $tblFilterDivisionCourse
      *
      * @return IFormInterface|string
      */
@@ -574,9 +592,8 @@ class Service extends AbstractService
         $DataAddPerson = null,
         $DataRemovePerson = null,
         TblGroup $tblFilterGroup = null,
-        TblDivision $tblFilterDivision = null
+        TblDivisionCourse $tblFilterDivisionCourse = null
     ) {
-
         /**
          * Skip to Frontend
          */
@@ -598,7 +615,7 @@ class Service extends AbstractService
         .new Redirect('/People/Group/Person/Add', Redirect::TIMEOUT_SUCCESS, array(
             'Id'               => $tblGroup->getId(),
             'FilterGroupId'    => $tblFilterGroup ? $tblFilterGroup->getId() : null,
-            'FilterDivisionId' => $tblFilterDivision ? $tblFilterDivision->getId() : null,
+            'FilterDivisionCourseId' => $tblFilterDivisionCourse ? $tblFilterDivisionCourse->getId() : null,
         ));
     }
 
@@ -642,7 +659,6 @@ class Service extends AbstractService
      */
     public function getFilter(IFormInterface $Form, TblGroup $tblGroup, $Filter = null)
     {
-
         /**
          * Skip to Frontend
          */
@@ -651,12 +667,12 @@ class Service extends AbstractService
         }
 
         $tblFilterGroup = false;
-        $tblDivision = false;
+        $tblDivisionCourse = false;
         if (isset( $Filter['Group'] )) {
             $tblFilterGroup = $this->getGroupById($Filter['Group']);
         }
         if (isset( $Filter['Division'] )) {
-            $tblDivision = Division::useService()->getDivisionById($Filter['Division']);
+            $tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($Filter['Division']);
         }
 
         return new Success('Die verfügbaren Personen werden gefiltert.',
@@ -664,60 +680,8 @@ class Service extends AbstractService
         .new Redirect('/People/Group/Person/Add', Redirect::TIMEOUT_SUCCESS, array(
             'Id'               => $tblGroup->getId(),
             'FilterGroupId'    => $tblFilterGroup ? $tblFilterGroup->getId() : null,
-            'FilterDivisionId' => $tblDivision ? $tblDivision->getId() : null,
+            'FilterDivisionCourseId' => $tblDivisionCourse ? $tblDivisionCourse->getId() : null,
         ));
-    }
-
-    /**
-     * @param                  $tblPersonList
-     * @param TblGroup|null    $tblGroup
-     * @param TblDivision|null $tblDivision
-     *
-     * @return false|TblPerson[]
-     */
-    public function filterPersonListByGroupAndDivision(
-        $tblPersonList,
-        TblGroup $tblGroup = null,
-        TblDivision $tblDivision = null
-    ) {
-
-        if (is_array($tblPersonList)) {
-            $resultPersonList = array();
-            /** @var TblPerson $tblPerson */
-            foreach ($tblPersonList as $tblPerson) {
-                if ($tblGroup && $tblDivision) {
-                    $tblPersonDivisionList = Student::useService()->getCurrentDivisionListByPerson($tblPerson);
-                    if ($this->existsGroupPerson($tblGroup, $tblPerson)
-                        && $tblPersonDivisionList
-                    ) {
-                        foreach ($tblPersonDivisionList as $division){
-                            if ($division->getId() == $tblDivision->getId()){
-                                $resultPersonList[$tblPerson->getId()] = $tblPerson;
-                                break;
-                            }
-                        }
-                    }
-                } elseif ($tblGroup) {
-                    if ($this->existsGroupPerson($tblGroup, $tblPerson)) {
-                        $resultPersonList[$tblPerson->getId()] = $tblPerson;
-                    }
-                } elseif ($tblDivision) {
-                    $tblPersonDivisionList = Student::useService()->getCurrentDivisionListByPerson($tblPerson);
-                    if ($tblPersonDivisionList) {
-                        foreach ($tblPersonDivisionList as $division){
-                            if ($division->getId() == $tblDivision->getId()){
-                                $resultPersonList[$tblPerson->getId()] = $tblPerson;
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-
-            return empty( $resultPersonList ) ? false : $resultPersonList;
-        } else {
-            return false;
-        }
     }
 
     /**
@@ -731,31 +695,6 @@ class Service extends AbstractService
             foreach ($tblGroupList as $tblGroup) {
                 $this->removeGroupPerson($tblGroup, $tblPerson, $IsSoftRemove);
             }
-        }
-    }
-
-    /**
-     * @param TblGroup $tblGroup
-     * @return TblPerson[]|bool
-     */
-    public function getTudors(TblGroup $tblGroup)
-    {
-
-        if ($tblGroup->isLocked()) {
-            return false;
-        } else {
-            $tudors = array();
-            if (($tblPersonList = $this->getPersonAllByGroup($tblGroup))
-                && ($tblGroupTudor = $this->getGroupByMetaTable(TblGroup::META_TABLE_TUDOR))
-            ) {
-                foreach ($tblPersonList as $tblPerson) {
-                    if ($this->existsGroupPerson($tblGroupTudor, $tblPerson)) {
-                        $tudors[] = $tblPerson;
-                    }
-                }
-            }
-
-            return empty($tudors) ? false : $tudors;
         }
     }
 

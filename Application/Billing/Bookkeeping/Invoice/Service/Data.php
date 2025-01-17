@@ -56,12 +56,13 @@ class Data extends AbstractData
      *
      * @return false|TblInvoiceItemDebtor[]
      */
-    public function getInvoiceItemDebtorByIsPaid($IsPaid = false)
+    public function getInvoiceItemDebtorByIsPaid($IsPaid = false, $isHistory = false)
     {
 
         return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
             'TblInvoiceItemDebtor', array(
-                TblInvoiceItemDebtor::ATTR_IS_PAID => $IsPaid
+                TblInvoiceItemDebtor::ATTR_IS_PAID => $IsPaid,
+                TblInvoiceItemDebtor::ATTR_IS_HISTORY => $isHistory
             ));
     }
 
@@ -158,7 +159,7 @@ class Data extends AbstractData
      *
      * @return bool|TblInvoice[]
      */
-    public function getInvoiceAllByPersonCauserAndTime(TblPerson $tblPersonCauser, $Year = '', $Month = '')
+    public function getInvoiceAllByPersonCauserAndYearAndMonth(TblPerson $tblPersonCauser, $Year = '', $Month = '')
     {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -168,6 +169,24 @@ class Data extends AbstractData
                 TblInvoice::ATTR_SERVICE_TBL_PERSON_CAUSER => $tblPersonCauser,
                 TblInvoice::ATTR_YEAR => $Year,
                 TblInvoice::ATTR_MONTH => $Month
+            ));
+    }
+
+    /**
+     * @param TblPerson $tblPersonCauser
+     * @param string    $Year
+     *
+     * @return bool|TblInvoice[]
+     */
+    public function getInvoiceAllByPersonCauserAndYear(TblPerson $tblPersonCauser, $Year = '')
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblInvoice|null $Entity */
+        return $this->getCachedEntityListBy(__METHOD__, $Manager, 'TblInvoice',
+            array(
+                TblInvoice::ATTR_SERVICE_TBL_PERSON_CAUSER => $tblPersonCauser,
+                TblInvoice::ATTR_YEAR => $Year
             ));
     }
 
@@ -435,6 +454,7 @@ class Data extends AbstractData
                         $Entity->setServiceTblBankReference($tblBankReference);
                         $Entity->setServiceTblPaymentType($tblPaymentType);
                         $Entity->setTblInvoice($tblInvoice);
+                        $Entity->setIsHistory(false);
 
                         $Manager->bulkSaveEntity($Entity);
                         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
@@ -508,6 +528,32 @@ class Data extends AbstractData
         if(null !== $Entity){
             $Entity->setIsPaid($isPaid);
 
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
+                $Protocol,
+                $Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblInvoiceItemDebtor $tblInvoiceItemDebtor
+     * @param bool                 $isHistory
+     *
+     * @return bool
+     */
+    public function changeInvoiceItemDebtorIsHistory(TblInvoiceItemDebtor $tblInvoiceItemDebtor, $isHistory = true)
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblInvoiceItemDebtor $Entity */
+        $Entity = $Manager->getEntityById('TblInvoiceItemDebtor', $tblInvoiceItemDebtor->getId());
+        $Protocol = clone $Entity;
+        if(null !== $Entity){
+            $Entity->setIsHistory($isHistory);
+            // prevent problems with Multiclick
+            $Entity->setIsPaid(false);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
                 $Protocol,

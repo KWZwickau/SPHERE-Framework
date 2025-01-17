@@ -3,7 +3,6 @@ namespace SPHERE\Application\Api\Document;
 
 use DateTime;
 use MOC\V\Component\Template\Component\IBridgeInterface;
-use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Mail\Mail;
 use SPHERE\Application\Contact\Phone\Phone;
 use SPHERE\Application\Contact\Phone\Service\Entity\TblType;
@@ -13,6 +12,9 @@ use SPHERE\Application\Document\Generator\Repository\Section;
 use SPHERE\Application\Document\Generator\Repository\Slice;
 use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblStudentEducation;
+use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
@@ -21,6 +23,8 @@ use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Application\Setting\Consumer\Responsibility\Responsibility;
 use SPHERE\Application\Setting\Consumer\School\School;
+use SPHERE\System\Extension\Extension;
+use SPHERE\System\Extension\Repository\Sorter;
 
 /**
  * Class AbstractDocument
@@ -36,7 +40,13 @@ abstract class AbstractDocument
     /**
      * @var TblPerson|null
      */
-    private $tblPerson = null;
+    private ?TblPerson $tblPerson = null;
+
+    /**
+     * @var TblYear|null
+     */
+    private ?TblYear $tblYear = null;
+
 
     /**
      * @var int
@@ -65,6 +75,50 @@ abstract class AbstractDocument
     }
 
     /**
+     * @return TblYear|null
+     */
+    public function getTblYear(): ?TblYear
+    {
+        return $this->tblYear;
+    }
+
+    /**
+     * @param TblYear|null $tblYear
+     */
+    public function setTblYear(?TblYear $tblYear): void
+    {
+        $this->tblYear = $tblYear;
+    }
+
+    /**
+     * @return false|TblStudentEducation
+     */
+    public function getStudentEducation()
+    {
+        if (($tblPerson = $this->getTblPerson())) {
+
+
+            if (($tblYear = $this->getTblYear())) {
+                $tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear);
+            } else {
+                $tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndDate($tblPerson);
+            }
+
+            // Schüler hat keine aktuelle SchülerBildung mehr
+            if (!$tblStudentEducation && ($tblStudentEducationList = DivisionCourse::useService()->getStudentEducationListByPerson($tblPerson))) {
+                $tblStudentEducationList = (new Extension())->getSorter($tblStudentEducationList)->sortObjectBy('YearNameForSorter', null, Sorter::ORDER_DESC);
+
+                $tblStudentEducation = reset($tblStudentEducationList);
+            }
+
+
+            return $tblStudentEducation;
+        }
+
+        return false;
+    }
+
+    /**
      * @return string
      */
     abstract public function getName();
@@ -75,7 +129,7 @@ abstract class AbstractDocument
      *
      * @return Frame
      */
-    abstract public function buildDocument($pageList = array(), $part = '0');
+    abstract public function buildDocument(array $pageList = array(), string $part = '0'): Frame;
 
     /**
      * @param array $Data
@@ -125,8 +179,10 @@ abstract class AbstractDocument
 
         if ($this->getTblPerson()) {
             $Data['Person']['Data']['Name']['Salutation'] = $this->getTblPerson()->getSalutation();
-            $Data['Person']['Data']['Name']['First'] = $this->getTblPerson()->getFirstSecondName();
-            $Data['Person']['Data']['Name']['Last'] = $this->getTblPerson()->getLastName();
+            $FirstName = Prepare::useService()->useLetterFontReplacement($this->getTblPerson()->getFirstSecondName());
+            $LastName = Prepare::useService()->useLetterFontReplacement($this->getTblPerson()->getLastName());
+            $Data['Person']['Data']['Name']['First'] = $FirstName;
+            $Data['Person']['Data']['Name']['Last'] = $LastName;
         }
 
         return $Data;
@@ -170,6 +226,7 @@ abstract class AbstractDocument
                 $Data['Person']['Common']['BirthDates']['Birthplace'] = $tblCommonBirthDates->getBirthplace()
                     ? $tblCommonBirthDates->getBirthplace() : '&nbsp;';
             }
+                $Data['Person']['Common']['isReligion'] = 'nein';
             if (( $tblCommon = Common::useService()->getCommonByPerson($this->getTblPerson()) )
                 && $tblCommonInformation = $tblCommon->getTblCommonInformation()
             ) {
@@ -185,6 +242,9 @@ abstract class AbstractDocument
                     $Denomination = substr($Denomination, 0, 14);
                 }
                 $Data['Person']['Common']['Denomination'] = $Denomination;
+                if (!empty($Denomination)) {
+                    $Data['Person']['Common']['isReligion'] = 'ja';
+                }
             }
         }
 
@@ -200,12 +260,11 @@ abstract class AbstractDocument
     {
 
         if (($tblPerson = $this->getTblPerson())) {
-            if (($tblDivisionList = Student::useService()->getCurrentDivisionListByPerson($tblPerson))) {
-                foreach ($tblDivisionList as $tblDivision) {
-                    if (!$tblDivision->getTblLevel()->getIsChecked()) {
-                        $Data['Student']['Division']['Name'] = $tblDivision->getDisplayName();
-                        break;
-                    }
+            if (($tblStudentEducation = $this->getStudentEducation())) {
+                if (($tblDivision = $tblStudentEducation->getTblDivision())) {
+                    $Data['Student']['Division']['Name'] = $tblDivision->getName();
+                } elseif (($tblCoreGroup = $tblStudentEducation->getTblCoreGroup())) {
+                    $Data['Student']['Division']['Name'] = $tblCoreGroup->getName();
                 }
             }
 
@@ -239,8 +298,7 @@ abstract class AbstractDocument
                     && ($tblPrepareStudentList = Prepare::useService()->getPrepareStudentAllByPerson($tblPerson, $tblCertificate ))
                 ) {
                     foreach ($tblPrepareStudentList as $tblPrepareStudent) {
-                        if ($tblPrepareStudent->isPrinted()
-                            && ($tblPrepare = $tblPrepareStudent->getTblPrepareCertificate())
+                        if (($tblPrepare = $tblPrepareStudent->getTblPrepareCertificate())
                             && ($tblPrepareInformation = Prepare::useService()->getPrepareInformationBy($tblPrepare, $tblPerson, 'SchoolType'))
                         ) {
                             if (strpos($tblPrepareInformation->getValue(), 'Oberschule') !== false) {
@@ -263,61 +321,49 @@ abstract class AbstractDocument
                     $Data['Student']['School']['Attendance']['Year'] = $Year;
                 }
 
-                if (($tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS'))) {
-                    if (($tblTransfer = Student::useService()->getStudentTransferByType($tblStudent,
-                        $tblTransferType))
-                    ) {
-                        if ($tblTransfer->getServiceTblType()) {
-                            $Data['Student']['School']['Type'] = $tblTransfer->getServiceTblType()->getName();
+                if ($tblStudentEducation) {
+                    if (($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())) {
+                        $Data['Student']['School']['Type'] = $tblSchoolType->getName();
+                    }
+
+                    if (($tblCompany = $tblStudentEducation->getServiceTblCompany())) {
+                        if (($tblAddress = $tblCompany->fetchMainAddress())) {
+                            $Data['Document']['PlaceDate'] = $tblAddress->getTblCity()->getName() . ', '
+                                . date('d.m.Y');
+                            $Data['Document']['Date']['Now'] = date('d.m.Y');
+
+                            $Data['Student']['CompanyAddress'] = '';
+                            if ($tblAddress->getTblCity()->getDistrict())
+                            {
+                                $Data['Student']['CompanyAddress'] .= 'OT ' . $tblAddress->getTblCity()->getDistrict() . '<br>';
+                                $this->tblAddressRowCount++;
+                            }
+                            if ($tblAddress->getStreetName())
+                            {
+                                $Data['Student']['CompanyAddress'] .= $tblAddress->getStreetName()
+                                    .' '.$tblAddress->getStreetNumber().'<br>';
+                                $this->tblAddressRowCount++;
+                            }
+                            if ($tblAddress->getTblCity()->getCode())
+                            {
+                                $Data['Student']['CompanyAddress'] .= $tblAddress->getTblCity()->getCode() .
+                                    ' ' . $tblAddress->getTblCity()->getName();
+                                $this->tblAddressRowCount++;
+                            }
                         }
 
-                        if (($tblCompany = Student::useService()->getCurrentSchoolByPerson($tblPerson))) {
-                            if (($tblAddress = $tblCompany->fetchMainAddress())) {
-                                $Data['Document']['PlaceDate'] = $tblAddress->getTblCity()->getName() . ', '
-                                    . date('d.m.Y');
-                                $Data['Document']['Date']['Now'] = date('d.m.Y');
-
-                                $Data['Student']['CompanyAddress'] = '';
-                                if ($tblAddress->getTblCity()->getDistrict())
-                                {
-                                    $Data['Student']['CompanyAddress'] .= 'OT ' . $tblAddress->getTblCity()->getDistrict() . '<br>';
-                                    $this->tblAddressRowCount++;
-                                }
-                                if ($tblAddress->getStreetName())
-                                {
-                                    $Data['Student']['CompanyAddress'] .= $tblAddress->getStreetName()
-                                        .' '.$tblAddress->getStreetNumber().'<br>';
-                                    $this->tblAddressRowCount++;
-                                }
-                                if ($tblAddress->getTblCity()->getCode())
-                                {
-                                    $Data['Student']['CompanyAddress'] .= $tblAddress->getTblCity()->getCode() .
-                                        ' ' . $tblAddress->getTblCity()->getName();
-                                    $this->tblAddressRowCount++;
-                                }
-
-//                                $Data['Student']['CompanyAddress'] = ($tblAddress->getTblCity()->getDistrict() ? 'OT ' . $tblAddress->getTblCity()->getDistrict() . '<br>' : '')
-//                                    . $tblAddress->getStreetName()
-//                                    . ' ' . $tblAddress->getStreetNumber()
-//                                    . ',<br>' . $tblAddress->getTblCity()->getCode()
-//                                    . ' ' . $tblAddress->getTblCity()->getName();
-//
-//                                    $tblAddress->getGuiTwoRowString();
+                        // StudentCard - PrimarySchool
+                        if (($tblSetting = Consumer::useService()->getSetting(
+                                'Api', 'Document', 'StudentCard_PrimarySchool', 'ShowSchoolName'))
+                            && $tblSetting->getValue()
+                        ) {
+                            if ($tblCompany->getName()) {
+                                $Data['Student']['Company'] = $tblCompany->getName();
+                                $this->tblAddressRowCount++;
                             }
-
-                            // StudentCard - PrimarySchool
-                            if (($tblSetting = Consumer::useService()->getSetting(
-                                    'Api', 'Document', 'StudentCard_PrimarySchool', 'ShowSchoolName'))
-                                && $tblSetting->getValue()
-                            ) {
-                                if ($tblCompany->getName()) {
-                                    $Data['Student']['Company'] = $tblCompany->getName();
-                                    $this->tblAddressRowCount++;
-                                }
-                                if ($tblCompany->getExtendedName()) {
-                                    $Data['Student']['Company2'] = $tblCompany->getExtendedName();
-                                    $this->tblAddressRowCount++;
-                                }
+                            if ($tblCompany->getExtendedName()) {
+                                $Data['Student']['Company2'] = $tblCompany->getExtendedName();
+                                $this->tblAddressRowCount++;
                             }
                         }
                     }
@@ -366,22 +412,13 @@ abstract class AbstractDocument
         $Data['Responsibility']['Company']['Number'] = School::useService()->getCompanyNumber();
 
         if ($tblPerson) {
-            $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
-            if ($tblStudent) {
-                if (($tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS'))) {
-                    if (($tblTransfer = Student::useService()->getStudentTransferByType($tblStudent,
-                        $tblTransferType))
-                    ) {
-                        $tblCompany = Student::useService()->getCurrentSchoolByPerson($tblPerson);
-                        $tblSchoolType = $tblTransfer->getServiceTblType();
-                        if ($tblCompany && $tblSchoolType) {
-                            $tblSchool = School::useService()->getSchoolByCompanyAndType($tblCompany, $tblSchoolType);
-                            if ($tblSchool) {
-                                // fill found information (School)
-                                $Data['Responsibility']['Company']['Number'] = School::useService()->getCompanyNumber($tblSchool);
-                            }
-                        }
-                    }
+            if (($tblStudentEducation = $this->getStudentEducation())) {
+                if (($tblCompany = $tblStudentEducation->getServiceTblCompany())
+                    && ($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())
+                    && ($tblSchool = School::useService()->getSchoolByCompanyAndType($tblCompany, $tblSchoolType))
+                ) {
+                    // fill found information (School)
+                    $Data['Responsibility']['Company']['Number'] = School::useService()->getCompanyNumber($tblSchool);
                 }
             }
         }
@@ -407,7 +444,6 @@ abstract class AbstractDocument
      */
     private function allocatePersonParents(&$Data)
     {
-
         if ($this->getTblPerson()) {
             if (($tblRelationshipList = Relationship::useService()->getPersonRelationshipAllByPerson($this->getTblPerson()))) {
                 foreach ($tblRelationshipList as $tblToPerson) {
@@ -416,21 +452,60 @@ abstract class AbstractDocument
                         && $tblToPerson->getTblType()->getName() == 'Sorgeberechtigt'
                         && $tblToPerson->getServiceTblPersonTo()->getId() == $this->getTblPerson()->getId()
                     ) {
+
+                        $Ranking = $tblToPerson->getRanking();
+                        $Data['Person']['Parent']['S'.$Ranking]['Gender'] = $tblFromPerson->getGenderNameFromGenderOrSalutation();
+                        $Data['Person']['Parent']['S'.$Ranking]['Salutation'] = $tblFromPerson->getSalutation();
+                        $Data['Person']['Parent']['S'.$Ranking]['Name']['First'] = $tblFromPerson->getFirstName();
+                        $Data['Person']['Parent']['S'.$Ranking]['Name']['Last'] = $tblFromPerson->getLastName();
+
+
+                        $tblAddress = $tblFromPerson->fetchMainAddress();
+                        if ($tblAddress) {
+                            $Data['Person']['Parent']['S'.$Ranking]['AddressTwoRowString'] = $tblAddress->getGuiString();
+                        }
+
                         if (!isset($Data['Person']['Parent']['Mother']['Name'])) {
                             $Data['Person']['Parent']['Mother']['Name']['First'] = $tblFromPerson->getFirstSecondName();
                             $Data['Person']['Parent']['Mother']['Name']['Last'] = $tblFromPerson->getLastName();
                             $Data['Person']['Parent']['Mother']['Name']['LastFirst'] = $tblFromPerson->getLastFirstName();
-                            $tblAddress = Address::useService()->getAddressByPerson($tblFromPerson);
                             if ($tblAddress) {
-                                $Data['Person']['Parent']['Mother']['Address'] = $tblAddress->getGuiString();
+                                $Data['Person']['Parent']['S'.$Ranking]['Address']['CityCode'] = $tblAddress->getTblCity()->getCode();
+                                $Data['Person']['Parent']['S'.$Ranking]['Address']['City'] = $tblAddress->getTblCity()->getDisplayName();
+                                $Data['Person']['Parent']['S'.$Ranking]['Address']['Street'] = $tblAddress->getStreetName();
+                                $Data['Person']['Parent']['S'.$Ranking]['Address']['StreetNumber'] = $tblAddress->getStreetNumber();
                             }
                         } elseif (!isset($Data['Person']['Parent']['Father']['Name'])) {
                             $Data['Person']['Parent']['Father']['Name']['First'] = $tblFromPerson->getFirstSecondName();
                             $Data['Person']['Parent']['Father']['Name']['Last'] = $tblFromPerson->getLastName();
                             $Data['Person']['Parent']['Father']['Name']['LastFirst'] = $tblFromPerson->getLastFirstName();
-                            $tblAddress = Address::useService()->getAddressByPerson($tblFromPerson);
                             if ($tblAddress) {
-                                $Data['Person']['Parent']['Father']['Address'] = $tblAddress->getGuiString();
+                                $Data['Person']['Parent']['S'.$Ranking]['Address']['CityCode'] = $tblAddress->getTblCity()->getCode();
+                                $Data['Person']['Parent']['S'.$Ranking]['Address']['City'] = $tblAddress->getTblCity()->getDisplayName();
+                                $Data['Person']['Parent']['S'.$Ranking]['Address']['Street'] = $tblAddress->getStreetName();
+                                $Data['Person']['Parent']['S'.$Ranking]['Address']['StreetNumber'] = $tblAddress->getStreetNumber();
+                            }
+                        }
+
+                        if (($tblPhoneList = Phone::useService()->getPhoneAllByPerson($tblFromPerson))){
+                            foreach($tblPhoneList as $tblToPersonPhone) {
+                                if(($tblToPersonPhone->getTblType()->getName() == 'Privat'
+                                    || $tblToPersonPhone->getTblType()->getName() == 'Geschäftlich')
+                                    && $tblToPersonPhone->getTblType()->getDescription() == 'Festnetz'
+                                    && !isset($Data['Person']['Parent']['S'.$Ranking]['Phone']['Festnetz'])
+
+                                ) {
+                                    $Data['Person']['Parent']['S'.$Ranking]['Phone']['Festnetz'] = $tblToPersonPhone->getTblPhone()->getNumber();
+
+                                } elseif ($tblToPersonPhone->getTblType()->getName() == 'Privat'
+                                    || $tblToPersonPhone->getTblType()->getName() == 'Geschäftlich'
+                                    && $tblToPersonPhone->getTblType()->getDescription() == 'Mobil'
+                                    && !isset($Data['Person']['Parent']['S'.$Ranking]['Phone']['Mobil'])
+
+                                ) {
+                                    $Data['Person']['Parent']['S'.$Ranking]['Phone']['Mobil'] = $tblToPersonPhone->getTblPhone()->getNumber();
+
+                                }
                             }
                         }
                     }
@@ -450,15 +525,18 @@ abstract class AbstractDocument
     {
 
         if ($this->getTblPerson()) {
+            $hasPrivateSingleMail = false;
             if (($tblMailList = Mail::useService()->getMailAllByPerson($this->getTblPerson()))) {
-                if ($tblMailList) {
-                    $list = array();
-                    foreach ($tblMailList as $tblMailToPerson) {
-                        $list[] = $tblMailToPerson->getTblMail()->getAddress();
+                $list = array();
+                foreach ($tblMailList as $tblMailToPerson) {
+                    $list[] = $tblMailToPerson->getTblMail()->getAddress();
+                    if (!$hasPrivateSingleMail && $tblMailToPerson->getTblType()->getName() == 'Privat') {
+                        $hasPrivateSingleMail = true;
+                        $Data['Person']['Contact']['SinglePrivateMail'] = $tblMailToPerson->getTblMail()->getAddress();
                     }
-                    if (!empty($list)) {
-                        $Data['Person']['Contact']['Mail'] = implode(', ', $list);
-                    }
+                }
+                if (!empty($list)) {
+                    $Data['Person']['Contact']['Mail'] = implode(', ', $list);
                 }
             }
         }
@@ -473,6 +551,7 @@ abstract class AbstractDocument
      */
     private function allocatePersonParentsContact(&$Data)
     {
+
 
         $Data['Person']['Contact']['All']['Mail'] = '';
         $Data['Person']['Contact']['All']['Person']['Mail'] = '';
@@ -541,6 +620,7 @@ abstract class AbstractDocument
                                     if ($tblToPersonPhone->getTblType()->getName() == 'Privat'
                                         && $tblToPersonPhone->getTblType()->getDescription() == 'Festnetz'
                                     ) {
+
                                         $Data['Person']['Parent']['Mother']['Phone']['Private'] .=
                                             ($Data['Person']['Parent']['Mother']['Phone']['Private'] != '' ? '<br/>' : '')
                                             .$tblToPersonPhone->getTblPhone()->getNumber();
@@ -633,6 +713,27 @@ abstract class AbstractDocument
 
             }
             $Data['Person']['Contact']['Phone']['Number'] = $phone;
+
+            $phoneNumber = '';
+            $mobilPhoneNumber = '';
+            if (($tblPhoneList = Phone::useService()->getPhoneAllByPerson($tblPerson))){
+                foreach($tblPhoneList as $tblToPersonPhone) {
+                    if ($tblToPersonPhone->getTblType()->getName() == 'Privat') {
+                        if (!$phoneNumber && $tblToPersonPhone->getTblType()->getDescription() == 'Festnetz') {
+                            $phoneNumber = $tblToPersonPhone->getTblPhone()->getNumber();
+                        }
+                        if (!$mobilPhoneNumber && $tblToPersonPhone->getTblType()->getDescription() == 'Mobil') {
+                            $mobilPhoneNumber = $tblToPersonPhone->getTblPhone()->getNumber();
+                        }
+                    }
+                }
+            }
+
+            if ($mobilPhoneNumber) {
+                $Data['Person']['Contact']['Phone']['SinglePrivateNumber'] = $mobilPhoneNumber;
+            } elseif ($phoneNumber) {
+                $Data['Person']['Contact']['Phone']['SinglePrivateNumber'] = $phoneNumber;
+            }
         }
 
         return $Data;
@@ -646,17 +747,19 @@ abstract class AbstractDocument
      */
     private function setPhoneNumbersByTypeName(TblPerson $tblPerson, $TypeName = 'Privat')
     {
-
+        $phoneNumberList = array();
         $IsRemark = false;
         if($TypeName == 'Notfall'){
             $IsRemark = true;
-        }
-        $phoneNumberList = array();
-        if (($tblPhoneType = Phone::useService()->getTypeByNameAndDescription($TypeName, 'Festnetz'))) {
-            $this->getPhoneNumbers($tblPerson, $tblPhoneType, $phoneNumberList, $IsRemark);
-        }
-        if (($tblPhoneType = Phone::useService()->getTypeByNameAndDescription($TypeName, 'Mobil'))) {
-            $this->getPhoneNumbers($tblPerson, $tblPhoneType, $phoneNumberList, $IsRemark);
+            $tblPhoneToPersonList = Phone::useService()->getPhoneToPersonAllEmergencyContactByPerson($tblPerson);
+            $this->getPhoneNumbersByList($tblPhoneToPersonList, $phoneNumberList, $IsRemark);
+        } else {
+            if (($tblPhoneType = Phone::useService()->getTypeByNameAndDescription($TypeName, 'Festnetz'))) {
+                $this->getPhoneNumbersByType($tblPerson, $tblPhoneType, $phoneNumberList, $IsRemark);
+            }
+            if (($tblPhoneType = Phone::useService()->getTypeByNameAndDescription($TypeName, 'Mobil'))) {
+                $this->getPhoneNumbersByType($tblPerson, $tblPhoneType, $phoneNumberList, $IsRemark);
+            }
         }
 
         // Telefonnummern der Sorgeberechtigten mit Anzeigen
@@ -672,21 +775,29 @@ abstract class AbstractDocument
                         && ($tblPersonTo = $tblRelationship->getServiceTblPersonTo())
                         && $tblPerson->getId() == $tblPersonTo->getId()
                     ) {
-
-                        if (($tblPhoneType = Phone::useService()->getTypeByNameAndDescription($TypeName,
-                            'Festnetz'))
-                        ) {
+                        if ($TypeName == 'Notfall') {
+                            $tblPhoneToPersonList = Phone::useService()->getPhoneToPersonAllEmergencyContactByPerson($tblPerson);
                             if ($tblPersonFrom->getSalutation() == 'Frau') {
-                                $this->getPhoneNumbers($tblPersonFrom, $tblPhoneType, $phoneNumberMotherList, $IsRemark);
+                                $this->getPhoneNumbersByList($tblPhoneToPersonList, $phoneNumberMotherList, $IsRemark);
                             } else {
-                                $this->getPhoneNumbers($tblPersonFrom, $tblPhoneType, $phoneNumberFatherList, $IsRemark);
+                                $this->getPhoneNumbersByList($tblPhoneToPersonList, $phoneNumberFatherList, $IsRemark);
                             }
-                        }
-                        if (($tblPhoneType = Phone::useService()->getTypeByNameAndDescription($TypeName, 'Mobil'))) {
-                            if ($tblPersonFrom->getSalutation() == 'Frau') {
-                                $this->getPhoneNumbers($tblPersonFrom, $tblPhoneType, $phoneNumberMotherList, $IsRemark);
-                            } else {
-                                $this->getPhoneNumbers($tblPersonFrom, $tblPhoneType, $phoneNumberFatherList, $IsRemark);
+                        } else {
+                            if (($tblPhoneType = Phone::useService()->getTypeByNameAndDescription($TypeName,
+                                'Festnetz'))
+                            ) {
+                                if ($tblPersonFrom->getSalutation() == 'Frau') {
+                                    $this->getPhoneNumbersByType($tblPersonFrom, $tblPhoneType, $phoneNumberMotherList, $IsRemark);
+                                } else {
+                                    $this->getPhoneNumbersByType($tblPersonFrom, $tblPhoneType, $phoneNumberFatherList, $IsRemark);
+                                }
+                            }
+                            if (($tblPhoneType = Phone::useService()->getTypeByNameAndDescription($TypeName, 'Mobil'))) {
+                                if ($tblPersonFrom->getSalutation() == 'Frau') {
+                                    $this->getPhoneNumbersByType($tblPersonFrom, $tblPhoneType, $phoneNumberMotherList, $IsRemark);
+                                } else {
+                                    $this->getPhoneNumbersByType($tblPersonFrom, $tblPhoneType, $phoneNumberFatherList, $IsRemark);
+                                }
                             }
                         }
                     }
@@ -723,8 +834,20 @@ abstract class AbstractDocument
      * @param array     $phoneNumberList
      * @param bool      $IsRemark
      */
-    private function getPhoneNumbers(TblPerson $tblPerson, TblType $tblType, &$phoneNumberList, $IsRemark = false) {
+    private function getPhoneNumbersByType(TblPerson $tblPerson, TblType $tblType, &$phoneNumberList, $IsRemark = false) {
         if (($tblPhoneToPersonList = Phone::useService()->getPhoneToPersonAllBy($tblPerson, $tblType))) {
+            $this->getPhoneNumbersByList($tblPhoneToPersonList, $phoneNumberList, $IsRemark);
+        }
+    }
+
+    /**
+     * @param $tblPhoneToPersonList
+     * @param $phoneNumberList
+     * @param bool $IsRemark
+     */
+    private function getPhoneNumbersByList($tblPhoneToPersonList, &$phoneNumberList, bool $IsRemark = false)
+    {
+        if ($tblPhoneToPersonList) {
             foreach ($tblPhoneToPersonList as $tblPhoneToPerson) {
                 if (($tblPhone = $tblPhoneToPerson->getTblPhone())) {
                     if($IsRemark){
@@ -753,6 +876,7 @@ abstract class AbstractDocument
 
             $phoneNumberList = $this->setPhoneNumbersByTypeName($tblPerson, 'Notfall');
             $phone = '';
+            $phoneNew = '';
             // es passen nur 3 Telefonnummern in das Feld
             if (!empty($phoneNumberList)) {
                 $phone = $phoneNumberList[0]
@@ -760,8 +884,14 @@ abstract class AbstractDocument
                     . ( isset( $phoneNumberList[2] ) ? '<br>'. $phoneNumberList[2] : '' );
 
                 $Data['Person']['Contact']['Phone']['Radebeul']['EmergencyNumber'] = implode('; ', $phoneNumberList);
+
+                // 2 passen nur 2 Notfallnummern auf die neue Schülerkartei
+                $phoneNew = $phoneNumberList[0]
+                    . (isset($phoneNumberList[1]) ? '; ' . $phoneNumberList[1] : '');
             }
+
             $Data['Person']['Contact']['Phone']['EmergencyNumber'] = $phone;
+            $Data['Person']['Contact']['Phone']['EmergencyNumberNew'] = $phoneNew;
         }
 
         return $Data;
@@ -829,7 +959,7 @@ abstract class AbstractDocument
             if (($tblPhoneList = Phone::useService()->getPhoneAllByPerson($this->getTblPerson()))) {
                 if ($tblPhoneList) {
                     foreach ($tblPhoneList as $tblPhoneToPerson) {
-                        if ($tblPhoneToPerson->getTblType()->getName() == 'Notfall') {
+                        if ($tblPhoneToPerson->getIsEmergencyContact()) {
                             $countNumbers++;
                             if ($countNumbers == 1) {
                                 $slice
@@ -904,7 +1034,7 @@ abstract class AbstractDocument
         ->addSection((new Section())
             ->addElementColumn((new Element())
                 ->setContent('&nbsp;')
-                ->styleHeight('7px')
+                ->styleHeight('5px')
             )
         )
         ->addSection((new Section())
@@ -914,11 +1044,10 @@ abstract class AbstractDocument
                 , '1.2%')
             ->addElementColumn((new Element())
                 ->setContent($content)
-                ->styleHeight('14px')
+                ->styleHeight('12px')
                 ->styleTextSize('8.5')
                 ->stylePaddingLeft('1.2px')
-                ->stylePaddingTop('-2px')
-                ->stylePaddingBottom('-2px')
+                ->stylePaddingBottom('0px')
                 ->styleBorderAll($thicknessInnerLines)
                 , '1.6%')
             ->addElementColumn((new Element())

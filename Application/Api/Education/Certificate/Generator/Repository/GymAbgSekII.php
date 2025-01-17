@@ -15,7 +15,8 @@ use SPHERE\Application\Education\Certificate\Generator\Repository\Page;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Section;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
-use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
@@ -30,11 +31,10 @@ use SPHERE\Common\Frontend\Text\Repository\Sup;
  */
 class GymAbgSekII extends Certificate
 {
-
     /**
      * @return array
      */
-    public static function getLeaveTerms()
+    public static function getLeaveTerms(): array
     {
         return array(
             1 => "während des Kurshalbjahres",
@@ -45,7 +45,7 @@ class GymAbgSekII extends Certificate
     /**
      * @return array
      */
-    public static function getMidTerms()
+    public static function getMidTerms(): array
     {
         return array(
             1 => '11/1',
@@ -65,19 +65,14 @@ class GymAbgSekII extends Certificate
      *
      * @return Page[]
      */
-    public function buildPages(TblPerson $tblPerson = null)
+    public function buildPages(TblPerson $tblPerson = null): array
     {
-
         $personId = $tblPerson ? $tblPerson->getId() : 0;
-
-        $Header = $this->getHead($this->isSample());
 
         $pageList[] = (new Page());
 
         $pageList[] = (new Page())
-            ->addSlice(
-                $Header
-            )
+            ->addSlice($this->getHeadForLeave($this->isSample()))
             ->addSlice((new Slice())
                 ->addElement((new Element())
                     ->setContent('ABGANGSZEUGNIS')
@@ -108,9 +103,10 @@ class GymAbgSekII extends Certificate
         $midTerm = '/';
 
         if ($tblPerson
-            && ($tblDivision = $this->getTblDivision())
-            && ($tblLeaveStudent = Prepare::useService()->getLeaveStudentBy($tblPerson, $tblDivision))
-        ){
+            && ($tblStudentEducation = $this->getTblStudentEducation())
+            && ($tblYear = $tblStudentEducation->getServiceTblYear())
+            && ($tblLeaveStudent = Prepare::useService()->getLeaveStudentBy($tblPerson, $tblYear))
+        ) {
             if (($leaveTermInformation = Prepare::useService()->getLeaveInformationBy($tblLeaveStudent, 'LeaveTerm'))) {
                 $leaveTerm = $leaveTermInformation->getValue();
                 $leaveTermWidth = '50%';
@@ -124,7 +120,12 @@ class GymAbgSekII extends Certificate
         if ($tblPerson) {
             $this->setCourses($tblPerson);
             if ($this->AdvancedCourses) {
-                $advancedSubjects = implode(', ', $this->AdvancedCourses);
+                $tempList = array();
+                /** @var TblSubject $tblSubject */
+                foreach ($this->AdvancedCourses as $tblSubject) {
+                    $tempList[] = $tblSubject->getName();
+                }
+                $advancedSubjects = implode(', ', $tempList);
             }
         }
 
@@ -231,16 +232,8 @@ class GymAbgSekII extends Certificate
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
                         ->setContent('
-                            {% if Content.P' . $personId . '.Person.Common.BirthDates.Gender == 2 %}
-                                Sie
-                            {% else %}
-                                {% if Content.P' . $personId . '.Person.Common.BirthDates.Gender == 1 %}
-                                    Er
-                                {% else %}
-                                    Sie/Er
-                                {% endif %}
-                            {% endif %}
-                            hat die Vollzeitschulpflicht gemäß § 28 Absatz 1 Nummer 1, Absatz 2 des Sächsischen
+                            <u>&nbsp;&nbsp;&nbsp;&nbsp; {{ Content.P' . $personId . '.Person.Data.Name.First }} {{ Content.P' . $personId . '.Person.Data.Name.Last }} &nbsp;&nbsp;&nbsp;&nbsp;</u>
+                            hat die Vollzeitschulpflicht gemäß § 28 Absatz 1 Nummer 1 und Absatz 2 des Sächsischen
                             Schulgesetzes erfüllt.
                         ')
                         ->styleMarginTop('30px')
@@ -251,18 +244,9 @@ class GymAbgSekII extends Certificate
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
                         ->setContent('
-                            {% if Content.P' . $personId . '.Person.Common.BirthDates.Gender == 2 %}
-                                Frau
-                            {% else %}
-                                {% if Content.P' . $personId . '.Person.Common.BirthDates.Gender == 1 %}
-                                    Herr
-                                {% else %}
-                                    Frau/Herr
-                                {% endif %}
-                            {% endif %}
                             <u>&nbsp;&nbsp;&nbsp;&nbsp; {{ Content.P' . $personId . '.Person.Data.Name.First }} {{ Content.P' . $personId . '.Person.Data.Name.Last }} &nbsp;&nbsp;&nbsp;&nbsp;</u>
                             hat gemäß § 7 Absatz 7 Satz 2 des Sächsischen Schulgesetzes mit dem Versetzungszeugnis von
-                            Klassenstufe 10 in die Jahrgangsstufe 11 des Gymnasiums
+                            Klassenstufe 10 nach Jahrgangsstufe 11 des Gymnasiums
                             einen dem Realschulabschluss gleichgestellten mittleren Schulabschluss erworben.
                         ')
                         ->styleMarginTop('40px')
@@ -505,14 +489,14 @@ class GymAbgSekII extends Certificate
             ->addSection($this->setSubjectRow($personId, 'Biologie'))
             ->addSection($this->setSubjectRow($personId, 'Chemie'))
             ->addSection($this->setSubjectRow($personId, 'Physik'))
-            ->addSection($this->setSubjectRow($personId))
+            ->addSection($this->setSubjectRow($personId, 'Informatik'))
+            ->addSection($this->setFieldRow())
             ->addSection($this->setSubjectRow($personId, 'RELIGION'))
             ->addSection($this->setSubjectRow($personId, 'Sport'))
             ->addSection($this->setSubjectRow($personId, $tblCertificateSubject && $tblCertificateSubject->getServiceTblSubject()
                 ? $tblCertificateSubject->getServiceTblSubject()->getName() : '&nbsp;'))
             ->addSection($this->setFieldRow())
             ->addSection($this->setSubjectRow($personId, 'Astronomie'))
-            ->addSection($this->setSubjectRow($personId, 'Informatik'))
             ->addSection($this->setSubjectRow($personId, 'Philosophie', false, true))
         ;
 
@@ -621,7 +605,7 @@ class GymAbgSekII extends Certificate
                 ->styleMarginTop('55px')
                 ->addSection($this->setInfoRow(1, 'Ist das arithmetische Mittel der in den Kurshalbjahren erreichten Punktzahlen nicht ganzzahlig, so wird auf die nächstgrößere ganze Zahl gerundet.'))
                 ->addSection($this->setInfoRow(2, 'Aus dem Punktzahldurchschnitt ergibt sich die Abgangsnote gemäß Tabelle auf Seite 2.'))
-                ->addSection($this->setInfoRow(3, 'An Gymnasien gemäß § 38 Absatz 2 der Schulordnung Gymnasien Abiturprüfung sind die Fächer Ev./Kath. Religion dem gesellschaftswissenschaftlichen
+                ->addSection($this->setInfoRow(3, 'An Gymnasien gemäß § 40 Absatz 2 der Schulordnung Gymnasien Abiturprüfung sind die Fächer Ev./Kath. Religion dem gesellschaftswissenschaftlichen
                     Aufgabenfeld zugeordnet.'))
             )
             ;
@@ -698,8 +682,9 @@ class GymAbgSekII extends Certificate
         $subjectName .= $postFix;
 
         if ($tblPerson
-            && ($tblDivision = $this->getTblDivision())
-            && ($tblLeaveStudent = Prepare::useService()->getLeaveStudentBy($tblPerson, $tblDivision))
+            && ($tblStudentEducation = $this->getTblStudentEducation())
+            && ($tblYear = $tblStudentEducation->getServiceTblYear())
+            && ($tblLeaveStudent = Prepare::useService()->getLeaveStudentBy($tblPerson, $tblYear))
             && $tblSubject
         ) {
             for ($level = 11; $level < 13; $level++) {
@@ -742,12 +727,12 @@ class GymAbgSekII extends Certificate
                     if (($tblSubjectItem = $tblStudentSubject->getServiceTblSubject())
                         && $tblSubjectItem->getId() == $tblSubject->getId()
                     ) {
-                        if (($tblLevelFrom = $tblStudentSubject->getServiceTblLevelFrom())) {
-                            $levelFrom = $tblLevelFrom->getName();
+                        if ($tblStudentSubject->getLevelFrom()) {
+                            $levelFrom = $tblStudentSubject->getLevelFrom();
                         }
 
-                        if (($tblLevelTill = $tblStudentSubject->getServiceTblLevelTill())) {
-                            $levelTill = $tblLevelTill->getName();
+                        if ($tblStudentSubject->getLevelTill()) {
+                            $levelTill = $tblStudentSubject->getLevelTill();
                         }
 
                         break;
@@ -968,39 +953,8 @@ class GymAbgSekII extends Certificate
      */
     private function setCourses(TblPerson $tblPerson = null)
     {
-
-        $advancedCourses = array();
-        if ($tblPerson && ($tblDivision = $this->getTblDivision())
-            && ($tblDivisionSubjectList = Division::useService()->getDivisionSubjectByDivision($tblDivision))
-        ) {
-            foreach ($tblDivisionSubjectList as $tblDivisionSubjectItem) {
-                if (($tblSubjectGroup = $tblDivisionSubjectItem->getTblSubjectGroup())) {
-
-                    if (($tblSubjectStudentList = Division::useService()->getSubjectStudentByDivisionSubject(
-                        $tblDivisionSubjectItem))
-                    ) {
-                        foreach ($tblSubjectStudentList as $tblSubjectStudent) {
-                            if (($tblSubject = $tblDivisionSubjectItem->getServiceTblSubject())
-                                && ($tblPersonStudent = $tblSubjectStudent->getServiceTblPerson())
-                                && $tblPerson->getId() == $tblPersonStudent->getId()
-                            ) {
-                                if ($tblSubjectGroup->isAdvancedCourse()) {
-                                    if ($tblSubject->getName() == 'Deutsch' || $tblSubject->getName() == 'Mathematik') {
-                                        $advancedCourses[0] = $tblSubject->getName();
-                                    } else {
-                                        $advancedCourses[1] = $tblSubject->getName();
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        if (!empty($advancedCourses)) {
-            ksort($advancedCourses);
-            $this->AdvancedCourses = $advancedCourses;
+        if (($tblYear = $this->getYear())) {
+            $this->AdvancedCourses = DivisionCourse::useService()->getAdvancedCoursesForStudent($tblPerson, $tblYear);
         }
     }
 
@@ -1032,9 +986,7 @@ class GymAbgSekII extends Certificate
         $name = '&nbsp;';
         $address = '&nbsp;';
         // get company name
-        if (($tblPerson = Person::useService()->getPersonById($personId))
-            && ($tblCompany = Student::useService()->getCurrentSchoolByPerson($tblPerson, $this->getTblDivision() ? $this->getTblDivision() : null))
-        ) {
+        if (($tblCompany = $this->getTblCompany())) {
             $name = $isSchoolExtendedNameDisplayed ? $tblCompany->getName() .
                 ($separator ? ' ' . $separator . ' ' : ' ') . $tblCompany->getExtendedName() : $tblCompany->getName();
 

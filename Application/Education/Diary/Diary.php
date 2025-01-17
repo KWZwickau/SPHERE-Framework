@@ -23,7 +23,7 @@ class Diary implements IApplicationInterface, IModuleInterface
     public static function registerApplication()
     {
         Main::getDisplay()->addApplicationNavigation(
-            new Link(new Link\Route(__NAMESPACE__), new Link\Name('pädagogisches Tagebuch'))
+            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Pädagogisches Tagebuch'))
         );
 
         self::registerModule();
@@ -41,6 +41,9 @@ class Diary implements IApplicationInterface, IModuleInterface
             __NAMESPACE__ . '\Teacher', self::LOCATION . '\Frontend::frontendTeacherSelectDivision')
         );
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '\TeacherLectureship', self::LOCATION . '\Frontend::frontendTeacherSelectDivision')
+        );
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '\Headmaster', self::LOCATION . '\Frontend::frontendHeadmasterSelectDivision')
         );
         Main::getDispatcher()->registerRoute(
@@ -51,10 +54,9 @@ class Diary implements IApplicationInterface, IModuleInterface
     /**
      * @return Service
      */
-    public static function useService()
+    public static function useService(): Service
     {
-        return new Service(new Identifier('Education', 'ClassRegister', null, null,
-            Consumer::useService()->getConsumerBySession()),
+        return new Service(new Identifier('Education', 'Application', null, null, Consumer::useService()->getConsumerBySession()),
             self::LOCATION . '/Service/Entity', self::LOCATION . '\Service\Entity'
         );
     }
@@ -62,7 +64,7 @@ class Diary implements IApplicationInterface, IModuleInterface
     /**
      * @return Frontend
      */
-    public static function useFrontend()
+    public static function useFrontend(): Frontend
     {
         return new Frontend();
     }

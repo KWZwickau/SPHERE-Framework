@@ -12,7 +12,7 @@ use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblLeaveStudent;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareStudent;
-use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\People\Meta\Student\Student;
@@ -40,12 +40,12 @@ class LeavePoints extends Extension
     /**
      * @var TblLeaveStudent|null
      */
-    protected $tblLeaveStudent = null;
+    protected ?TblLeaveStudent $tblLeaveStudent = null;
 
     /**
      * @var BlockIView
      */
-    private $View = BlockIView::PREVIEW;
+    private $View;
 
     /**
      * @var array|false
@@ -60,19 +60,19 @@ class LeavePoints extends Extension
     /**
      * @var TblSubject|null
      */
-    private $tblReligionSubject = null;
+    private ?TblSubject $tblReligionSubject = null;
 
-    private $count = 0;
+    private int $count = 0;
 
     /**
-     * @var TblPrepareStudent[]|array
+     * @var TblPrepareStudent[]
      */
-    private $tblPrepareStudentList = null;
+    private ?array $tblPrepareStudentList = null;
 
     /**
      * @var array
      */
-    protected $pointsList = array();
+    protected array $pointsList = array();
 
     protected function setPointList()
     {
@@ -85,7 +85,7 @@ class LeavePoints extends Extension
         $this->pointsList = $list;
     }
 
-    private $interactive = array(
+    private array $interactive = array(
         "paging" => false, // Deaktivieren Blättern
         "iDisplayLength" => -1,    // Alle Einträge zeigen
         "searching" => false, // Deaktivieren Suchen
@@ -100,7 +100,7 @@ class LeavePoints extends Extension
         'fixedHeader' => false
     );
 
-    private $columnDefinition = array(
+    private array $columnDefinition = array(
         'Subject' => 'Fach',
         'Course' => 'Kurs',
         '11-1' => '11/1',
@@ -205,41 +205,9 @@ class LeavePoints extends Extension
         $prepareStudentList = array();
         // Zensuren von Kurshalbjahreszeugnissen
         if (($tblLeaveStudent = $this->tblLeaveStudent)
-            && (($tblPerson = $tblLeaveStudent->getServiceTblPerson()))
-            && ($tblDivisionStudentList = Division::useService()->getDivisionStudentAllByPerson($tblPerson))
+            && ($tblPerson = $tblLeaveStudent->getServiceTblPerson())
         ) {
-            foreach ($tblDivisionStudentList as $tblDivisionStudent) {
-                if (($tblDivision = $tblDivisionStudent->getTblDivision())
-                    && ($tblLevel = $tblDivision->getTblLevel())
-                    && ($tblLevel->getName() == '11' || $tblLevel->getName() == '12')
-                    && ($tblPrepareList = Prepare::useService()->getPrepareAllByDivision($tblDivision))
-                ) {
-                    foreach ($tblPrepareList as $tblPrepare) {
-                        if ($tblPrepare->getServiceTblGenerateCertificate()
-                            && ($tblCertificateType = $tblPrepare->getServiceTblGenerateCertificate()->getServiceTblCertificateType())
-                            && ($tblCertificateType->getIdentifier() == 'MID_TERM_COURSE')
-                            && ($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare,
-                                $tblPerson))
-                            && $tblPrepareStudent->isApproved()
-                            && $tblPrepareStudent->isPrinted()
-                        ) {
-                            $midTerm = '-1';
-                            if (($tblAppointedDateTask = $tblPrepare->getServiceTblAppointedDateTask())
-                                && ($tblDivisionItem = $tblPrepare->getServiceTblDivision())
-                                && ($tblYear = $tblDivisionItem->getServiceTblYear())
-                                && ($tblPeriodList = $tblYear->getTblPeriodAll($tblDivision))
-                                && ($tblPeriod = $tblAppointedDateTask->getServiceTblPeriodByDivision($tblDivision))
-                                && ($tblFirstPeriod = current($tblPeriodList))
-                                && $tblPeriod->getId() != $tblFirstPeriod->getId()
-                            ) {
-                                $midTerm = '-2';
-                            }
-
-                            $prepareStudentList[$tblLevel->getName() . $midTerm] = $tblPrepareStudent;
-                        }
-                    }
-                }
-            }
+            $prepareStudentList = Prepare::useService()->getPrepareStudentListFromMidTermCertificatesByPerson($tblPerson);
         }
 
         $this->tblPrepareStudentList = $prepareStudentList;
@@ -317,10 +285,10 @@ class LeavePoints extends Extension
             $array[] = array(
                 'Subject' => $subjectName,
                 'Course' => $course,
-                '11-1' => isset($grades['11-1']) ? $grades['11-1'] : '',
-                '11-2' => isset($grades['11-2']) ? $grades['11-2'] : '',
-                '12-1' => isset($grades['12-1']) ? $grades['12-1'] : '',
-                '12-2' => isset($grades['12-2']) ? $grades['12-2'] : '',
+                '11-1' => $grades['11-1'] ?? '',
+                '11-2' => $grades['11-2'] ?? '',
+                '12-1' => $grades['12-1'] ?? '',
+                '12-2' => $grades['12-2'] ?? '',
                 'Average' => $hasSubject ? $points : '',
                 'FinalGrade' => $hasSubject ? Prepare::useService()->getAbiturLeaveGradeBySubject($points) : ''
             );
@@ -429,15 +397,10 @@ class LeavePoints extends Extension
 
     private function setCourses()
     {
-
         if (($tblLeaveStudent = $this->tblLeaveStudent)
-            && (($tblDivision = $tblLeaveStudent->getServiceTblDivision()))
             && (($tblPerson = $tblLeaveStudent->getServiceTblPerson()))
         ) {
-            list($this->AdvancedCourses, $this->BasicCourses) = Prepare::useService()->getCoursesForStudent(
-                $tblDivision,
-                $tblPerson
-            );
+            list($this->AdvancedCourses, $this->BasicCourses) = DivisionCourse::useService()->getCoursesForStudent($tblPerson);
         }
     }
 }

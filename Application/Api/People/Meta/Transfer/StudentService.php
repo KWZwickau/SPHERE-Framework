@@ -21,7 +21,7 @@ class StudentService
      * @return bool|ServiceAPP\Entity\TblStudentTransfer|AbstractField
      */
     public function createTransferCompany(
-        $PersonIdArray = array(),
+        $PersonIdArray,
         $StudentTransferTypeIdentifier,
         $tblCompany = null
     ) {
@@ -75,7 +75,7 @@ class StudentService
      * @return bool|ServiceAPP\Entity\TblStudentTransfer|AbstractField
      */
     public function createTransferStateCompany(
-        $PersonIdArray = array(),
+        $PersonIdArray,
         $StudentTransferTypeIdentifier,
         $tblStateCompany = null
     ) {
@@ -129,7 +129,7 @@ class StudentService
      * @return bool|ServiceAPP\Entity\TblStudentTransfer|AbstractField
      */
     public function createTransferType(
-        $PersonIdArray = array(),
+        $PersonIdArray,
         $StudentTransferTypeIdentifier,
         $tblSchoolType = null
     ) {
@@ -184,7 +184,7 @@ class StudentService
      * @return bool|ServiceAPP\Entity\TblStudentTransfer|AbstractField
      */
     public function createTransferCourse(
-        $PersonIdArray = array(),
+        $PersonIdArray,
         $StudentTransferTypeIdentifier,
         $tblCourse = null
     ) {
@@ -238,7 +238,7 @@ class StudentService
      * @return bool|ServiceAPP\Entity\TblStudentTransfer|AbstractField
      */
     public function createTransferEnrollmentType(
-        $PersonIdArray = array(),
+        $PersonIdArray,
         $StudentTransferTypeIdentifier,
         $tblStudentSchoolEnrollmentType = null
     ) {
@@ -292,7 +292,7 @@ class StudentService
      * @return bool
      */
     public function createTransferDate(
-        $PersonIdArray = array(),
+        $PersonIdArray,
         $StudentTransferTypeIdentifier,
         $transferDate = null
     ) {

@@ -77,7 +77,6 @@ class Service extends AbstractService
     public function importBillingData()
     {
 
-//        $InfoList = array();
         $tblImportList = $this->getImportAll();
         if ($tblImportList) {
             $tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_DEBTOR);
@@ -89,7 +88,6 @@ class Service extends AbstractService
                 } else {
                     $Owner = $tblPersonDebtor->getFirstName().' '.$tblPersonDebtor->getLastName();
                 }
-
                 $tblBankAccount = $tblBankReference = false;
                 if($tblPersonDebtor){
                     // Debitor als Beitragszahler hinzufügen
@@ -117,7 +115,6 @@ class Service extends AbstractService
                             $tblImport->getReferenceDate());
                     }
                 }
-
                 $tblItem = Item::useService()->getItemByName($tblImport->getItem());
                 // Zahlungszuweisungen (SEPA) // andere Zahlungsarten werden nicht importiert!
                 if($tblBankAccount && $tblBankReference && $tblItem){
@@ -137,62 +134,9 @@ class Service extends AbstractService
                         $tblImport->getPaymentFromDate(), $tblImport->getPaymentTillDate(), $tblVariant, $Value, $tblBankAccount, $tblBankReference);
                 }
             }
-
             //Delete tblImport
             Import::useService()->destroyImport();
         }
-
-        //ToDO Aufräumen wenn es gar nicht mehr gebraucht wird
-        // Wird noch eine Ausgabe benötigt? Ausgabe aller importierten Daten würde einfach riesig und unübersichtlich
-        // werden, zumal das in der Tabelle davor schon ersichtlich gemacht wurde.
-//        $LayoutColumnArray = array();
-//        if (!empty($InfoList)) {
-//            // better show result
-//            foreach ($InfoList as $key => $Info) {
-//                $divisionName[$key] = strtoupper($Info['DivisionName']);
-//            }
-//            array_multisort($divisionName, SORT_NATURAL, $InfoList);
-//            foreach ($InfoList as $Info) {
-//
-//                if (isset($Info['DivisionName']) && isset($Info['SubjectList'])) {
-//                    $LayoutColumnList = array();
-//                    $PanelContent = array();
-//                    if (!empty($Info['SubjectList'])) {
-//                        foreach ($Info['SubjectList'] as $SubjectAndTeacherArray) {
-//                            if (!empty($SubjectAndTeacherArray)) {
-//                                foreach ($SubjectAndTeacherArray as $SubjectAndTeacher) {
-//                                    $PanelContent[] = $SubjectAndTeacher;
-//                                }
-//                            }
-//                        }
-//                        $LayoutColumnList[] = new LayoutColumn(array(
-//                                new Title('Klasse: '.$Info['DivisionName']),
-//                                new Panel('Acronym - Fach'.new PullRight('Lehrer'),
-//                                    $PanelContent, Panel::PANEL_TYPE_SUCCESS)
-//                            )
-//                            , 4);
-//                    }
-//                    $LayoutColumnArray = array_merge($LayoutColumnArray, $LayoutColumnList);
-//                }
-//            }
-//        }
-//
-//        // save clean view by LayoutRows
-//        $LayoutRowList = array();
-//        $LayoutRowCount = 0;
-//        $LayoutRow = null;
-//        /**
-//         * @var LayoutColumn $tblPhone
-//         */
-//        foreach ($LayoutColumnArray as $LayoutColumn) {
-//            if ($LayoutRowCount % 3 == 0) {
-//                $LayoutRow = new LayoutRow(array());
-//                $LayoutRowList[] = $LayoutRow;
-//            }
-//            $LayoutRow->addColumn($LayoutColumn);
-//            $LayoutRowCount++;
-//        }
-//        return $LayoutRowList;
         return '';
     }
 

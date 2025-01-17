@@ -9,8 +9,9 @@ use SPHERE\Application\Contact\Mail\Mail;
 use SPHERE\Application\Contact\Mail\Service\Entity\TblToPerson as TblMailToPerson;
 use SPHERE\Application\Contact\Phone\Phone;
 use SPHERE\Application\Contact\Phone\Service\Entity\TblToPerson as TblPhoneToPerson;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\ParentStudentAccess\OnlineContactDetails\Service\Entity\TblOnlineContact;
-use SPHERE\Application\People\Meta\Student\Student;
+use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
@@ -112,10 +113,8 @@ class Frontend extends Extension implements IFrontendInterface
         return new LayoutGroup(array(
             new LayoutRow(new LayoutColumn(
                 new Title(
-                    $tblPerson->getLastFirstName()
-                    . (($tblDivision = Student::useService()->getCurrentMainDivisionByPerson($tblPerson))
-                        ? ' ' . new Small(new Muted($tblDivision->getDisplayName()))
-                        : '')
+                    $tblPerson->getLastFirstName() . ' ' .
+                    new Small(new Muted(DivisionCourse::useService()->getCurrentMainCoursesByPersonAndDate($tblPerson)))
                 )
             )),
             new LayoutRow(new LayoutColumn(
@@ -295,6 +294,7 @@ class Frontend extends Extension implements IFrontendInterface
             $inputList[] = (new SelectBox('Data[Type]', 'Typ', array('{{ Name }} {{ Description }}' => Phone::useService()->getTypeAll()), new TileBig()))->setRequired();
         }
         $inputList[] = (new TextField('Data[Number]', 'Telefonnummer', 'Telefonnummer', new PhoneIcon()))->setRequired();
+        $inputList[] = new CheckBox('Data[IsEmergencyContact]', 'Notfallnummer', 1);
         $inputList[] = new TextArea('Data[Remark]', $remarkLabel, $remarkLabel, new Comment());
 
         $rows[] = new FormRow(array(
@@ -478,7 +478,8 @@ class Frontend extends Extension implements IFrontendInterface
         $content[] = $tblOnlineContact->getContactContent();
         $content[] = $tblOnlineContact->getContactCreate();
         return new Panel(
-            $tblOnlineContact->getContactTypeIcon() . $tblOnlineContact->getContactTypeName(),
+            $tblOnlineContact->getContactTypeIcon() . $tblOnlineContact->getContactTypeName()
+                . ($tblOnlineContact->getIsEmergencyContact() ? ' (Notfall)' : ''),
             $content,
             Panel::PANEL_TYPE_DEFAULT
         );
@@ -524,7 +525,7 @@ class Frontend extends Extension implements IFrontendInterface
 //        }
 
         return new Panel(
-            $icon . ' Telefonnummer',
+            $icon . ' Telefonnummer' . ($tblPhoneToPerson->getIsEmergencyContact() ? ' (Notfall)' : ''),
             $content,
             $hasOnlineContacts ? Panel::PANEL_TYPE_WARNING : Panel::PANEL_TYPE_INFO,
             !empty($personIdList) ? 'weitere Personen: ' . implode(', ' , OnlineContactDetails::useService()->getNameListFromPersonIdList($personIdList)) : null
@@ -570,9 +571,17 @@ class Frontend extends Extension implements IFrontendInterface
      */
     private function getMailPanel(TblPerson $tblPerson, TblMailToPerson $tblMailToPerson, array $personIdList): Panel
     {
-        $editLink = (new Link(new Edit() . ' Bearbeiten', ApiOnlineContactDetails::getEndpoint(), null, array(), 'Änderungswunsch für diese E-Mail-Adresse abgeben'))
-            ->ajaxPipelineOnClick(ApiOnlineContactDetails::pipelineOpenCreateMailModal(
-                $tblPerson->getId(), $tblMailToPerson->getId(), $personIdList));
+        // Schüler mit geschäftlicher E-Mail-Adresse nicht bearbeiten
+        $editLink = '';
+        if (!(
+            $tblMailToPerson->getTblType()->getName() == 'Geschäftlich'
+            && Group::useService()->existsGroupPerson(Group::useService()->getGroupByMetaTable('STUDENT'), $tblPerson)
+        )) {
+            $editLink = (new Link(new Edit() . ' Bearbeiten', ApiOnlineContactDetails::getEndpoint(), null, array(),
+                'Änderungswunsch für diese E-Mail-Adresse abgeben'))
+                ->ajaxPipelineOnClick(ApiOnlineContactDetails::pipelineOpenCreateMailModal(
+                    $tblPerson->getId(), $tblMailToPerson->getId(), $personIdList));
+        }
         $content[] = $tblMailToPerson->getTblMail()->getAddress() . new PullRight($editLink);
 
         $hasOnlineContacts = false;

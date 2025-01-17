@@ -1,5 +1,4 @@
 <?php
-
 namespace SPHERE\Application\Reporting\Individual\Service\Entity;
 
 use Doctrine\ORM\Mapping\Cache;
@@ -138,7 +137,11 @@ class TblPreset extends Element
      */
     public function setPostValue($PostValue)
     {
-        $json = json_encode($PostValue);
-        $this->PostValue = $json;
+        if(!empty($PostValue)){
+            $json = json_encode($PostValue);
+            $this->PostValue = $json;
+        } else {
+            $this->PostValue = '';
+        }
     }
 }

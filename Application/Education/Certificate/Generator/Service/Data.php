@@ -18,8 +18,11 @@ use SPHERE\Application\Education\Certificate\Generator\Service\DataCertificate\I
 use SPHERE\Application\Education\Certificate\Generator\Service\DataCertificate\IDataFESH;
 use SPHERE\Application\Education\Certificate\Generator\Service\DataCertificate\IDataHOGA;
 use SPHERE\Application\Education\Certificate\Generator\Service\DataCertificate\IDataLWSZ;
+use SPHERE\Application\Education\Certificate\Generator\Service\DataCertificate\IDataMLS;
 use SPHERE\Application\Education\Certificate\Generator\Service\DataCertificate\SDataBerufsfachschule;
+use SPHERE\Application\Education\Certificate\Generator\Service\DataCertificate\SDataBGym;
 use SPHERE\Application\Education\Certificate\Generator\Service\DataCertificate\SDataFachschule;
+use SPHERE\Application\Education\Certificate\Generator\Service\DataCertificate\SDataFoerderschule;
 use SPHERE\Application\Education\Certificate\Generator\Service\DataCertificate\SDataGym;
 use SPHERE\Application\Education\Certificate\Generator\Service\DataCertificate\SDataPrimary;
 use SPHERE\Application\Education\Certificate\Generator\Service\DataCertificate\SDataSecondary;
@@ -31,9 +34,8 @@ use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertifi
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificateReferenceForLanguages;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificateSubject;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificateType;
-use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
-use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeType;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblLevel;
+use SPHERE\Application\Education\Graduation\Grade\Grade;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblGradeType;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\School\Course\Course;
@@ -45,6 +47,7 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Database\Binding\AbstractData;
+use SPHERE\System\Database\Fitting\Element;
 
 /**
  * Class Data
@@ -64,6 +67,7 @@ class Data extends AbstractData
     private $tblSchoolTypePrimary;
     private $tblSchoolTypeSecondary;
     private $tblSchoolTypeGym;
+    private $tblSchoolTypeFoerderSchule;
     private $tblSchoolTypeBerufsfachschule;
     private $tblSchoolTypeFachschule;
     private $tblSchoolTypeFachoberschule;
@@ -156,6 +160,14 @@ class Data extends AbstractData
     /**
      * @return TblType
      */
+    public function getTblSchoolTypeFoerderSchule()
+    {
+        return $this->tblSchoolTypeFoerderSchule;
+    }
+
+    /**
+     * @return TblType
+     */
     public function getTblSchoolTypeBerufsfachschule()
     {
         return $this->tblSchoolTypeBerufsfachschule;
@@ -221,6 +233,13 @@ class Data extends AbstractData
     {
         $tblConsumer = $this->tblConsumer = Consumer::useService()->getConsumerBySession();
 
+        // Kann nach DB Update wieder entfernt werden
+        if(($tblCertificate = $this->getCertificateByCertificateClassName('MsAbsHs'))){
+            if(!$tblCertificate->isChosenDefault()){
+                $this->updateCertificateIsChosenDefault($tblCertificate, true);
+            }
+        }
+
         if ($tblConsumer && $tblConsumer->getType() == TblConsumer::TYPE_SACHSEN) {
 
             // Informationen der Zeugnisse
@@ -232,8 +251,9 @@ class Data extends AbstractData
             $this->tblCertificateTypeDiploma = $this->createCertificateType('Abschlusszeugnis', 'DIPLOMA');
             $this->tblCertificateTypeMidTermCourse = $this->createCertificateType('Kurshalbjahreszeugnis', 'MID_TERM_COURSE');
             $this->tblSchoolTypePrimary = Type::useService()->getTypeByName('Grundschule');
-            $this->tblSchoolTypeSecondary = Type::useService()->getTypeByName('Mittelschule / Oberschule');
+            $this->tblSchoolTypeSecondary = Type::useService()->getTypeByName(TblType::IDENT_OBER_SCHULE);
             $this->tblSchoolTypeGym = Type::useService()->getTypeByName('Gymnasium');
+            $this->tblSchoolTypeFoerderSchule = Type::useService()->getTypeByName('Förderschule');
             $this->tblSchoolTypeBerufsfachschule = Type::useService()->getTypeByName('Berufsfachschule');
             $this->tblSchoolTypeFachschule = Type::useService()->getTypeByName('Fachschule');
             $this->tblSchoolTypeFachoberschule = Type::useService()->getTypeByName('Fachoberschule');
@@ -295,6 +315,17 @@ class Data extends AbstractData
             if ($tblConsumer->getAcronym() == 'HOGA') { // || $tblConsumer->getAcronym() == 'REF') {
                 IDataHOGA::setCertificateIndividually($this);
             }
+            if ($tblConsumer->getAcronym() == 'MLS') {
+                IDataMLS::setCertificateIndividually($this);
+            }
+        }
+
+        // Zeugnisvorlagen löschen
+        if (($tblCertificate = $this->getCertificateByCertificateClassName('MsAbgLernen'))) {
+            $this->destroyCertificate($tblCertificate);
+        }
+        if (($tblCertificate = $this->getCertificateByCertificateClassName('MsAbgLernenHs'))) {
+            $this->destroyCertificate($tblCertificate);
         }
     }
 
@@ -316,8 +347,10 @@ class Data extends AbstractData
             $this->tblCertificateTypeDiploma = $this->createCertificateType('Abschlusszeugnis', 'DIPLOMA');
             $this->tblCertificateTypeMidTermCourse = $this->createCertificateType('Kurshalbjahreszeugnis', 'MID_TERM_COURSE');
             $this->tblSchoolTypePrimary = Type::useService()->getTypeByName('Grundschule');
-            $this->tblSchoolTypeSecondary = Type::useService()->getTypeByName('Mittelschule / Oberschule');
+            $this->tblSchoolTypeSecondary = Type::useService()->getTypeByName(TblType::IDENT_OBER_SCHULE);
             $this->tblSchoolTypeGym = Type::useService()->getTypeByName('Gymnasium');
+            $this->tblSchoolTypeBeruflichesGymnasium = Type::useService()->getTypeByName('Berufliches Gymnasium');
+            $this->tblSchoolTypeFoerderSchule = Type::useService()->getTypeByName('Förderschule');
             $this->tblSchoolTypeBerufsfachschule = Type::useService()->getTypeByName('Berufsfachschule');
             $this->tblSchoolTypeFachschule = Type::useService()->getTypeByName('Fachschule');
             $this->tblSchoolTypeFachoberschule = Type::useService()->getTypeByName('Fachoberschule');
@@ -334,11 +367,17 @@ class Data extends AbstractData
                 case TblCertificate::CERTIFICATE_TYPE_GYM :
                     SDataGym::setCertificateStandard($this);
                     return true;
+                case TblCertificate::CERTIFICATE_TYPE_B_GYM :
+                    SDataBGym::setCertificateStandard($this);
+                    return true;
                 case TblCertificate::CERTIFICATE_TYPE_BERUFSFACHSCHULE :
                     SDataBerufsfachschule::setCertificateStandard($this);
                     return true;
                 case TblCertificate::CERTIFICATE_TYPE_FACHSCHULE :
                     SDataFachschule::setCertificateStandard($this);
+                    return true;
+                case TblCertificate::CERTIFICATE_TYPE_FOERDERSCHULE :
+                    SDataFoerderschule::setCertificateStandard($this);
                     return true;
             }
         }
@@ -423,6 +462,7 @@ class Data extends AbstractData
             $Entity->setServiceTblSchoolType($tblSchoolType);
             $Entity->setServiceTblCourse($tblCourse);
             $Entity->setIsIgnoredForAutoSelect($IsIgnoredForAutoSelect);
+            $Entity->setCertificateNumber('');
             // Standard, kann wenn benötigt als Variable in die Funktion, noch kein bedarf dazu
             $Entity->setIsGradeVerbal(false);
 
@@ -435,8 +475,8 @@ class Data extends AbstractData
 
     /**
      * @param TblCertificate $tblCertificate
-     * @param int $LaneIndex
-     * @param int $LaneRanking
+     * @param $LaneIndex
+     * @param $LaneRanking
      * @param TblGradeType $tblGradeType
      *
      * @return null|object|TblCertificateGrade
@@ -473,9 +513,8 @@ class Data extends AbstractData
      *
      * @return bool
      */
-    public function updateCertificateGrade(TblCertificateGrade $tblCertificateGrade, TblGradeType $tblGradeType)
+    public function updateCertificateGrade(TblCertificateGrade $tblCertificateGrade, TblGradeType $tblGradeType): bool
     {
-
         $Manager = $this->getConnection()->getEntityManager();
         /** @var TblCertificateGrade $Entity */
         $Entity = $Manager->getEntityById('TblCertificateGrade', $tblCertificateGrade->getId());
@@ -484,8 +523,10 @@ class Data extends AbstractData
             $Entity->setServiceTblGradeType($tblGradeType);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+
             return true;
         }
+
         return false;
     }
 
@@ -839,62 +880,9 @@ class Data extends AbstractData
         bool $IsEssential = true,
         TblTechnicalCourse $tblTechnicalCourse = null
     ) {
-
         // abweichende Fächer
-        if ($SubjectAcronym == 'DE' || $SubjectAcronym == 'D' || $SubjectAcronym == 'DEU') {
-            $tblSubject = Subject::useService()->getSubjectByAcronym('DE');
-            if (!$tblSubject) {
-                $tblSubject = Subject::useService()->getSubjectByAcronym('D');
-            }
-            if (!$tblSubject) {
-                $tblSubject = Subject::useService()->getSubjectByAcronym('DEU');
-            }
-        } elseif ($SubjectAcronym == 'EN' || $SubjectAcronym == 'ENG') {
-            $tblSubject = Subject::useService()->getSubjectByAcronym('EN');
-            if (!$tblSubject) {
-                $tblSubject = Subject::useService()->getSubjectByAcronym('ENG');
-            }
-        } elseif ($SubjectAcronym == 'BI' || $SubjectAcronym == 'BIO') {
-            $tblSubject = Subject::useService()->getSubjectByAcronym('BIO');
-            if (!$tblSubject) {
-                $tblSubject = Subject::useService()->getSubjectByAcronym('BI');
-            }
-        } elseif ($SubjectAcronym == 'REV' || $SubjectAcronym == 'RELI' || $SubjectAcronym == 'REE' || $SubjectAcronym == 'RE/e') {
-            $tblSubject = Subject::useService()->getSubjectByAcronym('RE/e');
-            if (!$tblSubject) {
-                $tblSubject = Subject::useService()->getSubjectByAcronym('REV');
-            }
-            if (!$tblSubject) {
-                $tblSubject = Subject::useService()->getSubjectByAcronym('RELI');
-            }
-            if (!$tblSubject) {
-                $tblSubject = Subject::useService()->getSubjectByAcronym('REE');
-            }
-        } elseif ($SubjectAcronym == 'REK' || $SubjectAcronym == 'RE/k') {
-            $tblSubject = Subject::useService()->getSubjectByAcronym('RE/k');
-            if (!$tblSubject) {
-                $tblSubject = Subject::useService()->getSubjectByAcronym('REK');
-            }
-        } elseif ($SubjectAcronym == 'IN' || $SubjectAcronym == 'INFO' || $SubjectAcronym == 'INF') {
-            $tblSubject = Subject::useService()->getSubjectByAcronym('INF');
-            if (!$tblSubject) {
-                $tblSubject = Subject::useService()->getSubjectByAcronym('IN');
-            }
-            if (!$tblSubject) {
-                $tblSubject = Subject::useService()->getSubjectByAcronym('INFO');
-            }
-        } elseif ($SubjectAcronym == 'WK' || $SubjectAcronym == 'WE') {
-            $tblSubject = Subject::useService()->getSubjectByAcronym('WE');
-            if (!$tblSubject) {
-                $tblSubject = Subject::useService()->getSubjectByAcronym('WK');
-            }
-        } else {
-            $tblSubject = Subject::useService()->getSubjectByAcronym($SubjectAcronym);
-        }
-
-        if ($tblSubject){
-            $this->createCertificateSubject($tblCertificate, $LaneIndex, $LaneRanking, $tblSubject,
-                $IsEssential, $tblTechnicalCourse);
+        if (($tblSubject = Subject::useService()->getSubjectByVariantAcronym($SubjectAcronym))) {
+            $this->createCertificateSubject($tblCertificate, $LaneIndex, $LaneRanking, $tblSubject, $IsEssential, $tblTechnicalCourse);
         }
     }
 
@@ -910,8 +898,7 @@ class Data extends AbstractData
         $LaneIndex,
         $LaneRanking
     ) {
-
-        if (($tblGradeType = Gradebook::useService()->getGradeTypeByCode($GradeTypeAcronym))) {
+        if (($tblGradeType = Grade::useService()->getGradeTypeByCode($GradeTypeAcronym))) {
             $this->createCertificateGrade($tblCertificate, $LaneIndex, $LaneRanking, $tblGradeType);
         }
     }
@@ -1037,6 +1024,54 @@ class Data extends AbstractData
 
     /**
      * @param TblCertificate $tblCertificate
+     * @param string $CertificateNumber
+     *
+     * @return bool
+     */
+    public function updateCertificateNumber(
+        TblCertificate $tblCertificate,
+        $CertificateNumber = ''
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblCertificate $Entity */
+        $Entity = $Manager->getEntityById('TblCertificate', $tblCertificate->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setCertificateNumber($CertificateNumber);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblCertificate $tblCertificate
+     * @param bool $CertificateNumber
+     *
+     * @return bool
+     */
+    public function updateCertificateIsChosenDefault(TblCertificate $tblCertificate, bool $IsChosenDefault = false)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblCertificate $Entity */
+        $Entity = $Manager->getEntityById('TblCertificate', $tblCertificate->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setIsChosenDefault($IsChosenDefault);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblCertificate $tblCertificate
      * @param $Name
      * @param $Description
      *
@@ -1067,26 +1102,25 @@ class Data extends AbstractData
 
     /**
      * @param TblCertificate $tblCertificate
-     * @param TblLevel $tblLevel
+     * @param int $Level
      *
      * @return TblCertificateLevel
      */
-    public function createCertificateLevel(TblCertificate $tblCertificate, TblLevel $tblLevel)
+    public function createCertificateLevel(TblCertificate $tblCertificate, int $Level): TblCertificateLevel
     {
-
         $Manager = $this->getConnection()->getEntityManager();
 
         $Entity = $Manager->getEntity('TblCertificateLevel')
             ->findOneBy(array(
                     TblCertificateLevel::ATTR_TBL_CERTIFICATE => $tblCertificate->getId(),
-                    TblCertificateLevel::SERVICE_TBL_LEVEL => $tblLevel->getId()
+                    TblCertificateLevel::ATTR_LEVEL => $Level
                 )
             );
 
         if (null === $Entity) {
             $Entity = new TblCertificateLevel();
             $Entity->setTblCertificate($tblCertificate);
-            $Entity->setServiceTblLevel($tblLevel);
+            $Entity->setLevel($Level);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
@@ -1220,8 +1254,8 @@ class Data extends AbstractData
 
     /**
      * @param null|TblConsumer $tblConsumer
-     * @param TblCertificateType $tblCertificateType
-     * @param TblType $tblSchoolType
+     * @param null|TblCertificateType $tblCertificateType
+     * @param null|TblType $tblSchoolType
      *
      * @return bool|Entity\TblCertificate[]
      */
@@ -1408,17 +1442,10 @@ class Data extends AbstractData
      *
      * @return bool
      */
-    public function isGradeTypeUsed(TblGradeType $tblGradeType)
+    public function isGradeTypeUsed(TblGradeType $tblGradeType): bool
     {
-
-        return $this->getCachedEntityBy(
-            __METHOD__,
-            $this->getConnection()->getEntityManager(),
-            'TblCertificateGrade',
-            array(
-                TblCertificateGrade::SERVICE_TBL_GRADE_TYPE => $tblGradeType->getId()
-            )
-        ) ? true : false;
+        return (bool) $this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblCertificateGrade',
+            array(TblCertificateGrade::SERVICE_TBL_GRADE_TYPE => $tblGradeType->getId()));
     }
 
     /**
@@ -1451,21 +1478,6 @@ class Data extends AbstractData
             return true;
         }
         return false;
-    }
-
-    /**
-     * @param TblCertificate $tblCertificate
-     * @param TblLevel $tblLevel
-     *
-     * @return false|TblCertificateLevel
-     */
-    public function getCertificateLevelBy(TblCertificate $tblCertificate, TblLevel $tblLevel)
-    {
-
-        return $this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblCertificateLevel', array(
-            TblCertificateLevel::ATTR_TBL_CERTIFICATE => $tblCertificate->getId(),
-            TblCertificateLevel::SERVICE_TBL_LEVEL => $tblLevel->getId()
-        ));
     }
 
     /**
@@ -1627,5 +1639,38 @@ class Data extends AbstractData
         return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblCertificateInformation', array(
             TblCertificateInformation::ATTR_TBL_CERTIFICATE => $tblCertificate->getId()
         ), array(TblCertificateInformation::ATTR_PAGE => self::ORDER_ASC));
+    }
+
+    /**
+     * @return false|TblCertificateLevel[]
+     */
+    private function getCertificateLevelAllByLevelIsNull()
+    {
+        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblCertificateLevel', array(
+            TblCertificateLevel::ATTR_LEVEL => null
+        ));
+    }
+
+    /**
+     * @param array $tblEntityList
+     *
+     * @return bool
+     */
+    public function updateEntityListBulk(array $tblEntityList): bool
+    {
+        $Manager = $this->getEntityManager();
+
+        /** @var Element $tblElement */
+        foreach ($tblEntityList as $tblElement) {
+            $Manager->bulkSaveEntity($tblElement);
+            /** @var Element $Entity */
+            $Entity = $Manager->getEntityById($tblElement->getEntityShortName(), $tblElement->getId());
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Entity, $tblElement, true);
+        }
+
+        $Manager->flushCache();
+        Protocol::useService()->flushBulkEntries();
+
+        return true;
     }
 }

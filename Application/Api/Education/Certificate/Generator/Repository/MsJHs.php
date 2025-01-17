@@ -37,12 +37,9 @@ class MsJHs extends Certificate
     /**
      * @return bool
      */
-    private function hasNoTransfer()
+    private function hasNoTransfer(): bool
     {
-        if  (($tblDivision = $this->getTblDivision())
-            && ($tblLevel = $tblDivision->getTblLevel())
-            && intval($tblLevel->getName()) == 9
-        ) {
+        if  ($this->getLevel() == 9) {
             return true;
         } else {
             return false;
@@ -78,7 +75,7 @@ class MsJHs extends Certificate
                 )
             )
             ->addSlice($this->getGradeLanesSmall($personId))
-            ->addSlice($this->getRatingContent($personId))
+            ->addSlice($this->getRatingContent($personId, '60px', '10px'))
             ->addSlice((new Slice())
                 ->addElement((new Element())
                     ->setContent('Leistungen in den einzelnen Fächern:')

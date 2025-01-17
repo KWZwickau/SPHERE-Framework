@@ -160,38 +160,7 @@ SELECT
         LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentTransferType tSTT ON tSTT.Id = tST.tblStudentTransferType
     where tST.tblStudent =  tS.Id
         and tSTT.Identifier = 'LEAVE'
-    ) AS TblStudentTransferLeave_Remark,
-
-    -- Company aktuelle Schule
-    (select
-		CONCAT (tC.Name,
-			' ',
-			tC.ExtendedName,
-            ' ',
-			tC.Description)
-    from {{ ConsumerAcronym }}_PeopleMeta.tblStudentTransfer tST
-        LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentTransferType tSTT ON tSTT.Id = tST.tblStudentTransferType
-        LEFT JOIN {{ ConsumerAcronym }}_CorporationCompany.tblCompany tC ON tC.Id = tST.serviceTblCompany
-    where tST.tblStudent =  tS.Id
-        and tSTT.Identifier = 'PROCESS'
-    ) AS TblCompanyProcess_Name,
-
-    -- other infos
-    (select distinct
-        tC.Name
-    from {{ ConsumerAcronym }}_PeopleMeta.tblStudentTransfer tST
-        LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentTransferType tSTT ON tSTT.Id = tST.tblStudentTransferType
-        LEFT JOIN {{ ConsumerAcronym }}_EducationSchoolCourse.tblCourse tC ON tC.Id = tST.serviceTblCourse
-    where tST.tblStudent =  tS.Id
-        and tSTT.Identifier = 'PROCESS'
-    ) AS TblStudentTransferProcess_Course,
-    (select distinct
-        tST.Remark AS TblStudentTransfer_Remark
-    from {{ ConsumerAcronym }}_PeopleMeta.tblStudentTransfer tST
-        LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentTransferType tSTT ON tSTT.Id = tST.tblStudentTransferType
-    where tST.tblStudent =  tS.Id
-        and tSTT.Identifier = 'PROCESS'
-    ) AS TblStudentTransferProcess_Remark
+    ) AS TblStudentTransferLeave_Remark
 
 FROM {{ ConsumerAcronym }}_PeopleMeta.tblStudent tS
 

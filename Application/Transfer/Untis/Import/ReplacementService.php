@@ -6,8 +6,7 @@ use MOC\V\Component\Document\Document;
 use MOC\V\Component\Document\Exception\DocumentTypeException as DocumentTypeException;
 use MOC\V\Component\Document\Vendor\UniversalXml\Source\Node;
 use SPHERE\Application\Education\ClassRegister\Timetable\Timetable as TimetableClassRegister;
-use SPHERE\Application\Education\Lesson\Division\Division;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Meta\Teacher\Teacher;
@@ -24,7 +23,7 @@ class ReplacementService
     private array $UploadList = array();
     private array $WarningList = array();
     private array $DateList = array();
-    /* @var TblDivision[] $CourseList */
+    /* @var TblDivisionCourse[] $CourseList */
     private array $CourseList = array();
     private array $CountImport = array();
 
@@ -124,7 +123,7 @@ class ReplacementService
         if(($Kopf = $Node->getChild('kopf'))){
             $Datum = $Kopf->getChild('datum');
             if($Datum){
-                $DateString = utf8_encode($Datum->getContent());
+                $DateString = $this->getUtf8Encode($Datum->getContent());
                 $Date = $this->getDateFromString($DateString);
             }
             $DayChild = $Kopf->getChild('tag');
@@ -159,27 +158,27 @@ class ReplacementService
                             $item['hour'] = '';
                         }
                         if(($plFach = $Pl->getChild('pl_fach'))){
-                            $item['Subject'] = utf8_encode($plFach->getContent());
+                            $item['Subject'] = $this->getUtf8Encode($plFach->getContent());
                         } else {
                             $item['Subject'] = '';
                         }
                         if(($plKlasse = $Pl->getChild('pl_klasse'))){
-                            $item['Course'] = utf8_encode($plKlasse->getContent());
+                            $item['Course'] = $this->getUtf8Encode($plKlasse->getContent());
                         } else {
                             $item['Course'] = '';
                         }
                         if(($plLehrer = $Pl->getChild('pl_lehrer'))){
-                            $item['Person'] = utf8_encode($plLehrer->getContent());
+                            $item['Person'] = $this->getUtf8Encode($plLehrer->getContent());
                         } else {
                             $item['Person'] = '';
                         }
                         if(($plRaum = $Pl->getChild('pl_raum'))){
-                            $item['room'] = utf8_encode($plRaum->getContent());
+                            $item['room'] = $this->getUtf8Encode($plRaum->getContent());
                         } else {
                             $item['room'] = '';
                         }
                         if(($plGruppe = $Pl->getChild('pl_gruppe'))){
-                            $item['subjectGroup'] = utf8_encode($plGruppe->getContent());
+                            $item['subjectGroup'] = $this->getUtf8Encode($plGruppe->getContent());
                         } else {
                             $item['subjectGroup'] = '';
                         }
@@ -255,7 +254,7 @@ class ReplacementService
      */
     public function getReplacementResult(array $result)
     {
-
+        // ist nicht ans Mapping angepasst
         $tblYearList = Term::useService()->getYearByNow();
         foreach($result as $Row){
             $Row['tblPerson'] = $Row['tblCourse'] = $Row['tblSubject'] = false;
@@ -269,11 +268,10 @@ class ReplacementService
                 if($tblYearList){
                     // Suche nach SSW Klasse
                     foreach ($tblYearList as $tblYear) {
-                        //ToDO Course
-                        if (($tblDivision = Division::useService()->getDivisionByDivisionDisplayNameAndYear($Row['Course'], $tblYear))) {
-                            $Row['tblCourse'] = $tblDivision;
-                            break;
-                        }
+//                        if (($tblDivision = Division::useService()->getDivisionByDivisionDisplayNameAndYear($Row['Course'], $tblYear))) {
+//                            $Row['tblCourse'] = $tblDivision;
+//                            break;
+//                        }
                     }
                 }
             }
@@ -328,5 +326,14 @@ class ReplacementService
     {
 
         TimetableClassRegister::useService()->createTimetableReplacementBulk($importList);
+    }
+
+    private function getUtf8Encode(?string $item): string
+    {
+        if ($item === null || $item === '') {
+            return '';
+        }
+
+        return utf8_encode($item);
     }
 }

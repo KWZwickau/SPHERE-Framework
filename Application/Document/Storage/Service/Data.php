@@ -1,7 +1,10 @@
 <?php
 namespace SPHERE\Application\Document\Storage\Service;
 
+use MOC\V\Component\Database\Component\IBridgeInterface;
+use MOC\V\Component\Database\Database as MocDatabase;
 use SPHERE\Application\Document\Storage\Service\Entity\TblBinary;
+use SPHERE\Application\Document\Storage\Service\Entity\TblBinaryRevision;
 use SPHERE\Application\Document\Storage\Service\Entity\TblDirectory;
 use SPHERE\Application\Document\Storage\Service\Entity\TblFile;
 use SPHERE\Application\Document\Storage\Service\Entity\TblFileCategory;
@@ -10,8 +13,11 @@ use SPHERE\Application\Document\Storage\Service\Entity\TblPartition;
 use SPHERE\Application\Document\Storage\Service\Entity\TblPersonPicture;
 use SPHERE\Application\Document\Storage\Service\Entity\TblReferenceType;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Database\Binding\AbstractData;
+use SPHERE\System\Database\Database;
+use SPHERE\System\Database\Type\MySql;
 
 /**
  * Class Data
@@ -316,6 +322,19 @@ class Data extends AbstractData
     }
 
     /**
+     * @param string $identifier
+     *
+     * @return false|TblDirectory[]
+     */
+    public function getDirectoryAllByIdentifier(string $identifier)
+    {
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDirectory',
+            array(
+                TblDirectory::ATTR_IDENTIFIER => $identifier
+            ));
+    }
+
+    /**
      * @return false|TblDirectory[]
      */
     public function getDirectoryAll()
@@ -325,21 +344,26 @@ class Data extends AbstractData
     }
 
     /**
-     * @param string $BinaryBlob
+     * @param $BinaryBlob
+     * @param int $fileSizeKByte
+     * @param string $hash
+     * @param TblPerson|null $tblPerson
      *
      * @return TblBinary
      */
-    public function createBinary($BinaryBlob)
+    public function createBinary($BinaryBlob, int $fileSizeKByte, string $hash, ?TblPerson $tblPerson): TblBinary
     {
 
         $Manager = $this->getConnection()->getEntityManager();
 
         $New = new TblBinary();
         $New->setBinaryBlob($BinaryBlob);
-        $Hash = $New->getHash();
+        $New->setFileSizeKiloByte($fileSizeKByte);
+        $New->setHash($hash);
+        $New->setServiceTblPersonPrinter($tblPerson);
 
         $Entity = $Manager->getEntity('TblBinary')->findOneBy(array(
-            TblBinary::ATTR_HASH => $Hash,
+            TblBinary::ATTR_HASH => $hash,
             TblBinary::ENTITY_REMOVE => null
         ));
 
@@ -350,6 +374,56 @@ class Data extends AbstractData
         }
 
         return $Entity;
+    }
+
+    /**
+     * @param TblFile $tblFile
+     * @param TblBinary $tblBinary
+     * @param int $version
+     * @param string $description
+     *
+     * @return TblBinaryRevision
+     */
+    public function createBinaryRevision(
+        TblFile $tblFile,
+        TblBinary $tblBinary,
+        int $version,
+        string $description
+    ) {
+        $Manager = $this->getEntityManager();
+
+        $Entity = new TblBinaryRevision();
+        $Entity->setTblFile($tblFile);
+        $Entity->setTblBinary($tblBinary);
+        $Entity->setVersion($version);
+        $Entity->setDescription($description);
+
+        $Manager->saveEntity($Entity);
+        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+
+        return $Entity;
+    }
+
+    /**
+     * @param TblFile $tblFile
+     *
+     * @return false|TblBinaryRevision[]
+     */
+    public function getBinaryRevisionListByFile(TblFile $tblFile)
+    {
+        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblBinaryRevision', array(TblBinaryRevision::ATTR_TBL_FILE => $tblFile->getId()),
+             array(TblBinaryRevision::ATTR_VERSION => self::ORDER_DESC)
+        );
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return false|TblBinaryRevision
+     */
+    public function getBinaryRevisionById($Id)
+    {
+        return $this->getCachedEntityById(__METHOD__, $this->getEntityManager(), 'TblBinaryRevision', $Id);
     }
 
     /**
@@ -550,5 +624,129 @@ class Data extends AbstractData
         //        Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $TblPersonPicture);
 
         $Manager->killEntity($TblPersonPicture);
+    }
+
+    /**
+     * @return bool|array[]
+     */
+    public function getBinaryIdAndFileSizeListWithoutFileSize(int $maxResults, int $startId = 0): bool|array
+    {
+        $Manager = $this->getEntityManager();
+        $queryBuilder = $Manager->getQueryBuilder();
+
+        $query = $queryBuilder->select('b.Id, LENGTH(b.BinaryBlob) as FileSize')
+            ->from(TblBinary::class, 'b')
+            ->where(
+                $queryBuilder->expr()->andX(
+                    $queryBuilder->expr()->eq('b.FileSizeKiloByte', '?1'),
+                    $queryBuilder->expr()->gte('b.Id', '?2')
+                )
+            )
+            ->setParameter(1, 0)
+            ->setParameter(2, $startId)
+            ->setMaxResults($maxResults)
+            ->getQuery();
+
+        $resultList = $query->getResult();
+
+        return empty($resultList) ? false : $resultList;
+    }
+
+    /**
+     * @param array $list
+     *
+     * @return float
+     */
+    public function updateFileSize(array $list): float
+    {
+        $Manager = $this->getEntityManager();
+        $start = hrtime(true);
+
+        foreach($list as $item) {
+            /** @var TblBinary $Entity */
+            $Entity = $Manager->getEntityById('TblBinary', $item['Id']);
+//            $Protocol = clone $Entity;
+            $Entity->setFileSizeKiloByte(intdiv($item['FileSize'], 1024));
+
+//            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity, true);
+        }
+
+        $Manager->flushCache();
+//        Protocol::useService()->flushBulkEntries();
+
+        $end = hrtime(true);
+
+        return round(($end - $start) / 1000000000, 2);
+    }
+
+    /**
+     * @param TblConsumer $tblConsumer
+     * @param bool $isOnlyWithoutFile
+     *
+     * @return int
+     */
+    public function getFileSizeByConsumer(TblConsumer $tblConsumer, bool $isOnlyWithoutFile = false): int
+    {
+        $sumKiloByte = 0;
+        $connection = false;
+        $container = Database::getDataBaseConfig($tblConsumer);
+
+        if ($container) {
+            try {
+                $connection = $this->getConnectionByAcronym(
+                    $container->getContainer('Host')->getValue(),
+                    $container->getContainer('Username')->getValue(),
+                    $container->getContainer('Password')->getValue(),
+                    $tblConsumer->getAcronym()
+                );
+                if ($connection) {
+                    $queryBuilder = $connection->getQueryBuilder();
+
+                    if ($isOnlyWithoutFile) {
+                        $query = $queryBuilder->select('SUM(b.FileSizeKiloByte) as SumFileSize')
+                            ->from($tblConsumer->getAcronym() . '_DocumentStorage.tblBinary', 'b')
+                            ->where('not exists (select * from ' .$tblConsumer->getAcronym() . '_DocumentStorage.tblFile f where f.tblBinary = b.Id)');
+                    } else {
+                        $query = $queryBuilder->select('SUM(b.FileSizeKiloByte) as SumFileSize')
+                            ->from($tblConsumer->getAcronym() . '_DocumentStorage.tblBinary', 'b');
+                    }
+
+                    $result = $query->execute();
+                    $array = $result->fetch();
+
+                    if (isset($array['SumFileSize'])) {
+                        $sumKiloByte = $array['SumFileSize'];
+                    }
+
+                    $connection->getConnection()->close();
+                }
+            } catch (\Exception $Exception) {
+                if ($connection) {
+                    $connection->getConnection()->close();
+                }
+                $connection = null;
+            }
+        }
+
+        return $sumKiloByte;
+    }
+
+    /**
+     * @param string $Host Server-Address (IP)
+     * @param string $User
+     * @param string $Password
+     * @param string $Acronym DatabaseName will get prefix '_DocumentStorage' e.g. {Acronym}_DocumentStorage
+     *
+     * @return bool|IBridgeInterface
+     */
+    private function getConnectionByAcronym($Host, $User, $Password, $Acronym)
+    {
+        $Connection = MocDatabase::getDatabase(
+            $User, $Password, strtoupper($Acronym).'_DocumentStorage', (new MySql())->getIdentifier(), $Host
+        );
+        if ($Connection->getConnection()->isConnected()) {
+            return $Connection;
+        }
+        return false;
     }
 }

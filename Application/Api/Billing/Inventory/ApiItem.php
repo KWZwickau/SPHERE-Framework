@@ -3,6 +3,7 @@ namespace SPHERE\Application\Api\Billing\Inventory;
 
 use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
+use SPHERE\Application\Billing\Accounting\Debtor\Debtor;
 use SPHERE\Application\Billing\Inventory\Item\Item;
 use SPHERE\Application\Billing\Inventory\Setting\Service\Entity\TblSetting;
 use SPHERE\Application\Billing\Inventory\Setting\Setting;
@@ -64,6 +65,9 @@ class ApiItem extends ItemVariant implements IApiInterface
         $Dispatcher->registerMethod('saveEditItem');
         $Dispatcher->registerMethod('showDeleteItem');
         $Dispatcher->registerMethod('deleteItem');
+        $Dispatcher->registerMethod('showDeactivateItem');
+        $Dispatcher->registerMethod('deactivateItem');
+        $Dispatcher->registerMethod('activateItem');
         // Variant / Beitragsvarianten
         $Dispatcher->registerMethod('showAddVariant');
         $Dispatcher->registerMethod('saveAddVariant');
@@ -254,11 +258,81 @@ class ApiItem extends ItemVariant implements IApiInterface
     }
 
     /**
-     * @param string $Identifier
+     * @param string     $Identifier
+     * @param int|string $ItemId
      *
      * @return Pipeline
      */
-    public static function pipelineCloseModal($Identifier = '')
+    public static function pipelineOpenDeactivateItemModal($Identifier = '', $ItemId = '')
+    {
+
+        $Receiver = self::receiverModal(null, $Identifier);
+        $Pipeline = new Pipeline();
+        $Emitter = new ServerEmitter($Receiver, ApiItem::getEndpoint());
+        $Emitter->setGetPayload(array(
+            ApiItem::API_TARGET => 'showDeactivateItem'
+        ));
+        $Emitter->setPostPayload(array(
+            'Identifier' => $Identifier,
+            'ItemId'     => $ItemId,
+        ));
+        $Pipeline->appendEmitter($Emitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param string     $Identifier
+     * @param int|string $ItemId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineDeactivateItem($Identifier = '', $ItemId = '')
+    {
+
+        $Receiver = self::receiverModal(null, $Identifier);
+        $Pipeline = new Pipeline();
+        $Emitter = new ServerEmitter($Receiver, ApiItem::getEndpoint());
+        $Emitter->setGetPayload(array(
+            ApiItem::API_TARGET => 'deactivateItem'
+        ));
+        $Emitter->setPostPayload(array(
+            'Identifier' => $Identifier,
+            'ItemId'     => $ItemId,
+        ));
+        $Pipeline->appendEmitter($Emitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param int|string $ItemId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineActivateItem($ItemId = '')
+    {
+
+        $Pipeline = new Pipeline();
+        $Receiver = self::receiverItemTable();
+        $Emitter = new ServerEmitter($Receiver, ApiItem::getEndpoint());
+        $Emitter->setGetPayload(array(
+            ApiItem::API_TARGET => 'activateItem'
+        ));
+        $Emitter->setPostPayload(array(
+            'ItemId'     => $ItemId,
+        ));
+        $Pipeline->appendEmitter($Emitter);
+        return $Pipeline;
+    }
+
+    /**
+     * @param string $Identifier
+     * @param string $ItemId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineCloseModal($Identifier = '', $CalculationId = '')
     {
         $Pipeline = new Pipeline();
         // reload the whole Table
@@ -266,15 +340,18 @@ class ApiItem extends ItemVariant implements IApiInterface
         $Emitter->setGetPayload(array(
             self::API_TARGET => 'getItemTable'
         ));
+        $Emitter->setPostPayload(array(
+            'CalculationId' => $CalculationId,
+        ));
         $Pipeline->appendEmitter($Emitter);
         $Pipeline->appendEmitter((new CloseModal(self::receiverModal('', $Identifier)))->getEmitter());
         return $Pipeline;
     }
 
-    public function getItemTable()
+    public function getItemTable($CalculationId = '')
     {
 
-        return Item::useFrontend()->getItemTable();
+        return Item::useFrontend()->getItemTable($CalculationId);
     }
 
     /**
@@ -564,7 +641,7 @@ class ApiItem extends ItemVariant implements IApiInterface
         }
 
         return ($Item
-            ? new Success('Beitragsart erfolgreich angelegt').self::pipelineCloseModal($Identifier)
+            ? new Success('Beitragsart erfolgreich geändert').self::pipelineCloseModal($Identifier)
             : new Danger('Beitragsart konnte nicht gengelegt werden'));
     }
 
@@ -657,6 +734,71 @@ class ApiItem extends ItemVariant implements IApiInterface
             return new Success('Beitragsart wurde erfolgreich entfernt').self::pipelineCloseModal($Identifier);
         }
         return new Danger('Beitragsart konnte nicht entfernt werden');
+    }
+
+    /**
+     * @param string $Identifier
+     * @param string $ItemId
+     *
+     * @return string
+     */
+    public function showDeactivateItem($Identifier = '', $ItemId = '')
+    {
+
+        if(($tblItem = Item::useService()->getItemById($ItemId))){
+            $tblDebtorSelection = Debtor::useService()->getDebtorSelectionByItem($tblItem);
+            $Content = new Warning('Deaktivierte Beitragsarten können in vorhandenen Abrechnungen noch verwendet, jedoch nicht erneut zugeordnet werden', null, false, 5, 10);
+            $Content .= new Warning('Deaktivierte Beitragsarten stehen den Beitragsdruck noch 2 Monate nach Deaktivierung zur Verfügung', null, false, 5, 10);
+            $Content .= 'hinterlegte Zahlungszuweisungen: '.new Bold(count($tblDebtorSelection));
+            return new Layout(
+                new LayoutGroup(
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            new Panel('Soll die Beitragsart '.new Bold($tblItem->getName()).' wirklich deaktiviert werden?'
+                                , $Content, Panel::PANEL_TYPE_DANGER)
+                        ),
+                        new LayoutColumn(
+                            (new DangerLink('Ja', self::getEndpoint(), new Ok()))
+                                ->ajaxPipelineOnClick(self::pipelineDeactivateItem($Identifier, $ItemId))
+                            .new Close('Nein', new Disable())
+                        )
+                    ))
+                )
+            );
+        } else {
+            return new Warning('Beitragsart wurde nicht gefunden');
+        }
+    }
+
+    /**
+     * @param string $Identifier
+     * @param string $ItemId
+     *
+     * @return string
+     */
+    public function deactivateItem($Identifier = '', $ItemId = '')
+    {
+
+        if(($tblItem = Item::useService()->getItemById($ItemId))
+        && Item::useService()->changeItemActive($tblItem, !$tblItem->getIsActive())){
+            return new Success('Beitragsart wurde erfolgreich deaktiviert.').self::pipelineCloseModal($Identifier);
+        }
+        return new Danger('Beitragsart konnte nicht deaktiviert werden');
+    }
+
+    /**
+     * @param string $ItemId
+     *
+     * @return string
+     */
+    public function activateItem($ItemId = '')
+    {
+
+        if(($tblItem = Item::useService()->getItemById($ItemId))
+        && Item::useService()->changeItemActive($tblItem, !$tblItem->getIsActive())){
+            return Item::useFrontend()->getItemDeactiveTable();
+        }
+        return new Danger('Beitragsart konnte nicht aktiviert werden').Item::useFrontend()->getItemDeactiveTable();
     }
 
 }

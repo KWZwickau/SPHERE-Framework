@@ -27,7 +27,8 @@ class DomPdf extends Bridge implements IBridgeInterface
     {
 
 //        require_once( __DIR__.'/../../../Vendor/DomPdf/0.6.2/dompdf_config.inc.php' );
-        require_once( __DIR__.'/../../../Vendor/DomPdf/1.0.2/autoload.inc.php' );
+//        require_once( __DIR__.'/../../../Vendor/DomPdf/1.0.2/autoload.inc.php' );
+        require_once(__DIR__.DIRECTORY_SEPARATOR.'../../../../../Php8Combined/vendor/autoload.php');
     }
 
     /**
@@ -93,4 +94,11 @@ class DomPdf extends Bridge implements IBridgeInterface
         return $Renderer->output();
     }
 
+    /**
+     * @return string
+     */
+    public function getSource(): string
+    {
+        return $this->Source;
+    }
 }

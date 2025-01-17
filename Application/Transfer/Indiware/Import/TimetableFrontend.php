@@ -12,8 +12,11 @@ use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
+use SPHERE\Common\Frontend\Icon\Repository\Check;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Clock;
+use SPHERE\Common\Frontend\Icon\Repository\Disable;
+use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Upload;
@@ -21,15 +24,19 @@ use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Listing;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\Danger as DangerLink;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
+use SPHERE\Common\Frontend\Message\Repository\Info;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
+use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Warning as WarningText;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
@@ -59,8 +66,8 @@ class TimetableFrontend extends Extension implements IFrontendInterface
                 $item['DateFrom'] = $tblTimetable->getDateFrom();
                 $item['DateTo'] = $tblTimetable->getDateTo();
                 $item['Option'] =
-                    // new Standard('', '#', new Edit(), array('tblTimetableId' => $tblTimetable->getId()), 'Erneuter Upload für diesen Stundenplan') .
-                    new Standard('', '/Transfer/Indiware/Import/Timetable/Remove', new Remove(), array('TimetableId' => $tblTimetable->getId()), 'Erneuter Upload für diesen Stundenplan');
+                    new Standard('', '/Transfer/Indiware/Import/Timetable/Edit', new Edit(), array('TimetableId' => $tblTimetable->getId()), 'Bearbeiten') .
+                    new Standard('', '/Transfer/Indiware/Import/Timetable/Remove', new Remove(), array('TimetableId' => $tblTimetable->getId()), 'Entfernen');
                 array_push($TableContent, $item);
             }
         }
@@ -73,8 +80,12 @@ class TimetableFrontend extends Extension implements IFrontendInterface
                 'DateTo' => 'Gültig bis',
                 'Option' => '',
             ), array(
+                'order' => array(
+                    array('2', 'desc'),
+                ),
                 'columnDefs' => array(
                     array('width' => '70px', "targets" => -1),
+                    array('type' => 'de_date', 'targets' => array(2, 3)),
                 ),
             ))
         )))));
@@ -105,6 +116,9 @@ class TimetableFrontend extends Extension implements IFrontendInterface
                 new LayoutGroup(
                     new LayoutRow(array(
                         new LayoutColumn(
+                            new Info('Bitte stellen Sie sicher, dass das Startdatum innerhalb des gewünschten Schuljahres liegt', null, false, '5', '5')
+                        , 6),
+                        new LayoutColumn(
                             Timetable::useService()->readTimetableFromFile($Form, $File, $Data)
                         )
                     ))
@@ -115,21 +129,27 @@ class TimetableFrontend extends Extension implements IFrontendInterface
     }
 
     /**
+     * @param bool   $IsUploadField
+     * @param string $ButtonText
+     *
      * @return Form
      */
-    private function formTimetable()
+    private function formTimetable($IsUploadField = true, $ButtonText = 'Hochladen')
     {
 
-        return new Form(new FormGroup(array(
+        $form = new Form(new FormGroup(array(
             new FormRow(array(
                 new FormColumn(
                     (new TextField('Data[Name]', '', 'Name'))->setRequired()
-                , 4),
+                    , 4),
                 new FormColumn(
                     new TextField('Data[Description]', '', 'Beschreibung')
-                , 8)
-            )),
-            new FormRow(array(
+                    , 8)
+            ))
+        )), new Primary($ButtonText),);
+
+        if($IsUploadField){
+            $form->appendGridGroup(new FormGroup(new FormRow(array(
                 new FormColumn(array(
                     (new DatePicker('Data[DateFrom]', '', 'Gültig ab', new Clock()))->setRequired()
                 ), 4),
@@ -139,19 +159,29 @@ class TimetableFrontend extends Extension implements IFrontendInterface
                 new FormColumn(
                     (new FileUpload('File', 'Datei auswählen', 'Datei auswählen '.new WarningText(new Exclamation().' XML-Export (Gesamt)'), null,
                         array('showPreview' => false)))->setRequired()
-                , 4),
-            )),
-            new FormRow(
+                    , 4),
+            ))));
+
+            $form->appendGridGroup(new FormGroup(new FormRow(
                 new FormColumn(new Listing(
                     array(
                         new RadioBox('Data[IsImport]', 'Test des Imports', '0'),
                         new RadioBox('Data[IsImport]', 'Importieren', '1')
                     )
                 ), 4)
-            )
-        )), new Primary('Hochladen')
-//            , new Route(__NAMESPACE__.'/Timetable/Import')
-        );
+            )));
+        } else {
+            $form->appendGridGroup(new FormGroup(new FormRow(array(
+                new FormColumn(array(
+                    (new DatePicker('Data[DateFrom]', '', 'Gültig ab', new Clock()))->setRequired()
+                ), 4),
+                new FormColumn(array(
+                    (new DatePicker('Data[DateTo]', '', 'Gültig bis', new Clock()))->setRequired()
+                ), 4),
+            ))));
+        }
+
+        return $form;
     }
 
     /**
@@ -232,23 +262,88 @@ class TimetableFrontend extends Extension implements IFrontendInterface
     }
 
     /**
+     * @param array  $Data
      * @param string $TimetableId
-     * @return Warning|string
-     * @throws \Exception
+     *
+     * @return Stage
+     * @throws DocumentTypeException
      */
-    public function frontendRemoveTimetable(string $TimetableId)
+    public function frontendEditTimetable(array $Data = array(), string $TimetableId = '')
+    {
+
+        $Stage = new Stage('Stundenplan', 'Bearbeiten');
+        $Stage->addButton(new Standard('Zurück', '/Transfer/Indiware/Import/Timetable', new ChevronLeft()));
+
+        $tblTimetable = TimetableClassregister::useService()->getTimetableById($TimetableId);
+        if(!$tblTimetable){
+            $Stage->setContent(new Danger('Stundenplan nicht vorhanden'));
+            return $Stage;
+        }
+        $Global = $this->getGlobal();
+        if(!isset($Global->POST['Data']['Name'])){
+            $Global->POST['Data']['Name'] = $tblTimetable->getName();
+            $Global->POST['Data']['Description'] = $tblTimetable->getDescription();
+            $Global->POST['Data']['DateFrom'] = $tblTimetable->getDateFrom();
+            $Global->POST['Data']['DateTo'] = $tblTimetable->getDateTo();
+            $Global->savePost();
+        }
+
+        $form = $this->formTimetable(false, 'Speichern');
+
+        $Stage->setContent(
+            new Well(
+                Timetable::useService()->editTimetable($form, $tblTimetable, $Data)
+            )
+        );
+
+        //        $Stage->setContent(new Success('Stundenplan erfolgreich entfernt')
+        //            .new Redirect('/Transfer/Untis/Import/Timetable', Redirect::TIMEOUT_SUCCESS));
+        return $Stage;
+    }
+
+    /**
+     * @param string $TimetableId
+     * @param false  $isDelete
+     *
+     * @return Stage
+     */
+    public function frontendRemoveTimetable(string $TimetableId, $isDelete = false)
     {
 
         $Stage = new Stage('Stundenplan', 'entfernen');
-
+        $Stage->addButton(new Standard('Zurück', '/Transfer/Indiware/Import/Timetable', new ChevronLeft()));
         $tblTimetable = TimetableClassregister::useService()->getTimetableById($TimetableId);
-        if($tblTimetable){
+        if(!$tblTimetable){
+            $Stage->setContent(new Danger('Stundenplan nicht vorhanden'));
+            return $Stage;
+        }
+        if(!$isDelete){
+            $Stage->setContent(
+                new Layout(new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn('&nbsp;', 3),
+                        new LayoutColumn(new Panel('Soll der Standenplan '.new Bold('"'.$tblTimetable->getName().'"').' wirklich gelöscht werden?', array(
+                                new Layout(new LayoutGroup(new LayoutRow(array(
+                                    new LayoutColumn('Gültig ab:', 2),
+                                    new LayoutColumn($tblTimetable->getDateFrom(), 10),
+                                )))),
+                                new Layout(new LayoutGroup(new LayoutRow(array(
+                                    new LayoutColumn('Gültig bis:', 2),
+                                    new LayoutColumn($tblTimetable->getDateTo(), 10),
+                                )))),
+                            ), Panel::PANEL_TYPE_DANGER)
+                            .new DangerLink('Ja', '/Transfer/Indiware/Import/Timetable/Remove', new Check(), array('TimetableId' => $TimetableId, 'isDelete' => true))
+                            .new Standard('Nein', '/Transfer/Indiware/Import/Timetable', new Disable())
+                            , 6),
+                    )),
+                )))
+            );
+        } else {
             TimetableClassregister::useService()->removeTimetable($tblTimetable);
             $Stage->setContent(new Success('Stundenplan erfolgreich entfernt')
                 .new Redirect('/Transfer/Indiware/Import/Timetable', Redirect::TIMEOUT_SUCCESS));
             return $Stage;
         }
-        $Stage->setContent(new Warning('Stundenplan konnte nicht entfernt werden'));
         return $Stage;
     }
 }

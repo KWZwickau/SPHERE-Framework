@@ -1,24 +1,13 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: kauschke
- * Date: 16.08.2016
- * Time: 13:52
- */
-
 namespace SPHERE\Application\Reporting\Custom\Schneeberg\Person;
 
-use SPHERE\Application\Education\Lesson\Division\Division;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\Reporting\Standard\Person\Person as PersonStandard;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
-use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
-use SPHERE\Common\Frontend\Icon\Repository\Listing;
 use SPHERE\Common\Frontend\IFrontendInterface;
-use SPHERE\Common\Frontend\Layout\Repository\Panel;
-use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
@@ -26,7 +15,10 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
+use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
+use SPHERE\Common\Frontend\Text\Repository\Bold;
+use SPHERE\Common\Frontend\Text\Repository\Info as InfoText;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 
@@ -37,169 +29,79 @@ use SPHERE\System\Extension\Extension;
  */
 class Frontend extends Extension implements IFrontendInterface
 {
-
     /**
-     * @return Stage
-     */
-    public function frontendPerson()
-    {
-
-        $Stage = new Stage();
-        $Stage->setTitle('Auswertung');
-        $Stage->setDescription('Bitte wählen Sie eine Liste zur Auswertung');
-
-        return $Stage;
-    }
-
-    /**
-     * @param $DivisionId
+     * @param int|null $DivisionCourseId
+     * @param null     $All
      *
      * @return Stage
      */
-    public function frontendClassList($DivisionId = null)
+    public function frontendClassList(?int $DivisionCourseId = null, $All = null)
     {
 
         $Stage = new Stage('Auswertung', 'Klassenlisten');
-        if (null !== $DivisionId) {
-            $Stage->addButton(new Standard('Zurück', '/Reporting/Custom/Schneeberg/Person/ClassList',
-                new ChevronLeft()));
-        }
-        $tblDivisionAll = Division::useService()->getDivisionAll();
-        $tblDivision = new TblDivision();
-        $PersonList = array();
-
-        if ($DivisionId !== null) {
-
-            $Global = $this->getGlobal();
-            if (!$Global->POST) {
-                $Global->POST['Select']['Division'] = $DivisionId;
-                $Global->savePost();
+        $Route = '/Reporting/Custom/Schneeberg/Person/ClassList';
+        if($DivisionCourseId === null) {
+            if($All) {
+                $Stage->addButton(new Standard('aktuelles Schuljahr', $Route));
+                $Stage->addButton(new Standard(new InfoText(new Bold('Alle Schuljahre')), $Route, null, array('All' => 1)));
+            } else {
+                $Stage->addButton(new Standard(new InfoText(new Bold('aktuelles Schuljahr')), $Route));
+                $Stage->addButton(new Standard('Alle Schuljahre', $Route, null, array('All' => 1)));
             }
-
-            $tblDivision = Division::useService()->getDivisionById($DivisionId);
-            if ($tblDivision) {
-                $PersonList = Person::useService()->createClassList($tblDivision);
-                if ($PersonList) {
-                    $Stage->addButton(
-                        new Primary('Herunterladen',
-                            '/Api/Reporting/Custom/Schneeberg/Person/ClassList/Download',
-                            new Download(),
-                            array('DivisionId' => $tblDivision->getId()))
-                    );
-
-                    $Stage->setMessage(new Danger('Die dauerhafte Speicherung des Excel-Exports
-                    ist datenschutzrechtlich nicht zulässig!', new Exclamation()));
-                }
-            }
+            $Stage->setContent(PersonStandard::useFrontend()->getChooseDivisionCourse($Route, $All));
+            return $Stage;
         }
-
-        $TableContent = array();
-        if ($tblDivisionAll) {
-            array_walk($tblDivisionAll, function (TblDivision $tblDivision) use (&$TableContent) {
-
-                $Item['Year'] = '';
-                $Item['Division'] = $tblDivision->getDisplayName();
-                $Item['Type'] = $tblDivision->getTypeName();
-                if ($tblDivision->getServiceTblYear()) {
-                    $Item['Year'] = $tblDivision->getServiceTblYear()->getDisplayName();
-                }
-                $Item['Option'] = new Standard('', '/Reporting/Custom/Schneeberg/Person/ClassList', new EyeOpen(),
-                    array('DivisionId' => $tblDivision->getId()), 'Anzeigen');
-                $Item['Count'] = Division::useService()->countDivisionStudentAllByDivision($tblDivision);
-                array_push($TableContent, $Item);
-            });
+        $Stage->addButton(new Standard('Zurück', $Route, new ChevronLeft()));
+        if(!($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
+            return $Stage->setContent(new Warning('Klasse nicht verfügbar.'));
         }
-
-        if ($DivisionId === null) {
-            $Stage->setContent(
-                new Layout(
-                    new LayoutGroup(
-                        new LayoutRow(
-                            new LayoutColumn(
-                                new TableData($TableContent, null,
-                                    array(
-                                        'Year' => 'Jahr',
-                                        'Division' => 'Klasse',
-                                        'Type' => 'Schulart',
-                                        'Count' => 'Schüler',
-                                        'Option' => '',
-                                    ), array(
-                                        'columnDefs' => array(
-                                            array('type' => 'natural', 'targets' => array(1,3)),
-                                            array("orderable" => false, "targets"   => -1),
-                                        ),
-                                        'order' => array(
-                                            array(0, 'desc'),
-                                            array(2, 'asc'),
-                                            array(1, 'asc')
-                                        ),
-                                    )
-                                )
-                                , 12)
-                        ), new Title(new Listing() . ' Übersicht')
-                    )
-                )
+        if(!($tblPersonList = $tblDivisionCourse->getStudents())) {
+            return $Stage->setContent(new Warning('Keine Schüler hinterlegt.'));
+        }
+        $TableContent = Person::useService()->createClassList($tblDivisionCourse);
+        if(!empty($TableContent)) {
+            $Stage->addButton(new Primary('Herunterladen', '/Api/Reporting/Custom/Schneeberg/Person/ClassList/Download', new Download(),
+                    array('DivisionCourseId' => $tblDivisionCourse->getId()))
             );
-        } else {
-            $Stage->setContent(
-                new Layout(array(
-                    new LayoutGroup(
-                        new LayoutRow(array(
-                            ($tblDivision->getServiceTblYear() ?
-                                new LayoutColumn(
-                                    new Panel('Jahr', $tblDivision->getServiceTblYear()->getDisplayName(),
-                                        Panel::PANEL_TYPE_SUCCESS), 4
-                                ) : ''),
-                            new LayoutColumn(
-                                new Panel('Klasse', $tblDivision->getDisplayName(),
-                                    Panel::PANEL_TYPE_SUCCESS), 4
+            $Stage->setMessage(new Danger('Die dauerhafte Speicherung des Excel-Exports ist datenschutzrechtlich nicht zulässig!', new Exclamation()));
+        }
+        $Stage->setContent(
+            new Layout(array(
+                PersonStandard::useFrontend()->getDivisionHeadOverview($tblDivisionCourse),
+                new LayoutGroup(new LayoutRow(new LayoutColumn(
+                    new TableData($TableContent, null,
+                        array(
+                            'Number'    => '#',
+                            'LastName'  => 'Name',
+                            'FirstName' => 'Vorname',
+                            'Birthday'  => 'Geburtsdatum',
+                            'District'  => 'Ortsteil',
+                            'Street'    => 'Straße',
+                            'ZipCode'   => 'PLZ',
+                            'City'      => 'Ort',
+                            'Parents'   => 'Eltern',
+                            'ParentJob' => 'Eltern (Beruf)',
+                            'Phone'     => 'Telefon privat',
+                            'PhoneS1'   => 'S1',
+                            'PhoneS2'   => 'S2',
+                            'Photo'     => 'FOTO',
+                        ),
+                        array(
+                            'order' => array(
+                                array(0, 'asc'),
                             ),
-                            ($tblDivision->getTypeName() ?
-                                new LayoutColumn(
-                                    new Panel('Schulart', $tblDivision->getTypeName(),
-                                        Panel::PANEL_TYPE_SUCCESS), 4
-                                ) : ''),
-                        ))
-                    ),
-                    new LayoutGroup(
-                        new LayoutRow(
-                            new LayoutColumn(
-                                new TableData($PersonList, null,
-                                    array(
-                                        'Number'      => '#',
-                                        'LastName'    => 'Name',
-                                        'FirstName'   => 'Vorname',
-                                        'Birthday'    => 'Geburtsdatum',
-                                        'District'    => 'Ortsteil',
-                                        'Street'      => 'Straße',
-                                        'ZipCode'     => 'PLZ',
-                                        'City'        => 'Ort',
-                                        'Parents'     => 'Eltern',
-                                        'ParentJob'   => 'Eltern (Beruf)',
-                                        'Phone'       => 'Telefon privat',
-                                        'PhoneMother' => 'Mutter',
-                                        'PhoneFather' => 'Vater',
-                                        'Photo'       => 'FOTO',
-                                    ),
-                                    array(
-                                        'order' => array(
-                                            array(0, 'asc'),
-                                        ),
-                                        "columnDefs" => array(
-                                            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
-                                            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 2),
-                                        ),
-                                        'pageLength' => -1,
-                                        'responsive' => false,
-                                    )
-                                )
-                            )
+                            "columnDefs" => array(
+                                array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
+                                array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 2),
+                            ),
+                            'pageLength' => -1,
+                            'responsive' => false,
                         )
-                    ),
-                ))
-            );
-        }
-
+                    )
+                ))),
+                PersonStandard::useFrontend()->getGenderLayoutGroup($tblPersonList)
+            ))
+        );
         return $Stage;
     }
 }

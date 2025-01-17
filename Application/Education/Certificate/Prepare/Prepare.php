@@ -76,6 +76,9 @@ class Prepare implements IModuleInterface
             __NAMESPACE__ . '\Prepare\Diploma\Abitur\LevelTen' , __NAMESPACE__ . '\Abitur\Frontend::frontendPrepareDiplomaAbiturLevelTen')
         );
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '\Prepare\Diploma\Abitur\LevelTen\SetAll' , __NAMESPACE__ . '\Abitur\Frontend::frontendPrepareDiplomaAbiturLevelTenSetAll')
+        );
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '\Prepare\Diploma\Abitur\OtherInformation' , __NAMESPACE__ . '\Abitur\Frontend::frontendPrepareDiplomaAbiturOtherInformation')
         );
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
@@ -104,6 +107,9 @@ class Prepare implements IModuleInterface
         );
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '\Leave\Student\Abitur\Information', __NAMESPACE__ . '\Frontend::frontendLeaveStudentAbiturInformation')
+        );
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '\Leave\Student\Abitur\LevelEleven', __NAMESPACE__ . '\Frontend::frontendLeaveStudentAbiturLevelEleven')
         );
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '\SetIsPrepared', __NAMESPACE__ . '\Frontend::frontendSetIsPrepared')

@@ -7,7 +7,7 @@ use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasketType;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Invoice;
 use SPHERE\Application\Billing\Inventory\Item\Item;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItem;
-use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\IServiceInterface;
 use SPHERE\Application\People\Group\Group;
@@ -53,14 +53,15 @@ class BalanceDownload implements IModuleInterface
      * @param string $Year
      * @param string $From
      * @param string $To
-     * @param string $DivisionId
+     * @param string $DivisionCourseId
      * @param string $GroupId
      * @param string $PersonId
      * @param string $BasketTypeId
+     * @param bool   $isMonthly
      *
      * @return bool|string
      */
-    public function downloadBalanceList($ItemIdString = '', $Year = '', $From = '', $To = '', $DivisionId = '', $GroupId = '', $PersonId = '', $BasketTypeId = '')
+    public function downloadBalanceList($ItemIdString = '', $Year = '', $From = '', $To = '', $DivisionCourseId = '', $GroupId = '', $PersonId = '', $BasketTypeId = '', $isMonthly = false)
     {
 
         if($ItemIdString){
@@ -70,12 +71,12 @@ class BalanceDownload implements IModuleInterface
                 $tblItemList[] = Item::useService()->getItemById($ItemId);
             }
 
-            $tblDivision = false;
+            $tblDivisionCourse = false;
             $tblGroup = false;
             $tblPerson = false;
 
-            if($DivisionId){
-                $tblDivision = Division::useService()->getDivisionById($DivisionId);
+            if($DivisionCourseId){
+                $tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId);
             }
             if($GroupId){
                 $tblGroup = Group::useService()->getGroupById($GroupId);
@@ -85,11 +86,11 @@ class BalanceDownload implements IModuleInterface
             }
 
             $FileName = '';
-            if($tblDivision){
+            if($tblDivisionCourse){
                 // Pesronenliste aus der Klasse:
-                $tblPersonList = Division::useService()->getPersonAllByDivisionList(array($tblDivision));
+                $tblPersonList = $tblDivisionCourse->getStudents();
                 // Datei erhält Name der Klasse
-                $FileName = $tblDivision->getDisplayName().'_';
+                $FileName = $tblDivisionCourse->getDisplayName().'_';
             } elseif($tblGroup) {
                 $tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup);
                 // Datei erhält Name der Gruppe
@@ -128,7 +129,7 @@ class BalanceDownload implements IModuleInterface
                 $PriceList = Balance::useService()->getSummaryByItemPrice($PriceList);
             }
             if(!empty($PriceList)){
-                $fileLocation = Balance::useService()->createBalanceListExcel($PriceList, $tblItemList);
+                $fileLocation = Balance::useService()->createBalanceListExcel($PriceList, $tblItemList, $From, $To, $isMonthly);
                 $MonthList = Invoice::useService()->getMonthList();
                 $StartMonth = $MonthList[$From];
                 $ToMonth = $MonthList[$To];

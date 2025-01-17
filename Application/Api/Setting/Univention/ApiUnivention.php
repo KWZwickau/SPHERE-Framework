@@ -164,7 +164,7 @@ class ApiUnivention implements IApiInterface
                 $Error = (new UniventionUser())->createUser($User['name'], $User['email'],
                     $User['firstname'], $User['lastname'], $User['record_uid'],
                     $User['roles'], $User['schools'], $User['school_classes'],
-                    $User['recoveryMail']);
+                    $User['recoveryMail'], $User['schoolCode']);
                 if($Error){
                     $UserString = new Panel($User['name'].' '.new Small(new Muted('('.$User['firstname'].' '.$User['lastname'].')')),
                         $Error, Panel::PANEL_TYPE_DANGER);
@@ -183,7 +183,8 @@ class ApiUnivention implements IApiInterface
                 $Error = (new UniventionUser())->updateUser($User['name'], $User['email'],
                     $User['firstname'], $User['lastname'], $User['record_uid'],
                     $User['roles'], $User['schools'], $User['school_classes'],
-                    $User['recoveryMail']);
+                    $User['recoveryMail'], $User['schoolCode']);
+//                $Error .= '<pre>'.print_r($User, true).'</pre>';
                 if($Error){
                     $UserString = new Panel($User['name'].' '.new Small(new Muted('('.$User['firstname'].' '.$User['lastname'].')')),
                         $Error, Panel::PANEL_TYPE_DANGER);

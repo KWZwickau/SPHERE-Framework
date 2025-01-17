@@ -9,6 +9,7 @@ use SPHERE\Application\Contact\Phone\Phone;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Common\Service\Entity\TblCommonBirthDates;
+use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\FrontendReadOnly;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblSalutation;
@@ -36,6 +37,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Map;
 use SPHERE\Common\Frontend\Icon\Repository\MapMarker;
 use SPHERE\Common\Frontend\Icon\Repository\Nameplate;
+use SPHERE\Common\Frontend\Icon\Repository\Phone as PhoneIcon;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\TempleChurch;
@@ -423,6 +425,7 @@ class FrontendFamily extends FrontendReadOnly
 
         $firstNameInput->ajaxPipelineOnKeyUp(ApiFamilyEdit::pipelineLoadSimilarPersonContent($key));
         $lastNameInput->ajaxPipelineOnKeyUp(ApiFamilyEdit::pipelineLoadSimilarPersonContent($key));
+        $TitleAll = Person::useService()->getTitleAll();
 
         return new Panel(
             $title,
@@ -435,7 +438,7 @@ class FrontendFamily extends FrontendReadOnly
                         , 3
                     ),
                     new LayoutColumn(
-                        (new AutoCompleter('Data[S' . $Ranking . '][Title]', 'Titel', 'Titel', array('Dipl.- Ing.'), new Conversation())), 3
+                        (new AutoCompleter('Data[S' . $Ranking . '][Title]', 'Titel', 'Titel', $TitleAll, new Conversation())), 3
                     ),
                 )),
                 new LayoutRow(array(
@@ -514,6 +517,15 @@ class FrontendFamily extends FrontendReadOnly
             if (($tblPerson = Person::useService()->getPersonById($Id))) {
                 if (Group::useService()->existsGroupPerson(Group::useService()->getGroupByMetaTable('STUDENT'), $tblPerson)) {
                     $title = 'Schüler';
+                    // fallback: wiederholte Schülernummergenerierung, wenn diese nicht vorhanden ist
+                    if(!($tblStudent = $tblPerson->getStudent()) ||
+                        $tblStudent->getIdentifier() == ''){
+                        $tblSetting = Consumer::useService()->getSetting('People', 'Meta', 'Student', 'Automatic_StudentNumber');
+                        if($tblSetting && $tblSetting->getValue()) {
+                            $MaxIdentifier = Student::useService()->getStudentMaxIdentifier();
+                            Group::useService()->setAutoStudentNumber($tblPerson, $MaxIdentifier);
+                        }
+                    }
                 } elseif (Group::useService()->existsGroupPerson(Group::useService()->getGroupByMetaTable('PROSPECT'), $tblPerson)) {
                     $title = 'Interessent';
                 } else {
@@ -578,7 +590,7 @@ class FrontendFamily extends FrontendReadOnly
                     // Telefonnummern
                     if ($ranking == 1) {
                         $formRows[] = new FormRow(new FormColumn(
-                            new \SPHERE\Common\Frontend\Form\Repository\Title(new \SPHERE\Common\Frontend\Icon\Repository\Phone() . ' Telefonnummern')
+                            new \SPHERE\Common\Frontend\Form\Repository\Title(new PhoneIcon() . ' Telefonnummern')
                         ));
                     }
                     $formRows[] = new FormRow(new FormColumn(
@@ -609,7 +621,7 @@ class FrontendFamily extends FrontendReadOnly
             ));
 
             $formRows[] = new FormRow(new FormColumn(
-                new \SPHERE\Common\Frontend\Form\Repository\Title(new \SPHERE\Common\Frontend\Icon\Repository\Phone() . ' Telefonnummern')
+                new \SPHERE\Common\Frontend\Form\Repository\Title(new PhoneIcon() . ' Telefonnummern')
             ));
             $formRows[] = new FormRow(new FormColumn(
                 ApiFamilyEdit::receiverBlock($this->getPhoneContent(1, $PersonIdList, $Data, $Errors), 'PhoneContent_1')
@@ -661,7 +673,7 @@ class FrontendFamily extends FrontendReadOnly
     public function getAddressContent($Ranking, $PersonIdList, $Data, $Errors, $hasAddButton = true)
     {
         $tblType = Address::useService()->getTypeAll();
-        $tblViewAddressToPersonAll = Address::useService()->getViewAddressToPersonAll();
+        list($StreetNameList, $CountyList, $NationList, $CityList, $CodeList, $DistrictList) = Address::useService()->getAddressForAutoCompleter();
         $tblState = Address::useService()->getStateAll();
         array_push($tblState, new TblState(''));
 
@@ -670,45 +682,36 @@ class FrontendFamily extends FrontendReadOnly
         $layoutLeft = new Layout(array(new LayoutGroup(array(
             new LayoutRow(array(
                 new LayoutColumn(
-                    $this->getInputField('SelectBox', $key, 'Type', 'Typ', '', true, $Errors,
-                        array('{{ Name }} {{ Description }}' => $tblType), new TileBig())
-                    , 4),
+                    $this->getInputField('SelectBox', $key, 'Type', 'Typ', '', true, $Errors, array('{{ Name }} {{ Description }}' => $tblType), new TileBig())
+                , 4),
                 new LayoutColumn(
-                    $this->getInputField('AutoCompleter', $key, 'StreetName', 'Straße', 'Straße', true, $Errors,
-                        array('AddressStreetName' => $tblViewAddressToPersonAll), new MapMarker())
-                    , 4),
+                    $this->getInputField('AutoCompleter', $key, 'StreetName', 'Straße', 'Straße', true, $Errors, $StreetNameList, new MapMarker())
+                , 4),
                 new LayoutColumn(
-                    $this->getInputField('TextField', $key, 'StreetNumber', 'Hausnummer', 'Hausnummer', true, $Errors,
-                        array(), new MapMarker())
-                    , 4),
+                    $this->getInputField('TextField', $key, 'StreetNumber', 'Hausnummer', 'Hausnummer', true, $Errors, array(), new MapMarker())
+                , 4),
             )),
             new LayoutRow(array(
                 new LayoutColumn(
-                    $this->getInputField('AutoCompleter', $key, 'CityCode', 'Postleitzahl', 'Postleitzahl', true, $Errors,
-                        array('CityCode' => $tblViewAddressToPersonAll), new MapMarker())
-                    , 4),
+                    $this->getInputField('AutoCompleter', $key, 'CityCode', 'Postleitzahl', 'Postleitzahl', true, $Errors, $CodeList, new MapMarker())
+                , 4),
                 new LayoutColumn(
-                    $this->getInputField('AutoCompleter', $key, 'CityName', 'Ort', 'Ort', true, $Errors,
-                        array('CityName' => $tblViewAddressToPersonAll), new MapMarker())
-                    , 4),
+                    $this->getInputField('AutoCompleter', $key, 'CityName', 'Ort', 'Ort', true, $Errors, $CityList, new MapMarker())
+                , 4),
                 new LayoutColumn(
-                    $this->getInputField('AutoCompleter', $key, 'CityDistrict', 'Ortsteil', 'Ortsteil', false, $Errors,
-                        array('CityDistrict' => $tblViewAddressToPersonAll), new MapMarker())
-                    , 4),
+                    $this->getInputField('AutoCompleter', $key, 'CityDistrict', 'Ortsteil', 'Ortsteil', false, $Errors, $DistrictList, new MapMarker())
+                , 4),
             )),
             new LayoutRow(array(
                 new LayoutColumn(
-                    $this->getInputField('AutoCompleter', $key, 'County', 'Landkreis', 'Landkreis', false, $Errors,
-                        array('AddressCounty' => $tblViewAddressToPersonAll), new Map())
-                    , 4),
+                    $this->getInputField('AutoCompleter', $key, 'County', 'Landkreis', 'Landkreis', false, $Errors, $CountyList, new Map())
+                , 4),
                 new LayoutColumn(
-                    $this->getInputField('SelectBox', $key, 'State', 'Bundesland', '', false, $Errors,
-                        array('Name' => $tblState), new Map())
-                    , 4),
+                    $this->getInputField('SelectBox', $key, 'State', 'Bundesland', '', false, $Errors, array('Name' => $tblState), new Map())
+                , 4),
                 new LayoutColumn(
-                    $this->getInputField('AutoCompleter', $key, 'Nation', 'Land', 'Land', false, $Errors,
-                        array('AddressNation' => $tblViewAddressToPersonAll), new Map())
-                    , 4),
+                    $this->getInputField('AutoCompleter', $key, 'Nation', 'Land', 'Land', false, $Errors, $NationList, new Map())
+                , 4),
             ))
         ))));
 
@@ -765,13 +768,12 @@ class FrontendFamily extends FrontendReadOnly
         return new Panel(
             'Neue Telefonnummer',
             new Layout(new LayoutGroup(new LayoutRow(array(
+                new LayoutColumn(array(
+                    $this->getInputField('SelectBox', $key, 'Type', 'Typ', '', true, $Errors, array('{{ Name }} {{ Description }}' => $tblTypeAll), new TileBig()),
+                    $this->getInputField('CheckBox', $key, 'IsEmergencyContact', 'Notfallnummer', '', false, $Errors)
+                ), 3),
                 new LayoutColumn(
-                    $this->getInputField('SelectBox', $key, 'Type', 'Typ', '', true, $Errors,
-                        array('{{ Name }} {{ Description }}' => $tblTypeAll), new TileBig())
-                    , 3),
-                new LayoutColumn(
-                    $this->getInputField('TextField', $key, 'Number', 'Telefonnummer', 'Telefonnummer', true, $Errors,
-                       array(), new \SPHERE\Common\Frontend\Icon\Repository\Phone())
+                    $this->getInputField('TextField', $key, 'Number', 'Telefonnummer', 'Telefonnummer', true, $Errors, array(), new PhoneIcon())
                     , 3),
                 new LayoutColumn(
                     $this->getPersonOptions('Data[P' . $Ranking . '][PersonList]', $PersonIdList)
@@ -904,6 +906,8 @@ class FrontendFamily extends FrontendReadOnly
                 break;
             case 'MailField': $inputField = new MailField('Data[' . $key . '][' . $identifier . ']', $placeholder,
                 $label . ($isRequired ? ' ' . new DangerText('*') : ''), $icon);
+                break;
+            case 'CheckBox': $inputField = new CheckBox('Data[' . $key . '][' . $identifier . ']', $label, 1);
                 break;
             case 'TextField':
             default: $inputField = new TextField('Data[' . $key . '][' . $identifier . ']', $placeholder,

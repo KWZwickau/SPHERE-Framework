@@ -40,6 +40,7 @@ class D01
             ->addSection((new Section())
                 ->addElementColumn((new Element())
                     ->setContent('Art der Einschulung')
+                    ->styleAlignCenter()
                     ->styleBorderRight()
                     ->stylePaddingTop('8.6px')
                     ->stylePaddingBottom('8.5px'), '70%'
@@ -47,16 +48,21 @@ class D01
                 ->addSliceColumn((new Slice())
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('Schüler'), '100%'
+                            ->setContent('Schüler')
+                            ->styleAlignCenter()
+                            , '100%'
                         )
                     )
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('m')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '50'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('w'), '50'
+                            ->setContent('w')
+                            ->styleAlignCenter()
+                            , '50'
                         )
                     ), '30%'
                 )
@@ -149,6 +155,7 @@ class D01
                                     &nbsp;
                                 {% endif %}
                             ')
+                            ->styleAlignCenter()
                             ->styleBackgroundColor('lightgrey')
                             ->styleBorderBottom()
                             ->styleBorderRight(), '50%'
@@ -161,6 +168,7 @@ class D01
                                     &nbsp;
                                 {% endif %}
                             ')
+                            ->styleAlignCenter()
                             ->styleBackgroundColor('lightgrey')
                             ->styleBorderBottom(), '50%'
                         )
@@ -174,6 +182,7 @@ class D01
                                     &nbsp;
                                 {% endif %}
                             ')
+                            ->styleAlignCenter()
                             ->styleBorderBottom()
                             ->styleBorderRight(), '50%'
                         )
@@ -185,6 +194,7 @@ class D01
                                     &nbsp;
                                 {% endif %}
                             ')
+                            ->styleAlignCenter()
                             ->styleBorderBottom(), '50%'
                         )
                     )
@@ -197,6 +207,7 @@ class D01
                                     &nbsp;
                                 {% endif %}
                             ')
+                            ->styleAlignCenter()
                             ->styleBorderBottom()
                             ->styleBorderRight(), '50%'
                         )
@@ -208,6 +219,7 @@ class D01
                                     &nbsp;
                                 {% endif %}
                             ')
+                            ->styleAlignCenter()
                             ->styleBorderBottom(), '50%'
                         )
                     )
@@ -220,6 +232,7 @@ class D01
                                     &nbsp;
                                 {% endif %}
                             ')
+                            ->styleAlignCenter()
                             ->styleBackgroundColor('lightgrey')
                             ->styleBorderBottom()
                             ->styleBorderRight(), '50%'
@@ -232,6 +245,7 @@ class D01
                                     &nbsp;
                                 {% endif %}
                             ')
+                            ->styleAlignCenter()
                             ->styleBackgroundColor('lightgrey')
                             ->styleBorderBottom(), '50%'
                         )
@@ -245,6 +259,7 @@ class D01
                                     &nbsp;
                                 {% endif %}
                             ')
+                            ->styleAlignCenter()
                             ->styleBorderBottom()
                             ->styleBorderRight(), '50%'
                         )
@@ -256,6 +271,7 @@ class D01
                                     &nbsp;
                                 {% endif %}
                             ')
+                            ->styleAlignCenter()
                             ->styleBorderBottom(), '50%'
                         )
                     )
@@ -268,6 +284,7 @@ class D01
                                     &nbsp;
                                 {% endif %}
                             ')
+                            ->styleAlignCenter()
                             ->styleBorderBottom()
                             ->styleBorderRight(), '50%'
                         )
@@ -279,6 +296,7 @@ class D01
                                     &nbsp;
                                 {% endif %}
                             ')
+                            ->styleAlignCenter()
                             ->styleBorderBottom(), '50%'
                         )
                     )
@@ -291,6 +309,7 @@ class D01
                                     &nbsp;
                                 {% endif %}
                             ')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '50%'
                         )
                         ->addElementColumn((new Element())
@@ -301,6 +320,7 @@ class D01
                                     &nbsp;
                                 {% endif %}
                             ')
+                            ->styleAlignCenter()
                             , '50%'
                         )
                     ), '30%'

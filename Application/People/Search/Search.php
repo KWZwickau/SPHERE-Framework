@@ -10,12 +10,21 @@ use SPHERE\Application\IApplicationInterface;
  */
 class Search implements IApplicationInterface
 {
-
     public static function registerApplication()
     {
-
-        Group\Group::registerModule();
-//        Filter\Filter::registerModule();
+        self::registerModule();
     }
 
+    public static function registerModule()
+    {
+
+    }
+
+    /**
+     * @return Frontend
+     */
+    public static function useFrontend(): Frontend
+    {
+        return new Frontend();
+    }
 }

@@ -6,6 +6,7 @@ use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\IServiceInterface;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Main;
+use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 
 class Gersdorf extends Extension implements IModuleInterface
@@ -31,7 +32,7 @@ class Gersdorf extends Extension implements IModuleInterface
      *
      * @return \SPHERE\Common\Window\Stage|string
      */
-    public static function createEmergencyPdf($PersonId = null, $Data)
+    public static function createEmergencyPdf($PersonId = null, $Data = array())
     {
 
         return Creator::createPdf($PersonId, __NAMESPACE__.'\Repository\Emergency', Creator::PAPERORIENTATION_PORTRAIT, $Data);
@@ -49,14 +50,14 @@ class Gersdorf extends Extension implements IModuleInterface
     }
 
     /**
-     * @param null  $PersonId
+     * @param $DivisionCourseId
+     * @param bool $Redirect
      *
-     * @return \SPHERE\Common\Window\Stage|string
+     * @return Stage|string
      */
-    public static function createMetaDataComparisonByDivisionPdf($DivisionId, bool $Redirect = true)
+    public static function createMetaDataComparisonByDivisionPdf($DivisionCourseId, bool $Redirect = true)
     {
-
-        return Creator::createMultiDataComparisonPdf($DivisionId, $Redirect);
+        return Creator::createMultiDataComparisonPdf($DivisionCourseId, $Redirect);
     }
 
     /**

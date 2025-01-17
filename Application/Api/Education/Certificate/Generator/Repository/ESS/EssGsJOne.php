@@ -29,7 +29,8 @@ class EssGsJOne extends Certificate
     {
         return array(
             1 => "wird nach Klasse 2 versetzt",
-            2 => "verbleibt in Klassenstufe 1" // SSWHD-1767
+            2 => "verbleibt in Klassenstufe 1", // SSWHD-1767
+            3 => "&nbsp;"
         );
     }
 
@@ -51,7 +52,7 @@ class EssGsJOne extends Certificate
                     ->addElementColumn((new Element\Sample())
                         ->styleTextSize('30px')
                         ->styleHeight('1px')
-                        ->stylePaddingTop('-110px')
+                        ->styleMarginTop('-110px')
                     )
                     ->addElementColumn((new Element())
                         , '25%')

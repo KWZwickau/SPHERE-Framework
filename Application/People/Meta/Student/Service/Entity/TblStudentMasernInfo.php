@@ -27,6 +27,7 @@ class TblStudentMasernInfo extends Element
     const DOCUMENT_VACCINATION_PROTECTION = 'VaccinationProtection';
     const DOCUMENT_IMMUNITY = 'Immunity';
     const DOCUMENT_CANT_VACCINATION = 'CantVaccination';
+    const DOCUMENT_NOT_NECESSARY = 'NotNecessary';
 
     const CREATOR_STATE = 'State';
     const CREATOR_COMMUNITY = 'Community';

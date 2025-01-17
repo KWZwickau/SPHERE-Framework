@@ -1,5 +1,4 @@
 <?php
-
 namespace SPHERE\Application\Billing\Bookkeeping\Basket;
 
 use DateTime;
@@ -22,8 +21,9 @@ use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItem;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItemVariant;
 use SPHERE\Application\Billing\Inventory\Setting\Service\Entity\TblSetting;
 use SPHERE\Application\Billing\Inventory\Setting\Setting;
-use SPHERE\Application\Education\Lesson\Division\Division;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
@@ -31,6 +31,7 @@ use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblIdentification;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
@@ -252,25 +253,25 @@ class Service extends AbstractService
     }
 
     /**
-     * @param string              $Name
-     * @param string              $Description
-     * @param string              $Year
-     * @param string              $Month
-     * @param string              $TargetTime
-     * @param string              $BillTime
-     * @param TblBasketType|null  $tblBasketType
-     * @param string              $CreditorId
-     * @param TblDivision|null    $tblDivision
-     * @param TblType|null        $tblType
-     * @param TblDebtorPeriodType $tblDebtorPeriodType
-     * @param string              $FibuAccount
-     * @param string              $FibuToAccount
+     * @param string                 $Name
+     * @param string                 $Description
+     * @param string                 $Year
+     * @param string                 $Month
+     * @param string                 $TargetTime
+     * @param string                 $BillTime
+     * @param TblBasketType|null     $tblBasketType
+     * @param string                 $CreditorId
+     * @param TblDivisionCourse|null $tblDivisionCourse
+     * @param TblType|null           $tblType
+     * @param TblDebtorPeriodType    $tblDebtorPeriodType
+     * @param string                 $FibuAccount
+     * @param string                 $FibuToAccount
      *
      * @return TblBasket
      * @throws \Exception
      */
     public function createBasket($Name = '', $Description = '', $Year = '', $Month = '', $TargetTime = '', $BillTime = '',
-        TblBasketType $tblBasketType = null, $CreditorId = '', TblDivision $tblDivision = null, TblType $tblType = null,
+        TblBasketType $tblBasketType = null, $CreditorId = '', TblDivisionCourse $tblDivisionCourse = null, TblType $tblType = null,
         TblDebtorPeriodType $tblDebtorPeriodType = null, $FibuAccount = '', $FibuToAccount = '')
     {
 
@@ -295,7 +296,7 @@ class Service extends AbstractService
             $tblCreditor = null;
         }
         return (new Data($this->getBinding()))->createBasket($Name, $Description, $Year, $Month, $TargetTime, $BillTime,
-            $tblBasketType, $tblCreditor, $tblDivision, $tblType, $tblDebtorPeriodType, $FibuAccount, $FibuToAccount);
+            $tblBasketType, $tblCreditor, $tblDivisionCourse, $tblType, $tblDebtorPeriodType, $FibuAccount, $FibuToAccount);
     }
 
     /**
@@ -375,6 +376,18 @@ class Service extends AbstractService
     }
 
     /**
+     * @return string
+     */
+    public function isInvoiceDeleteActive()
+    {
+
+        if(($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_INVOICE_DELETE))){
+            return $tblSetting->getValue();
+        }
+        return '0';
+    }
+
+    /**
      * @param TblBasket          $tblBasket
      * @param TblDebtorSelection $tblDebtorSelection
      * @param float              $Value
@@ -399,21 +412,28 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblBasket        $tblBasket
-     * @param TblItem          $tblItem
-     * @param TblDivision|null $tblDivision
-     * @param TblType|null     $tblType
+     * @param TblBasket              $tblBasket
+     * @param TblItem                $tblItem
+     * @param TblDivisionCourse|null $tblDivisionCoursel
+     * @param TblType|null           $tblType
+     * @param TblYear|null           $tblYear
+     * @param string                 $PeriodExtended
      *
-     * @return array|bool
+     * @return array
+     * @throws \Exception
      */
-    public function createBasketVerificationBulk(TblBasket $tblBasket, TblItem $tblItem, TblDivision $tblDivision = null, TblType $tblType = null, TblYear $tblYear = null)
+    public function createBasketVerificationBulk(TblBasket $tblBasket, TblItem $tblItem, ?TblDivisionCourse $tblDivisionCourse,
+        ?TblType $tblType, ?TblYear $tblYear, string $PeriodExtended = '')
     {
 
         $tblGroupList = $this->getGroupListByItem($tblItem);
 
         $tblPersonList = $this->getPersonListByGroupList($tblGroupList);
-        if(null !== $tblDivision && $tblPersonList){
-            $tblPersonList = $this->filterPersonListByDivision($tblPersonList, $tblDivision);
+        if(null !== $tblYear && $tblPersonList){
+            $tblPersonList = $this->filterPersonListByYear($tblPersonList, $tblYear);
+        }
+        if(null !== $tblDivisionCourse && $tblPersonList){
+            $tblPersonList = $this->filterPersonListByDivision($tblPersonList, $tblDivisionCourse);
         }
         if(null !== $tblType && $tblPersonList){
             $tblPersonList = $this->filterPersonListBySchoolType($tblPersonList, $tblType, $tblYear);
@@ -429,8 +449,7 @@ class Service extends AbstractService
         if($tblPersonList){
             /** @var TblPerson $tblPerson */
             foreach($tblPersonList as $tblPerson) {
-                if(($tblDebtorSelectionList = Debtor::useService()->getDebtorSelectionByPersonCauserAndItem($tblPerson,
-                    $tblItem))){
+                if(($tblDebtorSelectionList = Debtor::useService()->getDebtorSelectionByPersonCauserAndItem($tblPerson, $tblItem))){
                     foreach($tblDebtorSelectionList as $tblDebtorSelection) {
                         $Item = array();
                         $IsNoDebtorSelection = false;
@@ -441,9 +460,6 @@ class Service extends AbstractService
                         if($tblDebtorPeriodTypeSelection
                         && $tblDebtorPeriodTypeBasket
                         && $tblDebtorPeriodTypeSelection->getId() != $tblDebtorPeriodTypeBasket->getId()){
-                            // unnötige Anzeige (wird deswegen erstmal entfernt)
-//                            $PersonExclude[$tblPerson->getId()][] = $tblItem->getName().' Zahlungszeitraum: '
-//                                .new Bold($tblDebtorPeriodTypeSelection->getName().' != '.$tblDebtorPeriodTypeBasket->getName());
                             continue;
                         }
 
@@ -467,14 +483,63 @@ class Service extends AbstractService
                         } else {
                             $Item['Causer'] = $tblDebtorSelection->getServiceTblPersonCauser()->getId();
                         }
+
                         // entfernen aller DebtorSelection zu welchen es schon in der aktuellen Rechnungsphase Rechnungen gibt.
-                        if(Invoice::useService()->getInvoiceByPersonCauserAndItemAndYearAndMonth($tblBasket, $tblPerson, $tblItem,
-                            $tblBasket->getYear(), $tblBasket->getMonth())){
-                            // vorhandene Rechnung -> keine Zahlungszuweisung erstellen!
-                            $PersonExclude[$tblPerson->getId()][] = ' Rechnung für '.$tblItem->getName().' diesen Monat
+                        if($PeriodExtended == ''){
+                            if(Invoice::useService()->getInvoiceByPersonCauserAndItemAndYearAndMonth($tblBasket, $tblPerson, $tblItem,
+                                $tblBasket->getYear(), $tblBasket->getMonth())){
+                                // vorhandene Rechnung -> keine Zahlungszuweisung erstellen!
+                                $PersonExclude[$tblPerson->getId()][] = ' Rechnung für '.$tblItem->getName().' diesen Monat
                             ('.$tblBasket->getMonth(true).'.'.$tblBasket->getYear().') bereits erstellt';
-                            continue;
+                                continue;
+                            }
+                        // entfernen aller DebtorSelection zu welchen es schon in der aktuellen Rechnungsphase (Kalenderjahr) Rechnungen gibt.
+                        } elseif($PeriodExtended == 'KJ'){
+                            if(Invoice::useService()->getInvoiceByPersonCauserAndItemAndYear($tblBasket, $tblPerson, $tblItem,
+                                $tblBasket->getYear())){
+                                // vorhandene Rechnung -> keine Zahlungszuweisung erstellen!
+                                $PersonExclude[$tblPerson->getId()][] = ' Rechnung für '.$tblItem->getName().' dieses Kalenderjahr
+                            ('.$tblBasket->getYear().') bereits erstellt';
+                                continue;
+                            }
+                        // entfernen aller DebtorSelection zu welchen es schon in der aktuellen Rechnungsphase (Schuljahr) Rechnungen gibt.
+                        } elseif($PeriodExtended == 'SJ'){
+                            $Year = $tblBasket->getYear();
+                            $Month = $tblBasket->getMonth();
+                            $isInvoice = false;
+                            $SjString = $tblBasket->getYear();
+                            $YearSplit = str_split($SjString,2);
+                            if($Month >= 8){
+                                $Year++;
+                                $YearString = $SjString.'/'.($YearSplit[1]+1);
+                            } else {
+                                $YearString = $YearSplit[0].($YearSplit[1]-1).'/'.$YearSplit[1];
+                            }
+
+                            for($i = 1; $i <= 12; $i++){
+                                if($i == 8){
+                                    $Year--;
+                                }
+                                if(Invoice::useService()->getInvoiceByPersonCauserAndItemAndYearAndMonth($tblBasket,
+                                    $tblPerson, $tblItem, $Year, $i)){
+                                    $isInvoice = true;
+                                    break;
+                                }
+                            }
+
+                            if($isInvoice){
+                                // vorhandene Rechnung -> keine Zahlungszuweisung erstellen!
+                                $PersonExclude[$tblPerson->getId()][] = ' Rechnung für '.$tblItem->getName().' dieses Schuljahr
+                            ('.$YearString.') bereits erstellt';
+                                continue;
+                            }
+
+                            if(Invoice::useService()->getInvoiceByPersonCauserAndItemAndYearAndMonth($tblBasket, $tblPerson, $tblItem,
+                                $tblBasket->getYear(), $tblBasket->getMonth())){
+                                continue;
+                            }
                         }
+
                         if(!$tblDebtorSelection->getServiceTblPersonDebtor()){
                             $Item['Debtor'] = '';
                         } else {
@@ -577,17 +642,52 @@ class Service extends AbstractService
 
     /**
      * @param TblPerson[] $tblPersonList
-     * @param TblDivision $tblDivision
+     * @param TblYear $tblYear
      *
      * @return TblPerson[]|bool
      */
-    private function filterPersonListByDivision($tblPersonList, TblDivision $tblDivision)
+    private function filterPersonListByYear(array $tblPersonList, TblYear $tblYear)
     {
 
         $resultPersonList = array();
         if(!empty($tblPersonList)){
             foreach($tblPersonList as $tblPerson){
-                if(Division::useService()->getDivisionStudentByDivisionAndPerson($tblDivision, $tblPerson)){
+                // "list" weil auch deaktivierte Schüler eventuell noch gezogen werden sollen
+                $tblStudentEducation = DivisionCourse::useService()->getStudentEducationListByPersonAndYear($tblPerson, $tblYear);
+                if($tblStudentEducation){
+                    $resultPersonList[] = $tblPerson;
+                }
+            }
+        }
+        return (!empty($resultPersonList) ? $resultPersonList : false);
+    }
+
+    /**
+     * @param TblPerson[] $tblPersonList
+     * @param TblDivisionCourse $tblDivisionCourse
+     *
+     * @return TblPerson[]|bool
+     */
+    private function filterPersonListByDivision(array $tblPersonList, TblDivisionCourse $tblDivisionCourse)
+    {
+
+        $resultPersonList = array();
+        if(!empty($tblPersonList)){
+            foreach($tblPersonList as $tblPerson){
+                $CompareId = '';
+                if(($tblYear = $tblDivisionCourse->getServiceTblYear())
+                && ($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))){
+                    if($tblDivisionCourse->getTypeIdentifier() == TblDivisionCourseType::TYPE_DIVISION){
+                        if(($tblDivisionCourseD =  $tblStudentEducation->getTblDivision())){
+                            $CompareId = $tblDivisionCourseD->getId();
+                        }
+                    }elseif($tblDivisionCourse->getTypeIdentifier() == TblDivisionCourseType::TYPE_CORE_GROUP){
+                        if(($tblDivisionCourseC = $tblStudentEducation->getTblCoreGroup())){
+                            $CompareId = $tblDivisionCourseC->getId();
+                        }
+                    }
+                }
+                if($tblDivisionCourse->getId() == $CompareId){
                     $resultPersonList[] = $tblPerson;
                 }
             }
@@ -614,9 +714,27 @@ class Service extends AbstractService
             if(!empty($tblYearList)){
                 foreach($tblYearList as $tblYear){
                     foreach($tblPersonList as $tblPerson){
-                        if(($tblDivision = Division::useService()->getDivisionByPersonAndYear($tblPerson, $tblYear))){
-                            if($tblType->getName() === $tblDivision->getTypeName()){
+                        if(($tblDivisionEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))){
+                            if(($tblDivisionType = $tblDivisionEducation->getServiceTblSchoolType()) && $tblType->getId() === $tblDivisionType->getId()){
                                 $resultPersonList[] = $tblPerson;
+                            }
+                        } elseif(($tblDivisionEducationList = DivisionCourse::useService()->getStudentEducationListByPersonAndYear($tblPerson, $tblYear))) {
+                            $leaveDate = false;
+                            foreach($tblDivisionEducationList as $tblDivisionEducationTemp){
+                                $leaveDateTemp = $tblDivisionEducationTemp->getLeaveDate();
+                                $leaveDateTemp = new DateTime($leaveDateTemp);
+                                if(!$leaveDate){
+                                    $leaveDate = $leaveDateTemp;
+                                    $tblDivisionEducation = $tblDivisionEducationTemp;
+                                } elseif($leaveDate < $leaveDateTemp) {
+                                    $leaveDate = $leaveDateTemp;
+                                    $tblDivisionEducation = $tblDivisionEducationTemp;
+                                }
+                            }
+                            if($tblDivisionEducation){
+                                if(($tblDivisionType = $tblDivisionEducation->getServiceTblSchoolType()) && $tblType->getId() === $tblDivisionType->getId()){
+                                    $resultPersonList[] = $tblPerson;
+                                }
                             }
                         }
                     }
@@ -698,7 +816,7 @@ class Service extends AbstractService
         $IsRegularChangeBasket = true;
         $PersonName = 'Person nicht hinterlegt!';
         if(($tblAccount = Account::useService()->getAccountBySession())){
-            if($tblAccount->getServiceTblIdentification()->getName() == 'System'){
+            if ($tblAccount->getHasAuthentication(TblIdentification::NAME_SYSTEM)) {
                 $IsRegularChangeBasket = false;
             }
 
@@ -725,7 +843,7 @@ class Service extends AbstractService
         $IsRegularChangeBasket = true;
         $PersonName = 'Person nicht hinterlegt!';
         if(($tblAccount = Account::useService()->getAccountBySession())){
-            if($tblAccount->getServiceTblIdentification()->getName() == 'System'){
+            if ($tblAccount->getHasAuthentication(TblIdentification::NAME_SYSTEM)) {
                 $IsRegularChangeBasket = false;
             }
             if(($tblPersonList = Account::useService()->getPersonAllByAccount($tblAccount))){
@@ -832,8 +950,8 @@ class Service extends AbstractService
         }
 
         foreach ($VerificationList as $VerificationId) {
-            $tblBasketVerifivation = Basket::useService()->getBasketVerificationById($VerificationId);
-            Basket::useService()->destroyBasketVerification($tblBasketVerifivation);
+            $tblBasketVerification = Basket::useService()->getBasketVerificationById($VerificationId);
+            Basket::useService()->destroyBasketVerification($tblBasketVerification);
         }
         return new Success('Zahlungen wurden erfolgreich entfernt.')
             .new Redirect('/Billing/Bookkeeping/Basket/View', Redirect::TIMEOUT_SUCCESS, array('BasketId' => $tblBasket->getId()));

@@ -73,6 +73,15 @@ class Service extends AbstractService
     }
 
     /**
+     * @return bool|TblProtocol
+     */
+    public function getProtocolFirstEntry()
+    {
+
+        return (new Data($this->getBinding()))->getProtocolFirstEntry();
+    }
+
+    /**
      * @return TblProtocol[]|bool
      */
     public function getProtocolAllCreateSession()
@@ -242,5 +251,22 @@ class Service extends AbstractService
     {
         (new Data($this->getBinding()))->flushBulkSave();
         Archive::useService()->flushBulkEntries();
+    }
+
+    public function getProtocolCountBeforeDate(\DateTime $DateTime = new \DateTime())
+    {
+        return (new Data($this->getBinding()))->getProtocolCountBeforeDate($DateTime);
+    }
+
+    private function getProtocolAllBeforeDate(\DateTime $DateTime, int $deleteMax)
+    {
+        return (new Data($this->getBinding()))->getProtocolAllBeforeDate($DateTime, $deleteMax);
+    }
+
+    public function deleteProtocolAllBeforeDate(\DateTime $DateTime, $deleteMax = 50000)
+    {
+
+        $tblProtocolList = $this->getProtocolAllBeforeDate($DateTime, $deleteMax);
+        return (new Data($this->getBinding()))->deleteProtocolList($tblProtocolList);
     }
 }

@@ -37,6 +37,7 @@ class E04
             ->addSection((new Section())
                 ->addElementColumn((new Element())
                     ->setContent('Fremdsprache')
+                    ->styleAlignCenter()
                     ->styleBorderRight()
                     ->stylePaddingTop('8.6px')
                     ->stylePaddingBottom('8.5px')
@@ -46,46 +47,56 @@ class E04
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('Klassen- bzw. Jahrgangsstufe')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '100%'
                         )
                     )
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('5')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '12.5%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('6')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '12.5%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('7')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '12.5%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('8')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '12.5%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('9')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '12.5%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('10')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '12.5%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('11')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '12.5%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('12')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '12.5%'
                         )
                     )
                 )
                 ->addElementColumn((new Element())
                     ->setContent('Insges.')
+                    ->styleAlignCenter()
                     ->styleTextBold()
                     ->stylePaddingTop('8.5px')
                     ->stylePaddingBottom('8.5px'), '8%'
@@ -103,6 +114,7 @@ class E04
                                 &nbsp;
                             {% endif %}
                         ')
+                    ->styleAlignCenter()
                     ->styleBorderRight(), '28%'
                 );
             for ($level = 5; $level < 13; $level++) {
@@ -115,6 +127,7 @@ class E04
                                 &nbsp;
                             {% endif %}
                         ')
+                        ->styleAlignCenter()
                         ->styleBackgroundColor($level < 11 ? 'white' : 'lightgrey')
                         ->styleBorderRight(), '8%'
                     );
@@ -128,6 +141,7 @@ class E04
                                 &nbsp;
                             {% endif %}
                         ')
+                    ->styleAlignCenter()
                     ->styleBackgroundColor('lightgrey')
                     ->styleTextBold(), '8%'
                 );

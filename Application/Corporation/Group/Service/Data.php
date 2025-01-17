@@ -1,16 +1,15 @@
 <?php
 namespace SPHERE\Application\Corporation\Group\Service;
 
-use SPHERE\Application\Corporation\Company\Company;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Corporation\Group\Service\Entity\TblGroup;
 use SPHERE\Application\Corporation\Group\Service\Entity\TblMember;
-use SPHERE\Application\Corporation\Group\Service\Entity\ViewCompanyGroupMember;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Cache\CacheFactory;
 use SPHERE\System\Cache\Handler\DataCacheHandler;
 use SPHERE\System\Cache\Handler\MemcachedHandler;
 use SPHERE\System\Database\Binding\AbstractData;
+use SPHERE\System\Database\Fitting\ColumnHydrator;
 
 /**
  * Class Data
@@ -19,17 +18,6 @@ use SPHERE\System\Database\Binding\AbstractData;
  */
 class Data extends AbstractData
 {
-
-    /**
-     * @return false|ViewCompanyGroupMember[]
-     */
-    public function viewCompanyGroupMember()
-    {
-
-        return $this->getCachedEntityList(
-            __METHOD__, $this->getConnection()->getEntityManager(), 'ViewCompanyGroupMember'
-        );
-    }
 
     public function setupDatabaseContent()
     {
@@ -104,15 +92,6 @@ class Data extends AbstractData
     }
 
     /**
-     * @return TblGroup[]|bool
-     */
-    public function getGroupAll()
-    {
-
-        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblGroup');
-    }
-
-    /**
      * @param int $Id
      *
      * @return bool|TblGroup
@@ -134,6 +113,15 @@ class Data extends AbstractData
         return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblGroup', array(
             TblGroup::ATTR_NAME => $Name
         ));
+    }
+
+    /**
+     * @return TblGroup[]|bool
+     */
+    public function getGroupAll()
+    {
+
+        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblGroup');
     }
 
     /**
@@ -209,35 +197,6 @@ class Data extends AbstractData
     }
 
     /**
-     * @return bool|TblCompany[]
-     */
-    public function getCompanyAllHavingNoGroup()
-    {
-
-        $Exclude = $this->getConnection()->getEntityManager()->getQueryBuilder()
-            ->select('M.serviceTblCompany')
-            ->from('\SPHERE\Application\Corporation\Group\Service\Entity\TblMember', 'M')
-            ->distinct()
-            ->getQuery()
-            ->getResult("COLUMN_HYDRATOR");
-
-        $tblCompanyAll = Company::useService()->getCompanyAll();
-        if ($tblCompanyAll) {
-            /** @noinspection PhpUnusedParameterInspection */
-            array_walk($tblCompanyAll, function (TblCompany &$tblCompany) use ($Exclude) {
-
-                if (in_array($tblCompany->getId(), $Exclude)) {
-                    $tblCompany = false;
-                }
-            });
-            $EntityList = array_filter($tblCompanyAll);
-        } else {
-            $EntityList = null;
-        }
-        return ( null === $EntityList ? false : $EntityList );
-    }
-
-    /**
      *
      * @param TblCompany $tblCompany
      *
@@ -284,6 +243,70 @@ class Data extends AbstractData
         }
         /** @var TblGroup[] $EntityList */
         return ( null === $EntityList ? false : $EntityList );
+    }
+
+    /**
+     * @param array $FilterList
+     *
+     * @return mixed
+     */
+    public function fetchIdCompanyByFilter(array $FilterList = array(), $CompanyResult = array())
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $queryBuilder = $Manager->getQueryBuilder();
+        $Group = new TblGroup('');
+        $Member = new TblMember();
+        $query = $queryBuilder->select('tM.serviceTblCompany as CompanyId')
+            ->from($Group->getEntityFullName(), 'tG')
+            ->leftJoin($Member->getEntityFullName(), 'tM', 'WITH', 'tM.tblGroup = tG.Id')
+            ->where($queryBuilder->expr()->isNull('tM.EntityRemove'));
+        $ParameterCount = 1;
+        foreach($FilterList as $FilterName => $FilterValue){
+            if($FilterValue != null){
+                if($FilterName == 'TblGroup_Id'){
+                    $query->andWhere($queryBuilder->expr()->eq('tM.tblGroup', '?'.$ParameterCount))
+                        ->setParameter($ParameterCount++, $FilterValue);
+                }
+            }
+        }
+        if(!empty($CompanyResult)){
+            $query->andWhere($query->expr()->in('tM.serviceTblCompany', implode(', ', $CompanyResult)));
+        }
+        $query = $query->getQuery();
+        $result = array();
+        if(($tempList = $query->getResult(ColumnHydrator::HYDRATION_MODE))){
+            foreach($tempList as $temp){
+                $result[$temp] = $temp;
+            }
+        }
+        return $result;
+    }
+
+    /**
+     * @param TblGroup $tblGroup
+     * @param TblCompany $tblCompany
+     *
+     * @return bool|TblMember
+     */
+    public function existsGroupCompany(TblGroup $tblGroup, TblCompany $tblCompany)
+    {
+
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblMember', array(
+            TblMember::ATTR_TBL_GROUP     => $tblGroup->getId(),
+            TblMember::SERVICE_TBL_COMPANY => $tblCompany->getId()
+        ));
+    }
+
+    /**
+     * @param TblGroup $tblGroup
+     * @return int
+     */
+    public function countMemberByGroup(TblGroup $tblGroup)
+    {
+        return $this->getEntityManager()->getEntity((new TblMember())->getEntityShortName())->countBy(array(
+            TblMember::ATTR_TBL_GROUP => $tblGroup->getId()
+        ));
     }
 
     /**
@@ -390,31 +413,5 @@ class Data extends AbstractData
             return true;
         }
         return false;
-    }
-
-    /**
-     * @param TblGroup $tblGroup
-     * @param TblCompany $tblCompany
-     *
-     * @return bool|TblMember
-     */
-    public function existsGroupCompany(TblGroup $tblGroup, TblCompany $tblCompany)
-    {
-
-        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblMember', array(
-            TblMember::ATTR_TBL_GROUP     => $tblGroup->getId(),
-            TblMember::SERVICE_TBL_COMPANY => $tblCompany->getId()
-        ));
-    }
-
-    /**
-     * @param TblGroup $tblGroup
-     * @return int
-     */
-    public function countMemberByGroup(TblGroup $tblGroup)
-    {
-        return $this->getEntityManager()->getEntity((new TblMember())->getEntityShortName())->countBy(array(
-            TblMember::ATTR_TBL_GROUP => $tblGroup->getId()
-        ));
     }
 }

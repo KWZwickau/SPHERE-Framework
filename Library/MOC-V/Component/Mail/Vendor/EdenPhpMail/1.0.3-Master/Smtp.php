@@ -724,6 +724,9 @@ class Smtp extends Base
 
         //send body data
         foreach ($body as $line) {
+            if($line == null){
+                $line = '';
+            }
             if (strpos($line, '.') === 0) {
                 // Escape lines prefixed with a '.'
                 $line = '.'.$line;

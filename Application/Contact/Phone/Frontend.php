@@ -14,6 +14,7 @@ use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\Setting\Consumer\Consumer;
+use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextArea;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
@@ -69,10 +70,12 @@ class Frontend extends Extension implements IFrontendInterface
             // beim Checken der Inputfeldern darf der Post nicht gesetzt werden
             if ($setPost) {
                 $Global = $this->getGlobal();
-                if ($isOnlineContactPosted) {
+                if ($tblOnlineContact && $isOnlineContactPosted) {
                     $Global->POST['Number'] = $tblOnlineContact->getContactContent();
+                    $Global->POST['Type']['IsEmergencyContact'] = $tblOnlineContact->getIsEmergencyContact();
                 } else {
                     $Global->POST['Number'] = $tblToPerson->getTblPhone()->getNumber();
+                    $Global->POST['Type']['IsEmergencyContact'] = $tblToPerson->getIsEmergencyContact();
                 }
 
                 $Global->POST['Type']['Type'] = $tblToPerson->getTblType()->getId();
@@ -85,6 +88,7 @@ class Frontend extends Extension implements IFrontendInterface
                 /** @var TblPhone $tblContact */
                 $Global->POST['Number'] = ($tblContact = $tblOnlineContact->getServiceTblContact()) ? $tblContact->getNumber() : '';
                 $Global->POST['Type']['Type'] = ($tblNewContactType = $tblOnlineContact->getServiceTblNewContactType()) ? $tblNewContactType->getId() : 0;
+                $Global->POST['Type']['IsEmergencyContact'] = $tblOnlineContact->getIsEmergencyContact();
                 $Global->savePost();
             }
         }
@@ -101,6 +105,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         $typeSelectBox = (new SelectBox('Type[Type]', 'Typ', array('{{ Name }} {{ Description }}' => $tblTypeAll), new TileBig()))->setRequired();
         $numberTextField = (new TextField('Number', 'Telefonnummer', 'Telefonnummer', new PhoneIcon()))->setRequired();
+        $emergencyCheckBox = (new CheckBox('Type[IsEmergencyContact]', 'Notfallnummer', 1));
         $remarkTextArea = new TextArea('Type[Remark]', 'Bemerkungen', 'Bemerkungen', new Edit());
 
         $form = new Form(
@@ -110,7 +115,8 @@ class Frontend extends Extension implements IFrontendInterface
                         new Panel('Telefonnummer',
                             array(
                                 $typeSelectBox,
-                                $numberTextField
+                                $numberTextField,
+                                $emergencyCheckBox
                             ), Panel::PANEL_TYPE_INFO
                         ), 6
                     ),
@@ -139,6 +145,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $Global->POST['Number'] = $tblToCompany->getTblPhone()->getNumber();
                 $Global->POST['Type']['Type'] = $tblToCompany->getTblType()->getId();
                 $Global->POST['Type']['Remark'] = $tblToCompany->getRemark();
+                $Global->POST['Type']['IsEmergencyContact'] = $tblToCompany->getIsEmergencyContact();
                 $Global->savePost();
             }
         }
@@ -163,7 +170,8 @@ class Frontend extends Extension implements IFrontendInterface
                                     array('{{ Name }} {{ Description }}' => $tblTypeAll), new TileBig()
                                 ))->setRequired(),
                                 (new TextField('Number', 'Telefonnummer', 'Telefonnummer', new PhoneIcon()
-                                ))->setRequired()
+                                ))->setRequired(),
+                                new CheckBox('Type[IsEmergencyContact]', 'Notfallnummer', 1)
                             ), Panel::PANEL_TYPE_INFO
                         ), 6
                     ),
@@ -195,7 +203,7 @@ class Frontend extends Extension implements IFrontendInterface
             foreach ($tblPhoneList as $tblToPerson) {
                 $tblType = $tblToPerson->getTblType();
                 if (($tblPhone = $tblToPerson->getTblPhone())) {
-                    if ($tblToPerson->getTblType()->getName() == 'Notfall') {
+                    if ($tblToPerson->getIsEmergencyContact()) {
                         $phoneEmergencyList[$tblPhone->getId().'#'.$tblType->getId()][$tblPerson->getId()] = $tblToPerson;
                     } else {
                         $phoneList[$tblPhone->getId().'#'.$tblType->getId()][$tblPerson->getId()] = $tblToPerson;
@@ -217,7 +225,7 @@ class Frontend extends Extension implements IFrontendInterface
                         foreach ($tblRelationshipPhoneAll as $tblToPerson) {
                             $tblType = $tblToPerson->getTblType();
                             if (($tblPhone = $tblToPerson->getTblPhone())) {
-                                if ($tblToPerson->getTblType()->getName() == 'Notfall') {
+                                if ($tblToPerson->getIsEmergencyContact()) {
                                     $phoneEmergencyList[$tblPhone->getId().'#'.$tblType->getId()][$tblPersonRelationship->getId()] = $tblToPerson;
                                 } else {
                                     $phoneList[$tblPhone->getId().'#'.$tblType->getId()][$tblPersonRelationship->getId()] = $tblToPerson;
@@ -250,6 +258,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $PhoneAndTypeId = explode('#', $phoneIdAndTypeId);
                 $phoneId = $PhoneAndTypeId[0];
                 $typeId = $PhoneAndTypeId[1];
+                $isEmergencyContact = false;
                 if (($tblPhone = Phone::useService()->getPhoneById($phoneId))) {
                     if (($tblType = Phone::useService()->getTypeById($typeId))) {
                         $content = array();
@@ -257,11 +266,10 @@ class Frontend extends Extension implements IFrontendInterface
                         if (isset($personArray[$tblPerson->getId()])) {
                             /** @var TblToPerson $tblToPerson */
                             $tblToPerson = $personArray[$tblPerson->getId()];
-                            $panelType = (preg_match('!Notfall!is',
-                                $tblType->getName() . ' ' . $tblType->getDescription())
-                                ? Panel::PANEL_TYPE_DANGER
-                                : Panel::PANEL_TYPE_SUCCESS
-                            );
+                            $panelType = $tblToPerson->getIsEmergencyContact() ? Panel::PANEL_TYPE_DANGER : Panel::PANEL_TYPE_SUCCESS;
+                            if ($tblToPerson->getIsEmergencyContact()) {
+                                $isEmergencyContact = true;
+                            }
                             $options =
                                 (new Link(
                                     new Edit(),
@@ -286,12 +294,9 @@ class Frontend extends Extension implements IFrontendInterface
                                 ));
                             $hasOnlineContactsOptions = true;
                         } else {
+                            $isEmergencyContact = isset($phoneEmergencyList[$phoneIdAndTypeId]);
                             $tblToPerson = false;
-                            $panelType = (preg_match('!Notfall!is',
-                                $tblType->getName() . ' ' . $tblType->getDescription())
-                                ? Panel::PANEL_TYPE_DANGER
-                                : Panel::PANEL_TYPE_DEFAULT
-                            );
+                            $panelType = $isEmergencyContact ? Panel::PANEL_TYPE_DANGER : Panel::PANEL_TYPE_DEFAULT;
                             $options = '';
                             $hasOnlineContactsOptions = false;
                         }
@@ -351,7 +356,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     : new PhoneIcon()
                                 )
                             )
-                            . ' ' . $tblType->getName() . ' ' . $tblType->getDescription(),
+                            . ' ' . $tblType->getName() . ' ' . $tblType->getDescription() . ($isEmergencyContact ? ' (Notfall)' : ''),
                             $content,
                             $options,
                             $hasOnlineContacts ? Panel::PANEL_TYPE_WARNING : $panelType
@@ -413,11 +418,7 @@ class Frontend extends Extension implements IFrontendInterface
                 ){
                     $content = array();
 
-                    $panelType = (preg_match('!Notfall!is',
-                        $tblType->getName().' '.$tblType->getDescription())
-                        ? Panel::PANEL_TYPE_DANGER
-                        : Panel::PANEL_TYPE_SUCCESS
-                    );
+                    $panelType = $tblToCompany->getIsEmergencyContact() ? Panel::PANEL_TYPE_DANGER : Panel::PANEL_TYPE_SUCCESS;
 
                     $options =
                         (new Link(
@@ -458,7 +459,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 : new PhoneIcon()
                             )
                         )
-                        .' '.$tblType->getName().' '.$tblType->getDescription(),
+                        .' '.$tblType->getName().' '.$tblType->getDescription() . ($tblToCompany->getIsEmergencyContact() ? ' (Notfall)' : ''),
                         $content,
                         $options,
                         $panelType

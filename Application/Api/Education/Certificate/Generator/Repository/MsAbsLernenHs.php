@@ -35,7 +35,7 @@ class MsAbsLernenHs extends Certificate
             $showPictureOnSecondPage = $tblSetting->getValue();
         }
 
-        $Header = MsAbsRs::getHeadForDiploma($this->isSample(), !$showPictureOnSecondPage);
+        $Header = $this->getHeadForDiploma($this->isSample(), !$showPictureOnSecondPage);
 
         // leere Seite
         $pageList[] = new Page();
@@ -155,15 +155,14 @@ class MsAbsLernenHs extends Certificate
                                 {{ Content.P' . $personId . '.Person.Data.Name.Last }}
                             ')
                         ->styleBorderBottom()
+                        ->styleAlignCenter()
                         , '45%')
                     ->addElementColumn((new Element())
                         ->setContent('Klasse:')
                         ->styleAlignCenter()
                         , '10%')
                     ->addElementColumn((new Element())
-                        ->setContent('
-                                {{ Content.P' . $personId . '.Division.Data.Level.Name }}{{ Content.P' . $personId . '.Division.Data.Name }}
-                            ')
+                        ->setContent('{{ Content.P' . $personId . '.Division.Data.Name }}')
                         ->styleBorderBottom()
                         ->styleAlignCenter()
                     )
@@ -176,7 +175,7 @@ class MsAbsLernenHs extends Certificate
                     ->styleTextBold()
                 )
             )
-            ->addSlice($this->getSubjectLanes($personId)->styleHeight('270px'))
+            ->addSlice($this->getSubjectLanes($personId)->styleHeight('285px'))
             ->addSlice($this->getDescriptionContent($personId, '220px', '15px',
                 'Bemerkungen:
                 {{ Content.P' . $personId . '.Person.Data.Name.First }} {{ Content.P' . $personId . '.Person.Data.Name.Last }}
@@ -185,8 +184,8 @@ class MsAbsLernenHs extends Certificate
             ))
             ->addSlice($this->getDateLine($personId))
             ->addSlice((new MsAbsRs(
-                $this->getTblDivision() ? $this->getTblDivision() : null,
-                $this->getTblPrepareCertificate() ? $this->getTblPrepareCertificate() : null
+                $this->getTblStudentEducation() ?: null,
+                $this->getTblPrepareCertificate() ?: null
             ))->getExaminationsBoard('10px','11px'))
             ->addSlice($this->getInfo('170px',
                 'Notenerläuterung:',

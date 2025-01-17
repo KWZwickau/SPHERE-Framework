@@ -6,6 +6,7 @@ use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Address\Service\Entity\TblState;
+use SPHERE\Application\Education\Certificate\Generator\Repository\Element\Ruler;
 use SPHERE\Application\IApiInterface;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;

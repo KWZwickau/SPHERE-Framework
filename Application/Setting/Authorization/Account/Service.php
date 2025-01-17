@@ -18,16 +18,20 @@ use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
+use SPHERE\Common\Frontend\Icon\Repository\Info;
+use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Icon\Repository\Nameplate;
 use SPHERE\Common\Frontend\Icon\Repository\Publicly;
 use SPHERE\Common\Frontend\Icon\Repository\YubiKey;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
+use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\ToggleSelective;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
+use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Repository\Sorter\StringGermanOrderSorter;
@@ -50,9 +54,7 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
      */
     public function createAccount(IFormInterface $Form, $Account)
     {
-
         if (null === $Account) {
-
             return $Form;
         }
 
@@ -64,33 +66,33 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
 
         $tblConsumer = GatekeeperConsumer::useService()->getConsumerBySession();
 
-        $isAuthenticatorApp = false;
+        $isAuthenticatorApp = isset($Account['IsAuthenticatorApp']);
         $tblToken = false;
         if (isset($Account['Token'])) {
-            if ((int)$Account['Token'] == -1) {
-                $isAuthenticatorApp = true;
-            } else {
-                $tblToken = GatekeeperToken::useService()->getTokenById((int)$Account['Token']);
-            }
+            $tblToken = GatekeeperToken::useService()->getTokenById((int)$Account['Token']);
         }
 
-        if (empty( $Username )) {
+        if (empty($Username)) {
             $Form->setError('Account[Name]', 'Bitte geben Sie einen Benutzernamen an');
             $Error = true;
         } else {
-            if (preg_match('!^[a-z0-9]{'.self::MINIMAL_USERNAME_LENGTH.',}$!is', $Username)) {
-                $Username = $tblConsumer->getAcronym().'-'.$Username;
-                if (!GatekeeperAccount::useService()->getAccountByUsername($Username)) {
-                    $Form->setSuccess('Account[Name]', '');
-                } else {
-                    $Form->setError('Account[Name]', 'Der angegebene Benutzername ist bereits vergeben');
-                    $Error = true;
-                }
-            } else {
+            if (!preg_match('!^[a-z0-9]{1,}$!is', $Username)) {
                 $Form->setError('Account[Name]',
-                    'Der Benutzername darf nur Buchstaben und Zahlen enthalten und muss mindestens
-                    '.self::MINIMAL_USERNAME_LENGTH.' Zeichen lang sein. Es sind keine Umlaute oder Sonderzeichen erlaubt.');
+                    'Der Benutzername darf nur Buchstaben und Zahlen enthalten. Es sind keine Umlaute oder Sonderzeichen erlaubt.');
                 $Error = true;
+            } else {
+                $Username = $tblConsumer->getAcronym().'-'.$Username;
+                if(strlen($Username) > 20){
+                    $Form->setError('Account[Name]', 'Der angegebene Benutzername verwendet '.(strlen($Username)-20).' Zeichen zu viel');
+                    $Error = true;
+                } else {
+                    if (GatekeeperAccount::useService()->getAccountByUsername($Username)) {
+                        $Form->setError('Account[Name]', 'Der angegebene Benutzername ist bereits vergeben');
+                        $Error = true;
+                    } else {
+                        $Form->setSuccess('Account[Name]', '');
+                    }
+                }
             }
         }
 
@@ -157,37 +159,38 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
             $tblAccount = GatekeeperAccount::useService()->insertAccount(
                 $Username,
                 $Password,
-                $tblToken ? $tblToken : null,
+                $tblToken ?: null,
                 $tblConsumer,
                 true,
                 $isAuthenticatorApp,
-                $accountUserAlias ? $accountUserAlias : null,
-                $accountRecoveryMail ? $accountRecoveryMail : null
+                $accountUserAlias ?: null,
+                $accountRecoveryMail ?: null
             );
             if ($tblAccount) {
-                if ($isAuthenticatorApp) {
-                    $tblIdentification = GatekeeperAccount::useService()->getIdentificationByName(TblIdentification::NAME_AUTHENTICATOR_APP);
-                } elseif($tblToken) {
-                    // Nutzerkonten ohne Hardware-Schlüssel können sich nicht mehr einlogen
-                    $tblIdentification = GatekeeperAccount::useService()->getIdentificationByName(TblIdentification::NAME_TOKEN);
-                } else {
-                    $tblIdentification = GatekeeperAccount::useService()->getIdentificationByName(TblIdentification::NAME_CREDENTIAL);
+                $hasSecureRoles = false;
+
+                if ($tblToken) {
+                    $hasSecureRoles = true;
+                    GatekeeperAccount::useService()->addAccountAuthentication(
+                        $tblAccount, GatekeeperAccount::useService()->getIdentificationByName(TblIdentification::NAME_TOKEN)
+                    );
                 }
-                GatekeeperAccount::useService()->addAccountAuthentication($tblAccount, $tblIdentification);
+                if ($isAuthenticatorApp) {
+                    $hasSecureRoles = true;
+                    GatekeeperAccount::useService()->addAccountAuthentication(
+                        $tblAccount, GatekeeperAccount::useService()->getIdentificationByName(TblIdentification::NAME_AUTHENTICATOR_APP)
+                    );
+                }
+                if (!$tblToken && !$isAuthenticatorApp) {
+                    GatekeeperAccount::useService()->addAccountAuthentication(
+                        $tblAccount, GatekeeperAccount::useService()->getIdentificationByName(TblIdentification::NAME_CREDENTIAL)
+                    );
+                }
+
                 if (isset( $Account['Role'] )) {
                     foreach ((array)$Account['Role'] as $Role) {
-                        $tblRole = GatekeeperAccess::useService()->getRoleById($Role);
-                        if(
-                            $tblIdentification->getName() == TblIdentification::NAME_CREDENTIAL
-                            && !$tblRole->isSecure()
-                        ) {
-                            GatekeeperAccount::useService()->addAccountAuthorization($tblAccount, $tblRole);
-                        } else if (
-                            !$tblRole->isSecure()
-                            || (
-                                $tblIdentification->getName() != TblIdentification::NAME_CREDENTIAL
-                                && ($tblToken || $isAuthenticatorApp)
-                            )
+                        if(($tblRole = GatekeeperAccess::useService()->getRoleById($Role))
+                            && (!$tblRole->isSecure() || $hasSecureRoles)
                         ) {
                             GatekeeperAccount::useService()->addAccountAuthorization($tblAccount, $tblRole);
                         }
@@ -217,9 +220,7 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
      */
     public function changeAccountForm(IFormInterface $Form, TblAccount $tblAccount, $Account)
     {
-
         if (null === $Account) {
-
             return $Form;
         }
 
@@ -228,14 +229,10 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
         $Password = trim($Account['Password']);
         $PasswordSafety = trim($Account['PasswordSafety']);
 
-        $isAuthenticatorApp = false;
+        $isAuthenticatorApp = isset($Account['IsAuthenticatorApp']);
         $tblToken = false;
         if (isset($Account['Token'])) {
-            if ((int)$Account['Token'] == -1) {
-                $isAuthenticatorApp = true;
-            } else {
-                $tblToken = GatekeeperToken::useService()->getTokenById((int)$Account['Token']);
-            }
+            $tblToken = GatekeeperToken::useService()->getTokenById((int)$Account['Token']);
         }
 
         if (!empty( $Password )) {
@@ -258,46 +255,68 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
 
         if (!$Error) {
             if ($tblAccount) {
-                $tblIdentification = $tblAccount->getServiceTblIdentification();
-
                 // entfernen aller Rechte bei Update auf "KEIN Hardware-Schlüssel notwendig"
                 if($tblAccount->getServiceTblToken()
-                    || $tblIdentification->getName() == TblIdentification::NAME_AUTHENTICATOR_APP
-                    || $tblIdentification->getName() == TblIdentification::NAME_TOKEN){
-                    if($Account['Token'] === '0'){
+                    || $this->getHasAuthenticationByAccountAndIdentificationName($tblAccount, TblIdentification::NAME_AUTHENTICATOR_APP)
+                    || $this->getHasAuthenticationByAccountAndIdentificationName($tblAccount, TblIdentification::NAME_TOKEN)
+                ) {
+                    if($Account['Token'] === '0' && !$isAuthenticatorApp){
                         return Account::useFrontend()->frontendConfirmChange($tblAccount->getId(), $Account);
                     }
                 }
 
                 // Edit Token
-                GatekeeperAccount::useService()->changeToken($tblToken ? $tblToken : null, $tblAccount);
+                GatekeeperAccount::useService()->changeToken($tblToken ?: null, $tblAccount);
 
-                if($isAuthenticatorApp){
-                    $tblIdentificationChoose = GatekeeperAccount::useService()->getIdentificationByName(TblIdentification::NAME_AUTHENTICATOR_APP);
-                } elseif($tblToken){
-                    $tblIdentificationChoose = GatekeeperAccount::useService()->getIdentificationByName(TblIdentification::NAME_TOKEN);
+                $hasAuthenticationToken = $this->getHasAuthenticationByAccountAndIdentificationName($tblAccount, TblIdentification::NAME_TOKEN);
+                $hasAuthenticationAuthenticatorApp = $this->getHasAuthenticationByAccountAndIdentificationName($tblAccount, TblIdentification::NAME_AUTHENTICATOR_APP);
+                $hasAuthenticationCredential = $this->getHasAuthenticationByAccountAndIdentificationName($tblAccount, TblIdentification::NAME_CREDENTIAL);
+
+                $tblIdentificationToken = $this->getIdentificationByName(TblIdentification::NAME_TOKEN);
+                $tblIdentificationAuthenticatorApp = $this->getIdentificationByName(TblIdentification::NAME_AUTHENTICATOR_APP);
+                $tblIdentificationCredential = $this->getIdentificationByName(TblIdentification::NAME_CREDENTIAL);
+
+                $hasSecureRoles = false;
+
+                if ($tblToken) {
+                    $hasSecureRoles = true;
+                    // set Token
+                    if (!$hasAuthenticationToken) {
+                        $this->addAccountAuthentication($tblAccount, $tblIdentificationToken);
+                    }
                 } else {
-                    $tblIdentificationChoose = GatekeeperAccount::useService()->getIdentificationByName(TblIdentification::NAME_CREDENTIAL);
+                    // remove Token
+                    if ($hasAuthenticationToken) {
+                        $this->removeAccountAuthentication($tblAccount, $tblIdentificationToken);
+                    }
                 }
-
-                // set Token
-                if ($tblToken && $tblIdentification->getId() != $tblIdentificationChoose->getId()) {
-                    GatekeeperAccount::useService()->removeAccountAuthentication($tblAccount, $tblIdentification);
-                    GatekeeperAccount::useService()->addAccountAuthentication($tblAccount, $tblIdentificationChoose);
-                // set Authenticator App
-                } elseif ($isAuthenticatorApp && $tblIdentification->getId() != $tblIdentificationChoose->getId()) {
-                    GatekeeperAccount::useService()->removeAccountAuthentication($tblAccount, $tblIdentification);
-                    GatekeeperAccount::useService()->addAccountAuthentication($tblAccount, $tblIdentificationChoose);
+                if ($isAuthenticatorApp) {
+                    $hasSecureRoles = true;
+                    // set Authenticator App
+                    if (!$hasAuthenticationAuthenticatorApp) {
+                        $this->addAccountAuthentication($tblAccount, $tblIdentificationAuthenticatorApp);
+                    }
                     if (!$tblAccount->getAuthenticatorAppSecret()) {
                         $twoFactorApp = new TwoFactorApp();
                         GatekeeperAccount::useService()->changeAuthenticatorAppSecret($tblAccount, $twoFactorApp->createSecret());
                     }
-                // set Credential
-                } elseif($tblIdentification->getId() != $tblIdentificationChoose->getId()) {
-                    GatekeeperAccount::useService()->removeAccountAuthentication($tblAccount, $tblIdentification);
-                    GatekeeperAccount::useService()->addAccountAuthentication($tblAccount, $tblIdentificationChoose);
+                } else {
+                    // remove Authenticator App
+                    if ($hasAuthenticationAuthenticatorApp) {
+                        $this->removeAccountAuthentication($tblAccount, $tblIdentificationAuthenticatorApp);
+                    }
                 }
-                $tblIdentification = $tblIdentificationChoose;
+                if (!$tblToken && !$isAuthenticatorApp) {
+                    // set Credential
+                    if (!$hasAuthenticationCredential) {
+                        $this->addAccountAuthentication($tblAccount, $tblIdentificationCredential);
+                    }
+                } else {
+                    // remove Credential
+                    if ($hasAuthenticationCredential) {
+                        $this->removeAccountAuthentication($tblAccount, $tblIdentificationCredential);
+                    }
+                }
 
                 // Edit Access
                 $tblAccessList = GatekeeperAccount::useService()->getAuthorizationAllByAccount($tblAccount);
@@ -310,17 +329,8 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
                 if (isset( $Account['Role'] )) {
                     foreach ((array)$Account['Role'] as $Role) {
                         $tblRole = GatekeeperAccess::useService()->getRoleById($Role);
-                        if(
-                            $tblIdentification->getName() == TblIdentification::NAME_CREDENTIAL
-                            && !$tblRole->isSecure()
-                        ) {
-                            GatekeeperAccount::useService()->addAccountAuthorization($tblAccount, $tblRole);
-                        } else if (
-                            !$tblRole->isSecure()
-                            || (
-                                $tblIdentification->getName() != TblIdentification::NAME_CREDENTIAL
-                                && ($tblToken || $isAuthenticatorApp)
-                            )
+                        if (!$tblRole->isSecure()
+                            || $hasSecureRoles
                         ) {
                             GatekeeperAccount::useService()->addAccountAuthorization($tblAccount, $tblRole);
                         }
@@ -355,13 +365,19 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
         $Stage = new Stage('Benutzerkonto', 'Bearbeiten');
 
         $tblAccount = Account::useService()->getAccountById($tblAccountId);
-        $tblIdentification = $tblAccount->getServiceTblIdentification();
-        $tblIdentificationChoose = GatekeeperAccount::useService()->getIdentificationByName(TblIdentification::NAME_CREDENTIAL);
         // set Credential
-        if($tblIdentification->getId() != $tblIdentificationChoose->getId()) {
-            GatekeeperAccount::useService()->removeAccountAuthentication($tblAccount, $tblIdentification);
-            GatekeeperAccount::useService()->addAccountAuthentication($tblAccount, $tblIdentificationChoose);
+        if (($tblAuthenticationList = Account::useService()->getAuthenticationListByAccount($tblAccount))) {
+            foreach ($tblAuthenticationList as $tblAuthentication) {
+                if (($tblIdentification = $tblAuthentication->getTblIdentification())
+                    && $tblIdentification->getName() != TblIdentification::NAME_CREDENTIAL
+                ) {
+                    GatekeeperAccount::useService()->removeAccountAuthentication($tblAccount, $tblIdentification);
+                }
+            }
         }
+        $tblIdentificationChoose = GatekeeperAccount::useService()->getIdentificationByName(TblIdentification::NAME_CREDENTIAL);
+        GatekeeperAccount::useService()->addAccountAuthentication($tblAccount, $tblIdentificationChoose);
+
         // Edit Token
         GatekeeperAccount::useService()->changeToken(null, $tblAccount);
 
@@ -396,10 +412,14 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
         $tblRoleAll = $this->getSorter($tblRoleAll)->sortObjectBy(TblRole::ATTR_NAME, new StringGermanOrderSorter());
         if ($tblRoleAll){
             array_walk($tblRoleAll, function(TblRole &$tblRole) use(&$TeacherRole, $dataName){
-                $tblRole = new CheckBox($dataName . '['.$tblRole->getId().']',
-                    ($tblRole->isSecure() ? new YubiKey() : new Publicly()).' '.$tblRole->getName(),
-                    $tblRole->getId()
-                );
+                $tblRole = new Layout(new LayoutGroup(new LayoutRow(array(
+                    new LayoutColumn(
+                        new CheckBox($dataName . '['.$tblRole->getId().']', ($tblRole->isSecure() ? new YubiKey() : new Publicly()).' '.$tblRole->getName(), $tblRole->getId())
+                    , 11),
+                    new LayoutColumn(
+                        new PullRight((Account::useService()->getRoleDescriptionToolTipByRole($tblRole)))
+                    , 1)
+                ))));
             });
             $tblRoleAll = array_filter($tblRoleAll);
         } else {
@@ -474,7 +494,78 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
                 $tblAccountConsumerTokenList = $tblAccountConsumerCredentialList;
             }
         }
+        if (!empty($tblAccountConsumerTokenList)) {
+            $tblAccountConsumerTokenList = array_unique($tblAccountConsumerTokenList);
+        }
 
         return empty($tblAccountConsumerTokenList) ? false : $tblAccountConsumerTokenList;
+    }
+
+    public function getRoleDescriptionToolTipByRole(TblRole $tblRole) {
+        switch ($tblRole->getName()) {
+            case 'Auswertung: Allgemein': return $this->setToolTip('Auswertungen (Standard, Individual), Check-Listen, Adresslisten für Serienbriefe');
+            case 'Auswertung: Flexible Auswertung': return $this->setToolTip('Flexible Auswertung (Auswertungen selbst zusammenstellen)');
+            case 'Auswertung: Kamenz-Statistik':return $this->setToolTip('Auswertungen für die Kamenz-Statistik (verfügbar für Schulträger, die die anteilige
+                Kostenübernahme für diese Auswertung über die Schulstiftung explizit zugesagt haben)');
+            case 'Bildung: Fehlzeiten (Verwaltung)': return $this->setToolTip('Fehlzeitenverwaltung Kalenderansicht mit direkter Suche über alle Schüler');
+            case 'Bildung: Klassenbuch (Lehrer mit Lehrauftrag)':  return $this->setToolTip('Digitales Klassenbuch für Lehrer mit Lehrauftrag und
+                Klassenlehrer');
+            case 'Bildung: Klassenbuch (Alle Klassenbücher)': return $this->setToolTip('Digitales Klassenbuch aller Klassen');
+            case 'Bildung: Klassenbuch (Inklusionsbeauftragte)': return $this->setToolTip('Digitales Klassenbuch und Inklusion aller Klassen');
+            case 'Bildung: Klassenbuch (Schulleitung)':return $this->setToolTip('Digitales Klassenbuch, Inklusion und inkl. Verwaltung und Auswertung von
+                Belehrungen aller Klassen');
+            case 'Bildung: Notenbuch (Inklusionsbeauftragte)':return $this->setToolTip('Notenbuch aller Schüler');
+            case 'Bildung: pädagogisches Tagebuch (Klassenlehrer)':return $this->setToolTip('pädagogisches Tagebuch (Klassenlehrer mit eigener Klasse)');
+            case 'Bildung: pädagogisches Tagebuch (Lehrer mit Lehrauftrag)':return $this->setToolTip('pädagogisches Tagebuch (Fachlehrer können auf 
+                päd. Tagebücher zugreifen, wo diese einen Lehrauftrag besitzen. Die Fachlehrer können nur eigene Einträge bearbeiten)');
+            case 'Bildung: pädagogisches Tagebuch (Schulleitung)':return $this->setToolTip('pädagogisches Tagebuch (alle Klassen)');
+            case 'Bildung: Unterrichtsverwaltung':return $this->setToolTip('Fächer-, Schuljahr- und Klassenverwaltung, Sortierung aller Klassen');
+            case 'Schüler und Eltern Zugang':return $this->setToolTip('Zensurenübersicht, Online Krankmeldung und Online Kontakten Änderungswünsche für
+                Eltern/Schüler (wird bei Generierung der Schüler/Eltern - Zugänge automatisch gesetzt), auch notwendig für Mitarbeiter, welche gleichzeitig
+                Eltern sind');
+            case 'Bildung: Zensurenvergabe (Lehrer)':return $this->setToolTip('Notenvergabe, Notenbuch für Lehrer mit Lehrauftrag, Notenbuch, Schülerübersicht,
+                Einsicht Notenaufträge für Klassenlehrer (eigene Klasse)');
+            case 'Bildung: Zensurenvergabe (Schulleitung)':return $this->setToolTip('Notenvergabe, Notenbuch in allen Klassen, Festlegung und Einsicht
+                Notenaufträge (Stichtags- und Kopfnoten)');
+            case 'Bildung: Zensurenverwaltung':return $this->setToolTip('Festlegung von Zensuren-Typen, Berechnungsvorschriften, Bewertungssystemen,
+                Mindestnotenanzahl');
+            case 'Bildung: Zeugnis (Drucken - Klassenlehrer)':return $this->setToolTip('Drucken der Zeugnisse für Klassenlehrer (automatische Eingrenzung auf
+                die jeweilige Klasse)');
+            case 'Bildung: Zeugnis (Drucken)':return $this->setToolTip('Drucken der Zeugnisse');
+            case 'Bildung: Zeugnis (Einstellungen)':return $this->setToolTip('Einstellungen Zeugnisvorlagen (Fächer und deren Reihenfolge auf den Zeugnis');
+            case 'Bildung: Zeugnis (Freigabe)':return $this->setToolTip('Freitgabe der Zeugnisse für den Druck');
+            case 'Bildung: Zeugnis (Generierung)':return $this->setToolTip('Generierung eines Zeugnisauftrages (Zeugnisdatum und -vorlage, Stichtags- und
+                Kopfnotenauftrag, Name Schulleiter/in');
+            case 'Bildung: Zeugnis (Vorbereitung - Abgangszeugnisse)':return $this->setToolTip('Zeugnisvorbereitung der Abgangszeugnisse für Oberschule und
+                Gymnasium (SEKI)');
+            case 'Bildung: Zeugnis (Vorbereitung - Abschlusszeugnisse)':return $this->setToolTip('Zeugnisvorbereitung der Abschlusszeugnisse (Prüfungsnoten,
+                Vorjahresnoten, etc.)');
+            case 'Bildung: Zeugnis (Vorbereitung - Klassenlehrer)':return $this->setToolTip('Zeugnisvorbereitung (Festlegung Kopfnoten, Hinterlegung sonstiger
+                Informationen wie Bemerkung, Fehlzeiten etc.)');
+            case 'Datentransfer: Import und Export':return $this->setToolTip('Import der Lehraufträge aus externer Stundenplansoftware');
+            case 'Dokumente':return $this->setToolTip('Dokumentendruck Standard (Schulbescheinigung, Schülerkartei) und Individual');
+            case 'Einstellungen: Administrator':return $this->setToolTip('Verwaltung von Benutzerkonten, Mandanteinstellungen, Eigenes Passwort ändern');
+            case 'Einstellungen: Benutzer':return $this->setToolTip('Benutzereinestellungen (Aussehen der Programmoberfläche, Eigenes Passwort änden, Hilfe und
+                Support)');
+            case 'Einstellungen: Benutzer (Schüler/Eltern) - nicht sichtbar':return $this->setToolTip('Benutzereinestellungen (Aussehen der Programmoberfläche,
+                Eigenes Passwort änden, wird bei Generierung der Schüler/Eltern - Zugänge automatisch gesetzt)');
+            case 'Einstellungen: Verwaltung Schüler und Eltern Zugang':return $this->setToolTip('Erstellung der Benutzerkontos für Eltern / Schüler inkl.
+                Passwortrücksetzung');
+            case 'Fakturierung':return $this->setToolTip('Fakturierungsmodul (z.B. Verwaltung von Schulgeld');
+            case 'Feedback & Support':return $this->setToolTip('Supportformular Ticketsystem');
+            case 'Stammdaten: Institutionenverwaltung (Lesen + Schreiben)':return $this->setToolTip('Verwaltung von Institutionen (Schulen, Kitas, etc.)');
+            case 'Stammdaten: Institutionenverwaltung (Lesen)':return $this->setToolTip('ReadOnly von Institutionen (Schulen, Kitas etc.)');
+            case 'Stammdaten: Personenverwaltung (Lesen + Schreiben)':return $this->setToolTip('Verwaltung von Personen (Schüler, Sorgeberechtigte,
+                Interessenten, Lehrer, etc.');
+            case 'Stammdaten: Personenverwaltung (Lesen)':return $this->setToolTip('ReadOnly von Personen (Schüler, Sorgeberechtigte, Interessenten, Lehrer,
+                etc.');
+        }
+        return '';
+    }
+
+    private function setToolTip($Content)
+    {
+
+        return (new ToolTip(new Info(), htmlspecialchars('<div style="width: 300px !important;">'.$Content.'</div>')))->enableHtml();
     }
 }

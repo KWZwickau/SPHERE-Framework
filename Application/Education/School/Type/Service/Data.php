@@ -19,11 +19,19 @@ class Data extends AbstractData
         $tblCategoryCommon = $this->createCategory(TblCategory::COMMON, 'Allgemeinbildende Schulen');
         $tblCategoryTechnical = $this->createCategory(TblCategory::TECHNICAL, 'Berufsbildende Schulen');
         $tblCategorySecondCourse = $this->createCategory(TblCategory::SECOND_COURSE, 'Schulen des zweiten Bildungsweges');
+        $tblCategoryPreSchool = $this->createCategory(TblCategory::PRE_SCHOOL, 'Kindergarten');
+
+        // Kindergarten
+        $this->createType('Kindertageseinrichtung', 'KTE', $tblCategoryPreSchool, true);
 
         // Allgemeinbildend
         $this->createType('Grundschule', 'GS', $tblCategoryCommon, true);
         $this->createType('Gymnasium', 'Gy', $tblCategoryCommon, true);
-        $this->createType('Mittelschule / Oberschule', 'OS', $tblCategoryCommon, true);
+        if (($tblType = $this->getTypeByName('Mittelschule / Oberschule'))) {
+            $this->updateType($tblType, 'Oberschule', 'OS', $tblCategoryCommon, true, '');
+        } else {
+            $this->createType('Oberschule', 'OS', $tblCategoryCommon, true);
+        }
         $this->createType('Förderschule', 'FöS', $tblCategoryCommon, true);
         if(($tblType =  $this->getTypeByName('Gemeinschaftsschule'))){
             if($tblType->getShortName() != 'GMS'){
@@ -37,12 +45,18 @@ class Data extends AbstractData
         // // Berlin
         $this->createType('Integrierte Sekundarschule', 'ISS', $tblCategoryCommon, true);
 
+        // Thüringen
+        $this->createType('Regelschule', 'RS', $tblCategoryCommon, true);
+
         // Berufsbildend
         $this->createType('Berufliches Gymnasium', 'BGy', $tblCategoryTechnical, true);
         $this->createType('Berufsfachschule', 'BFS', $tblCategoryTechnical, true);
         $this->createType('Berufsschule', 'BS', $tblCategoryTechnical, true);
         $this->createType('Fachoberschule', 'FOS', $tblCategoryTechnical, true);
         $this->createType('Fachschule', 'FS', $tblCategoryTechnical, true);
+        $this->createType('Berufsgrundbildungsjahr', 'BGJ', $tblCategoryTechnical, true);
+        $this->createType('Berufsvorbereitungsjahr', 'BVJ', $tblCategoryTechnical, true);
+        $this->createType('Vorbereitungsklasse mit beruflichem Aspekt', 'VKlbA', $tblCategoryTechnical, true);
 
         // zweiter Bildungsweg
         $this->createType('Abendoberschule', '', $tblCategorySecondCourse, true);
@@ -56,13 +70,7 @@ class Data extends AbstractData
         $this->createType('Freie Waldorfschule', '', $tblCategoryCommon, false);
 
         $this->createType('Berufsschule (berufsbildende Förderschule)', '', $tblCategoryTechnical, false);
-        if (($tblType = $this->createType('Berufsgrundbildungsjahr', 'BGJ', $tblCategoryTechnical, true))) {
-            $this->updateTypeOnce($tblType, 'BGJ', $tblCategoryTechnical, true);
-        }
         $this->createType('Berufsgrundbildungsjahr (berufsbildende Förderschule)', '', $tblCategoryTechnical, false);
-        if (($tblType = $this->createType('Berufsvorbereitungsjahr', 'BVJ', $tblCategoryTechnical, true))) {
-            $this->updateTypeOnce($tblType, 'BVJ', $tblCategoryTechnical, true);
-        }
         $this->createType('Berufsvorbereitungsjahr (berufsbildende Förderschule)', '', $tblCategoryTechnical, false);
         $this->createType('BvB', '', $tblCategoryTechnical, false);
         $this->createType('BvB – rehaspezifisch', '', $tblCategoryTechnical, false);

@@ -12,8 +12,9 @@ use SPHERE\Application\Billing\Inventory\Item\Item;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItem;
 use SPHERE\Application\Billing\Inventory\Setting\Setting;
 use SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount\SelectBoxItem;
-use SPHERE\Application\Education\Lesson\Division\Division;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Person\Person;
@@ -115,6 +116,9 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblItemList[] = Item::useService()->getItemById($ItemId);
             }
         }
+        if(!isset($Balance['isMonthly'])){
+            $Balance['isMonthly'] = 0;
+        }
 
         $tableContent = array();
         $tblPerson = false;
@@ -138,11 +142,11 @@ class Frontend extends Extension implements IFrontendInterface
         $filterBlock = ApiDocument::receiverBlock($filterForm, 'changeFilter');
 
         if(!empty($Balance) && !empty($tblItemList)){
-            $tblDivision = false;
+            $tblDivisionCourse = false;
             $tblGroup = false;
-            if (isset($Balance['Division'])) {
-                if (!($tblDivision = Division::useService()->getDivisionById($Balance['Division']))) {
-                    $filterForm->setError('Balance[Division]', 'Bitte wählen Sie eine Klasse aus');
+            if (isset($Balance['DivisionCourse'])) {
+                if (!($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($Balance['DivisionCourse']))) {
+                    $filterForm->setError('Balance[DivisionCourse]', 'Bitte wählen Sie eine Klasse aus');
                     $error = true;
                 }
             }
@@ -153,9 +157,9 @@ class Frontend extends Extension implements IFrontendInterface
                 }
             }
 
-            if($tblDivision){
+            if($tblDivisionCourse){
                 // Pesronenliste aus der Klasse:
-                $tblPersonList = Division::useService()->getPersonAllByDivisionList(array($tblDivision));
+                $tblPersonList = $tblDivisionCourse->getStudents();
             } elseif($tblGroup) {
                 $tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup);
             } elseif($tblPerson){
@@ -194,37 +198,41 @@ class Frontend extends Extension implements IFrontendInterface
                             $Balance['From'], $Balance['To'], $tblPerson, $BasketTypeId, $PriceList);
                     }
                 }
+
                 $PriceList = Balance::useService()->getSummaryByItemPrice($PriceList);
                 $tableContent = Balance::useService()->getTableContentByItemPriceList($PriceList);
-                if($tblDivision){
+                if($tblDivisionCourse){
                     $Download = new PrimaryLink('Herunterladen', '/Api/Billing/Balance/Balance/Print/Download',
                         new Download(), array(
-                            'ItemIdString' => $ItemIdString,
-                            'Year'       => $Balance['Year'],
-                            'From'       => $Balance['From'],
-                            'To'         => $Balance['To'],
-                            'DivisionId' => $Balance['Division'],
-                            'BasketTypeId' => $Balance['BasketType'],
+                            'ItemIdString'     => $ItemIdString,
+                            'Year'             => $Balance['Year'],
+                            'From'             => $Balance['From'],
+                            'To'               => $Balance['To'],
+                            'DivisionCourseId' => $Balance['DivisionCourse'],
+                            'BasketTypeId'     => $Balance['BasketType'],
+                            'isMonthly'        => $Balance['isMonthly'],
                         ));
                 } elseif($tblGroup) {
                     $Download = new PrimaryLink('Herunterladen', '/Api/Billing/Balance/Balance/Print/Download',
                         new Download(), array(
                             'ItemIdString' => $ItemIdString,
-                            'Year'       => $Balance['Year'],
-                            'From'       => $Balance['From'],
-                            'To'         => $Balance['To'],
-                            'GroupId' => $Balance['Group'],
+                            'Year'         => $Balance['Year'],
+                            'From'         => $Balance['From'],
+                            'To'           => $Balance['To'],
+                            'GroupId'      => $Balance['Group'],
                             'BasketTypeId' => $Balance['BasketType'],
+                            'isMonthly'    => $Balance['isMonthly'],
                         ));
                 } elseif($tblPerson) {
                     $Download = new PrimaryLink('Herunterladen', '/Api/Billing/Balance/Balance/Print/Download',
                         new Download(), array(
                             'ItemIdString' => $ItemIdString,
-                            'Year'       => $Balance['Year'],
-                            'From'       => $Balance['From'],
-                            'To'         => $Balance['To'],
-                            'PersonId' => $Balance['PersonId'],
+                            'Year'         => $Balance['Year'],
+                            'From'         => $Balance['From'],
+                            'To'           => $Balance['To'],
+                            'PersonId'     => $Balance['PersonId'],
                             'BasketTypeId' => $Balance['BasketType'],
+                            'isMonthly'    => $Balance['isMonthly'],
                         ));
                 }
             }
@@ -337,11 +345,11 @@ class Frontend extends Extension implements IFrontendInterface
         $filterBlock = ApiDocument::receiverBlock($filterForm, 'changeFilter');
 
         if(!empty($Balance)){
-            $tblDivision = false;
+            $tblDivisionCourse = false;
             $tblGroup = false;
-            if (isset($Balance['Division'])) {
-                if (!($tblDivision = Division::useService()->getDivisionById($Balance['Division']))) {
-                    $filterForm->setError('Balance[Division]', 'Bitte wählen Sie eine Klasse aus');
+            if (isset($Balance['DivisionCourse'])) {
+                if (!($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($Balance['DivisionCourse']))) {
+                    $filterForm->setError('Balance[DivisionCourse]', 'Bitte wählen Sie eine Klasse aus');
                     $error = true;
                 }
             }
@@ -385,7 +393,7 @@ class Frontend extends Extension implements IFrontendInterface
                             $BasketTypeId,
                             $Balance['From'],
                             $Balance['To'],
-                            $tblDivision ? $tblDivision->getId() : '0',
+                            $tblDivisionCourse ? $tblDivisionCourse->getId() : '0',
                             $tblGroup ? $tblGroup->getId() : '0'
                         );
                     }
@@ -480,7 +488,7 @@ class Frontend extends Extension implements IFrontendInterface
         if ($Filter) {
             $YearList = Invoice::useService()->getYearList(3, 1);
             $MonthList = Invoice::useService()->getMonthList();
-            $tblItemAll = Item::useService()->getItemAll();
+            $tblItemAll = Item::useService()->getItemAllWithPreActiveTime();
 
             // Inhalt Selectbox
             $BasketTypeSelect = array('-1' => 'Abrechnung - Gutschrift', '2' => 'Auszahlung', '3' => 'Gutschrift',);
@@ -496,7 +504,15 @@ class Frontend extends Extension implements IFrontendInterface
                 $CheckboxItemList = array();
                 if($tblItemAll){
                     foreach($tblItemAll as $tblItem){
-                        $CheckboxItemList[] = new CheckBox('Balance[ItemList]['.$tblItem->getId().']', $tblItem->getName(), $tblItem->getId());
+                        if($tblItem->getIsActive()){
+                            $CheckboxItemList[] = new CheckBox('Balance[ItemList]['.$tblItem->getId().']', $tblItem->getName(), $tblItem->getId());
+                        } else {
+                            $updateDate = $tblItem->getEntityUpdate();
+                            $updateDate->modify("+".Item::useService()::DEACTIVATE_TIME_SPAN." month");
+                            $CheckboxItemList[] = new CheckBox('Balance[ItemList]['.$tblItem->getId().']',
+                                $tblItem->getName().' (verfügbar bis '.$updateDate->format('d.m.Y').')',
+                                $tblItem->getId());
+                        }
                     }
                 }
                 $ItemSelect = array(new FormColumn(
@@ -505,27 +521,40 @@ class Frontend extends Extension implements IFrontendInterface
                     , 6),
                     new FormColumn(
                         new SelectBox('Balance[BasketType]', 'Variantenauswahl', $BasketTypeSelect)
-                    , 6));
+                    , 6),
+                    new FormColumn(
+                        new CheckBox('Balance[isMonthly]', 'Monatlich aufgeschlüsselt', 1)
+                    )
+                );
             }
 
-            $tblYearList = Term::useService()->getYearByNow();
-            if ($Filter == self::FILTER_CLASS || $Filter == self::FILTER_GROUP) {
-                $tblDivisionList = array();
+            if(($tblYearList = Term::useService()->getYearByNow())
+            && ($Filter == self::FILTER_CLASS || $Filter == self::FILTER_GROUP)){
+                $tblDivisionCourseList = array();
                 if ($tblYearList) {
                     foreach($tblYearList as $tblYear){
-                        if(($tblDivisionTempList = Division::useService()->getDivisionByYear($tblYear))){
-                            $tblDivisionList = array_merge($tblDivisionList, $tblDivisionTempList);
+                        if(($tblDivisionTempList = DivisionCourse::useService()->getDivisionCourseListBy($tblYear, TblDivisionCourseType::TYPE_DIVISION))){
+                            $tblDivisionCourseList = array_merge($tblDivisionCourseList, $tblDivisionTempList);
+                        }
+                        if(($tblDivisionTempList = DivisionCourse::useService()->getDivisionCourseListBy($tblYear, TblDivisionCourseType::TYPE_CORE_GROUP))){
+                            $tblDivisionCourseList = array_merge($tblDivisionCourseList, $tblDivisionTempList);
+                        }
+                        if(($tblDivisionTempList = DivisionCourse::useService()->getDivisionCourseListBy($tblYear, TblDivisionCourseType::TYPE_BASIC_COURSE))){
+                            $tblDivisionCourseList = array_merge($tblDivisionCourseList, $tblDivisionTempList);
+                        }
+                        if(($tblDivisionTempList = DivisionCourse::useService()->getDivisionCourseListBy($tblYear, TblDivisionCourseType::TYPE_ADVANCED_COURSE))){
+                            $tblDivisionCourseList = array_merge($tblDivisionCourseList, $tblDivisionTempList);
                         }
                     }
                 }
-                if(empty($tblDivisionList)){
-                    $tblDivisionList[] = new TblDivision();
+                if(empty($tblDivisionCourseList)){
+                    $tblDivisionCourseList[] = new TblDivisionCourse();
                 }
 
                 if ($Filter == self::FILTER_CLASS) {
-                    $selectBox = (new SelectBox('Balance[Division]', 'Klasse ' . new ToolTip(new InfoIcon(),
+                    $selectBox = (new SelectBox('Balance[DivisionCourse]', 'Klasse ' . new ToolTip(new InfoIcon(),
                             'Klassen aus dem aktuellem Schuljahr (Datum ' . (new DateTime())->format('d.m.Y') . ')'),
-                        array('{{ tblLevel.Name }} {{ Name }}' => $tblDivisionList), null, true,
+                        array('{{ Name }}' => $tblDivisionCourseList), null, true,
                         null))->setRequired();
                 } else {
                     $groups = array();
@@ -542,80 +571,72 @@ class Frontend extends Extension implements IFrontendInterface
                         null))->setRequired();
                 }
 
-                return
-                    new Form(
-                        new FormGroup(array(
-                            new FormRow(
-                                new FormColumn(
-                                    new Panel(
-                                        'Filter für',
-                                        (new SelectBox('Balance[Filter]', '', $filterOptions))
-                                            ->ajaxPipelineOnChange(ApiDocument::pipelineChangeFilter($IsMultiItem))
-                                            ->configureLibrary(Selectbox::LIBRARY_SELECTER),
-                                        Panel::PANEL_TYPE_PRIMARY
-                                    )
-                                , 3)
-                            ),
-                            new FormRow(array(
-                                new FormColumn((new SelectBox('Balance[Year]', 'Jahr', $YearList))->setRequired(), 3),
-                                new FormColumn(new SelectBox('Balance[From]', 'Zeitraum Von', $MonthList, null, true,
-                                    null), 3),
-                                new FormColumn(new SelectBox('Balance[To]', 'Zeitraum Bis', $MonthList, null, true,
-                                    null), 3),
-                                new FormColumn($selectBox, 3),
-                            )),
-                            new FormRow(
-                                $ItemSelect
-                            ),
-                            new FormRow(
-                                new FormColumn(new Primary('Filtern', new Filter()))
+                return new Form(new FormGroup(array(
+                    new FormRow(
+                        new FormColumn(
+                            new Panel(
+                                'Filter für',
+                                (new SelectBox('Balance[Filter]', '', $filterOptions))
+                                    ->ajaxPipelineOnChange(ApiDocument::pipelineChangeFilter($IsMultiItem))
+                                    ->configureLibrary(Selectbox::LIBRARY_SELECTER),
+                                Panel::PANEL_TYPE_PRIMARY
                             )
-                        ))
-                    );
+                        , 3)
+                    ),
+                    new FormRow(array(
+                        new FormColumn((new SelectBox('Balance[Year]', 'Jahr', $YearList))->setRequired(), 3),
+                        new FormColumn(new SelectBox('Balance[From]', 'Zeitraum Von', $MonthList, null, true,
+                            null), 3),
+                        new FormColumn(new SelectBox('Balance[To]', 'Zeitraum Bis', $MonthList, null, true,
+                            null), 3),
+                        new FormColumn($selectBox, 3),
+                    )),
+                    new FormRow(
+                        $ItemSelect
+                    ),
+                    new FormRow(
+                        new FormColumn(new Primary('Filtern', new Filter()))
+                    )
+                )));
             } elseif ($Filter = self::FILTER_PERSON) {
-                return
-                    new Form(
-                        new FormGroup(array(
-                            new FormRow(
-                                new FormColumn(
-                                    new Panel(
-                                        'Filter für',
-                                        (new SelectBox('Balance[Filter]', '', $filterOptions))
-                                            ->ajaxPipelineOnChange(ApiDocument::pipelineChangeFilter($IsMultiItem))
-                                            ->configureLibrary(Selectbox::LIBRARY_SELECTER),
-                                        Panel::PANEL_TYPE_PRIMARY
-                                    )
-                                , 3)
-                            ),
-                            new FormRow(array(
-                                new FormColumn((new SelectBox('Balance[Year]', 'Jahr', $YearList))->setRequired(), 4),
-                                new FormColumn(new SelectBox('Balance[From]', 'Zeitraum Von', $MonthList, null, true,
-                                    null), 4),
-                                new FormColumn(new SelectBox('Balance[To]', 'Zeitraum Bis', $MonthList, null, true,
-                                    null), 4),
-                            )),
-                            new FormRow(
-                                $ItemSelect
-                            ),
-                            new FormRow(array(
-                                new FormColumn(array(
-                                    (new TextField(
-                                        'Balance[Search]',
-                                        '',
-                                        'Suche des Beitragsverursachers',
-                                        new Search()
-                                    ))->ajaxPipelineOnKeyUp(ApiDocument::pipelineSearchPerson()),
-                                    ApiDocument::receiverBlock(
-                                        $this->loadPersonSearch(isset($Balance['Search']) ? $Balance['Search'] : '', $message),
-                                        'SearchPerson'
-                                    )
-                                ))
-                            )),
-                            new FormRow(
-                                new FormColumn(new Primary('Filtern', new Filter()))
+                return new Form(new FormGroup(array(
+                    new FormRow(
+                        new FormColumn(
+                            new Panel(
+                                'Filter für',
+                                (new SelectBox('Balance[Filter]', '', $filterOptions))
+                                    ->ajaxPipelineOnChange(ApiDocument::pipelineChangeFilter($IsMultiItem))
+                                    ->configureLibrary(Selectbox::LIBRARY_SELECTER),
+                                Panel::PANEL_TYPE_PRIMARY
+                            )
+                        , 3)
+                    ),
+                    new FormRow(array(
+                        new FormColumn((new SelectBox('Balance[Year]', 'Jahr', $YearList))->setRequired(), 4),
+                        new FormColumn(new SelectBox('Balance[From]', 'Zeitraum Von', $MonthList, null, true, null), 4),
+                        new FormColumn(new SelectBox('Balance[To]', 'Zeitraum Bis', $MonthList, null, true, null), 4),
+                    )),
+                    new FormRow(
+                        $ItemSelect
+                    ),
+                    new FormRow(array(
+                        new FormColumn(array(
+                            (new TextField(
+                                'Balance[Search]',
+                                '',
+                                'Suche des Beitragsverursachers',
+                                new Search()
+                            ))->ajaxPipelineOnKeyUp(ApiDocument::pipelineSearchPerson()),
+                            ApiDocument::receiverBlock(
+                                $this->loadPersonSearch(isset($Balance['Search']) ? $Balance['Search'] : '', $message),
+                                'SearchPerson'
                             )
                         ))
-                    );
+                    )),
+                    new FormRow(
+                        new FormColumn(new Primary('Filtern', new Filter()))
+                    )
+                )));
             }
         }
 
@@ -724,8 +745,8 @@ class Frontend extends Extension implements IFrontendInterface
                 $global->POST['Data']['From'] = $Balance['From'];
                 $global->POST['Data']['To'] = $Balance['To'];
                 $global->POST['Data']['BasketType'] = $Balance['BasketType'];
-                if (isset($Balance['Division'])) {
-                    $global->POST['Data']['Division'] = $Balance['Division'];
+                if (isset($Balance['DivisionCourse'])) {
+                    $global->POST['Data']['DivisionCourse'] = $Balance['DivisionCourse'];
                 }
                 if (isset($Balance['Group'])) {
                     $global->POST['Data']['Group'] = $Balance['Group'];
@@ -758,7 +779,7 @@ class Frontend extends Extension implements IFrontendInterface
                     new HiddenField('Data[BasketType]')
                     , 1),
                 new FormColumn(
-                    new HiddenField('Data[Division]')
+                    new HiddenField('Data[DivisionCourse]')
                     , 1),
                 new FormColumn(
                     new HiddenField('Data[Group]')

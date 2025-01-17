@@ -6,7 +6,7 @@ use SPHERE\Application\Document\Generator\Repository\Element;
 class Image extends Element
 {
 
-    public function __construct($Location, $Width = '100%', $Height = '100%')
+    public function __construct($Location, $Width = 'auto', $Height = 'auto')
     {
 
         parent::__construct();
@@ -22,7 +22,7 @@ class Image extends Element
     {
 
         $ProtocolSecure = 'http://';
-        if(strpos($this->getRequest()->getPort(), 'schulsoftware.schule')){
+        if(strpos($this->getRequest()->getHost(), 'schulsoftware.schule')){
             $ProtocolSecure = 'https://';
         }
 

@@ -41,9 +41,7 @@ class BgjAbs extends Style
         $textSize2 = '19px';
         $personId = $tblPerson ? $tblPerson->getId() : 0;
 
-        $school[] = 'Berufliches Schulzentrum';
-        $school[] = 'der HOGA Schloss Albrechtsberg g SchulgmbH';
-        $school[] = 'Staatlich anerkannte Schulen in freier Trägerschaft';
+        $school = $this->getCustomSchoolName('Berufliches Schulzentrum');
 
         $pageList[] = (new Page())
             ->addSlice($this->getHeader($school, '', false, false))
@@ -146,7 +144,7 @@ class BgjAbs extends Style
                 ->styleMarginTop('20px')
                 ->addSection((new Section())
                     ->addElementColumn($this->getElement(
-                        'Zeugnis der Fachhochschulreife für
+                        'Zeugnis des Berufsgrundbildungsjahres für
                             {{ Content.P'.$personId.'.Person.Data.Name.Salutation }}
                             {{ Content.P'.$personId.'.Person.Data.Name.First }} {{ Content.P'.$personId.'.Person.Data.Name.Last }},
                             geboren am

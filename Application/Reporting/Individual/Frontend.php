@@ -1,5 +1,4 @@
 <?php
-
 namespace SPHERE\Application\Reporting\Individual;
 
 use SPHERE\Application\Api\Reporting\Individual\ApiIndividual;
@@ -9,6 +8,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
+use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Listing;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
@@ -19,6 +19,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
+use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Center;
 use SPHERE\Common\Window\Stage;
@@ -46,31 +47,29 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutGroup(
                     new LayoutRow(array(
                         new LayoutColumn('&nbsp;', 3),
-                        new LayoutColumn(
-                            new Panel('Kategorien:', new \SPHERE\Common\Frontend\Layout\Repository\Listing(
-                                array(
-                                    new Center('Allgemeine Auswertung für '.new Bold('Personen').'<br/>')
-                                    .new Center(new Standard('', __NAMESPACE__.'/Group', new Listing())),
-                                    new Center('Spezifische Auswertung für '.new Bold('Schüler').'<br/>')
-                                    .new Center(new Standard('', __NAMESPACE__.'/Student', new Listing())),
-                                    new Center('Spezifische Auswertung für '.new Bold('Interessenten').'<br/>')
-                                    .new Center(new Standard('', __NAMESPACE__.'/Prospect', new Listing())),
-                                    new Center('Spezifische Auswertung für '.new Bold('Sorgeberechtigte').'<br/>')
-                                    .new Center(new Standard('', __NAMESPACE__.'/Custody', new Listing())),
-                                    new Center('Spezifische Auswertung für '.new Bold('Lehrer').'<br/>')
-                                    .new Center(new Standard('', __NAMESPACE__.'/Teacher', new Listing())),
-                                    new Center('Spezifische Auswertung für '.new Bold('Mitarbeiter').'<br/>')
-                                    .new Center(new Standard('', __NAMESPACE__.'/Staff', new Listing())),
-                                    new Center('Spezifische Auswertung für '.new Bold('Vereinsmitglieder').'<br/>')
-                                    .new Center(new Standard('', __NAMESPACE__.'/Club', new Listing())),
-                                )))
-                        , 6),
+                        new LayoutColumn(array(
+                            new Danger('Die dauerhafte Speicherung des Excel-Exports ist datenschutzrechtlich nicht zulässig!', new Exclamation())
+                            ,new Panel('Kategorien:', new \SPHERE\Common\Frontend\Layout\Repository\Listing(array(
+                                new Center('Allgemeine Auswertung für '.new Bold('Personen').'<br/>')
+                                .new Center(new Standard('', __NAMESPACE__.'/Group', new Listing())),
+                                new Center('Spezifische Auswertung für '.new Bold('Schüler').'<br/>')
+                                .new Center(new Standard('', __NAMESPACE__.'/Student', new Listing())),
+                                new Center('Spezifische Auswertung für '.new Bold('Interessenten').'<br/>')
+                                .new Center(new Standard('', __NAMESPACE__.'/Prospect', new Listing())),
+                                new Center('Spezifische Auswertung für '.new Bold('Sorgeberechtigte').'<br/>')
+                                .new Center(new Standard('', __NAMESPACE__.'/Custody', new Listing())),
+                                new Center('Spezifische Auswertung für '.new Bold('Lehrer').'<br/>')
+                                .new Center(new Standard('', __NAMESPACE__.'/Teacher', new Listing())),
+                                new Center('Spezifische Auswertung für '.new Bold('Mitarbeiter').'<br/>')
+                                .new Center(new Standard('', __NAMESPACE__.'/Staff', new Listing())),
+                                new Center('Spezifische Auswertung für '.new Bold('Vereinsmitglieder').'<br/>')
+                                .new Center(new Standard('', __NAMESPACE__.'/Club', new Listing())),
+                            )))
+                        ), 6),
                     ))
                 )
             )
         );
-
-        // $Content = Individual::useService()->getView();
 
         return $Stage;
     }
@@ -427,26 +426,16 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         return (new ApiIndividual())->downloadFile($ViewType);
-//        $Stage = new Stage('Dokument wird vorbereitet');
-//        $Stage->setContent(new Layout(new LayoutGroup(array(
-//                new LayoutRow(array(
-//                    new LayoutColumn(array(
-//                        new Paragraph('Dieser Vorgang kann längere Zeit in Anspruch nehmen.'),
-//                        (new ProgressBar(0, 100, 0, 10))->setColor(
-//                            ProgressBar::BAR_COLOR_SUCCESS, ProgressBar::BAR_COLOR_SUCCESS, ProgressBar::BAR_COLOR_STRIPED
-//                        ),
-//                        new Paragraph('Bitte warten ..'),
-//                        "<button type=\"button\" class=\"btn btn-default\" onclick=\"window.open('', '_self', ''); window.close();\">Abbrechen</button>"
-//                    ), 4),
-//                )),
-//                new LayoutRow(
-//                    new LayoutColumn(
-//                        new RedirectScript($Route, 1, $this->getGlobal()->GET)
-//                    )
-//                ),
-//            )))
-//        );
-//
-//        return $Stage;
+    }
+
+    /**
+     * @param string $ViewType
+     *
+     * @return string
+     */
+    public function frontendCsvDownload($ViewType = TblWorkSpace::VIEW_TYPE_ALL)
+    {
+
+        return (new ApiIndividual())->downloadCsvFile($ViewType);
     }
 }

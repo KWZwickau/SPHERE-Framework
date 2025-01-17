@@ -12,6 +12,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
+use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
@@ -20,6 +21,7 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\External;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Text\Repository\Warning;
 use SPHERE\Common\Window\Stage;
@@ -42,13 +44,17 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendMailImport($File = null, $Data = null)
     {
 
-        $Stage = new Stage('Import', 'Standard für Emailadressen');
+        $Stage = new Stage('Import', 'Standard für E-Mail-Adressen');
         $Stage->addButton(
             new Standard(
                 'Zurück',
                 '/Transfer/Import',
                 new ChevronLeft()
             )
+        );
+        $Stage->addButton(
+            new External('Importvorlage', '/Api/Transfer/Standard/DownloadTemplateMail',
+                new Download(), array(), false)
         );
 
         $Stage->setContent(
@@ -80,19 +86,19 @@ class Frontend extends Extension implements IFrontendInterface
                                         )),
                                         new FormRow(array(
                                             new FormColumn(
-                                                (new SelectBox('Data[Type]', 'Emailadress-Typ',
+                                                (new SelectBox('Data[Type]', 'E-Mail-Adress-Typ',
                                                     array('{{ Name }} {{ Description }}' =>\SPHERE\Application\Contact\Mail\Mail::useService()->getTypeAll())
                                                 ))->setRequired()
                                             ),
                                         )),
                                         new FormRow(array(
                                             new FormColumn(
-                                                new RadioBox('Data[Radio]', 'Nur Emailadressen importieren', 1)
+                                                new RadioBox('Data[Radio]', 'Nur E-Mail-Adressen importieren', 1)
                                             ),
                                         )),
                                         new FormRow(array(
                                             new FormColumn(
-                                                new RadioBox('Data[Radio]', 'Emailadresse als Account-Alias verwenden', 2)
+                                                new RadioBox('Data[Radio]', 'E-Mail-Adresse als Account-Alias verwenden', 2)
                                             ),
                                         )),
                                         new FormRow(array(

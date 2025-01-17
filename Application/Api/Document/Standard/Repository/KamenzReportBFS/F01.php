@@ -68,12 +68,14 @@ class F01
             ->addSection((new Section())
                 ->addElementColumn((new Element())
                     ->setContent(new Container('Förderschwer-').'punkt(e)')
+                    ->styleAlignCenter()
                     ->styleBorderRight()
                     ->stylePaddingTop('43px')
                     ->stylePaddingBottom('44.4px')
                 , $width[0])
                 ->addElementColumn((new Element())
                     ->setContent('Klassenstufe')
+                    ->styleAlignCenter()
                     ->styleBorderRight()
                     ->stylePaddingTop('50.3px')
                     ->stylePaddingBottom('54.3px')
@@ -82,6 +84,7 @@ class F01
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('Schüler')
+                            ->styleAlignCenter()
                             ->styleBorderBottom()
                             ->styleBorderRight()
                             ->stylePaddingTop('43px')
@@ -91,22 +94,27 @@ class F01
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('männlich')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '20%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('weiblich')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '20%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('divers')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '20%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('ohne Angabe¹')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '20%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('insgesamt')
+                            ->styleAlignCenter()
                             ->styleTextBold()
                             ->styleBorderRight(), '20%'
                         )
@@ -116,6 +124,7 @@ class F01
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('Darunter')
+                            ->styleAlignCenter()
                             ->styleBorderBottom()
                             ->styleTextBold()
                         )
@@ -123,11 +132,13 @@ class F01
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('Schüler, deren<br /> Herkunftsspr.<br /> nicht oder nicht<br /> ausschließlich<br /> Deutsch ist')
+                            ->styleAlignCenter()
                             ->styleBorderBottom()
                             ->styleBorderRight(), '50%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('Schüler mit<br /> gutachterlich<br /> bestätigtem<br /> Autismus')
+                            ->styleAlignCenter()
                             ->stylePaddingTop('8.5px')
                             ->stylePaddingBottom('8.6px')
                             ->styleBorderBottom(), '50%'
@@ -136,10 +147,12 @@ class F01
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('insgesamt')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '50%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('insgesamt'), '50%'
+                            ->setContent('insgesamt')
+                            ->styleAlignCenter(), '50%'
                         )
                     )
                 , $width[3])
@@ -195,7 +208,7 @@ class F01
                 case 5: $text = 'Geistige Entwicklung';
 //                    $hasBorderTop = $name == 'F01_1';
                     break;
-                case 6: $text = 'Sozial-emotionale Entwicklung';
+                case 6: $text = 'Emotionale-soziale Entwicklung';
                     if ($maxLevel == 4) {
 //                        $hasBorderTop = true;
                         $paddingTop = '27.8px';
@@ -220,6 +233,7 @@ class F01
             $section
                 ->addElementColumn((new Element())
                     ->setContent($text)
+                    ->styleAlignCenter()
                     ->styleBackgroundColor('lightgrey')
                     ->styleBorderRight()
                     ->styleBorderTop($hasBorderTop ? '1px' : '0px')
@@ -240,6 +254,7 @@ class F01
                 $lineSection
                     ->addElementColumn((new Element())
                         ->setContent($textLevel)
+                        ->styleAlignCenter()
                         ->styleBorderBottom()
                         ->styleBorderTop($hasBorderTop && $j == 1 ? '1px' : '0px')
                     );
@@ -248,6 +263,7 @@ class F01
             $lineSectionList[] = (new Section())
                 ->addElementColumn((new Element())
                     ->setContent('Zusammen')
+                    ->styleAlignCenter()
                     ->styleTextBold()
                 );
             $section

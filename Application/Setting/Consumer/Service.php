@@ -5,6 +5,7 @@ use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer as GatekeeperConsumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Setting\Consumer\Service\Data;
 use SPHERE\Application\Setting\Consumer\Service\Entity\TblAccountDownloadLock;
@@ -44,18 +45,18 @@ class Service extends AbstractService
     }
 
     /**
-     * @param $Cluster
-     * @param $Application
-     * @param null $Module
-     * @param $Identifier
+     * @param string $Cluster
+     * @param string $Application
+     * @param string|null $Module
+     * @param string $Identifier
      * @return false|TblSetting
      */
     public function getSetting(
-        $Cluster,
-        $Application,
-        $Module = null,
-        $Identifier
-    ) {
+        string $Cluster,
+        string $Application,
+        string $Module = null,
+        string $Identifier = ''
+    ):false|TblSetting {
 
         return (new Data($this->getBinding()))->getSetting(
             $Cluster, $Application, $Module, $Identifier
@@ -105,23 +106,23 @@ class Service extends AbstractService
     }
 
     /**
-     * @param $Cluster
-     * @param $Application
-     * @param null $Module
-     * @param $Identifier
+     * @param string $Cluster
+     * @param string $Application
+     * @param string|null $Module
+     * @param string $Identifier
      * @param string $Type
-     * @param $Value
+     * @param string $Value
      *
      * @return TblSetting
      */
     public function createSetting(
-        $Cluster,
-        $Application,
-        $Module = null,
-        $Identifier,
-        $Type = TblSetting::TYPE_BOOLEAN,
-        $Value
-    ) {
+        string $Cluster,
+        string $Application,
+        string $Module = null,
+        string $Identifier = '',
+        string $Type = TblSetting::TYPE_BOOLEAN,
+        string $Value = ''
+    ):TblSetting {
 
         return (new Data($this->getBinding()))->createSetting(
             $Cluster, $Application, $Module, $Identifier, $Type, $Value
@@ -365,4 +366,33 @@ class Service extends AbstractService
             return false;
         }
     }
+
+    /**
+     * aktuell nicht genutzte Mandanten
+     *
+     * @return array
+     */
+    public function getConsumerBlackList(): array
+    {
+        $blackList = array();
+        // aktuell nicht genutzte Mandanten in Sachsen
+        if (GatekeeperConsumer::useService()->getConsumerTypeFromServerHost() == TblConsumer::TYPE_SACHSEN) {
+            $blackList['DWO'] = 1;
+            $blackList['EMSP'] = 1;
+            $blackList['ESA'] = 1;
+            $blackList['ESL'] = 1;
+            $blackList['ESVL'] = 1;
+            $blackList['EVAP'] = 1;
+            $blackList['EVMS'] = 1;
+            $blackList['EVMSH'] = 1;
+            $blackList['EVSB'] = 1;
+            $blackList['EVSL'] = 1;
+            $blackList['EWM'] = 1;
+            $blackList['EWS'] = 1;
+            $blackList['FV'] = 1;
+        }
+
+        return $blackList;
+    }
+
 }

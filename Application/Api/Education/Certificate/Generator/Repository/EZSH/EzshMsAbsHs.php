@@ -164,9 +164,7 @@ class EzshMsAbsHs extends EzshStyle
                         ->styleAlignCenter()
                         , '10%')
                     ->addElementColumn((new Element())
-                        ->setContent('
-                                {{ Content.P' . $personId . '.Division.Data.Level.Name }}{{ Content.P' . $personId . '.Division.Data.Name }}
-                            ')
+                        ->setContent('{{ Content.P' . $personId . '.Division.Data.Name }}')
                         ->styleBorderBottom('1px', '#BBB')
                         ->stylePaddingLeft('7px')
                         ->styleFontFamily(self::FONT_FAMILY)
@@ -176,11 +174,13 @@ class EzshMsAbsHs extends EzshStyle
                 )->styleMarginTop('60px')
                 ->styleMarginBottom('20px')
             )
-            ->addSlice($this->getEZSHSubjectLanes($personId, true, array(), false, false, true, true)->styleHeight('350px'))
-            ->addSlice((new Slice())->addSectionList($this->getEZSHRemark($personId, '170px')))
+            ->addSlice($this->getEZSHSubjectLanes($personId, true, array(), false, false, true, true)->styleHeight('390px'))
+            ->addSlice((new Slice())->addSectionList($this->getEZSHRemark($personId, '150px')))
             ->addSlice($this->getEZSHDateLine($personId))
             ->addSlice((self::getEZSHExaminationsBoard('10px','11px')))
             ->addSlice((new Slice())->styleMarginTop('150px')->addSectionList($this->getEZSHGradeInfo(false)));
+
+        $pageList[] = $this->getRatingPage($personId, 'Anlage zum ABSCHLUSSZEUGNIS', 'OBERSCHULE – staatlich anerkannte Ersatzschule');
 
         return $pageList;
     }

@@ -2,11 +2,18 @@
 
 namespace SPHERE\Application\ParentStudentAccess\OnlineGradebook;
 
-use SPHERE\Application\People\Meta\Student\Student;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
 use SPHERE\Application\Setting\Consumer\Consumer;
+use SPHERE\Application\Setting\Consumer\Service\Entity\TblStudentCustody;
+use SPHERE\Common\Frontend\Form\IFormInterface;
+use SPHERE\Common\Frontend\Message\Repository\Danger;
+use SPHERE\Common\Frontend\Message\Repository\Success;
+use SPHERE\Common\Window\Redirect;
+use SPHERE\System\Extension\Extension;
 
 class Service
 {
@@ -61,8 +68,8 @@ class Service
                 $tblSchoolTypeAllowedList = Consumer::useService()->getSchoolTypeBySettingString($tblSetting->getValue());
             }
 
-            if (($tblDivision = Student::useService()->getCurrentMainDivisionByPerson($tblPerson))
-                && ($tblType = $tblDivision->getType())
+            if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndDate($tblPerson))
+                && ($tblType = $tblStudentEducation->getServiceTblSchoolType())
                 && (!$tblSchoolTypeAllowedList || isset($tblSchoolTypeAllowedList[$tblType->getId()]))
             ) {
                 $tblPersonList[$tblPerson->getId()] = $tblPerson;
@@ -98,8 +105,8 @@ class Service
                             || $relationship->getTblType()->getName() == 'Vormund')
                     ) {
                         // prüfen: ob die Schulart freigeben ist
-                        if (($tblDivision = Student::useService()->getCurrentMainDivisionByPerson($tblPersonTo))
-                            && ($tblType = $tblDivision->getType())
+                        if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndDate($tblPersonTo))
+                            && ($tblType = $tblStudentEducation->getServiceTblSchoolType())
                             && (!$tblSchoolTypeAllowedList || isset($tblSchoolTypeAllowedList[$tblType->getId()]))
                         ) {
                             $tblPersonList[$tblPersonTo->getId()] = $tblPersonTo;
@@ -110,5 +117,62 @@ class Service
         }
 
         return empty($tblPersonList) ? false : $tblPersonList;
+    }
+
+    /**
+     * @param IFormInterface $Form
+     * @param                $ParentAccount
+     * @param TblAccount     $tblAccountStudent
+     *
+     * @return IFormInterface|string
+     */
+    public function setDisableParent(
+        IFormInterface $Form,
+        $ParentAccount,
+        TblAccount $tblAccountStudent
+    ) {
+        /**
+         * Skip to Frontend
+         */
+        if ($ParentAccount === null) {
+            return $Form;
+        }
+
+        if (isset($ParentAccount['IsSubmit'])) {
+            unset($ParentAccount['IsSubmit']);
+        }
+
+        $Error = false;
+
+        // Remove old Link
+        $tblStudentCustodyList = Consumer::useService()->getStudentCustodyByStudent($tblAccountStudent);
+        if ($tblStudentCustodyList) {
+            array_walk($tblStudentCustodyList, function (TblStudentCustody $tblStudentCustody) use (&$Error) {
+                if (!Consumer::useService()->removeStudentCustody($tblStudentCustody)) {
+                    $Error = false;
+                }
+            });
+        }
+
+        if ($ParentAccount) {
+            // Add new Link
+            array_walk($ParentAccount, function ($AccountId) use (&$Error, $tblAccountStudent) {
+                $tblAccountCustody = Account::useService()->getAccountById($AccountId);
+                if ($tblAccountCustody) {
+                    Consumer::useService()->createStudentCustody($tblAccountStudent, $tblAccountCustody,
+                        $tblAccountStudent);
+                } else {
+                    $Error = false;
+                }
+            });
+        }
+
+        if (!$Error) {
+            return new Success('Einstellungen wurden erfolgreich gespeichert')
+                .new Redirect(Extension::getRequest()->getUrl(), Redirect::TIMEOUT_SUCCESS);
+        } else {
+            return new Danger('Einstellungen konnten nicht gespeichert werden')
+                .new Redirect(Extension::getRequest()->getUrl(), Redirect::TIMEOUT_ERROR);
+        }
     }
 }

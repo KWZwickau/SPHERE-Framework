@@ -13,6 +13,7 @@ use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
+use SPHERE\Application\Education\Graduation\Grade\Grade;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\People\Person\Person;
@@ -62,12 +63,12 @@ class TblPrepareAdditionalGrade extends Element
     /**
      * @Column(type="boolean")
      */
-    protected $IsSelected;
+    protected $IsSelected = false;
 
     /**
      * @Column(type="boolean")
      */
-    protected $IsLocked;
+    protected $IsLocked = false;
 
     /**
      * @Column(type="bigint")
@@ -145,7 +146,13 @@ class TblPrepareAdditionalGrade extends Element
      */
     public function getGrade()
     {
-        return $this->Grade;
+        // Auf Abschlusszeugnissen dürfen keine Zensuren mit Tendenz stehen
+        $grade = $this->Grade;
+
+        $grade = str_replace('+', '', $grade);
+        $grade = str_replace('-', '', $grade);
+
+        return $grade;
     }
 
     /**
@@ -230,5 +237,19 @@ class TblPrepareAdditionalGrade extends Element
     {
 
         $this->IsLocked = (bool)$IsLocked;
+    }
+
+    /**
+     * @param bool $isGradeTextShortName
+     *
+     * @return string
+     */
+    public function getDisplayGrade(bool $isGradeTextShortName = true): string
+    {
+        if ($isGradeTextShortName && ($tblGradeText = Grade::useService()->getGradeTextByName($this->getGrade()))) {
+            return $tblGradeText->getShortName();
+        }
+
+        return $this->getGrade();
     }
 }

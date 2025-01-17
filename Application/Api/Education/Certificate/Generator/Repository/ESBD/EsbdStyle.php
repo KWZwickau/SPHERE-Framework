@@ -153,7 +153,7 @@ abstract class EsbdStyle extends Certificate
                 ->setContent('Klasse:')
                 , '7%')
             ->addElementColumn((new Element())
-                ->setContent('{{ Content.P' . $personId . '.Division.Data.Level.Name }}{{ Content.P' . $personId . '.Division.Data.Name }}')
+                ->setContent('{{ Content.P' . $personId . '.Division.Data.Name }}')
 //                ->styleBorderBottom('1px', self::COLOR_GREEN)
                 ->styleBorderBottom()
                 ->styleAlignCenter()
@@ -236,21 +236,28 @@ abstract class EsbdStyle extends Certificate
      * @param $personId
      * @param $Height
      * @param string $MarginTop
+     * @param bool $hasGTA
      *
      * @return Slice
      */
-    protected function getDescriptionConsumer($personId, $Height, $MarginTop = '15px')
+    protected function getDescriptionConsumer($personId, $Height, string $MarginTop = '15px', bool $hasGTA = true)
     {
         $DescriptionSlice = (new Slice());
         $DescriptionSlice->addSection((new Section())
                 ->addElementColumn((new Element())
-                    ->setContent(
-                        '{% if(Content.P' . $personId . '.Input.Remark is not empty) %}
-                            Bemerkungen: {{ Content.P' . $personId . '.Input.Remark|nl2br }}
-                        {% else %}
-                            Bemerkungen: &nbsp;
+                    ->setContent('
+                        {% if(Content.P'.$personId.'.Input.RemarkWithoutTeam is not empty) %}
+                            {{ Content.P'.$personId.'.Input.RemarkWithoutTeam|nl2br }} <br>
                         {% endif %}'
-                    ))
+                        . ($hasGTA
+                            ? '{% if(Content.P'.$personId.'.Input.GTA is not empty) %}
+                                {{ Content.P'.$personId.'.Input.GTA|nl2br }}
+                            {% else %}
+                                &nbsp;
+                            {% endif %}'
+                            : '')
+                    )
+                )
             )->styleMarginTop($MarginTop)
             ->styleHeight($Height);
 
@@ -954,16 +961,7 @@ abstract class EsbdStyle extends Certificate
         }
 
         // Profil
-        if ($tblPerson
-            && ($tblStudent = Student::useService()->getStudentByPerson($tblPerson))
-            && ($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('PROFILE'))
-            && ($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType($tblStudent,
-                $tblStudentSubjectType))
-        ) {
-            /** @var TblStudentSubject $tblStudentSubject */
-            $tblStudentSubject = current($tblStudentSubjectList);
-            $tblSubjectProfile = $tblStudentSubject->getServiceTblSubject();
-        }
+        $tblSubjectProfile = $this->getProfilSubject();
 
         if ($tblSubjectProfile) {
             if (($tblSetting = Consumer::useService()->getSetting('Api', 'Education', 'Certificate', 'ProfileAcronym'))
@@ -979,15 +977,7 @@ abstract class EsbdStyle extends Certificate
 
         if ($tblSubjectProfile) {
             $elementName = (new Element())
-                // Profilname aus der Schülerakte
-                // bei einem Leerzeichen im Acronymn stürzt das TWIG ab
-                ->setContent('
-                   {% if(Content.P' . $personId . '.Student.Profile["' . $tblSubjectProfile->getAcronym() . '"] is not empty) %}
-                       {{ Content.P' . $personId . '.Student.Profile["' . $tblSubjectProfile->getAcronym() . '"].Name' . ' }}
-                   {% else %}
-                        &nbsp;
-                   {% endif %}
-                ')
+                ->setContent($tblSubjectProfile->getName())
                 ->styleAlignCenter()
                 ->styleBorderBottom()
                 ->stylePaddingTop($paddingTop)

@@ -15,8 +15,7 @@ use SPHERE\Application\Document\Generator\Repository\Page;
 use SPHERE\Application\Document\Generator\Repository\Section;
 use SPHERE\Application\Document\Generator\Repository\Slice;
 use SPHERE\Application\Document\Generator\Service\Entity\TblDocument;
-use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
-use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
+use SPHERE\Application\Education\Graduation\Grade\Grade;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 
@@ -121,7 +120,7 @@ abstract class AbstractStudentCard extends AbstractDocument
                 case 3: $text = 'Schulhalbjahr'; break;
             }
             $element = (new Element())
-                ->setContent($this->setRotatedContend($text, ($isSecondary ? '-55px': '-40px'), $paddingLeftHeader))
+                ->setContent($this->setRotatedContend($text, $isSecondary ? '175px' : '135px', '27px'))
                 ->styleHeight($heightHeader)
                 ->styleTextSize($textSizeSmall)
                 ->styleBorderLeft($i == 1 ? $thicknessOutLines : $thicknessInnerLines);
@@ -137,7 +136,7 @@ abstract class AbstractStudentCard extends AbstractDocument
                 case 4: $text = 'Ordnung'; break;
             }
             $element = (new Element())
-                ->setContent($this->setRotatedContend($text, ($isSecondary ? '-55px': '-40px'), $paddingLeftHeader))
+                ->setContent($this->setRotatedContend($text, $isSecondary ? '175px' : '135px'))
                 ->styleHeight($heightHeader)
                 ->styleTextSize($textSizeSmall)
                 ->styleBorderLeft($i == 1 ? $thicknessOutLines : $thicknessInnerLines);
@@ -162,16 +161,8 @@ abstract class AbstractStudentCard extends AbstractDocument
             // umbrüche (<br><wbr> etc.) erzeugen Fehler bei der Darstellung
             $text = str_replace('/', ' / ' ,$text);
 
-            if ($isSecondary) {
-                $paddingTop = '-67px';
-                $paddingLeft = '-93px';
-            } else {
-                $paddingTop = '-53px';
-                $paddingLeft = '-67px';
-            }
-
             $element = (new Element())
-                ->setContent($this->setRotatedContend($text, $paddingTop , $paddingLeft, '-40px'))
+                ->setContent($this->setRotatedContend($text, $isSecondary ? '175px' : '135px'))
                 ->styleHeight($heightHeader)
                 ->styleTextSize(strlen($text) > 35 ? '6px' : $textSizeSmall)
                 ->styleBorderLeft($i == 1 ? $thicknessOutLines : $thicknessInnerLines);
@@ -187,7 +178,7 @@ abstract class AbstractStudentCard extends AbstractDocument
                 case 4: $text = 'Signum des Lehrers'; break;
             }
             $element = (new Element())
-                ->setContent($this->setRotatedContend($text, ($isSecondary ? '-55px': '-40px'), $paddingLeftHeader))
+                ->setContent($this->setRotatedContend($text, $isSecondary ? '175px' : '135px', '22px'))
                 ->styleHeight($heightHeader)
                 ->styleTextSize($textSizeSmall)
                 ->styleBorderLeft($i == 1 ? $thicknessOutLines : $thicknessInnerLines)
@@ -239,7 +230,7 @@ abstract class AbstractStudentCard extends AbstractDocument
         $widthString = $width . '%';
         $countTotalColumns = 3 + $countGradesTotal + 4;
 
-        $tblGradeTypeList = Gradebook::useService()->getGradeTypeAllByTestType(Evaluation::useService()->getTestTypeByIdentifier('BEHAVIOR'));
+        $tblGradeTypeList = Grade::useService()->getGradeTypeList(true);
 
         $sliceList = array();
         for ($j = 1; $j <= $countRows; $j++) {
@@ -383,19 +374,23 @@ abstract class AbstractStudentCard extends AbstractDocument
 
     /**
      * @param string $text
+     * @param string $height
      * @param string $paddingTop
      * @param string $paddingLeft
      *
      * @return string
      */
-    protected function setRotatedContend($text = '&nbsp;', $paddingTop = '0px', $paddingLeft = '-90px', $paddingRight = '')
+    protected function setRotatedContend(string $text = '&nbsp;', string $height = '135px', string $paddingTop = '15px', string $paddingLeft = '0px'): string
     {
-
         return
-            '<div style="padding-top: ' . $paddingTop
-            . '!important;padding-left: ' . $paddingLeft
-            . ($paddingRight !== '' ? '!important; padding-right: ' . $paddingRight : '')
-            . '!important;transform: rotate(-90deg)!important;">'
+            '<div style="'
+            . 'position: absolute;'
+            . 'transform-origin: left bottom 0;'
+            . 'top: ' . $height . ';'
+            . 'padding-top: ' . $paddingTop . '!important;'
+            . 'padding-left: ' . $paddingLeft . '!important;'
+            . 'white-space: nowrap!important;'
+            . 'transform: rotate(270deg)!important;">'
             . $text
             . '</div>';
     }

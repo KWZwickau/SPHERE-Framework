@@ -38,10 +38,7 @@ class CswGsJOne extends Certificate
         $personId = $tblPerson ? $tblPerson->getId() : 0;
 
         // Klasse 1 hat keinen Versetzungsvermerk
-        if (($tblDivision = $this->getTblDivision())
-            && ($tblLevel = $tblDivision->getTblLevel())
-            && intval($tblLevel->getName()) == 1
-        ) {
+        if ($this->getLevel() == 1) {
             $hasTransfer = false;
         } else {
             $hasTransfer = true;

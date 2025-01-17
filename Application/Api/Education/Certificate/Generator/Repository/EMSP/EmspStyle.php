@@ -86,7 +86,7 @@ class EmspStyle
         $YearDivisionSlice = (new Slice());
         $YearDivisionSlice->addSection((new Section())
             ->addElementColumn((new Element())
-                ->setContent('Klasse: {{ Content.P' . $personId . '.Division.Data.Level.Name }}{{ Content.P' . $personId . '.Division.Data.Name }}')
+                ->setContent('{{ Content.P' . $personId . '.Division.Data.Name }}')
                 , '25%')
             ->addElementColumn((new Element())
                 ->setContent($YearString)

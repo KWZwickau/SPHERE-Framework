@@ -3,7 +3,6 @@ namespace SPHERE\Application\People\Group\Service;
 
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Group\Service\Entity\TblMember;
-use SPHERE\Application\People\Group\Service\Entity\ViewPeopleGroupMember;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
@@ -18,17 +17,6 @@ use SPHERE\System\Database\Fitting\ColumnHydrator;
  */
 class Data extends AbstractData
 {
-
-    /**
-     * @return false|ViewPeopleGroupMember[]
-     */
-    public function viewPeopleGroupMember()
-    {
-
-        return $this->getCachedEntityList(
-            __METHOD__, $this->getConnection()->getEntityManager(), 'ViewPeopleGroupMember'
-        );
-    }
     
     public function setupDatabaseContent()
     {
@@ -52,11 +40,10 @@ class Data extends AbstractData
      * @param string $Remark
      * @param bool   $IsLocked
      * @param string $MetaTable
-     * @param bool   $IsCoreGroup
      *
      * @return TblGroup
      */
-    public function createGroup($Name, $Description, $Remark, $IsLocked = false, $MetaTable = '', $IsCoreGroup = false)
+    public function createGroup($Name, $Description, $Remark, $IsLocked = false, $MetaTable = '')
     {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -78,7 +65,7 @@ class Data extends AbstractData
             $Entity->setRemark($Remark);
             $Entity->setLocked($IsLocked);
             $Entity->setMetaTable($MetaTable);
-            $Entity->setCoreGroup($IsCoreGroup);
+            $Entity->setCoreGroup(false);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         }
@@ -91,11 +78,10 @@ class Data extends AbstractData
      * @param string   $Name
      * @param string   $Description
      * @param string   $Remark
-     * @param bool     $isCoreGroup
      *
      * @return bool
      */
-    public function updateGroup(TblGroup $tblGroup, $Name, $Description, $Remark, $isCoreGroup = false)
+    public function updateGroup(TblGroup $tblGroup, $Name, $Description, $Remark)
     {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -106,7 +92,7 @@ class Data extends AbstractData
             $Entity->setName($Name);
             $Entity->setDescription($Description);
             $Entity->setRemark($Remark);
-            $Entity->setCoreGroup($isCoreGroup);
+//            $Entity->setCoreGroup($isCoreGroup);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
             return true;
@@ -207,11 +193,8 @@ class Data extends AbstractData
     public function getGroupListByIsCoreGroup($isCoreGroup = true)
     {
 
-        $Entity = $this->getCachedEntityListBy(__Method__, $this->getConnection()->getEntityManager(), 'TblGroup',
-            array(
-                TblGroup::ATTR_IS_CORE_GROUP => $isCoreGroup
-            ));
-        return (null === $Entity ? false : $Entity);
+        return $this->getCachedEntityListBy(__Method__, $this->getConnection()->getEntityManager(), 'TblGroup',
+            array(TblGroup::ATTR_IS_CORE_GROUP => $isCoreGroup));
     }
 
     /**
@@ -252,6 +235,29 @@ class Data extends AbstractData
             $EntityList = $ResultList;
         }
         return ( null === $EntityList ? false : $EntityList );
+    }
+
+    /**
+     * @param TblGroup $tblGroup
+     *
+     * @return array|float|int|string
+     */
+    public function fetchIdPersonAllByGroup(TblGroup $tblGroup)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $queryBuilder = $Manager->getQueryBuilder();
+        $Group = new TblGroup('');
+        $Member = new TblMember();
+        $query = $queryBuilder->select('tM.serviceTblPerson')
+//        $query = $queryBuilder->select('tM')
+            ->from($Member->getEntityFullName(), 'tM')
+            ->leftJoin($Group->getEntityFullName(), 'tG', 'WITH', 'tG.Id = tM.tblGroup')
+            ->where($queryBuilder->expr()->eq('tG.Id', '?1'))
+            ->andWhere($queryBuilder->expr()->isNull('tM.EntityRemove'))
+            ->setParameter(1, $tblGroup->getId())
+            ->getQuery();
+        return $query->getResult(ColumnHydrator::HYDRATION_MODE);
     }
 
     /**
@@ -314,9 +320,7 @@ class Data extends AbstractData
 
         $tblPersonAll = Person::useService()->getPersonAll();
         if ($tblPersonAll) {
-            /** @noinspection PhpUnusedParameterInspection */
             array_walk($tblPersonAll, function (TblPerson &$tblPerson) use ($Exclude) {
-
                 if (in_array($tblPerson->getId(), $Exclude)) {
                     $tblPerson = false;
                 }
@@ -329,7 +333,6 @@ class Data extends AbstractData
     }
 
     /**
-     *
      * @param TblPerson $tblPerson
      * @param bool $isForced
      *
@@ -514,25 +517,6 @@ class Data extends AbstractData
             return true;
         }
         return false;
-    }
-
-    /**
-     * @param TblGroup $tblGroup
-     *
-     * @return array of TblPerson->Id
-     */
-    public function fetchIdPersonAllByGroup(TblGroup $tblGroup)
-    {
-
-        $Manager = $this->getConnection()->getEntityManager();
-
-        $Builder = $Manager->getQueryBuilder();
-        $Query = $Builder->select('M.serviceTblPerson')
-            ->from(__NAMESPACE__.'\Entity\TblMember', 'M')
-            ->where($Builder->expr()->eq('M.tblGroup', '?1'))
-            ->setParameter(1, $tblGroup->getId())
-            ->getQuery();
-        return $Query->getResult(ColumnHydrator::HYDRATION_MODE);
     }
 
     /**

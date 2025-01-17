@@ -300,7 +300,11 @@ class TblImport extends Element
      */
     public function getReferenceDate()
     {
-        return $this->ReferenceDate;
+        if($this->ReferenceDate){
+            return $this->ReferenceDate;
+        }
+        $Date = new \DateTime();
+        return $Date->format('d.m.Y');
     }
 
     /**

@@ -12,9 +12,6 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
-use SPHERE\Application\Education\Certificate\Generator\Generator;
-use SPHERE\Application\Education\Lesson\Division\Division;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblLevel;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -27,6 +24,7 @@ class TblCertificateLevel extends Element
 
     const ATTR_TBL_CERTIFICATE = 'tblCertificate';
     const SERVICE_TBL_LEVEL = 'serviceTblLevel';
+    const ATTR_LEVEL = 'Level';
 
     /**
      * @Column(type="bigint")
@@ -37,20 +35,12 @@ class TblCertificateLevel extends Element
      * @Column(type="bigint")
      */
     protected $serviceTblLevel;
-    
+
     /**
-     * @return bool|TblCertificate
+     * @Column(type="integer")
      */
-    public function getTblCertificate()
-    {
-
-        if (null === $this->tblCertificate) {
-            return false;
-        } else {
-            return Generator::useService()->getCertificateById($this->tblCertificate);
-        }
-    }
-
+    protected ?int $Level;
+    
     /**
      * @param TblCertificate|null $tblCertificate
      */
@@ -61,24 +51,18 @@ class TblCertificateLevel extends Element
     }
     
     /**
-    * @return bool|TblLevel
-    */
-    public function getServiceTblLevel()
+     * @return int
+     */
+    public function getLevel(): int
     {
-
-        if (null === $this->serviceTblLevel) {
-            return false;
-        } else {
-            return Division::useService()->getLevelById($this->serviceTblLevel);
-        }
+        return $this->Level !== null ? $this->Level : 0;
     }
 
     /**
-     * @param TblLevel|null $tblLevel
+     * @param int $Level
      */
-    public function setServiceTblLevel(TblLevel $tblLevel = null)
+    public function setLevel(int $Level): void
     {
-
-        $this->serviceTblLevel = (null === $tblLevel ? null : $tblLevel->getId());
+        $this->Level = $Level;
     }
 }

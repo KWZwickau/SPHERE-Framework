@@ -11,9 +11,7 @@ use SPHERE\Application\People\Relationship\Service\Entity\TblSiblingRank;
 use SPHERE\Application\People\Relationship\Service\Entity\TblToCompany;
 use SPHERE\Application\People\Relationship\Service\Entity\TblToPerson;
 use SPHERE\Application\People\Relationship\Service\Entity\TblType;
-use SPHERE\Application\People\Relationship\Service\Entity\ViewRelationshipFromPerson;
 use SPHERE\Application\People\Relationship\Service\Entity\ViewRelationshipToCompany;
-use SPHERE\Application\People\Relationship\Service\Entity\ViewRelationshipToPerson;
 use SPHERE\Application\People\Relationship\Service\Setup;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
@@ -30,24 +28,6 @@ use SPHERE\System\Database\Binding\AbstractService;
  */
 class Service extends AbstractService
 {
-
-    /**
-     * @return false|ViewRelationshipToPerson[]
-     */
-    public function viewRelationshipToPerson()
-    {
-
-        return (new Data($this->getBinding()))->viewRelationshipToPerson();
-    }
-
-    /**
-     * @return false|ViewRelationshipFromPerson[]
-     */
-    public function viewRelationshipFromPerson()
-    {
-
-        return ( new Data($this->getBinding()) )->viewRelationshipFromPerson();
-    }
 
     /**
      * @return false|ViewRelationshipToCompany[]
@@ -80,16 +60,19 @@ class Service extends AbstractService
 
     /**
      * @param TblPerson $tblPerson
-     * @param TblType|null $tblType
+     * @param TblType|string|null $tblType
      * @param bool $isForced
      *
      * @return bool|TblToPerson[]
      */
-    public function getPersonRelationshipAllByPerson(TblPerson $tblPerson, TblType $tblType = null, $isForced = false)
+    public function getPersonRelationshipAllByPerson(TblPerson $tblPerson, $tblType = null, $isForced = false)
     {
+
+        if(null !== $tblType && !($tblType instanceof TblType)){
+            $tblType = Relationship::useService()->getTypeByName($tblType);
+        }
         // Sortier-Reihenfolge
         // Sorg1, Sorg2, Sorg3, Vormund, Bevollmächtigter, Geschwisterkinder (eigene Beziehungen), Geschwisterkinder (andersrum), Rest
-
         $resultList = array();
         if (($list  = (new Data($this->getBinding()))->getPersonRelationshipAllByPerson($tblPerson, $tblType, $isForced))) {
             $count['Sorgeberechtigt'] = 4;
@@ -188,10 +171,10 @@ class Service extends AbstractService
      *
      * @return bool|TblToCompany[]
      */
-    public function getCompanyRelationshipAllByCompany(TblCompany $tblCompany)
+    public function getCompanyRelationshipAllByCompany(TblCompany $tblCompany, TblType $tblType = null)
     {
 
-        return (new Data($this->getBinding()))->getCompanyRelationshipAllByCompany($tblCompany);
+        return (new Data($this->getBinding()))->getCompanyRelationshipAllByCompany($tblCompany, $tblType);
     }
 
     /**
@@ -653,6 +636,17 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getRelationshipToCompanyById($Id);
+    }
+
+    /**
+     * @param TblCompany $tblCompany
+     *
+     * @return false|TblToCompany[]
+     */
+    public function getRelationshipToCompanyByCompany(TblCompany $tblCompany)
+    {
+
+        return (new Data($this->getBinding()))->getRelationshipToCompanyByCompany($tblCompany);
     }
 
     /**

@@ -205,7 +205,9 @@ class LwszGsStyle
                 ->addElementColumn((new Element())
                     ->setContent(
                         ($tblPerson ? $tblPerson->getFullName() : '') . ' | '
-                        . ($certificate->getTblDivision() ? 'Klasse ' . $certificate->getTblDivision()->getDisplayName() : '') . ' | '
+                        . (($tblStudentEducation = $certificate->getTblStudentEducation()) && ($tblDivisionCourse = $tblStudentEducation->getTblDivision())
+                            ? 'Klasse ' . $tblDivisionCourse->getName() : '')
+                        . ' | '
                         . (strpos($certificate->getCertificateName(), 'info') ? 'Halbjahresinformation' : 'Jahreszeugnis')
                     )
                     ->styleTextSize('9.5px')

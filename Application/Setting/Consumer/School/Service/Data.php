@@ -6,6 +6,7 @@ use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\Application\Setting\Consumer\School\Service\Entity\TblSchool;
 use SPHERE\System\Database\Binding\AbstractData;
+use SPHERE\System\Database\Fitting\Element;
 
 /**
  * Class Data
@@ -78,18 +79,17 @@ class Data extends AbstractData
     public function getSchoolAll()
     {
 
-        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblSchool');
+        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblSchool', array(Element::ENTITY_CREATE => self::ORDER_ASC));
     }
 
 
     /**
      * @param TblCompany $tblCompany
      * @param TblType    $tblType
-     * @param string     $CompanyNumber
      *
      * @return bool|TblSchool
      */
-    public function addSchool(TblCompany $tblCompany, TblType $tblType, $CompanyNumber = '')
+    public function addSchool(TblCompany $tblCompany, TblType $tblType)
     {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -102,7 +102,8 @@ class Data extends AbstractData
             $Entity = new TblSchool();
             $Entity->setServiceTblCompany($tblCompany);
             $Entity->setTblType($tblType);
-            $Entity->setCompanyNumber($CompanyNumber);
+            $Entity->setCompanyNumber('');
+            $Entity->setSchoolCode('');
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
             return $Entity;
@@ -113,10 +114,11 @@ class Data extends AbstractData
     /**
      * @param TblSchool $tblSchool
      * @param string    $CompanyNumber
+     * @param string    $SchoolCode
      *
      * @return bool
      */
-    public function updateSchool(TblSchool $tblSchool, $CompanyNumber = '')
+    public function updateSchool(TblSchool $tblSchool, string $CompanyNumber = '', string $SchoolCode = '')
     {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -126,6 +128,7 @@ class Data extends AbstractData
         if ($Entity) {
             $Protocol = clone $Entity;
             $Entity->setCompanyNumber($CompanyNumber);
+            $Entity->setSchoolCode($SchoolCode);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
             return true;

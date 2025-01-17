@@ -16,9 +16,7 @@ class BGymHjZ extends Style
     {
         $personId = $tblPerson ? $tblPerson->getId() : 0;
 
-        $school[] = 'Berufliches Schulzentrum';
-        $school[] = 'der HOGA Schloss Albrechtsberg g SchulgmbH';
-        $school[] = 'Staatlich anerkannte Schulen in freier Trägerschaft';
+        $school = $this->getCustomSchoolName('Berufliches Schulzentrum');
 
         return (new Page())
             ->addSlice($this->getHeaderBGym($school))

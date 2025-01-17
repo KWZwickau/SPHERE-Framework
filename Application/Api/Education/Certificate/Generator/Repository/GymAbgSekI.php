@@ -14,9 +14,9 @@ use SPHERE\Application\Education\Certificate\Generator\Repository\Element;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Page;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Section;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
+use SPHERE\Application\Education\Certificate\Prepare\Prepare;
+use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
-use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer as ConsumerGatekeeper;
-use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 
 /**
@@ -30,6 +30,8 @@ class GymAbgSekI extends Certificate
     const COURSE_HS = 1;
     const COURSE_RS = 2;
     const COURSE_HSQ = 3;
+    const COURSE_LERNEN = 4;
+    const COURSE_EQUAL_NO = 5;
 
     /**
      * @param TblPerson|null $tblPerson
@@ -40,19 +42,11 @@ class GymAbgSekI extends Certificate
     {
         $personId = $tblPerson ? $tblPerson->getId() : 0;
 
-        if (ConsumerGatekeeper::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'ESBD')) {
-            $Header = MsAbsRs::getHeadForDiploma($this->isSample(), true);
-        } else {
-            $Header = $this->getHead($this->isSample());
-        }
-
         // leere Seite
         $pageList[] = new Page();
 
         $pageList[] = (new Page())
-            ->addSlice(
-                $Header
-            )
+            ->addSlice($this->getHeadForLeave($this->isSample()))
             ->addSlice((new Slice())
                 ->addElement((new Element())
                     ->setContent('ABGANGSZEUGNIS')
@@ -148,77 +142,7 @@ class GymAbgSekI extends Certificate
                     ->styleAlignCenter()
                 )->styleMarginTop('60px')
             )
-            ->addSlice((new Slice())
-                ->addSection((new Section())
-                    ->addSliceColumn(
-                        $this->setCheckBox(
-                            '{% if(Content.P' . $personId . '.Input.EqualGraduation.RS is not empty) %}
-                                X
-                            {% else %}
-                                &nbsp;
-                            {% endif %}'
-                        )
-                        , '4%')
-                    ->addElementColumn((new Element())
-                    ->setContent('
-                            {% if Content.P' . $personId . '.Person.Common.BirthDates.Gender == 2 %}
-                                Frau
-                            {% else %}
-                                {% if Content.P' . $personId . '.Person.Common.BirthDates.Gender == 1 %}
-                                    Herr
-                                {% else %}
-                                    Frau/Herr
-                                {% endif %}
-                            {% endif %}
-                            <u> {{ Content.P' . $personId . '.Person.Data.Name.First }} {{ Content.P' . $personId . '.Person.Data.Name.Last }} </u> hat
-                            gemäß § 7 Absatz 7 Satz 2 des Sächsischen Schulgesetzes mit der Versetzung von Klassenstufe
-                            10 nach Jahrgangsstufe 11 des Gymnasiums einen dem Realschulabschluss gleichgestellten mittleren
-                            Schulabschluss erworben.¹')
-                        ->stylePaddingBottom()
-                    )
-                )->styleMarginTop('45px')
-            )
-            ->addSlice((new Slice())
-                ->addSection((new Section())
-                    ->addSliceColumn(
-                        $this->setCheckBox(
-                            '{% if(Content.P' . $personId . '.Input.EqualGraduation.HS is not empty) %}
-                                X
-                            {% else %}
-                                &nbsp;
-                            {% endif %}'
-                        )
-                        , '4%')
-                    ->addElementColumn((new Element())
-                        ->setContent('
-                            {% if Content.P' . $personId . '.Person.Common.BirthDates.Gender == 2 %}
-                                Frau
-                            {% else %}
-                                {% if Content.P' . $personId . '.Person.Common.BirthDates.Gender == 1 %}
-                                    Herr
-                                {% else %}
-                                    Frau/Herr
-                                {% endif %}
-                            {% endif %}
-                            <u> {{ Content.P' . $personId . '.Person.Data.Name.First }} {{ Content.P' . $personId . '.Person.Data.Name.Last }} </u> hat
-                            gemäß § 7 Absatz 7 Satz 1 des Sächsischen Schulgesetzes mit der Versetzung von Klassenstufe 9
-                            nach Klassenstufe 10 des Gymnasiums einen dem Hauptschulabschluss gleichgestellten Schulabschluss erworben.¹')
-                        ->stylePaddingBottom()
-                    )
-                )->styleMarginTop('15px')
-            )
-            ->addSlice((new Slice())
-                ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        ->setContent('¹ Zutreffendes ist anzukreuzen')
-                        ->styleTextSize('9.5px')
-                        ->styleBorderTop()
-                        , '20%')
-                    ->addElementColumn((new Element())
-                    )
-                )
-                ->styleMarginTop('410px')
-            );
+            ->addSliceArray($this->getSliceListEqualGraduation($personId));
 
         $pageList[] = (new Page())
             ->addSlice((new Slice())
@@ -236,7 +160,7 @@ class GymAbgSekI extends Certificate
                         ->styleAlignCenter()
                         , '10%')
                     ->addElementColumn((new Element())
-                        ->setContent('{{ Content.P' . $personId . '.Division.Data.Level.Name }}{{ Content.P' . $personId . '.Division.Data.Name }}')
+                        ->setContent('{{ Content.P' . $personId . '.Division.Data.Name }}')
                         ->styleBorderBottom()
                         ->styleAlignCenter()
                         , '10%')
@@ -265,5 +189,78 @@ class GymAbgSekI extends Certificate
             ));
 
         return $pageList;
+    }
+
+    /**
+     * @param $personId
+     *
+     * @return array
+     */
+    private function getSliceListEqualGraduation($personId): array
+    {
+        if (($tblYear = $this->getYear())
+            && ($tblPerson = Person::useService()->getPersonById($personId))
+            && ($tblLeaveStudent = Prepare::useService()->getLeaveStudentBy($tblPerson, $tblYear))
+            && ($tblLeaveInformationEqualGraduation = Prepare::useService()->getLeaveInformationBy($tblLeaveStudent, 'EqualGraduation'))
+            && $tblLeaveInformationEqualGraduation->getValue() != GymAbgSekI::COURSE_EQUAL_NO
+        ) {
+             $sliceList[] = (new Slice())
+                ->addSection((new Section())
+                    ->addSliceColumn(
+                        $this->setCheckBox(
+                            '{% if(Content.P' . $personId . '.Input.EqualGraduation.RS is not empty) %}
+                                X
+                            {% else %}
+                                &nbsp;
+                            {% endif %}'
+                        )
+                        , '4%')
+                    ->addElementColumn((new Element())
+                        ->setContent('
+                            <u> {{ Content.P' . $personId . '.Person.Data.Name.First }} {{ Content.P' . $personId . '.Person.Data.Name.Last }} </u> hat
+                            gemäß § 7 Absatz 7 Satz 2 des Sächsischen Schulgesetzes mit der Versetzung von Klassenstufe
+                            10 nach Jahrgangsstufe 11 des Gymnasiums einen dem Realschulabschluss gleichgestellten mittleren
+                            Schulabschluss erworben.¹')
+                        ->stylePaddingBottom()
+                    )
+                )->styleMarginTop('45px');
+
+            $sliceList[] = (new Slice())
+                ->addSection((new Section())
+                    ->addSliceColumn(
+                        $this->setCheckBox(
+                            '{% if(Content.P' . $personId . '.Input.EqualGraduation.HS is not empty) %}
+                            X
+                        {% else %}
+                            &nbsp;
+                        {% endif %}'
+                        )
+                        , '4%')
+                    ->addElementColumn((new Element())
+                        ->setContent('
+                        <u> {{ Content.P' . $personId . '.Person.Data.Name.First }} {{ Content.P' . $personId . '.Person.Data.Name.Last }} </u> hat
+                        gemäß § 7 Absatz 7 Satz 1 des Sächsischen Schulgesetzes mit der Versetzung von Klassenstufe 9
+                        nach Klassenstufe 10 des Gymnasiums einen dem Hauptschulabschluss gleichgestellten Schulabschluss erworben.¹')
+                        ->stylePaddingBottom()
+                    )
+                )->styleMarginTop('15px');
+
+            $sliceList[] = (new Slice())
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->styleBorderBottom()
+                        , '30%')
+                    ->addElementColumn((new Element()))
+                )
+                ->addElement((new Element())
+                    ->setContent('¹ Zutreffendes ist anzukreuzen sowie Vorname und Name einzutragen.')
+                    ->styleTextSize('9.5px')
+                )
+                ->styleMarginTop('410px');
+
+            return $sliceList;
+        } else {
+            return array((new Slice())->addElement((new Element())->setContent('&nbsp;')));
+        }
     }
 }

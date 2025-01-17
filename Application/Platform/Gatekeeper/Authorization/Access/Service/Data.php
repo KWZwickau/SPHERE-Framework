@@ -231,6 +231,12 @@ class Data extends AbstractData
         $tblRole = $this->createRole('Einstellungen: Benutzer');
         $this->addRoleLevel($tblRole, $toRoleUserSetup);
 
+        if (($tblRoleTemp = $this->getRoleByName('Bildung: Notenbuch (Integrationsbeauftragte)'))) {
+            $this->updateRole($tblRoleTemp, 'Bildung: Notenbuch (Inklusionsbeauftragte)');
+        }
+        if (($tblRoleTemp = $this->getRoleByName('Bildung: Klassenbuch (Integrationsbeauftragte)'))) {
+            $this->updateRole($tblRoleTemp, 'Bildung: Klassenbuch (Inklusionsbeauftragte)');
+        }
     }
 
     /**
@@ -256,6 +262,31 @@ class Data extends AbstractData
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         }
         return $Entity;
+    }
+
+    /**
+     * @param TblRole $tblRole
+     * @param string $Name
+     *
+     * @return bool
+     */
+    private function updateRole(TblRole $tblRole, string $Name): bool
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblRole $Entity */
+        $Entity = $Manager->getEntityById('TblRole', $tblRole->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setName($Name);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+
+            return true;
+        }
+
+        return false;
     }
 
     /**

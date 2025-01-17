@@ -134,6 +134,9 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblSubject', 'Description')) {
             $Table->addColumn('Description', 'string');
         }
+
+        $this->createColumn($Table, 'IsActive', self::FIELD_TYPE_BOOLEAN, false, 1);
+
         return $Table;
     }
 

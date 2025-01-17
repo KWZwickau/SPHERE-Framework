@@ -22,7 +22,7 @@ class Data extends AbstractData
     public function setupDatabaseContent()
     {
 
-        $hasSubjects = $this->getSubjectAll();
+        $hasSubjects = $this->getSubjectAll(true);
 
         $tblGroupElective = $this->createGroup('Wahlfach', '', true, 'ELECTIVE');
         $tblGroupStandard = $this->createGroup('Standardfach', '', true, 'STANDARD');
@@ -70,6 +70,8 @@ class Data extends AbstractData
             $this->addCategorySubject($tblCategory, $tblSubject);
             $tblSubject = $this->createSubject('RU', 'Russisch');
             $this->addCategorySubject($tblCategory, $tblSubject);
+            $tblSubject = $this->createSubject('TSC', 'Tschechisch');
+            $this->addCategorySubject($tblCategory, $tblSubject);
             $tblSubject = $this->createSubject('SOR', 'Sorbisch');
             $this->addCategorySubject($tblCategory, $tblSubject);
             $tblSubject = $this->createSubject('SPA', 'Spanisch');
@@ -86,6 +88,7 @@ class Data extends AbstractData
             $this->addCategorySubject($tblCategory, $tblSubject);
             $tblSubject = $this->createSubject('GK', 'Gemeinschaftskunde/Rechtserziehung');
             $this->addCategorySubject($tblCategory, $tblSubject);
+            $this->addCategorySubject($tblCategoryElective, $tblSubject);
             $tblSubject = $this->createSubject('GEO', 'Geographie');
             $this->addCategorySubject($tblCategory, $tblSubject);
             $this->addCategorySubject($tblCategoryElective, $tblSubject);
@@ -248,6 +251,7 @@ class Data extends AbstractData
             $Entity->setAcronym($Acronym);
             $Entity->setName($Name);
             $Entity->setDescription($Description);
+            $Entity->setIsActive(true);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         }
@@ -304,6 +308,30 @@ class Data extends AbstractData
                 $Entity);
             return true;
         }
+        return false;
+    }
+
+    /**
+     * @param TblSubject $tblSubject
+     * @param bool $isActive
+     *
+     * @return bool
+     */
+    public function updateSubjectActive(TblSubject $tblSubject, bool $isActive): bool
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblSubject $Entity */
+        $Entity = $Manager->getEntityById('TblSubject', $tblSubject->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setIsActive($isActive);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+
+            return true;
+        }
+
         return false;
     }
 
@@ -674,10 +702,15 @@ class Data extends AbstractData
     /**
      * @return bool|TblSubject[]
      */
-    public function getSubjectAll()
+    public function getSubjectAll(bool $withInActive = false)
     {
-
-        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblSubject');
+        if ($withInActive) {
+            return $this->getCachedEntityList(__METHOD__, $this->getEntityManager(), 'TblSubject');
+        } else {
+            return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblSubject', array(
+               TblSubject::ATTR_IS_ACTIVE => true
+            ));
+        }
     }
 
     /**

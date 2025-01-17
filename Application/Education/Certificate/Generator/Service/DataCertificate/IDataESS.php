@@ -2,7 +2,6 @@
 namespace SPHERE\Application\Education\Certificate\Generator\Service\DataCertificate;
 
 use SPHERE\Application\Education\Certificate\Generator\Service\Data;
-use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 
@@ -37,9 +36,7 @@ class IDataESS
                 $Data->updateCertificate($tblCertificate, $Data->getTblCertificateTypeHalfYear(),
                     $Data->getTblSchoolTypePrimary(),
                     null, true);
-                if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypePrimary(), '1'))){
-                    $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                }
+                $Data->createCertificateLevel($tblCertificate, 1);
             }
             // Begrenzung des Bemerkungsfelds
             $FieldName = 'Remark';
@@ -64,9 +61,7 @@ class IDataESS
                 $Data->updateCertificate($tblCertificate, $Data->getTblCertificateTypeYear(),
                     $Data->getTblSchoolTypePrimary(),
                     null, false);
-                if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypePrimary(), '1'))){
-                    $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                }
+                $Data->createCertificateLevel($tblCertificate, 1);
             }
             // Begrenzung des Bemerkungsfelds
             $FieldName = 'Remark';
@@ -91,9 +86,7 @@ class IDataESS
                 $Data->updateCertificate($tblCertificate, $Data->getTblCertificateTypeHalfYear(),
                     $Data->getTblSchoolTypePrimary(),
                     null, true);
-                if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypePrimary(), '2'))){
-                    $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                }
+                $Data->createCertificateLevel($tblCertificate, 2);
             }
             // Begrenzung des Bemerkungsfelds
             $FieldName = 'Rating';
@@ -119,12 +112,8 @@ class IDataESS
         );
         if ($tblCertificate){
             if ($Data->getTblSchoolTypePrimary()){
-                $Data->updateCertificate($tblCertificate, $Data->getTblCertificateTypeYear(),
-                    $Data->getTblSchoolTypePrimary(),
-                    null, false);
-                if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypePrimary(), '2'))){
-                    $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                }
+                $Data->updateCertificate($tblCertificate, $Data->getTblCertificateTypeYear(), $Data->getTblSchoolTypePrimary(), null, false);
+                $Data->createCertificateLevel($tblCertificate, 2);
             }
             // Begrenzung des Bemerkungsfelds
             $FieldName = 'Rating';
@@ -150,12 +139,8 @@ class IDataESS
         );
         if ($tblCertificate){
             if ($Data->getTblSchoolTypePrimary()){
-                $Data->updateCertificate($tblCertificate, $Data->getTblCertificateTypeHalfYear(),
-                    $Data->getTblSchoolTypePrimary(),
-                    null, true);
-                if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypePrimary(), '3'))){
-                    $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                }
+                $Data->updateCertificate($tblCertificate, $Data->getTblCertificateTypeHalfYear(), $Data->getTblSchoolTypePrimary(), null, true);
+                $Data->createCertificateLevel($tblCertificate, 3);
                 // Begrenzung des Bemerkungsfelds
                 $FieldName = 'Rating';
                 if (!$Data->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)){
@@ -194,12 +179,8 @@ class IDataESS
         );
         if ($tblCertificate){
             if ($Data->getTblSchoolTypePrimary()){
-                $Data->updateCertificate($tblCertificate, $Data->getTblCertificateTypeYear(),
-                    $Data->getTblSchoolTypePrimary(),
-                    null, false);
-                if (($tblLevel = Division::useService()->getLevelBy($Data->getTblSchoolTypePrimary(), '3'))){
-                    $Data->createCertificateLevel($tblCertificate, $tblLevel);
-                }
+                $Data->updateCertificate($tblCertificate, $Data->getTblCertificateTypeYear(), $Data->getTblSchoolTypePrimary(), null, false);
+                $Data->createCertificateLevel($tblCertificate, 3);
             }
             // Begrenzung des Bemerkungsfelds
             $FieldName = 'Rating';

@@ -25,6 +25,11 @@ class DataMaintenance extends Extension implements IModuleInterface
             )
         );
         Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Protocol',
+                __NAMESPACE__.'/Frontend::frontendProtocol'
+            )
+        );
+        Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/OverView',
                 __NAMESPACE__.'/Frontend::frontendUserAccount'
             )
@@ -34,11 +39,6 @@ class DataMaintenance extends Extension implements IModuleInterface
                 __NAMESPACE__.'/Frontend::frontendDestroyAccount'
             )
         );
-//        Main::getDispatcher()->registerRoute(
-//            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Integration',
-//                __NAMESPACE__.'/Frontend::frontendTransferOltIntegration'
-//            )
-//        );
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/Restore/Person',
                 __NAMESPACE__.'/Frontend::frontendPersonRestore'
@@ -50,18 +50,23 @@ class DataMaintenance extends Extension implements IModuleInterface
             )
         );
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__.'\Grade',
-                __NAMESPACE__ . '/Frontend::frontendGrade'
-            )
-        );
-        Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__.'\GradeUnreachable',
-                __NAMESPACE__ . '/Frontend::frontendGradeUnreachable'
-            )
-        );
-        Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/Yearly',
                 __NAMESPACE__.'/Frontend::frontendYearly'
+            )
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/DivisionCourse',
+                __NAMESPACE__.'/Frontend::frontendDivisionCourse'
+            )
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/DocumentStorage/FileSize',
+                __NAMESPACE__.'/Frontend::frontendFileSize'
+            )
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/DocumentStorage/AllConsumers',
+                __NAMESPACE__.'/Frontend::frontendAllConsumers'
             )
         );
     }

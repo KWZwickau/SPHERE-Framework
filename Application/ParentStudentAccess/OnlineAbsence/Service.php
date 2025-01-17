@@ -3,7 +3,7 @@
 namespace SPHERE\Application\ParentStudentAccess\OnlineAbsence;
 
 use DateTime;
-use SPHERE\Application\People\Meta\Student\Student;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Setting\Consumer\Consumer;
@@ -22,8 +22,8 @@ class Service
             && ($tblSetting = Consumer::useService()->getSetting('Education', 'ClassRegister', 'Absence', 'OnlineAbsenceAllowedForSchoolTypes'))
             && ($tblSchoolTypeAllowedList = Consumer::useService()->getSchoolTypeBySettingString($tblSetting->getValue()))
         ) {
-            if (($tblDivision = Student::useService()->getCurrentMainDivisionByPerson($tblPerson))
-                && ($tblType = $tblDivision->getType())
+            if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndDate($tblPerson))
+                && ($tblType = $tblStudentEducation->getServiceTblSchoolType())
                 && isset($tblSchoolTypeAllowedList[$tblType->getId()])
                 && ($birthday = $tblPerson->getBirthday())
                 && (new DateTime($birthday)) <= ((new DateTime('now'))->modify('-18 year'))
@@ -57,8 +57,8 @@ class Service
                             || $relationship->getTblType()->getName() == 'Vormund')
                     ) {
                         // prüfen: ob die Schulart freigeben ist
-                        if (($tblDivision = Student::useService()->getCurrentMainDivisionByPerson($tblPersonTo))
-                            && ($tblType = $tblDivision->getType())
+                        if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndDate($tblPersonTo))
+                            && ($tblType = $tblStudentEducation->getServiceTblSchoolType())
                             && isset($tblSchoolTypeAllowedList[$tblType->getId()])
                         ) {
                             $tblPersonList[$tblPersonTo->getId()] = $tblPersonTo;

@@ -79,6 +79,7 @@ class Setup extends AbstractSetup
 
         $this->createColumn($Table, 'serviceTblCourse', self::FIELD_TYPE_BIGINT, true);
         $this->createColumn($Table, 'serviceTblSchoolType', self::FIELD_TYPE_BIGINT, true);
+        $this->createColumn($Table, 'CertificateNumber', self::FIELD_TYPE_STRING, false, '');
 
         $this->getConnection()->addForeignKey($Table, $tblCertificateType, true);
 
@@ -159,18 +160,16 @@ class Setup extends AbstractSetup
     /**
      * @param Schema $Schema
      * @param Table $tblCertificate
-     *
-     * @return Table
      */
     private function setTableCertificateLevel(Schema &$Schema, Table $tblCertificate)
     {
-
         $Table = $this->getConnection()->createTable($Schema, 'tblCertificateLevel');
+        // alt
         $this->createColumn($Table, 'serviceTblLevel', self::FIELD_TYPE_BIGINT, true);
+        // neu
+        $this->createColumn($Table, 'Level', self::FIELD_TYPE_INTEGER, true);
 
         $this->getConnection()->addForeignKey($Table, $tblCertificate, true);
-
-        return $Table;
     }
 
     /**

@@ -5,8 +5,8 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\System\Database\Fitting\Element;
 
@@ -17,7 +17,6 @@ use SPHERE\System\Database\Fitting\Element;
  */
 class TblYear extends Element
 {
-
     const ATTR_YEAR = 'Year';
     const ATTR_NAME = 'Name';
     const ATTR_DESCRIPTION = 'Description';
@@ -78,15 +77,21 @@ class TblYear extends Element
     }
 
     /**
-     * @param TblDivision|null $tblDivision
-     * @param false $IsAll
-     *
-     * @return bool|TblPeriod[]
+     * @return false|TblPeriod[]
      */
-    public function getTblPeriodAll(TblDivision $tblDivision = null, bool $IsAll = false)
+    public function getPeriodList(bool $isShortYear = false, bool $isAllYear = false)
     {
+        return Term::useService()->getPeriodListByYear($this, $isShortYear, $isAllYear);
+    }
 
-        return Term::useService()->getPeriodAllByYear($this, $tblDivision, $IsAll);
+    /**
+     * @param TblPerson $tblPerson
+     *
+     * @return false|TblPeriod[]
+     */
+    public function getPeriodListByPerson(TblPerson $tblPerson)
+    {
+        return Term::useService()->getPeriodListByPersonAndYear($tblPerson, $this);
     }
 
     /**
@@ -110,9 +115,13 @@ class TblYear extends Element
     /**
      * @return string
      */
-    public function getDisplayName()
+    public function getDisplayName($withStyle = true)
     {
 
-        return $this->getYear().' '.new Muted($this->getDescription());
+        if($withStyle){
+            return $this->getYear().' '.new Muted($this->getDescription());
+        } else {
+            return $this->getYear().' '.$this->getDescription();
+        }
     }
 }

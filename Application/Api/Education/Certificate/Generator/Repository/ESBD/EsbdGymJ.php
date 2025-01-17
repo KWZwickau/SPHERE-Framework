@@ -82,13 +82,13 @@ class EsbdGymJ extends EsbdStyle
                 )
                 ->styleMarginTop('10px')
             )
-            ->addSlice($this->getDescriptionConsumer($personId, '35px', '10px'))
+            ->addSlice($this->getDescriptionConsumer($personId, '35px', '10px', false))
             ->addSlice($this->getMissingConsumer($personId))
             ->addSlice($this->getTransferConsumer($personId, '15px'))
             ->addSlice($this->getDateLineConsumer($personId, '15px'))
             ->addSlice($this->getSignPartConsumer($personId))
             ->addSlice($this->getParentSignConsumer())
-            ->addSlice($this->getInfoConsumer('10px',
+            ->addSlice($this->getInfoConsumer('5px',
                 'Notenerläuterung:',
                 '1 = sehr gut; 2 = gut; 3 = befriedigend; 4 = ausreichend; 5 = mangelhaft;
                                           6 = ungenügend (6 = ungenügend nur bei der Bewertung der Leistungen)',
@@ -119,7 +119,7 @@ class EsbdGymJ extends EsbdStyle
                 )
             )
 //            ->addSlice($this->getCertificateHead('Halbjahreszeugnis der Oberschule', '5px'))
-            ->addSlice($this->getDivisionAndYearConsumer($personId, '10px', '1. Schulhalbjahr'))
+            ->addSlice($this->getDivisionAndYearConsumer($personId, '10px', 'Schuljahr'))
             ->addSlice($this->getStudentNameConsumer($personId))
             ->addSliceArray($this->getSecondPageDescription($personId))
             ->addSlice($this->getBottomLineConsumer());

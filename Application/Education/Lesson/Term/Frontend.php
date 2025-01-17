@@ -7,6 +7,7 @@ use SPHERE\Application\Corporation\Company\Company;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblPeriod;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer as GatekeeperConsumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Platform\System\BasicData\BasicData;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
@@ -25,6 +26,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Check;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
+use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
 use SPHERE\Common\Frontend\Icon\Repository\ListingTable;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
@@ -34,9 +36,10 @@ use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Select;
 use SPHERE\Common\Frontend\Icon\Repository\Unchecked;
-use SPHERE\Common\Frontend\IFrontendInterface;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Headline;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
@@ -49,20 +52,93 @@ use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
+use SPHERE\Common\Frontend\Text\Repository\Danger as DangerText;
 use SPHERE\Common\Frontend\Text\Repository\Info;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
+use SPHERE\System\Extension\Repository\Sorter\DateTimeSorter;
 
 /**
  * Class Frontend
  *
  * @package SPHERE\Application\Education\Lesson\Term
  */
-class Frontend extends Extension implements IFrontendInterface
+class Frontend extends FrontendWizard
 {
+
+    public function getWelcome()
+    {
+
+        // BIP mit 7 verschiedenen parallelen Schuljahren ausgenommen
+        if(GatekeeperConsumer::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'BIP')){
+            return '';
+        }
+
+        $Now = new \DateTime();
+        $tblYearList = array();
+        // aktuelles & folgende Schuljahre
+        if(($tblYearListTmp = Term::useService()->getYearAllFutureYears(0))){
+            $tblYearListTmp = (new Extension())->getSorter($tblYearListTmp)->sortObjectBy(TblYear::ATTR_YEAR);
+            foreach($tblYearListTmp as $tblYearTmp){
+                $tblYearList[] = $tblYearTmp;
+            }
+        }
+
+        $MissingTimeSpan = array();
+        if(!empty($tblYearList)){
+            foreach($tblYearList as $tblYear){
+                if(($tblPeriodList = $tblYear->getPeriodList())){
+                    $tblPeriodList = (new Extension())->getSorter($tblPeriodList)->sortObjectBy(TblPeriod::ATTR_FROM_DATE, new DateTimeSorter());
+                    foreach($tblPeriodList as $tblPeriod){
+                        $From = $tblPeriod->getFromDateTime();
+                        $To = $tblPeriod->getToDateTime();
+                        $isDangerColor = false;
+                        if(!isset($LastTo)){
+                            // Now darf kein Tag hinzufügen
+                            $LastToPlus1Day = $LastTo = $Now;
+                            $isDangerColor = true;
+                        } else {
+                            // Vergleich setzt ToDate um ein Tag nach oben um das Datum besser vergleichen zu können
+                            $LastToPlus1Day = $LastTo;
+                            $LastToPlus1Day->modify('+1 day');
+                        }
+                        if($LastToPlus1Day < $From && $From > $Now) {
+                            $FromTemp = $From;
+                            $FromTemp->modify('-1 day');
+                            if($isDangerColor){
+                                $DateString = new DangerText('['.$LastToPlus1Day->format('d.m.Y').' - '.$From->format('d.m.Y').']');
+                            } else {
+                                $DateString = '['.$LastToPlus1Day->format('d.m.Y').' - '.$From->format('d.m.Y').']';
+                            }
+                            $MissingTimeSpan[] = $DateString; // 'Schuljahr: '.$tblYear->getDisplayName().
+                        }
+//                        $LastFrom = $From;
+                        $LastTo = $To;
+                    }
+                }
+            }
+            if(!empty($MissingTimeSpan)) {
+                if(count($MissingTimeSpan) > 1) {
+                    $TextForCount = 'Für folgende Zeiträume sind keine Schuljahre';
+                } else {
+                    $TextForCount = 'Für folgenden Zeitraum ist kein Schuljahr';
+                }
+                return new Warning(
+                    new Layout(new LayoutGroup(new LayoutRow(array(
+                        new LayoutColumn($TextForCount.' hinterlegt: '.new Bold(implode(' &nbsp; ',$MissingTimeSpan))
+                            .new Container('Bitte geben Sie die Zeiträume so an, das keine Lücken entstehen, um ein lückenloses Arbeiten zu ermöglichen'), 9),
+                        new LayoutColumn(new PullRight(new Standard('Schuljahr Dashboard', '/Education/Lesson/Term', new EyeOpen())), 3),
+                    )))));
+            }
+        } else {
+            return new Danger(new Standard('Schuljahr Dashboard', '/Education/Lesson/Term', new EyeOpen()).'Es ist kein Schuljahr aktiv. Auswertungen, Kurse, Schülerakten, etc. können unerwartet reagieren');
+        }
+        return '';
+    }
+
     /**
      * @param string $Route
      * @param bool $IsAllYears
@@ -134,7 +210,7 @@ class Frontend extends Extension implements IFrontendInterface
         if ($tblYearAll) {
             array_walk($tblYearAll, function (TblYear $tblYear) use (&$TableContent) {
 
-                $tblPeriodAll = $tblYear->getTblPeriodAll(null, true);
+                $tblPeriodAll = $tblYear->getPeriodList(false, true);
                 $Temp['Year'] = $tblYear->getYear();
                 $Temp['Description'] = $tblYear->getDescription();
                 $Temp['Option'] =
@@ -192,8 +268,8 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $YearList = array();
-        for ($i = -1; $i < 5; $i++) {
-            $this->addYear($YearList, $i);
+        for ($i = -2; $i < 5; $i++) {
+            Term::useService()->addYear($YearList, $i);
         }
 
 //        // bereits existierende Schuljahr stehen nicht zur Auswahl
@@ -237,12 +313,6 @@ class Frontend extends Extension implements IFrontendInterface
                 )),
             ))
         );
-    }
-
-    private function addYear(&$YearList, $diff)
-    {
-        $value = (date('Y') + $diff) . '/' . (date('y') + $diff + 1);
-        $YearList[$value] = $value;
     }
 
     /**
@@ -873,6 +943,12 @@ class Frontend extends Extension implements IFrontendInterface
                     $global->POST['Data'] = $tblState->getId();
                     $global->savePost();
                 }
+            }
+            if (($tblState = BasicData::useService()->getStateByName('Niedersachsen'))) {
+                $list[$tblState->getId()] = $tblState->getName();
+            }
+            if (($tblState = BasicData::useService()->getStateByName('Thüringen'))) {
+                $list[$tblState->getId()] = $tblState->getName();
             }
 
             $form = new Form(new FormGroup(new FormRow(new FormColumn(

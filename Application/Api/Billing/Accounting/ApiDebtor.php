@@ -410,10 +410,16 @@ class ApiDebtor extends Extension implements IApiInterface
         } else {
             if(($tblDebtorNumber = Debtor::useService()->getDebtorNumberByNumber($DebtorNumber['Number']))){
                 $tblPerson = Person::useService()->getPersonById($PersonId);
-                if($tblPerson && ($tblPersonCompare = $tblDebtorNumber->getServiceTblPerson())
+                $tblPersonCompare = $tblDebtorNumber->getServiceTblPerson();
+                if($tblPerson && $tblPersonCompare
                     && $tblPerson->getId() !== $tblPersonCompare->getId()){
                     $form->setError('DebtorNumber[Number]',
                         'Bitte geben sie eine noch nicht vergebene Debitorennummer an');
+                    $Error = true;
+                } elseif($tblPersonCompare === false) {
+                    // Person wurde gelöscht (soft removed)
+                    $form->setError('DebtorNumber[Number]',
+                        'Alte Verknüpfung, aus Sicherheitsgründen kann Debitorennummer nicht erneut vergeben werden');
                     $Error = true;
                 }
             }

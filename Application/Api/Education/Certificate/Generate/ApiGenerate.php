@@ -13,8 +13,7 @@ use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\Education\Certificate\Generate\Frontend;
 use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
-use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
-use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Graduation\Grade\Grade;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\IApiInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
@@ -218,17 +217,16 @@ class ApiGenerate extends Extension implements IApiInterface
      */
     public function reloadAppointedDateTaskSelect($Data = array())
     {
-
         if (isset($Data['Year'])) {
             $tblYear = Term::useService()->getYearById($Data['Year']);
         } else {
             $tblYear = false;
         }
 
-        $tblAppointedDateTaskListByYear = Evaluation::useService()->getTaskAllByTestType(
-            Evaluation::useService()->getTestTypeByIdentifier('APPOINTED_DATE_TASK'),
-            $tblYear ? $tblYear : null
-        );
+        $tblAppointedDateTaskListByYear = false;
+        if ($tblYear) {
+            $tblAppointedDateTaskListByYear = Grade::useService()->getAppointedDateTaskListByYear($tblYear);
+        }
 
         if ($tblAppointedDateTaskListByYear) {
             $tblTask = reset($tblAppointedDateTaskListByYear);
@@ -236,8 +234,7 @@ class ApiGenerate extends Extension implements IApiInterface
             $_POST['Data']['AppointedDateTask'] = $tblTask ? $tblTask->getId() : 0;
         }
 
-        return new SelectBox('Data[AppointedDateTask]', 'Stichtagsnotenauftrag',
-            array('{{ Date }} {{ Name }}' => $tblAppointedDateTaskListByYear));
+        return new SelectBox('Data[AppointedDateTask]', 'Stichtagsnotenauftrag', array('{{ DateString }} {{ Name }}' => $tblAppointedDateTaskListByYear));
     }
 
     /**
@@ -247,17 +244,16 @@ class ApiGenerate extends Extension implements IApiInterface
      */
     public function reloadBehaviorTaskSelect($Data = array())
     {
-
         if (isset($Data['Year'])) {
             $tblYear = Term::useService()->getYearById($Data['Year']);
         } else {
             $tblYear = false;
         }
 
-        $tblBehaviorTaskListByYear = Evaluation::useService()->getTaskAllByTestType(
-            Evaluation::useService()->getTestTypeByIdentifier('BEHAVIOR_TASK'),
-            $tblYear ? $tblYear : null
-        );
+        $tblBehaviorTaskListByYear = false;
+        if ($tblYear) {
+            $tblBehaviorTaskListByYear = Grade::useService()->getBehaviorTaskListByYear($tblYear);
+        }
 
         if ($tblBehaviorTaskListByYear) {
             $tblTask = reset($tblBehaviorTaskListByYear);
@@ -265,8 +261,7 @@ class ApiGenerate extends Extension implements IApiInterface
             $_POST['Data']['BehaviorTask'] = $tblTask ? $tblTask->getId() : 0;
         }
 
-        return new SelectBox('Data[BehaviorTask]', 'Kopfnotenauftrag',
-            array('{{ Date }} {{ Name }}' => $tblBehaviorTaskListByYear));
+        return new SelectBox('Data[BehaviorTask]', 'Kopfnotenauftrag', array('{{ DateString }} {{ Name }}' => $tblBehaviorTaskListByYear));
     }
 
     /**
@@ -274,17 +269,17 @@ class ApiGenerate extends Extension implements IApiInterface
      *
      * @return String
      */
-    public function openCertificateModal($PrepareId)
+    public function openCertificateModal($PrepareId): string
     {
         $panel = '';
         if (($tblPrepare = Prepare::useService()->getPrepareById($PrepareId))
-            && ($tblDivision = $tblPrepare->getServiceTblDivision())
+            && ($tblDivisionCourse = $tblPrepare->getServiceTblDivision())
         ) {
             $panel = new Panel(
                 'Zeugnis generieren',
                 array(
                     'Name: ' . $tblPrepare->getName(),
-                    'Klasse: ' . $tblDivision->getDisplayName()
+                    'Kurs: ' . $tblDivisionCourse->getDisplayName()
                 ),
                 Panel::PANEL_TYPE_INFO
             );
@@ -318,7 +313,7 @@ class ApiGenerate extends Extension implements IApiInterface
         );
 
         return
-            new Title('Zeugnis generieren - Zeugnisvorlagen der gesamten Klasse auswählen')
+            new Title('Zeugnis generieren - Zeugnisvorlagen des gesamten Kurses auswählen')
             . $panel
             . '<br>'
             . new Warning(
@@ -358,14 +353,12 @@ class ApiGenerate extends Extension implements IApiInterface
         $Global = $this->getGlobal();
         $certificateId = $Global->POST['Certificate'];
 
-        if (($tblDivision = $tblPrepare->getServiceTblDivision())
+        if (($tblDivisionCourse = $tblPrepare->getServiceTblDivision())
             && ($tblCertificateType = $tblPrepare->getCertificateType())
         ) {
-            $tblStudentAll = Division::useService()->getStudentAllByDivision($tblDivision);
-
             $result = '';
-            if ($tblStudentAll) {
-                foreach ($tblStudentAll as $tblPerson) {
+            if (($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses())) {
+                foreach ($tblPersonList as $tblPerson) {
                     $result .= self::pipelineChangeCertificate($certificateId, $tblCertificateType->getId(), $tblPerson->getId());
                 }
             }
@@ -383,7 +376,7 @@ class ApiGenerate extends Extension implements IApiInterface
      *
      * @return SelectBox
      */
-    public function changeCertificate($CertificateId, $CertificateTypeId, $PersonId)
+    public function changeCertificate($CertificateId, $CertificateTypeId, $PersonId): SelectBox
     {
         return (new Frontend())->getCertificateSelectBox($PersonId, $CertificateId, $CertificateTypeId);
     }

@@ -4,7 +4,7 @@ namespace SPHERE\Application\Education\Lesson\Term;
 use DateInterval;
 use DateTime;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\Term\Service\Data;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblHoliday;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblHolidayType;
@@ -12,15 +12,19 @@ use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblPeriod;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYearHoliday;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYearPeriod;
-use SPHERE\Application\Education\Lesson\Term\Service\Entity\ViewYear;
-use SPHERE\Application\Education\Lesson\Term\Service\Entity\ViewYearPeriod;
 use SPHERE\Application\Education\Lesson\Term\Service\Setup;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\System\BasicData\BasicData;
 use SPHERE\Common\Frontend\Form\IFormInterface;
+use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
+use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
+use SPHERE\Common\Frontend\Text\Repository\Bold;
+use SPHERE\Common\Frontend\Text\Repository\Info;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
 
@@ -31,25 +35,6 @@ use SPHERE\System\Database\Binding\AbstractService;
  */
 class Service extends AbstractService
 {
-
-    /**
-     * @return false|ViewYear[]
-     */
-    public function viewYear()
-    {
-
-        return ( new Data($this->getBinding()) )->viewYear();
-    }
-
-    /**
-     * @return false|ViewYearPeriod[]
-     */
-    public function viewYearPeriod()
-    {
-
-        return ( new Data($this->getBinding()) )->viewYearPeriod();
-    }
-
     /**
      * @param bool $doSimulation
      * @param bool $withData
@@ -72,26 +57,29 @@ class Service extends AbstractService
 
     /**
      * @param TblYear $tblYear
-     * @param TblDivision|null $tblDivision
-     * @param bool $IsAll
+     * @param bool $isShortYear
+     * @param bool $isAllYear
      *
-     * @return bool|TblPeriod[]
+     * @return false|TblPeriod[]
      */
-    public function getPeriodAllByYear(TblYear $tblYear, TblDivision $tblDivision = null, bool $IsAll = false)
+    public function getPeriodListByYear(TblYear $tblYear, bool $isShortYear = false, bool $isAllYear = false)
     {
-        // aGym Klasse 12 oder bGym Klasse 13
-        if ($tblDivision
-            && ($tblLevel = $tblDivision->getTblLevel())
-            && ($tblSchoolType = $tblLevel->getServiceTblType())
-            && (($tblSchoolType->getShortName() == 'Gy' && intval($tblLevel->getName()) == 12)
-                    || ($tblSchoolType->getShortName() == 'BGy' && intval($tblLevel->getName()) == 13))
-        ) {
-            $IsLevel12 = true;
-        } else {
-            $IsLevel12 = false;
-        }
+        return (new Data($this->getBinding()))->getPeriodListByYear($tblYear, $isShortYear, $isAllYear);
+    }
 
-        return (new Data($this->getBinding()))->getPeriodAllByYear($tblYear, $IsLevel12, $IsAll);
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     *
+     * @return false|TblPeriod[]
+     */
+    public function getPeriodListByPersonAndYear(TblPerson $tblPerson, TblYear $tblYear)
+    {
+        if (DivisionCourse::useService()->getIsShortYearByPersonAndYear($tblPerson, $tblYear)) {
+            return $this->getPeriodListByYear($tblYear, true);
+        } else {
+            return $this->getPeriodListByYear($tblYear);
+        }
     }
 
     /**
@@ -117,7 +105,7 @@ class Service extends AbstractService
         $tblYearAll = Term::useService()->getYearAll();
         if ($tblYearAll) {
             foreach ($tblYearAll as $tblYear) {
-                $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear, null, true);
+                $tblPeriodList = Term::useService()->getPeriodListByYear($tblYear, false, true);
                 if ($tblPeriodList) {
                     $To = '';
                     $tblPeriodTemp = new TblPeriod();
@@ -155,15 +143,14 @@ class Service extends AbstractService
     {
 
         $Now = (new DateTime('now'))->add(new DateInterval('P' . $Year . 'Y'));
-
         $EntityList = array();
         $tblYearAll = Term::useService()->getYearAll();
         if ($tblYearAll) {
             foreach ($tblYearAll as $tblYear) {
-                $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear, null, true);
+                $tblPeriodList = Term::useService()->getPeriodListByYear($tblYear);
                 if ($tblPeriodList) {
                     $To = '';
-                    $tblPeriodTemp = new TblPeriod();
+                    $tblPeriodTemp = false;
                     foreach ($tblPeriodList as $tblPeriod) {
                         if (new DateTime($tblPeriod->getToDate()) > new DateTime($To) || $To == '') {
                             $To = $tblPeriod->getToDate();
@@ -172,7 +159,7 @@ class Service extends AbstractService
                             $tblPeriodTemp = $tblPeriod;
                         }
                     }
-                    if (new DateTime($To) >= new DateTime($Now->format('d.m.Y'))) {
+                    if (new DateTime($To) >= new DateTime($Now->format('d.m.Y')) && $tblPeriodTemp) {
                         $tblYearTempList = Term::useService()->getYearByPeriod($tblPeriodTemp);
                         if ($tblYearTempList) {
                             foreach ($tblYearTempList as $tblYearTemp) {
@@ -298,7 +285,7 @@ class Service extends AbstractService
         $tblYearAll = Term::useService()->getYearAll();
         if ($tblYearAll) {
             foreach ($tblYearAll as $tblYear) {
-                $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear, null, true);
+                $tblPeriodList = Term::useService()->getPeriodListByYear($tblYear, false, true);
                 if ($tblPeriodList) {
                     $From = '';
                     $To = '';
@@ -428,7 +415,7 @@ class Service extends AbstractService
     }
 
     /**
-     * @param int $Id
+     * @param $Id
      *
      * @return bool|TblYear
      */
@@ -843,6 +830,24 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblYear $tblYear
+     * @param DateTime $date
+     * @param array $tblCompanyList
+     *
+     * @return bool|TblHoliday
+     */
+    public function getHolidayByDayAndCompanyList(TblYear $tblYear, DateTime $date, array $tblCompanyList)
+    {
+        foreach ($tblCompanyList as $tblCompany) {
+            if (($tblHoliday = (new Data($this->getBinding()))->getHolidayByDay($tblYear, $date, $tblCompany))) {
+                return $tblHoliday;
+            }
+        }
+
+        return (new Data($this->getBinding()))->getHolidayByDay($tblYear, $date, null);
+    }
+
+    /**
      * @return false|TblHoliday[]
      */
     public function getHolidayAll()
@@ -1082,7 +1087,7 @@ class Service extends AbstractService
     {
         $startDate = false;
         $endDate = false;
-        if (($tblPeriodList = $tblYear->getTblPeriodAll(null, true))) {
+        if (($tblPeriodList = $tblYear->getPeriodList(false, true))) {
             foreach ($tblPeriodList as $tblPeriod) {
                 if ($startDate) {
                     if ($startDate > new DateTime($tblPeriod->getFromDate())) {
@@ -1189,14 +1194,15 @@ class Service extends AbstractService
      * @param string $date
      * @param TblYear $tblYear
      * @param array $tblCompanyList
+     * @param bool $hasSaturdayLessons
      *
      * @return bool
      */
-    public function getIsSchoolWeekHoliday(string $date, TblYear $tblYear, array $tblCompanyList)
+    public function getIsSchoolWeekHoliday(string $date, TblYear $tblYear, array $tblCompanyList, bool $hasSaturdayLessons = false): bool
     {
         $date = new DateTime($date);
         $isHoliday = false;
-        for ($i = 0; $i < 5; $i++) {
+        for ($i = 0; $i < $hasSaturdayLessons ? 6 : 5; $i++) {
             if ($i > 0) {
                 $date->add(new DateInterval('P1D'));
             }
@@ -1217,5 +1223,206 @@ class Service extends AbstractService
         }
 
         return true;
+    }
+
+    /**
+     * @param TblYear $tblYear
+     *
+     * @return bool
+     */
+    public function getIsCurrentYear(TblYear $tblYear): bool
+    {
+        if ($tblYearListByNow = $this->getYearByNow()) {
+            foreach ($tblYearListByNow as $tblYearNow) {
+                if ($tblYear->getId() == $tblYearNow->getId()) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @param $Route
+     * @param $IsAllYears
+     * @param $YearId
+     * @param $tblYear
+     * @param $HasAllYears
+     *
+     * @return array
+     */
+    public function setYearButtonList($Route, $IsAllYears, $YearId, &$tblYear, $HasAllYears): array
+    {
+        $tblYear = false;
+        $tblYearList = Term::useService()->getYearByNow();
+        if ($YearId) {
+            $tblYear = Term::useService()->getYearById($YearId);
+        } elseif (!$IsAllYears && $tblYearList) {
+            $tblYear = end($tblYearList);
+        }
+
+        $buttonList = array();
+        if ($tblYearList) {
+            $tblYearList = $this->getSorter($tblYearList)->sortObjectBy('DisplayName');
+            /** @var TblYear $tblYearItem */
+            foreach ($tblYearList as $tblYearItem) {
+                if ($tblYear && $tblYear->getId() == $tblYearItem->getId()) {
+                    $buttonList[] = (new Standard(new Info(new Bold($tblYearItem->getDisplayName())),
+                        $Route, new Edit(), array('YearId' => $tblYearItem->getId())));
+                } else {
+                    $buttonList[] = (new Standard($tblYearItem->getDisplayName(), $Route,
+                        null, array('YearId' => $tblYearItem->getId())));
+                }
+            }
+        }
+
+        // Fachlehrer sollen nur Zugriff auf Leistungsüberprüfungen aller aktuellen Schuljahre haben
+        // #SSW-1169 Anlegen von Leistungsüberprüfung von noch nicht erreichten Schuljahren verhindern
+        if ($HasAllYears) {
+            if ($IsAllYears) {
+                $buttonList[] = (new Standard(new Info(new Bold('Alle Schuljahre')),
+                    $Route, new Edit(), array('IsAllYears' => true)));
+            } else {
+                $buttonList[] = (new Standard('Alle Schuljahre', $Route, null,
+                    array('IsAllYears' => true)));
+            }
+        }
+
+        // Abstandszeile
+        $buttonList[] = new Container('&nbsp;');
+
+        return $buttonList;
+    }
+
+    /**
+     * @param $YearList
+     * @param $diff
+     * @param bool $onlyNotExists
+     */
+    public function addYear(&$YearList, $diff, bool $onlyNotExists = false)
+    {
+        $value = (date('Y') + $diff) . '/' . (date('y') + $diff + 1);
+        if ($onlyNotExists && $this->getYearByName($value)) {
+            return;
+        }
+
+        $YearList[$value] = $value;
+    }
+
+    /**
+     * @param IFormInterface $Form
+     * @param $Data
+     *
+     * @return IFormInterface|string
+     */
+    public function createWizardYear(
+        IFormInterface $Form,
+        $Data
+    ) {
+        /**
+         * Skip to Frontend
+         */
+        if (null === $Data) {
+            return $Form;
+        }
+
+        $Error = false;
+
+        if (isset($Data['YearName']) && empty($Data['YearName'])) {
+            var_dump($Data['YearName']);
+            $Form->setError('Data[YearName]', 'Bitte geben sie ein Jahr an');
+            $Error = true;
+        }
+        for ($i = 1; $i <= 4; $i++) {
+            if (isset($Data[$i])) {
+                if (isset($Data[$i]['Name']) && empty($Data[$i]['Name'])) {
+                    $Form->setError('Data[ ' . $i . '][Name]', 'Bitte geben sie einen Namen für den Zeitraum an');
+                    $Error = true;
+                }
+                if (empty($Data[$i]['From'])) {
+                    $Form->setError('Data[ ' . $i . '][From]', 'Bitte geben sie ein Datum an');
+                    $Error = true;
+                }
+                if (empty($Data[$i]['To'])) {
+                    $Form->setError('Data[ ' . $i . '][To]', 'Bitte geben sie ein Datum an');
+                    $Error = true;
+                }
+            }
+        }
+
+        if (!$Error) {
+            $startDate = false;
+            $endDate = false;
+
+            // Halbjahre anlegen
+            $tblPeriodList = array();
+            for ($i = 1; $i <= 4; $i++) {
+                if (isset($Data[$i])) {
+                    $tblPeriodList[] = (new Data($this->getBinding()))->createPeriod(
+                        $Data[$i]['Name'], $Data[$i]['From'], $Data[$i]['To'], $Data[$i]['Description'], $i >= 3
+                    );
+
+                    if (!$startDate
+                        || (($tempDate = new DateTime($Data[$i]['From'])) && $tempDate < $startDate)
+                    ) {
+                        $startDate = new DateTime($Data[$i]['From']);
+                    }
+                    if (!$endDate
+                        || (($tempDate = new DateTime($Data[$i]['To'])) && $tempDate > $endDate)
+                    ) {
+                        $endDate = new DateTime($Data[$i]['To']);
+                    }
+                }
+            }
+
+            if (($tblYear = (new Data($this->getBinding()))->createYear($Data['YearName'], $Data['YearDescription']))) {
+                // Halbjahre zum Schuljahr hinzufügen
+                foreach ($tblPeriodList as $tblPeriod) {
+                    (new Data($this->getBinding()))->addYearPeriod($tblYear, $tblPeriod);
+                }
+
+                // Ferien
+                if (($tblState = BasicData::useService()->getStateById($Data['State']))
+                    && $startDate && $endDate
+                    && ($tblHolidaySystemList = BasicData::useService()->getHolidayAllBy($startDate, $endDate))
+                ) {
+                    foreach ($tblHolidaySystemList as $tblHolidaySystem) {
+                        if (($tblHolidayTypeSystem = $tblHolidaySystem->getTblHolidayType())
+                            && ($tblHolidayType = Term::useService()->getHolidayTypeByName($tblHolidayTypeSystem->getName()))
+                        ) {
+                            $tblStateSystem = $tblHolidaySystem->getTblState();
+                            if (!$tblStateSystem || $tblStateSystem->getId() == $tblState->getId()) {
+                                $tblHoliday = Term::useService()->getHolidayBy(
+                                    $tblHolidayType,
+                                    $tblHolidaySystem->getFromDateTime() ?: null,
+                                    $tblHolidaySystem->getToDateTime() ?: null
+                                );
+                                if (!($tblHoliday)) {
+                                    $tblHoliday = (new Data($this->getBinding()))->createHoliday(
+                                        $tblHolidayType,
+                                        $tblHolidaySystem->getName(),
+                                        $tblHolidaySystem->getFromDate(),
+                                        $tblHolidaySystem->getToDate()
+                                    );
+                                }
+
+                                if ($tblHoliday) {
+                                    (new Data($this->getBinding()))->addYearHoliday($tblYear, $tblHoliday);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                return new Success('Das Schuljahr wurde erfolgreich hinzugefügt')
+                    . new Redirect('/Education/Lesson/Term', Redirect::TIMEOUT_SUCCESS);
+            } else {
+                return new Danger('Das Schuljahr konnte nicht hinzugefügt werden')
+                    . new Redirect('/Education/Lesson/Term', Redirect::TIMEOUT_ERROR);
+            }
+        }
+
+        return $Form;
     }
 }

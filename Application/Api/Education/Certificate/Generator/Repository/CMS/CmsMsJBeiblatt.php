@@ -31,8 +31,8 @@ class CmsMsJBeiblatt extends CmsStyle
         $personId = $tblPerson ? $tblPerson->getId() : 0;
 
         return (new CmsMsHjBeiblatt(
-            $this->getTblDivision() ? $this->getTblDivision() : null,
-            $this->getTblPrepareCertificate() ? $this->getTblPrepareCertificate() : null,
+            $this->getTblStudentEducation() ?: null,
+            $this->getTblPrepareCertificate() ?: null,
             $this->isSample()
         ))->getPage($personId, 'Beiblatt zum Zeugnis', true);
     }

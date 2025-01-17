@@ -16,10 +16,7 @@ class MsHjInfo extends Style
     {
         $personId = $tblPerson ? $tblPerson->getId() : 0;
 
-        $school[] = 'Oberschule der';
-        $school[] = 'HOGA Schloss Albrechtsberg g SchulgmbH';
-        $school[] = 'Staatlich anerkannte Schule in freier Trägerschaft';
-
+        $school = $this->getCustomSchoolName('Oberschule');
         $title = 'Halbjahresinformation der Oberschule';
 
         return (new Page())

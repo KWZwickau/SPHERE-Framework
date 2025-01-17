@@ -2,7 +2,7 @@
 namespace SPHERE\Application\Api\Education\ClassRegister;
 
 use SPHERE\Application\Api\Response;
-use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\IServiceInterface;
 use SPHERE\Common\Frontend\Icon\Repository\HazardSign;
@@ -43,40 +43,45 @@ class ClassRegister extends Extension implements IModuleInterface
     }
 
     /**
-     * @param null|array $Reorder
-     * @param null|array $Additional
+     * @param array|null $Reorder
+     * @param array|null $Additional
      *
      * @return Response
      */
-    public function reorderDivision($Reorder = null, $Additional = null)
+    public function reorderDivision(array $Reorder = null, array $Additional = null): Response
     {
 
         if ($Additional
             && $Reorder
-            && isset($Additional['DivisionId'])
-            && ($tblDivision = Division::useService()->getDivisionById($Additional['DivisionId']))
+            && isset($Additional['DivisionCourseId'])
+            && ($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($Additional['DivisionCourseId']))
+            && ($tblMemberType = DivisionCourse::useService()->getDivisionCourseMemberTypeByIdentifier($Additional['MemberTypeIdentifier']))
         ) {
-
-            $tblDivisionStudentAll = Division::useService()->getDivisionStudentAllByDivision($tblDivision);
-            if ($tblDivisionStudentAll) {
-                // update SortOrder for deleted Person etc.
+            if (($tblMemberList = DivisionCourse::useService()->getDivisionCourseMemberListBy($tblDivisionCourse, $Additional['MemberTypeIdentifier'], true, false))) {
                 $count = 1;
-                foreach ($tblDivisionStudentAll as $tblDivisionStudent) {
-                    Division::useService()->updateDivisionStudentSortOrder($tblDivisionStudent, $count++);
+                $updateList = array();
+                foreach ($tblMemberList as $tblMember) {
+                    $tblMember->setSortOrder($count);
+                    $updateList[$count++] = $tblMember;
                 }
+
                 foreach ($Reorder as $item) {
                     if (isset($item['pre']) && isset($item['post'])) {
-                        $pre = $item['pre'] - 1;
+                        $pre = $item['pre'];
                         $post = $item['post'];
 
-                        if (isset($tblDivisionStudentAll[$pre])) {
-                            Division::useService()->updateDivisionStudentSortOrder($tblDivisionStudentAll[$pre], $post);
+                        if (isset($updateList[$pre])) {
+                            $updateList[$pre]->setSortOrder($post);
                         }
                     }
                 }
+
+                DivisionCourse::useService()->updateDivisionCourseMemberBulkSortOrder($updateList, $Additional['MemberTypeIdentifier'], $tblDivisionCourse->getType() ?: null);
             }
-            return (new Response())->addData( new Success().' Die Sortierung der Schüler wurde erfolgreich aktualisiert.');
+
+            return (new Response())->addData( new Success().' Die Sortierung der ' . $tblMemberType->getName() . ' wurde erfolgreich aktualisiert.');
         }
-        return (new Response())->addError( 'Fehler!', new HazardSign().' Die Sortierung der Schüler konnte nicht aktualisiert werden.', 0);
+
+        return (new Response())->addError( 'Fehler!', new HazardSign().' Die Sortierung der Mitglieder konnte nicht aktualisiert werden.', 0);
     }
 }

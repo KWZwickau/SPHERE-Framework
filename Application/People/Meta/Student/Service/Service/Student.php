@@ -74,7 +74,6 @@ abstract class Student extends AbstractService
      * @param null $tblStudentBilling
      * @param null $tblStudentLocker
      * @param null $tblStudentBaptism
-     * @param null $tblStudentIntegration
      * @param null $tblStudentSpecialNeeds
      * @param string $SchoolAttendanceStartDate
      * @param bool $HasMigrationBackground
@@ -91,7 +90,6 @@ abstract class Student extends AbstractService
         $tblStudentBilling = null,
         $tblStudentLocker = null,
         $tblStudentBaptism = null,
-        $tblStudentIntegration = null,
         $tblStudentSpecialNeeds = null,
         $SchoolAttendanceStartDate = '',
         $HasMigrationBackground = false,
@@ -99,7 +97,7 @@ abstract class Student extends AbstractService
         $tblStudentTechnicalSchool = null
     ) {
 
-        $tblStudent = $this->getStudentByPerson($tblPerson);
+        $tblStudent = $this->getStudentByPerson($tblPerson, true);
 
         if ($tblStudent) {
             (new Data($this->getBinding()))->updateStudent(
@@ -111,7 +109,6 @@ abstract class Student extends AbstractService
                 $tblStudentBilling,
                 $tblStudentLocker,
                 $tblStudentBaptism,
-                $tblStudentIntegration,
                 $tblStudentSpecialNeeds,
                 $tblStudentTechnicalSchool,
                 $SchoolAttendanceStartDate,
@@ -128,7 +125,6 @@ abstract class Student extends AbstractService
                 $tblStudentBilling,
                 $tblStudentLocker,
                 $tblStudentBaptism,
-                $tblStudentIntegration,
                 $tblStudentSpecialNeeds,
                 $tblStudentTechnicalSchool,
                 $SchoolAttendanceStartDate,
@@ -141,6 +137,8 @@ abstract class Student extends AbstractService
     }
 
     /**
+     * @deprecated
+     *
      * @param TblPerson $tblPerson
      *
      * @return bool|TblCourse
@@ -157,6 +155,8 @@ abstract class Student extends AbstractService
     }
 
     /**
+     * @deprecated
+     *
      * @param TblStudent $tblStudent
      *
      * @return bool|TblCourse
@@ -200,6 +200,16 @@ abstract class Student extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getStudentSchoolEnrollmentTypeById($Id);
+    }
+
+    /**
+     * @param $Name
+     *
+     * @return false|TblStudentSchoolEnrollmentType
+     */
+    public function getStudentSchoolEnrollmentTypeByName($Name)
+    {
+        return (new Data($this->getBinding()))->getStudentSchoolEnrollmentTypeByName($Name);
     }
 
     /**

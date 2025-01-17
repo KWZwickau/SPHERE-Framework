@@ -12,9 +12,7 @@ use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCertificate;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareStudent;
-use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
-use SPHERE\Application\Education\Lesson\Division\Division;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Graduation\Grade\Grade;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\People\Meta\Student\Student;
@@ -39,25 +37,21 @@ use SPHERE\Common\Frontend\Text\Repository\Warning;
  */
 class BlockI extends AbstractBlock
 {
-
-    /**
-     * @var BlockIView
-     */
-    private $View = BlockIView::PREVIEW;
+    private int $View;
 
     /**
      * @var TblSubject|null
      */
-    private $tblReligionSubject = null;
+    private ?TblSubject $tblReligionSubject = null;
 
-    private $count = 0;
+    private int $count = 0;
 
     /**
      * @var TblPrepareStudent[]|array
      */
-    private $tblPrepareStudentList = null;
+    private ?array $tblPrepareStudentList = null;
 
-    private $interactive = array(
+    private array $interactive = array(
         "paging" => false, // Deaktivieren Blättern
         "iDisplayLength" => -1,    // Alle Einträge zeigen
         "searching" => false, // Deaktivieren Suchen
@@ -72,7 +66,7 @@ class BlockI extends AbstractBlock
         'fixedHeader' => false
     );
 
-    private $columnDefinition = array(
+    private array $columnDefinition = array(
         'Subject' => 'Fach',
         'Course' => 'Kurs',
         '11-1' => '11/1',
@@ -83,14 +77,13 @@ class BlockI extends AbstractBlock
 
     /**
      * BlockI constructor.
-     * @param TblDivision $tblDivision
+     *
      * @param TblPerson $tblPerson
      * @param TblPrepareCertificate $tblPrepareCertificate
      * @param $view
      */
-    public function __construct(TblDivision $tblDivision, TblPerson $tblPerson, TblPrepareCertificate $tblPrepareCertificate, $view)
+    public function __construct(TblPerson $tblPerson, TblPrepareCertificate $tblPrepareCertificate, $view)
     {
-        $this->tblDivision = $tblDivision;
         $this->tblPerson = $tblPerson;
         $this->tblPrepareCertificate = $tblPrepareCertificate;
         $this->View = $view;
@@ -103,50 +96,53 @@ class BlockI extends AbstractBlock
         $this->setPointList();
 
         // kopieren der Vornoten aus vorhandenen Kurshalbjahreszeugnissen
-//        if ($view == BlockIView::PREVIEW) {
-            for ($level = 11; $level < 13; $level++) {
-                for ($term = 1; $term < 3; $term++) {
-                    $midTerm = $level . '-' . $term;
+        for ($level = 11; $level < 13; $level++) {
+            for ($term = 1; $term < 3; $term++) {
+                $midTerm = $level . '-' . $term;
+                if (($tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier($midTerm))
+                     && isset($this->tblPrepareStudentList[$midTerm])
+                ) {
+                    /** @var TblPrepareStudent $tblPrepareStudent */
+                    $tblPrepareStudent = $this->tblPrepareStudentList[$midTerm];
+                    Prepare::useService()->copyAbiturPreliminaryGradesFromCertificates(
+                        $tblPrepareStudent,
+                        $tblPrepareAdditionalGradeType,
+                        $this->tblPrepareCertificate
+                    );
+
+                    $this->columnDefinition[$midTerm] = $this->columnDefinition[$midTerm] . new Warning('*');//'<sup>*</sup>';
+                }
+                // Stichtagsnotenauftrag 12-2
+                elseif ($level == 12 && $term == 2) {
                     if (($tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier($midTerm))
-                         && isset($this->tblPrepareStudentList[$midTerm])
+                        && ($tblDivisionCourse = $tblPrepareCertificate->getServiceTblDivision())
+                        && ($tblYear = $tblDivisionCourse->getServiceTblYear())
+                        && ($tblTaskList = Grade::useService()->getTaskListByStudentAndYear($tblPerson, $tblYear))
                     ) {
-                        /** @var TblPrepareStudent $tblPrepareStudent */
-                        $tblPrepareStudent = $this->tblPrepareStudentList[$midTerm];
-                        Prepare::useService()->copyAbiturPreliminaryGradesFromCertificates(
-                            $tblPrepareStudent,
-                            $tblPrepareAdditionalGradeType,
-                            $this->tblPrepareCertificate
-                        );
+                        foreach ($tblTaskList as $tblTask) {
+                            $month = $tblTask->getDate() ? intval($tblTask->getDate()->format('m')) : 0;
+                            if ($month > 3 && $month < 9) {
+                                Prepare::useService()->copyAbiturPreliminaryGradesFromAppointedDateTask(
+                                    $tblPerson,
+                                    $tblPrepareCertificate,
+                                    $tblPrepareAdditionalGradeType,
+                                    $tblTask
+                                );
 
-                        $this->columnDefinition[$midTerm] = $this->columnDefinition[$midTerm] . new Warning('*');//'<sup>*</sup>';
-                    }
-                    // Stichtagsnotenauftrag 12-2
-                    elseif ($level == 12 && $term == 2) {
-                        if (($tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier($midTerm))
-                            && ($tblTestType = Evaluation::useService()->getTestTypeByIdentifier('APPOINTED_DATE_TASK'))
-                        ) {
-                            Prepare::useService()->copyAbiturPreliminaryGradesFromAppointedDateTask(
-                                $tblDivision,
-                                $tblPerson,
-                                $tblPrepareCertificate,
-                                $tblPrepareAdditionalGradeType,
-                                $tblTestType
-                            );
-
-                            $this->columnDefinition[$midTerm] = $this->columnDefinition[$midTerm] . new Warning('**');
+                                $this->columnDefinition[$midTerm] = $this->columnDefinition[$midTerm] . new Warning('**');
+                            }
                         }
                     }
                 }
             }
-//        }
+        }
     }
 
     /**
      * @return Form
      */
-    public function getForm()
+    public function getForm(): Form
     {
-
         $form = new Form(array(
             new FormGroup(array(
                 new FormRow(array(
@@ -199,50 +195,9 @@ class BlockI extends AbstractBlock
     private function setPrepareStudentList()
     {
         $prepareStudentList = array();
-        $divisionLevelList = array();
         // Zensuren von Kurshalbjahreszeugnissen
-        if (($tblDivisionStudentList = Division::useService()->getDivisionStudentAllByPerson($this->tblPerson))) {
-            foreach ($tblDivisionStudentList as $tblDivisionStudent) {
-                if (($tblDivision = $tblDivisionStudent->getTblDivision())
-                    && ($tblLevel = $tblDivision->getTblLevel())
-                    && ($tblLevel->getName() == '11' || $tblLevel->getName() == '12')
-                    && ($tblPrepareList = Prepare::useService()->getPrepareAllByDivision($tblDivision))
-                ) {
-                    // Schuljahreswiederholungen, alte Klasse ignorieren, es kommt die neuere Klasse zuerst raus
-                    if (!isset($divisionLevelList[$tblLevel->getName()])) {
-                        $divisionLevelList[$tblLevel->getName()] = $tblDivision;
-                    } else {
-                        continue;
-                    }
-
-                    foreach ($tblPrepareList as $tblPrepare) {
-                        if ($tblPrepare->getServiceTblGenerateCertificate()
-                            && ($tblCertificateType = $tblPrepare->getServiceTblGenerateCertificate()->getServiceTblCertificateType())
-                            && ($tblCertificateType->getIdentifier() == 'MID_TERM_COURSE')
-                            && ($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare,
-                                $this->tblPerson))
-                            && $tblPrepareStudent->isApproved()
-                            && $tblPrepareStudent->isPrinted()
-                        ) {
-                            $midTerm = '-1';
-                            if (($tblAppointedDateTask = $tblPrepare->getServiceTblAppointedDateTask())
-                                && ($tblDivisionItem = $tblPrepare->getServiceTblDivision())
-                                && ($tblYear = $tblDivisionItem->getServiceTblYear())
-                                && ($tblPeriodList = $tblYear->getTblPeriodAll($tblDivision))
-                                && ($tblPeriod = $tblAppointedDateTask->getServiceTblPeriodByDivision($tblDivision))
-                                && ($tblFirstPeriod = current($tblPeriodList))
-                                && $tblPeriod->getId() != $tblFirstPeriod->getId()
-                            ) {
-                                $midTerm = '-2';
-                            }
-
-                            if (!isset($prepareStudentList[$tblLevel->getName() . $midTerm])) {
-                                $prepareStudentList[$tblLevel->getName() . $midTerm] = $tblPrepareStudent;
-                            }
-                        }
-                    }
-                }
-            }
+        if ($this->tblPerson) {
+            $prepareStudentList = Prepare::useService()->getPrepareStudentListFromMidTermCertificatesByPerson($this->tblPerson);
         }
 
         $this->tblPrepareStudentList = $prepareStudentList;
@@ -250,7 +205,6 @@ class BlockI extends AbstractBlock
 
     private function setSubjectRow($array, $subjectName)
     {
-
         $course = '';
         $grades = array();
         $tblSubject = Subject::useService()->getSubjectByName($subjectName);
@@ -326,9 +280,7 @@ class BlockI extends AbstractBlock
                         if ($tblPrepareAdditionalGrade) {
                             $isSelected = $tblPrepareAdditionalGrade->isSelected();
                             $value = str_pad($tblPrepareAdditionalGrade->getGrade(),2, 0, STR_PAD_LEFT);
-                            $grades[$midTerm] = ($isSelected ? '' : '(')
-                                . $value
-                                . ($isSelected ? '' : ')');
+                            $grades[$midTerm] = ($isSelected ? '' : '(') . $value . ($isSelected ? '' : ')');
                         }
                     }
                 }
@@ -338,10 +290,10 @@ class BlockI extends AbstractBlock
             $array[] = array(
                 'Subject' => $subjectName,
                 'Course' => $course,
-                '11-1' => isset($grades['11-1']) ? $grades['11-1'] : '',
-                '11-2' => isset($grades['11-2']) ? $grades['11-2'] : '',
-                '12-1' => isset($grades['12-1']) ? $grades['12-1'] : '',
-                '12-2' => isset($grades['12-2']) ? $grades['12-2'] : '',
+                '11-1' => $grades['11-1'] ?? '',
+                '11-2' => $grades['11-2'] ?? '',
+                '12-1' => $grades['12-1'] ?? '',
+                '12-2' => $grades['12-2'] ?? '',
             );
         } /** @noinspection PhpStatementHasEmptyBodyInspection */ else {
             // nicht vorhandene Fächer sollen erstmal nicht angezeigt werden
@@ -364,7 +316,7 @@ class BlockI extends AbstractBlock
      *
      * @return TableData
      */
-    private function getLinguisticTable()
+    private function getLinguisticTable(): TableData
     {
         $dataList = array();
         $dataList = $this->setSubjectRow($dataList, 'Deutsch');
@@ -397,9 +349,8 @@ class BlockI extends AbstractBlock
      *
      * @return TableData
      */
-    private function getSocialTable()
+    private function getSocialTable(): TableData
     {
-
         $dataList = array();
         $dataList = $this->setSubjectRow($dataList, 'Geschichte');
         $dataList = $this->setSubjectRow($dataList, 'Gemeinschaftskunde/Rechtserziehung/Wirtschaft');
@@ -421,9 +372,8 @@ class BlockI extends AbstractBlock
      *
      * @return TableData
      */
-    private function getScientificTable()
+    private function getScientificTable(): TableData
     {
-
         $dataList = array();
         $dataList = $this->setSubjectRow($dataList, 'Mathematik');
         $dataList = $this->setSubjectRow($dataList, 'Biologie');
@@ -441,7 +391,7 @@ class BlockI extends AbstractBlock
         return $scientificTable;
     }
 
-    private function getOtherTable()
+    private function getOtherTable(): TableData
     {
         // Extra Fach aus den Einstellungen der Fächer bei den Zeugnisvorlagen
         if (($tblCertificate = Generator::useService()->getCertificateByCertificateClassName('GymAbitur'))) {

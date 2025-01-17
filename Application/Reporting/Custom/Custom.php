@@ -31,45 +31,34 @@ class Custom implements IApplicationInterface
         $tblConsumer = Consumer::useService()->getConsumerBySession();
         if ($tblConsumer && $tblConsumer->getType() == TblConsumer::TYPE_SACHSEN) {
             $consumerAcronym = $tblConsumer->getAcronym();
-
-            // Chemitz
-            if ($consumerAcronym === 'ESZC') {
+            if ($consumerAcronym === 'ESZC') { // Chemitz
                 ChemnitzPerson::registerModule();
             }
-            // Coswig
-            if ($consumerAcronym === 'EVSC') {
+            if ($consumerAcronym === 'EVSC') { // Coswig
                 CoswigPerson::registerModule();
             }
-            // Herrnhut
-            if ($consumerAcronym === 'EZSH') {
+            if ($consumerAcronym === 'EZSH') { // Herrnhut
                 HerrnhutPerson::registerModule();
             }
-            // Hormersdorf
-            if ($consumerAcronym === 'FEGH' || $consumerAcronym === 'FESH') {
+            if ($consumerAcronym === 'FESH') { // Hormersdorf
                 HormersdorfPerson::registerModule();
             }
-            // Muldental
-            if ($consumerAcronym === 'EVAMTL') {
+            if ($consumerAcronym === 'EVAMTL') { // Muldental
                 MuldentalPerson::registerModule();
             }
-            // Radebeul
-            if ($consumerAcronym === 'EVSR') {
+            if ($consumerAcronym === 'EVSR') { // Radebeul
                 RadebeulPerson::registerModule();
             }
-            // Schneeberg
-            if ($consumerAcronym === 'ESS') {
+            if ($consumerAcronym === 'ESS') { // Schneeberg
                 SchneebergPerson::registerModule();
             }
-            // Bad Düben
-            if ($consumerAcronym === 'ESBD') {
+            if ($consumerAcronym === 'ESBD') { // Bad Düben
                 BadDuebenPerson::registerModule();
             }
-            // Annaberg
-            if ($consumerAcronym === 'EGE') {
+            if ($consumerAcronym === 'EGE') { // Annaberg
                 AnnabergPerson::registerModule();
             }
-            // Gersdorf
-            if ($consumerAcronym === 'EVOSG') {
+            if ($consumerAcronym === 'EVOSG') { // Gersdorf
                 GersdorfPerson::registerModule();
             }
         }

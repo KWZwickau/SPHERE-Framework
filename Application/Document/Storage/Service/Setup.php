@@ -33,6 +33,8 @@ class Setup extends AbstractSetup
         $tblReferenceType = $this->setTableReferenceType($Schema);
         $this->setTableReference($Schema, $tblFile, $tblReferenceType);
         $this->setTablePersonPicture($Schema);
+        $this->setTableBinaryRevision($Schema, $tblFile, $tblBinary);
+
         /**
          * Migration & Protocol
          */
@@ -83,6 +85,7 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblDirectory', 'Identifier')) {
             $Table->addColumn('Identifier', 'string');
         }
+        $this->createIndex($Table, array('Identifier'), false);
         if (!$this->getConnection()->hasColumn('tblDirectory', 'IsLocked')) {
             $Table->addColumn('IsLocked', 'boolean');
         }
@@ -112,6 +115,9 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblBinary', 'Hash')) {
             $Table->addColumn('Hash', 'string');
         }
+        $this->createColumn($Table, 'FileSizeKiloByte', self::FIELD_TYPE_INTEGER, false, 0);
+        $this->createColumn($Table, 'serviceTblPersonPrinter', self::FIELD_TYPE_BIGINT, true);
+
         return $Table;
     }
 
@@ -238,9 +244,24 @@ class Setup extends AbstractSetup
     {
 
         $Table = $this->getConnection()->createTable($Schema, 'tblPersonPicture');
-        $this->createColumn($Table, 'serviceTblPerson', Type::BIGINT);
-        $this->createColumn($Table, 'Picture', Type::BLOB);
+        $this->createColumn($Table, 'serviceTblPerson', self::FIELD_TYPE_BIGINT);
+        $this->createColumn($Table, 'Picture', self::FIELD_TYPE_BINARY); // Type::BLOB
 
         return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
+     * @param Table $tblFile
+     * @param Table $tblBinary
+     */
+    private function setTableBinaryRevision(Schema &$Schema, Table $tblFile, Table $tblBinary): void
+    {
+        $table = $this->createTable($Schema, 'tblBinaryRevision');
+        $this->createColumn($table, 'Version', self::FIELD_TYPE_INTEGER);
+        $this->createColumn($table, 'Description');
+
+        $this->createForeignKey($table, $tblFile);
+        $this->createForeignKey($table, $tblBinary);
     }
 }

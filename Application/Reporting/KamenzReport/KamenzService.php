@@ -8,7 +8,7 @@
 
 namespace SPHERE\Application\Reporting\KamenzReport;
 
-use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\People\Group\Group;
@@ -19,6 +19,7 @@ use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Person;
+use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Info;
@@ -33,17 +34,15 @@ use SPHERE\Common\Frontend\Table\Structure\TableData;
  */
 class KamenzService
 {
-
     /**
      * @param TblType $tblSchoolType
      * @param array $summary
      *
      * @return TableData
      */
-    public static function validate(TblType $tblSchoolType, &$summary = array())
+    public static function validate(TblType $tblSchoolType, array &$summary = array()): TableData
     {
-        if (($tblSetting = Consumer::useService()->getSetting(
-                'Reporting', 'KamenzReport', 'Validation', 'FirstForeignLanguageLevel'))
+        if (($tblSetting = Consumer::useService()->getSetting('Reporting', 'KamenzReport', 'Validation', 'FirstForeignLanguageLevel'))
             && $tblSetting->getValue()
         ) {
             $firstForeignLanguageLevel = $tblSetting->getValue();
@@ -51,8 +50,7 @@ class KamenzService
             $firstForeignLanguageLevel = 1;
         }
 
-        if (($tblSetting = Consumer::useService()->getSetting(
-                'Education','Lesson','Subject', 'HasOrientationSubjects'))
+        if (($tblSetting = Consumer::useService()->getSetting('Education','Lesson','Subject', 'HasOrientationSubjects'))
             && $tblSetting->getValue()
         ) {
             $hasOrientationSubjects = $tblSetting->getValue();
@@ -73,6 +71,7 @@ class KamenzService
         $count['ForeignLanguage2'] = 0;
         $count['SchoolEnrollmentType'] = 0;
         $count['SchoolAttendanceStartDate'] = 0;
+        $count['NoStudent'] = array();
 
         // Berufsfachschulen und Fachschulen
         $count['TenseOfLesson'] = 0;
@@ -82,258 +81,289 @@ class KamenzService
         $count['TblSchoolDiploma'] = 0;
         $count['TblSchoolType'] = 0;
 
+        $Date = Term::useService()->getYearStringAsArray();
+        //past year as string
+        $PastDisplayYear = $Date['PastDisplayYear'];
+        $tblPastYearList = array();
+        if (($temp = Term::useService()->getYearByName($PastDisplayYear))) {
+            $tblPastYearList = $temp;
+        }
+
+        $tblGroup = Group::useService()->getGroupByMetaTable('STUDENT');
         $studentList = array();
         if (($tblCurrentYearList = Term::useService()->getYearByNow())) {
             foreach ($tblCurrentYearList as $tblYear) {
-                if (($tblDivisionList = Division::useService()->getDivisionAllByYear($tblYear))) {
-                    foreach ($tblDivisionList as $tblDivision) {
-                        if (($tblLevel = $tblDivision->getTblLevel())
-                            && !$tblLevel->getIsChecked()
-                            && ($tblType = $tblLevel->getServiceTblType())
-                            && ($tblType->getId() == $tblSchoolType->getId())
+                if (($tblStudentEducationList = DivisionCourse::useService()->getStudentEducationListBy($tblYear, $tblSchoolType))) {
+                    foreach ($tblStudentEducationList as $tblStudentEducation) {
+                        $level = $tblStudentEducation->getLevel();
+                        if (($tblPerson = $tblStudentEducation->getServiceTblPerson())
+                            && !isset($studentList[$tblPerson->getId()])
                         ) {
+                            $count['Student']++;
+                            if (!Group::useService()->existsGroupPerson($tblGroup, $tblPerson)) {
+                                $count['NoStudent'][] = $tblPerson->getLastFirstName();
+                            }
 
-                            if (($tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision))) {
-                                foreach ($tblPersonList as $tblPerson) {
-                                    if (!isset($studentList[$tblPerson->getId()])) {
-                                        $count['Student']++;
-                                        $gender = false;
-                                        $birthday = false;
-                                        $nationality = '';
-                                        $tblStudent = $tblPerson->getStudent();
-                                        if (($tblCommon = $tblPerson->getCommon())) {
-                                            if (($tblCommonBirthDates = $tblCommon->getTblCommonBirthDates())) {
-                                                if (($tblGender = $tblCommonBirthDates->getTblCommonGender())) {
-                                                    $gender = $tblGender->getName();
-                                                    if ($tblGender->getId() > 2) {
-                                                        $count['AlternateGender']++;
-                                                        $count['AlternateGenderList'][] = $tblPerson->getLastFirstName()
-                                                            . ' Geschlecht: ' . $gender;
-                                                    }
-                                                }
-                                                if (($birthdayDate = $tblCommonBirthDates->getBirthday())) {
-                                                    $birthday = $birthdayDate;
-                                                }
-                                            }
-                                            if (($tblCommonInformation = $tblCommon->getTblCommonInformation())) {
-                                                $nationality = $tblCommonInformation->getNationality();
-                                            }
-                                        }
-
-                                        if (!$gender) {
-                                            $gender = new Warning('Keine Geschlecht hinterlegt.', new Exclamation());
-                                            $count['Gender']++;
-                                        }
-                                        if (!$birthday) {
-                                            $birthday = new Warning('Kein Geburtsdatum hinterlegt.', new Exclamation());
-                                            $count['Birthday']++;
-                                        }
-
-                                        if ($tblStudent) {
-                                            $hasMigrationBackground = $tblStudent->getHasMigrationBackground() ? 'ja' : 'nein';
-                                            $isInPreparationDivisionForMigrants = $tblStudent->isInPreparationDivisionForMigrants()
-                                                ? 'ja' : 'nein';
-                                            if ($tblStudent->getHasMigrationBackground()
-                                                && $nationality == ''
-                                            ) {
-                                                $nationality = new Warning('Kein Staatsangehörigkeit hinterlegt.',
-                                                    new Exclamation());
-                                                $count['Nationality']++;
-                                            }
-                                        } else {
-                                            $hasMigrationBackground = 'nein';
-                                            $isInPreparationDivisionForMigrants = 'nein';
-                                        }
-
-                                        $foreignLanguage1 = '';
-                                        $foreignLanguages = self::getForeignLanguages($tblPerson);
-                                        if (isset($foreignLanguages[1])) {
-                                            $foreignLanguage1 = $foreignLanguages[1];
-                                        } else {
-                                            if (floatval($tblLevel->getName()) >= floatval($firstForeignLanguageLevel)) {
-                                                $count['ForeignLanguage1']++;
-                                                $foreignLanguage1 = new Warning('Keine 1. Fremdsprache hinterlegt.',
-                                                    new Exclamation());
-                                            }
-                                        }
-
-                                        if (isset($foreignLanguages[2])) {
-                                            $foreignLanguage2 = $foreignLanguages[2];
-                                        } elseif ($tblSchoolType->getName() == 'Gymnasium'
-                                            && preg_match('!(0?(6|7|8|9|10))!is', $tblLevel->getName())
-                                        ) {
-                                            $count['ForeignLanguage2']++;
-                                            $foreignLanguage2 = new Warning('Keine 2. Fremdsprache hinterlegt.',
-                                                new Exclamation());
-                                        } else {
-                                            $foreignLanguage2 = '';
-                                        }
-
-                                        $studentList[$tblPerson->getId()] = array(
-                                            'Division' => $tblDivision->getDisplayName(),
-                                            'Name' => $tblPerson->getLastFirstName(),
-                                            'Gender' => $gender,
-                                            'Birthday' => $birthday,
-                                            'ForeignLanguage1' => $foreignLanguage1,
-                                            'ForeignLanguage2' => $foreignLanguage2,
-                                            'ForeignLanguage3' => isset($foreignLanguages[3]) ? $foreignLanguages[3] : '',
-                                            'ForeignLanguage4' => isset($foreignLanguages[4]) ? $foreignLanguages[4] : '',
-                                            'Religion' => self::getReligion($tblPerson, $count),
-                                            'Nationality' => $nationality,
-                                            'HasMigrationBackground' => $hasMigrationBackground,
-                                            'IsInPreparationDivisionForMigrants' => $isInPreparationDivisionForMigrants,
-                                            'Option' => new Standard(
-                                                '',
-                                                '/People/Person',
-                                                new Person(),
-                                                array(
-                                                    'Id' => $tblPerson->getId()
-                                                ),
-                                                'Zur Person wechseln'
-                                            )
-                                        );
-
-                                        if ($hasOrientationSubjects) {
-                                            if (($tblSchoolType->getName() == 'Mittelschule / Oberschule')) {
-                                                if (($orientation = self::getOrientation($tblPerson))) {
-                                                    $studentList[$tblPerson->getId()]['Orientation'] = $orientation;
-                                                } elseif (preg_match('!(0?(7|8|9))!is', $tblLevel->getName())
-                                                    && !isset($foreignLanguages[2])
-                                                ) {
-                                                    $count['Orientation']++;
-                                                    $studentList[$tblPerson->getId()]['Orientation']
-                                                        = new Warning('Kein '
-                                                            . (Student::useService()->getStudentSubjectTypeByIdentifier('ORIENTATION'))->getName()
-                                                            . '/2.FS hinterlegt.',
-                                                        new Exclamation());
-                                                }
-                                            }
-                                        }
-
-                                        if (($tblSchoolType->getName() == 'Gymnasium')) {
-                                            if (($profile = self::getProfile($tblPerson))) {
-                                                $studentList[$tblPerson->getId()]['Profile'] = $profile;
-                                            } elseif (preg_match('!(0?(8|9|10))!is', $tblLevel->getName())) {
-                                                $count['Profile']++;
-                                                $studentList[$tblPerson->getId()]['Profile']
-                                                    = new Warning('Kein Profil hinterlegt.',
-                                                    new Exclamation());
-                                            }
-                                        }
-
-                                        if ($tblSchoolType->getName() == 'Grundschule') {
-                                            if ($tblStudent
-                                                && ($tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('ENROLLMENT'))
-                                                && ($tblStudentTransfer = Student::useService()->getStudentTransferByType(
-                                                    $tblStudent, $tblStudentTransferType
-                                                ))
-                                                && ($tblSchoolEnrollmentType =$tblStudentTransfer->getTblStudentSchoolEnrollmentType())
-                                            ) {
-                                                $studentList[$tblPerson->getId()]['SchoolEnrollmentType']
-                                                    = $tblSchoolEnrollmentType->getName();
-                                            } else {
-                                                $studentList[$tblPerson->getId()]['SchoolEnrollmentType']
-                                                    =  new Warning('Keine Einschulungsart hinterlegt.',
-                                                    new Exclamation());
-                                                $count['SchoolEnrollmentType']++;
-                                            }
-
-                                            if ($tblStudent
-                                                && $tblStudent->getSchoolAttendanceStartDate()
-                                            ) {
-                                                $studentList[$tblPerson->getId()]['SchoolAttendanceStartDate']
-                                                    = $tblStudent->getSchoolAttendanceStartDate();
-                                            } else {
-                                                $studentList[$tblPerson->getId()]['SchoolAttendanceStartDate']
-                                                    =  new Warning('Keine Schulpflicht beginnt am hinterlegt.',
-                                                    new Exclamation());
-                                                $count['SchoolAttendanceStartDate']++;
-                                            }
-                                        }
-
-                                        if ($tblSchoolType->getName() == 'Berufsfachschule' || $tblSchoolType->getName() == 'Fachschule') {
-                                            $tblStudentTechnicalSchool = $tblStudent ? $tblStudent->getTblStudentTechnicalSchool() : false;
-
-                                            if ($tblStudentTechnicalSchool
-                                                && ($tblStudentTenseOfLesson = $tblStudentTechnicalSchool->getTblStudentTenseOfLesson())
-                                            ) {
-                                                $studentList[$tblPerson->getId()]['TenseOfLesson']
-                                                    = $tblStudentTenseOfLesson->getName();
-                                            } else {
-                                                $studentList[$tblPerson->getId()]['TenseOfLesson']
-                                                    =  new Warning('Keine Zeitform des Unterrichts hinterlegt.',
-                                                    new Exclamation());
-                                                $count['TenseOfLesson']++;
-                                            }
-                                            if ($tblStudentTechnicalSchool
-                                                && ($tblStudentTrainingStatus = $tblStudentTechnicalSchool->getTblStudentTrainingStatus())
-                                            ) {
-                                                $studentList[$tblPerson->getId()]['TrainingStatus']
-                                                    = $tblStudentTrainingStatus->getName();
-                                            } else {
-                                                $studentList[$tblPerson->getId()]['TrainingStatus']
-                                                    =  new Warning('Kein Ausbildungsstatus hinterlegt.',
-                                                    new Exclamation());
-                                                $count['TrainingStatus']++;
-                                            }
-                                            if ($tblStudentTechnicalSchool
-                                                && ($tblStudentDurationOfTraining = $tblStudentTechnicalSchool->getDurationOfTraining())
-                                            ) {
-                                                $studentList[$tblPerson->getId()]['DurationOfTraining']
-                                                    = $tblStudentDurationOfTraining;
-                                            } else {
-                                                $studentList[$tblPerson->getId()]['DurationOfTraining']
-                                                    =  new Warning('Keine planmäßige Ausbildungsdauer hinterlegt.',
-                                                    new Exclamation());
-                                                $count['DurationOfTraining']++;
-                                            }
-                                            if ($tblStudentTechnicalSchool
-                                                && ($tblStudentTblTechnicalCourse = $tblStudentTechnicalSchool->getServiceTblTechnicalCourse())
-                                            ) {
-                                                $studentList[$tblPerson->getId()]['TblTechnicalCourse']
-                                                    = $tblStudentTblTechnicalCourse->getName();
-                                            } else {
-                                                $studentList[$tblPerson->getId()]['TblTechnicalCourse']
-                                                    =  new Warning('Kein Bildungsgang hinterlegt.',
-                                                    new Exclamation());
-                                                $count['TblTechnicalCourse']++;
-                                            }
-                                            if ($tblStudentTechnicalSchool
-                                                && ($tblStudentTblSchoolDiploma = $tblStudentTechnicalSchool->getServiceTblSchoolDiploma())
-                                            ) {
-                                                $studentList[$tblPerson->getId()]['TblSchoolDiploma']
-                                                    = $tblStudentTblSchoolDiploma->getName();
-                                            } else {
-                                                $studentList[$tblPerson->getId()]['TblSchoolDiploma']
-                                                    =  new Warning('Kein allgemeinbildender Abschluss hinterlegt.',
-                                                    new Exclamation());
-                                                $count['TblSchoolDiploma']++;
-                                            }
-                                            if ($tblStudentTechnicalSchool
-                                                && ($tblStudentTblSchoolType = $tblStudentTechnicalSchool->getServiceTblSchoolType())
-                                            ) {
-                                                $studentList[$tblPerson->getId()]['TblSchoolType']
-                                                    = $tblStudentTblSchoolType->getName();
-                                            } else {
-                                                $studentList[$tblPerson->getId()]['TblSchoolType']
-                                                    =  new Warning('Keine allgemeinbildende Schulart hinterlegt.',
-                                                    new Exclamation());
-                                                $count['TblSchoolType']++;
-                                            }
-                                            if ($tblStudentTechnicalSchool
-                                                && ($tblStudentTblTechnicalDiploma = $tblStudentTechnicalSchool->getServiceTblTechnicalDiploma())
-                                            ) {
-                                                $studentList[$tblPerson->getId()]['TblTechnicalDiploma']
-                                                    = $tblStudentTblTechnicalDiploma->getName();
-                                            }
-                                            if ($tblStudentTechnicalSchool
-                                                && ($tblStudentTblTechnicalType = $tblStudentTechnicalSchool->getServiceTblTechnicalType())
-                                            ) {
-                                                $studentList[$tblPerson->getId()]['TblTechnicalType']
-                                                    = $tblStudentTblTechnicalType->getName();
-                                            }
+                            $gender = false;
+                            $birthday = false;
+                            $nationality = '';
+                            $tblStudent = $tblPerson->getStudent();
+                            if (($tblCommon = $tblPerson->getCommon())) {
+                                if (($tblCommonBirthDates = $tblCommon->getTblCommonBirthDates())) {
+                                    if (($tblGender = $tblCommonBirthDates->getTblCommonGender())) {
+                                        $gender = $tblGender->getName();
+                                        if ($tblGender->getId() > 2) {
+                                            $count['AlternateGender']++;
+                                            $count['AlternateGenderList'][] = $tblPerson->getLastFirstName()
+                                                . ' Geschlecht: ' . $gender;
                                         }
                                     }
+                                    if (($birthdayDate = $tblCommonBirthDates->getBirthday())) {
+                                        $birthday = $birthdayDate;
+                                    }
+                                }
+                                if (($tblCommonInformation = $tblCommon->getTblCommonInformation())) {
+                                    $nationality = $tblCommonInformation->getNationality();
+                                }
+                            }
+
+                            if (!$gender) {
+                                $gender = new Warning('Keine Geschlecht hinterlegt.', new Exclamation());
+                                $count['Gender']++;
+                            }
+                            if (!$birthday) {
+                                $birthday = new Warning('Kein Geburtsdatum hinterlegt.', new Exclamation());
+                                $count['Birthday']++;
+                            }
+
+                            if ($tblStudent) {
+                                $hasMigrationBackground = $tblStudent->getHasMigrationBackground() ? 'ja' : 'nein';
+                                $isInPreparationDivisionForMigrants = $tblStudent->isInPreparationDivisionForMigrants()
+                                    ? 'ja' : 'nein';
+                                if ($tblStudent->getHasMigrationBackground()
+                                    && $nationality == ''
+                                ) {
+                                    $nationality = new Warning('Kein Staatsangehörigkeit hinterlegt.',
+                                        new Exclamation());
+                                    $count['Nationality']++;
+                                }
+                            } else {
+                                $hasMigrationBackground = 'nein';
+                                $isInPreparationDivisionForMigrants = 'nein';
+                            }
+
+                            $foreignLanguage1 = '';
+                            $foreignLanguages = self::getForeignLanguages($tblPerson);
+                            if (isset($foreignLanguages[1])) {
+                                $foreignLanguage1 = $foreignLanguages[1];
+                            } else {
+                                if ($level >= floatval($firstForeignLanguageLevel)) {
+                                    $count['ForeignLanguage1']++;
+                                    $foreignLanguage1 = new Warning('Keine 1. Fremdsprache hinterlegt.',
+                                        new Exclamation());
+                                }
+                            }
+
+                            if (isset($foreignLanguages[2])) {
+                                $foreignLanguage2 = $foreignLanguages[2];
+                            } elseif ($tblSchoolType->getName() == 'Gymnasium'
+                                && preg_match('!(0?(6|7|8|9|10))!is', (string) $level)
+                            ) {
+                                $count['ForeignLanguage2']++;
+                                $foreignLanguage2 = new Warning('Keine 2. Fremdsprache hinterlegt.',
+                                    new Exclamation());
+                            } else {
+                                $foreignLanguage2 = '';
+                            }
+
+                            $studentList[$tblPerson->getId()] = array(
+                                'Division' => DivisionCourse::useService()->getCurrentMainCoursesByStudentEducation($tblStudentEducation),
+                                'Name' => $tblPerson->getLastFirstName(),
+                                'Gender' => $gender,
+                                'Birthday' => $birthday,
+                                'ForeignLanguage1' => $foreignLanguage1,
+                                'ForeignLanguage2' => $foreignLanguage2,
+                                'ForeignLanguage3' => $foreignLanguages[3] ?? '',
+                                'ForeignLanguage4' => $foreignLanguages[4] ?? '',
+                                'Religion' => self::getReligion($tblPerson, $count),
+                                'Nationality' => $nationality,
+                                'HasMigrationBackground' => $hasMigrationBackground,
+                                'IsInPreparationDivisionForMigrants' => $isInPreparationDivisionForMigrants,
+                                'Option' => new Standard(
+                                    '',
+                                    '/People/Person',
+                                    new Person(),
+                                    array(
+                                        'Id' => $tblPerson->getId()
+                                    ),
+                                    'Zur Person wechseln'
+                                )
+                            );
+
+                            // Schulart letztes Schuljahr
+                            $schoolTypePastYear = '';
+                            if ($level > 1) {
+                                foreach ($tblPastYearList as $tblPastYear) {
+                                    if (($tblStudentEducationPastYear = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblPastYear))
+                                        && ($tblSchoolTypePastYear = $tblStudentEducationPastYear->getServiceTblSchoolType())
+                                    ) {
+                                        $schoolTypePastYear = $tblSchoolTypePastYear->getShortName();
+                                    }
+                                }
+                                if (!$schoolTypePastYear) {
+                                    if ($tblStudent
+                                        && ($tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('ARRIVE'))
+                                        && ($tblStudentTransfer = Student::useService()->getStudentTransferByType(
+                                            $tblStudent, $tblStudentTransferType
+                                        ))
+                                        && ($tblSchoolTypeArrive = $tblStudentTransfer->getServiceTblType())
+                                    ) {
+                                        $schoolTypePastYear = $tblSchoolTypeArrive->getShortName();
+                                    } else {
+                                        $schoolTypePastYear = 'Keine Schulart (Neuzugang)';
+                                    }
+                                }
+                            }
+                            $studentList[$tblPerson->getId()]['LastSchoolType'] = $schoolTypePastYear;
+
+                            if ($hasOrientationSubjects) {
+                                if (($tblSchoolType->getName() == TblType::IDENT_OBER_SCHULE)) {
+                                    if (($orientation = self::getOrientation($tblPerson))) {
+                                        $studentList[$tblPerson->getId()]['Orientation'] = $orientation;
+                                    } elseif (preg_match('!(0?([789]))!is', (string) $level)
+                                        && !isset($foreignLanguages[2])
+                                    ) {
+                                        $count['Orientation']++;
+                                        $studentList[$tblPerson->getId()]['Orientation']
+                                            = new Warning('Kein '
+                                            . (Student::useService()->getStudentSubjectTypeByIdentifier('ORIENTATION'))->getName()
+                                            . '/2.FS hinterlegt.',
+                                            new Exclamation());
+                                    }
+                                }
+                            }
+
+                            if (($tblSchoolType->getName() == 'Gymnasium')) {
+                                if (($profile = self::getProfile($tblPerson))) {
+                                    $studentList[$tblPerson->getId()]['Profile'] = $profile;
+                                } elseif (preg_match('!(0?(8|9|10))!is', (string) $level)) {
+                                    $count['Profile']++;
+                                    $studentList[$tblPerson->getId()]['Profile']
+                                        = new Warning('Kein Profil hinterlegt.',
+                                        new Exclamation());
+                                }
+                            }
+
+                            if ($tblSchoolType->getName() == 'Grundschule') {
+                                if ($tblStudent
+                                    && ($tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('ENROLLMENT'))
+                                    && ($tblStudentTransfer = Student::useService()->getStudentTransferByType(
+                                        $tblStudent, $tblStudentTransferType
+                                    ))
+                                    && ($tblSchoolEnrollmentType =$tblStudentTransfer->getTblStudentSchoolEnrollmentType())
+                                ) {
+                                    $studentList[$tblPerson->getId()]['SchoolEnrollmentType']
+                                        = $tblSchoolEnrollmentType->getName();
+                                } else {
+                                    $studentList[$tblPerson->getId()]['SchoolEnrollmentType']
+                                        =  new Warning('Keine Einschulungsart hinterlegt.',
+                                        new Exclamation());
+                                    $count['SchoolEnrollmentType']++;
+                                }
+
+                                if ($tblStudent
+                                    && $tblStudent->getSchoolAttendanceStartDate()
+                                ) {
+                                    $studentList[$tblPerson->getId()]['SchoolAttendanceStartDate']
+                                        = $tblStudent->getSchoolAttendanceStartDate();
+                                } else {
+                                    $studentList[$tblPerson->getId()]['SchoolAttendanceStartDate']
+                                        =  new Warning('Keine Schulpflicht beginnt am hinterlegt.',
+                                        new Exclamation());
+                                    $count['SchoolAttendanceStartDate']++;
+                                }
+                            }
+
+                            if ($tblSchoolType->getName() == 'Berufsfachschule' || $tblSchoolType->getName() == 'Fachschule') {
+                                $tblStudentTechnicalSchool = $tblStudent ? $tblStudent->getTblStudentTechnicalSchool() : false;
+
+                                if ($tblStudentTechnicalSchool
+                                    && ($tblStudentTenseOfLesson = $tblStudentTechnicalSchool->getTblStudentTenseOfLesson())
+                                ) {
+                                    $studentList[$tblPerson->getId()]['TenseOfLesson']
+                                        = $tblStudentTenseOfLesson->getName();
+                                } else {
+                                    $studentList[$tblPerson->getId()]['TenseOfLesson']
+                                        =  new Warning('Keine Zeitform des Unterrichts hinterlegt.',
+                                        new Exclamation());
+                                    $count['TenseOfLesson']++;
+                                }
+                                if ($tblStudentTechnicalSchool
+                                    && ($tblStudentTrainingStatus = $tblStudentTechnicalSchool->getTblStudentTrainingStatus())
+                                ) {
+                                    $studentList[$tblPerson->getId()]['TrainingStatus']
+                                        = $tblStudentTrainingStatus->getName();
+                                } else {
+                                    $studentList[$tblPerson->getId()]['TrainingStatus']
+                                        =  new Warning('Kein Ausbildungsstatus hinterlegt.',
+                                        new Exclamation());
+                                    $count['TrainingStatus']++;
+                                }
+                                if ($tblStudentTechnicalSchool
+                                    && ($tblStudentDurationOfTraining = $tblStudentTechnicalSchool->getDurationOfTraining())
+                                ) {
+                                    $studentList[$tblPerson->getId()]['DurationOfTraining']
+                                        = $tblStudentDurationOfTraining;
+                                } else {
+                                    $studentList[$tblPerson->getId()]['DurationOfTraining']
+                                        =  new Warning('Keine planmäßige Ausbildungsdauer hinterlegt.',
+                                        new Exclamation());
+                                    $count['DurationOfTraining']++;
+                                }
+                                if ($tblStudentTechnicalSchool
+                                    && ($tblStudentTblTechnicalCourse = $tblStudentTechnicalSchool->getServiceTblTechnicalCourse())
+                                ) {
+                                    $studentList[$tblPerson->getId()]['TblTechnicalCourse']
+                                        = $tblStudentTblTechnicalCourse->getName();
+                                } else {
+                                    $studentList[$tblPerson->getId()]['TblTechnicalCourse']
+                                        =  new Warning('Kein Bildungsgang hinterlegt.',
+                                        new Exclamation());
+                                    $count['TblTechnicalCourse']++;
+                                }
+                                if ($tblStudentTechnicalSchool
+                                    && ($tblStudentTblSchoolDiploma = $tblStudentTechnicalSchool->getServiceTblSchoolDiploma())
+                                ) {
+                                    $studentList[$tblPerson->getId()]['TblSchoolDiploma']
+                                        = $tblStudentTblSchoolDiploma->getName();
+                                } else {
+                                    $studentList[$tblPerson->getId()]['TblSchoolDiploma']
+                                        =  new Warning('Kein allgemeinbildender Abschluss hinterlegt.',
+                                        new Exclamation());
+                                    $count['TblSchoolDiploma']++;
+                                }
+                                if ($tblStudentTechnicalSchool
+                                    && ($tblStudentTblSchoolType = $tblStudentTechnicalSchool->getServiceTblSchoolType())
+                                ) {
+                                    $studentList[$tblPerson->getId()]['TblSchoolType']
+                                        = $tblStudentTblSchoolType->getName();
+                                } else {
+                                    $studentList[$tblPerson->getId()]['TblSchoolType']
+                                        =  new Warning('Keine allgemeinbildende Schulart hinterlegt.',
+                                        new Exclamation());
+                                    $count['TblSchoolType']++;
+                                }
+                                if ($tblStudentTechnicalSchool
+                                    && ($tblStudentTblTechnicalDiploma = $tblStudentTechnicalSchool->getServiceTblTechnicalDiploma())
+                                ) {
+                                    $studentList[$tblPerson->getId()]['TblTechnicalDiploma']
+                                        = $tblStudentTblTechnicalDiploma->getName();
+                                }
+                                if ($tblStudentTechnicalSchool
+                                    && ($tblStudentTblTechnicalType = $tblStudentTechnicalSchool->getServiceTblTechnicalType())
+                                ) {
+                                    $studentList[$tblPerson->getId()]['TblTechnicalType']
+                                        = $tblStudentTblTechnicalType->getName();
                                 }
                             }
                         }
@@ -346,12 +376,12 @@ class KamenzService
             $count['Religion'] = 0;
         }
 
-        array_unshift($summary, new Info($count['Student'] . ' Schüler besuchen die/das ' . $tblSchoolType->getName() . '.'));
+        array_unshift($summary, new Info($count['Student'] . ' Schüler besuchen die Schulart: ' . $tblSchoolType->getName() . '.'));
         $summary = self::setSummary($summary, $count);
 
        if ($tblSchoolType->getName() == 'Berufsfachschule' || $tblSchoolType->getName() == 'Fachschule') {
            $columns = array(
-               'Division' => 'Klasse',
+               'Division' => 'Kurse',
                'Name' => 'Name',
                'Gender' => 'Geschlecht',
                'Birthday' => 'Geburtsdatum',
@@ -372,7 +402,7 @@ class KamenzService
            );
        } else {
            $columns = array(
-               'Division' => 'Klasse',
+               'Division' => 'Kurse',
                'Name' => 'Name',
                'Gender' => 'Geschlecht',
                'Birthday' => 'Geburtsdatum',
@@ -386,7 +416,7 @@ class KamenzService
            );
        }
 
-        if (($tblSchoolType->getName() == 'Mittelschule / Oberschule')) {
+        if (($tblSchoolType->getName() == TblType::IDENT_OBER_SCHULE)) {
             $columns['Orientation'] = (Student::useService()->getStudentSubjectTypeByIdentifier('ORIENTATION'))->getName();
         }
 
@@ -399,11 +429,12 @@ class KamenzService
             $columns['Profile'] = 'Profil';
         }
 
+        $columns['LastSchoolType'] = 'Schul&shy;art letztes SJ';
         $columns['Option'] = '';
 
         return new TableData(
             $studentList,
-            new Title('Schüler in einer aktuellen Klasse (Schulart: ' . $tblSchoolType->getName() . ')'),
+            new Title('Schüler in einer aktuellen Klasse/Stammgruppe (Schulart: ' . $tblSchoolType->getName() . ')'),
             $columns,
             array(
                 'paging' => false,
@@ -424,16 +455,13 @@ class KamenzService
      *
      * @return array
      */
-    private static function getForeignLanguages(TblPerson $tblPerson)
+    private static function getForeignLanguages(TblPerson $tblPerson): array
     {
         $subjects = array();
         if (($tblStudent = $tblPerson->getStudent())
             && ($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('FOREIGN_LANGUAGE'))
-            && ($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType(
-                $tblStudent, $tblStudentSubjectType
-            ))
+            && ($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType($tblStudent, $tblStudentSubjectType))
         ) {
-
             foreach ($tblStudentSubjectList as $tblStudentSubject) {
                 if (($tblSubject = $tblStudentSubject->getServiceTblSubject())
                     && ($tblStudentSubjectRanking = $tblStudentSubject->getTblStudentSubjectRanking())
@@ -455,7 +483,6 @@ class KamenzService
      */
     private static function getReligion(TblPerson $tblPerson, &$count)
     {
-
         if (($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('RELIGION'))
             && (($religion = self::getSubjectByStudentSubjectType($tblPerson, $tblStudentSubjectType)))
         ) {
@@ -463,17 +490,17 @@ class KamenzService
         }
 
         $count['Religion']++;
+
         return new Warning('Keine Religion hinterlegt.', new Exclamation());
     }
 
     /**
      * @param TblPerson $tblPerson
      *
-     * @return string
+     * @return string|bool
      */
     private static function getOrientation(TblPerson $tblPerson)
     {
-
         if (($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('ORIENTATION'))
             && (($subject = self::getSubjectByStudentSubjectType($tblPerson, $tblStudentSubjectType)))
         ) {
@@ -486,11 +513,10 @@ class KamenzService
     /**
      * @param TblPerson $tblPerson
      *
-     * @return string
+     * @return string|bool
      */
     private static function getProfile(TblPerson $tblPerson)
     {
-
         if (($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('PROFILE'))
             && (($subject = self::getSubjectByStudentSubjectType($tblPerson, $tblStudentSubjectType)))
         ) {
@@ -510,7 +536,6 @@ class KamenzService
         TblPerson $tblPerson,
         TblStudentSubjectType $tblStudentSubjectType
     ) {
-
         if (($tblStudent = $tblPerson->getStudent())
             && ($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType(
                 $tblStudent, $tblStudentSubjectType
@@ -532,51 +557,41 @@ class KamenzService
      *
      * @return bool|TableData
      */
-    public static function getStudentsWithoutDivision(&$count = 0)
+    public static function getStudentsWithoutDivision(int &$count = 0)
     {
-
         $personList = array();
         if (($tblGroup = Group::useService()->getGroupByMetaTable('STUDENT'))
             && ($tblPersonList = Group::useService()->getMemberAllByGroup($tblGroup))
         ) {
 
             foreach ($tblPersonList as $tblMember) {
-                $hasDivision = false;
                 if (($tblPerson = $tblMember->getServiceTblPerson())) {
-                    if (($tblPersonDivisionList = Student::useService()->getCurrentDivisionListByPerson($tblPerson))) {
-                        foreach ($tblPersonDivisionList as $tblDivisionItem) {
-                            if (($tblLevel = $tblDivisionItem->getTblLevel())
-                                && !$tblLevel->getIsChecked()
-                            ) {
-                                $hasDivision = true;
-                                break;
+                    if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndDate($tblPerson))) {
+                        if ($tblStudentEducation->getTblDivision() || $tblStudentEducation->getTblCoreGroup()) {
+                            continue;
+                        }
+                    }
+
+                    $count++;
+                    $gender = '';
+                    $birthday = '';
+                    if (($tblCommon = $tblPerson->getCommon())) {
+                        if (($tblCommonBirthDates = $tblCommon->getTblCommonBirthDates())) {
+                            if (($tblGender = $tblCommonBirthDates->getTblCommonGender())) {
+                                $gender = $tblGender->getName();
+                            }
+                            if (($birthdayDate = $tblCommonBirthDates->getBirthday())) {
+                                $birthday = $birthdayDate;
                             }
                         }
                     }
 
-                    if (!$hasDivision) {
-                        $count++;
-                        $gender = '';
-                        $birthday = '';
-                        if (($tblCommon = $tblPerson->getCommon())) {
-                            if (($tblCommonBirthDates = $tblCommon->getTblCommonBirthDates())) {
-                                if (($tblGender = $tblCommonBirthDates->getTblCommonGender())) {
-                                    $gender = $tblGender->getName();
-                                }
-                                if (($birthdayDate = $tblCommonBirthDates->getBirthday())) {
-                                    $birthday = $birthdayDate;
-                                }
-                            }
-                        }
-
-                        $personList[$tblPerson->getId()] = array(
-                            'Name' => $tblPerson->getLastFirstName(),
-                            'Gender' => $gender,
-                            'Birthday' => $birthday,
-                            'Address' => (($tblAddress = $tblPerson->fetchMainAddress())
-                                ? $tblAddress->getGuiString() : '')
-                        );
-                    }
+                    $personList[$tblPerson->getId()] = array(
+                        'Name' => $tblPerson->getLastFirstName(),
+                        'Gender' => $gender,
+                        'Birthday' => $birthday,
+                        'Address' => (($tblAddress = $tblPerson->fetchMainAddress()) ? $tblAddress->getGuiString() : '')
+                    );
                 }
             }
         }
@@ -584,9 +599,9 @@ class KamenzService
         if (empty($personList)) {
             return false;
         } else {
-            return new TableData(
+            return (new TableData(
                 $personList,
-                new Title('Schüler ohne Klasse im aktuellen Schuljahr'),
+                new Title('Schüler ohne Klasse/Stammgruppe im aktuellen Schuljahr'),
                 array(
                     'Name' => 'Name',
                     'Gender' => 'Geschlecht',
@@ -601,9 +616,78 @@ class KamenzService
 //                    'iDisplayLength' => -1,
                     'responsive' => false
                 )
-            );
+            ))->setHash('Table_Without_Division');
         }
     }
+
+    /**
+     * @param int $count
+     *
+     * @return bool|TableData
+     */
+    public static function getStudentsWithoutSchoolTypeOrLevel(int &$count = 0)
+    {
+        $personList = array();
+        if (($tblGroup = Group::useService()->getGroupByMetaTable('STUDENT'))
+            && ($tblPersonList = Group::useService()->getMemberAllByGroup($tblGroup))
+        ) {
+
+            foreach ($tblPersonList as $tblMember) {
+                if (($tblPerson = $tblMember->getServiceTblPerson())) {
+                    if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndDate($tblPerson))) {
+                        if ($tblStudentEducation->getServiceTblSchoolType() && $tblStudentEducation->getLevel()) {
+                            continue;
+                        }
+                    }
+
+                    $count++;
+                    $gender = '';
+                    $birthday = '';
+                    if (($tblCommon = $tblPerson->getCommon())) {
+                        if (($tblCommonBirthDates = $tblCommon->getTblCommonBirthDates())) {
+                            if (($tblGender = $tblCommonBirthDates->getTblCommonGender())) {
+                                $gender = $tblGender->getName();
+                            }
+                            if (($birthdayDate = $tblCommonBirthDates->getBirthday())) {
+                                $birthday = $birthdayDate;
+                            }
+                        }
+                    }
+
+                    $personList[$tblPerson->getId()] = array(
+                        'Name' => $tblPerson->getLastFirstName(),
+                        'Gender' => $gender,
+                        'Birthday' => $birthday,
+                        'Address' => (($tblAddress = $tblPerson->fetchMainAddress()) ? $tblAddress->getGuiString() : '')
+                    );
+                }
+            }
+        }
+
+        if (empty($personList)) {
+            return false;
+        } else {
+            return (new TableData(
+                $personList,
+                new Title('Schüler ohne Klassenstufe oder Schulart im aktuellen Schuljahr'),
+                array(
+                    'Name' => 'Name',
+                    'Gender' => 'Geschlecht',
+                    'Birthday' => 'Geburtsdatum',
+                    'Address' => 'Adresse'
+                ),
+                array(
+                    'columnDefs' => array(
+                        array('type' => 'de_date', 'targets' => 2),
+                    ),
+//                    'paging' => false,
+//                    'iDisplayLength' => -1,
+                    'responsive' => false
+                )
+            ))->setHash('Table_Without_SchoolType_Or_Level');
+        }
+    }
+
 
     /**
      * @param $summary
@@ -611,9 +695,8 @@ class KamenzService
      *
      * @return array
      */
-    private static function setSummary(&$summary, $count)
+    private static function setSummary(&$summary, $count): array
     {
-
         if ($count['AlternateGender'] > 0) {
             array_splice($summary, 1, 0,
                 new Danger('Bei ' . $count['AlternateGender'] . ' Schüler/n ist das Geschlecht nicht Männlich oder Weiblich.
@@ -689,6 +772,13 @@ class KamenzService
         if ($count['TblSchoolType'] > 0) {
             $summary[] = new Warning($count['TblSchoolType'] . ' Schüler/n ist keine allgemeinbildende Schulart zugeordnet.'
                 , new Exclamation());
+        }
+        if (!empty($count['NoStudent'])) {
+            $summary[] = new Panel(
+                new Exclamation() . ' ' . count($count['NoStudent']) . ' Personen im Schuljahr, aber nicht mehr in der Personengruppe: Schüler.',
+                $count ['NoStudent'],
+                Panel::PANEL_TYPE_WARNING
+            );
         }
 
         return $summary;

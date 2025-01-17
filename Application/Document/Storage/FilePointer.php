@@ -149,6 +149,21 @@ class FilePointer extends DummyFile
     }
 
     /**
+     * @param string $FileContent
+     * @param string $From
+     * @param string $To
+     *
+     * @return void
+     */
+    public function setFileContentWithEncoding(string $FileContent, string $From = 'CP1252', string $To = 'UTF-8'): void
+    {
+
+        // Zeichenkodierung umwandeln
+        $FileContent = mb_convert_encoding($FileContent, $To, $From);
+        $this->FileContent = (string)$FileContent;
+    }
+
+    /**
      * @return bool
      */
     public function getFileExists()

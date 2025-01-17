@@ -12,39 +12,44 @@ use SPHERE\Application\Document\Generator\Repository\Frame;
 use SPHERE\Application\Document\Generator\Repository\Page;
 use SPHERE\Application\Document\Generator\Repository\Section;
 use SPHERE\Application\Document\Generator\Repository\Slice;
-use SPHERE\Application\Education\ClassRegister\Absence\Absence;
+use SPHERE\Application\Education\Absence\Absence;
 use SPHERE\Application\Education\ClassRegister\Digital\Digital;
+use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblFullTimeContent;
 use SPHERE\Application\Education\ClassRegister\Instruction\Instruction;
 use SPHERE\Application\Education\ClassRegister\Instruction\Service\Entity\TblInstruction;
 use SPHERE\Application\Education\ClassRegister\Timetable\Timetable;
-use SPHERE\Application\Education\Lesson\Division\Division;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseMember;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseMemberType;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
-use SPHERE\Application\People\Group\Group;
-use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Reporting\Standard\Person\Person;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\System\Extension\Extension;
 use SPHERE\System\Extension\Repository\Sorter\DateTimeSorter;
-use SPHERE\System\Extension\Repository\Sorter\StringNaturalOrderSorter;
 
 class ClassRegister extends AbstractDocument
 {
-    protected ?TblDivision $tblDivision = null;
-    private ?TblGroup $tblGroup = null;
-    private ?TblYear $tblYear = null;
+    protected TblDivisionCourse $tblDivisionCourse;
+    protected ?TblYear $tblYear = null;
     protected ?TblCompany $tblCompany = null;
-    private array $tblCompanyList = array();
     protected string $name = '&nbsp;';
     protected string $displayName = '&nbsp;';
-    private string $typeName = '&nbsp;';
-    private string $tudors = '&nbsp;';
+
+    private array $tblCompanyList = array();
+    private array $tblSchoolTypeList = array();
+    private string $typeName;
+    private string $tudors;
     protected array $tblPersonList = array();
     protected array $personNumberAbsenceList = array();
     private array $totalCanceledSubjectList = array();
+    private array $totalAdditionalSubjectList = array();
+    private bool $hasSaturdayLessons = false;
+    private bool $hasTypeOption = false;
 
     private array $dayName = array(
         '0' => 'Sonntag',
@@ -57,47 +62,45 @@ class ClassRegister extends AbstractDocument
     );
 
     /**
-     * @param TblDivision|null $tblDivision
-     * @param TblGroup|null $tblGroup
+     * @param TblDivisionCourse $tblDivisionCourse
      */
-    public function __construct(?TblDivision $tblDivision, ?TblGroup $tblGroup)
+    public function __construct(TblDivisionCourse $tblDivisionCourse)
     {
-        if ($tblDivision) {
-            $this->tblDivision = $tblDivision;
-            $this->name = 'Klassentagebuch';
-            $this->typeName = 'Klasse';
-            $this->displayName = $tblDivision->getDisplayName();
-            $this->tblYear = ($tblDivision->getServiceTblYear()) ?: null;
-            if (($this->tblCompany = ($tblDivision->getServiceTblCompany()) ?: null)) {
-                $this->tblCompanyList[] = $this->tblCompany;
-            }
-
-            if (($tblDivisionTeacherList = Division::useService()->getDivisionTeacherAllByDivision($tblDivision))) {
-                $teachers = array();
-                foreach ($tblDivisionTeacherList as $tblDivisionTeacher) {
-                    if ($tblPerson = $tblDivisionTeacher->getServiceTblPerson()) {
-                        $teachers[] = $tblPerson->getFullName();
+        $this->tblDivisionCourse = $tblDivisionCourse;
+        $this->name = $tblDivisionCourse->getTypeName() . 'ntagebuch';
+        $this->tblYear = ($tblYear = $tblDivisionCourse->getServiceTblYear()) ?: null;
+        $this->typeName = $tblDivisionCourse->getTypeName();
+        $this->displayName = $tblDivisionCourse->getName();
+        $this->tudors = $tblDivisionCourse->getDivisionTeacherNameListString(', ');
+        if (($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses())) {
+            $this->tblPersonList = $tblPersonList;
+            if ($tblYear) {
+                foreach ($tblPersonList as $tblPerson) {
+                    if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))) {
+                        if (($tblCompany = $tblStudentEducation->getServiceTblCompany())
+                            && !isset($this->tblCompanyList[$tblCompany->getId()])
+                        ) {
+                            $this->tblCompanyList[$tblCompany->getId()] = $tblCompany;
+                        }
+                        if (($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())
+                            && !isset($this->tblSchoolTypeList[$tblSchoolType->getId()])
+                        ) {
+                            $this->tblSchoolTypeList[$tblSchoolType->getId()] = $tblSchoolType;
+                            if (!$this->hasTypeOption && $tblSchoolType->isTechnical()) {
+                                $this->hasTypeOption = true;
+                            }
+                        }
                     }
                 }
-                if (!empty($teachers)) {
-                    $this->tudors = implode(', ', $teachers);
-                }
             }
-            if (($tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision))) {
-                $this->tblPersonList = $tblPersonList;
-            }
-        } elseif ($tblGroup) {
-            $this->tblGroup = $tblGroup;
-            $this->name = 'Stammgruppentagebuch';
-            $this->typeName = 'Gruppe';
-            $this->displayName = $tblGroup->getName();
-            $this->tblYear = ($tblGroup->getCurrentYear()) ?: null;
-            $this->tblCompany = ($tblGroup->getCurrentCompanySingle()) ?: null;
-            $this->tblCompanyList = ($tblGroup->getCurrentCompanyList()) ?: array();
-            $this->tudors = $tblGroup->getTudorsString(false);
-            if (($tblPersonList = $tblGroup->getStudentOnlyList())) {
-                $this->tblPersonList = $tblPersonList;
-            }
+        }
+
+        if (!empty($tblSchoolTypeList)) {
+            $this->hasSaturdayLessons = Digital::useService()->getHasSaturdayLessonsBySchoolTypeList($tblSchoolTypeList);
+        }
+
+        if (!empty($this->tblCompanyList)) {
+            $this->tblCompany = current($this->tblCompanyList);
         }
     }
 
@@ -138,6 +141,7 @@ class ClassRegister extends AbstractDocument
      */
     public function getPageList(): array
     {
+        $pageList = array();
         $pageList[] = $this->getCoverSheet();
         $pageList[] = new Page();
         $pageList[] = $this->getFirstPage();
@@ -283,7 +287,7 @@ class ClassRegister extends AbstractDocument
                             ->styleBorderBottom()
                         )
                         ->addElement((new Element())
-                            ->setContent($this->tblDivision ? 'Klassenlehrer/in' : 'Tudor/in')
+                            ->setContent($this->tblDivisionCourse->getTypeIdentifier() == TblDivisionCourseType::TYPE_DIVISION ? 'Klassenlehrer/in' : 'Tutor/in')
                             ->styleTextSize($textSize)
                             ->stylePaddingLeft($paddingLeft)
                         )
@@ -311,8 +315,7 @@ class ClassRegister extends AbstractDocument
                     ->styleTextBold()
                 )
             )
-            ->addSlice($this->getLectureshipSlice())
-            ;
+            ->addSlice($this->getLectureshipSlice());
     }
 
     /**
@@ -320,29 +323,7 @@ class ClassRegister extends AbstractDocument
      */
     private function getLectureshipSlice(): Slice
     {
-        if ($this->tblDivision) {
-            $dataList = Digital::useService()->getSubjectsAndLectureshipByDivisionForDownload($this->tblDivision);
-        } elseif ($this->tblGroup) {
-            $dataList = array();
-            if (($tblDivisionList = $this->tblGroup->getCurrentDivisionList())) {
-                foreach ($tblDivisionList as $tblDivision) {
-                    foreach (Digital::useService()->getSubjectsAndLectureshipByDivisionForDownload($tblDivision) as $acronymId => $item) {
-                        if (isset($dataList[$acronymId])) {
-                            foreach ($item['TeacherArray'] as $personId => $name) {
-                                if (!isset($dataList[$acronymId]['TeacherArray'][$personId])) {
-                                    $dataList[$acronymId]['TeacherArray'][$personId] = $name;
-                                }
-                            }
-                        } else {
-                            $dataList[$acronymId] = $item;
-                        }
-                    }
-                }
-            }
-            ksort($dataList);
-        } else {
-            $dataList = array();
-        }
+        $dataList = Digital::useService()->getSubjectsAndLectureshipByDivisionForDownload($this->tblDivisionCourse);
 
         $slice = (new Slice())
             ->styleMarginTop('5px')
@@ -546,9 +527,7 @@ class ClassRegister extends AbstractDocument
     private function getRepresentativeHolidayPage(): Page
     {
         $page = (new Page());
-        if ($this->tblDivision) {
-            $page->addSliceArray($this->getRepresentativeSliceList());
-        }
+        $page->addSliceArray($this->getRepresentativeSliceList());
         $page->addSliceArray($this->getHolidaySliceList());
 
         return $page;
@@ -566,7 +545,7 @@ class ClassRegister extends AbstractDocument
 
         $sliceList[] = (new Slice())
             ->addElement((new Element())
-                ->setContent('Elternvertreter / Klassensprecher')
+                ->setContent('Elternsprecher / Klassensprecher')
                 ->styleTextBold()
                 ->styleTextSize('18px')
             );
@@ -597,24 +576,31 @@ class ClassRegister extends AbstractDocument
                     , $width[2])
             );
 
-        // Elternvertreter
-        if ($this->tblDivision && ($tblCustodyList = Division::useService()->getCustodyAllByDivision($this->tblDivision))) {
-            $CustodyList = array();
+        // Elternsprecher
+        $custodyList = array();
+        if (($tblCustodyMemberList = DivisionCourse::useService()->getDivisionCourseMemberListBy(
+            $this->tblDivisionCourse, TblDivisionCourseMemberType::TYPE_CUSTODY, false, false
+        ))) {
             $count = 0;
-            foreach ($tblCustodyList as $tblPerson) {
-                $Description = Division::useService()->getDivisionCustodyByDivisionAndPerson($this->tblDivision, $tblPerson)->getDescription();
-                $CustodyList[$count++] = $tblPerson->getFullName() . ($Description ? ' (' . $Description . ')' : '');
+            /** @var TblDivisionCourseMember $tblCustody */
+            foreach ($tblCustodyMemberList as $tblCustody) {
+                if (($tblPersonCustody = $tblCustody->getServiceTblPerson())) {
+                    $custodyList[$count++] = $tblPersonCustody->getFullName() . ($tblCustody->getDescription() ? ' (' . $tblCustody->getDescription() . ')': '');
+                }
             }
         }
         // Klassensprecher
-        if ($this->tblDivision && ($tblDivisionRepresentativeList = Division::useService()->getDivisionRepresentativeByDivision($this->tblDivision))) {
-            $RepresentativeList = array();
+        $representativeList = array();
+        if (($tblRepresentativeMemberList = DivisionCourse::useService()->getDivisionCourseMemberListBy(
+            $this->tblDivisionCourse, TblDivisionCourseMemberType::TYPE_REPRESENTATIVE, false, false
+        ))) {
             $count = 0;
-            foreach($tblDivisionRepresentativeList as $tblDivisionRepresentative){
-                $tblPersonRepresentative = $tblDivisionRepresentative->getServiceTblPerson();
-                $Description = $tblDivisionRepresentative->getDescription();
-                $RepresentativeList[$count++] = $tblPersonRepresentative->getFirstSecondName() . ' ' . $tblPersonRepresentative->getLastName()
-                    . ($Description ? ' (' . $Description . ')' : '');
+            /** @var TblDivisionCourseMember $tblRepresentative */
+            foreach ($tblRepresentativeMemberList as $tblRepresentative) {
+                if (($tblPersonRepresentative = $tblRepresentative->getServiceTblPerson())) {
+                    $representativeList[$count++] = $tblPersonRepresentative->getFirstSecondName() . ' ' . $tblPersonRepresentative->getLastName()
+                        . ($tblRepresentative->getDescription() ? ' (' . $tblRepresentative->getDescription() . ')' : '');
+                }
             }
         }
 
@@ -623,7 +609,7 @@ class ClassRegister extends AbstractDocument
         for ($i = 0; $i < 5; $i++) {
             $subSliceCustody
                 ->addElement((new Element())
-                    ->setContent($CustodyList[$i] ?? '&nbsp;')
+                    ->setContent($custodyList[$i] ?? '&nbsp;')
                     ->styleHeight('30px')
                     ->stylePaddingLeft($padding)
                     ->stylePaddingTop($padding)
@@ -632,7 +618,7 @@ class ClassRegister extends AbstractDocument
                 );
             $subSliceRepresentative
                 ->addElement((new Element())
-                    ->setContent($RepresentativeList[$i] ?? '&nbsp;')
+                    ->setContent($representativeList[$i] ?? '&nbsp;')
                     ->styleHeight('30px')
                     ->stylePaddingLeft($padding)
                     ->stylePaddingTop($padding)
@@ -644,7 +630,7 @@ class ClassRegister extends AbstractDocument
         $slice
             ->addSection((new Section())
                 ->addElementColumn((new Element())
-                    ->setContent('Elternvertreter/in')
+                    ->setContent('Elternsprecher/in')
                     ->stylePaddingLeft('5px')
                     ->stylePaddingTop('5px')
                     ->styleBorderBottom()
@@ -706,8 +692,12 @@ class ClassRegister extends AbstractDocument
 
         if ($this->tblYear) {
             $list = array();
-            if ($this->tblCompany && ($tblYearHolidayAllByYearAndCompany = Term::useService()->getYearHolidayAllByYear($this->tblYear, $this->tblCompany))) {
-                $list = $tblYearHolidayAllByYearAndCompany;
+            if ($this->tblCompanyList) {
+                foreach ($this->tblCompanyList as $tblCompany) {
+                    if (($tblYearHolidayAllByYearAndCompany = Term::useService()->getYearHolidayAllByYear($this->tblYear, $tblCompany))) {
+                        $list = array_merge($list, $tblYearHolidayAllByYearAndCompany);
+                    }
+                }
             }
             if (($tblYearHolidayAllByYear = Term::useService()->getYearHolidayAllByYear($this->tblYear))) {
                 $list = array_merge($list, $tblYearHolidayAllByYear);
@@ -765,12 +755,21 @@ class ClassRegister extends AbstractDocument
     {
         if ($this->tblYear) {
             list($startDate, $endDate) = Term::useService()->getStartDateAndEndDateOfYear($this->tblYear);
+//            $startDate = new DateTime('01.12.2023');
+//            $endDate = new DateTime('20.12.2023');
             if ($startDate && $endDate) {
                 $dayOfWeek = $startDate->format('w');
 
-                // wenn Schuljahresbeginn ein Samstag oder Sonntag dann beginne mit der nächsten Woche
-                if ($dayOfWeek == 6 || $dayOfWeek == 0) {
-                    $startDate->add(new DateInterval('P7D'));
+                // wenn Schuljahresbeginn ein Sonntag ist, dann beginne mit der nächsten Woche
+                if ($this->hasSaturdayLessons) {
+                    if ($dayOfWeek == 0) {
+                        $startDate->add(new DateInterval('P7D'));
+                    }
+                // wenn Schuljahresbeginn ein Samstag oder ein Sonntag ist, dann beginne mit der nächsten Woche
+                } else {
+                    if ($dayOfWeek == 6 || $dayOfWeek == 0) {
+                        $startDate->add(new DateInterval('P7D'));
+                    }
                 }
                 $startDate = Timetable::useService()->getStartDateOfWeek($startDate);
 
@@ -779,14 +778,22 @@ class ClassRegister extends AbstractDocument
                     $dateString = $startDate->format('d.m.Y');
                     $dayOfWeek = $startDate->format('w');
 
+                    // nur Sonntag überspringen
+                    if ($this->hasSaturdayLessons) {
+                        if ($dayOfWeek == 0) {
+                            $startDate->add(new DateInterval('P1D'));
+                            continue;
+                        }
                     // Samstag und Sonntag überspringen
-                    if ($dayOfWeek == 6 || $dayOfWeek == 0) {
-                        $startDate->add(new DateInterval('P1D'));
-                        continue;
+                    } else {
+                        if ($dayOfWeek == 6 || $dayOfWeek == 0) {
+                            $startDate->add(new DateInterval('P1D'));
+                            continue;
+                        }
                     }
 
                     // Prüfung, ob die gesamte Woche Ferien sind, dann diese überspringen
-                    if ($dayOfWeek == 1 && Term::useService()->getIsSchoolWeekHoliday($dateString, $this->tblYear, $this->tblCompanyList)) {
+                    if ($dayOfWeek == 1 && Term::useService()->getIsSchoolWeekHoliday($dateString, $this->tblYear, $this->tblCompanyList, $this->hasSaturdayLessons)) {
                         $startDate->add(new DateInterval('P7D'));
                         continue;
                     }
@@ -806,9 +813,19 @@ class ClassRegister extends AbstractDocument
 
                     $sliceList[] = $this->getLessonContentDaySlice($startDate, $dayOfWeek);
 
-                    // Freitag
-                    if ($dayOfWeek == 5) {
-                        $sliceList[] = $this->getWeekSummarySlice($startDate);
+                    if ($this->hasSaturdayLessons) {
+                        if ($dayOfWeek == 6) {
+                            $pageList[] = (new Page())->addSliceArray($sliceList);
+                            $sliceList = array();
+                            $sliceList[] = $this->getWeekSummarySlice($startDate);
+                            $pageList[] = (new Page())->addSliceArray($sliceList);
+                            $sliceList = array();
+                        }
+                    } else {
+                        // Freitag
+                        if ($dayOfWeek == 5) {
+                            $sliceList[] = $this->getWeekSummarySlice($startDate);
+                        }
                     }
 
                     $startDate->add(new DateInterval('P1D'));
@@ -840,7 +857,7 @@ class ClassRegister extends AbstractDocument
 
         // unterrichtsfreier Tag
         if ($this->tblYear && $this->tblCompany
-            && ($tblHoliday = Term::useService()->getHolidayByDay($this->tblYear, $dateTime, $this->tblCompany))
+            && ($tblHoliday = Term::useService()->getHolidayByDayAndCompanyList($this->tblYear, $dateTime, $this->tblCompanyList))
         ) {
             $count = 10;
             $isHoliday = true;
@@ -854,16 +871,32 @@ class ClassRegister extends AbstractDocument
                     ->stylePaddingTop('120px')
                     ->styleAlignCenter()
                 );
+        } elseif (($tblFullTimeContentList = Digital::useService()->getFullTimeContentListByDivisionCourseAndDate($this->tblDivisionCourse, $dateTime))) {
+            $count = 10;
+            $isHoliday = true;
+
+            /** @var TblFullTimeContent $tblFullTimeContent */
+            $tblFullTimeContent = current($tblFullTimeContentList);
+            $displayFullTimeContent = 'Ganztägig' . (($tempContent = $tblFullTimeContent->getContent()) ? ': ' . $tempContent : '');
+
+            $slice = (new Slice())
+                ->styleBorderAll()
+                ->styleHeight(($count * 28) . 'px')
+                ->styleBackgroundColor('#EEE')
+                ->addElement((new Element())
+                    ->setContent($displayFullTimeContent)
+                    ->stylePaddingTop('120px')
+                    ->styleAlignCenter()
+                );
         } else {
             $isHoliday = false;
 
             // Fehlzeiten für den Tag ermitteln
-            $divisionList = $this->tblDivision ? array('0' => $this->tblDivision) : array();
-            $groupList = $this->tblGroup ? array('0' => $this->tblGroup) : array();
+            $divisionCourseList = array('0' => $this->tblDivisionCourse);
             $absenceContent = array();
-            if (($AbsenceList = Absence::useService()->getAbsenceAllByDay($dateTime, null, null, $divisionList, $groupList,
-                $hasTypeOption, null)
-            )) {
+            if (($AbsenceList = Absence::useService()->getAbsenceAllByDay(
+                $dateTime, null, null, $divisionCourseList, $this->hasTypeOption, null
+            ))) {
                 foreach ($AbsenceList as $Absence) {
                     if (($tblAbsence = Absence::useService()->getAbsenceById($Absence['AbsenceId']))) {
                         if (($tblPerson = $tblAbsence->getServiceTblPerson()) && isset($this->personNumberAbsenceList[$tblPerson->getId()])) {
@@ -901,7 +934,7 @@ class ClassRegister extends AbstractDocument
             }
             for ($i = $minLesson; $i < 13; $i++) {
                 // mehrere UEs zur selben Zeit sind möglich
-                if (($tblLessonContentList = Digital::useService()->getLessonContentAllByDateAndLesson($dateTime, $i, $this->tblDivision, $this->tblGroup))) {
+                if (($tblLessonContentList = Digital::useService()->getLessonContentAllByDateAndLesson($dateTime, $i, $this->tblDivisionCourse))) {
                     foreach ($tblLessonContentList as $tblLessonContent) {
                         $absence = '';
                         if (isset($absenceContent['Day'])) {
@@ -922,7 +955,7 @@ class ClassRegister extends AbstractDocument
                         $count++;
                     }
                 } else {
-                    if ($i > 0 && $i < 11) {
+                    if ($i > 0 && $i < 9) {
                         $slice->addSection((new Section())
                             ->addElementColumn($this->getElement($i . '.')->styleAlignCenter(), $width[2])
                             ->addElementColumn($this->getElement('&nbsp;'), $width[3])
@@ -943,7 +976,7 @@ class ClassRegister extends AbstractDocument
                     ->styleBorderLeft()
                     ->styleBorderTop()
                     ->addElement((new Element())
-                        ->setContent($this->setRotatedContent($this->dayName[$dayOfWeek]))
+                        ->setContent($this->setRotatedContent($this->dayName[$dayOfWeek], ($count * 28) / 2 . 'px'))
                         ->styleHeight(($count * 28) . 'px')
                         ->styleBorderBottom()
                         ->styleBackgroundColor($isHoliday ? '#EEE' : '#FFF')
@@ -961,7 +994,7 @@ class ClassRegister extends AbstractDocument
     private function getWeekSummarySlice(DateTime $dateTime): Slice
     {
         list($fromDate, $toDate, $canceledSubjectList, $additionalSubjectList, $subjectList)
-            = Digital::useService()->getCanceledSubjectList($dateTime, $this->tblDivision, $this->tblGroup);
+            = Digital::useService()->getCanceledSubjectList($dateTime, $this->tblDivisionCourse);
 
         $slice = (new Slice())->styleBorderLeft();
         if ($subjectList) {
@@ -975,6 +1008,7 @@ class ClassRegister extends AbstractDocument
             $sectionCanceled = (new Section())->addElementColumn($this->getElement('Anzahl ausgefallene Stunden', 10), $widthString);
             $sectionAdditional = (new Section())->addElementColumn($this->getElement('Anzahl zusätzlich erteilte Stunden', 10), $widthString);
             $sectionTotalCanceled = (new Section())->addElementColumn($this->getElement('absoluter Ausfall', 10), $widthString);
+            $sectionTotalAdditional = (new Section())->addElementColumn($this->getElement('abs. zus. erteilte Stunden', 10), $widthString);
 
             foreach ($subjectList as $acronym => $subject) {
 
@@ -985,17 +1019,26 @@ class ClassRegister extends AbstractDocument
                     $this->totalCanceledSubjectList[$acronym] = $canceledSubjectList[$acronym];
                 }
 
+                // absolute zusätzlich erteilte Stunden aufsummieren
+                if (isset($this->totalAdditionalSubjectList[$acronym]) && isset($additionalSubjectList[$acronym])) {
+                    $this->totalAdditionalSubjectList[$acronym] += $additionalSubjectList[$acronym];
+                } elseif (isset($additionalSubjectList[$acronym])) {
+                    $this->totalAdditionalSubjectList[$acronym] = $additionalSubjectList[$acronym];
+                }
+
                 $sectionHeader->addElementColumn($this->getHeaderElement($acronym), $widthItemString);
                 $sectionCanceled->addElementColumn($this->getElement($canceledSubjectList[$acronym] ?? 0)->styleAlignCenter(), $widthItemString);
                 $sectionAdditional->addElementColumn($this->getElement($additionalSubjectList[$acronym] ?? 0)->styleAlignCenter(), $widthItemString);
                 $sectionTotalCanceled->addElementColumn($this->getElement($this->totalCanceledSubjectList[$acronym] ?? 0)->styleAlignCenter(), $widthItemString);
+                $sectionTotalAdditional->addElementColumn($this->getElement($this->totalAdditionalSubjectList[$acronym] ?? 0)->styleAlignCenter(), $widthItemString);
             }
 
             $slice
                 ->addSection($sectionHeader)
                 ->addSection($sectionCanceled)
                 ->addSection($sectionAdditional)
-                ->addSection($sectionTotalCanceled);
+                ->addSection($sectionTotalCanceled)
+                ->addSection($sectionTotalAdditional);
         }
 
         $remark = '';
@@ -1003,7 +1046,7 @@ class ClassRegister extends AbstractDocument
         $descriptionHeadmaster = 'Schulleiterin/Schulleiter';
         $divisionTeacher = '&nbsp;';
         $headmaster = '&nbsp;';
-        if (($tblLessonWeek = Digital::useService()->getLessonWeekByDate($this->tblDivision, $this->tblGroup, $fromDate))) {
+        if (($tblLessonWeek = Digital::useService()->getLessonWeekByDate($this->tblDivisionCourse, $fromDate))) {
             $remark = str_replace("\n", '<br/>', $tblLessonWeek->getRemark());
             if ($tblLessonWeek->getDateDivisionTeacher()) {
                 $divisionTeacher = $tblLessonWeek->getDateDivisionTeacher();
@@ -1137,20 +1180,23 @@ class ClassRegister extends AbstractDocument
 
     /**
      * @param string $text
+     * @param string $height
      * @param string $paddingTop
      * @param string $paddingLeft
-     * @param string $paddingRight
      *
      * @return string
      */
-    protected function setRotatedContent(string $text = '&nbsp;', string $paddingTop = '-45px', string $paddingLeft = '-90px', string $paddingRight = ''): string
+    protected function setRotatedContent(string $text = '&nbsp;', string $height = 'auto', string $paddingTop = '22px', string $paddingLeft = '0px'): string
     {
         return
-            '<div style="padding-top: ' . $paddingTop . '!important;'
+            '<div style="'
+            . 'position: absolute;'
+            . 'transform: rotate(270deg)!important;'
+            . 'transform-origin: left bottom 0;'
+            . 'top: ' . $height . ';'
+            . 'padding-top: ' . $paddingTop . '!important;'
             . 'padding-left: ' . $paddingLeft . '!important;'
-            . ($paddingRight ? 'padding-right: ' . $paddingRight . '!important;' : '')
-            . 'white-space: nowrap;'
-            . 'transform: rotate(-90deg)!important;'
+            . 'white-space: nowrap!important;'
             . '">'
             . $text
             . '</div>';
@@ -1218,7 +1264,7 @@ class ClassRegister extends AbstractDocument
     private function getHeaderWeekSlice(string $fromDateString): Slice
     {
         $toDate = new DateTime($fromDateString);
-        $toDate = $toDate->add(new DateInterval('P4D'));
+        $toDate = $toDate->add(new DateInterval($this->hasSaturdayLessons ? 'P5D' : 'P4D'));
 
         return (new Slice())->addElement((new Element())
             ->setContent('Wochenbericht im Klassenbuch vom ' . $fromDateString . ' bis ' . $toDate->format('d.m.Y'))
@@ -1297,7 +1343,7 @@ class ClassRegister extends AbstractDocument
         $content = $tblInstruction->getContent();
         $count = 0;
 
-        if (($tblInstructionItemList = Instruction::useService()->getInstructionItemAllByInstruction($tblInstruction, $this->tblDivision, $this->tblGroup, null))) {
+        if (($tblInstructionItemList = Instruction::useService()->getInstructionItemAllByInstruction($tblInstruction, $this->tblDivisionCourse))) {
             $subSlice = (new Slice())
                 // keine Ahnung warum diese Höhe 10 Pixel mehr sein muss
                 ->styleHeight('150px')

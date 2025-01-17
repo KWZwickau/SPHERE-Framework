@@ -5,9 +5,10 @@ use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Mail\Mail;
 use SPHERE\Application\Contact\Phone\Phone;
 use SPHERE\Application\Document\Storage\Storage;
-use SPHERE\Application\Education\ClassRegister\Absence\Absence;
-use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
-use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Absence\Absence;
+use SPHERE\Application\Education\Graduation\Grade\Grade;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\ParentStudentAccess\OnlineContactDetails\OnlineContactDetails;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Meta\Club\Club;
@@ -119,6 +120,15 @@ class Service extends AbstractService
     }
 
     /**
+     * @return array
+     */
+    public function getTitleAll()
+    {
+
+        return (new Data($this->getBinding()))->getTitleAll();
+    }
+
+    /**
      * @return false|TblPerson[]
      */
     public function getPersonAllBySoftRemove()
@@ -179,36 +189,31 @@ class Service extends AbstractService
     }
 
     /**
-     * @param        $Salutation
-     * @param        $Title
-     * @param        $FirstName
-     * @param        $SecondName
-     * @param        $LastName
-     * @param        $GroupList
-     * @param string $BirthName
-     * @param string $ImportId
-     * @param string $CallName
+     * @param $Salutation
+     * @param $Title
+     * @param $FirstName
+     * @param $SecondName
+     * @param $LastName
+     * @param $GroupList
+     * @param $BirthName
+     * @param $ImportId
+     * @param $CallName
      *
-     * @return bool|TblPerson
+     * @return TblPerson
      */
     public function insertPerson($Salutation, $Title, $FirstName, $SecondName, $LastName, $GroupList, $BirthName = '', $ImportId = '', $CallName = '')
     {
 
-        if (( $tblPerson = (new Data($this->getBinding()))->createPerson(
-            $Salutation, $Title, $FirstName, $SecondName, $CallName, $LastName, $BirthName, $ImportId) )
-        ) {
-            // Add to Group
-            if (!empty( $GroupList )) {
-                foreach ($GroupList as $tblGroup) {
-                    Group::useService()->addGroupPerson(
-                        Group::useService()->getGroupById($tblGroup), $tblPerson
-                    );
+        $tblPerson = (new Data($this->getBinding()))->createPerson($Salutation, $Title, $FirstName, $SecondName, $CallName, $LastName, $BirthName, $ImportId);
+        // Add to Group
+        if (!empty( $GroupList )) {
+            foreach ($GroupList as $tblGroup) {
+                if($tblGroup){
+                    Group::useService()->addGroupPerson($tblGroup, $tblPerson);
                 }
             }
-            return $tblPerson;
-        } else {
-            return false;
         }
+        return $tblPerson;
     }
 
     /**
@@ -221,6 +226,17 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getPersonById($Id, $IsForced);
+    }
+
+    /**
+     * @param $PersonIdList
+     *
+     * @return array
+     */
+    public function getPersonArrayByIdList($PersonIdList)
+    {
+
+        return (new Data($this->getBinding()))->getPersonArrayByIdList($PersonIdList);
     }
 
     /**
@@ -250,13 +266,17 @@ class Service extends AbstractService
             $NameList = explode(' ', $FirstName);
             $count = count($NameList);
             $SecondName = '';
-            if($count ==  2){
+            if($count == 2){
                 $FirstName = $NameList[0];
                 $SecondName = $NameList[1];
             } elseif($count > 2) {
                 $FirstName = $NameList[0];
-                for($i = 1; $i <= $count; $i++){
-                    $SecondName .= $NameList[$i];
+                for($i = 1; $i < $count; $i++){
+                    if($SecondName){
+                        $SecondName .= ' '.$NameList[$i];
+                    } else {
+                        $SecondName .= $NameList[$i];
+                    }
                 }
             }
             if(($tblPersonList = (new Data($this->getBinding()))->getPersonAllByFirstNameAndSecondNameAndLastName($FirstName, $SecondName, $LastName))){
@@ -281,13 +301,17 @@ class Service extends AbstractService
             $NameList = explode(' ', $FirstName);
             $count = count($NameList);
             $SecondName = '';
-            if($count ==  2){
+            if($count == 2){
                 $FirstName = $NameList[0];
                 $SecondName = $NameList[1];
             } elseif($count > 2) {
                 $FirstName = $NameList[0];
-                for($i = 1; $i <= $count; $i++){
-                    $SecondName .= $NameList[$i];
+                for($i = 1; $i < $count; $i++){
+                    if($SecondName){
+                        $SecondName .= ' '.$NameList[$i];
+                    } else {
+                        $SecondName .= $NameList[$i];
+                    }
                 }
             }
 
@@ -330,13 +354,13 @@ class Service extends AbstractService
         $PersonList = array();
 
         foreach($tblPersonList as $tblPerson){
-            if($Birthday !== null){
+            if($Birthday){
                 $BirthdayTemp = $tblPerson->getBirthday();
                 if($Birthday != $BirthdayTemp){
                     continue;
                 }
             }
-            if($Code !== null){
+            if($Code){
                 if(($tblAddress = Address::useService()->getAddressByPerson($tblPerson))){
                     if(($tblCity = $tblAddress->getTblCity())){
                         $CodeTemp = $tblCity->getCode();
@@ -350,7 +374,7 @@ class Service extends AbstractService
                     continue;
                 }
             }
-            if($Identifier !== null){
+            if($Identifier){
                 if (($tblStudent = Student::useService()->getStudentByPerson($tblPerson))) {
                     if ($Identifier != $tblStudent->getIdentifier()) {
                         continue;
@@ -521,6 +545,31 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblPerson $tblPerson
+     * @param $Salutation
+     * @param $Title
+     * @param $FirstName
+     * @param $SecondName
+     * @param $CallName
+     * @param $LastName
+     * @param string $BirthName
+     *
+     * @return bool
+     */
+    public function updatePerson(TblPerson $tblPerson,
+        $Salutation,
+        $Title,
+        $FirstName,
+        $SecondName,
+        $CallName,
+        $LastName,
+        string $BirthName = ''
+    ): bool {
+        return (new Data($this->getBinding()))->updatePerson($tblPerson, $Salutation, $Title, $FirstName, $SecondName,
+            $CallName, $LastName, $BirthName);
+    }
+
+    /**
      * @param array $ProcessList
      */
     public function updatePersonAnonymousBulk($ProcessList = array())
@@ -607,6 +656,12 @@ class Service extends AbstractService
      */
     public function destroyPerson(TblPerson $tblPerson)
     {
+        // alle Online-Kontakt-Daten Änderungswünsche zu der Person löschen
+        if (($tblOnlineContacts = OnlineContactDetails::useService()->getOnlineContactAllByPerson($tblPerson))) {
+            foreach ($tblOnlineContacts as $tblOnlineContact) {
+                OnlineContactDetails::useService()->deleteOnlineContact($tblOnlineContact);
+            }
+        }
 
         return (new Data($this->getBinding()))->destroyPerson($tblPerson);
     }
@@ -736,14 +791,18 @@ class Service extends AbstractService
             }
         }
 
-        // Division
-        if (($tblDivisionList = Division::useService()->getDivisionStudentAllByPerson($tblPerson))) {
-            foreach ($tblDivisionList as $tblDivisionStudent) {
-                if (($tblDivision = $tblDivisionStudent->getTblDivision())
+        if (($tblStudentEducationList = DivisionCourse::useService()->getStudentEducationListByPerson($tblPerson, true))) {
+            foreach ($tblStudentEducationList as $tblStudentEducation) {
+                if (($tblDivision = $tblStudentEducation->getTblDivision())
                     && ($tblYear = $tblDivision->getServiceTblYear())
                 ) {
-                    $list[] = 'Klassenzuordnung: ' . $tblDivision->getDisplayName()
-                        . ' (' . $tblYear->getDisplayName() . ')';
+                    $list[] = 'Klassenzuordnung: ' . $tblDivision->getName() . ' (' . $tblYear->getDisplayName() . ')';
+                }
+
+                if (($tblCoreGroup = $tblStudentEducation->getTblCoreGroup())
+                    && ($tblYear = $tblCoreGroup->getServiceTblYear())
+                ) {
+                    $list[] = 'Stammgruppenzuordnung: ' . $tblCoreGroup->getName() . ' (' . $tblYear->getDisplayName() . ')';
                 }
             }
         }
@@ -752,8 +811,8 @@ class Service extends AbstractService
             $list[] = count($tblAbsenceList) . ' Fehlzeiten zur Person';
         }
         // Grades
-        if (($tblGradeList = Gradebook::useService()->getGradeAllBy($tblPerson))) {
-            $list[] = 'Zugriff auf ' . count($tblGradeList) . ' Zensuren der Person';
+        if (($count = Grade::useService()->getCountPersonTestGrades($tblPerson))) {
+            $list[] = 'Zugriff auf ' . $count . ' Zensuren der Person';
         }
         // Certificates
         if (($tblFileList = Storage::useService()->getCertificateRevisionFileAllByPerson($tblPerson))) {
@@ -982,28 +1041,37 @@ class Service extends AbstractService
             }
         }
 
-        // Division
-        if (($tblDivisionList = Division::useService()->getDivisionStudentAllByPerson($tblPerson, true))) {
-            foreach ($tblDivisionList as $tblDivisionStudent) {
-                if (($tblDivision = $tblDivisionStudent->getTblDivision())
+        // StudentEducation
+        if (($tblStudentEducationList = DivisionCourse::useService()->getStudentEducationListByPerson($tblPerson, true))) {
+            foreach ($tblStudentEducationList as $tblStudentEducation) {
+                if (($tblDivision = $tblStudentEducation->getTblDivision())
                     && ($tblYear = $tblDivision->getServiceTblYear())
                 ) {
-
                     $result[] = array(
                         'Number' => $count++,
                         'Type' => 'Klassenzuordnung',
-                        'Value' =>  $tblDivision->getDisplayName() . ' (' . $tblYear->getDisplayName() . ')',
-                        'EntityRemove' => $tblDivisionStudent->getEntityRemove()
+                        'Value' =>  $tblDivision->getName() . ' (' . $tblYear->getDisplayName() . ')',
+                        'EntityRemove' => $tblStudentEducation->getEntityRemove()
                     );
+                }
 
-                    if ($isRestore) {
-                        Division::useService()->restoreDivisionStudent($tblDivisionStudent);
-                    }
+                if (($tblCoreGroup = $tblStudentEducation->getTblCoreGroup())
+                    && ($tblYear = $tblCoreGroup->getServiceTblYear())
+                ) {
+                    $result[] = array(
+                        'Number' => $count++,
+                        'Type' => 'Stammgruppenzuordnung',
+                        'Value' =>  $tblCoreGroup->getName() . ' (' . $tblYear->getDisplayName() . ')',
+                        'EntityRemove' => $tblStudentEducation->getEntityRemove()
+                    );
                 }
             }
         }
+        if ($isRestore) {
+            DivisionCourse::useService()->restorePerson($tblPerson);
+        }
         // Absence
-        if (($tblAbsenceList = Absence::useService()->getAbsenceAllByPerson($tblPerson, null, true))){
+        if (($tblAbsenceList = Absence::useService()->getAbsenceAllByPerson($tblPerson, true))){
             $result[] = array(
                 'Number' => $count,
                 'Type' => 'Fehlzeiten',
@@ -1011,8 +1079,10 @@ class Service extends AbstractService
                 'EntityRemove' => ''
             );
 
-            foreach ($tblAbsenceList as $tblAbsence) {
-                Absence::useService()->restoreAbsence($tblAbsence);
+            if ($isRestore) {
+                foreach ($tblAbsenceList as $tblAbsence) {
+                    Absence::useService()->restoreAbsence($tblAbsence);
+                }
             }
         }
 
@@ -1432,6 +1502,7 @@ class Service extends AbstractService
                 $tblPersonList = array();
 
                 $tblType = Phone::useService()->getTypeById($item['Type']);
+                $isEmergencyContact = isset($item['IsEmergencyContact']);
                 $address = $item['Number'];
                 $remark = $item['Remark'];
 
@@ -1461,6 +1532,7 @@ class Service extends AbstractService
                 } elseif ($isAdd) {
                     $phoneAddList[$key] = array(
                         'tblType' => $tblType,
+                        'IsEmergencyContact' => $isEmergencyContact,
                         'Number' => $address,
                         'Remark' => $remark,
                         'tblPersonList' => $tblPersonList
@@ -1474,7 +1546,7 @@ class Service extends AbstractService
                 $tblPersonList = array();
 
                 $tblType = Mail::useService()->getTypeById($item['Type']);
-                $address = $item['Address'];
+                $address = $this->validateMailAddress($item['Address']);
                 $remark = $item['Remark'];
                 $isAccountUserAlias = isset($item['IsAccountUserAlias']);
                 $isAccountRecoveryMail = isset($item['IsAccountRecoveryMail']);
@@ -1492,7 +1564,7 @@ class Service extends AbstractService
                 if ($tblType || $address || $remark) {
                     $isAdd = true;
                     $this->setMessage($tblType, $key, 'Type', 'Bitte wählen Sie einen Typ aus.', $Errors, $errorMail);
-                    $this->setMessage($address, $key, 'Address', 'Bitte geben Sie eine E-Mail Adresse ein.', $Errors, $errorMail);
+                    $this->setMessage($address, $key, 'Address', 'Bitte geben Sie eine gültige E-Mail Adresse an', $Errors, $errorMail);
 
                     if ($countPersons == 0) {
                         $errorMail = true;
@@ -1570,6 +1642,7 @@ class Service extends AbstractService
                     $address['CityCode'],
                     $address['CityName'],
                     $address['CityDistrict'],
+                    '',
                     $address['County'],
                     $address['Nation'],
                     $address['tblPersonList'],
@@ -1582,6 +1655,7 @@ class Service extends AbstractService
                 Phone::useService()->insertPhoneToPersonList(
                     $phone['Number'],
                     $phone['tblType'],
+                    $phone['IsEmergencyContact'],
                     $phone['Remark'],
                     $phone['tblPersonList']
                 );

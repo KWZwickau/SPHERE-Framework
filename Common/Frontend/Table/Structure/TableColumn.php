@@ -49,7 +49,7 @@ class TableColumn extends Extension implements ITemplateInterface
          */
         $Content = preg_replace(
             '!<table(.*?)class="(.*?)\ssmall"(.*?)>!is',
-            '<table${1}class="${2}"${3}>', $Content);
+            '<table${1}class="${2}"${3}>', ($Content ?? ''));
         $this->Content = $Content;
         $this->Size = $Size;
         $this->Width = $Width;

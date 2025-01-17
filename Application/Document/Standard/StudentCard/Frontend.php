@@ -2,8 +2,11 @@
 namespace SPHERE\Application\Document\Standard\StudentCard;
 
 use SPHERE\Application\Api\Document\Standard\Repository\StudentCard\ApiDownload;
-use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
 use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Icon\Repository\Listing;
@@ -16,7 +19,6 @@ use SPHERE\Common\Frontend\Text\Repository\Info;
 use SPHERE\System\Extension\Extension;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\People\Group\Group;
-use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
@@ -56,18 +58,16 @@ class Frontend extends Extension implements IFrontendInterface
     private static function setButtonList(Stage $Stage)
     {
         $Stage->addButton(new Standard('Einstellungen', '/Document/Standard/StudentCard/Setting', new CogWheels(),
-            array(),
-            'Fächer-Einstellungen für die Schülerkarteien'));
+            array(), 'Fächer-Einstellungen für die Schülerkarteien'));
         $Stage->addButton(new Standard('Schüler', '/Document/Standard/StudentCard', new Person(),
-            array(),
-            'Schülerkartei eines Schülers'));
+            array(), 'Schülerkartei eines Schülers'));
         $Url = $_SERVER['REDIRECT_URL'];
         if(strpos($Url, '/StudentCard/Division')){
-            $Stage->addButton(new Standard(new Info(new Bold('Klasse')), '/Document/Standard/StudentCard/Division',
-                new PersonGroup(), array(), 'Schülerkarteien einer Klasse'));
+            $Stage->addButton(new Standard(new Info(new Bold('Kurs')), '/Document/Standard/StudentCard/Division',
+                new PersonGroup(), array(), 'Schülerkarteien eines Kurses'));
         } else {
-            $Stage->addButton(new Standard('Klasse', '/Document/Standard/StudentCard/Division', new PersonGroup(),
-                array(), 'Schülerkarteien einer Klasse'));
+            $Stage->addButton(new Standard('Kurs', '/Document/Standard/StudentCard/Division', new PersonGroup(),
+                array(), 'Schülerkarteien eines Kurses'));
         }
     }
 
@@ -80,28 +80,50 @@ class Frontend extends Extension implements IFrontendInterface
         self::setButtonList($Stage);
 
         $dataList = array();
-        if (($tblGroup = Group::useService()->getGroupByMetaTable('STUDENT'))) {
-            if (($tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup))) {
-                foreach ($tblPersonList as $tblPerson) {
-                    $tblAddress = $tblPerson->fetchMainAddress();
-                    $dataList[] = array(
-                        'Name' => $tblPerson->getLastFirstName(),
-                        'Address' => $tblAddress ? $tblAddress->getGuiString() : '',
-                        'Division' => Student::useService()->getDisplayCurrentDivisionListByPerson($tblPerson),
-                        'Option' =>
-                            new External(
-                                'Herunterladen',
-                                'SPHERE\Application\Api\Document\Standard\StudentCard\Create',
-                                new Download(),
-                                array(
-                                    'PersonId' => $tblPerson->getId()
-                                ),
-                                'Schülerkartei herunterladen'
-                            )
-                    );
+        $showDivision = false;
+        $showCoreGroup = false;
+        if (($tblGroup = Group::useService()->getGroupByMetaTable('STUDENT'))
+            && ($tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup))
+        ) {
+            foreach ($tblPersonList as $tblPerson) {
+                $displayDivision = '';
+                $displayCoreGroup = '';
+                if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndDate($tblPerson))){
+                    if (($tblDivision = $tblStudentEducation->getTblDivision())
+                        && ($displayDivision = $tblDivision->getName())
+                    ) {
+                        $showDivision = true;
+                    }
+                    if (($tblCoreGroup = $tblStudentEducation->getTblCoreGroup())
+                        && ($displayCoreGroup = $tblCoreGroup->getName())
+                    ) {
+                        $showCoreGroup = true;
+                    }
                 }
+                $tblAddress = $tblPerson->fetchMainAddress();
+                $dataList[] = array(
+                    'Name'     => $tblPerson->getLastFirstName(),
+                    'Address'  => $tblAddress ? $tblAddress->getGuiString() : '',
+                    'Division' => $displayDivision,
+                    'CoreGroup' => $displayCoreGroup,
+                    'Option' =>
+                        new External('Herunterladen', '/Api/Document/Standard/StudentCardNew/Create',
+                            new Download(), array('PersonId' => $tblPerson->getId()), 'Schülerkartei herunterladen')
+                        . new External('(Alt)', '/Api/Document/Standard/StudentCard/Create',
+                            new Download(), array('PersonId' => $tblPerson->getId()), 'Schülerkartei (Alt))')
+                );
             }
         }
+
+        $columnList['Name'] = 'Name';
+        $columnList['Address'] = 'Adresse';
+        if ($showDivision) {
+            $columnList['Division'] = 'Klasse';
+        }
+        if ($showCoreGroup) {
+            $columnList['CoreGroup'] = 'Stammgruppe';
+        }
+        $columnList['Option'] = '';
 
         $Stage->setContent(
             new Layout(array(
@@ -111,17 +133,11 @@ class Frontend extends Extension implements IFrontendInterface
                             new TableData(
                                 $dataList,
                                 null,
+                                $columnList,
                                 array(
-                                    'Name' => 'Name',
-                                    'Address' => 'Adresse',
-                                    'Division' => 'Klasse',
-                                    'Option' => ''
-                                ),
-                                array(
-                                    'columnDefs' => array(
+                                    "columnDefs" => array(
                                         array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 0),
-                                        array('type' => 'natural', 'targets' => array(2)),
-                                        array('width' => '5%', 'orderable' => false, 'targets'   => -1),
+                                        array('orderable' => false, 'width' => '200px', 'targets' => -1),
                                     ),
                                     'responsive' => false
                                 )
@@ -143,7 +159,7 @@ class Frontend extends Extension implements IFrontendInterface
      */
     public static function frontendSelectDivision(bool $IsAllYears = false, ?string $YearId = null) : Stage
     {
-        $Stage = new Stage('Schülerkartei', 'Klasse auswählen');
+        $Stage = new Stage('Schülerkartei', 'Kurs auswählen');
         self::setButtonList($Stage);
 
         list($yearButtonList, $filterYearList)
@@ -193,87 +209,104 @@ class Frontend extends Extension implements IFrontendInterface
     public function loadTable(bool $isLocked, ?array $filterYearList): TableData
     {
         $maxPersonCount = 15;
-        $TableContent = array();
-        if (($tblDivisionAll = Division::useService()->getDivisionAll())) {
-            foreach ($tblDivisionAll as $tblDivision) {
-                // Schuljahre filtern
-                if ($filterYearList
-                    && ($tblYearDivision = $tblDivision->getServiceTblYear())
-                    && !isset($filterYearList[$tblYearDivision->getId()]))
-                {
-                    continue;
-                }
+        $dataList = array();
+        $tblDivisionCourseList = array();
 
-                $count = Division::useService()->countDivisionStudentAllByDivision($tblDivision);
-                $Item['Year'] = '';
-                $Item['Division'] = $tblDivision->getDisplayName();
-                $Item['Type'] = $tblDivision->getTypeName();
-                if ($tblDivision->getServiceTblYear()) {
-                    $Item['Year'] = $tblDivision->getServiceTblYear()->getDisplayName();
-                }
-                $Item['Count'] = $count;
-
-                if ($count > 0) {
-                    if ($count <= $maxPersonCount) {
-                        $external = (new External(
-                            '',
-                            '/Api/Document/Standard/StudentCard/CreateMulti',
-                            new Download(),
-                            array(
-                                'DivisionId' => $tblDivision->getId()
-                            ),
-                            'Schülerkarteien herunterladen'
-                        ));
-                        $Item['Option'] = $isLocked
-                            ? new \SPHERE\Common\Frontend\Text\Repository\Warning('Bitte warten ...')
-                            : $external;
-                    } else {
-                        $countList = 1;
-                        $Item['Option'] = '';
-                        if ($isLocked) {
-                            $Item['Option'] = new \SPHERE\Common\Frontend\Text\Repository\Warning('Bitte warten ...');
-                        } else {
-                            for ($i = 0; $i < $count; $i++) {
-                                if ($i % $maxPersonCount == 0) {
-                                    $name = $countList . '. Teil';
-                                    $Item['Option'] .= (new External(
-                                        $name,
-                                        '/Api/Document/Standard/StudentCard/CreateMulti',
-                                        new Download(),
-                                        array(
-                                            'DivisionId' => $tblDivision->getId(),
-                                            'List' => $countList++
-                                        ),
-                                        $name . ' Schülerkarteien herunterladen'
-                                    ))->__toString();
-                                }
-                            }
-                        }
+        if ($filterYearList) {
+            foreach ($filterYearList as $yearId => $value) {
+                if (($tblYear = Term::useService()->getYearById($yearId))) {
+                    if (($tblDivisionCourseListDivision = DivisionCourse::useService()->getDivisionCourseListBy($tblYear,
+                        TblDivisionCourseType::TYPE_DIVISION))) {
+                        $tblDivisionCourseList = $tblDivisionCourseListDivision;
                     }
-                } else {
-                    $Item['Option'] = '';
+                    if (($tblDivisionCourseListCoreGroup = DivisionCourse::useService()->getDivisionCourseListBy($tblYear,
+                        TblDivisionCourseType::TYPE_CORE_GROUP))) {
+                        $tblDivisionCourseList = array_merge($tblDivisionCourseList, $tblDivisionCourseListCoreGroup);
+                    }
                 }
-
-                array_push($TableContent, $Item);
+            }
+        } else {
+            if (($tblDivisionCourseListDivision = DivisionCourse::useService()->getDivisionCourseListBy(null, TblDivisionCourseType::TYPE_DIVISION))) {
+                $tblDivisionCourseList = $tblDivisionCourseListDivision;
+            }
+            if (($tblDivisionCourseListCoreGroup = DivisionCourse::useService()->getDivisionCourseListBy(null, TblDivisionCourseType::TYPE_CORE_GROUP))) {
+                $tblDivisionCourseList = array_merge($tblDivisionCourseList, $tblDivisionCourseListCoreGroup);
             }
         }
 
-        return new TableData($TableContent, null,
+        /** @var TblDivisionCourse $tblDivisionCourse */
+        foreach ($tblDivisionCourseList as $tblDivisionCourse) {
+            $count = $tblDivisionCourse->getCountStudents();
+            $option = '';
+            if ($count > 0) {
+                if ($count <= $maxPersonCount) {
+                    $external =
+                        new External('', '/Api/Document/Standard/StudentCardNew/CreateMulti', new Download(),
+                            array('DivisionCourseId' => $tblDivisionCourse->getId()), 'Schülerkarteien herunterladen')
+                        . new External('(Alt)', '/Api/Document/Standard/StudentCard/CreateMulti', new Download(),
+                            array('DivisionCourseId' => $tblDivisionCourse->getId()), 'Schülerkarteien (Alt)');
+                    $option = $isLocked
+                        ? new \SPHERE\Common\Frontend\Text\Repository\Warning('Bitte warten ...')
+                        : $external;
+                } else {
+                    $countList = 1;
+                    if ($isLocked) {
+                        $option = new \SPHERE\Common\Frontend\Text\Repository\Warning('Bitte warten ...');
+                    } else {
+                        for ($i = 0; $i < $count; $i++) {
+                            if ($i % $maxPersonCount == 0) {
+                                $name = $countList . '. Teil';
+                                $option .= (new External(
+                                    $name, '/Api/Document/Standard/StudentCardNew/CreateMulti', new Download(),
+                                    array(
+                                        'DivisionCourseId' => $tblDivisionCourse->getId(),
+                                        'List' => $countList++
+                                    ), $name . ' Schülerkarteien herunterladen'
+                                ))->__toString();
+                            }
+                        }
+                        $countList = 1;
+                        for ($j = 0; $j < $count; $j++) {
+                            if ($j % $maxPersonCount == 0) {
+                                $option .= (new External($countList.
+                                    '. Teil (Alt)', '/Api/Document/Standard/StudentCard/CreateMulti', new Download(),
+                                    array(
+                                        'DivisionCourseId' => $tblDivisionCourse->getId(),
+                                        'List' => $countList++
+                                    ), $countList.' Teil Schülerkarteien (Alt)'
+                                ))->__toString();
+                            }
+                        }
+                    }
+                }
+            }
+
+            $dataList[] = array(
+                'Year' => $tblDivisionCourse->getYearName(),
+                'DivisionCourse' => $tblDivisionCourse->getDisplayName(),
+                'DivisionCourseType' => $tblDivisionCourse->getTypeName(),
+                'SchoolTypes' => $tblDivisionCourse->getSchoolTypeListFromStudents(true),
+                'Count' => $count,
+                'Option' => $option
+            );
+        }
+
+        return new TableData($dataList, null,
             array(
-                'Year' => 'Jahr',
-                'Division' => 'Klasse',
-                'Type' => 'Schulart',
+                'Year' => 'Schuljahr',
+                'DivisionCourse' => 'Kurs',
+                'DivisionCourseType' => 'Kurs-Typ',
+                'SchoolTypes' => 'Schularten',
                 'Count' => 'Schüler',
                 'Option' => '',
             ), array(
-                'columnDefs' => array(
-                    array('type' => 'natural', 'targets' => array(1,3)),
-                    array('orderable' => false, 'targets'   => -1),
-                ),
                 'order' => array(
-                    array(0, 'desc'),
-                    array(2, 'asc'),
-                    array(1, 'asc')
+                    array('0', 'desc'),
+                    array('1', 'asc'),
+                ),
+                'columnDefs' => array(
+                    array('type' => 'natural', 'targets' => 1),
+                    array('orderable' => false, 'targets' => -1)
                 ),
                 'responsive' => false
             ));
@@ -353,7 +386,7 @@ class Frontend extends Extension implements IFrontendInterface
 
             $subjectList = array();
             $tblSubjectAll = Subject::useService()->getSubjectAll();
-            if (strpos($tblDocument->getName(), 'Mittelschule') !== false){
+            if (strpos($tblDocument->getName(), TblType::IDENT_OBER_SCHULE) !== false){
                 if (($tblSetting = Consumer::useService()->getSetting(
                         'Api',
                         'Education',

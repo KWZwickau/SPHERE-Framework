@@ -2,6 +2,7 @@
 
 namespace SPHERE\Application\Billing\Inventory\Item;
 
+use SPHERE\Application\Billing\Accounting\Debtor\Debtor;
 use SPHERE\Application\Billing\Inventory\Item\Service\Data;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItemCalculation;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItem;
@@ -14,6 +15,7 @@ use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\System\Database\Binding\AbstractService;
+use SPHERE\System\Extension\Repository\Sorter;
 
 /**
  * Class Service
@@ -21,6 +23,9 @@ use SPHERE\System\Database\Binding\AbstractService;
  */
 class Service extends AbstractService
 {
+
+    // int in month
+    const DEACTIVATE_TIME_SPAN = 2;
 
     /**
      * @param bool $doSimulation
@@ -253,12 +258,43 @@ class Service extends AbstractService
     }
 
     /**
+     * @param bool $isActive
+     *
      * @return bool|TblItem[]
      */
-    public function getItemAll()
+    public function getItemAll(bool $isActive = true)
     {
 
-        return (new Data($this->getBinding()))->getItemAll();
+        $tblItemAll = (new Data($this->getBinding()))->getItemAll($isActive);
+        if($tblItemAll){
+            return (new Sorter($tblItemAll))->sortObjectBy('Name');
+        }
+        return false;
+    }
+
+    /**
+     * @param $MonthSinceActive
+     *
+     * @return array|TblItem[]
+     */
+    public function getItemAllWithPreActiveTime($MonthSinceActive = self::DEACTIVATE_TIME_SPAN)
+    {
+
+        if(!($tblItemActiveList = $this->getItemAll())){
+            $tblItemActiveList = array();
+        }
+        if(($tblItemInactiveList = $this->getItemAll(false))){
+            $date = new \DateTime();
+            foreach($tblItemInactiveList as $tblItemInactive){
+                $updateDate = $tblItemInactive->getEntityUpdate();
+                $updateDate->modify("+".$MonthSinceActive." month");
+                if($updateDate > $date){
+                    array_push($tblItemActiveList, $tblItemInactive);
+                }
+            }
+        }
+
+        return $tblItemActiveList;
     }
 
     /**
@@ -406,7 +442,6 @@ class Service extends AbstractService
         return (new Data($this->getBinding()))->updateItemVariant($tblItemVariant, $Name, $Description);
     }
 
-
     /**
      * @param TblItemCalculation $tblItemCalculation
      * @param string             $Value
@@ -420,6 +455,18 @@ class Service extends AbstractService
 
         $Value = str_replace(',', '.', $Value);
         return (new Data($this->getBinding()))->updateItemCalculation($tblItemCalculation, $Value, $DateFrom, $DateTo);
+    }
+
+    /**
+     * @param TblItem $tblItem
+     * @param         $isActive
+     *
+     * @return bool
+     */
+    public function changeItemActive(TblItem $tblItem, $isActive = false)
+    {
+
+        return (new Data($this->getBinding()))->updateItemIsActive($tblItem, $isActive);
     }
 
     /**
@@ -440,6 +487,12 @@ class Service extends AbstractService
         if(($tblItemVariantList = $this->getItemVariantByItem($tblItem))){
             foreach($tblItemVariantList as $tblItemVariant) {
                 $this->removeItemVariant($tblItemVariant);
+            }
+        }
+        // remove tblItemVariant
+        if(($tblDebtorSelectionList = Debtor::useService()->getDebtorSelectionByItem($tblItem))){
+            foreach($tblDebtorSelectionList as $tblDebtorSelection) {
+                Debtor::useService()->removeDebtorSelection($tblDebtorSelection);
             }
         }
         // remove tblItem

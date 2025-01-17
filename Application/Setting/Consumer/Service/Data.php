@@ -3,7 +3,8 @@
 namespace SPHERE\Application\Setting\Consumer\Service;
 
 use SPHERE\Application\Contact\Address\Service\Entity\TblAddress;
-use SPHERE\Application\Education\ClassRegister\Absence\Service\Entity\TblAbsence;
+use SPHERE\Application\Education\Absence\Service\Entity\TblAbsence;
+use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
@@ -55,6 +56,8 @@ class Data extends AbstractData
             Sortierung berücksichtigt [Standard: Ja]', true);
         $this->createSetting('Setting', 'Consumer', 'Service', 'EmergencyNumber', TblSetting::TYPE_BOOLEAN, '0',
             'Allgemein', 'Notfallnummer in der Stammdatenverwaltung wird am Ende der Ansichten aufgelistet. [Standard: Nein]', true);
+        $this->createSetting('People', 'Person', 'Student', 'DisplayCallNameAndLastName', TblSetting::TYPE_BOOLEAN, '0',
+            'Allgemein', 'Anzeige des Schülernamens im Klassenbuch und Notenbuch als Rufname plus Nachname statt Nachname, Vorname [Standard: Nein]', true);
         // Allgemein non-public
         $this->createSetting('People', 'Meta', 'Student', 'Automatic_StudentNumber', TblSetting::TYPE_BOOLEAN, '0',
             'Allgemein', 'Die Schülernummern werden automatisch vom System erstellt. In diesem Fall können die
@@ -64,11 +67,13 @@ class Data extends AbstractData
         $this->createSetting('People', 'Meta', 'Child', 'AuthorizedToCollectGroups', TblSetting::TYPE_STRING, '', 'Allgemein',
             'Für folgende zusätzliche Personengruppen (mit Komma getrennt) wird der Block Abholberechtigte mit angezeigt. [Standard: ]',
             true);
+        $this->createSetting('Education', 'Lesson', 'DivisionCourse', 'NotIncrementNumericDivisionCourseName', TblSetting::TYPE_BOOLEAN, '0',
+            'Allgemein', 'Beim Schuljahreswechsel werden Klassen, Stammgruppen und Unterrichtsgruppen nicht hochgezählt, wenn diese mit einer Zahl beginnen.', true);
 
         // Indiware non-public
-        $this->createSetting('Transfer', 'Indiware', 'Import', 'Lectureship_ConvertDivisionLatinToGreek',
-            TblSetting::TYPE_BOOLEAN, '0', 'Indiware', 'Ersetzung der Klassengruppennamen beim Import in ausgeschriebene
-            Griechische Buchstaben. (z.B. a => alpha) [Standard: Nein]');
+        if (($tblSetting = $this->getSetting('Transfer', 'Indiware', 'Import', 'Lectureship_ConvertDivisionLatinToGreek'))) {
+            $this->destroySetting($tblSetting);
+        }
 
         // Document public
         $this->createSetting('Api', 'Document', 'StudentCard_PrimarySchool', 'ShowSchoolName', TblSetting::TYPE_BOOLEAN,
@@ -117,12 +122,18 @@ class Data extends AbstractData
         $this->createSetting('Education', 'Certificate', 'Diploma', 'ShowExtendedSchoolName', TblSetting::TYPE_BOOLEAN,
             '', 'Zeugnisse', 'Schul-Zusatz-Name von der Institution auf Abschlusszeugnissen und Abgangszeugnissen
             anzeigen [Standard: Nein]', true);
-        $this->createSetting('Education', 'Certificate', 'Prepare', 'HasRemarkBlocking', TblSetting::TYPE_BOOLEAN, '1',
-            'Zeugnisse', 'Sollen leere Bemerkungsfelder auf Zeugnissen gesperrt werden ("---"). [Standard: Ja]', true);
+        $tblSetting = $this->createSetting('Education', 'Certificate', 'Prepare', 'HasRemarkBlocking', TblSetting::TYPE_BOOLEAN, '1',
+            'Zeugnisse', 'Sollen leere Bemerkung- und Einschätzungsfelder auf Zeugnissen mit  ("—") ergänzen. [Standard: Ja]', true);
+        if($tblSetting->getDescription() != 'Sollen leere Bemerkung- und Einschätzungsfelder auf Zeugnissen mit  ("—") ergänzen. [Standard: Ja]'){
+            $this->updateSettingDescription($tblSetting, $tblSetting->getCategory(),
+                'Sollen leere Bemerkung- und Einschätzungsfelder auf Zeugnissen mit  ("—") ergänzen. [Standard: Ja]', $tblSetting->isPublic());
+        }
         $this->createSetting('Education', 'Certificate', 'Prepare', 'ShowTeamsInCertificateRemark', TblSetting::TYPE_BOOLEAN, '1',
             'Zeugnisse', 'Sollen Arbeitsgemeinschaften in das Bemerkungsfeld der Zeugnisse eingetragen werden. [Standard: Ja]', true);
         $this->createSetting('Education', 'Certificate', 'Prepare', 'ShowOrientationsInCertificateRemark', TblSetting::TYPE_BOOLEAN, '1',
             'Zeugnisse', 'Sollen ' . $orientationName . 'e in das Bemerkungsfeld der Zeugnisse eingetragen werden. [Standard: Ja]', true);
+        $this->createSetting('Education', 'Certificate', 'Diploma', 'DoNotShowSaxonyLogo', TblSetting::TYPE_BOOLEAN, '0',
+            'Zeugnisse', 'Auf Abschlusszeugnissen und Abgangszeugnissen in A3 soll kein Sachsen-Logo aufgedruckt werden. [Standard: Nein]', true);
 
         // Zeugnisse non-public
         $this->createSetting('Education', 'Certificate', 'Generate', 'PictureAddress', TblSetting::TYPE_STRING, '',
@@ -146,6 +157,12 @@ class Data extends AbstractData
         $this->createSetting('Education', 'Certificate', 'Generate', 'PictureDisplayLocationForDiplomaCertificate',
             TblSetting::TYPE_BOOLEAN, '1', 'Zeugnisse', 'Für die Standard-Abschluss-Zeugnisse wird das Logo auf der 2.
              Seite unter dem Abschluss angezeigt (ansonsten auf dem Cover oben links): [Ja]');
+        $this->createSetting('Education', 'Certificate', 'Generate', 'PictureAddressForLeaveCertificate',
+            TblSetting::TYPE_STRING, '', 'Zeugnisse', 'Für die Standard-Abgangs-Zeugnisse kann ein Bild (Logo)
+             hinterlegt werden. Adresse des Bildes: []');
+        $this->createSetting('Education', 'Certificate', 'Generate', 'PictureHeightForLeaveCertificate',
+            TblSetting::TYPE_STRING, '', 'Zeugnisse', 'Für die Standard-Abgangs-Zeugnisse kann ein Bild (Logo)
+             hinterlegt werden. Höhe des Bildes: []');
         $this->createSetting('Api', 'Education', 'Certificate', 'OrientationAcronym', TblSetting::TYPE_STRING, '',
             'Zeugnisse','Werden die Neigungskurse in der Bildung nicht einzeln gepflegt, sondern nur ein einzelner
              Standard-Neigungskurs, kann hier das Kürzel des Standard-Neigungskurses (z.B. NK) hinterlegt werden. Für
@@ -159,7 +176,7 @@ class Data extends AbstractData
              mit dem Trennzeichen: [Standard: ]');
         $this->createSetting('Education', 'Certificate', 'Generate', 'UseCourseForCertificateChoosing',
             TblSetting::TYPE_BOOLEAN, '1', 'Zeugnisse', 'Es wird der Bildungsgang des Schülers verwendet, um die
-            entsprechende Zeugnisvorlage (Mittelschule) dem Schüler automatisch zuzuordnen. [Standard: Ja]');
+            entsprechende Zeugnisvorlage (' . TblType::IDENT_OBER_SCHULE . ') dem Schüler automatisch zuzuordnen. [Standard: Ja]');
         $this->createSetting('Education', 'Certificate', 'Diploma', 'PreArticleForSchoolName',
             TblSetting::TYPE_STRING, '', 'Zeugnisse', 'Artikel vor dem Schulnamen auf Abschlusszeugnissen und
             Abgangszeugnissen (z.B. das): [Standard: ]');
@@ -274,6 +291,14 @@ class Data extends AbstractData
             'Klassenbücher', 'Darf ein andere Fachlehrer einen Klassentagebucheintrag nachträglich ändern [Standard: Ja]', true);
         $this->createSetting('Education', 'ClassRegister', 'LessonContent', 'StartsLessonContentWithZeroLesson', TblSetting::TYPE_BOOLEAN, '0',
             'Klassenbücher', 'Klassentagebuch beginnt mit der 0. Unterrichtseinheit [Standard: Nein]', true
+        );
+        $this->createSetting('Education', 'ClassRegister', 'LessonContent', 'SaturdayLessonsSchoolTypes', TblSetting::TYPE_STRING, '',
+            'Klassenbücher', 'Samstags-Unterricht und Samstags-Fehlzeiten sind für folgende Schularten (Kürzel z.B. GS, OS, Gy, BS, BFS, BGJ, BVJ, BGy, FOS, FS, GMS, ISS) möglich.
+             Mehrere Schularten sind mit Komma zu trennen. [Standard: ]', true);
+        $this->createSetting('Education', 'ClassRegister', 'LessonContent', 'IsAutoTimeTable', TblSetting::TYPE_BOOLEAN, '0',
+            'Klassenbücher', 'Automatische Vorbelegung des Stundenplans im digitalen Klassenbuch anhand der Einträge der Vorwochen. [Standard: Nein]', true);
+        $this->createSetting('Education', 'ClassRegister', 'LessonContent', 'HasTeacherAccessToLastYearDigital', TblSetting::TYPE_BOOLEAN, '0',
+            'Klassenbücher', 'Fachlehrer können auf die Klassenbücher des letzten vergangenen Schuljahres zugreifen [Standard: Nein]', true
         );
 
         // Leistungsüberprüfungen public

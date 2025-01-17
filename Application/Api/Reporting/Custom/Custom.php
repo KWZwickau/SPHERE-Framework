@@ -27,7 +27,7 @@ class Custom implements IModuleInterface
             /*
              * Chemnitz
              */
-            if ($consumerAcronym === 'ESZC') {
+            if ($consumerAcronym === 'ESZC' || $consumerAcronym === 'REF') {
                 Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
                     __NAMESPACE__ . '/Chemnitz/Common/ClassList/Download', __NAMESPACE__ . '\Chemnitz\Common::downloadClassList'
                 ));
@@ -62,7 +62,7 @@ class Custom implements IModuleInterface
             /*
             * Hormersdorf
             */
-            if ($consumerAcronym === 'FEGH' || $consumerAcronym === 'FESH') {
+            if ($consumerAcronym === 'FESH' || $consumerAcronym === 'REF') {
                 Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
                     __NAMESPACE__ . '/Hormersdorf/Person/ClassList/Download',
                     __NAMESPACE__ . '\Hormersdorf\Person::downloadClassList'
@@ -76,7 +76,7 @@ class Custom implements IModuleInterface
             /*
              * Herrnhut
              */
-            if ($consumerAcronym === 'EZSH') {
+            if ($consumerAcronym === 'EZSH' || $consumerAcronym === 'REF') {
                 Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
                     __NAMESPACE__ . '/Herrnhut/Common/ProfileList/Download',
                     __NAMESPACE__ . '\Herrnhut\Common::downloadProfileList'
@@ -102,7 +102,7 @@ class Custom implements IModuleInterface
             /*
              * Coswig
              */
-            if ($consumerAcronym === 'EVSC') {
+            if ($consumerAcronym === 'EVSC' || $consumerAcronym === 'REF') {
                 Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
                     __NAMESPACE__ . '/Coswig/Common/ClassList/Download',
                     __NAMESPACE__ . '\Coswig\Common::downloadClassList'
@@ -112,7 +112,7 @@ class Custom implements IModuleInterface
             /*
              * Schneeberg
              */
-            if ($consumerAcronym === 'ESS') {
+            if ($consumerAcronym === 'ESS' || $consumerAcronym === 'REF') {
                 Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
                     __NAMESPACE__ . '/Schneeberg/Person/ClassList/Download',
                     __NAMESPACE__ . '\Schneeberg\Person::downloadClassList'
@@ -122,7 +122,7 @@ class Custom implements IModuleInterface
             /*
             * Radebeul
             */
-            if ($consumerAcronym === 'EVSR') {
+            if ($consumerAcronym === 'EVSR' || $consumerAcronym === 'REF') {
                 Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
                     __NAMESPACE__ . '/Radebeul/Person/ParentTeacherConferenceList/Download',
                     __NAMESPACE__ . '\Radebeul\Person::downloadParentTeacherConferenceList'
@@ -159,7 +159,7 @@ class Custom implements IModuleInterface
             }
 
             // Muldental
-            if ($consumerAcronym === 'EVAMTL') {
+            if ($consumerAcronym === 'EVAMTL' || $consumerAcronym === 'REF') {
                 Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
                     __NAMESPACE__ . '/Muldental/Common/ClassList/Download',
                     __NAMESPACE__ . '\Muldental\Common::downloadClassList'
@@ -167,7 +167,7 @@ class Custom implements IModuleInterface
             }
 
             // Bad Düben
-            if ($consumerAcronym === 'ESBD') {
+            if ($consumerAcronym === 'ESBD' || $consumerAcronym === 'REF') {
                 Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
                     __NAMESPACE__ . '/BadDueben/Common/ClassList/Download',
                     __NAMESPACE__ . '\BadDueben\Common::downloadClassList'
@@ -177,7 +177,7 @@ class Custom implements IModuleInterface
             /*
              * Annaberg
              */
-            if ($consumerAcronym === 'EGE') {
+            if ($consumerAcronym === 'EGE' || $consumerAcronym === 'REF') {
                 Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
                     __NAMESPACE__ . '/Annaberg/Common/PrintClassList/Download',
                     __NAMESPACE__ . '\Annaberg\Common::downloadPrintClassList'
@@ -187,7 +187,7 @@ class Custom implements IModuleInterface
             /*
              * Gersdorf
              */
-            if ($consumerAcronym === 'EVOSG') {
+            if ($consumerAcronym === 'EVOSG' || $consumerAcronym === 'REF') {
                 Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
                     __NAMESPACE__ . '/Gersdorf/Common/ClassList/Download',
                     __NAMESPACE__ . '\Gersdorf\Common::downloadClassList'
@@ -233,18 +233,18 @@ class Custom implements IModuleInterface
     }
 
     /**
-     * @param null $DivisionId
+     * @param null $DivisionCourseId
      * @param null $Type
      *
      * @return bool|string
      */
-    public function downloadCustomReporting($DivisionId = null, $Type = null)
+    public function downloadCustomReporting($DivisionCourseId = null, $Type = null)
     {
         switch ($Type) {
-            case 'downloadClassList': return (new Common())->downloadClassList($DivisionId);
-            case 'downloadSignList': return (new Common())->downloadSignList($DivisionId);
-            case 'downloadElectiveClassList': return (new Common())->downloadElectiveClassList($DivisionId);
-            case 'downloadClassPhoneList': return (new Common())->downloadClassPhoneList($DivisionId);
+            case 'downloadClassList': return (new Common())->downloadClassList($DivisionCourseId);
+            case 'downloadSignList': return (new Common())->downloadSignList($DivisionCourseId);
+            case 'downloadElectiveClassList': return (new Common())->downloadElectiveClassList($DivisionCourseId);
+            case 'downloadClassPhoneList': return (new Common())->downloadClassPhoneList($DivisionCourseId);
             default: return 'Keine entsprechende Auswertung gefunden';
         }
     }

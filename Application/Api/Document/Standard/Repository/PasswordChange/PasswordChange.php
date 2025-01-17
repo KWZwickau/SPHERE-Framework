@@ -11,6 +11,8 @@ use SPHERE\Application\Document\Generator\Repository\Section;
 use SPHERE\Application\Document\Generator\Repository\Slice;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Relationship\Relationship;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer as GatekeeperConsumer;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Setting\Authorization\Account\Account as AccountAuthorization;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Application\Setting\User\Account\Account;
@@ -171,7 +173,7 @@ class PasswordChange extends AbstractDocument
      *
      * @return Frame
      */
-    public function buildDocument($pageList = array(), $Part = '0')
+    public function buildDocument(array $pageList = array(), string $Part = '0'): Frame
     {
         return (new Frame())->addDocument((new Document())
             ->addPage($this->buildPageOne())
@@ -290,6 +292,12 @@ class PasswordChange extends AbstractDocument
 
     private function getFirstLetterContent($Height = '500px')
     {
+        $Live = 'https://schulsoftware.schule';
+
+        $tblConsumer = GatekeeperConsumer::useService()->getConsumerBySession();
+        if ($tblConsumer && $tblConsumer->getType() == TblConsumer::TYPE_BERLIN && $tblConsumer->getAcronym() !== 'SSB') {
+            $Live = 'https://ekbo.schulsoftware.schule';
+        }
 
         $Slice = new Slice();
         if ($this->FieldValue['IsParent']) {
@@ -417,19 +425,17 @@ class PasswordChange extends AbstractDocument
             ->addSection((new Section())
                 ->addElementColumn((new Element())
                     ->setContent('&nbsp;')
-                    , '4%'
+                    , '9%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('Benutzername:')
+                    ->setContent('Adresse:')
                     ->stylePaddingTop(self::BLOCK_SPACE)
-                    ->stylePaddingLeft('35px')
-                    , '22%'
+                    , '18%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent($this->FieldValue['UserAccount'])
+                    ->setContent($Live)
                     ->stylePaddingTop(self::BLOCK_SPACE)
-                    ->stylePaddingLeft('10px')
-                    , '70%'
+                    , '69%'
                 )
                 ->addElementColumn((new Element())
                     ->setContent('&nbsp;')
@@ -439,19 +445,35 @@ class PasswordChange extends AbstractDocument
             ->addSection((new Section())
                 ->addElementColumn((new Element())
                     ->setContent('&nbsp;')
+                    , '9%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('Benutzername:')
+                    , '18%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent($this->FieldValue['UserAccount'])
+                    , '69%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
                     , '4%'
+                )
+            )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    , '9%'
                 )
                 ->addElementColumn((new Element())
                     ->setContent('Passwort:')
                     ->stylePaddingTop()
-                    ->stylePaddingLeft('35px')
-                    , '22%'
+                    , '18%'
                 )
                 ->addElementColumn((new Element())
                     ->setContent($this->FieldValue['Password'])
                     ->stylePaddingTop()
-                    ->stylePaddingLeft('10px')
-                    , '70%'
+                    , '69%'
                 )
                 ->addElementColumn((new Element())
                     ->setContent('&nbsp;')
@@ -641,19 +663,17 @@ class PasswordChange extends AbstractDocument
             ->addSection((new Section())
                 ->addElementColumn((new Element())
                     ->setContent('&nbsp;')
-                    , '4%'
+                    , '9%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('Benutzername:')
+                    ->setContent('Adresse:')
                     ->stylePaddingTop(self::BLOCK_SPACE)
-                    ->stylePaddingLeft('35px')
-                    , '22%'
+                    , '18%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent($this->FieldValue['UserAccount'])
+                    ->setContent($Live)
                     ->stylePaddingTop(self::BLOCK_SPACE)
-                    ->stylePaddingLeft('10px')
-                    , '70%'
+                    , '69%'
                 )
                 ->addElementColumn((new Element())
                     ->setContent('&nbsp;')
@@ -663,19 +683,35 @@ class PasswordChange extends AbstractDocument
             ->addSection((new Section())
                 ->addElementColumn((new Element())
                     ->setContent('&nbsp;')
+                    , '9%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('Benutzername:')
+                    , '18%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent($this->FieldValue['UserAccount'])
+                    , '69%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
                     , '4%'
+                )
+            )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    , '9%'
                 )
                 ->addElementColumn((new Element())
                     ->setContent('Passwort:')
                     ->stylePaddingTop()
-                    ->stylePaddingLeft('35px')
-                    , '22%'
+                    , '18%'
                 )
                 ->addElementColumn((new Element())
                     ->setContent($this->FieldValue['Password'])
                     ->stylePaddingTop()
-                    ->stylePaddingLeft('10px')
-                    , '70%'
+                    , '69%'
                 )
                 ->addElementColumn((new Element())
                     ->setContent('&nbsp;')

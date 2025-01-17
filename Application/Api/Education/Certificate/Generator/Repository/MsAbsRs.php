@@ -40,7 +40,7 @@ class MsAbsRs extends Certificate
             $showPictureOnSecondPage = $tblSetting->getValue();
         }
 
-        $Header = self::getHeadForDiploma($this->isSample(), !$showPictureOnSecondPage);
+        $Header = $this->getHeadForDiploma($this->isSample(), !$showPictureOnSecondPage);
 
         // leere Seite
         $pageList[] = new Page();
@@ -157,13 +157,14 @@ class MsAbsRs extends Certificate
                         ->setContent('{{ Content.P' . $personId . '.Person.Data.Name.First }}
                                           {{ Content.P' . $personId . '.Person.Data.Name.Last }}')
                         ->styleBorderBottom()
+                        ->styleAlignCenter()
                         , '45%')
                     ->addElementColumn((new Element())
                         ->setContent('Klasse:')
                         ->styleAlignCenter()
                         , '10%')
                     ->addElementColumn((new Element())
-                        ->setContent('{{ Content.P' . $personId . '.Division.Data.Level.Name }}{{ Content.P' . $personId . '.Division.Data.Name }}')
+                        ->setContent('{{ Content.P' . $personId . '.Division.Data.Name }}')
                         ->styleBorderBottom()
                         ->styleAlignCenter()
                     )
@@ -201,7 +202,7 @@ class MsAbsRs extends Certificate
         return $pageList;
     }
 
-    public static function getSchoolPart($personId)
+    public static function getSchoolPart($personId, $isLastLine = true)
     {
 
         $sliceList = array();
@@ -336,15 +337,17 @@ class MsAbsRs extends Certificate
                 )
                 ->styleMarginTop('10px');
 
-        $sliceList[] = (new Slice())
-            ->addElement((new Element())
-                ->setContent('Name und Anschrift der Schule')
-                ->styleTextSize('9px')
-//                ->styleTextColor('#999')
-                ->styleAlignCenter()
-                ->styleMarginTop('5px')
-                ->styleMarginBottom($hasExtraRow ? '10px' : '30px')
-            );
+        if($isLastLine){
+            $sliceList[] = (new Slice())
+                ->addElement((new Element())
+                    ->setContent('Name und Anschrift der Schule')
+                    ->styleTextSize('9px')
+                    //                ->styleTextColor('#999')
+                    ->styleAlignCenter()
+                    ->styleMarginTop('5px')
+                    ->styleMarginBottom($hasExtraRow ? '10px' : '30px')
+                );
+        }
 
         return $sliceList;
     }
@@ -397,7 +400,8 @@ class MsAbsRs extends Certificate
                     }
 
                     $section->addElementColumn((new Element())
-                        ->setContent($tblSubject->getName())
+                        ->setContent($tblSubject->getName() == 'Gemeinschaftskunde/Rechtserziehung/Wirtschaft'
+                            ? 'Gemeinschaftskunde/ Rechtserziehung/Wirtschaft' : $tblSubject->getName())
                         ->stylePaddingTop()
                         ->styleMarginTop('10px')
                         ->styleTextSize($TextSize)
@@ -646,89 +650,5 @@ class MsAbsRs extends Certificate
         } else {
             return new Slice();
         }
-    }
-
-    /**
-     * @param $IsSample
-     * @param $showPicture
-     *
-     * @return Slice
-     */
-    public static function getHeadForDiploma($IsSample, $showPicture): Slice
-    {
-        if (!ConsumerGatekeeper::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'EVOSG')) {
-            $elementSaxonyLogo = (new Element\Image('/Common/Style/Resource/Logo/ClaimFreistaatSachsen.jpg', '214px', '66px'))->styleAlignRight();
-        } else {
-            $elementSaxonyLogo = (new Element())->setContent('&nbsp;');
-        }
-
-        if ($showPicture) {
-            $pictureAddress = '';
-            if (($tblSettingAddress = \SPHERE\Application\Setting\Consumer\Consumer::useService()->getSetting(
-                'Education', 'Certificate', 'Generate', 'PictureAddressForDiplomaCertificate'))
-            ) {
-                $pictureAddress = trim($tblSettingAddress->getValue());
-            }
-            $pictureHeight = '50px';
-            if (($tblSettingHeight = \SPHERE\Application\Setting\Consumer\Consumer::useService()->getSetting(
-                    'Education', 'Certificate', 'Generate', 'PictureHeightForDiplomaCertificate'))
-                && ($value = trim($tblSettingHeight->getValue()))
-            ) {
-                $pictureHeight = $value;
-            }
-
-            if ($pictureAddress !== '') {
-//                $IsSample = false;
-                if ($IsSample) {
-                    $Header = (new Slice())
-                        ->addSection((new Section())
-                            ->addElementColumn((new Element\Image($pictureAddress, 'auto', $pictureHeight))
-                                , '61%')
-                            ->addElementColumn($elementSaxonyLogo, '39%')
-                        )
-                        ->addSection((new Section())
-                            ->addElementColumn((new Element\Sample())
-                                ->styleTextSize('30px')
-                                ->styleAlignCenter()
-                                ->styleHeight('0px')
-                            )
-                        );
-                } else {
-                    $Header = (new Slice())
-                        ->addSection((new Section())
-                            ->addElementColumn((new Element\Image($pictureAddress, 'auto', $pictureHeight))
-                                , '61%')
-                            ->addElementColumn($elementSaxonyLogo, '39%')
-                        );
-                }
-
-                return $Header;
-            }
-        }
-
-        if ($IsSample) {
-            $Header = (new Slice())
-                ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        , '39%'
-                    )
-                    ->addElementColumn((new Element\Sample())
-                        ->styleTextSize('30px')
-                        ->styleHeight('66px')
-                    )
-                    ->addElementColumn($elementSaxonyLogo, '39%')
-                );
-        } else {
-            $Header = (new Slice())
-                ->addSection((new Section())
-                    ->addElementColumn((new Element()), '61%')
-                    ->addElementColumn($elementSaxonyLogo, '39%')
-                );
-        }
-
-        $Header->stylePaddingTop('24px');
-        $Header->styleHeight('100px');
-
-        return $Header;
     }
 }

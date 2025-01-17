@@ -193,7 +193,7 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $contentItems = array();
-        if (($tblItemAll = Item::useService()->getItemAll())) {
+        if (($tblItemAll = Item::useService()->getItemAllWithPreActiveTime())) {
             foreach ($tblItemAll as $tblItem) {
                 $contentItems[] = new CheckBox('Data[Items][' . $tblItem->getId() . ']', $tblItem->getName(), 1);
             }
@@ -328,12 +328,14 @@ class Frontend extends Extension implements IFrontendInterface
             );
         }
         return array(
+            '[Rechnungsnummer]',
             '[Jahr]',
             '[Zeitraum von]',
             '[Zeitraum bis]',
             '[Beitragsart]',
             '[Beitragssumme]',
             '[Beitragssumme als Wort]',
+            '[PreisTabelle]',
             '[Beitragszahler Anrede]',
             '[Beitragszahler Vorname]',
             '[Beitragszahler Nachname]',

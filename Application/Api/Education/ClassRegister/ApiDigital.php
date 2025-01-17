@@ -6,11 +6,9 @@ use DateTime;
 use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\Education\ClassRegister\Digital\Digital;
-use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
-use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\IApiInterface;
-use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
@@ -66,6 +64,13 @@ class ApiDigital extends Extension implements IApiInterface
         $Dispatcher->registerMethod('openDeleteLessonContentModal');
         $Dispatcher->registerMethod('saveDeleteLessonContentModal');
 
+        $Dispatcher->registerMethod('openCreateFullTimeContentModal');
+        $Dispatcher->registerMethod('saveCreateFullTimeContentModal');
+        $Dispatcher->registerMethod('openEditFullTimeContentModal');
+        $Dispatcher->registerMethod('saveEditFullTimeContentModal');
+        $Dispatcher->registerMethod('openDeleteFullTimeContentModal');
+        $Dispatcher->registerMethod('saveDeleteFullTimeContentModal');
+
         $Dispatcher->registerMethod('loadLessonContentLinkPanel');
 
         $Dispatcher->registerMethod('loadLessonWeekContent');
@@ -117,15 +122,13 @@ class ApiDigital extends Extension implements IApiInterface
     }
 
     /**
-     * @param string|null $DivisionId
-     * @param string|null $GroupId
+     * @param string|null $DivisionCourseId
      * @param string $Date
      * @param string $View
      *
      * @return Pipeline
      */
-    public static function pipelineLoadLessonContentContent(string $DivisionId = null, string $GroupId = null,
-        string $Date = 'today', string $View = 'Day'): Pipeline
+    public static function pipelineLoadLessonContentContent(string $DivisionCourseId = null, string $Date = 'today', string $View = 'Day'): Pipeline
     {
         $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'LessonContentContent'), self::getEndpoint());
@@ -133,8 +136,7 @@ class ApiDigital extends Extension implements IApiInterface
             self::API_TARGET => 'loadLessonContentContent',
         ));
         $ModalEmitter->setPostPayload(array(
-            'DivisionId' => $DivisionId,
-            'GroupId' => $GroupId,
+            'DivisionCourseId' => $DivisionCourseId,
             'Date' => $Date,
             'View' => $View
         ));
@@ -144,21 +146,17 @@ class ApiDigital extends Extension implements IApiInterface
     }
 
     /**
-     * @param string|null $DivisionId
-     * @param string|null $GroupId
+     * @param string|null $DivisionCourseId
      * @param string $Date
      * @param string $View
+     * @param null $Data
      *
      * @return string
      */
-    public function loadLessonContentContent(string $DivisionId = null, string $GroupId = null,
-        string $Date = 'today', string $View = 'Day', $Data = null) : string
+    public function loadLessonContentContent(string $DivisionCourseId = null, string $Date = 'today', string $View = 'Day', $Data = null) : string
     {
-        $tblDivision = Division::useService()->getDivisionById($DivisionId);
-        $tblGroup = Group::useService()->getGroupById($GroupId);
-
-        if (!($tblDivision || $tblGroup)) {
-            return new Danger('Die Klasse oder Gruppe wurde nicht gefunden', new Exclamation());
+        if (!($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
+            return new Danger('Der Kurs wurde nicht gefunden', new Exclamation());
         }
 
         if (isset($Data['Date'])) {
@@ -168,56 +166,52 @@ class ApiDigital extends Extension implements IApiInterface
         // View speichern
         Consumer::useService()->createAccountSetting('LessonContentView', $View);
 
-        return Digital::useFrontend()->loadLessonContentTable($tblDivision ?: null, $tblGroup ?: null, $Date, $View);
+        return Digital::useFrontend()->loadLessonContentTable($tblDivisionCourse, $Date, $View);
     }
 
     /**
-     * @param string|null $DivisionId
-     * @param string|null $GroupId
+     * @param string|null $DivisionCourseId
      * @param string|null $Date
      * @param string|null $Lesson
+     * @param string|null $SubjectId
      *
      * @return Pipeline
      */
-    public static function pipelineOpenCreateLessonContentModal(string $DivisionId = null, string $GroupId = null,
-        string $Date = null, string $Lesson = null): Pipeline
-    {
+    public static function pipelineOpenCreateLessonContentModal(
+        string $DivisionCourseId = null, string $Date = null, string $Lesson = null, string $SubjectId = null
+    ): Pipeline {
         $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
         $ModalEmitter->setGetPayload(array(
             self::API_TARGET => 'openCreateLessonContentModal',
         ));
         $ModalEmitter->setPostPayload(array(
-            'DivisionId' => $DivisionId,
-            'GroupId' => $GroupId,
+            'DivisionCourseId' => $DivisionCourseId,
             'Date' => $Date,
-            'Lesson' => $Lesson
+            'Lesson' => $Lesson,
+            'SubjectId' => $SubjectId
         ));
+
         $Pipeline->appendEmitter($ModalEmitter);
 
         return $Pipeline;
     }
 
     /**
-     * @param string|null $DivisionId
-     * @param string|null $GroupId
+     * @param string|null $DivisionCourseId
      * @param string|null $Date
      * @param string|null $Lesson
+     * @param string|null $SubjectId
      *
      * @return string
      */
-    public function openCreateLessonContentModal(string $DivisionId = null, string $GroupId = null,
-        string $Date = null, string $Lesson = null): string
+    public function openCreateLessonContentModal(string $DivisionCourseId = null, string $Date = null, string $Lesson = null, string $SubjectId = null): string
     {
-        $tblDivision = Division::useService()->getDivisionById($DivisionId);
-        $tblGroup = Group::useService()->getGroupById($GroupId);
-
-        if (!($tblDivision || $tblGroup)) {
-            return new Danger('Die Klasse oder Gruppe wurde nicht gefunden', new Exclamation());
+        if (!(($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId)))) {
+            return new Danger('Der Kurs wurde nicht gefunden', new Exclamation());
         }
 
-        return $this->getLessonContentModal(Digital::useFrontend()->formLessonContent($tblDivision ?: null,
-            $tblGroup ?: null, null, false, $Date, $Lesson));
+        return $this->getLessonContentModal(Digital::useFrontend()->formLessonContent($tblDivisionCourse, null, false, $Date, $Lesson, $SubjectId));
     }
 
     /**
@@ -250,12 +244,11 @@ class ApiDigital extends Extension implements IApiInterface
     }
 
     /**
-     * @param string|null $DivisionId
-     * @param string|null $GroupId
+     * @param string $DivisionCourseId
      *
      * @return Pipeline
      */
-    public static function pipelineCreateLessonContentSave(string $DivisionId = null, string $GroupId = null): Pipeline
+    public static function pipelineCreateLessonContentSave(string $DivisionCourseId): Pipeline
     {
         $Pipeline = new Pipeline();
         $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
@@ -263,8 +256,7 @@ class ApiDigital extends Extension implements IApiInterface
             self::API_TARGET => 'saveCreateLessonContentModal'
         ));
         $ModalEmitter->setPostPayload(array(
-            'DivisionId' => $DivisionId,
-            'GroupId' => $GroupId
+            'DivisionCourseId' => $DivisionCourseId,
         ));
         $ModalEmitter->setLoadingMessage('Wird bearbeitet');
         $Pipeline->appendEmitter($ModalEmitter);
@@ -273,22 +265,18 @@ class ApiDigital extends Extension implements IApiInterface
     }
 
     /**
-     * @param string|null $DivisionId
-     * @param string|null $GroupId
+     * @param string $DivisionCourseId
      * @param array|null $Data
      *
      * @return Danger|string
      */
-    public function saveCreateLessonContentModal(string $DivisionId = null, string $GroupId = null, array $Data = null)
+    public function saveCreateLessonContentModal(string $DivisionCourseId, array $Data = null)
     {
-        $tblDivision = Division::useService()->getDivisionById($DivisionId);
-        $tblGroup = Group::useService()->getGroupById($GroupId);
-
-        if (!($tblDivision || $tblGroup)) {
+        if (!($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
             return new Danger('Die Klasse oder Gruppe wurde nicht gefunden', new Exclamation());
         }
 
-        if (($form = Digital::useService()->checkFormLessonContent($Data, $tblDivision ?: null, $tblGroup ?: null))) {
+        if (($form = Digital::useService()->checkFormLessonContent($Data, $tblDivisionCourse))) {
             // display Errors on form
             return $this->getLessonContentModal($form);
         }
@@ -298,11 +286,11 @@ class ApiDigital extends Extension implements IApiInterface
         if ($lesson == -1) {
             $lesson = 0;
         }
-        if (($tblLessonContent = Digital::useService()->createLessonContent($Data, $lesson, $tblDivision ?: null, $tblGroup ?: null))) {
+        if (($tblLessonContent = Digital::useService()->createLessonContent($Data, $lesson, $tblDivisionCourse))) {
             // bei Doppelstunde die Daten auch für die nächste UE speichern
             if (isset($Data['IsDoubleLesson']) && isset($Data['Lesson'])) {
                 $lessonDouble = $lesson + 1;
-                $tblLessonContentDouble = Digital::useService()->createLessonContent($Data, $lessonDouble, $tblDivision ?: null, $tblGroup ?: null);
+                $tblLessonContentDouble = Digital::useService()->createLessonContent($Data, $lessonDouble, $tblDivisionCourse);
             } else {
                 $lessonDouble = false;
                 $tblLessonContentDouble = false;
@@ -322,36 +310,22 @@ class ApiDigital extends Extension implements IApiInterface
                 }
 
                 foreach ($Data['Link'] as $courseAddId => $value) {
-                    if ($tblDivision) {
-                        if (($tblDivisionToLink = Division::useService()->getDivisionById($courseAddId))
-                            && ($tblLessonContentToLink = Digital::useService()->createLessonContent($Data, $lesson, $tblDivisionToLink, null))
+                    if (($tblDivisionCourseToLink = DivisionCourse::useService()->getDivisionCourseById($courseAddId))
+                        && ($tblLessonContentToLink = Digital::useService()->createLessonContent($Data, $lesson, $tblDivisionCourseToLink))
+                    ) {
+                        Digital::useService()->createLessonContentLink($tblLessonContentToLink, $LinkId);
+                        // Doppelstunde
+                        if ($tblLessonContentDouble
+                            && ($tblLessonContentDoubleToLink = Digital::useService()->createLessonContent($Data, $lessonDouble, $tblDivisionCourseToLink))
                         ) {
-                            Digital::useService()->createLessonContentLink($tblLessonContentToLink, $LinkId);
-                            // Doppelstunde
-                            if ($tblLessonContentDouble
-                                && ($tblLessonContentDoubleToLink = Digital::useService()->createLessonContent($Data, $lessonDouble, $tblDivisionToLink, null))
-                            ) {
-                                Digital::useService()->createLessonContentLink($tblLessonContentDoubleToLink, $LinkDoubleId);
-                            }
-                        }
-                    } elseif ($tblGroup) {
-                        if (($tblGroupToLink = Group::useService()->getGroupById($courseAddId))
-                            && ($tblLessonContentToLink = Digital::useService()->createLessonContent($Data, $lesson, null, $tblGroupToLink))
-                        ) {
-                            Digital::useService()->createLessonContentLink($tblLessonContentToLink, $LinkId);
-                            // Doppelstunde
-                            if ($tblLessonContentDouble
-                                && ($tblLessonContentDoubleToLink = Digital::useService()->createLessonContent($Data, $lessonDouble, null, $tblGroupToLink))
-                            ) {
-                                Digital::useService()->createLessonContentLink($tblLessonContentDoubleToLink, $LinkDoubleId);
-                            }
+                            Digital::useService()->createLessonContentLink($tblLessonContentDoubleToLink, $LinkDoubleId);
                         }
                     }
                 }
             }
 
             return new Success('Thema/Hausaufgaben wurde erfolgreich gespeichert.')
-                . self::pipelineLoadLessonContentContent($DivisionId, $GroupId, $Data['Date'],
+                . self::pipelineLoadLessonContentContent($DivisionCourseId, $Data['Date'],
                     ($View = Consumer::useService()->getAccountSettingValue('LessonContentView')) ? $View : 'Day')
                 . self::pipelineClose();
         } else {
@@ -410,12 +384,11 @@ class ApiDigital extends Extension implements IApiInterface
         if (!($tblLessonContent = Digital::useService()->getLessonContentById($LessonContentId))) {
             return new Danger('Thema/Hausaufgaben wurde nicht gefunden', new Exclamation());
         }
-        $tblDivision = $tblLessonContent->getServiceTblDivision();
-        $tblGroup = $tblLessonContent->getServiceTblGroup();
+        if (!($tblDivisionCourse = $tblLessonContent->getServiceTblDivisionCourse())) {
+            return new Danger('Kurs wurde nicht gefunden', new Exclamation());
+        }
 
-        return $this->getLessonContentModal(Digital::useFrontend()->formLessonContent(
-            $tblDivision ?: null, $tblGroup ?: null, $LessonContentId, true
-        ), $LessonContentId);
+        return $this->getLessonContentModal(Digital::useFrontend()->formLessonContent($tblDivisionCourse, $LessonContentId, true), $LessonContentId);
     }
 
     /**
@@ -429,10 +402,11 @@ class ApiDigital extends Extension implements IApiInterface
         if (!($tblLessonContent = Digital::useService()->getLessonContentById($LessonContentId))) {
             return new Danger('Thema/Hausaufgaben wurde nicht gefunden', new Exclamation());
         }
-        $tblDivision = $tblLessonContent->getServiceTblDivision();
-        $tblGroup = $tblLessonContent->getServiceTblGroup();
+        if (!($tblDivisionCourse = $tblLessonContent->getServiceTblDivisionCourse())) {
+            return new Danger('Kurs wurde nicht gefunden', new Exclamation());
+        }
 
-        if (($form = Digital::useService()->checkFormLessonContent($Data, $tblDivision ?: null, $tblGroup ?: null, $tblLessonContent))) {
+        if (($form = Digital::useService()->checkFormLessonContent($Data, $tblDivisionCourse, $tblLessonContent))) {
             // display Errors on form
             return $this->getLessonContentModal($form, $LessonContentId);
         }
@@ -444,8 +418,7 @@ class ApiDigital extends Extension implements IApiInterface
                 }
             }
             return new Success('Thema/Hausaufgaben wurde erfolgreich gespeichert.')
-                . self::pipelineLoadLessonContentContent($tblDivision ? $tblDivision->getId() : null,
-                    $tblGroup ? $tblGroup->getId() : null, $Data['Date'],
+                . self::pipelineLoadLessonContentContent($tblDivisionCourse->getId(), $Data['Date'],
                     ($View = Consumer::useService()->getAccountSettingValue('LessonContentView')) ? $View : 'Day')
                 . self::pipelineClose();
         } else {
@@ -546,14 +519,14 @@ class ApiDigital extends Extension implements IApiInterface
         if (!($tblLessonContent = Digital::useService()->getLessonContentById($LessonContentId))) {
             return new Danger('Thema/Hausaufgaben wurde nicht gefunden', new Exclamation());
         }
+        if (!($tblDivisionCourse = $tblLessonContent->getServiceTblDivisionCourse())) {
+            return new Danger('Kurs wurde nicht gefunden', new Exclamation());
+        }
         $date = $tblLessonContent->getDate();
-        $tblDivision = $tblLessonContent->getServiceTblDivision();
-        $tblGroup = $tblLessonContent->getServiceTblGroup();
 
         if (Digital::useService()->destroyLessonContent($tblLessonContent)) {
             return new Success('Thema/Hausaufgaben wurde erfolgreich gelöscht.')
-                . self::pipelineLoadLessonContentContent($tblDivision ? $tblDivision->getId() : null,
-                    $tblGroup ? $tblGroup->getId() : null, $date,
+                . self::pipelineLoadLessonContentContent($tblDivisionCourse->getId(), $date,
                     ($View = Consumer::useService()->getAccountSettingValue('LessonContentView')) ? $View : 'Day')
                 . self::pipelineClose();
         } else {
@@ -562,13 +535,315 @@ class ApiDigital extends Extension implements IApiInterface
     }
 
     /**
-     * @param string|null $DivisionId
-     * @param string|null $GroupId
+     * @param string|null $DivisionCourseId
+     * @param string|null $Date
+     *
+     * @return Pipeline
+     */
+    public static function pipelineOpenCreateFullTimeContentModal(string $DivisionCourseId = null, string $Date = null): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'openCreateFullTimeContentModal',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'DivisionCourseId' => $DivisionCourseId,
+            'Date' => $Date
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $form
+     * @param string|null $FullTimeContentId
+     *
+     * @return string
+     */
+    private function getFullTimeContentModal($form, string $FullTimeContentId = null): string
+    {
+        if ($FullTimeContentId) {
+            $title = new Title(new Edit() . ' Ganztägig bearbeiten');
+        } else {
+            $title = new Title(new Plus() . ' Ganztägig hinzufügen');
+        }
+
+        return $title
+            . new Layout(array(
+                    new LayoutGroup(
+                        new LayoutRow(
+                            new LayoutColumn(
+                                new Well(
+                                    $form
+                                )
+                            )
+                        )
+                    ))
+            );
+    }
+
+    /**
+     * @param string|null $DivisionCourseId
+     * @param string|null $Date
+     *
+     * @return string
+     */
+    public function openCreateFullTimeContentModal(string $DivisionCourseId = null, string $Date = null): string
+    {
+        if (!(($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId)))) {
+            return new Danger('Der Kurs wurde nicht gefunden', new Exclamation());
+        }
+
+        return $this->getFullTimeContentModal(Digital::useFrontend()->formFullTimeContent($tblDivisionCourse, null, false, $Date));
+    }
+
+    /**
+     * @param string $DivisionCourseId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineCreateFullTimeContentSave(string $DivisionCourseId): Pipeline
+    {
+        $Pipeline = new Pipeline();
+        $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'saveCreateFullTimeContentModal'
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'DivisionCourseId' => $DivisionCourseId,
+        ));
+        $ModalEmitter->setLoadingMessage('Wird bearbeitet');
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param string $DivisionCourseId
+     * @param array|null $Data
+     *
+     * @return Danger|string
+     */
+    public function saveCreateFullTimeContentModal(string $DivisionCourseId, array $Data = null)
+    {
+        if (!($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
+            return new Danger('Der Kurs wurde nicht gefunden', new Exclamation());
+        }
+
+        if (($form = Digital::useService()->checkFormFullTimeContent($Data, $tblDivisionCourse))) {
+            // display Errors on form
+            return $this->getFullTimeContentModal($form);
+        }
+
+        if (($tblFullTimeContent = Digital::useService()->createFullTimeContent($Data, $tblDivisionCourse))) {
+            return new Success('Ganztägig wurde erfolgreich gespeichert.')
+                . self::pipelineLoadLessonContentContent($DivisionCourseId, $Data['FromDate'],
+                    ($View = Consumer::useService()->getAccountSettingValue('LessonContentView')) ? $View : 'Day')
+                . self::pipelineClose();
+        } else {
+            return new Danger('Ganztägig konnte nicht gespeichert werden.') . self::pipelineClose();
+        }
+    }
+
+    /**
+     * @param string $FullTimeContentId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineOpenEditFullTimeContentModal(string $FullTimeContentId): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'openEditFullTimeContentModal',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'FullTimeContentId' => $FullTimeContentId
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param string $FullTimeContentId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineEditFullTimeContentSave(string $FullTimeContentId): Pipeline
+    {
+        $Pipeline = new Pipeline();
+        $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'saveEditFullTimeContentModal'
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'FullTimeContentId' => $FullTimeContentId
+        ));
+        $ModalEmitter->setLoadingMessage('Wird bearbeitet');
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $FullTimeContentId
+     *
+     * @return string
+     */
+    public function openEditFullTimeContentModal($FullTimeContentId)
+    {
+        if (!($tblFullTimeContent = Digital::useService()->getFullTimeContentById($FullTimeContentId))) {
+            return new Danger('Ganztägig wurde nicht gefunden', new Exclamation());
+        }
+        if (!($tblDivisionCourse = $tblFullTimeContent->getServiceTblDivisionCourse())) {
+            return new Danger('Kurs wurde nicht gefunden', new Exclamation());
+        }
+
+        return $this->getFullTimeContentModal(Digital::useFrontend()->formFullTimeContent($tblDivisionCourse, $FullTimeContentId, true), $FullTimeContentId);
+    }
+
+    /**
+     * @param $FullTimeContentId
+     * @param $Data
+     *
+     * @return Danger|string
+     */
+    public function saveEditFullTimeContentModal($FullTimeContentId, $Data)
+    {
+        if (!($tblFullTimeContent = Digital::useService()->getFullTimeContentById($FullTimeContentId))) {
+            return new Danger('Ganztägig wurde nicht gefunden', new Exclamation());
+        }
+        if (!($tblDivisionCourse = $tblFullTimeContent->getServiceTblDivisionCourse())) {
+            return new Danger('Kurs wurde nicht gefunden', new Exclamation());
+        }
+
+        if (($form = Digital::useService()->checkFormFullTimeContent($Data, $tblDivisionCourse, $tblFullTimeContent))) {
+            // display Errors on form
+            return $this->getFullTimeContentModal($form, $FullTimeContentId);
+        }
+
+        if (Digital::useService()->updateFullTimeContent($tblFullTimeContent, $Data)) {
+            return new Success('Ganztägig wurde erfolgreich gespeichert.')
+                . self::pipelineLoadLessonContentContent($tblDivisionCourse->getId(), $Data['FromDate'],
+                    ($View = Consumer::useService()->getAccountSettingValue('LessonContentView')) ? $View : 'Day')
+                . self::pipelineClose();
+        } else {
+            return new Danger('Ganztägig konnte nicht gespeichert werden.') . self::pipelineClose();
+        }
+    }
+
+    /**
+     * @param string $FullTimeContentId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineOpenDeleteFullTimeContentModal(string $FullTimeContentId): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'openDeleteFullTimeContentModal',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'FullTimeContentId' => $FullTimeContentId
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param string $FullTimeContentId
+     *
+     * @return string
+     */
+    public function openDeleteFullTimeContentModal(string $FullTimeContentId)
+    {
+        if (!($tblFullTimeContent = Digital::useService()->getFullTimeContentById($FullTimeContentId))) {
+            return new Danger('Ganztägig wurde nicht gefunden', new Exclamation());
+        }
+
+        return new Title(new Remove() . ' Ganztägig löschen')
+            . new Layout(
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            new Panel(
+                                new Question() . ' Ganztägig wirklich löschen?',
+                                array(
+                                    $tblFullTimeContent->getFromDateString(),
+                                    $tblFullTimeContent->getToDateString(),
+                                    $tblFullTimeContent->getContent(),
+                                ),
+                                Panel::PANEL_TYPE_DANGER
+                            )
+                            . (new DangerLink('Ja', self::getEndpoint(), new Ok()))
+                                ->ajaxPipelineOnClick(self::pipelineDeleteFullTimeContentSave($FullTimeContentId))
+                            . (new Standard('Nein', self::getEndpoint(), new Remove()))
+                                ->ajaxPipelineOnClick(self::pipelineClose())
+                        )
+                    )
+                )
+            );
+    }
+
+    /**
+     * @param string $FullTimeContentId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineDeleteFullTimeContentSave(string $FullTimeContentId): Pipeline
+    {
+
+        $Pipeline = new Pipeline();
+        $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'saveDeleteFullTimeContentModal'
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'FullTimeContentId' => $FullTimeContentId
+        ));
+        $ModalEmitter->setLoadingMessage('Wird bearbeitet');
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param string $FullTimeContentId
+     *
+     * @return Danger|string
+     */
+    public function saveDeleteFullTimeContentModal(string $FullTimeContentId)
+    {
+        if (!($tblFullTimeContent = Digital::useService()->getFullTimeContentById($FullTimeContentId))) {
+            return new Danger('Ganztägig wurde nicht gefunden', new Exclamation());
+        }
+        if (!($tblDivisionCourse = $tblFullTimeContent->getServiceTblDivisionCourse())) {
+            return new Danger('Kurs wurde nicht gefunden', new Exclamation());
+        }
+        $date = $tblFullTimeContent->getFromDateString();
+
+        if (Digital::useService()->destroyFullTimeContent($tblFullTimeContent)) {
+            return new Success('Ganztägig wurde erfolgreich gelöscht.')
+                . self::pipelineLoadLessonContentContent($tblDivisionCourse->getId(), $date,
+                    ($View = Consumer::useService()->getAccountSettingValue('LessonContentView')) ? $View : 'Day')
+                . self::pipelineClose();
+        } else {
+            return new Danger('Ganztägig konnte nicht gelöscht werden.') . self::pipelineClose();
+        }
+    }
+
+    /**
+     * @param string|null $DivisionCourseId
      * @param string|null $SubjectId
      *
      * @return Pipeline
      */
-    public static function pipelineLoadLessonContentLinkPanel(string $DivisionId = null, string $GroupId = null, string $SubjectId = null): Pipeline
+    public static function pipelineLoadLessonContentLinkPanel(string $DivisionCourseId, string $SubjectId = null): Pipeline
     {
         $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'LessonContentLinkPanel'), self::getEndpoint());
@@ -576,8 +851,7 @@ class ApiDigital extends Extension implements IApiInterface
             self::API_TARGET => 'loadLessonContentLinkPanel',
         ));
         $ModalEmitter->setPostPayload(array(
-            'DivisionId' => $DivisionId,
-            'GroupId' => $GroupId,
+            'DivisionCourseId' => $DivisionCourseId,
             'SubjectId' => $SubjectId
         ));
         $Pipeline->appendEmitter($ModalEmitter);
@@ -586,20 +860,16 @@ class ApiDigital extends Extension implements IApiInterface
     }
 
     /**
-     * @param string|null $DivisionId
-     * @param string|null $GroupId
-     * @param string|null $SubjectId
+     * @param string $DivisionCourseId
+     * @param string $SubjectId
      * @param null $Data
      *
      * @return string|null
      */
-    public function loadLessonContentLinkPanel(string $DivisionId = null, string $GroupId = null, string $SubjectId = null, $Data = null)
+    public function loadLessonContentLinkPanel(string $DivisionCourseId, string $SubjectId, $Data = null)
     {
-        $tblDivision = Division::useService()->getDivisionById($DivisionId);
-        $tblGroup = Group::useService()->getGroupById($GroupId);
-
-        if (!($tblDivision || $tblGroup)) {
-            return new Danger('Die Klasse oder Gruppe wurde nicht gefunden', new Exclamation());
+        if (!($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
+            return new Danger('Kurs wurde nicht gefunden', new Exclamation());
         }
 
         if (isset($Data['serviceTblSubject'])) {
@@ -609,22 +879,21 @@ class ApiDigital extends Extension implements IApiInterface
         }
 
         if ($tblSubject) {
-            return Digital::useService()->getLessonContentLinkPanel($tblDivision ?: null, $tblGroup ?: null, $tblSubject);
+            return Digital::useService()->getLessonContentLinkPanel($tblDivisionCourse, $tblSubject);
         }
 
         return null;
     }
 
     /**
-     * @param string|null $DivisionId
-     * @param string|null $GroupId
+     * @param string $DivisionCourseId
      * @param string|null $hasDivisionTeacherRight
      * @param string|null $hasHeadmasterRight
      * @param string|null $Date
      *
      * @return Pipeline
      */
-    public static function pipelineLoadLessonWeekContent(string $DivisionId = null, string $GroupId = null, string $hasDivisionTeacherRight = null,
+    public static function pipelineLoadLessonWeekContent(string $DivisionCourseId, string $hasDivisionTeacherRight = null,
         string $hasHeadmasterRight = null, string $Date = null): Pipeline
     {
         $Pipeline = new Pipeline(false);
@@ -633,8 +902,7 @@ class ApiDigital extends Extension implements IApiInterface
             self::API_TARGET => 'loadLessonWeekContent',
         ));
         $ModalEmitter->setPostPayload(array(
-            'DivisionId' => $DivisionId,
-            'GroupId' => $GroupId,
+            'DivisionCourseId' => $DivisionCourseId,
             'Date' => $Date,
             'hasDivisionTeacherRight' => $hasDivisionTeacherRight,
             'hasHeadmasterRight' => $hasHeadmasterRight,
@@ -645,32 +913,25 @@ class ApiDigital extends Extension implements IApiInterface
     }
 
     /**
-     * @param string|null $DivisionId
-     * @param string|null $GroupId
+     * @param string $DivisionCourseId
      * @param string|null $hasDivisionTeacherRight
      * @param string|null $hasHeadmasterRight
      * @param string|null $Date
      *
      * @return string
      */
-    public function loadLessonWeekContent(string $DivisionId = null, string $GroupId = null, string $hasDivisionTeacherRight = null,
+    public function loadLessonWeekContent(string $DivisionCourseId, string $hasDivisionTeacherRight = null,
         string $hasHeadmasterRight = null, string $Date = null) : string
     {
-        $tblDivision = Division::useService()->getDivisionById($DivisionId);
-        $tblGroup = Group::useService()->getGroupById($GroupId);
-
-        if (!($tblDivision || $tblGroup)) {
-            return new Danger('Die Klasse oder Gruppe wurde nicht gefunden', new Exclamation());
+        if (!($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
+            return new Danger('Der Kurs wurde nicht gefunden', new Exclamation());
         }
 
-        return Digital::useFrontend()->loadLessonWeekTable($tblDivision ?: null, $tblGroup ?: null, $hasDivisionTeacherRight == '1',
-            $hasHeadmasterRight == '1', $Date);
+        return Digital::useFrontend()->loadLessonWeekTable($tblDivisionCourse, $hasDivisionTeacherRight == '1', $hasHeadmasterRight == '1', $Date);
     }
 
     /**
-     * @param string|null $DivisionId
-     * @param string|null $GroupId
-     * @param string|null $YearId
+     * @param string|null $DivisionCourseId
      * @param string $Date
      * @param string $Type
      * @param string $Direction
@@ -678,8 +939,8 @@ class ApiDigital extends Extension implements IApiInterface
      * @param string|null $hasHeadmasterRight
      * @return Pipeline
      */
-    public static function pipelineSaveLessonWeekCheck(string $DivisionId = null, string $GroupId = null, string $YearId = null, string $Date = '',
-        string $Type = '', string $Direction = '', string $hasDivisionTeacherRight = null, string $hasHeadmasterRight = null): Pipeline
+    public static function pipelineSaveLessonWeekCheck(string $DivisionCourseId, string $Date = '', string $Type = '',
+        string $Direction = '', string $hasDivisionTeacherRight = null, string $hasHeadmasterRight = null): Pipeline
     {
         $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'LessonWeekContent'), self::getEndpoint());
@@ -687,9 +948,7 @@ class ApiDigital extends Extension implements IApiInterface
             self::API_TARGET => 'saveLessonWeekCheck',
         ));
         $ModalEmitter->setPostPayload(array(
-            'DivisionId' => $DivisionId,
-            'GroupId' => $GroupId,
-            'YearId' => $YearId,
+            'DivisionCourseId' => $DivisionCourseId,
             'Date' => $Date,
             'Type' => $Type,
             'Direction' => $Direction,
@@ -702,9 +961,7 @@ class ApiDigital extends Extension implements IApiInterface
     }
 
     /**
-     * @param string|null $DivisionId
-     * @param string|null $GroupId
-     * @param string|null $YearId
+     * @param string $DivisionCourseId
      * @param string $Date
      * @param string $Type
      * @param string $Direction
@@ -713,17 +970,17 @@ class ApiDigital extends Extension implements IApiInterface
      *
      * @return Pipeline
      */
-    public function saveLessonWeekCheck(string $DivisionId = null, string $GroupId = null, string $YearId = null, string $Date = '', string $Type = '',
+    public function saveLessonWeekCheck(string $DivisionCourseId, string $Date = '', string $Type = '',
         string $Direction = '', string $hasDivisionTeacherRight = null, string $hasHeadmasterRight = null): Pipeline
     {
         $tblPerson = Account::useService()->getPersonByLogin();
         $Date = new DateTime($Date);
         $now = new DateTime('now');
 
-        $tblDivision = Division::useService()->getDivisionById($DivisionId);
-        $tblGroup = Group::useService()->getGroupById($GroupId);
-        $tblYear = Term::useService()->getYearById($YearId);
-        $tblLessonWeek = Digital::useService()->getLessonWeekByDate($tblDivision ?: null, $tblGroup ?: null, $Date);
+        $tblLessonWeek = false;
+        if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
+            $tblLessonWeek = Digital::useService()->getLessonWeekByDate($tblDivisionCourse, $Date);
+        }
 
         if ($Type == 'DivisionTeacher') {
             if ($Direction == 'SET') {
@@ -765,21 +1022,22 @@ class ApiDigital extends Extension implements IApiInterface
             Digital::useService()->updateLessonWeek($tblLessonWeek, $tblLessonWeek->getRemark(), $DateDivisionTeacher, $serviceTblPersonDivisionTeacher ?: null,
                 $DateHeadmaster, $serviceTblPersonHeadmaster ?: null);
         } else {
-            Digital::useService()->createLessonWeek($tblDivision ?: null, $tblGroup ?: null, $tblYear, $Date->format('d.m.Y'), '', $DateDivisionTeacher,
-                $serviceTblPersonDivisionTeacher ?: null, $DateHeadmaster, $serviceTblPersonHeadmaster ?: null);
+            if ($tblDivisionCourse) {
+                Digital::useService()->createLessonWeek($tblDivisionCourse, $Date->format('d.m.Y'), '', $DateDivisionTeacher,
+                    $serviceTblPersonDivisionTeacher ?: null, $DateHeadmaster, $serviceTblPersonHeadmaster ?: null);
+            }
         }
 
-        return self::pipelineLoadLessonWeekContent($DivisionId, $GroupId, $hasDivisionTeacherRight == '1', $hasHeadmasterRight == '1');
+        return self::pipelineLoadLessonWeekContent($DivisionCourseId, $hasDivisionTeacherRight == '1', $hasHeadmasterRight == '1');
     }
 
     /**
-     * @param string|null $DivisionId
-     * @param string|null $GroupId
+     * @param string|null $DivisionCourseId
      * @param string|null $Date
      *
      * @return Pipeline
      */
-    public static function pipelineOpenEditLessonWeekRemarkModal(string $DivisionId = null, string $GroupId = null, string $Date = null): Pipeline
+    public static function pipelineOpenEditLessonWeekRemarkModal(string $DivisionCourseId, string $Date = null): Pipeline
     {
         $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
@@ -787,8 +1045,7 @@ class ApiDigital extends Extension implements IApiInterface
             self::API_TARGET => 'openEditLessonWeekRemarkModal',
         ));
         $ModalEmitter->setPostPayload(array(
-            'DivisionId' => $DivisionId,
-            'GroupId' => $GroupId,
+            'DivisionCourseId' => $DivisionCourseId,
             'Date' => $Date,
         ));
         $Pipeline->appendEmitter($ModalEmitter);
@@ -797,32 +1054,27 @@ class ApiDigital extends Extension implements IApiInterface
     }
 
     /**
-     * @param string|null $DivisionId
-     * @param string|null $GroupId
+     * @param string|null $DivisionCourseId
      * @param string|null $Date
      *
      * @return string
      */
-    public function openEditLessonWeekRemarkModal(string $DivisionId = null, string $GroupId = null, string $Date = null): string
+    public function openEditLessonWeekRemarkModal(string $DivisionCourseId = null, string $Date = null): string
     {
-        $tblDivision = Division::useService()->getDivisionById($DivisionId);
-        $tblGroup = Group::useService()->getGroupById($GroupId);
-
-        if (!($tblDivision || $tblGroup)) {
-            return new Danger('Die Klasse oder Gruppe wurde nicht gefunden', new Exclamation());
+        if (!($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
+            return new Danger('Der Kurs wurde nicht gefunden', new Exclamation());
         }
 
-        return new Well(Digital::useFrontend()->formLessonWeekRemark($tblDivision ?: null, $tblGroup ?: null, new DateTime($Date)));
+        return new Well(Digital::useFrontend()->formLessonWeekRemark($tblDivisionCourse, new DateTime($Date)));
     }
 
     /**
-     * @param string|null $DivisionId
-     * @param string|null $GroupId
+     * @param string|null $DivisionCourseId
      * @param string|null $Date
      *
      * @return Pipeline
      */
-    public static function pipelineEditLessonWeekRemarkSave(string $DivisionId = null, string $GroupId = null, string $Date = null): Pipeline
+    public static function pipelineEditLessonWeekRemarkSave(string $DivisionCourseId = null, string $Date = null): Pipeline
     {
         $Pipeline = new Pipeline();
         $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
@@ -830,8 +1082,7 @@ class ApiDigital extends Extension implements IApiInterface
             self::API_TARGET => 'saveEditLessonWeekRemarkModal'
         ));
         $ModalEmitter->setPostPayload(array(
-            'DivisionId' => $DivisionId,
-            'GroupId' => $GroupId,
+            'DivisionCourseId' => $DivisionCourseId,
             'Date' => $Date,
         ));
         $ModalEmitter->setLoadingMessage('Wird bearbeitet');
@@ -842,52 +1093,37 @@ class ApiDigital extends Extension implements IApiInterface
 
 
     /**
-     * @param string|null $DivisionId
-     * @param string|null $GroupId
+     * @param string|null $DivisionCourseId
      * @param string|null $Date
      * @param $Data
      *
      * @return string
      */
-    public function saveEditLessonWeekRemarkModal(string $DivisionId = null, string $GroupId = null, string $Date = null, $Data = null): string
+    public function saveEditLessonWeekRemarkModal(string $DivisionCourseId = null, string $Date = null, $Data = null): string
     {
-        $tblDivision = Division::useService()->getDivisionById($DivisionId);
-        $tblGroup = Group::useService()->getGroupById($GroupId);
-
-        if (!($tblDivision || $tblGroup)) {
-            return new Danger('Die Klasse oder Gruppe wurde nicht gefunden', new Exclamation());
+        if (!($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
+            return new Danger('Der Kurs wurde nicht gefunden', new Exclamation());
         }
 
-        if ($tblDivision) {
-            $tblYear = $tblDivision->getServiceTblYear();
+        if (($tblLessonWeek = Digital::useService()->getLessonWeekByDate($tblDivisionCourse, new DateTime($Date)))) {
+            Digital::useService()->updateLessonWeekRemark($tblLessonWeek, $Data['Remark']);
         } else {
-            $tblYear = $tblGroup->getCurrentYear();
-        }
-
-        if ($tblYear) {
-            if (($tblLessonWeek = Digital::useService()->getLessonWeekByDate($tblDivision ?: null, $tblGroup ?: null, new DateTime($Date)))) {
-                Digital::useService()->updateLessonWeekRemark($tblLessonWeek, $Data['Remark']);
-            } else {
-                Digital::useService()->createLessonWeek($tblDivision ?: null, $tblGroup ?: null, $tblYear, $Date, $Data['Remark'], null, null, null, null);
-            }
+            Digital::useService()->createLessonWeek($tblDivisionCourse, $Date, $Data['Remark'], null, null, null, null);
         }
 
         return new Success('Wochenbemerkung wurde erfolgreich gespeichert.')
-            . self::pipelineLoadLessonContentContent($tblDivision ? $tblDivision->getId() : null, $tblGroup ? $tblGroup->getId() : null, $Date,
+            . self::pipelineLoadLessonContentContent($tblDivisionCourse, $Date,
                 ($View = Consumer::useService()->getAccountSettingValue('LessonContentView')) ? $View : 'Day')
             . self::pipelineClose();
     }
 
     /**
-     * @param string|null $DivisionId
-     * @param string|null $SubjectId
-     * @param string|null $SubjectGroupId
+     * @param string|null $DivisionCourseId
      * @param string $IsControl
      *
      * @return Pipeline
      */
-    public static function pipelineLoadCourseContentContent(string $DivisionId = null, string $SubjectId = null, string $SubjectGroupId = null,
-        string $IsControl = 'false'): Pipeline
+    public static function pipelineLoadCourseContentContent(string $DivisionCourseId = null, string $IsControl = 'false'): Pipeline
     {
         $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'CourseContentContent'), self::getEndpoint());
@@ -895,9 +1131,7 @@ class ApiDigital extends Extension implements IApiInterface
             self::API_TARGET => 'loadCourseContentContent',
         ));
         $ModalEmitter->setPostPayload(array(
-            'DivisionId' => $DivisionId,
-            'SubjectId' => $SubjectId,
-            'SubjectGroupId' => $SubjectGroupId,
+            'DivisionCourseId' => $DivisionCourseId,
             'IsControl' => $IsControl
         ));
         $Pipeline->appendEmitter($ModalEmitter);
@@ -906,35 +1140,26 @@ class ApiDigital extends Extension implements IApiInterface
     }
 
     /**
-     * @param string|null $DivisionId
-     * @param string|null $SubjectId
-     * @param string|null $SubjectGroupId
+     * @param string|null $DivisionCourseId
      * @param string $IsControl
      *
      * @return string
      */
-    public function loadCourseContentContent(string $DivisionId = null, string $SubjectId = null, string $SubjectGroupId = null, string $IsControl = 'false') : string
+    public function loadCourseContentContent(string $DivisionCourseId = null, string $IsControl = 'false') : string
     {
-        $tblDivision = Division::useService()->getDivisionById($DivisionId);
-        $tblSubject = Subject::useService()->getSubjectById($SubjectId);
-        $tblSubjectGroup = Division::useService()->getSubjectGroupById($SubjectGroupId);
-
-        if (!($tblDivision || $tblSubjectGroup || $tblSubject)) {
+        if (!($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
             return new Danger('Der SekII-Kurs wurde nicht gefunden', new Exclamation());
         }
 
-        return Digital::useFrontend()->loadCourseContentTable($tblDivision, $tblSubject, $tblSubjectGroup, $IsControl == 'true');
+        return Digital::useFrontend()->loadCourseContentTable($tblDivisionCourse, $IsControl == 'true');
     }
 
     /**
-     * @param string|null $DivisionId
-     * @param string|null $SubjectId
-     * @param string|null $SubjectGroupId
+     * @param string|null $DivisionCourseId
      *
      * @return Pipeline
      */
-    public static function pipelineOpenCreateCourseContentModal(string $DivisionId = null, string $SubjectId = null,
-        string $SubjectGroupId = null): Pipeline
+    public static function pipelineOpenCreateCourseContentModal(string $DivisionCourseId = null): Pipeline
     {
         $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
@@ -942,9 +1167,7 @@ class ApiDigital extends Extension implements IApiInterface
             self::API_TARGET => 'openCreateCourseContentModal',
         ));
         $ModalEmitter->setPostPayload(array(
-            'DivisionId' => $DivisionId,
-            'SubjectGroupId' => $SubjectGroupId,
-            'SubjectId' => $SubjectId
+            'DivisionCourseId' => $DivisionCourseId
         ));
         $Pipeline->appendEmitter($ModalEmitter);
 
@@ -952,25 +1175,17 @@ class ApiDigital extends Extension implements IApiInterface
     }
 
     /**
-     * @param string|null $DivisionId
-     * @param string|null $SubjectId
-     * @param string|null $SubjectGroupId
+     * @param string|null $DivisionCourseId
      *
      * @return string
      */
-    public function openCreateCourseContentModal(string $DivisionId = null, string $SubjectId = null,
-        string $SubjectGroupId = null): string
+    public function openCreateCourseContentModal(string $DivisionCourseId = null): string
     {
-        $tblDivision = Division::useService()->getDivisionById($DivisionId);
-        $tblSubject = Subject::useService()->getSubjectById($SubjectId);
-        $tblSubjectGroup = Division::useService()->getSubjectGroupById($SubjectGroupId);
-
-        if (!($tblDivision || $tblSubjectGroup || $tblSubject)) {
+        if (!($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
             return new Danger('Der SekII-Kurs wurde nicht gefunden', new Exclamation());
         }
 
-        return $this->getCourseContentModal(Digital::useFrontend()->formCourseContent($tblDivision, $tblSubject,
-            $tblSubjectGroup, null, true));
+        return $this->getCourseContentModal(Digital::useFrontend()->formCourseContent($tblDivisionCourse, null, true));
     }
 
     /**
@@ -1002,14 +1217,11 @@ class ApiDigital extends Extension implements IApiInterface
     }
 
     /**
-     * @param string|null $DivisionId
-     * @param string|null $SubjectId
-     * @param string|null $SubjectGroupId
+     * @param string $DivisionCourseId
      *
      * @return Pipeline
      */
-    public static function pipelineCreateCourseContentSave(string $DivisionId = null, string $SubjectId = null,
-        string $SubjectGroupId = null): Pipeline
+    public static function pipelineCreateCourseContentSave(string $DivisionCourseId): Pipeline
     {
         $Pipeline = new Pipeline();
         $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
@@ -1017,9 +1229,7 @@ class ApiDigital extends Extension implements IApiInterface
             self::API_TARGET => 'saveCreateCourseContentModal'
         ));
         $ModalEmitter->setPostPayload(array(
-            'DivisionId' => $DivisionId,
-            'SubjectGroupId' => $SubjectGroupId,
-            'SubjectId' => $SubjectId
+            'DivisionCourseId' => $DivisionCourseId
         ));
         $ModalEmitter->setLoadingMessage('Wird bearbeitet');
         $Pipeline->appendEmitter($ModalEmitter);
@@ -1028,32 +1238,25 @@ class ApiDigital extends Extension implements IApiInterface
     }
 
     /**
-     * @param string|null $DivisionId
-     * @param string|null $SubjectId
-     * @param string|null $SubjectGroupId
+     * @param string $DivisionCourseId
      * @param array|null $Data
      *
      * @return Danger|string
      */
-    public function saveCreateCourseContentModal(string $DivisionId = null, string $SubjectId = null,
-        string $SubjectGroupId = null, array $Data = null)
+    public function saveCreateCourseContentModal(string $DivisionCourseId, array $Data = null)
     {
-        $tblDivision = Division::useService()->getDivisionById($DivisionId);
-        $tblSubject = Subject::useService()->getSubjectById($SubjectId);
-        $tblSubjectGroup = Division::useService()->getSubjectGroupById($SubjectGroupId);
-
-        if (!($tblDivision || $tblSubject || $tblSubjectGroup)) {
+        if (!($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
             return new Danger('Der SekII-Kurs wurde nicht gefunden', new Exclamation());
         }
 
-        if (($form = Digital::useService()->checkFormCourseContent($Data, $tblDivision, $tblSubject, $tblSubjectGroup))) {
+        if (($form = Digital::useService()->checkFormCourseContent($Data, $tblDivisionCourse))) {
             // display Errors on form
             return $this->getCourseContentModal($form);
         }
 
-        if (Digital::useService()->createCourseContent($Data, $tblDivision, $tblSubject, $tblSubjectGroup)) {
+        if (Digital::useService()->createCourseContent($Data, $tblDivisionCourse)) {
             return new Success('Thema/Hausaufgaben wurde erfolgreich gespeichert.')
-                . self::pipelineLoadCourseContentContent($DivisionId, $SubjectId, $SubjectGroupId)
+                . self::pipelineLoadCourseContentContent($DivisionCourseId)
                 . self::pipelineClose();
         } else {
             return new Danger('Thema/Hausaufgaben konnte nicht gespeichert werden.') . self::pipelineClose();
@@ -1090,17 +1293,14 @@ class ApiDigital extends Extension implements IApiInterface
         if (!($tblCourseContent = Digital::useService()->getCourseContentById($CourseContentId))) {
             return new Danger('Thema/Hausaufgaben wurde nicht gefunden', new Exclamation());
         }
-
-        $tblDivision = $tblCourseContent->getServiceTblDivision();
-        $tblSubject = $tblCourseContent->getServiceTblSubject();
-        $tblSubjectGroup = $tblCourseContent->getServiceTblSubjectGroup();
-        if (!($tblDivision || $tblSubject || $tblSubjectGroup)) {
+        if (!($tblDivisionCourse = $tblCourseContent->getServiceTblDivisionCourse())) {
             return new Danger('Der SekII-Kurs wurde nicht gefunden', new Exclamation());
         }
 
-        return $this->getCourseContentModal(Digital::useFrontend()->formCourseContent(
-            $tblDivision, $tblSubject, $tblSubjectGroup, $CourseContentId, true
-        ), $CourseContentId);
+        return $this->getCourseContentModal(
+            Digital::useFrontend()->formCourseContent($tblDivisionCourse, $CourseContentId, true),
+            $CourseContentId
+        );
     }
 
     /**
@@ -1135,22 +1335,18 @@ class ApiDigital extends Extension implements IApiInterface
         if (!($tblCourseContent = Digital::useService()->getCourseContentById($CourseContentId))) {
             return new Danger('Thema/Hausaufgaben wurde nicht gefunden', new Exclamation());
         }
-
-        $tblDivision = $tblCourseContent->getServiceTblDivision();
-        $tblSubject = $tblCourseContent->getServiceTblSubject();
-        $tblSubjectGroup = $tblCourseContent->getServiceTblSubjectGroup();
-        if (!($tblDivision || $tblSubject || $tblSubjectGroup)) {
+        if (!($tblDivisionCourse = $tblCourseContent->getServiceTblDivisionCourse())) {
             return new Danger('Der SekII-Kurs wurde nicht gefunden', new Exclamation());
         }
 
-        if (($form = Digital::useService()->checkFormCourseContent($Data, $tblDivision, $tblSubject, $tblSubjectGroup, $tblCourseContent))) {
+        if (($form = Digital::useService()->checkFormCourseContent($Data, $tblDivisionCourse, $tblCourseContent))) {
             // display Errors on form
             return $this->getCourseContentModal($form, $CourseContentId);
         }
 
         if (Digital::useService()->updateCourseContent($tblCourseContent, $Data)) {
             return new Success('Thema/Hausaufgaben wurde erfolgreich gespeichert.')
-                . self::pipelineLoadCourseContentContent($tblDivision->getId(), $tblSubject->getId(), $tblSubjectGroup->getId())
+                . self::pipelineLoadCourseContentContent($tblDivisionCourse->getId())
                 . self::pipelineClose();
         } else {
             return new Danger('Thema/Hausaufgaben konnte nicht gespeichert werden.') . self::pipelineClose();
@@ -1198,8 +1394,6 @@ class ApiDigital extends Extension implements IApiInterface
                                 array(
                                     $tblCourseContent->getDate(),
                                     $tblCourseContent->getLessonDisplay(),
-                                    ($tblSubject = $tblCourseContent->getServiceTblSubject())
-                                        ? $tblSubject->getDisplayName() : '',
                                     ($tblPerson = $tblCourseContent->getServiceTblPerson())
                                         ? $tblPerson->getFullName() : '',
                                     $tblCourseContent->getContent(),
@@ -1249,17 +1443,13 @@ class ApiDigital extends Extension implements IApiInterface
         if (!($tblCourseContent = Digital::useService()->getCourseContentById($CourseContentId))) {
             return new Danger('Thema/Hausaufgaben wurde nicht gefunden', new Exclamation());
         }
-
-        $tblDivision = $tblCourseContent->getServiceTblDivision();
-        $tblSubject = $tblCourseContent->getServiceTblSubject();
-        $tblSubjectGroup = $tblCourseContent->getServiceTblSubjectGroup();
-        if (!($tblDivision || $tblSubject || $tblSubjectGroup)) {
+        if (!($tblDivisionCourse = $tblCourseContent->getServiceTblDivisionCourse())) {
             return new Danger('Der SekII-Kurs wurde nicht gefunden', new Exclamation());
         }
 
         if (Digital::useService()->destroyCourseContent($tblCourseContent)) {
             return new Success('Thema/Hausaufgaben wurde erfolgreich gelöscht.')
-                . self::pipelineLoadCourseContentContent($tblDivision->getId(), $tblSubject->getId(), $tblSubjectGroup->getId())
+                . self::pipelineLoadCourseContentContent($tblDivisionCourse->getId())
                 . self::pipelineClose();
         } else {
             return new Danger('Thema/Hausaufgaben konnte nicht gelöscht werden.') . self::pipelineClose();
@@ -1267,11 +1457,11 @@ class ApiDigital extends Extension implements IApiInterface
     }
 
     /**
-     * @param string|null $DivisionSubjectId
+     * @param $DivisionCourseId
      *
      * @return Pipeline
      */
-    public static function pipelineLoadCourseMissingStudentContent(string $DivisionSubjectId = null): Pipeline
+    public static function pipelineLoadCourseMissingStudentContent($DivisionCourseId): Pipeline
     {
         $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'CourseMissingStudentContent'), self::getEndpoint());
@@ -1279,7 +1469,7 @@ class ApiDigital extends Extension implements IApiInterface
             self::API_TARGET => 'loadCourseMissingStudentContent',
         ));
         $ModalEmitter->setPostPayload(array(
-            'DivisionSubjectId' => $DivisionSubjectId
+            'DivisionCourseId' => $DivisionCourseId
         ));
         $Pipeline->appendEmitter($ModalEmitter);
 
@@ -1287,16 +1477,16 @@ class ApiDigital extends Extension implements IApiInterface
     }
 
     /**
-     * @param string|null $DivisionSubjectId
+     * @param $DivisionCourseId
      *
      * @return string
      */
-    public function loadCourseMissingStudentContent(string $DivisionSubjectId = null) : string
+    public function loadCourseMissingStudentContent($DivisionCourseId) : string
     {
-        if (!($tblDivisionSubject = Division::useService()->getDivisionSubjectById($DivisionSubjectId))) {
+        if (!($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
             return new Danger('Der SekII-Kurs wurde nicht gefunden', new Exclamation());
         }
 
-        return Digital::useFrontend()->loadCourseMissingStudentContent($tblDivisionSubject);
+        return Digital::useFrontend()->loadCourseMissingStudentContent($tblDivisionCourse);
     }
 }

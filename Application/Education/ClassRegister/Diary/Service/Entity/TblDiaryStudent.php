@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: Kauschke
- * Date: 10.07.2019
- * Time: 14:59
- */
 
 namespace SPHERE\Application\Education\ClassRegister\Diary\Service\Entity;
 
@@ -19,20 +13,18 @@ use SPHERE\System\Database\Fitting\Element;
 
 /**
  * @Entity()
- * @Table(name="tblDiaryStudent")
+ * @Table(name="tblClassRegisterDiaryStudent")
  * @Cache(usage="READ_ONLY")
  */
 class TblDiaryStudent extends Element
 {
-
-    const ATTR_TBL_DIARY = 'tblDiary';
+    const ATTR_TBL_DIARY = 'tblClassRegisterDiary';
     const ATTR_SERVICE_TBL_PERSON = 'serviceTblPerson';
 
     /**
      * @Column(type="bigint")
      */
-    protected $tblDiary;
-
+    protected $tblClassRegisterDiary;
     /**
      * @Column(type="bigint")
      */
@@ -43,21 +35,19 @@ class TblDiaryStudent extends Element
      */
     public function getTblDiary()
     {
-
-        if (null === $this->tblDiary) {
+        if (null === $this->tblClassRegisterDiary) {
             return false;
         } else {
-            return Diary::useService()->getDiaryById($this->tblDiary);
+            return Diary::useService()->getDiaryById($this->tblClassRegisterDiary);
         }
     }
 
     /**
-     * @param TblDiary|null $tblDiary
+     * @param TblDiary|null $tblClassRegisterDiary
      */
-    public function setTblDiary(TblDiary $tblDiary = null)
+    public function setTblDiary(TblDiary $tblClassRegisterDiary = null)
     {
-
-        $this->tblDiary = (null === $tblDiary ? null : $tblDiary->getId());
+        $this->tblClassRegisterDiary = (null === $tblClassRegisterDiary ? null : $tblClassRegisterDiary->getId());
     }
 
     /**
@@ -65,7 +55,6 @@ class TblDiaryStudent extends Element
      */
     public function getServiceTblPerson()
     {
-
         if (null === $this->serviceTblPerson) {
             return false;
         } else {
@@ -78,7 +67,6 @@ class TblDiaryStudent extends Element
      */
     public function setServiceTblPerson(TblPerson $tblPerson = null)
     {
-
         $this->serviceTblPerson = (null === $tblPerson ? null : $tblPerson->getId());
     }
 }

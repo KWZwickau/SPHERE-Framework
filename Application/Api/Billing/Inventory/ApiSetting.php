@@ -262,7 +262,8 @@ class ApiSetting extends Extension implements IApiInterface
 
         switch($Category){
             case TblSetting::CATEGORY_REGULAR:
-                // aktuell leer
+                $IsSepaAccountNeed = (isset($Setting[TblSetting::IDENT_INVOICE_DELETE]) ? true : false);
+                Setting::useService()->createSetting(TblSetting::IDENT_INVOICE_DELETE, $IsSepaAccountNeed);
             break;
             case TblSetting::CATEGORY_SEPA:
                 $IsSepaAccountNeed = (isset($Setting[TblSetting::IDENT_IS_SEPA]) ? true : false);
@@ -301,6 +302,9 @@ class ApiSetting extends Extension implements IApiInterface
                 Setting::useService()->createSetting(TblSetting::IDENT_KOST_2, $Kost2);
                 $BuKey = (isset($Setting[TblSetting::IDENT_BU_KEY]) ? $Setting[TblSetting::IDENT_BU_KEY] : '0');
                 Setting::useService()->createSetting(TblSetting::IDENT_BU_KEY, $BuKey);
+                $Now = new \DateTime();
+                $EconomicDate = (isset($Setting[TblSetting::IDENT_ECONOMIC_DATE]) ? $Setting[TblSetting::IDENT_ECONOMIC_DATE] : '01.01.'.$Now->format('Y'));
+                Setting::useService()->createSetting(TblSetting::IDENT_ECONOMIC_DATE, $EconomicDate);
             break;
         }
 

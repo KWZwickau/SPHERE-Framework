@@ -1,22 +1,16 @@
 <?php
-
 namespace SPHERE\Application\Reporting\Custom\Gersdorf\Person;
 
-use SPHERE\Application\Education\Lesson\Division\Division;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Meta\Student\Student;
-use SPHERE\Application\Reporting\Standard\Person\Person as PersonReportingStandard;
+use SPHERE\Application\Reporting\Standard\Person\Person as PersonStandard;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
-use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
-use SPHERE\Common\Frontend\Icon\Repository\Listing;
 use SPHERE\Common\Frontend\IFrontendInterface;
-use SPHERE\Common\Frontend\Layout\Repository\Panel;
-use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
@@ -24,7 +18,10 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
+use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
+use SPHERE\Common\Frontend\Text\Repository\Bold;
+use SPHERE\Common\Frontend\Text\Repository\Info as InfoText;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 
@@ -37,583 +34,273 @@ class Frontend extends Extension implements IFrontendInterface
 {
 
     /**
-     * @param null $DivisionId
+     * @param int|null $DivisionCourseId
+     * @param null     $All
      *
      * @return Stage
      */
-    public function frontendClassList($DivisionId = null): Stage
+    public function frontendClassList(?int $DivisionCourseId = null, $All = null): Stage
     {
 
         $Stage = new Stage('EVOSG Auswertung', 'Klassenlisten');
-        if (null !== $DivisionId) {
-            $Stage->addButton(new Standard('Zurück', '/Reporting/Custom/Gersdorf/Person/ClassList', new ChevronLeft()));
-        }
-        $tblDivisionAll = Division::useService()->getDivisionAll();
-        $tblDivision = new TblDivision();
-        $PersonList = array();
-
-        if ($DivisionId !== null) {
-
-            $Global = $this->getGlobal();
-            if (!$Global->POST) {
-                $Global->POST['Select']['Division'] = $DivisionId;
-                $Global->savePost();
+        $Route = '/Reporting/Custom/Gersdorf/Person/ClassList';
+        if($DivisionCourseId === null) {
+            if($All) {
+                $Stage->addButton(new Standard('aktuelles Schuljahr', $Route));
+                $Stage->addButton(new Standard(new InfoText(new Bold('Alle Schuljahre')), $Route, null, array('All' => 1)));
+            } else {
+                $Stage->addButton(new Standard(new InfoText(new Bold('aktuelles Schuljahr')), $Route));
+                $Stage->addButton(new Standard('Alle Schuljahre', $Route, null, array('All' => 1)));
             }
-
-            $tblDivision = Division::useService()->getDivisionById($DivisionId);
-            if ($tblDivision) {
-                $PersonList = Person::useService()->createClassList($tblDivision);
-                if ($PersonList) {
-                    $Stage->addButton(
-                        new Primary('Herunterladen',
-                            '/Api/Reporting/Custom/Gersdorf/Common/ClassList/Download', new Download(),
-                            array('DivisionId' => $tblDivision->getId()))
-                    );
-                    $Stage->setMessage(new Danger('Die dauerhafte Speicherung des Excel-Exports
-                    ist datenschutzrechtlich nicht zulässig!', new Exclamation()));
-                }
-            }
+            $Stage->setContent(PersonStandard::useFrontend()->getChooseDivisionCourse($Route, $All));
+            return $Stage;
         }
-
-        $TableContent = array();
-        if ($tblDivisionAll) {
-            array_walk($tblDivisionAll, function (TblDivision $tblDivision) use (&$TableContent) {
-
-                $Item['Year'] = '';
-                $Item['Division'] = $tblDivision->getDisplayName();
-                $Item['Type'] = $tblDivision->getTypeName();
-                if ($tblDivision->getServiceTblYear()) {
-                    $Item['Year'] = $tblDivision->getServiceTblYear()->getDisplayName();
-                }
-                $Item['Option'] = new Standard('', '/Reporting/Custom/Gersdorf/Person/ClassList', new EyeOpen(),
-                    array('DivisionId' => $tblDivision->getId()), 'Anzeigen');
-                $Item['Count'] = Division::useService()->countDivisionStudentAllByDivision($tblDivision);
-                array_push($TableContent, $Item);
-            });
+        $Stage->addButton(new Standard('Zurück', $Route, new ChevronLeft()));
+        if(!($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
+            return $Stage->setContent(new Warning('Klasse nicht verfügbar.'));
         }
-
-        if ($DivisionId === null) {
-            $Stage->setContent(
-                new Layout(
-                    new LayoutGroup(
-                        new LayoutRow(
-                            new LayoutColumn(
-                                new TableData($TableContent, null,
-                                    array(
-                                        'Year'     => 'Jahr',
-                                        'Division' => 'Klasse',
-                                        'Type'     => 'Schulart',
-                                        'Count'    => 'Schüler',
-                                        'Option'   => ''
-                                    ), array(
-                                        'columnDefs' => array(
-                                            array('type' => 'natural', 'targets' => array(1,3)),
-                                            array("orderable" => false, "targets"   => -1),
-                                        ),
-                                        'order' => array(
-                                            array(0, 'desc'),
-                                            array(2, 'asc'),
-                                            array(1, 'asc')
-                                        )
-                                    )
-                                )
-                            , 12)
-                        ), new Title(new Listing().' Übersicht')
-                    )
-                )
+        if(!($tblPersonList = $tblDivisionCourse->getStudents())) {
+            return $Stage->setContent(new Warning('Keine Schüler hinterlegt.'));
+        }
+        $TableContent = Person::useService()->createClassList($tblDivisionCourse);
+        if(!empty($TableContent)) {
+            $Stage->addButton(new Primary('Herunterladen', '/Api/Reporting/Custom/Gersdorf/Common/ClassList/Download', new Download(),
+                    array('DivisionCourseId' => $tblDivisionCourse->getId()))
             );
-        } else {
-            $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
-
-            $Stage->setContent(
-                new Layout(array(
-                    new LayoutGroup(
-                        new LayoutRow(array(
-                            ( $tblDivision->getServiceTblYear() ?
-                                new LayoutColumn(
-                                    new Panel('Jahr', $tblDivision->getServiceTblYear()->getDisplayName(),
-                                        Panel::PANEL_TYPE_SUCCESS), 4
-                                ) : '' ),
-                            new LayoutColumn(
-                                new Panel('Klasse', $tblDivision->getDisplayName(),
-                                    Panel::PANEL_TYPE_SUCCESS), 4
+            $Stage->setMessage(new Danger('Die dauerhafte Speicherung des Excel-Exports ist datenschutzrechtlich nicht zulässig!', new Exclamation()));
+        }
+        $Stage->setContent(
+            new Layout(array(
+                PersonStandard::useFrontend()->getDivisionHeadOverview($tblDivisionCourse),
+                new LayoutGroup(new LayoutRow(new LayoutColumn(
+                    new TableData($TableContent, null,
+                        array(
+                            'Count'        => '#',
+                            'LastName'     => 'Name',
+                            'FirstName'    => 'Vorname',
+                            'Birthday'     => 'Geb.-datum',
+                            'Birthplace'   => 'Geburtsort',
+                            'District'     => 'Ortsteil',
+                            'StreetName'   => 'Straße',
+                            'StreetNumber' => 'Nr.',
+                            'Code'         => 'PLZ',
+                            'City'         => 'Ort',
+                        ),
+                        array(
+                            'columnDefs' => array(
+                                array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
+                                array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 2),
                             ),
-                            ( $tblDivision->getTypeName() ?
-                                new LayoutColumn(
-                                    new Panel('Schulart', $tblDivision->getTypeName(),
-                                        Panel::PANEL_TYPE_SUCCESS), 4
-                                ) : '' ),
-                        ))
-                    ),
-                    new LayoutGroup(
-                        new LayoutRow(
-                            new LayoutColumn(
-                                new TableData($PersonList, null,
-                                    array(
-                                        'Number'       => '#',
-                                        'LastName'     => 'Name',
-                                        'FirstName'    => 'Vorname',
-                                        'Birthday'     => 'Geb.-datum',
-                                        'Birthplace'   => 'Geburtsort',
-                                        'District'     => 'Ortsteil',
-                                        'StreetName'   => 'Straße',
-                                        'StreetNumber' => 'Nr.',
-                                        'Code'         => 'PLZ',
-                                        'City'         => 'Ort',
-                                    ),
-                                    array(
-                                        'columnDefs' => array(
-                                            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
-                                            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 2),
-                                        ),
-                                        "pageLength" => -1,
-                                        "responsive" => false
-                                    )
-                                )
-                            )
+                            "pageLength" => -1,
+                            "responsive" => false
                         )
-                    ),
-                    PersonReportingStandard::useFrontend()->getGenderLayoutGroup($tblPersonList)
-                ))
-            );
-        }
+                    )
+                ))),
+                PersonStandard::useFrontend()->getGenderLayoutGroup($tblPersonList)
+            ))
+        );
         return $Stage;
     }
 
     /**
-     * @param null $DivisionId
+     * @param int|null $DivisionCourseId
+     * @param null     $All
      *
      * @return Stage
      */
-    public function frontendSignList($DivisionId = null): Stage
+    public function frontendSignList(?int $DivisionCourseId = null, $All = null): Stage
     {
+
         $Stage = new Stage('EVOSG Auswertung', 'Unterschriften Liste');
-        if (null !== $DivisionId) {
-            $Stage->addButton(new Standard('Zurück', '/Reporting/Custom/Gersdorf/Person/SignList', new ChevronLeft()));
-        }
-        $tblDivisionAll = Division::useService()->getDivisionAll();
-        $tblDivision = new TblDivision();
-        $PersonList = array();
-
-        if ($DivisionId !== null) {
-
-            $Global = $this->getGlobal();
-            if (!$Global->POST) {
-                $Global->POST['Select']['Division'] = $DivisionId;
-                $Global->savePost();
+        $Route = '/Reporting/Custom/Gersdorf/Person/SignList';
+        if($DivisionCourseId === null) {
+            if($All) {
+                $Stage->addButton(new Standard('aktuelles Schuljahr', $Route));
+                $Stage->addButton(new Standard(new InfoText(new Bold('Alle Schuljahre')), $Route, null, array('All' => 1)));
+            } else {
+                $Stage->addButton(new Standard(new InfoText(new Bold('aktuelles Schuljahr')), $Route));
+                $Stage->addButton(new Standard('Alle Schuljahre', $Route, null, array('All' => 1)));
             }
-
-            $tblDivision = Division::useService()->getDivisionById($DivisionId);
-            if ($tblDivision) {
-                $PersonList = Person::useService()->createSignList($tblDivision);
-                if ($PersonList) {
-                    $Stage->addButton(
-                        new Primary('Herunterladen',
-                            '/Api/Reporting/Custom/Gersdorf/Common/SignList/Download', new Download(),
-                            array('DivisionId' => $tblDivision->getId()))
-                    );
-                    $Stage->setMessage(new Danger('Die dauerhafte Speicherung des Excel-Exports
-                    ist datenschutzrechtlich nicht zulässig!', new Exclamation()));
-                }
-            }
+            $Stage->setContent(PersonStandard::useFrontend()->getChooseDivisionCourse($Route, $All));
+            return $Stage;
         }
-
-        $TableContent = array();
-        if ($tblDivisionAll) {
-            array_walk($tblDivisionAll, function (TblDivision $tblDivision) use (&$TableContent) {
-
-                $Item['Year'] = '';
-                $Item['Division'] = $tblDivision->getDisplayName();
-                $Item['Type'] = $tblDivision->getTypeName();
-                if ($tblDivision->getServiceTblYear()) {
-                    $Item['Year'] = $tblDivision->getServiceTblYear()->getDisplayName();
-                }
-                $Item['Option'] = new Standard('', '/Reporting/Custom/Gersdorf/Person/SignList', new EyeOpen(),
-                    array('DivisionId' => $tblDivision->getId()), 'Anzeigen');
-                $Item['Count'] = Division::useService()->countDivisionStudentAllByDivision($tblDivision);
-                array_push($TableContent, $Item);
-            });
+        $Stage->addButton(new Standard('Zurück', $Route, new ChevronLeft()));
+        if(!($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
+            return $Stage->setContent(new Warning('Klasse nicht verfügbar.'));
         }
-
-        if ($DivisionId === null) {
-            $Stage->setContent(
-                new Layout(
-                    new LayoutGroup(
-                        new LayoutRow(
-                            new LayoutColumn(
-                                new TableData($TableContent, null,
-                                    array(
-                                        'Year'     => 'Jahr',
-                                        'Division' => 'Klasse',
-                                        'Type'     => 'Schulart',
-                                        'Count'    => 'Schüler',
-                                        'Option'   => ''
-                                    ), array(
-                                        'columnDefs' => array(
-                                            array('type' => 'natural', 'targets' => array(1,3)),
-                                            array("orderable" => false, "targets"   => -1),
-                                        ),
-                                        'order' => array(
-                                            array(0, 'desc'),
-                                            array(2, 'asc'),
-                                            array(1, 'asc')
-                                        )
-                                    )
-                                )
-                                , 12)
-                        ), new Title(new Listing().' Übersicht')
-                    )
-                )
+        if(!($tblPersonList = $tblDivisionCourse->getStudents())) {
+            return $Stage->setContent(new Warning('Keine Schüler hinterlegt.'));
+        }
+        $TableContent = Person::useService()->createSignList($tblDivisionCourse);
+        if(!empty($TableContent)) {
+            $Stage->addButton(new Primary('Herunterladen', '/Api/Reporting/Custom/Gersdorf/Common/SignList/Download', new Download(),
+                    array('DivisionCourseId' => $tblDivisionCourse->getId()))
             );
-        } else {
-            $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
-
-            $Stage->setContent(
-                new Layout(array(
-                    new LayoutGroup(
-                        new LayoutRow(array(
-                            ( $tblDivision->getServiceTblYear() ?
-                                new LayoutColumn(
-                                    new Panel('Jahr', $tblDivision->getServiceTblYear()->getDisplayName(),
-                                        Panel::PANEL_TYPE_SUCCESS), 4
-                                ) : '' ),
-                            new LayoutColumn(
-                                new Panel('Klasse', $tblDivision->getDisplayName(),
-                                    Panel::PANEL_TYPE_SUCCESS), 4
+            $Stage->setMessage(new Danger('Die dauerhafte Speicherung des Excel-Exports ist datenschutzrechtlich nicht zulässig!', new Exclamation()));
+        }
+        $Stage->setContent(
+            new Layout(array(
+                PersonStandard::useFrontend()->getDivisionHeadOverview($tblDivisionCourse),
+                new LayoutGroup(new LayoutRow(new LayoutColumn(
+                    new TableData($TableContent, null,
+                        array(
+                            'Count'        => '#',
+                            'LastName'  => 'Name',
+                            'FirstName' => 'Vorname',
+                        ),
+                        array(
+                            'columnDefs' => array(
+                                array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
+                                array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 2),
                             ),
-                            ( $tblDivision->getTypeName() ?
-                                new LayoutColumn(
-                                    new Panel('Schulart', $tblDivision->getTypeName(),
-                                        Panel::PANEL_TYPE_SUCCESS), 4
-                                ) : '' ),
-                        ))
-                    ),
-                    new LayoutGroup(
-                        new LayoutRow(
-                            new LayoutColumn(
-                                new TableData($PersonList, null,
-                                    array(
-                                        'Number'        => '#',
-                                        'LastName'  => 'Name',
-                                        'FirstName' => 'Vorname',
-//                                        'Empty'     => 'Unterschrift',
-                                    ),
-                                    array(
-                                        'columnDefs' => array(
-                                            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
-                                            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 2),
-                                        ),
-                                        "pageLength" => -1,
-                                        "responsive" => false
-                                    )
-                                )
-                            )
+                            "pageLength" => -1,
+                            "responsive" => false
                         )
-                    ),
-                    PersonReportingStandard::useFrontend()->getGenderLayoutGroup($tblPersonList)
-                ))
-            );
-        }
+                    )
+                , 6))),
+                PersonStandard::useFrontend()->getGenderLayoutGroup($tblPersonList)
+            ))
+        );
         return $Stage;
     }
 
     /**
-     * @param null $DivisionId
+     * @param int|null $DivisionCourseId
+     * @param null     $All
      *
      * @return Stage
      */
-    public function frontendElectiveClassList($DivisionId = null): Stage
+    public function frontendElectiveClassList(?int $DivisionCourseId = null, $All = null): Stage
     {
 
         $Stage = new Stage('Auswertung', 'Wahlfächer in Klassenlisten');
-        if (null !== $DivisionId) {
-            $Stage->addButton(new Standard('Zurück', '/Reporting/Custom/Gersdorf/Person/ElectiveList',
-                new ChevronLeft()));
-        }
-        $tblDivisionAll = Division::useService()->getDivisionAll();
-
-        $TableContent = array();
-        if ($tblDivisionAll) {
-            array_walk($tblDivisionAll, function (TblDivision $tblDivision) use (&$TableContent) {
-
-                $Item['Year'] = '';
-                $Item['Division'] = $tblDivision->getDisplayName();
-                $Item['Type'] = $tblDivision->getTypeName();
-                if ($tblDivision->getServiceTblYear()) {
-                    $Item['Year'] = $tblDivision->getServiceTblYear()->getDisplayName();
-                }
-                $Item['Option'] = new Standard('', '/Reporting/Custom/Gersdorf/Person/ElectiveList', new EyeOpen(),
-                    array('DivisionId' => $tblDivision->getId()), 'Anzeigen');
-                $Item['Count'] = Division::useService()->countDivisionStudentAllByDivision($tblDivision);
-                array_push($TableContent, $Item);
-            });
-        }
-
-        if ($DivisionId === null) {
-            $Stage->setContent(
-                new Layout(
-                    new LayoutGroup(
-                        new LayoutRow(
-                            new LayoutColumn(
-                                new TableData($TableContent, null,
-                                    array(
-                                        'Year'     => 'Jahr',
-                                        'Division' => 'Klasse',
-                                        'Type'     => 'Schulart',
-                                        'Count'    => 'Schüler',
-                                        'Option'   => '',
-                                    ), array(
-                                        'columnDefs' => array(
-                                            array('type' => 'natural', 'targets' => array(1,3)),
-                                            array("orderable" => false, "targets"   => -1),
-                                        ),
-                                        'order' => array(
-                                            array(0, 'desc'),
-                                            array(2, 'asc'),
-                                            array(1, 'asc')
-                                        )
-                                    ))
-                                , 12)
-                        ), new Title(new Listing().' Übersicht')
-                    )
-                )
-            );
-        } else {
-            $PersonList = array();
-            $tblDivision = Division::useService()->getDivisionById($DivisionId);
-            if ($tblDivision) {
-                $PersonList = Person::useService()->createElectiveClassList($tblDivision);
-                if ($PersonList) {
-                    $Stage->addButton(
-                        new Primary('Herunterladen',
-                            '/Api/Reporting/Custom/Gersdorf/Common/ElectiveClassList/Download', new Download(),
-                            array('DivisionId' => $tblDivision->getId()))
-                    );
-                    $Stage->setMessage(new Danger('Die dauerhafte Speicherung des Excel-Exports
-                ist datenschutzrechtlich nicht zulässig!', new Exclamation()));
-                }
+        $Route = '/Reporting/Custom/Gersdorf/Person/ElectiveList';
+        if($DivisionCourseId === null) {
+            if($All) {
+                $Stage->addButton(new Standard('aktuelles Schuljahr', $Route));
+                $Stage->addButton(new Standard(new InfoText(new Bold('Alle Schuljahre')), $Route, null, array('All' => 1)));
+            } else {
+                $Stage->addButton(new Standard(new InfoText(new Bold('aktuelles Schuljahr')), $Route));
+                $Stage->addButton(new Standard('Alle Schuljahre', $Route, null, array('All' => 1)));
             }
-
-            $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
-
-            $Stage->setContent(
-                new Layout(array(
-                    new LayoutGroup(array(
-                        new LayoutRow(array(
-                            ($tblDivision->getServiceTblYear() ?
-                                new LayoutColumn(
-                                    new Panel('Jahr', $tblDivision->getServiceTblYear()->getDisplayName(),
-                                        Panel::PANEL_TYPE_SUCCESS), 4
-                                ) : ''),
-                            new LayoutColumn(
-                                new Panel('Klasse', $tblDivision->getDisplayName(),
-                                    Panel::PANEL_TYPE_SUCCESS), 4
-                            ),
-                            ($tblDivision->getTypeName() ?
-                                new LayoutColumn(
-                                    new Panel('Schulart', $tblDivision->getTypeName(),
-                                        Panel::PANEL_TYPE_SUCCESS), 4
-                                ) : ''),
-                        )),
-                        ($inActivePanel = $this->getInActiveStudentPanel($tblDivision))
-                            ? new LayoutRow(new LayoutColumn($inActivePanel))
-                            : null
-                    )),
-                    new LayoutGroup(
-                        new LayoutRow(
-                            new LayoutColumn(
-                                new TableData($PersonList, null,
-                                    array(
-                                        'Number'           => '#',
-                                        'Name'             => 'Name',
-//                                        'Birthday'         => 'Geb.-Datum',
-                                        'Education'        => 'Bildungsgang',
-                                        'ForeignLanguage1' => 'Fremdsprache 1',
-                                        'ForeignLanguage2' => 'Fremdsprache 2',
-                                        'ForeignLanguage3' => 'Fremdsprache 3',
-//                                        'Profile'          => 'Profil',
-                                        'Orientation'      => (Student::useService()->getStudentSubjectTypeByIdentifier('ORIENTATION'))->getName(),
-                                        'Religion'         => 'Religion',
-                                        'Elective'         => 'Wahlfächer',
-                                        'Elective1'         => 'Wahlfach 1',
-                                        'Elective2'         => 'Wahlfach 2',
-                                        'Elective3'         => 'Wahlfach 3',
-                                        'Elective4'         => 'Wahlfach 4',
-                                        'Elective5'         => 'Wahlfach 5',
-                                    ),
-                                    array(
-                                        "pageLength" => -1,
-                                        "responsive" => false,
-                                        'columnDefs' => array(
-                                            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
-                                        ),
-                                    )
-                                )
-                            )
-                        )
-                    ),
-                    PersonReportingStandard::useFrontend()->getGenderLayoutGroup($tblPersonList)
-                ))
-            );
+            $Stage->setContent(PersonStandard::useFrontend()->getChooseDivisionCourse($Route, $All));
+            return $Stage;
         }
-
+        $Stage->addButton(new Standard('Zurück', $Route, new ChevronLeft()));
+        if(!($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
+            return $Stage->setContent(new Warning('Klasse nicht verfügbar.'));
+        }
+        if(!($tblPersonList = $tblDivisionCourse->getStudents())) {
+            return $Stage->setContent(new Warning('Keine Schüler hinterlegt.'));
+        }
+        $TableContent = Person::useService()->createElectiveClassList($tblDivisionCourse);
+        if(!empty($TableContent)) {
+            $Stage->addButton(new Primary('Herunterladen', '/Api/Reporting/Custom/Gersdorf/Common/ElectiveClassList/Download', new Download(),
+                    array('DivisionCourseId' => $tblDivisionCourse->getId()))
+            );
+            $Stage->setMessage(new Danger('Die dauerhafte Speicherung des Excel-Exports ist datenschutzrechtlich nicht zulässig!', new Exclamation()));
+        }
+        $Stage->setContent(
+            new Layout(array(
+                PersonStandard::useFrontend()->getDivisionHeadOverview($tblDivisionCourse),
+                new LayoutGroup(new LayoutRow(new LayoutColumn(
+                    new TableData($TableContent, null,
+                        array(
+                            'Count'            => '#',
+                            'Name'             => 'Name',
+                            'Education'        => 'Bildungsgang',
+                            'ForeignLanguage1' => 'Fremdsprache 1',
+                            'ForeignLanguage2' => 'Fremdsprache 2',
+                            'ForeignLanguage3' => 'Fremdsprache 3',
+                            'Orientation'      => (Student::useService()->getStudentSubjectTypeByIdentifier('ORIENTATION'))->getName(),
+                            'Religion'         => 'Religion',
+                            'Elective'         => 'Wahlfächer',
+                            'Elective1'         => 'Wahlfach 1',
+                            'Elective2'         => 'Wahlfach 2',
+                            'Elective3'         => 'Wahlfach 3',
+                            'Elective4'         => 'Wahlfach 4',
+                            'Elective5'         => 'Wahlfach 5',
+                        ),
+                        array(
+                            "pageLength" => -1,
+                            "responsive" => false,
+                            'columnDefs' => array(
+                                array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
+                            ),
+                        )
+                    )
+                ))),
+                PersonStandard::useFrontend()->getGenderLayoutGroup($tblPersonList)
+            ))
+        );
         return $Stage;
     }
 
     /**
-     * @param null $DivisionId
+     * @param int|null $DivisionCourseId
+     * @param null     $All
      *
      * @return Stage
      */
-    public function frontendClassPhoneList($DivisionId = null)
+    public function frontendClassPhoneList(?int $DivisionCourseId = null, $All = null): Stage
     {
 
         $Stage = new Stage('EVOSG Auswertung', 'Telefonlisten');
-        if (null !== $DivisionId) {
-            $Stage->addButton(new Standard('Zurück', '/Reporting/Custom/Gersdorf/Person/ClassPhoneList', new ChevronLeft()));
+        $Route = '/Reporting/Custom/Gersdorf/Person/ClassPhoneList';
+        if($DivisionCourseId === null) {
+            if($All) {
+                $Stage->addButton(new Standard('aktuelles Schuljahr', $Route));
+                $Stage->addButton(new Standard(new InfoText(new Bold('Alle Schuljahre')), $Route, null, array('All' => 1)));
+            } else {
+                $Stage->addButton(new Standard(new InfoText(new Bold('aktuelles Schuljahr')), $Route));
+                $Stage->addButton(new Standard('Alle Schuljahre', $Route, null, array('All' => 1)));
+            }
+            $Stage->setContent(PersonStandard::useFrontend()->getChooseDivisionCourse($Route, $All));
+            return $Stage;
         }
-        $tblDivisionAll = Division::useService()->getDivisionAll();
-        $TableContent = array();
-        if ($tblDivisionAll) {
-            array_walk($tblDivisionAll, function (TblDivision $tblDivision) use (&$TableContent) {
-
-                $Item['Year'] = '';
-                $Item['Division'] = $tblDivision->getDisplayName();
-                $Item['Type'] = $tblDivision->getTypeName();
-                if ($tblDivision->getServiceTblYear()) {
-                    $Item['Year'] = $tblDivision->getServiceTblYear()->getDisplayName();
-                }
-                $Item['Option'] = new Standard('', '/Reporting/Custom/Gersdorf/Person/ClassPhoneList', new EyeOpen(),
-                    array('DivisionId' => $tblDivision->getId()), 'Anzeigen');
-                $Item['Count'] = Division::useService()->countDivisionStudentAllByDivision($tblDivision);
-                array_push($TableContent, $Item);
-            });
+        $Stage->addButton(new Standard('Zurück', $Route, new ChevronLeft()));
+        if(!($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
+            return $Stage->setContent(new Warning('Klasse nicht verfügbar.'));
         }
-
-        if ($DivisionId === null) {
-            $Stage->setContent(
-                new Layout(
-                    new LayoutGroup(
-                        new LayoutRow(
-                            new LayoutColumn(
-                                new TableData($TableContent, null,
-                                    array(
-                                        'Year'     => 'Jahr',
-                                        'Division' => 'Klasse',
-                                        'Type'     => 'Schulart',
-                                        'Count'    => 'Schüler',
-                                        'Option'   => ''
-                                    ), array(
-                                        'columnDefs' => array(
-                                            array('type' => 'natural', 'targets' => array(1,3)),
-                                            array("orderable" => false, "targets"   => -1),
-                                        ),
-                                        'order' => array(
-                                            array(0, 'desc'),
-                                            array(2, 'asc'),
-                                            array(1, 'asc')
-                                        )
-                                    )
-                                )
-                                , 12)
-                        ), new Title(new Listing().' Übersicht')
-                    )
-                )
+        if(!($tblPersonList = $tblDivisionCourse->getStudents())) {
+            return $Stage->setContent(new Warning('Keine Schüler hinterlegt.'));
+        }
+        $TableContent = Person::useService()->createClassPhoneList($tblDivisionCourse);
+        if(!empty($TableContent)) {
+            $Stage->addButton(new Primary('Herunterladen', '/Api/Reporting/Custom/Gersdorf/Common/ClassPhoneList/Download', new Download(),
+                    array('DivisionCourseId' => $tblDivisionCourse->getId()))
             );
-        } else {
-            $Global = $this->getGlobal();
-            if (!$Global->POST) {
-                $Global->POST['Select']['Division'] = $DivisionId;
-                $Global->savePost();
-            }
-            $PersonList = array();
-            $tblDivision = Division::useService()->getDivisionById($DivisionId);
-            if ($tblDivision) {
-                $PersonList = Person::useService()->createClassPhoneList($tblDivision);
-                if ($PersonList) {
-                    $Stage->addButton(
-                        new Primary('Herunterladen',
-                            '/Api/Reporting/Custom/Gersdorf/Common/ClassPhoneList/Download', new Download(),
-                            array('DivisionId' => $tblDivision->getId()))
-                    );
-                    $Stage->setMessage(new Danger('Die dauerhafte Speicherung des Excel-Exports
-                    ist datenschutzrechtlich nicht zulässig!', new Exclamation()));
-                }
-            }
-            $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
-
-            $Stage->setContent(
-                new Layout(array(
-                    new LayoutGroup(
-                        new LayoutRow(array(
-                            ( $tblDivision->getServiceTblYear() ?
-                                new LayoutColumn(
-                                    new Panel('Jahr', $tblDivision->getServiceTblYear()->getDisplayName(),
-                                        Panel::PANEL_TYPE_SUCCESS), 4
-                                ) : '' ),
-                            new LayoutColumn(
-                                new Panel('Klasse', $tblDivision->getDisplayName(),
-                                    Panel::PANEL_TYPE_SUCCESS), 4
+            $Stage->setMessage(new Danger('Die dauerhafte Speicherung des Excel-Exports ist datenschutzrechtlich nicht zulässig!', new Exclamation()));
+        }
+        $Stage->setContent(
+            new Layout(array(
+                PersonStandard::useFrontend()->getDivisionHeadOverview($tblDivisionCourse),
+                new LayoutGroup(new LayoutRow(new LayoutColumn(
+                    new TableData($TableContent, null,
+                        array(
+                            'Number'        => '#',
+                            'LastName'     => 'Name',
+                            'FirstName'    => 'Vorname',
+                            'PhoneNumbers' => 'Telefon-Nr.',
+                            'S1PrivatePhoneNumbers'    => 'S1 Privat',
+                            'S1Business'   => 'S1 Geschäftlich',
+                            'S2Private'    => 'S2 Privat',
+                            'S2Business'   => 'S2 Geschäftlich',
+                        ),
+                        array(
+                            'columnDefs' => array(
+                                array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
+                                array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 2),
                             ),
-                            ( $tblDivision->getTypeName() ?
-                                new LayoutColumn(
-                                    new Panel('Schulart', $tblDivision->getTypeName(),
-                                        Panel::PANEL_TYPE_SUCCESS), 4
-                                ) : '' ),
-                        ))
-                    ),
-                    new LayoutGroup(
-                        new LayoutRow(
-                            new LayoutColumn(
-                                new TableData($PersonList, null,
-                                    array(
-                                        'Number'        => '#',
-                                        'LastName'     => 'Name',
-                                        'FirstName'    => 'Vorname',
-                                        'PhoneNumbers' => 'Telefon-Nr.',
-                                        'S1PrivatePhoneNumbers'    => 'S1 Privat',
-                                        'S1Business'   => 'S1 Geschäftlich',
-                                        'S2Private'    => 'S2 Privat',
-                                        'S2Business'   => 'S2 Geschäftlich',
-                                    ),
-                                    array(
-                                        'columnDefs' => array(
-                                            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
-                                            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 2),
-                                        ),
-                                        "pageLength" => -1,
-                                        "responsive" => false
-                                    )
-                                )
-                            )
+                            "pageLength" => -1,
+                            "responsive" => false
                         )
-                    ),
-                    PersonReportingStandard::useFrontend()->getGenderLayoutGroup($tblPersonList)
-                ))
-            );
-        }
+                    )
+                ))),
+                PersonStandard::useFrontend()->getGenderLayoutGroup($tblPersonList)
+            ))
+        );
         return $Stage;
-    }
-
-    /**
-     * @param TblDivision $tblDivision
-     *
-     * @return bool|Panel
-     */
-    public function getInActiveStudentPanel(TblDivision $tblDivision)
-    {
-        $inActiveStudentList = array();
-        if (($tblDivisionStudentAll = Division::useService()->getDivisionStudentAllByDivision($tblDivision, true))) {
-            foreach ($tblDivisionStudentAll as $tblDivisionStudent) {
-                if ($tblDivisionStudent->isInActive()
-                    && ($tblPerson = $tblDivisionStudent->getServiceTblPerson())
-                ) {
-                    $inActiveStudentList[] = $tblPerson->getLastFirstName() . ' (Deaktivierung: ' . $tblDivisionStudent->getLeaveDate() . ')';
-                }
-            }
-        }
-
-        return empty($inActiveStudentList) ? false : new Panel('Ehemaliger Schüler dieser Klasse', $inActiveStudentList, Panel::PANEL_TYPE_WARNING);
     }
 
     /**
@@ -622,57 +309,37 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendTeacherList()
     {
 
-        $Stage = new Stage();
-        $Stage->setTitle('Auswertung');
-        $Stage->setDescription('Lehrerliste');
-
-        $tblPersonList = Group::useService()->getPersonAllByGroup(Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_STAFF));
-        $PersonList = Person::useService()->createTeacherList();
-        if ($PersonList) {
-            $Stage->addButton(
-                new Primary('Download Mitarbeiterliste',
-                    '/Api/Reporting/Custom/Gersdorf/Common/TeacherList/Download', new Download())
-            );
-            $Stage->addButton(
-                new Primary('Download Lehrerliste',
-                    '/Api/Reporting/Custom/Gersdorf/Common/TeacherList/Download', new Download(), array('isTeacher' => true))
-            );
-            $Stage->setMessage(new Danger('Die dauerhafte Speicherung des Excel-Exports
-                    ist datenschutzrechtlich nicht zulässig!', new Exclamation()));
+        $Stage = new Stage('Auswertung', 'Mitarbeiter/Lehrerliste');
+        $tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_STAFF);
+        $tblPersonList = $tblGroup->getPersonList();
+        $TableContent = Person::useService()->createTeacherList();
+        if(!empty($TableContent)) {
+            $Stage->addButton(new Primary('Download Mitarbeiter & Lehrerliste', '/Api/Reporting/Custom/Gersdorf/Common/TeacherList/Download', new Download()));
+            $Stage->addButton(new Primary('Download Lehrerliste', '/Api/Reporting/Custom/Gersdorf/Common/TeacherList/Download', new Download()
+                , array('isTeacher' => true)));
+            $Stage->setMessage(new Danger('Die dauerhafte Speicherung des Excel-Exports ist datenschutzrechtlich nicht zulässig!', new Exclamation()));
         }
-
-        $Stage->setContent(
-            new Layout(array(
-                new LayoutGroup(
-                    new LayoutRow(
-                        new LayoutColumn(
-                            new TableData($PersonList, null,
-                                array(
-                                    'Number'    => '#',
-                                    'LastName'  => 'Name',
-                                    'FirstName' => 'Vorname',
-                                    'Gender'    => 'Geschlecht',
-                                    'Address'   => 'Anschrift',
-                                    'Phone'     => 'Telefon',
-                                    'Birthday'  => 'Geburtsdatum',
-                                    'Group'     => 'Personengruppe',
-                                ),
-                                array(
-                                    "columnDefs" => array(
-                                        array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
-                                    ),
-//                                    'pageLength' => -1,
-//                                    'paging' => false,
-//                                    'info' => false,
-//                                    'responsive' => false
-                                )
-                            )
-                        )
+        $Stage->setContent(new Layout(array(
+            new LayoutGroup(new LayoutRow(new LayoutColumn(
+                new TableData($TableContent, null,
+                    array(
+                        'Count'     => '#',
+                        'LastName'  => 'Name',
+                        'FirstName' => 'Vorname',
+                        'Gender'    => 'Geschlecht',
+                        'Address'   => 'Anschrift',
+                        'Phone'     => 'Telefon',
+                        'Birthday'  => 'Geburtsdatum',
+                        'Group'     => 'Personengruppe',
+                    ),
+                    array(
+                        "columnDefs" => array(
+                            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
+                        ),
                     )
-                ),
-                PersonReportingStandard::useFrontend()->getGenderLayoutGroup($tblPersonList)
-            ))
-        );
+                ))))
+            , PersonStandard::useFrontend()->getGenderLayoutGroup($tblPersonList)
+        )));
 
         return $Stage;
     }

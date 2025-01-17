@@ -14,8 +14,10 @@ use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificate;
-use SPHERE\Application\Education\Lesson\Division\Division;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
+use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
+use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\System\Database\Fitting\Element;
@@ -29,7 +31,7 @@ class TblLeaveStudent extends Element
 {
     const ATTR_SERVICE_TBL_PERSON = 'serviceTblPerson';
     const ATTR_SERVICE_TBL_DIVISION = 'serviceTblDivision';
-    const ATTR_SERVICE_TBL_CERTIFICATE = 'serviceTblCertificate';
+    const ATTR_SERVICE_TBL_YEAR = 'serviceTblYear';
     const ATTR_IS_APPROVED = 'IsApproved';
     const ATTR_IS_PRINTED = 'IsPrinted';
 
@@ -38,10 +40,16 @@ class TblLeaveStudent extends Element
      */
     protected $serviceTblPerson;
 
+    // ist nicht nullable
     /**
      * @Column(type="bigint")
      */
-    protected $serviceTblDivision;
+    protected $serviceTblDivision = -1;
+
+    /**
+     * @Column(type="bigint")
+     */
+    protected $serviceTblYear;
 
     /**
      * @Column(type="bigint")
@@ -51,19 +59,18 @@ class TblLeaveStudent extends Element
     /**
      * @Column(type="boolean")
      */
-    protected $IsApproved;
+    protected bool $IsApproved;
 
     /**
      * @Column(type="boolean")
      */
-    protected $IsPrinted;
+    protected bool $IsPrinted;
 
     /**
      * @return bool|TblPerson
      */
     public function getServiceTblPerson()
     {
-
         if (null === $this->serviceTblPerson) {
             return false;
         } else {
@@ -76,30 +83,23 @@ class TblLeaveStudent extends Element
      */
     public function setServiceTblPerson(TblPerson $tblPerson = null)
     {
-
         $this->serviceTblPerson = ( null === $tblPerson ? null : $tblPerson->getId() );
     }
 
     /**
-     * @return bool|TblDivision
+     * @return false|TblYear
      */
-    public function getServiceTblDivision()
+    public function getServiceTblYear()
     {
-
-        if (null === $this->serviceTblDivision) {
-            return false;
-        } else {
-            return Division::useService()->getDivisionById($this->serviceTblDivision);
-        }
+        return Term::useService()->getYearById($this->serviceTblYear);
     }
 
     /**
-     * @param TblDivision|null $tblDivision
+     * @param TblYear $tblYear
      */
-    public function setServiceTblDivision(TblDivision $tblDivision = null)
+    public function setServiceTblYear(TblYear $tblYear)
     {
-
-        $this->serviceTblDivision = (null === $tblDivision ? null : $tblDivision->getId());
+        $this->serviceTblYear = $tblYear->getId();
     }
 
     /**
@@ -107,7 +107,6 @@ class TblLeaveStudent extends Element
      */
     public function getServiceTblCertificate()
     {
-
         if (null === $this->serviceTblCertificate) {
             return false;
         } else {
@@ -120,44 +119,57 @@ class TblLeaveStudent extends Element
      */
     public function setServiceTblCertificate(TblCertificate $tblCertificate = null)
     {
-
         $this->serviceTblCertificate = (null === $tblCertificate ? null : $tblCertificate->getId());
     }
 
     /**
      * @return bool
      */
-    public function isApproved()
+    public function isApproved(): bool
     {
-
         return $this->IsApproved;
     }
 
     /**
      * @param bool $IsApproved
      */
-    public function setApproved($IsApproved)
+    public function setApproved(bool $IsApproved)
     {
-
-        $this->IsApproved = (bool)$IsApproved;
+        $this->IsApproved = $IsApproved;
     }
 
     /**
      * @return bool
      */
-    public function isPrinted()
+    public function isPrinted(): bool
     {
-
         return $this->IsPrinted;
     }
 
     /**
      * @param bool $IsPrinted
      */
-    public function setPrinted($IsPrinted)
+    public function setPrinted(bool $IsPrinted)
     {
-
-        $this->IsPrinted = (bool)$IsPrinted;
+        $this->IsPrinted = $IsPrinted;
     }
 
+    /**
+     * @return false|TblDivisionCourse
+     */
+    public function getTblDivisionCourse()
+    {
+        if (($tblPerson = $this->getServiceTblPerson())
+            && ($tblYear = $this->getServiceTblYear())
+            && ($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))
+        ) {
+            if ($tblStudentEducation->getTblDivision()) {
+                return $tblStudentEducation->getTblDivision();
+            } elseif ($tblStudentEducation->getTblCoreGroup()) {
+                return $tblStudentEducation->getTblCoreGroup();
+            }
+        }
+
+        return false;
+    }
 }

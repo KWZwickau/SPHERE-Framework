@@ -12,11 +12,7 @@ use SPHERE\Application\Education\Certificate\Generator\Repository\Element;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Page;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Section;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
-use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubject;
-use SPHERE\Application\People\Meta\Student\Student;
-use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
-use SPHERE\Application\Setting\Consumer\Consumer;
 
 /**
  * Class EzshGymAbg
@@ -256,8 +252,6 @@ class EzshGymAbg extends EzshStyle
                                         {% else %}
                                             {% if Content.P' . $personId . '.Person.Common.BirthDates.Gender == 1 %}
                                                 Herr
-                                            {% else %}
-                                                Frau/Herr
                                             {% endif %}
                                         {% endif %}
                                     ')
@@ -334,8 +328,6 @@ class EzshGymAbg extends EzshStyle
                                         {% else %}
                                             {% if Content.P' . $personId . '.Person.Common.BirthDates.Gender == 1 %}
                                                 Herr
-                                            {% else %}
-                                                Frau/Herr
                                             {% endif %}
                                         {% endif %}
                                     ')
@@ -436,9 +428,7 @@ class EzshGymAbg extends EzshStyle
                             ->styleFontFamily(self::FONT_FAMILY)
                             , '12%')
                         ->addElementColumn((new Element())
-                            ->setContent('
-                                {{ Content.P' . $personId . '.Division.Data.Level.Name }}{{ Content.P' . $personId . '.Division.Data.Name }}
-                            ')
+                            ->setContent('{{ Content.P' . $personId . '.Division.Data.Name }}')
                             ->styleAlignCenter()
                             ->styleBorderBottom('1px', '#BBB')
                             ->stylePaddingLeft('7px')
@@ -620,98 +610,5 @@ class EzshGymAbg extends EzshStyle
             );
         $SectionList[] = $Section;
         return $SectionList;
-    }
-
-    /**
-     * @param $personId
-     *
-     * @return Section[]
-     */
-    private function getProfile($personId)
-    {
-
-        $subjectAcronymForGrade = 'PRO';
-        if (($tblPerson = Person::useService()->getPersonById($personId))
-            && ($tblStudent = Student::useService()->getStudentByPerson($tblPerson))
-        ) {
-            // Profil
-            if (($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('PROFILE'))
-                && ($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType($tblStudent,
-                    $tblStudentSubjectType))
-            ) {
-                /** @var TblStudentSubject $tblStudentSubject */
-                $tblStudentSubject = current($tblStudentSubjectList);
-                if (($tblSubjectProfile = $tblStudentSubject->getServiceTblSubject())) {
-                    $tblSubject = $tblSubjectProfile;
-
-                    if (($tblSetting = Consumer::useService()->getSetting('Api', 'Education', 'Certificate',
-                            'ProfileAcronym'))
-                        && ($value = $tblSetting->getValue())
-                    ) {
-                        $subjectAcronymForGrade = $value;
-                    } else {
-                        $subjectAcronymForGrade = $tblSubject->getAcronym();
-                    }
-
-                }
-            }
-        }
-
-        $sectionList[] = (new Section())
-        ->addElementColumn((new Element())
-            ->setContent('Wahlpflichtbereich:')
-            ->styleMarginTop('10px')
-            ->styleFontFamily(self::FONT_FAMILY)
-            , '20%')
-        ->addElementColumn((new Element())
-            ->setContent('
-                {% if(Content.P' . $personId . '.Student.ProfileEZSH["' . $subjectAcronymForGrade . '"] is not empty) %}
-                     {{ Content.P' . $personId . '.Student.ProfileEZSH["' . $subjectAcronymForGrade . '"].Name' . ' }}
-                {% else %}
-                     &nbsp;
-                {% endif %}
-            ')
-            ->styleMarginTop('10px')
-            ->styleBorderBottom('1px', '#BBB')
-            ->stylePaddingLeft('7px')
-            ->styleFontFamily(self::FONT_FAMILY)
-            , '30%')
-        ->addElementColumn((new Element())
-            ->setContent('mit informatischer Bildung')
-            ->styleMarginTop('10px')
-            ->stylePaddingLeft('15px')
-            ->styleFontFamily(self::FONT_FAMILY)
-            , '33%')
-        ->addElementColumn((new Element())
-            ->setContent('
-                {% if(Content.P' . $personId . '.Grade.Data["' . $subjectAcronymForGrade . '"] is not empty) %}
-                    {{ Content.P' . $personId . '.Grade.Data["' . $subjectAcronymForGrade . '"] }}
-                {% else %}
-                    &ndash;
-                {% endif %}
-            ')
-            ->styleMarginTop('10px')
-            ->styleAlignCenter()
-            ->stylePaddingTop('4px')
-            ->stylePaddingBottom('4px')
-            ->styleBackgroundColor(self::BACKGROUND_GRADE_FIELD)
-            ->styleFontFamily(self::FONT_FAMILY)
-            ->styleLineHeight(self::LINE_HEIGHT)
-        );
-
-        $sectionList[] = ((new Section())
-            ->addElementColumn((new Element())
-                , '27%')
-            ->addElementColumn((new Element())
-                ->setContent('(besuchtes Profil)')
-                ->styleAlignCenter()
-                ->styleTextSize('12px')
-                ->styleFontFamily(self::FONT_FAMILY)
-                ->styleLineHeight(self::LINE_HEIGHT)
-                , '23%')
-            ->addElementColumn((new Element()))
-        );
-
-        return $sectionList;
     }
 }

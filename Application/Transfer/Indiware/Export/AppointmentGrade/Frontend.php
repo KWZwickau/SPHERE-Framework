@@ -4,8 +4,8 @@ namespace SPHERE\Application\Transfer\Indiware\Export\AppointmentGrade;
 
 use SPHERE\Application\Api\Transfer\Indiware\AppointmentGrade\ApiAppointmentGrade;
 use SPHERE\Application\Document\Storage\FilePointer;
-use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
-use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTask;
+use SPHERE\Application\Education\Graduation\Grade\Grade;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTask;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\Education\School\Type\Type;
@@ -50,11 +50,11 @@ use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 /**
  * Class Frontend
+ *
  * @package SPHERE\Application\Transfer\Indiware\Export\AppointmentGrade
  */
 class Frontend extends Extension implements IFrontendInterface
 {
-
     /**
      * @return Stage
      */
@@ -90,10 +90,8 @@ class Frontend extends Extension implements IFrontendInterface
         $ReceiverAppointmentTask = ApiAppointmentGrade::receiverFormSelect((new ApiAppointmentGrade())->reloadTaskSelect($YearId), 'AppointmentTask');
         $ReceiverPeriod = ApiAppointmentGrade::receiverFormSelect((new ApiAppointmentGrade())->reloadPeriodSelect($PreselectId), 'Period');
 
-
-
-        // Anzeige nur für alle aktuellen Jahre + das letzte Schuljahr
-        $tblYearList = Term::useService()->getYearAllSinceYears(1);
+        // Anzeige nur für alle aktuellen Jahre + die letzten beiden Schuljahre
+        $tblYearList = Term::useService()->getYearAllSinceYears(2);
 
         $Stage->setContent(
             new Layout(
@@ -166,7 +164,6 @@ class Frontend extends Extension implements IFrontendInterface
         int $TaskId = null,
         int $SchoolTypeId = null
     ): string {
-
         $Stage = new Stage('Indiware', 'Daten Export');
         $Stage->setMessage('Schüler-Fächer-Reihenfolge SEK II importieren');
 
@@ -180,7 +177,7 @@ class Frontend extends Extension implements IFrontendInterface
             );
             return $Stage;
         } else {
-            $tblTask = Evaluation::useService()->getTaskById($TaskId);
+            $tblTask = Grade::useService()->getTaskById($TaskId);
             if (!$tblTask) {
                 $Stage->setContent(
                     new WarningMessage('Notenauftrag wurde nicht gefunden')
@@ -222,7 +219,9 @@ class Frontend extends Extension implements IFrontendInterface
             );
 
             $Payload = new FilePointer($Extension);
-            $Payload->setFileContent(file_get_contents($File->getRealPath()));
+            $fileContent = file_get_contents($File->getRealPath());
+            $Payload->setFileContentWithEncoding($fileContent);
+//            $Payload->setFileContent(file_get_contents($File->getRealPath()));
             $Payload->saveFile();
 
             // Test
@@ -259,7 +258,7 @@ class Frontend extends Extension implements IFrontendInterface
             }
 
             // add import
-            $Gateway = new AppointmentGradeGateway($Payload->getRealPath(), $Control);
+            $Gateway = new AppointmentGradeGateway($Payload->getRealPath(), $Control, $Period >= 5);
 
             $ImportList = $Gateway->getImportList();
             if(!empty($ImportList)){
@@ -282,7 +281,6 @@ class Frontend extends Extension implements IFrontendInterface
      */
     public function frontendExport(string $SchoolTypeId = null): Stage
     {
-
         $Stage = new Stage('Export', 'Stichtagsnoten eines Halbjahres');
 
         $IndiwareStudentSubjectOrderAll = AppointmentGrade::useService()->getIndiwareStudentSubjectOrderAll();
@@ -381,10 +379,16 @@ class Frontend extends Extension implements IFrontendInterface
                 $PeriodString = new Bold('Stufe '.$Grade.' 2. Halbjahr');
                 break;
             case 3:
-                $PeriodString = new Bold('Stufe '.++$Grade.' 1. Halbjahr');
+                $PeriodString = new Bold('Stufe '. ($Grade + 1) .' 1. Halbjahr');
                 break;
             case 4:
-                $PeriodString = new Bold('Stufe '.++$Grade.' 2. Halbjahr');
+                $PeriodString = new Bold('Stufe '. ($Grade + 1) .' 2. Halbjahr');
+                break;
+            case 5:
+                $PeriodString = new Bold('Stufe '. ($Grade - 1) .' 1. Halbjahr');
+                break;
+            case 6:
+                $PeriodString = new Bold('Stufe '. ($Grade - 1) .' 2. Halbjahr');
                 break;
         }
 

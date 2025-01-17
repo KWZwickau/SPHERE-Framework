@@ -43,6 +43,7 @@ class E01
             ->addSection((new Section())
                 ->addElementColumn((new Element())
                     ->setContent('Merkmal')
+                    ->styleAlignCenter()
                     ->styleBorderRight()
                     ->stylePaddingTop('26.1px')
                     ->stylePaddingBottom('26.1px'), $left
@@ -51,12 +52,14 @@ class E01
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('Klassenstufe')
+                            ->styleAlignCenter()
                             ->styleBorderRight()
                         )
                     )
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('1')
+                            ->styleAlignCenter()
                             ->styleBorderBottom()
                             ->styleBorderRight()
                             ->stylePaddingTop('8.6px')
@@ -64,6 +67,7 @@ class E01
                         )
                         ->addElementColumn((new Element())
                             ->setContent('2')
+                            ->styleAlignCenter()
                             ->styleBorderBottom()
                             ->styleBorderRight()
                             ->stylePaddingTop('8.6px')
@@ -71,6 +75,7 @@ class E01
                         )
                         ->addElementColumn((new Element())
                             ->setContent('3')
+                            ->styleAlignCenter()
                             ->styleBorderBottom()
                             ->styleBorderRight()
                             ->stylePaddingTop('8.6px')
@@ -79,6 +84,7 @@ class E01
                         ->addElementColumn((new Element())
                             ->styleBorderBottom()
                             ->setContent('4')
+                            ->styleAlignCenter()
                             ->styleBorderRight()
                             ->stylePaddingTop('8.6px')
                             ->stylePaddingBottom('8.5px'), '25%'
@@ -87,34 +93,42 @@ class E01
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('m')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '12.5%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('w')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '12.5%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('m')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '12.5%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('w')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '12.5%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('m')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '12.5%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('w')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '12.5%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('m')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '12.5%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('w')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '12.5%'
                         )
                     ), '40%'
@@ -128,6 +142,7 @@ class E01
 //                        )
                         ->addElementColumn((new Element())
                             ->setContent('Insgesamt')
+                            ->styleAlignCenter()
                             ->styleTextBold()
                             ->styleBorderBottom()
                             ->stylePaddingTop('17.1px')
@@ -145,11 +160,13 @@ class E01
 //                        )
                         ->addElementColumn((new Element())
                             ->setContent('m')
+                            ->styleAlignCenter()
                             ->styleTextBold()
                             ->styleBorderRight(), '25%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('w')
+                            ->styleAlignCenter()
                             ->styleTextBold(), '25%'
                         )
                     ), '10%'
@@ -164,6 +181,7 @@ class E01
             ->addSection((new Section())
                 ->addElementColumn((new Element())
                     ->setContent('Schüler')
+                    ->styleAlignCenter()
                     ->styleBackgroundColor('lightgrey')
                     ->styleBorderRight(), $left
                 )
@@ -175,6 +193,7 @@ class E01
                             &nbsp;
                         {% endif %}
                     ')
+                    ->styleAlignCenter()
                     ->styleBorderRight(), '5%'
                 )
                 ->addElementColumn((new Element())
@@ -185,6 +204,7 @@ class E01
                             &nbsp;
                         {% endif %}
                     ')
+                    ->styleAlignCenter()
                     ->styleBorderRight(), '5%'
                 )
                 ->addElementColumn((new Element())
@@ -195,6 +215,7 @@ class E01
                             &nbsp;
                         {% endif %}
                     ')
+                    ->styleAlignCenter()
                     ->styleBorderRight(), '5%'
                 )
                 ->addElementColumn((new Element())
@@ -205,6 +226,7 @@ class E01
                             &nbsp;
                         {% endif %}
                     ')
+                    ->styleAlignCenter()
                     ->styleBorderRight(), '5%'
                 )
                 ->addElementColumn((new Element())
@@ -215,6 +237,7 @@ class E01
                             &nbsp;
                         {% endif %}
                     ')
+                    ->styleAlignCenter()
                     ->styleBorderRight(), '5%'
                 )
                 ->addElementColumn((new Element())
@@ -225,6 +248,7 @@ class E01
                             &nbsp;
                         {% endif %}
                     ')
+                    ->styleAlignCenter()
                     ->styleBorderRight(), '5%'
                 )
                 ->addElementColumn((new Element())
@@ -235,6 +259,7 @@ class E01
                             &nbsp;
                         {% endif %}
                     ')
+                    ->styleAlignCenter()
                     ->styleBorderRight(), '5%'
                 )
                 ->addElementColumn((new Element())
@@ -245,6 +270,7 @@ class E01
                             &nbsp;
                         {% endif %}
                     ')
+                    ->styleAlignCenter()
                     ->styleBorderRight(), '5%'
                 )
 //                ->addElementColumn((new Element())
@@ -275,6 +301,7 @@ class E01
                             &nbsp;
                         {% endif %}
                     ')
+                    ->styleAlignCenter()
                     ->styleTextBold()
                     ->styleBackgroundColor('lightgrey')
                     ->styleBorderRight(), '5%'
@@ -287,6 +314,7 @@ class E01
                             &nbsp;
                         {% endif %}
                     ')
+                    ->styleAlignCenter()
                     ->styleTextBold()
                     ->styleBackgroundColor('lightgrey'), '5%'
                 )
@@ -300,6 +328,7 @@ class E01
             ->addSection((new Section())
                 ->addElementColumn((new Element())
                     ->setContent('Klassen')
+                    ->styleAlignCenter()
                     ->styleBackgroundColor('lightgrey')
                     ->styleBorderRight(), $left
                 )
@@ -311,6 +340,7 @@ class E01
                             &nbsp;
                         {% endif %}
                     ')
+                    ->styleAlignCenter()
                     ->styleBorderRight(), '10%'
                 )
                 ->addElementColumn((new Element())
@@ -321,6 +351,7 @@ class E01
                             &nbsp;
                         {% endif %}
                     ')
+                    ->styleAlignCenter()
                     ->styleBorderRight(), '10%'
                 )
                 ->addElementColumn((new Element())
@@ -331,6 +362,7 @@ class E01
                             &nbsp;
                         {% endif %}
                     ')
+                    ->styleAlignCenter()
                     ->styleBorderRight(), '10%'
                 )
                 ->addElementColumn((new Element())
@@ -341,6 +373,7 @@ class E01
                             &nbsp;
                         {% endif %}
                     ')
+                    ->styleAlignCenter()
                     ->styleBorderRight(), '10%'
                 )
 //                ->addElementColumn((new Element())
@@ -361,6 +394,7 @@ class E01
                             &nbsp;
                         {% endif %}
                     ')
+                    ->styleAlignCenter()
                     ->styleTextBold()
                     ->styleBackgroundColor('lightgrey')
                     , '10%'
@@ -375,6 +409,7 @@ class E01
             ->addSection((new Section())
                 ->addElementColumn((new Element())
                     ->setContent('Klassen jüU')
+                    ->styleAlignCenter()
                     ->styleBackgroundColor('lightgrey')
                     ->styleBorderRight(), $left
                 )
@@ -386,6 +421,7 @@ class E01
                             &nbsp;
                         {% endif %}
                     ')
+                    ->styleAlignCenter()
                     ->styleBorderRight(), '10%'
                 )
                 ->addElementColumn((new Element())
@@ -396,6 +432,7 @@ class E01
                             &nbsp;
                         {% endif %}
                     ')
+                    ->styleAlignCenter()
                     ->styleBorderRight(), '10%'
                 )
                 ->addElementColumn((new Element())
@@ -406,6 +443,7 @@ class E01
                             &nbsp;
                         {% endif %}
                     ')
+                    ->styleAlignCenter()
                     ->styleBorderRight(), '10%'
                 )
                 ->addElementColumn((new Element())
@@ -416,6 +454,7 @@ class E01
                             &nbsp;
                         {% endif %}
                     ')
+                    ->styleAlignCenter()
                     ->styleBorderRight(), '10%'
                 )
 //                ->addElementColumn((new Element())
@@ -436,6 +475,7 @@ class E01
                             &nbsp;
                         {% endif %}
                     ')
+                    ->styleAlignCenter()
                     ->styleTextBold()
                     ->styleBackgroundColor('lightgrey')
                     , '10%'

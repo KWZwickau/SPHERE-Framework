@@ -11,8 +11,9 @@ use SPHERE\Application\Document\Generator\Repository\Frame;
 use SPHERE\Application\Document\Generator\Repository\Page;
 use SPHERE\Application\Document\Generator\Repository\Section;
 use SPHERE\Application\Document\Generator\Repository\Slice;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\People\Meta\Common\Common;
-use SPHERE\Application\People\Meta\Student\Student;
+use SPHERE\Application\People\Meta\Prospect\Prospect;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Relationship;
@@ -70,30 +71,43 @@ class MetaDataComparison extends AbstractDocument
         if ($Data['Person']['Id']) {
             if (($tblPerson = Person::useService()->getPersonById($Data['Person']['Id']))) {
                 $this->setPersonContent($tblPerson);
-                if(($tblStudent = Student::useService()->getStudentByPerson($tblPerson))){
-                    if(($tblDivision = $tblStudent->getCurrentMainDivision())){
-                        $this->FieldValue['Division'] = $tblDivision->getDisplayName();
-                        if(($tblYear = $tblDivision->getServiceTblYear())){
+                if(isset($Data['IsProspect'])
+                && ($tblProspect = Prospect::useService()->getProspectByPerson($tblPerson))
+                && ($tblProspectReservation = $tblProspect->getTblProspectReservation())){
+                    $this->FieldValue['DocumentTitle'] = 'Interessentendaten';
+                    $this->FieldValue['Year'] = $tblProspectReservation->getReservationYear();
+                    $this->FieldValue['Division'] = $tblProspectReservation->getReservationDivision().' ('.$tblProspectReservation->getReservationYear().')';
+                } else {
+                    $this->FieldValue['DocumentTitle'] = 'Schülerdaten';
+                    if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndDate($tblPerson))) {
+                        if (($tblDivision = $tblStudentEducation->getTblDivision())) {
+                            $this->FieldValue['Division'] = $tblDivision->getName();
+                        } elseif (($tblCoreGroup = $tblStudentEducation->getTblCoreGroup())) {
+                            $this->FieldValue['Division'] = $tblCoreGroup->getName();
+                        }
+                        if (($tblYear = $tblStudentEducation->getServiceTblYear())) {
                             $this->FieldValue['Year'] = $tblYear->getYear();
                         }
                     }
                 }
+
+
                 if(($tblCommon = Common::useService()->getCommonByPerson($tblPerson))){
                     if(($tblCommonBirthDates = $tblCommon->getTblCommonBirthDates())){
                         $this->FieldValue['Birthdate'] = $tblCommonBirthDates->getBirthday();
                     }
                 }
-            }
-        }
-        $tblRelationshipType = Relationship::useService()->getTypeByName(TblType::IDENTIFIER_GUARDIAN);
-        if(($tblToPersonList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson, $tblRelationshipType))){
-            foreach($tblToPersonList as $tblToPerson){
-                if($tblToPerson->getRanking() == 1){
-                    $tblPersonS1 = $tblToPerson->getServiceTblPersonFrom();
-                    $this->setPersonContent($tblPersonS1, 'S1');
-                } elseif($tblToPerson->getRanking() == 2){
-                    $tblPersonS2 = $tblToPerson->getServiceTblPersonFrom();
-                    $this->setPersonContent($tblPersonS2, 'S2');
+                $tblRelationshipType = Relationship::useService()->getTypeByName(TblType::IDENTIFIER_GUARDIAN);
+                if(($tblToPersonList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson, $tblRelationshipType))){
+                    foreach($tblToPersonList as $tblToPerson){
+                        if($tblToPerson->getRanking() == 1){
+                            $tblPersonS1 = $tblToPerson->getServiceTblPersonFrom();
+                            $this->setPersonContent($tblPersonS1, 'S1');
+                        } elseif($tblToPerson->getRanking() == 2){
+                            $tblPersonS2 = $tblToPerson->getServiceTblPersonFrom();
+                            $this->setPersonContent($tblPersonS2, 'S2');
+                        }
+                    }
                 }
             }
         }
@@ -229,7 +243,7 @@ class MetaDataComparison extends AbstractDocument
      *
      * @return Frame
      */
-    public function buildDocument($pageList = array(), $Part = '0')
+    public function buildDocument(array $pageList = array(), string $Part = '0'): Frame
     {
 
         $TextSize = '16px';
@@ -244,15 +258,39 @@ class MetaDataComparison extends AbstractDocument
                 ->addSlice((new Slice())
                     ->addElement((new Element())
                         ->setContent('&nbsp;')
-                        ->styleTextSize('18px')
+                        ->styleTextSize('10px')
                 ))
                 ->addSlice($this->setStudentInfo($TextSize, $SpaceLeft, $SpaceRight, $PaddingTop, $PaddingBottom))
                 ->addSlice($this->setCustodyInfo('1', $TextSize, $SpaceLeft, $SpaceRight, $PaddingTop, $PaddingBottom))
                 ->addSlice($this->setCustodyInfo('2', $TextSize, $SpaceLeft, $SpaceRight, $PaddingTop, $PaddingBottom))
                 ->addSlice($this->setPhoneInfo($TextSize, $SpaceLeft, $SpaceRight, $PaddingTop, $PaddingBottom))
                 ->addSlice($this->setMailInfo($TextSize, $SpaceLeft, $SpaceRight, $PaddingTop, $PaddingBottom))
+                ->addSlice((new Slice())
+                    ->stylePaddingTop('20px')
+                    ->addSection((new Section())
+                        ->addElementColumn((new Element())
+                            ->setContent('Datum:')
+                            ->styleTextSize($TextSize)
+                            , '8%')
+                        ->addElementColumn((new Element())
+                            ->setContent('&nbsp;')
+                            ->styleTextSize($TextSize)
+                            ->styleBorderBottom()
+                            , '27%')
+                        ->addElementColumn((new Element())
+                            ->setContent('Unterschrift:')
+                            ->styleTextSize($TextSize)
+                            ->stylePaddingLeft('7px')
+                            , '14%')
+                        ->addElementColumn((new Element())
+                            ->setContent('&nbsp;')
+                            ->styleTextSize($TextSize)
+                            ->styleBorderBottom()
+                            , '51%')
+                    )
                 )
-            );
+            )
+        );
     }
 
     /**
@@ -265,7 +303,7 @@ class MetaDataComparison extends AbstractDocument
 
         return (new Slice())
             ->addElement((new Element())
-                ->setContent('Schülerdaten / Sorgeberechtigte')
+                ->setContent($this->FieldValue['DocumentTitle'].' / Sorgeberechtigte')
                 ->styleBorderAll()
                 ->styleTextSize('22px')
                 ->styleTextBold()
@@ -871,7 +909,7 @@ class MetaDataComparison extends AbstractDocument
             ->addSection((new Section())
                 ->addElementColumn((new Element())
                     ->setContent('Email2')
-                    ->styleBorderBottom()
+                    ->styleBorderBottom('2px')
                     ->styleBorderLeft('2px')
                     ->styleBorderRight('2px')
                     ->stylePaddingLeft()
@@ -882,7 +920,7 @@ class MetaDataComparison extends AbstractDocument
                     , $SpaceLeft)
                 ->addElementColumn((new Element())
                     ->setContent(' '.$this->FieldValue['Email2'])
-                    ->styleBorderBottom()
+                    ->styleBorderBottom('2px')
                     ->styleBorderRight('2px')
                     ->stylePaddingLeft()
                     ->stylepaddingTop($PaddingTop)
@@ -890,27 +928,27 @@ class MetaDataComparison extends AbstractDocument
                     ->styleHeight('40px')
                     ->styleTextSize($TextSize)
                     , $SpaceRight)
-            )
-            ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleBorderBottom('2px')
-                    ->styleBorderLeft('2px')
-                    ->styleBorderRight('2px')
-                    ->stylePaddingLeft()
-                    ->stylepaddingTop($PaddingTop)
-                    ->stylePaddingBottom($PaddingBottom)
-                    ->styleTextSize($TextSize)
-                    , $SpaceLeft)
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleBorderBottom('2px')
-                    ->styleBorderRight('2px')
-                    ->stylePaddingLeft()
-                    ->stylepaddingTop($PaddingTop)
-                    ->stylePaddingBottom($PaddingBottom)
-                    ->styleTextSize($TextSize)
-                    , $SpaceRight)
             );
+//            ->addSection((new Section())
+//                ->addElementColumn((new Element())
+//                    ->setContent('&nbsp;')
+//                    ->styleBorderBottom('2px')
+//                    ->styleBorderLeft('2px')
+//                    ->styleBorderRight('2px')
+//                    ->stylePaddingLeft()
+//                    ->stylepaddingTop($PaddingTop)
+//                    ->stylePaddingBottom($PaddingBottom)
+//                    ->styleTextSize($TextSize)
+//                    , $SpaceLeft)
+//                ->addElementColumn((new Element())
+//                    ->setContent('&nbsp;')
+//                    ->styleBorderBottom('2px')
+//                    ->styleBorderRight('2px')
+//                    ->stylePaddingLeft()
+//                    ->stylepaddingTop($PaddingTop)
+//                    ->stylePaddingBottom($PaddingBottom)
+//                    ->styleTextSize($TextSize)
+//                    , $SpaceRight)
+//            );
     }
 }

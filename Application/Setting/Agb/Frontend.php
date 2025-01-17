@@ -120,7 +120,9 @@ class Frontend extends Extension implements IFrontendInterface
     private function getCustodyAgb()
     {
         $Live = 'https://www.schulsoftware.schule';
-        if (GatekeeperConsumer::useService()->getConsumerBySessionIsConsumerType(TblConsumer::TYPE_BERLIN)) {
+
+        $tblConsumer = GatekeeperConsumer::useService()->getConsumerBySession();
+        if ($tblConsumer && $tblConsumer->getType() == TblConsumer::TYPE_BERLIN && $tblConsumer->getAcronym() !== 'SSB') {
             $Live = 'https://ekbo.schulsoftware.schule';
         }
 
@@ -179,7 +181,9 @@ class Frontend extends Extension implements IFrontendInterface
     private function getStudentAgb()
     {
         $Live = 'https://www.schulsoftware.schule';
-        if (GatekeeperConsumer::useService()->getConsumerBySessionIsConsumerType(TblConsumer::TYPE_BERLIN)) {
+
+        $tblConsumer = GatekeeperConsumer::useService()->getConsumerBySession();
+        if ($tblConsumer && $tblConsumer->getType() == TblConsumer::TYPE_BERLIN && $tblConsumer->getAcronym() !== 'SSB') {
             $Live = 'https://ekbo.schulsoftware.schule';
         }
         return new Title(new TileBig().' Beschreibung der Anwendung')

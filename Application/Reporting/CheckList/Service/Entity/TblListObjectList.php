@@ -1,6 +1,4 @@
 <?php
-
-
 namespace SPHERE\Application\Reporting\CheckList\Service\Entity;
 
 use Doctrine\ORM\Mapping\Cache;
@@ -9,7 +7,7 @@ use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Corporation\Company\Company;
 use SPHERE\Application\Corporation\Group\Group as CompanyGroup;
-use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\People\Group\Group as PersonGroup;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\Reporting\CheckList\CheckList;
@@ -82,7 +80,7 @@ class TblListObjectList extends Element
             } elseif ($this->getTblObjectType()->getIdentifier() === 'COMPANYGROUP') {
                 return CompanyGroup::useService()->getGroupById($this->serviceTblObject);
             } elseif ($this->getTblObjectType()->getIdentifier() === 'DIVISIONGROUP') {
-                return Division::useService()->getDivisionById($this->serviceTblObject);
+                return DivisionCourse::useService()->getDivisionCourseById($this->serviceTblObject);
             }
         }
 

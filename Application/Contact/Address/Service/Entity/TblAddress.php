@@ -26,6 +26,7 @@ class TblAddress extends Element
     const ATTR_STREET_NAME = 'StreetName';
     const ATTR_STREET_NUMBER = 'StreetNumber';
     const ATTR_POST_OFFICE_BOX = 'PostOfficeBox';
+    const ATTR_REGION = 'Region';
     const ATTR_TBL_CITY = 'tblCity';
     const ATTR_TBL_STATE = 'tblState';
     const ATTR_COUNTY = 'County';
@@ -43,6 +44,10 @@ class TblAddress extends Element
      * @Column(type="string")
      */
     protected $PostOfficeBox;
+    /**
+     * @Column(type="string")
+     */
+    protected $Region;
     /**
      * @Column(type="bigint")
      */
@@ -79,6 +84,22 @@ class TblAddress extends Element
     }
 
     /**
+     * @return string
+     */
+    public function getRegion()
+    {
+        return $this->Region;
+    }
+
+    /**
+     * @param string $Region
+     */
+    public function setRegion(string $Region = ''): void
+    {
+        $this->Region = $Region;
+    }
+
+    /**
      * @return LayoutAddress
      */
     public function getGuiLayout()
@@ -112,8 +133,8 @@ class TblAddress extends Element
             switch ($Value) {
                 case $this::VALUE_PLZ_ORT_OT_STR_NR:
                     $Return =
-                        $this->getTblCity()->getCode()
-                        .' '.$this->getTblCity()->getName()
+                        $this->getCodeString()
+                        .' '.$this->getCityString()
                         .($this->getTblCity()->getDisplayDistrict() !== '' ? ' '.($this->getTblCity()->getDisplayDistrict()).',' : ',')
                         .' '.$this->getStreetName()
                         .' '.$this->getStreetNumber()
@@ -129,8 +150,8 @@ class TblAddress extends Element
                         ($this->getTblCity()->getDisplayDistrict() !== '' ? ' '.($this->getTblCity()->getDisplayDistrict()) : '')
                         .' '.$this->getStreetName()
                         .' '.$this->getStreetNumber()
-                        .', '.$this->getTblCity()->getCode()
-                        .' '.$this->getTblCity()->getName()
+                        .', '.$this->getCodeString()
+                        .' '.$this->getCityString()
                         .($Extended
                             ? ($this->getLocation()
                                 ? ' ('.$this->getLocation().')'
@@ -140,8 +161,8 @@ class TblAddress extends Element
                     break;
                 default:
                     $Return =
-                        $this->getTblCity()->getCode()
-                        .' '.$this->getTblCity()->getName()
+                        $this->getCodeString()
+                        .' '.$this->getCityString()
                         .($this->getTblCity()->getDisplayDistrict() !== '' ? ' '.($this->getTblCity()->getDisplayDistrict()).',' : ',')
                         .' '.$this->getStreetName()
                         .' '.$this->getStreetNumber()
@@ -344,5 +365,60 @@ class TblAddress extends Element
         }
 
         return empty($result) ? '' : implode(', ', $result);
+    }
+
+    /**
+     * @return string
+     */
+    public function getCityString()
+    {
+        $city = '';
+        if(($tblCity = $this->getTblCity())){
+            $city = $tblCity->getName();
+        }
+        return $city;
+    }
+
+    /**
+     * @return string
+     */
+    public function getCodeString()
+    {
+        $code = '';
+        if(($tblCity = $this->getTblCity())){
+            $code = $tblCity->getCode();
+        }
+        return $code;
+    }
+
+    /**
+     * @return string
+     */
+    public function getDistrictString()
+    {
+        $district = '';
+        if(($tblCity = $this->getTblCity())){
+            $district = $tblCity->getDistrict();
+        }
+        return $district;
+    }
+
+    /**
+     * @return string
+     */
+    public function getRegionString()
+    {
+
+
+        $RegionString = $this->getRegion();
+        if(!$RegionString && ($tblCity = $this->getTblCity())){
+            $RegionString = Address::useService()->getRegionStringByCode($tblCity->getCode());
+        }
+
+        if($RegionString){
+            $RegionString = 'Bezirk '.$RegionString;
+        }
+
+        return $RegionString;
     }
 }

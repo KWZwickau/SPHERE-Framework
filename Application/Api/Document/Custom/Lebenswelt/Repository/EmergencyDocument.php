@@ -33,7 +33,7 @@ class EmergencyDocument extends AbstractDocument
      *
      * @return Frame
      */
-    public function buildDocument($pageList = array(), $part = '0')
+    public function buildDocument(array $pageList = array(), string $Part = '0'): Frame
     {
         return (new Frame())->addDocument((new Document())
             ->addPage((new Page())

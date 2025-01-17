@@ -44,8 +44,8 @@ class Custom implements IApplicationInterface
             if ($consumerAcronym === 'HOGA') {
                 Hoga::registerModule();
             }
-            // Gersdorf //ToDO REF kann nach der Livestellung wieder entfernt werden
-            if ($consumerAcronym === 'EVOSG' || $consumerAcronym === 'REF') {
+            // Gersdorf
+            if ($consumerAcronym === 'EVOSG') {
                 Gersdorf::registerModule();
             }
         }

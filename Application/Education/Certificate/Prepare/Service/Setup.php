@@ -64,33 +64,31 @@ class Setup extends AbstractSetup
      *
      * @return Table
      */
-    private function setTableCertificatePrepare(Schema &$Schema)
+    private function setTableCertificatePrepare(Schema &$Schema): Table
     {
-
         $Table = $this->getConnection()->createTable($Schema, 'tblPrepareCertificate');
-        if (!$this->getConnection()->hasColumn('tblPrepareCertificate', 'serviceTblDivision')) {
-            $Table->addColumn('serviceTblDivision', 'bigint', array('notnull' => false));
-        }
-        if (!$this->getConnection()->hasColumn('tblPrepareCertificate', 'Date')) {
-            $Table->addColumn('Date', 'datetime', array('notnull' => false));
-        }
-        if (!$this->getConnection()->hasColumn('tblPrepareCertificate', 'Name')) {
-            $Table->addColumn('Name', 'string');
-        }
-        if (!$this->getConnection()->hasColumn('tblPrepareCertificate', 'serviceTblBehaviorTask')) {
-            $Table->addColumn('serviceTblBehaviorTask', 'bigint', array('notnull' => false));
-        }
-        if (!$this->getConnection()->hasColumn('tblPrepareCertificate', 'serviceTblAppointedDateTask')) {
-            $Table->addColumn('serviceTblAppointedDateTask', 'bigint', array('notnull' => false));
-        }
-        if (!$this->getConnection()->hasColumn('tblPrepareCertificate', 'serviceTblPersonSigner')) {
-            $Table->addColumn('serviceTblPersonSigner', 'bigint', array('notnull' => false));
-        }
-        if (!$Table->hasColumn('IsGradeInformation')){
-            $Table->addColumn('IsGradeInformation', 'boolean');
-        }
-
         $this->createColumn($Table, 'serviceTblGenerateCertificate', self::FIELD_TYPE_BIGINT, true);
+        $this->createColumn($Table, 'serviceTblDivision', self::FIELD_TYPE_BIGINT, true);
+        $this->createColumn($Table, 'serviceTblPersonSigner', self::FIELD_TYPE_BIGINT, true);
+        $this->createColumn($Table, 'IsPrepared', self::FIELD_TYPE_BOOLEAN, false, false);
+
+        // werden jetzt direkt über den Notenauftrag gezogen
+        if ($this->getConnection()->hasColumn('tblPrepareCertificate', 'serviceTblBehaviorTask')) {
+            $Table->dropColumn('serviceTblBehaviorTask');
+        }
+        if ($this->getConnection()->hasColumn('tblPrepareCertificate', 'serviceTblAppointedDateTask')) {
+            $Table->dropColumn('serviceTblAppointedDateTask');
+        }
+        // wird auch nicht mehr benötigt
+        if ($this->getConnection()->hasColumn('tblPrepareCertificate', 'serviceTblAppointedDateTask')) {
+            $Table->dropColumn('IsGradeInformation');
+        }
+        if ($this->getConnection()->hasColumn('tblPrepareCertificate', 'Date')) {
+            $Table->dropColumn('Date');
+        }
+        if ($this->getConnection()->hasColumn('tblPrepareCertificate', 'Name')) {
+            $Table->dropColumn('Name');
+        }
 
         $this->createIndex($Table, array('serviceTblGenerateCertificate', 'serviceTblDivision'));
 
@@ -116,9 +114,9 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblPrepareGrade', 'serviceTblSubject')) {
             $Table->addColumn('serviceTblSubject', 'bigint', array('notnull' => false));
         }
-        if (!$this->getConnection()->hasColumn('tblPrepareGrade', 'serviceTblTestType')) {
-            $Table->addColumn('serviceTblTestType', 'bigint', array('notnull' => false));
-        }
+//        if (!$this->getConnection()->hasColumn('tblPrepareGrade', 'serviceTblTestType')) {
+//            $Table->addColumn('serviceTblTestType', 'bigint', array('notnull' => false));
+//        }
         if (!$this->getConnection()->hasColumn('tblPrepareGrade', 'serviceTblGradeType')) {
             $Table->addColumn('serviceTblGradeType', 'bigint', array('notnull' => false));
         }
@@ -166,7 +164,11 @@ class Setup extends AbstractSetup
         }
         $this->createColumn($Table, 'ExcusedDaysFromLessons', self::FIELD_TYPE_INTEGER, true);
         $this->createColumn($Table, 'UnexcusedDaysFromLessons', self::FIELD_TYPE_INTEGER, true);
-        $this->createColumn($Table, 'IsPrepared', self::FIELD_TYPE_BOOLEAN, false, false);
+
+        // alte Spalte löschen
+        if ($this->getConnection()->hasColumn('tblPrepareStudent', 'IsPrepared')) {
+            $Table->dropColumn('IsPrepared');
+        }
 
         $this->getConnection()->addForeignKey($Table, $tblPrepare, true);
         $this->createIndex($Table, array('serviceTblPerson' , 'tblPrepareCertificate'));
@@ -245,17 +247,23 @@ class Setup extends AbstractSetup
      *
      * @return Table
      */
-    private function setTableLeaveStudent(Schema &$Schema)
+    private function setTableLeaveStudent(Schema &$Schema): Table
     {
 
         $Table = $this->getConnection()->createTable($Schema, 'tblLeaveStudent');
         $this->createColumn($Table, 'serviceTblPerson', self::FIELD_TYPE_BIGINT);
+        // todo drop später
         $this->createColumn($Table, 'serviceTblDivision', self::FIELD_TYPE_BIGINT);
+
+        $this->createColumn($Table, 'serviceTblYear', self::FIELD_TYPE_BIGINT, true);
         $this->createColumn($Table, 'serviceTblCertificate', self::FIELD_TYPE_BIGINT);
         $this->createColumn($Table, 'IsApproved', self::FIELD_TYPE_BOOLEAN);
         $this->createColumn($Table, 'IsPrinted', self::FIELD_TYPE_BOOLEAN);
 
-        $this->createIndex($Table, array('serviceTblPerson' , 'serviceTblDivision'));
+        // drop alter Index
+        $this->getConnection()->removeIndex($Table, array('serviceTblPerson' , 'serviceTblDivision'));
+
+        $this->createIndex($Table, array('serviceTblPerson' , 'serviceTblYear'));
 
         return $Table;
     }

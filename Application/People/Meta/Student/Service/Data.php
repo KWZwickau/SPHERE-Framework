@@ -17,22 +17,15 @@ use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentMasernInfo;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentMedicalRecord;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSpecialNeeds;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSpecialNeedsLevel;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubject;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubjectType;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTechnicalSchool;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTenseOfLesson;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTrainingStatus;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransport;
-use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudent;
-use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentAgreement;
-use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentBaptism;
-use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentDisorder;
-use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentFocus;
-use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentIntegration;
-use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentLiberation;
-use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentLocker;
-use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentMedicalRecord;
-use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentTransfer;
-use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentTransport;
 use SPHERE\Application\People\Relationship\Service\Entity\TblSiblingRank;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Database\Fitting\Element;
 
@@ -43,149 +36,6 @@ use SPHERE\System\Database\Fitting\Element;
  */
 class Data extends Support
 {
-
-    /**
-     * @return false|ViewStudent[]
-     */
-    public function viewStudent()
-    {
-
-        return $this->getCachedEntityList(
-            __METHOD__, $this->getConnection()->getEntityManager(), 'ViewStudent'
-        );
-    }
-
-    /**
-     * @return false|ViewStudentAgreement[]
-     */
-    public function viewStudentAgreement()
-    {
-
-        return $this->getCachedEntityList(
-            __METHOD__, $this->getConnection()->getEntityManager(), 'ViewStudentAgreement'
-        );
-    }
-
-    /**
-     * @return false|ViewStudentBaptism[]
-     */
-    public function viewStudentBaptism()
-    {
-
-        return $this->getCachedEntityList(
-            __METHOD__, $this->getConnection()->getEntityManager(), 'ViewStudentBaptism'
-        );
-    }
-
-//    /**
-//     * @return false|ViewStudentBilling[]
-//     */
-//    public function viewStudentBilling()
-//    {
-//
-//        return $this->getCachedEntityList(
-//            __METHOD__, $this->getConnection()->getEntityManager(), 'ViewStudentBilling'
-//        );
-//    }
-
-    /**
-     * @return false|ViewStudentDisorder[]
-     */
-    public function viewStudentDisorder()
-    {
-
-        return $this->getCachedEntityList(
-            __METHOD__, $this->getConnection()->getEntityManager(), 'ViewStudentDisorder'
-        );
-    }
-
-    /**
-     * @return false|ViewStudentFocus[]
-     */
-    public function viewStudentFocus()
-    {
-
-        return $this->getCachedEntityList(
-            __METHOD__, $this->getConnection()->getEntityManager(), 'ViewStudentFocus'
-        );
-    }
-
-    /**
-     * @return false|ViewStudentIntegration[]
-     */
-    public function viewStudentIntegration()
-    {
-
-        return $this->getCachedEntityList(
-            __METHOD__, $this->getConnection()->getEntityManager(), 'ViewStudentIntegration'
-        );
-    }
-
-    /**
-     * @return false|ViewStudentLiberation[]
-     */
-    public function viewStudentLiberation()
-    {
-
-        return $this->getCachedEntityList(
-            __METHOD__, $this->getConnection()->getEntityManager(), 'ViewStudentLiberation'
-        );
-    }
-
-    /**
-     * @return false|ViewStudentLocker[]
-     */
-    public function viewStudentLocker()
-    {
-
-        return $this->getCachedEntityList(
-            __METHOD__, $this->getConnection()->getEntityManager(), 'ViewStudentLocker'
-        );
-    }
-
-    /**
-     * @return false|ViewStudentMedicalRecord[]
-     */
-    public function viewStudentMedicalRecord()
-    {
-
-        return $this->getCachedEntityList(
-            __METHOD__, $this->getConnection()->getEntityManager(), 'ViewStudentMedicalRecord'
-        );
-    }
-
-//    /**
-//     * @return false|ViewStudentSubject[]
-//     */
-//    public function viewStudentSubject()
-//    {
-//
-//        return $this->getCachedEntityList(
-//            __METHOD__, $this->getConnection()->getEntityManager(), 'ViewStudentSubject'
-//        );
-//    }
-
-    /**
-     * @return false|ViewStudentTransfer[]
-     */
-    public function viewStudentTransfer()
-    {
-
-        return $this->getCachedEntityList(
-            __METHOD__, $this->getConnection()->getEntityManager(), 'ViewStudentTransfer'
-        );
-    }
-
-    /**
-     * @return false|ViewStudentTransport[]
-     */
-    public function viewStudentTransport()
-    {
-
-        return $this->getCachedEntityList(
-            __METHOD__, $this->getConnection()->getEntityManager(), 'ViewStudentTransport'
-        );
-    }
 
     public function setupDatabaseContent()
     {
@@ -305,37 +155,46 @@ class Data extends Support
         $this->createStudentSubjectRanking('8', '8.');
         $this->createStudentSubjectRanking('9', '9.');
 
-        // old Table
-        $this->createStudentFocusType('Sprache');
-        $this->createStudentFocusType('Körperlich-motorische Entwicklung');
-        $this->createStudentFocusType('Sozial-emotionale Entwicklung');
-        $this->createStudentFocusType('Hören');
-        $this->createStudentFocusType('Sehen');
-        $this->createStudentFocusType('Geistige Entwicklung');
-        $this->createStudentFocusType('Lernen');
+//        // old Table (deprecated)
+//        $this->createStudentFocusType('Sprache');
+//        $this->createStudentFocusType('Körperlich-motorische Entwicklung');
+//        $this->createStudentFocusType('Sozial-emotionale Entwicklung');
+//        $this->createStudentFocusType('Hören');
+//        $this->createStudentFocusType('Sehen');
+//        $this->createStudentFocusType('Geistige Entwicklung');
+//        $this->createStudentFocusType('Lernen');
 
         // new Table
         $this->createSupportFocusType('Sprache');
         $this->createSupportFocusType('Körperlich-motorische Entwicklung');
-        $this->createSupportFocusType('Sozial-emotionale Entwicklung');
+        if(($tblSupportFocusType = $this->getSupportFocusTypeByName('Sozial-emotionale Entwicklung'))){
+            $this->updateSupportFocusType($tblSupportFocusType, 'Emotionale-soziale Entwicklung', '');
+        } else {
+            $this->createSupportFocusType('Emotionale-soziale Entwicklung');
+        }
         $this->createSupportFocusType('Hören');
         $this->createSupportFocusType('Sehen');
         $this->createSupportFocusType('Geistige Entwicklung');
         $this->createSupportFocusType('Lernen');
-        $this->createSupportFocusType('Unterricht kranker Schüler');
+        if(Consumer::useService()->getConsumerBySessionIsConsumerType(TblConsumer::TYPE_SACHSEN)){
+            $this->createSupportFocusType('Unterricht kranker Schüler');
+        }
+        if(Consumer::useService()->getConsumerBySessionIsConsumerType(TblConsumer::TYPE_BERLIN)){
+            $this->createSupportFocusType('Autismus');
+        }
 
-        // old Table
-        $this->createStudentDisorderType('LRS');
-        $this->createStudentDisorderType('Gehörschwierigkeiten');
-        $this->createStudentDisorderType('Augenleiden');
-        $this->createStudentDisorderType('Sprachfehler');
-        $this->createStudentDisorderType('Dyskalkulie');
-        $this->createStudentDisorderType('Autismus');
-        $this->createStudentDisorderType('ADS / ADHS');
-        $this->createStudentDisorderType('Rechenschwäche');
-        $this->createStudentDisorderType('Hochbegabung');
-        $this->createStudentDisorderType('Konzentrationsstörung');
-        $this->createStudentDisorderType('Körperliche Beeinträchtigung');
+//        // old Table (deprecated)
+//        $this->createStudentDisorderType('LRS');
+//        $this->createStudentDisorderType('Gehörschwierigkeiten');
+//        $this->createStudentDisorderType('Augenleiden');
+//        $this->createStudentDisorderType('Sprachfehler');
+//        $this->createStudentDisorderType('Dyskalkulie');
+//        $this->createStudentDisorderType('Autismus');
+//        $this->createStudentDisorderType('ADS / ADHS');
+//        $this->createStudentDisorderType('Rechenschwäche');
+//        $this->createStudentDisorderType('Hochbegabung');
+//        $this->createStudentDisorderType('Konzentrationsstörung');
+//        $this->createStudentDisorderType('Körperliche Beeinträchtigung');
 
         // new Table Disorder with new Translation
         $this->createSpecialDisorderType('ADS / ADHS');
@@ -386,6 +245,7 @@ class Data extends Support
         } else {
             $this->createSupportType('Widerspruch', '');
         }
+        $this->createSupportType('Zustimmung', '');
 
         // Masern
         $this->createStudentMasernInfo(TblStudentMasernInfo::DOCUMENT_IDENTIFICATION, TblStudentMasernInfo::TYPE_DOCUMENT, 'Impfausweis'
@@ -396,6 +256,8 @@ class Data extends Support
             , 'ärztliches Zeugnis über die Immunität gegen Masern');
         $this->createStudentMasernInfo(TblStudentMasernInfo::DOCUMENT_CANT_VACCINATION, TblStudentMasernInfo::TYPE_DOCUMENT, 'keine Schutzimpfung möglich'
             , 'ärztliches Zeugnis, dass das Kind nicht an einer Schutzimpfung (Kontraindikation) oder anderen Maßnahmen zur spezifischen Prophylaxe teilnehmen kann');
+        $this->createStudentMasernInfo(TblStudentMasernInfo::DOCUMENT_NOT_NECESSARY, TblStudentMasernInfo::TYPE_DOCUMENT, 'Kein Nachweis notwendig'
+            , 'Kein Nachweis notwendig (vor 1971 geboren)');
 
         $this->createStudentMasernInfo(TblStudentMasernInfo::CREATOR_STATE, TblStudentMasernInfo::TYPE_CREATOR, 'Staatlich'
             , 'staatliche Stelle');
@@ -413,6 +275,42 @@ class Data extends Support
         $this->createStudentTenseOfLesson(TblStudentTenseOfLesson::PART_TIME, 'Teilzeitunterricht');
         $this->createStudentTrainingStatus(TblStudentTrainingStatus::STUDENT, 'Auszubildende/Schüler');
         $this->createStudentTrainingStatus(TblStudentTrainingStatus::CHANGE_STUDENT, 'Umschüler');
+    }
+
+    /**
+     * @return array
+     */
+    public function migrateStudentSubjectLevels(): array
+    {
+        $count = 0;
+        $start = hrtime(true);
+
+        $Manager = $this->getEntityManager();
+
+        $tblStudentSubjectType = $this->getStudentSubjectTypeByIdentifier(TblStudentSubjectType::TYPE_FOREIGN_LANGUAGE);
+//        if (($tblStudentSubjectList = $this->getCachedEntityListBy(__METHOD__, $Manager, 'TblStudentSubject', array(
+//            TblStudentSubject::ATTR_TBL_STUDENT_SUBJECT_TYPE => $tblStudentSubjectType->getId()
+//        )))) {
+//            /** @var TblStudentSubject $tblStudentSubject */
+//            foreach ($tblStudentSubjectList as $tblStudentSubject) {
+//                if (($tblLevelFrom = $tblStudentSubject->getServiceTblLevelFrom())) {
+//                    $count++;
+//                    $tblStudentSubject->setLevelFrom(intval($tblLevelFrom->getName()));
+//                }
+//                if (($tblLevelTill = $tblStudentSubject->getServiceTblLevelTill())) {
+//                    $count++;
+//                    $tblStudentSubject->setLevelTill(intval($tblLevelTill->getName()));
+//                }
+//
+//                $Manager->bulkSaveEntity($tblStudentSubject);
+//            }
+//        }
+
+        $Manager->flushCache();
+
+        $end = hrtime(true);
+
+        return array($count, round(($end - $start) / 1000000000, 2));
     }
 
     /**
@@ -737,7 +635,7 @@ class Data extends Support
         );
     }
 
-    /**
+    /** @deprecated
      * @param null|TblSiblingRank $tblSiblingRank
      *
      * @return TblStudentBilling
@@ -756,7 +654,7 @@ class Data extends Support
         return $Entity;
     }
 
-    /**
+    /** @deprecated
      * @param TblStudentBilling   $tblStudentBilling
      * @param null|TblSiblingRank $tblSiblingRank
      *
@@ -1013,6 +911,32 @@ class Data extends Support
         $Entity->setDegreeOfHandicap($DegreeOfHandicap);
         $Entity->setSign($Sign);
         $Entity->setValidTo($ValidTo);
+        $Entity->setTblStudentSpecialNeedsLevel($tblStudentSpecialNeedsLevel);
+
+        $Manager->saveEntity($Entity);
+        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+
+        return $Entity;
+    }
+
+    /**
+     * @param TblStudentSpecialNeedsLevel|null $tblStudentSpecialNeedsLevel
+     *
+     * @return TblStudentSpecialNeeds
+     */
+    public function insertStudentSpecialNeedsLevel(TblStudentSpecialNeedsLevel $tblStudentSpecialNeedsLevel = null)
+    {
+
+        $Manager = $this->getEntityManager();
+
+        $Entity = new TblStudentSpecialNeeds();
+        $Entity->setIsHeavyMultipleHandicapped(false);
+        $Entity->setIncreaseFactorHeavyMultipleHandicappedSchool('');
+        $Entity->setIncreaseFactorHeavyMultipleHandicappedRegionalAuthorities('');
+        $Entity->setRemarkHeavyMultipleHandicapped('');
+        $Entity->setDegreeOfHandicap('');
+        $Entity->setSign('');
+        $Entity->setValidTo('');
         $Entity->setTblStudentSpecialNeedsLevel($tblStudentSpecialNeedsLevel);
 
         $Manager->saveEntity($Entity);

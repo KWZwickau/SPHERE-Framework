@@ -10,7 +10,6 @@ namespace SPHERE\Application\Education\Certificate\Prepare\Abitur;
 
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCertificate;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\People\Meta\Student\Student;
@@ -45,29 +44,26 @@ use SPHERE\Common\Frontend\Table\Structure\TableData;
  */
 class BlockII extends AbstractBlock
 {
+    /**
+     * @var array
+     */
+    private $AvailableSubjectsP3 = array();
 
     /**
-     * @var bool|array
+     * @var array
      */
-    private $AvailableSubjectsP3 = false;
-
-    /**
-     * @var bool|array
-     */
-    private $AvailableSubjectsP4P5 = false;
+    private $AvailableSubjectsP4P5 = array();
 
     /**
      * BlockII constructor.
-     * @param TblDivision $tblDivision
+     *
      * @param TblPerson $tblPerson
      * @param TblPrepareCertificate $tblPrepareCertificate
      */
     public function __construct(
-        TblDivision $tblDivision,
         TblPerson $tblPerson,
         TblPrepareCertificate $tblPrepareCertificate
     ) {
-        $this->tblDivision = $tblDivision;
         $this->tblPerson = $tblPerson;
         $this->tblPrepareCertificate = $tblPrepareCertificate;
 
@@ -81,14 +77,12 @@ class BlockII extends AbstractBlock
     }
 
     /**
-     * @param null $GroupId
      * @param null $Data
      *
      * @return Layout
      */
-    public function getContent($GroupId = null, $Data = null)
+    public function getContent($Data = null): Layout
     {
-
         $dataList = array();
         if (($tblPrepareAdditionalGradeList = Prepare::useService()->getPrepareAdditionalGradeListBy(
             $this->tblPrepareCertificate,
@@ -153,6 +147,7 @@ class BlockII extends AbstractBlock
             )
         );
 
+        // funktioniert nur mit array in array
         $tableBELL = new TableData(
             array(array(
                 'Description' => new TextArea(
@@ -218,7 +213,6 @@ class BlockII extends AbstractBlock
                 $this->tblPrepareCertificate,
                 $this->tblPerson,
                 $Data,
-                $GroupId,
                 $this->getFirstAdvancedCourse(),
                 $this->getSecondAdvancedCourse()
             ));
@@ -243,7 +237,7 @@ class BlockII extends AbstractBlock
         );
         $columnsContent[] = $resultBlockII;
 
-        if (($warnings = Prepare::useService()->checkAbiturExams($this->tblPrepareCertificate, $this->tblPerson))) {
+        if (($warnings = Prepare::useService()->checkAbiturExams($this->tblPrepareCertificate, $this->tblPerson)) && !empty($warnings)) {
             foreach ($warnings as $warning) {
                 $columnsContent[] = $warning;
             }
@@ -268,9 +262,10 @@ class BlockII extends AbstractBlock
     /**
      * @param $dataList
      * @param $i
+     *
      * @return array
      */
-    private function setRow($dataList, $i)
+    private function setRow($dataList, $i): array
     {
         $number = $i . '.';
         if ($i == 1) {
@@ -343,7 +338,7 @@ class BlockII extends AbstractBlock
 
                 $total = Prepare::useService()->calcAbiturExamGradesTotalForWrittenExam(
                     $writtenExamGrade,
-                    $extraVerbalExamGrade ? $extraVerbalExamGrade : null
+                    $extraVerbalExamGrade ?: null
                 );
             }
         } else {
@@ -368,7 +363,7 @@ class BlockII extends AbstractBlock
 
                 $total = Prepare::useService()->calcAbiturExamGradesTotalForVerbalExam(
                     $verbalExamGrade,
-                    $extraVerbalExamGrade ? $extraVerbalExamGrade : null
+                    $extraVerbalExamGrade ?: null
                 );
             }
         }
@@ -387,7 +382,6 @@ class BlockII extends AbstractBlock
 
     private function setAvailableExamsSubjetsP3()
     {
-
         $this->setAvailableExamsSubjectToArray('Deutsch');
         $this->setAvailableExamsSubjectToArray('Mathematik');
         $this->setAvailableExamsSubjectToArray('Geschichte');
@@ -408,7 +402,6 @@ class BlockII extends AbstractBlock
 
     private function setAvailableExamsSubjectsP4P5()
     {
-
         $this->setAvailableExamsSubjectToArray('Deutsch',false);
         $this->setAvailableExamsSubjectToArray('Mathematik',false);
         $this->setAvailableExamsSubjectToArray('Kunst',false);
@@ -432,9 +425,7 @@ class BlockII extends AbstractBlock
             foreach ($tblStudentSubjectList as $tblStudentSubject) {
                 if (($tblSubjectItem = $tblStudentSubject->getServiceTblSubject())) {
                     // Eine in Klassenstufe 10 begonnene Fremdsprache kann kein Prüfungsfach sein
-                    if (!$tblStudentSubject->getServiceTblLevelFrom()
-                        || ($tblStudentSubject->getServiceTblLevelFrom() && $tblStudentSubject->getServiceTblLevelFrom()->getName() != '10')
-                    ) {
+                    if ($tblStudentSubject->getLevelFrom() != 10) {
                         $foreignLanguages[$tblSubjectItem->getId()] = $tblSubjectItem;
                         if ($tblSubjectItem->getName() == 'Englisch' && $tblSubjectEn2) {
                             $foreignLanguages[$tblSubjectEn2->getId()] = $tblSubjectEn2;
@@ -456,7 +447,6 @@ class BlockII extends AbstractBlock
 
     private function setAvailableExamsSubjectToArray($subjectName, $isP3 = true)
     {
-
         $tblSubject = Subject::useService()->getSubjectByName($subjectName);
         if (!$tblSubject && $subjectName == 'Gemeinschaftskunde/Rechtserziehung/Wirtschaft') {
             $tblSubject = Subject::useService()->getSubjectByAcronym('GRW');
@@ -475,5 +465,4 @@ class BlockII extends AbstractBlock
             }
         }
     }
-
 }

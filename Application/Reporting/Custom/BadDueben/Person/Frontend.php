@@ -1,18 +1,14 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: Kauschke
- * Date: 18.12.2018
- * Time: 09:38
- */
-
 namespace SPHERE\Application\Reporting\Custom\BadDueben\Person;
 
-use SPHERE\Application\Education\Lesson\Division\Division;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblLevel;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblStudentEducation;
+use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
-use SPHERE\Application\Reporting\Standard\Person\Person as PersonReportingStandard;
+use SPHERE\Application\People\Group\Group;
+use SPHERE\Application\People\Group\Service\Entity\TblGroup;
+use SPHERE\Application\Reporting\Standard\Person\Person as PersonStandard;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
@@ -44,224 +40,174 @@ class Frontend  extends Extension implements IFrontendInterface
 {
 
     /**
-     * @param null $LevelId
-     * @param null $YearId
+     * @return array
+     */
+    public function getDivisionListByLevel($level = null)
+    {
+
+        $DivisionList = array();
+        if(($tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_STUDENT))
+            && ($tblPersonStudentList = $tblGroup->getPersonList())
+            && ($tblYearList = Term::useService()->getYearByNow())
+        ){
+            foreach($tblYearList as $tblYear){
+                foreach($tblPersonStudentList as $tblPersonStudent){
+                    if(($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPersonStudent, $tblYear))
+                        && ($tblDivisionCourse = $tblStudentEducation->getTblDivision())){
+                        if($level !== null && $tblStudentEducation->getLevel() == $level){
+                            $this->setDivisionDataList($tblStudentEducation, $tblYear, $tblDivisionCourse, $DivisionList);
+                        } elseif($level === null) {
+                            $this->setDivisionDataList($tblStudentEducation, $tblYear, $tblDivisionCourse, $DivisionList);
+                        }
+                    }
+                }
+            }
+        }
+        return $DivisionList;
+    }
+
+    private function setDivisionDataList(TblStudentEducation $tblStudentEducation, TblYear $tblYear, TblDivisionCourse $tblDivisionCourse, &$DivisionList)
+    {
+
+        $DivisionList[$tblStudentEducation->getLevel()]['Year'] = $tblYear->getName();
+        $DivisionList[$tblStudentEducation->getLevel()]['DivisionName'][$tblDivisionCourse->getId()] = $tblDivisionCourse->getDisplayName();
+        if(($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())){
+            $DivisionList[$tblStudentEducation->getLevel()]['DivisionType'][$tblSchoolType->getId()] = $tblSchoolType->getName();
+        }
+        if(($tblPersonList = $tblDivisionCourse->getStudents())){
+            $DivisionList[$tblStudentEducation->getLevel()]['Count'][$tblDivisionCourse->getId()] = count($tblPersonList);
+            foreach($tblPersonList as $tblPerson){
+                $DivisionList[$tblStudentEducation->getLevel()]['Person'][$tblPerson->getId()] = $tblPerson;
+            }
+        }
+    }
+
+    /**
+     * @param null $level
      *
      * @return Stage
      */
-    public function frontendClassList($LevelId = null, $YearId = null)
+    public function frontendClassList($level = null)
     {
 
         $Stage = new Stage('Auswertung', 'Klassenlisten');
-        if (null !== $LevelId || $YearId !== null) {
-            $Stage->addButton(new Standard('Zurück', '/Reporting/Custom/BadDueben/Person/ClassList', new ChevronLeft()));
-        }
-        $tblLevelAll = Division::useService()->getLevelAll();
-        $LevelList = array();
-        if ($tblLevelAll) {
-            array_walk($tblLevelAll, function (TblLevel $tblLevel) use (&$LevelList) {
-                $LevelList[$tblLevel->getName()][] = $tblLevel;
-            });
-        }
-
-        // show level table
-        if ($LevelId === null && $YearId === null) {
+        $Route = '/Reporting/Custom/BadDueben/Person/ClassList';
+        // Sammeln der Klassenlisten
+        $DivisionList = $this->getDivisionListByLevel($level);
+        if($level === null){
             $TableContent = array();
-            if (!empty($LevelList)) {
-                array_walk($LevelList, function ($tblLevelList) use (&$TableContent) {
-                    $tblDivisionList = array();
-
-                    /** @var TblLevel $tblLevel */
-                    foreach ($tblLevelList as $tblLevel) {
-                        $DivisionArray = Division::useService()->getDivisionByLevel($tblLevel);
-                        if ($DivisionArray) {
-                            foreach ($DivisionArray as $tblDivision) {
-                                $tblDivisionList[] = $tblDivision;
-                            }
-                        }
+            if (!empty($DivisionList)) {
+                foreach ($DivisionList as $level => $Division) {
+                    $item['Year'] = $Division['Year'];
+                    $item['Level'] = $level;
+                    $item['Division'] = '';
+                    if(isset($Division['DivisionName'])){
+                        $item['Division'] = implode(', ', $Division['DivisionName']);
                     }
-
-                    $DivisionYearList = array();
-                    if ($tblDivisionList) {
-                        /** @var TblDivision $tblDivision */
-                        foreach ($tblDivisionList as $tblDivision) {
-                            $tblYear = $tblDivision->getServiceTblYear();
-                            if ($tblYear) {
-                                $DivisionYearList[$tblYear->getId()]['DivisionName'][$tblDivision->getId()] = $tblDivision->getDisplayName();
-                                $DivisionYearList[$tblYear->getId()]['DivisionType'][$tblDivision->getTypeName()] = $tblDivision->getTypeName();
-                                $DivisionYearList[$tblYear->getId()]['Count'][$tblDivision->getId()] =
-                                    Division::useService()->countDivisionStudentAllByDivision($tblDivision);
-                            }
-                        }
+                    $item['Type'] = '';
+                    $item['TypeList'] = array();
+                    if(isset($Division['DivisionType'])){
+                        $item['Type'] = implode(', ', $Division['DivisionType']);
+                        $item['TypeList'] = $Division['DivisionType'];
                     }
-                    if (!empty($DivisionYearList)) {
-                        foreach ($DivisionYearList as $Key => $DivisionList) {
-                            $tblYear = Term::useService()->getYearById($Key);
-                            $Item['Year'] = $tblYear->getDisplayName();
-                            $Item['Division'] = '';
-                            $Item['Type'] = '';
-                            $Item['Count'] = '';
-                            if (isset($DivisionList['DivisionName'])) {
-                                $Item['Division'] = implode(', ', $DivisionList['DivisionName']);
-                            }
-                            if (isset($DivisionList['DivisionType'])) {
-                                sort($DivisionList['DivisionType']);
-                                $Item['Type'] = implode(', ', $DivisionList['DivisionType']);
-                            }
-                            if (isset($DivisionList['Count'])) {
-                                $Item['Count'] = array_sum($DivisionList['Count']);
-                            }
-                            $Item['Option'] = new Standard('', '/Reporting/Custom/BadDueben/Person/ClassList', new EyeOpen(),
-                                array('LevelId' => $tblLevel->getId(), 'YearId'  => $tblYear->getId()), 'Anzeigen');
-
-                            array_push($TableContent, $Item);
-                        }
+                    $item['Count'] = '';
+                    if(isset($Division['Count'])){
+                        $item['Count'] = array_sum($Division['Count']);
                     }
-                });
+                    $item['Option'] = new Standard('', $Route, new EyeOpen(),
+                        array('level' => $level), 'Anzeigen');
+                    array_push($TableContent, $item);
+                }
             }
-
             $Stage->setContent(
-                new Layout(
-                    new LayoutGroup(
-                        new LayoutRow(
-                            new LayoutColumn(
-                                new TableData($TableContent, null,
-                                    array(
-                                        'Year'     => 'Jahr',
-                                        'Division' => 'Klasse(n)',
-                                        'Type'     => 'Schulart',
-                                        'Count'    => 'Schüler',
-                                        'Option'   => '',
-                                    ), array(
-                                        'columnDefs' => array(
-                                            array('type' => 'natural', 'targets' => array(1,3)),
-                                            array("orderable" => false, "targets"   => -1),
-                                        ),
-                                        'order' => array(
-                                            array(0, 'desc'),
-                                            array(1, 'asc'),
-                                            array(2, 'asc'),
-                                        ),
-                                    )
-                                )
-                                , 12)
-                        ), new Title(new Listing().' Übersicht')
+                new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
+                    new TableData($TableContent, null,
+                        array(
+                            'Year'     => 'Jahr',
+                            'Level'    => 'Stufe',
+                            'Division' => 'Klasse(n)',
+                            'Type'     => 'Schulart',
+                            'Count'    => 'Schüler',
+                            'Option'   => '',
+                        ), array(
+                            'columnDefs' => array(
+                                array('type' => 'natural', 'targets' => array(1,3)),
+                                array("orderable" => false, "targets"   => -1),
+                            ),
+                            'order' => array(
+                                array(0, 'desc'),
+                                array(1, 'asc'),
+                                array(2, 'asc'),
+                            ),
+                        )
                     )
-                )
+                    , 12)), new Title(new Listing().' Übersicht')))
             );
         } else {
-            $PersonList = array();
-            $tblLevel = Division::useService()->getLevelById($LevelId);
-            $tblYear = Term::useService()->getYearById($YearId);
-
-            // show download button
-            if ($LevelId !== null && $YearId !== null) {
-                $Global = $this->getGlobal();
-                if (!$Global->POST) {
-                    $Global->POST['Select']['Level'] = $LevelId;
-                    $Global->POST['Select']['Year'] = $YearId;
-                    $Global->savePost();
-                }
-                if ($tblLevel && $tblYear) {
-                    $tblDivisionList = Division::useService()->getDivisionAllByLevelNameAndYear($tblLevel, $tblYear);
-                    if (!empty($tblDivisionList)) {
-                        $PersonList = Person::useService()->createClassList($tblDivisionList);
-                        if ($PersonList) {
-                            $Stage->addButton(
-                                new Primary('Herunterladen',
-                                    '/Api/Reporting/Custom/BadDueben/Common/ClassList/Download',
-                                    new Download(),
-                                    array('LevelId' => $tblLevel->getId(),
-                                        'YearId'  => $tblYear->getId()))
-                            );
-                            $Stage->setMessage(new Danger('Die dauerhafte Speicherung des Excel-Exports
-                            ist datenschutzrechtlich nicht zulässig!', new Exclamation()));
-                        }
-                    }
-                }
+            $Stage->addButton(new Standard('Zurück', $Route, new ChevronLeft()));
+            $tblPersonList = array();
+            if(isset($DivisionList[$level]['Person'])){
+                $tblPersonList = $DivisionList[$level]['Person'];
             }
-
-            // show reporting from level
-            $tblDivisionList = array();
-            if ($tblLevel && $tblYear) {
-                $tblDivisionList = Division::useService()->getDivisionAllByLevelNameAndYear($tblLevel, $tblYear);
+            if(($TableContent = Person::useService()->createClassList($tblPersonList))) {
+                $Stage->addButton(
+                    new Primary('Herunterladen', '/Api/Reporting/Custom/BadDueben/Common/ClassList/Download', new Download(), array('level' => $level))
+                );
+                $Stage->setMessage(new Danger('Die dauerhafte Speicherung des Excel-Exports ist datenschutzrechtlich nicht zulässig!', new Exclamation()));
             }
-
             $SchoolTypeList = array();
-            $tblPersonList = false;
-            if (!empty($tblDivisionList)) {
-                foreach ($tblDivisionList as $tblDivision) {
-                    $SchoolTypeList[$tblDivision->getTypeName()] = $tblDivision->getTypeName();
-                }
-                $tblPersonList = Division::useService()->getPersonAllByDivisionList($tblDivisionList);
+            if(isset($DivisionList[$level]['DivisionType'])){
+                $SchoolTypeList = $DivisionList[$level]['DivisionType'];
             }
-
             $Stage->setContent(
-                new Layout(array(
-                    new LayoutGroup(
-                        new LayoutRow(array(
-                            ( $tblYear ?
-                                new LayoutColumn(
-                                    new Panel('Jahr', $tblYear->getDisplayName(),
-                                        Panel::PANEL_TYPE_SUCCESS), 4
-                                ) : '' ),
-                            ( $tblLevel
-                                ? new LayoutColumn(
-                                    new Panel('Stufe', $tblLevel->getName(),
-                                        Panel::PANEL_TYPE_SUCCESS), 4
-                                ) : '' ),
-                            ( !empty($SchoolTypeList) ?
-                                new LayoutColumn(
-                                    new Panel(( count($SchoolTypeList) == 1 ? 'Schulart' : 'Schularten' ), $SchoolTypeList,
-                                        Panel::PANEL_TYPE_SUCCESS), 4
-                                ) : '' ),
-                        ))
-                    ),
-                    new LayoutGroup(
-                        new LayoutRow(
-                            new LayoutColumn(
-                                new TableData($PersonList, null,
-                                    array(
-                                        'Division'              => 'Klasse(n)',
-                                        'Type'                  => 'Schulart',
-                                        'Mentor'                => 'Gruppe',
-                                        'Gender'                => 'Geschlecht',
-                                        'LastName'              => 'Nachname',
-                                        'FirstName'             => 'Vorname',
-                                        'StreetName'            => 'Straße',
-                                        'StreetNumber'          => 'Nr.',
-                                        'Code'                  => 'PLZ',
-                                        'City'                  => 'Wohnort',
-                                        'District'              => 'Ortsteil',
-                                        'PhoneNumbersPrivate'   => new ToolTip('Tel. privat '.new Info(), 'Schüler Festnetz'),
-                                        'PhoneNumbersBusiness'  => new ToolTip('S1 Tel. dienstlich '.new Info(), 'Festnetz'),
-                                        'PhoneNumbersGuardian1' => new ToolTip('S1 Tel. '.new Info(), 'Mobil'),
-                                        'PhoneNumbersGuardian2' => new ToolTip('S2 Tel. '.new Info(), 'Mobil'),
-                                        'MailAddress'           => 'E-Mail',
-                                        'Birthday'              => 'Geb.-Datum',
-                                        'Birthplace'            => 'Geb.-Ort',
-                                    ),
-                                    array(
-                                        "pageLength" => -1,
-                                        "responsive" => false,
-                                        'order'      => array(
-                                            array(2, 'asc'),
-                                            array(4, 'asc'),
-                                        ),
-                                        "columnDefs" => array(
-                                            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => array(4,5)),
-                                            array('type' => 'natural', 'targets' => 7),
-                                        ),
-                                    )
-                                )
+                new Layout(array(new LayoutGroup(new LayoutRow(array(
+                    new LayoutColumn(new Panel('Jahr', $DivisionList[$level]['Year'], Panel::PANEL_TYPE_SUCCESS), 4),
+                    new LayoutColumn(new Panel('Stufe', $level, Panel::PANEL_TYPE_SUCCESS), 4),
+                    (!empty($SchoolTypeList)
+                        ? new LayoutColumn(new Panel((count($SchoolTypeList) == 1 ? 'Schulart' : 'Schularten'), $SchoolTypeList, Panel::PANEL_TYPE_SUCCESS), 4)
+                        : ''),
+                ))),
+                    new LayoutGroup(new LayoutRow(new LayoutColumn(
+                        new TableData($TableContent, null,
+                            array(
+                                'Division'              => 'Klasse(n)',
+                                'Type'                  => 'Schulart',
+                                'Mentor'                => 'Gruppe',
+                                'Gender'                => 'Geschlecht',
+                                'LastName'              => 'Nachname',
+                                'FirstName'             => 'Vorname',
+                                'StreetName'            => 'Straße',
+                                'StreetNumber'          => 'Nr.',
+                                'Code'                  => 'PLZ',
+                                'City'                  => 'Wohnort',
+                                'District'              => 'Ortsteil',
+                                'PhoneNumbersPrivate'   => new ToolTip('Tel. privat '.new Info(), 'Schüler Festnetz'),
+                                'PhoneNumbersBusiness'  => new ToolTip('S1 Tel. dienstlich '.new Info(), 'Festnetz'),
+                                'PhoneNumbersGuardian1' => new ToolTip('S1 Tel. '.new Info(), 'Mobil'),
+                                'PhoneNumbersGuardian2' => new ToolTip('S2 Tel. '.new Info(), 'Mobil'),
+                                'MailAddress'           => 'E-Mail',
+                                'Birthday'              => 'Geb.-Datum',
+                                'Birthplace'            => 'Geb.-Ort',
+                            ),
+                            array(
+                                "pageLength" => -1,
+                                "responsive" => false,
+                                'order'      => array(
+                                    array(2, 'asc'),
+                                    array(4, 'asc'),
+                                    array(5, 'asc'),
+                                ),
+                                "columnDefs" => array(
+                                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => array(4,5)),
+                                    array('type' => 'natural', 'targets' => 7),
+                                ),
                             )
                         )
-                    ),
-                    PersonReportingStandard::useFrontend()->getGenderLayoutGroup($tblPersonList)
+                    ))),
+                    PersonStandard::useFrontend()->getGenderLayoutGroup($tblPersonList)
                 ))
             );
         }
-
         return $Stage;
     }
 }

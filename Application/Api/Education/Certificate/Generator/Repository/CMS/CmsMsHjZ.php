@@ -25,8 +25,8 @@ class CmsMsHjZ extends CmsStyle
         return (new Page())
             ->addSlice(
                 (new CmsMsHj(
-                    $this->getTblDivision() ? $this->getTblDivision() : null,
-                    $this->getTblPrepareCertificate() ? $this->getTblPrepareCertificate() : null,
+                    $this->getTblStudentEducation() ?: null,
+                    $this->getTblPrepareCertificate() ?: null,
                     $this->isSample()
                 ))->getCmsMsHjSlice($personId, 'Halbjahreszeugnis der Oberschule')
             );

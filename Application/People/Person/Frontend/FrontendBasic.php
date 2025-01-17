@@ -197,7 +197,7 @@ class FrontendBasic extends FrontendReadOnly
     public static function getSimilarPersonMessage($countSimilarPerson, $name, $hash) {
         if ($countSimilarPerson > 0) {
             return new Danger(new Bold($countSimilarPerson . ' Personen mit ähnlichem Namen gefunden. Ist diese Person schon angelegt?')
-                . new Link('Zur Liste springen', null, null, array(), false, $hash)
+                . new Link('Zur Liste springen', '', null, array(), false, $hash)
             );
         } else {
             return new \SPHERE\Common\Frontend\Message\Repository\Success('Keine Personen zu ' . $name . ' gefunden');
@@ -391,12 +391,13 @@ class FrontendBasic extends FrontendReadOnly
             $lastNameInput->ajaxPipelineOnKeyUp(ApiPersonEdit::pipelineLoadSimilarPersonContent());
             $salutationSelectBox->ajaxPipelineOnChange(ApiPersonEdit::pipelineChangeSelectedGender());
         }
+        $TitleAll = Person::useService()->getTitleAll();
 
         return new FormRow(array(
             new FormColumn(
                 new Panel('Anrede', array(
                     $salutationSelectBox,
-                    (new AutoCompleter('Person[Title]', 'Titel', 'Titel', array('Dipl.- Ing.'),
+                    (new AutoCompleter('Person[Title]', 'Titel', 'Titel', $TitleAll,
                         new Conversation()))->setTabIndex(4),
                 ), Panel::PANEL_TYPE_INFO), 2),
             new FormColumn(

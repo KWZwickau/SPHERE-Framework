@@ -8,9 +8,8 @@ use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Education\ClassRegister\Digital\Digital;
-use SPHERE\Application\Education\Lesson\Division\Division;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectGroup;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\People\Person\Person;
@@ -28,6 +27,7 @@ use SPHERE\System\Database\Fitting\Element;
  */
 class TblCourseContent extends Element
 {
+    const ATTR_SERVICE_TBL_DIVISION_COURSE = 'serviceTblDivisionCourse';
     const ATTR_SERVICE_TBL_DIVISION = 'serviceTblDivision';
     const ATTR_SERVICE_TBL_SUBJECT = 'serviceTblSubject';
     const ATTR_SERVICE_TBL_SUBJECT_GROUP = 'serviceTblSubjectGroup';
@@ -36,17 +36,22 @@ class TblCourseContent extends Element
     /**
      * @Column(type="bigint")
      */
-    protected $serviceTblDivision;
+    protected $serviceTblDivisionCourse;
 
     /**
      * @Column(type="bigint")
      */
-    protected $serviceTblSubject;
+    protected $serviceTblDivision = null;
 
     /**
      * @Column(type="bigint")
      */
-    protected $serviceTblSubjectGroup;
+    protected $serviceTblSubject = null;
+
+    /**
+     * @Column(type="bigint")
+     */
+    protected $serviceTblSubjectGroup = null;
 
     /**
      * @Column(type="bigint")
@@ -84,7 +89,7 @@ class TblCourseContent extends Element
     protected string $Room;
 
     /**
-     * @Column(type="boolean")
+     * @Column(type="smallint")
      */
     protected $IsDoubleLesson;
 
@@ -99,26 +104,24 @@ class TblCourseContent extends Element
     protected $serviceTblPersonHeadmaster;
 
     /**
-     * @return bool|TblDivision
+     * @return false|TblDivisionCourse
      */
-    public function getServiceTblDivision()
+    public function getServiceTblDivisionCourse()
     {
-        if (null === $this->serviceTblDivision) {
-            return false;
-        } else {
-            return Division::useService()->getDivisionById($this->serviceTblDivision);
-        }
+        return DivisionCourse::useService()->getDivisionCourseById($this->serviceTblDivisionCourse);
     }
 
     /**
-     * @param TblDivision|null $tblDivision
+     * @param TblDivisionCourse $tblDivisionCourse
      */
-    public function setServiceTblDivision(TblDivision $tblDivision = null)
+    public function setServiceTblDivisionCourse(TblDivisionCourse $tblDivisionCourse)
     {
-        $this->serviceTblDivision = (null === $tblDivision ? null : $tblDivision->getId());
+        $this->serviceTblDivisionCourse = $tblDivisionCourse->getId();
     }
 
     /**
+     * @deprecated
+     *
      * @return bool|TblSubject
      */
     public function getServiceTblSubject()
@@ -131,31 +134,13 @@ class TblCourseContent extends Element
     }
 
     /**
+     * @deprecated
+     *
      * @param TblSubject|null $tblSubject
      */
     public function setServiceTblSubject(TblSubject $tblSubject = null)
     {
         $this->serviceTblSubject = ( null === $tblSubject ? null : $tblSubject->getId() );
-    }
-
-    /**
-     * @return bool|TblSubjectGroup
-     */
-    public function getServiceTblSubjectGroup()
-    {
-        if (null === $this->serviceTblSubjectGroup) {
-            return false;
-        } else {
-            return Division::useService()->getSubjectGroupById($this->serviceTblSubjectGroup);
-        }
-    }
-
-    /**
-     * @param TblSubjectGroup|null $tblSubjectGroup
-     */
-    public function setServiceTblSubjectGroup(TblSubjectGroup $tblSubjectGroup = null)
-    {
-        $this->serviceTblSubjectGroup = ( null === $tblSubjectGroup ? null : $tblSubjectGroup->getId() );
     }
 
     /**
@@ -276,19 +261,21 @@ class TblCourseContent extends Element
     }
 
     /**
-     * @return bool
+     * @return int
      */
-    public function getIsDoubleLesson() : bool
+    public function getCountLessons() : int
     {
-        return (bool) $this->IsDoubleLesson;
+        return $this->IsDoubleLesson + 1;
     }
 
     /**
-     * @param bool $IsDoubleLesson
+     * @param int $countLessons
+     *
+     * @return void
      */
-    public function setIsDoubleLesson(bool $IsDoubleLesson): void
+    public function setCountLessons(int $countLessons): void
     {
-        $this->IsDoubleLesson = $IsDoubleLesson;
+        $this->IsDoubleLesson = $countLessons;
     }
 
     /**

@@ -24,7 +24,8 @@ class TblType extends Element
     const IDENT_FACH_SCHULE = 'Fachschule';
     const IDENT_GRUND_SCHULE = 'Grundschule';
     const IDENT_GYMNASIUM = 'Gymnasium';
-    const IDENT_OBER_SCHULE = 'Mittelschule / Oberschule';
+    const IDENT_KINDER_TAGES_EINRICHTUNG = 'Kindertageseinrichtung';
+    const IDENT_OBER_SCHULE = 'Oberschule';
     const IDENT_ALLGEMEIN_BILDENDE_FOERDERSCHULE = 'Förderschule';
     // Berlin
     const IDENT_INTEGRIERTE_SEKUNDAR_SCHULE = 'Integrierte Sekundarschule';
@@ -156,5 +157,21 @@ class TblType extends Element
     public function setTblCategory(TblCategory $tblCategory = null)
     {
         $this->tblCategory = ( null === $tblCategory ? null : $tblCategory->getId() );
+    }
+
+    /**
+     * @return false|int
+     */
+    public function getMaxLevel()
+    {
+        return Type::useService()->getMaxLevelByType($this);
+    }
+
+    /**
+     * @return false|int
+     */
+    public function getMinLevel()
+    {
+        return Type::useService()->getMinLevelByType($this);
     }
 }

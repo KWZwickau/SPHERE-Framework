@@ -2,17 +2,23 @@
 
 namespace SPHERE\Application\Education\Certificate\Reporting;
 
+use SPHERE\Application\Api\Education\Certificate\Reporting\ApiReporting;
 use SPHERE\Application\Education\Certificate\Generate\Generate;
-use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCertificate;
-use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Graduation\Grade\Grade;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Application\Setting\Consumer\School\School;
+use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
+use SPHERE\Common\Frontend\Form\Structure\Form;
+use SPHERE\Common\Frontend\Form\Structure\FormColumn;
+use SPHERE\Common\Frontend\Form\Structure\FormGroup;
+use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
@@ -46,7 +52,51 @@ class Frontend extends Extension implements IFrontendInterface
      */
     public function frontendSelect(): Stage
     {
+        $tblYear = false;
+        if (($tblYearList = Term::useService()->getYearByNow())) {
+            $tblYear = current($tblYearList);
+            $global = $this->getGlobal();
+            $global->POST['Data']['YearId'] = $tblYear->getId();
+            $global->savePost();
+        }
+
+        $form = (new Form(new FormGroup(new FormRow(new FormColumn(
+            (new SelectBox('Data[YearId]', '', array('{{ DisplayName }}' => Term::useService()->getYearAll())))
+                ->ajaxPipelineOnChange(ApiReporting::pipelineLoadReportingOverview())
+        )))))->disableSubmitAction();
+
         $Stage = new Stage('Zeugnisse auswerten', 'Übersicht');
+        $Stage->setContent(
+            new Layout(new LayoutGroup(new LayoutRow(array(
+                new LayoutColumn(
+                    new Panel (
+                        'Schuljahr',
+                        $form,
+                        Panel::PANEL_TYPE_PRIMARY
+                    )
+                , 6),
+            ))))
+            . ApiReporting::receiverBlock(
+                $this->loadReportingOverview($tblYear ?: null),
+                'ReportingOverview'
+            )
+        );
+
+        return $Stage;
+    }
+
+    /**
+     * @param ?TblYear $tblYear
+     *
+     * @return string
+     */
+    public function loadReportingOverview(?TblYear $tblYear): string
+    {
+        if (!$tblYear) {
+            return new Warning('Bitte wählen Sie zunächst ein Schuljahr aus.', new Exclamation());
+        }
+
+        $YearId = $tblYear->getId();
 
         $serialMailItemList = array();
         $statisticItemList = array();
@@ -59,25 +109,28 @@ class Frontend extends Extension implements IFrontendInterface
                     '/Api/Reporting/Standard/Person/Certificate/Diploma/SerialMail/Download',
                     new Download(),
                     array(
-                        'View' => View::HS
+                        'View' => View::HS,
+                        'YearId' => $YearId
                     ),
                     'Serien E-Mail mit Prüfungsnoten für Hauptschulabschlusszeugnisse herunterladen'
                 )));
             $serialMailItemList[] = 'Oberschule - Realschule ' . new PullRight((new Standard(
-                '',
-                '/Api/Reporting/Standard/Person/Certificate/Diploma/SerialMail/Download',
-                new Download(),
-                array(
-                    'View' => View::RS
-                ),
-                'Serien E-Mail mit Prüfungsnoten für Realschulabschlusszeugnisse herunterladen'
-            )));
+                    '',
+                    '/Api/Reporting/Standard/Person/Certificate/Diploma/SerialMail/Download',
+                    new Download(),
+                    array(
+                        'View' => View::RS,
+                        'YearId' => $YearId
+                    ),
+                    'Serien E-Mail mit Prüfungsnoten für Realschulabschlusszeugnisse herunterladen'
+                )));
             $statisticItemList[] = 'Oberschule - Hauptschule ' . new PullRight((new Standard(
                     '',
                     '/Api/Reporting/Standard/Person/Certificate/Diploma/Statistic/Download',
                     new Download(),
                     array(
-                        'View' => View::HS
+                        'View' => View::HS,
+                        'YearId' => $YearId
                     ),
                     'Auswertung der Prüfungsnoten für die LaSuB für Hauptschulabschlusszeugnisse herunterladen'
                 )));
@@ -86,7 +139,8 @@ class Frontend extends Extension implements IFrontendInterface
                     '/Api/Reporting/Standard/Person/Certificate/Diploma/Statistic/Download',
                     new Download(),
                     array(
-                        'View' => View::RS
+                        'View' => View::RS,
+                        'YearId' => $YearId
                     ),
                     'Auswertung der Prüfungsnoten für die LaSuB für Realschulabschlusszeugnisse herunterladen'
                 )));
@@ -95,7 +149,8 @@ class Frontend extends Extension implements IFrontendInterface
                     '/Education/Certificate/Reporting/Diploma',
                     new Select(),
                     array(
-                        'View' => View::HS
+                        'View' => View::HS,
+                        'YearId' => $YearId
                     ),
                     'Hauptschulabschlusszeugnisse auswählen'
                 )));
@@ -104,7 +159,8 @@ class Frontend extends Extension implements IFrontendInterface
                     '/Education/Certificate/Reporting/Diploma',
                     new Select(),
                     array(
-                        'View' => View::RS
+                        'View' => View::RS,
+                        'YearId' => $YearId
                     ),
                     'Realschulabschlusszeugnisse auswählen'
                 )));
@@ -115,71 +171,58 @@ class Frontend extends Extension implements IFrontendInterface
                     '/Education/Certificate/Reporting/Diploma',
                     new Select(),
                     array(
-                        'View' => View::ABI
+                        'View' => View::ABI,
+                        'YearId' => $YearId
                     ),
                     'Abiturabschlusszeugnisse auswählen'
                 )));
         }
         if (!$typeList || isset($typeList['FOS'])) {
             $serialMailItemList[] = 'Fachoberschule ' . new PullRight((new Standard(
-                '',
-                '/Api/Reporting/Standard/Person/Certificate/Diploma/SerialMail/Download',
-                new Download(),
-                array(
-                    'View' => View::FOS
-                ),
-                'Serien E-Mail mit Prüfungsnoten für Fachoberschulabschlusszeugnisse herunterladen'
-            )));
+                    '',
+                    '/Api/Reporting/Standard/Person/Certificate/Diploma/SerialMail/Download',
+                    new Download(),
+                    array(
+                        'View' => View::FOS,
+                        'YearId' => $YearId
+                    ),
+                    'Serien E-Mail mit Prüfungsnoten für Fachoberschulabschlusszeugnisse herunterladen'
+                )));
             $statisticItemList[] = 'Fachoberschule ' . new PullRight((new Standard(
                     '',
                     '/Api/Reporting/Standard/Person/Certificate/Diploma/Statistic/Download',
                     new Download(),
                     array(
-                        'View' => View::FOS
+                        'View' => View::FOS,
+                        'YearId' => $YearId
                     ),
                     'Auswertung der Prüfungsnoten für die LaSuB für Fachoberschulabschlusszeugnisse herunterladen'
                 )));
         }
-        if (!$typeList || isset($typeList['Gy']) || isset($typeList['BGy'])) {
-            if (($tblYearList = Term::useService()->getYearByNow())
-                && ($tblSchoolTypeGy = Type::useService()->getTypeByShortName('Gy'))
-                && ($tblSchoolTypeBGy = Type::useService()->getTypeByShortName('BGy'))
-            ) {
-                foreach ($tblYearList as $tblYear) {
-                    $divisionList = array();
-                    if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeGy, '11'))) {
-                        if (($tblDivisionList = Division::useService()->getDivisionAllByLevelAndYear($tblLevel, $tblYear))) {
-                            $divisionList = array_merge($divisionList, $tblDivisionList);
-                        }
-                    }
-                    if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeGy, '12'))) {
-                        if (($tblDivisionList = Division::useService()->getDivisionAllByLevelAndYear($tblLevel, $tblYear))) {
-                            $divisionList = array_merge($divisionList, $tblDivisionList);
-                        }
-                    }
-                    if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeBGy, '12'))) {
-                        if (($tblDivisionList = Division::useService()->getDivisionAllByLevelAndYear($tblLevel, $tblYear))) {
-                            $divisionList = array_merge($divisionList, $tblDivisionList);
-                        }
-                    }
-                    if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeBGy, '13'))) {
-                        if (($tblDivisionList = Division::useService()->getDivisionAllByLevelAndYear($tblLevel, $tblYear))) {
-                            $divisionList = array_merge($divisionList, $tblDivisionList);
-                        }
-                    }
 
-                    foreach ($divisionList as $tblDivision) {
-                        $courseItemList[] = $tblDivision->getTypeName() . ' Klasse ' . $tblDivision->getDisplayName() . new PullRight((new Standard(
-                                '',
-                                '/Api/Reporting/Standard/Person/Certificate/CourseGrades/Download',
-                                new Download(),
-                                array(
-                                    'DivisionId' => $tblDivision->getId(),
-                                ),
-                                'Kursnoten herunterladen'
-                            )));
-                    }
-                }
+        if (!$typeList || isset($typeList['Gy']) || isset($typeList['BGy'])) {
+            $tblSchoolTypeGy = Type::useService()->getTypeByShortName('Gy');
+            $tblSchoolTypeBGy = Type::useService()->getTypeByShortName('BGy');
+
+            $tblDivisionCourseList = array();
+
+            Reporting::useService()->setDivisionCourseList($tblDivisionCourseList, $tblYear, $tblSchoolTypeGy, 11);
+            Reporting::useService()->setDivisionCourseList($tblDivisionCourseList, $tblYear, $tblSchoolTypeGy, 12);
+
+            Reporting::useService()->setDivisionCourseList($tblDivisionCourseList, $tblYear, $tblSchoolTypeBGy, 12);
+            Reporting::useService()->setDivisionCourseList($tblDivisionCourseList, $tblYear, $tblSchoolTypeBGy, 13);
+
+            /** @var TblDivisionCourse $tblDivisionCourse */
+            foreach ($tblDivisionCourseList as $tblDivisionCourse) {
+                $courseItemList[] = $tblDivisionCourse->getTypeName() . ' ' . $tblDivisionCourse->getName() . new PullRight((new Standard(
+                        '',
+                        '/Api/Reporting/Standard/Person/Certificate/CourseGrades/Download',
+                        new Download(),
+                        array(
+                            'DivisionId' => $tblDivisionCourse->getId(),
+                        ),
+                        'Kursnoten herunterladen'
+                    )));
             }
         }
 
@@ -204,16 +247,13 @@ class Frontend extends Extension implements IFrontendInterface
             $panelCourse = false;
         }
 
-        $Stage->setContent(
+        return
             new Layout(new LayoutGroup(new LayoutRow(array(
-                $panelSerialMail ? new LayoutColumn($panelSerialMail, 3) : null,
-                $panelStatistic ? new LayoutColumn($panelStatistic, 3) : null,
-                $panelRanking ? new LayoutColumn($panelRanking, 3) : null,
-                $panelCourse ? new LayoutColumn($panelCourse, 3) : null,
-            ))))
-        );
-
-        return $Stage;
+                $panelSerialMail ? new LayoutColumn($panelSerialMail, 6) : null,
+                $panelStatistic ? new LayoutColumn($panelStatistic, 6) : null,
+                $panelRanking ? new LayoutColumn($panelRanking, 6) : null,
+                $panelCourse ? new LayoutColumn($panelCourse, 6) : null,
+            ))));
     }
 
     /**
@@ -235,11 +275,12 @@ class Frontend extends Extension implements IFrontendInterface
 
         $tblYearList = array();
         $generateList = array();
-        if (($tblCertificateType = Generator::useService()->getCertificateTypeByIdentifier('DIPLOMA'))
-            && ($tblGenerateCertificateList = Generate::useService()->getGenerateCertificateAll())
-        ) {
+        if (($tblGenerateCertificateList = Generate::useService()->getGenerateCertificateAll())) {
             foreach ($tblGenerateCertificateList as $tblGenerateCertificate) {
-                if (($tblGenerateYear = $tblGenerateCertificate->getServiceTblYear())) {
+                if (($tblGenerateYear = $tblGenerateCertificate->getServiceTblYear())
+                    && ($tblCertificateType = $tblGenerateCertificate->getServiceTblCertificateType())
+                    && ($tblCertificateType->getIdentifier() == 'DIPLOMA')
+                ) {
                     $tblYearList[$tblGenerateYear->getId()] = $tblGenerateYear;
                     $generateList[$tblGenerateYear->getId()][] = $tblGenerateCertificate;
                 }
@@ -275,8 +316,7 @@ class Frontend extends Extension implements IFrontendInterface
                         foreach ($tblPrepareList as $tblPrepare) {
                             if (($tblPrepareStudentList = Prepare::useService()->getPrepareStudentAllByPrepare($tblPrepare))) {
                                 foreach ($tblPrepareStudentList as $tblPrepareStudent) {
-                                    if ($tblPrepareStudent->isPrinted()
-                                        && ($tblPerson = $tblPrepareStudent->getServiceTblPerson())
+                                    if (($tblPerson = $tblPrepareStudent->getServiceTblPerson())
                                         && ($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())
                                         && (($View == View::HS && strpos($tblCertificate->getCertificate(), 'MsAbsHs') !== false)
                                             || ($View == View::RS && strpos($tblCertificate->getCertificate(), 'MsAbsRs') !== false)
@@ -286,14 +326,8 @@ class Frontend extends Extension implements IFrontendInterface
                                         if ($View == View::ABI) {
                                             // Berechnung der Gesamtqualifikation und der Durchschnittsnote
                                             /** @noinspection PhpUnusedLocalVariableInspection */
-                                            list($countCourses, $resultBlockI) = Prepare::useService()->getResultForAbiturBlockI(
-                                                $tblPrepare,
-                                                $tblPerson
-                                            );
-                                            $resultBlockII = Prepare::useService()->getResultForAbiturBlockII(
-                                                $tblPrepare,
-                                                $tblPerson
-                                            );
+                                            list($countCourses, $resultBlockI) = Prepare::useService()->getResultForAbiturBlockI($tblPrepare, $tblPerson);
+                                            $resultBlockII = Prepare::useService()->getResultForAbiturBlockII($tblPrepare, $tblPerson);
                                             $resultPoints = $resultBlockI + $resultBlockII;
                                             if ($resultBlockI >= 200 && $resultBlockII >= 100) {
                                                 $average = Prepare::useService()->getResultForAbiturAverageGrade($resultPoints);
@@ -317,6 +351,13 @@ class Frontend extends Extension implements IFrontendInterface
                                             'Name' => $tblPerson->getLastFirstName(),
                                             'Average' => $average ? str_replace('.', ',', $average) : '&ndash;'
                                         );
+
+                                        if ($View == View::RS) {
+                                            $dataList[$tblPerson->getId()]['AverageWithDroppedSubjects']
+                                                = ($averageWithDroppedSubjects = $this->calcDiplomaAverageGradeWithDroppedSubjects($tblPrepare, $tblPerson))
+                                                    ? str_replace('.', ',', $averageWithDroppedSubjects)
+                                                    : '&ndash;';
+                                        }
                                     }
                                 }
                             }
@@ -325,6 +366,19 @@ class Frontend extends Extension implements IFrontendInterface
                 }
 
                 if (!empty($dataList)) {
+                    $columns = array(
+                        'Name' => 'Name',
+                        'Average' => 'Notendurchschnitt',
+                    );
+
+                    $columDefs[] = array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 0);
+                    $columDefs[] = array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1);
+
+                    if ($View == View::RS) {
+                        $columns['AverageWithDroppedSubjects'] = 'Notendurchschnitt (mit abgewählte Fächer der Klassenstufe 9)';
+                        $columDefs[] = array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 2);
+                    }
+
                     $Stage->setContent(
                         new Layout(new LayoutGroup(array(
                             new LayoutRow(new LayoutColumn(
@@ -338,15 +392,9 @@ class Frontend extends Extension implements IFrontendInterface
                                 new TableData(
                                     $dataList,
                                     null,
+                                    $columns,
                                     array(
-                                        'Name' => 'Name',
-                                        'Average' => 'Notendurchschnitt',
-                                    ),
-                                    array(
-                                        'columnDefs' => array(
-                                            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 0),
-                                            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
-                                        ),
+                                        'columnDefs' => $columDefs,
                                         'order' => array(
                                             array(1, 'asc'),
                                         )
@@ -356,7 +404,7 @@ class Frontend extends Extension implements IFrontendInterface
                         )))
                     );
                 } else {
-                    $Stage->setContent(new Warning('Es sind noch keine gedruckten Abschlusszeugnisse für das Schuljahr: '
+                    $Stage->setContent(new Warning('Es sind noch keine Abschlusszeugnisse für das Schuljahr: '
                         . $tblYear->getDisplayName() . ' vorhanden.', new Exclamation()));
                 }
             }
@@ -375,25 +423,105 @@ class Frontend extends Extension implements IFrontendInterface
      */
     public function calcDiplomaAverageGrade(TblPrepareCertificate $tblPrepare, TblPerson $tblPerson)
     {
+        $gradeList = array();
         if (($tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('EN'))
             && ($tblPrepareAdditionalGradeList = Prepare::useService()->getPrepareAdditionalGradeListBy(
                 $tblPrepare, $tblPerson, $tblPrepareAdditionalGradeType
             ))
         ) {
-            $gradeList = array();
             foreach ($tblPrepareAdditionalGradeList as $tblPrepareAdditionalGrade) {
-                if ($tblPrepareAdditionalGrade->getGrade() != '') {
+                if ($tblPrepareAdditionalGrade->getGrade() != ''
+                    && ($tblSubject = $tblPrepareAdditionalGrade->getServiceTblSubject())
+                ) {
                     $grade = str_replace('+', '', $tblPrepareAdditionalGrade->getGrade());
                     $grade = str_replace('-', '', $grade);
                     if (is_numeric($grade)) {
-                        $gradeList[] = $grade;
+                        $gradeList[$tblSubject->getId()] = $grade;
                     }
                 }
             }
+        }
 
-            if (!empty($gradeList)) {
-                return round(floatval(array_sum($gradeList) / count($gradeList)), 1);
+        if (($tblTask = $tblPrepare->getServiceTblAppointedDateTask())
+            && ($tblTaskGradeList = Grade::useService()->getTaskGradeListByTaskAndPerson($tblTask, $tblPerson))
+        ) {
+            foreach ($tblTaskGradeList as $tblTaskGrade) {
+                if (($tblSubject = $tblTaskGrade->getServiceTblSubject())
+                    && !isset($gradeList[$tblSubject->getId()])
+                    && $tblTaskGrade->getIsGradeNumeric()
+                ) {
+                    $gradeList[$tblSubject->getId()] = $tblTaskGrade->getGradeNumberValue();
+                }
             }
+        }
+
+        if (!empty($gradeList)) {
+            return round(floatval(array_sum($gradeList) / count($gradeList)), 2);
+        }
+
+        return false;
+    }
+
+    /**
+     * @param TblPrepareCertificate $tblPrepare
+     * @param TblPerson $tblPerson
+     *
+     * @return bool|false|float
+     */
+    public function calcDiplomaAverageGradeWithDroppedSubjects(TblPrepareCertificate $tblPrepare, TblPerson $tblPerson)
+    {
+        $gradeList = array();
+        if (($tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('EN'))
+            && ($tblPrepareAdditionalGradeList = Prepare::useService()->getPrepareAdditionalGradeListBy(
+                $tblPrepare, $tblPerson, $tblPrepareAdditionalGradeType
+            ))
+        ) {
+            foreach ($tblPrepareAdditionalGradeList as $tblPrepareAdditionalGrade) {
+                if ($tblPrepareAdditionalGrade->getGrade() != ''
+                    && ($tblSubject = $tblPrepareAdditionalGrade->getServiceTblSubject())
+                ) {
+                    $grade = str_replace('+', '', $tblPrepareAdditionalGrade->getGrade());
+                    $grade = str_replace('-', '', $grade);
+                    if (is_numeric($grade)) {
+                        $gradeList[$tblSubject->getId()] = $grade;
+                    }
+                }
+            }
+        }
+
+        if (($tblTask = $tblPrepare->getServiceTblAppointedDateTask())
+            && ($tblTaskGradeList = Grade::useService()->getTaskGradeListByTaskAndPerson($tblTask, $tblPerson))
+        ) {
+            foreach ($tblTaskGradeList as $tblTaskGrade) {
+                if (($tblSubject = $tblTaskGrade->getServiceTblSubject())
+                    && !isset($gradeList[$tblSubject->getId()])
+                    && $tblTaskGrade->getIsGradeNumeric()
+                ) {
+                    $gradeList[$tblSubject->getId()] = $tblTaskGrade->getGradeNumberValue();
+                }
+            }
+        }
+
+        if (($tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('PRIOR_YEAR_GRADE'))
+            && ($tblPrepareAdditionalGradeList = Prepare::useService()->getPrepareAdditionalGradeListBy(
+                $tblPrepare, $tblPerson, $tblPrepareAdditionalGradeType
+            ))
+        ) {
+            foreach ($tblPrepareAdditionalGradeList as $tblPrepareAdditionalGrade) {
+                if ($tblPrepareAdditionalGrade->getGrade() != ''
+                    && ($tblSubject = $tblPrepareAdditionalGrade->getServiceTblSubject())
+                ) {
+                    $grade = str_replace('+', '', $tblPrepareAdditionalGrade->getGrade());
+                    $grade = str_replace('-', '', $grade);
+                    if (is_numeric($grade)) {
+                        $gradeList[$tblSubject->getId()] = $grade;
+                    }
+                }
+            }
+        }
+
+        if (!empty($gradeList)) {
+            return round(floatval(array_sum($gradeList) / count($gradeList)), 2);
         }
 
         return false;

@@ -16,7 +16,7 @@ use SPHERE\Application\Education\Certificate\Generator\Repository\Page;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Section;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
-use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\People\Meta\Student\Student;
@@ -38,12 +38,7 @@ class GymAbitur extends Certificate
      */
     private $AdvancedCourses = false;
 
-    /**
-     * @var array|false
-     */
-    private $BasicCourses = false;
-
-    private $gradeTextList = array(
+    private array $gradeTextList = array(
         '1' => 'sehr gut',
         '2' => 'gut',
         '3' => 'befriedigend',
@@ -57,23 +52,22 @@ class GymAbitur extends Certificate
      *
      * @return Page[]
      */
-    public function buildPages(TblPerson $tblPerson = null)
+    public function buildPages(TblPerson $tblPerson = null): array
     {
-
         $personId = $tblPerson ? $tblPerson->getId() : 0;
 
         $Header = $this->getHead($this->isSample());
 
         $this->setCourses($tblPerson);
 
-        $hasLatinums = false;
+        $hasLatinum = false;
         $hasGraecums = false;
         $hasHebraicums = false;
         if ($tblPerson && $this->getTblPrepareCertificate()) {
             if (($tblPrepareInformation = Prepare::useService()->getPrepareInformationBy($this->getTblPrepareCertificate(), $tblPerson, 'Latinums'))
                 && $tblPrepareInformation->getValue()
             ) {
-                $hasLatinums = true;
+                $hasLatinum = true;
             }
             if (($tblPrepareInformation = Prepare::useService()->getPrepareInformationBy($this->getTblPrepareCertificate(), $tblPerson, 'Graecums'))
                 && $tblPrepareInformation->getValue()
@@ -83,11 +77,11 @@ class GymAbitur extends Certificate
             if (($tblPrepareInformation = Prepare::useService()->getPrepareInformationBy($this->getTblPrepareCertificate(), $tblPerson, 'Hebraicums'))
                 && $tblPrepareInformation->getValue()
             ) {
-                $hasLatinums = true;
+                $hasHebraicums = true;
             }
         }
         $certificates = 'Dieses Zeugnis schließt den Nachweis des <b>';
-        if ($hasLatinums) {
+        if ($hasLatinum) {
             $certificates .= 'Latinums';
         } else {
             $certificates .= '<s>Latinums</s>';
@@ -132,7 +126,7 @@ class GymAbitur extends Certificate
                     )
                 )
             )
-            ->addSlice($this->getLevelTen($tblPerson ? $tblPerson : null))
+            ->addSlice($this->getLevelTen($tblPerson ?: null))
             ->addSlice((new Slice())
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
@@ -142,7 +136,7 @@ class GymAbitur extends Certificate
                     )
                 )
             )
-            ->addSlice($this->getForeignLanguages($tblPerson ? $tblPerson : null))
+            ->addSlice($this->getForeignLanguages($tblPerson ?: null))
             ->addSlice((new Slice())
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
@@ -163,15 +157,6 @@ class GymAbitur extends Certificate
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
                         ->setContent('
-                            {% if Content.P' . $personId . '.Person.Common.BirthDates.Gender == 2 %}
-                                Frau
-                            {% else %}
-                                {% if Content.P' . $personId . '.Person.Common.BirthDates.Gender == 1 %}
-                                    Herr
-                                {% else %}
-                                    Frau/Herr²
-                                {% endif %}
-                            {% endif %}
                             <u>&nbsp;&nbsp;&nbsp;&nbsp; {{ Content.P' . $personId . '.Person.Data.Name.First }} {{ Content.P' . $personId . '.Person.Data.Name.Last }} &nbsp;&nbsp;&nbsp;&nbsp;</u> 
                             hat die <b>Abiturprüfung bestanden</b> und die Berechtigung zum Studium an einer Hochschule in der
                             Bundesrepublik Deutschland erworben.
@@ -186,7 +171,7 @@ class GymAbitur extends Certificate
                         ->setContent('
                                 {{ Content.P' . $personId . '.Company.Address.City.Name }}, {{ Content.P' . $personId . '.Input.Date }}
                             ')
-                        ->styleMarginTop('70px')
+                        ->styleMarginTop('65px')
                         ->styleBorderBottom()
                         , '35%')
                     ->addElementColumn((new Element()))
@@ -203,7 +188,7 @@ class GymAbitur extends Certificate
                 )
             )
             ->addSlice($this->getExaminationsBoard('10px','11px'))
-            ->addSlice($this->getInfoForPageFour())
+            ->addSlice($this->getInfoForPageFour('5px'))
         ;
 
         $pageList[] = (new Page())
@@ -226,7 +211,7 @@ class GymAbitur extends Certificate
                     ->styleMarginBottom('10px')
                 )
             )
-            ->addSliceArray($this->getSchoolPartAbitur($personId))
+            ->addSliceArray($this->getSchoolPartAbitur())
             ->addSlice((new Slice())
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
@@ -293,22 +278,20 @@ class GymAbitur extends Certificate
             ->addSlice((new Slice())
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
-                        ->setContent('hat sich nach dem Besuch der gymnasialen Oberstufe der Abiturprüfung unterzogen.')
+                        ->setContent('hat sich nach dem Besuch der gymnasialen Oberstufe erfolgreich der Abiturprüfung unterzogen.')
                     )
                 )->styleMarginTop('20px')
             )
             ->addSlice((new Slice())
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
-                        ->setContent('
+                        ->setContent("
                         Dem Zeugnis liegen zugrunde: <br />
-                        – &nbsp;&nbsp; Vereinbarung zur Gestaltung der gymnasialen Oberstufe in der Sekundarstufe II (Beschluss der Kultusministerkonferenz vom <br />
-                          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;07.07.1972, in der jeweils geltenden Fassung) <br />
-                        – &nbsp;&nbsp; Vereinbarung über die Abiturprüfung der gymnasialen Oberstufe in der Sekundarstufe II (Beschluss der Kultusministerkon- <br />
-                          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ferenz vom 13.12.1973, in der jeweils geltenden Fassung) <br />
-                        – &nbsp;&nbsp; Schulordnung Gymnasien Abiturprüfung vom 27. Juni 2012 (SächsGVBl. S. 348), die zuletzt durch Artikel 1 der Verordnung <br />
-                          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;vom 7. Mai 2018 (SächsGVBl. S. 240) geändert worden ist, in der jeweils geltenden Fassung
-                        ')
+                        {$this->getBullet()} Vereinbarung zur Gestaltung der gymnasialen Oberstufe und der Abiturprüfung (Beschluss der <br />
+                        {$this->getBulletSpace()} Kultusministerkonferenz vom 07.07.1972 in der jeweils geltenden Fassung) <br />
+                        {$this->getBullet()} Schulordnung Gymnasien Abiturprüfung vom 30. Mai 2023 (SächsGVBl. S. 379, 668), die zuletzt durch die <br />
+                        {$this->getBulletSpace()} Verordnung vom 3. Juni 2024 (SächsGVBl. S. 554) geändert worden ist, in der jeweils geltenden Fassung <br />
+                        ")
                         ->styleTextSize('11px')
                     )
                 )->styleMarginTop('310px')
@@ -432,6 +415,7 @@ class GymAbitur extends Certificate
             ->addSection($this->setSubjectRow($personId, 'Biologie'))
             ->addSection($this->setSubjectRow($personId, 'Chemie'))
             ->addSection($this->setSubjectRow($personId, 'Physik'))
+            ->addSection($this->setSubjectRow($personId, 'Informatik'))
             ->addSection($this->setFieldRow())
             ->addSection($this->setSubjectRow($personId, 'RELIGION'))
             ->addSection($this->setSubjectRow($personId, 'Sport'));
@@ -452,7 +436,6 @@ class GymAbitur extends Certificate
         $slice
             ->addSection($this->setFieldRow())
             ->addSection($this->setSubjectRow($personId, 'Astronomie', false))
-            ->addSection($this->setSubjectRow($personId, 'Informatik', false))
             ->addSection($this->setSubjectRow($personId, 'Philosophie', false))
             ->addSection($this->setSubjectRow($personId, $tblCertificateSubject1 && $tblCertificateSubject1->getServiceTblSubject()
                 ? $tblCertificateSubject1->getServiceTblSubject()->getName() : '&nbsp;', false))
@@ -943,29 +926,20 @@ class GymAbitur extends Certificate
         }
 
         // Leistungskurse markieren
-        if (isset($this->AdvancedCourses[0])) {
-            /** @var TblSubject $advancedSubject1 */
-            $advancedSubjectAcronym1 = $this->AdvancedCourses[0];
-            if (($tblAdvancedSubject1 = Subject::useService()->getSubjectByAcronym($advancedSubjectAcronym1))
-                && $tblAdvancedSubject1->getName() == $subjectName
-            ) {
-                $isAdvancedSubject = true;
-            }
-        }
-        if (isset($this->AdvancedCourses[1])) {
-            /** @var TblSubject $advancedSubject2 */
-            $advancedSubjectAcronym2 = $this->AdvancedCourses[1];
-            if (($tblAdvancedSubject2 = Subject::useService()->getSubjectByAcronym($advancedSubjectAcronym2))
-                && $tblAdvancedSubject2->getName() == $subjectName
-            ) {
-                $isAdvancedSubject = true;
+        if ($this->AdvancedCourses) {
+            /** @var TblSubject $tblSubjectAdvanced */
+            foreach ($this->AdvancedCourses as $tblSubjectAdvanced) {
+                if ($tblSubjectAdvanced->getName() == $subjectName) {
+                    $isAdvancedSubject = true;
+                    break;
+                }
             }
         }
 
-        if ($subjectName == 'Informatik') {
-            $postfix = '5';
-            $width = '19%';
-        }
+//        if ($subjectName == 'Informatik') {
+//            $postfix = '5';
+//            $width = '19%';
+//        }
 
         $grades = array(
             '11-1' => '&ndash;',
@@ -1289,14 +1263,12 @@ class GymAbitur extends Certificate
     }
 
     /**
-     * @param $personId
      * @param string $MarginTop
      *
      * @return Slice[]
      */
-    private function getSchoolPartAbitur($personId, $MarginTop = '20px')
+    private function getSchoolPartAbitur($MarginTop = '20px')
     {
-
         if (($tblSetting = Consumer::useService()->getSetting(
                 'Education', 'Certificate', 'Prepare', 'IsSchoolExtendedNameDisplayed'))
             && $tblSetting->getValue()
@@ -1320,9 +1292,7 @@ class GymAbitur extends Certificate
         $schoolName = '';
         $extendedName = '';
         // get company name
-        if (($tblPerson = Person::useService()->getPersonById($personId))
-            && ($tblCompany = Student::useService()->getCurrentSchoolByPerson($tblPerson, $this->getTblDivision() ? $this->getTblDivision() : null))
-        ) {
+        if (($tblCompany = $this->getTblCompany())) {
             $place = '';
             if (($tblAddress = $tblCompany->fetchMainAddress())
                 && ($tblCity = $tblAddress->getTblCity())
@@ -1412,44 +1382,8 @@ class GymAbitur extends Certificate
      */
     private function setCourses(TblPerson $tblPerson = null)
     {
-
-        $advancedCourses = array();
-        $basicCourses = array();
-        if ($tblPerson && ($tblDivision = $this->getTblDivision())
-            && ($tblDivisionSubjectList = Division::useService()->getDivisionSubjectByDivision($tblDivision))
-        ) {
-            foreach ($tblDivisionSubjectList as $tblDivisionSubjectItem) {
-                if (($tblSubjectGroup = $tblDivisionSubjectItem->getTblSubjectGroup())) {
-
-                    if (($tblSubjectStudentList = Division::useService()->getSubjectStudentByDivisionSubject(
-                        $tblDivisionSubjectItem))
-                    ) {
-                        foreach ($tblSubjectStudentList as $tblSubjectStudent) {
-                            if (($tblSubject = $tblDivisionSubjectItem->getServiceTblSubject())
-                                && ($tblPersonStudent = $tblSubjectStudent->getServiceTblPerson())
-                                && $tblPerson->getId() == $tblPersonStudent->getId()
-                            ) {
-                                if ($tblSubjectGroup->isAdvancedCourse()) {
-                                    if ($tblSubject->getName() == 'Deutsch' || $tblSubject->getName() == 'Mathematik') {
-                                        $advancedCourses[0] = $tblSubject->getAcronym();
-                                    } else {
-                                        $advancedCourses[1] = $tblSubject->getAcronym();
-                                    }
-                                } else {
-                                    $basicCourses[$tblSubject->getAcronym()] = $tblSubject->getAcronym();
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        if (!empty($advancedCourses)) {
-            $this->AdvancedCourses = $advancedCourses;
-        }
-        if (!empty($basicCourses)) {
-            $this->BasicCourses = $basicCourses;
+        if (($tblYear = $this->getYear())) {
+            $this->AdvancedCourses = DivisionCourse::useService()->getAdvancedCoursesForStudent($tblPerson, $tblYear);
         }
     }
 
@@ -1705,16 +1639,15 @@ class GymAbitur extends Certificate
                 && ($tblStudentSubject = Student::useService()->getStudentSubjectByStudentAndSubjectAndSubjectRanking(
                     $tblStudent, $tblStudentSubjectType, $tblStudentSubjectRanking
                 ))
+                && ($tblYear = $this->getYear())
             ) {
                 if (($tblSubject = $tblStudentSubject->getServiceTblSubject())) {
                     $subject = $tblSubject->getName();
-                    if (($tblLevelFrom = $tblStudentSubject->getServiceTblLevelFrom())) {
-                        $levelFrom = $tblLevelFrom->getName();
-                    } else {
-                        $levelFrom = '&ndash;';
+                    if ($tblStudentSubject->getLevelFrom()) {
+                        $levelFrom = $tblStudentSubject->getLevelFrom();
                     }
-                    if (($tblLevelTill = $tblStudentSubject->getServiceTblLevelTill())) {
-                        $levelTill = $tblLevelTill->getName();
+                    if ($tblStudentSubject->getLevelTill()) {
+                        $levelTill = $tblStudentSubject->getLevelTill();
                     } else {
                         $levelTill = '12';
                     }
@@ -1730,7 +1663,7 @@ class GymAbitur extends Certificate
                             $this->getCertificateEntity(),
                             $tblStudentSubject,
                             $tblPerson,
-                            $this->getTblDivision()
+                            $tblYear
                         );
                     }
                 }
@@ -1959,10 +1892,10 @@ class GymAbitur extends Certificate
             ->addSection($this->setInfoRow(1, 'Die Halbjahresergebnisse, die nicht in die Gesamtqualifikation eingehen, werden in Klammern gesetzt.'))
             ->addSection($this->setInfoRow(2, 'Alle Punktzahlen werden zweistellig angegeben.'))
             ->addSection($this->setInfoRow(3, 'Grundkursfächer bleiben ohne besondere Kennzeichnung. Leistungskursfächer sind in der betreffenden Zeile der Spalte „LF“ zu
-                 kennzeichnen.'))
-            ->addSection($this->setInfoRow(4, 'An Gymnasien gemäß § 38 Absatz 2 der Schulordnung Gymnasien Abiturprüfung sind die Fächer Ev./Kath. Religion dem gesellschaftswissenschaftli-<br />
-            chen Aufgabenfeld zugeordnet.'))
-            ->addSection($this->setInfoRow(5, 'mathematisch-naturwissenschaftlich-technisches Aufgabenfeld'))
+                kennzeichnen.'))
+            ->addSection($this->setInfoRow(4, 'An Gymnasien gemäß § 40 Absatz 2 der Schulordnung Gymnasien Abiturprüfung sind die Fächer Ev./Kath. Religion dem gesellschaftswissenschaftlichen
+                Aufgabenfeld zugeordnet.'))
+//            ->addSection($this->setInfoRow(5, 'mathematisch-naturwissenschaftlich-technisches Aufgabenfeld'))
 
             ;
 
@@ -2006,12 +1939,13 @@ class GymAbitur extends Certificate
             ->addSection((new Section())
                 ->addElementColumn((new Element())
                     ->styleBorderBottom()
+                    ->styleMarginBottom('5px')
                     , '30%')
                 ->addElementColumn((new Element())
                     , '70%')
             )
             ->styleMarginTop($marginTop)
-            ->addSection($this->setInfoRow(1, 'Das jeweilige Fach ist einzutragen. Die Ausweisung der Noten und Notenstufen kann der Schüler ablehnen (§ 65 Absatz 3 der Schulordnung Gymnasien Abiturprüfung).'))
+            ->addSection($this->setInfoRow(1, 'Das jeweilige Fach ist einzutragen. Die Ausweisung der Noten und Notenstufen kann kann die Schülerin oder der Schüler ablehnen ablehnen (§ 65 Absatz 3 der Schulordnung Gymnasien Abiturprüfung).'))
             ->addSection($this->setInfoRow(2, 'Gemeinsamer Europäischer Referenzrahmen für Sprachen'))
             ->addSection($this->setInfoRow(3, 'Nichtzutreffendes ist zu streichen.'))
         ;
@@ -2042,5 +1976,15 @@ class GymAbitur extends Certificate
             );
 
         return $section;
+    }
+
+    private function getBullet(): string
+    {
+        return '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&bull;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
+    }
+
+    private function getBulletSpace(): string
+    {
+        return '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
     }
 }

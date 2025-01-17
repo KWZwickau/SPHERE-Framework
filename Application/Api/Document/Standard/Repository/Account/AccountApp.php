@@ -50,7 +50,7 @@ class AccountApp extends AccountDocument
      *
      * @return Frame
      */
-    public function buildDocument($pageList = array(), $Part = '0')
+    public function buildDocument(array $pageList = array(), string $Part = '0'): Frame
     {
         $InjectStyle = 'body { margin-left: 1.2cm !important; margin-right: 1.2cm !important; }';
 
@@ -107,11 +107,11 @@ class AccountApp extends AccountDocument
                         der Schulsoftware in das Feld: "Authenticator App" ein.')
                     ->styleMarginTop('15px')
                 )
-                ->addElement((new Element\Image('/Common/Style/Resource/Document/login_app.png')))
+//                ->addElement((new Element\Image('/Common/Style/Resource/Document/login_app.png')))
                 ->addElement((new Element())
                     ->setContent('Benötigen Sie Hilfe, wenden Sie sich bitte an den schulinternen Ansprechpartner der 
                         Schulsoftware.')
-                    ->styleMarginTop('15px')
+//                    ->styleMarginTop('15px')
                 )
             );
     }

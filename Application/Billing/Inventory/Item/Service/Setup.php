@@ -78,10 +78,7 @@ class Setup extends AbstractSetup
         $this->createColumn($Table, 'Kost1', self::FIELD_TYPE_STRING);
         $this->createColumn($Table, 'Kost2', self::FIELD_TYPE_STRING);
         $this->createColumn($Table, 'BuKey', self::FIELD_TYPE_STRING);
-        //ToDo can be removed after DB update 1.8.56 on Live
-        if ($Table->hasColumn('Amount')) {
-            $Table->dropColumn('Amount');
-        }
+        $this->createColumn($Table, 'IsActive', self::FIELD_TYPE_BOOLEAN, false, true);
         $this->getConnection()->addForeignKey($Table, $tblItemType);
 
         return $Table;

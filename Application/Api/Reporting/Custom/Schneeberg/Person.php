@@ -1,15 +1,8 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: kauschke
- * Date: 16.08.2016
- * Time: 15:25
- */
-
 namespace SPHERE\Application\Api\Reporting\Custom\Schneeberg;
 
 use MOC\V\Core\FileSystem\FileSystem;
-use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Reporting\Custom\Schneeberg\Person\Person as SchneebergPerson;
 
 /**
@@ -21,26 +14,19 @@ class Person
 {
 
     /**
-     * @param null $DivisionId
+     * @param null $DivisionCourseId
      *
      * @return string|bool
      */
-    public function downloadClassList($DivisionId = null)
+    public function downloadClassList($DivisionCourseId = null)
     {
 
-        $tblDivision = Division::useService()->getDivisionById($DivisionId);
-        if ($tblDivision) {
-            $PersonList = SchneebergPerson::useService()->createClassList($tblDivision);
-            if ($PersonList) {
-
-                $fileLocation = SchneebergPerson::useService()->createClassListExcel($PersonList);
-
-                return FileSystem::getDownload($fileLocation->getRealPath(),
-                    "Klassenliste " . $tblDivision->getDisplayName()
-                    . " " . date("Y-m-d H:i:s") . ".xlsx")->__toString();
-            }
+        if(($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))
+        && !empty($TableContent = SchneebergPerson::useService()->createClassList($tblDivisionCourse))) {
+            $fileLocation = SchneebergPerson::useService()->createClassListExcel($TableContent);
+            return FileSystem::getDownload($fileLocation->getRealPath(),
+                "Klassenliste ".$tblDivisionCourse->getDisplayName()." ".date("Y-m-d").".xlsx")->__toString();
         }
-
         return false;
     }
 }

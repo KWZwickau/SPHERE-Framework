@@ -2,17 +2,24 @@
     {% if( ElementLabel is not empty ) %}
         <label>{{ ElementLabel }}{% if( Required is not empty ) %}<span class="text-danger"> *</span>{% endif %}</label>
     {% endif %}
-    {% if( ElementIcon is not empty ) %}
-    <div class="input-group">
-        <span class="input-group-addon">
-            {{ ElementIcon }}
-        </span>
-        {% endif %}
-        <input type="text" class="form-control{% if( ElementClass is not empty ) %} {{ ElementClass }}{% endif %}" name="{{ ElementName }}" placeholder="{{ ElementPlaceholder }}"
-               value="{{ ElementValue }}" {% if( Disabled is not empty ) %}disabled{% endif %} {% if( Required is not empty ) %}required{% endif %} {% if( TabIndex is not empty ) %}tabindex="{{ TabIndex }}"{% endif %}/>
-        {{ ElementFeedbackIcon }}
+    {% if( ElementIcon is not empty or ElementPrefix is not empty ) %}
+        <div class="input-group">
         {% if( ElementIcon is not empty ) %}
-    </div>
+            <span class="input-group-addon">
+                    {{ ElementIcon }}
+                </span>
+        {% endif %}
+        {% if ElementPrefix is not empty %}
+            <span class="input-group-addon input-group-prefix">
+                    {{ ElementPrefix }}
+                </span>
+        {% endif %}
+    {% endif %}
+    <input type="text" class="form-control{% if( ElementClass is not empty ) %} {{ ElementClass }}{% endif %}" name="{{ ElementName }}" placeholder="{{ ElementPlaceholder }}"
+           value="{{ ElementValue }}" {% if( Disabled is not empty ) %}disabled{% endif %} {% if( Required is not empty ) %}required{% endif %} {% if( TabIndex is not empty ) %}tabindex="{{ TabIndex }}"{% endif %}/>
+    {{ ElementFeedbackIcon }}
+    {% if( ElementIcon is not empty or ElementPrefix is not empty ) %}
+        </div>
     {% endif %}
     {{ ElementFeedbackMessage }}
 </div>

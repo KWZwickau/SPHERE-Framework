@@ -5,10 +5,9 @@ namespace SPHERE\Application\ParentStudentAccess\OnlineAbsence;
 use DateTime;
 use SPHERE\Application\Api\Education\ClassRegister\ApiAbsence;
 use SPHERE\Application\Api\ParentStudentAccess\ApiOnlineAbsence;
-use SPHERE\Application\Education\ClassRegister\Absence\Absence;
-use SPHERE\Application\Education\ClassRegister\Absence\Service\Entity\TblAbsence;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
-use SPHERE\Application\People\Meta\Student\Student;
+use SPHERE\Application\Education\Absence\Absence;
+use SPHERE\Application\Education\Absence\Service\Entity\TblAbsence;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Setting\User\Account\Account as UserAccount;
@@ -32,10 +31,8 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Primary as PrimaryLink;
 use SPHERE\Common\Frontend\Message\IMessageInterface;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
-use SPHERE\Common\Frontend\Text\Repository\Danger;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
-use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 
@@ -85,65 +82,33 @@ class Frontend extends Extension implements IFrontendInterface
         return new LayoutGroup(array(
             new LayoutRow(new LayoutColumn(
                 new Title(
-                    $tblPerson->getLastFirstName()
-                    . (($tblDivision = Student::useService()->getCurrentMainDivisionByPerson($tblPerson))
-                        ? ' ' . new Small(new Muted($tblDivision->getDisplayName()))
-                        : '')
+                    $tblPerson->getLastFirstName() . ' ' .
+                    new Small(new Muted(DivisionCourse::useService()->getCurrentMainCoursesByPersonAndDate($tblPerson)))
                 )
             )),
             new LayoutRow(new LayoutColumn(
                 (new PrimaryLink(
                     new Plus() . ' Fehlzeit hinzufügen',
                     ApiOnlineAbsence::getEndpoint()
-                ))->ajaxPipelineOnClick(ApiOnlineAbsence::pipelineOpenCreateOnlineAbsenceModal($tblPerson->getId(), $tblDivision->getId(), $Source))
+                ))->ajaxPipelineOnClick(ApiOnlineAbsence::pipelineOpenCreateOnlineAbsenceModal($tblPerson->getId(), $Source))
             )),
             new LayoutRow(new LayoutColumn(
-                ApiOnlineAbsence::receiverBlock($this->loadOnlineAbsenceTable($tblPerson, $tblDivision), 'OnlineAbsenceContent_' . $tblPerson->getId())
+                ApiOnlineAbsence::receiverBlock($this->loadOnlineAbsenceTable($tblPerson), 'OnlineAbsenceContent_' . $tblPerson->getId())
             ))
         ));
     }
 
     /**
      * @param TblPerson $tblPerson
-     * @param TblDivision $tblDivision
      *
      * @return TableData
      */
-    public function loadOnlineAbsenceTable(TblPerson $tblPerson, TblDivision $tblDivision): TableData
+    public function loadOnlineAbsenceTable(TblPerson $tblPerson): TableData
     {
-        $hasAbsenceTypeOptions = Absence::useService()->hasAbsenceTypeOptions($tblDivision);
+        $hasAbsenceTypeOptions = false;
         $tableData = array();
-        $tblAbsenceAllByPerson = Absence::useService()->getAbsenceAllByPerson($tblPerson, $tblDivision);
-        if ($tblAbsenceAllByPerson) {
-            foreach ($tblAbsenceAllByPerson as $tblAbsence) {
-                $status = '';
-                if ($tblAbsence->getStatus() == TblAbsence::VALUE_STATUS_EXCUSED) {
-                    $status = new Success('entschuldigt');
-                } elseif ($tblAbsence->getStatus() == TblAbsence::VALUE_STATUS_UNEXCUSED) {
-                    $status = new Danger('unentschuldigt');
-                }
-
-                $item = array(
-                    'FromDate' => $tblAbsence->getFromDate(),
-                    'ToDate' => $tblAbsence->getToDate(),
-                    'Days' => ($days = $tblAbsence->getDays(
-                        null,
-                        $count,
-                        ($tblCompany = $tblDivision->getServiceTblCompany()) ? $tblCompany : null)) == 1
-                        ? $days . ' ' . new Small(new Muted($tblAbsence->getWeekDay()))
-                        : $days,
-                    'Lessons' => $tblAbsence->getLessonStringByAbsence(),
-                    'Status' => $status,
-                    'PersonCreator' => $tblAbsence->getDisplayPersonCreator(),
-                    'IsCertificateRelevant' => $tblAbsence->getIsCertificateRelevant() ? 'ja' : 'nein'
-                );
-
-                if ($hasAbsenceTypeOptions) {
-                    $item['Type'] = $tblAbsence->getTypeDisplayName();
-                }
-
-                $tableData[] = $item;
-            }
+        if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndDate($tblPerson))) {
+            $tableData = Absence::useService()->getStudentAbsenceDataForParentStudentAccess($tblPerson, $tblStudentEducation, $hasAbsenceTypeOptions);
         }
 
         if ($hasAbsenceTypeOptions) {
@@ -194,7 +159,6 @@ class Frontend extends Extension implements IFrontendInterface
     /**
      * @param null $Data
      * @param null $PersonId
-     * @param null $DivisionId
      * @param null $Source
      * @param IMessageInterface|null $messageLesson
      *
@@ -203,7 +167,6 @@ class Frontend extends Extension implements IFrontendInterface
     public function formOnlineAbsence(
         $Data = null,
         $PersonId = null,
-        $DivisionId = null,
         $Source = null,
         IMessageInterface $messageLesson = null
     ): Form {
@@ -236,7 +199,7 @@ class Frontend extends Extension implements IFrontendInterface
         ));
         $formRows[] = new FormRow(array(
             new FormColumn(
-                ApiAbsence::receiverBlock(Absence::useFrontend()->loadType($PersonId, $DivisionId), 'loadType')
+                ApiAbsence::receiverBlock(Absence::useFrontend()->loadType($PersonId), 'loadType')
             )
         ));
         $formRows[] = new FormRow(array(
@@ -247,7 +210,7 @@ class Frontend extends Extension implements IFrontendInterface
         $formRows[] = new FormRow(array(
             new FormColumn(
                 (new PrimaryLink('Speichern', ApiOnlineAbsence::getEndpoint(), new Save()))
-                    ->ajaxPipelineOnClick(ApiOnlineAbsence::pipelineCreateOnlineAbsenceSave($PersonId, $DivisionId, $Source))
+                    ->ajaxPipelineOnClick(ApiOnlineAbsence::pipelineCreateOnlineAbsenceSave($PersonId, $Source))
             )
         ));
 

@@ -7,15 +7,13 @@ use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\People\Meta\Common\Common;
-use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentDisorderType;
-use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentFocusType;
 use SPHERE\Common\Frontend\Form\Repository\AbstractField;
 use SPHERE\Common\Frontend\Icon\IIconInterface;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
 use SPHERE\System\Database\Binding\AbstractService;
 use SPHERE\System\Database\Binding\AbstractView;
 
-/**
+/** @deprecated
  * @Entity
  * @Table(name="viewGroupStudentIntegration")
  * @Cache(usage="READ_ONLY")
@@ -110,19 +108,19 @@ class ViewGroupStudentIntegration extends AbstractView
     {
 
 //        //NameDefinition
-        $this->setNameDefinition(self::TBL_STUDENT_FOCUS_TYPE_MAIN_FOCUS, 'Integration: Hauptschwerpunkt');
-        $this->setNameDefinition(self::TBL_STUDENT_FOCUS_TYPE_NAME_LIST, 'Integration: Schwerpunkte');
-        $this->setNameDefinition(self::TBL_STUDENT_DISORDER_TYPE_NAME_LIST, 'Integration: Teilleistungsstörungen');
+        $this->setNameDefinition(self::TBL_STUDENT_FOCUS_TYPE_MAIN_FOCUS, 'Inklusion: Hauptschwerpunkt');
+        $this->setNameDefinition(self::TBL_STUDENT_FOCUS_TYPE_NAME_LIST, 'Inklusion: Schwerpunkte');
+        $this->setNameDefinition(self::TBL_STUDENT_DISORDER_TYPE_NAME_LIST, 'Inklusion: Teilleistungsstörungen');
 
-        $this->setNameDefinition(self::TBL_STUDENT_INTEGRATION_COACHING_REQUEST_DATE, 'Integration: Datum Förderantrag Beratung');
-        $this->setNameDefinition(self::TBL_STUDENT_INTEGRATION_COACHING_COUNSEL_DATE, 'Integration: Datum Förderantrag');
-        $this->setNameDefinition(self::TBL_STUDENT_INTEGRATION_COACHING_DECISION_DATE, 'Integration: Datum Förderbescheid SBA');
+        $this->setNameDefinition(self::TBL_STUDENT_INTEGRATION_COACHING_REQUEST_DATE, 'Inklusion: Datum Förderantrag Beratung');
+        $this->setNameDefinition(self::TBL_STUDENT_INTEGRATION_COACHING_COUNSEL_DATE, 'Inklusion: Datum Förderantrag');
+        $this->setNameDefinition(self::TBL_STUDENT_INTEGRATION_COACHING_DECISION_DATE, 'Inklusion: Datum Förderbescheid SBA');
 
-        $this->setNameDefinition(self::TBL_STUDENT_INTEGRATION_COACHING_REQUIRED, 'Integration: Förderbedarf');
-        $this->setNameDefinition(self::TBL_STUDENT_INTEGRATION_COACHING_TIME, 'Integration: Stundenbedarf pro Woche');
-        $this->setNameDefinition(self::TBL_STUDENT_INTEGRATION_COACHING_REMARK, 'Integration: Bemerkung');
+        $this->setNameDefinition(self::TBL_STUDENT_INTEGRATION_COACHING_REQUIRED, 'Inklusion: Förderbedarf');
+        $this->setNameDefinition(self::TBL_STUDENT_INTEGRATION_COACHING_TIME, 'Inklusion: Stundenbedarf pro Woche');
+        $this->setNameDefinition(self::TBL_STUDENT_INTEGRATION_COACHING_REMARK, 'Inklusion: Bemerkung');
 //        $this->setNameDefinition(self::TBL_SALUTATION_SALUTATION_COACH, 'Integration: Anrede Schulbegleitung');
-        $this->setNameDefinition(self::TBL_PERSON_COACH, 'Integration: Schulbegleitung');
+        $this->setNameDefinition(self::TBL_PERSON_COACH, 'Inklusion: Schulbegleitung');
 
 //        //GroupDefinition
         $this->setGroupDefinition('&nbsp;', array(
@@ -172,18 +170,6 @@ class ViewGroupStudentIntegration extends AbstractView
     {
 
         switch ($PropertyName) {
-            case self::TBL_STUDENT_FOCUS_TYPE_MAIN_FOCUS:
-                $Data = Common::useService()->getPropertyList(new TblStudentFocusType(), TblStudentFocusType::ATTR_NAME);
-                $Field = $this->getFormFieldAutoCompleter($Data, $PropertyName, $Label, $Icon, $doResetCount);
-                break;
-            case self::TBL_STUDENT_FOCUS_TYPE_NAME_LIST:
-                $Data = Common::useService()->getPropertyList(new TblStudentFocusType(), TblStudentFocusType::ATTR_NAME);
-                $Field = $this->getFormFieldAutoCompleter($Data, $PropertyName, $Label, $Icon, $doResetCount);
-                break;
-            case self::TBL_STUDENT_DISORDER_TYPE_NAME_LIST:
-                $Data = Common::useService()->getPropertyList(new TblStudentDisorderType(), TblStudentDisorderType::ATTR_NAME);
-                $Field = $this->getFormFieldAutoCompleter($Data, $PropertyName, $Label, $Icon, $doResetCount);
-                break;
             case self::TBL_STUDENT_INTEGRATION_COACHING_REQUIRED:
                 $Data[1] = 'Ja';
                 $Data[2] = 'Nein';

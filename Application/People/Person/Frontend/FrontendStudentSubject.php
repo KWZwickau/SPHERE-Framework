@@ -9,14 +9,10 @@
 namespace SPHERE\Application\People\Person\Frontend;
 
 use SPHERE\Application\Api\MassReplace\ApiMassReplace;
-use SPHERE\Application\Api\MassReplace\StudentFilter;
 use SPHERE\Application\Api\People\Meta\Subject\MassReplaceSubject;
 use SPHERE\Application\Api\People\Person\ApiPersonEdit;
-use SPHERE\Application\Education\Lesson\Division\Division;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\ViewDivisionStudent;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
-use SPHERE\Application\Education\Lesson\Term\Service\Entity\ViewYear;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudent;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubject;
 use SPHERE\Application\People\Meta\Student\Student;
@@ -86,14 +82,14 @@ class FrontendStudentSubject  extends FrontendReadOnly
                         } else {
                             $text = $tblSubject->getDisplayName();
                         }
-                        $fromLevel = $tblStudentSubject->getServiceTblLevelFrom();
-                        $tillLevel = $tblStudentSubject->getServiceTblLevelTill();
+                        $fromLevel = $tblStudentSubject->getLevelFrom();
+                        $tillLevel = $tblStudentSubject->getLevelTill();
                         if ($fromLevel || $tillLevel) {
                             $text .= new Container(
                                 '(ab '
-                                . ($fromLevel ? $fromLevel->getName() : '&ndash;')
+                                . ($fromLevel ?: '&ndash;')
                                 . '. bis '
-                                . ($tillLevel ? $tillLevel->getName() : '&ndash;')
+                                . ($tillLevel ?: '&ndash;')
                                 . '.)'
                             );
                         }
@@ -298,7 +294,6 @@ class FrontendStudentSubject  extends FrontendReadOnly
             $tblSubjectAll = array(new TblSubject());
         }
 
-        FrontendStudent::setYearAndDivisionForMassReplace($tblPerson, $Year, $Division);
         $tblStudent = $tblPerson->getStudent();
 
         $tblStudentSubjectTypeOrientation = Student::useService()->getStudentSubjectTypeByIdentifier('ORIENTATION');
@@ -308,27 +303,24 @@ class FrontendStudentSubject  extends FrontendReadOnly
                 new FormRow(array(
                     new FormColumn(array(
                         $this->panelSubjectList('FOREIGN_LANGUAGE', 'Fremdsprachen', 'Fremdsprache',
-                            $tblSubjectForeignLanguage, 4, ($tblStudent ? $tblStudent : null), $Year, $Division, $tblPerson),
+                            $tblSubjectForeignLanguage, 4, ($tblStudent ? $tblStudent : null), $tblPerson),
                     ), 3),
                     new FormColumn(array(
                         $this->panelSubjectList('RELIGION', 'Religion', 'Religion', $tblSubjectReligion, 1,
-                            ($tblStudent ? $tblStudent : null), $Year,
-                            $Division, $tblPerson),
+                            ($tblStudent ? $tblStudent : null), $tblPerson),
                         $this->panelSubjectList('PROFILE', 'Profile', 'Profil', $tblSubjectProfile, 1,
-                            ($tblStudent ? $tblStudent : null), $Year,
-                            $Division, $tblPerson),
+                            ($tblStudent ? $tblStudent : null), $tblPerson),
                         $this->panelSubjectList('ORIENTATION', $tblStudentSubjectTypeOrientation->getName() . 'e',
                             $tblStudentSubjectTypeOrientation->getName(), $tblSubjectOrientation, 1,
-                            ($tblStudent ? $tblStudent : null), $Year, $Division, $tblPerson),
+                            ($tblStudent ? $tblStudent : null), $tblPerson),
                     ), 3),
                     new FormColumn(array(
                         $this->panelSubjectList('ELECTIVE', 'Wahlfächer', 'Wahlfach', $tblSubjectElective, 5,
-                            ($tblStudent ? $tblStudent : null), $Year,
-                            $Division, $tblPerson),
+                            ($tblStudent ? $tblStudent : null), $tblPerson),
                     ), 3),
                     new FormColumn(array(
                         $this->panelSubjectList('TEAM', 'Arbeitsgemeinschaften', 'Arbeitsgemeinschaft', $tblSubjectAll, 5,
-                            ($tblStudent ? $tblStudent : null), $Year, $Division, $tblPerson),
+                            ($tblStudent ? $tblStudent : null), $tblPerson),
                     ), 3),
                 )),
                 new FormRow(array(
@@ -363,8 +355,6 @@ class FrontendStudentSubject  extends FrontendReadOnly
         $SubjectList,
         $Count = 1,
         TblStudent $tblStudent = null,
-        $Year = array(),
-        $Division = array(),
         TblPerson $tblPerson = null
     ) {
 
@@ -411,15 +401,9 @@ class FrontendStudentSubject  extends FrontendReadOnly
                         ApiMassReplace::getEndpoint(), null, array(
                             ApiMassReplace::SERVICE_CLASS                                   => MassReplaceSubject::CLASS_MASS_REPLACE_SUBJECT,
                             ApiMassReplace::SERVICE_METHOD                                  => MassReplaceSubject::METHOD_REPLACE_SUBJECT,
-                            ApiMassReplace::USE_FILTER                                      => StudentFilter::STUDENT_FILTER,
                             MassReplaceSubject::ATTR_TYPE                                   => $tblStudentSubjectType->getId(),
                             MassReplaceSubject::ATTR_RANKING                                => $tblStudentSubjectRanking->getId(),
                             'Id'                                                            => $PersonId,
-                            'Year['.ViewYear::TBL_YEAR_ID.']'                               => $Year[ViewYear::TBL_YEAR_ID],
-                            'Division['.ViewDivisionStudent::TBL_LEVEL_ID.']'               => $Division[ViewDivisionStudent::TBL_LEVEL_ID],
-                            'Division['.ViewDivisionStudent::TBL_DIVISION_NAME.']'          => $Division[ViewDivisionStudent::TBL_DIVISION_NAME],
-                            'Division['.ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE.']' => $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE],
-                            'Node'                                                          => $Node,
                         )))->ajaxPipelineOnClick(
                         ApiMassReplace::pipelineOpen($Field, $Node)
                     ))
@@ -435,41 +419,27 @@ class FrontendStudentSubject  extends FrontendReadOnly
             }
             // Student FOREIGN_LANGUAGE: LevelFrom, LevelTill
             if ($tblStudentSubjectType->getIdentifier() == 'FOREIGN_LANGUAGE') {
-                $tblLevelAll = Division::useService()->getLevelAll();
-
-                // Gespeicherte Daten ergänzen wenn nicht bereits vorhanden
-                $useLevelFromList = $tblLevelAll;
-                $useLevelTillList = $tblLevelAll;
-                if ($tblStudentSubject && ($tblLevelFrom = $tblStudentSubject->getServiceTblLevelFrom())) {
-                    if (!array_key_exists($tblLevelFrom->getId(), $tblLevelAll)) {
-                        $tblLevelFromList = array($tblLevelFrom->getId() => $tblLevelFrom);
-                        $useLevelFromList = array_merge($tblLevelAll, $tblLevelFromList);
-                    }
+                $levelList = array();
+                $levelList[0] = '-[ Nicht ausgewählt ]-';
+                for ($i = 1; $i < 14; $i++) {
+                    $levelList[$i] = $i;
                 }
-                if ($tblStudentSubject && ($tblLevelTill = $tblStudentSubject->getServiceTblLevelTill())) {
-                    if (!array_key_exists($tblLevelTill->getId(), $tblLevelAll)) {
-                        $tblLevelTillList = array($tblLevelTill->getId() => $tblLevelTill);
-                        $useLevelTillList = array_merge($tblLevelAll, $tblLevelTillList);
-                    }
-                }
-
 
                 // Read StudentSubject Levels from DB
                 if ($tblStudent) {
-                    $tblStudentSubjectAll = Student::useService()
-                        ->getStudentSubjectAllByStudentAndSubjectType($tblStudent, $tblStudentSubjectType);
+                    $tblStudentSubjectAll = Student::useService()->getStudentSubjectAllByStudentAndSubjectType($tblStudent, $tblStudentSubjectType);
                     if ($tblStudentSubjectAll) {
                         foreach ($tblStudentSubjectAll as $tblStudentSubject) {
                             // TblStudentSubject Rank == Panel Rank
                             if ($tblStudentSubject->getTblStudentSubjectRanking()->getId() == $Rank) {
                                 $Global = $this->getGlobal();
-                                if ($tblStudentSubject->getServiceTblLevelFrom()) {
+                                if ($tblStudentSubject->getLevelFrom()) {
                                     $Global->POST['Meta']['SubjectLevelFrom'][$tblStudentSubjectType->getId()][$tblStudentSubjectRanking->getId()]
-                                        = $tblStudentSubject->getServiceTblLevelFrom()->getId();
+                                        = $tblStudentSubject->getLevelFrom();
                                 }
-                                if ($tblStudentSubject->getServiceTblLevelTill()) {
+                                if ($tblStudentSubject->getLevelTill()) {
                                     $Global->POST['Meta']['SubjectLevelTill'][$tblStudentSubjectType->getId()][$tblStudentSubjectRanking->getId()]
-                                        = $tblStudentSubject->getServiceTblLevelTill()->getId();
+                                        = $tblStudentSubject->getLevelTill();
                                 }
                                 $Global->savePost();
                             }
@@ -481,22 +451,16 @@ class FrontendStudentSubject  extends FrontendReadOnly
                     $Field = new SelectBox(
                         'Meta[SubjectLevelFrom]['.$tblStudentSubjectType->getId().']['.$tblStudentSubjectRanking->getId().']',
                         new Muted(new Small($tblStudentSubjectRanking->getName() . ' Fremdsprache von Klasse')),
-                        array('{{ Name }} {{ ServiceTblType.Name }}' => $useLevelFromList),
+                        $levelList,
                         new Time())))
                     .ApiMassReplace::receiverModal($Field, $Node)
                     .new PullRight((new Link('Massen-Änderung',
                         ApiMassReplace::getEndpoint(), null, array(
                             ApiMassReplace::SERVICE_CLASS                                   => MassReplaceSubject::CLASS_MASS_REPLACE_SUBJECT,
                             ApiMassReplace::SERVICE_METHOD                                  => MassReplaceSubject::METHOD_REPLACE_LEVEL_FROM,
-                            ApiMassReplace::USE_FILTER                                      => StudentFilter::STUDENT_FILTER,
                             MassReplaceSubject::ATTR_TYPE                                   => $tblStudentSubjectType->getId(),
                             MassReplaceSubject::ATTR_RANKING                                => $tblStudentSubjectRanking->getId(),
                             'Id'                                                            => $PersonId,
-                            'Year['.ViewYear::TBL_YEAR_ID.']'                               => $Year[ViewYear::TBL_YEAR_ID],
-                            'Division['.ViewDivisionStudent::TBL_LEVEL_ID.']'               => $Division[ViewDivisionStudent::TBL_LEVEL_ID],
-                            'Division['.ViewDivisionStudent::TBL_DIVISION_NAME.']'          => $Division[ViewDivisionStudent::TBL_DIVISION_NAME],
-                            'Division['.ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE.']' => $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE],
-                            'Node'                                                          => $Node,
                         )))->ajaxPipelineOnClick(
                         ApiMassReplace::pipelineOpen($Field, $Node)
                     ))
@@ -506,22 +470,16 @@ class FrontendStudentSubject  extends FrontendReadOnly
                     $Field = new SelectBox(
                         'Meta[SubjectLevelTill]['.$tblStudentSubjectType->getId().']['.$tblStudentSubjectRanking->getId().']',
                         new Muted(new Small($tblStudentSubjectRanking->getName() . ' Fremdsprache bis Klasse')),
-                        array('{{ Name }} {{ ServiceTblType.Name }}' => $useLevelTillList),
+                        $levelList,
                         new Time())))
                     .ApiMassReplace::receiverModal($Field, $Node)
                     .new PullRight((new Link('Massen-Änderung',
                         ApiMassReplace::getEndpoint(), null, array(
                             ApiMassReplace::SERVICE_CLASS                                   => MassReplaceSubject::CLASS_MASS_REPLACE_SUBJECT,
                             ApiMassReplace::SERVICE_METHOD                                  => MassReplaceSubject::METHOD_REPLACE_LEVEL_TILL,
-                            ApiMassReplace::USE_FILTER                                      => StudentFilter::STUDENT_FILTER,
                             MassReplaceSubject::ATTR_TYPE                                   => $tblStudentSubjectType->getId(),
                             MassReplaceSubject::ATTR_RANKING                                => $tblStudentSubjectRanking->getId(),
                             'Id'                                                            => $PersonId,
-                            'Year['.ViewYear::TBL_YEAR_ID.']'                               => $Year[ViewYear::TBL_YEAR_ID],
-                            'Division['.ViewDivisionStudent::TBL_LEVEL_ID.']'               => $Division[ViewDivisionStudent::TBL_LEVEL_ID],
-                            'Division['.ViewDivisionStudent::TBL_DIVISION_NAME.']'          => $Division[ViewDivisionStudent::TBL_DIVISION_NAME],
-                            'Division['.ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE.']' => $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE],
-                            'Node'                                                          => $Node,
                         )))->ajaxPipelineOnClick(
                         ApiMassReplace::pipelineOpen($Field, $Node)
                     ))

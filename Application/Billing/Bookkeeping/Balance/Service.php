@@ -29,7 +29,7 @@ use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Mail\Mail;
 use SPHERE\Application\Document\Storage\FilePointer;
 use SPHERE\Application\Document\Storage\Storage;
-use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -72,7 +72,7 @@ class Service extends AbstractService
     public function getPriceString($Value)
     {
 
-        return number_format($Value, 2, ',', '').' €';
+        return number_format($Value, 2, ',', '.').' €';
     }
 
     /**
@@ -129,7 +129,7 @@ class Service extends AbstractService
      * @param string  $BasketTypeId
      * @param string  $MonthFrom
      * @param string  $MonthTo
-     * @param string  $DivisionId
+     * @param string  $DivisionCourseId
      * @param string  $GroupId
      * @param array   $PriceList
      *
@@ -141,7 +141,7 @@ class Service extends AbstractService
         $BasketTypeId = '',
         $MonthFrom = '1',
         $MonthTo = '12',
-        $DivisionId = '0',
+        $DivisionCourseId = '0',
         $GroupId = '0',
         $PriceList = array()
     ){
@@ -154,6 +154,7 @@ class Service extends AbstractService
                 $PersonDebtorId = isset($RowContent['PersonDebtorId']) ? $RowContent['PersonDebtorId'] : false;
                 $PersonCauserId = isset($RowContent['PeronCauserId']) ? $RowContent['PeronCauserId'] : false;
                 $timeString = isset($RowContent['Year']) && isset($RowContent['Month']) ? $RowContent['Year'].'/'.$RowContent['Month'] : false;
+                $BillTimeString = isset($RowContent['BillTime'])?$RowContent['BillTime']->format('d.m.Y'): '';
                 if($PersonDebtorId && $PersonCauserId && $timeString){
                     if(isset($RowContent['IsPaid']) && $RowContent['IsPaid'] && $BasketTypeId != '-1'){
                         $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['Sum'][] = $RowContent['Value'];
@@ -162,13 +163,26 @@ class Service extends AbstractService
                         if($RowContent['BasketTypeId'] == $tblBasketTypeA->getId()){
                             $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['Sum'][] = $RowContent['Value'];
                             $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['Price'][$timeString] = $RowContent['Value'];
+                            // Preisliste mit Datum BillTime
+                            $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['PriceTable']['Date'][] = $BillTimeString;
+                            $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['PriceTable']['Price'][] = $this->getPriceString($RowContent['Value']);
                         }
                         if($RowContent['BasketTypeId'] == $tblBasketTypeB->getId()){
                             $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['Sum'][] = $RowContent['Value'] * -1;
                             $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['PriceSub'][$timeString] = $RowContent['Value'];
+                            // Preisliste mit Datum BillTime
+                            $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['PriceTable']['Date'][] = $BillTimeString;
+                            $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['PriceTable']['Price'][] = $this->getPriceString($RowContent['Value']);
                         }
                     } else {
                         $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['PriceMissing'][$timeString] = $RowContent['Value'];
+                    }
+
+                    // Rechnungsnummer Liste
+                    if(!isset($PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['InvoiceNumberList'])
+                        || !in_array($RowContent['InvoiceNumber'], $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['InvoiceNumberList'])){
+                        $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['InvoiceNumberList'][] = $RowContent['InvoiceNumber'];
+                        $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['InvoiceNumber'] = implode('; ', $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['InvoiceNumberList']);
                     }
                 }
             }
@@ -189,8 +203,8 @@ class Service extends AbstractService
         }
 
         // use only division matched Person's
-        if(!empty($PriceList) && $DivisionId !== '0' && ($tblDivision = Division::useService()->getDivisionById($DivisionId))){
-            $tblPersonList = Division::useService()->getPersonAllByDivisionList(array($tblDivision));
+        if(!empty($PriceList) && $DivisionCourseId !== '0' && ($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))){
+            $tblPersonList = $tblDivisionCourse->getStudents();
             foreach($PriceList as &$DebtorList){
                 foreach($DebtorList as $CauserId => &$Content){
                     $tblPersonCauser = Person::useService()->getPersonById($CauserId);
@@ -205,7 +219,7 @@ class Service extends AbstractService
             $PriceList = array_filter($PriceList);
         }
 
-        // use only division matched Person's
+        // use only Group matched Person's
         if(!empty($PriceList) && $GroupId !== '0' && ($tblGroup = Group::useService()->getGroupById($GroupId))){
             foreach($PriceList as &$DebtorList){
                 foreach($DebtorList as $CauserId => &$Content){
@@ -331,20 +345,19 @@ class Service extends AbstractService
     }
 
     /**
-     * @param array $PriceList
+     * @param array $PriceSum
      * @param array TblItem[] $tblItemList
      *
      * @return bool|FilePointer
      * @throws DocumentTypeException
      * @throws TypeFileException
-     * @throws \PHPExcel_Reader_Exception
      */
-    public function createBalanceListExcel($PriceList, $tblItemList = array())
+    public function createBalanceListExcel($PriceSum, $tblItemList = array(), $From = 1, $To = 12, $isMonthly = false)
     {
 
         $PersonList = array();
-        if(!empty($PriceList)){
-            foreach($PriceList as $DebtorId => $CauserList) {
+        if(!empty($PriceSum)){
+            foreach($PriceSum as $DebtorId => $CauserList) {
                 if(($tblPersonDebtor = Person::useService()->getPersonById($DebtorId))){
                     $MailListDebtor = array();
                     if(($tblToPersonList = Mail::useService()->getMailAllByPerson($tblPersonDebtor))){
@@ -403,13 +416,33 @@ class Service extends AbstractService
 
                             // Gesamt
                             $Summary = 0;
+                            $Item['PaymentList'] = array();
                             foreach($ItemContent as $ItemId => $value){
                                 if(($tblItem = Item::useService()->getItemById($ItemId))){
                                     $Item['Id'.$tblItem->getId()] = Balance::useService()->getPriceString($value['Sum']);
-                                    // Gesammt addieren
+                                    // Gesamt addieren
                                     $Summary += $value['Sum'];
+                                    if($isMonthly && !empty($value['Price'])){
+                                        foreach($value['Price'] as $BillTime => $Price){
+                                            $Month = substr($BillTime, 5,2);
+//                                            $Month = (int)(new \DateTime($Key))->format('m');
+                                            $Item['PaymentList']['Id'.$tblItem->getId()][$Month] = $Price;
+                                        }
+                                        if(isset($value['PriceSub'])){
+                                            foreach($value['PriceSub'] as $BillTime2 => $PriceSub){
+                                                $Month = substr($BillTime2, 5,2);
+                                                if(isset($Item['PaymentList']['Id'.$tblItem->getId()][$Month])) {
+                                                    $Item['PaymentList']['Id'.$tblItem->getId()][$Month] =
+                                                        $Item['PaymentList']['Id'.$tblItem->getId()][$Month] - $PriceSub;
+                                                } else {
+                                                    $Item['PaymentList']['Id'.$tblItem->getId()][$Month] = $PriceSub * -1;
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
                             }
+
                             $Summary = Balance::useService()->getPriceString($Summary);
                             $Item['Summary'] = $Summary;
 
@@ -449,6 +482,11 @@ class Service extends AbstractService
             $export->setValue($export->getCell($column++, $row), "Stadt");
             $export->setValue($export->getCell($column++, $row), "Ortsteil");
             foreach($tblItemList as $tblItem){
+                if(!empty(current($PersonList)['PaymentList'])){
+                    for($i = $From; $i <= $To; $i++){
+                        $export->setValue($export->getCell($column++, $row), $tblItem->getName().'_'.$i);
+                    }
+                }
                 $export->setValue($export->getCell($column++, $row), $tblItem->getName());
             }
             $export->setValue($export->getCell($column++, $row), "Gesamt");
@@ -475,8 +513,28 @@ class Service extends AbstractService
 
                 foreach($tblItemList as $tblItem){
                     if(isset($PersonData['Id'.$tblItem->getId()])){
+                        if($isMonthly){
+                            for($j = $From; $j <= $To; $j++){
+                                // Monthly columns (can be unset)
+                                if(isset($PersonData['PaymentList']['Id'.$tblItem->getId()][$j])
+                                && ($TempPrice = $PersonData['PaymentList']['Id'.$tblItem->getId()][$j])){
+                                    $TempPrice = $this->getPriceString($TempPrice);
+                                    $export->setValue($export->getCell($column++, $row), $TempPrice);
+                                }  else {
+                                    $export->setValue($export->getCell($column++, $row), '');
+                                }
+                            }
+                        }
+                        // Summary
                         $export->setValue($export->getCell($column++, $row), $PersonData['Id'.$tblItem->getId()]);
                     } else {
+                        if($isMonthly){
+                            for($j = $From; $j <= $To; $j++){
+                                // Monthly columns
+                                $export->setValue($export->getCell($column++, $row), '');
+                            }
+                        }
+                        // Summary
                         $export->setValue($export->getCell($column++, $row), '');
                     }
                 }
@@ -536,6 +594,7 @@ class Service extends AbstractService
 
         if ($ResultList){
             foreach ($ResultList as $Key => $RowContent) {
+                $BillTimeString = isset($RowContent['BillTime'])?$RowContent['BillTime']->format('d.m.Y'): '';
                 $PersonDebtorId = isset($RowContent['PersonDebtorId']) ? $RowContent['PersonDebtorId'] : false;
                 $PersonCauserId = isset($RowContent['PeronCauserId']) ? $RowContent['PeronCauserId'] : false;
                 $timeString = isset($RowContent['Year']) && isset($RowContent['Month']) ? $RowContent['Year'].'/'.$RowContent['Month'] : false;
@@ -547,13 +606,25 @@ class Service extends AbstractService
                         if ($RowContent['BasketTypeId'] == $tblBasketTypeA->getId()){
                             $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['Sum'][] = $RowContent['Value'];
                             $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['Price'][$timeString] = $RowContent['Value'];
+                            // Preisliste mit Datum BillTime
+                            $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['PriceTable']['Date'][] = $BillTimeString;
+                            $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['PriceTable']['Price'][] = $this->getPriceString($RowContent['Value']);
                         }
                         if ($RowContent['BasketTypeId'] == $tblBasketTypeB->getId()){
                             $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['Sum'][] = $RowContent['Value'] * -1;
                             $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['PriceSub'][$timeString] = $RowContent['Value'];
+                            // Preisliste mit Datum BillTime
+                            $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['PriceTable']['Date'][] = $BillTimeString;
+                            $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['PriceTable']['Price'][] = $this->getPriceString($RowContent['Value']);
                         }
                     } else {
                         $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['PriceMissing'][$timeString] = $RowContent['Value'];
+                    }
+                    // Rechnungsnummer Liste
+                    if(!isset($PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['InvoiceNumberList'])
+                        || !in_array($RowContent['InvoiceNumber'], $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['InvoiceNumberList'])){
+                        $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['InvoiceNumberList'][] = $RowContent['InvoiceNumber'];
+                        $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['InvoiceNumber'] = implode('; ', $PriceList[$PersonDebtorId][$PersonCauserId][$tblItem->getId()]['InvoiceNumberList']);
                     }
                 }
             }
@@ -582,6 +653,46 @@ class Service extends AbstractService
                 }
             }
         }
+        return $PriceList;
+    }
+
+    /**
+     * @param array $PriceList
+     *
+     * @return array
+     */
+    public function getItemPriceForMonth(array $PriceList)
+    {
+
+        $spaceLeft = '100px';
+        $columnWith = '85px';
+        if(!empty($PriceList)){
+            foreach($PriceList as &$DebtorContent) {
+                foreach($DebtorContent as &$CauserContent) {
+                    foreach($CauserContent as &$ItemContent) {
+                        // convert to Output
+                        if(!empty($ItemContent['PriceTable'])){
+                            $content = '<table><tbody>';
+                            $content.= '<tr>
+                                            <th style="width: '.$spaceLeft.'"></th>
+                                            <th>Rechnungsdatum</th>
+                                            <th style="width: '.$columnWith.'; text-align: right">Preis</th>
+                                        </tr>';
+                            foreach($ItemContent['PriceTable']['Date'] as $Key => $Date){
+                                $content.= '<tr>
+                                                <td>&nbsp;</td>
+                                                <td>'.$Date.'</td>
+                                                <td style="width: '.$columnWith.'; text-align: right">'.$ItemContent['PriceTable']['Price'][$Key].'</td>
+                                            </tr>';
+                            }
+                            $content.= '</tbody></table>';
+                            $ItemContent['PriceTableString'] = $content;
+                        }
+                    }
+                }
+            }
+        }
+
         return $PriceList;
     }
 
@@ -638,7 +749,29 @@ class Service extends AbstractService
             $export = Document::getDocument($fileLocation->getFileLocation());
             // Auswahl des Trennzeichen's
             $export->setDelimiter(';');
-            $YearBegin = $tblBasket->getBillYear().'0101';
+            // Wirtschaftsjahr
+            // Standard sollte immer überschrieben werden
+            $EconomicDateString = '0101';
+            $BillDate = new \DateTime($tblBasket->getBillTime());
+            $Day = (int)$BillDate->format('d');
+            $Month = (int)$BillDate->format('m');
+            $Year = (int)$BillDate->format('Y');
+            // Start Datum aus den Einstellungen
+            if(($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_ECONOMIC_DATE))){
+                $EconomicDate = new \DateTime($tblSetting->getValue());
+                // Rechnung vor Abrechnungsstart (Monat) dann geht datev auf das alte Jahr
+                if($Month < (int)$EconomicDate->format('m')){
+                    $Year = $Year - 1;
+                }
+                // Bei gleichem Monat Tag-Prüfung
+                if($Month == (int)$EconomicDate->format('m')
+                && $Day < (int)$EconomicDate->format('d')){
+                    $Year = $Year - 1;
+                }
+                $EconomicDateString = $EconomicDate->format('md');
+            }
+
+            $YearBegin = $Year.$EconomicDateString;
             $BookingFrom = $tblBasket->getBillYearMonth();
             $BookingTo = $tblBasket->getBillYearMonth(true);
 
@@ -997,7 +1130,8 @@ class Service extends AbstractService
             foreach($tblInvoiceList as $tblInvoice){
                 if(($InvoiceItemDebtorList = Invoice::useService()->getInvoiceItemDebtorByInvoice($tblInvoice))){
                     foreach($InvoiceItemDebtorList as $InvoiceItemDebtor){
-                        if($InvoiceItemDebtor->getServiceTblPaymentType()->getId() == $SepaPaymentType->getId()){
+                        if($InvoiceItemDebtor->getServiceTblPaymentType()->getId() == $SepaPaymentType->getId()
+                        && $InvoiceItemDebtor->getIsPaid()){
                             $IsSepaReady = true;
                             break;
                         }
@@ -1447,9 +1581,9 @@ class Service extends AbstractService
 
             // Bearbeitung der in der Abrechnung liegenden Posten
             foreach($tblInvoiceList as $tblInvoice){
-                $PaymentId = $tblInvoice->getInvoiceNumber().'-';
-                $countSepaPayment = 0;
-
+                if($InvoiceCount == 0) {
+                    $PaymentId = $tblInvoice->getInvoiceNumber().'-';
+                }
                 $tblInvoiceItemDebtorList = Invoice::useService()->getInvoiceItemDebtorByInvoice($tblInvoice);
                 // Dient nur der SEPA-Prüfung
                 // Gutschriften sollen anhand vorhandener Kontodaten gewählt werden
@@ -1458,7 +1592,6 @@ class Service extends AbstractService
                     foreach ($tblInvoiceItemDebtorList as &$tblInvoiceItemDebtorCheck) {
                         if ($tblInvoiceItemDebtorCheck->getServiceTblBankAccount()){
                             $usedTblInvoiceItemDebtorList[] = $tblInvoiceItemDebtorCheck;
-                            $countSepaPayment++;
                         }
                     }
                 }
@@ -1468,10 +1601,13 @@ class Service extends AbstractService
                 }
 //                // entfernen der false Werte
 //                $tblInvoiceItemDebtorList = array_filter($tblInvoiceItemDebtorList);
-                $InvoiceCount++;
-                if(!empty($usedTblInvoiceItemDebtorList)){
+                if(!empty($usedTblInvoiceItemDebtorList) && $InvoiceCount == 0){
                     $this->addCompanyPayment($customerCredit, $tblInvoice, $PaymentId, $tblInvoiceCreditor);
                     $this->addCompanyTransfer($customerCredit, $usedTblInvoiceItemDebtorList, $PaymentId);
+                    $InvoiceCount++;
+                } elseif(!empty($usedTblInvoiceItemDebtorList)) {
+                    $this->addCompanyTransfer($customerCredit, $usedTblInvoiceItemDebtorList, $PaymentId);
+                    $InvoiceCount++;
                 }
             }
         }

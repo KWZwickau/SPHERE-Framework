@@ -157,6 +157,9 @@ class Frontend extends Extension implements IFrontendInterface
             $Extension = strtolower($File->getClientOriginalExtension());
 
             $Payload = new FilePointer($Extension);
+            // ToDO eventuell wird hier auch das encoding benötigt.
+//            $fileContent = file_get_contents($File->getRealPath());
+//            $Payload->setFileContentWithEncoding($fileContent);
             $Payload->setFileContent(file_get_contents($File->getRealPath()));
             $Payload->saveFile();
 
@@ -286,7 +289,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new Success('Import wurde erfolgreich durchgeführt.')
                     ),
                     new LayoutColumn(
-                        new Redirect('/Billing/Inventory', Redirect::TIMEOUT_SUCCESS)
+                        new Redirect('/Billing/Inventory/Import', Redirect::TIMEOUT_SUCCESS)
                     )
                 ))
             )

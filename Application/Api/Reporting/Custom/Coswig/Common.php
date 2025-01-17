@@ -2,7 +2,7 @@
 namespace SPHERE\Application\Api\Reporting\Custom\Coswig;
 
 use MOC\V\Core\FileSystem\FileSystem;
-use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Reporting\Custom\Coswig\Person\Person;
 
 /**
@@ -14,26 +14,20 @@ class Common
 {
 
     /**
-     * @param null $DivisionId
+     * @param null $DivisionCourseId
      *
      * @return string|bool
      */
-    public function downloadClassList($DivisionId = null)
+    public function downloadClassList($DivisionCourseId = null)
     {
 
-        $tblDivision = Division::useService()->getDivisionById($DivisionId);
-        if ($tblDivision) {
-            $PersonList = Person::useService()->createClassList($tblDivision);
-            if ($PersonList) {
-                $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
-                if ($tblPersonList) {
-                    $fileLocation = Person::useService()->createClassListExcel($PersonList, $tblPersonList);
-
-                    return FileSystem::getDownload($fileLocation->getRealPath(),
-                        "Coswig Klassenliste ".$tblDivision->getDisplayName()
-                        ." ".date("Y-m-d H:i:s").".xlsx")->__toString();
-                }
-            }
+        if(($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))
+        && ($TableContent = Person::useService()->createClassList($tblDivisionCourse))
+        && ($tblPersonList = $tblDivisionCourse->getStudents())) {
+            $fileLocation = Person::useService()->createClassListExcel($TableContent, $tblPersonList);
+            return FileSystem::getDownload($fileLocation->getRealPath(),
+                "Coswig Klassenliste ".$tblDivisionCourse->getDisplayName()
+                ." ".date("Y-m-d").".xlsx")->__toString();
         }
         return false;
     }

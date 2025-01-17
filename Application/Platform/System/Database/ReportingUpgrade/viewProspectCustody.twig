@@ -153,14 +153,14 @@ SELECT
     (select group_concat(concat(vCP.TblPhone_Number) separator ';\n')
         from {{ ConsumerAcronym }}_SettingConsumer.viewContactPhone vCP
         WHERE vCP.TblPerson_Id = TblPerson_S1_Id
-        and vCP.TblType_Name = 'Notfall'
+        and vCP.TblType_Is_Emergency_Contact = 1
         and vCP.TblType_Description = 'Festnetz'
     ) TblPhone_Number_NF_S1,
 
     (select group_concat(concat(vCP.TblPhone_Number) separator ';\n')
         from {{ ConsumerAcronym }}_SettingConsumer.viewContactPhone vCP
         WHERE vCP.TblPerson_Id = TblPerson_S1_Id
-        and vCP.TblType_Name = 'Notfall'
+        and vCP.TblType_Is_Emergency_Contact = 1
         and vCP.TblType_Description = 'Mobil'
     ) TblPhone_Number_NM_S1,
 
@@ -373,14 +373,14 @@ SELECT
     (select group_concat(concat(vCP.TblPhone_Number) separator ';\n')
         from {{ ConsumerAcronym }}_SettingConsumer.viewContactPhone vCP
         WHERE vCP.TblPerson_Id = TblPerson_S2_Id
-        and vCP.TblType_Name = 'Notfall'
+        and vCP.TblType_Is_Emergency_Contact = 1
         and vCP.TblType_Description = 'Festnetz'
     ) TblPhone_Number_NF_S2,
 
     (select group_concat(concat(vCP.TblPhone_Number) separator ';\n')
         from {{ ConsumerAcronym }}_SettingConsumer.viewContactPhone vCP
         WHERE vCP.TblPerson_Id = TblPerson_S2_Id
-        and vCP.TblType_Name = 'Notfall'
+        and vCP.TblType_Is_Emergency_Contact = 1
         and vCP.TblType_Description = 'Mobil'
     ) TblPhone_Number_NM_S2,
 
@@ -599,14 +599,14 @@ SELECT
     (select group_concat(concat(vCP.TblPhone_Number) separator ';\n')
         from {{ ConsumerAcronym }}_SettingConsumer.viewContactPhone vCP
         WHERE vCP.TblPerson_Id = TblPerson_S3_Id
-        and vCP.TblType_Name = 'Notfall'
+        and vCP.TblType_Is_Emergency_Contact = 1
         and vCP.TblType_Description = 'Festnetz'
     ) TblPhone_Number_NF_S3,
 
     (select group_concat(concat(vCP.TblPhone_Number) separator ';\n')
         from {{ ConsumerAcronym }}_SettingConsumer.viewContactPhone vCP
         WHERE vCP.TblPerson_Id = TblPerson_S3_Id
-        and vCP.TblType_Name = 'Notfall'
+        and vCP.TblType_Is_Emergency_Contact = 1
         and vCP.TblType_Description = 'Mobil'
     ) TblPhone_Number_NM_S3,
 

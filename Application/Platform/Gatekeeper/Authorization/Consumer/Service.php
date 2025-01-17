@@ -216,6 +216,15 @@ class Service extends AbstractService
     }
 
     /**
+     * @return void
+     */
+    public function updateConsumer(): void {
+        if(($tblConsumer = $this->getConsumerBySession())){
+            (new Data($this->getBinding()))->updateConsumer($tblConsumer);
+        }
+    }
+
+    /**
      * @param string $Acronym
      *
      * @return bool|TblConsumer

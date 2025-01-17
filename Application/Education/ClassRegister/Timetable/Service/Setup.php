@@ -82,7 +82,7 @@ class Setup extends AbstractSetup
         $this->createColumn($Table, 'Level', self::FIELD_TYPE_STRING);  // Stufe
         $this->createColumn($Table, 'serviceTblCourse', self::FIELD_TYPE_BIGINT);
         $this->createColumn($Table, 'serviceTblSubject', self::FIELD_TYPE_BIGINT);
-        $this->createColumn($Table, 'serviceTblPerson', self::FIELD_TYPE_BIGINT);
+        $this->createColumn($Table, 'serviceTblPerson', self::FIELD_TYPE_BIGINT, true);
 
         $this->createForeignKey($Table, $tblTimeTable);
 
@@ -92,6 +92,7 @@ class Setup extends AbstractSetup
             TblTimetableNode::ATTR_TBL_CLASS_REGISTER_TIMETABLE), false);
         $this->createIndex($Table, array(TblTimetableNode::ATTR_DAY, TblTimetableNode::ATTR_SERVICE_TBL_PERSON,
             TblTimetableNode::ATTR_TBL_CLASS_REGISTER_TIMETABLE), false);
+        $this->createIndex($Table, array(TblTimetableNode::ATTR_TBL_CLASS_REGISTER_TIMETABLE, TblTimetableNode::ATTR_DAY), false);
 
         return $Table;
     }

@@ -11,6 +11,7 @@ use SPHERE\Application\Api\People\Meta\Support\ApiSupportReadOnly;
 use SPHERE\Application\Api\People\Person\ApiFamilyEdit;
 use SPHERE\Application\Api\People\Person\ApiPersonEdit;
 use SPHERE\Application\Api\People\Person\ApiPersonReadOnly;
+use SPHERE\Application\Api\People\Search\ApiPersonSearch;
 use SPHERE\Application\IApplicationInterface;
 
 /**
@@ -33,5 +34,6 @@ class Person implements IApplicationInterface
         ApiPersonEdit::registerApi();
         ApiPersonReadOnly::registerApi();
         ApiFamilyEdit::registerApi();
+        ApiPersonSearch::registerApi();
     }
 }

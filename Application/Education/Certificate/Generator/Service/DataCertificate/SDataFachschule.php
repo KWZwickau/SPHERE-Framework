@@ -16,23 +16,26 @@ class SDataFachschule
     public static function setCertificateStandard(Data $Data)
     {
 
-        self::setFsHjInfo($Data);
-        self::setFsHj($Data);
-        self::setFsJ(($Data));
-        self::setFsAbs(($Data));
-        self::setFsAbsFhr(($Data));
-        self::setFsAbg(($Data));
+        self::setFsHjInfo($Data, 'C.01.01');
+        self::setFsHj($Data, 'C.01.03');
+        self::setFsJ($Data, 'C.01.02');
+        self::setFsAbs($Data, 'C.01.08');
+        self::setFsAbsFhr($Data, 'C.01.09');
+        self::setFsAbg($Data, 'C.01.04');
     }
 
     /**
      * @param Data $Data
      */
-    private static function setFsHjInfo(Data $Data)
+    private static function setFsHjInfo(Data $Data, $CertificateNumber)
     {
 
         $tblCertificate = $Data->createCertificate('Fachschule Halbjahresinformation', '',
             'FsHjInfo');
         if ($tblCertificate) {
+            if($tblCertificate->getCertificateNumber() != $CertificateNumber){
+                $Data->updateCertificateNumber($tblCertificate, $CertificateNumber);
+            }
             if ($Data->getTblSchoolTypeFachschule()) {
                 $Data->updateCertificate($tblCertificate, $Data->getTblCertificateTypeHalfYear(), $Data->getTblSchoolTypeFachschule(), null, true);
                 // Automaitk soll hier nicht entscheiden
@@ -74,12 +77,15 @@ class SDataFachschule
     /**
      * @param Data $Data
      */
-    private static function setFsHj(Data $Data)
+    private static function setFsHj(Data $Data, $CertificateNumber)
     {
 
         $tblCertificate = $Data->createCertificate('Fachschule Halbjahreszeugnis', '',
             'FsHj');
         if ($tblCertificate) {
+            if($tblCertificate->getCertificateNumber() != $CertificateNumber){
+                $Data->updateCertificateNumber($tblCertificate, $CertificateNumber);
+            }
             if ($Data->getTblSchoolTypeFachschule()) {
                 $Data->updateCertificate($tblCertificate, $Data->getTblCertificateTypeHalfYear(), $Data->getTblSchoolTypeFachschule(), null, true);
                 // Automaitk soll hier nicht entscheiden
@@ -120,11 +126,14 @@ class SDataFachschule
     /**
      * @param Data $Data
      */
-    private static function setFsJ(Data $Data)
+    private static function setFsJ(Data $Data, $CertificateNumber)
     {
         $tblCertificate = $Data->createCertificate('Fachschule Jahreszeugnis', '',
             'FsJ');
         if ($tblCertificate) {
+            if($tblCertificate->getCertificateNumber() != $CertificateNumber){
+                $Data->updateCertificateNumber($tblCertificate, $CertificateNumber);
+            }
             if ($Data->getTblSchoolTypeFachschule()) {
                 $Data->updateCertificate($tblCertificate, $Data->getTblCertificateTypeYear(), $Data->getTblSchoolTypeFachschule(), null, false);
                 // Automaitk soll hier nicht entscheiden
@@ -165,12 +174,15 @@ class SDataFachschule
     /**
      * @param Data $Data
      */
-    private static function setFsAbsFhr(Data $Data)
+    private static function setFsAbsFhr(Data $Data, $CertificateNumber)
     {
 
         if (($tblCertificate = $Data->createCertificate('Fachschule Abschlusszeugnis FHR', 'Fachhochschulreife', 'FsAbsFhr',
             null, false, false, false, $Data->getTblCertificateTypeDiploma(), $Data->getTblSchoolTypeFachschule()))
         ) {
+            if($tblCertificate->getCertificateNumber() != $CertificateNumber){
+                $Data->updateCertificateNumber($tblCertificate, $CertificateNumber);
+            }
             // ToDO hinterlegung irgendwelcher Fächer?
 
 //            'DateFrom' ist auf Seite 1
@@ -202,12 +214,15 @@ class SDataFachschule
     /**
      * @param Data $Data
      */
-    private static function setFsAbs(Data $Data)
+    private static function setFsAbs(Data $Data, $CertificateNumber)
     {
 
         if (($tblCertificate = $Data->createCertificate('Fachschule Abschlusszeugnis', '', 'FsAbs',
             null, false, false, true, $Data->getTblCertificateTypeDiploma(), $Data->getTblSchoolTypeFachschule()))
         ) {
+            if($tblCertificate->getCertificateNumber() != $CertificateNumber){
+                $Data->updateCertificateNumber($tblCertificate, $CertificateNumber);
+            }
             // ToDO hinterlegung irgendwelcher Fächer?
 
 //            'DateFrom' ist auf Seite 1
@@ -227,18 +242,23 @@ class SDataFachschule
 
             $Data->createCertificateInformation($tblCertificate, 'RemarkWithoutTeam', 5);
             $Data->createCertificateInformation($tblCertificate, 'AdditionalRemarkFhr', 5);
+            $Data->createCertificateInformation($tblCertificate, 'DateFrom', 5);
+            $Data->createCertificateInformation($tblCertificate, 'DateTo', 5);
         }
     }
 
     /**
      * @param Data $Data
      */
-    private static function setFsAbg(Data $Data)
+    private static function setFsAbg(Data $Data, $CertificateNumber)
     {
 
         $tblCertificate = $Data->createCertificate('Fachschule Abgangszeugnis', '', 'FsAbg',
             null, false, false, false, $Data->getTblCertificateTypeLeave(), $Data->getTblSchoolTypeFachschule());
         if ($tblCertificate) {
+            if($tblCertificate->getCertificateNumber() != $CertificateNumber){
+                $Data->updateCertificateNumber($tblCertificate, $CertificateNumber);
+            }
             // ToDO hinterlegung irgendwelcher Fächer?
 
             // Begrenzung Eingabefelder

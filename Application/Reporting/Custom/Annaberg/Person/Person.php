@@ -1,5 +1,4 @@
 <?php
-
 namespace SPHERE\Application\Reporting\Custom\Annaberg\Person;
 
 use SPHERE\Application\IModuleInterface;
@@ -17,10 +16,7 @@ class Person extends AbstractModule implements IModuleInterface
 {
     public static function registerModule()
     {
-        Main::getDisplay()->addModuleNavigation(
-            new Link(new Link\Route(__NAMESPACE__ . '/PrintClassList'), new Link\Name('Druckbare Klassenlisten'))
-        );
-
+        Main::getDisplay()->addModuleNavigation(new Link(new Link\Route(__NAMESPACE__ . '/PrintClassList'), new Link\Name('Druckbare Klassenlisten')));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '/PrintClassList', __NAMESPACE__ . '\Frontend::frontendPrintClassList'
         ));

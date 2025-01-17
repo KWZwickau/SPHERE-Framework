@@ -116,18 +116,19 @@ class Service extends Extension
                 );
                 $Mail->setMailSubject($subject);
                 $Mail->setMailBody($body);
+                $Mail->setFromHeader($Config->getMail());
+                $Mail->addRecipientCC($mailAddress);
                 $Mail->addRecipientTO($Config->getMail());
                 if (isset( $Upload )) {
                     $Mail->addAttachment(new FileParameter($Upload->getLocation().DIRECTORY_SEPARATOR.$Upload->getFilename()));
                 }
-                $Mail->setFromHeader($mailAddress);
-                $Mail->setReplyHeader($mailAddress);
+//                $Mail->setReplyHeader($mailAddress);
                 $Mail->sendMail();
                 $Mail->disconnectServer();
             } catch (\Exception $Exception) {
                 return new Danger('Das Ticket konnte leider nicht erstellt werden')
                 .new Error( $Exception->getCode(), $Exception->getMessage(), false )
-                .new Redirect('/Manual/Support', Redirect::TIMEOUT_ERROR);
+                .new Redirect('/Manual/Support', Redirect::TIMEOUT_WAIT);
             }
             return new Success('Das Ticket wurde erfolgreich erstellt')
             .new Redirect('/Manual/Support', Redirect::TIMEOUT_SUCCESS);

@@ -36,6 +36,7 @@ class E08
             ->addSection((new Section())
                 ->addElementColumn((new Element())
                     ->setContent('Merkmal')
+                    ->styleAlignCenter()
                     ->styleBorderRight()
                     ->stylePaddingTop('17.6px')
                     ->stylePaddingBottom('17.6px'), '30%'
@@ -44,37 +45,44 @@ class E08
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('Klassenstufe')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '1&nbsp;%'
                         )
                     )
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('5')
+                            ->styleAlignCenter()
                             ->styleBorderBottom()
                             ->styleBorderRight(), '16.67%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('6')
+                            ->styleAlignCenter()
                             ->styleBorderBottom()
                             ->styleBorderRight(), '16.66%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('7')
+                            ->styleAlignCenter()
                             ->styleBorderBottom()
                             ->styleBorderRight(), '16.67%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('8')
+                            ->styleAlignCenter()
                             ->styleBorderBottom()
                             ->styleBorderRight(), '16.67%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('9')
+                            ->styleAlignCenter()
                             ->styleBorderBottom()
                             ->styleBorderRight(), '16.66%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('10')
+                            ->styleAlignCenter()
                             ->styleBorderBottom()
                             ->styleBorderRight(), '16.67%'
                         )
@@ -82,50 +90,62 @@ class E08
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('m')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '8.34%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('w')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '8.33%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('m')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '8.33%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('w')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '8.34%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('m')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '8.33%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('w')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '8.33%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('m')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '8.33%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('w')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '8.33%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('m')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '8.34%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('w')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '8.33%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('m')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '8.33%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('w')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '8.34%'
                         )
                     ), '60%'
@@ -135,6 +155,7 @@ class E08
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('Insgesamt')
+                            ->styleAlignCenter()
                             ->styleBorderBottom()
                             ->stylePaddingTop('8.6px')
                             ->stylePaddingBottom('8.6px')
@@ -143,10 +164,12 @@ class E08
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('m')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '50%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('w')
+                            ->styleAlignCenter()
                             , '50%'
                         )
                     ), '10%'
@@ -206,86 +229,174 @@ class E08
                                     ->styleBorderRight(), '22.22%'
                                 )
                                 ->addElementColumn((new Element())
-                                    ->setContent('&nbsp;')
+                                    ->setContent('
+                                        {% if (Content.E08.HS.L5.m is not empty) %}
+                                            {{ Content.E08.HS.L5.m }}
+                                        {% else %}
+                                            &nbsp;
+                                        {% endif %}
+                                    ')
                                     ->styleBackgroundColor('lightgrey')
                                     ->styleBorderBottom()
                                     ->styleBorderRight(), '5.55%'
                                 )
                                 ->addElementColumn((new Element())
-                                    ->setContent('&nbsp;')
+                                    ->setContent('
+                                        {% if (Content.E08.HS.L5.w is not empty) %}
+                                            {{ Content.E08.HS.L5.w }}
+                                        {% else %}
+                                            &nbsp;
+                                        {% endif %}
+                                    ')
                                     ->styleBackgroundColor('lightgrey')
                                     ->styleBorderBottom()
                                     ->styleBorderRight(), '5.55%'
                                 )
                                 ->addElementColumn((new Element())
-                                    ->setContent('&nbsp;')
+                                    ->setContent('
+                                        {% if (Content.E08.HS.L6.m is not empty) %}
+                                            {{ Content.E08.HS.L6.m }}
+                                        {% else %}
+                                            &nbsp;
+                                        {% endif %}
+                                    ')
                                     ->styleBackgroundColor('lightgrey')
                                     ->styleBorderBottom()
                                     ->styleBorderRight(), '5.55%'
                                 )
                                 ->addElementColumn((new Element())
-                                    ->setContent('&nbsp;')
+                                    ->setContent('
+                                        {% if (Content.E08.HS.L6.w is not empty) %}
+                                            {{ Content.E08.HS.L6.w }}
+                                        {% else %}
+                                            &nbsp;
+                                        {% endif %}
+                                    ')
                                     ->styleBackgroundColor('lightgrey')
                                     ->styleBorderBottom()
                                     ->styleBorderRight(), '5.55%'
                                 )
                                 ->addElementColumn((new Element())
-                                    ->setContent('&nbsp;')
+                                    ->setContent('
+                                        {% if (Content.E08.HS.L7.m is not empty) %}
+                                            {{ Content.E08.HS.L7.m }}
+                                        {% else %}
+                                            &nbsp;
+                                        {% endif %}
+                                    ')
                                     ->styleAlignCenter()
                                     ->styleBorderBottom()
                                     ->styleBorderRight(), '5.55%'
                                 )
                                 ->addElementColumn((new Element())
-                                    ->setContent('&nbsp;')
+                                    ->setContent('
+                                        {% if (Content.E08.HS.L7.w is not empty) %}
+                                            {{ Content.E08.HS.L7.w }}
+                                        {% else %}
+                                            &nbsp;
+                                        {% endif %}
+                                    ')
                                     ->styleAlignCenter()
                                     ->styleBorderBottom()
                                     ->styleBorderRight(), '5.55%'
                                 )
                                 ->addElementColumn((new Element())
-                                    ->setContent('&nbsp;')
+                                    ->setContent('
+                                        {% if (Content.E08.HS.L8.m is not empty) %}
+                                            {{ Content.E08.HS.L8.m }}
+                                        {% else %}
+                                            &nbsp;
+                                        {% endif %}
+                                    ')
                                     ->styleAlignCenter()
                                     ->styleBorderBottom()
                                     ->styleBorderRight(), '5.55%'
                                 )
                                 ->addElementColumn((new Element())
-                                    ->setContent('&nbsp;')
+                                    ->setContent('
+                                        {% if (Content.E08.HS.L8.w is not empty) %}
+                                            {{ Content.E08.HS.L8.w }}
+                                        {% else %}
+                                            &nbsp;
+                                        {% endif %}
+                                    ')
                                     ->styleAlignCenter()
                                     ->styleBorderBottom()
                                     ->styleBorderRight(), '5.55%'
                                 )
                                 ->addElementColumn((new Element())
-                                    ->setContent('&nbsp;')
+                                    ->setContent('
+                                        {% if (Content.E08.HS.L9.m is not empty) %}
+                                            {{ Content.E08.HS.L9.m }}
+                                        {% else %}
+                                            &nbsp;
+                                        {% endif %}
+                                    ')
                                     ->styleAlignCenter()
                                     ->styleBorderBottom()
                                     ->styleBorderRight(), '5.55%'
                                 )
                                 ->addElementColumn((new Element())
-                                    ->setContent('&nbsp;')
+                                    ->setContent('
+                                        {% if (Content.E08.HS.L9.w is not empty) %}
+                                            {{ Content.E08.HS.L9.w }}
+                                        {% else %}
+                                            &nbsp;
+                                        {% endif %}
+                                    ')
                                     ->styleAlignCenter()
                                     ->styleBorderBottom()
                                     ->styleBorderRight(), '5.55%'
                                 )
                                 ->addElementColumn((new Element())
-                                    ->setContent('&nbsp;')
+                                    ->setContent('
+                                        {% if (Content.E08.HS.L10.m is not empty) %}
+                                            {{ Content.E08.HS.L10.m }}
+                                        {% else %}
+                                            &nbsp;
+                                        {% endif %}
+                                    ')
                                     ->styleBackgroundColor('lightgrey')
                                     ->styleBorderBottom()
                                     ->styleBorderRight(), '5.55%'
                                 )
                                 ->addElementColumn((new Element())
-                                    ->setContent('&nbsp;')
+                                    ->setContent('
+                                        {% if (Content.E08.HS.L10.w is not empty) %}
+                                            {{ Content.E08.HS.L10.w }}
+                                        {% else %}
+                                            &nbsp;
+                                        {% endif %}
+                                    ')
                                     ->styleBackgroundColor('lightgrey')
                                     ->styleBorderBottom()
                                     ->styleBorderRight(), '5.55%'
                                 )
                                 ->addElementColumn((new Element())
-                                    ->setContent('&nbsp;')
+                                    ->setContent('
+                                        {% if (Content.E08.HS.TotalCount.m is not empty) %}
+                                            {{ Content.E08.HS.TotalCount.m }}
+                                        {% else %}
+                                            &nbsp;
+                                        {% endif %}                                    
+                                    ')
                                     ->styleBackgroundColor('lightgrey')
                                     ->styleBorderBottom()
+                                    ->styleAlignCenter()
+                                    ->styleTextBold()
                                     ->styleBorderRight(), '5.55%'
                                 )
                                 ->addElementColumn((new Element())
-                                    ->setContent('&nbsp;')
+                                    ->setContent('
+                                        {% if (Content.E08.HS.TotalCount.w is not empty) %}
+                                            {{ Content.E08.HS.TotalCount.w }}
+                                        {% else %}
+                                            &nbsp;
+                                        {% endif %}                                    
+                                    ')
                                     ->styleBackgroundColor('lightgrey')
+                                    ->styleAlignCenter()
+                                    ->styleTextBold()
                                     ->styleBorderBottom(), '5.55%'
                                 )
                             )
@@ -297,83 +408,155 @@ class E08
                                     ->styleBorderRight(), '22.22%'
                                 )
                                 ->addElementColumn((new Element())
-                                    ->setContent('&nbsp;')
+                                    ->setContent('
+                                        {% if (Content.E08.RS.L5.m is not empty) %}
+                                            {{ Content.E08.RS.L5.m }}
+                                        {% else %}
+                                            &nbsp;
+                                        {% endif %}
+                                    ')
                                     ->styleBackgroundColor('lightgrey')
-                                    ->styleAlignCenter()
                                     ->styleBorderBottom()
                                     ->styleBorderRight(), '5.55%'
                                 )
                                 ->addElementColumn((new Element())
-                                    ->setContent('&nbsp;')
+                                    ->setContent('
+                                        {% if (Content.E08.RS.L5.w is not empty) %}
+                                            {{ Content.E08.RS.L5.w }}
+                                        {% else %}
+                                            &nbsp;
+                                        {% endif %}
+                                    ')
                                     ->styleBackgroundColor('lightgrey')
-                                    ->styleAlignCenter()
                                     ->styleBorderBottom()
                                     ->styleBorderRight(), '5.55%'
                                 )
                                 ->addElementColumn((new Element())
-                                    ->setContent('&nbsp;')
+                                    ->setContent('
+                                        {% if (Content.E08.RS.L6.m is not empty) %}
+                                            {{ Content.E08.RS.L6.m }}
+                                        {% else %}
+                                            &nbsp;
+                                        {% endif %}
+                                    ')
                                     ->styleBackgroundColor('lightgrey')
-                                    ->styleAlignCenter()
                                     ->styleBorderBottom()
                                     ->styleBorderRight(), '5.55%'
                                 )
                                 ->addElementColumn((new Element())
-                                    ->setContent('&nbsp;')
+                                    ->setContent('
+                                        {% if (Content.E08.RS.L6.w is not empty) %}
+                                            {{ Content.E08.RS.L6.w }}
+                                        {% else %}
+                                            &nbsp;
+                                        {% endif %}
+                                    ')
                                     ->styleBackgroundColor('lightgrey')
+                                    ->styleBorderBottom()
+                                    ->styleBorderRight(), '5.55%'
+                                )
+                                ->addElementColumn((new Element())
+                                    ->setContent('
+                                        {% if (Content.E08.RS.L7.m is not empty) %}
+                                            {{ Content.E08.RS.L7.m }}
+                                        {% else %}
+                                            &nbsp;
+                                        {% endif %}
+                                    ')
                                     ->styleAlignCenter()
                                     ->styleBorderBottom()
                                     ->styleBorderRight(), '5.55%'
                                 )
                                 ->addElementColumn((new Element())
-                                    ->setContent('&nbsp;')
+                                    ->setContent('
+                                        {% if (Content.E08.RS.L7.w is not empty) %}
+                                            {{ Content.E08.RS.L7.w }}
+                                        {% else %}
+                                            &nbsp;
+                                        {% endif %}
+                                    ')
                                     ->styleAlignCenter()
                                     ->styleBorderBottom()
                                     ->styleBorderRight(), '5.55%'
                                 )
                                 ->addElementColumn((new Element())
-                                    ->setContent('&nbsp;')
+                                    ->setContent('
+                                        {% if (Content.E08.RS.L8.m is not empty) %}
+                                            {{ Content.E08.RS.L8.m }}
+                                        {% else %}
+                                            &nbsp;
+                                        {% endif %}
+                                    ')
                                     ->styleAlignCenter()
                                     ->styleBorderBottom()
                                     ->styleBorderRight(), '5.55%'
                                 )
                                 ->addElementColumn((new Element())
-                                    ->setContent('&nbsp;')
+                                    ->setContent('
+                                        {% if (Content.E08.RS.L8.w is not empty) %}
+                                            {{ Content.E08.RS.L8.w }}
+                                        {% else %}
+                                            &nbsp;
+                                        {% endif %}
+                                    ')
                                     ->styleAlignCenter()
                                     ->styleBorderBottom()
                                     ->styleBorderRight(), '5.55%'
                                 )
                                 ->addElementColumn((new Element())
-                                    ->setContent('&nbsp;')
+                                    ->setContent('
+                                        {% if (Content.E08.RS.L9.m is not empty) %}
+                                            {{ Content.E08.RS.L9.m }}
+                                        {% else %}
+                                            &nbsp;
+                                        {% endif %}
+                                    ')
                                     ->styleAlignCenter()
                                     ->styleBorderBottom()
                                     ->styleBorderRight(), '5.55%'
                                 )
                                 ->addElementColumn((new Element())
-                                    ->setContent('&nbsp;')
+                                    ->setContent('
+                                        {% if (Content.E08.RS.L9.w is not empty) %}
+                                            {{ Content.E08.RS.L9.w }}
+                                        {% else %}
+                                            &nbsp;
+                                        {% endif %}
+                                    ')
                                     ->styleAlignCenter()
                                     ->styleBorderBottom()
                                     ->styleBorderRight(), '5.55%'
                                 )
                                 ->addElementColumn((new Element())
-                                    ->setContent('&nbsp;')
-                                    ->styleAlignCenter()
+                                    ->setContent('
+                                        {% if (Content.E08.RS.L10.m is not empty) %}
+                                            {{ Content.E08.RS.L10.m }}
+                                        {% else %}
+                                            &nbsp;
+                                        {% endif %}
+                                    ')
                                     ->styleBorderBottom()
                                     ->styleBorderRight(), '5.55%'
                                 )
                                 ->addElementColumn((new Element())
-                                    ->setContent('&nbsp;')
-                                    ->styleAlignCenter()
+                                    ->setContent('
+                                        {% if (Content.E08.RS.L10.w is not empty) %}
+                                            {{ Content.E08.RS.L10.w }}
+                                        {% else %}
+                                            &nbsp;
+                                        {% endif %}
+                                    ')
                                     ->styleBorderBottom()
                                     ->styleBorderRight(), '5.55%'
                                 )
                                 ->addElementColumn((new Element())
-                                    ->setContent('&nbsp;')
-                                    ->styleAlignCenter()
-                                    ->styleBorderBottom()
-                                    ->styleBorderRight(), '5.55%'
-                                )
-                                ->addElementColumn((new Element())
-                                    ->setContent('&nbsp;')
+                                    ->setContent('
+                                        {% if (Content.E08.RS.TotalCount.m is not empty) %}
+                                            {{ Content.E08.RS.TotalCount.m }}
+                                        {% else %}
+                                            &nbsp;
+                                        {% endif %}                                    
+                                    ')
                                     ->styleBackgroundColor('lightgrey')
                                     ->styleAlignCenter()
                                     ->styleTextBold()
@@ -381,7 +564,13 @@ class E08
                                     ->styleBorderRight(), '5.55%'
                                 )
                                 ->addElementColumn((new Element())
-                                    ->setContent('&nbsp;')
+                                    ->setContent('
+                                        {% if (Content.E08.RS.TotalCount.w is not empty) %}
+                                            {{ Content.E08.RS.TotalCount.w }}
+                                        {% else %}
+                                            &nbsp;
+                                        {% endif %}                                    
+                                    ')
                                     ->styleBackgroundColor('lightgrey')
                                     ->styleAlignCenter()
                                     ->styleTextBold()
@@ -549,6 +738,7 @@ class E08
                                     ->styleBackgroundColor('lightgrey')
                                     ->styleBorderRight()
                                     ->styleAlignCenter()
+                                    ->styleTextBold()
                                     , '5.55%'
                                 )
                                 ->addElementColumn((new Element())
@@ -561,6 +751,7 @@ class E08
                                     ')
                                     ->styleBackgroundColor('lightgrey')
                                     ->styleAlignCenter()
+                                    ->styleTextBold()
                                     , '5.55%'
                                 )
                             )

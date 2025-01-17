@@ -9,6 +9,7 @@ use SPHERE\Application\Api\Contact\ApiPhoneToPerson;
 use SPHERE\Application\Contact\Address\Service\Entity\TblToPerson as TblAddressToPerson;
 use SPHERE\Application\Contact\Mail\Service\Entity\TblToPerson as TblMailToPerson;
 use SPHERE\Application\Contact\Phone\Service\Entity\TblToPerson as TblPhoneToPerson;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\ParentStudentAccess\OnlineContactDetails\OnlineContactDetails;
 use SPHERE\Application\ParentStudentAccess\OnlineContactDetails\Service\Entity\TblOnlineContact;
 use SPHERE\Application\Setting\Consumer\Consumer;
@@ -69,27 +70,34 @@ class Frontend extends Extension implements IFrontendInterface
                     case TblOnlineContact::VALUE_TYPE_ADDRESS:
                         /** @var TblAddressToPerson $tblToPerson */
                         $link = ($tblToPerson = $tblOnlineContact->getServiceTblToPerson())
-                            ? (new Standard('', ApiAddressToPerson::getEndpoint(), new Edit()))
+                            ? (new Standard('', ApiAddressToPerson::getEndpoint(), new Edit(), array(), 'Änderungswunsch'))
                                 ->ajaxPipelineOnClick(ApiAddressToPerson::pipelineOpenEditAddressToPersonModal($tblPerson->getId(), $tblToPerson->getId(), $tblOnlineContact->getId()))
-                            : (new Standard('', ApiAddressToPerson::getEndpoint(), new Plus()))
+                            : (new Standard('', ApiAddressToPerson::getEndpoint(), new Plus(), array(), 'neue Angabe'))
                                 ->ajaxPipelineOnClick(ApiAddressToPerson::pipelineOpenCreateAddressToPersonModal($tblPerson->getId(), $tblOnlineContact->getId()));
                         break;
                     case TblOnlineContact::VALUE_TYPE_PHONE:
                         /** @var TblPhoneToPerson $tblToPerson */
                         $link = ($tblToPerson = $tblOnlineContact->getServiceTblToPerson())
-                            ? (new Standard('', ApiPhoneToPerson::getEndpoint(), new Edit()))
+                            ? (new Standard('', ApiPhoneToPerson::getEndpoint(), new Edit(), array(), 'Änderungswunsch'))
                                 ->ajaxPipelineOnClick(ApiPhoneToPerson::pipelineOpenEditPhoneToPersonModal($tblPerson->getId(), $tblToPerson->getId(), $tblOnlineContact->getId()))
-                            : (new Standard('', ApiPhoneToPerson::getEndpoint(), new Plus()))
+                            : (new Standard('', ApiPhoneToPerson::getEndpoint(), new Plus(), array(), 'neue Angabe'))
                                 ->ajaxPipelineOnClick(ApiPhoneToPerson::pipelineOpenCreatePhoneToPersonModal($tblPerson->getId(), $tblOnlineContact->getId()));
                         break;
                     case TblOnlineContact::VALUE_TYPE_MAIL:
                         /** @var TblMailToPerson $tblToPerson */
                         $link = ($tblToPerson = $tblOnlineContact->getServiceTblToPerson())
-                            ? (new Standard('', ApiMailToPerson::getEndpoint(), new Edit()))
+                            ? (new Standard('', ApiMailToPerson::getEndpoint(), new Edit(), array(), 'Änderungswunsch'))
                                 ->ajaxPipelineOnClick(ApiMailToPerson::pipelineOpenEditMailToPersonModal($tblPerson->getId(), $tblToPerson->getId(), $tblOnlineContact->getId()))
-                            : (new Standard('', ApiMailToPerson::getEndpoint(), new Plus()))
+                            : (new Standard('', ApiMailToPerson::getEndpoint(), new Plus(), array(), 'neue Angabe'))
                                 ->ajaxPipelineOnClick(ApiMailToPerson::pipelineOpenCreateMailToPersonModal($tblPerson->getId(), $tblOnlineContact->getId()));
                         break;
+                }
+
+                $schoolType = '';
+                if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndDate($tblPerson))
+                    && ($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())
+                ) {
+                    $schoolType = $tblSchoolType->getShortName() ?: $tblSchoolType->getName();
                 }
 
                 $dataList[] = array(
@@ -97,11 +105,12 @@ class Frontend extends Extension implements IFrontendInterface
                     'Creator' => ($tblPersonCreator = $tblOnlineContact->getServiceTblPersonCreator()) ? $tblPersonCreator->getFullName() : '',
                     'Category' => $tblOnlineContact->getContactTypeIcon() . ' ' . $tblOnlineContact->getContactTypeName(),
                     'Person' => $tblOnlineContact->getServiceTblPerson() ? $tblOnlineContact->getServiceTblPerson()->getLastFirstName() : '',
+                    'SchoolType' => $schoolType,
                     'Original' => $tblOnlineContact->getOriginalContent(),
                     'Content' => $tblOnlineContact->getContactContent(),
                     'Remark' => $tblOnlineContact->getRemark(),
                     'Options' => $link
-                        . (new Standard('', ApiContactDetails::getEndpoint(), new Remove()))
+                        . (new Standard('', ApiContactDetails::getEndpoint(), new Remove(), array(), 'Vorschlag löschen'))
                             ->ajaxPipelineOnClick(ApiContactDetails::pipelineOpenDeleteContactDetailModal($tblPerson->getId(), $tblOnlineContact->getId()))
                 );
             }
@@ -111,6 +120,7 @@ class Frontend extends Extension implements IFrontendInterface
                 'Creator' => 'Ersteller',
                 'Category' => 'Kategorie',
                 'Person' => 'Person',
+                'SchoolType' => 'Schul&shy;art',
                 'Original' => 'Alter Kontakt',
                 'Content' => 'Neuer Kontakt',
                 'Remark' => 'Änderungsbemerkung',
@@ -127,6 +137,7 @@ class Frontend extends Extension implements IFrontendInterface
                             array('type' => 'de_date', 'targets' => 0),
                             array('orderable' => false, 'width' => '60px', 'targets' => -1),
                         ),
+                        'responsive' => false
                     )
                 );
         }

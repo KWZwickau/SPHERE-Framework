@@ -49,7 +49,7 @@ class GymJ extends Certificate
             ->addSlice($this->getDivisionAndYear($personId))
             ->addSlice($this->getStudentName($personId))
             ->addSlice($this->getGradeLanesSmall($personId, '14px', false, '5px'))
-            ->addSlice($this->getRatingContent($personId, '35px', '5px'))
+            ->addSlice($this->getRatingContent($personId, '45px', '5px'))
             ->addSlice((new Slice())
                 ->addElement((new Element())
                     ->setContent('Leistungen in den einzelnen Fächern:')
@@ -87,8 +87,8 @@ class GymJ extends Certificate
                 '1 = sehr gut; 2 = gut; 3 = befriedigend; 4 = ausreichend; 5 = mangelhaft;
                                           6 = ungenügend (6 = ungenügend nur bei der Bewertung der Leistungen)',
                 '¹ &nbsp;&nbsp;&nbsp; Die Bezeichnung des besuchten schulspezifischen Profils ist anzugeben. Beim Erlernen einer 
-                    dritten Fremdsprache ist anstelle des Profils die Fremdsprache anzugeben.',
-                '² &nbsp;&nbsp;&nbsp; gemäß § 30 Absatz 11 der Schulordnung Gymnasien Abiturprüfung'
+                    dritten Fremdsprache ist anstelle des Profils die <br> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Fremdsprache anzugeben.',
+                '² &nbsp;&nbsp;&nbsp; gemäß § 32 Absatz 11 der Schulordnung Gymnasien Abiturprüfung'
             ));
     }
 }

@@ -5,16 +5,10 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
-use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
-use SPHERE\Application\Education\Lesson\Division\Division;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
-use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\People\Group\Group;
-use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\System\Database\Fitting\Element;
-use SPHERE\System\Extension\Extension;
 use SPHERE\System\Extension\Repository\Sorter\StringNaturalOrderSorter;
 
 /**
@@ -170,15 +164,6 @@ class TblGroup extends Element
     }
 
     /**
-     * @return bool|TblPerson[]
-     */
-    public function getTudors()
-    {
-
-        return Group::useService()->getTudors($this);
-    }
-
-    /**
      * @return bool
      */
     public function isCoreGroup()
@@ -194,106 +179,6 @@ class TblGroup extends Element
     {
 
         $this->IsCoreGroup = (bool)$IsCoreGroup;
-    }
-
-    /**
-     * @param bool $hasPrefix
-     *
-     * @return string
-     */
-    public function getTudorsString($hasPrefix = true): string
-    {
-        if (($tudors = $this->getTudors())) {
-            $list = array();
-            foreach ($tudors as $tblPerson) {
-                $list[] = $tblPerson->getFullName();
-            }
-            return ($hasPrefix ? 'Tudoren: ' : '') . implode(', ', $list);
-        } else {
-            return '';
-        }
-    }
-
-    /**
-     * @return bool|TblYear
-     */
-    public function getCurrentYear()
-    {
-        if(($tblPersonList = Group::useService()->getPersonAllByGroup($this))) {
-            foreach ($tblPersonList as $tblPerson) {
-                if (($tblMainDivision = Student::useService()->getCurrentMainDivisionByPerson($tblPerson))) {
-                    return $tblMainDivision->getServiceTblYear();
-                }
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * @return TblCompany[]
-     */
-    public function getCurrentCompanyList(): array
-    {
-        $list = array();
-        if(($tblPersonList = Group::useService()->getPersonAllByGroup($this))) {
-            foreach ($tblPersonList as $tblPerson) {
-                if (($tblMainDivision = Student::useService()->getCurrentMainDivisionByPerson($tblPerson))
-                    && ($tblCompany = $tblMainDivision->getServiceTblCompany())
-                ) {
-                    $list[$tblCompany->getId()] = $tblCompany;
-                }
-            }
-        }
-
-        return $list;
-    }
-
-    /**
-     * @return false|TblCompany
-     */
-    public function getCurrentCompanySingle()
-    {
-        if (($list = $this->getCurrentCompanyList())) {
-            return reset($list);
-        }
-
-        return false;
-    }
-
-    /**
-     * @return false|TblDivision[]
-     */
-    public function getCurrentDivisionList()
-    {
-        $list = array();
-        if(($tblPersonList = Group::useService()->getPersonAllByGroup($this))) {
-            foreach ($tblPersonList as $tblPerson) {
-                if (($tblMainDivision = Student::useService()->getCurrentMainDivisionByPerson($tblPerson))
-                ) {
-                    $list[$tblMainDivision->getId()] = $tblMainDivision;
-                }
-            }
-            $list = (new Extension())->getSorter($list)->sortObjectBy('DisplayName', new StringNaturalOrderSorter());
-        }
-
-        return empty($list) ? false : $list;
-    }
-
-    /**
-     * @return bool
-     */
-    public function getIsGroupCourseSystem(): bool
-    {
-        if (($tblDivisionList = $this->getCurrentDivisionList())) {
-            foreach ($tblDivisionList as $tblDivision) {
-                if (Division::useService()->getIsDivisionCourseSystem($tblDivision)) {
-                    return true;
-                }
-            }
-        }
-
-        return false;
     }
 
     /**
@@ -318,5 +203,15 @@ class TblGroup extends Element
         }
 
         return empty($list) ? false : $list;
+    }
+
+    /**
+     * @return array|TblPerson[]
+     */
+    public function getPersonList()
+    {
+
+        $tblPersonList = Group::useService()->getPersonAllByGroup($this);
+        return $tblPersonList ?: array();
     }
 }

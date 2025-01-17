@@ -9,8 +9,6 @@
 namespace SPHERE\Application\People\Person\Frontend;
 
 use SPHERE\Application\Api\People\Person\ApiPersonEdit;
-use SPHERE\Application\People\Group\Group;
-use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Meta\Teacher\Teacher;
 use SPHERE\Application\People\Person\FrontendReadOnly;
 use SPHERE\Application\People\Person\Person;
@@ -35,7 +33,6 @@ use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Frontend\Link\Repository\Link;
-use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class FrontendTeacher
@@ -44,7 +41,7 @@ use SPHERE\System\Extension\Repository\Debugger;
  */
 class FrontendTeacher extends FrontendReadOnly
 {
-    const TITLE = 'Lehrer-Daten';
+    const TITLE = 'Mitarbeiter - Daten';
 
     /**
      * @param null $PersonId
@@ -55,21 +52,6 @@ class FrontendTeacher extends FrontendReadOnly
     {
 
         if (!($tblPerson = Person::useService()->getPersonById($PersonId))){
-            return '';
-        }
-
-        $AuthorizedToCollectGroups[] = TblGroup::META_TABLE_TEACHER;
-        $AuthorizedToCollectGroups[] = TblGroup::META_TABLE_STAFF;
-        $hasBlock = false;
-        foreach ($AuthorizedToCollectGroups as $group) {
-            if (($tblGroup = Group::useService()->getGroupByMetaTable($group))
-                && Group::useService()->existsGroupPerson($tblGroup, $tblPerson)
-            ) {
-                $hasBlock = true;
-                break;
-            }
-        }
-        if(!$hasBlock){
             return '';
         }
         if (($tblTeacher = Teacher::useService()->getTeacherByPerson($tblPerson))) {
@@ -144,7 +126,7 @@ class FrontendTeacher extends FrontendReadOnly
             new FormGroup(array(
                 new FormRow(array(
                     new FormColumn(
-                        new Panel('Lehrer', array(
+                        new Panel('Mitarbeiter', array(
                             new TextField(
                                 'Meta[Acronym]', 'Kürzel', 'Kürzel'
                             ),

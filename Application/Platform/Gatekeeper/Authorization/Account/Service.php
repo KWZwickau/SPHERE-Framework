@@ -117,6 +117,18 @@ class Service extends AbstractService
     }
 
     /**
+     * @param $Session
+     *
+     * @return void
+     * @throws \Exception
+     */
+    public function refreshSession($Session = null)
+    {
+
+        (new Data($this->getBinding()))->refreshSession($Session);
+    }
+
+    /**
      * @return bool|string
      */
     public function getMandantAcronym()
@@ -321,21 +333,9 @@ class Service extends AbstractService
      *
      * @return bool|TblAccount
      */
-    public function getAccountByCredential($Username, $Password, TblIdentification $tblIdentification = null)
+    public function getAccountByCredential(string $Username, string $Password, TblIdentification $tblIdentification = null)
     {
-
-        $tblAccount = (new Data($this->getBinding()))->getAccountByCredential($Username, $Password, $tblIdentification);
-
-        // Credential can be also UserCredential
-        if (!$tblAccount && null !== $tblIdentification && $tblIdentification->getName() == 'Credential') {
-            $tblIdentification = Account::useService()->getIdentificationByName('UserCredential');
-            if ($tblIdentification) {
-                $tblAccount = (new Data($this->getBinding()))->getAccountByCredential($Username, $Password,
-                    $tblIdentification);
-            }
-        }
-
-        return $tblAccount;
+        return (new Data($this->getBinding()))->getAccountByCredential($Username, $Password, $tblIdentification);
     }
 
     /**
@@ -473,13 +473,22 @@ class Service extends AbstractService
     /**
      * @param TblAccount $tblAccount
      *
-     * @return bool|TblAuthentication
+     * @return bool|TblAuthentication[]
      */
-    public function getAuthenticationByAccount(TblAccount $tblAccount)
+    public function getAuthenticationListByAccount(TblAccount $tblAccount)
     {
+        return (new Data($this->getBinding()))->getAuthenticationListByAccount($tblAccount);
+    }
 
-        return (new Data($this->getBinding()))->getAuthenticationByAccount($tblAccount);
-
+    /**
+     * @param TblAccount $tblAccount
+     * @param string $IdentificationName
+     *
+     * @return bool
+     */
+    public function getHasAuthenticationByAccountAndIdentificationName(TblAccount $tblAccount, string $IdentificationName): bool
+    {
+        return (new Data($this->getBinding()))->getHasAuthenticationByAccountAndIdentificationName($tblAccount, $IdentificationName);
     }
 
     /**
@@ -836,11 +845,8 @@ class Service extends AbstractService
         $returnList = array();
         if(($tblAccountList = $this->getAccountListByActiveConsumer())){
             foreach($tblAccountList as $tblAccount){
-
-                if(($tblIdentificationSet = $tblAccount->getServiceTblIdentification())){
-                    if($tblIdentificationSet->getId() == $tblIdentification->getId()){
-                        $returnList[] = $tblAccount;
-                    }
+                if ($tblAccount->getHasAuthentication($tblIdentification->getName())) {
+                    $returnList[] = $tblAccount;
                 }
             }
         }

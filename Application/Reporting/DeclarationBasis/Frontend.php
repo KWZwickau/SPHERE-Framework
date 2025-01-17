@@ -1,5 +1,4 @@
 <?php
-
 namespace SPHERE\Application\Reporting\DeclarationBasis;
 
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
@@ -28,87 +27,31 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendDeclarationBasis()
     {
 
-//        $YearString = new Bold('Kein aktuelles Jahr gefunden');
-//        $YearList = Term::useService()->getYearByNow();
-//        $tblYear = false;
-//        if ($YearList) {
-//            $tblYear = current($YearList);
-//            $YearString = $tblYear->getYear();
-//        }
-//
-//        if (($tblFutureYearList = Term::useService()->getYearAllFutureYears(1))) {
-//            $tblFutureYear = current($tblFutureYearList);
-//        } else {
-//            $tblFutureYear = false;
-//        }
-
-//        $Stage = new Stage('Stichtagsmeldung', 'Aktuelles Schuljahr: '.$YearString);
-//        if ($tblYear) {
-//            $Stage->addButton(
-//                new Standard(
-//                    'Herunterladen für das aktuelle Schuljahr ' . $tblYear->getYear(),
-//                    '/Api/Reporting/DeclarationBasis/Download',
-//                    new Download(),
-//                    array(
-//                        'YearId' => $tblYear->getId()
-//                    )
-//                )
-//            );
-//
-//            if ($tblFutureYear) {
-//                $Stage->addButton(
-//                    new Standard(
-//                        'Herunterladen für das nächste Schuljahr ' . $tblFutureYear->getYear(),
-//                        '/Api/Reporting/DeclarationBasis/Download',
-//                        new Download(),
-//                        array(
-//                            'YearId' => $tblFutureYear->getId()
-//                        )
-//                    )
-//                );
-//            }
-//        } else {
-//            $Stage->setContent(
-//                new Layout(
-//                    new LayoutGroup(
-//                        new LayoutRow(
-//                            new LayoutColumn(
-//                                new Warning('Kein Schuljahr besitzt einen Zeitraum der das aktuelle Datum einschließt')
-//                            )
-//                        )
-//                    )
-//                )
-//            );
-//        }
-
-        $form = $this->getForm();
-
-        $Stage = new Stage('Stichtagsmeldung Integrationsschüler', 'Datum auswählen');
-        $Stage->setContent(new Well(
-            $form
-        ));
+        $Stage = new Stage('Stichtagsmeldung', 'Schülerzahlen, Inklusionsschüler');
+        $Stage->setContent(new Well($this->getForm()));
 
         return $Stage;
     }
 
     /**
-     * @param null $Date
+     * @param null $Data
      *
      * @return Form
      */
-    public function getForm($Date = null)
+    public function getForm($Data = null)
     {
-        if ($Date) {
-            $global = $this->getGlobal();
-            $global->POST['Date'] = $Date;
-            $global->savePost();
+
+        $global = $this->getGlobal();
+        if ($Data) {
+            $global->POST['Data']['Date'] = $Data['Date'];
+        } else {
+            $global->POST['Data']['Date'] = (new \DateTime())->format('d.m.Y');
         }
+        $global->savePost();
 
         return new Form(new FormGroup(array(
             new FormRow(array(
-                new FormColumn(
-                    (new DatePicker('Date', 'Stichtag', 'Stichtag', new Calendar()))->setRequired()
-                    , 3)
+                new FormColumn((new DatePicker('Data[Date]', 'Stichtag', 'Stichtag', new Calendar()))->setRequired(), 3)
             )),
         ))
         , new Primary('Herunterladen', new Download(), true), '\Api\Reporting\DeclarationBasis\Download');

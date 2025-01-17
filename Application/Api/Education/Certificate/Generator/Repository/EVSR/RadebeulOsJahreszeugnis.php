@@ -13,6 +13,7 @@ use SPHERE\Application\Education\Certificate\Generator\Repository\Element;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Page;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Section;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
+use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubject;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
@@ -196,7 +197,7 @@ class RadebeulOsJahreszeugnis extends Certificate
                     'Klasse:'
                 ), $width4)
                 ->addElementColumn(self::getBodyElement(
-                    '{{ Content.P' . $personId . '.Division.Data.Level.Name }} {{ Content.P' . $personId . '.Division.Data.Name }}'
+                    '{{ Content.P' . $personId . '.Division.Data.Name }}'
                     , true
                 ), $width5)
             )
@@ -223,18 +224,14 @@ class RadebeulOsJahreszeugnis extends Certificate
                 ), $width5)
             );
 
-        $course = 'nahm am Unterricht der Schulart Mittelschule teil.';
-        if (($tblDivision = $this->getTblDivision())
-            && ($tblLevel = $tblDivision->getTblLevel())
-            && intval($tblLevel->getName()) > 6
-            && ($tblPerson = Person::useService()->getPersonById($personId))
-            && ($tblStudent = $tblPerson->getStudent())
-            && ($tblCourse = $tblStudent->getCourse())
+        $course = 'nahm am Unterricht der Schulart ' . TblType::IDENT_OBER_SCHULE .  ' teil.';
+        if ($this->getLevel() > 6
+            && ($tblCourse = $this->getTblCourse())
         ) {
             if ($tblCourse->getName() == 'Realschule') {
-                $course = 'nahm am Unterricht der Schulart Mittelschule mit dem Ziel des Realschulabschlusses teil.';
+                $course = 'nahm am Unterricht der Schulart ' . TblType::IDENT_OBER_SCHULE .  ' mit dem Ziel des Realschulabschlusses teil.';
             } elseif ($tblCourse->getName() == 'Hauptschule') {
-                $course = 'nahm am Unterricht der Schulart Mittelschule mit dem Ziel des Hauptschulabschlusses teil.';
+                $course = 'nahm am Unterricht der Schulart ' . TblType::IDENT_OBER_SCHULE .  ' mit dem Ziel des Hauptschulabschlusses teil.';
             }
         }
 
@@ -342,207 +339,6 @@ class RadebeulOsJahreszeugnis extends Certificate
             ->styleFontFamily(self::FONT_FAMILY)
             ->styleTextColor(self::TEXT_COLOR_BLUE)
             ->styleMarginTop($marginTop);
-    }
-
-    /**
-     * @deprecated
-     *
-     * @param $personId
-     * @param string $TextSize
-     * @param bool $IsGradeUnderlined
-     *
-     * @return Slice
-     */
-    private static function getOrientation($personId, $TextSize = self::TEXT_SIZE, $IsGradeUnderlined = false)
-    {
-
-        $slice = new Slice();
-        $sectionList = array();
-
-        $elementOrientationName = false;
-        $elementOrientationGrade = false;
-        $elementForeignLanguageName = false;
-        $elementForeignLanguageGrade = false;
-
-        $subjectWidth = 72;
-        $gradeWidth = 28;
-        $gradeColor = 'rgb(224,226,231)';
-
-        if (($tblPerson = Person::useService()->getPersonById($personId))
-            && ($tblStudent = $tblPerson->getStudent())
-        ) {
-
-            // Neigungskurs
-            if (($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('ORIENTATION'))
-                && ($tblSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType($tblStudent,
-                    $tblStudentSubjectType))
-            ) {
-                /** @var TblStudentSubject $tblStudentSubject */
-                $tblStudentSubject = current($tblSubjectList);
-                if (($tblSubject = $tblStudentSubject->getServiceTblSubject())) {
-
-                    if (($tblSetting = Consumer::useService()->getSetting('Api', 'Education', 'Certificate',
-                            'OrientationAcronym'))
-                        && ($value = $tblSetting->getValue())
-                    ) {
-                        $subjectAcronymForGrade = $value;
-                    } else {
-                        $subjectAcronymForGrade = $tblSubject->getAcronym();
-                    }
-
-                    $elementOrientationName = new Element();
-                    $elementOrientationName
-                        ->setContent('
-                            {% if(Content.P' . $personId . '.Student.Orientation["' . $tblSubject->getAcronym() . '"] is not empty) %}
-                                 {{ Content.P' . $personId . '.Student.Orientation["' . $tblSubject->getAcronym() . '"].Name' . ' }}
-                            {% else %}
-                                 &nbsp;
-                            {% endif %}')
-                        ->styleFontFamily(self::FONT_FAMILY)
-                        ->styleTextColor(self::TEXT_COLOR_BLUE)
-                        ->stylePaddingTop('-3px')
-                        ->stylePaddingBottom('2px')
-                        ->styleTextSize($TextSize);
-
-                    $elementOrientationGrade = new Element();
-                    $elementOrientationGrade
-                        ->setContent('
-                            {% if(Content.P' . $personId . '.Grade.Data["' . $subjectAcronymForGrade . '"] is not empty) %}
-                                {{ Content.P' . $personId . '.Grade.Data["' . $subjectAcronymForGrade . '"] }}
-                            {% else %}
-                                &ndash;
-                            {% endif %}')
-                        ->styleFontFamily(self::FONT_FAMILY)
-                        ->styleTextColor(self::TEXT_COLOR_BLUE)
-                        ->styleAlignCenter()
-                        ->styleBackgroundColor($gradeColor)
-                        ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', self::TEXT_COLOR_BLUE)
-                        ->stylePaddingTop('-4px')
-                        ->stylePaddingBottom('2px')
-                        ->styleTextSize($TextSize);
-                }
-            }
-
-            // 2. Fremdsprache
-            if (($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('FOREIGN_LANGUAGE'))
-                && ($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType($tblStudent,
-                    $tblStudentSubjectType))
-            ) {
-                /** @var TblStudentSubject $tblStudentSubject */
-                foreach ($tblStudentSubjectList as $tblStudentSubject) {
-                    if ($tblStudentSubject->getTblStudentSubjectRanking()
-                        && $tblStudentSubject->getTblStudentSubjectRanking()->getIdentifier() == '2'
-                        && ($tblSubject = $tblStudentSubject->getServiceTblSubject())
-                    ) {
-                        $elementForeignLanguageName = new Element();
-                        $elementForeignLanguageName
-                            ->setContent('
-                            {% if(Content.P' . $personId . '.Student.ForeignLanguage["' . $tblSubject->getAcronym() . '"] is not empty) %}
-                                 {{ Content.P' . $personId . '.Student.ForeignLanguage["' . $tblSubject->getAcronym() . '"].Name' . ' }}
-                            {% else %}
-                                 &nbsp;
-                            {% endif %}')
-                            ->styleFontFamily(self::FONT_FAMILY)
-                            ->styleTextColor(self::TEXT_COLOR_BLUE)
-                            ->stylePaddingTop('-3px')
-                            ->stylePaddingBottom('2px')
-                            ->styleTextSize($TextSize);
-
-                        $elementForeignLanguageGrade = new Element();
-                        $elementForeignLanguageGrade
-                            ->setContent('
-                            {% if(Content.P' . $personId . '.Grade.Data["' . $tblSubject->getAcronym() . '"] is not empty) %}
-                                {{ Content.P' . $personId . '.Grade.Data["' . $tblSubject->getAcronym() . '"] }}
-                            {% else %}
-                                &ndash;
-                            {% endif %}')
-                            ->styleFontFamily(self::FONT_FAMILY)
-                            ->styleTextColor(self::TEXT_COLOR_BLUE)
-                            ->styleAlignCenter()
-                            ->styleBackgroundColor($gradeColor)
-                            ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', self::TEXT_COLOR_BLUE)
-                            ->stylePaddingTop('-4px')
-                            ->stylePaddingBottom('2px')
-                            ->styleTextSize($TextSize);
-                    }
-                }
-            }
-        }
-
-        // unterstrichen wird leider zu durchgestrichen
-//        if ($elementOrientationName) {
-//            $textCategory = '(<u>Neigungskurs</u> / 2. Fremdsprache, abschlussorientiert)';
-//        } elseif ($elementForeignLanguageName) {
-//            $textCategory = '(Neigungskurs / <u>2. Fremdsprache, abschlussorientiert)</u>';
-//        } else {
-//            $textCategory = '(Neigungskurs / 2. Fremdsprache, abschlussorientiert)';
-//        }
-        if ($elementOrientationName) {
-            $textCategory = '(Neigungskurs / <u>2. Fremdsprache, abschlussorientiert)</u>';
-        } elseif ($elementForeignLanguageName) {
-            $textCategory = '(<u>Neigungskurs</u> / 2. Fremdsprache, abschlussorientiert)';
-        } else {
-            $textCategory = '(Neigungskurs / 2. Fremdsprache, abschlussorientiert)';
-        }
-
-        $section = new Section();
-        $section
-            ->addElementColumn((new Element())
-                ->setContent('Wahlpflichtbereich:')
-                ->styleFontFamily(self::FONT_FAMILY)
-                ->styleTextColor(self::TEXT_COLOR_BLUE)
-                ->styleTextBold()
-                ->styleTextSize($TextSize)
-                , '21%')
-            ->addElementColumn((new Element())
-                ->setContent($textCategory)
-                ->styleFontFamily(self::FONT_FAMILY)
-                ->styleTextColor(self::TEXT_COLOR_BLUE)
-                ->stylePaddingTop('3px')
-                ->styleTextSize('9pt')
-            );
-        $sectionList[] = $section;
-
-        if ($elementOrientationName) {
-            $section = new Section();
-            $section
-                ->addElementColumn($elementOrientationName, (string)$subjectWidth . '%')
-                ->addElementColumn($elementOrientationGrade, (string)$gradeWidth . '%');
-            $sectionList[] = $section;
-        } elseif ($elementForeignLanguageName) {
-            $section = new Section();
-            $section
-                ->addElementColumn($elementForeignLanguageName, (string)$subjectWidth . '%')
-                ->addElementColumn($elementForeignLanguageGrade, (string)$gradeWidth . '%');
-            $sectionList[] = $section;
-        } else {
-            $elementName = (new Element())
-                ->setContent('&nbsp;')
-                ->styleFontFamily(self::FONT_FAMILY)
-                ->styleTextColor(self::TEXT_COLOR_BLUE)
-                ->styleTextSize($TextSize);
-
-            $elementGrade = (new Element())
-                ->setContent('&ndash;')
-                ->styleFontFamily(self::FONT_FAMILY)
-                ->styleTextColor(self::TEXT_COLOR_BLUE)
-                ->styleAlignCenter()
-                ->styleBackgroundColor($gradeColor)
-                ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', self::TEXT_COLOR_BLUE)
-                ->stylePaddingTop('-4px')
-                ->stylePaddingBottom('2px')
-                ->styleTextSize($TextSize);
-
-            $section = new Section();
-            $section
-                ->addElementColumn($elementName
-                    , (string)$subjectWidth . '%')
-                ->addElementColumn($elementGrade
-                    , (string)$gradeWidth . '%');
-            $sectionList[] = $section;
-        }
-
-        return empty($sectionList) ? (new Slice())->styleHeight('60px') : $slice->addSectionList($sectionList);
     }
 
     /**

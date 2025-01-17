@@ -47,11 +47,11 @@ class TblAccount extends Element
     /**
      * @Column(type="string")
      */
-    protected $UserAlias;
+    protected ?string $UserAlias;
     /**
      * @Column(type="string")
      */
-    protected $BackupMail;
+    protected ?string $BackupMail;
 
     /**
      * @Column(type="string")
@@ -148,25 +148,14 @@ class TblAccount extends Element
     }
 
     /**
-     * @return bool|TblIdentification
-     */
-    public function getServiceTblIdentification()
-    {
-
-        $Authentication = Account::useService()->getAuthenticationByAccount($this);
-        if ($Authentication) {
-            return $Authentication->getTblIdentification();
-        } else {
-            return false;
-        }
-    }
-
-    /**
      * @return string
      */
     public function getUserAlias()
     {
-        return $this->UserAlias;
+        if(!$this->UserAlias){
+            return '';
+        }
+        return strtolower($this->UserAlias);
     }
 
     /**
@@ -174,7 +163,12 @@ class TblAccount extends Element
      */
     public function setUserAlias($UserAlias)
     {
-        $this->UserAlias = $UserAlias;
+        if($UserAlias){
+            $this->UserAlias = strtolower($UserAlias);
+        } else {
+            $this->UserAlias = null;
+        }
+
     }
 
     /**
@@ -182,7 +176,10 @@ class TblAccount extends Element
      */
     public function getRecoveryMail()
     {
-        return $this->BackupMail;
+        if(!$this->BackupMail){
+            return '';
+        }
+        return strtolower($this->BackupMail);
     }
 
     /**
@@ -190,7 +187,12 @@ class TblAccount extends Element
      */
     public function setRecoveryMail($RecoveryMail)
     {
-        $this->BackupMail = $RecoveryMail;
+
+        if($RecoveryMail){
+            $this->BackupMail = strtolower($RecoveryMail);
+        } else {
+            $this->BackupMail = null;
+        }
     }
 
     /**
@@ -207,5 +209,37 @@ class TblAccount extends Element
     public function setAuthenticatorAppSecret($AuthenticatorAppSecret)
     {
         $this->AuthenticatorAppSecret = $AuthenticatorAppSecret;
+    }
+
+    /**
+     * @return float|int
+     */
+    public function getSessionTimeOut()
+    {
+        if ($this->getHasAuthentication(TblIdentification::NAME_SYSTEM)) {
+            $Timeout = ( 60 * 60 * 4 );
+        } elseif ($this->getHasAuthentication(TblIdentification::NAME_AUTHENTICATOR_APP)
+            || $this->getHasAuthentication(TblIdentification::NAME_TOKEN)
+        ) {
+            $Timeout = ( 60 * 60 * 2);
+        } elseif ($this->getHasAuthentication(TblIdentification::NAME_CREDENTIAL)
+            || $this->getHasAuthentication(TblIdentification::NAME_USER_CREDENTIAL)
+        ) {
+            $Timeout = ( 60 * 30 );
+        } else {
+            $Timeout = ( 60 * 10 );
+        }
+
+        return $Timeout;
+    }
+
+    /**
+     * @param string $IdentificationName
+     *
+     * @return bool
+     */
+    public function getHasAuthentication(string $IdentificationName): bool
+    {
+        return Account::useService()->getHasAuthenticationByAccountAndIdentificationName($this, $IdentificationName);
     }
 }

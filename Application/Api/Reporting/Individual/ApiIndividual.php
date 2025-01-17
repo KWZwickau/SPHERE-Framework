@@ -42,6 +42,9 @@ use SPHERE\Application\Reporting\Individual\Service\Entity\ViewProspectCustody;
 use SPHERE\Application\Reporting\Individual\Service\Entity\ViewStudent;
 use SPHERE\Application\Reporting\Individual\Service\Entity\ViewStudentAuthorized;
 use SPHERE\Application\Reporting\Individual\Service\Entity\ViewStudentCustody;
+//use SPHERE\Application\Reporting\Individual\Service\Entity\ViewStudentCustodyS1;
+//use SPHERE\Application\Reporting\Individual\Service\Entity\ViewStudentCustodyS2;
+//use SPHERE\Application\Reporting\Individual\Service\Entity\ViewStudentCustodyS3;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Application\Setting\Consumer\School\School;
 use SPHERE\Common\Frontend\Ajax\Emitter\ClientEmitter;
@@ -143,9 +146,9 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
         'Aufnahme:_Datum',
         'Abgabe:_Datum',
         'Allgemeines:_Taufedatum',
-        'Integration:_Datum_F_oE_rderantrag_Beratung',
-        'Integration:_Datum_F_oE_rderantrag',
-        'Integration:_Datum_F_oE_rderbescheid_SBA',
+        'Inklusion:_Datum_F_oE_rderantrag_Beratung',
+        'Inklusion:_Datum_F_oE_rderantrag',
+        'Inklusion:_Datum_F_oE_rderbescheid_SBA',
         'Verein:_Eintrittsdatum',
         'Verein:_Austrittsdatum',
         'S1:_Geburtsdatum',
@@ -190,6 +193,9 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
     {
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/Download', __CLASS__.'::downloadFile'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/CSV/Download', __CLASS__.'::downloadCsvFile'
         ));
     }
 
@@ -1786,7 +1792,7 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
     /**
      * @param string $ViewType
      *
-     * @return null|Form
+     * @return null|string
      * @throws \Exception
      */
     private function getDownloadForm($ViewType = TblWorkSpace::VIEW_TYPE_ALL) {
@@ -1816,16 +1822,18 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                     }
                 }
 
-                return (new Form(
-                    new FormGroup(
-                        new FormRow(
-                            new FormColumn(
-                                $FieldList
-                            )
+                return new Layout(new LayoutGroup(new LayoutRow(array(
+                    new LayoutColumn(
+                        new Form(new FormGroup(new FormRow(new FormColumn($FieldList)))
+                            , new Submit( 'Excel Herunterladen', new Download(), true ), new Route(__NAMESPACE__.'/Download'), array('ViewType' => $ViewType)
                         )
-                    )
-                    , new Submit( 'Herunterladen', new Download(), true ), new Route(__NAMESPACE__.'/Download'), array('ViewType' => $ViewType))
-                );
+                    , 2),
+                    new LayoutColumn(
+                        new Form(new FormGroup(new FormRow(new FormColumn($FieldList)))
+                            , new Submit( 'CSV Herunterladen', new Download(), true ), new Route(__NAMESPACE__.'/CSV/Download'), array('ViewType' => $ViewType)
+                        )
+                    , 2)
+                ))));
             }
         }
         return null;
@@ -1865,6 +1873,8 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
             '!-!s' => '_HY_',
             '!/!s' => '_DASH_',
             '! !s' => '_',
+//            '! !s' => '',
+            '!:!s' => 'Doppelpunkt',
 
         );
         return preg_replace(array_keys( $EncoderPattern ), array_values( $EncoderPattern ), $Name );
@@ -1886,6 +1896,7 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
             '!_HY_!s' => '-',
             '!_DASH_!s' => '/',
             '!_!s' => ' ',
+            '!Doppelpunkt!s' => ':',
         );
         return preg_replace(array_keys( $DecoderPattern ), array_values( $DecoderPattern ), $Name );
     }
@@ -1910,6 +1921,32 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
             if( !empty($tblWorkspaceAll) ) {
                 $ViewList = array();
                 $ParameterList = array();
+                // Schülerauswertung: ehemalige Schüler werden nicht gezogen
+                $extendStudentToArchive = false;
+                // Filter Preload um Jahresfilter zu ziehen
+                $FilterPre = $this->getGlobal()->POST;
+                // Logik für ehemalige Schüler
+                // Ist die Jahresabfrage der Bildung enthalten?
+                foreach ($tblWorkspaceAll as $tblWorkSpace) {
+                    if($tblWorkSpace->getField() == 'TblYear_Year'){
+                        // Wird der Jahresfilter verwendet?
+                        if(isset($FilterPre['TblYear_Year'])){
+                            // entspricht der Jahresfilter dem aktuellen Jahr?
+                            if(($tblYearList = Term::useService()->getYearByNow())){
+                                $tblYear = current($tblYearList);
+                                // Schuljahr entspricht nicht dem aktuellen Jahr -> ehemalige Schüler werden angezeigt.
+                                if($tblYear->getYear() != current($FilterPre['TblYear_Year'])){
+                                    $extendStudentToArchive = true;
+                                    break;
+                                }
+                            } else {
+                                // Kein Jahr -> ehemalige Schüler werden angezeigt.
+                                $extendStudentToArchive = true;
+                                break;
+                            }
+                        }
+                    }
+                }
 
                 /** @var TblWorkSpace $tblWorkSpace */
                 foreach ($tblWorkspaceAll as $Index => $tblWorkSpace) {
@@ -1920,7 +1957,7 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
 
                         if($Index == 0 ) {
                             // Eingrenzen der zur Verfügung stehenden Personen durch die spezifische Auswertung
-                            $Builder = $this->setInitialView($Builder, $ViewType, $ViewList, $ParameterList);
+                            $Builder = $this->setInitialView($Builder, $ViewType, $ViewList, $ParameterList, $extendStudentToArchive);
                         }
 
                         if (empty($ViewList)) {
@@ -1940,19 +1977,20 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                     // Add Field to Select
                     $ViewClass = $this->instanceView( $tblWorkSpace );
                     $Alias = $this->encodeField( $ViewClass->getNameDefinition($tblWorkSpace->getField()) );
-
                     $FieldName = $tblWorkSpace->getField();
                     if(in_array($tblWorkSpace->getField(), $this->IdSearchList)) {
                         $FieldName = str_replace('_Id', '_Name', $tblWorkSpace->getField());
                     }
-                     $Builder->addSelect($tblWorkSpace->getView() . '.' . $FieldName
-//                    $Builder->addSelect($tblWorkSpace->getView() . '.' . $tblWorkSpace->getField()
-                        . ' AS ' . $Alias
+                     $Builder->addSelect($tblWorkSpace->getView().'.'.$FieldName.' AS '.$Alias
                     );
 
-                    // Add Field to Sort
-                    $Builder->addOrderBy( $tblWorkSpace->getView() . '.' . $FieldName );
-//                    $Builder->addOrderBy( $tblWorkSpace->getView() . '.' . $tblWorkSpace->getField() );
+                    // Add Field to Sort except: (incompatible with Distinct)
+                    if($FieldName != 'TblStudentTechnicalSchool_HasFinancialAid'
+                    && $FieldName != 'TblStudent_SchoolAttendanceStartDate'
+                    && $FieldName != 'TblStudent_HasMigrationBackground'
+                    ) {
+                        $Builder->addOrderBy($tblWorkSpace->getView().'.'.$FieldName);
+                    }
 
                     // Add Condition to Parameter (if exists and is not empty)
                     $Filter = $this->getGlobal()->POST;
@@ -2081,11 +2119,11 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                             }
                         }
                     }
-                    // Add Field to "Group By" to prevent duplicates
-                    //ToDO distinct as an option?
-                    if(isset($Filter['isDistinct']) && $Filter['isDistinct'] == 1){
-                        $Builder->distinct( true );
-                    }
+//                    // Add Field to "Group By" to prevent duplicates
+//                    //ToDO distinct as an option?
+//                    if(isset($Filter['isDistinct']) && $Filter['isDistinct'] == 1){
+//                        $Builder->distinct();
+//                    }
                 }
 
                 // Bind Parameter to Query
@@ -2122,19 +2160,34 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
      *
      * @return QueryBuilder
      */
-    private function setInitialView(QueryBuilder $Builder, $ViewType, &$ViewList = array(), &$ParameterList = array())
+    private function setInitialView(QueryBuilder $Builder, $ViewType, &$ViewList = array(), &$ParameterList = array(), $extendStudentToArchive = false)
     {
         switch ($ViewType) {
             case TblWorkSpace::VIEW_TYPE_STUDENT:
                 $viewGroup = new ViewGroup();
-                $Parameter = ':Filter'.'Initial'.'Value'.'MetaTable';
                 $Builder->from($viewGroup->getEntityFullName(),
                     $viewGroup->getViewObjectName());
-                $Builder->andWhere(
-                    $Builder->expr()->eq('ViewGroup.TblGroup_MetaTable',
-                        $Parameter)
-                );
+                $Parameter = ':Filter'.'Initial'.'Value'.'MetaTable';
                 $ParameterList[$Parameter] = TblGroup::META_TABLE_STUDENT;
+                if($extendStudentToArchive){
+                    $Builder->distinct();
+                    $Parameter1 = ':Filter'.'Initial'.'Value'.'MetaTable1';
+                    $ParameterList[$Parameter1] = TblGroup::META_TABLE_ARCHIVE;
+
+                    $orStudent = $Builder->expr()->orX($Builder->expr()->eq('ViewGroup.TblGroup_MetaTable', $Parameter));
+                    $orArchive = $Builder->expr()->orX($Builder->expr()->eq('ViewGroup.TblGroup_MetaTable', $Parameter1));
+//                    $orAll = $Builder->expr()->orX();
+//                    $orAll->add($Builder->expr()->eq('ViewGroup.TblGroup_MetaTable', $Parameter));
+//                    $orAll->add($Builder->expr()->eq('ViewGroup.TblGroup_MetaTable', $Parameter1));
+//                    $Builder->andWhere(
+//                    );
+                    $Builder->orWhere($orStudent, $orArchive);
+                } else {
+                    $Builder->andWhere(
+                        $Builder->expr()->eq('ViewGroup.TblGroup_MetaTable',
+                            $Parameter)
+                    );
+                }
                 $ViewList[] = 'ViewGroup';
                 break;
             case TblWorkSpace::VIEW_TYPE_PROSPECT:
@@ -2222,8 +2275,8 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
 //                break;
             case 2:
                 $ParameterList[$Parameter] = '%'.$Value.'%';
-                $Builder->expr()->notLike($View . '.' . $Field, $Parameter);
-                break;
+                return $Builder->expr()->notLike($View . '.' . $Field, $Parameter);
+//                break;
             case 3:
                 $ParameterList[$Parameter] = '';
                 return $Builder->expr()->orX(
@@ -2262,7 +2315,16 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                 break;
             case 2:
                 $ParameterList[$Parameter] = '%'.$Value.'%';
-                $Builder->andWhere($Builder->expr()->notLike($View . '.' . $Field, $Parameter));
+                if($Value){
+                    $Builder->andWhere(
+                        $Builder->expr()->orX(
+                            $Builder->expr()->isNull($View . '.' . $Field),
+                            $Builder->expr()->notLike($View . '.' . $Field,
+                                $Parameter))
+                    );
+                } else {
+                    $Builder->andWhere($Builder->expr()->notLike($View . '.' . $Field, $Parameter));
+                }
                 break;
             case 3:
                 $ParameterList[$Parameter] = '';
@@ -2287,9 +2349,12 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
     public function getSearchResult($ViewType = TblWorkSpace::VIEW_TYPE_ALL)
     {
 
-        $Query = $this->buildSearchQuery($ViewType, true);
-//
-//        return $Query->getSQL();
+        $ShowSQL = false;
+        $Query = $this->buildSearchQuery($ViewType, true, $ShowSQL);
+
+        if($ShowSQL){
+            return $Query;
+        }
         if( null === $Query ) {
             return 'Error';
         } else {
@@ -2394,13 +2459,13 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
      * @return null|FilePointer
      * @throws \MOC\V\Component\Document\Component\Exception\Repository\TypeFileException
      * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
-     * @throws \PHPExcel_Reader_Exception
      */
     private function buildExcelFile($ViewType = TblWorkSpace::VIEW_TYPE_ALL)
     {
-        $Query = $this->buildSearchQuery($ViewType);
-        $Result = $Query->getResult();
-
+        $Result = array();
+        if(($Query = $this->buildSearchQuery($ViewType))) {
+            $Result = $Query->getResult();
+        }
         if(!empty($Result)) {
             $ColumnDTNames = array();
             $ColumnDBNames = array_keys(current($Result));
@@ -2442,39 +2507,88 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
     /**
      * @param string $ViewType
      *
+     * @return null|FilePointer
+     * @throws \MOC\V\Component\Document\Component\Exception\Repository\TypeFileException
+     * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
+     */
+    private function buildCsvFile($ViewType = TblWorkSpace::VIEW_TYPE_ALL)
+    {
+        $Result = array();
+        if(($Query = $this->buildSearchQuery($ViewType))) {
+            $Result = $Query->getResult();
+        }
+        if(!empty($Result)) {
+            $ColumnDTNames = array();
+            $ColumnDBNames = array_keys(current($Result));
+            array_walk($ColumnDBNames, function ($Name, $Index) use (&$ColumnDTNames) {
+                //                $ColumnDTNames[$Index] = preg_replace('!\_!is', ' ', $Name);
+                $ColumnDTNames[$Index] = $this->decodeField($Name);
+            });
+
+            $File = new FilePointer('csv','Auswertung');
+
+            /** @var PhpExcel $Document */
+            $Document = Document::getDocument( $File->getFileLocation() );
+            $Document->setDelimiter(';');
+
+            // Header
+            foreach ( $ColumnDTNames as $Index => $Name ) {
+                $Document->setValue( $Document->getCell( $Index, 0), $Name );
+                $Document->setStyle( $Document->getCell( $Index, 0) )->setFontBold()->setColumnWidth();
+            }
+
+            // Body
+            foreach( $Result as $RowIndex => $Row ) {
+                $ColumnCount = 0;
+                foreach( $Row as $Value ) {
+                    $Document->setValue( $Document->getCell( $ColumnCount++, $RowIndex+1 ), $Value );
+                }
+            }
+
+            $Document->saveFile( new FileParameter($File->getFileLocation()) );
+            return $File;
+        }
+        return null;
+    }
+
+    /**
+     * @param string $ViewType
+     *
      * @return string
      * @throws \MOC\V\Core\FileSystem\Exception\FileSystemException
      */
     public function downloadFile($ViewType = TblWorkSpace::VIEW_TYPE_ALL)
     {
         $File = $this->buildExcelFile($ViewType);
-
-//        /** @var PhpExcel $Document */
-//        $Document = Document::getDocument( $File->getFileLocation() );
-//        $X = $Document->getSheetRowCount();
-//        $Y = $Document->getSheetColumnCount();
-//
-//        $Rows = array();
-//        $Header = array();
-//        for( $XI = 1; $XI < $X; $XI++ ) {
-//            $Cols = array();
-//            for( $YI = 0; $YI < $Y; $YI++ ) {
-//                if( $XI == 1 ) {
-//                    $Header[$YI] = new TableColumn( $Document->getValue( $Document->getCell( $YI, $XI ) ) );
-//                } else {
-//                    $Cols[$YI] = new TableColumn($Document->getValue($Document->getCell($YI, $XI)));
-//                }
-//            }
-//            $Rows[] = new TableRow( $Cols );
-//        }
-
-//        return new Table( new TableHead( new TableRow( $Header ) ), new TableBody( $Rows ) );
-
+        if(!$File){
+            return 'Download der Auswertung konnte nicht erstellt werden, prüfen Sie Ihre Filterung';
+        }
         $FileName = 'Auswertung_';
         $FileName .= $this->getRealNameByViewType($ViewType);
         $FileName .= '_'.date('d-m-Y_H-i-s').'.xlsx';
 
         return FileSystem::getStream(
+            $File->getRealPath(), $FileName
+        )->__toString();
+    }
+
+    /**
+     * @param string $ViewType
+     *
+     * @return string
+     * @throws \MOC\V\Core\FileSystem\Exception\FileSystemException
+     */
+    public function downloadCsvFile($ViewType = TblWorkSpace::VIEW_TYPE_ALL)
+    {
+        $File = $this->buildCsvFile($ViewType);
+        if(!$File){
+            return 'Download der Auswertung konnte nicht erstellt werden, prüfen Sie Ihre Filterung';
+        }
+        $FileName = 'Auswertung_';
+        $FileName .= $this->getRealNameByViewType($ViewType);
+        $FileName .= '_'.date('d-m-Y_H-i-s').'.csv';
+
+        return FileSystem::getDownload(
             $File->getRealPath(), $FileName
         )->__toString();
     }

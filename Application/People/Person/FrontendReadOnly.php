@@ -2,7 +2,6 @@
 
 namespace SPHERE\Application\People\Person;
 
-use MOC\V\Core\FileSystem\FileSystem;
 use SPHERE\Application\Api\Contact\ApiAddressToPerson;
 use SPHERE\Application\Api\Contact\ApiContactDetails;
 use SPHERE\Application\Api\Contact\ApiMailToPerson;
@@ -15,43 +14,43 @@ use SPHERE\Application\Api\People\Person\ApiPersonReadOnly;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Mail\Mail;
 use SPHERE\Application\Contact\Phone\Phone;
-use SPHERE\Application\Education\Lesson\Division\Filter\Service as FilterService;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
-use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Frontend\FrontendBasic;
 use SPHERE\Application\People\Person\Frontend\FrontendChild;
 use SPHERE\Application\People\Person\Frontend\FrontendClub;
 use SPHERE\Application\People\Person\Frontend\FrontendCommon;
 use SPHERE\Application\People\Person\Frontend\FrontendCustody;
-use SPHERE\Application\People\Person\Frontend\FrontendPersonAgreement;
-use SPHERE\Application\People\Person\Frontend\FrontendPersonMasern;
 use SPHERE\Application\People\Person\Frontend\FrontendPersonPicture;
-use SPHERE\Application\People\Person\Frontend\FrontendProspect;
-use SPHERE\Application\People\Person\Frontend\FrontendProspectTransfer;
-use SPHERE\Application\People\Person\Frontend\FrontendStudent;
+use SPHERE\Application\People\Person\Frontend\FrontendProspectGroup;
+use SPHERE\Application\People\Person\Frontend\FrontendStaffGroup;
+use SPHERE\Application\People\Person\Frontend\FrontendStudentBasic;
+use SPHERE\Application\People\Person\Frontend\FrontendStudentGroup;
 use SPHERE\Application\People\Person\Frontend\FrontendStudentIntegration;
-use SPHERE\Application\People\Person\Frontend\FrontendTeacher;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
+use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Info;
 use SPHERE\Common\Frontend\Icon\Repository\MapMarker;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
+use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
+use SPHERE\Common\Frontend\Layout\Repository\Ruler;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\Danger as DangerLink;
 use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
-use SPHERE\Common\Frontend\Text\Repository\Center;
 use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
@@ -89,22 +88,21 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
     /**
      *
      * @param null|int $Id
-     * @param null|int $Group
+     * @param null|int $PseudoId
      *
      * @return Stage
      */
-    public function frontendPersonReadOnly($Id = null, $Group = null, UploadedFile $FileUpload = null, $IsUpload = '')
+    public function frontendPersonReadOnly($Id = null, $PseudoId = null, UploadedFile $FileUpload = null, $IsUpload = '')
     {
 
         $stage = new Stage('Person', 'Datenblatt ' . ($Id ? 'bearbeiten' : 'anlegen'));
         $stage->addButton(
-            new Standard('Zurück', '/People/Search/Group', new ChevronLeft(), array('Id' => $Group))
+            new Standard('Zurück', '/People', new ChevronLeft(), array('PseudoId' => $PseudoId))
         );
 
         // Person bearbeiten
         if ($Id != null && ($tblPerson = Person::useService()->getPersonById($Id))) {
-            $validationMessage = FilterService::getPersonMessageTable($tblPerson);
-            $basicContent = ApiPersonReadOnly::receiverBlock(FrontendBasic::getBasicContent($Id, $Group), 'BasicContent');
+            $basicContent = ApiPersonReadOnly::receiverBlock(FrontendBasic::getBasicContent($Id, $PseudoId), 'BasicContent');
             $commonContent = ApiPersonReadOnly::receiverBlock(FrontendCommon::getCommonContent($Id), 'CommonContent');
 
             // Anzeige Foto & Bearbeitung nur bei Schülern
@@ -118,24 +116,38 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
                     $PictureContent = null;
                 }
             }
-            if($PictureContent === null){
-                if($IsUpload){
-                    $PictureContent = ApiPersonPicture::receiverBlock(FrontendPersonPicture::getEditPersonPictureContent($Id, $Group, $FileUpload));
-                } else {
-                    $PictureContent = ApiPersonPicture::receiverBlock(FrontendPersonPicture::getPersonPictureContent($Id, $Group));
+            // einklappen der Interessentendaten
+            $ProspectGroupToCollectGroups[] = TblGroup::META_TABLE_STUDENT;
+            $hasOpenProspect = true;
+            foreach ($ProspectGroupToCollectGroups as $group) {
+                if (($tblGroup = Group::useService()->getGroupByMetaTable($group))
+                    && Group::useService()->existsGroupPerson($tblGroup, $tblPerson)
+                ) {
+                    $hasOpenProspect = false;
+                    break;
                 }
             }
 
-            $personAgreementContent = ApiPersonReadOnly::receiverBlock(FrontendPersonAgreement::getPersonAgreementContent($Id), 'PersonAgreementContent');
-            $personMasern = ApiPersonReadOnly::receiverBlock(FrontendPersonMasern::getPersonMasernContent($Id), 'PersonMasernContent');
+            if($PictureContent === null){
+                if($IsUpload){
+                    $PictureContent = ApiPersonPicture::receiverBlock(FrontendPersonPicture::getEditPersonPictureContent($Id, $PseudoId, $FileUpload));
+                } else {
+                    $PictureContent = ApiPersonPicture::receiverBlock(FrontendPersonPicture::getPersonPictureContent($Id, $PseudoId));
+                }
+            }
             $childContent = ApiPersonReadOnly::receiverBlock(FrontendChild::getChildContent($Id), 'ChildContent');
-            $prospectContent = ApiPersonReadOnly::receiverBlock(FrontendProspect::getProspectContent($Id), 'ProspectContent');
-            $prospectTransferContent = ApiPersonReadOnly::receiverBlock(FrontendProspectTransfer::getProspectTransferContent($Id), 'ProspectTransferContent');
-            $teacherContent = ApiPersonReadOnly::receiverBlock(FrontendTeacher::getTeacherContent($Id), 'TeacherContent');
+            $studentContent = ApiPersonReadOnly::receiverBlock(FrontendStudentGroup::getStudentGroupTitle($Id), 'StudentGroupContent');
+            $integrationContent = ApiPersonReadOnly::receiverBlock(FrontendStudentIntegration::getIntegrationTitle($Id), 'IntegrationContent');
+            if($hasOpenProspect){
+                // Gruppe geöffnet laden
+                $prospectGroupContent = ApiPersonReadOnly::receiverBlock(FrontendProspectGroup::getProspectGroupContent($Id), 'ProspectGroupContent');
+            } else {
+                // Gruppe geschlossen laden
+                $prospectGroupContent = ApiPersonReadOnly::receiverBlock(FrontendProspectGroup::getProspectGroupTitle($Id), 'ProspectGroupContent');
+            }
+            $staffGroup = ApiPersonReadOnly::receiverBlock(FrontendStaffGroup::getStaffGroupTitle($Id), 'StaffGroup');
             $custodyContent = ApiPersonReadOnly::receiverBlock(FrontendCustody::getCustodyContent($Id), 'CustodyContent');
             $clubContent = ApiPersonReadOnly::receiverBlock(FrontendClub::getClubContent($Id), 'ClubContent');
-            $studentContent = ApiPersonReadOnly::receiverBlock(FrontendStudent::getStudentTitle($Id), 'StudentContent');
-            $integrationContent = ApiPersonReadOnly::receiverBlock(FrontendStudentIntegration::getIntegrationTitle($Id), 'IntegrationContent');
             $DivisionString = FrontendReadOnly::getDivisionString($tblPerson);
 
             $addressReceiver = ApiAddressToPerson::receiverBlock(Address::useFrontend()->frontendLayoutPersonNew($tblPerson),
@@ -209,34 +221,31 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
                 false
             );
             $stage->setContent(
-                ($validationMessage ? $validationMessage : '')
-                .
                 ($PictureContent === false
-                ? $basicContent. $commonContent
-                : new Layout(new LayoutGroup(new LayoutRow(array(
-                    new LayoutColumn(
-                        $basicContent
-                        . $commonContent
-                        , 9),
-                    new LayoutColumn(
-                        $PictureContent
-                        , 3)
-                ))))
+                    ? $basicContent. $commonContent
+                    : new Layout(new LayoutGroup(new LayoutRow(array(
+                        new LayoutColumn(
+                            $basicContent
+                            . $commonContent
+                            , 9),
+                        new LayoutColumn(
+                            $PictureContent
+                            , 3)
+                    ))))
                 )
-                . $personAgreementContent
                 . $childContent
-                . $prospectContent
-                . $prospectTransferContent
-                . $teacherContent
-                . $personMasern
                 . $studentContent
+                . $integrationContent
+                . $prospectGroupContent
+                . $staffGroup
                 . $custodyContent
                 . $clubContent
-                . $integrationContent
                 . $addressContent
                 . $phoneContent
                 . $mailContent
                 . $relationshipContent
+                . new Ruler()
+                .new DangerLink('Person löschen', '/People/Person/Destroy', new Disable(), array('Id' => $Id, 'PseudoId' => $PseudoId, 'PersonView' => true))
             );
         // neue Person anlegen
         } else {
@@ -263,11 +272,11 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
      */
     public static function getDivisionString(TblPerson $tblPerson = null): string
     {
-        $DivisionString = '';
-        if($tblPerson && ($tblDivision = Student::useService()->getCurrentMainDivisionByPerson($tblPerson))){
-            $DivisionString = ' Klasse '.$tblDivision->getDisplayName();
+        if($tblPerson) {
+            return ' ' . DivisionCourse::useService()->getCurrentMainCoursesByPersonAndDate($tblPerson, 'now', true);
         }
-        return $DivisionString;
+
+        return '';
     }
 
     /**

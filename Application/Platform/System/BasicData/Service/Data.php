@@ -174,6 +174,20 @@ class Data extends AbstractData
     }
 
     /**
+     * @param string $name
+     * @param TblState $tblState
+     *
+     * @return false|TblHoliday[]
+     */
+    public function getHolidayListByNameAndState(string $name, TblState $tblState)
+    {
+        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblHoliday', array(
+            TblHoliday::ATTR_NAME => $name,
+            TblHoliday::ATTR_TBL_STATE => $tblState->getId()
+        ));
+    }
+
+    /**
      * @return false|TblHoliday[]
      */
     public function getHolidayAll() {

@@ -4,6 +4,7 @@ namespace SPHERE\Application\Platform\System\Session;
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\IServiceInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblIdentification;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblSession;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\Application\Platform\System\Protocol\Service\Entity\TblProtocol;
@@ -11,6 +12,7 @@ use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Family;
 use SPHERE\Common\Frontend\Icon\Repository\Key;
 use SPHERE\Common\Frontend\Icon\Repository\Off;
+use SPHERE\Common\Frontend\Icon\Repository\Person;
 use SPHERE\Common\Frontend\Icon\Repository\PhoneMobil;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
@@ -83,8 +85,7 @@ class Session extends Extension implements IModuleInterface
     {
 
         $Stage = new Stage('Active Session', 'der aktuell angemeldete Benutzer');
-//        $Stage->addButton(new External('Login History', __NAMESPACE__.'/History', null, array(), false));
-        $Stage->addButton(new Standard('Login History', __NAMESPACE__.'/History'));
+//        $Stage->addButton(new Standard('Login History', __NAMESPACE__.'/History'));
 
         if ($Id) {
             $tblSessionAll = Account::useService()->getSessionAll();
@@ -99,39 +100,31 @@ class Session extends Extension implements IModuleInterface
         $Result = array();
 
         $tblSessionAll = Account::useService()->getSessionAll();
+        $countArray = array(
+            'tokenLogin' => 0,
+            'appLogin' => 0,
+            'combinedLogin' => 0,
+            'pwOnly' => 0,
+            'studentCustody' => 0,
+        );
         if ($tblSessionAll) {
-            array_walk($tblSessionAll, function (TblSession $tblSession) use (&$Result) {
-
-                $tblAccount = $tblSession->getTblAccount();
-                $tblIdentification = $tblAccount->getServiceTblIdentification();
-                $loginTime = 60 * 10;
-                switch ($tblIdentification->getName()) {
-                    case 'System':
-                        $loginTime = (60 * 60 * 4);
-                        break;
-                    case 'AuthenticatorApp':
-                    case 'Token':
-                        $loginTime = (60 * 60);
-                        break;
-                    case 'Credential':
-                        $loginTime = (60 * 30);
-                        break;
-                    case 'UserCredential':
-                        $loginTime = (60 * 30);
-                        break;
-                }
+            array_walk($tblSessionAll, function (TblSession $tblSession) use (&$Result, &$countArray) {
+                if (($tblAccount = $tblSession->getTblAccount())) {
+                    $loginTime = $tblAccount->getSessionTimeOut();
 
                 $Activity = gmdate("H:i:s", $loginTime - ($tblSession->getTimeout() - time()));
+                // create sort string with 5 digits -> last activity with leading 0
+                $lastActivity = str_pad($loginTime - ($tblSession->getTimeout() - time()), 5, 0, STR_PAD_LEFT);
 
-                if ($tblSession->getEntityUpdate() && $tblSession->getEntityCreate()) {
-                    $Interval = $tblSession->getEntityUpdate()->getTimestamp() - $tblSession->getEntityCreate()->getTimestamp();
-                } else {
-                    if (!$tblSession->getEntityUpdate() && $tblSession->getEntityCreate()) {
-                        $Interval = time() - $tblSession->getEntityCreate()->getTimestamp();
+                    if ($tblSession->getEntityUpdate() && $tblSession->getEntityCreate()) {
+                        $Interval = $tblSession->getEntityUpdate()->getTimestamp() - $tblSession->getEntityCreate()->getTimestamp();
                     } else {
-                        $Interval = 0;
+                        if (!$tblSession->getEntityUpdate() && $tblSession->getEntityCreate()) {
+                            $Interval = time() - $tblSession->getEntityCreate()->getTimestamp();
+                        } else {
+                            $Interval = 0;
+                        }
                     }
-                }
 
                 // need to much time and info is not necessary
 //                if (($Activity = Protocol::useService()->getProtocolLastActivity($tblAccount))) {
@@ -140,55 +133,79 @@ class Session extends Extension implements IModuleInterface
 //                    $Activity = '-NA-';
 //                }
 
-                if ($tblAccount && $tblAccount->getServiceTblIdentification()
-                    && $tblAccount->getServiceTblIdentification()->getName() == 'System') {
-                    $UserName = new Info($UserNamePrepare = $tblAccount->getUsername());
-                    $AccountType = new ToolTip('A '.new Key(), 'Admin');
-                } elseif ($tblAccount && $tblAccount->getServiceTblIdentification()
-                    && ($tblAccount->getServiceTblIdentification()->getName() == 'Token'
-                        || $tblAccount->getServiceTblIdentification()->getName() == 'AuthenticatorApp')
-                ) {
-                    $UserNamePrepare = $tblAccount->getUsername();
-                    $separatorStringPos = strpos($UserNamePrepare, '-');
-                    $UserNameBuild = new Success(substr($UserNamePrepare, 0, $separatorStringPos));
-                    $UserNameBuild .= substr($UserNamePrepare, $separatorStringPos);
-                    $UserName = new Bold($UserNameBuild);
-                    $AccountType = new ToolTip('M '
-                        . ($tblAccount->getServiceTblIdentification()->getName() == 'Token' ? new Key() : new PhoneMobil())
-                        , 'Mitarbeiter');
-                } elseif ($tblAccount) {
-                    $UserName = $tblAccount->getUsername();
-                    $AccountType = new ToolTip('S &nbsp;'.new Family(), 'Sorgeberechtigte / Schüler');
-                } else {
-                    $UserName = '-NA-';
-                    $AccountType = '-NA-';
-                }
+                    $UserName = new Info($tblAccount->getUsername());
+                    if (Account::useService()->getHasAuthenticationByAccountAndIdentificationName($tblAccount, TblIdentification::NAME_SYSTEM)) {
+                        $AccountType = new ToolTip('A <span hidden>'.$lastActivity.'</span>' . new Key(), 'Admin');
+                    } elseif (Account::useService()->getHasAuthenticationByAccountAndIdentificationName($tblAccount, TblIdentification::NAME_TOKEN)
+                        || Account::useService()->getHasAuthenticationByAccountAndIdentificationName($tblAccount, TblIdentification::NAME_AUTHENTICATOR_APP)
+                    ) {
+                        $UserNamePrepare = $tblAccount->getUsername();
+                        $separatorStringPos = strpos($UserNamePrepare, '-');
+                        $UserNameBuild = new Success(substr($UserNamePrepare, 0, $separatorStringPos));
+                        $UserNameBuild .= substr($UserNamePrepare, $separatorStringPos);
+                        $UserName = new Bold($UserNameBuild);
+                        $AccountType = new ToolTip('M <span hidden>'.$lastActivity.'</span>'
+                            . (Account::useService()->getHasAuthenticationByAccountAndIdentificationName($tblAccount, TblIdentification::NAME_TOKEN) ? new Key() : '')
+                            . (Account::useService()->getHasAuthenticationByAccountAndIdentificationName($tblAccount, TblIdentification::NAME_AUTHENTICATOR_APP) ? new PhoneMobil() : ''),
+                            'Mitarbeiter'
+                        );
+                    } elseif (Account::useService()->getHasAuthenticationByAccountAndIdentificationName($tblAccount, TblIdentification::NAME_CREDENTIAL)) {
+                        $AccountType = new ToolTip('M PW <span hidden>'.$lastActivity.'</span>&nbsp;' . new Person(), 'Mitarbeiter PW Login');
+                    } elseif (Account::useService()->getHasAuthenticationByAccountAndIdentificationName($tblAccount, TblIdentification::NAME_USER_CREDENTIAL)) {
+                        $AccountType = new ToolTip('S <span hidden>'.$lastActivity.'</span>&nbsp;' . new Family(), 'Sorgeberechtigte / Schüler');
+                    } else {
+                        $AccountType = '-NA-';
+                    }
 
-                array_push($Result, array(
-                    'Id' => $tblSession->getId(),
-                    'Consumer' => ($tblAccount->getServiceTblConsumer() ?
-                        $tblAccount->getServiceTblConsumer()->getAcronym()
-                        . '&nbsp;' . new Muted($tblAccount->getServiceTblConsumer()->getName())
-                        : '-NA-'
-                    ),
-                    'Account' => $UserName,
-                    'AccountType' => $AccountType,
-                    'TTL' => gmdate("H:i:s", $tblSession->getTimeout() - time()),
-                    'ActiveTime' => gmdate('H:i:s', $Interval),
-                    'LoginTime' => $tblSession->getEntityCreate(),
-                    'LastAction' => $Activity,
-                    'Identifier' => strtoupper($tblSession->getSession()),
-                    'Option' => new Danger('', new Link\Route(__NAMESPACE__), new Off(), array(
-                        'Id' => $tblSession->getId()
-                    ))
-                ));
+                    $Result[] = array(
+                        'Id' => $tblSession->getId(),
+                        'Consumer' => ($tblAccount->getServiceTblConsumer() ?
+                            $tblAccount->getServiceTblConsumer()->getAcronym()
+                            . '&nbsp;' . new Muted($tblAccount->getServiceTblConsumer()->getName())
+                            : '-NA-'
+                        ),
+                        'Account' => $UserName,
+                        'AccountType' => $AccountType,
+                        'TTL' => gmdate("H:i:s", $tblSession->getTimeout() - time()),
+                        'ActiveTime' => gmdate('H:i:s', $Interval),
+                        'LoginTime' => $tblSession->getEntityCreate(),
+                        'LastAction' => $Activity,
+                        'Identifier' => strtoupper($tblSession->getSession()),
+                        'Option' => new Danger('', new Link\Route(__NAMESPACE__), new Off(), array(
+                            'Id' => $tblSession->getId()
+                        ))
+                    );
+                    if($tblAccount->getServiceTblToken() && $tblAccount->getAuthenticatorAppSecret()){
+                        $countArray['combinedLogin']++;
+                    } elseif ($tblAccount->getServiceTblToken()) {
+                        $countArray['tokenLogin']++;
+                    } elseif ($tblAccount->getAuthenticatorAppSecret()) {
+                        $countArray['appLogin']++;
+                    } elseif($tblAccount->getHasAuthentication(TblIdentification::NAME_CREDENTIAL)) {
+                        $countArray['pwOnly']++;
+                    } else {
+                        $countArray['studentCustody']++;
+                    }
+                }
             });
         }
+
+        $space = '&nbsp;&nbsp;&nbsp;&nbsp;';
+        $Stage->setDescription(
+            'der aktuell angemeldete Benutzer'.$space
+            .new Bold('Token und App: ').$countArray['combinedLogin'].$space
+            .new Bold('Token: ').$countArray['tokenLogin'].$space
+            .new Bold('App: ').$countArray['appLogin'].$space
+            .new Bold('PW Only: ').$countArray['pwOnly'].$space
+            .new Bold('Gesamt: ').$countArray['combinedLogin']+$countArray['tokenLogin']+$countArray['appLogin']+$countArray['pwOnly'].$space
+            .new Bold('Schüler/Eltern: ').$countArray['studentCustody']
+        );
 
         $Stage->setContent(
             new Layout(
                 new LayoutGroup(
-                    new LayoutRow(
+                    new LayoutRow(array(
+                        new LayoutColumn(new Standard('Login History', __NAMESPACE__.'/History').'<div style="height: 8px">&nbsp;</div>'),
                         new LayoutColumn(array(
                             new TableData($Result, null, array(
                                 'Id' => '#',
@@ -203,18 +220,18 @@ class Session extends Extension implements IModuleInterface
                                 'Option' => ''
                             ), array(
                                 'order' => array(
-                                    array(3, 'asc'),
-                                    array(0, 'desc')
+                                    array(3, 'asc')
                                 ),
                                 'columnDefs' => array(
-                                    array('width' => '1%', 'orderable' => false, 'targets' => -1)
+                                    array('width' => '1%', 'orderable' => false, 'targets' => -1),
+                                    array('type' => 'de_date', 'targets' => 4, 5, 6, 7)
                                 )
                             ), true),
                             new Redirect(
                                 '/Platform/System/Session', 60
                             )
                         ))
-                    ), new Title('Aktive Benutzer')
+                    )), new Title('Aktive Benutzer')
                 )
             )
         );

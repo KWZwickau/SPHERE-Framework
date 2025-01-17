@@ -103,7 +103,7 @@ class FileSystem extends \Upload\Storage\Base
             throw new \Upload\Exception\UploadException('File already exists');
         }
 
-        return $this->moveUploadedFile($file->getPathname(), $newFile);
+        return $this->moveUploadedFile($file->getSplFileInfo()->getPathname(), $newFile);
     }
 
     /**

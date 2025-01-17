@@ -191,14 +191,14 @@ class Frontend extends Extension implements IFrontendInterface
                     $Item['Datev'] = new Small($tblBasket->getDatevUser().' - ('.$tblBasket->getDatevDate().')');
                 }
                 $TypeName = '';
-                $DivisionName = '';
+                $DivisionCourseName = '';
                 if(($tblType = $tblBasket->getServiceTblType())){
                     $TypeName = $tblType->getName();
                 }
-                if(($tblDivision = $tblBasket->getServiceTblDivision())){
-                    $DivisionName = $tblDivision->getDisplayName();
+                if(($tblDivisionCourse = $tblBasket->getServiceTblDivisionCoures())){
+                    $DivisionCourseName = $tblDivisionCourse->getDisplayName();
                 }
-                $Item['Filter'] = ($TypeName ? $TypeName.' ': '').($DivisionName ? 'Klasse '.$DivisionName: '');
+                $Item['Filter'] = ($TypeName ? $TypeName.' ': '').($DivisionCourseName ? 'Klasse '.$DivisionCourseName: '');
 
 //                $tblBasketVerification = Basket::useService()->getBasketVerificationAllByBasket($tblBasket);
 
@@ -214,15 +214,10 @@ class Frontend extends Extension implements IFrontendInterface
                         $Buttons .= (new Standard('', ApiBasket::getEndpoint(), new Repeat(), array(), 'Abrechnung aus dem Archiv holen'))
                             ->ajaxPipelineOnClick(ApiBasket::pipelineBasketArchive($tblBasket->getId(), $IsArchive));
                     }
-                    if(($tblAccount = Account::useService()->getAccountBySession())){
-                        if(($tblIdentification = $tblAccount->getServiceTblIdentification())){
-                            if($tblIdentification->getName() == TblIdentification::NAME_SYSTEM){
-                                $Buttons .= (new DangerLink('', ApiBasket::getEndpoint(), new Remove(), array(),
-                                    'Abrechnung entfernen nur für Systemaccounts verfügbar'))
-                                    ->ajaxPipelineOnClick(ApiBasket::pipelineOpenDeleteBasketModal('deleteBasket',
-                                        $tblBasket->getId()));
-                            }
-                        }
+                    if(Basket::useService()->isInvoiceDeleteActive()){
+                        $Buttons .= (new DangerLink('', ApiBasket::getEndpoint(), new Remove(), array(),
+                            'Abrechnung inkl. erzeugte Rechnungen entfernen'))
+                            ->ajaxPipelineOnClick(ApiBasket::pipelineOpenDeleteBasketModal('deleteBasket', $tblBasket->getId()));
                     }
 
                     $Item['Option'] = $Buttons;
@@ -271,7 +266,7 @@ class Frontend extends Extension implements IFrontendInterface
                 'columnDefs' => array(
                     array('type' => 'natural', 'targets' => array(0)),
                     array('type' => 'de_date', 'targets' => array(2)),
-                    array("orderable" => false, 'width' => '225px', "targets" => -1),
+                    array("orderable" => false, 'width' => '260px', "targets" => -1),
                 ),
                 'order'      => array(
 //                    array(1, 'desc'),
@@ -446,7 +441,7 @@ class Frontend extends Extension implements IFrontendInterface
         $TableContent = array();
         $PanelContent = '';
         $IsDebtorNumberNeed = false;
-        if($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_FIBU_ACCOUNT_AS_DEBTOR)){
+        if($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_IS_DATEV)){
             if($tblSetting->getValue() == 1){
                 $IsDebtorNumberNeed = true;
             }
@@ -576,7 +571,10 @@ class Frontend extends Extension implements IFrontendInterface
                     }
 
                     if($tblBasket->getIsDone()){
-                        $Item['Option'] = '';
+                        if(Basket::useService()->isInvoiceDeleteActive()) {
+                            $Item['Option'] = (new DangerLink('', '#', new Remove(), array(), 'Zahlung inkl. erzeugte Rechnungen entfernen'))
+                                ->ajaxPipelineOnClick(ApiBasket::pipelineOpenDeleteBasketVerificationModal('BasketV', $tblBasketVerification->getId()));
+                        }
                     } else {
                         $Item['Option'] = (new Standard(new DangerText(new Disable()),
                             ApiBasketVerification::getEndpoint(), null
@@ -650,8 +648,9 @@ class Frontend extends Extension implements IFrontendInterface
             ))));
         }
         $PanelCount = new Panel('Übersicht', $PanelContent);
-        return new Layout(
-            new LayoutGroup(
+        return
+            ApiBasket::receiverModal('Entfernen', 'BasketV')
+            .new Layout(new LayoutGroup(
                 new LayoutRow(array(
                     new LayoutColumn(
                         $PanelCount
@@ -686,8 +685,7 @@ class Frontend extends Extension implements IFrontendInterface
                         )
                     ),
                 ))
-            )
-        );
+            ));
     }
 
     /**

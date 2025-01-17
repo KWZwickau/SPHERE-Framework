@@ -6,7 +6,6 @@ use SPHERE\Application\Contact\Phone\Service\Entity\TblPhone;
 use SPHERE\Application\Contact\Phone\Service\Entity\TblToCompany;
 use SPHERE\Application\Contact\Phone\Service\Entity\TblToPerson;
 use SPHERE\Application\Contact\Phone\Service\Entity\TblType;
-use SPHERE\Application\Contact\Phone\Service\Entity\ViewPhoneToPerson;
 use SPHERE\Application\Contact\Phone\Service\Setup;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -38,15 +37,6 @@ class Service extends AbstractService
             (new Data($this->getBinding()))->setupDatabaseContent();
         }
         return $Protocol;
-    }
-
-    /**
-     * @return false|ViewPhoneToPerson[]
-     */
-    public function viewPhoneToPerson()
-    {
-
-        return ( new Data($this->getBinding()) )->viewPhoneToPerson();
     }
 
     /**
@@ -111,12 +101,12 @@ class Service extends AbstractService
 
         $tblType = $tblToPerson->getTblType();
         if ($tblType) {
-            if ($tblType->getName() == 'Privat') {
+            if ($tblToPerson->getIsEmergencyContact()) {
+                return 'n.';
+            } elseif ($tblType->getName() == 'Privat') {
                 return 'p.';
             } elseif ($tblType->getName() == 'Geschäftlich') {
                 return 'g.';
-            } elseif ($tblType->getName() == 'Notfall') {
-                return 'n.';
             } elseif ($tblType->getName() == 'Fax') {
                 return 'f.';
             }
@@ -147,8 +137,7 @@ class Service extends AbstractService
             return false;
         }
 
-        if ((new Data($this->getBinding()))->addPhoneToPerson($tblPerson, $tblPhone, $tblType, $Type['Remark'])
-        ) {
+        if ((new Data($this->getBinding()))->addPhoneToPerson($tblPerson, $tblPhone, $tblType, $Type['Remark'], isset($Type['IsEmergencyContact']))) {
             return true;
         } else {
             return false;
@@ -176,8 +165,8 @@ class Service extends AbstractService
             && ($tblType = $this->getTypeById($Type['Type']))
         ) {
             // Add new
-            if ((new Data($this->getBinding()))->addPhoneToPerson($tblToPerson->getServiceTblPerson(), $tblPhone,
-                $tblType, $Type['Remark'])
+            if ((new Data($this->getBinding()))->addPhoneToPerson(
+                $tblToPerson->getServiceTblPerson(), $tblPhone, $tblType, $Type['Remark'], isset($Type['IsEmergencyContact']))
             ) {
                 return true;
             } else {
@@ -238,7 +227,8 @@ class Service extends AbstractService
      * @param TblPerson $tblPerson
      * @param $Number
      * @param TblType $tblType
-     * @param $Remark
+     * @param string $Remark
+     * @param bool $isEmergencyContact
      *
      * @return TblToPerson
      */
@@ -246,11 +236,12 @@ class Service extends AbstractService
         TblPerson $tblPerson,
         $Number,
         TblType $tblType,
-        $Remark
-    ) {
+        string $Remark,
+        bool $isEmergencyContact = false
+    ): TblToPerson {
 
         $tblPhone = (new Data($this->getBinding()))->createPhone($Number);
-        return (new Data($this->getBinding()))->addPhoneToPerson($tblPerson, $tblPhone, $tblType, $Remark);
+        return (new Data($this->getBinding()))->addPhoneToPerson($tblPerson, $tblPhone, $tblType, $Remark, $isEmergencyContact);
     }
 
     /**
@@ -295,8 +286,7 @@ class Service extends AbstractService
             return false;
         }
 
-        if ((new Data($this->getBinding()))->addPhoneToCompany($tblCompany, $tblPhone, $tblType, $Type['Remark'])
-        ) {
+        if ((new Data($this->getBinding()))->addPhoneToCompany($tblCompany, $tblPhone, $tblType, $Type['Remark'], isset($Type['IsEmergencyContact']))) {
             return true;
         } else {
             return false;
@@ -324,9 +314,9 @@ class Service extends AbstractService
             && ($tblType = $this->getTypeById($Type['Type']))
         ) {
             // Add new
-            if ((new Data($this->getBinding()))->addPhoneToCompany($tblToCompany->getServiceTblCompany(), $tblPhone,
-                $tblType, $Type['Remark'])
-            ) {
+            if ((new Data($this->getBinding()))->addPhoneToCompany(
+                $tblToCompany->getServiceTblCompany(), $tblPhone, $tblType, $Type['Remark'], isset($Type['IsEmergencyContact'])
+            )) {
                 return true;
             } else {
                 return false;
@@ -454,6 +444,16 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblPerson $tblPerson
+     *
+     * @return false|TblToPerson[]
+     */
+    public function getPhoneToPersonAllEmergencyContactByPerson(TblPerson $tblPerson)
+    {
+        return (new Data($this->getBinding()))->getPhoneToPersonAllEmergencyContactByPerson($tblPerson);
+    }
+
+    /**
      * @param TblToPerson $tblToPerson
      *
      * @return bool
@@ -467,6 +467,7 @@ class Service extends AbstractService
     /**
      * @param $Number
      * @param TblType $tblType
+     * @param bool $isEmergencyContact
      * @param $Remark
      * @param array $tblPersonList
      *
@@ -475,13 +476,14 @@ class Service extends AbstractService
     public function insertPhoneToPersonList(
         $Number,
         TblType $tblType,
+        bool $isEmergencyContact,
         $Remark,
         $tblPersonList = array()
-    ) {
+    ): bool {
 
         if (($tblPhone = (new Data($this->getBinding()))->createPhone($Number))) {
             foreach ($tblPersonList as $tblPerson) {
-                (new Data($this->getBinding()))->addPhoneToPerson($tblPerson, $tblPhone, $tblType, $Remark);
+                (new Data($this->getBinding()))->addPhoneToPerson($tblPerson, $tblPhone, $tblType, $Remark, $isEmergencyContact);
             }
 
             return  true;

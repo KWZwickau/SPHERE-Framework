@@ -97,11 +97,7 @@ abstract class Transfer extends Agreement
         TblStudentSchoolEnrollmentType $tblStudentSchoolEnrollmentType = null
     ) {
 
-        $tblStudentTransfer = $this->getStudentTransferByType(
-            $tblStudent,
-            $tblStudentTransferType
-        );
-        if ($tblStudentTransfer) {
+        if(($tblStudentTransfer = $this->getStudentTransferByType($tblStudent, $tblStudentTransferType))) {
             (new Data($this->getBinding()))->updateStudentTransfer(
                 $tblStudentTransfer,
                 $tblStudent,

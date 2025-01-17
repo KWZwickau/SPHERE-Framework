@@ -4,6 +4,8 @@ namespace SPHERE\Application\Api\Setting\UserAccount;
 use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\IApiInterface;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer as ConsumerGatekeeper;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumerLogin;
 use SPHERE\Application\Setting\Authorization\Account\Account as AccountAuth;
 use SPHERE\Application\Setting\User\Account\Account;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
@@ -29,9 +31,9 @@ use SPHERE\Common\Frontend\Link\Repository\ToggleCheckbox;
 use SPHERE\Common\Frontend\Message\Repository\Danger as DangerMessage;
 use SPHERE\Common\Frontend\Message\Repository\Info;
 use SPHERE\Common\Frontend\Message\Repository\Info as InfoMessage;
-use SPHERE\Common\Frontend\Message\Repository\Warning as WarningMessage;
+use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
-use SPHERE\Common\Frontend\Text\Repository\Bold;
+use SPHERE\Common\Frontend\Text\Repository\Warning as WarningText;
 use SPHERE\System\Extension\Extension;
 
 /**
@@ -174,24 +176,40 @@ class ApiUserDelete extends Extension implements IApiInterface
         } else {
             $Content = Account::useFrontend()->getCustodyTable(true);
         }
+        $showDeleting = true;
+        if($Content instanceof Warning){
+            $showDeleting = false;
+        }
 
         $Danger = new Danger('Löschen', '#', new Remove(), $Data, 'Löschen ist unwiderruflich');
-        $DangerText = new DangerMessage('Hiermit werden die ausgewählten Accounts dauerhaft gelöscht');
+        $DangerText = 'Hiermit werden die ausgewählten Accounts dauerhaft gelöscht';
         if($Type == 'STUDENT'){
-            $DangerText = new DangerMessage('Hiermit werden die ausgewählten Schüler-Accounts dauerhaft gelöscht');
+            $DangerText = 'Hiermit werden die ausgewählten Schüler-Accounts dauerhaft gelöscht';
+            // nur bei Schülern
+            $IsUCSMandant = false;
+            if(($tblConsumer = ConsumerGatekeeper::useService()->getConsumerBySession())){
+                if(ConsumerGatekeeper::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_UCS)){
+                    $IsUCSMandant = true;
+                }
+            }
+            if($IsUCSMandant){
+                $DangerText .= new Container('Nach dem Löschen der Accounts in der Schulsoftware werden diese auch über die UCS Schnittstelle aus dem DLLP Projekt gelöscht.');
+            }
         } elseif($Type == 'CUSTODY'){
-            $DangerText = new DangerMessage('Hiermit werden die ausgewählten Sorgeberechtigten-Accounts dauerhaft gelöscht');
+            $DangerText = 'Hiermit werden die ausgewählten Sorgeberechtigten-Accounts dauerhaft gelöscht';
         }
+
+        $DangerText = new DangerMessage($DangerText);
 
         $form = new Form(new FormGroup(new FormRow(array(
             new FormColumn(
                 $Content
             ),
             new FormColumn(
-                $DangerText
+                ($showDeleting ? $DangerText : new WarningText(''))
             ),
             new FormColumn(
-                $Danger->ajaxPipelineOnClick(ApiUserDelete::pipelineLoadingScreen($Type))
+                ($showDeleting ? $Danger->ajaxPipelineOnClick(ApiUserDelete::pipelineLoadingScreen($Type)) : new WarningText(''))
             ),
         ))));
 
@@ -201,8 +219,12 @@ class ApiUserDelete extends Extension implements IApiInterface
         } elseif($Type == 'CUSTODY'){
             $InfoText = new Info('Auflistung von Sorgeberechtigten, deren Kinder nicht mehr in der Personengruppe Schüler sind');
         }
+        $ToggleButton = '';
+        if($showDeleting){
+            $ToggleButton = new ToggleCheckbox('Alle auswählen/abwählen', $form);
+        }
 
-        return $InfoText.new ToggleCheckbox('Alle auswählen/abwählen', $form).$form;
+        return $InfoText.$ToggleButton.$form;
     }
 
     /**
@@ -256,7 +278,7 @@ class ApiUserDelete extends Extension implements IApiInterface
     }
 
     /**
-     * @return WarningMessage|TableData
+     * @return Warning|TableData
      */
     public function getTableContent($Type)
     {

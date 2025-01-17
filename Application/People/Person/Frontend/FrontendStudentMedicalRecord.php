@@ -2,11 +2,8 @@
 namespace SPHERE\Application\People\Person\Frontend;
 
 use SPHERE\Application\Api\MassReplace\ApiMassReplace;
-use SPHERE\Application\Api\MassReplace\StudentFilter;
 use SPHERE\Application\Api\People\Meta\MedicalRecord\MassReplaceMedicalRecord;
 use SPHERE\Application\Api\People\Person\ApiPersonEdit;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\ViewDivisionStudent;
-use SPHERE\Application\Education\Lesson\Term\Service\Entity\ViewYear;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentMasernInfo;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\FrontendReadOnly;
@@ -238,11 +235,8 @@ class FrontendStudentMedicalRecord extends FrontendReadOnly
      */
     private function getEditStudentMedicalRecordForm(TblPerson $tblPerson = null)
     {
-
-        FrontendStudent::setYearAndDivisionForMassReplace($tblPerson, $Year, $Division);
         $NodeMasern = 'Masern-Impfpflicht';
 
-//        $tblPerson
         $tblStudentInsuranceState = Student::useService()->getStudentInsuranceStateAll();
 
         $PanelContentArray = array();
@@ -254,19 +248,18 @@ class FrontendStudentMedicalRecord extends FrontendReadOnly
                 ApiMassReplace::getEndpoint(), null, array(
                     ApiMassReplace::SERVICE_CLASS => MassReplaceMedicalRecord::CLASS_MASS_REPLACE_MEDICAL_RECORD,
                     ApiMassReplace::SERVICE_METHOD => MassReplaceMedicalRecord::METHOD_REPLACE_MASERN_DATE,
-                    ApiMassReplace::USE_FILTER => StudentFilter::STUDENT_FILTER,
                     'Id' => $tblPerson->getId(),
-                    'Year[' . ViewYear::TBL_YEAR_ID . ']' => $Year[ViewYear::TBL_YEAR_ID],
-                    'Division[' . ViewDivisionStudent::TBL_LEVEL_ID . ']' => $Division[ViewDivisionStudent::TBL_LEVEL_ID],
-                    'Division[' . ViewDivisionStudent::TBL_DIVISION_NAME . ']' => $Division[ViewDivisionStudent::TBL_DIVISION_NAME],
-                    'Division[' . ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE . ']' => $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE],
-                    'Node' => $NodeMasern,
                 )))->ajaxPipelineOnClick(
                 ApiMassReplace::pipelineOpen($Field, $NodeMasern)
             ));
 
         // Document
         $tblStudentMasernInfoDocumentList = Student::useService()->getStudentMasernInfoByType(TblStudentMasernInfo::TYPE_DOCUMENT);
+        foreach($tblStudentMasernInfoDocumentList as $Key => $tblStudentMasernInfoDocument){
+            if($tblStudentMasernInfoDocument->getTextShort() == 'Kein Nachweis notwendig'){
+                unset($tblStudentMasernInfoDocumentList[$Key]);
+            }
+        }
 
         $Field = new SelectBox('Meta[MedicalRecord][Masern][DocumentType]', 'Art der Bescheinigung', array('TextLong' => $tblStudentMasernInfoDocumentList));
         $PanelContentArray[] =
@@ -276,13 +269,7 @@ class FrontendStudentMedicalRecord extends FrontendReadOnly
                 ApiMassReplace::getEndpoint(), null, array(
                     ApiMassReplace::SERVICE_CLASS => MassReplaceMedicalRecord::CLASS_MASS_REPLACE_MEDICAL_RECORD,
                     ApiMassReplace::SERVICE_METHOD => MassReplaceMedicalRecord::METHOD_REPLACE_MASERN_DOCUMENT,
-                    ApiMassReplace::USE_FILTER => StudentFilter::STUDENT_FILTER,
                     'Id' => $tblPerson->getId(),
-                    'Year[' . ViewYear::TBL_YEAR_ID . ']' => $Year[ViewYear::TBL_YEAR_ID],
-                    'Division[' . ViewDivisionStudent::TBL_LEVEL_ID . ']' => $Division[ViewDivisionStudent::TBL_LEVEL_ID],
-                    'Division[' . ViewDivisionStudent::TBL_DIVISION_NAME . ']' => $Division[ViewDivisionStudent::TBL_DIVISION_NAME],
-                    'Division[' . ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE . ']' => $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE],
-                    'Node' => $NodeMasern,
                 )))->ajaxPipelineOnClick(
                 ApiMassReplace::pipelineOpen($Field, $NodeMasern)
             ));
@@ -296,13 +283,7 @@ class FrontendStudentMedicalRecord extends FrontendReadOnly
                 ApiMassReplace::getEndpoint(), null, array(
                     ApiMassReplace::SERVICE_CLASS => MassReplaceMedicalRecord::CLASS_MASS_REPLACE_MEDICAL_RECORD,
                     ApiMassReplace::SERVICE_METHOD => MassReplaceMedicalRecord::METHOD_REPLACE_MASERN_CREATOR,
-                    ApiMassReplace::USE_FILTER => StudentFilter::STUDENT_FILTER,
                     'Id' => $tblPerson->getId(),
-                    'Year[' . ViewYear::TBL_YEAR_ID . ']' => $Year[ViewYear::TBL_YEAR_ID],
-                    'Division[' . ViewDivisionStudent::TBL_LEVEL_ID . ']' => $Division[ViewDivisionStudent::TBL_LEVEL_ID],
-                    'Division[' . ViewDivisionStudent::TBL_DIVISION_NAME . ']' => $Division[ViewDivisionStudent::TBL_DIVISION_NAME],
-                    'Division[' . ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE . ']' => $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE],
-                    'Node' => $NodeMasern,
                 )))->ajaxPipelineOnClick(
                 ApiMassReplace::pipelineOpen($Field, $NodeMasern)
             ));

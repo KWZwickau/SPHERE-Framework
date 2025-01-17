@@ -3,6 +3,7 @@ namespace SPHERE\Common\Frontend\Form\Structure;
 
 use MOC\V\Component\Template\Component\IBridgeInterface;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
+use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
 use SPHERE\Common\Frontend\Form\IButtonInterface;
 use SPHERE\Common\Frontend\Form\IFieldInterface;
 use SPHERE\Common\Frontend\Form\IFormInterface;
@@ -136,6 +137,13 @@ class Form extends Extension implements IFormInterface
                                 $GridElement->setError($Message, $Icon);
                             }
                         }
+                        if ($GridElement instanceof BlockReceiver) {
+                            if (($GridSubElement = $GridElement->getContent())) {
+                                if ($GridSubElement instanceof AbstractField && $GridSubElement->getName() == $Name) {
+                                    $GridSubElement->setError($Message, $Icon);
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -193,6 +201,13 @@ class Form extends Extension implements IFormInterface
                         if ($GridElement instanceof AbstractField) {
                             if ($GridElement->getName() == $Name) {
                                 $GridElement->setSuccess($Message, $Icon);
+                            }
+                        }
+                        if ($GridElement instanceof BlockReceiver) {
+                            if (($GridSubElement = $GridElement->getContent())) {
+                                if ($GridSubElement instanceof AbstractField && $GridSubElement->getName() == $Name) {
+                                    $GridSubElement->setSuccess($Message, $Icon);
+                                }
                             }
                         }
                     }

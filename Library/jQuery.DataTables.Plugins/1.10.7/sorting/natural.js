@@ -28,7 +28,8 @@
  * See: http://js-naturalsort.googlecode.com/svn/trunk/naturalSort.js
  */
 function naturalSort (a, b) {
-	var re = /(^-?[0-9]+(\.?[0-9]*)[df]?e?[0-9]?$|^0x[0-9a-f]+$|[0-9]+)/gi,
+	// var re = /(^-?[0-9]+(\.?[0-9]*)[df]?e?[0-9]?$|^0x[0-9a-f]+$|[0-9]+)/gi, // [df]?e? entfernt da sonnst in klassen d vor a Sortiert wird -> (5d 5a 5b 5c)
+	var re = /(^-?[0-9]+(\.?[0-9]*)[0-9]?$|^0x[0-9a-f]+$|[0-9]+)/gi,
 		sre = /(^[ ]*|[ ]*$)/g,
 		dre = /(^([\w ]+,?[\w ]+)?[\w ]+,?[\w ]+\d+:\d+(:\d+)?[\w ]?|^\d{1,4}[\/\-]\d{1,4}[\/\-]\d{1,4}|^\w+, \w+ \d+, \d{4})/,
 		hre = /^0x[0-9a-f]+$/i,

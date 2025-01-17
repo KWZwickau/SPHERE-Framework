@@ -48,6 +48,7 @@ class TextField extends AbstractTextField implements IFieldInterface
             $this->Template->setVariable('ElementMask', $Mask);
         }
         $this->Template->setVariable('ElementMaxLength', $MaxLength);
+        $this->Template->setVariable('ElementType', 'text');
     }
 
     /**
@@ -62,6 +63,25 @@ class TextField extends AbstractTextField implements IFieldInterface
         } else {
             $this->Template->setVariable('ElementCase', 'lower');
         }
+        return $this;
+    }
+
+    /**
+     * @return $this
+     */
+    public function setFieldType($value = 'tel'){
+
+        $this->Template->setVariable('ElementType', $value);
+        return $this;
+    }
+
+    /**
+     * @return $this
+     */
+    public function setAutoComplete($value = 'one-time-code'){
+        // Muss mit einem anderen Typ als password, text, number erfolgen -> wird sonst auf "off" gestellt
+        $this->setFieldType();
+        $this->Template->setVariable('ElementAutoComplete', $value);
         return $this;
     }
 

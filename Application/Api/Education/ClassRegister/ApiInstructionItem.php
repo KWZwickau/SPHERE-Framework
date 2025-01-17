@@ -6,9 +6,8 @@ use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\Education\ClassRegister\Instruction\Instruction;
 use SPHERE\Application\Education\ClassRegister\Instruction\Service\Entity\TblInstruction;
-use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\IApiInterface;
-use SPHERE\Application\People\Group\Group;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
 use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
@@ -89,13 +88,11 @@ class ApiInstructionItem extends Extension implements IApiInterface
     }
 
     /**
-     * @param string|null $DivisionId
-     * @param string|null $GroupId
-     * @param string|null $DivisionSubjectId
+     * @param string|null $DivisionCourseId
      *
      * @return Pipeline
      */
-    public static function pipelineLoadInstructionItemContent(string $DivisionId = null, string $GroupId = null, string $DivisionSubjectId = null): Pipeline
+    public static function pipelineLoadInstructionItemContent(string $DivisionCourseId = null): Pipeline
     {
         $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'InstructionItemContent'), self::getEndpoint());
@@ -103,9 +100,7 @@ class ApiInstructionItem extends Extension implements IApiInterface
             self::API_TARGET => 'loadInstructionItemContent',
         ));
         $ModalEmitter->setPostPayload(array(
-            'DivisionId' => $DivisionId,
-            'GroupId' => $GroupId,
-            'DivisionSubjectId' => $DivisionSubjectId
+            'DivisionCourseId' => $DivisionCourseId,
         ));
         $Pipeline->appendEmitter($ModalEmitter);
 
@@ -113,35 +108,26 @@ class ApiInstructionItem extends Extension implements IApiInterface
     }
 
     /**
-     * @param string|null $DivisionId
-     * @param string|null $GroupId
-     * @param string|null $DivisionSubjectId
+     * @param string|null $DivisionCourseId
      *
      * @return string
      */
-    public function loadInstructionItemContent(string $DivisionId = null, string $GroupId = null, string $DivisionSubjectId = null) : string
+    public function loadInstructionItemContent(string $DivisionCourseId = null): string
     {
-        $tblDivision = Division::useService()->getDivisionById($DivisionId);
-        $tblGroup = Group::useService()->getGroupById($GroupId);
-        $tblDivisionSubject = Division::useService()->getDivisionSubjectById($DivisionSubjectId);
-
-        if (!($tblDivision || $tblGroup || $tblDivisionSubject)) {
-            return new Danger('Die Klasse oder Gruppe wurde nicht gefunden', new Exclamation());
+        if (!(($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId)))) {
+            return new Danger('Der Kurs wurde nicht gefunden', new Exclamation());
         }
 
-        return Instruction::useFrontend()->loadInstructionItemTable($tblDivision ?: null, $tblGroup ?: null, $tblDivisionSubject ?: null);
+        return Instruction::useFrontend()->loadInstructionItemTable($tblDivisionCourse);
     }
 
     /**
-     * @param string|null $DivisionId
-     * @param string|null $GroupId
-     * @param string|null $DivisionSubjectId
+     * @param string|null $DivisionCourseId
      * @param string|null $InstructionId
      *
      * @return Pipeline
      */
-    public static function pipelineOpenCreateInstructionItemModal(string $DivisionId = null, string $GroupId = null, string $DivisionSubjectId = null,
-        string $InstructionId = null): Pipeline
+    public static function pipelineOpenCreateInstructionItemModal(string $DivisionCourseId = null, string $InstructionId = null): Pipeline
     {
         $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
@@ -149,9 +135,7 @@ class ApiInstructionItem extends Extension implements IApiInterface
             self::API_TARGET => 'openCreateInstructionItemModal',
         ));
         $ModalEmitter->setPostPayload(array(
-            'DivisionId' => $DivisionId,
-            'GroupId' => $GroupId,
-            'DivisionSubjectId' => $DivisionSubjectId,
+            'DivisionCourseId' => $DivisionCourseId,
             'InstructionId' => $InstructionId
         ));
         $Pipeline->appendEmitter($ModalEmitter);
@@ -160,31 +144,22 @@ class ApiInstructionItem extends Extension implements IApiInterface
     }
 
     /**
-     * @param string|null $DivisionId
-     * @param string|null $GroupId
-     * @param string|null $DivisionSubjectId
+     * @param string|null $DivisionCourseId
      * @param string|null $InstructionId
      *
      * @return string
      */
-    public function openCreateInstructionItemModal(string $DivisionId = null, string $GroupId = null, string $DivisionSubjectId = null,
-        string $InstructionId = null): string
+    public function openCreateInstructionItemModal(string $DivisionCourseId = null, string $InstructionId = null): string
     {
-        $tblDivision = Division::useService()->getDivisionById($DivisionId);
-        $tblGroup = Group::useService()->getGroupById($GroupId);
-        $tblDivisionSubject = Division::useService()->getDivisionSubjectById($DivisionSubjectId);
-        $tblInstruction = Instruction::useService()->getInstructionById($InstructionId);
-
-        if (!($tblDivision || $tblGroup || $tblDivisionSubject)) {
-            return new Danger('Die Klasse oder Gruppe wurde nicht gefunden', new Exclamation());
+        if (!(($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId)))) {
+            return new Danger('Der Kurs wurde nicht gefunden', new Exclamation());
         }
 
-        if (!$tblInstruction) {
+        if (!($tblInstruction = Instruction::useService()->getInstructionById($InstructionId))) {
             return new Danger('Die Belehrung wurde nicht gefunden', new Exclamation());
         }
 
-        return $this->getInstructionItemModal(Instruction::useFrontend()->formInstructionItem($tblDivision ?: null,
-            $tblGroup ?: null, $tblDivisionSubject ?: null, $tblInstruction, null, false), $tblInstruction);
+        return $this->getInstructionItemModal(Instruction::useFrontend()->formInstructionItem($tblDivisionCourse, $tblInstruction, null, false), $tblInstruction);
     }
 
     /**
@@ -222,14 +197,12 @@ class ApiInstructionItem extends Extension implements IApiInterface
     }
 
     /**
-     * @param string|null $DivisionId
-     * @param string|null $GroupId
-     * @param string|null $DivisionSubjectId
-     * @param string|null $InstructionId
+     * @param string $DivisionCourseId
+     * @param string $InstructionId
      *
      * @return Pipeline
      */
-    public static function pipelineCreateInstructionItemSave(?string $DivisionId, ?string $GroupId, ?string $DivisionSubjectId, ?string $InstructionId): Pipeline
+    public static function pipelineCreateInstructionItemSave(string $DivisionCourseId, string $InstructionId): Pipeline
     {
         $Pipeline = new Pipeline();
         $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
@@ -237,9 +210,7 @@ class ApiInstructionItem extends Extension implements IApiInterface
             self::API_TARGET => 'saveCreateInstructionItemModal'
         ));
         $ModalEmitter->setPostPayload(array(
-            'DivisionId' => $DivisionId,
-            'GroupId' => $GroupId,
-            'DivisionSubjectId' => $DivisionSubjectId,
+            'DivisionCourseId' => $DivisionCourseId,
             'InstructionId' => $InstructionId
         ));
         $ModalEmitter->setLoadingMessage('Wird bearbeitet');
@@ -249,37 +220,30 @@ class ApiInstructionItem extends Extension implements IApiInterface
     }
 
     /**
-     * @param string|null $DivisionId
-     * @param string|null $GroupId
-     * @param string|null $DivisionSubjectId
-     * @param string|null $InstructionId
-     * @param array|null $Data
+     * @param string $DivisionCourseId
+     * @param string $InstructionId
+     * @param array $Data
      *
      * @return Danger|string
      */
-    public function saveCreateInstructionItemModal(?string $DivisionId, ?string $GroupId, ?string $DivisionSubjectId, ?string $InstructionId, ?array $Data)
+    public function saveCreateInstructionItemModal(string $DivisionCourseId, string $InstructionId, array $Data)
     {
-        $tblDivision = Division::useService()->getDivisionById($DivisionId);
-        $tblGroup = Group::useService()->getGroupById($GroupId);
-        $tblDivisionSubject = Division::useService()->getDivisionSubjectById($DivisionSubjectId);
-        $tblInstruction = Instruction::useService()->getInstructionById($InstructionId);
-
-        if (!($tblDivision || $tblGroup || $tblDivisionSubject)) {
-            return new Danger('Die Klasse oder Gruppe wurde nicht gefunden', new Exclamation());
+        if (!(($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId)))) {
+            return new Danger('Der Kurs wurde nicht gefunden', new Exclamation());
         }
 
-        if (!$tblInstruction) {
+        if (!($tblInstruction = Instruction::useService()->getInstructionById($InstructionId))) {
             return new Danger('Die Belehrung wurde nicht gefunden', new Exclamation());
         }
 
-        if (($form = Instruction::useService()->checkFormInstructionItem($Data, $tblDivision ?: null, $tblGroup ?: null, $tblDivisionSubject ?: null, $tblInstruction, null))) {
+        if (($form = Instruction::useService()->checkFormInstructionItem($Data, $tblDivisionCourse, $tblInstruction, null))) {
             // display Errors on form
             return $this->getInstructionItemModal($form, $tblInstruction);
         }
 
-        if (Instruction::useService()->createInstructionItem($Data, $tblInstruction, $tblDivision ?: null, $tblGroup ?: null, $tblDivisionSubject ?: null)) {
+        if (Instruction::useService()->createInstructionItem($Data, $tblInstruction, $tblDivisionCourse)) {
             return new Success('Die Belehrung wurde erfolgreich gespeichert.')
-                . self::pipelineLoadInstructionItemContent($DivisionId, $GroupId, $DivisionSubjectId)
+                . self::pipelineLoadInstructionItemContent($DivisionCourseId)
                 . self::pipelineClose();
         } else {
             return new Danger('Die Belehrung konnte nicht gespeichert werden.') . self::pipelineClose();
@@ -337,17 +301,15 @@ class ApiInstructionItem extends Extension implements IApiInterface
         if (!($tblInstructionItem = Instruction::useService()->getInstructionItemById($InstructionItemId))) {
             return new Danger('Die Belehrung wurde nicht gefunden', new Exclamation());
         }
-        $tblDivision = $tblInstructionItem->getServiceTblDivision();
-        $tblGroup = $tblInstructionItem->getServiceTblGroup();
-        $tblDivisionSubject = $tblInstructionItem->getServiceTblDivisionSubject();
-        $tblInstruction = $tblInstructionItem->getTblInstruction();
-
-        if (!$tblInstruction) {
+        if (!(($tblDivisionCourse = $tblInstructionItem->getServiceTblDivisionCourse()))) {
+            return new Danger('Der Kurs wurde nicht gefunden', new Exclamation());
+        }
+        if (!($tblInstruction = $tblInstructionItem->getTblInstruction())) {
             return new Danger('Die Belehrung wurde nicht gefunden', new Exclamation());
         }
 
         return $this->getInstructionItemModal(Instruction::useFrontend()->formInstructionItem(
-            $tblDivision ?: null, $tblGroup ?: null, $tblDivisionSubject ?: null, $tblInstruction, $InstructionItemId, true
+            $tblDivisionCourse, $tblInstruction, $InstructionItemId, true
         ), $tblInstruction, $InstructionItemId);
     }
 
@@ -362,26 +324,21 @@ class ApiInstructionItem extends Extension implements IApiInterface
         if (!($tblInstructionItem = Instruction::useService()->getInstructionItemById($InstructionItemId))) {
             return new Danger('Die Belehrung wurde nicht gefunden', new Exclamation());
         }
-        $tblDivision = $tblInstructionItem->getServiceTblDivision();
-        $tblGroup = $tblInstructionItem->getServiceTblGroup();
-        $tblDivisionSubject = $tblInstructionItem->getServiceTblDivisionSubject();
-        $tblInstruction = $tblInstructionItem->getTblInstruction();
-
-        if (!$tblInstruction) {
+        if (!(($tblDivisionCourse = $tblInstructionItem->getServiceTblDivisionCourse()))) {
+            return new Danger('Der Kurs wurde nicht gefunden', new Exclamation());
+        }
+        if (!($tblInstruction = $tblInstructionItem->getTblInstruction())) {
             return new Danger('Die Belehrung wurde nicht gefunden', new Exclamation());
         }
 
-        if (($form = Instruction::useService()->checkFormInstructionItem($Data, $tblDivision ?: null, $tblGroup ?: null, $tblDivisionSubject ?: null,
-            $tblInstruction, $tblInstructionItem))
-        ) {
+        if (($form = Instruction::useService()->checkFormInstructionItem($Data, $tblDivisionCourse, $tblInstruction, $tblInstructionItem))) {
             // display Errors on form
             return $this->getInstructionItemModal($form, $tblInstruction, $InstructionItemId);
         }
 
         if (Instruction::useService()->updateInstructionItem($tblInstructionItem, $Data)) {
             return new Success('Die Belehrung wurde erfolgreich gespeichert.')
-                . self::pipelineLoadInstructionItemContent($tblDivision ? $tblDivision->getId() : null, $tblGroup ? $tblGroup->getId() : null,
-                    $tblDivisionSubject ? $tblDivisionSubject->getId() : null)
+                . self::pipelineLoadInstructionItemContent($tblDivisionCourse)
                 . self::pipelineClose();
         } else {
             return new Danger('Die Belehrung konnte nicht gespeichert werden.') . self::pipelineClose();
@@ -449,7 +406,6 @@ class ApiInstructionItem extends Extension implements IApiInterface
      */
     public static function pipelineDeleteInstructionItemSave(string $InstructionItemId): Pipeline
     {
-
         $Pipeline = new Pipeline();
         $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
         $ModalEmitter->setGetPayload(array(
@@ -474,14 +430,13 @@ class ApiInstructionItem extends Extension implements IApiInterface
         if (!($tblInstructionItem = Instruction::useService()->getInstructionItemById($InstructionItemId))) {
             return new Danger('Die Belehrung wurde nicht gefunden', new Exclamation());
         }
-        $tblDivision = $tblInstructionItem->getServiceTblDivision();
-        $tblGroup = $tblInstructionItem->getServiceTblGroup();
-        $tblDivisionSubject = $tblInstructionItem->getServiceTblDivisionSubject();
+        if (!(($tblDivisionCourse = $tblInstructionItem->getServiceTblDivisionCourse()))) {
+            return new Danger('Der Kurs wurde nicht gefunden', new Exclamation());
+        }
 
         if (Instruction::useService()->destroyInstructionItem($tblInstructionItem)) {
             return new Success('Die Belehrung wurde erfolgreich gelöscht.')
-                . self::pipelineLoadInstructionItemContent($tblDivision ? $tblDivision->getId() : null, $tblGroup ? $tblGroup->getId() : null,
-                    $tblDivisionSubject ? $tblDivisionSubject->getId() : null)
+                . self::pipelineLoadInstructionItemContent($tblDivisionCourse)
                 . self::pipelineClose();
         } else {
             return new Danger('Die Belehrung konnte nicht gelöscht werden.') . self::pipelineClose();

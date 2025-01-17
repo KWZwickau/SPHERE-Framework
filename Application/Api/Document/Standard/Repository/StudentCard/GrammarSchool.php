@@ -263,7 +263,7 @@ class GrammarSchool extends AbstractStudentCard
      *
      * @return Frame
      */
-    public function buildDocument($pageList = array(), $Part = '0')
+    public function buildDocument(array $pageList = array(), string $Part = '0'): Frame
     {
         return (new Frame())->addDocument((new Document())
             ->addPage($this->buildPage())
@@ -349,7 +349,7 @@ class GrammarSchool extends AbstractStudentCard
                 case 3: $text = 'Kurshalbjahr'; break;
             }
             $element = (new Element())
-                ->setContent($this->setRotatedContend($text, '-45px', $paddingLeftHeader))
+                ->setContent($this->setRotatedContend($text, '155px', '27px'))
                 ->styleHeight($heightHeader)
                 ->styleTextSize($textSizeSmall)
                 ->styleBorderLeft($i == 1 ? $thicknessOutLines : $thicknessInnerLines);
@@ -368,6 +368,9 @@ class GrammarSchool extends AbstractStudentCard
                 $tblSubject = $tblSubjectList[$i];
                 if ($tblSubject) {
                     $text = $tblSubject->getName();
+                    if ($text == 'Gemeinschaftskunde/Rechtserziehung/Wirtschaft') {
+                        $text = 'Gemeinschaftskunde / Rechtserziehung / Wirtschaft';
+                    }
                     $subjectPosition[$i] = $tblSubject;
 
                     if ($i == 0) {
@@ -380,7 +383,7 @@ class GrammarSchool extends AbstractStudentCard
             }
 
             $element = (new Element())
-                ->setContent($this->setRotatedContend($text, '-45px', $paddingLeftHeader))
+                ->setContent($this->setRotatedContend($text, '155px'))
                 ->styleHeight($heightHeader)
                 ->styleTextSize(strlen($text) > 35 ? '7px' : $textSizeSmall)
                 ->styleBorderLeft($i == 0 ? $thicknessOutLines : $thicknessInnerLines);
@@ -394,7 +397,7 @@ class GrammarSchool extends AbstractStudentCard
                 case 2: $text = 'Signum des Lehrers'; break;
             }
             $element = (new Element())
-                ->setContent($this->setRotatedContend($text, '-45px', $paddingLeftHeader))
+                ->setContent($this->setRotatedContend($text, '155px', '22px'))
                 ->styleHeight($heightHeader)
                 ->styleTextSize($textSizeSmall)
                 ->styleBorderLeft($i == 1 ? $thicknessOutLines : $thicknessInnerLines)

@@ -52,7 +52,7 @@ class AccountToken extends AccountDocument
      *
      * @return Frame
      */
-    public function buildDocument($pageList = array(), $Part = '0')
+    public function buildDocument(array $pageList = array(), string $Part = '0'): Frame
     {
         $InjectStyle = 'body { margin-left: 1.2cm !important; margin-right: 1.2cm !important; }';
 
@@ -83,23 +83,23 @@ class AccountToken extends AccountDocument
                     ->setContent('Für den 2. Schritt der Anmeldung benötigen Sie den YubiKey.')
                     ->styleMarginTop('15px')
                 )
-                ->addElement((new Element\Image('/Common/Style/Resource/Document/login_token.png')))
+//                ->addElement((new Element\Image('/Common/Style/Resource/Document/login_token.png')))
                 ->addElement((new Element())
                     ->setContent('Dafür schließen Sie den YubiKey an einen freien USB-Steckplatz Ihres PC‘s an. Bei der
                      erstmaligen Benutzung erfolgt eine kurze automatische Installation.')
                     ->styleMarginTop('15px')
                 )
-                ->addSection((new Section())
-                    ->addElementColumn((new Element\Image('/Common/Style/Resource/Document/yubiKey_installation_1.jpg', 'auto', '79px')))
-                    ->addElementColumn((new Element()), '1%')
-                    ->addElementColumn((new Element\Image('/Common/Style/Resource/Document/yubiKey_installation_2.jpg', 'auto', '79px')))
-                )
+//                ->addSection((new Section())
+//                    ->addElementColumn((new Element\Image('/Common/Style/Resource/Document/yubiKey_installation_1.jpg', 'auto', '79px')))
+//                    ->addElementColumn((new Element()), '1%')
+//                    ->addElementColumn((new Element\Image('/Common/Style/Resource/Document/yubiKey_installation_2.jpg', 'auto', '79px')))
+//                )
                 ->addElement((new Element())
                     ->setContent('Ist die Installation abgeschlossen, klicken Sie in das Feld „YubiKey“ und betätigen 
                         einmal auf dem YubiKey die Taste zur Generierung eines Einmalkennworts.')
-                    ->styleMarginTop('30px')
+                    ->styleMarginTop('15px')
                 )
-                ->addElement((new Element\Image('/Common/Style/Resource/Document/yubiKey_using.jpg', 'auto', '100px')))
+//                ->addElement((new Element\Image('/Common/Style/Resource/Document/yubiKey_using.jpg', 'auto', '100px')))
                 ->addElement((new Element())
                     ->setContent('Benötigen Sie Hilfe, wenden Sie sich bitte an den schulinternen Ansprechpartner der 
                         Schulsoftware.')

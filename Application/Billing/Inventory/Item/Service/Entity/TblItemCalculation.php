@@ -47,7 +47,7 @@ class TblItemCalculation extends Element
     {
 
         if($IsFormInput){
-            return str_replace('.', ',', number_format($this->Value, 2));
+            return number_format($this->Value, 2, ',', '');
         }
         return $this->Value;
     }
@@ -141,8 +141,7 @@ class TblItemCalculation extends Element
     public function getPriceString()
     {
 
-        $result = sprintf("%01.2f", $this->Value);
-        return str_replace('.', ',', $result)." €";
+        return number_format($this->Value, 2, ',', '.')." €";
     }
 
 //    /**

@@ -660,7 +660,7 @@ class ApiPersonAgreementStructure extends Extension implements IApiInterface
             )))));
             $isError = true;
         } else {
-            if(Agreement::useService()->getPersonAgreementTypeByName($Meta['Type'])){
+            if(Agreement::useService()->getPersonAgreementTypeByNameAndCategory($Meta['Type'], $tblPersonAgreementCategory)){
                 $form = FrontendPersonAgreement::getTypeForm();
                 // Fehler
                 $form->setError('Meta[Type]', 'Name des Eintrag\'s ist bereits in Verwendung');
@@ -726,7 +726,7 @@ class ApiPersonAgreementStructure extends Extension implements IApiInterface
             $isError = true;
         } else {
             if($Meta['Type'] != $tblPersonAgreementType->getName()
-            && Agreement::useService()->getPersonAgreementTypeByName($Meta['Type'])){
+            && Agreement::useService()->getPersonAgreementTypeByNameAndCategory($Meta['Type'], $tblPersonAgreementType->getTblPersonAgreementCategory())){
                 $form = FrontendPersonAgreement::getTypeForm();
                 // Fehler
                 $form->setError('Meta[Type]', 'Name des Eintrag\'s ist bereits in Verwendung');

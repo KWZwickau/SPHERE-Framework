@@ -22,13 +22,17 @@ class BfsPflegeJ extends BfsStyle
     {
         return array(
             'Subarea1'            => 'Teilbereich 1',
-            'SubareaTime1'        => 'Teilbereich 1 Dauer in Wochen',
+            'SubareaTimeH1'       => 'Teilbereich 1 Dauer der Ausbildung (h)',
+            'SubareaTimeHDone1'   => 'Teilbereich 1 Davon anwesend (h)',
             'Subarea2'            => 'Teilbereich 2',
-            'SubareaTime2'        => 'Teilbereich 2 Dauer in Wochen',
+            'SubareaTimeH2'       => 'Teilbereich 2 Dauer der Ausbildung (h)',
+            'SubareaTimeHDone2'   => 'Teilbereich 2 Davon anwesend (h)',
             'Subarea3'            => 'Teilbereich 3',
-            'SubareaTime3'        => 'Teilbereich 3 Dauer in Wochen',
+            'SubareaTimeH3'       => 'Teilbereich 3 Dauer der Ausbildung (h)',
+            'SubareaTimeHDone3'   => 'Teilbereich 3 Davon anwesend (h)',
             'Subarea4'            => 'Teilbereich 4',
-            'SubareaTime4'        => 'Teilbereich 4 Dauer in Wochen',
+            'SubareaTimeH4'       => 'Teilbereich 4 Dauer der Ausbildung (h)',
+            'SubareaTimeHDone4'   => 'Teilbereich 4 Davon anwesend (h)',
         );
     }
 
@@ -45,10 +49,10 @@ class BfsPflegeJ extends BfsStyle
         $pageList[] = (new Page())
             ->addSlice($this->getSchoolHead($personId, 'Jahreszeugnis', false, false, true))
             ->addSlice($this->getOccupation($personId))
-            ->addSlice($this->getStudentHead($personId, 'Schuljahr', 'folgende Leistungen erreicht:', true, false))
+            ->addSlice($this->getStudentHead($personId, 'Schuljahr', 'folgende Leistungen erreicht:', true, true))
             ->addSlice($this->getSubjectLineDuty())
             ->addSlice($this->getSubjectLineBase($personId, $this->getCertificateEntity(), 'Berufsübergreifender Bereich', 1, 1))
-            ->addSlice($this->getSubjectLineBase($personId, $this->getCertificateEntity(), 'Berufsbezogener Bereich', 1, 10))
+            ->addSlice($this->getSubjectLineBase($personId, $this->getCertificateEntity(), 'Berufsbezogener Bereich', 1, 12))
         ;
 
         $pageList[] = (new Page())
@@ -57,11 +61,11 @@ class BfsPflegeJ extends BfsStyle
             ->addSlice($this->getYearGradeAverage($personId))
             ->addSlice($this->getMidTerm($personId))
             ->addSlice($this->getPracticalCare($personId, $this->getCertificateEntity()))
-            ->addSlice($this->getDescriptionBsContent($personId, '75px'))
-            ->addSlice($this->getAbsence($personId))
+            ->addSlice($this->getDescriptionBsContent($personId, '112px', true))
+//            ->addSlice($this->getAbsence($personId))
             ->addSlice((new Slice())->addElement((new Element())
                 ->setContent('&nbsp;')
-                ->stylePaddingTop('94px')
+                ->stylePaddingTop('79px')
             ))
             ->addSlice($this->getIndividuallySignPart($personId, false, true))
             ->addSlice($this->getBsInfo('20px',

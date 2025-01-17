@@ -36,6 +36,7 @@ class B02
             ->addSection((new Section())
                 ->addElementColumn((new Element())
                     ->setContent('Geburts-<br/>jahr')
+                    ->styleAlignCenter()
                     ->styleBorderRight()
                     ->stylePaddingTop('9.1px')
                     ->stylePaddingBottom('9px'), '12%'
@@ -44,27 +45,32 @@ class B02
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('Abgangszeugnis<br/><b>ohne</b> Vermerk')
+                            ->styleAlignCenter()
                             ->styleBorderBottom()
                             ->styleBorderRight(), '17.6%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('Hauptschul-<br/>abschluss')
+                            ->styleAlignCenter()
                             ->styleBorderBottom()
                             ->styleBorderRight(), '17.6%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('Realschul-<br/>abschluss')
+                            ->styleAlignCenter()
                             ->styleBorderBottom()
                             ->styleBorderRight(), '17.6%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('Allgemeine<br/>Hochschulreife')
+                            ->styleAlignCenter()
                             ->styleBorderBottom()
                             ->styleBorderRight()
                             , '17.6%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('Insgesamt')
+                            ->styleAlignCenter()
                             ->styleTextBold()
                             ->styleBorderBottom()
                             ->stylePaddingTop('8.6px')
@@ -74,43 +80,53 @@ class B02
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('m')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '8.8%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('w')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '8.8%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('m')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '8.8%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('w')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '8.8%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('m')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '8.8%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('w')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '8.8%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('m')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '8.8%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('w')
+                            ->styleAlignCenter()
                             ->styleBorderRight(), '8.8%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('m')
+                            ->styleAlignCenter()
                             ->styleTextBold()
                             ->styleBorderRight(), '8.8%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('w')
+                            ->styleAlignCenter()
                             ->styleTextBold(), '8.8%'
                         )
                     )
@@ -222,6 +238,7 @@ class B02
             ->addSection((new Section())
                 ->addElementColumn((new Element())
                     ->setContent('Insgesamt')
+                    ->styleAlignCenter()
                     ->styleBorderRight(), '12%'
                 )
                 ->addElementColumn((new Element())

@@ -19,14 +19,12 @@ class BgjHjInfo extends Style
         $textSize = self::TEXT_SIZE_NORMAL;
         $personId = $tblPerson ? $tblPerson->getId() : 0;
 
-        $school[] = 'Berufliches Schulzentrum';
-        $school[] = 'der HOGA Schloss Albrechtsberg g SchulgmbH';
-        $school[] = 'Staatlich anerkannte Schulen in freier Trägerschaft';
+        $school = $this->getCustomSchoolName('Berufliches Schulzentrum');
 
         return (new Page())
             ->addSlice($this->getHeader($school, ''))
             ->addSlice((new Slice())
-                ->styleMarginTop('10px')
+                ->styleMarginTop('0px')
                 ->addElement($this->getElement('Halbjahresinformation', '35px')->styleTextBold()->styleAlignCenter())
                 ->addElement($this->getElement('der Berufsschule - Berufsgrundbildungsjahr', '20px')
                     ->styleTextBold()->styleAlignCenter()->styleMarginTop('-8px'))

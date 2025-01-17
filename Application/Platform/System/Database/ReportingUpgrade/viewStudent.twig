@@ -2,13 +2,18 @@ SELECT DISTINCT
     vGS.TblPerson_Id,
     vGS.TblStudent_Id,
 
-    (select count(vRTP.TblToPerson_serviceTblPersonFrom) from {{ ConsumerAcronym }}_SettingConsumer.viewRelationshipToPerson vRTP
+    if((select count(vRTP.TblToPerson_serviceTblPersonFrom) from {{ ConsumerAcronym }}_SettingConsumer.viewRelationshipToPerson vRTP
         where (vRTP.TblToPerson_serviceTblPersonTo = vGS.TblPerson_Id
             or vRTP.TblToPerson_serviceTblPersonFrom = vGS.TblPerson_Id)
-        and vRTP.TblType_Name = 'Geschwisterkind'
-
+            and vRTP.TblType_Name = 'Geschwisterkind'
         limit 0,1
-    ) Sibling_Count,
+    ),
+        (select count(vRTP.TblToPerson_serviceTblPersonFrom) from {{ ConsumerAcronym }}_SettingConsumer.viewRelationshipToPerson vRTP
+        where (vRTP.TblToPerson_serviceTblPersonTo = vGS.TblPerson_Id
+            or vRTP.TblToPerson_serviceTblPersonFrom = vGS.TblPerson_Id)
+            and vRTP.TblType_Name = 'Geschwisterkind'
+        limit 0,1
+    ), null) as Sibling_Count,
 
     vGS.TblStudentBaptism_Location,
     vGS.TblStudentBaptism_BaptismDate,
@@ -23,6 +28,7 @@ SELECT DISTINCT
     vGS.TblStudentMedicalRecord_Disease,
     vGS.TblStudentMedicalRecord_Medication,
     vGS.TblStudentInsuranceState_Name,
+    vGS.TblStudentMedicalRecord_InsuranceNumber,
     vGS.TblStudentMedicalRecord_Insurance,
     vGS.TblStudentMedicalRecord_MasernDate,
     vGS.TblStudentMedicalRecord_MasernDocumentType,
