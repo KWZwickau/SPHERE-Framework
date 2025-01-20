@@ -53,9 +53,7 @@ class PasswordField extends AbstractTextField implements IFieldInterface
 
     public function setShow(IIconInterface $Icon)
     {
+
         $this->Template->setVariable('ElementIconShow', $Icon);
-        // new ToolTip($Icon, 'Passwort verstecken')
-//        $this->Icon = new ToolTip($this->Icon, 'Passwort anzeigen');
-//        $this->Template->setVariable('ElementIcon', new ToolTip($this->Icon, 'Passwort anzeigen'));
     }
 }
