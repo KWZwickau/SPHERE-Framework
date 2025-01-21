@@ -154,6 +154,8 @@ class Frontend extends FrontendTestPlanning
                         ApiGradeBook::receiverBlock("", "ChangeYear"),
                         (new Form(new FormGroup(new FormRow(new FormColumn(
                             (new SelectBox('Data[Year]', '', array("{{ DisplayName }}" => Term::useService()->getYearAll())))
+                                // SSWHD-3287 API kann bei TaskId (springen von Startseite) doppelt geladen werden -> bei alter Selectbox geht es -> es kann aber jetzt bei Tablets zu Problemen kommen
+                                ->configureLibrary(Selectbox::LIBRARY_SELECTER)
                                 ->ajaxPipelineOnChange(array(ApiGradeBook::pipelineChangeYear()))
                         )))))->disableSubmitAction()
                     ), 2)
