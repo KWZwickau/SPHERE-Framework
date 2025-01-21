@@ -2260,7 +2260,7 @@ abstract class Style extends Certificate
         int $personId,
         string $marginTop = '10px',
         bool $hasJobGrade = false,
-        bool $hasPretext = false
+        string $period = 'Schuljahr'
     ) : Slice
     {
         $textSizeSubject = self::TEXT_SIZE_NORMAL;
@@ -2268,7 +2268,7 @@ abstract class Style extends Certificate
         $slice = (new Slice())
             ->styleMarginTop($marginTop);
 
-        $slice->addElement($this->getElement('hat im zurückliegenden Schuljahr folgende Leistungen erreicht:', self::TEXT_SIZE_LARGE));
+        $slice->addElement($this->getElement('hat im zurückliegenden ' . $period . ' folgende Leistungen erreicht:', self::TEXT_SIZE_LARGE));
 //        $slice->addElement($this->getElement('Pflichtbereich', self::TEXT_SIZE_LARGE)->styleTextBold());
 
         $tblCertificateSubjectAll = Generator::useService()->getCertificateSubjectAll($this->getCertificateEntity());
