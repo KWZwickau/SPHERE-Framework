@@ -166,7 +166,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutColumn(
                             new TableData($TableContent, null, array(
                                 'CauserPerson'   => 'Beitragsverursacher',
-                                'DivisionCourse' => 'Klasse '.new Info(),
+                                'DivisionCourse' => 'Kurs '.new Info(),
                                 'CauserIdent'    => 'Schülernummer',
                                 'Item'           => 'Beitragsarten',
                                 'DebtorPerson'   => 'Beitragszahler',
