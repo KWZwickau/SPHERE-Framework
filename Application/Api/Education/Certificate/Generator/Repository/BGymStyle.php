@@ -979,6 +979,7 @@ abstract class BGymStyle extends Certificate
         } elseif ($workField == 'Gesellschaftswissenschaftliches Aufgabenfeld') {
             if (($tblSubject = Subject::useService()->getSubjectByName('Geschichte/Gemeinschaftskunde'))
                 || ($tblSubject = Subject::useService()->getSubjectByName('Geschichte / Gemeinschaftskunde'))
+                || ($tblSubject = Subject::useService()->getSubjectByName('Geschichte/ Gemeinschaftskunde'))
             ) {
                 $tblSubjectList[$tblSubject->getId()] = $tblSubject;
             }
@@ -1031,6 +1032,7 @@ abstract class BGymStyle extends Certificate
             }
             if (($tblSubject = Subject::useService()->getSubjectByName('Evangelische Religion'))
                 || ($tblSubject = Subject::useService()->getSubjectByName('Ev. Religion'))
+                || ($tblSubject = Subject::useService()->getSubjectByName('Evangelische Religionslehre'))
             ) {
                 $tblSubjectList[$tblSubject->getId()] = $tblSubject;
             }
