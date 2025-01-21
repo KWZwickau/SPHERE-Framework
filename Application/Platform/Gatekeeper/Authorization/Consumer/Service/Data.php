@@ -237,4 +237,28 @@ class Data extends AbstractData
         }
         return $Entity;
     }
+
+
+
+    /**
+     * @param string $Acronym
+     * @param string $Name
+     * @param string $Alias
+     *
+     * @return TblConsumer
+     */
+    public function updateConsumer(TblConsumer $tblConsumer)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $ConsumerId = $tblConsumer->getId();
+        $Entity = $Manager->getEntity('TblConsumer')->find($ConsumerId);
+        /** @var TblConsumer $Entity */
+        if (null !== $Entity) {
+            $Entity->setEntityUpdate();
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
+        return $Entity;
+    }
 }

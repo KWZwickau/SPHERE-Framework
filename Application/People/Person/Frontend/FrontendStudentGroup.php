@@ -109,7 +109,12 @@ class FrontendStudentGroup  extends FrontendReadOnly
                     .new External(
                         'Erstellen der Schülerüberweisung', '/Document/Standard/StudentTransfer/Fill',
                         new Download(), array('PersonId' => $tblPerson->getId()),
-                        'Erstellen und Herunterladen einer Schülerüberweisung ');
+                        'Erstellen und Herunterladen einer Schülerüberweisung ')
+                    . new External(
+                        'Erstellen der Abmeldebescheinigung', '/Document/Standard/SignOutCertificate/Fill',
+                        new Download(), array('PersonId' => $tblPerson->getId()),
+                        'Erstellen und Herunterladen einer Abmeldebescheinigung '
+                    );
             }
 
             $listingContent[] = ApiPersonReadOnly::receiverBlock(

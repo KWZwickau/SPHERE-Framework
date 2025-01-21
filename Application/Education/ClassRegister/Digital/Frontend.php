@@ -664,13 +664,9 @@ class Frontend extends FrontendTabs
         $fullTimeList = array();
         $subjectIdListByDayAndLesson = array();
 
-        $year = $date->format('Y');
-        $week = str_pad($currentWeek, 2, '0', STR_PAD_LEFT);
-        $startDate  = new DateTime(date('d.m.Y', strtotime("$year-W{$week}")));
-        if($startDate->format('m.d') == '01.01'
-        || $startDate->format('m.d') == '01.02') {
-            $startDate->modify('+1 year');
-        }
+//        $year = $date->format('Y');
+//        $week = str_pad($currentWeek, 2, '0', STR_PAD_LEFT);
+        $startDate  = new DateTime(date('d.m.Y', strtotime('monday this week', strtotime($DateString))));
 
         // Prüfung, ob das Datum innerhalb des Schuljahres liegt.
         if (($tblYear = $tblDivisionCourse->getServiceTblYear())) {

@@ -13,6 +13,7 @@ use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Person\TemplateReadOnly;
 use SPHERE\Application\Setting\Consumer\Consumer;
+use SPHERE\Common\Frontend\Form\Repository\Field\AutoCompleter;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
@@ -48,12 +49,12 @@ class FrontendStudentBasic extends FrontendReadOnly
     const TITLE = 'Schülerakte - Grunddaten';
 
     /**
-     * @param null $PersonId
+     * @param int $PersonId
      * @param int  $AllowEdit
      *
      * @return string
      */
-    public static function getStudentBasicContent($PersonId = null, $AllowEdit = 1)
+    public static function getStudentBasicContent(int $PersonId, int $AllowEdit = 1):string
     {
 
         if (($tblPerson = Person::useService()->getPersonById($PersonId))) {
@@ -61,10 +62,12 @@ class FrontendStudentBasic extends FrontendReadOnly
                 $identifier = $tblStudent->getIdentifierComplete();
                 $schoolAttendanceStartDate = $tblStudent->getSchoolAttendanceStartDate();
                 $hasMigrationBackground = $tblStudent->getHasMigrationBackground() ? 'Ja' : 'Nein';
+                $migrationBackground = $tblStudent->getMigrationBackground();
             } else {
                 $identifier = '';
                 $schoolAttendanceStartDate = '';
                 $hasMigrationBackground = '';
+                $migrationBackground = '';
             }
 
             if (($tblCommon = $tblPerson->getCommon())
@@ -96,8 +99,16 @@ class FrontendStudentBasic extends FrontendReadOnly
                             )),
                         )))
                     ,4),
-                    self::getLayoutColumnLabel('Herkunftssprache ist nicht oder nicht ausschließlich Deutsch'),
-                    self::getLayoutColumnValue($hasMigrationBackground),
+                    new LayoutColumn(new Layout(new LayoutGroup(array(
+                        new LayoutRow(array(
+                            self::getLayoutColumnLabel('Herkunftssprache ist nicht oder nicht ausschließlich Deutsch', 6),
+                            self::getLayoutColumnValue($hasMigrationBackground, 6),
+                        )),
+                        new LayoutRow(array(
+                            self::getLayoutColumnLabel('Herkunftssprache', 6),
+                            self::getLayoutColumnValue($migrationBackground, 6),
+                        ))
+                    ))), 4)
                 )),
             )));
 
@@ -137,6 +148,7 @@ class FrontendStudentBasic extends FrontendReadOnly
                 $Global->POST['Meta']['Student']['SchoolAttendanceStartDate'] = $tblStudent->getSchoolAttendanceStartDate();
 
                 $Global->POST['Meta']['Student']['HasMigrationBackground'] = $tblStudent->getHasMigrationBackground();
+                $Global->POST['Meta']['Student']['MigrationBackground'] = $tblStudent->getMigrationBackground();
                 $Global->POST['Meta']['Student']['IsInPreparationDivisionForMigrants'] = $tblStudent->isInPreparationDivisionForMigrants();
 
                 $Global->savePost();
@@ -174,6 +186,10 @@ class FrontendStudentBasic extends FrontendReadOnly
         $NodePrefix = 'Grunddaten - Prefix der Schülernummer';
         $StartDatePrefix = 'Grunddaten - Schulpflicht';
 
+        $tblStudentAll = Student::useService()->getStudentAll();
+        $AutoCompleteMigrationBackground = new AutoCompleter('Meta[Student][MigrationBackground]', 'Herkunftssprache', '',
+            array('MigrationBackground' => $tblStudentAll));
+
         return (new Form(array(
             new FormGroup(array(
                 new FormRow(array(
@@ -187,13 +203,13 @@ class FrontendStudentBasic extends FrontendReadOnly
                                             . ApiMassReplace::receiverModal($Field, $NodePrefix)
                                             . new PullRight((new Link('Massen-Änderung',
                                                 ApiMassReplace::getEndpoint(), null, array(
-                                                    ApiMassReplace::SERVICE_CLASS                                   => MassReplaceStudent::CLASS_MASS_REPLACE_STUDENT,
-                                                    ApiMassReplace::SERVICE_METHOD                                  => MassReplaceStudent::METHOD_REPLACE_PREFIX,
-                                                    'Id'                                                            => $tblPerson->getId(),
+                                                    ApiMassReplace::SERVICE_CLASS  => MassReplaceStudent::CLASS_MASS_REPLACE_STUDENT,
+                                                    ApiMassReplace::SERVICE_METHOD => MassReplaceStudent::METHOD_REPLACE_PREFIX,
+                                                    'Id'                           => $tblPerson->getId(),
                                                 )))->ajaxPipelineOnClick(
                                                 ApiMassReplace::pipelineOpen($Field, $NodePrefix)
                                             ))
-                                            , 4),
+                                        , 4),
                                         new LayoutColumn(
                                             ($isIdentifierAuto
                                                 ? (new TextField('Meta[Student][Identifier]', 'Schülernummer',
@@ -203,7 +219,7 @@ class FrontendStudentBasic extends FrontendReadOnly
                                                     'Schülernummer'))
                                                     ->ajaxPipelineOnKeyUp(ApiStudent::pipelineCompareIdentifier($tblPerson->getId()))
                                             )
-                                            , 8)
+                                        , 8)
                                     ))
                                 )
                             ),
@@ -212,7 +228,7 @@ class FrontendStudentBasic extends FrontendReadOnly
                                 : ApiStudent::receiverControlIdentifier()
                             )
                         ), Panel::PANEL_TYPE_INFO)
-                        , 4),
+                    , 4),
                     new FormColumn(
                         new Panel('Schulpflicht', array(
                             ApiMassReplace::receiverField((
@@ -222,23 +238,24 @@ class FrontendStudentBasic extends FrontendReadOnly
                             .ApiMassReplace::receiverModal($Field, $StartDatePrefix)
                             .new PullRight((new Link('Massen-Änderung',
                                 ApiMassReplace::getEndpoint(), null, array(
-                                    ApiMassReplace::SERVICE_CLASS                                   => MassReplaceStudent::CLASS_MASS_REPLACE_STUDENT,
-                                    ApiMassReplace::SERVICE_METHOD                                  => MassReplaceStudent::METHOD_REPLACE_START_DATE,
-                                    'Id'                                                      => $tblPerson->getId(),
+                                    ApiMassReplace::SERVICE_CLASS  => MassReplaceStudent::CLASS_MASS_REPLACE_STUDENT,
+                                    ApiMassReplace::SERVICE_METHOD => MassReplaceStudent::METHOD_REPLACE_START_DATE,
+                                    'Id'                           => $tblPerson->getId(),
                                 )))->ajaxPipelineOnClick(
                                 ApiMassReplace::pipelineOpen($Field, $StartDatePrefix)
                             ))
                         ), Panel::PANEL_TYPE_INFO)
-                        , 4),
+                    , 4),
                     new FormColumn(
-                        new Panel('Kamenz-Statistik', array(
+                        new Panel('Herkunftssprache', array(
                             new CheckBox(
                                 'Meta[Student][HasMigrationBackground]',
                                 'Herkunftssprache ist nicht oder nicht ausschließlich Deutsch',
                                 1
                             ),
+                            $AutoCompleteMigrationBackground
                         ), Panel::PANEL_TYPE_INFO)
-                        , 4),
+                    , 4),
                 )),
                 new FormRow(array(
                     new FormColumn(array(

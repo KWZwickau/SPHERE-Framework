@@ -110,6 +110,16 @@ abstract class Element extends Extension
     }
 
     /**
+     * @return Element
+     */
+    public function setEntityUpdate()
+    {
+
+        $this->EntityUpdate = new \DateTime("now");
+        return $this;
+    }
+
+    /**
      * @param Element $Required
      *
      * @return \DateTime|null

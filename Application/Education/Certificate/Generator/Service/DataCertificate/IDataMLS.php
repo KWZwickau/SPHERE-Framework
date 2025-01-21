@@ -15,7 +15,9 @@ class IDataMLS
     {
         if (($tblConsumerCertificate = Consumer::useService()->getConsumerByAcronym('MLS'))){
             self::setGsHjInfo($Data, $tblConsumerCertificate);
+            self::setGsHjInfoOne($Data, $tblConsumerCertificate);
             self::setGsJ($Data, $tblConsumerCertificate);
+            self::setGsJOne($Data, $tblConsumerCertificate);
             self::setBeGs($Data, $tblConsumerCertificate);
         }
     }
@@ -26,7 +28,7 @@ class IDataMLS
      */
     private static function setGsHjInfo(Data $Data, TblConsumer $tblConsumerCertificate)
     {
-        $tblCertificate = $Data->createCertificate('Halbjahresinformation Grundschule ', 'Klasse 2', 'MLS\GsHjInfo', $tblConsumerCertificate, false, true, false,
+        $tblCertificate = $Data->createCertificate('Halbjahresinformation Grundschule ', 'Klasse 2 - 4', 'MLS\GsHjInfo', $tblConsumerCertificate, false, true, false,
             $Data->getTblCertificateTypeHalfYear(), $Data->getTblSchoolTypePrimary());
         if ($tblCertificate){
             if (!$Data->getCertificateLevelAllByCertificate($tblCertificate)){
@@ -63,9 +65,29 @@ class IDataMLS
      * @param Data        $Data
      * @param TblConsumer $tblConsumerCertificate
      */
+    private static function setGsHjInfoOne(Data $Data, TblConsumer $tblConsumerCertificate)
+    {
+        $tblCertificate = $Data->createCertificate('Halbjahresinformation Grundschule', 'Klasse 1', 'MLS\GsHjInfoOne', $tblConsumerCertificate, false, true, false,
+            $Data->getTblCertificateTypeHalfYear(), $Data->getTblSchoolTypePrimary());
+        if ($tblCertificate){
+            if (!$Data->getCertificateLevelAllByCertificate($tblCertificate)){
+                $Data->createCertificateLevel($tblCertificate, 1);
+            }
+            // Begrenzung des Bemerkungsfelds
+//            $FieldName = 'RemarkWithoutTeam';
+//            if (!$Data->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)){
+//                $Data->createCertificateField($tblCertificate, $FieldName, 1400);
+//            }
+        }
+    }
+
+    /**
+     * @param Data        $Data
+     * @param TblConsumer $tblConsumerCertificate
+     */
     private static function setGsJ(Data $Data, TblConsumer $tblConsumerCertificate)
     {
-        $tblCertificate = $Data->createCertificate('Jahreszeugnis Grundschule ', 'Klasse 2', 'MLS\GsJ', $tblConsumerCertificate, false, false, false,
+        $tblCertificate = $Data->createCertificate('Jahreszeugnis Grundschule ', 'Klasse 2 - 4', 'MLS\GsJ', $tblConsumerCertificate, false, false, false,
             $Data->getTblCertificateTypeYear(), $Data->getTblSchoolTypePrimary());
         if ($tblCertificate){
             if (!$Data->getCertificateLevelAllByCertificate($tblCertificate)){
@@ -101,6 +123,26 @@ class IDataMLS
                 $Data->setCertificateSubject($tblCertificate, 'RE/E', 2, $i++);
                 $Data->setCertificateSubject($tblCertificate, 'WE', 2, $i);
             }
+        }
+    }
+
+    /**
+     * @param Data        $Data
+     * @param TblConsumer $tblConsumerCertificate
+     */
+    private static function setGsJOne(Data $Data, TblConsumer $tblConsumerCertificate)
+    {
+        $tblCertificate = $Data->createCertificate('Jahreszeugnis Grundschule', 'Klasse 1', 'MLS\GsJOne', $tblConsumerCertificate, false, false, false,
+            $Data->getTblCertificateTypeYear(), $Data->getTblSchoolTypePrimary());
+        if ($tblCertificate){
+            if (!$Data->getCertificateLevelAllByCertificate($tblCertificate)){
+                $Data->createCertificateLevel($tblCertificate, 1);
+            }
+            // Begrenzung des Bemerkungsfelds
+//            $FieldName = 'RemarkWithoutTeam';
+//            if (!$Data->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)){
+//                $Data->createCertificateField($tblCertificate, $FieldName, 900);
+//            }
         }
     }
 

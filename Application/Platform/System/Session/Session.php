@@ -195,7 +195,7 @@ class Session extends Extension implements IModuleInterface
             'der aktuell angemeldete Benutzer'.$space
             .new Bold('Token und App: ').$countArray['combinedLogin'].$space
             .new Bold('Token: ').$countArray['tokenLogin'].$space
-            .new Bold('App: ').$countArray['combinedLogin'].$space
+            .new Bold('App: ').$countArray['appLogin'].$space
             .new Bold('PW Only: ').$countArray['pwOnly'].$space
             .new Bold('Gesamt: ').$countArray['combinedLogin']+$countArray['tokenLogin']+$countArray['appLogin']+$countArray['pwOnly'].$space
             .new Bold('Schüler/Eltern: ').$countArray['studentCustody']
