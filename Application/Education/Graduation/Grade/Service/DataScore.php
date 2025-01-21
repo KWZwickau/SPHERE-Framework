@@ -187,12 +187,12 @@ abstract class DataScore extends DataMinimumGradeCount
     /**
      * @param TblYear $tblYear
      * @param TblType $tblSchoolType
-     * @param int $level
+     * @param ?int $level
      * @param TblSubject $tblSubject
      *
      * @return false|TblScoreRuleSubject
      */
-    public function getScoreRuleSubjectByYearAndSchoolTypeAndLevelAndSubject(TblYear $tblYear, TblType $tblSchoolType, int $level, TblSubject $tblSubject)
+    public function getScoreRuleSubjectByYearAndSchoolTypeAndLevelAndSubject(TblYear $tblYear, TblType $tblSchoolType, ?int $level, TblSubject $tblSubject)
     {
         return $this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblScoreRuleSubject', array(
             TblScoreRuleSubject::ATTR_SERVICE_TBL_YEAR => $tblYear->getId(),

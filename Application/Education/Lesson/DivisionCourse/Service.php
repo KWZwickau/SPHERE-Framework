@@ -465,11 +465,11 @@ class Service extends ServiceYearChange
 
     /**
      * @param TblType $tblSchoolType
-     * @param int $level
+     * @param ?int $level
      *
      * @return bool
      */
-    public function getIsShortYearBySchoolTypeAndLevel(TblType $tblSchoolType, int $level): bool
+    public function getIsShortYearBySchoolTypeAndLevel(TblType $tblSchoolType, ?int $level): bool
     {
         return ($tblSchoolType->getShortName() == 'Gy' && preg_match('!(12)!is', $level))
             || ($tblSchoolType->getShortName() == 'BGy' && preg_match('!(13)!is', $level));
