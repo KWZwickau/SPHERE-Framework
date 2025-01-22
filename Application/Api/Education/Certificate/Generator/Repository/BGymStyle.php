@@ -992,7 +992,10 @@ abstract class BGymStyle extends Certificate
             if (($tblSubject = Subject::useService()->getSubjectByName('Volks- und Betriebswirtschaftslehre mit Rechnungswesen'))) {
                 $tblSubjectList[$tblSubject->getId()] = $tblSubject;
             }
-            if (($tblSubject = Subject::useService()->getSubjectByName('Wirtschaftslehre/Recht'))) {
+            if (($tblSubject = Subject::useService()->getSubjectByName('Wirtschaftslehre/Recht'))
+                || ($tblSubject = Subject::useService()->getSubjectByName('Wirtschaftslehre / Recht'))
+                || ($tblSubject = Subject::useService()->getSubjectByName('Wirtschaftslehre/ Recht'))
+            ) {
                 $tblSubjectList[$tblSubject->getId()] = $tblSubject;
             }
         } elseif ($workField == 'Mathematisch-naturwissenschaftlich-technisches Aufgabenfeld') {
