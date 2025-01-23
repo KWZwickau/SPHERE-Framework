@@ -30,7 +30,7 @@ class BGymKurshalbjahreszeugnis extends BGymStyle
         $personId = $tblPerson ? $tblPerson->getId() : 0;
 
         if ($tblPerson) {
-            list($this->advancedCourses, $this->basicCourses) = DivisionCourse::useService()->getCoursesForStudent($tblPerson);
+            list($this->advancedCourses, $this->basicCourses) = DivisionCourse::useService()->getCoursesForStudent($tblPerson, $this->getLevel());
             if (($tblPrepare = $this->getTblPrepareCertificate())
                 && ($tblTask = $tblPrepare->getServiceTblAppointedDateTask())
                 && ($tblTaskGradeListTemp = Grade::useService()->getTaskGradeListByTaskAndPerson($tblTask, $tblPerson))
