@@ -12,7 +12,7 @@ abstract class Style extends Certificate
 {
     const TEXT_SIZE = '12pt';
     const MARGIN_TOP_GRADE_LINE = '8px';
-    const SUBJECT_WIDTH = 30;
+    const SUBJECT_WIDTH = 32;
     const GRADE_WIDTH = 4;
     const SPACE_WIDTH = 100  - 2 * (self::SUBJECT_WIDTH + self::GRADE_WIDTH);
 
@@ -246,7 +246,7 @@ abstract class Style extends Certificate
     protected function getCustomSubjectLanes($personId): Slice
     {
         $SubjectSlice = (new Slice())
-            ->styleMarginTop('20px')
+            ->styleMarginTop('35px')
             ->styleHeight('270px');
 
         $tblCertificateSubjectAll = Generator::useService()->getCertificateSubjectAll($this->getCertificateEntity());
@@ -359,7 +359,7 @@ abstract class Style extends Certificate
         if ($tblSubjectForeign) {
             $section->addElementColumn($this->getCustomBoldElement()
                 ->setContent('Sprachliches Profil')
-                ->stylePaddingLeft('14px')
+//                ->stylePaddingLeft('14px')
                 ->styleMarginTop(self::MARGIN_TOP_GRADE_LINE)
                 , (self::GRADE_WIDTH + self::SPACE_WIDTH)  . '%');
             $this->setGradeLine(
@@ -376,7 +376,7 @@ abstract class Style extends Certificate
         } elseif ($tblSubjectProfile) {
             $section->addElementColumn($this->getCustomBoldElement()
                 ->setContent($tblSubjectProfile->getName())
-                ->stylePaddingLeft('14px')
+//                ->stylePaddingLeft('14px')
                 ->styleMarginTop(self::MARGIN_TOP_GRADE_LINE)
                 , (self::GRADE_WIDTH + self::SPACE_WIDTH + self::SUBJECT_WIDTH)  . '%');
             $section->addElementColumn($this->getCustomBoldElement()
@@ -387,7 +387,7 @@ abstract class Style extends Certificate
                         &ndash;
                     {% endif %}'
                 )
-                ->styleAlignRight()
+//                ->styleAlignRight()
                 ->styleMarginTop(self::MARGIN_TOP_GRADE_LINE)
                 , self::GRADE_WIDTH . '%');
 
@@ -410,7 +410,7 @@ abstract class Style extends Certificate
             , self::SUBJECT_WIDTH . '%');
         $section->addElementColumn($this->getCustomBoldElement()
                 ->setContent($grade)
-                ->styleAlignRight()
+//                ->styleAlignRight()
                 ->styleMarginTop(self::MARGIN_TOP_GRADE_LINE)
             , self::GRADE_WIDTH . '%');
     }

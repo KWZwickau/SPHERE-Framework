@@ -37,7 +37,7 @@ class GymHjInfo extends Style
             ->addSlice($this->getCustomMissing($personId))
             ->addSlice($this->getCustomTransfer($personId))
             ->addSlice($this->getCustomDateLine($personId))
-            ->addSlice($this->getCustomSignPart($personId, false))
+            ->addSlice($this->getCustomSignPart($personId))
             ->addSlice($this->getCustomParentSign());
     }
 }
