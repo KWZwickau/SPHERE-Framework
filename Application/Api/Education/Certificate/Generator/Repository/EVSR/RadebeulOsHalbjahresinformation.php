@@ -13,6 +13,8 @@ use SPHERE\Application\Education\Certificate\Generator\Repository\Page;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 
 /**
+ * @deprecated
+ *
  * Class RadebeulOsHalbjahresinformation
  *
  * @package SPHERE\Application\Api\Education\Certificate\Generator\Repository\EVSR
