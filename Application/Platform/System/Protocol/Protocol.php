@@ -106,7 +106,7 @@ class Protocol implements IModuleInterface
                 new Panel('Payload', array(
                     new TextField('Filter[EntityFrom]', 'Daten-Original', 'Daten-Original'),
                     new TextField('Filter[EntityTo]', 'Daten-Ergebnis', 'Daten-Ergebnis'),
-                    new \SPHERE\Common\Frontend\Message\Repository\Info('Id suche ohne Leerzeichen möglich (z.B. "Id=500")')
+//                    new \SPHERE\Common\Frontend\Message\Repository\Info('Id suche ohne Leerzeichen begrenzt möglich (z.B. "Id=500")')
                 ), Panel::PANEL_TYPE_INFO)
                 , 4)
         ))), new Primary('Suchen'));
@@ -114,12 +114,19 @@ class Protocol implements IModuleInterface
         $Message = array();
         if (!empty( $Filter )) {
             array_walk($Filter, function (&$Input) {
-
                 if (!empty( $Input )) {
                     $Input = explode(' ', $Input);
                     foreach ($Input as &$SearchString) {
                         if (preg_match('!([^\s]+)=([^\s]+)!is', $SearchString, $SearchArray)) {
                             $SearchString = $SearchArray[1].'";s:'.strlen($SearchArray[2]).':"'.$SearchArray[2];
+                            // Test intager
+//                             $SearchValueType = 's:'.strlen($SearchArray[2]).':"'; // string
+//                             // #fix linked (service)tables save as integer not like the Id as string
+//                             // and delete close " but this is necessary for finding
+//                             if(strpos($SearchArray[1], "service") !== false){
+//                                 $SearchValueType = 'i:'; // integer
+//                             }
+//                             $SearchString = $SearchArray[1].'";'.$SearchValueType.$SearchArray[2];
                         }
                     }
                     $Input = array_filter($Input);
@@ -140,9 +147,21 @@ class Protocol implements IModuleInterface
             }
             foreach ($Result as $Index => $Payload) {
 
+                $tableName = '';
+                if($Result[$Index]['EntityFrom']){
+                    $startPosition = strpos($Result[$Index]['EntityFrom'], 'Entity\\') + 7;
+                    $endPosition = strpos($Result[$Index]['EntityFrom'], '"', $startPosition);
+                    $tableName = substr($Result[$Index]['EntityFrom'], $startPosition, $endPosition - $startPosition);
+                } elseif($Result[$Index]['EntityTo']){
+                    $startPosition = strpos($Result[$Index]['EntityTo'], 'Entity\\') + 7;
+                    $endPosition = strpos($Result[$Index]['EntityTo'], '"', $startPosition);
+                    $tableName = substr($Result[$Index]['EntityTo'], $startPosition, $endPosition - $startPosition);
+                }
+
                 $Result[$Index]['Meta'] = new \SPHERE\Common\Frontend\Layout\Repository\Listing(array(
                     $this->markFilter($Payload, $Filter, 'AccountUsername'),
                     $this->markFilter($Payload, $Filter, 'ProtocolDatabase'),
+                    $tableName,
                     $this->markFilter($Payload, $Filter, 'ConsumerAcronym'),
                     $this->markFilter($Payload, $Filter, 'ConsumerName'),
                 ));
@@ -252,7 +271,13 @@ class Protocol implements IModuleInterface
         if (isset( $Search[$Name] )) {
             if (!empty( $Search[$Name] )) {
                 array_walk($Search[$Name], function (&$Text) {
-
+//                    // #fix integer save problem -> on " is missing for correct coloring
+//                    if(str_contains($Text, 'service') !== false){
+//                        $positionValue = strpos($Text, ':', 0);
+//                        $NameField = substr($Text, 0, $positionValue+1);
+//                        $ValueField = substr($Text, $positionValue+1);
+//                        $Text = $NameField.'"'.$ValueField;
+//                    }
                     // mark the search with "="
                     $FilterArray = explode('"', $Text);
                     if (isset($FilterArray[0]) && isset($FilterArray[2])) {

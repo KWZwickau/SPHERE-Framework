@@ -311,6 +311,9 @@ abstract class ServiceCertificateContent extends ServiceAbitur
                     } elseif ($tblPrepareInformation->getField() == 'Transfer') {
                         if ($tblPrepareInformation->getValue() == 'kein Versetzungsvermerk') {
                             // SSW-1380 Spezialfall CSW Grumbach
+                        } elseif ($tblConsumer && $tblConsumer->isConsumer(TblConsumer::TYPE_SACHSEN, 'HGGT')) {
+                            $Value = $tblPerson->getFirstSecondName() . ' ' . $tblPrepareInformation->getValue();
+                            $Content['P' . $personId]['Input'][$tblPrepareInformation->getField()] = $this->useLetterFontReplacement($Value);
                         } else {
                             $Value = $tblPerson->getFirstSecondName(). ' ' . $tblPerson->getLastName() . ' ' . $tblPrepareInformation->getValue();
                             $Content['P' . $personId]['Input'][$tblPrepareInformation->getField()] = $this->useLetterFontReplacement($Value);
@@ -470,6 +473,10 @@ abstract class ServiceCertificateContent extends ServiceAbitur
                     case 'ESBD':
                     case 'WVSZ':
                         $Content['P' . $personId]['DivisionTeacher']['Name'] = trim($tblPersonSigner->getFirstName() . " " . $tblPersonSigner->getLastName());
+                        break;
+                    case 'HGGT':
+                        $divisionTeacherDescription = 'Klassenleiter';
+                        $Content['P'.$personId]['DivisionTeacher']['Name'] = $tblPersonSigner->getFullName();
                         break;
                     default:
                         $Content['P'.$personId]['DivisionTeacher']['Name'] = $tblPersonSigner->getFullName();

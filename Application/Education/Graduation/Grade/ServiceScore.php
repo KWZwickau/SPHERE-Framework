@@ -269,12 +269,12 @@ abstract class ServiceScore extends ServiceMinimumGradeCount
     /**
      * @param TblYear $tblYear
      * @param TblType $tblSchoolType
-     * @param int $level
+     * @param ?int $level
      * @param TblSubject $tblSubject
      *
      * @return false|TblScoreRuleSubject
      */
-    public function getScoreRuleSubjectByYearAndSchoolTypeAndLevelAndSubject(TblYear $tblYear, TblType $tblSchoolType, int $level, TblSubject $tblSubject)
+    public function getScoreRuleSubjectByYearAndSchoolTypeAndLevelAndSubject(TblYear $tblYear, TblType $tblSchoolType, ?int $level, TblSubject $tblSubject)
     {
         return (new Data($this->getBinding()))->getScoreRuleSubjectByYearAndSchoolTypeAndLevelAndSubject($tblYear, $tblSchoolType, $level, $tblSubject);
     }

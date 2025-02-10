@@ -20,6 +20,9 @@ use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Setting\Consumer\Consumer;
 
+/**
+ * @deprecated
+ */
 class RadebeulOsJahreszeugnis extends Certificate
 {
     const TEXT_COLOR_BLUE = 'rgb(25,59,100)';

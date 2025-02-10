@@ -40,6 +40,7 @@ use SPHERE\Common\Frontend\Icon\Repository\CogWheels;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Enable;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
+use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
 use SPHERE\Common\Frontend\Icon\Repository\Globe;
 use SPHERE\Common\Frontend\Icon\Repository\Key;
 use SPHERE\Common\Frontend\Icon\Repository\Lock;
@@ -370,8 +371,9 @@ class Frontend extends Extension implements IFrontendInterface
         // Field Definition
         $CredentialNameField = (new TextField('CredentialName', 'Benutzername', 'Benutzername', new Person()))
             ->setRequired()->setAutoFocus();
-        $CredentialLockField = (new PasswordField('CredentialLock', 'Passwort', 'Passwort', new Lock()))
+        $CredentialLockField = (new PasswordField('CredentialLock', 'Passwort', 'Passwort', new EyeOpen()))
             ->setRequired()->setDefaultValue($CredentialLock, true);
+        $CredentialLockField->setShow(new Lock());
 
         // Error Handling
         if ($CredentialName !== null) {
@@ -428,21 +430,21 @@ class Frontend extends Extension implements IFrontendInterface
 
                 ))
             )));
-        } elseif( strtolower($this->getRequest()->getHost()) == 'demo.schulsoftware.schule'
-        || $this->getRequest()->getHost() == '192.168.202.230'
-        ){
-            // Vidis temporär Login auf der Demo-Version
-            $Form.= new Layout(new LayoutGroup(new LayoutRow(
-                new LayoutColumn(array(
-                    '<br/><br/><br/><br/>',
-                    new Title('Anmeldung Vidis Demo'),
-                        (new PrimaryLink('Login', '/Platform/Gatekeeper/OAuth2/OAuthSite'))->setExternal()
-                    .'<script src="https://repo.vidis.schule/repository/vidis-cdn/latest/vidisLogin.umd.js"></script>'
-//                    // size L/M/S
-//                    // cookie = "true" (zum testen erstmal false)
-                    .'<vidis-login Size = "L" cookie = "true" loginurl="http://demo.schulsoftware.schule/Platform/Gatekeeper/OAuth2/OAuthSite"></vidis-login>'
-                ))
-            )));
+//        } elseif( strtolower($this->getRequest()->getHost()) == 'demo.schulsoftware.schule'
+//        || $this->getRequest()->getHost() == '192.168.202.230'
+//        ){
+//            // Vidis temporär Login auf der Demo-Version
+//            $Form.= new Layout(new LayoutGroup(new LayoutRow(
+//                new LayoutColumn(array(
+//                    '<br/><br/><br/><br/>',
+//                    new Title('Anmeldung Vidis Demo'),
+//                        (new PrimaryLink('Login', '/Platform/Gatekeeper/OAuth2/OAuthSite'))->setExternal()
+//                    .'<script src="https://repo.vidis.schule/repository/vidis-cdn/latest/vidisLogin.umd.js"></script>'
+////                    // size L/M/S
+////                    // cookie = "true" (zum testen erstmal false)
+//                    .'<vidis-login Size = "L" cookie = "true" loginurl="http://demo.schulsoftware.schule/Platform/Gatekeeper/OAuth2/OAuthSite"></vidis-login>'
+//                ))
+//            )));
         }
 
         setcookie('cookies_available', 'enabled', time() + (86400 * 365), '/');

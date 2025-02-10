@@ -30,6 +30,9 @@ class SignOutCertificate extends Extension implements IModuleInterface
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '\Division\Input', __NAMESPACE__ . '\Frontend::frontendDivisionInput'
         ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '\Archive', __NAMESPACE__ . '\Frontend::frontendStudentArchiv'
+        ));
     }
 
     public static function useService(): IServiceInterface

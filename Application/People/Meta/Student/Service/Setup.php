@@ -298,6 +298,7 @@ class Setup extends AbstractSetup
             $Table->addColumn('SchoolAttendanceStartDate', 'datetime', array('notnull' => false));
         }
         $this->createColumn($Table, 'HasMigrationBackground', self::FIELD_TYPE_BOOLEAN, false, false);
+        $this->createColumn($Table, 'MigrationBackground', self::FIELD_TYPE_STRING, true);
         $this->createColumn($Table, 'IsInPreparationDivisionForMigrants', self::FIELD_TYPE_BOOLEAN, false, false);
         $this->getConnection()->addForeignKey($Table, $tblStudentMedicalRecord, true);
         $this->getConnection()->addForeignKey($Table, $tblStudentTransport, true);
