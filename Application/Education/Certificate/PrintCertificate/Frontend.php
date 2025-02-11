@@ -17,6 +17,7 @@ use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblLeaveStudent;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCertificate;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseMemberType;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
@@ -78,11 +79,16 @@ class Frontend extends Extension implements IFrontendInterface
         $tableContent = array();
         $tblPrepareStudentList = Prepare::useService()->getPrepareStudentAllWhere(true, false);
         $prepareList = array();
-        if ($tblPrepareStudentList) {
+        if ($tblPrepareStudentList
+            && ($tblMemberType = DivisionCourse::useService()->getDivisionCourseMemberTypeByIdentifier(TblDivisionCourseMemberType::TYPE_STUDENT))
+        ) {
             foreach ($tblPrepareStudentList as $tblPrepareStudent) {
-                if ($tblPrepareStudent->getServiceTblPerson()
+                if (($tblPersonTemp = $tblPrepareStudent->getServiceTblPerson())
                     && ($tblPrepare = $tblPrepareStudent->getTblPrepareCertificate())
                     && $tblPrepareStudent->getServiceTblCertificate()
+                    // Schüler muss noch in der Klasse sitzen SSWHD-3326
+                    && ($tblDivisionCourse = $tblPrepare->getServiceTblDivision())
+                    && DivisionCourse::useService()->getDivisionCourseMemberByPerson($tblDivisionCourse, $tblMemberType, $tblPersonTemp)
                 ) {
                     if (!isset($prepareList[$tblPrepare->getId()])) {
                         $prepareList[$tblPrepare->getId()] = $tblPrepare;
@@ -550,7 +556,7 @@ class Frontend extends Extension implements IFrontendInterface
                         ),
                         $message,
                         new Panel(
-                            new Question() . ' Dieses Zeugnis wirklich drucken und revisionssicher abspeichern?',
+                            new Question() . ' Diese Zeugnisse wirklich drucken und revisionssicher abspeichern?',
                             $data,
                             Panel::PANEL_TYPE_DANGER,
                             (new External(
