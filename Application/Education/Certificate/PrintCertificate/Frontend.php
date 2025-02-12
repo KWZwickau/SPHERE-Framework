@@ -87,8 +87,8 @@ class Frontend extends Extension implements IFrontendInterface
                     && ($tblPrepare = $tblPrepareStudent->getTblPrepareCertificate())
                     && $tblPrepareStudent->getServiceTblCertificate()
                     // Schüler muss noch in der Klasse sitzen SSWHD-3326
-                    && ($tblDivisionCourse = $tblPrepare->getServiceTblDivision())
-                    && DivisionCourse::useService()->getDivisionCourseMemberByPerson($tblDivisionCourse, $tblMemberType, $tblPersonTemp)
+//                    && ($tblDivisionCourse = $tblPrepare->getServiceTblDivision())
+//                    && DivisionCourse::useService()->getDivisionCourseMemberByPerson($tblDivisionCourse, $tblMemberType, $tblPersonTemp)
                 ) {
                     if (!isset($prepareList[$tblPrepare->getId()])) {
                         $prepareList[$tblPrepare->getId()] = $tblPrepare;
