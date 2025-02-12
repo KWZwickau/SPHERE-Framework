@@ -478,6 +478,9 @@ abstract class ServiceCertificateContent extends ServiceAbitur
                         $divisionTeacherDescription = 'Klassenleiter';
                         $Content['P'.$personId]['DivisionTeacher']['Name'] = $tblPersonSigner->getFullName();
                         break;
+                    case 'FES':
+                        $Content['P' . $personId]['DivisionTeacher']['Name'] = trim($tblPersonSigner->getSalutation() . " " . $tblPersonSigner->getFirstName() . " " . $tblPersonSigner->getLastName());
+                        break;
                     default:
                         $Content['P'.$personId]['DivisionTeacher']['Name'] = $tblPersonSigner->getFullName();
                         break;
