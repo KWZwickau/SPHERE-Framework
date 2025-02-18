@@ -877,8 +877,8 @@ class Service extends ServiceYearChange
             if ($isResultPersonList) {
                 $personList = array();
                 foreach ($memberList as $tblDivisionCourseMember) {
-                    if ($tblDivisionCourseMember->getServiceTblPerson()) {
-                        $personList[] = $tblDivisionCourseMember->getServiceTblPerson();
+                    if (($tblPerson = $tblDivisionCourseMember->getServiceTblPerson())) {
+                        $personList[$tblPerson->getId()] = $tblPerson;
                     }
                 }
 
