@@ -9,12 +9,14 @@ use SPHERE\Application\Api\Contact\ApiPhoneToPerson;
 use SPHERE\Application\Api\Contact\ApiRelationshipToCompany;
 use SPHERE\Application\Api\Contact\ApiRelationshipToPerson;
 use SPHERE\Application\Api\Document\Storage\ApiPersonPicture;
+use SPHERE\Application\Api\ParentStudentAccess\ApiOnlineContactDetails;
 use SPHERE\Application\Api\People\Person\ApiPersonEdit;
 use SPHERE\Application\Api\People\Person\ApiPersonReadOnly;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Mail\Mail;
 use SPHERE\Application\Contact\Phone\Phone;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\ParentStudentAccess\OnlineContactDetails\OnlineContactDetails;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Person\Frontend\FrontendBasic;
@@ -25,19 +27,18 @@ use SPHERE\Application\People\Person\Frontend\FrontendCustody;
 use SPHERE\Application\People\Person\Frontend\FrontendPersonPicture;
 use SPHERE\Application\People\Person\Frontend\FrontendProspectGroup;
 use SPHERE\Application\People\Person\Frontend\FrontendStaffGroup;
-use SPHERE\Application\People\Person\Frontend\FrontendStudentBasic;
 use SPHERE\Application\People\Person\Frontend\FrontendStudentGroup;
 use SPHERE\Application\People\Person\Frontend\FrontendStudentIntegration;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Info;
 use SPHERE\Common\Frontend\Icon\Repository\MapMarker;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
-use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
@@ -96,37 +97,50 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
     {
 
         $stage = new Stage('Person', 'Datenblatt ' . ($Id ? 'bearbeiten' : 'anlegen'));
-        $stage->addButton(
-            new Standard('Zurück', '/People', new ChevronLeft(), array('PseudoId' => $PseudoId))
-        );
+        $buttonList[] = new Standard('Zurück', '/People', new ChevronLeft(), array('PseudoId' => $PseudoId));
 
         // Person bearbeiten
         if ($Id != null && ($tblPerson = Person::useService()->getPersonById($Id))) {
-            $basicContent = ApiPersonReadOnly::receiverBlock(FrontendBasic::getBasicContent($Id, $PseudoId), 'BasicContent');
-            $commonContent = ApiPersonReadOnly::receiverBlock(FrontendCommon::getCommonContent($Id), 'CommonContent');
-
             // Anzeige Foto & Bearbeitung nur bei Schülern
             $PictureContent = false;
-            $PictureCollectGroups[] = TblGroup::META_TABLE_STUDENT;
-//            $PictureCollectGroups[] = TblGroup::META_TABLE_STAFF;
-//            $PictureCollectGroups[] = TblGroup::META_TABLE_TEACHER;
-            foreach($PictureCollectGroups as $GroupMeta){
-                if(($tblGroup = Group::useService()->getGroupByMetaTable($GroupMeta))
-                && Group::useService()->existsGroupPerson($tblGroup, $tblPerson)){
-                    $PictureContent = null;
-                }
-            }
             // einklappen der Interessentendaten
-            $ProspectGroupToCollectGroups[] = TblGroup::META_TABLE_STUDENT;
             $hasOpenProspect = true;
-            foreach ($ProspectGroupToCollectGroups as $group) {
-                if (($tblGroup = Group::useService()->getGroupByMetaTable($group))
-                    && Group::useService()->existsGroupPerson($tblGroup, $tblPerson)
-                ) {
-                    $hasOpenProspect = false;
-                    break;
-                }
+            $isStudent = false;
+            if (($tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_STUDENT))
+                && (Group::useService()->existsGroupPerson($tblGroup, $tblPerson))
+            ) {
+                $PictureContent = null;
+                $hasOpenProspect = false;
+                $isStudent = true;
             }
+
+            // Online-Kontaktdaten-Ansicht: Schüler ist 18 Jahre oder aus Beziehungen vom Schüler (Sorgeberechtigter, Vormund, Bevollmächtigter)
+            if ($isStudent) {
+                // Schüler
+                if (($tblPersonList = OnlineContactDetails::useService()->getPersonListFromStudentByPerson($tblPerson))) {
+                    $buttonList[$tblPerson->getId()] = $this->getOnlineContactDetailsButton($tblPerson, $tblPersonList);
+                }
+                // aus Beziehungen vom Schüler (Sorgeberechtigter, Vormund, Bevollmächtigter)
+                if (($tblPersonRelationshipList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson))) {
+                    foreach ($tblPersonRelationshipList as $relationship) {
+                        if (($tblPersonFrom = $relationship->getServiceTblPersonFrom())
+                            && $tblPersonFrom->getId() != $tblPerson->getId()
+                            && ($relationship->getTblType()->getName() == 'Sorgeberechtigt'
+                                || $relationship->getTblType()->getName() == 'Bevollmächtigt'
+                                || $relationship->getTblType()->getName() == 'Vormund')
+                            && ($tblPersonList = OnlineContactDetails::useService()->getPersonListFromCustodyByPerson($tblPersonFrom))
+                        ) {
+                            $buttonList[$tblPersonFrom->getId()] = $this->getOnlineContactDetailsButton($tblPersonFrom, $tblPersonList);
+                        }
+                    }
+                }
+            // Online-Kontaktdaten-Ansicht: Person hat einen Eltern-Zugang
+            } elseif (($tblPersonList = OnlineContactDetails::useService()->getPersonListFromCustodyByPerson($tblPerson))) {
+                $buttonList[$tblPerson->getId()] = $this->getOnlineContactDetailsButton($tblPerson, $tblPersonList);
+            }
+
+            $basicContent = ApiPersonReadOnly::receiverBlock(FrontendBasic::getBasicContent($Id, $PseudoId), 'BasicContent');
+            $commonContent = ApiPersonReadOnly::receiverBlock(FrontendCommon::getCommonContent($Id), 'CommonContent');
 
             if($PictureContent === null){
                 if($IsUpload){
@@ -221,7 +235,8 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
                 false
             );
             $stage->setContent(
-                ($PictureContent === false
+                new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn($buttonList))))
+                . ($PictureContent === false
                     ? $basicContent. $commonContent
                     : new Layout(new LayoutGroup(new LayoutRow(array(
                         new LayoutColumn(
@@ -263,6 +278,20 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
         }
 
         return $stage;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param array $tblPersonList
+     *
+     * @return Standard
+     */
+    private function getOnlineContactDetailsButton(TblPerson $tblPerson, array $tblPersonList): Standard
+    {
+        return (new Standard('Online-Kontaktdaten-Ansicht für ' . $tblPerson->getFullName(), ApiOnlineContactDetails::getEndpoint()))
+            ->ajaxPipelineOnClick(ApiOnlineContactDetails::pipelineOpenShowModal(
+                $tblPerson->getId(), OnlineContactDetails::useService()->getPersonIdListFromPersonList($tblPersonList)
+            ));
     }
 
     /**
