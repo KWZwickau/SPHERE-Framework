@@ -587,8 +587,12 @@ class ReplacementService
         $ArrayData = json_decode($Json, true);
         $schoolName = '';
         $importList = array();
-        if(isset($ArrayData['Gesamtexport']['Vertretungsplan']['Vertretungsplan'])
-            && ($ReplacementList = $ArrayData['Gesamtexport']['Vertretungsplan']['Vertretungsplan'])){
+        // ESS
+//        if(isset($ArrayData['Gesamtexport']['Vertretungsplan']['Vertretungsplan'])
+//            && ($ReplacementList = $ArrayData['Gesamtexport']['Vertretungsplan']['Vertretungsplan'])){
+        // EVSR
+        if(isset($ArrayData['Vertretungsplan'])
+            && ($ReplacementList = $ArrayData['Vertretungsplan'])){
             foreach($ReplacementList as $Replacement){
                 // Kopf
                 if(isset($Replacement['Kopf']['Schulname'])){
@@ -665,12 +669,13 @@ class ReplacementService
                         if(isset($ReplacementEntry['VKlassen']) && !empty($ReplacementEntry['VKlassen'])){
                             $CourseStringV = implode(', ', $CourseListV);
                             $CourseListV = $ReplacementEntry['VKlassen'];
-                            foreach($CourseListV as &$CourseV){
+                            $CourseListTemp = array();
+                            foreach($CourseListV as $CourseV){
                                 if($YearList){
                                     foreach($YearList as $Year){
                                         if(($tempCourse = DivisionCourse::useService()->getDivisionCourseByNameAndYear($CourseV, $Year))){
                                             // string durch tblDivisionCourse ersetzen
-                                            $CourseV = $tempCourse;
+                                            $CourseListTemp[] = $tempCourse;
                                             break;
                                         }
                                     }
@@ -695,8 +700,8 @@ class ReplacementService
                         $item['tblPersonV'] = $tblPersonV;
 
                         // Mehrere Einträge erzeugen wenn notwendig
-                        if(!empty($CourseListV)){
-                            foreach($CourseListV as $CourseV){
+                        if(!empty($CourseListTemp)){
+                            foreach($CourseListTemp as $CourseV){
                                 if($count > 1){
                                     // mehrere Einträge
                                     for($i = $Hour; $i < ($Hour + $count); $i++){
