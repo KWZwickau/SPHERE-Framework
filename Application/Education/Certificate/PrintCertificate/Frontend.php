@@ -78,14 +78,25 @@ class Frontend extends Extension implements IFrontendInterface
         $tableContent = array();
         $tblPrepareStudentList = Prepare::useService()->getPrepareStudentAllWhere(true, false);
         $prepareList = array();
+        // für Prüfung, ob der Schüler noch im Kurs sitzt
+        $tblPersonListByDivisionCourseId = [];
         if ($tblPrepareStudentList) {
             foreach ($tblPrepareStudentList as $tblPrepareStudent) {
-                if ($tblPrepareStudent->getServiceTblPerson()
+                if (($tblPersonTemp = $tblPrepareStudent->getServiceTblPerson())
                     && ($tblPrepare = $tblPrepareStudent->getTblPrepareCertificate())
                     && $tblPrepareStudent->getServiceTblCertificate()
                 ) {
                     if (!isset($prepareList[$tblPrepare->getId()])) {
-                        $prepareList[$tblPrepare->getId()] = $tblPrepare;
+                        // Schüler muss noch in der Klasse sitzen SSWHD-3326
+                        if (($tblDivisionCourse = $tblPrepare->getServiceTblDivision())) {
+                            if (!isset($tblPersonListByDivisionCourseId[$tblDivisionCourse->getId()])) {
+                                $tblPersonListByDivisionCourseId[$tblDivisionCourse->getId()] = $tblDivisionCourse->getStudents();
+                            }
+
+                            if (isset($tblPersonListByDivisionCourseId[$tblDivisionCourse->getId()][$tblPersonTemp->getId()])) {
+                                $prepareList[$tblPrepare->getId()] = $tblPrepare;
+                            }
+                        }
                     }
                 }
             }
@@ -120,13 +131,23 @@ class Frontend extends Extension implements IFrontendInterface
                             if (($tblPrepareStudentList = Prepare::useService()->getPrepareStudentAllByPrepare($tblPrepareCertificate))) {
                                 foreach ($tblPrepareStudentList as $tblPrepareStudent) {
                                     if ($tblPrepareStudent->getServiceTblPerson()
+                                        && ($tblPersonTemp = $tblPrepareStudent->getServiceTblPerson())
                                         && ($tblPrepare = $tblPrepareStudent->getTblPrepareCertificate())
                                         && $tblPrepareStudent->getServiceTblCertificate()
                                         && !$tblPrepareStudent->isPrinted()
                                     ) {
                                         if (!isset($prepareList[$tblPrepare->getId()])) {
-                                            $prepareList[$tblPrepare->getId()] = $tblPrepare;
-                                            break;
+                                            // Schüler muss noch in der Klasse sitzen SSWHD-3326
+                                            if (($tblDivisionCourse = $tblPrepare->getServiceTblDivision())) {
+                                                if (!isset($tblPersonListByDivisionCourseId[$tblDivisionCourse->getId()])) {
+                                                    $tblPersonListByDivisionCourseId[$tblDivisionCourse->getId()] = $tblDivisionCourse->getStudents();
+                                                }
+
+                                                if (isset($tblPersonListByDivisionCourseId[$tblDivisionCourse->getId()][$tblPersonTemp->getId()])) {
+                                                    $prepareList[$tblPrepare->getId()] = $tblPrepare;
+                                                    break;
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -550,7 +571,7 @@ class Frontend extends Extension implements IFrontendInterface
                         ),
                         $message,
                         new Panel(
-                            new Question() . ' Dieses Zeugnis wirklich drucken und revisionssicher abspeichern?',
+                            new Question() . ' Diese Zeugnisse wirklich drucken und revisionssicher abspeichern?',
                             $data,
                             Panel::PANEL_TYPE_DANGER,
                             (new External(

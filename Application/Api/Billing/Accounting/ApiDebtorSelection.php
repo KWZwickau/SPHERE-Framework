@@ -1033,7 +1033,7 @@ class ApiDebtorSelection extends Extension implements IApiInterface
                     foreach($tblBasketVerificationList as $tblBasketVerification){
                         $tblBasket = $tblBasketVerification->getTblBasket();
                         if($tblItemVariant && $tblBasket){
-                            $tblItemCalculation = Item::useService()->getItemCalculationNowByItemVariant($tblItemVariant, $tblBasket->getTargetTime());
+                            $tblItemCalculation = Item::useService()->getItemCalculationNowByItemVariant($tblItemVariant, $tblBasket->getBillTime());
                             if($tblItemCalculation){
                                 $ItemPrice = $tblItemCalculation->getValue();
                             }

@@ -316,33 +316,40 @@ abstract class ServiceTemplateInformation extends ServiceLeave
                             }
                         }
 
-                        $textGTA = $tblPerson->getFirstSecondName() . ' besuchte in diesem Schuljahr ';
+                        if (count($tempList) > 0) {
+                            $textGTA = $tblPerson->getFirstSecondName() . ' besuchte in diesem Schuljahr ';
 
-                        switch (count($tempList)) {
-                            case 1: $textGTA .= 'das GTA ' . $tempList[0] . '.';
-                                break;
-                            case 2: $textGTA .= 'die GTA ' . $tempList[0]
-                                . ' und ' . $tempList[1] . '.';
-                                break;
-                            case 3: $textGTA .= 'die GTA ' . $tempList[0]
-                                . ', ' . $tempList[1]
-                                . ' und ' . $tempList[2] . '.';
-                                break;
-                            case 4: $textGTA .= 'die GTA ' . $tempList[0]
-                                . ', ' . $tempList[1]
-                                . ', ' . $tempList[2]
-                                . ' und ' . $tempList[3] . '.';
-                                break;
-                            case 5: $textGTA .= 'die GTA ' . $tempList[0]
-                                . ', ' . $tempList[1]
-                                . ', ' . $tempList[2]
-                                . ', ' . $tempList[3]
-                                . ' und ' . $tempList[4] . '.';
-                                break;
+                            switch (count($tempList)) {
+                                case 1:
+                                    $textGTA .= 'das GTA ' . $tempList[0] . '.';
+                                    break;
+                                case 2:
+                                    $textGTA .= 'die GTA ' . $tempList[0]
+                                        . ' und ' . $tempList[1] . '.';
+                                    break;
+                                case 3:
+                                    $textGTA .= 'die GTA ' . $tempList[0]
+                                        . ', ' . $tempList[1]
+                                        . ' und ' . $tempList[2] . '.';
+                                    break;
+                                case 4:
+                                    $textGTA .= 'die GTA ' . $tempList[0]
+                                        . ', ' . $tempList[1]
+                                        . ', ' . $tempList[2]
+                                        . ' und ' . $tempList[3] . '.';
+                                    break;
+                                case 5:
+                                    $textGTA .= 'die GTA ' . $tempList[0]
+                                        . ', ' . $tempList[1]
+                                        . ', ' . $tempList[2]
+                                        . ', ' . $tempList[3]
+                                        . ' und ' . $tempList[4] . '.';
+                                    break;
+                            }
+
+                            $Global->POST['Data'][$tblPrepareStudent->getId()]['GTA'] = $textGTA;
+                            $markPostList['GTA'] = true;
                         }
-
-                        $Global->POST['Data'][$tblPrepareStudent->getId()]['GTA'] = $textGTA;
-                        $markPostList['GTA'] = true;
                     }
 
                     // Vorsetzen des Schulbesuchsjahrs
