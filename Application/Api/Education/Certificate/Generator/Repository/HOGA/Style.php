@@ -3365,25 +3365,26 @@ abstract class Style extends Certificate
                 $this->getElement('Teilintegration in die Berufsschule:', $textSize)
                     ->styleTextUnderline()
             )
-            ->addSection((new Section())
-                ->addElementColumn($this->getElement(
-                    '{% if(Content.P' . $personId . '.Input.PartialCourse is not empty) %}
-                        {{ Content.P' . $personId . '.Input.PartialCourse }}
-                    {% else %}
-                        &nbsp;
-                    {% endif %}',
-                    self::TEXT_SIZE_NORMAL
-                ), '50%')
-                ->addElementColumn($this->getElement(
-                    '{% if(Content.P' . $personId . '.Input.PartialIntegration is not empty) %}
-                        {{ Content.P' . $personId . '.Input.PartialIntegration }}
-                    {% else %}
-                        &nbsp;
-                    {% endif %}',
-                    self::TEXT_SIZE_NORMAL
-                )->styleAlignRight(), '50%')
-            )
-            ;
+            ->addElement($this->getElement(
+                '{% if(Content.P' . $personId . '.Input.PartialCourse is not empty) %}
+                    {{ Content.P' . $personId . '.Input.PartialCourse }}
+                {% else %}
+                    &nbsp;
+                {% endif %}',
+                self::TEXT_SIZE_NORMAL
+            ))
+            ->addElement($this->getElement(
+                '{% if(Content.P' . $personId . '.Input.PartialIntegration is not empty) %}
+                    {{ Content.P' . $personId . '.Input.PartialIntegration }}
+                {% else %}
+                    &nbsp;
+                {% endif %}',
+                '{% if(Content.P' . $personId . '.Input.PartialIntegration is not empty) %}'
+                    . self::TEXT_SIZE_NORMAL .
+                '{% else %}
+                    0px
+                {% endif %}'
+            ));
     }
 
     /**

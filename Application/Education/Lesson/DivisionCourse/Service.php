@@ -877,8 +877,8 @@ class Service extends ServiceYearChange
             if ($isResultPersonList) {
                 $personList = array();
                 foreach ($memberList as $tblDivisionCourseMember) {
-                    if ($tblDivisionCourseMember->getServiceTblPerson()) {
-                        $personList[] = $tblDivisionCourseMember->getServiceTblPerson();
+                    if (($tblPerson = $tblDivisionCourseMember->getServiceTblPerson())) {
+                        $personList[$tblPerson->getId()] = $tblPerson;
                     }
                 }
 
@@ -1503,6 +1503,41 @@ class Service extends ServiceYearChange
                     return $tblStudentEducation;
                 }
             }
+        }
+
+        return false;
+    }
+
+    /**
+     * bei Klassen-wechsel im Schuljahr verwenden
+     *
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     * @param string $date
+     * @return TblStudentEducation|bool
+     */
+    public function getStudentEducationListByPersonAndYearAndDateWithLeaved(TblPerson $tblPerson, TblYear $tblYear, string $date = 'now'): TblStudentEducation|bool
+    {
+        // Klassen wechsel im Schuljahr
+        $dateTime = new DateTime($date);
+        if (($list = $this->getStudentEducationListByPersonAndYear($tblPerson, $tblYear)))
+        {
+            if (count($list) == 1) {
+                return $list[0];
+            }
+
+            $default = false;
+            foreach ($list as $tblStudentEducation) {
+                if (($leaveDate = $tblStudentEducation->getLeaveDateTime())) {
+                    if ($dateTime <= $leaveDate) {
+                        return $tblStudentEducation;
+                    }
+                } else {
+                    $default = $tblStudentEducation;
+                }
+            }
+
+            return $default ?: $list[count($list) - 1];
         }
 
         return false;

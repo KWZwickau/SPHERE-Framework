@@ -11,6 +11,8 @@ use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTaskGrade;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer as GatekeeperConsumer;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 
 class BGymKurshalbjahreszeugnis extends BGymStyle
@@ -28,6 +30,8 @@ class BGymKurshalbjahreszeugnis extends BGymStyle
     public function buildPages(TblPerson $tblPerson = null): Page
     {
         $personId = $tblPerson ? $tblPerson->getId() : 0;
+
+        $isMissing = GatekeeperConsumer::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'EMSP');
 
         if ($tblPerson) {
             list($this->advancedCourses, $this->basicCourses) = DivisionCourse::useService()->getCoursesForStudent($tblPerson, $this->getLevel());
@@ -78,7 +82,7 @@ class BGymKurshalbjahreszeugnis extends BGymStyle
                 )
             )
             ->addSlice($this->getChosenSubjects())
-            ->addSlice($this->getRemarkBGym($personId, false, '45px', '10px'))
+            ->addSlice($this->getRemarkBGym($personId, $isMissing, '45px', '10px'))
             ->addSlice($this->getSignPartBGym($personId, true, '10px'))
             ->addSlice($this->getFootNotesSekII(false));
     }
