@@ -22,6 +22,8 @@ use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
+use SPHERE\Common\Frontend\Icon\Repository\EyeMinus;
+use SPHERE\Common\Frontend\Icon\Repository\EyePlus;
 use SPHERE\Common\Frontend\Icon\Repository\Group as GroupIcon;
 use SPHERE\Common\Frontend\Icon\Repository\Info;
 use SPHERE\Common\Frontend\Icon\Repository\Minus;
@@ -136,7 +138,13 @@ class Frontend extends Extension implements IFrontendInterface
         ))));
     }
 
-    public function frontendCauserView($GroupId = null)
+    /**
+     * @param string|null $GroupId
+     * @param bool $Extended
+     *
+     * @return Stage
+     */
+    public function frontendCauserView(string $GroupId = null, bool $Extended = false):Stage
     {
         ini_set('memory_limit', '512M');
 
@@ -146,13 +154,18 @@ class Frontend extends Extension implements IFrontendInterface
         }
         $Stage = new Stage('Beitragsverursacher', 'Gruppe: '.$GroupName);
         $Stage->addButton(new Standard('Zurück', __NAMESPACE__, new ChevronLeft()));
+        if($Extended) {
+            $Stage->addButton(new Standard('Einfache Ansicht', __NAMESPACE__.'/View', new EyeMinus(), array('GroupId' => $GroupId, 'Extended' => false)));
+        } else {
+            $Stage->addButton(new Standard('Erweiterte Ansicht', __NAMESPACE__.'/View', new EyePlus(), array('GroupId' => $GroupId, 'Extended' => true)));
+        }
 
         $Stage->setContent(ApiCauser::receiverModal()
             .new Layout(
                 new LayoutGroup(
                     new LayoutRow(array(
                         new LayoutColumn(
-                            $this->getCauserTable($GroupId)
+                            $this->getCauserTable($GroupId, $Extended)
                         )
                     ))
                 )
@@ -162,7 +175,7 @@ class Frontend extends Extension implements IFrontendInterface
         return $Stage;
     }
 
-    public function getCauserTable($GroupId)
+    public function getCauserTable($GroupId, $Extended = '')
     {
 
         $TableContent = array();
@@ -181,7 +194,7 @@ class Frontend extends Extension implements IFrontendInterface
                     $tblYear = false;
                 }
                 array_walk($tblPersonList,
-                    function(TblPerson $tblPerson) use (&$TableContent, $tblGroup, &$i, $IsDebtorNumberNeed, $tblYear){
+                    function(TblPerson $tblPerson) use (&$TableContent, $tblGroup, &$i, $IsDebtorNumberNeed, $tblYear, $Extended){
                         $Item = array();
                         $Item['Name'] = $tblPerson->getLastFirstName();
                         //ToDO der Block ist neu aber nicht effizient
@@ -198,93 +211,95 @@ class Frontend extends Extension implements IFrontendInterface
                         $Item['ContentRow'] = '';
 //                    $Item['Option'] = new Standard('', '', new Edit());
                         // Herraussuchen aller Beitragsarten die aktuell eingestellt werden müssen
-                        $ContentSingleRow = array();
-                        if(($tblDebtorSelectionList = Debtor::useService()->getDebtorSelectionByPersonCauser($tblPerson))){
-                            $ContentSingleRow[] = new Layout(new LayoutGroup(new LayoutRow(array(
-                                new LayoutColumn('Beitragszahler', 3),
-                                new LayoutColumn('Zahlungsart', 2),
-                                new LayoutColumn('Bank Info', 2),
-                                new LayoutColumn('Beitragsart', 3),
-                                new LayoutColumn('Preis', 2),
-                            ))));
-                            foreach($tblDebtorSelectionList as $tblDebtorSelection) {
-                                $Debtor = '';
-                                $PaymentType = '';
-                                $ItemName = '';
+                        if($Extended){
+                            $ContentSingleRow = array();
+                            if(($tblDebtorSelectionList = Debtor::useService()->getDebtorSelectionByPersonCauser($tblPerson))){
+                                $ContentSingleRow[] = new Layout(new LayoutGroup(new LayoutRow(array(
+                                    new LayoutColumn('Beitragszahler', 3),
+                                    new LayoutColumn('Zahlungsart', 2),
+                                    new LayoutColumn('Bank Info', 2),
+                                    new LayoutColumn('Beitragsart', 3),
+                                    new LayoutColumn('Preis', 2),
+                                ))));
+                                foreach($tblDebtorSelectionList as $tblDebtorSelection) {
+                                    $Debtor = '';
+                                    $PaymentType = '';
+                                    $ItemName = '';
 
-                                if(($tblItem = $tblDebtorSelection->getServiceTblItem())){
-                                    $tblItemGroupList = Item::useService()->getItemGroupByItem($tblItem);
-                                } else {
-                                    $tblItemGroupList = array();
-                                }
-                                $tblPersonGroupList = Group::useService()->getGroupAllByPerson($tblPerson);
-                                $IsEntryValide = false;
-                                if(!empty($tblItemGroupList) && !empty($tblPersonGroupList)){
-                                    foreach($tblItemGroupList as $tblItemGroup){
-                                        if(($tblItemTempGroup = $tblItemGroup->getServiceTblGroup())){
-                                            foreach($tblPersonGroupList as $tblGroupTemp){
-                                                if($tblGroupTemp->getId() == $tblItemTempGroup->getId()){
-                                                    $IsEntryValide = true;
+                                    if(($tblItem = $tblDebtorSelection->getServiceTblItem())){
+                                        $tblItemGroupList = Item::useService()->getItemGroupByItem($tblItem);
+                                    } else {
+                                        $tblItemGroupList = array();
+                                    }
+                                    $tblPersonGroupList = Group::useService()->getGroupAllByPerson($tblPerson);
+                                    $IsEntryValide = false;
+                                    if(!empty($tblItemGroupList) && !empty($tblPersonGroupList)){
+                                        foreach($tblItemGroupList as $tblItemGroup){
+                                            if(($tblItemTempGroup = $tblItemGroup->getServiceTblGroup())){
+                                                foreach($tblPersonGroupList as $tblGroupTemp){
+                                                    if($tblGroupTemp->getId() == $tblItemTempGroup->getId()){
+                                                        $IsEntryValide = true;
+                                                    }
                                                 }
                                             }
                                         }
                                     }
-                                }
-                                // Einträge die aufgrund nicht zutreffender Gruppen übersprungen werden
-                                if(!$IsEntryValide){
-                                    continue;
-                                }
-
-                                if(($tblPersonDebtor = $tblDebtorSelection->getServiceTblPersonDebtor())){
-                                    $Debtor = $tblPersonDebtor->getLastFirstName();
-                                    if($IsDebtorNumberNeed && !($tblDebtorNumber = Debtor::useService()->getDebtorNumberByPerson($tblPersonDebtor))){
-                                        $Debtor .= ' '.new DangerText(new ToolTip(new Info(),
-                                                'Keine Debitoren-Nr. hinterlegt'));
+                                    // Einträge die aufgrund nicht zutreffender Gruppen übersprungen werden
+                                    if(!$IsEntryValide){
+                                        continue;
                                     }
-                                }
-                                if(($tblPaymentType = $tblDebtorSelection->getServiceTblPaymentType())){
-                                    $PaymentType = str_replace('SEPA-', '', $tblPaymentType->getName());
-                                }
-                                if(($tblItem = $tblDebtorSelection->getServiceTblItem())){
-                                    $ItemName = $tblItem->getName();
-                                }
 
-                                if($PaymentType == 'Lastschrift'){
-                                    $BankStatus = new DangerText(new ToolTip(new Disable(),
-                                        'Beitragszahler: Keine Bankdaten hinterlegt'));
-                                    if(($tblBankAccount = $tblDebtorSelection->getTblBankAccount())){
-                                        $BankStatus = new ToolTip(new DangerText(new Info()),
-                                            'Beitragszahler: Mandatsreferenznummer fehlt');
+                                    if(($tblPersonDebtor = $tblDebtorSelection->getServiceTblPersonDebtor())){
+                                        $Debtor = $tblPersonDebtor->getLastFirstName();
+                                        if($IsDebtorNumberNeed && !($tblDebtorNumber = Debtor::useService()->getDebtorNumberByPerson($tblPersonDebtor))){
+                                            $Debtor .= ' '.new DangerText(new ToolTip(new Info(),
+                                                    'Keine Debitoren-Nr. hinterlegt'));
+                                        }
                                     }
-                                    if(($tblBankReference = $tblDebtorSelection->getTblBankReference())){
-                                        $BankStatus = new ToolTip(new SuccessText(new Info()), 'Beitragszahler OK');
+                                    if(($tblPaymentType = $tblDebtorSelection->getServiceTblPaymentType())){
+                                        $PaymentType = str_replace('SEPA-', '', $tblPaymentType->getName());
                                     }
-                                } else {
-                                    $BankStatus = new WarningText(new ToolTip(new Minus(),
-                                        'Beitragszahler: Benötigt keine Bankdaten'));
-                                }
+                                    if(($tblItem = $tblDebtorSelection->getServiceTblItem())){
+                                        $ItemName = $tblItem->getName();
+                                    }
 
-                                $ItemPriceString = 'Nicht verfügbar!';
-                                if(($tblItemVariant = $tblDebtorSelection->getServiceTblItemVariant())){
-                                    if(($tblItemCalculation = Item::useService()->getItemCalculationNowByItemVariant($tblItemVariant))){
-                                        $ItemPriceString = $tblItemCalculation->getPriceString();
+                                    if($PaymentType == 'Lastschrift'){
+                                        $BankStatus = new DangerText(new ToolTip(new Disable(),
+                                            'Beitragszahler: Keine Bankdaten hinterlegt'));
+                                        if(($tblBankAccount = $tblDebtorSelection->getTblBankAccount())){
+                                            $BankStatus = new ToolTip(new DangerText(new Info()),
+                                                'Beitragszahler: Mandatsreferenznummer fehlt');
+                                        }
+                                        if(($tblBankReference = $tblDebtorSelection->getTblBankReference())){
+                                            $BankStatus = new ToolTip(new SuccessText(new Info()), 'Beitragszahler OK');
+                                        }
+                                    } else {
+                                        $BankStatus = new WarningText(new ToolTip(new Minus(),
+                                            'Beitragszahler: Benötigt keine Bankdaten'));
                                     }
-                                } elseif($tblDebtorSelection->getValuePriceString() != '0.00 €') {
-                                    $ItemPriceString = $tblDebtorSelection->getValuePriceString();
-                                }
 
-                                $ContentSingleRow[] = new Layout(new LayoutGroup(new LayoutRow(array(
-                                    new LayoutColumn($Debtor, 3),
-                                    new LayoutColumn($PaymentType, 2),
-                                    new LayoutColumn($BankStatus, 2),
-                                    new LayoutColumn($ItemName, 3),
-                                    new LayoutColumn($ItemPriceString, 2),
+                                    $ItemPriceString = 'Nicht verfügbar!';
+                                    if(($tblItemVariant = $tblDebtorSelection->getServiceTblItemVariant())){
+                                        if(($tblItemCalculation = Item::useService()->getItemCalculationNowByItemVariant($tblItemVariant))){
+                                            $ItemPriceString = $tblItemCalculation->getPriceString();
+                                        }
+                                    } elseif($tblDebtorSelection->getValuePriceString() != '0.00 €') {
+                                        $ItemPriceString = $tblDebtorSelection->getValuePriceString();
+                                    }
+
+                                    $ContentSingleRow[] = new Layout(new LayoutGroup(new LayoutRow(array(
+                                        new LayoutColumn($Debtor, 3),
+                                        new LayoutColumn($PaymentType, 2),
+                                        new LayoutColumn($BankStatus, 2),
+                                        new LayoutColumn($ItemName, 3),
+                                        new LayoutColumn($ItemPriceString, 2),
 //                                    new LayoutColumn(new Standard('', '', new Edit()). new Standard('', '', new Remove()), 2)
-                                ))));
-                            }
-                            //Für komplett Übersprungene Zahlungszuweisungen soll kein Header erzeugt werden
-                            if(count($ContentSingleRow) > 1){
-                                $Item['ContentRow'] = new Listing($ContentSingleRow);
+                                    ))));
+                                }
+                                //Für komplett Übersprungene Zahlungszuweisungen soll kein Header erzeugt werden
+                                if(count($ContentSingleRow) > 1){
+                                    $Item['ContentRow'] = new Listing($ContentSingleRow);
+                                }
                             }
                         }
 
@@ -303,15 +318,27 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
-        return new TableData($TableContent, null, array(
-            'Name'           => 'Person',
-            'DivisionCourse' => 'Klasse / Stammgruppe',
-            'ContentRow'     => 'Zuordnung Beitragszahler',
-            'Option'         => '',
-        ), array(
+        if($Extended) {
+            $TableHead = array(
+                'Name'           => 'Person',
+                'DivisionCourse' => 'Klasse / Stammgruppe',
+                'ContentRow'     => 'Zuordnung Beitragszahler',
+                'Option'         => '',
+            );
+        } else {
+            $TableHead = array(
+                'Name'           => 'Person',
+                'DivisionCourse' => 'Klasse / Stammgruppe',
+                'Option'         => '',
+            );
+        }
+
+        return new TableData($TableContent, null, $TableHead, array(
             'columnDefs' => array(
                 array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 0),
-                array("orderable" => false, "targets" => -1),
+                array("orderable" => false, 'width' => '60px', "targets" => -1),
+                // Extended "Zuordnung Beitragszahler)
+                array("orderable" => false,  "targets" => 2),
             ),
         ));
     }
@@ -329,7 +356,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $item['Time'] = $tblInvoice->getYear().'/'.$tblInvoice->getMonth(true);
                 $item['BasketType'] = '';
                 if(($tblBasket = $tblInvoice->getServiceTblBasket())
-                && ($tblBasketType = $tblBasket->getTblBasketType())){
+                    && ($tblBasketType = $tblBasket->getTblBasketType())){
                     $item['BasketType'] = $tblBasketType->getName();
                 }
                 if(($tblInvoiceItemDebtorList = Invoice::useService()->getInvoiceItemDebtorByInvoice($tblInvoice))){
@@ -438,10 +465,10 @@ class Frontend extends Extension implements IFrontendInterface
 
                 if((Debtor::useService()->getDebtorSelectionByPersonCauserAndItem($tblPerson, $tblItem))){
                     $ColumnList[] = new LayoutColumn(new Panel($tblItem->getName().$notActiveInfo,
-                        ApiDebtorSelection::receiverPanelContent($this->getItemContent($PersonId, $tblItem->getId())
-                            , $tblItem->getId())
-                        , $panelColor)
-                    , 3);
+                            ApiDebtorSelection::receiverPanelContent($this->getItemContent($PersonId, $tblItem->getId())
+                                , $tblItem->getId())
+                            , $panelColor)
+                        , 3);
                 }
             }
             foreach($tblItemList as $tblItem) {
@@ -451,11 +478,11 @@ class Frontend extends Extension implements IFrontendInterface
                 }
                 if(!(Debtor::useService()->getDebtorSelectionByPersonCauserAndItem($tblPerson, $tblItem))){
                     $ColumnHideList[] = new LayoutColumn(new Panel($tblItem->getName(),
-                        ApiDebtorSelection::receiverPanelContent($this->getItemContent($PersonId, $tblItem->getId())
-                            , $tblItem->getId())
-                        , Panel::PANEL_TYPE_DEFAULT)
-                    .'<div style="height: 5px"></div>'
-                    , 3);
+                            ApiDebtorSelection::receiverPanelContent($this->getItemContent($PersonId, $tblItem->getId())
+                                , $tblItem->getId())
+                            , Panel::PANEL_TYPE_DEFAULT)
+                        .'<div style="height: 5px"></div>'
+                        , 3);
                 }
             }
         }
