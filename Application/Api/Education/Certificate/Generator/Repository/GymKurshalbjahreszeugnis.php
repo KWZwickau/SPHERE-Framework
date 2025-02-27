@@ -148,18 +148,10 @@ class GymKurshalbjahreszeugnis extends Certificate
             ->addSlice((new Slice())
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
-                        ->setContent(
-                            '{% if Content.P' . $personId . '.Person.Common.BirthDates.Gender == 2 %}
-                                Die Schülerin
-                            {% else %}
-                                {% if Content.P' . $personId . '.Person.Common.BirthDates.Gender == 1 %}
-                                    Der Schüler
-                                {% else %}
-                                    Die Schülerin/Der Schüler¹ kann ihre/seine¹ Ausbildung am Gymnasium fortsetzen.
-                                {% endif %}
-                            {% endif %}
-                            erbringt eine Besondere Lernleistung mit dem Thema:'
-                        )
+                        ->setContent('
+                            <u>&nbsp;&nbsp;&nbsp;&nbsp; {{ Content.P' . $personId . '.Person.Data.Name.First }} {{ Content.P' . $personId . '.Person.Data.Name.Last }} &nbsp;&nbsp;&nbsp;&nbsp;</u>
+                            erbringt eine Besondere Lernleistung mit dem Thema:
+                        ')
                         ->styleMarginTop('10px')
                     )
                 )
@@ -186,7 +178,8 @@ class GymKurshalbjahreszeugnis extends Certificate
             ->addSlice($this->setPointsOverview())
             ->addSlice($this->getInfo('10px',
                 '¹ &nbsp;&nbsp;&nbsp;&nbsp; Bei Fächern, die nicht belegt wurden, ist das betreffende Feld zu sperren.',
-                '² &nbsp;&nbsp;&nbsp;&nbsp; für Schüler der vertieften Ausbildung nach § 4 der Schulordnung Gymnasien Abiturprüfung'
+                '² &nbsp;&nbsp;&nbsp;&nbsp; für Schülerinnen und Schüler der vertieften Ausbildung nach § 4 der Schulordnung Gymnasien Abiturprüfung und des Landesgymnasiums Sankt 
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Afra zu Meißen'
             //,'³ &nbsp;&nbsp;&nbsp;&nbsp; Nichtzutreffendes ist zu streichen.  '
             )
             );
@@ -562,7 +555,7 @@ class GymKurshalbjahreszeugnis extends Certificate
                                 Schulleiter(in)
                             {% endif %}'
                     )
-                    ->styleAlignCenter()
+//                    ->styleAlignCenter()
 //                    ->styleTextSize('11px')
                     , '30%')
                 ->addElementColumn((new Element())
@@ -582,7 +575,7 @@ class GymKurshalbjahreszeugnis extends Certificate
                                 Tutor(in)
                             {% endif %}'
                     )
-                    ->styleAlignCenter()
+//                    ->styleAlignCenter()
 //                        ->styleTextSize('11px')
                     , '30%')
             )
@@ -597,7 +590,7 @@ class GymKurshalbjahreszeugnis extends Certificate
                     )
 //                        ->styleTextSize('11px')
                     ->stylePaddingTop('2px')
-                    ->styleAlignCenter()
+//                    ->styleAlignCenter()
                     , '30%')
                 ->addElementColumn((new Element())
                     , '40%')
@@ -611,7 +604,7 @@ class GymKurshalbjahreszeugnis extends Certificate
                     )
 //                        ->styleTextSize('11px')
                     ->stylePaddingTop('2px')
-                    ->styleAlignCenter()
+//                    ->styleAlignCenter()
                     , '30%')
             );
 

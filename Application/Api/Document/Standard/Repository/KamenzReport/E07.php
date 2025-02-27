@@ -11,6 +11,7 @@ namespace SPHERE\Application\Api\Document\Standard\Repository\KamenzReport;
 use SPHERE\Application\Document\Generator\Repository\Element;
 use SPHERE\Application\Document\Generator\Repository\Section;
 use SPHERE\Application\Document\Generator\Repository\Slice;
+use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 
 class E07
 {
@@ -264,7 +265,7 @@ class E07
         $section = new Section();
         $section
             ->addElementColumn((new Element())
-                ->setContent('Mittelschule')
+                ->setContent(TblType::IDENT_OBER_SCHULE)
                 ->stylePaddingLeft('5px')
                 ->styleBorderRight(), '30%'
             );

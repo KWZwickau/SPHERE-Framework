@@ -19,6 +19,7 @@ use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
 use SPHERE\Common\Frontend\Icon\Repository\Filter;
+use SPHERE\Common\Frontend\Icon\Repository\Info;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
@@ -164,32 +165,33 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutRow(
                         new LayoutColumn(
                             new TableData($TableContent, null, array(
-                                'CauserPerson'  => 'Beitragsverursacher',
-                                'CauserIdent'   => 'Schülernummer',
-                                'Item'          => 'Beitragsarten',
-                                'DebtorPerson'  => 'Beitragszahler',
-                                'BasketName'    => 'Name der Abrechnung',
-                                'Time'          => 'Abrechnungs&shy;zeitraum',
-                                'TargetTime'    => 'Fälligkeits&shy;datum',
-                                'BillTime'      => 'Rechnungs&shy;datum',
-                                'InvoiceNumber' => 'Rechnungs&shy;nummer',
-                                'PaymentType'   => 'Zahlungs&shy;art',
-                                'ItemQuantity'  => 'Menge',
-                                'ItemPrice'     => new ToolTip('EP', 'Einzelpreis'),
-                                'ItemSumPrice'  => new ToolTip('GP', 'Gesamtpreis'),
-                                'BasketType'    => 'Typ',
-                                'IsPaid'        => 'Offene Posten',
+                                'CauserPerson'   => 'Beitragsverursacher',
+                                'DivisionCourse' => 'Kurs '.new Info(),
+                                'CauserIdent'    => 'Schülernummer',
+                                'Item'           => 'Beitragsarten',
+                                'DebtorPerson'   => 'Beitragszahler',
+                                'BasketName'     => 'Name der Abrechnung',
+                                'Time'           => 'Abrechnungs&shy;zeitraum',
+                                'TargetTime'     => 'Fälligkeits&shy;datum',
+                                'BillTime'       => 'Rechnungs&shy;datum',
+                                'InvoiceNumber'  => 'Rechnungs&shy;nummer',
+                                'PaymentType'    => 'Zahlungs&shy;art',
+                                'ItemQuantity'   => 'Menge',
+                                'ItemPrice'      => new ToolTip('EP', 'Einzelpreis'),
+                                'ItemSumPrice'   => new ToolTip('GP', 'Gesamtpreis'),
+                                'BasketType'     => 'Typ',
+                                'IsPaid'         => 'Offene Posten',
 //                                'Option' => '',
                             ), array(
                                 'columnDefs' => array(
                                     array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => array(0,3)),
-                                    array('type' => 'natural', 'targets' => array(1,6)),
+                                    array('type' => 'natural', 'targets' => array(2,7)),
 //                                    array('type' => 'de_date', 'targets' => array(2)),
-                                    array("orderable" => false, "targets" => -1),
+                                    array("orderable" => false, "targets" => array(1,-1)),
                                 ),
                                 'order'      => array(
 //                            array(1, 'desc'),
-                                    array(6, 'desc')
+                                    array(7, 'desc')
                                 ),
                                 'responsive' => false,
                             ))

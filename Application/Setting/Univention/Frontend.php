@@ -920,10 +920,11 @@ class Frontend extends Extension implements IFrontendInterface
                         )
                     )))), 4),
                     new LayoutColumn(new Warning('Diese Schnittstelle legt neue Stammgruppen aus der Schulsoftware als
-                     Arbeitsgruppen im DLLP / UCS an und ordnet die entsprechenden Schüler
-                      diesen Gruppen zu. Bitte beachten Sie, dass die entsprechenden Schüler zuvor
-                       mittels der Schnittstelle "UCS über API" erst nach DLLP / UCS übertragen
-                        werden müssen.'
+                     Arbeitsgruppen im DLLP / UCS an und ordnet die entsprechenden Schüler / Lehrer (Lehrauftrag)
+                     diesen Gruppen zu.'
+                    .new Container('Bitte beachten Sie, dass die entsprechenden Schüler / Lehrer zuvor
+                     mittels der Schnittstelle '.new Bold('"UCS über API" erst nach DLLP / UCS übertragen').'
+                     werden müssen.')
                     ), 8)
                 )),
                 new LayoutRow((!empty($ErrorList)?$LayoutColumnList : new LayoutColumn('')))
@@ -982,6 +983,41 @@ class Frontend extends Extension implements IFrontendInterface
             foreach($DivisionCourseList as $tblDivisionCourse){
                 $GroupName = $tblDivisionCourse->getName();
                 $tblPersonAccountList = array();
+                // Lehrauftrag
+                if(($tblYearList = Term::useService()->getYearByNow())){
+                    foreach($tblYearList as $tblYear){
+                        if(($tblTeacherLectureshipList = DivisionCourse::useService()->getTeacherLectureshipListBy($tblYear, null, $tblDivisionCourse))){
+                            foreach($tblTeacherLectureshipList as $tblTeacherLectureship){
+                                if(($tblPersonTeacher = $tblTeacherLectureship->getServiceTblPerson())){
+                                    // Nur Lehrer mit Lehrauftrag und einem Account
+                                    if(($tblAccountList = Account::useService()->getAccountAllByPerson($tblPersonTeacher))) {
+                                        $tblAccount = current($tblAccountList);
+                                        // Nutzer müssen in der API verfügbar sein
+                                        if(in_array($tblAccount->getUsername(), $ApiUserNameList)){
+                                            $tblPersonAccountList[$tblAccount->getId()] = $tblAccount->getUsername();
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+//                // Klassenlehrer / Gruppenleiter -> werden bei der Normalen API auch nicht übertragen, deswegen dagegen entschieden
+//                if(($tblPersonDivisionTeacherList = $tblDivisionCourse->getDivisionTeacherList())){
+//                    foreach($tblPersonDivisionTeacherList as $tblPersonDivisionTeacher){
+//                        if($tblPersonDivisionTeacher){
+//                            // Nur Lehrer mit Lehrauftrag und einem Account
+//                            if(($tblAccountList = Account::useService()->getAccountAllByPerson($tblPersonDivisionTeacher))) {
+//                                $tblAccount = current($tblAccountList);
+//                                // Nutzer müssen in der API verfügbar sein
+//                                if(in_array($tblAccount->getUsername(), $ApiUserNameList)){
+//                                    $tblPersonAccountList[$tblAccount->getId()] = $tblAccount->getUsername();
+//                                }
+//                            }
+//                        }
+//                    }
+//                }
+
                 if(($tblPersonList = $tblDivisionCourse->getStudents())){
                     foreach($tblPersonList as $tblPerson){
                         // Nur Schüler mit einem Account
@@ -989,7 +1025,7 @@ class Frontend extends Extension implements IFrontendInterface
                             $tblAccount = current($tblAccountList);
                             // Nutzer müssen in der API verfügbar sein
                             if(in_array($tblAccount->getUsername(), $ApiUserNameList)){
-                                $tblPersonAccountList[] = $tblAccount->getUsername();
+                                $tblPersonAccountList[$tblAccount->getId()] = $tblAccount->getUsername();
                             }
                         }
                     }

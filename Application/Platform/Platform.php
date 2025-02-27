@@ -7,6 +7,8 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblIdentification;
 use SPHERE\Application\Platform\Gatekeeper\Gatekeeper;
 use SPHERE\Application\Platform\Roadmap\Roadmap;
+use SPHERE\Application\Platform\System\DataMaintenance\DataMaintenance;
+use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\Application\Platform\System\System;
 use SPHERE\Common\Frontend\Icon\Repository\CogWheels;
 use SPHERE\Common\Frontend\Layout\Repository\Label;
@@ -27,22 +29,39 @@ class Platform implements IClusterInterface
     {
 
         $tblAccount = Account::useService()->getAccountBySession();
-        if ($tblAccount && $tblAccount->getHasAuthentication(TblIdentification::NAME_SYSTEM)) {
+        if($tblAccount && $tblAccount->getHasAuthentication(TblIdentification::NAME_SYSTEM)) {
             $LabelColor = Label::LABEL_TYPE_DANGER;
-            if($tblAccount->getServiceTblConsumer()){
+            if($tblAccount->getServiceTblConsumer()) {
                 $Acronym = $tblAccount->getServiceTblConsumer()->getAcronym();
-                if($Acronym == 'REF' || $Acronym == 'DEMO'){
+                if($Acronym == 'REF' || $Acronym == 'DEMO') {
                     $LabelColor = Label::LABEL_TYPE_DEFAULT;
+                    // Protokollanzeige nur auf REF & DEMO Mandant
+                    $DateNow = new \DateTime();
+                    // prüfung nur mit dem Datum
+                    $DateGreen = self::getIntervalDate($DateNow, 8);
+                    $DateYellow = self::getIntervalDate($DateNow, 31);
+
+                    $tblProtocol = Protocol::useService()->getProtocolFirstEntry();
+                    $LabelCountColor = Label::LABEL_TYPE_DANGER;
+                    if($tblProtocol && $tblProtocol->getEntityCreate() >= $DateGreen) {
+                        $LabelCountColor = Label::LABEL_TYPE_DEFAULT;
+                    } elseif($tblProtocol && $tblProtocol->getEntityCreate() >= $DateYellow) {
+                        $LabelCountColor = Label::LABEL_TYPE_WARNING;
+                    }
+//                    $ProtocolCount = DataMaintenance::useFrontend()->getProtocolEntryCount();
+                    Main::getDisplay()->addServiceNavigation(
+                        new Link(new Link\Route('/Platform/System/DataMaintenance/Protocol'), new Link\Name(new Bold(new Label('Protokoll', $LabelCountColor))))
+                    );
                 }
             }
             Main::getDisplay()->addServiceNavigation(
                 new Link(
                     new Link\Route('/Setting/MyAccount/Consumer'),
                     new Link\Name(
-                        new Bold( new Label(
+                        new Bold(new Label(
                             'Mandant '
-                            . ($tblAccount->getServiceTblConsumer()?$tblAccount->getServiceTblConsumer()->getAcronym() : '')
-                            , $LabelColor) )
+                            .($tblAccount->getServiceTblConsumer() ? $tblAccount->getServiceTblConsumer()->getAcronym() : '')
+                            , $LabelColor))
                     )
                 )
             );
@@ -101,5 +120,21 @@ class Platform implements IClusterInterface
             .'</div>'
         );
         return $Stage;
+    }
+
+    /**
+     * @param \DateTime $Date
+     * @param int       $IntervalAdd
+     *
+     * @return \DateTime
+     */
+    private static function getIntervalDate(\DateTime $Date, int $IntervalAdd): \DateTime
+    {
+
+        $Date = new \DateTime($Date->format('Y-m-d'));
+        $ProtocolActiveDays = DataMaintenance::useFrontend()->getProtocolActiveDays();
+        $DefaultColorInterval = $ProtocolActiveDays + $IntervalAdd;
+        $Date->sub(new \DateInterval('P'.$DefaultColorInterval.'D'));
+        return $Date;
     }
 }

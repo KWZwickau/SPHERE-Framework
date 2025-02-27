@@ -43,7 +43,7 @@ class KamenzReportService
         $tblCurrentYearList = array();
         $tblPastYearList = array();
 
-        $tblKamenzSchoolType = Type::useService()->getTypeByName('Mittelschule / Oberschule');
+        $tblKamenzSchoolType = Type::useService()->getTypeByName(TblType::IDENT_OBER_SCHULE);
 
         self::setYears($Content, $tblCurrentYearList, $tblPastYearList);
 
@@ -811,7 +811,7 @@ class KamenzReportService
                                                 $gender = $tblCommonGender->getShortName();
                                             }
 
-                                            if ($tblKamenzSchoolType->getName() == 'Mittelschule / Oberschule') {
+                                            if ($tblKamenzSchoolType->getName() == TblType::IDENT_OBER_SCHULE) {
                                                 $course = 'NoCourse';
                                                 if (!($level == 5 || $level == 6)) {
                                                     if ($tblCourse) {
@@ -1157,7 +1157,7 @@ class KamenzReportService
                         $countForeignSubjectsByStudent++;
 
                         if ($tblType->getShortName() == 'OS') {
-                            // bei Mittelschule nur 1. Fremdsprache
+                            // bei Oberschule nur 1. Fremdsprache
                             if ($tblStudentSubjectRanking->getIdentifier() == 1) {
                                 if (isset($countForeignSubjectArray[$tblSubject->getName()][$level])) {
                                     $countForeignSubjectArray[$tblSubject->getName()][$level]++;
@@ -1321,7 +1321,7 @@ class KamenzReportService
             $count++;
         }
 
-        if ($tblSchoolType->getName() == 'Mittelschule / Oberschule') {
+        if ($tblSchoolType->getName() == TblType::IDENT_OBER_SCHULE) {
             /**
              * E11 Schüler in der zweiten FREMDSPRACHE - abschlussorientiert im Schuljahr nach Klassenstufen
              */
@@ -3105,8 +3105,8 @@ class KamenzReportService
                 $identifier = 'PrimarySchool';
             } elseif ($tblSchoolTypeLastYear->getName() == 'Gymnasium') {
                 $identifier = 'GrammarSchool';
-            } elseif ($tblSchoolTypeLastYear->getName() == 'Mittelschule / Oberschule') {
-                if ($tblSchoolTypeKamenz->getName() == 'Mittelschule / Oberschule') {
+            } elseif ($tblSchoolTypeLastYear->getName() == TblType::IDENT_OBER_SCHULE) {
+                if ($tblSchoolTypeKamenz->getName() == TblType::IDENT_OBER_SCHULE) {
                     if ($level > 6 && $tblCourse) {
                         if ($tblCourse->getName() == 'Hauptschule') {
                             $identifier = 'SecondarySchoolHs';
@@ -3147,9 +3147,9 @@ class KamenzReportService
                         $identifier = 'PrimarySchool';
                     } elseif ($tblSchoolTypeTransfer->getName() == 'Gymnasium') {
                         $identifier = 'GrammarSchool';
-                    } elseif ($tblSchoolTypeTransfer->getName() == 'Mittelschule / Oberschule') {
+                    } elseif ($tblSchoolTypeTransfer->getName() == TblType::IDENT_OBER_SCHULE) {
                         $identifier = 'SecondarySchool';
-                        if ($tblSchoolTypeKamenz->getName() == 'Mittelschule / Oberschule') {
+                        if ($tblSchoolTypeKamenz->getName() == TblType::IDENT_OBER_SCHULE) {
                             if (($tblCourseTransfer = $tblStudentTransfer->getServiceTblCourse())) {
                                 if($tblCourseTransfer->getName() == 'Hauptschule') {
                                     $identifier = 'SecondarySchoolHs';

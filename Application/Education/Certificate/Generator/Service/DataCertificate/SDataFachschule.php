@@ -242,6 +242,8 @@ class SDataFachschule
 
             $Data->createCertificateInformation($tblCertificate, 'RemarkWithoutTeam', 5);
             $Data->createCertificateInformation($tblCertificate, 'AdditionalRemarkFhr', 5);
+            $Data->createCertificateInformation($tblCertificate, 'DateFrom', 5);
+            $Data->createCertificateInformation($tblCertificate, 'DateTo', 5);
         }
     }
 

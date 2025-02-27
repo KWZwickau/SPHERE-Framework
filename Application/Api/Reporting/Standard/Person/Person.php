@@ -534,7 +534,7 @@ class Person extends Extension
     {
         if (($tblPerson = \SPHERE\Application\People\Person\Person::useService()->getPersonById($PersonId))
             && ($tblYear = Term::useService()->getYearById($YearId))
-            && ($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))
+            && ($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYearWithLeaved($tblPerson, $tblYear))
         ) {
             $hasAbsenceTypeOptions = false;
             $dataList = Absence::useService()->getStudentAbsenceDataForParentStudentAccess($tblPerson, $tblStudentEducation, $hasAbsenceTypeOptions);

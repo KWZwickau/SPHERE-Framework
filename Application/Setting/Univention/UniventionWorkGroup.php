@@ -77,12 +77,17 @@ class UniventionWorkGroup
         foreach($UserList as &$Name){
             $Name = 'https://'.$this->server.'/v1/users/'.$Name;
         }
+        $UserNameList = array();
+        foreach($UserList as $User){
+            $UserNameList[] = $User;
+        }
+
         // URL Fähiger Gruppenname -> Create braucht den normal!
 //        $group = urlencode($group);
         $PersonContent = array(
             'name' => $group,
             'school' => $school,
-            'users' => $UserList,
+            'users' => $UserNameList,
         );
         $PersonContent = json_encode($PersonContent);
 //        return $PersonContent;
@@ -117,7 +122,9 @@ class UniventionWorkGroup
         if(false !== strpos($Json, 'Forbidden')){
             return $group.' '.new Bold('UCS: You don\'t have permission to access this resource.');
         }
-
+        if(false !== ( $msPos = strpos($Json, '"msg":"'))){
+            return $group.' '.new Bold(substr($Json, $msPos - 17));
+        }
         // Object to Array
         $StdClassArray = json_decode($Json, true);
         $Error = null;
@@ -141,6 +148,7 @@ class UniventionWorkGroup
         curl_reset($this->curlhandle);
 
         // URL Fähiger Gruppenname
+        $groupName = $group;
          $group = str_replace(' ', '%20', $group);
          // urlencode macht aus ' ' -> '+'
 //         $group = urlencode($group);
@@ -149,9 +157,15 @@ class UniventionWorkGroup
             $Name = 'https://'.$this->server.'/v1/users/'.$Name;
         }
 //        $UserList = array(current($UserList));
+        // Id Problem, dies verhindert ein korrektes Update mit der KelvinAPI
+        // Workaround umspeichern in ein neues Array
+        $UserNameList = array();
+        foreach($UserList as $User){
+            $UserNameList[] = $User;
+        }
 
         $PostFields = array(
-            'users' => $UserList
+            'users' => $UserNameList
         );
         $PostFields = json_encode($PostFields);
 
@@ -183,14 +197,21 @@ class UniventionWorkGroup
 //            'postFields: '.print_r($PostFields, true)
 //        );
 //        Debugger::devDump($Json);
+//        if($groupName == '12Gy G-GK BIO'){
+//            return $Json;
+//        }
         if($Json == 'Internal Server Error'){
-            return $group.' '.new Bold('UCS: Internal Server Error');
+            return $groupName.' '.new Bold('UCS: Internal Server Error');
         }
         if(false !== strpos($Json, 'Bad Gateway')){
-            return $group.' '.new Bold('UCS: Bad Gateway');
+            return $groupName.' '.new Bold('UCS: Bad Gateway');
         }
         if(false !== strpos($Json, 'Bad Request')){
-            return $group.' '.new Bold('UCS: Bad Request');
+            return $groupName.' '.new Bold('UCS: Bad Request');
+        }
+        if(false !== ( $msPos = strpos($Json, '"msg":"'))){
+//            return $Json;
+            return $groupName.' '.new Bold(substr($Json, $msPos - 17));
         }
         // Object to Array
         $StdClassArray = json_decode($Json, true);
