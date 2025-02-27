@@ -712,12 +712,14 @@ abstract class ServiceStudentOverview extends ServiceScoreCalc
      * @param TblPerson $tblPerson
      * @param TblYear $tblYear
      * @param bool $IsParentView
+     * @param int|null $MaxCount
      *
      * @return array
      */
-    public function getRecentGrades(TblPerson $tblPerson, TblYear $tblYear, bool $IsParentView = true): array
+    public function getRecentGrades(TblPerson $tblPerson, TblYear $tblYear, bool $IsParentView = true, ?int $MaxCount = null): array
     {
         $resulList = array();
+        $count = 0;
         if (($tblGradeList =  (new Data($this->getBinding()))->getTestGradeListByPersonAndYear($tblPerson, $tblYear))) {
             $tblTaskList = Grade::useService()->getTaskListByStudentAndYear($tblPerson, $tblYear);
 
@@ -768,6 +770,12 @@ abstract class ServiceStudentOverview extends ServiceScoreCalc
                             'Description' => $tblTest->getDescription(),
                             'PublicComment' => $tblTestGrade->getPublicComment(),
                         );
+
+                        $count++;
+
+                        if ($MaxCount !== null && $count >= $MaxCount) {
+                            return $resulList;
+                        }
                     }
                 }
             }

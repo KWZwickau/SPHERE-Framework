@@ -105,11 +105,12 @@ class ApiGrade implements IApiInterface
     }
 
     /**
-     * @param $YearId
+     * @param null $YearId
+     * @param null $MaxCount
      *
      * @return JsonResponse
      */
-    public static function getRecentGrades($YearId = null): JsonResponse
+    public static function getRecentGrades($YearId = null, $MaxCount = null): JsonResponse
     {
         $result = [];
 
@@ -120,11 +121,11 @@ class ApiGrade implements IApiInterface
             && ($tblPersonList = OnlineGradebook::useService()->getPersonListFromAccountBySession())
         ) {
             foreach ($tblPersonList as $tblPerson) {
-                if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))) {
+                if (DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear)) {
                     $result[] = array(
                         'Person' => $tblPerson->getLastFirstName(),
                         'Division' => DivisionCourse::useService()->getCurrentMainCoursesByPersonAndDate($tblPerson),
-                        'GradeList' => Grade::useService()->getRecentGrades($tblPerson, $tblYear),
+                        'GradeList' => Grade::useService()->getRecentGrades($tblPerson, $tblYear, true, $MaxCount)
                     );
                 }
             }
