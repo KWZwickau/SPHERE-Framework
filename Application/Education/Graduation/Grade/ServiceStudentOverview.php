@@ -404,6 +404,11 @@ abstract class ServiceStudentOverview extends ServiceScoreCalc
                                     $dataPdfSection->addElementColumn(GradebookOverview::getBodyElement($contentTest), $widthGrade);
                                     $gradesApi[] = array(
                                         'Date' => $dateItem ? $dateItem->format('c') : null,
+                                        // damit es gleich mit recentGrades ist
+                                        'Subject' => array(
+                                            'Name' => $tblSubject->getName(),
+                                            'Acronym' => $tblSubject->getAcronym(),
+                                        ),
                                         'GradeType' => $virtualTestTask->getTblTest()->getTblGradeType()->getCode(),
                                         'Grade' => $tblTestGrade ? $tblTestGrade->getGrade() : null,
                                         'Description' => $tblTest->getDescription(),
@@ -760,7 +765,7 @@ abstract class ServiceStudentOverview extends ServiceScoreCalc
 
                         $resulList[] = array(
                             'Date' => $dateItem ? $dateItem->format('c') : null,
-                            'CreateDate' => $tblTestGrade->getEntityCreate() ? $tblTestGrade->getEntityCreate()->format('c') : null,
+//                            'CreateDate' => $tblTestGrade->getEntityCreate() ? $tblTestGrade->getEntityCreate()->format('c') : null,
                             'Subject' => array(
                                 'Name' => $tblSubject->getName(),
                                 'Acronym' => $tblSubject->getAcronym(),
