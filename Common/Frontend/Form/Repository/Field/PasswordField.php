@@ -34,6 +34,7 @@ class PasswordField extends AbstractTextField implements IFieldInterface
         $this->Template->setVariable('ElementName', $Name);
         $this->Template->setVariable('ElementLabel', $Label);
         $this->Template->setVariable('ElementPlaceholder', $Placeholder);
+        $this->Template->setVariable('ElementHash', md5($Label));
         if (null !== $Icon) {
             $this->Template->setVariable('ElementIcon', $Icon);
         }
@@ -51,9 +52,15 @@ class PasswordField extends AbstractTextField implements IFieldInterface
         return parent::getContent();
     }
 
+    /**
+     * @param IIconInterface $Icon
+     *
+     * @return $this
+     */
     public function setShow(IIconInterface $Icon)
     {
 
         $this->Template->setVariable('ElementIconShow', $Icon);
+        return $this;
     }
 }

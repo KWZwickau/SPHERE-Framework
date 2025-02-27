@@ -965,7 +965,7 @@ class Service extends AbstractService
         }
         if ($newCredentialLock != $newCredentialLockSafety && !$Error) {
             $Form->setError('newCredentialLock', '');
-            $Form->setError('newCredentialLockSafety', 'Die beiden Passworte stimmen nicht überein');
+            $Form->setError('newCredentialLockSafety', 'Die beiden Passwörter stimmen nicht überein');
             $Error = true;
         }
 

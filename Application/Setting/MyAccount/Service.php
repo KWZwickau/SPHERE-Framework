@@ -70,7 +70,7 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
         }
         if ($CredentialLock != $CredentialLockSafety && !$Error) {
             $Form->setError('CredentialLock', '');
-            $Form->setError('CredentialLockSafety', 'Die beiden Passworte stimmen nicht überein');
+            $Form->setError('CredentialLockSafety', 'Die beiden Passwörter stimmen nicht überein');
             $Error = true;
         } elseif (!$Error) {
             if (!empty( $CredentialLock ) && !empty( $CredentialLockSafety )) {
@@ -168,7 +168,7 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
         }
         if ($newCredentialLock != $newCredentialLockSafety && !$Error) {
             $Form->setError('newCredentialLock', '');
-            $Form->setError('newCredentialLockSafety', 'Die beiden Passworte stimmen nicht überein');
+            $Form->setError('newCredentialLockSafety', 'Die beiden Passwörter stimmen nicht überein');
             $Error = true;
         }
 

@@ -114,7 +114,7 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
         }
         if ($Password != $PasswordSafety) {
             $Form->setError('Account[Password]', '');
-            $Form->setError('Account[PasswordSafety]', 'Die beiden Passworte stimmen nicht überein');
+            $Form->setError('Account[PasswordSafety]', 'Die beiden Passwörter stimmen nicht überein');
             $Error = true;
         } else {
             if (!empty( $Password ) && !empty( $PasswordSafety )) {
@@ -249,7 +249,7 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
         }
         if (!empty( $Password ) && $Password != $PasswordSafety) {
             $Form->setError('Account[Password]', '');
-            $Form->setError('Account[PasswordSafety]', 'Die beiden Passworte stimmen nicht überein');
+            $Form->setError('Account[PasswordSafety]', 'Die beiden Passwörter stimmen nicht überein');
             $Error = true;
         }
 

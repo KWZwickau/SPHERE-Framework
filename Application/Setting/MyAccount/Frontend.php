@@ -28,6 +28,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
+use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
 use SPHERE\Common\Frontend\Icon\Repository\Key;
 use SPHERE\Common\Frontend\Icon\Repository\Lock;
 use SPHERE\Common\Frontend\Icon\Repository\Repeat;
@@ -74,6 +75,17 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage('Mein Benutzerkonto', 'Passwort ändern');
         $Stage->addButton(new Standard('Zurück', '/Setting/MyAccount', new ChevronLeft()));
         $Receiver = ApiMyAccount::receiverComparePassword();
+        $PasswordField = (new PasswordField('CredentialLock', 'Neues Passwort',
+            'Neues Passwort',
+            new Lock()))->setRequired()
+            ->ajaxPipelineOnKeyUp(ApiMyAccount::pipelineComparePassword($Receiver))
+            ->setShow(new EyeOpen());
+        $PasswordCompareField = (new PasswordField('CredentialLockSafety', 'Passwort wiederholen',
+            'Passwort wiederholen',
+            new Repeat()))->setRequired()
+            ->ajaxPipelineOnKeyUp(ApiMyAccount::pipelineComparePassword($Receiver))
+            ->setShow(new EyeOpen());
+
         $Stage->setContent(
             new Layout(new LayoutGroup(new LayoutRow(array(
                 new LayoutColumn(
@@ -83,17 +95,8 @@ class Frontend extends Extension implements IFrontendInterface
                                 new FormRow(array(
                                     new FormColumn(
                                         new Panel('Passwort', array(
-                                            (new PasswordField('CredentialLock', 'Neues Passwort',
-                                                'Neues Passwort'
-//                                                    . new Small(new Warning('(Das Passwort muss mindestens 8 Zeichen lang sein.)'))
-                                                ,
-                                                new Lock()))->setRequired()
-                                                ->setAutoFocus()
-                                                ->ajaxPipelineOnKeyUp(ApiMyAccount::pipelineComparePassword($Receiver)),
-                                            (new PasswordField('CredentialLockSafety', 'Passwort wiederholen',
-                                                'Passwort wiederholen',
-                                                new Repeat()))->setRequired()
-                                                ->ajaxPipelineOnKeyUp(ApiMyAccount::pipelineComparePassword($Receiver))
+                                            $PasswordField,
+                                            $PasswordCompareField
                                         ), Panel::PANEL_TYPE_INFO)
                                     ),
                                 ))
