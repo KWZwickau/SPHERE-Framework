@@ -138,6 +138,10 @@ class Style extends Extension
             $SettingSurface = MyAccount::useService()->getSettingByAccount($tblAccount, 'Surface');
             if ($SettingSurface) {
                 $SettingSurface = $SettingSurface->getValue();
+                if($SettingSurface == 2){
+                    // 2 (APP Ansicht) noch eingestellt, soll aber durch Web Ansicht ersetzt werden
+                    $SettingSurface = 1;
+                }
             }
         }
         return $SettingSurface;
