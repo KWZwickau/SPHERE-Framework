@@ -875,6 +875,20 @@ class Data extends DataTeacher
     }
 
     /**
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     *
+     * @return false|TblStudentEducation
+     */
+    public function getStudentEducationByPersonAndYearWithLeaved(TblPerson $tblPerson, TblYear $tblYear)
+    {
+        return $this->getCachedEntityBy(__Method__, $this->getConnection()->getEntityManager(), 'TblStudentEducation', array(
+            TblStudentEducation::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
+            TblStudentEducation::ATTR_SERVICE_TBL_YEAR => $tblYear->getId()
+        ));
+    }
+
+    /**
      * @param $Id
      *
      * @return TblStudentEducation|false

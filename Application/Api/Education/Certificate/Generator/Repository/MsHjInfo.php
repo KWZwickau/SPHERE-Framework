@@ -38,8 +38,6 @@ class MsHjInfo extends Certificate
             ->addSlice($this->getStudentName($personId))
             ->addSlice((new Slice())
                 ->addElement((new Element())
-                    // entfällt, die Schulart steht jetzt im Titel
-//                    ->setContent('nahm am Unterricht der Schulart Mittelschule teil.')
                     ->setContent('&nbsp;')
                     ->styleTextSize('12px')
                     ->styleMarginTop('8px')

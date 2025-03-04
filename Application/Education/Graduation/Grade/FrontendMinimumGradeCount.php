@@ -6,6 +6,7 @@ use SPHERE\Application\Api\Education\Graduation\Grade\ApiGradeBook;
 use SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount\SelectBoxItem;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
+use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\Setting\Consumer\School\School;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
@@ -135,7 +136,9 @@ class FrontendMinimumGradeCount extends FrontendGradeType
      */
     private function formMinimumGradeCount(): Form
     {
-        $tblGradeTypeList = Grade::useService()->getGradeTypeList(false);
+        if (!($tblGradeTypeList = Grade::useService()->getGradeTypeList(false))) {
+            $tblGradeTypeList = array();
+        }
 
         $tblGradeTypeList[] = new SelectBoxItem(-SelectBoxItem::HIGHLIGHTED_ALL, 'Alle Zensuren-Typen');
         $tblGradeTypeList[] = new SelectBoxItem(-SelectBoxItem::HIGHLIGHTED_IS_HIGHLIGHTED, 'Nur große Zensuren-Typen (Fett markiert)');
@@ -168,7 +171,7 @@ class FrontendMinimumGradeCount extends FrontendGradeType
                 // für Sortierung
                 if ($tblTypeItem->getName() == 'Grundschule') {
                     $key = 1;
-                } elseif ($tblTypeItem->getName() == 'Mittelschule / Oberschule') {
+                } elseif ($tblTypeItem->getName() == TblType::IDENT_OBER_SCHULE) {
                     $key = 2;
                 } elseif ($tblTypeItem->getName() == 'Gymnasium') {
                     $key = 3;

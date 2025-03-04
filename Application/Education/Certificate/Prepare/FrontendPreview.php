@@ -299,7 +299,7 @@ abstract class FrontendPreview extends FrontendLeaveTechnicalSchool
                                         'Name' => 'Zeugnismuster'
                                     ),
                                     'Zeugnis als Muster herunterladen'))
-                                // Mittelschule Abschlusszeugnis Realschule
+                                // Oberschule Abschlusszeugnis Realschule
                                 . ((strpos($tblCertificate->getCertificate(), 'MsAbsRs') !== false
                                     && $tblPrepareStudent
                                     && !$tblPrepareStudent->isApproved())
@@ -321,7 +321,7 @@ abstract class FrontendPreview extends FrontendLeaveTechnicalSchool
                     }
 
                     // Noten vom Vorjahr ermitteln (abgeschlossene Fächer) und speichern
-                    // Mittelschule Abschlusszeugnis Realschule
+                    // Oberschule Abschlusszeugnis Realschule
                     if ((strpos($tblCertificate->getCertificate(), 'MsAbsRs') !== false)
                         && ($tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('PRIOR_YEAR_GRADE'))
                     ) {

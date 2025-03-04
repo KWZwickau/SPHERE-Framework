@@ -8,6 +8,7 @@
 
 namespace SPHERE\Application\Reporting\KamenzReport;
 
+use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\Setting\Consumer\School\School;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
@@ -50,7 +51,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         if (!$typeList || isset($typeList['OS'])) {
             $Stage->addButton(new Standard(
-                'Oberschule / Mittelschule', __NAMESPACE__ . '/Validate/SecondarySchool'
+                TblType::IDENT_OBER_SCHULE, __NAMESPACE__ . '/Validate/SecondarySchool'
             ));
         }
 
@@ -92,7 +93,7 @@ class Frontend extends Extension implements IFrontendInterface
      */
     public static function frontendValidateSecondarySchool(): Stage
     {
-        $Stage = new Stage('Kamenz-Statistik', 'Oberschule / Mittelschule validieren');
+        $Stage = new Stage('Kamenz-Statistik', TblType::IDENT_OBER_SCHULE . ' validieren');
         $Stage->addButton(new Standard('Zurück', '/Reporting/KamenzReport', new ChevronLeft()));
 
         $Stage->addbutton(new External('Herunterladen: Oberschulstatistik',
@@ -127,7 +128,7 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $content[] = new LayoutColumn(
-            KamenzService::validate(Type::useService()->getTypeByName('Mittelschule / Oberschule'), $summary)
+            KamenzService::validate(Type::useService()->getTypeByName(TblType::IDENT_OBER_SCHULE), $summary)
         );
 
         $Stage->setContent(

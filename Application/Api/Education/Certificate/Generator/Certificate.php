@@ -194,6 +194,8 @@ abstract class Certificate extends Extension
             $InjectStyle = 'body { margin-bottom: -1.5cm !important; margin-left: 0.75cm !important; margin-right: 0.75cm !important; }';
         } elseif ($tblConsumer && $tblConsumer->isConsumer(TblConsumer::TYPE_SACHSEN, 'MLS')) {
             $InjectStyle = 'body { margin-bottom: -1.5cm !important; margin-left: 0.75cm !important; margin-right: 0.75cm !important; }';
+        } elseif ($tblConsumer && $tblConsumer->isConsumer(TblConsumer::TYPE_SACHSEN, 'HGGT')) {
+            $InjectStyle = 'body { margin-bottom: -1.5cm !important; margin-left: 1.25cm !important; margin-right: 1.25cm !important; }';
         }
 
         // Standardzeugnisse mit Breiteneinstellung

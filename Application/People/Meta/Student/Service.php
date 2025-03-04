@@ -289,6 +289,7 @@ class Service extends Support
                 $Meta['Student']['Identifier'],
                 $Meta['Student']['SchoolAttendanceStartDate'],
                 isset($Meta['Student']['HasMigrationBackground']),
+                ($Meta['Student']['MigrationBackground'] ?? ''),
                 isset($Meta['Student']['IsInPreparationDivisionForMigrants'])
             );
         } else {
@@ -298,6 +299,7 @@ class Service extends Support
                 $Meta['Student']['Identifier'],
                 $Meta['Student']['SchoolAttendanceStartDate'],
                 isset($Meta['Student']['HasMigrationBackground']),
+                ($Meta['Student']['MigrationBackground'] ?? ''),
                 isset($Meta['Student']['IsInPreparationDivisionForMigrants'])
             );
         }

@@ -350,10 +350,10 @@ class Service extends AbstractService
      */
     public function getStartDateOfWeek(DateTime $dateTime): DateTime
     {
-        $year = $dateTime->format('Y');
-        $currentWeek = (int)$dateTime->format('W');
-        $week = str_pad($currentWeek, 2, '0', STR_PAD_LEFT);
-        return new DateTime(date('d.m.Y', strtotime("$year-W{$week}")));
+//        $year = $dateTime->format('Y');
+//        $currentWeek = (int)$dateTime->format('W');
+//        $week = str_pad($currentWeek, 2, '0', STR_PAD_LEFT);
+        return new DateTime(date('d.m.Y', strtotime('monday this week', strtotime($dateTime->format('d.m.Y')))));
     }
 
     /**

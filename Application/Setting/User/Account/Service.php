@@ -527,10 +527,14 @@ class Service extends AbstractService
         if($IsParent){
             $tblRelationshipType = Relationship::useService()->getTypeByName( TblType::IDENTIFIER_GUARDIAN );
             if(($tblRelationshipList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson, $tblRelationshipType))){
-                foreach($tblRelationshipList as $tblRelationship){  //ToDO Mehrer Schüler auswahl nach "höherer Bildungsgang"
+                foreach($tblRelationshipList as $tblRelationship){
                     if(($tblPersonStudent = $tblRelationship->getServiceTblPersonTo())){
                         if(($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndDate($tblPersonStudent))) {
                             $tblCompany = $tblStudentEducation->getServiceTblCompany();
+                            if($tblCompany){
+                                // Wird eine Company gefunden, verwendet diese Company und überschreibt es nicht mit einem anderen "Schüler" (eventuell keine Company hinterlegt)
+                                break;
+                            }
                         }
                     }
                 }

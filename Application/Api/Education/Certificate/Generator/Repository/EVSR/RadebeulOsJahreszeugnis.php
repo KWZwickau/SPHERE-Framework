@@ -13,12 +13,16 @@ use SPHERE\Application\Education\Certificate\Generator\Repository\Element;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Page;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Section;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
+use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubject;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Setting\Consumer\Consumer;
 
+/**
+ * @deprecated
+ */
 class RadebeulOsJahreszeugnis extends Certificate
 {
     const TEXT_COLOR_BLUE = 'rgb(25,59,100)';
@@ -223,14 +227,14 @@ class RadebeulOsJahreszeugnis extends Certificate
                 ), $width5)
             );
 
-        $course = 'nahm am Unterricht der Schulart Mittelschule teil.';
+        $course = 'nahm am Unterricht der Schulart ' . TblType::IDENT_OBER_SCHULE .  ' teil.';
         if ($this->getLevel() > 6
             && ($tblCourse = $this->getTblCourse())
         ) {
             if ($tblCourse->getName() == 'Realschule') {
-                $course = 'nahm am Unterricht der Schulart Mittelschule mit dem Ziel des Realschulabschlusses teil.';
+                $course = 'nahm am Unterricht der Schulart ' . TblType::IDENT_OBER_SCHULE .  ' mit dem Ziel des Realschulabschlusses teil.';
             } elseif ($tblCourse->getName() == 'Hauptschule') {
-                $course = 'nahm am Unterricht der Schulart Mittelschule mit dem Ziel des Hauptschulabschlusses teil.';
+                $course = 'nahm am Unterricht der Schulart ' . TblType::IDENT_OBER_SCHULE .  ' mit dem Ziel des Hauptschulabschlusses teil.';
             }
         }
 

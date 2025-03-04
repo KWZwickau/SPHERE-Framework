@@ -77,6 +77,10 @@ class TblStudent extends Element
      * @Column(type="boolean")
      */
     protected $HasMigrationBackground;
+    /**
+     * @Column(type="string")
+     */
+    protected $MigrationBackground;
 
     /**
      * @Column(type="boolean")
@@ -301,6 +305,22 @@ class TblStudent extends Element
     public function setHasMigrationBackground($HasMigrationBackground)
     {
         $this->HasMigrationBackground = (boolean) $HasMigrationBackground;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getMigrationBackground(): ?string
+    {
+        return $this->MigrationBackground;
+    }
+
+    /**
+     * @param string $HasMigrationBackground
+     */
+    public function setMigrationBackground(string $MigrationBackground = ''): void
+    {
+        $this->MigrationBackground = $MigrationBackground;
     }
 
     /**

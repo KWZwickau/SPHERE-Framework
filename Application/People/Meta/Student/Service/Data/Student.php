@@ -97,11 +97,12 @@ abstract class Student extends AbstractData
 
     /**
      * @param TblPerson $tblPerson
-     * @param string $Prefix
-     * @param string $Identifier
-     * @param string $SchoolAttendanceStartDate
-     * @param bool $HasMigrationBackground
-     * @param bool $IsInPreparationDivisionForMigrants
+     * @param string    $Prefix
+     * @param string    $Identifier
+     * @param string    $SchoolAttendanceStartDate
+     * @param bool      $HasMigrationBackground
+     * @param string    $MigrationBackground
+     * @param bool      $IsInPreparationDivisionForMigrants
      *
      * @return bool|TblStudent
      */
@@ -111,6 +112,7 @@ abstract class Student extends AbstractData
         $Identifier = '',
         $SchoolAttendanceStartDate = '',
         $HasMigrationBackground = false,
+        $MigrationBackground = '',
         $IsInPreparationDivisionForMigrants = false
     ) {
 
@@ -136,6 +138,7 @@ abstract class Student extends AbstractData
             }
             $Entity->setSchoolAttendanceStartDate(( $SchoolAttendanceStartDate ? new DateTime($SchoolAttendanceStartDate) : null ));
             $Entity->setHasMigrationBackground($HasMigrationBackground);
+            $Entity->setMigrationBackground($MigrationBackground);
             $Entity->setIsInPreparationDivisionForMigrants($IsInPreparationDivisionForMigrants);
 
             $Manager->saveEntity($Entity);
@@ -147,11 +150,12 @@ abstract class Student extends AbstractData
 
     /**
      * @param TblStudent $tblStudent
-     * @param string $Prefix
-     * @param string $Identifier
-     * @param string $SchoolAttendanceStartDate
-     * @param bool $HasMigrationBackground
-     * @param bool $IsInPreparationDivisionForMigrants
+     * @param string     $Prefix
+     * @param string     $Identifier
+     * @param string     $SchoolAttendanceStartDate
+     * @param bool       $HasMigrationBackground
+     * @param string     $MigrationBackground
+     * @param bool       $IsInPreparationDivisionForMigrants
      *
      * @return bool
      */
@@ -161,6 +165,7 @@ abstract class Student extends AbstractData
         $Identifier = '',
         $SchoolAttendanceStartDate = '',
         $HasMigrationBackground = false,
+        $MigrationBackground = '',
         $IsInPreparationDivisionForMigrants = false
     ) {
 
@@ -185,6 +190,7 @@ abstract class Student extends AbstractData
             }
             $Entity->setSchoolAttendanceStartDate(( $SchoolAttendanceStartDate ? new DateTime($SchoolAttendanceStartDate) : null ));
             $Entity->setHasMigrationBackground($HasMigrationBackground);
+            $Entity->setMigrationBackground($MigrationBackground);
             $Entity->setIsInPreparationDivisionForMigrants($IsInPreparationDivisionForMigrants);
 
             $Manager->saveEntity($Entity);

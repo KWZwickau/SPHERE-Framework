@@ -667,7 +667,7 @@ class PrimarySchool extends AbstractStudentCard
                                 {% endif %}'
                             ), '4%')
                             ->addElementColumn((new Element())
-                                ->setContent('Mittelschule')
+                                ->setContent(TblType::IDENT_OBER_SCHULE)
                                 ->styleTextSize($InputText)
                                 ->stylePaddingLeft('4px')
                                 ->stylePaddingTop($padding)

@@ -162,7 +162,7 @@ abstract class ServiceStudentOverview extends ServiceScoreCalc
         }
 
         if (($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())) {
-            $isShortYear = DivisionCourse::useService()->getIsShortYearBySchoolTypeAndLevel($tblSchoolType, $tblStudentEducation->getLevel());
+            $isShortYear = DivisionCourse::useService()->getIsShortYearBySchoolTypeAndLevel($tblSchoolType, $tblStudentEducation->getLevel() ?: 0);
         } else {
             $isShortYear = false;
         }

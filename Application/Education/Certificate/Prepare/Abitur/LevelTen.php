@@ -154,7 +154,7 @@ class LevelTen extends AbstractBlock
                             $tblSubject,
                             $tblPrepareAdditionalGradeType,
                             $count++,
-                            $tblTaskGrade->getGrade(),
+                            $tblTaskGrade->getGrade() !== null ?: '',
                             false,
                             true
                         );

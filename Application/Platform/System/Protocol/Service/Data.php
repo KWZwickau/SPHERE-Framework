@@ -255,6 +255,31 @@ class Data extends AbstractData
     }
 
     /**
+     * @return bool|TblProtocol
+     */
+    public function getProtocolFirstEntry()
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $Builder = $Manager->getQueryBuilder();
+
+        $Query = $Builder
+            ->select('P')
+            ->from(__NAMESPACE__.'\Entity\TblProtocol', 'P')
+            ->orderBy('P.Id', 'ASC')
+            ->setMaxResults(1)
+            ->getQuery();
+
+        $Query->useQueryCache(true);
+        $Query->useResultCache(true, 300, __METHOD__);
+        $EntityList = $Query->getResult();
+        if($EntityList){
+            $Entity = current($EntityList);
+        }
+        return ( $Entity ?? false );
+    }
+
+    /**
      * @return \DateTime
      */
     private function getProtocolTimestamp()
@@ -272,5 +297,73 @@ class Data extends AbstractData
         $ThisWeek->add(new \DateInterval('P'.abs(( 7 - date("N") )).'D'));
 
         return $OneMonthAgo;
-    } 
+    }
+
+    /**
+     * @param \DateTime $DateTime
+     *
+     * @return int
+     */
+    public function getProtocolCountBeforeDate(\DateTime $DateTime)
+    {
+        //        $DateTime->sub(new \DateInterval("P1Y"));
+        $Manager = $this->getConnection()->getEntityManager();
+        $Builder = $Manager->getQueryBuilder();
+        $Query = $Builder
+            ->select('count(P.Id)')
+//            ->select('P')
+            ->from(__NAMESPACE__.'\Entity\TblProtocol', 'P')
+            ->where(
+                $Builder->expr()->lte('P.EntityCreate', '?1')
+            )
+            ->setParameter(1, $DateTime)
+            ->getQuery();
+
+        $Query->useQueryCache(true);
+        $Query->useResultCache(true, 300, __METHOD__);
+        $Query->setMaxResults(50);
+        $result = $Query->getResult();
+//        Debugger::devDump($result);
+//        $resultCount = count($result);
+        $resultCount = current(current($result));
+        return ( null === $resultCount ? 0 : $resultCount );
+    }
+
+    public function getProtocolAllBeforeDate(\DateTime $DateTime, int $deleteMax)
+    {
+//        $DateTime->sub(new \DateInterval("P1Y"));
+        $Manager = $this->getConnection()->getEntityManager();
+        $Builder = $Manager->getQueryBuilder();
+
+        $Query = $Builder
+            ->select('P')
+            ->from(__NAMESPACE__.'\Entity\TblProtocol', 'P')
+            ->where(
+                $Builder->expr()->lte('P.EntityCreate', '?1')
+            )
+            ->setParameter(1, $DateTime)
+            ->orderBy('P.EntityCreate', 'ASC')
+            ->setMaxResults($deleteMax)
+            ->getQuery();
+
+        $Query->useQueryCache(true);
+        $Query->useResultCache(true, 300, __METHOD__);
+        $EntityList = $Query->getResult();
+        return ( empty( $EntityList ) ? false : $EntityList );
+    }
+
+    public function deleteProtocolList($tblProtocolList)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        if(!empty($tblProtocolList)){
+            foreach($tblProtocolList as $Entity) {
+                    $Manager->bulkKillEntity($Entity);
+            }
+            $Manager->flushCache();;
+            return true;
+        }
+        return false;
+    }
 }

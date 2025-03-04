@@ -84,13 +84,15 @@ abstract class ServiceStudentSubject extends ServiceCourseSystem
      * @param TblPerson $tblPerson
      * @param TblYear $tblYear
      * @param TblSubject $tblSubject
+     * @param bool $showWithoutStudentEducation
      *
      * @return false|VirtualSubject
      */
-    public function getVirtualSubjectFromRealAndVirtualByPersonAndYearAndSubject(TblPerson $tblPerson, TblYear $tblYear, TblSubject $tblSubject)
-    {
+    public function getVirtualSubjectFromRealAndVirtualByPersonAndYearAndSubject(
+        TblPerson $tblPerson, TblYear $tblYear, TblSubject $tblSubject, bool $showWithoutStudentEducation = false
+    ): VirtualSubject|bool {
         // ohne Schüler-Bildung für das Schuljahr keine Fächer
-        if (!DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear)) {
+        if (!$showWithoutStudentEducation && !DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear)) {
             return false;
         }
 

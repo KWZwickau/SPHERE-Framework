@@ -15,6 +15,7 @@ use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\System\Database\Binding\AbstractService;
+use SPHERE\System\Extension\Repository\Sorter;
 
 /**
  * Class Service
@@ -257,12 +258,18 @@ class Service extends AbstractService
     }
 
     /**
+     * @param bool $isActive
+     *
      * @return bool|TblItem[]
      */
-    public function getItemAll($isActive = true)
+    public function getItemAll(bool $isActive = true)
     {
 
-        return (new Data($this->getBinding()))->getItemAll($isActive);
+        $tblItemAll = (new Data($this->getBinding()))->getItemAll($isActive);
+        if($tblItemAll){
+            return (new Sorter($tblItemAll))->sortObjectBy('Name');
+        }
+        return false;
     }
 
     /**
@@ -273,10 +280,10 @@ class Service extends AbstractService
     public function getItemAllWithPreActiveTime($MonthSinceActive = self::DEACTIVATE_TIME_SPAN)
     {
 
-        if(!($tblItemActiveList = (new Data($this->getBinding()))->getItemAll())){
+        if(!($tblItemActiveList = $this->getItemAll())){
             $tblItemActiveList = array();
         }
-        if(($tblItemInactiveList = (new Data($this->getBinding()))->getItemAll(false))){
+        if(($tblItemInactiveList = $this->getItemAll(false))){
             $date = new \DateTime();
             foreach($tblItemInactiveList as $tblItemInactive){
                 $updateDate = $tblItemInactive->getEntityUpdate();

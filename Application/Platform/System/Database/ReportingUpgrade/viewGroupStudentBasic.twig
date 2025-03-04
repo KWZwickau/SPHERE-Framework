@@ -6,6 +6,7 @@ SELECT
     tS.Identifier AS TblStudent_Identifier,
     DATE_FORMAT( tS.SchoolAttendanceStartDate, '%d.%m.%Y' ) AS TblStudent_SchoolAttendanceStartDate,
     IF (tS.HasMigrationBackground, 'Ja', 'Nein') AS TblStudent_HasMigrationBackground,
+    tS.MigrationBackground AS TblStudent_MigrationBackground,
     IF (tS.IsInPreparationDivisionForMigrants, 'Ja', 'Nein') AS TblStudent_IsInPreparationDivisionForMigrants
 
 FROM {{ ConsumerAcronym }}_PeopleMeta.tblStudent tS

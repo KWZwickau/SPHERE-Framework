@@ -6,6 +6,7 @@ use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
 use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Icon\Repository\Listing;
@@ -385,7 +386,7 @@ class Frontend extends Extension implements IFrontendInterface
 
             $subjectList = array();
             $tblSubjectAll = Subject::useService()->getSubjectAll();
-            if (strpos($tblDocument->getName(), 'Mittelschule') !== false){
+            if (strpos($tblDocument->getName(), TblType::IDENT_OBER_SCHULE) !== false){
                 if (($tblSetting = Consumer::useService()->getSetting(
                         'Api',
                         'Education',

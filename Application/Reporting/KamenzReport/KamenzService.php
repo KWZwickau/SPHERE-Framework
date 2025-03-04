@@ -227,10 +227,10 @@ class KamenzService
                             $studentList[$tblPerson->getId()]['LastSchoolType'] = $schoolTypePastYear;
 
                             if ($hasOrientationSubjects) {
-                                if (($tblSchoolType->getName() == 'Mittelschule / Oberschule')) {
+                                if (($tblSchoolType->getName() == TblType::IDENT_OBER_SCHULE)) {
                                     if (($orientation = self::getOrientation($tblPerson))) {
                                         $studentList[$tblPerson->getId()]['Orientation'] = $orientation;
-                                    } elseif (preg_match('!(0?(7|8|9))!is', (string) $level)
+                                    } elseif (preg_match('!(0?([789]))!is', (string) $level)
                                         && !isset($foreignLanguages[2])
                                     ) {
                                         $count['Orientation']++;
@@ -416,7 +416,7 @@ class KamenzService
            );
        }
 
-        if (($tblSchoolType->getName() == 'Mittelschule / Oberschule')) {
+        if (($tblSchoolType->getName() == TblType::IDENT_OBER_SCHULE)) {
             $columns['Orientation'] = (Student::useService()->getStudentSubjectTypeByIdentifier('ORIENTATION'))->getName();
         }
 

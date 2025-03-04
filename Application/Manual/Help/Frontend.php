@@ -36,11 +36,11 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage('Hilfe', 'Downloadbereich');
 
-        $isUcsConsumer = ($tblConsumer = Consumer::useService()->getConsumerBySession())
-            && Consumer::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_UCS);
+//        $isUcsConsumer = ($tblConsumer = Consumer::useService()->getConsumerBySession())
+//            && Consumer::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_UCS);
 
         $LayoutColumnList = null;
-        if($isUcsConsumer){
+//        if($isUcsConsumer){
             $LayoutColumnList[] = new LayoutColumn(new Link((new Thumbnail(
                 FileSystem::getFileLoader('/Common/Style/Resource/SSWInfo.png')
                 , 'Schnittstelle Schulsoftware zu DLLP / UCS', 'Stand:&nbsp;23.04.2024'))->setPictureHeight()
@@ -51,7 +51,7 @@ class Frontend extends Extension implements IFrontendInterface
                 , 'Schuljahreswechsel Schulsoftware zu DLLP / UCS', 'Stand:&nbsp;17.07.2023'))->setPictureHeight()
                 , '/Api/Document/Standard/Manual/Create/Pdf', null, array('Select' => 'SSW_year_DLLP_UCS')
             ), 2);
-        }
+//        }
 
         $Stage->setContent(
             new Layout(

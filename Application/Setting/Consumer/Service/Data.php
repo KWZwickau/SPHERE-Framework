@@ -4,6 +4,7 @@ namespace SPHERE\Application\Setting\Consumer\Service;
 
 use SPHERE\Application\Contact\Address\Service\Entity\TblAddress;
 use SPHERE\Application\Education\Absence\Service\Entity\TblAbsence;
+use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
@@ -175,7 +176,7 @@ class Data extends AbstractData
              mit dem Trennzeichen: [Standard: ]');
         $this->createSetting('Education', 'Certificate', 'Generate', 'UseCourseForCertificateChoosing',
             TblSetting::TYPE_BOOLEAN, '1', 'Zeugnisse', 'Es wird der Bildungsgang des Schülers verwendet, um die
-            entsprechende Zeugnisvorlage (Mittelschule) dem Schüler automatisch zuzuordnen. [Standard: Ja]');
+            entsprechende Zeugnisvorlage (' . TblType::IDENT_OBER_SCHULE . ') dem Schüler automatisch zuzuordnen. [Standard: Ja]');
         $this->createSetting('Education', 'Certificate', 'Diploma', 'PreArticleForSchoolName',
             TblSetting::TYPE_STRING, '', 'Zeugnisse', 'Artikel vor dem Schulnamen auf Abschlusszeugnissen und
             Abgangszeugnissen (z.B. das): [Standard: ]');
