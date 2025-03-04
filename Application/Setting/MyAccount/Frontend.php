@@ -265,69 +265,68 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $tblConsumer = Consumer::useService()->getConsumerBySession();
-        $colorChoice = array(1 => 'Webseite', 2 => 'Anwendung');
+        $colorChoice = array(1 => 'Webseite'); // ,2 => 'Anwendung'
         if($tblAccount && $tblAccount->getHasAuthentication(TblIdentification::NAME_SYSTEM)){
             $colorChoice[3] = '(Experimantal) Webseite Dunkel';
         }
 
-        $Stage->setContent(
-            new Layout(
-                new LayoutGroup(
-                    new LayoutRow(array(
-                        new LayoutColumn(array(
-                            new Title('Konfiguration', 'Benutzereinstellungen'),
-                            new Well(
-                                MyAccount::useService()->updateSetting(
-                                    new Form(
-                                        new FormGroup(
-                                            new FormRow(
-                                                new FormColumn(array(
-                                                    new Panel(
-                                                        'Oberfläche', array(
-                                                            new SelectBox(
-                                                                'Setting[Surface]',
-                                                                'Aussehen der Programmoberfläche',
-                                                                $colorChoice, null, true, null
-                                                            ),
-                                                        )
-                                                        , Panel::PANEL_TYPE_INFO),
-//                                                new Panel(
-//                                                    'Statistik', array(
-//                                                        '<iframe class="sphere-iframe-style" src="/Library/Piwik/index.php?module=CoreAdminHome&action=optOut&language=de"></iframe>',
-//                                                    )
-//                                                    , Panel::PANEL_TYPE_DEFAULT),
-                                                ))
-                                            )
+
+        $isSystem = Account::useService()->getHasAuthenticationByAccountAndIdentificationName($tblAccount, TblIdentification::NAME_SYSTEM);
+
+        $form = array(
+            new Title('Konfiguration', 'Benutzereinstellungen'),
+            new Well(
+                MyAccount::useService()->updateSetting(
+                    new Form(
+                        new FormGroup(
+                            new FormRow(
+                                new FormColumn(array(
+                                    new Panel(
+                                        'Oberfläche '.new Muted(new Small('(Sehen nur System-Account\'s)')), array(
+                                            new SelectBox(
+                                                'Setting[Surface]',
+                                                'Aussehen der Programmoberfläche',
+                                                $colorChoice, null, true, null
+                                            ),
                                         )
-                                        , new Primary('Speichern', new Save())
-                                    ), $tblAccount, $Setting)
+                                        , Panel::PANEL_TYPE_INFO),
+                                ))
                             )
-                        ), 4),
-                        new LayoutColumn(array(
-                            new Title('Profil', 'Informationen'),
-                            new Panel(
-                                'Benutzerkonto: '.new Bold($tblAccount->getUsername()), $Account
-                                , Panel::PANEL_TYPE_INFO,
-                                new Standard('Mein Passwort ändern', new Route(__NAMESPACE__.'/Password'), new Key())
-                            )
-                        ), 4),
-                        new LayoutColumn(array(
-                            new Title('Kontaktdaten', 'Informationen'),
-                            new Panel(
-                                $tblConsumer->getName().' ['.$tblConsumer->getAcronym().']',
-                                array(
-                                    new Container(implode($this->listingSchool()))
-                                    .new Container(implode($this->listingResponsibility()))
-                                    .new Container(implode($this->listingSponsorAssociation()))
-                                )
-                                , Panel::PANEL_TYPE_INFO
-//                                , new Standard('Zugriff auf Mandant ändern', new Route(__NAMESPACE__.'/Consumer'))
-                            )
-                        ), 4),
-                    ))
-                )
+                        )
+                        , new Primary('Speichern', new Save())
+                    ), $tblAccount, $Setting)
             )
         );
+        $LayoutColumnArray = array();
+        $colWidth = 6;
+        if($isSystem){
+            $colWidth = 4;
+            $LayoutColumnArray[] = new LayoutColumn($form, $colWidth);
+        }
+        $LayoutColumnArray[] = new LayoutColumn(array(
+            new Title('Profil', 'Informationen'),
+            new Panel(
+                'Benutzerkonto: '.new Bold($tblAccount->getUsername()), $Account
+                , Panel::PANEL_TYPE_INFO,
+                new Standard('Mein Passwort ändern', new Route(__NAMESPACE__.'/Password'), new Key())
+            )
+        ), $colWidth);
+        $LayoutColumnArray[] = new LayoutColumn(array(
+            new Title('Kontaktdaten', 'Informationen'),
+            new Panel(
+                $tblConsumer->getName().' ['.$tblConsumer->getAcronym().']',
+                array(
+                    new Container(implode($this->listingSchool()))
+                    .new Container(implode($this->listingResponsibility()))
+                    .new Container(implode($this->listingSponsorAssociation()))
+                )
+                , Panel::PANEL_TYPE_INFO
+//                                , new Standard('Zugriff auf Mandant ändern', new Route(__NAMESPACE__.'/Consumer'))
+            )
+        ), $colWidth);
+
+
+        $Stage->setContent(new Layout(new LayoutGroup(new LayoutRow($LayoutColumnArray))));
 
         return $Stage;
     }
