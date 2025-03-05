@@ -156,7 +156,7 @@ class Frontend extends FrontendClassRegister
 
                     if ($toDate) {
                         if ($toDate > $fromDate) {
-                            $date = $fromDate;
+                            $date = $startDate > $fromDate ? new DateTime($startDate->format('d.m.Y')) : $fromDate;
                             $count = 0;
                             while ($date <= $toDate && $count < 10) {
                                 self::setAbsenceWeekContent($absenceList, $tblPerson, $tblAbsence, $date->format('d.m.Y'));
