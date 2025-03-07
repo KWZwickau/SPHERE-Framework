@@ -749,13 +749,17 @@ abstract class FrontendTask extends FrontendStudentOverview
                 if ($tblSubjectList) {
                     list($startDate, $tblPeriod) = Grade::useService()->getStartDateAndPeriodByPerson($tblPerson, $tblYear, $tblTask);
                     foreach ($tblSubjectList as $tblSubject) {
+                        $isAverageWarning = false;
                         // Endnote anzeigen
                         if ($tblPrepareCertificate
                             && ($tblPrepareAdditionalGrade = Prepare::useService()->getPrepareAdditionalGradeBy($tblPrepareCertificate, $tblPerson, $tblSubject, $tblPrepareAdditionalGradeType))
                             && $tblPrepareAdditionalGrade->getGrade() !== ''
                         ) {
                             $average = '';
-                            $content = $tblPrepareAdditionalGrade->getGrade();
+                            $content = Grade::useService()->SetGradeColor(
+                                $tblPrepareAdditionalGrade->getGrade(),
+                                DivisionCourse::useService()->getIsCourseSystemByPersonAndYear($tblPerson, $tblYear)
+                            );
                         // Stichtagsnote anzeigen
                         } else {
                             $gradeValue = null;
@@ -767,6 +771,11 @@ abstract class FrontendTask extends FrontendStudentOverview
 
                                     $subjectListSum[$tblSubject->getId()] += $gradeValue;
                                     $subjectListGradesCount[$tblSubject->getId()]++;
+
+                                    $content = Grade::useService()->SetGradeColor(
+                                        $content,
+                                        DivisionCourse::useService()->getIsCourseSystemByPersonAndYear($tblPerson, $tblYear)
+                                    );
                                 }
                             } elseif (isset($tblTaskGradeTextList[$tblSubject->getId()])) {
                                 $content = $tblTaskGradeTextList[$tblSubject->getId()];
@@ -780,18 +789,23 @@ abstract class FrontendTask extends FrontendStudentOverview
                             $average = Grade::useService()->getAppointedTaskAverage(
                                 $tblPerson, $tblYear, $tblDivisionCourse, $tblSubject, $tblTask, $startDate ?: null, $tblPeriod ?: null
                             );
+
                             if ($average && $gradeValue !== null) {
                                 $averageFloat = Grade::useService()->getGradeNumberValue($average);
                                 if (($gradeValue - 0.5) <= $averageFloat && ($gradeValue + 0.5) >= $averageFloat) {
-                                    $content = new Success(new Bold($content));
+
                                 } else {
-                                    $content = new \SPHERE\Common\Frontend\Text\Repository\Danger(new Bold($content));
+                                    $isAverageWarning = true;
                                 }
                             }
                         }
 
                         $bodyList[$tblPerson->getId()][$tblSubject->getId()] = $this->getTableColumnBody($content . ' '
-                            . ($average ? new Muted(new Small('&nbsp;&nbsp; &#216;' . $average)) : '')
+                            . ($average
+                                ? $isAverageWarning
+                                    ? new Small('&nbsp;&nbsp; ' . new WarningText('&#216;' . $average))
+                                    : new Muted(new Small('&nbsp;&nbsp; &#216;' . $average))
+                                : '')
                         );
                     }
                 }
@@ -806,6 +820,8 @@ abstract class FrontendTask extends FrontendStudentOverview
 
         return $this->getTableCustom($headerList, $bodyList);
     }
+
+
 
     /**
      * @param array $tblSubjectList
