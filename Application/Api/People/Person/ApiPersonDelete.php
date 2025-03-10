@@ -73,6 +73,7 @@ class ApiPersonDelete extends Extension implements IApiInterface
     {
         $Dispatcher = new Dispatcher(__CLASS__);
 
+        $Dispatcher->registerMethod('showInitialLoadContent');
         $Dispatcher->registerMethod('loadDeleteGuardContent');
         $Dispatcher->registerMethod('showLoadContent');
         $Dispatcher->registerMethod('serviceDeleteGuardContent');
@@ -107,7 +108,7 @@ class ApiPersonDelete extends Extension implements IApiInterface
      */
     public static function receiverModal(): ModalReceiver
     {
-        return (new ModalReceiver())->setIdentifier('ModalReceiver');
+        return (new ModalReceiver(null, null, false))->setIdentifier('ModalReceiver');
     }
 
     /**
@@ -129,6 +130,12 @@ class ApiPersonDelete extends Extension implements IApiInterface
     public static function pipelineOpenDeleteGuardModal($GroupId)
     {
         $pipeline = new Pipeline();
+
+        $emitter = new ServerEmitter(ApiPersonDelete::receiverModal(), ApiPersonDelete::getEndpoint());
+        $emitter->setGetPayload(array(
+            ApiPersonDelete::API_TARGET => 'showInitialLoadContent',
+        ));
+        $pipeline->appendEmitter($emitter);
 
         $emitter = new ServerEmitter(ApiPersonDelete::receiverModal(), ApiPersonDelete::getEndpoint());
         $emitter->setGetPayload(array(
@@ -227,6 +234,16 @@ class ApiPersonDelete extends Extension implements IApiInterface
     }
 
     /**
+     * @return string
+     */
+    public function showInitialLoadContent()
+    {
+
+        return new Title('Lädt Daten, bitte haben Sie etwas Geduld...')
+            .(new ProgressBar(0, 100, 0))->setColor(ProgressBar::BAR_COLOR_SUCCESS, ProgressBar::BAR_COLOR_SUCCESS)->setSize('10px');
+    }
+
+    /**
      * @param string $GroupId
      *
      * @return string
@@ -237,7 +254,6 @@ class ApiPersonDelete extends Extension implements IApiInterface
         $tblGroup = Group::useService()->getGroupById($GroupId);
         $tblPersonReduceList = array();
         if($tblGroup && ($tblPersonList = $tblGroup->getPersonList())){
-            $tblRelationshipType = Relationship::useService()->getTypeById(TblType::IDENTIFIER_GUARDIAN);
             foreach($tblPersonList as $tblPerson){
                 $activePerson = false;
                 if(($tblPersonChildList = Relationship::useService()->getPersonChildByPerson($tblPerson))){
