@@ -129,7 +129,7 @@ class BalanceDownload implements IModuleInterface
                 $PriceList = Balance::useService()->getSummaryByItemPrice($PriceList);
             }
             if(!empty($PriceList)){
-                $fileLocation = Balance::useService()->createBalanceListExcel($PriceList, $tblItemList, $From, $To, $isMonthly);
+                $fileLocation = Balance::useService()->createBalanceListExcel($PriceList, $tblItemList, $Year, $From, $To, $isMonthly);
                 $MonthList = Invoice::useService()->getMonthList();
                 $StartMonth = $MonthList[$From];
                 $ToMonth = $MonthList[$To];
