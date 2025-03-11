@@ -84,12 +84,12 @@ class LegalNotice implements IClusterInterface, IApplicationInterface, IModuleIn
                     new LayoutRow(array(
                         new LayoutColumn('', 3),
                         new LayoutColumn(
-                            new Center('<h4>'.new Bold('Geschäftsführer').'</h4>')
+                            new Center('<h4>'.new Bold('Geschäftsführung').'</h4>')
                             .new Listing(array(
                                 new Layout(new LayoutGroup(new LayoutRow(array(
                                     new LayoutColumn('', 5),
                                     new LayoutColumn(
-                                        new Container('Thomas Melcher')
+                                        new Container('Monika Hochmuth-Alvarez')
                                         .new Container('Sitz: Dresden')
                                         .new Container('HRB: 39730')
                                     , 7)
