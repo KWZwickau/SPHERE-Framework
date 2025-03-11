@@ -132,6 +132,48 @@ td > .list-group {
     margin-bottom: inherit;
 }
 
+.checkbox-primary input[type="checkbox"]:checked + label::before {
+    background-color: #4378a5; /* 428bca */
+    border-color: #4378a5;
+}
+/*.checkbox-danger input[type="checkbox"]:checked + label::before {*/
+/*    background-color: #d9534f;*/
+/*    border-color: #d9534f;*/
+/*}*/
+/*.checkbox-info input[type="checkbox"]:checked + label::before {*/
+/*    background-color: #5bc0de;*/
+/*    border-color: #5bc0de;*/
+/*}*/
+/*.checkbox-warning input[type="checkbox"]:checked + label::before {*/
+/*    background-color: #f0ad4e;*/
+/*    border-color: #f0ad4e;*/
+/*}*/
+/*.checkbox-success input[type="checkbox"]:checked + label::before {*/
+/*    background-color: #5cb85c;*/
+/*    border-color: #5cb85c;*/
+/*}*/
+
+.checkbox-primary input[type="checkbox"] + label::before {
+    background-color: #555555;
+    border-color: #737373;
+}
+/*.checkbox-danger input[type="checkbox"]:checked + label::after {*/
+/*    background-color: #555555;*/
+/*    border-color: #737373;*/
+/*}*/
+/*.checkbox-info input[type="checkbox"]:checked + label::after {*/
+/*    background-color: #555555;*/
+/*    border-color: #737373;*/
+/*}*/
+/*.checkbox-warning input[type="checkbox"]:checked + label::after {*/
+/*    background-color: #555555;*/
+/*    border-color: #737373;*/
+/*}*/
+/*.checkbox-success input[type="checkbox"]:checked + label::after {*/
+/*    background-color: #555555;*/
+/*    border-color: #737373;*/
+/*}*/
+
 /* DATATABLES RESPONSIVE */
 
 table.dataTable.dtr-inline.collapsed > tbody > tr > td:first-child:before,
