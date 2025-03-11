@@ -34,7 +34,7 @@ class PasswordField extends AbstractTextField implements IFieldInterface
         $this->Template->setVariable('ElementName', $Name);
         $this->Template->setVariable('ElementLabel', $Label);
         $this->Template->setVariable('ElementPlaceholder', $Placeholder);
-        $this->Template->setVariable('ElementHash', md5($Label));
+//        $this->Template->setVariable('ElementHash', md5($Label));
         if (null !== $Icon) {
             $this->Template->setVariable('ElementIcon', $Icon);
         }
