@@ -473,7 +473,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         }
         $PanelContentList[] = (new PasswordField('Account[Password]', 'Passwort (min. 8 Zeichen)', 'Passwort', new Lock()))->setShow();
-        $PanelContentList[] = (new PasswordField('Accounts[PasswordSafety]', 'Passwort wiederholen', 'Passwort wiederholen', new Repeat()))->setShow();
+        $PanelContentList[] = (new PasswordField('Account[PasswordSafety]', 'Passwort wiederholen', 'Passwort wiederholen', new Repeat()))->setShow();
         $UsernamePanel = new Panel(new PersonKey().' Benutzerkonto', $PanelContentList, Panel::PANEL_TYPE_INFO);
 
         return new Form(array(

@@ -353,6 +353,8 @@ class Frontend extends Extension implements IFrontendInterface
                 $InitialPassword = Account::useService()->getAccountInitialPasswordByAccountWithoutLogin($tblAccount);
                 if ($InitialPassword && $InitialPassword == $tblAccount->getPassword()) {
                     $changeInitialPassword = true;
+                } elseif($tblAccount->getPassword() == '547d0783ae13fa4ab68ae8f3a1f1ee44e6795be7137b1c14b808c393d328f2e7') {
+                    $changeInitialPassword = true;
                 }
 
                 $tblSetting = Account::useService()->getSettingByAccount($tblAccount, 'AGB');
@@ -1035,7 +1037,7 @@ class Frontend extends Extension implements IFrontendInterface
             new FormColumn(
                 new Panel('Passwort Pflichtänderung', array(
                     (new PasswordField('newCredentialLock', 'Neues Passwort',
-                        'Neues Passwort', new Lock()))->setRequired()->setAutoFocus()->setShow(),
+                        'Neues Passwort', new Lock()))->setRequired()->setShow(),
                     (new PasswordField('newCredentialLockSafety', 'Passwort wiederholen',
                         'Passwort wiederholen', new Repeat()))->setRequired()->setShow(),
                 ), Panel::PANEL_TYPE_INFO)
