@@ -28,7 +28,6 @@ use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
-use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
 use SPHERE\Common\Frontend\Icon\Repository\Key;
 use SPHERE\Common\Frontend\Icon\Repository\Lock;
 use SPHERE\Common\Frontend\Icon\Repository\Repeat;
@@ -79,12 +78,12 @@ class Frontend extends Extension implements IFrontendInterface
             'Neues Passwort',
             new Lock()))->setRequired()
             ->ajaxPipelineOnKeyUp(ApiMyAccount::pipelineComparePassword($Receiver))
-            ->setShow(new EyeOpen());
+            ->setShow();
         $PasswordCompareField = (new PasswordField('CredentialLockSafety', 'Passwort wiederholen',
             'Passwort wiederholen',
             new Repeat()))->setRequired()
             ->ajaxPipelineOnKeyUp(ApiMyAccount::pipelineComparePassword($Receiver))
-            ->setShow(new EyeOpen());
+            ->setShow();
 
         $Stage->setContent(
             new Layout(new LayoutGroup(new LayoutRow(array(

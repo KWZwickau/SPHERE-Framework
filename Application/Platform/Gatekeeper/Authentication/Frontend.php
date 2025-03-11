@@ -1,5 +1,4 @@
 <?php
-
 namespace SPHERE\Application\Platform\Gatekeeper\Authentication;
 
 use DateTime;
@@ -40,7 +39,6 @@ use SPHERE\Common\Frontend\Icon\Repository\CogWheels;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Enable;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
-use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
 use SPHERE\Common\Frontend\Icon\Repository\Globe;
 use SPHERE\Common\Frontend\Icon\Repository\Key;
 use SPHERE\Common\Frontend\Icon\Repository\Lock;
@@ -371,9 +369,8 @@ class Frontend extends Extension implements IFrontendInterface
         // Field Definition
         $CredentialNameField = (new TextField('CredentialName', 'Benutzername', 'Benutzername', new Person()))
             ->setRequired()->setAutoFocus();
-        $CredentialLockField = (new PasswordField('CredentialLock', 'Passwort', 'Passwort', new EyeOpen()))
-            ->setRequired()->setDefaultValue($CredentialLock, true);
-        $CredentialLockField->setShow(new Lock());
+        $CredentialLockField = (new PasswordField('CredentialLock', 'Passwort', 'Passwort', new Lock()))
+            ->setRequired()->setDefaultValue($CredentialLock, true)->setShow();
 
         // Error Handling
         if ($CredentialName !== null) {
@@ -626,7 +623,9 @@ class Frontend extends Extension implements IFrontendInterface
             && ($tblAccount->getHasAuthentication(TblIdentification::NAME_SYSTEM) || $tblAccount->getHasAuthentication(TblIdentification::NAME_TOKEN))
         ) {
             // SSW-2129 OTP direkt aus Passwort-Manager funktioniert nicht in diesem Fall (beide Authentifizierungsverfahren aktiv)
-            $otpCredentialKeyField = (new PasswordField('otpCredentialKey', '', 'YubiKey oder Authenticator App'))->setRequired()->setAutoFocus();
+            $otpCredentialKeyField = (new PasswordField('otpCredentialKey', '', 'YubiKey oder Authenticator App'))
+                ->setRequired()
+                ->setAutoFocus();
         } elseif ($tblAccount->getHasAuthentication(TblIdentification::NAME_AUTHENTICATOR_APP)) {
             // Field Definition
             // SSW-2129 OTP direkt aus Passwort-Manager
@@ -637,7 +636,9 @@ class Frontend extends Extension implements IFrontendInterface
                 ->setAutoComplete();
         } else {
             // Field Definition
-            $otpCredentialKeyField = (new PasswordField('otpCredentialKey', 'YubiKey', 'YubiKey', new YubiKey()))->setRequired()->setAutoFocus();
+            $otpCredentialKeyField = (new PasswordField('otpCredentialKey', 'YubiKey', 'YubiKey', new YubiKey()))
+                ->setRequired()
+                ->setAutoFocus();
         }
 
         $FormError = new Container('');
@@ -1034,9 +1035,9 @@ class Frontend extends Extension implements IFrontendInterface
             new FormColumn(
                 new Panel('Passwort Pflichtänderung', array(
                     (new PasswordField('newCredentialLock', 'Neues Passwort',
-                        'Neues Passwort', new Lock()))->setRequired()->setAutoFocus(),
+                        'Neues Passwort', new Lock()))->setRequired()->setAutoFocus()->setShow(),
                     (new PasswordField('newCredentialLockSafety', 'Passwort wiederholen',
-                        'Passwort wiederholen', new Repeat()))->setRequired(),
+                        'Passwort wiederholen', new Repeat()))->setRequired()->setShow(),
                 ), Panel::PANEL_TYPE_INFO)
             ),
         ))), new Primary('Speichern', new Save()));

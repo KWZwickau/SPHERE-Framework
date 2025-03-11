@@ -5,8 +5,6 @@ use SPHERE\Common\Frontend\Form\IFieldInterface;
 use SPHERE\Common\Frontend\Form\Repository\AbstractTextField;
 use SPHERE\Common\Frontend\Icon\IIconInterface;
 use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
-use SPHERE\Common\Frontend\Icon\Repository\Question;
-use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 
 /**
  * Class PasswordField
@@ -34,7 +32,7 @@ class PasswordField extends AbstractTextField implements IFieldInterface
         $this->Template->setVariable('ElementName', $Name);
         $this->Template->setVariable('ElementLabel', $Label);
         $this->Template->setVariable('ElementPlaceholder', $Placeholder);
-//        $this->Template->setVariable('ElementHash', md5($Label));
+        $this->Template->setVariable('ElementHash', md5($Name));
         if (null !== $Icon) {
             $this->Template->setVariable('ElementIcon', $Icon);
         }
@@ -57,7 +55,7 @@ class PasswordField extends AbstractTextField implements IFieldInterface
      *
      * @return $this
      */
-    public function setShow(IIconInterface $Icon)
+    public function setShow(IIconInterface $Icon = new EyeOpen()): PasswordField
     {
 
         $this->Template->setVariable('ElementIconShow', $Icon);

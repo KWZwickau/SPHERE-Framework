@@ -458,32 +458,23 @@ class Frontend extends Extension implements IFrontendInterface
             $MaxString = $MaxString - strlen($tblConsumer->getAcronym().'-');
         }
         // Username Panel
+        $AccountNameField = (new TextField('Account[Name]', 'Benutzername (max. '.$MaxString.' Zeichen)', 'Benutzername', new Person()))
+            ->setPrefixValue($tblConsumer->getAcronym());
+        $PasswordChanceWarning = '';
         if ($tblAccount) {
-            $UsernamePanel = new Panel(new PersonKey().' Benutzerkonto', array(
-                (new TextField('Account[Name]', 'Benutzername (max. '.$MaxString.' Zeichen)', 'Benutzername',
-                    new Person()))
-                    ->setPrefixValue($tblConsumer->getAcronym())->setDisabled(),
-                new Danger('Die Passwort-Felder nur ausfüllen wenn das Passwort dieses Benutzers geändert werden soll'),
-                new PasswordField(
-                    'Account[Password]', 'Passwort (min. 8 Zeichen)', 'Passwort', new Lock()),
-                new PasswordField(
-                    'Account[PasswordSafety]', 'Passwort wiederholen', 'Passwort wiederholen',
-                    new Repeat()
-                ),
-            ), Panel::PANEL_TYPE_INFO);
-        } else {
-            $UsernamePanel = new Panel(new PersonKey().' Benutzerkonto', array(
-                (new TextField('Account[Name]', 'Benutzername (max. '.$MaxString.' Zeichen)', 'Benutzername',
-                    new Person()))
-                    ->setPrefixValue($tblConsumer->getAcronym()),
-                new PasswordField(
-                    'Account[Password]', 'Passwort (min. 8 Zeichen)', 'Passwort', new Lock()),
-                new PasswordField(
-                    'Account[PasswordSafety]', 'Passwort wiederholen', 'Passwort wiederholen',
-                    new Repeat()
-                ),
-            ), Panel::PANEL_TYPE_INFO);
+            $AccountNameField->setDisabled();
+            $PasswordChanceWarning = new Danger('Die Passwort-Felder nur ausfüllen wenn das Passwort dieses Benutzers geändert werden soll');
         }
+        $PanelContentList = array();
+        $PanelContentList[] = $AccountNameField;
+        if($PasswordChanceWarning){
+            $PanelContentList[] = $PasswordChanceWarning;
+        } else {
+
+        }
+        $PanelContentList[] = (new PasswordField('Account[Password]', 'Passwort (min. 8 Zeichen)', 'Passwort', new Lock()))->setShow();
+        $PanelContentList[] = (new PasswordField('Accounts[PasswordSafety]', 'Passwort wiederholen', 'Passwort wiederholen', new Repeat()))->setShow();
+        $UsernamePanel = new Panel(new PersonKey().' Benutzerkonto', $PanelContentList, Panel::PANEL_TYPE_INFO);
 
         return new Form(array(
             new FormGroup(array(
