@@ -665,7 +665,7 @@ class Frontend extends Extension implements IFrontendInterface
             $Button = ApiPersonDelete::receiverModal()
                     .ApiPersonDelete::receiverService('load') // service without reload Modal
                 .(new Standard('Sorgeberechtigte Bereinigen', '#', new Remove()))
-                ->ajaxPipelineOnClick(ApiPersonDelete::pipelineOpenDeleteGuardModal($tblGroup->getId()));
+                ->ajaxPipelineOnClick(ApiPersonDelete::pipelineOpenDeleteGuardModal());
         }
 
         return $Button . new Title('Verfügbare Personen ' . new Small(new Muted('in der Gruppe: ')) . (new Bold($tblGroup->getName())))

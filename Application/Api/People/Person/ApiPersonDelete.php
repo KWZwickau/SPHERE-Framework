@@ -1,10 +1,10 @@
 <?php
-
 namespace SPHERE\Application\Api\People\Person;
 
 use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\Api\People\Search\ApiPersonSearch;
+use SPHERE\Application\Education\Certificate\Generator\Repository\Element\Ruler;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\IApiInterface;
 use SPHERE\Application\People\Group\Group;
@@ -12,7 +12,6 @@ use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Relationship;
-use SPHERE\Application\People\Relationship\Service\Entity\TblType;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
@@ -22,12 +21,15 @@ use SPHERE\Common\Frontend\Ajax\Receiver\ModalReceiver;
 use SPHERE\Common\Frontend\Ajax\Template\CloseModal;
 use SPHERE\Common\Frontend\Form\Repository\Button\Close;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
+use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Check;
+use SPHERE\Common\Frontend\Icon\Repository\Filter;
 use SPHERE\Common\Frontend\Icon\Repository\Info as InfoIcon;
+use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\ProgressBar;
@@ -38,6 +40,7 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Link\Repository\ToggleSelective;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Info;
@@ -76,22 +79,26 @@ class ApiPersonDelete extends Extension implements IApiInterface
         $Dispatcher->registerMethod('showInitialLoadContent');
         $Dispatcher->registerMethod('loadDeleteGuardContent');
         $Dispatcher->registerMethod('showLoadContent');
+        $Dispatcher->registerMethod('getFilter');
+        $Dispatcher->registerMethod('getFilterAdd');
         $Dispatcher->registerMethod('serviceDeleteGuardContent');
         $Dispatcher->registerMethod('serviceReloadTable');
+
+        $Dispatcher->registerMethod('getCustodyTable');
 
         return $Dispatcher->callMethod($Method);
     }
 
-//    /**
-//     * @param string $Content
-//     * @param string $Identifier
-//     *
-//     * @return BlockReceiver
-//     */
-//    public static function receiverBlock($Content = '', $Identifier = '')
-//    {
-//        return (new BlockReceiver($Content))->setIdentifier($Identifier);
-//    }
+    /**
+     * @param string $Content
+     * @param string $Identifier
+     *
+     * @return BlockReceiver
+     */
+    public static function receiverBlock($Content = '', $Identifier = '')
+    {
+        return (new BlockReceiver($Content))->setIdentifier($Identifier);
+    }
 
     /**
      * @param string $Identifier
@@ -123,11 +130,9 @@ class ApiPersonDelete extends Extension implements IApiInterface
     }
 
     /**
-     * @param int $GroupId
-     *
      * @return Pipeline
      */
-    public static function pipelineOpenDeleteGuardModal($GroupId)
+    public static function pipelineOpenDeleteGuardModal()
     {
         $pipeline = new Pipeline();
 
@@ -141,20 +146,64 @@ class ApiPersonDelete extends Extension implements IApiInterface
         $emitter->setGetPayload(array(
             ApiPersonDelete::API_TARGET => 'loadDeleteGuardContent',
         ));
-        $emitter->setPostPayload(array(
-            'GroupId' => $GroupId
-        ));
+//        $emitter->setPostPayload(array(
+//            'GroupId' => $GroupId
+//        ));
         $pipeline->appendEmitter($emitter);
 
         return $pipeline;
     }
 
     /**
-     * @param int $GroupId
-     *
+     * @param $number
      * @return Pipeline
      */
-    public static function pipelineLoadModal($GroupId)
+    public static function pipelineAddFilter($number)
+    {
+        $pipeline = new Pipeline();
+
+        $emitter = new ServerEmitter(ApiPersonDelete::receiverService('Filter'.$number), ApiPersonDelete::getEndpoint());
+        $emitter->setGetPayload(array(
+            ApiPersonDelete::API_TARGET => 'getFilter',
+        ));
+        $emitter->setPostPayload(array(
+            'number' => $number
+        ));
+        $pipeline->appendEmitter($emitter);
+
+        $emitter = new ServerEmitter(ApiPersonDelete::receiverService('Filter'.++$number), ApiPersonDelete::getEndpoint());
+        $emitter->setGetPayload(array(
+            ApiPersonDelete::API_TARGET => 'getFilterAdd',
+        ));
+        $emitter->setPostPayload(array(
+            'number' => $number
+        ));
+        $pipeline->appendEmitter($emitter);
+        return $pipeline;
+    }
+
+    public static function pipelineFilter()
+    {
+        $pipeline = new Pipeline(false);
+
+        $emitter = new ServerEmitter(ApiPersonDelete::receiverBlock('', 'CustodyTable'), ApiPersonDelete::getEndpoint());
+        $emitter->setGetPayload(array(
+            ApiPersonDelete::API_TARGET => 'showInitialLoadContent',
+        ));
+        $pipeline->appendEmitter($emitter);
+
+        $emitter = new ServerEmitter(ApiPersonDelete::receiverBlock('', 'CustodyTable'), ApiPersonDelete::getEndpoint());
+        $emitter->setGetPayload(array(
+            ApiPersonDelete::API_TARGET => 'getCustodyTable',
+        ));
+        $pipeline->appendEmitter($emitter);
+        return $pipeline;
+    }
+
+    /**
+     * @return Pipeline
+     */
+    public static function pipelineLoadModal()
     {
         $pipeline = new Pipeline();
 
@@ -162,20 +211,18 @@ class ApiPersonDelete extends Extension implements IApiInterface
         $emitter->setGetPayload(array(
             ApiPersonDelete::API_TARGET => 'showLoadContent',
         ));
-        $emitter->setPostPayload(array(
-            'GroupId' => $GroupId
-        ));
+//        $emitter->setPostPayload(array(
+//            'GroupId' => $GroupId
+//        ));
         $pipeline->appendEmitter($emitter);
 
         return $pipeline;
     }
 
     /**
-     * @param int $GroupId
-     *
      * @return Pipeline
      */
-    public static function pipelineReloadModal($PersonReduce = array(), $GroupId = '', $InitialCount = '')
+    public static function pipelineReloadModal($PersonReduce = array(), $InitialCount = '')
     {
         $pipeline = new Pipeline();
 
@@ -185,7 +232,7 @@ class ApiPersonDelete extends Extension implements IApiInterface
         ));
         $emitter->setPostPayload(array(
             'PersonReduce' => $PersonReduce,
-            'GroupId' => $GroupId,
+//            'GroupId' => $GroupId,
             'InitialCount' => $InitialCount,
         ));
         $pipeline->appendEmitter($emitter);
@@ -196,7 +243,7 @@ class ApiPersonDelete extends Extension implements IApiInterface
     /**
      * @return Pipeline
      */
-    public static function pipelineSaveDeleteGuardModal($PersonReduce = array(), $GroupId = '', $InitialCount = '')
+    public static function pipelineSaveDeleteGuardModal($PersonReduce = array(), $InitialCount = '')
     {
         $pipeline = new Pipeline();
 
@@ -206,7 +253,7 @@ class ApiPersonDelete extends Extension implements IApiInterface
         ));
         $emitter->setPostPayload(array(
             'PersonReduce' => $PersonReduce,
-            'GroupId' => $GroupId,
+//            'GroupId' => $GroupId,
             'InitialCount' => $InitialCount
         ));
         $pipeline->appendEmitter($emitter);
@@ -217,7 +264,7 @@ class ApiPersonDelete extends Extension implements IApiInterface
     /**
      * @return Pipeline
      */
-    public static function pipelineReloadTable($GroupId = '')
+    public static function pipelineReloadTable()
     {
         $pipeline = new Pipeline();
 
@@ -225,9 +272,9 @@ class ApiPersonDelete extends Extension implements IApiInterface
         $emitter->setGetPayload(array(
             ApiPersonDelete::API_TARGET => 'serviceReloadTable',
         ));
-        $emitter->setPostPayload(array(
-            'GroupId' => $GroupId
-        ));
+//        $emitter->setPostPayload(array(
+//            'GroupId' => $GroupId
+//        ));
         $pipeline->appendEmitter($emitter);
 
         return $pipeline;
@@ -244,17 +291,77 @@ class ApiPersonDelete extends Extension implements IApiInterface
     }
 
     /**
-     * @param string $GroupId
-     *
      * @return string
      */
-    public function loadDeleteGuardContent(string $GroupId): string
+    public function loadDeleteGuardContent(): string
     {
 
-        $tblGroup = Group::useService()->getGroupById($GroupId);
+        // filter placement (receiver)
+        for($i = 1; $i <= 8; $i++) {
+            $FormColumnArray[] = new FormColumn(self::receiverService('Filter'.$i), 3);
+        }
+        $FormColumnArray[] = new FormColumn((new Primary('Filter', '#', new Filter()))->ajaxPipelineOnClick(ApiPersonDelete::pipelineFilter()));
+
+        // TableContent
+        $Receiver = ApiPersonDelete::receiverBlock($this->getCustodyTable(), 'CustodyTable');
+
+        return $this->getModalHeaderDeleteGuard()
+            .ApiPersonDelete::pipelineAddFilter(1)
+            .new Form(new FormGroup(new FormRow(
+                $FormColumnArray
+            )))
+            .new Ruler()
+            .$Receiver
+            .new PullClear(new PullRight(new Close()));
+    }
+
+    /**
+     * @return string
+     */
+    private function getModalHeaderDeleteGuard()
+    {
+        return new Title('Automatische Erkennung', 'löschbare Sorgeberechtigte')
+        .new Layout(new LayoutGroup(new LayoutRow(array(
+            new LayoutColumn(new Info(new Bold('Erkennungslogik')
+                .' - Sorgeberechtigte, mit Sorgerecht / Bevollmächtigt / Vollmacht von Personen ohne aktuellem Schulverlauf.'
+                .new Container(new DangerText('Es können maximal '.new Bold(self::API_FORM_LIMIT).' Personen auf einmal entfernt werden.'))
+                    , null, false, '5', '8')
+                , 6),
+            new LayoutColumn(new Danger('Personen mit aktivem Account können nicht entfernt werden, bitte wenden Sie sich dafür an Ihren Administrator.'
+                    , null, false, '5', '8')
+                , 6),
+        ))));
+    }
+
+    /**
+     * @param array $GroupList
+     * @return string
+     */
+    public function getCustodyTable(array $GroupList = array())
+    {
+
+        $tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_CUSTODY);
         $tblPersonReduceList = array();
         if($tblGroup && ($tblPersonList = $tblGroup->getPersonList())){
             foreach($tblPersonList as $tblPerson){
+                // Person überspringen, wenn diese in einer der "exkludierten" Gruppen ist.
+                if(!empty($GroupList)){
+                    $isInGroup = false;
+                    foreach($GroupList as $GroupId){
+                        if(($tblGroupTemp = Group::useService()->getGroupbyId($GroupId))) {
+                            if(Group::useService()->getMemberByPersonAndGroup($tblPerson, $tblGroupTemp)){
+                                $isInGroup = true;
+                                break;
+                            }
+                        }
+                    }
+                    if($isInGroup){
+                        continue;
+                    }
+                }
+
+
+
                 $activePerson = false;
                 if(($tblPersonChildList = Relationship::useService()->getPersonChildByPerson($tblPerson))){
                     foreach($tblPersonChildList as $tblPersonChild){
@@ -273,17 +380,10 @@ class ApiPersonDelete extends Extension implements IApiInterface
         // Tabellen Ansicht
         $TableContent = array();
         $TableAll = array();
-        $TableSelect1 = array();
-        $TableSelect2 = array();
-        $TableSelectMore = array();
-        $isDeletableInTable = false;
-        $CountLimit = $CountLimit1 = $CountLimit2 = $CountLimit3 = 0;
         if($tblPersonReduceList){
             array_walk($tblPersonReduceList, function(TblPerson $tblPersonReduce) use (&$TableContent, &$TableAll,
-                &$TableSelect1, &$TableSelect2, &$TableSelectMore, &$isDeletableInTable,
-                &$CountLimit, &$CountLimit1, &$CountLimit2, &$CountLimit3,
+                &$TableSelect1, &$TableSelect2, &$TableSelectMore
             ){
-                $CountLimit++;
                 $item = array();
 //                $item['Selectbox'] = new CheckBox('PersonReduce[]', ' ', $tblPersonReduce->getId());
                 $item['Selectbox'] = new CheckBox('PersonReduce['.$tblPersonReduce->getId().']', ' ', $tblPersonReduce->getId());
@@ -305,6 +405,15 @@ class ApiPersonDelete extends Extension implements IApiInterface
                         $item['Child'] = implode('<br/>', $Child);
                     }
                 }
+
+                $isAccount = false;
+                if(($tblAccountList = Account::useService()->getAccountAllByPerson($tblPersonReduce))){
+                    // Personen mit Account können nicht gelöscht werden
+                    $item['Selectbox'] = '';
+                    $item['ActiveAccount'] = new Center(new DangerText(new Bold(current($tblAccountList)->getUsername())));
+                    $isAccount = true;
+                }
+
                 if(($tblGroupList = Group::useService()->getGroupAllByPerson($tblPersonReduce))){
                     $GroupList = array();
                     foreach($tblGroupList as $tblGroup){
@@ -314,60 +423,19 @@ class ApiPersonDelete extends Extension implements IApiInterface
                     }
                     sort($GroupList);
                     if($GroupList){
-                        sort($GroupList);
-                        $count = count($GroupList);
-                        switch($count) {
-                            case 0:
-                            break;
-                            case 1:
-                                $CountLimit1++;
-                                if($CountLimit1 <= self::API_FORM_LIMIT) {
-                                    $TableSelect1[] = 'PersonReduce[' . $tblPersonReduce->getId() . ']';
-                                }
-                                if($CountLimit <= self::API_FORM_LIMIT){
-                                    $TableAll[] = 'PersonReduce['.$tblPersonReduce->getId().']';
-                                }
-                            break;
-                            case 2:
-                                $CountLimit2++;
-                                if($CountLimit2 <= self::API_FORM_LIMIT) {
-                                    $TableSelect2[] = 'PersonReduce[' . $tblPersonReduce->getId() . ']';
-                                }
-                                if($CountLimit <= self::API_FORM_LIMIT){
-                                    $TableAll[] = 'PersonReduce['.$tblPersonReduce->getId().']';
-                                }
-                            break;
-                            default:
-                                $CountLimit3++;
-                                if($CountLimit3 <= self::API_FORM_LIMIT) {
-                                    $TableSelectMore[] = 'PersonReduce[' . $tblPersonReduce->getId() . ']';
-                                }
-                                if($CountLimit <= self::API_FORM_LIMIT){
-                                    $TableAll[] = 'PersonReduce['.$tblPersonReduce->getId().']';
-                                }
-                            break;
+                        if(count($TableAll) <= self::API_FORM_LIMIT){
+                            if(!$isAccount){
+                                $TableAll[] = 'PersonReduce['.$tblPersonReduce->getId().']';
+                            }
                         }
                         $item['Group'] = implode('<br/>', $GroupList);
-                        $item['GroupCount'] = $count;
                     }
-                }
-                if(($tblAccountList = Account::useService()->getAccountAllByPerson($tblPersonReduce))){
-                    // Personen mit Account können nicht gelöscht werden
-                    $item['Selectbox'] = '';
-                    $item['ActiveAccount'] = new Center(new DangerText(new Bold(current($tblAccountList)->getUsername())));
-                    // CountLimit für nicht auswählbare Einträge wieder subtrahieren
-                    $CountLimit--;
-                } else {
-                    // Erkennung, ob mindestens ein Eintrag gelöscht werden kann
-                    $isDeletableInTable = true;
                 }
                 array_push($TableContent, $item);
             });
         }
         if(empty($TableContent)){
-            return $this->getModalHeaderDeleteGuard()
-                .new Warning('Keine Person, die den Kriterien entspricht')
-                .new PullClear(new PullRight(new Close()));
+            return new Warning('Keine Person, die den Kriterien entspricht');
         }
 
         $Table = new TableData($TableContent, new \SPHERE\Common\Frontend\Table\Repository\Title('Vorschläge', 'zum entfernen'),
@@ -376,7 +444,7 @@ class ApiPersonDelete extends Extension implements IApiInterface
                 'EntityCreate'  => 'Erstellung',
                 'Name'          => 'Name',
                 'Child'         => 'Verknüpfte Person',
-                'GroupCount'    => 'Anzahl',
+//                'GroupCount'    => 'Anzahl',
                 'Group'         => 'Personengruppen',
                 'ActiveAccount' => 'B.-Konto'
             ), array(
@@ -386,7 +454,7 @@ class ApiPersonDelete extends Extension implements IApiInterface
                 ),
                 'columnDefs' => array(
                     array('type' => 'de_date', 'targets' => array(1)),
-                    array('type' => 'natural', 'targets' => array(4)),
+//                    array('type' => 'natural', 'targets' => array(4)),
                     array('orderable' => false, 'width' => '1%', 'targets' => array(0)), // ,-1)
                 ),
                 "paging" => false, // Deaktiviert Blättern
@@ -396,51 +464,62 @@ class ApiPersonDelete extends Extension implements IApiInterface
 //                        "responsive" => false,
             ));
 
-        return $this->getModalHeaderDeleteGuard()
-//            .new ToggleCheckbox('Alle wählen/abwählen', $Table)
-            .new ToggleSelective('Alle wählen/abwählen', $TableAll)
-            .(count($TableSelect1) ? new ToggleSelective('wählen/abwählen 1 Gruppe', $TableSelect1) : null)
-            .(count($TableSelect2) ? new ToggleSelective('wählen/abwählen 2 Gruppen', $TableSelect2) : null)
-            .(count($TableSelectMore) ? new ToggleSelective('wählen/abwählen mehr als 2 Gruppen', $TableSelectMore) : null)
+        return new ToggleSelective('Alle wählen/abwählen ('.count($TableAll).')', $TableAll)
             .new Form(new FormGroup(new FormRow(array(
                 new FormColumn($Table),
-                new FormColumn(new Danger('Hiermit werden die ausgewählten Sorgeberechtigten Personen bzw. Personendaten dauerhaft gelöscht.'
-                    , null, false, '15', '0'))
-            ))), ($isDeletableInTable
-                ? (new \SPHERE\Common\Frontend\Link\Repository\Danger('Löschen', '#',new Remove(), array('GroupId' => $GroupId)))
-                    ->ajaxPipelineOnClick(ApiPersonDelete::pipelineLoadModal($GroupId))
-                : null )
-            )
-            .new PullClear(new PullRight(new Close()));
+                    (!empty($TableAll)
+                        ? new FormColumn(
+                            new Danger('Hiermit werden die ausgewählten Sorgeberechtigten Personen bzw. Personendaten dauerhaft gelöscht.'
+                                , null, false, '15', '0')
+                        )
+                        : new FormColumn(
+                            new Warning('Keine löschbare Person, die den Kriterien entspricht')
+                        )
+                    )
+            )))
+                ,(!empty($TableAll)
+                ? (new \SPHERE\Common\Frontend\Link\Repository\Danger('Löschen', '#',new Remove()))
+                    ->ajaxPipelineOnClick(ApiPersonDelete::pipelineLoadModal())
+                : null)
+            );
     }
 
-    /**
-     * @return string
-     */
-    private function getModalHeaderDeleteGuard()
+    public function getFilterAdd($number)
     {
-        return new Title('Automatische Erkennung', 'löschbare Sorgeberechtigte')
-        .new Layout(new LayoutGroup(new LayoutRow(array(
-            new LayoutColumn(new Info(new Bold('Erkennungslogik')
-                .' - Sorgeberechtigte, mit Sorgerecht / Bevollmächtigt / Vollmacht von Personen ohne aktuellem Schulverlauf.'
-                .new Container('Es können maximal '.new Bold(self::API_FORM_LIMIT).' Personen auf einmal entfernt werden.')
-                    , null, false, '5', '8')
-                , 6),
-            new LayoutColumn(new Danger('Personen mit aktivem Account können nicht entfernt werden, bitte wenden Sie sich dafür an Ihren Administrator.'
-                    , null, false, '5', '8')
-                , 6),
-        ))));
+
+        $PrimaryButton = new Primary('', '#', new Plus(), array(), 'weitere exkludierende Gruppe');
+        $PrimaryButton->ajaxPipelineOnClick(APIPersonDelete::pipelineAddFilter($number));
+        return new Container('<span style="font-size: 12pt">&nbsp;</span><br/><div style="margin-bottom: 8.5px;">'.$PrimaryButton.'</div>');
+    }
+
+    public function getFilter($number)
+    {
+
+        $tblGroupList = Group::useService()->getGroupAll();
+        foreach($tblGroupList as &$tblGroup) {
+            if ($tblGroup->getMetaTable() === TblGroup::META_TABLE_COMMON) {
+                $tblGroup = false;
+            }
+        }
+        $tblGroupList = array_filter($tblGroupList);
+        return (new SelectBox('GroupList['.$number.']', 'Gruppe exkludieren', array('{{ Name }}' => $tblGroupList)))
+            ->configureLibrary()
+//            ->ajaxPipelineOnChange(ApiPersonDelete::pipelineFilter())
+            ;
     }
 
     /**
      * @param $PersonReduce
-     * @param $GroupId
      * @param $InitialCount
      * @return string
      */
-    public function showLoadContent($PersonReduce = array(), $GroupId = '', $InitialCount = '')
+    public function showLoadContent($PersonReduce = array(), $InitialCount = '')
     {
 
+        if(empty($PersonReduce)){
+            return new Warning('Es konnten keine Personen gelöscht werden.')
+            .ApiPersonDelete::pipelineReloadTable();
+        }
         // beim ersten durchlauf InitialCount bestimmen
         if(!$InitialCount){
             $InitialCount = count($PersonReduce);
@@ -479,16 +558,15 @@ class ApiPersonDelete extends Extension implements IApiInterface
         return new Title('Personen werden entfernt, bitte haben Sie etwas Geduld...')
             .(new ProgressBar($Done, $Work, $Plan))->setColor(ProgressBar::BAR_COLOR_SUCCESS, ProgressBar::BAR_COLOR_WARNING)->setSize('10px')
             .$EndString
-            .ApiPersonDelete::pipelineSaveDeleteGuardModal($PersonReduce, $GroupId, $InitialCount);
+            .ApiPersonDelete::pipelineSaveDeleteGuardModal($PersonReduce, $InitialCount);
     }
 
     /**
      * @param $PersonReduce
-     * @param $GroupId
      * @param $InitialCount
      * @return Pipeline|string
      */
-    public function serviceDeleteGuardContent($PersonReduce = array(), $GroupId = '', $InitialCount = '')
+    public function serviceDeleteGuardContent($PersonReduce = array(), $InitialCount = '')
     {
 
         // Todo hier partiell arbeiten.
@@ -503,23 +581,24 @@ class ApiPersonDelete extends Extension implements IApiInterface
                     break;
                 }
             }
-        }
-        $PersonReduce = array_filter($PersonReduce);
-        if(!empty($PersonReduce)){
-            return ApiPersonDelete::pipelineReloadModal($PersonReduce, $GroupId, $InitialCount);
+            $PersonReduce = array_filter($PersonReduce);
+            if(!empty($PersonReduce)){
+                return ApiPersonDelete::pipelineReloadModal($PersonReduce, $InitialCount);
+            }
         }
 
-        return ApiPersonDelete::pipelineReloadTable($GroupId);
+        return ApiPersonDelete::pipelineReloadTable();
     }
 
     /**
      * @return string
      */
-    public function serviceReloadTable($GroupId = '')
+    public function serviceReloadTable()
     {
 
         sleep(2);
-        return ApiPersonSearch::pipelineLoadGroupSelectBox('G' . $GroupId)
-            .ApiPersonDelete::pipelineClose();
+        $tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_CUSTODY);
+        return ApiPersonDelete::pipelineClose()
+            .ApiPersonSearch::pipelineLoadGroupSelectBox('G' . $tblGroup->getId());
     }
 }
