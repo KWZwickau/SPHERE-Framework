@@ -476,7 +476,7 @@ class Service extends AbstractService
         // no mapping found
         if (!$tblSubject) {
             // search subject with extended acronym
-            $tblSubject = Subject::useService()->getSubjectByVariantAcronym($Acronym);
+            $tblSubject = $this->getSubjectByVariantAcronym($Acronym);
         }
         return $tblSubject;
     }
