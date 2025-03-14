@@ -186,6 +186,11 @@ class ReplacementService
                         } else {
                             $item['Subject'] = '';
                         }
+                        if(($plFachori = $Pl->getChild('pl_fachori'))){
+                            $item['SubjectOriginal'] = $this->getUtf8Encode($plFachori->getContent());
+                        } else {
+                            $item['SubjectOriginal'] = '';
+                        }
                         if(($plKlasse = $Pl->getChild('pl_klasse'))){
                             $item['Course'] = $this->getUtf8Encode($plKlasse->getContent());
                         } else {
@@ -473,16 +478,31 @@ class ReplacementService
                                     $Row['found'] = true;
                                 }
 
-                                if ($Row['Date'] == $DayList[$tblTimeTableNode->getDay()]
-                                    && $Row['tblSubstituteSubject']->getId() == $tblTimeTableNode->getServiceTblSubject()->getId()
-                                ) {
-                                    $tempSubjectListReplacement[$tblTimeTableNode->getServiceTblSubject()->getId()] = true;
+                                // Originalfach aus dem Import benutzen (ist nicht immer gepflegt)
+                                $tblSubject = false;
+                                if($Row['SubjectOriginal']){
+                                    // Mapping
+                                    if(($tblSubject = Subject::useService()->getSubjectByMappingAccronym($Row['Subject']))){
+                                        $Row['tblSubject'] = $tblSubject;
+                                        if ($Row['Date'] == $DayList[$tblTimeTableNode->getDay()]
+                                            && $tblSubject->getId() == $tblTimeTableNode->getServiceTblSubject()->getId()
+                                        ) {
+                                            $tempSubjectListReplacement[$tblTimeTableNode->getServiceTblSubject()->getId()] = true;
+                                        }
+                                    }
                                 }
-
-                                // Vorhandenes Fach anfügen, wenn eindeutig
-                                if(count($TimeTableList[$DayCount][$HourCount][$CourseId]) == 1
-                                && count($ReplaceList[$DayCount][$HourCount][$CourseId]) == 1){
-                                    $Row['tblSubject'] = $tblTimeTableNode->getServiceTblSubject();
+                                // Originalfach anhand des Stundenplans finden (Muss eindeutig sein)
+                                if(!$tblSubject){
+                                    if ($Row['Date'] == $DayList[$tblTimeTableNode->getDay()]
+                                        && $Row['tblSubstituteSubject']->getId() == $tblTimeTableNode->getServiceTblSubject()->getId()
+                                    ) {
+                                        $tempSubjectListReplacement[$tblTimeTableNode->getServiceTblSubject()->getId()] = true;
+                                    }
+                                    // Vorhandenes Fach anfügen, wenn eindeutig
+                                    if(count($TimeTableList[$DayCount][$HourCount][$CourseId]) == 1
+                                        && count($ReplaceList[$DayCount][$HourCount][$CourseId]) == 1){
+                                        $Row['tblSubject'] = $tblTimeTableNode->getServiceTblSubject();
+                                    }
                                 }
                             }
                         }
