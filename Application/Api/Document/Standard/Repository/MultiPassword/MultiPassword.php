@@ -650,6 +650,7 @@ class MultiPassword extends AbstractDocument
             $Slice->addElement($this->getTextElement(''));
             $Slice->addElement($this->getTextElement('Namen der sorgeberechtigten Kinder:'));
             $Slice->addElement($this->getTextElement($this->FieldValue['ChildList'][$AccountId]));
+            $Slice->addElement($this->getTextElement('')->styleHeight('675px'));
         } else {
             $Slice->addElement($this->getTextElement('<b>Bewahre den Brief an sicherer Stelle auf</b>, damit Deine Zugangsdaten verfügbar bleiben!
             Das Zurücksetzen vergessener Passwörter und die Zusendung neuer Passwortbriefe verursachen nicht unerhebliche Aufwände und Kosten
@@ -658,8 +659,9 @@ class MultiPassword extends AbstractDocument
             $Slice->addElement($this->getTextElement('Nach Deiner Bestätigung wird eine Startseite mit dem Verweis auf die wichtigsten Übersichten
              angezeigt. Alternativ kann man auch die Menüleiste nutzen. Falls Du Dich gegen die Nutzung der Schulsoftware entscheidest, bleibt Dein Zugang
              deaktiviert. Falls Du Rückfragen oder Probleme mit der Anwendung hast, wende Dich bitte an unser Sekretariat.'));
+            $Slice->addElement($this->getTextElement('')->styleHeight('720px'));
         }
-        $Slice->addElement($this->getTextElement(''));
+
         $Slice->addElement($this->getTextElement('Dieses Schreiben wurde maschinell erstellt und ist auch ohne Unterschrift rechtsgültig.'));
 
         // Ränder
@@ -684,7 +686,7 @@ class MultiPassword extends AbstractDocument
             ->addSlice((new Slice())
                 ->addElement((new Element())
                     ->setContent('&nbsp;')
-                    ->styleHeight('250px')
+                    ->styleHeight('20px')
                 )
             )
             ->addSlice($this->getSecondLetterContent($AccountId));
