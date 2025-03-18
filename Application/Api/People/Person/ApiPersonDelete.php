@@ -385,8 +385,7 @@ class ApiPersonDelete extends Extension implements IApiInterface
                 &$TableSelect1, &$TableSelect2, &$TableSelectMore
             ){
                 $item = array();
-//                $item['Selectbox'] = new CheckBox('PersonReduce[]', ' ', $tblPersonReduce->getId());
-                $item['Selectbox'] = new CheckBox('PersonReduce['.$tblPersonReduce->getId().']', ' ', $tblPersonReduce->getId());
+                $item['Checkbox'] = new CheckBox('PersonReduce['.$tblPersonReduce->getId().']', ' ', $tblPersonReduce->getId());
                 $item['EntityCreate'] = $tblPersonReduce->getEntityCreate()->format('d.m.Y');
                 $item['Name'] = '<span hidden>'.$tblPersonReduce->getLastName().'</span>'.$tblPersonReduce->getFullName();
                 $item['Child'] = '';
@@ -409,7 +408,7 @@ class ApiPersonDelete extends Extension implements IApiInterface
                 $isAccount = false;
                 if(($tblAccountList = Account::useService()->getAccountAllByPerson($tblPersonReduce))){
                     // Personen mit Account können nicht gelöscht werden
-                    $item['Selectbox'] = '';
+                    $item['Checkbox'] = '';
                     $item['ActiveAccount'] = new Center(new DangerText(new Bold(current($tblAccountList)->getUsername())));
                     $isAccount = true;
                 }
@@ -440,11 +439,10 @@ class ApiPersonDelete extends Extension implements IApiInterface
 
         $Table = new TableData($TableContent, new \SPHERE\Common\Frontend\Table\Repository\Title('Vorschläge', 'zum entfernen'),
             array(
-                'Selectbox'     => 'entfernen',
+                'Checkbox'     => 'entfernen',
                 'EntityCreate'  => 'Erstellung',
                 'Name'          => 'Name',
                 'Child'         => 'Verknüpfte Person',
-//                'GroupCount'    => 'Anzahl',
                 'Group'         => 'Personengruppen',
                 'ActiveAccount' => 'B.-Konto'
             ), array(
@@ -462,7 +460,8 @@ class ApiPersonDelete extends Extension implements IApiInterface
                 "searching" => false, // Deaktiviert Suche
 //                    "info" => false, // Deaktiviert Such-Info)
 //                        "responsive" => false,
-            ));
+            )
+        );
 
         return new ToggleSelective('Alle wählen/abwählen ('.count($TableAll).')', $TableAll)
             .new Form(new FormGroup(new FormRow(array(
@@ -538,7 +537,6 @@ class ApiPersonDelete extends Extension implements IApiInterface
         } else {
             $Work = $InitialCount;
         }
-
         // bei 100 oer größer wird Work nicht dargestellt -> Plan auf 0
         if($Done + $Work >= 100){
             $Plan = 0;
