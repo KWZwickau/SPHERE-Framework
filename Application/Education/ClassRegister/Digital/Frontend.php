@@ -64,6 +64,7 @@ use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
+use SPHERE\System\Extension\Repository\Debugger;
 
 class Frontend extends FrontendTabs
 {
@@ -395,8 +396,14 @@ class Frontend extends FrontendTabs
 
             // Eintrag ist vorhanden
             if (isset($lessonContentList[$i])) {
+                /** @var TblLessonContent $tblLessonContentTemp */
                 foreach ($lessonContentList[$i] as $tblLessonContentTemp) {
-                    $SubjectId = ($tblSubjectTemp = $tblLessonContentTemp->getServiceTblSubject()) ? $tblSubjectTemp->getId() : null;
+                    $SubjectId = ($tblSubjectTemp = $tblLessonContentTemp->getServiceTblSubject())
+                        ? $tblSubjectTemp->getId()
+                        // SSWHD-3339 - Re: Digitales Klassenbuch in der letzten Schulwoche
+                        : (($tblSubjectTemp = $tblLessonContentTemp->getServiceTblSubstituteSubject())
+                            ? $tblSubjectTemp->getId()
+                            : null);
                     $subjectIdList[$SubjectId] = 1;
                     $index = $i * 10 + $count++;
                     $this->setDayViewEditBodyList($bodyList, $bodyBackgroundList, $absenceContent, $tblLessonContentTemp, $i, $index);
@@ -405,9 +412,12 @@ class Frontend extends FrontendTabs
                 if (($tblLessonContentTempList = Timetable::useService()->getLessonContentListFromTimeTableNodeWithReplacementBy($tblDivisionCourse, $date, $i))) {
                     foreach ($tblLessonContentTempList as $tblLessonContentTemp) {
                         $index = $i * 10 + $count++;
-
-                        $SubjectId = ($tblSubjectTemp = $tblLessonContentTemp->getServiceTblSubject()) ? $tblSubjectTemp->getId() : null;
-
+                        $SubjectId = ($tblSubjectTemp = $tblLessonContentTemp->getServiceTblSubject())
+                            ? $tblSubjectTemp->getId()
+                            // SSWHD-3339 - Re: Digitales Klassenbuch in der letzten Schulwoche
+                            : (($tblSubjectTemp = $tblLessonContentTemp->getServiceTblSubstituteSubject())
+                                ? $tblSubjectTemp->getId()
+                                : null);
                         if (!isset($subjectIdList[$SubjectId])) {
                             $subjectIdList[$SubjectId] = 1;
 
@@ -428,7 +438,12 @@ class Frontend extends FrontendTabs
                 foreach ($tblLessonContentTempList as $tblLessonContentTemp) {
                     $index = $i * 10 + $count++;
 
-                    $SubjectId = ($tblSubjectTemp = $tblLessonContentTemp->getServiceTblSubject()) ? $tblSubjectTemp->getId() : null;
+                    $SubjectId = ($tblSubjectTemp = $tblLessonContentTemp->getServiceTblSubject())
+                        ? $tblSubjectTemp->getId()
+                        // SSWHD-3339 - Re: Digitales Klassenbuch in der letzten Schulwoche
+                        : (($tblSubjectTemp = $tblLessonContentTemp->getServiceTblSubstituteSubject())
+                            ? $tblSubjectTemp->getId()
+                            : null);
 
                     if (!isset($subjectIdList[$SubjectId])) {
                         $subjectIdList[$SubjectId] = 1;

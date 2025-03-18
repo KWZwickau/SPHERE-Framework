@@ -1193,6 +1193,11 @@ class Creator extends Extension
             header("Content-Type: application/pdf");
             header("Content-Disposition: attachment; filename=Kurzleitfaden_Zeugniserstellung.pdf");
             header("Content-Length: ".filesize($file));
+        } elseif($Select == 'Exam') {
+            $file = "Common/Style/Resource/Document/Manual/SSW_Exam.pdf";
+            header("Content-Type: application/pdf");
+            header("Content-Disposition: attachment; filename=Kurzleitfaden_Abschluss_Abgangszeugnisse.pdf");
+            header("Content-Length: ".filesize($file));
         } elseif($Select == 'PrintA3Certificate') {
             $file = "Common/Style/Resource/Document/Manual/SSWPrintA3Certificate.pdf";
             header("Content-Type: application/pdf");
