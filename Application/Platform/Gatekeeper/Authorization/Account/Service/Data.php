@@ -240,14 +240,19 @@ class Data extends AbstractData
         return $Entity;
     }
 
-    public function createAccountInitial(TblAccount $tblAccount)
+    /**
+     * @param string $Password
+     * @param TblAccount $tblAccount
+     * @return object|TblAccountInitial|null
+     */
+    public function createAccountInitial(string $Password, TblAccount $tblAccount)
     {
 
         $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblAccountInitial')->findOneBy(array(TblAccountInitial::ATTR_TBL_ACCOUNT => $tblAccount->getId()));
         if (null === $Entity) {
             $Entity = new TblAccountInitial();
-            $Entity->setPassword($tblAccount->getPassword());
+            $Entity->setPassword(hash('sha256', $Password));
             $Entity->setTblAccount($tblAccount);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
@@ -256,18 +261,19 @@ class Data extends AbstractData
     }
 
     /**
+     * @param string $Password
      * @param TblAccount $tblAccount
      *
      * @return object|TblAccountInitial|null
      */
-    public function updateAccountInitial(TblAccount $tblAccount)
+    public function updateAccountInitial(string $Password, TblAccount $tblAccount)
     {
 
         $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblAccountInitial')->findOneBy(array(TblAccountInitial::ATTR_TBL_ACCOUNT => $tblAccount->getId()));
         $Protocol = clone $Entity;
         if (null !== $Entity) {
-            $Entity->setPassword($tblAccount->getPassword());
+            $Entity->setPassword(hash('sha256', $Password));
             $Entity->setTblAccount($tblAccount);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);

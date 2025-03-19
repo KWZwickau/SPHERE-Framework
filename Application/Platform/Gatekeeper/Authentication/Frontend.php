@@ -115,7 +115,7 @@ class Frontend extends Extension implements IFrontendInterface
         $contentTeacherWelcome = false;
         $contentSecretariatWelcome = false;
         $contentMissingTimeSpan = false;
-        $IsChangePassword = false;
+//        $IsChangePassword = false;
         $IsNavigationAssistance = false;
         $IsStudentAccount = false;
 
@@ -123,7 +123,7 @@ class Frontend extends Extension implements IFrontendInterface
         if ($tblAccount) {
             $tblPersonAllByAccount = Account::useService()->getPersonAllByAccount($tblAccount);
             if ($tblPersonAllByAccount) {
-                $tblPerson = $tblPersonAllByAccount[0];
+                $tblPerson = current($tblPersonAllByAccount);
                 if ($tblPerson
                     && ($tblGroup = Group::useService()->getGroupByMetaTable('TEACHER'))
                     && Group::useService()->existsGroupPerson($tblGroup, $tblPerson)
@@ -145,20 +145,21 @@ class Frontend extends Extension implements IFrontendInterface
                 $IsNavigationAssistance = true;
 
                 // Eltern und Schüler funktionieren anders als die anderen Accounts
+                // Schüleraccounts herausfinden
                 if (($tblUserAccount = UserAccount::useService()->getUserAccountByAccount($tblAccount))) {
                     $IsStudentAccount = $tblUserAccount->getType() == TblUserAccount::VALUE_TYPE_STUDENT;
-                    $Password = $tblUserAccount->getAccountPassword();
-                    if ($tblAccount->getPassword() == $Password) {
-                        $IsChangePassword = true;
-                    }
+//                    $Password = $tblUserAccount->getAccountPassword();
+//                    if ($tblAccount->getPassword() == $Password) {
+//                        $IsChangePassword = true;
+//                    }
                 }
-            } else {
-                if (Account::useService()->isAccountPWInitial($tblAccount)
-                    // Standard-Passwort
-                    || $tblAccount->getPassword() == '547d0783ae13fa4ab68ae8f3a1f1ee44e6795be7137b1c14b808c393d328f2e7'
-                ) {
-                    $IsChangePassword = true;
-                }
+//            } else {
+//                if (Account::useService()->isAccountPWInitial($tblAccount)
+//                    // Standard-Passwort
+//                    || $tblAccount->getPassword() == '547d0783ae13fa4ab68ae8f3a1f1ee44e6795be7137b1c14b808c393d328f2e7'
+//                ) {
+//                    $IsChangePassword = true;
+//                }
             }
         }
         if ($IsMaintenance) {
@@ -234,10 +235,10 @@ class Frontend extends Extension implements IFrontendInterface
                     )
                 )
             )
-            .($IsChangePassword && !$isConsumerLogin
-                ? $this->layoutPasswordChange()
-                : ''
-            )
+//            .($IsChangePassword && !$isConsumerLogin
+//                ? $this->layoutPasswordChange()
+//                : ''
+//            )
             . ($IsNavigationAssistance
                 ? $this->layoutNavigationAssistance($IsStudentAccount)
                 : ''
@@ -344,10 +345,19 @@ class Frontend extends Extension implements IFrontendInterface
                 || $tblAccount->getHasAuthentication(TblIdentification::NAME_AUTHENTICATOR_APP)
             ) {
                 return $this->frontendIdentificationToken($tblAccount->getId());
-            } elseif ($tblAccount->getHasAuthentication(TblIdentification::NAME_CREDENTIAL)
-                || $tblAccount->getHasAuthentication(TblIdentification::NAME_USER_CREDENTIAL)
+            } elseif ($tblAccount->getHasAuthentication(TblIdentification::NAME_CREDENTIAL)) {
+                if(($ChangeTest = $this->getPasswortChangeTest($tblAccount))){
+                    return $ChangeTest;
+                }
+                // Credential correct, Agb accepted -> LOGIN
+                Account::useService()->createSession($tblAccount);
+                $View->setContent($this->getIdentificationLayout(
+                    new Headline('Anmelden', 'Bitte warten...')
+                    . new Redirect('/', Redirect::TIMEOUT_SUCCESS)
+                ));
+                return $View;
+            } elseif ($tblAccount->getHasAuthentication(TblIdentification::NAME_USER_CREDENTIAL)
             ) {
-
                 // Entscheidung der Weiterleitung (nur bei Initialpasswort)
                 $changeInitialPassword = false;
                 $InitialPassword = Account::useService()->getAccountInitialPasswordByAccountWithoutLogin($tblAccount);

@@ -670,7 +670,7 @@ class Service extends AbstractService
         $tblAccount = (new Data($this->getBinding()))->createAccount($Username, $Password, $tblToken, $tblConsumer,
             $isAuthenticatorApp, $UserAlias, $RecoveryMail);
         if($SaveInitialPW){
-            (new Data($this->getBinding()))->createAccountInitial($tblAccount);
+            (new Data($this->getBinding()))->createAccountInitial($Password, $tblAccount);
         }
         return $tblAccount;
     }
@@ -1030,9 +1030,9 @@ class Service extends AbstractService
     {
 
         if($this->getAccountInitialByAccount($tblAccount)){
-            (new Data($this->getBinding()))->updateAccountInitial($tblAccount);
+            (new Data($this->getBinding()))->updateAccountInitial($Password, $tblAccount);
         } else {
-            (new Data($this->getBinding()))->createAccountInitial($tblAccount);
+            (new Data($this->getBinding()))->createAccountInitial($Password, $tblAccount);
         }
         return (new Data($this->getBinding()))->changePassword($Password, $tblAccount);
     }
