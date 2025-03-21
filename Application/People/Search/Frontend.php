@@ -4,6 +4,7 @@ namespace SPHERE\Application\People\Search;
 
 use DateInterval;
 use DateTime;
+use SPHERE\Application\Api\People\Person\ApiPersonDelete;
 use SPHERE\Application\Api\People\Search\ApiPersonSearch;
 use SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount\SelectBoxItem;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
@@ -659,7 +660,15 @@ class Frontend extends Extension implements IFrontendInterface
         }
         $columnDefs[] = array('searchable' => false, 'targets' => -1);
 
-        return new Title('Verfügbare Personen ' . new Small(new Muted('in der Gruppe: ')) . (new Bold($tblGroup->getName())))
+        $Button = '';
+        if($tblGroup->getMetaTable() == TblGroup::META_TABLE_CUSTODY){
+            $Button = ApiPersonDelete::receiverModal()
+                    .ApiPersonDelete::receiverService('load') // service without reload Modal
+                .(new Standard('Sorgeberechtigte Bereinigen', '#', new Remove()))
+                ->ajaxPipelineOnClick(ApiPersonDelete::pipelineOpenDeleteGuardModal());
+        }
+
+        return $Button . new Title('Verfügbare Personen ' . new Small(new Muted('in der Gruppe: ')) . (new Bold($tblGroup->getName())))
             . new TableData($tableContent, null, $ColumnArray, array('columnDefs' => $columnDefs, 'order' => $orderByColumn, 'destroy' => true));
     }
 
