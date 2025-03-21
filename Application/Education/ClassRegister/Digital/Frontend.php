@@ -762,7 +762,7 @@ class Frontend extends FrontendTabs
                         $maxLesson = $lesson;
                     }
 
-                    $display = $tblLessonContent->getDisplaySubject(false)
+                    $display = $tblLessonContent->getDisplaySubject(true)
                         . ($teacher ? ' (' . $teacher . ')' : '')
                         . ($tblLessonContent->getContent() ? new Container('Inhalt: ' . $tblLessonContent->getContent()) : '')
                         . ($tblLessonContent->getHomework() ? new Container('Hausaufgaben: ' . $tblLessonContent->getHomework()) : '');
@@ -809,7 +809,7 @@ class Frontend extends FrontendTabs
                             if (!isset($subjectIdListByDayAndLesson[$i][$j][$SubjectId])) {
                                 $subjectIdListByDayAndLesson[$i][$j][$SubjectId] = 1;
 
-                                $cellContent = $tblLessonContentTemp->getDisplaySubject(false);
+                                $cellContent = $tblLessonContentTemp->getDisplaySubject(true);
 
                                 if ($cell) {
                                     $cell .= new Container(new Center('--------------------'));
@@ -841,7 +841,7 @@ class Frontend extends FrontendTabs
                             if (!isset($subjectIdList[$SubjectId])) {
                                 $subjectIdList[$SubjectId] = 1;
                             }
-                            $cellContent = $tblLessonContentTemp->getDisplaySubject(false);
+                            $cellContent = $tblLessonContentTemp->getDisplaySubject(true);
 
                             if ($cell) {
                                 $cell .= new Container(new Center('--------------------'));
@@ -860,7 +860,7 @@ class Frontend extends FrontendTabs
                             $tblDivisionCourse, new DateTime($dateStringList[$j]), $i
                         ))
                     ) {
-                        $cellContent = $tblLessonContentTemp->getDisplaySubject(false);
+                        $cellContent = $tblLessonContentTemp->getDisplaySubject(true);
                         $cell = (new Link(
                             $cellContent,
                             ApiDigital::getEndpoint(),
