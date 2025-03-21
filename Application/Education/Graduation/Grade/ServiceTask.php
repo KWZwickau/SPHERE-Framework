@@ -32,7 +32,10 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
+use SPHERE\Common\Frontend\Text\Repository\Bold;
+use SPHERE\Common\Frontend\Text\Repository\Danger;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
+use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Frontend\Text\Repository\Warning;
 
 abstract class ServiceTask extends ServiceStudentOverview
@@ -1203,5 +1206,33 @@ abstract class ServiceTask extends ServiceStudentOverview
         }
 
         return array($headerList, $bodyList);
+    }
+
+    /**
+     * @param string $grade
+     * @param bool $isPoints
+     *
+     * @return string
+     */
+    public function SetGradeColor(string $grade, bool $isPoints = false): string
+    {
+        if (($gradeValue = Grade::useService()->getGradeNumberValue($grade)) !== null) {
+            $gradeValue = round($gradeValue);
+            if ($isPoints) {
+                switch ($gradeValue) {
+                    case ($gradeValue > 4): return new Bold(new Success($grade));
+                    case ($gradeValue > 0): return new Bold(new Warning($grade));
+                    default: return new Bold(new Danger($grade));
+                }
+            } else {
+                switch ($gradeValue) {
+                    case ($gradeValue < 4): return new Bold(new Success($grade));
+                    case 4: return new Bold(new Warning($grade));
+                    default: return new Bold(new Danger($grade));
+                }
+            }
+        }
+
+        return $grade;
     }
 }
