@@ -494,8 +494,22 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
                 $tblAccountConsumerTokenList = $tblAccountConsumerCredentialList;
             }
         }
-        if (!empty($tblAccountConsumerTokenList)) {
-            $tblAccountConsumerTokenList = array_unique($tblAccountConsumerTokenList);
+        // Systemaccounts wieder entfernen (kommen durch doppelte Identifikation (AUTHENTICATOR_APP) sonst mit
+        if (($tblIdentificationSystem = Account::useService()->getIdentificationByName(TblIdentification::NAME_SYSTEM))
+            && ($tblAccountSystemList = Account::useService()->getAccountListByIdentification($tblIdentificationSystem))
+        ) {
+            $RemoveAccountIdList = array();
+            if(!empty($tblAccountSystemList)) {
+                foreach ($tblAccountSystemList as $tblAccountSystem) {
+                    $RemoveAccountIdList[] = $tblAccountSystem->getId();
+                }
+            }
+            foreach($tblAccountConsumerTokenList as &$tblAccountConsumerToken){
+                if(in_array($tblAccountConsumerToken->getId(), $RemoveAccountIdList)){
+                    $tblAccountConsumerToken = false;
+                }
+            }
+            $tblAccountConsumerTokenList = array_filter($tblAccountConsumerTokenList);
         }
 
         return empty($tblAccountConsumerTokenList) ? false : $tblAccountConsumerTokenList;
