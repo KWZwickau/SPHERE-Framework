@@ -252,13 +252,14 @@ class Frontend extends Extension implements IFrontendInterface
                                 array('Id'    => $tblPerson->getId(), 'PseudoId' => 'S' . $Search),
                                 'Bearbeiten'
                             )
-                            . new Standard(
-                                '',
-                                '/People/Person/Destroy',
-                                new Remove(),
-                                array('Id' => $tblPerson->getId(), 'PseudoId' => 'S' . $Search),
-                                'Person löschen'
-                            )
+                        // Löschbutton rausnehmen SSW-2725
+//                            . new Standard(
+//                                '',
+//                                '/People/Person/Destroy',
+//                                new Remove(),
+//                                array('Id' => $tblPerson->getId(), 'PseudoId' => 'S' . $Search),
+//                                'Person löschen'
+//                            )
                     );
                 }
 
@@ -288,7 +289,7 @@ class Frontend extends Extension implements IFrontendInterface
                     array(
                         'columnDefs' => array(
                             array('type' => \SPHERE\Application\Setting\Consumer\Consumer::useService()->getGermanSortBySetting(), 'targets' => 0),
-                            array('orderable' => false, 'width' => '60px', 'targets' => -1),
+                            array('orderable' => false, 'width' => '20px', 'targets' => -1),
                             array('searchable' => false, 'targets' => -1),
                         ),
                         'pageLength' => -1,
@@ -388,13 +389,14 @@ class Frontend extends Extension implements IFrontendInterface
                         array('Id'    => $tblPerson->getId(), 'PseudoId' => 'C' . $tblDivisionCourse->getId()),
                         'Bearbeiten'
                     )
-                    . new Standard(
-                        '',
-                        '/People/Person/Destroy',
-                        new Remove(),
-                        array('Id' => $tblPerson->getId(), 'PseudoId' => 'C' . $tblDivisionCourse->getId())
-                        , 'Person löschen'
-                    );
+//                    . new Standard(
+//                        '',
+//                        '/People/Person/Destroy',
+//                        new Remove(),
+//                        array('Id' => $tblPerson->getId(), 'PseudoId' => 'C' . $tblDivisionCourse->getId())
+//                        , 'Person löschen'
+//                    )
+                ;
 
                 $tableContent[] = $item;
             }
@@ -425,7 +427,7 @@ class Frontend extends Extension implements IFrontendInterface
         if (!empty($targetsNatural)) {
             $columnDefs[] = array('type' => 'natural', 'targets' => $targetsNatural);
         }
-        $columnDefs[] = array('orderable' => false, 'width' => '60px', 'targets' => -1);
+        $columnDefs[] = array('orderable' => false, 'width' => '20px', 'targets' => -1);
         $columnDefs[] = array('searchable' => false, 'targets' => -1);
 
         return new Title('Verfügbare Personen ' . new Small(new Muted('im Kurs: ')) . (new Bold($tblDivisionCourse->getDisplayName())))
@@ -548,11 +550,12 @@ class Frontend extends Extension implements IFrontendInterface
                             'Id'    => $contentRow['TblPerson_Id'],
                             'PseudoId' => 'G' . $tblGroup->getId())
                         , 'Bearbeiten')
-                    .new Standard('',
-                        '/People/Person/Destroy', new Remove(),
-                        array('Id' => $contentRow['TblPerson_Id'],
-                            'PseudoId' => 'G' . $tblGroup->getId())
-                        , 'Person löschen');
+//                    .new Standard('',
+//                        '/People/Person/Destroy', new Remove(),
+//                        array('Id' => $contentRow['TblPerson_Id'],
+//                            'PseudoId' => 'G' . $tblGroup->getId())
+//                        , 'Person löschen')
+                ;
 
                 array_push($tableContent, $item);
             });
@@ -631,14 +634,14 @@ class Frontend extends Extension implements IFrontendInterface
         $orderByColumn = array(0, 'asc');
         $columnDefs = array(
             array('type' => ConsumerSetting::useService()->getGermanSortBySetting(), 'targets' => 0),
-            array('orderable' => false, 'width' => '60px', 'targets' => -1),
+            array('orderable' => false, 'width' => '20px', 'targets' => -1),
         );
         // Student column definition
         if($tblGroup->getMetaTable() == TblGroup::META_TABLE_CUSTODY){
             $columnDefs = array(
                 array('type' => ConsumerSetting::useService()->getGermanSortBySetting(), 'targets' => 0),
                 array('orderable' => false, 'targets' => -2),
-                array('orderable' => false, 'width' => '60px', 'targets' => -1),
+                array('orderable' => false, 'width' => '20px', 'targets' => -1),
             );
         }
         // Student column definition
@@ -647,7 +650,7 @@ class Frontend extends Extension implements IFrontendInterface
             if (!empty($targetsNatural)) {
                 $columnDefs[] = array('type' => 'natural', 'targets' => $targetsNatural);
             }
-            $columnDefs[] = array('orderable' => false, 'width' => '60px', 'targets' => -1);
+            $columnDefs[] = array('orderable' => false, 'width' => '20px', 'targets' => -1);
         }
         // Archive order & column definition
         if($tblGroup->getMetaTable() == TblGroup::META_TABLE_ARCHIVE){
@@ -655,7 +658,7 @@ class Frontend extends Extension implements IFrontendInterface
             $columnDefs = array(
                 array('type' => ConsumerSetting::useService()->getGermanSortBySetting(), 'targets' => 0),
                 array('type' => 'de_date', 'targets' => 4),
-                array('orderable' => false, 'width' => '60px', 'targets' => -1),
+                array('orderable' => false, 'width' => '20px', 'targets' => -1),
             );
         }
         $columnDefs[] = array('searchable' => false, 'targets' => -1);
