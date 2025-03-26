@@ -482,7 +482,7 @@ class ReplacementService
                                 $tblSubject = false;
                                 if($Row['SubjectOriginal']){
                                     // Mapping
-                                    if(($tblSubject = Subject::useService()->getSubjectByMappingAccronym($Row['Subject']))){
+                                    if(($tblSubject = Subject::useService()->getSubjectByMappingAccronym($Row['SubjectOriginal']))){
                                         $Row['tblSubject'] = $tblSubject;
                                         if ($Row['Date'] == $DayList[$tblTimeTableNode->getDay()]
                                             && $tblSubject->getId() == $tblTimeTableNode->getServiceTblSubject()->getId()
