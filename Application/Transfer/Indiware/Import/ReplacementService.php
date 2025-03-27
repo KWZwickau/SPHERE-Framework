@@ -20,6 +20,7 @@ use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
+use SPHERE\System\Extension\Repository\Debugger;
 use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
@@ -377,7 +378,7 @@ class ReplacementService
 
                         if ($tblDivisionCourse) {
                             $Row['tblCourse'] = $tblDivisionCourse;
-                            $Row['CourseId'] = $tblDivisionCourse;
+                            $Row['CourseId'] = $tblDivisionCourse->getId();
                             break;
                         }
                     }
@@ -456,7 +457,7 @@ class ReplacementService
         // Day / Wochentag
         for($DayCount = 1; $DayCount <= 5; $DayCount++){
             // Hour / Unterrichtsstunde
-            for($HourCount = 1; $HourCount <= 10; $HourCount++){
+            for($HourCount = 1; $HourCount <= 12; $HourCount++){
                 foreach($tblCourseList as $CourseId => $tblCourse){
                     if(isset($TimeTableList[$DayCount][$HourCount][$CourseId])
                     && isset($ReplaceList[$DayCount][$HourCount][$CourseId])){
@@ -511,7 +512,9 @@ class ReplacementService
                         foreach($ReplaceList[$DayCount][$HourCount][$CourseId] as $Row) {
                             if(!isset($Row['found'])){
                                 $hasFound = false;
-                                $DifferenceList[] = $Row;
+                                // Es kann nur ein Eintrag pro Fach & Klasse geben, bei Parallelunterricht erzeugte diese Stelle auch parallel gleiche Einträge
+//                                $DifferenceList[] = $Row;
+                                $DifferenceList[$Row['tblSubstituteSubject'].$Row['tblCourse']->getId()] = $Row;
                             }
                         }
 
