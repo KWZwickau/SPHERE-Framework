@@ -22,6 +22,7 @@ use SPHERE\Application\Api\Education\DivisionCourse\ApiTeacherLectureship;
 use SPHERE\Application\Api\Education\DivisionCourse\ApiYearChange;
 use SPHERE\Application\Api\Education\Graduation\Grade\ApiGradeBook;
 use SPHERE\Application\Api\Education\Graduation\Grade\ApiScoreRule;
+use SPHERE\Application\Api\Education\Graduation\Grade\ApiScoreRuleBehavior;
 use SPHERE\Application\Api\Education\Graduation\Grade\ApiScoreType;
 use SPHERE\Application\Api\Education\Graduation\Grade\ApiStudentOverview;
 use SPHERE\Application\Api\Education\Graduation\Grade\ApiTask;
@@ -77,6 +78,7 @@ class Education implements IApplicationInterface
         Task::registerModule();
         ApiScoreType::registerApi();
         ApiScoreRule::registerApi();
+        ApiScoreRuleBehavior::registerApi();
         Gradebook::registerModule();
         ApiYear::registerApi();
         ApiPrintCertificate::registerApi();

@@ -1139,6 +1139,9 @@ abstract class ServiceTask extends ServiceStudentOverview
      */
     public function getBehaviorTaskGradesViewData(TblTask $tblTask, TblDivisionCourse $tblDivisionCourse): array
     {
+        $calcProposalBehaviorGrade = ($tblSetting = Consumer::useService()->getSetting('Education', 'Graduation', 'Evaluation', 'CalcProposalBehaviorGrade'))
+            && $tblSetting->getValue();
+
         $hasBehaviorTaskSetting = ($tblSetting = Consumer::useService()->getSetting(
                 'Education', 'Graduation', 'Evaluation', 'HasBehaviorGradesForSubjectsWithNoGrading'
             ))
@@ -1181,15 +1184,13 @@ abstract class ServiceTask extends ServiceStudentOverview
                 }
                 if ($tblGradeTypeList) {
                     foreach ($tblGradeTypeList as $tblGradeType) {
-                        $sum = 0.0;
-                        $countGrades = 0;
+                        $gradeList = array();
                         if ($tblSubjectList) {
                             /** @var TblSubject $tblSubject */
                             foreach ($tblSubjectList as $tblSubject) {
                                 if (($gradeDisplay = $tblTaskGradeList[$tblSubject->getId()][$tblGradeType->getId()] ?? null)) {
                                     if (($gradeValue = Grade::useService()->getGradeNumberValue($gradeDisplay)) !== null) {
-                                        $sum += $gradeValue;
-                                        $countGrades++;
+                                        $gradeList[$tblSubject->getId()] = $gradeValue;
                                     }
                                 } else {
                                     $gradeDisplay = 'f';
@@ -1198,7 +1199,23 @@ abstract class ServiceTask extends ServiceStudentOverview
                                     = $tblSubject->getAcronym() . ': ' . $gradeDisplay;
                             }
                         }
-                        $average = ($countGrades > 0 ? 'Ø ' . Grade::useService()->getGradeAverage($sum, $countGrades) : '');
+
+                        // Kopfnoten KL
+                        if ($calcProposalBehaviorGrade) {
+                            if (($tblProposalBehaviorGrade = Grade::useService()->getProposalBehaviorGradeByPersonAndTaskAndGradeType(
+                                    $tblPerson, $tblTask, $tblGradeType
+                                ))
+                                && ($proposalGrade = $tblProposalBehaviorGrade->getGrade())
+                            ) {
+                                $gradeList[0] = floatval($proposalGrade);
+                                $bodyList[$tblPerson->getId()]['GradeType' . $tblGradeType->getId()]['KL'] = 'KL: ' . $proposalGrade;
+                            }
+                        }
+
+                        list($average, $toolTip, $errors) = Grade::useService()->getCalcStudentBehaviorAverage($tblPerson, $tblYear, $gradeList);
+                        if ($average) {
+                            $average = 'Ø ' . $average;
+                        }
                         $bodyList[$tblPerson->getId()]['AverageExcel' . $tblGradeType->getId()] = $average;
                     }
                 }

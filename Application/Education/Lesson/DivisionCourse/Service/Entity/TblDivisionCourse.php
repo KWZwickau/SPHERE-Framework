@@ -464,11 +464,11 @@ class TblDivisionCourse extends Element
     }
 
     /**
-     * @return false|TblPerson[]
+     * @return false|TblPerson[]|TblDivisionCourseMember[]
      */
-    public function getDivisionTeacherList()
+    public function getDivisionTeacherList($isResultPersonList = true)
     {
-        return DivisionCourse::useService()->getDivisionCourseMemberListBy($this, TblDivisionCourseMemberType::TYPE_DIVISION_TEACHER);
+        return DivisionCourse::useService()->getDivisionCourseMemberListBy($this, TblDivisionCourseMemberType::TYPE_DIVISION_TEACHER, false, $isResultPersonList);
     }
 
     /**
