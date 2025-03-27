@@ -50,7 +50,7 @@ class MsJ extends Certificate
                 )
             )
             ->addSlice($this->getGradeLanesSmall($personId))
-            ->addSlice($this->getRatingContent($personId))
+            ->addSlice($this->getRatingContent($personId, '65px', '5px'))
             ->addSlice((new Slice())
                 ->addElement((new Element())
                     ->setContent('Leistungen in den einzelnen Fächern:')
@@ -68,8 +68,9 @@ class MsJ extends Certificate
                 false,
                 true
             )->styleHeight('220px'))
-            ->addSlice($this->getDescriptionHead($personId, true))
-            ->addSlice($this->getDescriptionContent($personId, '120px', '8px'))
+            ->addSlice(FelsStyle::getCustomDescription($personId, '120px', '15px', true, $this->getTblPrepareCertificate() ?: null))
+//            ->addSlice($this->getDescriptionHead($personId, true))
+//            ->addSlice($this->getDescriptionContent($personId, '120px', '8px'))
             ->addSlice($this->getTransfer($personId, '13px'))
             ->addSlice($this->getDateLine($personId))
             ->addSlice($this->getSignPart($personId))
