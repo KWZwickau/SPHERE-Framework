@@ -208,6 +208,9 @@ class ReplacementFrontend extends Extension implements IFrontendInterface
             if(isset($Count['Person'])){
                 $PanelContent = array();
                 foreach($Count['Person'] as $Person => $FoundList){
+                    if($Person === ''){
+                        $Person = 'Kein Lehrer zugewiesen';
+                    }
                     $PanelContent[] = $Person.' (x'.count($FoundList).')';
                 }
                 $LayoutColumnList[] = new LayoutColumn(new Panel('Lehrer nicht zuweisbar', $PanelContent, Panel::PANEL_TYPE_WARNING), 4);

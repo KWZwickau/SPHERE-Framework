@@ -274,6 +274,11 @@ class Data extends AbstractData
         ) {
             $this->updateSettingSortOrder($tblSetting, 9);
         }
+        if (($tblSetting = $this->createSetting('ParentStudentAccess', 'Person', 'ContactDetails', 'PasswordRecoveryCost', TblSetting::TYPE_STRING, '5',
+            'Eltern/Schüler-Zugang', 'Kostenstellung für Vergabe eines neuen Passwortes. [Standard: 5]', true, 10))
+        ) {
+            $this->updateSettingSortOrder($tblSetting, 10);
+        }
 
         // Adresslisten für Serienbriefe public
         $this->createSetting('Reporting', 'SerialLetter', 'GenderSort', 'FirstFemale', TblSetting::TYPE_BOOLEAN, 1,
