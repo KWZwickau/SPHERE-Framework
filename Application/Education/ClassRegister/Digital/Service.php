@@ -479,9 +479,9 @@ class Service extends ServiceTabs
     }
 
     /**
-     * @return string
+     * @return array
      */
-    public function getDigitalClassRegisterPanelForTeacher(): string
+    public function getDigitalClassRegisterDataForTeacher(): array
     {
         $resultList = array();
         if (($tblPerson = Account::useService()->getPersonByLogin())) {
@@ -530,9 +530,10 @@ class Service extends ServiceTabs
                 // falsch vergebener Lehrauftrag direkt an der Klasse statt am SekII-Kurs im Falle der SekII
                 if ($tblDivisionCourse->getIsDivisionOrCoreGroup() && DivisionCourse::useService()->getIsCourseSystemByStudentsInDivisionCourse($tblDivisionCourse)) {
                     continue;
-                // Klassentagebuch
+                    // Klassentagebuch
                 } elseif ($tblDivisionCourse->getIsDivisionOrCoreGroup()) {
                     $resultList[] = array(
+                        'DivisionCourseId' => $tblDivisionCourse->getId(),
                         'DivisionCourse' => $tblDivisionCourse->getDisplayName(),
                         'DivisionCourseType' => $tblDivisionCourse->getTypeName(),
                         'SchoolTypes' => $tblDivisionCourse->getSchoolTypeListFromStudents(true),
@@ -547,9 +548,10 @@ class Service extends ServiceTabs
                             'Zum Klassenbuch wechseln'
                         )
                     );
-                // Kursheft (SekII-Kurs)
+                    // Kursheft (SekII-Kurs)
                 } elseif ($tblDivisionCourse->getType()->getIsCourseSystem()) {
                     $resultList[] = array(
+                        'DivisionCourseId' => $tblDivisionCourse->getId(),
                         'DivisionCourse' => $tblDivisionCourse->getDisplayName(),
                         'DivisionCourseType' => $tblDivisionCourse->getTypeName(),
                         'SchoolTypes' => $tblDivisionCourse->getSchoolTypeListFromStudents(true),
@@ -568,6 +570,15 @@ class Service extends ServiceTabs
             }
         }
 
+        return $resultList;
+    }
+
+    /**
+     * @return string
+     */
+    public function getDigitalClassRegisterPanelForTeacher(): string
+    {
+        $resultList = $this->getDigitalClassRegisterDataForTeacher();
         if ($resultList) {
             return new Panel(
                 'Digitales Klassenbuch (Fachlehrer)',
