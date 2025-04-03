@@ -6,10 +6,10 @@ use SPHERE\Application\Api\Education\Prepare\ApiPrepare;
 use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificate;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCertificate;
-use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareComplexExam;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareStudent;
 use SPHERE\Application\Education\Graduation\Grade\Grade;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblGradeText;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTask;
 use SPHERE\Application\Education\School\Course\Service\Entity\TblTechnicalCourse;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Meta\Student\Student;
@@ -28,6 +28,7 @@ use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
@@ -130,14 +131,16 @@ class FrontendDiplomaTechnicalSchool extends FrontendDiploma
             );
             if (isset($tabs[$CurrentTab])) {
                 $tabIdentifier = $tabs[$CurrentTab]['Identifier'];
-                if ($tabIdentifier == 'K1' || $tabIdentifier == 'K2' || $tabIdentifier == 'K3' || $tabIdentifier == 'K4'
-                    || $tabIdentifier == 'P'
-                ) {
-                    // Komplexprüfungen
-                    $columnTable['S1'] = '1. Fach';
-                    $columnTable['S2'] = '2. Fach';
+                if (str_contains($tabIdentifier, 'PreGrade')) {
+                    $columnTable['S1'] = '1. Prüfungsfach';
+                    $columnTable['S2'] = '2. Prüfungsfach';
+                    $columnTable['Average'] = '&#216;';
                     $columnTable['Grade'] = 'Zensur';
-                    $columnTable['GradeText'] = 'oder Zeugnistext';
+                } elseif (str_contains($tabIdentifier, 'FinalGrade')) {
+                    $columnTable['JN'] = 'Vornote';
+                    $columnTable['PS'] = 'Prüfungsnote';
+                    $columnTable['Average'] = '&#216;';
+                    $columnTable['EN'] = 'En&nbsp;(Endnote)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
                 }
             } else {
                 $tabIdentifier = '';
@@ -145,12 +148,14 @@ class FrontendDiplomaTechnicalSchool extends FrontendDiploma
 
             $CertificateList = array();
 
+            $tblAppointedDateTask = $tblPrepare->getServiceTblAppointedDateTask();
+            $count = 0;
             if (($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses())) {
                 foreach ($tblPersonList as $tblPerson) {
                     $tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare, $tblPerson);
 
                     $studentTable[$tblPerson->getId()] = array(
-                        'Number' => (count($studentTable) + 1) . ' '
+                        'Number' => ++$count . ' '
                             . ($tblPrepareStudent && $tblPrepareStudent->isApproved()
                                 ? new ToolTip(new Warning(new Ban()),
                                     'Das Zeugnis des Schülers wurde bereits freigegeben und kann nicht mehr bearbeitet werden.')
@@ -161,13 +166,12 @@ class FrontendDiplomaTechnicalSchool extends FrontendDiploma
                     $studentTable[$tblPerson->getId()]['Course'] = $courseName ?: new Warning(new Exclamation() . ' Kein Bildungsgang hinterlegt');
 
                     if ($tblPrepareStudent) {
-                        if ($tabIdentifier == 'K1' || $tabIdentifier == 'K2' || $tabIdentifier == 'K3' || $tabIdentifier == 'K4') {
-                            // Schriftliche Komplexprüfung
+                        if (str_contains($tabIdentifier, 'PreGrade')) {
                             $ranking = substr($tabIdentifier, 1, 1);
-                            $this->setPrepareComplexExamContent($studentTable, $tblPerson, $tblPrepareStudent, TblPrepareComplexExam::IDENTIFIER_WRITTEN, $ranking);
-                        } elseif ($tabIdentifier == 'P') {
-                            // Praktische Komplexprüfung
-                            $this->setPrepareComplexExamContent($studentTable, $tblPerson, $tblPrepareStudent, TblPrepareComplexExam::IDENTIFIER_PRAXIS, 1);
+                            $this->setPrepareComplexExamPreGrade($studentTable, $tblPerson, $tblPrepareStudent, $tblAppointedDateTask ?: null, $ranking);
+                        } elseif (str_contains($tabIdentifier, 'FinalGrade')) {
+                            $ranking = substr($tabIdentifier, 1, 1);
+                            $this->setPrepareComplexExamFinalGrade($studentTable, $tblPerson, $tblPrepareStudent, $ranking, $count);
                         } else {
                             // Sonstige Informationen
                             $page = null;
@@ -234,9 +238,10 @@ class FrontendDiplomaTechnicalSchool extends FrontendDiploma
                 $nextTab = null;
             }
 
-            if ($tabIdentifier == 'K1' || $tabIdentifier == 'K2' || $tabIdentifier == 'K3' || $tabIdentifier == 'K4' || $tabIdentifier == 'P') {
+            if (str_contains($tabIdentifier, 'K1') || str_contains($tabIdentifier, 'K2')) {
                 // Komplexprüfungen
-                $service = Prepare::useService()->updatePrepareComplexExamList($form, $tblPrepare, $Data, $nextTab);
+                $ranking = substr($tabIdentifier, 1, 1);
+                $service = Prepare::useService()->updatePrepareComplexExamList($form, $tblPrepare, $Data, $ranking, $nextTab);
             } else {
                 // Sonstige Informationen
                 $hasAdditionalRemarkFhr = $additionalRemarkFhrTab && $tabIdentifier == ('I' . $additionalRemarkFhrTab);
@@ -306,30 +311,26 @@ class FrontendDiplomaTechnicalSchool extends FrontendDiploma
             $informationTabName = 'Sonstige Info';
             $tabs = array(
                 $count++ => array(
-                    'Identifier' => 'K1',
-                    'TabName' => 'K1',
-                    'StageName' => 'Schriftliche Komplexprüfung 1',
+                    'Identifier' => 'K1-PreGrade',
+                    'TabName' => 'K1 - Vornoten',
+                    'StageName' => 'Schriftliche Komplexprüfung 1 - Vornoten',
                 ),
                 $count++ => array(
-                    'Identifier' => 'K2',
-                    'TabName' => 'K2',
-                    'StageName' => 'Schriftliche Komplexprüfung 2',
+                    'Identifier' => 'K1-FinalGrade',
+                    'TabName' => 'K1 - Endnoten',
+                    'StageName' => 'Schriftliche Komplexprüfung 1 - Endnoten',
+                ),
+
+                $count++ => array(
+                    'Identifier' => 'K2-PreGrade',
+                    'TabName' => 'K2 - Vornoten',
+                    'StageName' => 'Schriftliche Komplexprüfung 2 - Vornoten',
                 ),
                 $count++ => array(
-                    'Identifier' => 'K3',
-                    'TabName' => 'K3',
-                    'StageName' => 'Schriftliche Komplexprüfung 3',
+                    'Identifier' => 'K2-FinalGrade',
+                    'TabName' => 'K2 - Endnoten',
+                    'StageName' => 'Schriftliche Komplexprüfung 2 - Endnoten',
                 ),
-                $count++ => array(
-                    'Identifier' => 'K4',
-                    'TabName' => 'K4',
-                    'StageName' => 'Schriftliche Komplexprüfung 4',
-                ),
-                $count++ => array(
-                    'Identifier' => 'P',
-                    'TabName' => 'P',
-                    'StageName' => 'Praktische Komplexprüfung',
-                )
             );
         }
 
@@ -379,6 +380,172 @@ class FrontendDiplomaTechnicalSchool extends FrontendDiploma
     }
 
     /**
+     * @param $studentTable
+     * @param TblPerson $tblPerson
+     * @param TblPrepareStudent $tblPrepareStudent
+     * @param TblTask|null $tblTask
+     * @param $ranking
+     */
+    private function setPrepareComplexExamPreGrade(
+        &$studentTable,
+        TblPerson $tblPerson,
+        TblPrepareStudent $tblPrepareStudent,
+        ?TblTask $tblTask,
+        $ranking
+    ) {
+        $hasGrade = false;
+        $identifier = 'JN';
+        if (($tblPrepareComplexExam = Prepare::useService()->getPrepareComplexExamBy($tblPrepareStudent, $identifier, $ranking))
+            && ($grade = $tblPrepareComplexExam->getGrade())
+        ) {
+            $global = $this->getGlobal();
+            $global->POST['Data'][$tblPrepareStudent->getId()][$identifier] = $grade;
+            $global->savePost();
+            $hasGrade = true;
+        }
+
+        $offset = 20;
+
+        if (($tblTechnicalCourse = Student::useService()->getTechnicalCourseByPerson($tblPerson))
+            && ($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())
+            && $tblTask
+            && ($tblYear = $tblTask->getServiceTblYear())
+        ) {
+            $tblScoreRule = false;
+            $tblTestGradeList = [];
+            for ($index = 1; $index < 3; $index++) {
+                $tblTestGradeDisplayList = [];
+                if (($tblCertificateSubject = Generator::useService()->getCertificateSubjectByIndex($tblCertificate, $index, $offset + $ranking,
+                        $tblTechnicalCourse))
+                    && ($tblSubject = $tblCertificateSubject->getServiceTblSubject())
+                    && ($tblTestGradeList = Grade::useService()->getTestGradeListToDateTimeByPersonAndSubject($tblPerson, $tblSubject, $tblTask->getToDate()))
+                ) {
+                    foreach ($tblTestGradeList as $tblTestGrade) {
+                        $tblTest = $tblTestGrade->getTblTest();
+                        if (($tblTestGrade->getGrade() !== null)) {
+                            $toolTip = new Container($tblTest->getDateString())
+                                . new Container($tblTest->getTblGradeType()->getCode());
+                            $content = (new ToolTip($tblTestGrade->getGrade(), $toolTip))->enableHtml();
+                            $tblTestGradeDisplayList[$tblPerson->getId()][$tblTest->getId()] = $tblTest->getTblGradeType()->getIsHighlighted()
+                                ? new Bold($content)
+                                : $content;
+
+                            $tblTestGradeList[$tblPerson->getId()][$tblTestGrade->getId()] = $tblTestGrade;
+                        }
+                    }
+
+                    $studentTable[$tblPerson->getId()]['S' . $index] = new Container($tblSubject->getAcronym() . ': ') . implode(',', $tblTestGradeDisplayList[$tblPerson->getId()]);
+
+                    if (!$tblScoreRule) {
+                        $tblScoreRule = Grade::useService()->getScoreRuleByPersonAndYearAndSubject($tblPerson, $tblYear, $tblSubject);
+                    }
+                }
+            }
+
+            $isGradeProposal = false;
+            if ($tblTestGradeList) {
+                list ($contentAverage, $scoreRuleText, $error) = Grade::useService()->getCalcStudentAverage(
+                    $tblPerson, $tblYear, $tblTestGradeList[$tblPerson->getId()], $tblScoreRule ?? null
+                );
+                $studentTable[$tblPerson->getId()]['Average'] = Grade::useService()->getCalcStudentAverageToolTipByAverage($contentAverage, $scoreRuleText, $error);
+                // Notenvorschlag ins Noten-Feld voreintragen
+                if ($contentAverage !== '' && !$hasGrade && empty($error)) {
+                    $global = $this->getGlobal();
+                    $global->POST['Data'][$tblPrepareStudent->getId()][$identifier] = Grade::useService()->getGradeAverageByString($contentAverage);
+                    $global->savePost();
+                    $isGradeProposal = true;
+                }
+            }
+
+            $gradeInput = new SelectCompleter('Data[' . $tblPrepareStudent->getId() . '][' . $identifier . ']', '', '', $this->selectListGrades);
+            if ($isGradeProposal) {
+                $gradeInput->setPrefixValue('Notenvorschlag');
+            }
+            if ($tblPrepareStudent->isApproved()) {
+                $gradeInput->setDisabled();
+            }
+            $studentTable[$tblPerson->getId()]['Grade'] = $gradeInput;
+        }
+    }
+
+    /**
+     * @param $studentTable
+     * @param TblPerson $tblPerson
+     * @param TblPrepareStudent $tblPrepareStudent
+     * @param $ranking
+     * @param $count
+     */
+    private function setPrepareComplexExamFinalGrade(
+        &$studentTable,
+        TblPerson $tblPerson,
+        TblPrepareStudent $tblPrepareStudent,
+        $ranking,
+        &$count
+    ) {
+        $gradeList = [];
+
+        $global = $this->getGlobal();
+        if (($tblPrepareComplexExam = Prepare::useService()->getPrepareComplexExamBy($tblPrepareStudent, 'PS', $ranking))
+            && $tblPrepareComplexExam->getGrade()
+        ) {
+            $global->POST['Data'][$tblPrepareStudent->getId()]['PS'] = $tblPrepareComplexExam->getGrade();
+            $gradeList['PS'] = $tblPrepareComplexExam->getGrade();
+        }
+        if (($tblPrepareComplexExam = Prepare::useService()->getPrepareComplexExamBy($tblPrepareStudent, 'EN', $ranking))
+            && $tblPrepareComplexExam->getGrade()
+        ) {
+            $global->POST['Data'][$tblPrepareStudent->getId()]['EN'] = $tblPrepareComplexExam->getGrade();
+            $gradeList['EN'] = $tblPrepareComplexExam->getGrade();
+        }
+        $global->savePost();
+
+        $jn = '';
+        if (($tblPrepareComplexExam = Prepare::useService()->getPrepareComplexExamBy($tblPrepareStudent, 'JN', $ranking))) {
+            $jn = $tblPrepareComplexExam->getGrade();
+            if (is_numeric($jn)) {
+                $gradeList['JN'] = $jn;
+            }
+        }
+        $studentTable[$tblPerson->getId()]['JN'] = $jn;
+
+        $isApproved = $tblPrepareStudent->isApproved();
+        $preName = 'Data[' . $tblPrepareStudent->getId() . ']';
+
+
+        $pipeLineList = array();
+        if (!$isApproved) {
+            $pipeLineList[] = ApiPrepare::pipelineLoadDiplomaAverage($tblPrepareStudent->getId(), 'Average', $jn, 'FS');
+            if (!isset($gradeList['EN'])) {
+                $pipeLineList[] = ApiPrepare::pipelineLoadDiplomaAverage($tblPrepareStudent->getId(), 'EN', $jn, 'FS');
+            }
+        }
+
+        if (!$isApproved && !isset($gradeList['EN'])) {
+            $gradeInput = ApiPrepare::receiverContent(
+                $this->getSelectCompleterCertificateGrade($preName, $tblPrepareStudent->getId(), $this->selectListGrades), 'Diploma_EN_' . $tblPrepareStudent->getId()
+            );
+        } else {
+            $gradeInput = $this->getTextField($preName, 'EN', $isApproved, array());
+        }
+
+        $examGradeInput = $this->getTextField($preName, 'PS', $isApproved, $pipeLineList)->setTabIndex($count);
+
+        if ($tblPrepareStudent->isApproved()) {
+            $examGradeInput->setDisabled();
+            $gradeInput->setDisabled();
+        }
+
+        $studentTable[$tblPerson->getId()]['PS'] = $examGradeInput;
+        $studentTable[$tblPerson->getId()]['Average'] = ApiPrepare::receiverContent(
+            Prepare::useService()->getCalcDiplomaGrade($gradeList, 'Average', true),
+            'Diploma_Average_' . $tblPrepareStudent->getId()
+        );
+        $studentTable[$tblPerson->getId()]['EN'] = $gradeInput;
+    }
+
+    /**
+     * @deprecated
+     *
      * @param $studentTable
      * @param TblPerson $tblPerson
      * @param TblPrepareStudent $tblPrepareStudent

@@ -295,6 +295,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $chosenSubject = 16; // (2 * 2) = 4 Wahlfächer (3 Wahlfächer passen auf das Zeugnis)
                 $praktSubject = 17; // (1 * 2) = 2 Berufspraktische Ausbildung (1 Fach)
 //                $educationSubject = 18; // (1 * 2) = 2 Erwerb der Fachhochschulreife (1 Fach)
+                $examSubjectCount = 20; // (2 * 2) = 4 Prüfungsfächer
 
                 // Berufsübergreifende Pflichtfächer
                 $SubjectLaneAcrossLeft = array();
@@ -353,6 +354,22 @@ class Frontend extends Extension implements IFrontendInterface
 //                    );
 //                }
 
+                // Prüfungsfächer
+                $SubjectExamLeft = array();
+                $SubjectExamRight = array();
+                if ($tblCertificate->getName() == 'Fachschule Abschlusszeugnis') {
+                    for ($Run = ($examSubjectCount + 1); $Run <= $examSubjectCount + 2; $Run++) {
+                        array_push($SubjectExamLeft,
+                            $this->getSubject($tblCertificate, $tblSubjectAll, 1, $Run, '', 'Subject', '',
+                                $tblTechnicalCourse, $loadStandardFromNoConsumer)
+                        );
+                        array_push($SubjectExamRight,
+                            $this->getSubject($tblCertificate, $tblSubjectAll, 2, $Run, '', 'Subject', '',
+                                $tblTechnicalCourse, $loadStandardFromNoConsumer)
+                        );
+                    }
+                }
+
                 $Stage->setContent(
                     new Panel('Zeugnisvorlage', array($tblCertificate->getName(), $tblCertificate->getDescription()
                     , ($tblTechnicalCourse ? $tblTechnicalCourse->getName(): '')),
@@ -393,6 +410,14 @@ class Frontend extends Extension implements IFrontendInterface
 //                                    new FormColumn($SubjectEducation, 6)
 //                                )),
 //                            ), new FormTitle('Zusatzausbildung zum Erwerb der Fachhochschulreife')),
+                            count($SubjectExamRight) > 0
+                                ? new FormGroup(array(
+                                    new FormRow(array(
+                                        new FormColumn($SubjectExamLeft, 6),
+                                        new FormColumn($SubjectExamRight, 6),
+                                    )),
+                                ), new FormTitle('Komplexprüfungsfächer'))
+                                : null,
                         ), new Primary('Speichern')), $tblCertificate, $Grade, $Subject, $tblTechnicalCourse)
                 );
             } elseif (preg_match('!Berufliches Gymnasium!', $tblCertificate->getName())) {
