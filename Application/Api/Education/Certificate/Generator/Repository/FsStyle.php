@@ -1298,10 +1298,11 @@ abstract class FsStyle extends Certificate
      * @param TblCertificate $tblCertificate
      * @param string $Height
      * @param string $paddingTop
+     * @param bool $isFinaleGrade
      *
      * @return Slice
      */
-    protected function getSubjectLineJobEducationAbg($personId, TblCertificate $tblCertificate, $Height = 'auto', $paddingTop = '20px')
+    protected function getSubjectLineJobEducationAbg($personId, TblCertificate $tblCertificate, $Height = 'auto', $paddingTop = '20px', bool $isFinaleGrade = false)
     {
         $Slice = (new Slice());
 
@@ -1357,6 +1358,21 @@ abstract class FsStyle extends Certificate
                 }
             }
 
+            // $Content['P' . $personId]['JobEducation']['Grade'] = $grade;
+            if ($isFinaleGrade) {
+                $grade = '{% if(Content.P' . $personId . '.JobEducation.Grade is not empty) %}
+                        {{ Content.P' . $personId . '.JobEducation.Grade }}
+                    {% else %}
+                        &ndash;
+                    {% endif %}';
+            } else {
+                $grade = '{% if(Content.P' . $personId . '.Grade.Data["' . $Subject['SubjectAcronym'] . '"] is not empty) %}
+                        {{ Content.P' . $personId . '.Grade.Data["' . $Subject['SubjectAcronym'] . '"] }}
+                    {% else %}
+                        &ndash;
+                    {% endif %}';
+            }
+
             foreach ($SubjectList as $Subject) {
                 // Jedes Fach auf separate Zeile
                 $this->getSubjectLineAbg(
@@ -1366,11 +1382,7 @@ abstract class FsStyle extends Certificate
                     {% else %}
                        Dauer: X Wochen     
                     {% endif %}',//. $Subject['SubjectName'],
-                    '{% if(Content.P' . $personId . '.Grade.Data["' . $Subject['SubjectAcronym'] . '"] is not empty) %}
-                        {{ Content.P' . $personId . '.Grade.Data["' . $Subject['SubjectAcronym'] . '"] }}
-                    {% else %}
-                        &ndash;
-                    {% endif %}'
+                    $grade
                 );
             }
         }

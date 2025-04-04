@@ -70,7 +70,7 @@ class FsAbs extends FsStyle
             ->addSlice($this->getSubjectLineBaseAbg($personId, $this->getCertificateEntity(), 'Wahlpflichtbereich', 1, 2, 'auto', 15, 16, $paddingTop))
             ->addSlice($this->getSubjectLineComplexExam($personId, 'Schriftliche Komplexprüfung/en', 'EN', 4, 'auto', $paddingTop))
 //            ->addSlice($this->getSubjectLineComplexExam($personId, 'Praktische Komplexprüfung', TblLeaveComplexExam::IDENTIFIER_PRAXIS, 1, 'auto', $paddingTop))
-            ->addSlice($this->getSubjectLineJobEducationAbg($personId, $this->getCertificateEntity(), 'auto', $paddingTop))
+            ->addSlice($this->getSubjectLineJobEducationAbg($personId, $this->getCertificateEntity(), 'auto', $paddingTop, true))
         ;
 
         $pageList[] = (new Page())

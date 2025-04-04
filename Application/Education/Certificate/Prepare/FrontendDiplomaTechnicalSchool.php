@@ -171,7 +171,7 @@ class FrontendDiplomaTechnicalSchool extends FrontendDiploma
                             $this->setPrepareComplexExamPreGrade($studentTable, $tblPerson, $tblPrepareStudent, $tblAppointedDateTask ?: null, $ranking);
                         } elseif (str_contains($tabIdentifier, 'FinalGrade')) {
                             $ranking = substr($tabIdentifier, 1, 1);
-                            $this->setPrepareComplexExamFinalGrade($studentTable, $tblPerson, $tblPrepareStudent, $ranking, $count);
+                            $this->setPrepareComplexExamFinalGrade($studentTable, $tblPerson, $tblPrepareStudent, $tblAppointedDateTask ?: null, $ranking, $count);
                         } else {
                             // Sonstige Informationen
                             $page = null;
@@ -238,7 +238,7 @@ class FrontendDiplomaTechnicalSchool extends FrontendDiploma
                 $nextTab = null;
             }
 
-            if (str_contains($tabIdentifier, 'K1') || str_contains($tabIdentifier, 'K2')) {
+            if (str_contains($tabIdentifier, 'K1') || str_contains($tabIdentifier, 'K2') || str_contains($tabIdentifier, 'P3')) {
                 // Komplexprüfungen
                 $ranking = substr($tabIdentifier, 1, 1);
                 $service = Prepare::useService()->updatePrepareComplexExamList($form, $tblPrepare, $Data, $ranking, $nextTab);
@@ -330,6 +330,11 @@ class FrontendDiplomaTechnicalSchool extends FrontendDiploma
                     'Identifier' => 'K2-FinalGrade',
                     'TabName' => 'K2 - Endnoten',
                     'StageName' => 'Schriftliche Komplexprüfung 2 - Endnoten',
+                ),
+                $count++ => array(
+                    'Identifier' => 'P3-FinalGrade',
+                    'TabName' => 'PA - Endnoten',
+                    'StageName' => 'Berufspraktische Ausbildung - Endnoten',
                 ),
             );
         }
@@ -472,6 +477,7 @@ class FrontendDiplomaTechnicalSchool extends FrontendDiploma
      * @param $studentTable
      * @param TblPerson $tblPerson
      * @param TblPrepareStudent $tblPrepareStudent
+     * @param TblTask|null $tblTask
      * @param $ranking
      * @param $count
      */
@@ -479,6 +485,7 @@ class FrontendDiplomaTechnicalSchool extends FrontendDiploma
         &$studentTable,
         TblPerson $tblPerson,
         TblPrepareStudent $tblPrepareStudent,
+        ?TblTask $tblTask,
         $ranking,
         &$count
     ) {
@@ -500,17 +507,30 @@ class FrontendDiplomaTechnicalSchool extends FrontendDiploma
         $global->savePost();
 
         $jn = '';
-        if (($tblPrepareComplexExam = Prepare::useService()->getPrepareComplexExamBy($tblPrepareStudent, 'JN', $ranking))) {
-            $jn = $tblPrepareComplexExam->getGrade();
-            if (is_numeric($jn)) {
+        if ($ranking == 3) {
+            // spezialfall Berufspraktische Ausbildung
+            if (($tblTechnicalCourse = Student::useService()->getTechnicalCourseByPerson($tblPerson))
+                && ($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())
+                && $tblTask
+                && ($tblCertificateSubject = Generator::useService()->getCertificateSubjectByIndex($tblCertificate, 1, 17, $tblTechnicalCourse))
+                && ($tblSubjectTemp = $tblCertificateSubject->getServiceTblSubject())
+                && ($tblTaskGrade = Grade::useService()->getTaskGradeByPersonAndTaskAndSubject($tblPerson, $tblTask, $tblSubjectTemp))
+            ) {
+                $jn = $tblTaskGrade->getGradeNumberValue();
                 $gradeList['JN'] = $jn;
+            }
+        } else {
+            if (($tblPrepareComplexExam = Prepare::useService()->getPrepareComplexExamBy($tblPrepareStudent, 'JN', $ranking))) {
+                $jn = $tblPrepareComplexExam->getGrade();
+                if (is_numeric($jn)) {
+                    $gradeList['JN'] = $jn;
+                }
             }
         }
         $studentTable[$tblPerson->getId()]['JN'] = $jn;
 
         $isApproved = $tblPrepareStudent->isApproved();
         $preName = 'Data[' . $tblPrepareStudent->getId() . ']';
-
 
         $pipeLineList = array();
         if (!$isApproved) {

@@ -796,6 +796,17 @@ abstract class ServiceCertificateContent extends ServiceAbitur
                         $Content['P' . $personId]['ExamList'][$identifier][2* $ranking]['Grade'] = $grade;
                     }
                 }
+
+                // Berufspraktische Ausbildung - Endnote
+                $ranking = 3;
+                if (($tblPrepareComplexExam = Prepare::useService()->getPrepareComplexExamBy($tblPrepareStudent, 'EN', $ranking))) {
+                    if ($isGradeVerbalOnDiploma) {
+                        $grade = $this->getVerbalGrade($tblPrepareComplexExam->getGrade());
+                    } else {
+                        $grade = $tblPrepareComplexExam->getGrade();
+                    }
+                    $Content['P' . $personId]['JobEducation']['Grade'] = $grade;
+                }
             }
         }
 
