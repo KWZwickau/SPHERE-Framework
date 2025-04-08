@@ -160,14 +160,14 @@ abstract class FsStyle extends Certificate
             );
             $Slice->addElement((new Element())
                 ->setContent($name ? $name : '&nbsp;')
-                ->styleAlignRight()
+                ->styleAlignCenter()
                 ->styleTextSize('22px')
                 ->styleHeight('28px')
                 ->stylePaddingTop('40px')
             );
             $Slice->addElement((new Element())
                 ->setContent($secondLine ? $secondLine : '&nbsp;')
-                ->styleAlignRight()
+                ->styleAlignCenter()
                 ->styleTextSize('18px')
                 ->styleHeight('42px')
 //            ->stylePaddingTop('20px')
