@@ -664,7 +664,7 @@ class Frontend extends Extension implements IFrontendInterface
         if($tblGroup->getMetaTable() == TblGroup::META_TABLE_CUSTODY){
             $Button = ApiPersonDelete::receiverModal()
                     .ApiPersonDelete::receiverService('load') // service without reload Modal
-                .(new Standard('Sorgeberechtigte Bereinigen', '#', new Remove()))
+                .(new Standard('Bereinigung Sorgeberechtigte', '#', new Remove()))
                 ->ajaxPipelineOnClick(ApiPersonDelete::pipelineOpenDeleteGuardModal());
         }
 
