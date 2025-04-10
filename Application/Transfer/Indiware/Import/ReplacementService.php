@@ -377,7 +377,7 @@ class ReplacementService
 
                         if ($tblDivisionCourse) {
                             $Row['tblCourse'] = $tblDivisionCourse;
-                            $Row['CourseId'] = $tblDivisionCourse;
+                            $Row['CourseId'] = $tblDivisionCourse->getId();
                             break;
                         }
                     }
@@ -456,7 +456,7 @@ class ReplacementService
         // Day / Wochentag
         for($DayCount = 1; $DayCount <= 5; $DayCount++){
             // Hour / Unterrichtsstunde
-            for($HourCount = 1; $HourCount <= 10; $HourCount++){
+            for($HourCount = 1; $HourCount <= 12; $HourCount++){
                 foreach($tblCourseList as $CourseId => $tblCourse){
                     if(isset($TimeTableList[$DayCount][$HourCount][$CourseId])
                     && isset($ReplaceList[$DayCount][$HourCount][$CourseId])){
@@ -482,7 +482,7 @@ class ReplacementService
                                 $tblSubject = false;
                                 if($Row['SubjectOriginal']){
                                     // Mapping
-                                    if(($tblSubject = Subject::useService()->getSubjectByMappingAccronym($Row['Subject']))){
+                                    if(($tblSubject = Subject::useService()->getSubjectByMappingAccronym($Row['SubjectOriginal']))){
                                         $Row['tblSubject'] = $tblSubject;
                                         if ($Row['Date'] == $DayList[$tblTimeTableNode->getDay()]
                                             && $tblSubject->getId() == $tblTimeTableNode->getServiceTblSubject()->getId()
@@ -511,7 +511,9 @@ class ReplacementService
                         foreach($ReplaceList[$DayCount][$HourCount][$CourseId] as $Row) {
                             if(!isset($Row['found'])){
                                 $hasFound = false;
-                                $DifferenceList[] = $Row;
+                                // Es kann nur ein Eintrag pro Fach & Klasse geben, bei Parallelunterricht erzeugte diese Stelle auch parallel gleiche Einträge
+//                                $DifferenceList[] = $Row;
+                                $DifferenceList[$Row['tblSubstituteSubject'].$Row['tblCourse']->getId()] = $Row;
                             }
                         }
 

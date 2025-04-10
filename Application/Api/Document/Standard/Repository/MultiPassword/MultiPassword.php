@@ -102,10 +102,10 @@ class MultiPassword extends AbstractDocument
                 foreach($tblUserAccountList as $tblUserAccount){
                     /** @var TblAccount $tblAccount */
                     if(($tblAccount = $tblUserAccount->getServiceTblAccount())){
-                        if(($tblPersonList = \SPHERE\Application\Setting\Authorization\Account\Account::useService()->getPersonAllByAccount($tblAccount))) {
-                            /** @var TblPerson $tblPerson */
-                            $tblPerson = current($tblPersonList);
-                        }
+//                        if(($tblPersonList = \SPHERE\Application\Setting\Authorization\Account\Account::useService()->getPersonAllByAccount($tblAccount))) {
+//                            /** @var TblPerson $tblPerson */
+//                            $tblPerson = current($tblPersonList);
+//                        }
                         if(!isset($this->FieldValue['IsParent'])){
                             $this->FieldValue['IsParent'] = ($tblUserAccount->getType() == 'CUSTODY' ? true : false);
                         }
@@ -172,28 +172,28 @@ class MultiPassword extends AbstractDocument
             }
         }
 
-        // default
-        if($this->FieldValue['IsParent']){
-            $this->FieldValue['FirstLine'] = 'Liebe Eltern,';
-        } else {
-            $this->FieldValue['FirstLine'] = 'Liebe Schülerinnen und Schüler,';
-        }
-
-        if($tblPerson){
-            if($tblPerson->getSalutation() == TblSalutation::VALUE_MAN){
-                $this->FieldValue['FirstLine'] = 'Lieber '.$tblPerson->getSalutation().' '.$tblPerson->getLastName().',';
-            } elseif($tblPerson->getSalutation() == TblSalutation::VALUE_WOMAN) {
-                $this->FieldValue['FirstLine'] = 'Liebe '.$tblPerson->getSalutation().' '.$tblPerson->getLastName().',';
-            }else {
-                if($tblPerson->getGender() && $tblPerson->getGender()->getId() == TblCommonGender::VALUE_MALE){
-                    $this->FieldValue['FirstLine'] = 'Lieber '.$tblPerson->getFullName().',';
-                } elseif($tblPerson->getGender() && $tblPerson->getGender()->getId() == TblCommonGender::VALUE_FEMALE) {
-                    $this->FieldValue['FirstLine'] = 'Liebe '.$tblPerson->getFullName().',';
-                } else {
-                    $this->FieldValue['FirstLine'] = 'Liebe(r) '.$tblPerson->getFullName().',';
-                }
-            }
-        }
+//        // default
+//        if($this->FieldValue['IsParent']){
+//            $this->FieldValue['FirstLine'] = 'Liebe Eltern,';
+//        } else {
+//            $this->FieldValue['FirstLine'] = 'Liebe Schülerinnen und Schüler,';
+//        }
+//
+//        if($tblPerson){
+//            if($tblPerson->getSalutation() == TblSalutation::VALUE_MAN){
+//                $this->FieldValue['FirstLine'] = 'Lieber '.$tblPerson->getSalutation().' '.$tblPerson->getLastName().',';
+//            } elseif($tblPerson->getSalutation() == TblSalutation::VALUE_WOMAN) {
+//                $this->FieldValue['FirstLine'] = 'Liebe '.$tblPerson->getSalutation().' '.$tblPerson->getLastName().',';
+//            }else {
+//                if($tblPerson->getGender() && $tblPerson->getGender()->getId() == TblCommonGender::VALUE_MALE){
+//                    $this->FieldValue['FirstLine'] = 'Lieber '.$tblPerson->getFullName().',';
+//                } elseif($tblPerson->getGender() && $tblPerson->getGender()->getId() == TblCommonGender::VALUE_FEMALE) {
+//                    $this->FieldValue['FirstLine'] = 'Liebe '.$tblPerson->getFullName().',';
+//                } else {
+//                    $this->FieldValue['FirstLine'] = 'Liebe(r) '.$tblPerson->getFullName().',';
+//                }
+//            }
+//        }
 
         return $this;
     }
@@ -437,6 +437,31 @@ class MultiPassword extends AbstractDocument
      */
     private function getFirstLetterContent($AccountId = '')
     {
+        if($this->FieldValue['IsParent']){
+            $FirstLine = 'Liebe Eltern,';
+        } else {
+            $FirstLine = 'Liebe Schülerinnen und Schüler,';
+        }
+
+        if(($tblAccount = \SPHERE\Application\Setting\Authorization\Account\Account::useService()->getAccountById($AccountId))){
+            if(($tblPersonList = \SPHERE\Application\Setting\Authorization\Account\Account::useService()->getPersonAllByAccount($tblAccount))){
+                /** @var TblPerson $tblPerson */
+                $tblPerson = current($tblPersonList);
+                if($tblPerson->getSalutation() == TblSalutation::VALUE_MAN || $tblPerson->getSalutation() == TblSalutation::VALUE_STUDENT){
+                    $FirstLine = 'Lieber '.$tblPerson->getFullName().',';
+                } elseif($tblPerson->getSalutation() == TblSalutation::VALUE_WOMAN) {
+                    $FirstLine = 'Liebe '.$tblPerson->getFullName().',';
+                }else {
+                    if($tblPerson->getGender() && $tblPerson->getGender()->getId() == TblCommonGender::VALUE_MALE){
+                        $FirstLine = 'Lieber '.$tblPerson->getFullName().',';
+                    } elseif($tblPerson->getGender() && $tblPerson->getGender()->getId() == TblCommonGender::VALUE_FEMALE) {
+                        $FirstLine = 'Liebe '.$tblPerson->getFullName().',';
+                    } else {
+                        $FirstLine = 'Liebe(r) '.$tblPerson->getFullName().',';
+                    }
+                }
+            }
+        }
 
         $Live = 'https://schulsoftware.schule';
 
@@ -473,7 +498,8 @@ class MultiPassword extends AbstractDocument
             );
         $Slice->addElement($this->getTextElement(''));
 
-        $Slice->addElement($this->getTextElement($this->FieldValue['FirstLine']));
+//        $Slice->addElement($this->getTextElement($this->FieldValue['FirstLine']));
+        $Slice->addElement($this->getTextElement($FirstLine));
         if ($this->FieldValue['IsParent']) {
             $Slice->addElement($this->getTextElement('die Schulstiftung der Ev.-Luth. Landeskirche Sachsens hat, in
              enger Abstimmung mit dem Datenschutzbeauftragten der Ev.-Luth. Landeskirche, eine Schulsoftware entwickeln

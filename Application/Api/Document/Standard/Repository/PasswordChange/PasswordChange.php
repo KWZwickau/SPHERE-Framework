@@ -335,7 +335,7 @@ class PasswordChange extends AbstractDocument
 
         $Slice = new Slice();
         if ($this->FieldValue['IsParent']) {
-            $Slice->addElement($this->getTextElement('Ihre neuen Zugangsdaten für die Schusoftware 
+            $Slice->addElement($this->getTextElement('Ihre neuen Zugangsdaten für die Schulsoftware 
             {% if '.$this->FieldValue['ChildCount'].' == 1 %}
                     Ihres Kindes
                 {% elseif '.$this->FieldValue['ChildCount'].' == 2 %}
@@ -359,7 +359,7 @@ class PasswordChange extends AbstractDocument
             $Slice->addElement($this->getTextElement('Wunschgemäß übersenden wir Dir deine neue Zugangsdaten zur
              Schulsoftware.'));
         }
-        // passord block
+        // password block
         $Slice->addElement((new Element())->setContent('&nbsp;')->stylePaddingTop('18px'));
         $Slice->addSection($this->getInfoSection('Adresse:', $Live));
         $Slice->addSection($this->getInfoSection('Benutzername:', $this->FieldValue['UserAccount']));
@@ -398,10 +398,16 @@ class PasswordChange extends AbstractDocument
         if($PaidContent){
             $Slice->addElement($this->getTextElement($PaidContent));
         }
-        $Slice->addElement($this->getTextElement('Bitte hebe dieses Schreiben gut auf.')->styleTextBold());
-        $Slice->addElement($this->getTextElement('Für Rückfragen stehen wir Ihnen gern zur Verfügung.'));
-        $Slice->addElement($this->getTextElement('Dieses Schreiben wurde maschinell erstellt und ist auch ohne
-             Unterschrift rechtsgültig.'));
+
+        if ($this->FieldValue['IsParent']) {
+            $Slice->addElement($this->getTextElement('Bitte heben Sie dieses Schreiben gut auf.')->styleTextBold());
+            $Slice->addElement($this->getTextElement('Für Rückfragen stehen wir Ihnen gern zur Verfügung.'));
+        } else {
+            $Slice->addElement($this->getTextElement('Bitte hebe dieses Schreiben gut auf.')->styleTextBold());
+            $Slice->addElement($this->getTextElement('Für Rückfragen stehen wir Dir gern zur Verfügung.'));
+        }
+
+        $Slice->addElement($this->getTextElement('Dieses Schreiben wurde maschinell erstellt und ist auch ohne Unterschrift rechtsgültig.'));
         $Slice->styleHeight($Height);
 
         // Ränder
