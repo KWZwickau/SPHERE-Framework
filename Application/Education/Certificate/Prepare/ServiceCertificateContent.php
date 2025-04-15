@@ -8,7 +8,6 @@ use SPHERE\Application\Education\Absence\Absence;
 use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblLeaveComplexExam;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblLeaveStudent;
-use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareComplexExam;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareStudent;
 use SPHERE\Application\Education\Graduation\Grade\Grade;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
@@ -51,10 +50,14 @@ abstract class ServiceCertificateContent extends ServiceAbitur
         $tblCoreGroup = false;
         $tblYear = false;
         $tblPrepare = false;
+        $tblAppointedDateTask = false;
+        $tblTechnicalCourse = false;
         if ($tblPrepareStudent && ($tblPrepare = $tblPrepareStudent->getTblPrepareCertificate())) {
             $tblYear = $tblPrepare->getYear();
+            $tblAppointedDateTask = $tblPrepare->getServiceTblAppointedDateTask();
         } elseif ($tblLeaveStudent) {
             $tblYear = $tblLeaveStudent->getServiceTblYear();
+            $tblAppointedDateTask = $tblPrepare->getServiceTblAppointedDateTask();
         }
         if ($tblYear && ($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))) {
             $level = $tblStudentEducation->getLevel();
@@ -637,7 +640,7 @@ abstract class ServiceCertificateContent extends ServiceAbitur
             }
 
             // Fachnoten restliche Zeugnisse
-            if (($tblAppointedDateTask = $tblPrepare->getServiceTblAppointedDateTask())
+            if ($tblAppointedDateTask
                 && $tblCertificate
             ) {
                 if (($tblTaskGradeList = Grade::useService()->getTaskGradeListByTaskAndPerson($tblAppointedDateTask, $tblPerson))) {
@@ -736,54 +739,73 @@ abstract class ServiceCertificateContent extends ServiceAbitur
                 }
             }
 
-            // Komplexprüfungen für Fachschule Abschlusszeugnisse
-            if (($tblPrepareComplexExamList = Prepare::useService()->getPrepareComplexExamAllByPrepareStudent($tblPrepareStudent))) {
-                $countInformationalExpulsion = 1;
-                $subjectList = array();
-                foreach ($tblPrepareComplexExamList as $tblPrepareComplexExam) {
-                    $identifier = $tblPrepareComplexExam->getIdentifier();
-                    $ranking = $tblPrepareComplexExam->getRanking();
+            // Fachschule Abschlusszeugnisse
+            // Komplexe Prüfungen
+            // Nachrichtlichen Ausweisung der Prüfungsfächer mit Stichtagsnote
+            if ($tblCertificate
+                && ($tblCertificate->getCertificate() == 'FsAbs' || $tblCertificate->getCertificate() == 'FsAbsFhr')
+                && $tblTechnicalCourse
+            ) {
+                $offset = 20;
+                $countInformationalExpulsion = 0;
+                $countExamSubjects = 0;
+                for ($ranking = 1; $ranking < 3; $ranking++) {
+                    $subjectList = [];
+                    for ($index = 1; $index < 3; $index++) {
+                        if (($tblCertificateSubject = Generator::useService()->getCertificateSubjectByIndex($tblCertificate, $index, $offset + $ranking,
+                                $tblTechnicalCourse))
+                            && ($tblSubjectExam = $tblCertificateSubject->getServiceTblSubject())
+                        ) {
+                            $countInformationalExpulsion++;
+                            $countExamSubjects++;
+                            $subjectList[$countExamSubjects] = $tblSubjectExam->getName();
 
-                    $subjects = '';
-                    $tblFirstSubject = $tblPrepareComplexExam->getServiceTblFirstSubject();
-                    $tblSecondSubject = $tblPrepareComplexExam->getServiceTblSecondSubject();
-                    $preText = $identifier == TblPrepareComplexExam::IDENTIFIER_WRITTEN ? 'K' . $ranking . '&nbsp;&nbsp;' : '';
-                    if ($tblFirstSubject || $tblSecondSubject) {
-                        $subjects .= $preText
-                            . ($tblFirstSubject ? $tblFirstSubject->getTechnicalAcronymForCertificateFromName() : '')
-                            . ($tblFirstSubject && $tblSecondSubject ? ' / ' : '')
-                            . ($tblSecondSubject ? $tblSecondSubject->getTechnicalAcronymForCertificateFromName() : '');
+                            // Stichtagsnote der Nachrichtlichen Ausweisung
+                            if ($tblAppointedDateTask
+                                && ($tblTaskGradeSubject = Grade::useService()->getTaskGradeByPersonAndTaskAndSubject($tblPerson, $tblAppointedDateTask, $tblSubjectExam))
+                            ) {
+                                $Content['P' . $personId]['InformationalExpulsionGrade'][$countInformationalExpulsion] =
+                                    $isGradeVerbalOnDiploma ? $this->getVerbalGrade($tblTaskGradeSubject->getGrade()) : $tblTaskGradeSubject->getGrade();
+                            }
+
+                            $text = $tblSubjectExam->getName();
+                            $Content['P' . $personId]['InformationalExpulsion'][$countInformationalExpulsion] = $text;
+                            if (strlen($text) > 90) {
+                                // Fachname nimmt 2 Zeilen ein
+                                $Content['P' . $personId]['InformationalExpulsion']['HasTwoRows' . $countInformationalExpulsion] = strlen($text);
+                            }
+                        }
                     }
 
+                    if (($tblPrepareComplexExam = Prepare::useService()->getPrepareComplexExamBy($tblPrepareStudent, 'EN', $ranking))) {
+                        $identifier = $tblPrepareComplexExam->getIdentifier();
+                        if ($isGradeVerbalOnDiploma) {
+                            $grade = $this->getVerbalGrade($tblPrepareComplexExam->getGrade());
+                        } else {
+                            $grade = $tblPrepareComplexExam->getGrade();
+                        }
+                        $preText = 'K' . $ranking . ':&nbsp;&nbsp;';
+                        foreach ($subjectList as $number => $subjectName) {
+                            $text = $preText . $subjectName;
+                            $Content['P' . $personId]['ExamList'][$identifier][$number]['Subjects'] = $text;
+                            if (strlen($text) > 90) {
+                                // Fachname nimmt 2 Zeilen ein
+                                $Content['P' . $personId]['ExamList'][$identifier][$number]['HasTwoRows'] = strlen($text);
+                            }
+                        }
+                        $Content['P' . $personId]['ExamList'][$identifier][2* $ranking]['Grade'] = $grade;
+                    }
+                }
+
+                // Berufspraktische Ausbildung - Endnote
+                $ranking = 3;
+                if (($tblPrepareComplexExam = Prepare::useService()->getPrepareComplexExamBy($tblPrepareStudent, 'EN', $ranking))) {
                     if ($isGradeVerbalOnDiploma) {
                         $grade = $this->getVerbalGrade($tblPrepareComplexExam->getGrade());
                     } else {
                         $grade = $tblPrepareComplexExam->getGrade();
                     }
-                    $Content['P' . $personId]['ExamList'][$identifier][$ranking]['Subjects'] = $subjects;
-                    $Content['P' . $personId]['ExamList'][$identifier][$ranking]['Grade'] = $grade;
-
-                    // Nachrichtliche Ausweisung
-                    if ($tblFirstSubject && !isset($subjectList[$tblFirstSubject->getId()])) {
-                        $subjectList[$tblFirstSubject->getId()] = $tblFirstSubject;
-                        $text = $preText . $tblFirstSubject->getName();
-                        $Content['P' . $personId]['InformationalExpulsion'][$countInformationalExpulsion] = $text;
-                        if (strlen($text) > 90) {
-                            // Fachname nimmt 2 Zeilen ein
-                            $Content['P' . $personId]['InformationalExpulsion']['HasTwoRows' . $countInformationalExpulsion] = strlen($text);
-                        }
-                        $countInformationalExpulsion++;
-                    }
-                    if ($tblSecondSubject && !isset($subjectList[$tblSecondSubject->getId()])) {
-                        $subjectList[$tblSecondSubject->getId()] = $tblSecondSubject;
-                        $text = $preText . $tblSecondSubject->getName();
-                        $Content['P' . $personId]['InformationalExpulsion'][$countInformationalExpulsion] = $text;
-                        if (strlen($text) > 90) {
-                            // Fachname nimmt 2 Zeilen ein
-                            $Content['P' . $personId]['InformationalExpulsion']['HasTwoRows' . $countInformationalExpulsion] = strlen($text);
-                        }
-                        $countInformationalExpulsion++;
-                    }
+                    $Content['P' . $personId]['JobEducation']['Grade'] = $grade;
                 }
             }
         }

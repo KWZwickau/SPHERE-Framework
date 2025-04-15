@@ -58,6 +58,8 @@ class ApiOnlineContactDetails extends Extension implements IApiInterface
         $Dispatcher->registerMethod('openCreateMailModal');
         $Dispatcher->registerMethod('saveCreateMailModal');
 
+        $Dispatcher->registerMethod('openShowModal');
+
         return $Dispatcher->callMethod($Method);
     }
 
@@ -523,5 +525,43 @@ class ApiOnlineContactDetails extends Extension implements IApiInterface
         } else {
             return new Danger('Die E-Mail-Adresse konnte nicht gespeichert werden.') . self::pipelineClose();
         }
+    }
+
+    /**
+     * @param $PersonId
+     * @param $PersonIdList
+     *
+     * @return Pipeline
+     */
+    public static function pipelineOpenShowModal($PersonId, $PersonIdList): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'openShowModal',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'PersonId' => $PersonId,
+            'PersonIdList' => $PersonIdList
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $PersonId
+     * @param $PersonIdList
+     *
+     * @return string
+     */
+    public function openShowModal($PersonId, $PersonIdList): string
+    {
+        if (!($tblPerson = Person::useService()->getPersonById($PersonId))) {
+            return new Danger('Die Person wurde nicht gefunden', new Exclamation());
+        }
+
+        return new Title(new Bold('Online-Kontaktdaten-Ansicht für ' . $tblPerson->getFullName() . ' im Eltern-Schüler-Zugang'))
+            . OnlineContactDetails::useFrontend()->loadContactDetailsStageContent($PersonIdList);
     }
 }

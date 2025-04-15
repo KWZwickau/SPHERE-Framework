@@ -7,17 +7,122 @@ use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreRule;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTestGrade;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
-use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblStudentSubject;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
+use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblPeriod;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Danger;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 
 abstract class ServiceScoreCalc extends ServiceScore
 {
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     * @param array $gradeList
+     *
+     * @return array
+     */
+    public function getCalcStudentBehaviorAverage(TblPerson $tblPerson, TblYear $tblYear, array $gradeList): array
+    {
+        $toolTip = '';
+        $errors = '';
+
+        if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))
+            && ($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())
+            && ($level = $tblStudentEducation->getLevel())
+            && ($tblScoreRuleBehaviorSubjectList = Grade::useService()->getScoreRuleBehaviorSubjectListBySchoolTypeAndLevel($tblSchoolType, $level))
+        ) {
+            $count = 0;
+            $sum = 0;
+
+//            $hasDivisionCourseTeacherMultiplier = false;
+            // tooltip immer für alle Fächer anzeigen, auch wenn es noch keine Zensuren gibt
+            $toolTip .= new Container('Kopfnoten-Gewichtung:');
+            foreach ($tblScoreRuleBehaviorSubjectList as $subjectId => $tblScoreRuleBehaviorSubject) {
+                $tblSubject = Subject::useService()->getSubjectById($subjectId);
+                $toolTip .= new Container(($tblSubject ? $tblSubject->getAcronym() : 'Kursleiter') . ': ' . $tblScoreRuleBehaviorSubject->getMultiplier());
+//                if ($subjectId === 0)
+//                {
+//                    $hasDivisionCourseTeacherMultiplier = true;
+//                }
+            }
+            $toolTip .= new Container('Weitere Fächer: 1');
+
+//            // Kursleiter Multiplikator
+//            $tblDivisionTeacherMemberList = array();
+//            if ($hasDivisionCourseTeacherMultiplier) {
+//                if (($tblDivision = $tblStudentEducation->getTblDivision())
+//                    && ($tblDivisionTeacherList = $tblDivision->getDivisionTeacherList(false))
+//                ) {
+//                    $tblDivisionTeacherMemberList = $tblDivisionTeacherList;
+//                }
+//                if (($tblCoreGroup = $tblStudentEducation->getTblDivision())
+//                    && ($tblCoreGroupTeacherList = $tblCoreGroup->getDivisionTeacherList(false))
+//                ) {
+//                    $tblDivisionTeacherMemberList = array_merge($tblDivisionTeacherMemberList, $tblCoreGroupTeacherList);
+//                }
+//            }
+
+            foreach ($gradeList as $subjectId => $gradeValue) {
+//                if (($tblSubject = Subject::useService()->getSubjectById($subjectId))) {
+//                    // Kursleiter Multiplier ->
+//                    if ($hasDivisionCourseTeacherMultiplier
+//                        && $this->getIsDivisionCourseTeacher($tblDivisionTeacherMemberList, $tblSubject)
+//                        && isset($tblScoreRuleBehaviorSubjectList[0]))
+//                    {
+//                        $multiplier = ($tblScoreRuleBehaviorSubjectList[0])->getMultiplierValue();
+//                    } else
+                if (isset($tblScoreRuleBehaviorSubjectList[$subjectId])) {
+                    $tblScoreRuleBehaviorSubject = $tblScoreRuleBehaviorSubjectList[$subjectId];
+                    $multiplier = $tblScoreRuleBehaviorSubject->getMultiplierValue();
+
+                    if ($multiplier === null) {
+                        $tblSubject = Subject::useService()->getSubjectById($subjectId);
+                        $errors .= new Container(($tblSubject ? $tblSubject->getAcronym() : 'Kursleiter') . ': ' . $tblScoreRuleBehaviorSubject->getMultiplier() . ' ist keine gültige Gewichtung');
+                    }
+                } else {
+                    $multiplier = floatval(1);
+                }
+
+                if ($multiplier) {
+                    $count += $multiplier * 1;
+                    $sum += $multiplier * $gradeValue;
+                }
+            }
+
+            if ($errors) {
+                $average = new Bold(new Danger('Fehler'));
+            } else {
+                $average = $count > 0 ? round($sum / $count, 2) : '';
+            }
+        } else {
+            $count = count($gradeList);
+            $average = $count > 0 ? round(array_sum($gradeList) / $count, 2) : '';
+        }
+
+        return array($average, $toolTip, $errors);
+    }
+
+//    private function getIsDivisionCourseTeacher(array $tblDivisionTeacherMemberList, TblSubject $tblSubject): bool
+//    {
+//        /** @var TblDivisionCourseMember $tblDivisionCourseMember */
+//        foreach ($tblDivisionTeacherMemberList as $tblDivisionCourseMember)
+//        {
+//            if (($tblPerson = $tblDivisionCourseMember->getServiceTblPerson())
+//                && ($tblDivisionCourse = $tblDivisionCourseMember->getTblDivisionCourse())
+//                && (DivisionCourse::useService()->getTeacherLectureshipListBy(null, $tblPerson, $tblDivisionCourse, $tblSubject))
+//            ) {
+//                return true;
+//            }
+//        }
+//
+//        return false;
+//    }
+
     /**
      * @param TblPerson $tblPerson
      * @param TblYear $tblYear

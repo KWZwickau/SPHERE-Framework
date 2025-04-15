@@ -78,6 +78,8 @@ class Style extends Extension
         $this->FieldValue['AccidentTime'] = (isset($DataPost['AccidentTime']) && $DataPost['AccidentTime'] != '' ? $DataPost['AccidentTime'] : '&nbsp;');
         $this->FieldValue['PhoneNumber'] = (isset($DataPost['PhoneNumber']) && $DataPost['PhoneNumber'] != '' ? $DataPost['PhoneNumber'] : '&nbsp;');
         $this->FieldValue['AccidentPlace'] = (isset($DataPost['AccidentPlace']) && $DataPost['AccidentPlace'] != '' ? $DataPost['AccidentPlace'] : '&nbsp;');
+        $this->FieldValue['DistanceYes'] = (isset($DataPost['DistanceYes']) && $DataPost['DistanceYes'] != '' ? 'X' : '');
+        $this->FieldValue['DistanceNo'] = (isset($DataPost['DistanceNo']) && $DataPost['DistanceNo'] != '' ? 'X' : '');
         $this->FieldValue['AccidentDescription'] = (isset($DataPost['AccidentDescription']) && $DataPost['AccidentDescription'] != '' ? $DataPost['AccidentDescription'] : '&nbsp;');
         $this->FieldValue['DescriptionActive'] = (isset($DataPost['DescriptionActive']) && $DataPost['DescriptionActive'] != '' ? 'X' : '&nbsp;');
         $this->FieldValue['DescriptionPassive'] = (isset($DataPost['DescriptionPassive']) && $DataPost['DescriptionPassive'] != '' ? 'X' : '&nbsp;');
@@ -720,7 +722,7 @@ class Style extends Extension
                 , '4%'
             )
             ->addSliceColumn(
-                $this->setCheckBox(($this->FieldValue['DeathAccidentNo'] ? 'X' : ''))
+                $this->setCheckBox(($this->FieldValue['DistanceNo'] ? 'X' : ''))
                     ->styleBorderBottom()
                     ->styleHeight('21px')
                 , '4%'
@@ -734,7 +736,7 @@ class Style extends Extension
                 , '4%'
             )
             ->addSliceColumn(
-                $this->setCheckBox(($this->FieldValue['DeathAccidentYes'] ? 'X' : ''))
+                $this->setCheckBox(($this->FieldValue['DistanceYes'] ? 'X' : ''))
                     ->styleBorderBottom()
                     ->styleHeight('21px')
                 , '4%'

@@ -12,6 +12,7 @@ use SPHERE\Application\Education\Graduation\Grade\Grade;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblGradeText;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
+use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubject;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -112,6 +113,8 @@ abstract class ServiceTemplateInformation extends ServiceLeave
                     $isTeamSet = false;
                     $hasRemarkText = false;
                     $hasEducationDateFrom = false;
+                    $hasDateFrom = false;
+                    $hasDateTo = false;
                     $isSubjectAreaSet = false;
                     $isDivisionNameSet = false;
                     $isOrientationSet = false;
@@ -128,6 +131,13 @@ abstract class ServiceTemplateInformation extends ServiceLeave
 
                             if ($tblPrepareInformation->getField() == 'EducationDateFrom') {
                                 $hasEducationDateFrom = true;
+                            }
+
+                            if ($tblPrepareInformation->getField() == 'DateFrom') {
+                                $hasDateFrom = true;
+                            }
+                            if ($tblPrepareInformation->getField() == 'DateTo') {
+                                $hasDateTo = true;
                             }
 
                             if ($tblPrepareInformation->getField() == 'SubjectArea') {
@@ -414,15 +424,47 @@ abstract class ServiceTemplateInformation extends ServiceLeave
                     }
 
                     // Fachschule
-                    if (!$hasRemarkText
-                        && ($Certificate->getCertificateEntity()->getCertificate() == 'FsAbs'
-                            || $Certificate->getCertificateEntity()->getCertificate() == 'FsAbsFhr')
+                    if ($Certificate->getCertificateEntity()->getCertificate() == 'FsAbs'
+                            || $Certificate->getCertificateEntity()->getCertificate() == 'FsAbsFhr'
                     ) {
-                        $technicalCourseName = Student::useService()->getTechnicalCourseGenderNameByPerson($tblPerson);
-                        $Global->POST['Data'][$tblPrepareStudent->getId()]['RemarkWithoutTeam'] = 'Der Abschluss '
-                            . $technicalCourseName . ' ist im Deutschen und Europäischen Qualifikationsrahmen dem Niveau 6 zugeordnet.';
-                        $markPostList['RemarkWithoutTeam'] = true;
+                        if (!$hasRemarkText) {
+                            $technicalCourseName = Student::useService()->getTechnicalCourseGenderNameByPerson($tblPerson);
+                            $Global->POST['Data'][$tblPrepareStudent->getId()]['RemarkWithoutTeam'] = 'Der Abschluss '
+                                . $technicalCourseName . ' ist im Deutschen und Europäischen Qualifikationsrahmen dem Niveau 6 zugeordnet.';
+                            $markPostList['RemarkWithoutTeam'] = true;
+                        }
+
+                        // Besuchte "seit" die Fachschule
+                        if (!$hasDateFrom) {
+                            if (($tblStudentEducationList = DivisionCourse::useService()->getStudentEducationListByPerson($tblPerson))) {
+                                foreach ($tblStudentEducationList as $tblStudentEducationTemp) {
+                                    if ($tblStudentEducationTemp->getLevel() == 1
+                                        && ($tblSchoolTypeTemp = $tblStudentEducationTemp->getServiceTblSchoolType())
+                                        && $tblSchoolTypeTemp->getShortName() == 'FS'
+                                        && ($tblYearTemp = $tblStudentEducationTemp->getServiceTblYear())
+                                    ) {
+                                        list($startDate, $endDate) = Term::useService()->getStartDateAndEndDateOfYear($tblYearTemp);
+                                        if ($startDate) {
+                                            $Global->POST['Data'][$tblPrepareStudent->getId()]['DateFrom'] = $startDate->format('d.m.Y');
+                                            $markPostList['DateFrom'] = true;
+                                        }
+
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+
+                        // Besuchte "bis" die Fachschule
+                        if (!$hasDateTo) {
+                            list($startDate, $endDate) = Term::useService()->getStartDateAndEndDateOfYear($tblYear);
+                            if ($endDate) {
+                                $Global->POST['Data'][$tblPrepareStudent->getId()]['DateTo'] = $endDate->format('d.m.Y');
+                                $markPostList['DateTo'] = true;
+                            }
+                        }
                     }
+
                     // Vorsetzen der Fachrichtung bei Fachschulen
                     if (!$isSubjectAreaSet
                         && $tblStudent
