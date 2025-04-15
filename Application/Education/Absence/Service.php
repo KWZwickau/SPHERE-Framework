@@ -578,28 +578,49 @@ class Service extends AbstractService
      * @param $Data
      * @param TblPerson $tblPerson
      * @param $Source
+     * @param bool $isForm
      *
-     * @return false|Form
+     * @return false|Form|array
      */
     public function checkFormOnlineAbsence(
         $Data,
         TblPerson $tblPerson,
-        $Source
+        $Source,
+        bool $isForm
     ) {
         $error = false;
+        $errorList = array();
         $messageLesson = null;
 
         // Prüfung ob Unterrichtseinheiten ausgewählt wurden
         if (!isset($Data['IsFullDay']) && !isset($Data['UE'])) {
-            $messageLesson = new Danger('Bitte wählen Sie mindestens eine Unterrichtseinheit aus.', new Exclamation());
             $error = true;
+            if ($isForm) {
+                $messageLesson = new Danger('Bitte wählen Sie mindestens eine Unterrichtseinheit aus', new Exclamation());
+            } else {
+                $errorList['UE'] = 'Bitte wählen Sie mindestens eine Unterrichtseinheit aus';
+            }
         }
+        $form = $isForm ? OnlineAbsence::useFrontend()->formOnlineAbsence($Data, $tblPerson->getId(), $Source, $messageLesson) : null;
 
-        $form = OnlineAbsence::useFrontend()->formOnlineAbsence($Data, $tblPerson->getId(), $Source, $messageLesson);
 
-        if (isset($Data['FromDate']) && empty($Data['FromDate'])) {
-            $form->setError('Data[FromDate]', 'Bitte geben Sie ein Datum an');
+        if (empty($Data['FromDate'])) {
             $error = true;
+            if ($isForm) {
+                $form->setError('Data[FromDate]', 'Bitte geben Sie ein Datum an');
+            } else {
+                $errorList['FromDate'] = 'Bitte geben Sie ein Datum an';
+            }
+        } else {
+            // bei berufsbildender Schule muss der Typ: Theorie oder Praxis angegeben werden
+            if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndDate($tblPerson, $Data['FromDate']))
+                && ($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())
+                && $tblSchoolType->isTechnical()
+                && empty($Data['Type'])
+            ) {
+                $error = true;
+                $errorList['Type'] = 'Bitte geben Sie Theorie oder Praxis an';
+            }
         }
 
         $fromDate = null;
@@ -613,26 +634,47 @@ class Service extends AbstractService
 
         if ($fromDate && $toDate) {
             if ($toDate->format('Y-m-d') < $fromDate->format('Y-m-d')){
-                $form->setError('Data[ToDate]', 'Das "Datum bis" darf nicht kleiner sein Datum als das "Datum von"');
                 $error = true;
+                if ($isForm) {
+                    $form->setError('Data[ToDate]', 'Das "Datum bis" darf nicht kleiner sein Datum als das "Datum von"');
+                } else {
+                    $errorList['ToDate'] = 'Das "Datum bis" darf nicht kleiner sein Datum als das "Datum von"';
+                }
             }
         }
 
         if (!$error && $fromDate) {
             // prüfen, ob das fromDate größer gleich heute ist
             if ($fromDate < (new DateTime('today'))) {
-                $form->setError('Data[FromDate]', 'Bitte wählen Sie heute oder ein zukünftiges Datum aus');
                 $error = true;
+                if ($isForm) {
+                    $form->setError('Data[FromDate]', 'Bitte wählen Sie heute oder ein zukünftiges Datum aus');
+                } else {
+                    $errorList['FromDate'] = 'Bitte wählen Sie heute oder ein zukünftiges Datum aus';
+                }
+
             }
 
-            // Prüfung ob in diesem Zeitraum bereits eine Fehlzeit existiert
+            // Prüfung ob, in diesem Zeitraum bereits eine Fehlzeit existiert
             if ((new Data($this->getBinding()))->getAbsenceAllBetweenByPerson($tblPerson, $fromDate, $toDate == $fromDate ? null : $toDate)) {
-                $form->setError('Data[FromDate]', 'Es existiert bereits eine Fehlzeit im Bereich dieses Zeitraums');
                 $error = true;
+                if ($isForm) {
+                    $form->setError('Data[FromDate]', 'Es existiert bereits eine Fehlzeit im Bereich dieses Zeitraums');
+                } else {
+                    $errorList['FromDate'] = 'Es existiert bereits eine Fehlzeit im Bereich dieses Zeitraums';
+                }
             }
         }
 
-        return $error ? $form : false;
+        if ($error) {
+            if ($isForm) {
+                return $form;
+            } else {
+                return $errorList;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -797,10 +839,13 @@ class Service extends AbstractService
                 /** @var TblAbsence $tblAbsence */
                 foreach ($tblAbsenceList as $tblAbsence) {
                     $status = '';
+                    $statusShort = '';
                     if ($tblAbsence->getStatus() == TblAbsence::VALUE_STATUS_EXCUSED) {
                         $status = new Success('entschuldigt');
+                        $statusShort = 'E';
                     } elseif ($tblAbsence->getStatus() == TblAbsence::VALUE_STATUS_UNEXCUSED) {
                         $status = new \SPHERE\Common\Frontend\Text\Repository\Danger('unentschuldigt');
+                        $statusShort = 'U';
                     }
 
                     $item = array(
@@ -809,8 +854,11 @@ class Service extends AbstractService
                         'Days' => ($days = $tblAbsence->getDays($tblYear, null, $tblCompany ?: null, $tblSchoolType ?: null)) == 1
                             ? $days . ' ' . new Small(new Muted($tblAbsence->getWeekDay()))
                             : $days,
+                        'DaysCount' => $days === '' ? 0 : $days,
                         'Lessons' => $tblAbsence->getLessonStringByAbsence(),
+                        'LessonsCount' => $tblAbsence->getCountLessons(),
                         'Status' => $status,
+                        'StatusShort' => $statusShort,
                         'PersonCreator' => $tblAbsence->getDisplayPersonCreator(),
                         'IsCertificateRelevant' => $tblAbsence->getIsCertificateRelevant() ? 'ja' : 'nein'
                     );

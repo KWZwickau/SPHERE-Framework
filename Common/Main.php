@@ -18,10 +18,13 @@ use SPHERE\Application\Manual\Manual;
 use SPHERE\Application\ParentStudentAccess\ParentStudentAccess;
 use SPHERE\Application\People\People;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account as GatekeeperAccount;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Platform\Platform;
 use SPHERE\Application\Platform\System;
 use SPHERE\Application\Reporting\Reporting;
+use SPHERE\Application\RestApi\Dispatcher as RestApiDispatcher;
+use SPHERE\Application\RestApi\RestApi;
 use SPHERE\Application\Setting\Authorization\Account\Account;
 use SPHERE\Application\Setting\Setting;
 use SPHERE\Application\Transfer\Transfer;
@@ -53,9 +56,9 @@ use SPHERE\System\Cache\Handler\MemoryHandler;
 use SPHERE\System\Cache\Handler\OpCacheHandler;
 use SPHERE\System\Cache\Handler\SmartyHandler;
 use SPHERE\System\Cache\Handler\TwigHandler;
-use SPHERE\System\Debugger\DebuggerFactory;
-use SPHERE\System\Debugger\Logger\FileLogger;
 use SPHERE\System\Extension\Extension;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Class Main
@@ -72,6 +75,8 @@ class Main extends Extension
     /** @var Dispatcher $Dispatcher */
     private static $Dispatcher = null;
 
+    private static ?RestApiDispatcher $RestApiDispatcher = null;
+
     /**
      *
      */
@@ -85,6 +90,9 @@ class Main extends Extension
         }
         if (self::getDispatcher() === null) {
             self::$Dispatcher = new Dispatcher(new Router());
+        }
+        if (self::getRestApiDispatcher() === null) {
+            self::$RestApiDispatcher = new RestApiDispatcher(new Router());
         }
     }
 
@@ -126,11 +134,73 @@ class Main extends Extension
         return self::$Dispatcher;
     }
 
+    /**
+     * @return RestApiDispatcher|null
+     */
+    public static function getRestApiDispatcher(): ?RestApiDispatcher
+    {
+        return self::$RestApiDispatcher;
+    }
+
     public function runPlatform()
     {
-
         /**
          * REST-API
+         */
+        if (preg_match('!^/RestApi/!i', $this->getRequest()->getPathInfo())) {
+            if (preg_match('!^/RestApi/Public/Authorization!i', $this->getRequest()->getPathInfo())
+             || preg_match('!^/RestApi/Public/Indiware!i', $this->getRequest()->getPathInfo())
+            ) {
+                self::registerRestApi();
+                $response = self::getRestApiDispatcher()->fetchRoute(
+                    $this->getRequest()->getPathInfo()
+                );
+                $response->send();
+            } else {
+                // Parameters stehen in der URL
+                $parameters = $this->getRequest()->getParameterArray();
+
+                $accountId = $parameters['AccountId'] ?? '';
+                if (($tblAccount = GatekeeperAccount::useService()->getAccountById($accountId))) {
+                    // erstmal nur für REF-Mandanten freigeben
+                    if (!($tblConsumer = $tblAccount->getServiceTblConsumer()) || $tblConsumer->getAcronym() != 'REF') {
+                        (new JsonResponse([$this->getRequest()->getPathInfo()], Response::HTTP_BAD_REQUEST))->send();
+                        exit(0);
+                    }
+
+                    // Session in SSW für DB Zugriff
+                    if (($tblSessionList = GatekeeperAccount::useService()->getSessionAllByAccount($tblAccount))) {
+                        $tblSession = current($tblSessionList);
+                        session_id($tblSession->getSession());
+                        Account::useService()->refreshSession($tblSession->getSession());
+                    } else {
+                        $tblSession = GatekeeperAccount::useService()->createSession($tblAccount);
+                        session_id($tblSession->getSession());
+                    }
+
+                    self::registerRestApi();
+                    if (Access::useService()->existsRightByName($this->getRequest()->getPathInfo())) {
+                        if (!Access::useService()->hasAuthorization($this->getRequest()->getPathInfo())) {
+                            (new JsonResponse('HTTP/1.0 403 Forbidden: ' . $this->getRequest()->getPathInfo(), Response::HTTP_FORBIDDEN))->send();
+                        } else {
+                            $response = self::getRestApiDispatcher()->fetchRoute(
+                                $this->getRequest()->getPathInfo()
+                            );
+                            $response->send();
+                        }
+                    } else {
+                        (new JsonResponse([$this->getRequest()->getPathInfo()], Response::HTTP_NETWORK_AUTHENTICATION_REQUIRED))->send();
+                    }
+                } else {
+                    (new JsonResponse([$this->getRequest()->getPathInfo()], Response::HTTP_BAD_REQUEST))->send();
+                }
+            }
+
+            exit(0);
+        }
+
+        /**
+         * GUI-API
          */
         if (preg_match('!^/Api/!is', $this->getRequest()->getPathInfo())) {
 
@@ -192,6 +262,7 @@ class Main extends Extension
              */
             self::registerApiPlatform();
             self::registerGuiPlatform();
+            self::registerRestApi();
 
             /**
              * Execute Request
@@ -297,6 +368,14 @@ class Main extends Extension
 
         Platform::registerCluster();
         Api::registerCluster();
+    }
+
+    /**
+     * @return void
+     */
+    public static function registerRestApi(): void
+    {
+        RestApi::registerApi();
     }
 
     /**

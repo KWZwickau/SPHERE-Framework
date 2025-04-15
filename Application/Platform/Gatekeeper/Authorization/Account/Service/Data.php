@@ -1103,6 +1103,8 @@ class Data extends AbstractData
                 $Entity->setTimeout(time() + $Timeout);
                 $Manager->saveEntity($Entity);
             } else {
+                // todo erforderlich für externe API -> session
+                $Manager->flushCache(get_class($Entity));
                 (new DebuggerFactory())->createLogger(new CacheLogger())->addLog('Session Update in '.( $Gap - $Entity->getTimeout() ));
             }
             return true;
