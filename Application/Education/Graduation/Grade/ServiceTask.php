@@ -1035,7 +1035,7 @@ abstract class ServiceTask extends ServiceStudentOverview
                         );
 
                         $bodyList[$tblPerson->getId()]['Subject' . $tblSubject->getId() . 'Grade'] = $content;
-                        $bodyList[$tblPerson->getId()]['Subject' . $tblSubject->getId() . 'Average'] = $average;
+                        $bodyList[$tblPerson->getId()]['Subject' . $tblSubject->getId() . 'Average'] = strip_tags($average);
                     }
                 }
 
