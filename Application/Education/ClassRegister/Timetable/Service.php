@@ -520,11 +520,12 @@ class Service extends AbstractService
     }
 
     /**
-     * @return string
+     * @param DateTime $dateTime
+     *
+     * @return array
      */
-    public function getTimetablePanelForTeacher()
+    public function getTimetableDataForTeacher(DateTime $dateTime): array
     {
-        $dateTime = new DateTime('today');
         $day = (int) $dateTime->format('w');
         $startDateOfWeek = $this->getStartDateOfWeek($dateTime);
         $tblPerson = Account::useService()->getPersonByLogin();
@@ -543,7 +544,7 @@ class Service extends AbstractService
                                 if ($tblTimeTableNode->getServiceTblSubject()
                                     && (($tblTimetableReplacement->getServiceTblSubject()
                                             && $tblTimeTableNode->getServiceTblSubject()->getId() == $tblTimetableReplacement->getServiceTblSubject()->getId())
-                                    || $tblTimetableReplacement->getIsCanceled())
+                                        || $tblTimetableReplacement->getIsCanceled())
                                 ) {
                                     $isCanceled = true;
                                 }
@@ -596,6 +597,17 @@ class Service extends AbstractService
                 }
             }
         }
+
+        return $resultList;
+    }
+
+    /**
+     * @return string
+     */
+    public function getTimetablePanelForTeacher()
+    {
+        $dateTime = new DateTime('today');
+        $resultList = $this->getTimetableDataForTeacher($dateTime);
 
         if ($resultList) {
             $dataList = array();

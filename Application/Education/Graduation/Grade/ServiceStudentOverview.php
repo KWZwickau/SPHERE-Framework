@@ -404,6 +404,11 @@ abstract class ServiceStudentOverview extends ServiceScoreCalc
                                     $dataPdfSection->addElementColumn(GradebookOverview::getBodyElement($contentTest), $widthGrade);
                                     $gradesApi[] = array(
                                         'Date' => $dateItem ? $dateItem->format('c') : null,
+                                        // damit es gleich mit recentGrades ist
+                                        'Subject' => array(
+                                            'Name' => $tblSubject->getName(),
+                                            'Acronym' => $tblSubject->getAcronym(),
+                                        ),
                                         'GradeType' => $virtualTestTask->getTblTest()->getTblGradeType()->getCode(),
                                         'Grade' => $tblTestGrade ? $tblTestGrade->getGrade() : null,
                                         'Description' => $tblTest->getDescription(),
@@ -712,12 +717,14 @@ abstract class ServiceStudentOverview extends ServiceScoreCalc
      * @param TblPerson $tblPerson
      * @param TblYear $tblYear
      * @param bool $IsParentView
+     * @param int|null $MaxCount
      *
      * @return array
      */
-    public function getRecentGrades(TblPerson $tblPerson, TblYear $tblYear, bool $IsParentView = true): array
+    public function getRecentGrades(TblPerson $tblPerson, TblYear $tblYear, bool $IsParentView = true, ?int $MaxCount = null): array
     {
         $resulList = array();
+        $count = 0;
         if (($tblGradeList =  (new Data($this->getBinding()))->getTestGradeListByPersonAndYear($tblPerson, $tblYear))) {
             $tblTaskList = Grade::useService()->getTaskListByStudentAndYear($tblPerson, $tblYear);
 
@@ -758,7 +765,7 @@ abstract class ServiceStudentOverview extends ServiceScoreCalc
 
                         $resulList[] = array(
                             'Date' => $dateItem ? $dateItem->format('c') : null,
-                            'CreateDate' => $tblTestGrade->getEntityCreate() ? $tblTestGrade->getEntityCreate()->format('c') : null,
+//                            'CreateDate' => $tblTestGrade->getEntityCreate() ? $tblTestGrade->getEntityCreate()->format('c') : null,
                             'Subject' => array(
                                 'Name' => $tblSubject->getName(),
                                 'Acronym' => $tblSubject->getAcronym(),
@@ -768,6 +775,12 @@ abstract class ServiceStudentOverview extends ServiceScoreCalc
                             'Description' => $tblTest->getDescription(),
                             'PublicComment' => $tblTestGrade->getPublicComment(),
                         );
+
+                        $count++;
+
+                        if ($MaxCount !== null && $count >= $MaxCount) {
+                            return $resulList;
+                        }
                     }
                 }
             }

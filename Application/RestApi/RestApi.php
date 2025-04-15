@@ -3,6 +3,7 @@
 namespace SPHERE\Application\RestApi;
 
 use SPHERE\Application\RestApi\Education\Absence\ApiAbsence;
+use SPHERE\Application\RestApi\Education\ClassRegister\ApiDigital;
 use SPHERE\Application\RestApi\Education\ClassRegister\ApiTimeTable;
 use SPHERE\Application\RestApi\Education\Grade\ApiGrade;
 use SPHERE\Application\RestApi\Menu\ApiMenu;
@@ -24,5 +25,6 @@ class RestApi implements IApiInterface
         ApiAbsence::registerApi();
         ApiGrade::registerApi();
         ApiTimeTable::registerApi();
+        ApiDigital::registerApi();
     }
 }

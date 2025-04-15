@@ -64,6 +64,16 @@ class ApiMenu implements IApiInterface
             ) {
                 $result[] = $item;
             }
+
+            // existiert noch nicht -> erstmal nur Platzhalter
+            if (($item = self::getMenuItem(
+                '/RestApi/Education/ClassRegister/Digital/Load',
+                'Digital',
+                'Digitales Klassenbuch',
+                $params
+            ))) {
+                $result[] = $item;
+            }
         }
 
         return new JsonResponse($result, Response::HTTP_OK);
