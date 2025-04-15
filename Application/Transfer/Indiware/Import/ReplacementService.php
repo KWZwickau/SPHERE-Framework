@@ -186,6 +186,11 @@ class ReplacementService
                         } else {
                             $item['Subject'] = '';
                         }
+                        if(($plFachori = $Pl->getChild('pl_fachori'))){
+                            $item['SubjectOriginal'] = $this->getUtf8Encode($plFachori->getContent());
+                        } else {
+                            $item['SubjectOriginal'] = '';
+                        }
                         if(($plKlasse = $Pl->getChild('pl_klasse'))){
                             $item['Course'] = $this->getUtf8Encode($plKlasse->getContent());
                         } else {
@@ -372,7 +377,7 @@ class ReplacementService
 
                         if ($tblDivisionCourse) {
                             $Row['tblCourse'] = $tblDivisionCourse;
-                            $Row['CourseId'] = $tblDivisionCourse;
+                            $Row['CourseId'] = $tblDivisionCourse->getId();
                             break;
                         }
                     }
@@ -451,7 +456,7 @@ class ReplacementService
         // Day / Wochentag
         for($DayCount = 1; $DayCount <= 5; $DayCount++){
             // Hour / Unterrichtsstunde
-            for($HourCount = 1; $HourCount <= 10; $HourCount++){
+            for($HourCount = 1; $HourCount <= 12; $HourCount++){
                 foreach($tblCourseList as $CourseId => $tblCourse){
                     if(isset($TimeTableList[$DayCount][$HourCount][$CourseId])
                     && isset($ReplaceList[$DayCount][$HourCount][$CourseId])){
@@ -473,16 +478,31 @@ class ReplacementService
                                     $Row['found'] = true;
                                 }
 
-                                if ($Row['Date'] == $DayList[$tblTimeTableNode->getDay()]
-                                    && $Row['tblSubstituteSubject']->getId() == $tblTimeTableNode->getServiceTblSubject()->getId()
-                                ) {
-                                    $tempSubjectListReplacement[$tblTimeTableNode->getServiceTblSubject()->getId()] = true;
+                                // Originalfach aus dem Import benutzen (ist nicht immer gepflegt)
+                                $tblSubject = false;
+                                if($Row['SubjectOriginal']){
+                                    // Mapping
+                                    if(($tblSubject = Subject::useService()->getSubjectByMappingAccronym($Row['SubjectOriginal']))){
+                                        $Row['tblSubject'] = $tblSubject;
+                                        if ($Row['Date'] == $DayList[$tblTimeTableNode->getDay()]
+                                            && $tblSubject->getId() == $tblTimeTableNode->getServiceTblSubject()->getId()
+                                        ) {
+                                            $tempSubjectListReplacement[$tblTimeTableNode->getServiceTblSubject()->getId()] = true;
+                                        }
+                                    }
                                 }
-
-                                // Vorhandenes Fach anfügen, wenn eindeutig
-                                if(count($TimeTableList[$DayCount][$HourCount][$CourseId]) == 1
-                                && count($ReplaceList[$DayCount][$HourCount][$CourseId]) == 1){
-                                    $Row['tblSubject'] = $tblTimeTableNode->getServiceTblSubject();
+                                // Originalfach anhand des Stundenplans finden (Muss eindeutig sein)
+                                if(!$tblSubject){
+                                    if ($Row['Date'] == $DayList[$tblTimeTableNode->getDay()]
+                                        && $Row['tblSubstituteSubject']->getId() == $tblTimeTableNode->getServiceTblSubject()->getId()
+                                    ) {
+                                        $tempSubjectListReplacement[$tblTimeTableNode->getServiceTblSubject()->getId()] = true;
+                                    }
+                                    // Vorhandenes Fach anfügen, wenn eindeutig
+                                    if(count($TimeTableList[$DayCount][$HourCount][$CourseId]) == 1
+                                        && count($ReplaceList[$DayCount][$HourCount][$CourseId]) == 1){
+                                        $Row['tblSubject'] = $tblTimeTableNode->getServiceTblSubject();
+                                    }
                                 }
                             }
                         }
@@ -491,7 +511,9 @@ class ReplacementService
                         foreach($ReplaceList[$DayCount][$HourCount][$CourseId] as $Row) {
                             if(!isset($Row['found'])){
                                 $hasFound = false;
-                                $DifferenceList[] = $Row;
+                                // Es kann nur ein Eintrag pro Fach & Klasse geben, bei Parallelunterricht erzeugte diese Stelle auch parallel gleiche Einträge
+//                                $DifferenceList[] = $Row;
+                                $DifferenceList[$Row['tblSubstituteSubject'].$Row['tblCourse']->getId()] = $Row;
                             }
                         }
 

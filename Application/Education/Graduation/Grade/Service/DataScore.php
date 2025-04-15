@@ -10,6 +10,7 @@ use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreConditi
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreGroup;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreGroupGradeTypeList;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreRule;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreRuleBehaviorSubject;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreRuleConditionList;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreRuleSubject;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreRuleSubjectDivisionCourse;
@@ -121,6 +122,48 @@ abstract class DataScore extends DataMinimumGradeCount
     }
 
     /**
+     * @param TblType $tblSchoolType
+     * @param int $level
+     * @param TblSubject|null $tblSubject
+     *
+     * @return false|TblScoreRuleBehaviorSubject
+     */
+    public function getScoreRuleBehaviorSubjectBySchoolTypeAndLevelAndSubject(TblType $tblSchoolType, int $level, ?TblSubject $tblSubject)
+    {
+        return $this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblScoreRuleBehaviorSubject', array(
+            TblScoreRuleBehaviorSubject::ATTR_SERVICE_TBL_SCHOOL_TYPE => $tblSchoolType->getId(),
+            TblScoreRuleBehaviorSubject::ATTR_LEVEL => $level,
+            TblScoreRuleBehaviorSubject::ATTR_SERVICE_TBL_SUBJECT => $tblSubject ? $tblSubject->getId() : null,
+        ));
+    }
+
+    /**
+     * @param TblType $tblSchoolType
+     *
+     * @return false|TblScoreRuleBehaviorSubject[]
+     */
+    public function getScoreRuleBehaviorSubjectListBySchoolType(TblType $tblSchoolType)
+    {
+        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblScoreRuleBehaviorSubject', array(
+            TblScoreRuleBehaviorSubject::ATTR_SERVICE_TBL_SCHOOL_TYPE => $tblSchoolType->getId()
+        ));
+    }
+
+    /**
+     * @param TblType $tblSchoolType
+     * @param int $level
+     *
+     * @return false|TblScoreRuleBehaviorSubject[]
+     */
+    public function getScoreRuleBehaviorSubjectListBySchoolTypeAndLevel(TblType $tblSchoolType, int $level)
+    {
+        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblScoreRuleBehaviorSubject', array(
+            TblScoreRuleBehaviorSubject::ATTR_SERVICE_TBL_SCHOOL_TYPE => $tblSchoolType->getId(),
+            TblScoreRuleBehaviorSubject::ATTR_LEVEL => $level
+        ));
+    }
+
+    /**
      * @param $id
      *
      * @return false|TblScoreRule
@@ -187,12 +230,12 @@ abstract class DataScore extends DataMinimumGradeCount
     /**
      * @param TblYear $tblYear
      * @param TblType $tblSchoolType
-     * @param int $level
+     * @param ?int $level
      * @param TblSubject $tblSubject
      *
      * @return false|TblScoreRuleSubject
      */
-    public function getScoreRuleSubjectByYearAndSchoolTypeAndLevelAndSubject(TblYear $tblYear, TblType $tblSchoolType, int $level, TblSubject $tblSubject)
+    public function getScoreRuleSubjectByYearAndSchoolTypeAndLevelAndSubject(TblYear $tblYear, TblType $tblSchoolType, ?int $level, TblSubject $tblSubject)
     {
         return $this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblScoreRuleSubject', array(
             TblScoreRuleSubject::ATTR_SERVICE_TBL_YEAR => $tblYear->getId(),

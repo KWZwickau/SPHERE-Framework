@@ -1033,7 +1033,7 @@ class ApiDebtorSelection extends Extension implements IApiInterface
                     foreach($tblBasketVerificationList as $tblBasketVerification){
                         $tblBasket = $tblBasketVerification->getTblBasket();
                         if($tblItemVariant && $tblBasket){
-                            $tblItemCalculation = Item::useService()->getItemCalculationNowByItemVariant($tblItemVariant, $tblBasket->getTargetTime());
+                            $tblItemCalculation = Item::useService()->getItemCalculationNowByItemVariant($tblItemVariant, $tblBasket->getBillTime());
                             if($tblItemCalculation){
                                 $ItemPrice = $tblItemCalculation->getValue();
                             }
@@ -1077,7 +1077,8 @@ class ApiDebtorSelection extends Extension implements IApiInterface
             ($tblDebtorSelection->getFromDate() ? $Global->POST['DebtorSelection']['FromDate'] = $tblDebtorSelection->getFromDate() : '');
             ($tblDebtorSelection->getToDate() ? $Global->POST['DebtorSelection']['ToDate'] = $tblDebtorSelection->getToDate() : '');
             $Value = $tblDebtorSelection->getValue(true);
-            ($Value !== '0,00' ? $Global->POST['DebtorSelection']['Price'] = $Value : '');
+            $Global->POST['DebtorSelection']['Price'] = $Value;
+//            ($Value !== '0,00' ? $Global->POST['DebtorSelection']['Price'] = $Value : '');
             $tblPerson = $tblDebtorSelection->getServiceTblPersonDebtor();
             ($tblPerson ? $Global->POST['DebtorSelection']['Debtor'] = $tblPerson->getId() : '');
             $tblBankAccount = $tblDebtorSelection->getTblBankAccount();

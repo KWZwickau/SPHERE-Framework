@@ -730,7 +730,7 @@ abstract class FrontendDiploma extends Extension implements IFrontendInterface
      *
      * @return TextField
      */
-    private function getTextField(string $preName, string $key, bool $isApproved, array $pipelineList): TextField
+    public function getTextField(string $preName, string $key, bool $isApproved, array $pipelineList): TextField
     {
         // SelectCompleter -> kein on change
 //        $field = new SelectCompleter($preName . '[' .$key . ']', '', '', $selectList);

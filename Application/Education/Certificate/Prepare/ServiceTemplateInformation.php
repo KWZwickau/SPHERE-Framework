@@ -12,6 +12,7 @@ use SPHERE\Application\Education\Graduation\Grade\Grade;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblGradeText;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
+use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubject;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -112,6 +113,8 @@ abstract class ServiceTemplateInformation extends ServiceLeave
                     $isTeamSet = false;
                     $hasRemarkText = false;
                     $hasEducationDateFrom = false;
+                    $hasDateFrom = false;
+                    $hasDateTo = false;
                     $isSubjectAreaSet = false;
                     $isDivisionNameSet = false;
                     $isOrientationSet = false;
@@ -128,6 +131,13 @@ abstract class ServiceTemplateInformation extends ServiceLeave
 
                             if ($tblPrepareInformation->getField() == 'EducationDateFrom') {
                                 $hasEducationDateFrom = true;
+                            }
+
+                            if ($tblPrepareInformation->getField() == 'DateFrom') {
+                                $hasDateFrom = true;
+                            }
+                            if ($tblPrepareInformation->getField() == 'DateTo') {
+                                $hasDateTo = true;
                             }
 
                             if ($tblPrepareInformation->getField() == 'SubjectArea') {
@@ -316,33 +326,40 @@ abstract class ServiceTemplateInformation extends ServiceLeave
                             }
                         }
 
-                        $textGTA = $tblPerson->getFirstSecondName() . ' besuchte in diesem Schuljahr ';
+                        if (count($tempList) > 0) {
+                            $textGTA = $tblPerson->getFirstSecondName() . ' besuchte in diesem Schuljahr ';
 
-                        switch (count($tempList)) {
-                            case 1: $textGTA .= 'das GTA ' . $tempList[0] . '.';
-                                break;
-                            case 2: $textGTA .= 'die GTA ' . $tempList[0]
-                                . ' und ' . $tempList[1] . '.';
-                                break;
-                            case 3: $textGTA .= 'die GTA ' . $tempList[0]
-                                . ', ' . $tempList[1]
-                                . ' und ' . $tempList[2] . '.';
-                                break;
-                            case 4: $textGTA .= 'die GTA ' . $tempList[0]
-                                . ', ' . $tempList[1]
-                                . ', ' . $tempList[2]
-                                . ' und ' . $tempList[3] . '.';
-                                break;
-                            case 5: $textGTA .= 'die GTA ' . $tempList[0]
-                                . ', ' . $tempList[1]
-                                . ', ' . $tempList[2]
-                                . ', ' . $tempList[3]
-                                . ' und ' . $tempList[4] . '.';
-                                break;
+                            switch (count($tempList)) {
+                                case 1:
+                                    $textGTA .= 'das GTA ' . $tempList[0] . '.';
+                                    break;
+                                case 2:
+                                    $textGTA .= 'die GTA ' . $tempList[0]
+                                        . ' und ' . $tempList[1] . '.';
+                                    break;
+                                case 3:
+                                    $textGTA .= 'die GTA ' . $tempList[0]
+                                        . ', ' . $tempList[1]
+                                        . ' und ' . $tempList[2] . '.';
+                                    break;
+                                case 4:
+                                    $textGTA .= 'die GTA ' . $tempList[0]
+                                        . ', ' . $tempList[1]
+                                        . ', ' . $tempList[2]
+                                        . ' und ' . $tempList[3] . '.';
+                                    break;
+                                case 5:
+                                    $textGTA .= 'die GTA ' . $tempList[0]
+                                        . ', ' . $tempList[1]
+                                        . ', ' . $tempList[2]
+                                        . ', ' . $tempList[3]
+                                        . ' und ' . $tempList[4] . '.';
+                                    break;
+                            }
+
+                            $Global->POST['Data'][$tblPrepareStudent->getId()]['GTA'] = $textGTA;
+                            $markPostList['GTA'] = true;
                         }
-
-                        $Global->POST['Data'][$tblPrepareStudent->getId()]['GTA'] = $textGTA;
-                        $markPostList['GTA'] = true;
                     }
 
                     // Vorsetzen des Schulbesuchsjahrs
@@ -407,15 +424,47 @@ abstract class ServiceTemplateInformation extends ServiceLeave
                     }
 
                     // Fachschule
-                    if (!$hasRemarkText
-                        && ($Certificate->getCertificateEntity()->getCertificate() == 'FsAbs'
-                            || $Certificate->getCertificateEntity()->getCertificate() == 'FsAbsFhr')
+                    if ($Certificate->getCertificateEntity()->getCertificate() == 'FsAbs'
+                            || $Certificate->getCertificateEntity()->getCertificate() == 'FsAbsFhr'
                     ) {
-                        $technicalCourseName = Student::useService()->getTechnicalCourseGenderNameByPerson($tblPerson);
-                        $Global->POST['Data'][$tblPrepareStudent->getId()]['RemarkWithoutTeam'] = 'Der Abschluss '
-                            . $technicalCourseName . ' ist im Deutschen und Europäischen Qualifikationsrahmen dem Niveau 6 zugeordnet.';
-                        $markPostList['RemarkWithoutTeam'] = true;
+                        if (!$hasRemarkText) {
+                            $technicalCourseName = Student::useService()->getTechnicalCourseGenderNameByPerson($tblPerson);
+                            $Global->POST['Data'][$tblPrepareStudent->getId()]['RemarkWithoutTeam'] = 'Der Abschluss '
+                                . $technicalCourseName . ' ist im Deutschen und Europäischen Qualifikationsrahmen dem Niveau 6 zugeordnet.';
+                            $markPostList['RemarkWithoutTeam'] = true;
+                        }
+
+                        // Besuchte "seit" die Fachschule
+                        if (!$hasDateFrom) {
+                            if (($tblStudentEducationList = DivisionCourse::useService()->getStudentEducationListByPerson($tblPerson))) {
+                                foreach ($tblStudentEducationList as $tblStudentEducationTemp) {
+                                    if ($tblStudentEducationTemp->getLevel() == 1
+                                        && ($tblSchoolTypeTemp = $tblStudentEducationTemp->getServiceTblSchoolType())
+                                        && $tblSchoolTypeTemp->getShortName() == 'FS'
+                                        && ($tblYearTemp = $tblStudentEducationTemp->getServiceTblYear())
+                                    ) {
+                                        list($startDate, $endDate) = Term::useService()->getStartDateAndEndDateOfYear($tblYearTemp);
+                                        if ($startDate) {
+                                            $Global->POST['Data'][$tblPrepareStudent->getId()]['DateFrom'] = $startDate->format('d.m.Y');
+                                            $markPostList['DateFrom'] = true;
+                                        }
+
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+
+                        // Besuchte "bis" die Fachschule
+                        if (!$hasDateTo) {
+                            list($startDate, $endDate) = Term::useService()->getStartDateAndEndDateOfYear($tblYear);
+                            if ($endDate) {
+                                $Global->POST['Data'][$tblPrepareStudent->getId()]['DateTo'] = $endDate->format('d.m.Y');
+                                $markPostList['DateTo'] = true;
+                            }
+                        }
                     }
+
                     // Vorsetzen der Fachrichtung bei Fachschulen
                     if (!$isSubjectAreaSet
                         && $tblStudent

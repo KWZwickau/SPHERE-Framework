@@ -52,9 +52,10 @@ abstract class ServiceDiploma extends ServiceCertificateContent
     }
 
     /**
-     * @param IFormInterface|null $Stage
+     * @param IFormInterface $Stage
      * @param TblPrepareCertificate $tblPrepare
      * @param $Data
+     * @param $ranking
      * @param null $NextTab
      *
      * @return IFormInterface|string|null
@@ -63,6 +64,7 @@ abstract class ServiceDiploma extends ServiceCertificateContent
         IFormInterface $Stage,
         TblPrepareCertificate $tblPrepare,
         $Data,
+        $ranking,
         $NextTab = null
     ) {
         /**
@@ -76,35 +78,12 @@ abstract class ServiceDiploma extends ServiceCertificateContent
             if (($tblPrepareStudent = $this->getPrepareStudentById($prepareStudentId))
                 && is_array($array)
             ) {
-                foreach ($array as $identifierRanking => $columns) {
-                    $temp = explode('_', $identifierRanking);
-                    $identifier = $temp[0];
-                    $ranking = $temp[1];
-
-                    $tblFirstSubject = false;
-                    $tblSecondSubject = false;
-                    $grade = '';
-                    if (isset($columns['S1'])) {
-                        $tblFirstSubject = Subject::useService()->getSubjectById($columns['S1']);
-                    }
-                    if (isset($columns['S2'])) {
-                        $tblSecondSubject = Subject::useService()->getSubjectById($columns['S2']);
-                    }
-                    if (isset($columns['GradeText'])
-                        && ($tblGradeText = Grade::useService()->getGradeTextById($columns['GradeText']))
-                    ) {
-                        $grade = $tblGradeText->getName();
-                    } elseif (isset($columns['Grade'])) {
-                        $grade = $columns['Grade'];
-                    }
-
-                    if (($tblPrepareComplexExam = $this->getPrepareComplexExamBy($tblPrepareStudent, $identifier, $ranking))) {
-                        (new Data($this->getBinding()))->updatePrepareComplexExam($tblPrepareComplexExam, $grade,
-                            $tblFirstSubject ?: null, $tblSecondSubject ?: null);
-                    } else {
-                        (new Data($this->getBinding()))->createPrepareComplexExam($tblPrepareStudent,$identifier, $ranking,
-                            $grade, $tblFirstSubject ?: null, $tblSecondSubject ?: null);
-                    }
+                foreach ($array as $identifier => $value) {
+                     if (($tblPrepareComplexExam = $this->getPrepareComplexExamBy($tblPrepareStudent, $identifier, $ranking))) {
+                            (new Data($this->getBinding()))->updatePrepareComplexExam($tblPrepareComplexExam, $value);
+                     } else if ($value) {
+                        (new Data($this->getBinding()))->createPrepareComplexExam($tblPrepareStudent, $identifier, $ranking, $value);
+                     }
                 }
             }
         }
@@ -606,7 +585,7 @@ abstract class ServiceDiploma extends ServiceCertificateContent
                 $calc = ($gradeList['JN'] + $gradeList['LM']) / 2;
             }
 
-            // bei ,5 entscheidet die Prüfungsnote bei FOS und BFS
+            // bei ,5 entscheidet die Prüfungsnote bei FOS und BFS und FS
             if ($isExamRound
                 && strpos($calc, '.5') !== false
                 && $gradeList['JN'] > $calc

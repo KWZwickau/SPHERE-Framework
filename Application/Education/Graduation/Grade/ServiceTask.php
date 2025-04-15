@@ -32,7 +32,10 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
+use SPHERE\Common\Frontend\Text\Repository\Bold;
+use SPHERE\Common\Frontend\Text\Repository\Danger;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
+use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Frontend\Text\Repository\Warning;
 
 abstract class ServiceTask extends ServiceStudentOverview
@@ -1136,6 +1139,9 @@ abstract class ServiceTask extends ServiceStudentOverview
      */
     public function getBehaviorTaskGradesViewData(TblTask $tblTask, TblDivisionCourse $tblDivisionCourse): array
     {
+        $calcProposalBehaviorGrade = ($tblSetting = Consumer::useService()->getSetting('Education', 'Graduation', 'Evaluation', 'CalcProposalBehaviorGrade'))
+            && $tblSetting->getValue();
+
         $hasBehaviorTaskSetting = ($tblSetting = Consumer::useService()->getSetting(
                 'Education', 'Graduation', 'Evaluation', 'HasBehaviorGradesForSubjectsWithNoGrading'
             ))
@@ -1178,15 +1184,13 @@ abstract class ServiceTask extends ServiceStudentOverview
                 }
                 if ($tblGradeTypeList) {
                     foreach ($tblGradeTypeList as $tblGradeType) {
-                        $sum = 0.0;
-                        $countGrades = 0;
+                        $gradeList = array();
                         if ($tblSubjectList) {
                             /** @var TblSubject $tblSubject */
                             foreach ($tblSubjectList as $tblSubject) {
                                 if (($gradeDisplay = $tblTaskGradeList[$tblSubject->getId()][$tblGradeType->getId()] ?? null)) {
                                     if (($gradeValue = Grade::useService()->getGradeNumberValue($gradeDisplay)) !== null) {
-                                        $sum += $gradeValue;
-                                        $countGrades++;
+                                        $gradeList[$tblSubject->getId()] = $gradeValue;
                                     }
                                 } else {
                                     $gradeDisplay = 'f';
@@ -1195,7 +1199,23 @@ abstract class ServiceTask extends ServiceStudentOverview
                                     = $tblSubject->getAcronym() . ': ' . $gradeDisplay;
                             }
                         }
-                        $average = ($countGrades > 0 ? 'Ø ' . Grade::useService()->getGradeAverage($sum, $countGrades) : '');
+
+                        // Kopfnoten KL
+                        if ($calcProposalBehaviorGrade) {
+                            if (($tblProposalBehaviorGrade = Grade::useService()->getProposalBehaviorGradeByPersonAndTaskAndGradeType(
+                                    $tblPerson, $tblTask, $tblGradeType
+                                ))
+                                && ($proposalGrade = $tblProposalBehaviorGrade->getGrade())
+                            ) {
+                                $gradeList[0] = floatval($proposalGrade);
+                                $bodyList[$tblPerson->getId()]['GradeType' . $tblGradeType->getId()]['KL'] = 'KL: ' . $proposalGrade;
+                            }
+                        }
+
+                        list($average, $toolTip, $errors) = Grade::useService()->getCalcStudentBehaviorAverage($tblPerson, $tblYear, $gradeList);
+                        if ($average) {
+                            $average = 'Ø ' . $average;
+                        }
                         $bodyList[$tblPerson->getId()]['AverageExcel' . $tblGradeType->getId()] = $average;
                     }
                 }
@@ -1203,5 +1223,33 @@ abstract class ServiceTask extends ServiceStudentOverview
         }
 
         return array($headerList, $bodyList);
+    }
+
+    /**
+     * @param string $grade
+     * @param bool $isPoints
+     *
+     * @return string
+     */
+    public function SetGradeColor(string $grade, bool $isPoints = false): string
+    {
+        if (($gradeValue = Grade::useService()->getGradeNumberValue($grade)) !== null) {
+            $gradeValue = round($gradeValue);
+            if ($isPoints) {
+                switch ($gradeValue) {
+                    case ($gradeValue > 4): return new Bold(new Success($grade));
+                    case ($gradeValue > 0): return new Bold(new Warning($grade));
+                    default: return new Bold(new Danger($grade));
+                }
+            } else {
+                switch ($gradeValue) {
+                    case ($gradeValue < 4): return new Bold(new Success($grade));
+                    case 4: return new Bold(new Warning($grade));
+                    default: return new Bold(new Danger($grade));
+                }
+            }
+        }
+
+        return $grade;
     }
 }

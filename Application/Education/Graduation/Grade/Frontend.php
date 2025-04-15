@@ -154,6 +154,8 @@ class Frontend extends FrontendTestPlanning
                         ApiGradeBook::receiverBlock("", "ChangeYear"),
                         (new Form(new FormGroup(new FormRow(new FormColumn(
                             (new SelectBox('Data[Year]', '', array("{{ DisplayName }}" => Term::useService()->getYearAll())))
+                                // SSWHD-3287 API kann bei TaskId (springen von Startseite) doppelt geladen werden -> bei alter Selectbox geht es -> es kann aber jetzt bei Tablets zu Problemen kommen
+                                ->configureLibrary(Selectbox::LIBRARY_SELECTER)
                                 ->ajaxPipelineOnChange(array(ApiGradeBook::pipelineChangeYear()))
                         )))))->disableSubmitAction()
                     ), 2)
@@ -923,17 +925,28 @@ class Frontend extends FrontendTestPlanning
             }
         }
 
-        // Kopfnotenvorschlag Button für Klassenlehrer
+        // Kopfnotenvorschlag/Kopfnoten Button für Klassenlehrer
         $buttonProposalBehaviorGrades = '';
         $showProposalBehaviorGrade = ($tblSetting = ConsumerSetting::useService()->getSetting('Education', 'Graduation', 'Evaluation', 'ShowProposalBehaviorGrade'))
             && $tblSetting->getValue();
-        if ($showProposalBehaviorGrade
+        $calcProposalBehaviorGrade = ($tblSetting = ConsumerSetting::useService()->getSetting('Education', 'Graduation', 'Evaluation', 'CalcProposalBehaviorGrade'))
+            && $tblSetting->getValue();
+        if (($showProposalBehaviorGrade || $calcProposalBehaviorGrade)
+            && $tblTask->getIsTypeBehavior()
             && ($tblDivisionCourse->getIsDivisionOrCoreGroup() || $tblDivisionCourse->getType() == TblDivisionCourseType::TYPE_TEACHING_GROUP)
             && ($tblPerson = Account::useService()->getPersonByLogin())
             && ($tblDivisionCourseMemberType = DivisionCourse::useService()->getDivisionCourseMemberTypeByIdentifier(TblDivisionCourseMemberType::TYPE_DIVISION_TEACHER))
             && (DivisionCourse::useService()->getDivisionCourseMemberByPerson($tblDivisionCourse, $tblDivisionCourseMemberType, $tblPerson))
         ) {
-            $buttonProposalBehaviorGrades = (new Standard('Kopfnotenvorschlag KL', ApiGradeBook::getEndpoint()))
+            if ($showProposalBehaviorGrade && $calcProposalBehaviorGrade) {
+                $name = 'Kopfnotenvorschlag und Kopfnoten KL';
+            } elseif ($calcProposalBehaviorGrade) {
+                $name = 'Kopfnoten KL';
+            } else {
+                $name = 'Kopfnotenvorschlag KL';
+            }
+
+            $buttonProposalBehaviorGrades = (new Standard($name, ApiGradeBook::getEndpoint()))
                 ->ajaxPipelineOnClick(ApiGradeBook::pipelineLoadViewProposalBehaviorGradeEditContent($DivisionCourseId, $SubjectId, $Filter, $TaskId));
         }
 
@@ -1347,10 +1360,22 @@ class Frontend extends FrontendTestPlanning
             )
             . $form;
 
+        $showProposalBehaviorGrade = ($tblSetting = ConsumerSetting::useService()->getSetting('Education', 'Graduation', 'Evaluation', 'ShowProposalBehaviorGrade'))
+            && $tblSetting->getValue();
+        $calcProposalBehaviorGrade = ($tblSetting = ConsumerSetting::useService()->getSetting('Education', 'Graduation', 'Evaluation', 'CalcProposalBehaviorGrade'))
+            && $tblSetting->getValue();
+        if ($showProposalBehaviorGrade && $calcProposalBehaviorGrade) {
+            $name = 'Kopfnotenvorschlag und Kopfnoten KL';
+        } elseif ($calcProposalBehaviorGrade) {
+            $name = 'Kopfnoten KL';
+        } else {
+            $name = 'Kopfnotenvorschlag KL';
+        }
+
         return new Title(
                 (new Standard("Zurück", ApiGradeBook::getEndpoint(), new ChevronLeft()))
                     ->ajaxPipelineOnClick(ApiGradeBook::pipelineLoadViewTaskGradeEditContent($DivisionCourseId, $SubjectId, $Filter, $TaskId))
-                . '&nbsp;&nbsp;&nbsp;&nbsp; Kopfnotenvorschlag KL - Eingabe'
+                . '&nbsp;&nbsp;&nbsp;&nbsp; ' . $name . ' - Eingabe'
                 . new Muted(new Small(" für Kurs: ")) . new Bold($tblDivisionCourse->getName())
             )
             . ApiSupportReadOnly::receiverOverViewModal()

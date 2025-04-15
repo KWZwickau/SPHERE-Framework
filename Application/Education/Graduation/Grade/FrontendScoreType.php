@@ -36,7 +36,7 @@ use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Window\Stage;
 
-abstract class FrontendScoreType extends FrontendScoreRule
+abstract class FrontendScoreType extends FrontendScoreRuleBehavior
 {
     /**
      * @return Stage

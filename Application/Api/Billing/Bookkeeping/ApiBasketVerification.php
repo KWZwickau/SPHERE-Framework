@@ -627,7 +627,7 @@ class ApiBasketVerification extends Extension implements IApiInterface
                     foreach($tblItemVariantList as $tblItemVariant) {
                         $PriceString = new DangerText('Nicht verfügbar');
                         $tblBasket = $tblBasketVerification->getTblBasket();
-                        if(($tblItemCalculation = Item::useService()->getItemCalculationByDate($tblItemVariant, new \DateTime($tblBasket->getTargetTime())))){
+                        if(($tblItemCalculation = Item::useService()->getItemCalculationByDate($tblItemVariant, new \DateTime($tblBasket->getBillTime())))){
                             $PriceString = $tblItemCalculation->getPriceString();
                         }
 
@@ -798,9 +798,9 @@ class ApiBasketVerification extends Extension implements IApiInterface
                         $tblBasketVerification = Basket::useService()->getBasketVerificationById($BasketVerificationId);
                         if(($tblBankReference = Debtor::useService()->getBankReferenceById($DebtorSelection['BankReference']))){
                             $tblBasket = $tblBasketVerification->getTblBasket();
-                            if($tblBasket && new \DateTime($tblBankReference->getReferenceDate()) > new \DateTime($tblBasket->getTargetTime())){
+                            if($tblBasket && new \DateTime($tblBankReference->getReferenceDate()) > new \DateTime($tblBasket->getBillTime())){
                                 $form->setError('DebtorSelection[BankReference]', 'Die ausgewählte Mandatsreferenznummer 
-                                ist zum akuellen Fälligkeitsdatum ('.$tblBasket->getTargetTime().') noch nicht verfügbar.');
+                                ist zum aktuellen Rechnungsdatum ('.$tblBasket->getBillTime().') noch nicht verfügbar.');
                                 $Error = true;
                             }
                         }
@@ -879,7 +879,7 @@ class ApiBasketVerification extends Extension implements IApiInterface
             // Change BasketVerification
             if($tblItemVariant){
                 $tblBasket = $tblBasketVerification->getTblBasket();
-                if(($tblItemCalculation = Item::useService()->getItemCalculationByDate($tblItemVariant, new \DateTime($tblBasket->getTargetTime())))){
+                if(($tblItemCalculation = Item::useService()->getItemCalculationByDate($tblItemVariant, new \DateTime($tblBasket->getBillTime())))){
                     $Value = $tblItemCalculation->getValue(true);
                 }
             } else {
@@ -1051,7 +1051,8 @@ class ApiBasketVerification extends Extension implements IApiInterface
 //            $tblItemVariant = $tblBasketVerification->getServiceTblItemVariant();
 //            ($tblItemVariant ? $_POST['DebtorSelection']['Variant'] = $tblItemVariant->getId() : '');
             $Value = $tblBasketVerification->getValue(true);
-            ($Value !== '0,00' ? $Global->POST['DebtorSelection']['Price'] = $Value : '0,00');
+            $Global->POST['DebtorSelection']['Price'] = $Value;
+//            ($Value !== '0,00' ? $Global->POST['DebtorSelection']['Price'] = $Value : '0,00');
             $tblPersonDebtor = $tblBasketVerification->getServiceTblPersonDebtor();
             ($tblPersonDebtor ? $Global->POST['DebtorSelection']['Debtor'] = $tblPersonDebtor->getId() : '');
             $tblBankAccount = $tblBasketVerification->getServiceTblBankAccount();
