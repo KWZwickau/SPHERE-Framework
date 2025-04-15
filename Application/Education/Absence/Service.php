@@ -238,7 +238,50 @@ class Service extends AbstractService
             }
         }
 
+        // Prüfung: ob "Datum von" ein freier Tag ist
+        if (!$error && $fromDate && (!$toDate || $fromDate == $toDate)) {
+            if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndDate($tblPerson, $Data['FromDate']))
+                && ($tblYear = $tblStudentEducation->getServiceTblYear())
+            ) {
+                if ($this->isWeekendOrHoliday(
+                    $fromDate,
+                    $tblYear,
+                    $tblStudentEducation->getServiceTblSchoolType() ?: null,
+                    $tblStudentEducation->getServiceTblCompany() ?: null
+                )) {
+                    $error = true;
+                    $form->setError('Data[FromDate]', 'Bitte geben Sie ein Datum an, welches nicht an einem freien Tag ist');
+                }
+            }
+        }
+
         return $error ? $form : false;
+    }
+
+    /**
+     * @param DateTime $date
+     * @param TblYear $tblYear
+     * @param TblType|null $tblSchoolType
+     * @param TblCompany|null $tblCompany
+     *
+     * @return bool
+     */
+    public function isWeekendOrHoliday(DateTime $date, TblYear $tblYear, ?TblType $tblSchoolType, ?TblCompany $tblCompany): bool
+    {
+        $DayAtWeek = $date->format('w');
+        if ($tblSchoolType && Digital::useService()->getHasSaturdayLessonsBySchoolType($tblSchoolType)) {
+            $isWeekend = $DayAtWeek == 0;
+        } else {
+            $isWeekend = $DayAtWeek == 0 || $DayAtWeek == 6;
+        }
+
+        if (!$isWeekend
+            && !Term::useService()->getHolidayByDay($tblYear, $date, $tblCompany)
+        ) {
+            return false;
+        }
+
+        return true;
     }
 
     /**
