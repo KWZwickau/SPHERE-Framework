@@ -44,7 +44,7 @@ class GymJ extends Certificate
             ->addSlice($this->getDivisionAndYear($personId))
             ->addSlice($this->getStudentName($personId))
             ->addSlice($this->getGradeLanesSmall($personId))
-            ->addSlice($this->getRatingContent($personId, '35px', '5px'))
+            ->addSlice($this->getRatingContent($personId, '65px', '5px'))
             ->addSlice((new Slice())
                 ->addElement((new Element())
                     ->setContent('Leistungen in den einzelnen Fächern:')
@@ -56,7 +56,7 @@ class GymJ extends Certificate
             ->addSlice($this->getSubjectLanesSmall($personId, true, array('Lane' => 1, 'Rank' => 3))
                 ->styleHeight('220px')
             )
-            ->addSlice($this->getProfileStandardNew($personId, '14px', false, true, false))
+            ->addSlice($this->getProfileStandardNew($personId, '10px', false, true, false))
             ->addSlice((new Slice())
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
@@ -69,15 +69,16 @@ class GymJ extends Certificate
                         ->styleHeight('25px')
                     )
                 )
-                ->styleMarginTop('5px')
+                ->styleMarginTop('10px')
             )
-            ->addSlice($this->getDescriptionHead($personId, true))
-            ->addSlice($this->getDescriptionContent($personId, '100px', '5px'))
+            ->addSlice(FelsStyle::getCustomDescription($personId, '100px', '10px', false))
+//            ->addSlice($this->getDescriptionHead($personId, true))
+//            ->addSlice($this->getDescriptionContent($personId, '100px', '5px'))
             ->addSlice($this->getTransfer($personId, '2px'))
             ->addSlice($this->getDateLine($personId, '10px'))
             ->addSlice($this->getSignPart($personId, true))
             ->addSlice($this->getParentSign('33px'))
-            ->addSlice($this->getInfo('20px',
+            ->addSlice($this->getInfo('5px',
                 'Notenerläuterung:',
                 '1 = sehr gut; 2 = gut; 3 = befriedigend; 4 = ausreichend; 5 = mangelhaft;
                                           6 = ungenügend (6 = ungenügend nur bei der Bewertung der Leistungen)'
