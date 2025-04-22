@@ -601,7 +601,6 @@ class ApiPersonDelete extends Extension implements IApiInterface
     public function serviceDeleteGuardContent($PersonReduce = array(), $InitialCount = '')
     {
 
-        // Todo hier partiell arbeiten.
         $WorkCount = 0;
         if(!empty($PersonReduce)){
             foreach($PersonReduce as &$PersonId){
