@@ -85,6 +85,7 @@ class Frontend extends Extension implements IFrontendInterface
                             'DebtorNumber'    => 'Debitoren-Nr.',
                             'BasketName'      => 'Name der Abrechnung',
                             'CauserPerson'    => 'Beitragsverursacher',
+                            'DivisionCourse'  => 'Kurs',
                             'CauserIdent'     => 'Schülernummer',
                             'Time'            => 'Abrechnungs&shy;zeitraum',
                             'TargetTime'      => 'Fälligkeits&shy;datum',
@@ -166,7 +167,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutColumn(
                             new TableData($TableContent, null, array(
                                 'CauserPerson'   => 'Beitragsverursacher',
-                                'DivisionCourse' => 'Kurs '.new Info(),
+                                'DivisionCourse' => 'Kurs',
                                 'CauserIdent'    => 'Schülernummer',
                                 'Item'           => 'Beitragsarten',
                                 'DebtorPerson'   => 'Beitragszahler',

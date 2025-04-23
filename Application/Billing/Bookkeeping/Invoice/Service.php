@@ -727,7 +727,7 @@ class Service extends AbstractService
                             $CourseName = $tblCoreGroup->getDisplayName();
                         }
                         if($CourseName){
-                            $item['DivisionCourse'] = new ToolTip($CourseName, 'Stand: '.'01.'.$tblInvoice->getMonth(true).'.'.$tblInvoice->getYear());
+                            $item['DivisionCourse'] = $CourseName . new ToolTip('&nbsp;'.new Info(), 'Stand: '.'01.'.$tblInvoice->getMonth(true).'.'.$tblInvoice->getYear());
                             $item['DivisionCourseExcel'] = $CourseName;
                         }
                     }
@@ -879,10 +879,26 @@ class Service extends AbstractService
                 $item['BasketName'] = $tblInvoice->getBasketName();
                 $item['CauserPerson'] = '';
                 $item['CauserIdent'] = '';
+                $item['DivisionCourse'] = '';
+                $item['DivisionCourseExcel'] = '';
                 if($tblPersonCauser = $tblInvoice->getServiceTblPersonCauser()){
                     $item['CauserPerson'] = $tblPersonCauser->getLastFirstName();
                     if(($tblStudent = Student::useService()->getStudentByPerson($tblPersonCauser))){
                         $item['CauserIdent'] = $tblStudent->getIdentifierComplete();
+                    }
+                    // aktive Klasse zum 1. des Abrechnungsmonats
+                    if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndDate(
+                        $tblPersonCauser, $tblInvoice->getYear().'-'.$tblInvoice->getMonth(true).'-01'))) {
+                        $CourseName = '';
+                        if (($tblDivision = $tblStudentEducation->getTblDivision())) {
+                            $CourseName = $tblDivision->getDisplayName();
+                        } elseif(($tblCoreGroup = $tblStudentEducation->getTblCoreGroup())) {
+                            $CourseName = $tblCoreGroup->getDisplayName();
+                        }
+                        if($CourseName){
+                            $item['DivisionCourse'] = $CourseName . new ToolTip('&nbsp;'.new Info(), 'Stand: '.'01.'.$tblInvoice->getMonth(true).'.'.$tblInvoice->getYear());
+                            $item['DivisionCourseExcel'] = $CourseName;
+                        }
                     }
                 }
                 $item['DebtorPerson'] = '';
@@ -999,6 +1015,7 @@ class Service extends AbstractService
             $export->setValue($export->getCell($column++, $row), 'Ortsteil');
             $export->setValue($export->getCell($column++, $row), 'Name der Abrechnung');
             $export->setValue($export->getCell($column++, $row), 'Beitragsverursacher');
+            $export->setValue($export->getCell($column++, $row), 'Kurs');
             $export->setValue($export->getCell($column++, $row), 'Schülernummer');
             $export->setValue($export->getCell($column++, $row), 'Abrechnungszeitraum');
             $export->setValue($export->getCell($column++, $row), 'Fälligkeitsdatum');
@@ -1026,6 +1043,7 @@ class Service extends AbstractService
                 $export->setValue($export->getCell($column++, $row), $result['BasketDistrict']);
                 $export->setValue($export->getCell($column++, $row), $result['BasketName']);
                 $export->setValue($export->getCell($column++, $row), $result['CauserPerson']);
+                $export->setValue($export->getCell($column++, $row), $result['DivisionCourseExcel']);
                 $export->setValue($export->getCell($column++, $row), $result['CauserIdent']);
                 $export->setValue($export->getCell($column++, $row), $result['Time']);
                 $export->setValue($export->getCell($column++, $row), $result['TargetTime']);
