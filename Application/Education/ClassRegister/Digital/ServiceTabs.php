@@ -35,6 +35,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Commodity;
 use SPHERE\Common\Frontend\Icon\Repository\CommodityItem;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
+use SPHERE\Common\Frontend\Icon\Repository\History;
 use SPHERE\Common\Frontend\Icon\Repository\Holiday;
 use SPHERE\Common\Frontend\Icon\Repository\Hospital;
 use SPHERE\Common\Frontend\Icon\Repository\Info as InfoIcon;
@@ -348,6 +349,10 @@ abstract class ServiceTabs extends ServiceForgotten
             new Listing(), $DivisionCourseId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/Lectureship');
         $buttonList[] = $this->getButton('Ferien', '/Education/ClassRegister/Digital/Holiday',
             new Holiday(), $DivisionCourseId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/Holiday');
+        if (!$isCourseSystem) {
+            $buttonList[] = $this->getButton('Vergessene Arbeitsmittel/Hausaufgaben', '/Education/ClassRegister/Digital/Forgotten',
+                new History(), $DivisionCourseId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/Forgotten');
+        }
         $buttonList[] = $this->getButton('Download', '/Education/ClassRegister/Digital/Download',
             new Download(), $DivisionCourseId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/Download');
 
@@ -434,6 +439,8 @@ abstract class ServiceTabs extends ServiceForgotten
 //            $DivisionCourseId, $BackDivisionCourseId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/Lectureship');
         $buttonList[] = $this->getButtonCourseSystem('Ferien', '/Education/ClassRegister/Digital/Holiday', new Holiday(),
             $DivisionCourseId, $BackDivisionCourseId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/Holiday');
+        $buttonList[] = $this->getButtonCourseSystem('Vergessene Arbeitsmittel/Hausaufgaben', '/Education/ClassRegister/Digital/Forgotten', new History(),
+            $DivisionCourseId, $BackDivisionCourseId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/Forgotten');
         $buttonList[] = $this->getButtonCourseSystem('Download', '/Education/ClassRegister/Digital/Download', new Download(),
             $DivisionCourseId, $BackDivisionCourseId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/Download');
 

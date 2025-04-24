@@ -6,11 +6,11 @@ use DateTime;
 use SPHERE\Application\Education\ClassRegister\Digital\Service\Data;
 use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblForgotten;
 use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblForgottenStudent;
-use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblLessonContent;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\People\Person\Person;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
@@ -77,6 +77,7 @@ abstract class ServiceForgotten extends ServiceCourseContent
     /**
      * @param $Data
      * @param TblDivisionCourse $tblDivisionCourse
+     * @param null $Filter
      * @param TblForgotten|null $tblForgotten
      *
      * @return false|Form
@@ -84,11 +85,12 @@ abstract class ServiceForgotten extends ServiceCourseContent
     public function checkFormForgotten(
         $Data,
         TblDivisionCourse $tblDivisionCourse,
+        $Filter = null,
         ?TblForgotten $tblForgotten = null
     ): Form|bool {
         $error = false;
 
-        $form = Digital::useFrontend()->formForgotten($tblDivisionCourse, $tblForgotten?->getId());
+        $form = Digital::useFrontend()->formForgotten($tblDivisionCourse, $Filter, $tblForgotten?->getId());
 
         if (isset($Data['Date']) && empty($Data['Date'])) {
             $form->setError('Data[Date]', 'Bitte geben Sie ein Datum an');
@@ -163,7 +165,7 @@ abstract class ServiceForgotten extends ServiceCourseContent
                 ? $tblLessonContent : null
         );
 
-        if (($tblForgottenStudentList = $this->getStudentsByForgotten($tblForgotten))) {
+        if (($tblForgottenStudentList = $tblForgotten->getForgottenStudents())) {
             foreach ($tblForgottenStudentList as $tblForgottenStudent) {
                 if (($tblPersonRemove = $tblForgottenStudent->getServiceTblPerson())
                     && !isset($Data['Students'][$tblPersonRemove->getId()])
@@ -191,7 +193,7 @@ abstract class ServiceForgotten extends ServiceCourseContent
      */
     public function destroyForgotten(TblForgotten $tblForgotten): bool
     {
-        if (($list = $this->getStudentsByForgotten($tblForgotten))) {
+        if (($list = $tblForgotten->getForgottenStudents())) {
             foreach ($list as $tblForgottenStudent) {
                 (new Data($this->getBinding()))->removeForgottenStudent($tblForgottenStudent);
             }
@@ -208,5 +210,17 @@ abstract class ServiceForgotten extends ServiceCourseContent
     public function getStudentsByForgotten(TblForgotten $tblForgotten): bool|array
     {
         return (new Data($this->getBinding()))->getStudentsByForgotten($tblForgotten);
+    }
+
+    /**
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param TblSubject|null $tblSubject
+     * @param TblPerson|null $tblPerson
+     *
+     * @return false|TblForgotten[]
+     */
+    public function getForgottenListBy(TblDivisionCourse $tblDivisionCourse, ?TblSubject $tblSubject = null, ?TblPerson $tblPerson = null): array|bool
+    {
+        return (new Data($this->getBinding()))->getForgottenListBy($tblDivisionCourse, $tblSubject, $tblPerson);
     }
 }

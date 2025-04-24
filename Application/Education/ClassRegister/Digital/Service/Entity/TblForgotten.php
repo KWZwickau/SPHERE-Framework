@@ -98,7 +98,7 @@ class TblForgotten extends Element
      */
     public function setServiceTblSubject(TblSubject $tblSubject = null): void
     {
-        $this->serviceTblSubject = ( null === $tblSubject ? null : $tblSubject->getId() );
+        $this->serviceTblSubject = $tblSubject?->getId();
     }
 
     /**
@@ -196,5 +196,38 @@ class TblForgotten extends Element
     public function setRemark(string $Remark): void
     {
         $this->Remark = $Remark;
+    }
+
+    /**
+     * @return string
+     */
+    public function getDisplayType(): string
+    {
+        return $this->getIsHomework() ? 'Hausaufgabe' : 'Arbeitsmittel';
+    }
+
+    /**
+     * @return array
+     */
+    public function getForgottenStudents(): array
+    {
+        return Digital::useService()->getStudentsByForgotten($this);
+    }
+
+    /**
+     * @return string
+     */
+    public function getDisplayForgottenStudents(): string
+    {
+        $students = [];
+        if (($tblForgottenStudentList = $this->getForgottenStudents())) {
+            foreach ($tblForgottenStudentList as $tblForgottenStudent) {
+                if (($tblPerson = $tblForgottenStudent->getServiceTblPerson())) {
+                    $students[] = $tblPerson->getFirstName() . ' ' . $tblPerson->getLastName();
+                }
+            }
+        }
+
+        return implode(', ', $students);
     }
 }

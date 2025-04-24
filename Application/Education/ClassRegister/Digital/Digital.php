@@ -53,6 +53,9 @@ class Digital  implements IModuleInterface
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__ . '\Holiday', __NAMESPACE__ . '\Frontend::frontendHoliday')
         );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__ . '\Forgotten', __NAMESPACE__ . '\Frontend::frontendForgotten')
+        );
     }
 
     /**

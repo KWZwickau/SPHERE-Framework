@@ -904,8 +904,9 @@ class Data  extends AbstractData
         $Manager = $this->getEntityManager();
         $queryBuilder = $Manager->getQueryBuilder();
 
-        $query = $queryBuilder->select('t')
-            ->from(__NAMESPACE__ . '\Entity\TblLessonContent', 't')
+        $query = $queryBuilder
+            ->select('t')
+            ->from(TblLessonContent::class, 't')
             ->where($queryBuilder->expr()->andX(
                 $queryBuilder->expr()->isNull('t.EntityRemove'),
                 $queryBuilder->expr()->eq('t.serviceTblDivision', '?1'),
@@ -966,8 +967,9 @@ class Data  extends AbstractData
         $Manager = $this->getEntityManager();
         $queryBuilder = $Manager->getQueryBuilder();
 
-        $query = $queryBuilder->select('t')
-            ->from(__NAMESPACE__ . '\Entity\TblCourseContent', 't')
+        $query = $queryBuilder
+            ->select('t')
+            ->from(TblCourseContent::class, 't')
                 ->where($queryBuilder->expr()->andX(
                     $queryBuilder->expr()->isNull('t.EntityRemove'),
                     $queryBuilder->expr()->eq('t.serviceTblDivisionCourse', '?1'),
@@ -1167,5 +1169,52 @@ class Data  extends AbstractData
         return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblForgottenStudent', array(
             TblForgottenStudent::ATTR_TBL_FORGOTTEN => $tblForgotten->getId()
         ));
+    }
+
+    /**
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param TblSubject|null $tblSubject
+     * @param TblPerson|null $tblPerson
+     *
+     * @return false|TblForgotten[]
+     */
+    public function getForgottenListBy(TblDivisionCourse $tblDivisionCourse, ?TblSubject $tblSubject = null, ?TblPerson $tblPerson = null): array|bool
+    {
+        $Manager = $this->getEntityManager();
+        $queryBuilder = $Manager->getQueryBuilder();
+
+        $query = $queryBuilder
+            ->select('t')
+            ->from(TblForgotten::class, 't')
+            ->where($queryBuilder->expr()->andX(
+                $queryBuilder->expr()->isNull('t.EntityRemove'),
+                $queryBuilder->expr()->eq('t.serviceTblDivisionCourse', '?1'),
+                $queryBuilder->expr()->orX(
+                ))
+            )
+            ->orderBy('t.Date', 'DESC')
+            ->setParameter(1, $tblDivisionCourse->getId());
+
+        if ($tblSubject) {
+            $query
+                ->andWhere($queryBuilder->expr()->eq('t.serviceTblSubject', '?2'))
+                ->setParameter(2, $tblSubject->getId());
+        }
+
+        if ($tblPerson) {
+            $query
+                ->join(TblForgottenStudent::class, 'fs')
+                ->andWhere($queryBuilder->expr()->andX(
+                    $queryBuilder->expr()->eq('t.Id', 'fs.tblClassRegisterForgotten'),
+                    $queryBuilder->expr()->eq('fs.serviceTblPerson', '?3')
+                ))
+                ->setParameter(3, $tblPerson->getId());
+        }
+
+        $resultList = $query
+            ->getQuery()
+            ->getResult();
+
+        return empty($resultList) ? false : $resultList;
     }
 }
