@@ -60,10 +60,9 @@ use SPHERE\Common\Frontend\Text\Repository\Info;
 use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Stage;
-use SPHERE\System\Extension\Repository\Debugger;
 use SPHERE\System\Extension\Repository\Sorter\StringNaturalOrderSorter;
 
-abstract class ServiceTabs extends ServiceCourseContent
+abstract class ServiceTabs extends ServiceForgotten
 {
     /**
      * @param Stage $Stage
