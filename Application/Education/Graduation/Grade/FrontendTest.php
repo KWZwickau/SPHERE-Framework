@@ -848,7 +848,7 @@ abstract class FrontendTest extends FrontendTeacherGroup
                     && ($tblScoreType = Grade::useService()->getScoreTypeByPersonAndYearAndSubject($tblPerson, $tblYear, $tblSubject))
                 ) {
                     // auf ganze Note runden
-                    $gradeValue = intval(round(intval($item['Grade'])));
+                    $gradeValue = intval(round(Grade::useService()->getGradeNumberValue($item['Grade'])));
 
                     if (!isset($gradeList[$tblScoreType->getId()])) {
                         $gradeList[$tblScoreType->getId()]['Sum'] = 0;
