@@ -26,10 +26,13 @@ use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Filter;
 use SPHERE\Common\Frontend\Icon\Repository\History;
 use SPHERE\Common\Frontend\Icon\Repository\Pen;
+use SPHERE\Common\Frontend\Icon\Repository\PersonGroup;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\PullClear;
+use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
@@ -39,6 +42,7 @@ use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
+use SPHERE\Common\Frontend\Text\Repository\Strikethrough;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 
@@ -244,6 +248,7 @@ class FrontendForgotten extends FrontendCourseContent
      * @param null $DivisionCourseId
      * @param null $BackDivisionCourseId
      * @param string $BasicRoute
+     * @param string $View
      * @param null $Filter
      *
      * @return Stage|string
@@ -252,6 +257,7 @@ class FrontendForgotten extends FrontendCourseContent
         $DivisionCourseId = null,
         $BackDivisionCourseId = null,
         string $BasicRoute = '/Education/ClassRegister/Digital/Teacher',
+        string $View = 'ForgottenOverview',
         $Filter = null
     ): string|Stage {
         $stage = new Stage('Digitales Klassenbuch', 'Vergessene Arbeitsmittel/Hausaufgaben');
@@ -259,9 +265,29 @@ class FrontendForgotten extends FrontendCourseContent
         if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
             $stage->addButton(Digital::useFrontend()->getBackButton($tblDivisionCourse, $BackDivisionCourseId, $BasicRoute));
 
-            $content = ApiForgotten::receiverModal()
-                . new Panel(new Filter() . ' Filter', $this->formFilter($tblDivisionCourse), Panel::PANEL_TYPE_INFO)
-                . ApiForgotten::receiverBlock($this->loadForgottenTable($tblDivisionCourse, $Filter), 'ForgottenContent');
+            if ($View == 'ForgottenOverview') {
+                $content = ApiForgotten::receiverModal()
+                    . new Panel(new Filter() . ' Filter', $this->formFilter($tblDivisionCourse), Panel::PANEL_TYPE_INFO)
+                    . ApiForgotten::receiverBlock($this->loadForgottenTable($tblDivisionCourse, $Filter), 'ForgottenContent');
+
+                $button = new Standard('Zur Schüleransicht wechseln', '/Education/ClassRegister/Digital/Forgotten', new PersonGroup(), array(
+                    'DivisionCourseId' => $DivisionCourseId,
+                    'BachDivisionCourseId' => $BackDivisionCourseId,
+                    'BasicRoute' => $BasicRoute,
+                    'View' => 'Student',
+                    'Filter' => $Filter
+                ));
+            } else {
+                $content = $this->loadForgottenStudentOverviewTable($tblDivisionCourse);
+
+                $button = new Standard('Zur Vergessene Arbeitsmittel/Hausaufgaben-Übersicht wechseln', '/Education/ClassRegister/Digital/Forgotten', new History(), array(
+                    'DivisionCourseId' => $DivisionCourseId,
+                    'BachDivisionCourseId' => $BackDivisionCourseId,
+                    'BasicRoute' => $BasicRoute,
+                    'View' => 'ForgottenOverview',
+                    'Filter' => $Filter
+                ));
+            }
 
             $stage->setContent(
                 new Layout(array(
@@ -274,7 +300,7 @@ class FrontendForgotten extends FrontendCourseContent
                     )),
                     new LayoutGroup(new LayoutRow(new LayoutColumn(
                         $content
-                    )), new \SPHERE\Common\Frontend\Layout\Repository\Title(new History() . ' Vergessene Arbeitsmittel/Hausaufgaben'))
+                    )), new \SPHERE\Common\Frontend\Layout\Repository\Title(new PullClear(new History() . ' Vergessene Arbeitsmittel/Hausaufgaben' . new PullRight($button))))
                 ))
             );
         } else {
@@ -385,5 +411,53 @@ class FrontendForgotten extends FrontendCourseContent
         }
 
         return $addLink . '';
+    }
+
+    /**
+     * @param TblDivisionCourse $tblDivisionCourse
+     *
+     * @return TableData
+     */
+    public function loadForgottenStudentOverviewTable(TblDivisionCourse $tblDivisionCourse): TableData
+    {
+        $dataList = [];
+        if (($tblDivisionCourseMemberList = $tblDivisionCourse->getStudentsWithSubCourses(true, false))
+            && ($tblYear = $tblDivisionCourse->getServiceTblYear())
+        ) {
+            $count = 0;
+            foreach ($tblDivisionCourseMemberList as $tblDivisionCourseMember) {
+                if (($tblPerson = $tblDivisionCourseMember->getServiceTblPerson())) {
+                    $count++;
+                    $sumHomework = Digital::useService()->getForgottenSumByPersonAndYear($tblPerson, $tblYear, true);
+                    $sumEquipment = Digital::useService()->getForgottenSumByPersonAndYear($tblPerson, $tblYear, false);
+                    $sumTotal = $sumHomework + $sumEquipment; //Digital::useService()->getForgottenSumByPersonAndYear($tblPerson, $tblYear, null);
+                    $dataList[] = array(
+                        'Number' => $tblDivisionCourseMember->isInActive() ? new Strikethrough($count) : $count,
+                        'Name' => $tblDivisionCourseMember->isInActive() ? new Strikethrough($tblPerson->getLastFirstNameWithCallNameUnderline()) : $tblPerson->getLastFirstNameWithCallNameUnderline(),
+                        'SumHomework' => $tblDivisionCourseMember->isInActive() ? new Strikethrough( $sumHomework . ' ') :  $sumHomework . ' ',
+                        'SumEquipment' => $tblDivisionCourseMember->isInActive() ? new Strikethrough( $sumEquipment . ' ') :  $sumEquipment . ' ',
+                        'SumTotal' => $tblDivisionCourseMember->isInActive() ? new Strikethrough( $sumTotal . ' ') :  $sumTotal . ' ',
+                    );
+                }
+            }
+        }
+
+        $columns = array(
+            'Number' => '#',
+            'Name' => 'Name',
+            'SumHomework' => 'Summe Vergessene Hausaufgaben',
+            'SumEquipment' => 'Summe Vergessene Arbeitsmittel',
+            'SumTotal' => 'Gesamtsumme'
+        );
+
+        return new TableData(
+            $dataList,
+            null,
+            $columns,
+            array(
+                'order'      => array(array(0, 'asc')),
+                'responsive' => false,
+            )
+        );
     }
 }

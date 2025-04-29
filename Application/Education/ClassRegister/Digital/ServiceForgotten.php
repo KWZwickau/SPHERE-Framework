@@ -9,6 +9,7 @@ use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblForgott
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
+use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\Structure\Form;
@@ -16,6 +17,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
+use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 
 abstract class ServiceForgotten extends ServiceCourseContent
 {
@@ -222,5 +224,49 @@ abstract class ServiceForgotten extends ServiceCourseContent
     public function getForgottenListBy(TblDivisionCourse $tblDivisionCourse, ?TblSubject $tblSubject = null, ?TblPerson $tblPerson = null): array|bool
     {
         return (new Data($this->getBinding()))->getForgottenListBy($tblDivisionCourse, $tblSubject, $tblPerson);
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     * @param bool|null $isHomework
+     * @param TblSubject|null $tblSubject
+     *
+     * @return int
+     */
+    public function getForgottenSumByPersonAndYear(TblPerson $tblPerson, TblYear $tblYear, ?bool $isHomework, ?TblSubject $tblSubject = null): int
+    {
+        return (new Data($this->getBinding()))->getForgottenSumByPersonAndYear($tblPerson, $tblYear, $isHomework, $tblSubject);
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     * @param TblSubject|null $tblSubject
+     *
+     * @return string
+     */
+    public function getForgottenDisplayByPersonAndYear(TblPerson $tblPerson, TblYear $tblYear, TblSubject $tblSubject = null): string
+    {
+        $forgottenText = '';
+        $forgottenToolTip = '';
+        if ($tblSubject) {
+            $countForgottenEquipmentSubject = $this->getForgottenSumByPersonAndYear($tblPerson, $tblYear, false, $tblSubject);
+            $countForgottenHomeworkSubject = Digital::useService()->getForgottenSumByPersonAndYear($tblPerson, $tblYear, true, $tblSubject);
+            $countForgottenTotalSubject = $countForgottenEquipmentSubject + $countForgottenHomeworkSubject;
+            $forgottenText = $tblSubject->getAcronym() . ': ' . $countForgottenTotalSubject . ' (' . $countForgottenEquipmentSubject . ', ' . $countForgottenHomeworkSubject . ')'
+                . '&nbsp;&ndash;&nbsp;';
+            $forgottenToolTip = $tblSubject->getAcronym() . '-Gesamt: ' . $countForgottenTotalSubject . ' (Arbeitsmittel: ' . $countForgottenEquipmentSubject
+                . ', Hausaufgaben: ' . $countForgottenHomeworkSubject . ')'
+                . '<br />';
+        }
+        $countForgottenEquipment = Digital::useService()->getForgottenSumByPersonAndYear($tblPerson, $tblYear, false);
+        $countForgottenHomework = Digital::useService()->getForgottenSumByPersonAndYear($tblPerson, $tblYear, true);
+        $countForgottenTotal = $countForgottenEquipment + $countForgottenHomework;
+        $forgottenText .= 'Alle Fächer: ' . $countForgottenTotal . ' (' . $countForgottenEquipment . ', ' . $countForgottenHomework . ')';
+        $forgottenToolTip .= 'Alle Fächer gesamt: ' . $countForgottenTotal . ' (Arbeitsmittel: ' . $countForgottenEquipment
+            . ', Hausaufgaben: ' . $countForgottenHomework . ')';
+
+        return (new ToolTip($forgottenText, $forgottenToolTip))->enableHtml();
     }
 }

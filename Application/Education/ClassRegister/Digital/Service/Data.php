@@ -1188,10 +1188,8 @@ class Data  extends AbstractData
             ->from(TblForgotten::class, 't')
             ->where($queryBuilder->expr()->andX(
                 $queryBuilder->expr()->isNull('t.EntityRemove'),
-                $queryBuilder->expr()->eq('t.serviceTblDivisionCourse', '?1'),
-                $queryBuilder->expr()->orX(
-                ))
-            )
+                $queryBuilder->expr()->eq('t.serviceTblDivisionCourse', '?1')
+            ))
             ->orderBy('t.Date', 'DESC')
             ->setParameter(1, $tblDivisionCourse->getId());
 
@@ -1216,5 +1214,56 @@ class Data  extends AbstractData
             ->getResult();
 
         return empty($resultList) ? false : $resultList;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     * @param bool|null $isHomework
+     * @param TblSubject|null $tblSubject
+     *
+     * @return int
+     */
+    public function getForgottenSumByPersonAndYear(TblPerson $tblPerson, TblYear $tblYear, ?bool $isHomework, ?TblSubject $tblSubject = null): int
+    {
+        $Manager = $this->getEntityManager();
+        $queryBuilder = $Manager->getQueryBuilder();
+
+        $query = $queryBuilder
+            ->select('f')
+            ->from(TblForgotten::class, 'f')
+            ->join(TblDivisionCourse::class, 'c')
+            ->join(TblForgottenStudent::class, 'fs')
+            ->where($queryBuilder->expr()->andX(
+                $queryBuilder->expr()->isNull('f.EntityRemove'),
+                $queryBuilder->expr()->eq('f.serviceTblDivisionCourse', 'c.Id'),
+                $queryBuilder->expr()->eq('f.Id', 'fs.tblClassRegisterForgotten'),
+                $queryBuilder->expr()->eq('fs.serviceTblPerson', '?1'),
+                $queryBuilder->expr()->eq('c.serviceTblYear', '?2'),
+            ))
+            ->setParameter(1, $tblPerson->getId())
+            ->setParameter(2, $tblYear->getId());
+
+        if ($isHomework !== null) {
+            $query
+                ->andWhere($queryBuilder->expr()->andX(
+                    $queryBuilder->expr()->eq('f.IsHomework', '?3')
+                ))
+                ->setParameter(3, $isHomework);
+        }
+
+        if ($tblSubject !== null) {
+            $query
+                ->andWhere($queryBuilder->expr()->andX(
+                    $queryBuilder->expr()->eq('f.serviceTblSubject', '?4')
+                ))
+                ->setParameter(4, $tblSubject->getId());
+        }
+
+        $resultList = $query
+            ->getQuery()
+            ->getResult();
+
+        return count($resultList);
     }
 }
