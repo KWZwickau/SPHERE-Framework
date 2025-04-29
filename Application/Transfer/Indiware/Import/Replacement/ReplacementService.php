@@ -587,12 +587,12 @@ class ReplacementService
         $ArrayData = json_decode($Json, true);
         $schoolName = '';
         $importList = array();
-        // ESS
-//        if(isset($ArrayData['Gesamtexport']['Vertretungsplan']['Vertretungsplan'])
-//            && ($ReplacementList = $ArrayData['Gesamtexport']['Vertretungsplan']['Vertretungsplan'])){
-        // EVSR
-        if(isset($ArrayData['Vertretungsplan'])
-            && ($ReplacementList = $ArrayData['Vertretungsplan'])){
+        // ESS && EVSR über Webhook erhalten
+        if(isset($ArrayData['Gesamtexport']['Vertretungsplan']['Vertretungsplan'])
+            && ($ReplacementList = $ArrayData['Gesamtexport']['Vertretungsplan']['Vertretungsplan'])){
+        // EVSR Händisch als Json erhalten
+//        if(isset($ArrayData['Vertretungsplan'])
+//            && ($ReplacementList = $ArrayData['Vertretungsplan'])){
             foreach($ReplacementList as $Replacement){
                 // Kopf
                 if(isset($Replacement['Kopf']['Schulname'])){
