@@ -1514,9 +1514,10 @@ class Service extends ServiceYearChange
      * @param TblPerson $tblPerson
      * @param TblYear $tblYear
      * @param string $date
+     *
      * @return TblStudentEducation|bool
      */
-    public function getStudentEducationListByPersonAndYearAndDateWithLeaved(TblPerson $tblPerson, TblYear $tblYear, string $date = 'now'): TblStudentEducation|bool
+    public function getStudentEducationByPersonAndYearAndDateWithLeaved(TblPerson $tblPerson, TblYear $tblYear, string $date = 'now'): TblStudentEducation|bool
     {
         // Klassen wechsel im Schuljahr
         $dateTime = new DateTime($date);
