@@ -165,7 +165,7 @@ class Service extends AbstractService
 //                    && $tblPrepareStudent->isPrinted()
                     && ($tblYear = $tblPrepare->getYear())
                     // Klassenwechsel mit Schulartwechsel im Schuljahr möglich
-                    && ($tblStudentEducationPrepare = DivisionCourse::useService()->getStudentEducationListByPersonAndYearAndDateWithLeaved(
+                    && ($tblStudentEducationPrepare = DivisionCourse::useService()->getStudentEducationByPersonAndYearAndDateWithLeaved(
                         $tblPerson, $tblYear, $tblPrepare->getServiceTblGenerateCertificate()->getDate()
                     ))
                     && ($level = $tblStudentEducationPrepare->getLevel())
@@ -198,7 +198,7 @@ class Service extends AbstractService
                 && ($tblCertificateType = $tblPrepare->getServiceTblGenerateCertificate()->getServiceTblCertificateType())
                 && ($tblYear = $tblPrepare->getYear())
                 // Klassenwechsel mit Schulartwechsel im Schuljahr möglich
-                && ($tblStudentEducationPrepare = DivisionCourse::useService()->getStudentEducationListByPersonAndYearAndDateWithLeaved(
+                && ($tblStudentEducationPrepare = DivisionCourse::useService()->getStudentEducationByPersonAndYearAndDateWithLeaved(
                     $tblPerson, $tblYear, $tblPrepare->getServiceTblGenerateCertificate()->getDate()
                 ))
                 && ($level = $tblStudentEducationPrepare->getLevel())
@@ -319,7 +319,7 @@ class Service extends AbstractService
                 && ($tblYear = $tblPrepare->getYear())
                 && ($tblAppointedDateTask = $tblPrepare->getServiceTblAppointedDateTask())
                 // Klassenwechsel mit Schulartwechsel im Schuljahr möglich
-                && ($tblStudentEducationPrepare = DivisionCourse::useService()->getStudentEducationListByPersonAndYearAndDateWithLeaved(
+                && ($tblStudentEducationPrepare = DivisionCourse::useService()->getStudentEducationByPersonAndYearAndDateWithLeaved(
                     $tblPerson, $tblYear, $tblPrepare->getServiceTblGenerateCertificate()->getDate()
                 ))
                 && ($level = $tblStudentEducationPrepare->getLevel())
@@ -508,7 +508,7 @@ class Service extends AbstractService
 //                    && $tblPrepareStudent->isPrinted()
                     && ($tblYear = $tblPrepare->getYear())
                     // Klassenwechsel mit Schulartwechsel im Schuljahr möglich
-                    && ($tblStudentEducationPrepare = DivisionCourse::useService()->getStudentEducationListByPersonAndYearAndDateWithLeaved(
+                    && ($tblStudentEducationPrepare = DivisionCourse::useService()->getStudentEducationByPersonAndYearAndDateWithLeaved(
                         $tblPerson, $tblYear, $tblPrepare->getServiceTblGenerateCertificate()->getDate()
                     ))
                     && ($tblSchoolType = $tblStudentEducationPrepare->getServiceTblSchoolType())
