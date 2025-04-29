@@ -954,6 +954,50 @@ class Data  extends AbstractData
 
     /**
      * @param TblDivisionCourse $tblDivisionCourse
+     * @param TblSubject $tblSubject
+     * @param DateTime $dueDate
+     *
+     * @return TblLessonContent[]|false
+     */
+    public function getDueDateHomeworkListBySubjectAndExactDueDate(
+        TblDivisionCourse $tblDivisionCourse,
+        TblSubject $tblSubject,
+        DateTime $dueDate,
+    ): bool|array {
+        $Manager = $this->getEntityManager();
+        $queryBuilder = $Manager->getQueryBuilder();
+
+        $query = $queryBuilder
+            ->select('t')
+            ->from(TblLessonContent::class, 't')
+            ->where($queryBuilder->expr()->andX(
+                $queryBuilder->expr()->isNull('t.EntityRemove'),
+                $queryBuilder->expr()->eq('t.serviceTblDivision', '?1'),
+                $queryBuilder->expr()->orX(
+                // nur Vertretungsfach leer
+                    $queryBuilder->expr()->andX(
+                        $queryBuilder->expr()->eq('t.serviceTblSubject', '?2'),
+                        $queryBuilder->expr()->isNull('t.serviceTblSubstituteSubject'),
+                    ),
+                    $queryBuilder->expr()->eq('t.serviceTblSubstituteSubject', '?2'),
+                ),
+                $queryBuilder->expr()->eq('t.DueDateHomework', '?3'),
+            ))
+            // Hausaufgaben nicht leer
+            ->andWhere('LENGTH(t.Homework) > 0')
+            ->setParameter(1, $tblDivisionCourse->getId())
+            ->setParameter(2, $tblSubject->getId())
+            ->setParameter(3, $dueDate);
+
+        $resultList = $query
+            ->getQuery()
+            ->getResult();
+
+        return empty($resultList) ? false : $resultList;
+    }
+
+    /**
+     * @param TblDivisionCourse $tblDivisionCourse
      * @param DateTime|null $dueDate
      * @param int|null $limit
      *
@@ -1265,5 +1309,37 @@ class Data  extends AbstractData
             ->getResult();
 
         return count($resultList);
+    }
+
+    /**
+     * @param TblLessonContent $tblLessonContent
+     * @param DateTime $date
+     *
+     * @return bool|TblForgotten
+     */
+    public function getForgottenByHomeworkAndDate(
+        TblLessonContent $tblLessonContent,
+        DateTime $date,
+    ): bool|TblForgotten {
+        $Manager = $this->getEntityManager();
+        $queryBuilder = $Manager->getQueryBuilder();
+
+        $query = $queryBuilder
+            ->select('t')
+            ->from(TblForgotten::class, 't')
+            ->where($queryBuilder->expr()->andX(
+                $queryBuilder->expr()->isNull('t.EntityRemove'),
+                $queryBuilder->expr()->eq('t.tblClassRegisterLessonContent', '?1'),
+                $queryBuilder->expr()->eq('t.Date', '?2')
+            ))
+            // Hausaufgaben nicht leer
+            ->setParameter(1, $tblLessonContent->getId())
+            ->setParameter(2, $date);
+
+        $resultList = $query
+            ->getQuery()
+            ->getResult();
+
+        return empty($resultList) ? false : current($resultList);
     }
 }

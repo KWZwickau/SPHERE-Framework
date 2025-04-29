@@ -6,6 +6,7 @@ use DateTime;
 use SPHERE\Application\Education\ClassRegister\Digital\Service\Data;
 use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblForgotten;
 use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblForgottenStudent;
+use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblLessonContent;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
@@ -60,6 +61,32 @@ abstract class ServiceForgotten extends ServiceCourseContent
                         'Homework' => $tblLessonContent->getHomework()
                     );
                 }
+            }
+        }
+
+        return empty($resultList) ? false : $resultList;
+    }
+
+    /**
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param TblSubject $tblSubject
+     * @param DateTime $dueDate
+     *
+     * @return bool|array
+     */
+    public function getDueDateHomeworkListBySubjectAndExactDueDate(
+        TblDivisionCourse $tblDivisionCourse,
+        TblSubject $tblSubject,
+        DateTime $dueDate,
+    ): bool|array {
+        if ($list = (new Data($this->getBinding()))->getDueDateHomeworkListBySubjectAndExactDueDate($tblDivisionCourse, $tblSubject, $dueDate)) {
+            foreach ($list as $tblLessonContent) {
+                $resultList[$tblLessonContent->getId()] = array(
+                    'Id' => $tblLessonContent->getId(),
+                    'Date' => $tblLessonContent->getDate(),
+                    'DueDateHomework' => $tblLessonContent->getDueDateHomework(),
+                    'Homework' => $tblLessonContent->getHomework()
+                );
             }
         }
 
@@ -252,7 +279,7 @@ abstract class ServiceForgotten extends ServiceCourseContent
         $forgottenToolTip = '';
         if ($tblSubject) {
             $countForgottenEquipmentSubject = $this->getForgottenSumByPersonAndYear($tblPerson, $tblYear, false, $tblSubject);
-            $countForgottenHomeworkSubject = Digital::useService()->getForgottenSumByPersonAndYear($tblPerson, $tblYear, true, $tblSubject);
+            $countForgottenHomeworkSubject = $this->getForgottenSumByPersonAndYear($tblPerson, $tblYear, true, $tblSubject);
             $countForgottenTotalSubject = $countForgottenEquipmentSubject + $countForgottenHomeworkSubject;
             $forgottenText = $tblSubject->getAcronym() . ': ' . $countForgottenTotalSubject . ' (' . $countForgottenEquipmentSubject . ', ' . $countForgottenHomeworkSubject . ')'
                 . '&nbsp;&ndash;&nbsp;';
@@ -260,13 +287,26 @@ abstract class ServiceForgotten extends ServiceCourseContent
                 . ', Hausaufgaben: ' . $countForgottenHomeworkSubject . ')'
                 . '<br />';
         }
-        $countForgottenEquipment = Digital::useService()->getForgottenSumByPersonAndYear($tblPerson, $tblYear, false);
-        $countForgottenHomework = Digital::useService()->getForgottenSumByPersonAndYear($tblPerson, $tblYear, true);
+        $countForgottenEquipment = $this->getForgottenSumByPersonAndYear($tblPerson, $tblYear, false);
+        $countForgottenHomework = $this->getForgottenSumByPersonAndYear($tblPerson, $tblYear, true);
         $countForgottenTotal = $countForgottenEquipment + $countForgottenHomework;
         $forgottenText .= 'Alle Fächer: ' . $countForgottenTotal . ' (' . $countForgottenEquipment . ', ' . $countForgottenHomework . ')';
         $forgottenToolTip .= 'Alle Fächer gesamt: ' . $countForgottenTotal . ' (Arbeitsmittel: ' . $countForgottenEquipment
             . ', Hausaufgaben: ' . $countForgottenHomework . ')';
 
         return (new ToolTip($forgottenText, $forgottenToolTip))->enableHtml();
+    }
+
+    /**
+     * @param TblLessonContent $tblLessonContent
+     * @param DateTime $date
+     *
+     * @return bool|TblForgotten
+     */
+    public function getForgottenByHomeworkAndDate(
+        TblLessonContent $tblLessonContent,
+        DateTime $date,
+    ): bool|TblForgotten {
+        return (new Data($this->getBinding()))->getForgottenByHomeworkAndDate($tblLessonContent, $date);
     }
 }

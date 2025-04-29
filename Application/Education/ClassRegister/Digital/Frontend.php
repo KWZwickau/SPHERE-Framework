@@ -556,7 +556,15 @@ class Frontend extends FrontendTabs
             'Subject' => $isEditAllowed ? $this->getLessonsEditLink($tblLessonContent->getDisplaySubject(true), $lessonContentId, $lesson) : $tblLessonContent->getDisplaySubject(true),
             'Room' => $isEditAllowed ? $this->getLessonsEditLink($tblLessonContent->getRoom(), $lessonContentId, $lesson) : $tblLessonContent->getRoom(),
             'Teacher' => $isEditAllowed ? $this->getLessonsEditLink($tblLessonContent->getTeacherString(), $lessonContentId, $lesson) : $tblLessonContent->getTeacherString(),
-            'Content' => $isEditAllowed ? $this->getLessonsEditLink($tblLessonContent->getContent(), $lessonContentId, $lesson) : $tblLessonContent->getContent(),
+            'Content' => $isEditAllowed
+                ? $this->getLessonsEditLink($tblLessonContent->getContent() . $this->getDueDateHomeworkLinks(
+                        ($tblDivisionCourse = $tblLessonContent->getServiceTblDivisionCourse()) ? $tblDivisionCourse->getId() : null,
+                        ($tblSubstituteSubject = $tblLessonContent->getServiceTblSubstituteSubject())
+                            ? $tblSubstituteSubject->getId()
+                            : (($tblSubject = $tblLessonContent->getServiceTblSubject()) ? $tblSubject->getId() : null),
+                        new DateTime($tblLessonContent->getDate())
+                    ), $lessonContentId, $lesson)
+                : $tblLessonContent->getContent(),
             'Homework' => $isEditAllowed ?$this->getLessonsEditLink($contentHomework, $lessonContentId, $lesson) : $contentHomework,
 
             'Absence' => isset($absenceContent[$lesson]) ? implode(' - ', $absenceContent[$lesson]) : ''
@@ -580,16 +588,55 @@ class Frontend extends FrontendTabs
             $DivisionCourseId, $date->format('d.m.Y'), $lesson == 0 ? -1 : $lesson, $SubjectId
         ));
 
+        if (($homework = $this->getDueDateHomeworkLinks($DivisionCourseId, $SubjectId, $date))) {
+
+        } else {
+            $homework = $this->getLessonsNewLink('', $date, $lesson, $DivisionCourseId, $SubjectId);
+        }
+
         $bodyList[$index] = array(
             'Lesson' => $linkLesson,
             'Subject' => $this->getLessonsNewLink($subject, $date, $lesson, $DivisionCourseId, $SubjectId),
             'Room' => $this->getLessonsNewLink($room, $date, $lesson, $DivisionCourseId, $SubjectId),
             'Teacher' => $this->getLessonsNewLink('', $date, $lesson, $DivisionCourseId, $SubjectId),
             'Content' => $this->getLessonsNewLink('', $date, $lesson, $DivisionCourseId, $SubjectId),
-            'Homework' => $this->getLessonsNewLink('', $date, $lesson, $DivisionCourseId, $SubjectId),
+            'Homework' => $homework,
 
             'Absence' => isset($absenceContent[$lesson]) ? implode(' - ', $absenceContent[$lesson]) : ''
         );
+    }
+
+    private function getDueDateHomeworkLinks($DivisionCourseId, $SubjectId, DateTime $date)
+    {
+        $homework = '';
+        if ($SubjectId
+            && ($tblSubject = Subject::useService()->getSubjectById($SubjectId))
+            && ($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))
+            && ($dueDateHomeworkList = Digital::useService()->getDueDateHomeworkListBySubjectAndExactDueDate($tblDivisionCourse, $tblSubject, $date))
+        ) {
+            foreach ($dueDateHomeworkList as $dueDateHomework) {
+                // vergessen bearbeiten
+                if (($tblLessonContent = Digital::useService()->getLessonContentById($dueDateHomework['Id']))
+                    && ($tblForgotten = Digital::useService()->getForgottenByHomeworkAndDate($tblLessonContent, $date))
+                ) {
+                    $pipeline = ApiForgotten::pipelineOpenEditForgottenModal($tblForgotten->getId());
+                } else {
+                    // vergessen neu hinzufügen
+                    $pipeline = ApiForgotten::pipelineOpenCreateForgottenModal($DivisionCourseId, $date->format('d.m.Y'), null, $SubjectId, $dueDateHomework['Id']);
+                }
+
+                $homework .= new Container((new Link(
+                    'Kontrolle HA: ' . $dueDateHomework['Homework'],
+                    ApiForgotten::getEndpoint(),
+                    null,
+                    array(),
+                    'Vergessene Arbeitsmittel/Hausaufgaben ' . ($tblForgotten ? 'bearbeiten' : 'hinzufügen')
+                ))->ajaxPipelineOnClick($pipeline));
+            }
+            $homework = new PullRight($homework);
+        }
+
+        return $homework;
     }
 
     private function setDayViewOnlyContentBodyList(array &$bodyList, array $absenceContent, int $lesson, int $index, string $content)
