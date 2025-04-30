@@ -98,8 +98,8 @@ class Frontend extends Extension implements IFrontendInterface
                         ), array(
                             'columnDefs' => array(
                                 array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => array(0,3)),
-                                array('type' => 'natural', 'targets' => array(1,4,7)),
-                                array('type' => 'de_date', 'targets' => array(6)),
+                                array('type' => 'natural', 'targets' => array(1,5,9,12)),
+                                array('type' => 'de_date', 'targets' => array(7, 8)),
 //                                array("orderable" => false, "targets"   => -1),
                             ),
                             'order'      => array(
@@ -186,8 +186,8 @@ class Frontend extends Extension implements IFrontendInterface
                             ), array(
                                 'columnDefs' => array(
                                     array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => array(0,3)),
-                                    array('type' => 'natural', 'targets' => array(2,7)),
-//                                    array('type' => 'de_date', 'targets' => array(2)),
+                                    array('type' => 'natural', 'targets' => array(2,9,11,12,13)),
+                                    array('type' => 'de_date', 'targets' => array(7,8)),
                                     array("orderable" => false, "targets" => array(1,-1)),
                                 ),
                                 'order'      => array(
