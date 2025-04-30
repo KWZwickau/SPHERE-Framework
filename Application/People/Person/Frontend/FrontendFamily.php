@@ -822,7 +822,7 @@ class FrontendFamily extends FrontendReadOnly
         $key = 'M' . $Ranking;
 
         if(($tblConsumer = GatekeeperConsumer::useService()->getConsumerBySession())
-            && GatekeeperConsumer::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_UCS)
+            && GatekeeperConsumer::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_DLLP)
         ){
             $hasAccountOptions = true;
         } else {
@@ -851,10 +851,10 @@ class FrontendFamily extends FrontendReadOnly
                 $hasAccountOptions
                     ? new LayoutRow(array(
                         new LayoutColumn(
-                            new CheckBox('Data[M' . $Ranking . '][IsAccountUserAlias]', 'E-Mail als späteren UCS Benutzernamen verwenden', 1)
+                            new CheckBox('Data[M' . $Ranking . '][IsAccountUserAlias]', 'E-Mail als späteren DLLP Benutzernamen verwenden', 1)
                             , 3),
                         new LayoutColumn(
-                            new CheckBox('Data[M' . $Ranking . '][IsAccountRecoveryMail]', 'E-Mail als späteres UCS "Passwort vergessen" verwenden', 1)
+                            new CheckBox('Data[M' . $Ranking . '][IsAccountRecoveryMail]', 'E-Mail als späteres DLLP "Passwort vergessen" verwenden', 1)
                             , 3)
                     ))
                     : null

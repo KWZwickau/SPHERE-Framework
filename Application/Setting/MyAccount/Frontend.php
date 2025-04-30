@@ -123,18 +123,18 @@ class Frontend extends Extension implements IFrontendInterface
                 $item['Name'] = $tblConsumer->getName();
                 $item['Alias'] = $tblConsumer->getAlias();
                 $item['Kamenz'] = '';
-                $item['UCS'] = '';
+                $item['DLLP'] = '';
                 $item['Region'] = $tblConsumer->getType();
                 // Kamenz
                 $tblRole = Access::useService()->getRoleByName('Auswertung: Kamenz-Statistik');
                 if(Access::useService()->getRoleConsumerBy($tblRole, $tblConsumer)){
                     $item['Kamenz'] = 'Ja';
                 }
-                // UCS
-                if(($tblConsumerLogin = Consumer::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_UCS))){
-                    $item['UCS'] = 'API Verfügbar ';
+                // DLLP
+                if(($tblConsumerLogin = Consumer::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_DLLP))){
+                    $item['DLLP'] = 'API Verfügbar ';
                     if($tblConsumerLogin->getIsActiveAPI()){
-                        $item['UCS'] .= new Muted(new Small('Aktiv'));
+                        $item['DLLP'] .= new Muted(new Small('Aktiv'));
                     }
                 }
 
@@ -155,7 +155,7 @@ class Frontend extends Extension implements IFrontendInterface
                     'Name'    => 'Name',
                     'Alias'   => 'Alias',
                     'Kamenz'  => 'verwendet Kamenz',
-                    'UCS'     => 'verwendet UCS',
+                    'DLLP'    => 'verwendet DLLP',
                     'Region'  => 'Region',
                     'Option'  => ''
                 ))

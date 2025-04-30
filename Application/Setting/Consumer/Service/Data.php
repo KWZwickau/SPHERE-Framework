@@ -345,14 +345,14 @@ class Data extends AbstractData
             $this->updateSettingSortOrder($tblSetting, 4);
         }
 
-        // UCS
+        // DLLP
         if (($tblSetting = $this->createSetting('Setting', 'Univention', 'Univention', 'API_Mail',
-            TblSetting::TYPE_STRING, '', 'Univention', 'E-Mail-Adresse für UCS Benutzername
+            TblSetting::TYPE_STRING, '', 'Univention', 'E-Mail-Adresse für DLLP Benutzername
              ist kein Pflichtfeld für Schüler folgender Schularten (Kürzel z.B. GS, OS, Gy, BS, BFS, BGJ, BVJ, BGy, FOS, FS, GMS, ISS). Mehrere Schularten sind mit
              Komma zu trennen. [Standard: ]'
         ))) {
             $this->updateSettingDescription($tblSetting, 'Univention',
-                'E-Mail-Adresse für UCS Benutzername
+                'E-Mail-Adresse für DLLP Benutzername
                 ist kein Pflichtfeld für Schüler folgender Schularten (Kürzel z.B. GS, OS, Gy, BS, BFS, BGJ, BVJ, BGy, FOS, FS, GMS, ISS). Mehrere Schularten sind mit
                 Komma zu trennen. [Standard: ]', $tblSetting->isPublic()
             );
