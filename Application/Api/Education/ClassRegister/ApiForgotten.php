@@ -135,11 +135,8 @@ class ApiForgotten extends Extension implements IApiInterface
             $tblSubject = Subject::useService()->getSubjectById($SubjectId);
         }
 
-        $Date = null;
-        if (isset($Data['Date']))
-        {
-            $Date = $Data['Date'];
-        }
+//        $Date = $_POST['Data']['Date'] ?? null;
+        $Date = $Data['Date'] ?? null;
 
         return Digital::useFrontend()->loadDueDateHomeworkListBySubject($tblDivisionCourse, $tblSubject ?: null, $Date ? new DateTime($Date) : null);
     }

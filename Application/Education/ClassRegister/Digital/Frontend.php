@@ -556,16 +556,15 @@ class Frontend extends FrontendTabs
             'Subject' => $isEditAllowed ? $this->getLessonsEditLink($tblLessonContent->getDisplaySubject(true), $lessonContentId, $lesson) : $tblLessonContent->getDisplaySubject(true),
             'Room' => $isEditAllowed ? $this->getLessonsEditLink($tblLessonContent->getRoom(), $lessonContentId, $lesson) : $tblLessonContent->getRoom(),
             'Teacher' => $isEditAllowed ? $this->getLessonsEditLink($tblLessonContent->getTeacherString(), $lessonContentId, $lesson) : $tblLessonContent->getTeacherString(),
-            'Content' => $isEditAllowed
-                ? $this->getLessonsEditLink($tblLessonContent->getContent() . $this->getDueDateHomeworkLinks(
-                        ($tblDivisionCourse = $tblLessonContent->getServiceTblDivisionCourse()) ? $tblDivisionCourse->getId() : null,
-                        ($tblSubstituteSubject = $tblLessonContent->getServiceTblSubstituteSubject())
-                            ? $tblSubstituteSubject->getId()
-                            : (($tblSubject = $tblLessonContent->getServiceTblSubject()) ? $tblSubject->getId() : null),
-                        new DateTime($tblLessonContent->getDate())
-                    ), $lessonContentId, $lesson)
-                : $tblLessonContent->getContent(),
-            'Homework' => $isEditAllowed ?$this->getLessonsEditLink($contentHomework, $lessonContentId, $lesson) : $contentHomework,
+            'Content' => $isEditAllowed ? $this->getLessonsEditLink($tblLessonContent->getContent(), $lessonContentId, $lesson) : $tblLessonContent->getContent(),
+            'Homework' => $isEditAllowed ?$this->getLessonsEditLink($contentHomework
+                . $this->getDueDateHomeworkLinks(
+                    ($tblDivisionCourse = $tblLessonContent->getServiceTblDivisionCourse()) ? $tblDivisionCourse->getId() : null,
+                    ($tblSubstituteSubject = $tblLessonContent->getServiceTblSubstituteSubject())
+                        ? $tblSubstituteSubject->getId()
+                        : (($tblSubject = $tblLessonContent->getServiceTblSubject()) ? $tblSubject->getId() : null),
+                    new DateTime($tblLessonContent->getDate())
+                ), $lessonContentId, $lesson) : $contentHomework,
 
             'Absence' => isset($absenceContent[$lesson]) ? implode(' - ', $absenceContent[$lesson]) : ''
         );
@@ -591,8 +590,18 @@ class Frontend extends FrontendTabs
         if (($homework = $this->getDueDateHomeworkLinks($DivisionCourseId, $SubjectId, $date))) {
 
         } else {
-            $homework = $this->getLessonsNewLink('', $date, $lesson, $DivisionCourseId, $SubjectId);
+            $homework = (new Link(
+                '<div style="height: 22px"></div>',
+                ApiForgotten::getEndpoint(),
+                null,
+                array(),
+                $lesson . '. Vergessene Arbeitsmittel/Hausaufgaben hinzufügen',
+            ))->ajaxPipelineOnClick(ApiForgotten::pipelineOpenCreateForgottenModal(
+                $DivisionCourseId, $date->format('d.m.Y'), null, $SubjectId
+            ));
         }
+
+        $linkAddForgotten =
 
         $bodyList[$index] = array(
             'Lesson' => $linkLesson,
@@ -606,7 +615,14 @@ class Frontend extends FrontendTabs
         );
     }
 
-    private function getDueDateHomeworkLinks($DivisionCourseId, $SubjectId, DateTime $date)
+    /**
+     * @param $DivisionCourseId
+     * @param $SubjectId
+     * @param DateTime $date
+     *
+     * @return string
+     */
+    private function getDueDateHomeworkLinks($DivisionCourseId, $SubjectId, DateTime $date): string
     {
         $homework = '';
         if ($SubjectId
@@ -1178,12 +1194,15 @@ class Frontend extends FrontendTabs
             ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenDeleteLessonContentModal($LessonContentId));
         }
 
+        // !beim Ändern des Datums wird zwar die Pipeline getriggert, allerdings wird das Datum nicht mit übertragen → und es alle HA angezeigt unabhängig von der Fälligkeit
+        $pipeLineLoadDueDateHomeworkContent = ApiForgotten::pipelineLoadDueDateHomeworkContent($tblDivisionCourse->getId(), $tblSubject ? $tblSubject->getId() : null);
+
         $formRowList[] = new FormRow(array(
             new FormColumn(
                 (new DatePicker('Data[Date]', '', 'Datum', new Calendar()))
                     ->setRequired()
                     ->ajaxPipelineOnChange(
-                        ApiForgotten::pipelineLoadDueDateHomeworkContent($tblDivisionCourse->getId(), $tblSubject ? $tblSubject->getId() : null)
+                        $pipeLineLoadDueDateHomeworkContent
                     )
                 , 6),
             new FormColumn(
@@ -1195,13 +1214,16 @@ class Frontend extends FrontendTabs
                 (new SelectBox('Data[serviceTblSubject]', 'Fach', array('{{ Acronym }} - {{ Name }}' => $tblSubjectList)))
                     ->ajaxPipelineOnChange(array(
                         ApiDigital::pipelineLoadLessonContentLinkPanel($tblDivisionCourse->getId(), $tblSubject ? $tblSubject->getId() : null),
-                        ApiForgotten::pipelineLoadDueDateHomeworkContent($tblDivisionCourse->getId(), $tblSubject ? $tblSubject->getId() : null)
+                        $pipeLineLoadDueDateHomeworkContent
                     ))
-                , 6),
+                    ->ajaxPipelineOnChange(
+                        $pipeLineLoadDueDateHomeworkContent
+                    )
+            , 6),
             new FormColumn(
                 (new SelectBox('Data[serviceTblSubstituteSubject]', 'Vertretungsfach / zusätzliches Fach', array('{{ Acronym }} - {{ Name }}' => $tblSubjectList)))
                     ->ajaxPipelineOnChange(
-                        ApiForgotten::pipelineLoadDueDateHomeworkContent($tblDivisionCourse->getId(), $tblSubject ? $tblSubject->getId() : null)
+                        $pipeLineLoadDueDateHomeworkContent
                     )
                 , 6),
 //                    new FormColumn(
