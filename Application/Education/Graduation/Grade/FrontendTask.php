@@ -718,12 +718,12 @@ abstract class FrontendTask extends FrontendStudentOverview
 
         // Noten-Farbschema Legende
         if (DivisionCourse::useService()->getIsCourseSystemByStudentsInDivisionCourse($tblDivisionCourse)) {
-            $title = 'Legende Punkte-Farbschema (bitte anklicken)';
+            $title = 'Legende Punkte-Farbschema anzeigen';
             $legendItems[] = $this->getLayout(new Bold(new Success('Grüne Punkte')), 'Punkte 5 bis 15');
             $legendItems[] = $this->getLayout(new Bold(new WarningText('Gelbe Punkte')), 'Punkte 1 bis 4');
             $legendItems[] = $this->getLayout(new Bold(new \SPHERE\Common\Frontend\Text\Repository\Danger('Rote Punkte')), 'Punkte 0');
         } else {
-            $title = 'Legende Noten-Farbschema (bitte anklicken)';
+            $title = 'Legende Noten-Farbschema anzeigen';
             $legendItems[] = $this->getLayout(new Bold(new Success('Grüne Note')), 'Noten 1 bis 3');
             $legendItems[] = $this->getLayout(new Bold(new WarningText('Gelbe Note')), 'Note 4');
             $legendItems[] = $this->getLayout(new Bold(new \SPHERE\Common\Frontend\Text\Repository\Danger('Rote Note')), 'Note 5 und 6');
