@@ -57,7 +57,6 @@ abstract class ServiceCertificateContent extends ServiceAbitur
             $tblAppointedDateTask = $tblPrepare->getServiceTblAppointedDateTask();
         } elseif ($tblLeaveStudent) {
             $tblYear = $tblLeaveStudent->getServiceTblYear();
-            $tblAppointedDateTask = $tblPrepare->getServiceTblAppointedDateTask();
         }
         if ($tblYear && ($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))) {
             $level = $tblStudentEducation->getLevel();
