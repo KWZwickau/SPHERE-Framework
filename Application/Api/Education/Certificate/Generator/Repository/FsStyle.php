@@ -161,14 +161,14 @@ abstract class FsStyle extends Certificate
             $Slice->addElement((new Element())
                 ->setContent($name ? $name : '&nbsp;')
                 ->styleAlignCenter()
-                ->styleTextSize('22px')
+                ->styleTextSize('12pt')
                 ->styleHeight('28px')
                 ->stylePaddingTop('40px')
             );
             $Slice->addElement((new Element())
                 ->setContent($secondLine ? $secondLine : '&nbsp;')
                 ->styleAlignCenter()
-                ->styleTextSize('18px')
+                ->styleTextSize('12pt')
                 ->styleHeight('42px')
 //            ->stylePaddingTop('20px')
             );
@@ -176,20 +176,20 @@ abstract class FsStyle extends Certificate
             $Slice->addElement((new Element())
                 ->setContent($name ? $name : '&nbsp;')
                 ->styleAlignCenter()
-                ->styleTextSize('22px')
+                ->styleTextSize('12pt')
                 ->styleHeight('28px')
                 ->stylePaddingTop('25px')
             );
             $Slice->addElement((new Element())
                 ->setContent($secondLine ? $secondLine : '&nbsp;')
                 ->styleAlignCenter()
-                ->styleTextSize('18px')
+                ->styleTextSize('12pt')
                 ->styleHeight('42px')
 //            ->stylePaddingTop('20px')
             );
         }
 
-        $Slice->addSection($this->getIndividuallyLogo($this->isSample()));
+        $Slice->addSection($this->getIndividuallyLogo($this->isSample(), true));
         $Slice->addElement((new Element())
             ->setContent($CertificateName)
             ->styleAlignCenter()
@@ -421,7 +421,7 @@ abstract class FsStyle extends Certificate
         );
         $Slice->addElement((new Element())
             ->setContent('Fachschule {% if(Content.P' . $personId . '.Input.FsDestination is not empty) %}
-                    {{ Content.P' . $personId . '.Input.FsDestination }}
+                    - Fachbereich {{ Content.P' . $personId . '.Input.FsDestination }}
                 {% else %}
                     ---
                 {% endif %}')
@@ -434,7 +434,7 @@ abstract class FsStyle extends Certificate
         $Slice->addElement((new Element())
             ->setContent('
                 {% if(Content.P' . $personId . '.Input.SubjectArea is not empty) %}
-                    {{ Content.P' . $personId . '.Input.SubjectArea }}{% if(Content.P' . $personId . '.Input.Focus is not empty) %}, 
+                    Fachrichtung {{ Content.P' . $personId . '.Input.SubjectArea }}{% if(Content.P' . $personId . '.Input.Focus is not empty) %}, 
                     {% endif %}
                 {% endif %}
                 {% if(Content.P' . $personId . '.Input.Focus is not empty) %}
@@ -1663,10 +1663,11 @@ abstract class FsStyle extends Certificate
         );
 
         for($i = 1; $i <= $rowsCount; $i++){
+            $hasGradeField = $i % 2 == 0;
             $this->getSubjectLineAbg(
                 $Slice,
                 '{% if (Content.P'.$personId.'.ExamList.' . $identifier . '.' . $i . '.Subjects is not empty) %}
-                    {{ Content.P'.$personId.'.ExamList.' . $identifier . '.' . $i . '.Subjects }}
+                    {{ Content.P'.$personId.'.ExamList.' . $identifier . '.' . $i . '.Subjects }}' . ($hasGradeField ? '' : ' und ') . ' 
                 {% else %}
                     &ndash;
                 {% endif %}',
@@ -1676,7 +1677,7 @@ abstract class FsStyle extends Certificate
                     &ndash;
                 {% endif %}',
                 'Content.P'.$personId.'.ExamList.' . $identifier . '.' . $i . '.HasTwoRows',
-                $i % 2 == 0
+                $hasGradeField
             );
         }
 
@@ -2329,7 +2330,7 @@ abstract class FsStyle extends Certificate
             ->stylePaddingBottom('1px')
             ->stylePaddingLeft('3px')
             ->styleTextSize($TextSize)
-            ->styleBorderBottom('0.5px')
+            ->styleBorderBottom($hasGradeField ? '0.5px' : '0px')
             , '83%');
 
         $SubjectSection->addElementColumn((new Element())
