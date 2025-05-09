@@ -643,10 +643,11 @@ abstract class Certificate extends Extension
 
     /**
      * @param $IsSample
+     * @param bool $IsIndividuallyLogoIgnored
      *
      * @return Section
      */
-    protected function getIndividuallyLogo($IsSample)
+    protected function getIndividuallyLogo($IsSample, bool $IsIndividuallyLogoIgnored = false)
     {
 
         $isOS = false;
@@ -676,7 +677,7 @@ abstract class Certificate extends Extension
         $Section->addElementColumn((new Element()), '51%');
 
         // Individually Logo
-        if ($picturePath != '') {
+        if (!$IsIndividuallyLogoIgnored && $picturePath != '') {
             $Section->addElementColumn((new Element\Image($picturePath, 'auto', $IndividuallyLogoHeight))
                 ->styleAlignCenter()
                 ->styleHeight('0px')
