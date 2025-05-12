@@ -149,6 +149,7 @@ class Service extends AbstractService
      * @param null $PersonId
      * @param null $DivisionCourseId
      * @param bool $hasSearch
+     * @param null $IsMassAbsence
      *
      * @return bool|Form
      */
@@ -158,8 +159,9 @@ class Service extends AbstractService
         TblAbsence $tblAbsence = null,
         $PersonId = null,
         $DivisionCourseId = null,
-        bool $hasSearch = false
-    ) {
+        bool $hasSearch = false,
+        $IsMassAbsence = null
+    ): Form|bool {
         $error = false;
         $messageSearch = null;
         $messageLesson = null;
@@ -169,6 +171,11 @@ class Service extends AbstractService
             $tblPerson = Person::useService()->getPersonById($PersonId);
         } elseif ($tblAbsence) {
             $tblPerson = $tblAbsence->getServiceTblPerson();
+        } elseif ($IsMassAbsence) {
+            if (!isset($Data['Students']) || count($Data['Students']) == 0) {
+                $messageSearch = new Danger('Bitte wählen Sie mindestens einen Schüler aus.', new Exclamation());
+                $error = true;
+            }
         } else {
             if(!isset($Data['PersonId']) || !($tblPerson = Person::useService()->getPersonById($Data['PersonId']))) {
                 $messageSearch = new Danger('Bitte wählen Sie einen Schüler aus.', new Exclamation());
@@ -190,7 +197,9 @@ class Service extends AbstractService
             $tblPerson ? $tblPerson->getId() : null,
             $DivisionCourseId,
             $messageSearch,
-            $messageLesson
+            $messageLesson,
+            null,
+            $IsMassAbsence
         );
 
         if (isset($Data['FromDate']) && empty($Data['FromDate'])) {
@@ -239,7 +248,7 @@ class Service extends AbstractService
         }
 
         // Prüfung: ob "Datum von" ein freier Tag ist
-        if (!$error && $fromDate && (!$toDate || $fromDate == $toDate)) {
+        if (!$error && $tblPerson && $fromDate && (!$toDate || $fromDate == $toDate)) {
             if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndDate($tblPerson, $Data['FromDate']))
                 && ($tblYear = $tblStudentEducation->getServiceTblYear())
             ) {
@@ -349,6 +358,41 @@ class Service extends AbstractService
                     (new Data($this->getBinding()))->addAbsenceLesson($tblAbsence, $i);
                 } else {
                     (new Data($this->getBinding()))->removeAbsenceLesson($tblAbsence, $i);
+                }
+            }
+
+            return  true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param TblAbsence $tblAbsence
+     * @param $Data
+     *
+     * @return bool
+     */
+    public function updateAbsenceServiceForMassAbsence(TblAbsence $tblAbsence, $Data): bool
+    {
+        $tblPersonStaff = Account::useService()->getPersonByLogin();
+
+        if ((new Data($this->getBinding()))->updateAbsenceForMassAbsence(
+            $tblAbsence,
+            (($remark = $tblAbsence->getRemark()) ? $remark . ' ' : '') . $Data['Remark'],
+            $tblPersonStaff ?: null
+        )) {
+            if (isset($Data['UE'])) {
+                // nur neue ergänzen, keine vorhandenen löschen
+                foreach ($Data['UE'] as $lesson => $value) {
+                    (new Data($this->getBinding()))->addAbsenceLesson($tblAbsence, $lesson);
+                }
+            } else {
+                // wechsel von UE auf ganztägig
+                if (($tblAbsenceLessonList = Absence::useService()->getAbsenceLessonAllByAbsence($tblAbsence))) {
+                    foreach ($tblAbsenceLessonList as $tblAbsenceLesson) {
+                        (new Data($this->getBinding()))->removeAbsenceLesson($tblAbsence, $tblAbsenceLesson->getLesson());
+                    }
                 }
             }
 

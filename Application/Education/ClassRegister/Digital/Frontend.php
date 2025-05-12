@@ -138,7 +138,7 @@ class Frontend extends FrontendTabs
             $buttons .= (new Primary(
                 new Plus() . ' Fehlzeit hinzufügen',
                 ApiAbsence::getEndpoint()
-            ))->ajaxPipelineOnClick(ApiAbsence::pipelineOpenCreateAbsenceModal(null, $DivisionCourseId, $Date));
+            ))->ajaxPipelineOnClick(ApiAbsence::pipelineOpenCreateAbsenceModal(null, $DivisionCourseId, $Date, true));
 
             $content = $this->getDayViewContent($DateString, $tblDivisionCourse);
             $link = (new Link('Wochenansicht', ApiDigital::getEndpoint(), null, array(), false, null, AbstractLink::TYPE_WHITE_LINK))
@@ -587,6 +587,7 @@ class Frontend extends FrontendTabs
             $DivisionCourseId, $date->format('d.m.Y'), $lesson == 0 ? -1 : $lesson, $SubjectId
         ));
 
+        // Hausaufgaben
         if (($homework = $this->getDueDateHomeworkLinks($DivisionCourseId, $SubjectId, $date))) {
 
         } else {
@@ -601,7 +602,20 @@ class Frontend extends FrontendTabs
             ));
         }
 
-        $linkAddForgotten =
+        // Fehlzeiten
+        if (isset($absenceContent[$lesson])) {
+            $absence = implode(' - ', $absenceContent[$lesson]);
+        } else {
+            $absence = (new Link(
+                '<div style="height: 22px"></div>',
+                ApiAbsence::getEndpoint(),
+                null,
+                array(),
+                $lesson . '. Fehlzeit hinzufügen',
+            ))->ajaxPipelineOnClick(ApiAbsence::pipelineOpenCreateAbsenceModal(
+                null, $DivisionCourseId, $date->format('d.m.Y'), true, $lesson
+            ));
+        }
 
         $bodyList[$index] = array(
             'Lesson' => $linkLesson,
@@ -611,7 +625,7 @@ class Frontend extends FrontendTabs
             'Content' => $this->getLessonsNewLink('', $date, $lesson, $DivisionCourseId, $SubjectId),
             'Homework' => $homework,
 
-            'Absence' => isset($absenceContent[$lesson]) ? implode(' - ', $absenceContent[$lesson]) : ''
+            'Absence' => $absence,
         );
     }
 

@@ -18,6 +18,7 @@ use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
 use SPHERE\Common\Frontend\Form\Repository\Field\RadioBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
+use SPHERE\Common\Frontend\Form\Repository\Title;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
@@ -439,15 +440,17 @@ class Frontend extends FrontendClassRegister
     }
 
     /**
-     * @param $AbsenceId
+     * @param null $AbsenceId
      * @param bool $hasSearch
-     * @param $Search
-     * @param $Data
-     * @param $PersonId
-     * @param $DivisionCourseId
+     * @param null $Search
+     * @param null $Data
+     * @param null $PersonId
+     * @param null $DivisionCourseId
      * @param IMessageInterface|null $messageSearch
      * @param IMessageInterface|null $messageLesson
-     * @param $Date
+     * @param null $Date
+     * @param null $IsMassAbsence
+     * @param null $Lesson
      *
      * @return Form
      */
@@ -460,13 +463,19 @@ class Frontend extends FrontendClassRegister
         $DivisionCourseId = null,
         IMessageInterface $messageSearch = null,
         IMessageInterface $messageLesson = null,
-        $Date = null
+        $Date = null,
+        $IsMassAbsence = null,
+        $Lesson = null
     ): Form {
         if ($Data === null && $AbsenceId === null) {
-            $isFullDay = true;
-
             $global = $this->getGlobal();
-            $global->POST['Data']['IsFullDay'] = $isFullDay;
+            if ($Lesson !== null && $Lesson !== '') {
+                $isFullDay = false;
+                $global->POST['Data']['UE'][$Lesson] = 1;
+            } else {
+                $isFullDay = true;
+                $global->POST['Data']['IsFullDay'] = 1;
+            }
 
             if (($tblSetting = Consumer::useService()->getSetting('Education', 'ClassRegister', 'Absence', 'DefaultStatusForNewAbsence'))) {
                 $status = $tblSetting->getValue();
@@ -510,14 +519,20 @@ class Frontend extends FrontendClassRegister
                 ->ajaxPipelineOnClick(ApiAbsence::pipelineEditAbsenceSave($AbsenceId, $DivisionCourseId));
         } else {
             $saveButton = (new PrimaryLink('Speichern', ApiAbsence::getEndpoint(), new Save()))
-                ->ajaxPipelineOnClick(ApiAbsence::pipelineCreateAbsenceSave($PersonId, $DivisionCourseId, $hasSearch));
+                ->ajaxPipelineOnClick(ApiAbsence::pipelineCreateAbsenceSave($PersonId, $DivisionCourseId, $hasSearch, $IsMassAbsence));
+        }
+
+        $tblDivisionCourse = false;
+        $tblPersonList = false;
+        if ($DivisionCourseId) {
+            $tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId);
+            $tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses();
         }
 
         $formRows = array();
-        if (!$PersonId && !$AbsenceId && $DivisionCourseId
-            && ($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))
-            && ($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses())
-        ) {
+        if ($IsMassAbsence && $tblDivisionCourse) {
+            // wird unten per ApiReceiver geladen
+        } elseif (!$PersonId && !$AbsenceId && $DivisionCourseId && $tblPersonList) {
             $formRows[] = new FormRow(new FormColumn(
                 (new SelectBox('Data[PersonId]', 'Schüler', array('{{ LastFirstName }}' => $tblPersonList)))
                     ->setRequired()
@@ -543,11 +558,14 @@ class Frontend extends FrontendClassRegister
 
         $formRows[] = new FormRow(array(
             new FormColumn(
-                (new DatePicker('Data[FromDate]', '', 'Datum von', new Calendar()))->setRequired(), 6
-            ),
+                (new DatePicker('Data[FromDate]', '', 'Datum von', new Calendar()))
+                    ->setRequired()
+                    ->ajaxPipelineOnChange(ApiAbsence::pipelineLoadAbsenceStudentsContent($DivisionCourseId, $Date))
+                , 6),
             new FormColumn(
-                new DatePicker('Data[ToDate]', '', 'Datum bis', new Calendar()), 6
-            ),
+                (new DatePicker('Data[ToDate]', '', 'Datum bis', new Calendar()))
+                    ->ajaxPipelineOnChange(ApiAbsence::pipelineLoadAbsenceStudentsContent($DivisionCourseId, $Date))
+                , 6),
         ));
         $formRows[] = new FormRow(array(
             new FormColumn(array(
@@ -595,13 +613,77 @@ class Frontend extends FrontendClassRegister
             ))->ajaxPipelineOnClick(ApiAbsence::pipelineOpenDeleteAbsenceModal($AbsenceId, $DivisionCourseId));
         }
 
-        $formRows[] = new FormRow(array(
-            new FormColumn($buttons)
-        ));
-
-        return (new Form(new FormGroup(
-            $formRows
+        return (new Form(array(
+            $IsMassAbsence && $tblDivisionCourse
+                ? new FormGroup(new FormRow(array(
+                    new FormColumn(
+                        ApiAbsence::receiverBlock($this->loadAbsenceStudentsContent(
+                                $tblDivisionCourse,
+                                isset($Data['FromDate']) ? new DateTime($Data['FromDate']) : ($Date ? new DateTime($Date) : null),
+                                isset($Data['ToDate']) ? new DateTime($Data['ToDate']) : null,
+                                $messageSearch
+                            ), 'AbsenceStudentsContent'
+                        )
+                    )
+                )),
+                new Title('Fehlende Schüler'))
+                : null,
+            new FormGroup(
+                $formRows
+            ),
+            new FormGroup(
+                new FormRow(array(
+                    new FormColumn($buttons)
+                ))
+            ),
         )))->disableSubmitAction();
+    }
+
+
+    /**
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param DateTime|null $fromDate
+     * @param DateTime|null $toDate
+     * @param IMessageInterface|null $message
+     *
+     * @return string
+     */
+    public function loadAbsenceStudentsContent(TblDivisionCourse $tblDivisionCourse, DateTime $fromDate = null, DateTime $toDate = null, IMessageInterface $message = null): string
+    {
+        $studentColumns = array();
+        if (($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses())) {
+            foreach ($tblPersonList as $tblPerson) {
+                // Schüler hat schon ganztägige Fehlzeit an diesem Tag → checkt und disable
+                $hasAbsence = false;
+                if ($fromDate && ($tblAbsenceList = Absence::useService()->getAbsenceAllBetweenByPerson($tblPerson, $fromDate, $toDate))) {
+                    foreach ($tblAbsenceList as $tblAbsence) {
+                        if (!Absence::useService()->getLessonAllByAbsence($tblAbsence)) {
+                            $hasAbsence = true;
+
+                            break;
+                        }
+                    }
+                }
+
+                $checkBox = new CheckBox('Data[Students][' . $tblPerson->getId() . ']', $tblPerson->getLastFirstNameWithCallNameUnderline(), 1);
+                if ($hasAbsence) {
+                    $global = $this->getGlobal();
+                    $global->POST['Data']['Students'][$tblPerson->getId()] = 1;
+                    $global->savePost();
+
+                    $checkBox->setDisabled();
+                }
+                $studentColumns[$tblPerson->getId()] = new LayoutColumn($checkBox, 4);
+            }
+        }
+
+        if ($studentColumns) {
+            return new Layout(new LayoutGroup(new LayoutRow(
+                $studentColumns
+            ))) . $message;
+        }
+
+        return new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn('&nbsp;')))) . $message;
     }
 
     /**

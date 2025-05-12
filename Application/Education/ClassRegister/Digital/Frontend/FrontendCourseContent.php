@@ -199,7 +199,7 @@ class FrontendCourseContent extends Extension implements IFrontendInterface
                     . (new Primary(
                         new Plus() . ' Fehlzeit hinzufügen',
                         ApiAbsence::getEndpoint()
-                    ))->ajaxPipelineOnClick(ApiAbsence::pipelineOpenCreateAbsenceModal(null, $DivisionCourseId))
+                    ))->ajaxPipelineOnClick(ApiAbsence::pipelineOpenCreateAbsenceModal(null, $DivisionCourseId, null, true))
                     , 8),
                 new LayoutColumn(
                     new PullRight(
