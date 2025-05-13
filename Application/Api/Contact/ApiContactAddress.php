@@ -175,6 +175,7 @@ class ApiContactAddress extends Extension implements IApiInterface
             $Global->POST['Street']['Name'] = $tblAddress->getStreetName();
             $Global->POST['County'] = $tblAddress->getCounty();
             $Global->POST['Nation'] = $tblAddress->getNation();
+            $Global->POST['AddressExtra'] = $tblAddress->getAddressExtra();
             if ($tblState) {
                 $Global->POST['State'] = $tblState->getId();
             }
@@ -220,6 +221,9 @@ class ApiContactAddress extends Extension implements IApiInterface
                         new Panel('Anschrift', array(
                             (new SelectBox('Type[Type]', 'Typ', array('Name' => array($tblType)),
                                 new TileBig()))->setDisabled(),
+                            new TextField('AddressExtra', 'Adresszusatz', 'Adresszusatz',
+                                new MapMarker()
+                            ),
                             (new AutoCompleter('Street[Name]', 'Straße', 'Straße',
                                 array('StreetName' => $tblAddress), new MapMarker()
                             ))->setRequired(),
@@ -271,18 +275,12 @@ class ApiContactAddress extends Extension implements IApiInterface
      * @param string $County
      * @param int    $State
      * @param string $Nation
+     * @param string $AddressExtra
      *
      * @return Layout|String
      */
-    public function saveModal(
-        $PersonId,
-        $Type,
-        $Street,
-        $City,
-        $County,
-        $State,
-        $Nation
-    ) {
+    public function saveModal($PersonId, $Type, $Street, $City, $County, $State, $Nation, $AddressExtra)
+    {
 
         $tblType = Address::useService()->getTypeByName('Hauptadresse');
         if ($tblType) {
@@ -301,9 +299,7 @@ class ApiContactAddress extends Extension implements IApiInterface
             return new Well($form);
         }
         // do service
-        if (Address::useService()->createAddressToPersonByApi($tblPerson, $Street, $City, $State, $Type, $County,
-            $Nation)
-        ) {
+        if (Address::useService()->createAddressToPersonByApi($tblPerson, $Street, $City, $State, $Type, $County, $Nation, $AddressExtra)) {
             return new SuccessMessage('Adresse wurde erfolgreich gespeichert.').self::pipelineClose($PersonId);
         }
 
