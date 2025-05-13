@@ -40,8 +40,10 @@ use SPHERE\Common\Frontend\Icon\Repository\Question;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
+use SPHERE\Common\Frontend\Layout\Repository\CustomPanel;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\PullClear;
+use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
@@ -565,7 +567,7 @@ abstract class FrontendTask extends FrontendStudentOverview
      * @param $TaskId
      * @param $Data
      *
-     * @return Warning|string
+     * @return string
      */
     public function loadDivisionCourseTaskGradeContent($TaskId, $Data): string
     {
@@ -574,18 +576,10 @@ abstract class FrontendTask extends FrontendStudentOverview
         }
 
         if (isset($Data['DivisionCourse']) && ($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($Data['DivisionCourse']))) {
-            $button = new Standard(
-                'Herunterladen',
-                '/Api/Education/Graduation/Grade/TaskGrades/Download',
-                new Download(),
-                array('TaskId' => $tblTask->getId(), 'DivisionCourseId' => $tblDivisionCourse->getId()),
-                'Zensurenübersicht als Excel herunterladen'
-            );
-
             if ($tblTask->getIsTypeBehavior()) {
-                return $button . new Container('&nbsp;') . $this->getTaskGradeViewByBehaviorTask($tblTask, $tblDivisionCourse);
+                return $this->getTaskGradeViewByBehaviorTask($tblTask, $tblDivisionCourse);
             } else {
-                return $button . new Container('&nbsp;') . $this->getTaskGradeViewByAppointedDateTask($tblTask, $tblDivisionCourse);
+                return $this->getTaskGradeViewByAppointedDateTask($tblTask, $tblDivisionCourse);
             }
         } else {
             return (new Warning('Bitte wählen Sie zunächst einen Kurs aus.', new Exclamation()));
@@ -600,6 +594,14 @@ abstract class FrontendTask extends FrontendStudentOverview
      */
     private function getTaskGradeViewByBehaviorTask(TblTask $tblTask, TblDivisionCourse $tblDivisionCourse): string
     {
+        $button = new Standard(
+            'Herunterladen',
+            '/Api/Education/Graduation/Grade/TaskGrades/Download',
+            new Download(),
+            array('TaskId' => $tblTask->getId(), 'DivisionCourseId' => $tblDivisionCourse->getId()),
+            'Zensurenübersicht als Excel herunterladen'
+        );
+
         $showProposalBehaviorGrade = ($tblSetting = Consumer::useService()->getSetting('Education', 'Graduation', 'Evaluation', 'ShowProposalBehaviorGrade'))
             && $tblSetting->getValue();
         $calcProposalBehaviorGrade = ($tblSetting = Consumer::useService()->getSetting('Education', 'Graduation', 'Evaluation', 'CalcProposalBehaviorGrade'))
@@ -693,7 +695,7 @@ abstract class FrontendTask extends FrontendStudentOverview
             }
         }
 
-        return $this->getTableCustom($headerList, $bodyList);
+        return $button . new Container('&nbsp;') . $this->getTableCustom($headerList, $bodyList);
     }
 
     /**
@@ -706,6 +708,31 @@ abstract class FrontendTask extends FrontendStudentOverview
     public function getTaskGradeViewByAppointedDateTask(TblTask $tblTask, TblDivisionCourse $tblDivisionCourse,
         TblPrepareCertificate $tblPrepareCertificate = null): string
     {
+        $button = new Standard(
+            'Herunterladen',
+            '/Api/Education/Graduation/Grade/TaskGrades/Download',
+            new Download(),
+            array('TaskId' => $tblTask->getId(), 'DivisionCourseId' => $tblDivisionCourse->getId()),
+            'Zensurenübersicht als Excel herunterladen'
+        );
+
+        // Noten-Farbschema Legende
+        if (DivisionCourse::useService()->getIsCourseSystemByStudentsInDivisionCourse($tblDivisionCourse)) {
+            $title = 'Legende Punkte-Farbschema anzeigen';
+            $legendItems[] = $this->getLayout(new Bold(new Success('Grüne Punkte')), 'Punkte 5 bis 15');
+            $legendItems[] = $this->getLayout(new Bold(new WarningText('Gelbe Punkte')), 'Punkte 1 bis 4');
+            $legendItems[] = $this->getLayout(new Bold(new \SPHERE\Common\Frontend\Text\Repository\Danger('Rote Punkte')), 'Punkte 0');
+        } else {
+            $title = 'Legende Noten-Farbschema anzeigen';
+            $legendItems[] = $this->getLayout(new Bold(new Success('Grüne Note')), 'Noten 1 bis 3');
+            $legendItems[] = $this->getLayout(new Bold(new WarningText('Gelbe Note')), 'Note 4');
+            $legendItems[] = $this->getLayout(new Bold(new \SPHERE\Common\Frontend\Text\Repository\Danger('Rote Note')), 'Note 5 und 6');
+        }
+        $legendItems[] = $this->getLayout(new Bold(new WarningText('f')) , 'Fehlende Stichtagsnote');
+        $legendItems[] = $this->getLayout(new WarningText('Gelber Ø') , 'Stichtagsnote weicht vom berechneten Notendurchschnitt ab');
+        $legendItems[] = $this->getLayout('' , 'Schüler wird nicht im Fach unterrichtet');
+        $legendPanel = (new CustomPanel($title, $legendItems))->setAccordeon();
+
         $headerList['Number'] = $this->getTableColumnHead('#');
         $headerList['Person'] = $this->getTableColumnHead('Schüler');
 
@@ -829,10 +856,20 @@ abstract class FrontendTask extends FrontendStudentOverview
         // Fach-klassen durchschnitt
         array_unshift($bodyList, $this->getBodyItemDivisionCourseSubjectAverage($tblSubjectList, $subjectListSum, $subjectListGradesCount));
 
-        return $this->getTableCustom($headerList, $bodyList);
+        return new PullClear($button . new PullRight($legendPanel->setHeadStyle('width: 500px;')))
+//            . new Container('&nbsp;')
+            . $this->getTableCustom($headerList, $bodyList);
     }
 
-
+    private function getLayout(string $first, $second): Layout
+    {
+        return new Layout(new LayoutGroup(
+            new LayoutRow(array(
+                new LayoutColumn($first, 3),
+                new LayoutColumn($second, 9),
+            ))
+        ));
+    }
 
     /**
      * @param array $tblSubjectList

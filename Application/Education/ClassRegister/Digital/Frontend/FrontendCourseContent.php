@@ -54,6 +54,7 @@ use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Center;
+use SPHERE\Common\Frontend\Text\Repository\Strikethrough;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
@@ -508,10 +509,17 @@ class FrontendCourseContent extends Extension implements IFrontendInterface
     public function getStudentPanel(TblDivisionCourse $tblDivisionCourse): string
     {
         $dataList = array();
-        if (($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses())) {
+        if (($tblDivisionCourseMemberList = $tblDivisionCourse->getStudentsWithSubCourses(true, false))) {
             $count = 0;
-            foreach ($tblPersonList as $tblPerson) {
-                $dataList[] = new PullLeft(++$count) . new PullRight($tblPerson->getLastFirstNameWithCallNameUnderline());
+            foreach ($tblDivisionCourseMemberList as $tblDivisionCourseMember) {
+                if (($tblPerson = $tblDivisionCourseMember->getServiceTblPerson()))
+                {
+                    $dataList[] = new PullLeft($tblDivisionCourseMember->isInActive() ? new Strikethrough(++$count) : ++$count)
+                        . new PullRight($tblDivisionCourseMember->isInActive()
+                            ? new Strikethrough($tblPerson->getLastFirstNameWithCallNameUnderline())
+                            : $tblPerson->getLastFirstNameWithCallNameUnderline()
+                        );
+                }
             }
         }
 

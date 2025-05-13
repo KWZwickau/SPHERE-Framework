@@ -169,6 +169,22 @@ class ApiPersonDelete extends Extension implements IApiInterface
         $emitter->setPostPayload(array(
             'number' => $number
         ));
+        if($number == 3){
+            // Gruppen korrekt vorauswählen
+            $GroupStaffId = $GroupClubId = 0;
+            if(($tblGroupStaff = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_STAFF))){
+                $GroupStaffId = $tblGroupStaff->getId();
+            }
+            if(($tblGroupClub = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_CLUB))){
+                $GroupClubId = $tblGroupClub->getId();
+            }
+
+            $emitter->setPostPayload(array(
+                'number' => $number,
+                'GroupList[1]' => $GroupStaffId,
+                'GroupList[2]' => $GroupClubId
+            ));
+        }
         $pipeline->appendEmitter($emitter);
 
         $emitter = new ServerEmitter(ApiPersonDelete::receiverService('Filter'.++$number), ApiPersonDelete::getEndpoint());
@@ -211,9 +227,6 @@ class ApiPersonDelete extends Extension implements IApiInterface
         $emitter->setGetPayload(array(
             ApiPersonDelete::API_TARGET => 'showLoadContent',
         ));
-//        $emitter->setPostPayload(array(
-//            'GroupId' => $GroupId
-//        ));
         $pipeline->appendEmitter($emitter);
 
         return $pipeline;
@@ -297,16 +310,24 @@ class ApiPersonDelete extends Extension implements IApiInterface
     {
 
         // filter placement (receiver)
-        for($i = 1; $i <= 8; $i++) {
-            $FormColumnArray[] = new FormColumn(self::receiverService('Filter'.$i), 3);
+        for($i = 3; $i <= 8; $i++) {
+            $FormColumnArray[] = new FormColumn(self::receiverService('Filter'.$i), ($i==3?9:3));
         }
         $FormColumnArray[] = new FormColumn((new Primary('Filter', '#', new Filter()))->ajaxPipelineOnClick(ApiPersonDelete::pipelineFilter()));
 
         // TableContent
-        $Receiver = ApiPersonDelete::receiverBlock($this->getCustodyTable(), 'CustodyTable');
+        // Gruppen beim Initial laden mit berücksichtigen
+        $tblGroupIdList = array();
+        if(($tblGroupStaff = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_STAFF))){
+            $tblGroupIdList[] = $tblGroupStaff->getId();
+        }
+        if(($tblGroupClub = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_CLUB))){
+            $tblGroupIdList[] = $tblGroupClub->getId();
+        }
+        $Receiver = ApiPersonDelete::receiverBlock($this->getCustodyTable($tblGroupIdList), 'CustodyTable');
 
         return $this->getModalHeaderDeleteGuard()
-            .ApiPersonDelete::pipelineAddFilter(1)
+            .ApiPersonDelete::pipelineAddFilter(3)
             .new Form(new FormGroup(new FormRow(
                 $FormColumnArray
             )))
@@ -366,7 +387,13 @@ class ApiPersonDelete extends Extension implements IApiInterface
                 if(($tblPersonChildList = Relationship::useService()->getPersonChildByPerson($tblPerson))){
                     foreach($tblPersonChildList as $tblPersonChild){
                         // Aktueller Schulverlauf
+//                        if(DivisionCourse::useService()->getStudentEducationByPersonAndDate($tblPersonChild)){
+                        // Aktuelle Schulverlauf "mit Abgängern in diesem Schuljahr"
                         if(DivisionCourse::useService()->getStudentEducationByPersonAndDate($tblPersonChild)){
+                            $activePerson = true;
+                            break;
+                        } elseif(!DivisionCourse::useService()->getStudentEducationListByPerson($tblPersonChild)) {
+                            // Interessenten / Kita ohne Schulverlauf gelten auch als Aktiv
                             $activePerson = true;
                             break;
                         }
@@ -501,10 +528,17 @@ class ApiPersonDelete extends Extension implements IApiInterface
             }
         }
         $tblGroupList = array_filter($tblGroupList);
-        return (new SelectBox('GroupList['.$number.']', 'Gruppe exkludieren', array('{{ Name }}' => $tblGroupList)))
-            ->configureLibrary()
-//            ->ajaxPipelineOnChange(ApiPersonDelete::pipelineFilter())
-            ;
+        if($number > 3){
+            return (new SelectBox('GroupList['.$number.']', 'Gruppe exkludieren', array('{{ Name }}' => $tblGroupList)))->configureLibrary();
+        } else {
+            // Initial laden aller 3 Selectboxen
+            return
+                new Layout(new LayoutGroup(new LayoutRow(array(
+                    new LayoutColumn((new SelectBox('GroupList[1]', 'Gruppe exkludieren', array('{{ Name }}' => $tblGroupList)))->configureLibrary(), 4),
+                    new LayoutColumn((new SelectBox('GroupList[2]', 'Gruppe exkludieren', array('{{ Name }}' => $tblGroupList)))->configureLibrary(), 4),
+                    new LayoutColumn((new SelectBox('GroupList['.$number.']', 'Gruppe exkludieren', array('{{ Name }}' => $tblGroupList)))->configureLibrary(), 4)
+                )))) ;
+        }
     }
 
     /**
@@ -567,7 +601,6 @@ class ApiPersonDelete extends Extension implements IApiInterface
     public function serviceDeleteGuardContent($PersonReduce = array(), $InitialCount = '')
     {
 
-        // Todo hier partiell arbeiten.
         $WorkCount = 0;
         if(!empty($PersonReduce)){
             foreach($PersonReduce as &$PersonId){

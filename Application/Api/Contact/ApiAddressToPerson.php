@@ -557,7 +557,7 @@ class ApiAddressToPerson  extends Extension implements IApiInterface
      *
      * @return bool|\SPHERE\Common\Frontend\Form\Structure\Form|Danger|string
      */
-    public function saveCreateAddressToPersonModal($PersonId, $OnlineContactId, $Street, $City, $State, $Type, $County, $Nation, $Relationship)
+    public function saveCreateAddressToPersonModal($PersonId, $OnlineContactId, $Street, $City, $State, $Type, $County, $Nation, $Relationship, $AddressExtra)
     {
 
         if (!($tblPerson = Person::useService()->getPersonById($PersonId))) {
@@ -569,7 +569,7 @@ class ApiAddressToPerson  extends Extension implements IApiInterface
             return $this->getAddressToPersonModal($form, $tblPerson, null, $OnlineContactId);
         }
 
-        if (Address::useService()->createAddressToPersonByApi($tblPerson, $Street, $City, $State, $Type, $County, $Nation)) {
+        if (Address::useService()->createAddressToPersonByApi($tblPerson, $Street, $City, $State, $Type, $County, $Nation, $AddressExtra)) {
             $tblOnlineContact = OnlineContactDetails::useService()->getOnlineContactById($OnlineContactId);
 
             // Adresse für die ausgewählten Beziehungen speichern
@@ -594,7 +594,8 @@ class ApiAddressToPerson  extends Extension implements IApiInterface
                                 $Type,
                                 '',
                                 $County,
-                                $Nation
+                                $Nation,
+                                $AddressExtra
                             );
                         // neue Hauptadresse anlegen
                         } else {
@@ -605,7 +606,8 @@ class ApiAddressToPerson  extends Extension implements IApiInterface
                                 $State,
                                 $Type,
                                 $County,
-                                $Nation
+                                $Nation,
+                                $AddressExtra
                             );
                         }
 
@@ -646,10 +648,11 @@ class ApiAddressToPerson  extends Extension implements IApiInterface
      * @param $Relationship
      * @param $OnlineContactId
      * @param string $Region
+     * @param string $AddressExtra
      *
      * @return Danger|string
      */
-    public function saveEditAddressToPersonModal($PersonId, $ToPersonId, $Street, $City, $State, $Type, $County, $Nation, $Relationship, $OnlineContactId, $Region = '')
+    public function saveEditAddressToPersonModal($PersonId, $ToPersonId, $Street, $City, $State, $Type, $County, $Nation, $Relationship, $OnlineContactId, $Region = '', $AddressExtra = '')
     {
 
         if (!($tblPerson = Person::useService()->getPersonById($PersonId))) {
@@ -665,7 +668,7 @@ class ApiAddressToPerson  extends Extension implements IApiInterface
             return $this->getAddressToPersonModal($form, $tblPerson, $ToPersonId, $OnlineContactId);
         }
 
-        if (Address::useService()->updateAddressToPersonByApi($tblToPerson, $Street, $City, $State, $Type, $Region, $County, $Nation)) {
+        if (Address::useService()->updateAddressToPersonByApi($tblToPerson, $Street, $City, $State, $Type, $Region, $County, $Nation, $AddressExtra)) {
             $tblOnlineContact = OnlineContactDetails::useService()->getOnlineContactById($OnlineContactId);
 
             // Adresse für die ausgewählten Beziehungen speichern
@@ -690,7 +693,8 @@ class ApiAddressToPerson  extends Extension implements IApiInterface
                                 $Type,
                                 $Region,
                                 $County,
-                                $Nation
+                                $Nation,
+                                $AddressExtra
                             );
                             // neue Hauptadresse anlegen
                         } else {
@@ -701,7 +705,8 @@ class ApiAddressToPerson  extends Extension implements IApiInterface
                                 $State,
                                 $Type,
                                 $County,
-                                $Nation
+                                $Nation,
+                                $AddressExtra
                             );
                         }
 

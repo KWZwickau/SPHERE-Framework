@@ -657,6 +657,7 @@ class Service extends AbstractService
         $Data['SchoolAddressCity'] = '';
         $Data['Place'] = '';
         $Data['Division'] = '';
+        $Data['AddressExtra'] = '';
         $Data['AddressStreet'] = '';
         $Data['AddressPLZ'] = '';
         $Data['AddressCity'] = '';
@@ -739,6 +740,7 @@ class Service extends AbstractService
         // Hauptadresse Schüler
         $tblAddress = Address::useService()->getAddressByPerson($tblPerson);
         if ($tblAddress) {
+            $Data['AddressExtra'] = $tblAddress->getAddressExtra();
             $Data['AddressStreet'] = $tblAddress->getStreetName().' '.$tblAddress->getStreetNumber();
             $tblCity = $tblAddress->getTblCity();
             if ($tblCity) {
