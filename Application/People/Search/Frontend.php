@@ -664,6 +664,7 @@ class Frontend extends Extension implements IFrontendInterface
         $columnDefs[] = array('searchable' => false, 'targets' => -1);
 
         $Button = '';
+        //ToDO SSW-2664 Live erstmal deaktivieren
         if($tblGroup->getMetaTable() == TblGroup::META_TABLE_CUSTODY){
             $Button = ApiPersonDelete::receiverModal()
                     .ApiPersonDelete::receiverService('load') // service without reload Modal
