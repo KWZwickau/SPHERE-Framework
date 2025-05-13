@@ -489,7 +489,8 @@ class Frontend extends FrontendTabs
         $tableBody = new TableBody($rows);
         $table = new Table($tableHead, $tableBody, null, false, null, 'TableCustom');
 
-        $dayText = new Bold($dayName[$dayAtWeek] . ', den ' . $date->format('d.m.Y'));
+        $dayText = new Bold($dayName[$dayAtWeek] . ', den ' . $date->format('d.m.Y'))
+            . (($weekName = Timetable::useService()->getTimetableWeekName($tblDivisionCourse, $date)) ? ' (' . $weekName . '-Woche)' : '');
         if ($isHoliday) {
             $dayText = $this->getTextColor($dayText, 'lightgray');
         } elseif ($isCurrentDay) {
@@ -906,7 +907,8 @@ class Frontend extends FrontendTabs
                                 )
                                 , 1),
                             new LayoutColumn(
-                                new Center(new Bold('KW' . $currentWeek. ' '))
+                                new Center(new Bold('KW' . $currentWeek. ' ')
+                                    . (($weekName = Timetable::useService()->getTimetableWeekName($tblDivisionCourse, $date)) ? ' (' . $weekName . '-Woche)' : ''))
                                 , 4),
                             new LayoutColumn(
                                 new Center(
