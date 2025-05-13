@@ -805,34 +805,6 @@ class Service extends AbstractService
     }
 
     /**
-     * @deprecated (SSW-1540)
-     * Eltern-Accounts werden ignoriert, es kann sein das Mitarbeiter auch zusätzlich einen Elternaccount haben
-     *
-     * @param TblPerson $tblPerson
-     * @param false     $isForce
-     *
-     * @return false|TblAccount[]
-     */
-    public function getAccountAllByPersonForUCS(TblPerson $tblPerson, $isForce = false)
-    {
-        $result = array();
-        if (($list = $this->getAccountAllByPerson($tblPerson, $isForce))) {
-            foreach ($list as $tblAccount) {
-                if ((($tblUserAccount = \SPHERE\Application\Setting\User\Account\Account::useService()->getUserAccountByAccount($tblAccount)))
-                    && ($tblUserAccount->getType() == TblUserAccount::VALUE_TYPE_CUSTODY)
-                ) {
-                    // ignore Account
-                    continue;
-                } else {
-                    $result[] = $tblAccount;
-                }
-            }
-        }
-
-        return empty($result) ? false : $result;
-    }
-
-    /**
      * @param TblPerson $tblPerson
      *
      * @return bool|TblAccount[]
@@ -1194,7 +1166,6 @@ class Service extends AbstractService
     public function isUserAliasUnique(TblPerson $tblPerson, string $mailAddress, string &$errorMessage) : bool {
         $error = false;
 
-//        if (($tblAccountListByPerson = Account::useService()->getAccountAllByPersonForUCS($tblPerson))) {
         if (($tblAccountListByPerson = Account::useService()->getAccountAllByPerson($tblPerson))) {
             if (count($tblAccountListByPerson) > 1) {
                 $errorMessage = 'Die Person besitzt mehrere Benutzerkonten.';
@@ -1227,10 +1198,10 @@ class Service extends AbstractService
                             /** @var TblPerson $foundPerson */
                             $PersonString = $foundPerson->getLastFirstName();
                         }
-                        $errorMessage = 'Diese E-Mail Adresse wird bereits als UCS Benutzername verwendet. ('
+                        $errorMessage = 'Diese E-Mail Adresse wird bereits als DLLP Benutzername verwendet. ('
                             . $item->getUsername() . ' - ' . $PersonString.')';
                     } else {
-                        $errorMessage = 'Diese E-Mail Adresse wird bereits als UCS Benutzername verwendet.';
+                        $errorMessage = 'Diese E-Mail Adresse wird bereits als DLLP Benutzername verwendet.';
                     }
                     $error = true;
                 }
@@ -1247,7 +1218,7 @@ class Service extends AbstractService
                     && $tblPersonMail->getId() != $tblPerson->getId()
                 ) {
                     $error = true;
-                    $errorMessage = 'Diese E-Mail Adresse wurde bereits als UCS Benutzername vorgemerkt. (' . $tblPersonMail->getLastFirstName() . ')';
+                    $errorMessage = 'Diese E-Mail Adresse wurde bereits als DLLP Benutzername vorgemerkt. (' . $tblPersonMail->getLastFirstName() . ')';
                     break;
                 }
             }
