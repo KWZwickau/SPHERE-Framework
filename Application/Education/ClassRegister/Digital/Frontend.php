@@ -120,13 +120,19 @@ class Frontend extends FrontendTabs
         $Date = ($DateString == 'today' ? (new DateTime('today'))->format('d.m.Y') : $DateString);
 
         $buttons = (new Primary(
-            new Plus() . ' Thema/Hausaufgaben hinzufügen',
-            ApiDigital::getEndpoint()
+            new Plus() . ' Thema / HA hinzufügen',
+            ApiDigital::getEndpoint(),
+            null,
+            [],
+            'Thema / Hausaufgaben hinzufügen'
         ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenCreateLessonContentModal($DivisionCourseId, $Date));
 
         $buttons .= (new Primary(
-            new Plus() . ' Vergessene Arbeitsmittel/Hausaufgaben hinzufügen',
-            ApiForgotten::getEndpoint()
+            new Plus() . ' Vergessene AM / HA hinzufügen',
+            ApiForgotten::getEndpoint(),
+            null,
+            [],
+            ' Vergessene Arbeitsmittel / Hausaufgaben hinzufügen'
         ))->ajaxPipelineOnClick(ApiForgotten::pipelineOpenCreateForgottenModal($DivisionCourseId, $Date));
 
         $buttons .= (new Primary(

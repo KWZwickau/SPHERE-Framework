@@ -350,7 +350,7 @@ abstract class ServiceTabs extends ServiceForgotten
         $buttonList[] = $this->getButton('Ferien', '/Education/ClassRegister/Digital/Holiday',
             new Holiday(), $DivisionCourseId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/Holiday');
         if (!$isCourseSystem) {
-            $buttonList[] = $this->getButton('Vergessene Arbeitsmittel/Hausaufgaben', '/Education/ClassRegister/Digital/Forgotten',
+            $buttonList[] = $this->getButton('Vergessene AM / HA', '/Education/ClassRegister/Digital/Forgotten',
                 new History(), $DivisionCourseId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/Forgotten');
         }
         $buttonList[] = $this->getButton('Download', '/Education/ClassRegister/Digital/Download',
@@ -439,7 +439,7 @@ abstract class ServiceTabs extends ServiceForgotten
 //            $DivisionCourseId, $BackDivisionCourseId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/Lectureship');
         $buttonList[] = $this->getButtonCourseSystem('Ferien', '/Education/ClassRegister/Digital/Holiday', new Holiday(),
             $DivisionCourseId, $BackDivisionCourseId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/Holiday');
-        $buttonList[] = $this->getButtonCourseSystem('Vergessene Arbeitsmittel/Hausaufgaben', '/Education/ClassRegister/Digital/Forgotten', new History(),
+        $buttonList[] = $this->getButtonCourseSystem('Vergessene AM / HA', '/Education/ClassRegister/Digital/Forgotten', new History(),
             $DivisionCourseId, $BackDivisionCourseId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/Forgotten');
         $buttonList[] = $this->getButtonCourseSystem('Download', '/Education/ClassRegister/Digital/Download', new Download(),
             $DivisionCourseId, $BackDivisionCourseId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/Download');

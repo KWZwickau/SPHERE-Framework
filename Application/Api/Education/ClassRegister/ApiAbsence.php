@@ -157,7 +157,8 @@ class ApiAbsence extends Extension implements IApiInterface
             $PersonId,
             $hasSearch,
             $IsMassAbsence !== null,
-            $DivisionCourseId
+            $DivisionCourseId,
+            $Date
         ), 'AbsenceModalContent');
     }
 
@@ -168,14 +169,15 @@ class ApiAbsence extends Extension implements IApiInterface
      * @param bool $hasSearch
      * @param null $IsMassAbsence
      * @param null $DivisionCourseId
+     * @param null $date
      *
      * @return string
      */
-    private function getAbsenceModal($form,  $AbsenceId = null, $PersonId = null, bool $hasSearch = false, $IsMassAbsence = null, $DivisionCourseId = null): string
+    private function getAbsenceModal($form,  $AbsenceId = null, $PersonId = null, bool $hasSearch = false, $IsMassAbsence = null, $DivisionCourseId = null, $date = null): string
     {
         $tblPerson = false;
-        $date = 'now';
         $message = '';
+        $date = $date ?: 'now';
         if ($AbsenceId) {
             if (($tblAbsence = Absence::useService()->getAbsenceById($AbsenceId))) {
                 $tblPerson = $tblAbsence->getServiceTblPerson();
@@ -271,6 +273,7 @@ class ApiAbsence extends Extension implements IApiInterface
     public function saveCreateAbsenceModal($Data, $Search, $PersonId = null, $DivisionCourseId = null, $hasSearch = null, $IsMassAbsence = null): string
     {
         $hasSearch = $hasSearch == 'true';
+        $Data['ToDate'] = $Data['ToDate'] ?? '';
         if (($form = Absence::useService()->checkFormAbsence($Data, $Search, null, $PersonId, $DivisionCourseId, $hasSearch, $IsMassAbsence))) {
             // display Errors on form
             return $this->getAbsenceModal($form, null, $PersonId, $hasSearch, $IsMassAbsence);
@@ -361,7 +364,8 @@ class ApiAbsence extends Extension implements IApiInterface
             $PersonId,
             $hasSearch,
             $IsMassAbsence,
-            $DivisionCourseId
+            $DivisionCourseId,
+            $Date
         );
     }
 

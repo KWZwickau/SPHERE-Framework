@@ -189,12 +189,18 @@ class FrontendCourseContent extends Extension implements IFrontendInterface
             new LayoutRow(array(
                 new LayoutColumn(
                     (new Primary(
-                        new Plus() . ' Thema/Hausaufgaben hinzufügen',
-                        ApiDigital::getEndpoint()
+                        new Plus() . ' Thema / HA hinzufügen',
+                        ApiDigital::getEndpoint(),
+                        null,
+                        [],
+                        'Thema / Hausaufgaben hinzufügen'
                     ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenCreateCourseContentModal($DivisionCourseId))
                     . (new Primary(
-                        new Plus() . ' Vergessene Arbeitsmittel/Hausaufgaben hinzufügen',
-                        ApiForgotten::getEndpoint()
+                        new Plus() . ' Vergessene AM / HA hinzufügen',
+                        ApiForgotten::getEndpoint(),
+                        null,
+                        [],
+                        'Vergessene Arbeitsmittel / Hausaufgaben hinzufügen'
                     ))->ajaxPipelineOnClick(ApiForgotten::pipelineOpenCreateForgottenModal($DivisionCourseId, (new DateTime('today'))->format('d.m.Y')))
                     . (new Primary(
                         new Plus() . ' Fehlzeit hinzufügen',

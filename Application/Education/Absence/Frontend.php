@@ -556,17 +556,26 @@ class Frontend extends FrontendClassRegister
             ));
         }
 
-        $formRows[] = new FormRow(array(
-            new FormColumn(
-                (new DatePicker('Data[FromDate]', '', 'Datum von', new Calendar()))
-                    ->setRequired()
-                    ->ajaxPipelineOnChange(ApiAbsence::pipelineLoadAbsenceStudentsContent($DivisionCourseId, $Date))
-                , 6),
-            new FormColumn(
-                (new DatePicker('Data[ToDate]', '', 'Datum bis', new Calendar()))
-                    ->ajaxPipelineOnChange(ApiAbsence::pipelineLoadAbsenceStudentsContent($DivisionCourseId, $Date))
-                , 6),
-        ));
+        if ($IsMassAbsence) {
+            $formRows[] = new FormRow(array(
+                new FormColumn(
+                    (new DatePicker('Data[FromDate]', '', 'Datum (Bei der Masseneingabe ist kein Zeitraum möglich)', new Calendar()))
+                        ->setRequired()
+                        ->ajaxPipelineOnChange(ApiAbsence::pipelineLoadAbsenceStudentsContent($DivisionCourseId, $Date))
+                    , 12)
+            ));
+        } else {
+            $formRows[] = new FormRow(array(
+                new FormColumn(
+                    (new DatePicker('Data[FromDate]', '', 'Datum von', new Calendar()))
+                        ->setRequired()
+                    , 6),
+                new FormColumn(
+                    (new DatePicker('Data[ToDate]', '', 'Datum bis', new Calendar()))
+                    , 6),
+            ));
+        }
+
         $formRows[] = new FormRow(array(
             new FormColumn(array(
                 (new CheckBox('Data[IsFullDay]', 'ganztägig', 1))->ajaxPipelineOnClick(ApiAbsence::pipelineLoadLesson()),
@@ -613,30 +622,30 @@ class Frontend extends FrontendClassRegister
             ))->ajaxPipelineOnClick(ApiAbsence::pipelineOpenDeleteAbsenceModal($AbsenceId, $DivisionCourseId));
         }
 
-        return (new Form(array(
-            $IsMassAbsence && $tblDivisionCourse
-                ? new FormGroup(new FormRow(array(
-                    new FormColumn(
-                        ApiAbsence::receiverBlock($this->loadAbsenceStudentsContent(
-                                $tblDivisionCourse,
-                                isset($Data['FromDate']) ? new DateTime($Data['FromDate']) : ($Date ? new DateTime($Date) : null),
-                                isset($Data['ToDate']) ? new DateTime($Data['ToDate']) : null,
-                                $messageSearch
-                            ), 'AbsenceStudentsContent'
-                        )
+        $formGroups = [];
+        if ($IsMassAbsence && $tblDivisionCourse) {
+            $formGroups[] = new FormGroup(new FormRow(array(
+                new FormColumn(
+                    ApiAbsence::receiverBlock($this->loadAbsenceStudentsContent(
+                        $tblDivisionCourse,
+                        isset($Data['FromDate']) ? new DateTime($Data['FromDate']) : ($Date ? new DateTime($Date) : null),
+                        isset($Data['ToDate']) ? new DateTime($Data['ToDate']) : null,
+                        $messageSearch
+                    ), 'AbsenceStudentsContent'
                     )
-                )),
-                new Title('Fehlende Schüler'))
-                : null,
-            new FormGroup(
-                $formRows
-            ),
-            new FormGroup(
-                new FormRow(array(
-                    new FormColumn($buttons)
-                ))
-            ),
-        )))->disableSubmitAction();
+                )
+            )), new Title('Fehlende Schüler'));
+        }
+        $formGroups[] = new FormGroup(
+            $formRows
+        );
+        $formGroups[] = new FormGroup(
+            new FormRow(array(
+                new FormColumn($buttons)
+            ))
+        );
+
+        return (new Form($formGroups))->disableSubmitAction();
     }
 
 
