@@ -689,7 +689,7 @@ class Frontend extends FrontendClassRegister
         if ($studentColumns) {
             return new Layout(new LayoutGroup(new LayoutRow(
                 $studentColumns
-            ))) . $message;
+            ))) . $message . new Container('&nbsp;');
         }
 
         return new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn('&nbsp;')))) . $message;
