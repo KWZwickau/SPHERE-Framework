@@ -5,6 +5,7 @@ namespace SPHERE\Application\Education\ClassRegister\Diary;
 use DateInterval;
 use DateTime;
 use SPHERE\Application\Api\Education\ClassRegister\ApiDiary;
+use SPHERE\Application\Api\Education\ClassRegister\ApiDiaryRead;
 use SPHERE\Application\Education\Certificate\Prepare\View;
 use SPHERE\Application\Education\ClassRegister\Diary\Service\Entity\TblDiary;
 use SPHERE\Application\Education\ClassRegister\Digital\Digital;
@@ -363,11 +364,11 @@ class Frontend extends Extension implements IFrontendInterface
                         'BasicRoute' => $BasicRoute
                     )
                 ),
-                ApiDiary::receiverModal()
+                ApiDiaryRead::receiverModal()
                 . (new Standard(
                     new Edit() . new Info(new Bold('Schüleransicht')),
-                    ApiDiary::getEndpoint()
-                ))->ajaxPipelineOnClick(ApiDiary::pipelineOpenSelectStudentModal($DivisionCourseId, $BasicRoute))
+                    ApiDiaryRead::getEndpoint()
+                ))->ajaxPipelineOnClick(ApiDiaryRead::pipelineOpenSelectStudentModal($DivisionCourseId, $BasicRoute))
             );
         } else {
             $buttonList = array(
@@ -378,11 +379,11 @@ class Frontend extends Extension implements IFrontendInterface
                         'BasicRoute' => $BasicRoute
                     )
                 ),
-                ApiDiary::receiverModal()
+                ApiDiaryRead::receiverModal()
                 . (new Standard(
                     'Schüleransicht',
-                    ApiDiary::getEndpoint()
-                ))->ajaxPipelineOnClick(ApiDiary::pipelineOpenSelectStudentModal($DivisionCourseId, $BasicRoute))
+                    ApiDiaryRead::getEndpoint()
+                ))->ajaxPipelineOnClick(ApiDiaryRead::pipelineOpenSelectStudentModal($DivisionCourseId, $BasicRoute))
             );
         }
 
@@ -611,7 +612,8 @@ class Frontend extends Extension implements IFrontendInterface
             'Content' => 'Inhalt'
         );
 
-        if (!$tblStudentPerson) {
+        $hasRightApiDiary = Access::useService()->hasAuthorization('/Api/Education/ClassRegister/ApiDiary');
+        if (!$tblStudentPerson && $hasRightApiDiary) {
             $columns['Options'] = ' ';
         }
         return new TableData(

@@ -7,6 +7,7 @@ use SPHERE\Application\Api\Education\Certificate\PrintCertificate\ApiPrintCertif
 use SPHERE\Application\Api\Education\Certificate\Reporting\ApiReporting;
 use SPHERE\Application\Api\Education\ClassRegister\ApiAbsence;
 use SPHERE\Application\Api\Education\ClassRegister\ApiDiary;
+use SPHERE\Application\Api\Education\ClassRegister\ApiDiaryRead;
 use SPHERE\Application\Api\Education\ClassRegister\ApiDigital;
 use SPHERE\Application\Api\Education\ClassRegister\ApiInstructionItem;
 use SPHERE\Application\Api\Education\ClassRegister\ApiInstructionSetting;
@@ -51,6 +52,7 @@ class Education implements IApplicationInterface
         Certificate::registerModule();
         ClassRegister::registerModule();
         ApiDiary::registerApi();
+        ApiDiaryRead::registerApi();
         ApiSortDivision::registerApi();
         Prepare::registerModule();
         ApiGenerate::registerApi();
