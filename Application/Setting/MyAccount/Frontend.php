@@ -10,6 +10,7 @@ use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAuthorization;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblIdentification;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumerLogin;
@@ -122,18 +123,18 @@ class Frontend extends Extension implements IFrontendInterface
                 $item['Name'] = $tblConsumer->getName();
                 $item['Alias'] = $tblConsumer->getAlias();
                 $item['Kamenz'] = '';
-                $item['UCS'] = '';
+                $item['DLLP'] = '';
                 $item['Region'] = $tblConsumer->getType();
                 // Kamenz
                 $tblRole = Access::useService()->getRoleByName('Auswertung: Kamenz-Statistik');
                 if(Access::useService()->getRoleConsumerBy($tblRole, $tblConsumer)){
                     $item['Kamenz'] = 'Ja';
                 }
-                // UCS
-                if(($tblConsumerLogin = Consumer::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_UCS))){
-                    $item['UCS'] = 'API Verfügbar ';
+                // DLLP
+                if(($tblConsumerLogin = Consumer::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_DLLP))){
+                    $item['DLLP'] = 'API Verfügbar ';
                     if($tblConsumerLogin->getIsActiveAPI()){
-                        $item['UCS'] .= new Muted(new Small('Aktiv'));
+                        $item['DLLP'] .= new Muted(new Small('Aktiv'));
                     }
                 }
 
@@ -154,7 +155,7 @@ class Frontend extends Extension implements IFrontendInterface
                     'Name'    => 'Name',
                     'Alias'   => 'Alias',
                     'Kamenz'  => 'verwendet Kamenz',
-                    'UCS'     => 'verwendet UCS',
+                    'DLLP'    => 'verwendet DLLP',
                     'Region'  => 'Region',
                     'Option'  => ''
                 ))
@@ -264,65 +265,68 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $tblConsumer = Consumer::useService()->getConsumerBySession();
+        $colorChoice = array(1 => 'Webseite'); // ,2 => 'Anwendung'
+        if($tblAccount && $tblAccount->getHasAuthentication(TblIdentification::NAME_SYSTEM)){
+            $colorChoice[3] = '(Experimantal) Webseite Dunkel';
+        }
 
-        $Stage->setContent(
-            new Layout(
-                new LayoutGroup(
-                    new LayoutRow(array(
-                        new LayoutColumn(array(
-                            new Title('Konfiguration', 'Benutzereinstellungen'),
-                            new Well(
-                                MyAccount::useService()->updateSetting(
-                                    new Form(
-                                        new FormGroup(
-                                            new FormRow(
-                                                new FormColumn(array(
-                                                    new Panel(
-                                                        'Oberfläche', array(
-                                                            new SelectBox(
-                                                                'Setting[Surface]',
-                                                                'Aussehen der Programmoberfläche',
-                                                                array(1 => 'Webseite', 2 => 'Anwendung')
-                                                            ),
-                                                        )
-                                                        , Panel::PANEL_TYPE_INFO),
-//                                                new Panel(
-//                                                    'Statistik', array(
-//                                                        '<iframe class="sphere-iframe-style" src="/Library/Piwik/index.php?module=CoreAdminHome&action=optOut&language=de"></iframe>',
-//                                                    )
-//                                                    , Panel::PANEL_TYPE_DEFAULT),
-                                                ))
-                                            )
+
+        $isSystem = Account::useService()->getHasAuthenticationByAccountAndIdentificationName($tblAccount, TblIdentification::NAME_SYSTEM);
+
+        $form = array(
+            new Title('Konfiguration', 'Benutzereinstellungen'),
+            new Well(
+                MyAccount::useService()->updateSetting(
+                    new Form(
+                        new FormGroup(
+                            new FormRow(
+                                new FormColumn(array(
+                                    new Panel(
+                                        'Oberfläche '.new Muted(new Small('(Sehen nur System-Account\'s)')), array(
+                                            new SelectBox(
+                                                'Setting[Surface]',
+                                                'Aussehen der Programmoberfläche',
+                                                $colorChoice, null, true, null
+                                            ),
                                         )
-                                        , new Primary('Speichern', new Save())
-                                    ), $tblAccount, $Setting)
+                                        , Panel::PANEL_TYPE_INFO),
+                                ))
                             )
-                        ), 4),
-                        new LayoutColumn(array(
-                            new Title('Profil', 'Informationen'),
-                            new Panel(
-                                'Benutzerkonto: '.new Bold($tblAccount->getUsername()), $Account
-                                , Panel::PANEL_TYPE_INFO,
-                                new Standard('Mein Passwort ändern', new Route(__NAMESPACE__.'/Password'), new Key())
-                            )
-                        ), 4),
-                        new LayoutColumn(array(
-                            new Title('Kontaktdaten', 'Informationen'),
-                            new Panel(
-                                $tblConsumer->getName().' ['.$tblConsumer->getAcronym().']',
-                                array(
-                                    new Container(implode($this->listingSchool()))
-                                    .new Container(implode($this->listingResponsibility()))
-                                    .new Container(implode($this->listingSponsorAssociation()))
-                                )
-                                , Panel::PANEL_TYPE_INFO
-//                                , new Standard('Zugriff auf Mandant ändern', new Route(__NAMESPACE__.'/Consumer'))
-                            )
-                        ), 4),
-                    ))
-                )
+                        )
+                        , new Primary('Speichern', new Save())
+                    ), $tblAccount, $Setting)
             )
         );
+        $LayoutColumnArray = array();
+        $colWidth = 6;
+        if($isSystem){
+            $colWidth = 4;
+            $LayoutColumnArray[] = new LayoutColumn($form, $colWidth);
+        }
+        $LayoutColumnArray[] = new LayoutColumn(array(
+            new Title('Profil', 'Informationen'),
+            new Panel(
+                'Benutzerkonto: '.new Bold($tblAccount->getUsername()), $Account
+                , Panel::PANEL_TYPE_INFO,
+                new Standard('Mein Passwort ändern', new Route(__NAMESPACE__.'/Password'), new Key())
+            )
+        ), $colWidth);
+        $LayoutColumnArray[] = new LayoutColumn(array(
+            new Title('Kontaktdaten', 'Informationen'),
+            new Panel(
+                $tblConsumer->getName().' ['.$tblConsumer->getAcronym().']',
+                array(
+                    new Container(implode($this->listingSchool()))
+                    .new Container(implode($this->listingResponsibility()))
+                    .new Container(implode($this->listingSponsorAssociation()))
+                )
+                , Panel::PANEL_TYPE_INFO
+//                                , new Standard('Zugriff auf Mandant ändern', new Route(__NAMESPACE__.'/Consumer'))
+            )
+        ), $colWidth);
+
+
+        $Stage->setContent(new Layout(new LayoutGroup(new LayoutRow($LayoutColumnArray))));
 
         return $Stage;
     }

@@ -465,11 +465,11 @@ class Service extends ServiceYearChange
 
     /**
      * @param TblType $tblSchoolType
-     * @param int $level
+     * @param ?int $level
      *
      * @return bool
      */
-    public function getIsShortYearBySchoolTypeAndLevel(TblType $tblSchoolType, int $level): bool
+    public function getIsShortYearBySchoolTypeAndLevel(TblType $tblSchoolType, ?int $level): bool
     {
         return ($tblSchoolType->getShortName() == 'Gy' && preg_match('!(12)!is', $level))
             || ($tblSchoolType->getShortName() == 'BGy' && preg_match('!(13)!is', $level));
@@ -632,15 +632,15 @@ class Service extends ServiceYearChange
             $error = true;
         }
         if (isset($Data['Name']) && $Data['Name'] != '') {
-            // ist ein UCS Mandant?
-            $IsUCSMandant = false;
+            // ist ein DLLP Mandant?
+            $IsDLLPMandant = false;
             if(($tblConsumer = ConsumerGatekeeper::useService()->getConsumerBySession())
-                && ConsumerGatekeeper::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_UCS)
+                && ConsumerGatekeeper::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_DLLP)
             ){
-                $IsUCSMandant = true;
+                $IsDLLPMandant = true;
             }
-            // Name Zeicheneingrenzung für Klassen und Stammgruppen, falls diese an angeschlossene Systeme übertragen werden müssen (UCS)
-            if ($IsUCSMandant && $tblType && ($tblType->getIdentifier() == TblDivisionCourseType::TYPE_DIVISION || $tblType->getIdentifier() == TblDivisionCourseType::TYPE_CORE_GROUP)) {
+            // Name Zeicheneingrenzung für Klassen und Stammgruppen, falls diese an angeschlossene Systeme übertragen werden müssen (DLLP)
+            if ($IsDLLPMandant && $tblType && ($tblType->getIdentifier() == TblDivisionCourseType::TYPE_DIVISION || $tblType->getIdentifier() == TblDivisionCourseType::TYPE_CORE_GROUP)) {
                 // Gleiche Logik für Klassen und Stammgruppen
                 // erlaubte Zeichen: [a-zA-Z0-9 -]
                 // am Anfang und Ende dürfen nur Zahlen und Buchstaben sein
@@ -877,8 +877,8 @@ class Service extends ServiceYearChange
             if ($isResultPersonList) {
                 $personList = array();
                 foreach ($memberList as $tblDivisionCourseMember) {
-                    if ($tblDivisionCourseMember->getServiceTblPerson()) {
-                        $personList[] = $tblDivisionCourseMember->getServiceTblPerson();
+                    if (($tblPerson = $tblDivisionCourseMember->getServiceTblPerson())) {
+                        $personList[$tblPerson->getId()] = $tblPerson;
                     }
                 }
 
@@ -1503,6 +1503,42 @@ class Service extends ServiceYearChange
                     return $tblStudentEducation;
                 }
             }
+        }
+
+        return false;
+    }
+
+    /**
+     * bei Klassen-wechsel im Schuljahr verwenden
+     *
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     * @param string $date
+     *
+     * @return TblStudentEducation|bool
+     */
+    public function getStudentEducationByPersonAndYearAndDateWithLeaved(TblPerson $tblPerson, TblYear $tblYear, string $date = 'now'): TblStudentEducation|bool
+    {
+        // Klassen wechsel im Schuljahr
+        $dateTime = new DateTime($date);
+        if (($list = $this->getStudentEducationListByPersonAndYear($tblPerson, $tblYear)))
+        {
+            if (count($list) == 1) {
+                return $list[0];
+            }
+
+            $default = false;
+            foreach ($list as $tblStudentEducation) {
+                if (($leaveDate = $tblStudentEducation->getLeaveDateTime())) {
+                    if ($dateTime <= $leaveDate) {
+                        return $tblStudentEducation;
+                    }
+                } else {
+                    $default = $tblStudentEducation;
+                }
+            }
+
+            return $default ?: $list[count($list) - 1];
         }
 
         return false;

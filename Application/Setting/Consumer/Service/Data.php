@@ -274,6 +274,11 @@ class Data extends AbstractData
         ) {
             $this->updateSettingSortOrder($tblSetting, 9);
         }
+        if (($tblSetting = $this->createSetting('ParentStudentAccess', 'Person', 'ContactDetails', 'PasswordRecoveryCost', TblSetting::TYPE_STRING, '5',
+            'Eltern/Schüler-Zugang', 'Kostenstellung für Vergabe eines neuen Passwortes. [Standard: 5]', true, 10))
+        ) {
+            $this->updateSettingSortOrder($tblSetting, 10);
+        }
 
         // Adresslisten für Serienbriefe public
         $this->createSetting('Reporting', 'SerialLetter', 'GenderSort', 'FirstFemale', TblSetting::TYPE_BOOLEAN, 1,
@@ -302,15 +307,30 @@ class Data extends AbstractData
         );
 
         // Leistungsüberprüfungen public
-        $this->createSetting('Education', 'Graduation', 'Evaluation', 'HasBehaviorGradesForSubjectsWithNoGrading',
-            TblSetting::TYPE_BOOLEAN, '0', 'Leistungsüberprüfungen', 'Bei Kopfnotenaufträgen können auch Kopfnoten für
-            Fächer vergeben werden, welche nicht benotet werden. [Standard: Nein]', true);
-        $this->createSetting('Education', 'Graduation', 'Evaluation', 'AutoPublicationOfTestsAfterXDays',
-            TblSetting::TYPE_INTEGER, '28', 'Leistungsüberprüfungen', 'Automatische Bekanntgabe von
-             Leistungsüberprüfungen für die Notenübersicht der Schüler/Eltern nach x Tagen: [Standard: 28]', true);
-        $this->createSetting('Education', 'Graduation', 'Evaluation', 'ShowProposalBehaviorGrade',
+        if (($tblSetting = $this->createSetting('Education', 'Graduation', 'Evaluation', 'ShowProposalBehaviorGrade',
             TblSetting::TYPE_BOOLEAN, '0', 'Leistungsüberprüfungen', 'Anzeige der Kopfnoten der Klassenlehrer als
-            Notenvorschlag [Standard: Nein]', true);
+            Notenvorschlag [Standard: Nein]', true, 1)
+        )) {
+            $this->updateSettingSortOrder($tblSetting, 1);
+        }
+        if (($tblSetting = $this->createSetting('Education', 'Graduation', 'Evaluation', 'CalcProposalBehaviorGrade',
+            TblSetting::TYPE_BOOLEAN, '0', 'Leistungsüberprüfungen', 'Die Kopfnoten der Klassenlehrer, welche auch als
+            Notenvorschlag verwendet werden kann, wird in der Berechnung des Kopfnoten-Durchschnitts mit eingerechnet. [Standard: Nein]', true, 2)
+        )) {
+            $this->updateSettingSortOrder($tblSetting, 2);
+        }
+        if (($tblSetting = $this->createSetting('Education', 'Graduation', 'Evaluation', 'HasBehaviorGradesForSubjectsWithNoGrading',
+            TblSetting::TYPE_BOOLEAN, '0', 'Leistungsüberprüfungen', 'Bei Kopfnotenaufträgen können auch Kopfnoten für
+            Fächer vergeben werden, welche nicht benotet werden. [Standard: Nein]', true, 3)
+        )) {
+            $this->updateSettingSortOrder($tblSetting, 3);
+        }
+        if (($tblSetting = $this->createSetting('Education', 'Graduation', 'Evaluation', 'AutoPublicationOfTestsAfterXDays',
+            TblSetting::TYPE_INTEGER, '28', 'Leistungsüberprüfungen', 'Automatische Bekanntgabe von
+             Leistungsüberprüfungen für die Notenübersicht der Schüler/Eltern nach x Tagen: [Standard: 28]', true, 4)
+        )) {
+            $this->updateSettingSortOrder($tblSetting, 4);
+        }
 
         // Fehlzeiten public
         $this->createSetting('Education', 'ClassRegister', 'Absence', 'DefaultStatusForNewOnlineAbsence', TblSetting::TYPE_INTEGER, TblAbsence::VALUE_STATUS_UNEXCUSED, 'Fehlzeiten',
@@ -325,14 +345,14 @@ class Data extends AbstractData
             $this->updateSettingSortOrder($tblSetting, 4);
         }
 
-        // UCS
+        // DLLP
         if (($tblSetting = $this->createSetting('Setting', 'Univention', 'Univention', 'API_Mail',
-            TblSetting::TYPE_STRING, '', 'Univention', 'E-Mail-Adresse für UCS Benutzername
+            TblSetting::TYPE_STRING, '', 'Univention', 'E-Mail-Adresse für DLLP Benutzername
              ist kein Pflichtfeld für Schüler folgender Schularten (Kürzel z.B. GS, OS, Gy, BS, BFS, BGJ, BVJ, BGy, FOS, FS, GMS, ISS). Mehrere Schularten sind mit
              Komma zu trennen. [Standard: ]'
         ))) {
             $this->updateSettingDescription($tblSetting, 'Univention',
-                'E-Mail-Adresse für UCS Benutzername
+                'E-Mail-Adresse für DLLP Benutzername
                 ist kein Pflichtfeld für Schüler folgender Schularten (Kürzel z.B. GS, OS, Gy, BS, BFS, BGJ, BVJ, BGy, FOS, FS, GMS, ISS). Mehrere Schularten sind mit
                 Komma zu trennen. [Standard: ]', $tblSetting->isPublic()
             );

@@ -11,6 +11,7 @@ use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreConditi
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreGroup;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreGroupGradeTypeList;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreRule;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreRuleBehaviorSubject;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreRuleConditionList;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreRuleSubject;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreRuleSubjectDivisionCourse;
@@ -197,6 +198,49 @@ abstract class ServiceScore extends ServiceMinimumGradeCount
     }
 
     /**
+     * @param TblType $tblSchoolType
+     * @param int $level
+     * @param TblSubject|null $tblSubject
+     *
+     * @return false|TblScoreRuleBehaviorSubject
+     */
+    public function getScoreRuleBehaviorSubjectBySchoolTypeAndLevelAndSubject(TblType $tblSchoolType, int $level, ?TblSubject $tblSubject)
+    {
+        return (new Data($this->getBinding()))->getScoreRuleBehaviorSubjectBySchoolTypeAndLevelAndSubject($tblSchoolType, $level, $tblSubject);
+    }
+
+    /**
+     * @param TblType $tblSchoolType
+     *
+     * @return false|TblScoreRuleBehaviorSubject[]
+     */
+    public function getScoreRuleBehaviorSubjectListBySchoolType(TblType $tblSchoolType)
+    {
+        return (new Data($this->getBinding()))->getScoreRuleBehaviorSubjectListBySchoolType($tblSchoolType);
+    }
+
+    /**
+     * @param TblType $tblSchoolType
+     * @param int $level
+     *
+     * @return false|TblScoreRuleBehaviorSubject[]
+     */
+    public function getScoreRuleBehaviorSubjectListBySchoolTypeAndLevel(TblType $tblSchoolType, int $level)
+    {
+        if (($tempList = (new Data($this->getBinding()))->getScoreRuleBehaviorSubjectListBySchoolTypeAndLevel($tblSchoolType, $level))) {
+            $resultList = array();
+            $tempList = $this->getSorter($tempList)->sortObjectBy('Sort');
+            foreach ($tempList as $item) {
+                $resultList[$item->getServiceTblSubject() ? $item->getServiceTblSubject()->getId() : 0] = $item;
+            }
+
+            return $resultList;
+        }
+
+        return false;
+    }
+
+    /**
      * @param $id
      *
      * @return false|TblScoreRule
@@ -269,12 +313,12 @@ abstract class ServiceScore extends ServiceMinimumGradeCount
     /**
      * @param TblYear $tblYear
      * @param TblType $tblSchoolType
-     * @param int $level
+     * @param ?int $level
      * @param TblSubject $tblSubject
      *
      * @return false|TblScoreRuleSubject
      */
-    public function getScoreRuleSubjectByYearAndSchoolTypeAndLevelAndSubject(TblYear $tblYear, TblType $tblSchoolType, int $level, TblSubject $tblSubject)
+    public function getScoreRuleSubjectByYearAndSchoolTypeAndLevelAndSubject(TblYear $tblYear, TblType $tblSchoolType, ?int $level, TblSubject $tblSubject)
     {
         return (new Data($this->getBinding()))->getScoreRuleSubjectByYearAndSchoolTypeAndLevelAndSubject($tblYear, $tblSchoolType, $level, $tblSubject);
     }

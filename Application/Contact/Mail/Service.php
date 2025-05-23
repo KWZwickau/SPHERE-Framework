@@ -169,8 +169,8 @@ class Service extends AbstractService
             $form->setError('Type[Type]', 'Bitte geben Sie einen Typ an');
             $error = true;
         } elseif ($IsAccountUserAlias && $tblType && $tblType->getName() != 'Geschäftlich' ) {
-            // UCS Benutzername muss als geschäftliche E-Mail Adresse angelegt werden
-            $form->setError('Type[Type]', 'Zur Verwendung der E-Mail Adresse als UCS Benutzername muss der E-Mail Typ: 
+            // DLLP Benutzername muss als geschäftliche E-Mail Adresse angelegt werden
+            $form->setError('Type[Type]', 'Zur Verwendung der E-Mail Adresse als DLLP Benutzername muss der E-Mail Typ: 
                 Geschäftlich ausgewählt werden.');
             $error = true;
         } else {
@@ -179,7 +179,7 @@ class Service extends AbstractService
 
         if(!$error && $IsAccountUserAlias){
             $errorMessage = '';
-            // Eindeutigkeit UCS Alias
+            // Eindeutigkeit DLLP Alias
             if (!Account::useService()->isUserAliasUnique($tblPerson, $Address, $errorMessage)) {
                 $error = true;
                 $form->setError('Address[Mail]', $errorMessage);
@@ -257,7 +257,6 @@ class Service extends AbstractService
 
         if ($IsAccountUserAlias || $IsAccountRecoveryMail) {
             $tblAccount = false;
-//            if(($tblAccountList = Account::useService()->getAccountAllByPersonForUCS($tblPerson))) {
             if(($tblAccountList = Account::useService()->getAccountAllByPerson($tblPerson))) {
                 if (count($tblAccountList) > 1) {
                     return false;
@@ -414,7 +413,6 @@ class Service extends AbstractService
 
             /** @var TblAccount $tblAccount */
             $tblAccount = false;
-//                if(($tblAccountList = Account::useService()->getAccountAllByPersonForUCS($tblPerson))) {
             if(($tblAccountList = Account::useService()->getAccountAllByPerson($tblPerson))) {
                 if (count($tblAccountList) > 1) {
                     return false;

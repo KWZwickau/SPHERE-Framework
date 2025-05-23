@@ -8,6 +8,7 @@ use SPHERE\Application\Education\Certificate\Generator\Repository\Section;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificate;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificateSubject;
+use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 
@@ -159,15 +160,15 @@ abstract class FsStyle extends Certificate
             );
             $Slice->addElement((new Element())
                 ->setContent($name ? $name : '&nbsp;')
-                ->styleAlignRight()
-                ->styleTextSize('22px')
+                ->styleAlignCenter()
+                ->styleTextSize('12pt')
                 ->styleHeight('28px')
                 ->stylePaddingTop('40px')
             );
             $Slice->addElement((new Element())
                 ->setContent($secondLine ? $secondLine : '&nbsp;')
-                ->styleAlignRight()
-                ->styleTextSize('18px')
+                ->styleAlignCenter()
+                ->styleTextSize('12pt')
                 ->styleHeight('42px')
 //            ->stylePaddingTop('20px')
             );
@@ -175,20 +176,20 @@ abstract class FsStyle extends Certificate
             $Slice->addElement((new Element())
                 ->setContent($name ? $name : '&nbsp;')
                 ->styleAlignCenter()
-                ->styleTextSize('22px')
+                ->styleTextSize('12pt')
                 ->styleHeight('28px')
                 ->stylePaddingTop('25px')
             );
             $Slice->addElement((new Element())
                 ->setContent($secondLine ? $secondLine : '&nbsp;')
                 ->styleAlignCenter()
-                ->styleTextSize('18px')
+                ->styleTextSize('12pt')
                 ->styleHeight('42px')
 //            ->stylePaddingTop('20px')
             );
         }
 
-        $Slice->addSection($this->getIndividuallyLogo($this->isSample()));
+        $Slice->addSection($this->getIndividuallyLogo($this->isSample(), true));
         $Slice->addElement((new Element())
             ->setContent($CertificateName)
             ->styleAlignCenter()
@@ -420,7 +421,7 @@ abstract class FsStyle extends Certificate
         );
         $Slice->addElement((new Element())
             ->setContent('Fachschule {% if(Content.P' . $personId . '.Input.FsDestination is not empty) %}
-                    {{ Content.P' . $personId . '.Input.FsDestination }}
+                    - Fachbereich {{ Content.P' . $personId . '.Input.FsDestination }}
                 {% else %}
                     ---
                 {% endif %}')
@@ -433,7 +434,7 @@ abstract class FsStyle extends Certificate
         $Slice->addElement((new Element())
             ->setContent('
                 {% if(Content.P' . $personId . '.Input.SubjectArea is not empty) %}
-                    {{ Content.P' . $personId . '.Input.SubjectArea }}{% if(Content.P' . $personId . '.Input.Focus is not empty) %}, 
+                    Fachrichtung {{ Content.P' . $personId . '.Input.SubjectArea }}{% if(Content.P' . $personId . '.Input.Focus is not empty) %}, 
                     {% endif %}
                 {% endif %}
                 {% if(Content.P' . $personId . '.Input.Focus is not empty) %}
@@ -931,11 +932,28 @@ abstract class FsStyle extends Certificate
         // Anzahl der Abzubildenden Einträge (auch ohne Fach)
         $CountSubjectMissing = $DisplaySubjectAmount;
 
+        // Komplex-Prüfungsfächer ignorieren, diese werden an einer späteren Stelle (Nachrichtliche Ausweisung) angegeben
+        $ignoreSubjectList = array();
+//        if (($tblPerson = Person::useService()->getPersonById($personId))
+//            && ($tblPrepareCertificate = $this->getTblPrepareCertificate())
+//            && ($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepareCertificate, $tblPerson))
+//            && ($tblPrepareComplexExamList = Prepare::useService()->getPrepareComplexExamAllByPrepareStudent($tblPrepareStudent))
+//        ) {
+//            foreach ($tblPrepareComplexExamList as $tblPrepareComplexExam) {
+//                if (($tblFirstSubject = $tblPrepareComplexExam->getServiceTblFirstSubject())) {
+//                    $ignoreSubjectList[$tblFirstSubject->getId()] = $tblFirstSubject;
+//                }
+//                if (($tblSecondSubject = $tblPrepareComplexExam->getServiceTblSecondSubject())) {
+//                    $ignoreSubjectList[$tblSecondSubject->getId()] = $tblSecondSubject;
+//                }
+//            }
+//        }
+
         if (!empty($tblCertificateSubjectAll)) {
             $SubjectStructure = array();
             foreach ($tblCertificateSubjectAll as $tblCertificateSubject) {
                 $tblSubject = $tblCertificateSubject->getServiceTblSubject();
-                if ($tblSubject) {
+                if ($tblSubject && !isset($ignoreSubjectList[$tblSubject->getId()])) {
                     $RankingString = str_pad($tblCertificateSubject->getRanking(), 2 ,'0', STR_PAD_LEFT);
                     $LaneString = str_pad($tblCertificateSubject->getLane(), 2 ,'0', STR_PAD_LEFT);
 
@@ -1280,10 +1298,11 @@ abstract class FsStyle extends Certificate
      * @param TblCertificate $tblCertificate
      * @param string $Height
      * @param string $paddingTop
+     * @param bool $isFinaleGrade
      *
      * @return Slice
      */
-    protected function getSubjectLineJobEducationAbg($personId, TblCertificate $tblCertificate, $Height = 'auto', $paddingTop = '20px')
+    protected function getSubjectLineJobEducationAbg($personId, TblCertificate $tblCertificate, $Height = 'auto', $paddingTop = '20px', bool $isFinaleGrade = false)
     {
         $Slice = (new Slice());
 
@@ -1339,6 +1358,21 @@ abstract class FsStyle extends Certificate
                 }
             }
 
+            // $Content['P' . $personId]['JobEducation']['Grade'] = $grade;
+            if ($isFinaleGrade) {
+                $grade = '{% if(Content.P' . $personId . '.JobEducation.Grade is not empty) %}
+                        {{ Content.P' . $personId . '.JobEducation.Grade }}
+                    {% else %}
+                        &ndash;
+                    {% endif %}';
+            } else {
+                $grade = '{% if(Content.P' . $personId . '.Grade.Data["' . $Subject['SubjectAcronym'] . '"] is not empty) %}
+                        {{ Content.P' . $personId . '.Grade.Data["' . $Subject['SubjectAcronym'] . '"] }}
+                    {% else %}
+                        &ndash;
+                    {% endif %}';
+            }
+
             foreach ($SubjectList as $Subject) {
                 // Jedes Fach auf separate Zeile
                 $this->getSubjectLineAbg(
@@ -1348,11 +1382,7 @@ abstract class FsStyle extends Certificate
                     {% else %}
                        Dauer: X Wochen     
                     {% endif %}',//. $Subject['SubjectName'],
-                    '{% if(Content.P' . $personId . '.Grade.Data["' . $Subject['SubjectAcronym'] . '"] is not empty) %}
-                        {{ Content.P' . $personId . '.Grade.Data["' . $Subject['SubjectAcronym'] . '"] }}
-                    {% else %}
-                        &ndash;
-                    {% endif %}'
+                    $grade
                 );
             }
         }
@@ -1633,10 +1663,11 @@ abstract class FsStyle extends Certificate
         );
 
         for($i = 1; $i <= $rowsCount; $i++){
+            $hasGradeField = $i % 2 == 0;
             $this->getSubjectLineAbg(
                 $Slice,
                 '{% if (Content.P'.$personId.'.ExamList.' . $identifier . '.' . $i . '.Subjects is not empty) %}
-                    {{ Content.P'.$personId.'.ExamList.' . $identifier . '.' . $i . '.Subjects }}
+                    {{ Content.P'.$personId.'.ExamList.' . $identifier . '.' . $i . '.Subjects }}' . ($hasGradeField ? '' : ' und ') . ' 
                 {% else %}
                     &ndash;
                 {% endif %}',
@@ -1644,7 +1675,9 @@ abstract class FsStyle extends Certificate
                     {{ Content.P'.$personId.'.ExamList.' . $identifier . '.' . $i . '.Grade }}
                 {% else %}
                     &ndash;
-                {% endif %}'
+                {% endif %}',
+                'Content.P'.$personId.'.ExamList.' . $identifier . '.' . $i . '.HasTwoRows',
+                $hasGradeField
             );
         }
 
@@ -1680,7 +1713,11 @@ abstract class FsStyle extends Certificate
                 {% else %}
                     &nbsp;
                 {% endif %}',
-                '&ndash;',
+                '{% if(Content.P' . $personId . '.InformationalExpulsionGrade.' . $i .' is not empty) %}
+                    {{ Content.P' . $personId . '.InformationalExpulsionGrade.' . $i .' }}
+                {% else %}
+                    &ndash;
+                {% endif %}',
                 'Content.P' . $personId . '.InformationalExpulsion.HasTwoRows' . $i
             );
         }
@@ -2263,9 +2300,10 @@ abstract class FsStyle extends Certificate
      * @param Slice $slice
      * @param $subjectName
      * @param $subjectGrade
-     * @param $checkTwoRows
+     * @param string $checkTwoRows
+     * @param bool $hasGradeField
      */
-    private function getSubjectLineAbg(Slice $slice, $subjectName, $subjectGrade, $checkTwoRows = '')
+    private function getSubjectLineAbg(Slice $slice, $subjectName, $subjectGrade, string $checkTwoRows = '', bool $hasGradeField = true)
     {
         $TextSize = '14px';
         $marginTopSubjectOneRow = '15px';
@@ -2292,26 +2330,29 @@ abstract class FsStyle extends Certificate
             ->stylePaddingBottom('1px')
             ->stylePaddingLeft('3px')
             ->styleTextSize($TextSize)
-            ->styleBorderBottom('0.5px')
+            ->styleBorderBottom($hasGradeField ? '0.5px' : '0px')
             , '83%');
 
         $SubjectSection->addElementColumn((new Element())
             ->setContent('&nbsp;')
             ->styleTextSize($TextSize)
-            , '2%');
+            , 'auto');
 
-        $SubjectSection->addElementColumn((new Element())
-            ->setContent($subjectGrade)
-            ->styleAlignCenter()
-            ->styleBackgroundColor(self::BACKGROUND_GRADE_FIELD)
+        if ($hasGradeField) {
+            $SubjectSection->addElementColumn((new Element())
+                ->setContent($subjectGrade)
+                ->styleAlignCenter()
+                ->styleBackgroundColor(self::BACKGROUND_GRADE_FIELD)
 //                    ->styleMarginTop('9px')
-            ->styleMarginTop($checkTwoRows
-                ? '{% if(' . $checkTwoRows . ' is not empty) %} ' . $marginTopGradeTwoRow . ' {% else %} ' . $marginTopGradeOneRow . ' {% endif %} '
-                : $marginTopGrade)
-            ->stylePaddingTop('4px')
-            ->stylePaddingBottom('4px')
-            ->styleTextSize($TextSize)
-            , '15%');
+                ->styleMarginTop($checkTwoRows
+                    ? '{% if(' . $checkTwoRows . ' is not empty) %} ' . $marginTopGradeTwoRow . ' {% else %} ' . $marginTopGradeOneRow . ' {% endif %} '
+                    : $marginTopGrade)
+                ->stylePaddingTop('4px')
+                ->stylePaddingBottom('4px')
+                ->styleTextSize($TextSize)
+                , '15%');
+        }
+
         $slice->addSection($SubjectSection);
     }
 

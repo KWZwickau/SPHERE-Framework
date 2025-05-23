@@ -1193,6 +1193,11 @@ class Creator extends Extension
             header("Content-Type: application/pdf");
             header("Content-Disposition: attachment; filename=Kurzleitfaden_Zeugniserstellung.pdf");
             header("Content-Length: ".filesize($file));
+        } elseif($Select == 'Exam') {
+            $file = "Common/Style/Resource/Document/Manual/SSW_Exam.pdf";
+            header("Content-Type: application/pdf");
+            header("Content-Disposition: attachment; filename=Kurzleitfaden_Abschluss_Abgangszeugnisse.pdf");
+            header("Content-Length: ".filesize($file));
         } elseif($Select == 'PrintA3Certificate') {
             $file = "Common/Style/Resource/Document/Manual/SSWPrintA3Certificate.pdf";
             header("Content-Type: application/pdf");
@@ -1213,15 +1218,15 @@ class Creator extends Extension
             header("Content-Type: application/pdf");
             header("Content-Disposition: attachment; filename=Untis_Leitfaden.pdf");
             header("Content-Length: ".filesize($file));
-        } elseif($Select == 'SSW_UCS_DLLP') {
-            $file = "Common/Style/Resource/Document/Manual/SSW_UCS_DLLP.pdf";
+        } elseif($Select == 'SSW_DLLP') {
+            $file = "Common/Style/Resource/Document/Manual/SSW_DLLP.pdf";
             header("Content-Type: application/pdf");
-            header("Content-Disposition: attachment; filename=Kurzleidfaden_UCS_DLLP_23.04.2024.pdf");
+            header("Content-Disposition: attachment; filename=Kurzleidfaden_DLLP_19.05.2025.pdf");
             header("Content-Length: ".filesize($file));
-        } elseif($Select == 'SSW_year_DLLP_UCS') {
-            $file = "Common/Style/Resource/Document/Manual/SSW_Jahr_UCS_DLLP.pdf";
+        } elseif($Select == 'SSW_DLLP_year') {
+            $file = "Common/Style/Resource/Document/Manual/SSW_DLLP_Jahr.pdf";
             header("Content-Type: application/pdf");
-            header("Content-Disposition: attachment; filename=Kurzleidfaden_Schuljahreswechsel_SSW_UCS_DLLP_17.07.2023.pdf");
+            header("Content-Disposition: attachment; filename=Kurzleidfaden_Schuljahreswechsel_SSW_DLLP_21.05.2025.pdf");
             header("Content-Length: ".filesize($file));
         }
 

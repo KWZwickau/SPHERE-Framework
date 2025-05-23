@@ -203,7 +203,6 @@ class Service
                                 if ($isAccountAlias || $isAccountRecoveryMail) {
                                     $addMail = false;
                                     // findAccounts
-//                                    if (($tblAccountList = Account::useService()->getAccountAllByPersonForUCS($tblPerson))) {
                                     if (($tblAccountList = Account::useService()->getAccountAllByPerson($tblPerson))) {
                                         if (count($tblAccountList) == 1) {
                                             $countAccounts++;

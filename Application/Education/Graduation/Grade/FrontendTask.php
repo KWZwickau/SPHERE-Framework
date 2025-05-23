@@ -40,8 +40,10 @@ use SPHERE\Common\Frontend\Icon\Repository\Question;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
+use SPHERE\Common\Frontend\Layout\Repository\CustomPanel;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\PullClear;
+use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
@@ -59,6 +61,7 @@ use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\Success;
+use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Frontend\Text\Repository\Warning as WarningText;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Repository\Sorter\StringNaturalOrderSorter;
@@ -564,7 +567,7 @@ abstract class FrontendTask extends FrontendStudentOverview
      * @param $TaskId
      * @param $Data
      *
-     * @return Warning|string
+     * @return string
      */
     public function loadDivisionCourseTaskGradeContent($TaskId, $Data): string
     {
@@ -573,18 +576,10 @@ abstract class FrontendTask extends FrontendStudentOverview
         }
 
         if (isset($Data['DivisionCourse']) && ($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($Data['DivisionCourse']))) {
-            $button = new Standard(
-                'Herunterladen',
-                '/Api/Education/Graduation/Grade/TaskGrades/Download',
-                new Download(),
-                array('TaskId' => $tblTask->getId(), 'DivisionCourseId' => $tblDivisionCourse->getId()),
-                'Zensurenübersicht als Excel herunterladen'
-            );
-
             if ($tblTask->getIsTypeBehavior()) {
-                return $button . new Container('&nbsp;') . $this->getTaskGradeViewByBehaviorTask($tblTask, $tblDivisionCourse);
+                return $this->getTaskGradeViewByBehaviorTask($tblTask, $tblDivisionCourse);
             } else {
-                return $button . new Container('&nbsp;') . $this->getTaskGradeViewByAppointedDateTask($tblTask, $tblDivisionCourse);
+                return $this->getTaskGradeViewByAppointedDateTask($tblTask, $tblDivisionCourse);
             }
         } else {
             return (new Warning('Bitte wählen Sie zunächst einen Kurs aus.', new Exclamation()));
@@ -599,11 +594,18 @@ abstract class FrontendTask extends FrontendStudentOverview
      */
     private function getTaskGradeViewByBehaviorTask(TblTask $tblTask, TblDivisionCourse $tblDivisionCourse): string
     {
-        if (($tblSetting = Consumer::useService()->getSetting('Education', 'Graduation', 'Evaluation', 'ShowProposalBehaviorGrade'))) {
-            $showProposalBehaviorGrade = $tblSetting->getValue();
-        } else {
-            $showProposalBehaviorGrade = false;
-        }
+        $button = new Standard(
+            'Herunterladen',
+            '/Api/Education/Graduation/Grade/TaskGrades/Download',
+            new Download(),
+            array('TaskId' => $tblTask->getId(), 'DivisionCourseId' => $tblDivisionCourse->getId()),
+            'Zensurenübersicht als Excel herunterladen'
+        );
+
+        $showProposalBehaviorGrade = ($tblSetting = Consumer::useService()->getSetting('Education', 'Graduation', 'Evaluation', 'ShowProposalBehaviorGrade'))
+            && $tblSetting->getValue();
+        $calcProposalBehaviorGrade = ($tblSetting = Consumer::useService()->getSetting('Education', 'Graduation', 'Evaluation', 'CalcProposalBehaviorGrade'))
+            && $tblSetting->getValue();
 
         $hasBehaviorTaskSetting = ($tblSetting = Consumer::useService()->getSetting(
                 'Education', 'Graduation', 'Evaluation', 'HasBehaviorGradesForSubjectsWithNoGrading'
@@ -646,15 +648,13 @@ abstract class FrontendTask extends FrontendStudentOverview
                 if ($tblGradeTypeList) {
                     foreach ($tblGradeTypeList as $tblGradeType) {
                         $contentList = array();
-                        $sum = 0.0;
-                        $countGrades = 0;
+                        $gradeList = array();
                         if ($tblSubjectList) {
                             /** @var TblSubject $tblSubject */
                             foreach ($tblSubjectList as $tblSubject) {
                                 if (($gradeDisplay = $tblTaskGradeList[$tblSubject->getId()][$tblGradeType->getId()] ?? null)) {
                                     if (($gradeValue = Grade::useService()->getGradeNumberValue($gradeDisplay)) !== null) {
-                                        $sum += $gradeValue;
-                                        $countGrades++;
+                                        $gradeList[$tblSubject->getId()] = $gradeValue;
                                     }
                                 } else {
                                     $gradeDisplay = new WarningText('f');
@@ -665,24 +665,37 @@ abstract class FrontendTask extends FrontendStudentOverview
                         $gradeListString = implode(' | ', $contentList);
 
                         // Kopfnotenvorschlag KL
-                        if ($showProposalBehaviorGrade) {
+                        if ($showProposalBehaviorGrade || $calcProposalBehaviorGrade) {
                             if (($tblProposalBehaviorGrade = Grade::useService()->getProposalBehaviorGradeByPersonAndTaskAndGradeType(
                                     $tblPerson, $tblTask, $tblGradeType
                                 ))
                                 && ($proposalGrade = $tblProposalBehaviorGrade->getGrade())
                             ) {
-                                $gradeListString .= ' | (KL-Vorschlag:' . $proposalGrade . ')';
+                                if ($calcProposalBehaviorGrade) {
+                                    $gradeList[0] = floatval($proposalGrade);
+                                    $gradeListString = 'KL:' . $proposalGrade . ($gradeListString ? ' | ' . $gradeListString : '');
+                                } elseif ($showProposalBehaviorGrade) {
+                                    $gradeListString .= ' | (KL-Vorschlag:' . $proposalGrade . ')';
+                                }
                             }
                         }
 
-                        $average = ($countGrades > 0 ? new Bold('&#216; ' . Grade::useService()->getGradeAverage($sum, $countGrades)) . ' | ' : '');
-                        $bodyList[$tblPerson->getId()][$tblGradeType->getId()] = $average . new Small($gradeListString);
+                        list($average, $toolTip, $errors) = Grade::useService()->getCalcStudentBehaviorAverage($tblPerson, $tblYear, $gradeList);
+                        if ($errors) {
+                            $average = (new ToolTip($average, $errors))->enableHtml();
+                        } elseif ($toolTip && $average) {
+                            $average = (new ToolTip(new Bold('&#216; ' . $average), $toolTip))->enableHtml();
+                        } elseif ($average) {
+                            $average = new Bold('&#216; ' . $average);
+                        }
+
+                        $bodyList[$tblPerson->getId()][$tblGradeType->getId()] = ($average ? $average . ' | ' : '') . new Small($gradeListString);
                     }
                 }
             }
         }
 
-        return $this->getTableCustom($headerList, $bodyList);
+        return $button . new Container('&nbsp;') . $this->getTableCustom($headerList, $bodyList);
     }
 
     /**
@@ -695,6 +708,31 @@ abstract class FrontendTask extends FrontendStudentOverview
     public function getTaskGradeViewByAppointedDateTask(TblTask $tblTask, TblDivisionCourse $tblDivisionCourse,
         TblPrepareCertificate $tblPrepareCertificate = null): string
     {
+        $button = new Standard(
+            'Herunterladen',
+            '/Api/Education/Graduation/Grade/TaskGrades/Download',
+            new Download(),
+            array('TaskId' => $tblTask->getId(), 'DivisionCourseId' => $tblDivisionCourse->getId()),
+            'Zensurenübersicht als Excel herunterladen'
+        );
+
+        // Noten-Farbschema Legende
+        if (DivisionCourse::useService()->getIsCourseSystemByStudentsInDivisionCourse($tblDivisionCourse)) {
+            $title = 'Legende Punkte-Farbschema anzeigen';
+            $legendItems[] = $this->getLayout(new Bold(new Success('Grüne Punkte')), 'Punkte 5 bis 15');
+            $legendItems[] = $this->getLayout(new Bold(new WarningText('Gelbe Punkte')), 'Punkte 1 bis 4');
+            $legendItems[] = $this->getLayout(new Bold(new \SPHERE\Common\Frontend\Text\Repository\Danger('Rote Punkte')), 'Punkte 0');
+        } else {
+            $title = 'Legende Noten-Farbschema anzeigen';
+            $legendItems[] = $this->getLayout(new Bold(new Success('Grüne Note')), 'Noten 1 bis 3');
+            $legendItems[] = $this->getLayout(new Bold(new WarningText('Gelbe Note')), 'Note 4');
+            $legendItems[] = $this->getLayout(new Bold(new \SPHERE\Common\Frontend\Text\Repository\Danger('Rote Note')), 'Note 5 und 6');
+        }
+        $legendItems[] = $this->getLayout(new Bold(new WarningText('f')) , 'Fehlende Stichtagsnote');
+        $legendItems[] = $this->getLayout(new WarningText('Gelber Ø') , 'Stichtagsnote weicht vom berechneten Notendurchschnitt ab');
+        $legendItems[] = $this->getLayout('' , 'Schüler wird nicht im Fach unterrichtet');
+        $legendPanel = (new CustomPanel($title, $legendItems))->setAccordeon();
+
         $headerList['Number'] = $this->getTableColumnHead('#');
         $headerList['Person'] = $this->getTableColumnHead('Schüler');
 
@@ -749,13 +787,17 @@ abstract class FrontendTask extends FrontendStudentOverview
                 if ($tblSubjectList) {
                     list($startDate, $tblPeriod) = Grade::useService()->getStartDateAndPeriodByPerson($tblPerson, $tblYear, $tblTask);
                     foreach ($tblSubjectList as $tblSubject) {
+                        $isAverageWarning = false;
                         // Endnote anzeigen
                         if ($tblPrepareCertificate
                             && ($tblPrepareAdditionalGrade = Prepare::useService()->getPrepareAdditionalGradeBy($tblPrepareCertificate, $tblPerson, $tblSubject, $tblPrepareAdditionalGradeType))
                             && $tblPrepareAdditionalGrade->getGrade() !== ''
                         ) {
                             $average = '';
-                            $content = $tblPrepareAdditionalGrade->getGrade();
+                            $content = Grade::useService()->SetGradeColor(
+                                $tblPrepareAdditionalGrade->getGrade(),
+                                DivisionCourse::useService()->getIsCourseSystemByPersonAndYear($tblPerson, $tblYear)
+                            );
                         // Stichtagsnote anzeigen
                         } else {
                             $gradeValue = null;
@@ -767,6 +809,11 @@ abstract class FrontendTask extends FrontendStudentOverview
 
                                     $subjectListSum[$tblSubject->getId()] += $gradeValue;
                                     $subjectListGradesCount[$tblSubject->getId()]++;
+
+                                    $content = Grade::useService()->SetGradeColor(
+                                        $content,
+                                        DivisionCourse::useService()->getIsCourseSystemByPersonAndYear($tblPerson, $tblYear)
+                                    );
                                 }
                             } elseif (isset($tblTaskGradeTextList[$tblSubject->getId()])) {
                                 $content = $tblTaskGradeTextList[$tblSubject->getId()];
@@ -780,18 +827,23 @@ abstract class FrontendTask extends FrontendStudentOverview
                             $average = Grade::useService()->getAppointedTaskAverage(
                                 $tblPerson, $tblYear, $tblDivisionCourse, $tblSubject, $tblTask, $startDate ?: null, $tblPeriod ?: null
                             );
+
                             if ($average && $gradeValue !== null) {
                                 $averageFloat = Grade::useService()->getGradeNumberValue($average);
                                 if (($gradeValue - 0.5) <= $averageFloat && ($gradeValue + 0.5) >= $averageFloat) {
-                                    $content = new Success(new Bold($content));
+
                                 } else {
-                                    $content = new \SPHERE\Common\Frontend\Text\Repository\Danger(new Bold($content));
+                                    $isAverageWarning = true;
                                 }
                             }
                         }
 
                         $bodyList[$tblPerson->getId()][$tblSubject->getId()] = $this->getTableColumnBody($content . ' '
-                            . ($average ? new Muted(new Small('&nbsp;&nbsp; &#216;' . $average)) : '')
+                            . ($average
+                                ? $isAverageWarning
+                                    ? new Small('&nbsp;&nbsp; ' . new WarningText('&#216;' . $average))
+                                    : new Muted(new Small('&nbsp;&nbsp; &#216;' . $average))
+                                : '')
                         );
                     }
                 }
@@ -804,7 +856,19 @@ abstract class FrontendTask extends FrontendStudentOverview
         // Fach-klassen durchschnitt
         array_unshift($bodyList, $this->getBodyItemDivisionCourseSubjectAverage($tblSubjectList, $subjectListSum, $subjectListGradesCount));
 
-        return $this->getTableCustom($headerList, $bodyList);
+        return new PullClear($button . new PullRight($legendPanel->setHeadStyle('width: 500px;')))
+//            . new Container('&nbsp;')
+            . $this->getTableCustom($headerList, $bodyList);
+    }
+
+    private function getLayout(string $first, $second): Layout
+    {
+        return new Layout(new LayoutGroup(
+            new LayoutRow(array(
+                new LayoutColumn($first, 3),
+                new LayoutColumn($second, 9),
+            ))
+        ));
     }
 
     /**

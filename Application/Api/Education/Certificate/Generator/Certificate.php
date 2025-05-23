@@ -194,6 +194,10 @@ abstract class Certificate extends Extension
             $InjectStyle = 'body { margin-bottom: -1.5cm !important; margin-left: 0.75cm !important; margin-right: 0.75cm !important; }';
         } elseif ($tblConsumer && $tblConsumer->isConsumer(TblConsumer::TYPE_SACHSEN, 'MLS')) {
             $InjectStyle = 'body { margin-bottom: -1.5cm !important; margin-left: 0.75cm !important; margin-right: 0.75cm !important; }';
+        } elseif ($tblConsumer && $tblConsumer->isConsumer(TblConsumer::TYPE_SACHSEN, 'HGGT')) {
+            $InjectStyle = 'body { margin-bottom: -1.5cm !important; margin-left: 1.25cm !important; margin-right: 1.25cm !important; }';
+        } elseif ($tblConsumer && $tblConsumer->isConsumer(TblConsumer::TYPE_SACHSEN, 'FELS')) {
+            $InjectStyle = 'body { margin-bottom: -1.5cm !important; }';
         }
 
         // Standardzeugnisse mit Breiteneinstellung
@@ -639,10 +643,11 @@ abstract class Certificate extends Extension
 
     /**
      * @param $IsSample
+     * @param bool $IsIndividuallyLogoIgnored
      *
      * @return Section
      */
-    protected function getIndividuallyLogo($IsSample)
+    protected function getIndividuallyLogo($IsSample, bool $IsIndividuallyLogoIgnored = false)
     {
 
         $isOS = false;
@@ -672,7 +677,7 @@ abstract class Certificate extends Extension
         $Section->addElementColumn((new Element()), '51%');
 
         // Individually Logo
-        if ($picturePath != '') {
+        if (!$IsIndividuallyLogoIgnored && $picturePath != '') {
             $Section->addElementColumn((new Element\Image($picturePath, 'auto', $IndividuallyLogoHeight))
                 ->styleAlignCenter()
                 ->styleHeight('0px')
@@ -1312,9 +1317,6 @@ abstract class Certificate extends Extension
         $backgroundColor = self::BACKGROUND_GRADE_FIELD,
         &$subjectRowCount = 0
     ) {
-
-        $tblPerson = Person::useService()->getPersonById($personId);
-
         $SubjectSlice = (new Slice());
 
         $tblCertificateSubjectAll = Generator::useService()->getCertificateSubjectAll($this->getCertificateEntity());
@@ -1322,11 +1324,20 @@ abstract class Certificate extends Extension
 
         $SectionList = array();
 
+        $tblSubjectForeignLanguage = $this->getForeignLanguageSubject(2);
         if (!empty($tblCertificateSubjectAll)) {
             $SubjectStructure = array();
             foreach ($tblCertificateSubjectAll as $tblCertificateSubject) {
                 $tblSubject = $tblCertificateSubject->getServiceTblSubject();
                 if ($tblSubject) {
+                    // 2. Fremdsprache ignorieren, falls 2. FS extra auf der Zeugnisvorlage eingestellt ist
+                    if ($tblSubjectForeignLanguage
+                        && (!empty($languagesWithStartLevel) || $hasSecondLanguageDiploma || $hasSecondLanguageSecondarySchool)
+                        && $tblSubjectForeignLanguage->getId() == $tblSubject->getId()
+                    ) {
+                        continue;
+                    }
+
                     // Grade Exists? => Add Subject to Certificate
                     if (isset($tblGradeList['Data'][$tblSubject->getAcronym()])) {
                         $SubjectStructure[$tblCertificateSubject->getRanking()][$tblCertificateSubject->getLane()]['SubjectAcronym']
@@ -1356,7 +1367,7 @@ abstract class Certificate extends Extension
                     [$languagesWithStartLevel['Lane']]['SubjectAcronym'] = 'Empty';
                     $SubjectStructure[$languagesWithStartLevel['Rank']]
                     [$languagesWithStartLevel['Lane']]['SubjectName'] = '&nbsp;';
-                    if (($tblSubjectForeignLanguage = $this->getForeignLanguageSubject(2))) {
+                    if ($tblSubjectForeignLanguage) {
                         $tblSecondForeignLanguage = $tblSubjectForeignLanguage;
                         $SubjectStructure[$languagesWithStartLevel['Rank']]
                         [$languagesWithStartLevel['Lane']]['SubjectAcronym'] = $tblSubjectForeignLanguage->getAcronym();
@@ -1366,7 +1377,7 @@ abstract class Certificate extends Extension
                 }
             } else {
                 if (($hasSecondLanguageDiploma || $hasSecondLanguageSecondarySchool)
-                    && ($tblSubjectForeignLanguage = $this->getForeignLanguageSubject(2))
+                    && $tblSubjectForeignLanguage
                 ) {
                     if ($hasSecondLanguageDiploma) {
                         $tblSecondForeignLanguageDiploma = $tblSubjectForeignLanguage;

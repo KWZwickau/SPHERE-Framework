@@ -404,9 +404,8 @@ class Frontend extends Extension implements IFrontendInterface
             $Form.= new Layout(new LayoutGroup(new LayoutRow(
                 new LayoutColumn(array(
                     '<br/><br/><br/><br/>',
-                    new Title('Anmeldung UCS'),
+                    new Title('Anmeldung DLLP'),
                     new PrimaryLink('Login', 'SPHERE\Application\Platform\Gatekeeper\Saml\Login\DLLP')
-                    // Frontend dazu muss noch entschieden werden
 //                    .new PrimaryLink('Placeholder', 'SPHERE\Application\Platform\Gatekeeper\Saml\Login\Placeholder') // -> Beispiel kann für zukünftige IDP's verwendet werden
 
                 ))
@@ -488,7 +487,7 @@ class Frontend extends Extension implements IFrontendInterface
         if(isset($_SESSION['samlUserdata']['uid']) && !empty($_SESSION['samlUserdata']['uid'])){
             $AccountNameAPI = current($_SESSION['samlUserdata']['uid']);
         } else {
-            $AccountNameAPI = new Bold('UCS missing (uid)');
+            $AccountNameAPI = new Bold('DLLP missing (uid)');
         }
 
         if(isset($_SESSION['samlUserdata']['ucsschoolRecordUID']) && $_SESSION['samlUserdata']['ucsschoolRecordUID']){
@@ -496,7 +495,7 @@ class Frontend extends Extension implements IFrontendInterface
             $AccountId = current($_SESSION['samlUserdata']['ucsschoolRecordUID']);
             $tblAccount = Account::useService()->getAccountById($AccountId);
         } else {
-            $AccountId = new Bold('UCS missing (ucsschoolRecordUID)');
+            $AccountId = new Bold('DLLP missing (ucsschoolRecordUID)');
         }
 
         // AccountId gegen Prüfung
@@ -554,7 +553,7 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $Stage->setContent(new Layout(new LayoutGroup(new LayoutRow(
-            new LayoutColumn(new Warning('Ihr Login von UCS '.$detailInfo.' ist im System nicht bekannt, bitte wenden Sie sich an einen zuständigen Administrator'))
+            new LayoutColumn(new Warning('Ihr Login von DLLP '.$detailInfo.' ist im System nicht bekannt, bitte wenden Sie sich an einen zuständigen Administrator'))
         ))));
 
         return $Stage;

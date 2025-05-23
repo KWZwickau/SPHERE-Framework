@@ -855,4 +855,30 @@ class Service extends AbstractService
     {
         return (new Data($this->getBinding()))->deleteEntityListBulk($tblEntityList);
     }
+
+    /**
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param DateTime $date
+     *
+     * @return string
+     */
+    public function getTimetableWeekName(TblDivisionCourse $tblDivisionCourse, DateTime $date): string
+    {
+        // Startdatum der Woche ermitteln, wird für Stundenplan mit Wochen abhängig benötigt
+        $startDateOfWeek = $this->getStartDateOfWeek($date);
+
+        if (($tblTimeTableNodeList = $this->getTimeTableNodeListBy($tblDivisionCourse, $date, null))) {
+            foreach ($tblTimeTableNodeList as $tblTimetableNode) {
+                if (($tblTimetable = $tblTimetableNode->getTblTimetable())
+                    && ($tblTimetableWeek = (new Data($this->getBinding()))->getTimetableWeekByTimeTableAndDate($tblTimetable, $startDateOfWeek))
+                ) {
+                    return ($tblTimetableWeek->getWeek());
+                }
+
+                return '';
+            }
+        }
+
+        return '';
+    }
 }

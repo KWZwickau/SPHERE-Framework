@@ -195,13 +195,13 @@ class Frontend extends Extension implements IFrontendInterface
             )
         ));
         if ($TimeTableId == null && ($tblTimeTableList = Timetable::useService()->getTimetableAll())) {
-            $timeTableList[] = '';
+            $timeTableList[] = new SelectBoxItem(0, '');
             foreach ($tblTimeTableList as $tblTemp) {
-                $timeTableList[] = $tblTemp->getName() . ' (' . $tblTemp->getDateFrom() . ' - ' . $tblTemp->getDateTo() . ')';
+                $timeTableList[] = new SelectBoxItem($tblTemp->getId(), $tblTemp->getName() . ' (' . $tblTemp->getDateFrom() . ' - ' . $tblTemp->getDateTo() . ')');
             }
             $formRows[] = new FormRow(array(
                 new FormColumn(
-                    new SelectBox('Data[CopyTimeTable]', 'Alle Einträge aus einem alten Stundenplan in neuen Stundenplan kopieren', $timeTableList)
+                    new SelectBox('Data[CopyTimeTable]', 'Alle Einträge aus einem alten Stundenplan in neuen Stundenplan kopieren', array('{{ Name }}' => $timeTableList))
                 )
             ));
         }

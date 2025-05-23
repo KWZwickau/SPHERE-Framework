@@ -104,24 +104,24 @@ class Frontend extends Extension implements IFrontendInterface
 
         $tblTypeAll = Mail::useService()->getTypeAll();
 
-        // Consumer with UCS?
-        $isUCS = false;
+        // Consumer with DLLP?
+        $isDLLP = false;
         if(($tblConsumer = Consumer::useService()->getConsumerBySession())){
-            if(Consumer::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_UCS)){
-                $isUCS = true;
+            if(Consumer::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_DLLP)){
+                $isDLLP = true;
             }
         }
 
         $CheckBoxAlias = '';
         $CheckBoxRecoveryMail = '';
-        if($isUCS){
+        if($isDLLP){
             $tblPerson = Person::useService()->getPersonById($PersonId);
             $hasAccount = Account::useService()->getAccountAllByPerson($tblPerson);
 
             $CheckBoxAlias = new CheckBox('Address[Alias]', 'E-Mail als '
-                . ($hasAccount ? '' : new Bold('späteren')) . ' UCS Benutzername verwenden', 1);
+                . ($hasAccount ? '' : new Bold('späteren')) . ' DLLP Benutzername verwenden', 1);
             $CheckBoxRecoveryMail = new CheckBox('Address[IsRecoveryMail]', 'E-Mail als '
-                . ($hasAccount ? '' : new Bold('späteres')) . ' UCS "Passwort vergessen" verwenden', 1);
+                . ($hasAccount ? '' : new Bold('späteres')) . ' DLLP "Passwort vergessen" verwenden', 1);
         }
 
         $typeSelectBox = (new SelectBox('Type[Type]', 'Typ', array('{{ Name }} {{ Description }}' => $tblTypeAll), new TileBig()))->setRequired();
@@ -253,11 +253,11 @@ class Frontend extends Extension implements IFrontendInterface
             $LayoutRowCount = 0;
             $LayoutRow = null;
 
-            // Consumer with UCS?
-            $isUCS = false;
+            // Consumer with DLLP?
+            $isDLLP = false;
             if(($tblConsumer = Consumer::useService()->getConsumerBySession())){
-                if(Consumer::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_UCS)){
-                    $isUCS = true;
+                if(Consumer::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_DLLP)){
+                    $isDLLP = true;
                 }
             }
 
@@ -302,18 +302,18 @@ class Frontend extends Extension implements IFrontendInterface
                             }
 
                             $content[] = new Mailto($tblMail->getAddress(), $tblMail->getAddress(), new Envelope());
-                            if ($isUCS && isset($personArray[$tblPerson->getId()])) {
+                            if ($isDLLP && isset($personArray[$tblPerson->getId()])) {
                                 if(($tblToPersonCurrent =  $personArray[$tblPerson->getId()])){
                                     /** @var $tblToPersonCurrent TblToPerson */
                                     if($tblToPersonCurrent->isAccountUserAlias()){
                                         $content[] = new Check() . ' E-Mail als '
                                             . ($hasAccount ? '' : new Bold('späteren'))
-                                            . ' UCS Benutzername verwenden';
+                                            . ' DLLP Benutzername verwenden';
                                     }
                                     if($tblToPersonCurrent->isAccountRecoveryMail()){
                                         $content[] = new Check() . ' E-Mail als '
                                             . ($hasAccount ? '' : new Bold('späteres'))
-                                            . ' UCS "Passwort vergessen" verwenden';
+                                            . ' DLLP "Passwort vergessen" verwenden';
                                     }
                                 }
                             }

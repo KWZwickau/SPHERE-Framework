@@ -1326,16 +1326,18 @@ abstract class Style extends Certificate
 
     /**
      * @param int $personId
+     * @param string $period
      * @param string $marginTop
      *
      * @return Slice
      */
-    protected function getCustomSubjectLanesBgj(int $personId, string $marginTop = '12px') : Slice
+    protected function getCustomSubjectLanesBgj(int $personId, string $period = 'Schulhalbjahr', string $marginTop = '12px') : Slice
     {
         $slice = (new Slice())
             ->styleMarginTop($marginTop)
             ->addSection((new Section())
-                ->addElementColumn($this->getElement('hat im zurückliegenden Schulhalbjahr folgende Leistungen erreicht:', self::TEXT_SIZE_NORMAL)));
+                ->addElementColumn($this->getElement('hat im zurückliegenden ' . $period
+                    . ' folgende Leistungen erreicht:', self::TEXT_SIZE_NORMAL)));
 
         $tblCertificateSubjectAll = Generator::useService()->getCertificateSubjectAll($this->getCertificateEntity());
         $tblGradeList = $this->getGrade();
@@ -2260,7 +2262,7 @@ abstract class Style extends Certificate
         int $personId,
         string $marginTop = '10px',
         bool $hasJobGrade = false,
-        bool $hasPretext = false
+        string $period = 'Schuljahr'
     ) : Slice
     {
         $textSizeSubject = self::TEXT_SIZE_NORMAL;
@@ -2268,7 +2270,7 @@ abstract class Style extends Certificate
         $slice = (new Slice())
             ->styleMarginTop($marginTop);
 
-        $slice->addElement($this->getElement('hat im zurückliegenden Schuljahr folgende Leistungen erreicht:', self::TEXT_SIZE_LARGE));
+        $slice->addElement($this->getElement('hat im zurückliegenden ' . $period . ' folgende Leistungen erreicht:', self::TEXT_SIZE_LARGE));
 //        $slice->addElement($this->getElement('Pflichtbereich', self::TEXT_SIZE_LARGE)->styleTextBold());
 
         $tblCertificateSubjectAll = Generator::useService()->getCertificateSubjectAll($this->getCertificateEntity());
@@ -2488,10 +2490,12 @@ abstract class Style extends Certificate
     /**
      * @param int $personId
      * @param string $marginTop
+     * @param string $seal
+     * @param string $textSize
      *
      * @return Slice
      */
-    public function getCustomFosSignPart(int $personId, string $marginTop = '25px', string $textSize = self::TEXT_SIZE_LARGE) : Slice
+    public function getCustomFosSignPart(int $personId, string $marginTop = '25px', string $seal = 'Siegel', string $textSize = self::TEXT_SIZE_LARGE) : Slice
     {
 //        $paddingTop = '-8px';
         $lineHeight = '85%';
@@ -2524,7 +2528,7 @@ abstract class Style extends Certificate
                     ->styleAlignCenter()
                     , '35%')
             )
-            ->addElement($this->getElement('Stempel', self::TEXT_SIZE_SMALL)->styleAlignCenter()->styleMarginTop('-10px'))
+            ->addElement($this->getElement($seal, self::TEXT_SIZE_SMALL)->styleAlignCenter()->styleMarginTop('-10px'))
             ->addSection((new Section())
                 ->addElementColumn($this->getElement('&nbsp;', $textSize)
                     ->styleAlignCenter()
@@ -3365,25 +3369,26 @@ abstract class Style extends Certificate
                 $this->getElement('Teilintegration in die Berufsschule:', $textSize)
                     ->styleTextUnderline()
             )
-            ->addSection((new Section())
-                ->addElementColumn($this->getElement(
-                    '{% if(Content.P' . $personId . '.Input.PartialCourse is not empty) %}
-                        {{ Content.P' . $personId . '.Input.PartialCourse }}
-                    {% else %}
-                        &nbsp;
-                    {% endif %}',
-                    self::TEXT_SIZE_NORMAL
-                ), '50%')
-                ->addElementColumn($this->getElement(
-                    '{% if(Content.P' . $personId . '.Input.PartialIntegration is not empty) %}
-                        {{ Content.P' . $personId . '.Input.PartialIntegration }}
-                    {% else %}
-                        &nbsp;
-                    {% endif %}',
-                    self::TEXT_SIZE_NORMAL
-                )->styleAlignRight(), '50%')
-            )
-            ;
+            ->addElement($this->getElement(
+                '{% if(Content.P' . $personId . '.Input.PartialCourse is not empty) %}
+                    {{ Content.P' . $personId . '.Input.PartialCourse }}
+                {% else %}
+                    &nbsp;
+                {% endif %}',
+                self::TEXT_SIZE_NORMAL
+            ))
+            ->addElement($this->getElement(
+                '{% if(Content.P' . $personId . '.Input.PartialIntegration is not empty) %}
+                    {{ Content.P' . $personId . '.Input.PartialIntegration }}
+                {% else %}
+                    &nbsp;
+                {% endif %}',
+                '{% if(Content.P' . $personId . '.Input.PartialIntegration is not empty) %}'
+                    . self::TEXT_SIZE_NORMAL .
+                '{% else %}
+                    0px
+                {% endif %}'
+            ));
     }
 
     /**

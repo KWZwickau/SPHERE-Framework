@@ -722,7 +722,7 @@ abstract class ServiceStudentSubject extends ServiceCourseSystem
     public function getSubjectListByStudentAndYear(TblPerson $tblPerson, TblYear $tblYear, bool $hasGrading = true)
     {
         $tblSubjectList = array();
-        if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))
+        if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYearAndDateWithLeaved($tblPerson, $tblYear))
             && ($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())
             && ($level = $tblStudentEducation->getLevel())
         ) {

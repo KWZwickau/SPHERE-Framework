@@ -69,11 +69,6 @@ class TblDivisionCourse extends Element
      */
     protected bool $IsReporting = false;
 
-//    /**
-//     * @Column(type="boolean")
-//     */
-//    protected bool $IsUcs = false;
-
     /**
      * @Column(type="bigint")
      */
@@ -112,7 +107,6 @@ class TblDivisionCourse extends Element
         $instance->Description = $description;
         $instance->IsShownInPersonData = $isShownInPersonData;
         $instance->IsReporting = $isReporting;
-        //        $instance->IsUcs = $isUcs;
         $instance->setServiceTblSubject($tblSubject);
         $instance->MigrateGroupId = $migrateGroupId;
         $instance->MigrateSekCourse = $migrateSekCourse;
@@ -253,22 +247,6 @@ class TblDivisionCourse extends Element
     {
         $this->IsReporting = $IsReporting;
     }
-
-//    /**
-//     * @return bool
-//     */
-//    public function getIsUcs(): bool
-//    {
-//        return $this->IsUcs;
-//    }
-//
-//    /**
-//     * @param bool $IsUcs
-//     */
-//    public function setIsUcs(bool $IsUcs): void
-//    {
-//        $this->IsUcs = $IsUcs;
-//    }
 
     /**
      * @return string
@@ -464,11 +442,11 @@ class TblDivisionCourse extends Element
     }
 
     /**
-     * @return false|TblPerson[]
+     * @return false|TblPerson[]|TblDivisionCourseMember[]
      */
-    public function getDivisionTeacherList()
+    public function getDivisionTeacherList($isResultPersonList = true)
     {
-        return DivisionCourse::useService()->getDivisionCourseMemberListBy($this, TblDivisionCourseMemberType::TYPE_DIVISION_TEACHER);
+        return DivisionCourse::useService()->getDivisionCourseMemberListBy($this, TblDivisionCourseMemberType::TYPE_DIVISION_TEACHER, false, $isResultPersonList);
     }
 
     /**

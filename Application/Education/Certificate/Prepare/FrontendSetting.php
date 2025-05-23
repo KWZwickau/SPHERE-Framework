@@ -87,8 +87,6 @@ abstract class FrontendSetting extends FrontendSelect
             $tblTaskList = false;
             $useMultipleBehaviorTasks = ($tblSetting = ConsumerSetting::useService()->getSetting('Education', 'Certificate', 'Prepare', 'UseMultipleBehaviorTasks'))
                 && $tblSetting->getValue();
-            $showProposalBehaviorGrade = ($tblSetting = ConsumerSetting::useService()->getSetting('Education', 'Graduation', 'Evaluation', 'ShowProposalBehaviorGrade'))
-                && $tblSetting->getValue();
             $useClassRegisterForAbsence = ($tblSetting = ConsumerSetting::useService()->getSetting('Education', 'ClassRegister', 'Absence', 'UseClassRegisterForAbsence'))
                 && $tblSetting->getValue();
 
@@ -99,7 +97,7 @@ abstract class FrontendSetting extends FrontendSelect
                 )
             ) {
                 return $this->getBehaviorGradesStage($tblPrepare, $tblDivisionCourse, $Route, $useClassRegisterForAbsence, $Data,
-                    $GradeTypeId, $tblTaskList, $showProposalBehaviorGrade);
+                    $GradeTypeId, $tblTaskList);
             // Sonstige Informationen
             } else {
                 return $this->getInformationStage($tblPrepare, $tblDivisionCourse, $Route, $CertificateList, $useClassRegisterForAbsence, $Data, $Page);
@@ -111,8 +109,13 @@ abstract class FrontendSetting extends FrontendSelect
     }
 
     private function getBehaviorGradesStage(TblPrepareCertificate $tblPrepare, TblDivisionCourse $tblDivisionCourse, string $Route, $useClassRegisterForAbsence, $Data,
-        $GradeTypeId, $tblTaskList, $showProposalBehaviorGrade): Stage
+        $GradeTypeId, $tblTaskList): Stage
     {
+        $showProposalBehaviorGrade = ($tblSetting = ConsumerSetting::useService()->getSetting('Education', 'Graduation', 'Evaluation', 'ShowProposalBehaviorGrade'))
+            && $tblSetting->getValue();
+        $calcProposalBehaviorGrade = ($tblSetting = ConsumerSetting::useService()->getSetting('Education', 'Graduation', 'Evaluation', 'CalcProposalBehaviorGrade'))
+            && $tblSetting->getValue();
+
         $Stage = new Stage('Zeugnisvorbereitung', 'Kopfnoten festlegen');
         $Stage->addButton(new Standard('Zurück', '/Education/Certificate/Prepare/Prepare', new ChevronLeft(),
             array(
@@ -202,7 +205,7 @@ abstract class FrontendSetting extends FrontendSelect
                                         $tblSubject = Subject::useService()->getSubjectByAcronym($subjectAcronym);
                                         if ($tblSubject) {
                                             if ($grade->getGrade() && $grade->getIsGradeNumeric()) {
-                                                $gradeList[$taskId][] = $grade->getGradeNumberValue();
+                                                $gradeList[$taskId][$tblSubject->getId()] = $grade->getGradeNumberValue();
                                             }
 
                                             if (empty($subString)) {
@@ -215,18 +218,22 @@ abstract class FrontendSetting extends FrontendSelect
                                         }
                                     }
                                     // Kopfnotenvorschlag
-                                    if ($showProposalBehaviorGrade) {
+                                    if ($showProposalBehaviorGrade || $calcProposalBehaviorGrade) {
                                         if (($tblProposalBehaviorGrade = Grade::useService()->getProposalBehaviorGradeByPersonAndTaskAndGradeType(
                                                 $tblPerson, $tblTaskItem, $tblCurrentGradeType
                                             ))
                                             && ($proposalGrade = $tblProposalBehaviorGrade->getGrade())
                                         ) {
-                                            $subString .= ' | (KL-Vorschlag:' . $proposalGrade . ')';
+                                            if ($calcProposalBehaviorGrade) {
+                                                $gradeList[$taskId][0] = floatval($proposalGrade);
+                                                $subString = 'KL:' . $proposalGrade . ($subString ? ' | ' . $subString : '');
+                                            } elseif ($showProposalBehaviorGrade) {
+                                                $subString .= ' | (KL-Vorschlag:' . $proposalGrade . ')';
+                                            }
                                         }
                                     }
                                     if (!empty($subString) && isset($gradeList[$taskId])) {
-                                        $count = count($gradeList[$taskId]);
-                                        $average = $count > 0 ? round(array_sum($gradeList[$taskId]) / $count, 2) : '';
+                                        list($average, $toolTip, $errors) = Grade::useService()->getCalcStudentBehaviorAverage($tblPerson, $tblYear, $gradeList[$taskId]);
                                         if ($average) {
                                             $averageList[$taskId] = $average;
                                             $average = number_format($average, 2, ',', '.');
@@ -265,7 +272,7 @@ abstract class FrontendSetting extends FrontendSelect
                                 $tblSubject = Subject::useService()->getSubjectByAcronym($subjectAcronym);
                                 if ($tblSubject) {
                                     if ($grade->getGrade() && $grade->getIsGradeNumeric()) {
-                                        $gradeList[] = $grade->getGradeNumberValue();
+                                        $gradeList[$tblSubject->getId()] = $grade->getGradeNumberValue();
                                     }
                                     if (empty($gradeListString)) {
                                         $gradeListString = $tblSubject->getAcronym() . ':' . $grade->getDisplayGrade();
@@ -275,23 +282,32 @@ abstract class FrontendSetting extends FrontendSelect
                                 }
                             }
                             // Kopfnotenvorschlag
-                            if ($showProposalBehaviorGrade) {
+                            if ($showProposalBehaviorGrade || $calcProposalBehaviorGrade) {
                                 if (($tblProposalBehaviorGrade = Grade::useService()->getProposalBehaviorGradeByPersonAndTaskAndGradeType(
                                         $tblPerson, $tblTask, $tblCurrentGradeType
                                     ))
                                     && ($proposalGrade = $tblProposalBehaviorGrade->getGrade())
                                 ) {
-                                    $gradeListString .= ' | (KL-Vorschlag:' . $proposalGrade . ')';
+                                    if ($calcProposalBehaviorGrade) {
+                                        $gradeList[0] = floatval($proposalGrade);
+                                        $gradeListString = 'KL:' . $proposalGrade . ($gradeListString ? ' | ' . $gradeListString : '');
+                                    } elseif ($showProposalBehaviorGrade) {
+                                        $gradeListString .= ' | (KL-Vorschlag:' . $proposalGrade . ')';
+                                    }
                                 }
                             }
                             $studentTable[$tblPerson->getId()]['Grades'] = $gradeListString;
 
-                            // calc average
                             if (!empty($gradeList)) {
-                                $count = count($gradeList);
-                                $average = $count > 0 ? round(array_sum($gradeList) / $count, 2) : '';
-                                $studentTable[$tblPerson->getId()]['Average'] = $average;
-                                if ($average) {
+                                list($average, $toolTip, $errors) = Grade::useService()->getCalcStudentBehaviorAverage($tblPerson, $tblYear, $gradeList);
+                                if ($errors) {
+                                    $studentTable[$tblPerson->getId()]['Average'] = (new ToolTip($average, $errors))->enableHtml();
+                                } elseif ($toolTip) {
+                                    $studentTable[$tblPerson->getId()]['Average'] = (new ToolTip($average, $toolTip))->enableHtml();
+                                } else {
+                                    $studentTable[$tblPerson->getId()]['Average'] = $average;
+                                }
+                                if ($average && !$errors) {
                                     $averageStudent = $average;
                                 }
                             } else {
