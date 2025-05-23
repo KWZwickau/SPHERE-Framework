@@ -315,7 +315,21 @@ class Service extends ServiceTask
         if (isset($Data['Date']) && empty($Data['Date'])) {
             $form->setError('Data[Date]', 'Bitte geben Sie ein Datum an');
             $error = true;
+        } else {
+            // Prüfung, ob sich das Datum im Schuljahr befindet
+            $date = new DateTime($Data['Date']);
+            if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))
+                && ($tblYear = $tblDivisionCourse->getServiceTblYear())
+                && (list($startDate, $endDate) = Term::useService()->getStartDateAndEndDateOfYear($tblYear))
+                && $startDate
+                && $endDate
+                && ($date < $startDate || $date > $endDate)
+            ) {
+                $form->setError('Data[Date]', 'Bitte geben Sie ein Datum innerhalb des Schuljahrs an');
+                $error = true;
+            }
         }
+
 
         return $error ? $form : false;
     }
