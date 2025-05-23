@@ -77,12 +77,12 @@ class Frontend extends Extension implements IFrontendInterface
                         ), 3),
                         new LayoutColumn(new Link((new Thumbnail(
                             FileSystem::getFileLoader('/Common/Style/Resource/SSWInfo.png')
-                            , 'Schnittstelle Schulsoftware zu DLLP', 'Stand:&nbsp;23.04.2024'))->setPictureHeight()
+                            , 'Schnittstelle Schulsoftware zu DLLP', 'Stand:&nbsp;19.05.2025'))->setPictureHeight()
                             , '/Api/Document/Standard/Manual/Create/Pdf', null, array('Select' => 'SSW_DLLP')
                         ), 3),
                         new LayoutColumn(new Link((new Thumbnail(
                             FileSystem::getFileLoader('/Common/Style/Resource/SSWInfo.png')
-                            , 'Schuljahreswechsel Schulsoftware zu DLLP', 'Stand:&nbsp;17.07.2023'))->setPictureHeight()
+                            , 'Schuljahreswechsel Schulsoftware zu DLLP', 'Stand:&nbsp;21.05.2025'))->setPictureHeight()
                             , '/Api/Document/Standard/Manual/Create/Pdf', null, array('Select' => 'SSW_DLLP_year')
                         ), 3)
                     )),

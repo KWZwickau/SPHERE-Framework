@@ -1221,12 +1221,12 @@ class Creator extends Extension
         } elseif($Select == 'SSW_DLLP') {
             $file = "Common/Style/Resource/Document/Manual/SSW_DLLP.pdf";
             header("Content-Type: application/pdf");
-            header("Content-Disposition: attachment; filename=Kurzleidfaden_DLLP_23.04.2024.pdf");
+            header("Content-Disposition: attachment; filename=Kurzleidfaden_DLLP_19.05.2025.pdf");
             header("Content-Length: ".filesize($file));
         } elseif($Select == 'SSW_DLLP_year') {
             $file = "Common/Style/Resource/Document/Manual/SSW_DLLP_Jahr.pdf";
             header("Content-Type: application/pdf");
-            header("Content-Disposition: attachment; filename=Kurzleidfaden_Schuljahreswechsel_SSW_DLLP_17.07.2023.pdf");
+            header("Content-Disposition: attachment; filename=Kurzleidfaden_Schuljahreswechsel_SSW_DLLP_21.05.2025.pdf");
             header("Content-Length: ".filesize($file));
         }
 
