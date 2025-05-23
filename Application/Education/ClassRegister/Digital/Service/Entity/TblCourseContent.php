@@ -79,6 +79,11 @@ class TblCourseContent extends Element
     protected string $Homework;
 
     /**
+     * @Column(type="datetime")
+     */
+    protected $DueDateHomework;
+
+    /**
      * @Column(type="string")
      */
     protected string $Remark;
@@ -242,6 +247,31 @@ class TblCourseContent extends Element
     public function setHomework(string $Homework)
     {
         $this->Homework = $Homework;
+    }
+
+    /**
+     * @return string
+     */
+    public function getDueDateHomework()
+    {
+        if (null === $this->DueDateHomework) {
+            return false;
+        }
+        /** @var DateTime $Date */
+        $Date = $this->DueDateHomework;
+        if ($Date instanceof DateTime) {
+            return $Date->format('d.m.Y');
+        } else {
+            return (string)$Date;
+        }
+    }
+
+    /**
+     * @param null|DateTime $Date
+     */
+    public function setDueDateHomework(DateTime $Date = null)
+    {
+        $this->DueDateHomework = $Date;
     }
 
     /**
