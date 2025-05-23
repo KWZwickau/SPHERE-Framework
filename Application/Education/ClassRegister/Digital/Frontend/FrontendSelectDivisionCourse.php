@@ -22,7 +22,7 @@ use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Window\Stage;
 
-class FrontendSelectDivisionCourse extends FrontendCourseContent
+class FrontendSelectDivisionCourse extends FrontendForgotten
 {
     /**
      * @return Stage

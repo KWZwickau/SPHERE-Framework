@@ -59,6 +59,8 @@ class ApiAbsence extends Extension implements IApiInterface
 
         $Dispatcher->registerMethod('openCreateAbsenceModal');
         $Dispatcher->registerMethod('saveCreateAbsenceModal');
+        $Dispatcher->registerMethod('loadAbsenceModalContent');
+        $Dispatcher->registerMethod('loadAbsenceStudentsContent');
 
         $Dispatcher->registerMethod('openEditAbsenceModal');
         $Dispatcher->registerMethod('saveEditAbsenceModal');
@@ -112,10 +114,12 @@ class ApiAbsence extends Extension implements IApiInterface
      * @param null $PersonId
      * @param null $DivisionCourseId
      * @param null $Date
+     * @param null $IsMassAbsence
+     * @param null $Lesson
      *
      * @return Pipeline
      */
-    public static function pipelineOpenCreateAbsenceModal($PersonId = null, $DivisionCourseId = null, $Date = null): Pipeline
+    public static function pipelineOpenCreateAbsenceModal($PersonId = null, $DivisionCourseId = null, $Date = null, $IsMassAbsence = null, $Lesson = null): Pipeline
     {
         $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
@@ -126,6 +130,8 @@ class ApiAbsence extends Extension implements IApiInterface
             'PersonId' => $PersonId,
             'DivisionCourseId' => $DivisionCourseId,
             'Date' => $Date,
+            'IsMassAbsence' => $IsMassAbsence,
+            'Lesson' => $Lesson
         ));
 
         $Pipeline->appendEmitter($ModalEmitter);
@@ -137,18 +143,23 @@ class ApiAbsence extends Extension implements IApiInterface
      * @param null $PersonId
      * @param null $DivisionCourseId
      * @param null $Date
+     * @param null $IsMassAbsence
+     * @param null $Lesson
      *
      * @return string
      */
-    public function openCreateAbsenceModal($PersonId = null, $DivisionCourseId = null, $Date = null): string
+    public function openCreateAbsenceModal($PersonId = null, $DivisionCourseId = null, $Date = null, $IsMassAbsence = null, $Lesson = null): string
     {
         $hasSearch = $PersonId == null && $DivisionCourseId == null;
-        return $this->getAbsenceModal(
-            Absence::useFrontend()->formAbsence(null, $hasSearch, null, null, $PersonId, $DivisionCourseId, null, null, $Date),
+        return ApiAbsence::receiverBlock($this->getAbsenceModal(
+            Absence::useFrontend()->formAbsence(null, $hasSearch, null, null, $PersonId, $DivisionCourseId, null, null, $Date, $IsMassAbsence, $Lesson),
             null,
             $PersonId,
-            $hasSearch
-        );
+            $hasSearch,
+            $IsMassAbsence !== null,
+            $DivisionCourseId,
+            $Date
+        ), 'AbsenceModalContent');
     }
 
     /**
@@ -156,14 +167,17 @@ class ApiAbsence extends Extension implements IApiInterface
      * @param null $AbsenceId
      * @param null $PersonId
      * @param bool $hasSearch
+     * @param null $IsMassAbsence
+     * @param null $DivisionCourseId
+     * @param null $date
      *
      * @return string
      */
-    private function getAbsenceModal($form,  $AbsenceId = null, $PersonId = null, bool $hasSearch = false): string
+    private function getAbsenceModal($form,  $AbsenceId = null, $PersonId = null, bool $hasSearch = false, $IsMassAbsence = null, $DivisionCourseId = null, $date = null): string
     {
         $tblPerson = false;
-        $date = 'now';
         $message = '';
+        $date = $date ?: 'now';
         if ($AbsenceId) {
             if (($tblAbsence = Absence::useService()->getAbsenceById($AbsenceId))) {
                 $tblPerson = $tblAbsence->getServiceTblPerson();
@@ -175,10 +189,19 @@ class ApiAbsence extends Extension implements IApiInterface
             }
             $title = new Title(new Edit() . ' Fehlzeit bearbeiten' . new PullRight($message));
         } else {
-            $title = new Title(new Plus() . ' Fehlzeit hinzufügen');
+            $button = '';
             if ($PersonId) {
                 $tblPerson = Person::useService()->getPersonById($PersonId);
+            // Masseneingabe Fehlzeiten
+            } elseif (!$hasSearch && $DivisionCourseId) {
+                $buttonText = $IsMassAbsence ? 'Zur Einzel-Schüler-Ansicht wechseln' : 'Zur Massen-Schüler-Ansicht wechseln';
+                $button = new PullRight((new Standard($buttonText, ApiAbsence::getEndpoint()))
+                    ->ajaxPipelineOnClick(ApiAbsence::pipelineLoadAbsenceModalContent(
+                        $PersonId, $DivisionCourseId, (new DateTime($date))->format('d.m.Y'), $IsMassAbsence ? null : true
+                    ))
+                );
             }
+            $title = new Title(new Plus() . ' Fehlzeit hinzufügen' . ($IsMassAbsence ? ' (Masseneingabe)' : null) . $button);
         }
 
         return $title
@@ -213,10 +236,11 @@ class ApiAbsence extends Extension implements IApiInterface
      * @param null $PersonId
      * @param null $DivisionCourseId
      * @param null $hasSearch
+     * @param null $IsMassAbsence
      *
      * @return Pipeline
      */
-    public static function pipelineCreateAbsenceSave($PersonId = null, $DivisionCourseId = null, $hasSearch = null): Pipeline
+    public static function pipelineCreateAbsenceSave($PersonId = null, $DivisionCourseId = null, $hasSearch = null, $IsMassAbsence = null): Pipeline
     {
         $Pipeline = new Pipeline();
         $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
@@ -227,6 +251,7 @@ class ApiAbsence extends Extension implements IApiInterface
             'PersonId' => $PersonId,
             'DivisionCourseId' => $DivisionCourseId,
             'hasSearch' => $hasSearch,
+            'IsMassAbsence' => $IsMassAbsence
         ));
 
         $ModalEmitter->setLoadingMessage('Wird bearbeitet');
@@ -241,15 +266,17 @@ class ApiAbsence extends Extension implements IApiInterface
      * @param null $PersonId
      * @param null $DivisionCourseId
      * @param null $hasSearch
+     * @param null $IsMassAbsence
      *
      * @return string
      */
-    public function saveCreateAbsenceModal($Data, $Search, $PersonId = null, $DivisionCourseId = null, $hasSearch = null): string
+    public function saveCreateAbsenceModal($Data, $Search, $PersonId = null, $DivisionCourseId = null, $hasSearch = null, $IsMassAbsence = null): string
     {
         $hasSearch = $hasSearch == 'true';
-        if (($form = Absence::useService()->checkFormAbsence($Data, $Search, null, $PersonId, $DivisionCourseId, $hasSearch))) {
+        $Data['ToDate'] = $Data['ToDate'] ?? '';
+        if (($form = Absence::useService()->checkFormAbsence($Data, $Search, null, $PersonId, $DivisionCourseId, $hasSearch, $IsMassAbsence))) {
             // display Errors on form
-            return $this->getAbsenceModal($form, null, $PersonId, $hasSearch);
+            return $this->getAbsenceModal($form, null, $PersonId, $hasSearch, $IsMassAbsence);
         }
 
         $date = new DateTime($Data['FromDate'] ?? 'now');
@@ -264,12 +291,124 @@ class ApiAbsence extends Extension implements IApiInterface
             }
         }
 
-        if (Absence::useService()->createAbsence($Data, $tblPerson)) {
+        if ($IsMassAbsence) {
+            foreach ($Data['Students'] as $PersonTempId => $value) {
+                if (($tblPersonTemp = Person::useService()->getPersonById($PersonTempId) )) {
+                    if (($tblAbsenceList = Absence::useService()->getAbsenceAllBetweenByPerson($tblPersonTemp, $date))) {
+                        $tblAbsence = current($tblAbsenceList);
+
+                        if ($tblAbsence->getCountLessons() > 0) {
+                            // Fall III: Schüler hat schon fehlende Unterrichtseinheiten für Tag → zusätzliche UEs ergänzen
+                            // Fall IV: Schüler hat schon fehlende Unterrichtseinheiten für Tag → wechsel auf ganztägig
+                            Absence::useService()->updateAbsenceServiceForMassAbsence($tblAbsence, $Data);
+                        } else {
+                            // Fall II: Schüler hat schon eine ganztägige Fehlzeit → Schüler ist angehakt oder disabled
+                        }
+                    } else {
+                        // Fall I: Schüler hat noch keine Fehlzeit an dem Tag
+                        Absence::useService()->createAbsence($Data, $tblPersonTemp);
+                    }
+                }
+            }
+
+            return new Success('Die Fehlzeiten wurde erfolgreich gespeichert.')
+                . $this->reloadPipelines($date, $DivisionCourseId, null);
+        } elseif (Absence::useService()->createAbsence($Data, $tblPerson)) {
             return new Success('Die Fehlzeit wurde erfolgreich gespeichert.')
                 . $this->reloadPipelines($date, $DivisionCourseId, $tblPerson ? $tblPerson->getId() : null);
         } else {
             return new Danger('Die Fehlzeit konnte nicht gespeichert werden.') . self::pipelineClose();
         }
+    }
+
+    /**
+     * @param $PersonId
+     * @param $DivisionCourseId
+     * @param $Date
+     * @param $IsMassAbsence
+     *
+     * @return Pipeline
+     */
+    public static function pipelineLoadAbsenceModalContent($PersonId = null, $DivisionCourseId = null, $Date = null, $IsMassAbsence = null): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'AbsenceModalContent'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'loadAbsenceModalContent',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'PersonId' => $PersonId,
+            'DivisionCourseId' => $DivisionCourseId,
+            'Date' => $Date,
+            'IsMassAbsence' => $IsMassAbsence
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $PersonId
+     * @param $DivisionCourseId
+     * @param $Date
+     * @param $IsMassAbsence
+     *
+     * @return string
+     */
+    public function loadAbsenceModalContent($PersonId = null, $DivisionCourseId = null, $Date = null, $IsMassAbsence = null): string
+    {
+        $hasSearch = $PersonId == null && $DivisionCourseId == null;
+        return $this->getAbsenceModal(
+            Absence::useFrontend()->formAbsence(null, $hasSearch, null, null, $PersonId, $DivisionCourseId, null, null, $Date, $IsMassAbsence),
+            null,
+            $PersonId,
+            $hasSearch,
+            $IsMassAbsence,
+            $DivisionCourseId,
+            $Date
+        );
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $Date
+     *
+     * @return Pipeline
+     */
+    public static function pipelineLoadAbsenceStudentsContent($DivisionCourseId = null, $Date = null): Pipeline
+    {
+        $Pipeline = new Pipeline();
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'AbsenceStudentsContent'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'loadAbsenceStudentsContent',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'DivisionCourseId' => $DivisionCourseId,
+            'Date' => $Date,
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+
+    /**
+     * @param $DivisionCourseId
+     * @param $Date
+     * @param $Data
+     *
+     * @return string|null
+     */
+    public function loadAbsenceStudentsContent($DivisionCourseId = null, $Date = null, $Data = null): ?string
+    {
+        $fromDate = isset($Data['FromDate']) ? new DateTime($Data['FromDate']) : $Date;
+        if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
+            return Absence::useFrontend()->loadAbsenceStudentsContent(
+                $tblDivisionCourse, $fromDate, !empty($Data['ToDate']) ? new DateTime($Data['ToDate']) : null
+            );
+        }
+
+        return  null;
     }
 
     /**
