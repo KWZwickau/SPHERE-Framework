@@ -1380,16 +1380,16 @@ class Frontend extends Extension implements IFrontendInterface
                 new Standard('Zurück', $Route, new ChevronLeft())
             );
             if (!$Confirm) {
-                $IsUCSMandant = false;
+                $IsDLLPMandant = false;
                 if ($tblUserAccount->getType() == TblUserAccount::VALUE_TYPE_STUDENT
                 && ($tblConsumer = ConsumerGatekeeper::useService()->getConsumerBySession())) {
-                    if (ConsumerGatekeeper::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_UCS)) {
-                        $IsUCSMandant = true;
+                    if (ConsumerGatekeeper::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_DLLP)) {
+                        $IsDLLPMandant = true;
                     }
                 }
-                $UcsRemark = '';
-                if($IsUCSMandant){
-                    $UcsRemark = new WellReadOnly('Nach dem Löschen des Accounts in der Schulsoftware wird dieser auch über die UCS Schnittstelle aus dem DLLP Projekt gelöscht.');
+                $DLLPRemark = '';
+                if($IsDLLPMandant){
+                    $DLLPRemark = new WellReadOnly('Nach dem Löschen des Accounts in der Schulsoftware wird dieser auch über die DLLP Schnittstelle aus dem DLLP Projekt gelöscht.');
                 }
 
                 $UserName = '';
@@ -1405,7 +1405,7 @@ class Frontend extends Extension implements IFrontendInterface
                             ),
                             Panel::PANEL_TYPE_SUCCESS
                         ),
-                        new Panel(new Question().' Diesen Benutzer wirklich löschen?', $UcsRemark,
+                        new Panel(new Question().' Diesen Benutzer wirklich löschen?', $DLLPRemark,
                             Panel::PANEL_TYPE_DANGER,
                             new Standard(
                                 'Ja', '/Setting/User/Account/Destroy', new Ok(),
