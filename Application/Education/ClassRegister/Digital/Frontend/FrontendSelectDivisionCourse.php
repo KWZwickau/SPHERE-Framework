@@ -211,11 +211,16 @@ class FrontendSelectDivisionCourse extends FrontendForgotten
         } elseif ($yearFilterList) {
             foreach ($yearFilterList as $tblYear) {
                 if (($tblDivisionCourseListDivision = DivisionCourse::useService()->getDivisionCourseListBy($tblYear, TblDivisionCourseType::TYPE_DIVISION))) {
-                    $tblDivisionCourseList = $tblDivisionCourseListDivision;
+                    foreach($tblDivisionCourseListDivision as $tblDivisionCourse) {
+                        $tblDivisionCourseList[] = $tblDivisionCourse;
+                    }
                 }
                 if (($tblDivisionCourseListCoreGroup = DivisionCourse::useService()->getDivisionCourseListBy($tblYear,
                     TblDivisionCourseType::TYPE_CORE_GROUP))) {
-                    $tblDivisionCourseList = array_merge($tblDivisionCourseList, $tblDivisionCourseListCoreGroup);
+                    foreach($tblDivisionCourseListCoreGroup as $tblDivisionGroup) {
+                        $tblDivisionCourseList[] = $tblDivisionGroup;
+                    }
+
                 }
             }
         }
