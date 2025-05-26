@@ -665,12 +665,12 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Button = '';
         //ToDO SSW-2664 Live erstmal deaktivieren
-        if($tblGroup->getMetaTable() == TblGroup::META_TABLE_CUSTODY){
-            $Button = ApiPersonDelete::receiverModal()
-                    .ApiPersonDelete::receiverService('load') // service without reload Modal
-                .(new Standard('Bereinigung Sorgeberechtigte', '#', new Remove()))
-                ->ajaxPipelineOnClick(ApiPersonDelete::pipelineOpenDeleteGuardModal());
-        }
+//        if($tblGroup->getMetaTable() == TblGroup::META_TABLE_CUSTODY){
+//            $Button = ApiPersonDelete::receiverModal()
+//                    .ApiPersonDelete::receiverService('load') // service without reload Modal
+//                .(new Standard('Bereinigung Sorgeberechtigte', '#', new Remove()))
+//                ->ajaxPipelineOnClick(ApiPersonDelete::pipelineOpenDeleteGuardModal());
+//        }
 
         return $Button . new Title('Verfügbare Personen ' . new Small(new Muted('in der Gruppe: ')) . (new Bold($tblGroup->getName())))
             . new TableData($tableContent, null, $ColumnArray, array('columnDefs' => $columnDefs, 'order' => $orderByColumn, 'destroy' => true));
