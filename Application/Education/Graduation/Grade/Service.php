@@ -317,7 +317,11 @@ class Service extends ServiceTask
             $error = true;
         } else {
             // Prüfung, ob sich das Datum im Schuljahr befindet
-            $date = new DateTime($Data['Date']);
+            if(isset($Data['FinishDate'])){
+                $date = new DateTime($Data['FinishDate']);
+            } else {
+                $date = new DateTime($Data['Date']);
+            }
             if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))
                 && ($tblYear = $tblDivisionCourse->getServiceTblYear())
                 && (list($startDate, $endDate) = Term::useService()->getStartDateAndEndDateOfYear($tblYear))
