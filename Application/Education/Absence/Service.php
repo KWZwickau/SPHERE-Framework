@@ -918,7 +918,8 @@ class Service extends AbstractService
         ?TblCompany $tblCompany
     ) {
         $DayAtWeek = $dateTime->format('w');
-        $month = intval($dateTime->format('m'));
+        $yearMonth = intval($dateTime->format('ym'));
+//        $month = intval($dateTime->format('m'));
 
         if ($hasSaturdayLessons) {
             $isWeekend = $DayAtWeek == 0;
@@ -927,11 +928,11 @@ class Service extends AbstractService
         }
         $isHoliday = Term::useService()->getHolidayByDay($tblYear, $dateTime, $tblCompany);
         if (!$isWeekend && !$isHoliday) {
-            $dataList[$month][$tblPerson->getId()][$dateTime->format('d')] = $countLessons > 0 ? $countLessons : $status;
-            if (isset($countList[$month][$tblPerson->getId()][$countLessons > 0 ? 'Lessons' : 'Days'][$status])) {
-                $countList[$month][$tblPerson->getId()][$countLessons > 0 ? 'Lessons' : 'Days'][$status] += $countLessons > 0 ? $countLessons : 1;
+            $dataList[$yearMonth][$tblPerson->getId()][$dateTime->format('d')] = $countLessons > 0 ? $countLessons : $status;
+            if (isset($countList[$yearMonth][$tblPerson->getId()][$countLessons > 0 ? 'Lessons' : 'Days'][$status])) {
+                $countList[$yearMonth][$tblPerson->getId()][$countLessons > 0 ? 'Lessons' : 'Days'][$status] += $countLessons > 0 ? $countLessons : 1;
             } else {
-                $countList[$month][$tblPerson->getId()][$countLessons > 0 ? 'Lessons' : 'Days'][$status] = $countLessons > 0 ? $countLessons : 1;
+                $countList[$yearMonth][$tblPerson->getId()][$countLessons > 0 ? 'Lessons' : 'Days'][$status] = $countLessons > 0 ? $countLessons : 1;
             }
         }
     }

@@ -4137,16 +4137,19 @@ class Service extends Extension
             }
 
             if ($startDate && $endDate) {
+                $startDate = new \DateTime($startDate->format('Y-m').'-1');
                 while ($startDate < $endDate) {
+                    $yearMonth = intval($startDate->format('ym'));
                     $month = intval($startDate->format('m'));
-                    $maxDay = date("t", strtotime($startDate->format('Y-m-d')));
-                    $actualDate = clone($startDate);
+                    $year = $startDate->format('y');
+                    $maxDay = (int)date("t", strtotime($startDate->format('Y-m-d')));
+                    $actualDateString = $startDate->format('Y-m');
                     $startDate->add(new \DateInterval('P1M'));
                     if ($IsFirstTab === true) {
-                        $export->renameWorksheet($workSheetsName[(string)$month]);
+                        $export->renameWorksheet($workSheetsName[(string)$month].' '.$year);
                         $IsFirstTab = false;
                     } else {
-                        $export->createWorksheet($workSheetsName[(string)$month]);
+                        $export->createWorksheet($workSheetsName[(string)$month].' '.$year);
                     }
                     // Header
                     $row = $column = 0;
@@ -4180,52 +4183,54 @@ class Service extends Extension
                     $columnStudents = 0;
                     $rowStudents = 3;
                     /** @var TblPerson $tblPerson */
+                    $ColumnAbsenceCount = $maxDay + 1;
                     foreach ($tblPersonList as $tblPerson) {
                         $lastName = $tblPerson->getLastName();
                         $firstName = $tblPerson->getFirstSecondName();
                         $export->setValue($export->getCell($columnStudents, $rowStudents), $lastName . ', ' . $firstName);
                         $export->setStyle($export->getCell($columnStudents, $rowStudents))->setBorderAll();
 
-                        if (isset($dataList[$month][$tblPerson->getId()])) {
-                            foreach ($dataList[$month][$tblPerson->getId()] as $day => $status) {
+                        if (isset($dataList[$yearMonth][$tblPerson->getId()])) {
+                            foreach ($dataList[$yearMonth][$tblPerson->getId()] as $day => $status) {
                                 $export->setValue($export->getCell($day, $rowStudents), $status);
                             }
                         }
 
-                        $export->setValue($export->getCell($maxDay+1, $rowStudents), $countList[$month][$tblPerson->getId()]['Days']['E'] ?? 0);
-                        $export->setValue($export->getCell($maxDay+2, $rowStudents), $countList[$month][$tblPerson->getId()]['Days']['U'] ?? 0);
-                        $export->setValue($export->getCell($maxDay+3, $rowStudents), $countList[$month][$tblPerson->getId()]['Lessons']['E'] ?? 0);
-                        $export->setValue($export->getCell($maxDay+4, $rowStudents), $countList[$month][$tblPerson->getId()]['Lessons']['U'] ?? 0);
+                        $ColumnAbsenceCount = $maxDay + 1;
+                        $export->setValue($export->getCell($ColumnAbsenceCount++, $rowStudents), $countList[$yearMonth][$tblPerson->getId()]['Days']['E'] ?? 0);
+                        $export->setValue($export->getCell($ColumnAbsenceCount++, $rowStudents), $countList[$yearMonth][$tblPerson->getId()]['Days']['U'] ?? 0);
+                        $export->setValue($export->getCell($ColumnAbsenceCount++, $rowStudents), $countList[$yearMonth][$tblPerson->getId()]['Lessons']['E'] ?? 0);
+                        $export->setValue($export->getCell($ColumnAbsenceCount++, $rowStudents), $countList[$yearMonth][$tblPerson->getId()]['Lessons']['U'] ?? 0);
 
                         if (isset($totalCountList[$tblPerson->getId()]['Days']['E'])) {
-                            $totalCountList[$tblPerson->getId()]['Days']['E'] += $countList[$month][$tblPerson->getId()]['Days']['E'] ?? 0;
+                            $totalCountList[$tblPerson->getId()]['Days']['E'] += $countList[$yearMonth][$tblPerson->getId()]['Days']['E'] ?? 0;
                         } else {
-                            $totalCountList[$tblPerson->getId()]['Days']['E'] = $countList[$month][$tblPerson->getId()]['Days']['E'] ?? 0;
+                            $totalCountList[$tblPerson->getId()]['Days']['E'] = $countList[$yearMonth][$tblPerson->getId()]['Days']['E'] ?? 0;
                         }
-                        $export->setValue($export->getCell($maxDay+5, $rowStudents), $totalCountList[$tblPerson->getId()]['Days']['E']);
+                        $export->setValue($export->getCell($ColumnAbsenceCount++, $rowStudents), $totalCountList[$tblPerson->getId()]['Days']['E']);
 
                         if (isset($totalCountList[$tblPerson->getId()]['Days']['U'])) {
-                            $totalCountList[$tblPerson->getId()]['Days']['U'] += $countList[$month][$tblPerson->getId()]['Days']['U'] ?? 0;
+                            $totalCountList[$tblPerson->getId()]['Days']['U'] += $countList[$yearMonth][$tblPerson->getId()]['Days']['U'] ?? 0;
                         } else {
-                            $totalCountList[$tblPerson->getId()]['Days']['U'] = $countList[$month][$tblPerson->getId()]['Days']['U'] ?? 0;
+                            $totalCountList[$tblPerson->getId()]['Days']['U'] = $countList[$yearMonth][$tblPerson->getId()]['Days']['U'] ?? 0;
                         }
-                        $export->setValue($export->getCell($maxDay+6, $rowStudents), $totalCountList[$tblPerson->getId()]['Days']['U']);
+                        $export->setValue($export->getCell($ColumnAbsenceCount++, $rowStudents), $totalCountList[$tblPerson->getId()]['Days']['U']);
 
                         if (isset($totalCountList[$tblPerson->getId()]['Lessons']['E'])) {
-                            $totalCountList[$tblPerson->getId()]['Lessons']['E'] += $countList[$month][$tblPerson->getId()]['Lessons']['E'] ?? 0;
+                            $totalCountList[$tblPerson->getId()]['Lessons']['E'] += $countList[$yearMonth][$tblPerson->getId()]['Lessons']['E'] ?? 0;
                         } else {
-                            $totalCountList[$tblPerson->getId()]['Lessons']['E'] = $countList[$month][$tblPerson->getId()]['Lessons']['E'] ?? 0;
+                            $totalCountList[$tblPerson->getId()]['Lessons']['E'] = $countList[$yearMonth][$tblPerson->getId()]['Lessons']['E'] ?? 0;
                         }
-                        $export->setValue($export->getCell($maxDay+7, $rowStudents), $totalCountList[$tblPerson->getId()]['Lessons']['E']);
+                        $export->setValue($export->getCell($ColumnAbsenceCount++, $rowStudents), $totalCountList[$tblPerson->getId()]['Lessons']['E']);
 
                         if (isset($totalCountList[$tblPerson->getId()]['Lessons']['U'])) {
-                            $totalCountList[$tblPerson->getId()]['Lessons']['U'] += $countList[$month][$tblPerson->getId()]['Lessons']['U'] ?? 0;
+                            $totalCountList[$tblPerson->getId()]['Lessons']['U'] += $countList[$yearMonth][$tblPerson->getId()]['Lessons']['U'] ?? 0;
                         } else {
-                            $totalCountList[$tblPerson->getId()]['Lessons']['U'] = $countList[$month][$tblPerson->getId()]['Lessons']['U'] ?? 0;
+                            $totalCountList[$tblPerson->getId()]['Lessons']['U'] = $countList[$yearMonth][$tblPerson->getId()]['Lessons']['U'] ?? 0;
                         }
-                        $export->setValue($export->getCell($maxDay+8, $rowStudents), $totalCountList[$tblPerson->getId()]['Lessons']['U']);
+                        $export->setValue($export->getCell($ColumnAbsenceCount++, $rowStudents), $totalCountList[$tblPerson->getId()]['Lessons']['U']);
 
-                        for ($columnCount = 1; $columnCount < $maxDay+9; $columnCount++) {
+                        for ($columnCount = 1; $columnCount < $ColumnAbsenceCount; $columnCount++) {
                             $columnLetter = Coordinate::stringFromColumnIndex($columnCount);
                             $export->getActiveSheet()->getStyle($columnLetter . $rowStudents)->getAlignment()
                                 ->setHorizontal(Alignment::HORIZONTAL_CENTER);
@@ -4235,7 +4240,7 @@ class Service extends Extension
                         $rowStudents++;
                     }
                     // Center Data
-                    for ($maxColumn = 1; $maxColumn < $maxDay+9; $maxColumn++) { // ToDO Hier anpassen
+                    for ($maxColumn = 1; $maxColumn < $ColumnAbsenceCount; $maxColumn++) {
                         $columnLetter = Coordinate::stringFromColumnIndex($maxColumn);
                         $export->getActiveSheet()->getStyle($columnLetter . 3)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
                         $export->getActiveSheet()->getStyle($columnLetter . $rowStudents)->getAlignment()
@@ -4253,7 +4258,7 @@ class Service extends Extension
                     $export->setStyle($export->getCell(0, 0))->setColumnWidth(21);
                     // color background
                     for($k = 1; $k <= $maxDay; $k++) {
-                        $MontDay = $actualDate->format('Y-m');
+                        $MontDay = $actualDateString;
                         $MonthDayDateTime = (new DateTime($MontDay.'-'.$k))->format('Y-m-d');
                         // school holiday
                         $isHoliday = false;
