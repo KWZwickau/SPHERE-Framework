@@ -652,22 +652,22 @@ class Frontend extends Extension implements IFrontendInterface
                     $tblAuthorizationAll = array_filter(( $tblAuthorizationAll ));
                     $Content = array_merge($Content, $tblAuthorizationAll);
                 }
-                // ist ein UCS Mandant?
-                $IsUCSMandant = false;
+                // ist ein DLLP Mandant?
+                $IsDLLPMandant = false;
                 if(($tblConsumer = Consumer::useService()->getConsumerBySession())){
-                    if(Consumer::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_UCS)){
-                        $IsUCSMandant = true;
+                    if(Consumer::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_DLLP)){
+                        $IsDLLPMandant = true;
                     }
                 }
-                $UcsRemark = '';
-                if($IsUCSMandant){
-                    $UcsRemark = new WellReadOnly('Nach dem Löschen des Accounts in der Schulsoftware wird dieser auch über die UCS Schnittstelle aus dem DLLP Projekt gelöscht.');
+                $DLLPRemark = '';
+                if($IsDLLPMandant){
+                    $DLLPRemark = new WellReadOnly('Nach dem Löschen des Accounts in der Schulsoftware wird dieser auch über die DLLP Schnittstelle aus dem DLLP Projekt gelöscht.');
                 }
 
                 $Stage->setContent(
                     new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(array(
                         new Panel(new PersonKey().' Benutzerkonto', $Content, Panel::PANEL_TYPE_SUCCESS),
-                        new Panel(new Question().' Dieses Benutzerkonto wirklich löschen?', $UcsRemark,
+                        new Panel(new Question().' Dieses Benutzerkonto wirklich löschen?', $DLLPRemark,
                             Panel::PANEL_TYPE_DANGER,
                             new Standard(
                                 'Ja', '/Setting/Authorization/Account/Destroy', new Ok(),

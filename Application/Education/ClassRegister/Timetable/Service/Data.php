@@ -213,6 +213,20 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblTimetable $tblTimetable
+     * @param DateTime $dateTime
+     *
+     * @return false|TblTimetableWeek
+     */
+    public function getTimetableWeekByTimeTableAndDate(TblTimetable $tblTimetable, DateTime $dateTime)
+    {
+        return $this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblTimetableWeek', array(
+            TblTimetableWeek::ATTR_TBL_CLASS_REGISTER_TIMETABLE => $tblTimetable->getId(),
+            TblTimetableWeek::ATTR_DATE => $dateTime,
+        ));
+    }
+
+    /**
      * @param DateTime $Date
      * @param $tblPerson
      * @param $tblCourse

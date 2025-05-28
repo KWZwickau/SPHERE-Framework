@@ -429,8 +429,8 @@ abstract class ServiceTemplateInformation extends ServiceLeave
                     ) {
                         if (!$hasRemarkText) {
                             $technicalCourseName = Student::useService()->getTechnicalCourseGenderNameByPerson($tblPerson);
-                            $Global->POST['Data'][$tblPrepareStudent->getId()]['RemarkWithoutTeam'] = 'Der Abschluss '
-                                . $technicalCourseName . ' ist im Deutschen und Europäischen Qualifikationsrahmen dem Niveau 6 zugeordnet.';
+                            $Global->POST['Data'][$tblPrepareStudent->getId()]['RemarkWithoutTeam'] = "Der Abschluss \""
+                                . $technicalCourseName . "\" ist im Deutschen und Europäischen Qualifikationsrahmen dem Niveau 6 zugeordnet.";
                             $markPostList['RemarkWithoutTeam'] = true;
                         }
 
@@ -480,8 +480,8 @@ abstract class ServiceTemplateInformation extends ServiceLeave
                         && $Certificate->getCertificateEntity()->getCertificate() == 'BfsAbs'
                     ) {
                         $technicalCourseName = Student::useService()->getTechnicalCourseGenderNameByPerson($tblPerson);
-                        $Global->POST['Data'][$tblPrepareStudent->getId()]['RemarkWithoutTeam'] = 'Der Abschluss '
-                            . $technicalCourseName . ' ist im Deutschen und Europäischen Qualifikationsrahmen dem Niveau 4 zugeordnet.';
+                        $Global->POST['Data'][$tblPrepareStudent->getId()]['RemarkWithoutTeam'] = "Der Abschluss \""
+                            . $technicalCourseName . "\" ist im Deutschen und Europäischen Qualifikationsrahmen dem Niveau 4 zugeordnet.";
                         $markPostList['RemarkWithoutTeam'] = true;
                     }
 

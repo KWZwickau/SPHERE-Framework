@@ -142,6 +142,7 @@ class Setup extends AbstractSetup
         $this->createColumn($Table, 'Region', self::FIELD_TYPE_STRING);
         $this->createColumn($Table, 'County', self::FIELD_TYPE_STRING);
         $this->createColumn($Table, 'Nation', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'AddressExtra', self::FIELD_TYPE_STRING);
         $this->getConnection()->addForeignKey($Table, $tblCity);
         $this->getConnection()->addForeignKey($Table, $tblState, true);
         return $Table;

@@ -196,6 +196,8 @@ abstract class Certificate extends Extension
             $InjectStyle = 'body { margin-bottom: -1.5cm !important; margin-left: 0.75cm !important; margin-right: 0.75cm !important; }';
         } elseif ($tblConsumer && $tblConsumer->isConsumer(TblConsumer::TYPE_SACHSEN, 'HGGT')) {
             $InjectStyle = 'body { margin-bottom: -1.5cm !important; margin-left: 1.25cm !important; margin-right: 1.25cm !important; }';
+        } elseif ($tblConsumer && $tblConsumer->isConsumer(TblConsumer::TYPE_SACHSEN, 'FELS')) {
+            $InjectStyle = 'body { margin-bottom: -1.5cm !important; }';
         }
 
         // Standardzeugnisse mit Breiteneinstellung
@@ -641,10 +643,11 @@ abstract class Certificate extends Extension
 
     /**
      * @param $IsSample
+     * @param bool $IsIndividuallyLogoIgnored
      *
      * @return Section
      */
-    protected function getIndividuallyLogo($IsSample)
+    protected function getIndividuallyLogo($IsSample, bool $IsIndividuallyLogoIgnored = false)
     {
 
         $isOS = false;
@@ -674,7 +677,7 @@ abstract class Certificate extends Extension
         $Section->addElementColumn((new Element()), '51%');
 
         // Individually Logo
-        if ($picturePath != '') {
+        if (!$IsIndividuallyLogoIgnored && $picturePath != '') {
             $Section->addElementColumn((new Element\Image($picturePath, 'auto', $IndividuallyLogoHeight))
                 ->styleAlignCenter()
                 ->styleHeight('0px')

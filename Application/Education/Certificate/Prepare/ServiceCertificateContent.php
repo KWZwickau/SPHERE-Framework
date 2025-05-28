@@ -57,7 +57,6 @@ abstract class ServiceCertificateContent extends ServiceAbitur
             $tblAppointedDateTask = $tblPrepare->getServiceTblAppointedDateTask();
         } elseif ($tblLeaveStudent) {
             $tblYear = $tblLeaveStudent->getServiceTblYear();
-            $tblAppointedDateTask = $tblPrepare->getServiceTblAppointedDateTask();
         }
         if ($tblYear && ($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))) {
             $level = $tblStudentEducation->getLevel();
@@ -756,7 +755,18 @@ abstract class ServiceCertificateContent extends ServiceAbitur
                                 $tblTechnicalCourse))
                             && ($tblSubjectExam = $tblCertificateSubject->getServiceTblSubject())
                         ) {
-                            $countInformationalExpulsion++;
+//                            $countInformationalExpulsion++;
+                            // Reihenfolge nach Lernfeld-Nummer
+                            if ($ranking == 1 && $index == 1) {
+                                $countInformationalExpulsion = 1;
+                            } elseif ($ranking == 2 && $index == 1) {
+                                $countInformationalExpulsion = 2;
+                            } elseif ($ranking == 1 && $index == 2) {
+                                $countInformationalExpulsion = 3;
+                            } elseif ($ranking == 2 && $index == 2) {
+                                $countInformationalExpulsion = 4;
+                            }
+
                             $countExamSubjects++;
                             $subjectList[$countExamSubjects] = $tblSubjectExam->getName();
 
@@ -786,7 +796,7 @@ abstract class ServiceCertificateContent extends ServiceAbitur
                         }
                         $preText = 'K' . $ranking . ':&nbsp;&nbsp;';
                         foreach ($subjectList as $number => $subjectName) {
-                            $text = $preText . $subjectName;
+                            $text = ($number % 2 ? $preText : '') . $subjectName;
                             $Content['P' . $personId]['ExamList'][$identifier][$number]['Subjects'] = $text;
                             if (strlen($text) > 90) {
                                 // Fachname nimmt 2 Zeilen ein

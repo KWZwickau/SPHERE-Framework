@@ -336,7 +336,7 @@ class Data extends AbstractData
         $tblToPerson = new TblToPerson();
         $tblAddress = new TblAddress();
         $tblCity = new TblCity();
-        $Query = $Builder->select('tA.StreetName, tA.County, tA.Nation, tC.Code, tC.Name, tC.District')
+        $Query = $Builder->select('tA.AddressExtra, tA.StreetName, tA.County, tA.Nation, tC.Code, tC.Name, tC.District')
             ->from($tblToPerson->getEntityFullName(), 'tTP')
             ->leftJoin($tblAddress->getEntityFullName(), 'tA', 'WITH', 'tA.Id = tTP.tblAddress')
             ->leftJoin($tblCity->getEntityFullName(), 'tC', 'WITH', 'tC.Id = tA.tblCity')
@@ -398,6 +398,7 @@ class Data extends AbstractData
      * @param string   $Region
      * @param string   $County
      * @param string   $Nation
+     * @param string   $AddressExtra
      *
      * @return TblAddress
      */
@@ -409,7 +410,8 @@ class Data extends AbstractData
         string $PostOfficeBox,
         string $Region = '',
         string $County = '',
-        string $Nation = ''
+        string $Nation = '',
+        string $AddressExtra = '',
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -423,6 +425,7 @@ class Data extends AbstractData
                 TblAddress::ATTR_REGION          => $Region,
                 TblAddress::ATTR_COUNTY          => $County,
                 TblAddress::ATTR_NATION          => $Nation,
+                TblAddress::ATTR_ADDRESS_EXTRA   => $AddressExtra,
             ));
 
         // SSW-533 Entity-Manager ignoriert die Groß- und Kleinschreibung
@@ -447,6 +450,7 @@ class Data extends AbstractData
         $Entity->setTblCity($tblCity);
         $Entity->setCounty($County);
         $Entity->setNation($Nation);
+        $Entity->setAddressExtra($AddressExtra);
         $Manager->saveEntity($Entity);
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
 

@@ -181,7 +181,6 @@ class Data extends DataTeacher
             $Entity->setIsShownInPersonData($isShownInPersonData);
             $Entity->setIsReporting($isReporting);
             $Entity->setServiceTblSubject($tblSubject);
-//            $Entity->setIsUcs($isUcs);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
