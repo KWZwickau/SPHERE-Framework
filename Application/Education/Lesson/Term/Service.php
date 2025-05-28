@@ -1329,7 +1329,10 @@ class Service extends AbstractService
 
         $Error = false;
 
-        if (isset($Data['YearName']) && empty($Data['YearName'])) {
+        if (!isset($Data['YearName'])) {
+            $Form->setError('Data[YearName]', 'Bitte geben sie ein Jahr an');
+            $Error = true;
+        } elseif (isset($Data['YearName']) && empty($Data['YearName'])) {
             var_dump($Data['YearName']);
             $Form->setError('Data[YearName]', 'Bitte geben sie ein Jahr an');
             $Error = true;

@@ -83,6 +83,11 @@ class FrontendWizard extends Extension implements IFrontendInterface
         }
         if ($YearList) {
             $global->POST['Data']['YearName'] = $PreData['YearName'] = reset($YearList);
+            // es muss mehr als ein Eintrag sein (Arraykey bedingt)
+            if(count($YearList) == 1){
+                // leeren Eintrag vorn anhängen
+                array_unshift($YearList, null);
+            }
         }
         $global->POST['Data'][1]['Name'] = '1. Halbjahr';
         $global->POST['Data'][2]['Name'] = '2. Halbjahr';
