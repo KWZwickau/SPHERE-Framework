@@ -218,22 +218,20 @@ class Limbach extends Extension implements IModuleInterface
         $Stage->setContent(
             new Layout(
                 new LayoutGroup(array(
-                    new LayoutRow(
-                        new LayoutColumn(
-                            $HeadPanel
-                            , 7)
-                    ),
                     new LayoutRow(array(
                         new LayoutColumn(
-                            $form
-                            , 7),
+                            $HeadPanel
+                            .new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
+                                $form
+                            ))))
+                        , 7),
                         new LayoutColumn(
                             new Title('Vorlage des Dokuments "Schulvertrag"')
                             .new Thumbnail(
                                 FileSystem::getFileLoader('/Common/Style/Resource/Document/SchulVertragFELS.png')
                                 , ''
                             )
-                            , 5),
+                        , 5)
                     ))
                 ))
             )
