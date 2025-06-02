@@ -28,7 +28,6 @@ class Custom implements IApplicationInterface
         $tblConsumer = Consumer::useService()->getConsumerBySession();
         if ($tblConsumer && $tblConsumer->getType() == TblConsumer::TYPE_SACHSEN) {
             $consumerAcronym = $tblConsumer->getAcronym();
-            // Lebenswelt
             if ($consumerAcronym === 'LWSZ') {
                 Lebenswelt::registerModule();
             }
@@ -44,7 +43,6 @@ class Custom implements IApplicationInterface
             if ($consumerAcronym === 'HOGA') {
                 Hoga::registerModule();
             }
-            // Gersdorf
             if ($consumerAcronym === 'EVOSG') {
                 Gersdorf::registerModule();
             }
