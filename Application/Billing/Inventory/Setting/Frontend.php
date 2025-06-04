@@ -42,6 +42,7 @@ use SPHERE\Common\Frontend\Text\Repository\Success as SuccessText;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
+use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Frontend
@@ -231,7 +232,19 @@ class Frontend extends Extension implements IFrontendInterface
                             .new Bold(($tblSetting->getValue()
                                 ? new SuccessText(new Check())
                                 : new DangerText(new Unchecked())));
-                    break;
+                        break;
+                    case TblSetting::IDENT_DEBTOR_EXTENDED_VIEW:
+                        $Listing[1] ='&nbsp;Beitragszahler Standardansicht Erweitert: &nbsp;'
+                            .new Bold(($tblSetting->getValue()
+                                ? new SuccessText(new Check())
+                                : new DangerText(new Unchecked())));
+                        break;
+                    case TblSetting::IDENT_CAUSER_EXTENDED_VIEW:
+                        $Listing[2] ='&nbsp;Beitragsverursacher Standardansicht Erweitert: &nbsp;'
+                            .new Bold(($tblSetting->getValue()
+                                ? new SuccessText(new Check())
+                                : new DangerText(new Unchecked())));
+                        break;
                     // SEPA
                     case TblSetting::IDENT_IS_SEPA:
                         $Listing[0] ='&nbsp;Eingabepflicht relevanter Eingaben für SEPA-Lastschrift: &nbsp;'
@@ -393,6 +406,24 @@ class Frontend extends Extension implements IFrontendInterface
                         ))));
                     $_POST['Setting'][TblSetting::IDENT_INVOICE_DELETE] = $tblSetting->getValue();
                     $elementList[0] = new FormColumn($RegularElementInWell);
+                break;
+                case TblSetting::IDENT_DEBTOR_EXTENDED_VIEW:
+                    $RegularElementInWell = new Layout(new LayoutGroup(new LayoutRow(array(
+                            new LayoutColumn(
+                                new CheckBox('Setting['.TblSetting::IDENT_DEBTOR_EXTENDED_VIEW.']', 'Beitragszahler Standardansicht Erweitert (längere Ladezeiten)', true)
+                            )
+                        ))));
+                    $_POST['Setting'][TblSetting::IDENT_DEBTOR_EXTENDED_VIEW] = $tblSetting->getValue();
+                    $elementList[1] = new FormColumn($RegularElementInWell);
+                break;
+                case TblSetting::IDENT_CAUSER_EXTENDED_VIEW:
+                    $RegularElementInWell = new Layout(new LayoutGroup(new LayoutRow(array(
+                            new LayoutColumn(
+                                new CheckBox('Setting['.TblSetting::IDENT_CAUSER_EXTENDED_VIEW.']', ' Beitragsverursacher Standardansicht Erweitert (längere Ladezeiten)', true)
+                            )
+                        ))));
+                    $_POST['Setting'][TblSetting::IDENT_CAUSER_EXTENDED_VIEW] = $tblSetting->getValue();
+                    $elementList[2] = new FormColumn($RegularElementInWell);
                 break;
                     // Sepa Option's
                 case TblSetting::IDENT_IS_SEPA:
