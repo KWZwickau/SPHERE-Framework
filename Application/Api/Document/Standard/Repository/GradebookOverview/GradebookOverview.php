@@ -65,7 +65,10 @@ class GradebookOverview extends AbstractDocument
             }
         }
 
-        return (new Frame())->addDocument($document);
+        // damit 16 Fächer auf die Schülerübersicht passen
+        $InjectStyle = 'body { margin-bottom: -1.5cm !important; }';
+
+        return (new Frame($InjectStyle))->addDocument($document);
     }
 
     /**
