@@ -14,6 +14,7 @@ use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblStudent
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblTeacherLectureship;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
+use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
@@ -44,6 +45,7 @@ abstract class ServiceYearChange extends ServiceTeacher
         $divisionCourseSekTransitionList = array();
 
         $tblMemberTypeStudent = DivisionCourse::useService()->getDivisionCourseMemberTypeByIdentifier(TblDivisionCourseMemberType::TYPE_STUDENT);
+        $tblGroupStudent = Group::useService()->getGroupByMetaTable('STUDENT');
         if (($tblStudentEducationList = DivisionCourse::useService()->getStudentEducationListBy($tblYearSource, $tblSchoolType))) {
             $tblStudentEducationList = $this->getSorter($tblStudentEducationList)->sortObjectBy('Sort');
             /** @var TblStudentEducation $tblStudentEducationSource */
@@ -56,6 +58,12 @@ abstract class ServiceYearChange extends ServiceTeacher
 
                     // Schüler mit Abgangszeugnis oder Abschlusszeugnis ignorieren
                     if (Prepare::useService()->getIsLeaveOrDiplomaStudent($tblPerson, $tblYearSource)) {
+                        continue;
+                    }
+
+                    // SSWHD-3366 Schüler ignorieren welche nicht mehr in der Gruppe Schüler sind
+                    if (!Group::useService()->existsGroupPerson($tblGroupStudent, $tblPerson))
+                    {
                         continue;
                     }
 

@@ -79,11 +79,17 @@ class FrontendPersonAgreement extends FrontendReadOnly
             });
         }
 
-        $content = new Layout(new LayoutGroup(array(
-            new LayoutRow(
-                $AgreementPanelCategory
-            ),
-        )));
+        $LayoutRowCount = 0;
+        $LayoutRowList = array();
+        foreach($AgreementPanelCategory as $AgreementPanel){
+            if ($LayoutRowCount % 4 == 0) {
+                $LayoutRow = new LayoutRow(array());
+                $LayoutRowList[] = $LayoutRow;
+            }
+            $LayoutRow->addColumn($AgreementPanel);
+            $LayoutRowCount++;
+        }
+        $content = new Layout(new LayoutGroup($LayoutRowList));
 
         $editLink = '';
         $StructureEdit = '';
@@ -199,19 +205,28 @@ class FrontendPersonAgreement extends FrontendReadOnly
                 $PanelCount++;
             });
         }
-        $AgreementLayout = array();
+        $AgreementFormList = array();
         if(!empty($AgreementPanel)){
             foreach($AgreementPanel as $Key => $AgreementPanelOne){
-                $AgreementLayout[] = new LayoutColumn(new Panel($AgreementPanelHead[$Key]
+                $AgreementFormList[] = new FormColumn(new Panel($AgreementPanelHead[$Key]
                     , $AgreementPanelOne, Panel::PANEL_TYPE_INFO), 3);
             }
         }
 
+        $FormRowCount = 0;
+        $FormRowList = array();
+        foreach($AgreementFormList as $FormColumn){
+            if ($FormRowCount % 4 == 0) {
+                $FormRow = new FormRow(array());
+                $FormRowList[] = $FormRow;
+            }
+            $FormRow->addColumn($FormColumn);
+            $FormRowCount++;
+        }
+
         $Form = new Form(array(
-            new FormGroup(array(
-                new FormRow(
-                    $AgreementLayout
-                ),
+            new FormGroup($FormRowList)
+            , new FormGroup(array(
                 new FormRow(array(
                     new FormColumn(array(
                         (new Primary('Speichern', ApiPersonEdit::getEndpoint(), new Save()))
@@ -233,7 +248,7 @@ class FrontendPersonAgreement extends FrontendReadOnly
     {
 
         return (new Form(new FormGroup(new FormRow(array(
-            new FormColumn(new TextField('Meta[Category]', '', 'Name der Kategorie')),
+            new FormColumn((new TextField('Meta[Category]', '', 'Name der Kategorie'))->setAutoFocus()),
             new FormColumn(new Success('<div style="height:5px"></div>')),
         )))))->disableSubmitAction();
     }
@@ -245,7 +260,7 @@ class FrontendPersonAgreement extends FrontendReadOnly
     {
 
         return (new Form(new FormGroup(new FormRow(array(
-            new FormColumn(new TextField('Meta[Type]', '', 'Name des Eintrag\'s')),
+            new FormColumn((new TextField('Meta[Type]', '', 'Name des Eintrag\'s'))->setAutoFocus()),
             new FormColumn(new Success('<div style="height:5px"></div>')),
         )))))->disableSubmitAction();
     }

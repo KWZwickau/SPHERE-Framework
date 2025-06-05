@@ -205,9 +205,6 @@ class Frontend extends FrontendYearChange
                     if ($tblDivisionCourse->getIsReporting()) {
                         $item['Visibility'] .= ($item['Visibility'] ? '<br/>' : '') . 'Auswertung';
                     }
-//                    if ($tblDivisionCourse->getIsUcs()) {
-//                        $item['Visibility'] .= ($item['Visibility'] ? '<br/>' : '') . 'UCS';
-//                    }
                 } else {
                     if ($tblDivisionCourse->getType()->getIsCourseSystem()) {
                         $countStudentSubjectPeriod1 = DivisionCourse::useService()->getCountStudentsBySubjectDivisionCourseAndPeriod($tblDivisionCourse, 1);
@@ -321,7 +318,6 @@ class Frontend extends FrontendYearChange
             $Global->POST['Data']['Subject'] = $tblDivisionCourse->getServiceTblSubject() ? $tblDivisionCourse->getServiceTblSubject()->getId() : 0;
             $Global->POST['Data']['IsShownInPersonData'] = $tblDivisionCourse->getIsShownInPersonData();
             $Global->POST['Data']['IsReporting'] = $tblDivisionCourse->getIsReporting();
-//            $Global->POST['Data']['IsUcs'] = $tblDivisionCourse->getIsUcs();
             $Global->savePost();
 
             // deaktiviertes Fach hinzufügen
@@ -404,9 +400,6 @@ class Frontend extends FrontendYearChange
             new FormColumn(
                 new CheckBox('Data[IsReporting]', 'Kurs wird bei festen Auswertungen angezeigt', 1)
                 , 6),
-//                    new FormColumn(
-//                        new CheckBox('Data[IsUcs]', 'Kurs wird ins UCS übertragen', 1)
-//                        , 4),
         ));
         $formRows[] = new FormRow(array(
             new FormColumn(

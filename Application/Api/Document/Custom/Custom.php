@@ -1,11 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: Kauschke
- * Date: 09.09.2016
- * Time: 15:52
- */
-
 namespace SPHERE\Application\Api\Document\Custom;
 
 use SPHERE\Application\Api\Document\Custom\Gersdorf\Gersdorf;
@@ -36,26 +29,21 @@ class Custom extends Extension implements IModuleInterface
         if ($tblConsumer && $tblConsumer->getType() == TblConsumer::TYPE_SACHSEN) {
             $consumerAcronym = $tblConsumer->getAcronym();
 
-            // Lebenswelt
             if ($consumerAcronym === 'LWSZ') {
                 Lebenswelt::registerModule();
             }
-            // Radebeul
             if ($consumerAcronym === 'EVSR') {
                 Radebeul::registerModule();
             }
-            // Zwickau
             if ($consumerAcronym === 'CMS') {
                 Zwickau::registerModule();
             }
-            // Zwickau
             if ($consumerAcronym === 'FELS') { // local test || $consumerAcronym === 'REF'
                 Limbach::registerModule();
             }
             if ($consumerAcronym === 'HOGA') {
                 Hoga::registerModule();
             }
-            // Gersdorf
             if ($consumerAcronym === 'EVOSG') {
                 Gersdorf::registerModule();
             }

@@ -205,15 +205,15 @@ class Service extends AbstractService
                 $Form->setError('Group[Name]', 'Bitte geben Sie einen eineindeutigen Namen für die Gruppe an');
                 $Error = true;
             }
-            // ist ein UCS Mandant?
-            $IsUCSMandant = false;
+            // ist ein DLLP Mandant?
+            $IsDLLPMandant = false;
             if(($tblConsumer = ConsumerGatekeeper::useService()->getConsumerBySession())){
-                if(ConsumerGatekeeper::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_UCS)){
-                    $IsUCSMandant = true;
+                if(ConsumerGatekeeper::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_DLLP)){
+                    $IsDLLPMandant = true;
                 }
             }
-            // Gruppen Zeicheneingrenzung nur für UCS Mandanten
-            if (isset($Group['Name']) && $Group['Name'] != '' && $IsUCSMandant) {
+            // Gruppen Zeicheneingrenzung nur für DLLP Mandanten
+            if (isset($Group['Name']) && $Group['Name'] != '' && $IsDLLPMandant) {
                 if(!preg_match('!^[\w]+[\w -_]*[\w]+$!', $Group['Name'])){ // muss mit Buchstaben/Zahl anfangen und Aufhören + mindestens 2 Zeichen
                     $Form->setError('Group[Name]', 'Erlaubte Zeichen [a-zA-Z0-9 -_]');
                     $Error = true;
@@ -314,22 +314,6 @@ class Service extends AbstractService
                 $Form->setError('Group[Name]', 'Bitte geben Sie einen eineindeutigen Namen für die Gruppe an');
                 $Error = true;
             }
-
-            // Stammgruppen werden jetzt als Kurse in der Bildung gepflegt und nicht mehr als Personengruppen
-//            // ist ein UCS Mandant?
-//            $IsUCSMandant = false;
-//            if(($tblConsumer = ConsumerGatekeeper::useService()->getConsumerBySession())){
-//                if(ConsumerGatekeeper::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_UCS)){
-//                    $IsUCSMandant = true;
-//                }
-//            }
-//            // Gruppen Zeicheneingrenzung nur für UCS Mandanten
-//            if (isset($Group['Name']) && $Group['Name'] != '' && $IsUCSMandant) {
-//                if(!preg_match('!^[\w]+[\w -_]*[\w]+$!', $Group['Name'])){ // muss mit Buchstaben/Zahl anfangen und Aufhören + mindestens 2 Zeichen
-//                    $Form->setError('Group[Name]', 'Erlaubte Zeichen [a-zA-Z0-9 -_]');
-//                    $Error = true;
-//                }
-//            }
         }
 
         if (!$Error) {

@@ -48,9 +48,28 @@ class Service extends AbstractService
      */
     public function getPersonListFromStudentLogin()
     {
+        if (($tblPerson = Account::useService()->getPersonByLogin())) {
+            return $this->getPersonListFromStudentByPerson($tblPerson);
+        }
+
+        return false;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     *
+     * @return array|false
+     */
+    public function getPersonListFromStudentByPerson(TblPerson $tblPerson)
+    {
+        // prüfen, ob die Person einen Account hat
+        if (!Account::useService()->getAccountAllByPerson($tblPerson))
+        {
+            return false;
+        }
+
         $tblPersonList = array();
-        if (($tblPerson = Account::useService()->getPersonByLogin())
-            && ($tblSetting = Consumer::useService()->getSetting('ParentStudentAccess', 'Person', 'ContactDetails', 'OnlineContactDetailsAllowedForSchoolTypes'))
+        if (($tblSetting = Consumer::useService()->getSetting('ParentStudentAccess', 'Person', 'ContactDetails', 'OnlineContactDetailsAllowedForSchoolTypes'))
             && ($tblSchoolTypeAllowedList = Consumer::useService()->getSchoolTypeBySettingString($tblSetting->getValue()))
         ) {
             if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndDate($tblPerson))
@@ -88,9 +107,28 @@ class Service extends AbstractService
      */
     public function getPersonListFromCustodyLogin()
     {
+        if (($tblPerson = Account::useService()->getPersonByLogin())) {
+            return $this->getPersonListFromCustodyByPerson($tblPerson);
+        }
+
+        return false;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     *
+     * @return array|false
+     */
+    public function getPersonListFromCustodyByPerson(TblPerson $tblPerson)
+    {
+        // prüfen, ob die Person einen Account hat
+        if (!Account::useService()->getAccountAllByPerson($tblPerson))
+        {
+            return false;
+        }
+
         $tblPersonList = array();
-        if (($tblPerson = Account::useService()->getPersonByLogin())
-            && ($tblSetting = Consumer::useService()->getSetting('ParentStudentAccess', 'Person', 'ContactDetails', 'OnlineContactDetailsAllowedForSchoolTypes'))
+        if (($tblSetting = Consumer::useService()->getSetting('ParentStudentAccess', 'Person', 'ContactDetails', 'OnlineContactDetailsAllowedForSchoolTypes'))
             && ($tblSchoolTypeAllowedList = Consumer::useService()->getSchoolTypeBySettingString($tblSetting->getValue()))
         ) {
             $tblMainAddress = $tblPerson->fetchMainAddress();

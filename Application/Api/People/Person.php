@@ -9,6 +9,7 @@ use SPHERE\Application\Api\People\Meta\Student\ApiStudent;
 use SPHERE\Application\Api\People\Meta\Support\ApiSupport;
 use SPHERE\Application\Api\People\Meta\Support\ApiSupportReadOnly;
 use SPHERE\Application\Api\People\Person\ApiFamilyEdit;
+use SPHERE\Application\Api\People\Person\ApiPersonDelete;
 use SPHERE\Application\Api\People\Person\ApiPersonEdit;
 use SPHERE\Application\Api\People\Person\ApiPersonReadOnly;
 use SPHERE\Application\Api\People\Search\ApiPersonSearch;
@@ -32,6 +33,7 @@ class Person implements IApplicationInterface
         ApiStudentAgreementStructure::registerApi();
         ApiPersonAgreementStructure::registerApi();
         ApiPersonEdit::registerApi();
+        ApiPersonDelete::registerApi();
         ApiPersonReadOnly::registerApi();
         ApiFamilyEdit::registerApi();
         ApiPersonSearch::registerApi();

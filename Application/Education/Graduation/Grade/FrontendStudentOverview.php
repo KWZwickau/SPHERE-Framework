@@ -281,7 +281,7 @@ abstract class FrontendStudentOverview extends FrontendScoreType
             && ($tblYear = $tblDivisionCourse->getServiceTblYear())
             && ($tblPerson = Person::useService()->getPersonById($PersonId))
         ) {
-            if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))) {
+            if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYearAndDateWithLeaved($tblPerson, $tblYear))) {
                 $content = Grade::useService()->getStudentOverviewDataByPerson($tblPerson, $tblYear, $tblStudentEducation, $isParentView, false);
                 // Anzeige Klasse + Stammgruppe
                 $textCourse = DivisionCourse::useService()->getCurrentMainCoursesByStudentEducation($tblStudentEducation);

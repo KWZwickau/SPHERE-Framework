@@ -25,7 +25,11 @@ class Grade  implements IModuleInterface
                 new Link\Icon(new Tag()))
         );
         Main::getDisplay()->addModuleNavigation(
-            new Link(new Link\Route(__NAMESPACE__.'\ScoreRule'), new Link\Name('Berechnungsvorschrift'),
+            new Link(new Link\Route(__NAMESPACE__.'\ScoreRule'), new Link\Name('Berechnungsvorschrift Fachnoten'),
+                new Link\Icon(new Pencil()))
+        );
+        Main::getDisplay()->addModuleNavigation(
+            new Link(new Link\Route(__NAMESPACE__.'\BehaviorScoreRule'), new Link\Name('Berechnungsvorschrift Kopfnoten'),
                 new Link\Icon(new Pencil()))
         );
         Main::getDisplay()->addModuleNavigation(
@@ -60,7 +64,12 @@ class Grade  implements IModuleInterface
             Main::getDispatcher()->createRoute(__NAMESPACE__.'\GradeType\Activate', __NAMESPACE__.'\Frontend::frontendActivateGradeType')
         );
 
-        // Berechnungsvorschrift
+        // Berechnungsvorschrift Kopfnoten
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'\BehaviorScoreRule', __NAMESPACE__.'\Frontend::frontendBehaviorScoreRule')
+        );
+
+        // Berechnungsvorschrift Fachnoten
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'\ScoreRule', __NAMESPACE__.'\Frontend::frontendScoreRule')
         );

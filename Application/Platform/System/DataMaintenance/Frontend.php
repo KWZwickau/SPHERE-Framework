@@ -4,6 +4,7 @@ namespace SPHERE\Application\Platform\System\DataMaintenance;
 
 use SPHERE\Application\Api\Platform\DataMaintenance\ApiDocumentStorage;
 use SPHERE\Application\Api\Platform\DataMaintenance\ApiMigrateDivision;
+use SPHERE\Application\Api\Transfer\Indiware\IndiwareLog\ApiIndiware;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
@@ -20,6 +21,7 @@ use SPHERE\Application\Setting\User\Account\Service\Entity\TblUserAccount;
 use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
+use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
@@ -51,6 +53,7 @@ use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Center;
 use SPHERE\Common\Frontend\Text\Repository\Code;
+use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\RedirectScript;
 use SPHERE\Common\Window\Stage;
@@ -159,6 +162,12 @@ class Frontend extends Extension implements IFrontendInterface
                             new Standard('Datei-Größe aller Mandanten', __NAMESPACE__.'/DocumentStorage/AllConsumers')
                         )
                     ),
+                    // ToDO nach dem Indiware test wieder entfernen
+                    new LayoutColumn(array(
+                        new TitleLayout('Indiware Log', new External('demo.schulsoftware.schule/RestApi/Public/Indiware/Log'
+                                , '/RestApi/Public/Indiware/Log').new Muted(' Erzeugt ein Log')),
+                        new Standard('Datei-Übersicht', __NAMESPACE__ . '/IndiwareLog')
+                    )),
                 ))
             )
         ));
@@ -792,5 +801,73 @@ UPDATE ".$Acronym."_SettingConsumer.tblUserAccount SET UpdateDate = date_add(Upd
         );
 
         return $stage;
+    }
+
+    // ToDO nach dem Indiware test wieder entfernen
+    /**
+     * @return Stage
+     */
+    public function frontendIndiwareLog(): Stage
+    {
+        $Stage = new Stage('Indiware Log', 'demo.schulsoftware.schule/RestApi/Public/Indiware/Log');
+        $Stage->addButton(new Standard('Zurück', __NAMESPACE__, new ChevronLeft()));
+
+        $filePath = 'UnitTest/IndiwareLog/';
+        $directoryContentList = scandir($filePath);
+        $content = array();
+        foreach($directoryContentList as $Key => $fileName){
+            if($Key < 2){
+                continue;
+            }
+
+            $File = 'UnitTest/IndiwareLog/'.$fileName;
+            // Ersetze die Unterstriche durch die entsprechenden Zeichen
+            $formattedFileName = str_replace('_', ':', substr($fileName, 0, 8)) // Zeit umwandeln
+                . substr($fileName, 8, 4) // "Log" übernehmen
+                . str_replace('_', '.', substr($fileName, 12)); // Datum umwandeln
+            $item = array();
+            $item['Name'] = $formattedFileName;
+            $item['Time'] = date ("d.m.Y", filemtime($File));
+            $item['Path'] = $filePath;
+            $item['Download'] = (new Standard('', '/Api/Transfer/Indiware/IndiwareLog/Download', new Download(),
+                array('fileName' => $fileName), 'Anzeigen'))->setExternal()
+            .(new Standard('', '#', new EyeOpen()))->ajaxPipelineOnClick(ApiIndiware::pipelineShowFileContent($fileName))
+            ;
+            $content[] = array_merge($content, $item);
+        }
+        $Receiver = (new ApiIndiware())::receiverContent();
+        $Stage->setContent(
+            new Layout(new LayoutGroup(new LayoutRow(array(
+//                new LayoutColumn( '',4),
+                new LayoutColumn(
+                    new TableData(
+                        $content,
+                        null,
+                        array(
+                            'Name' => 'Name',
+                            'Time' => 'Erstellung',
+//                            'Path' => 'Route',
+                            'Download' => '',
+                        ),
+                        array(
+                            'order' => array(
+                                array('1', 'desc'),
+                                array('0', 'desc'),
+                            ),
+                            'columnDefs' => array(
+                                // Erstellungsdatum
+                                array('type' => 'de_date', 'targets' => 1),
+                                array('type' => 'natural', 'targets' => 0),
+                            ),
+                        )
+                    )
+                , 4),
+                new LayoutColumn(
+                    $Receiver
+                , 8)
+            ))))
+        );
+
+        return $Stage;
     }
 }

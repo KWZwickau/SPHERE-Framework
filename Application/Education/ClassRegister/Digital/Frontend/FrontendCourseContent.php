@@ -5,6 +5,7 @@ namespace SPHERE\Application\Education\ClassRegister\Digital\Frontend;
 use DateTime;
 use SPHERE\Application\Api\Education\ClassRegister\ApiAbsence;
 use SPHERE\Application\Api\Education\ClassRegister\ApiDigital;
+use SPHERE\Application\Api\Education\ClassRegister\ApiForgotten;
 use SPHERE\Application\Api\Education\ClassRegister\ApiInstructionSetting;
 use SPHERE\Application\Education\Absence\Absence;
 use SPHERE\Application\Education\ClassRegister\Digital\Digital;
@@ -54,6 +55,7 @@ use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Center;
+use SPHERE\Common\Frontend\Text\Repository\Strikethrough;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
@@ -188,13 +190,23 @@ class FrontendCourseContent extends Extension implements IFrontendInterface
             new LayoutRow(array(
                 new LayoutColumn(
                     (new Primary(
-                        new Plus() . ' Thema/Hausaufgaben hinzufügen',
-                        ApiDigital::getEndpoint()
+                        new Plus() . ' Thema / HA hinzufügen',
+                        ApiDigital::getEndpoint(),
+                        null,
+                        [],
+                        'Thema / Hausaufgaben hinzufügen'
                     ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenCreateCourseContentModal($DivisionCourseId))
+                    . (new Primary(
+                        new Plus() . ' Vergessene AM / HA hinzufügen',
+                        ApiForgotten::getEndpoint(),
+                        null,
+                        [],
+                        'Vergessene Arbeitsmittel / Hausaufgaben hinzufügen'
+                    ))->ajaxPipelineOnClick(ApiForgotten::pipelineOpenCreateForgottenModal($DivisionCourseId, (new DateTime('today'))->format('d.m.Y')))
                     . (new Primary(
                         new Plus() . ' Fehlzeit hinzufügen',
                         ApiAbsence::getEndpoint()
-                    ))->ajaxPipelineOnClick(ApiAbsence::pipelineOpenCreateAbsenceModal(null, $DivisionCourseId))
+                    ))->ajaxPipelineOnClick(ApiAbsence::pipelineOpenCreateAbsenceModal(null, $DivisionCourseId, null, true))
                     , 8),
                 new LayoutColumn(
                     new PullRight(
@@ -304,7 +316,7 @@ class FrontendCourseContent extends Extension implements IFrontendInterface
                     'Lesson' => new Center(implode(', ', $lessonArray)),
                     'CountLessons' => new Center($tblCourseContent->getCountLessons()),
                     'Content' => $tblCourseContent->getContent(),
-                    'Homework' => $tblCourseContent->getHomework(),
+                    'Homework' => $tblCourseContent->getHomework() . ($tblCourseContent->getDueDateHomework() ? ' (Fälligkeit: ' . $tblCourseContent->getDueDateHomework() . ')' : ''),
                     'Remark' => $tblCourseContent->getRemark(),
                     'Room' => $tblCourseContent->getRoom(),
                     'Absence' => implode(' ', $absenceList),
@@ -393,17 +405,20 @@ class FrontendCourseContent extends Extension implements IFrontendInterface
      */
     public function formCourseContent(TblDivisionCourse $tblDivisionCourse, $CourseContentId = null, bool $setPost = false): Form
     {
+        $Date = null;
         // beim Checken der Input-Felder darf der Post nicht gesetzt werden
         if ($setPost && $CourseContentId
             && ($tblCourseContent = Digital::useService()->getCourseContentById($CourseContentId))
         ) {
             $Global = $this->getGlobal();
+            $Date = $tblCourseContent->getDate();
             $Global->POST['Data']['Date'] = $tblCourseContent->getDate();
             $Global->POST['Data']['Lesson'] = $tblCourseContent->getLesson() === 0 ? -1 : $tblCourseContent->getLesson();
             $Global->POST['Data']['serviceTblPerson'] =
                 ($tblPerson = $tblCourseContent->getServiceTblPerson()) ? $tblPerson->getId() : 0;
             $Global->POST['Data']['Content'] = $tblCourseContent->getContent();
             $Global->POST['Data']['Homework'] = $tblCourseContent->getHomework();
+            $Global->POST['Data']['DueDateHomework'] = $tblCourseContent->getDueDateHomework() ?: '';
             $Global->POST['Data']['Remark'] = $tblCourseContent->getRemark();
             $Global->POST['Data']['Room'] = $tblCourseContent->getRoom();
             $Global->POST['Data']['IsDoubleLesson'] = $tblCourseContent->getCountLessons() == 2;
@@ -414,7 +429,8 @@ class FrontendCourseContent extends Extension implements IFrontendInterface
 
         if ($setPost && !$CourseContentId) {
             $Global = $this->getGlobal();
-            $Global->POST['Data']['Date'] = (new DateTime('today'))->format('d.m.Y');
+            $Date = (new DateTime('today'))->format('d.m.Y');
+            $Global->POST['Data']['Date'] = $Date;
             $Global->POST['Data']['IsDoubleLesson'] = 1;
             $Global->savePost();
         }
@@ -457,7 +473,11 @@ class FrontendCourseContent extends Extension implements IFrontendInterface
             new FormGroup(array(
                 new FormRow(array(
                     new FormColumn(
-                        (new DatePicker('Data[Date]', '', 'Datum', new Calendar()))->setRequired()
+                        (new DatePicker('Data[Date]', '', 'Datum', new Calendar()))
+                            ->setRequired()
+                            ->ajaxPipelineOnChange(
+                                ApiForgotten::pipelineLoadDueDateHomeworkContent($tblDivisionCourse->getId(), null)
+                            )
                         , 6),
                     new FormColumn(
                         (new SelectBox('Data[Lesson]', 'Unterrichtseinheit', array('{{ Name }}' => $lessons)))->setRequired()
@@ -479,7 +499,13 @@ class FrontendCourseContent extends Extension implements IFrontendInterface
                 new FormRow(array(
                     new FormColumn(
                         new TextField('Data[Homework]', 'Hausaufgaben', 'Hausaufgaben', new Home())
-                    ),
+                    , 9),
+                    new FormColumn(
+                        new DatePicker('Data[DueDateHomework]', '', 'HA Fälligkeit', new Calendar())
+                    , 3),
+                )),
+                new FormRow(new FormColumn(
+                    ApiForgotten::receiverBlock(Digital::useFrontend()->loadDueDateHomeworkListBySubject($tblDivisionCourse, null, $Date ? new DateTime($Date) : null), 'DueDateHomeworkContent')
                 )),
                 new FormRow(array(
                     new FormColumn(
@@ -508,10 +534,17 @@ class FrontendCourseContent extends Extension implements IFrontendInterface
     public function getStudentPanel(TblDivisionCourse $tblDivisionCourse): string
     {
         $dataList = array();
-        if (($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses())) {
+        if (($tblDivisionCourseMemberList = $tblDivisionCourse->getStudentsWithSubCourses(true, false))) {
             $count = 0;
-            foreach ($tblPersonList as $tblPerson) {
-                $dataList[] = new PullLeft(++$count) . new PullRight($tblPerson->getLastFirstNameWithCallNameUnderline());
+            foreach ($tblDivisionCourseMemberList as $tblDivisionCourseMember) {
+                if (($tblPerson = $tblDivisionCourseMember->getServiceTblPerson()))
+                {
+                    $dataList[] = new PullLeft($tblDivisionCourseMember->isInActive() ? new Strikethrough(++$count) : ++$count)
+                        . new PullRight($tblDivisionCourseMember->isInActive()
+                            ? new Strikethrough($tblPerson->getLastFirstNameWithCallNameUnderline())
+                            : $tblPerson->getLastFirstNameWithCallNameUnderline()
+                        );
+                }
             }
         }
 

@@ -403,7 +403,7 @@ class ApiStudentAgreementStructure extends Extension implements IApiInterface
                         }
                     }
                 }
-                if(count($CategoryList[$tblStudentAgreementCategory->getName()]) < 9
+                if(count($CategoryList[$tblStudentAgreementCategory->getName()]) <= 10
                     || count($CategoryList[$tblStudentAgreementCategory->getName()]) == 0
                 ){
                     $CategoryList[$tblStudentAgreementCategory->getName()][] = (new Link(new Plus().'Eintrag hinzufügen', '#'))
@@ -416,10 +416,21 @@ class ApiStudentAgreementStructure extends Extension implements IApiInterface
         foreach($CategoryList as $Content){
             $LayoutColumnList[] = new LayoutColumn(new Listing($Content), 3);
         }
-        if(count($LayoutColumnList) < 4){
+        if(count($LayoutColumnList) < 8){
             $LayoutColumnList[] = new LayoutColumn(new Listing(array(
                 (new Link(new Plus().'Kategorie hinzufügen', '#'))->ajaxPipelineOnClick(ApiStudentAgreementStructure::pipelineOpenCreateCategoryModal($PersonId))
             )), 3);
+        }
+
+        $LayoutRowCount = 0;
+        $LayoutRowList = array();
+        foreach($LayoutColumnList as $LayoutColumn){
+            if ($LayoutRowCount % 4 == 0) {
+                $LayoutRow = new LayoutRow(array());
+                $LayoutRowList[] = $LayoutRow;
+            }
+            $LayoutRow->addColumn($LayoutColumn);
+            $LayoutRowCount++;
         }
 
 
@@ -431,7 +442,7 @@ class ApiStudentAgreementStructure extends Extension implements IApiInterface
                 .ApiStudentAgreementStructure::receiverModal('Eintrag hinzufügen', 'ModalAgreementStructureCreateType')
                 .ApiStudentAgreementStructure::receiverModal('Eintrag bearbeiten', 'ModalAgreementStructureEditType')
                 .ApiStudentAgreementStructure::receiverModal('Eintrag entfernen', 'ModalAgreementStructureDestroyType')
-                .new Layout(new LayoutGroup(new LayoutRow($LayoutColumnList)))
+                .new Layout(new LayoutGroup($LayoutRowList))
                 .(new Primary('Schließen', ApiPersonEdit::getEndpoint(), new ChevronLeft()))
                     ->ajaxPipelineOnClick(ApiPersonEdit::pipelineCancelStudentAgreementContent($PersonId))
             );

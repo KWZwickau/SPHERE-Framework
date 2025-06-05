@@ -1,5 +1,4 @@
 <?php
-
 namespace SPHERE\Application\Platform\Gatekeeper\Authentication;
 
 use DateTime;
@@ -40,7 +39,6 @@ use SPHERE\Common\Frontend\Icon\Repository\CogWheels;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Enable;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
-use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
 use SPHERE\Common\Frontend\Icon\Repository\Globe;
 use SPHERE\Common\Frontend\Icon\Repository\Key;
 use SPHERE\Common\Frontend\Icon\Repository\Lock;
@@ -50,6 +48,9 @@ use SPHERE\Common\Frontend\Icon\Repository\Off;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Person;
 use SPHERE\Common\Frontend\Icon\Repository\Picture;
+use SPHERE\Common\Frontend\Icon\Repository\Repeat;
+use SPHERE\Common\Frontend\Icon\Repository\Save;
+use SPHERE\Common\Frontend\Icon\Repository\Star;
 use SPHERE\Common\Frontend\Icon\Repository\YubiKey;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
@@ -64,6 +65,7 @@ use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Ruler;
 use SPHERE\Common\Frontend\Layout\Repository\Thumbnail;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
+use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
@@ -113,7 +115,7 @@ class Frontend extends Extension implements IFrontendInterface
         $contentTeacherWelcome = false;
         $contentSecretariatWelcome = false;
         $contentMissingTimeSpan = false;
-        $IsChangePassword = false;
+//        $IsChangePassword = false;
         $IsNavigationAssistance = false;
         $IsStudentAccount = false;
 
@@ -121,7 +123,7 @@ class Frontend extends Extension implements IFrontendInterface
         if ($tblAccount) {
             $tblPersonAllByAccount = Account::useService()->getPersonAllByAccount($tblAccount);
             if ($tblPersonAllByAccount) {
-                $tblPerson = $tblPersonAllByAccount[0];
+                $tblPerson = current($tblPersonAllByAccount);
                 if ($tblPerson
                     && ($tblGroup = Group::useService()->getGroupByMetaTable('TEACHER'))
                     && Group::useService()->existsGroupPerson($tblGroup, $tblPerson)
@@ -143,20 +145,21 @@ class Frontend extends Extension implements IFrontendInterface
                 $IsNavigationAssistance = true;
 
                 // Eltern und Schüler funktionieren anders als die anderen Accounts
+                // Schüleraccounts herausfinden
                 if (($tblUserAccount = UserAccount::useService()->getUserAccountByAccount($tblAccount))) {
                     $IsStudentAccount = $tblUserAccount->getType() == TblUserAccount::VALUE_TYPE_STUDENT;
-                    $Password = $tblUserAccount->getAccountPassword();
-                    if ($tblAccount->getPassword() == $Password) {
-                        $IsChangePassword = true;
-                    }
+//                    $Password = $tblUserAccount->getAccountPassword();
+//                    if ($tblAccount->getPassword() == $Password) {
+//                        $IsChangePassword = true;
+//                    }
                 }
-            } else {
-                if (Account::useService()->isAccountPWInitial($tblAccount)
-                    // Standard-Passwort
-                    || $tblAccount->getPassword() == '547d0783ae13fa4ab68ae8f3a1f1ee44e6795be7137b1c14b808c393d328f2e7'
-                ) {
-                    $IsChangePassword = true;
-                }
+//            } else {
+//                if (Account::useService()->isAccountPWInitial($tblAccount)
+//                    // Standard-Passwort
+//                    || $tblAccount->getPassword() == '547d0783ae13fa4ab68ae8f3a1f1ee44e6795be7137b1c14b808c393d328f2e7'
+//                ) {
+//                    $IsChangePassword = true;
+//                }
             }
         }
         if ($IsMaintenance) {
@@ -232,10 +235,10 @@ class Frontend extends Extension implements IFrontendInterface
                     )
                 )
             )
-            .($IsChangePassword && !$isConsumerLogin
-                ? $this->layoutPasswordChange()
-                : ''
-            )
+//            .($IsChangePassword && !$isConsumerLogin
+//                ? $this->layoutPasswordChange()
+//                : ''
+//            )
             . ($IsNavigationAssistance
                 ? $this->layoutNavigationAssistance($IsStudentAccount)
                 : ''
@@ -323,7 +326,7 @@ class Frontend extends Extension implements IFrontendInterface
      * @param string $CredentialName
      * @param string $CredentialLock
      *
-     * @return Stage
+     * @return Stage|string
      */
     public function frontendIdentificationCredential($CredentialName = null, $CredentialLock = null)
     {
@@ -342,19 +345,44 @@ class Frontend extends Extension implements IFrontendInterface
                 || $tblAccount->getHasAuthentication(TblIdentification::NAME_AUTHENTICATOR_APP)
             ) {
                 return $this->frontendIdentificationToken($tblAccount->getId());
-            } elseif ($tblAccount->getHasAuthentication(TblIdentification::NAME_CREDENTIAL)
-                || $tblAccount->getHasAuthentication(TblIdentification::NAME_USER_CREDENTIAL)
+            } elseif ($tblAccount->getHasAuthentication(TblIdentification::NAME_CREDENTIAL)) {
+                if(($ChangeTest = $this->getPasswortChangeTest($tblAccount))){
+                    return $ChangeTest;
+                }
+                // Credential correct, Agb accepted -> LOGIN
+                Account::useService()->createSession($tblAccount);
+                $View->setContent($this->getIdentificationLayout(
+                    new Headline('Anmelden', 'Bitte warten...')
+                    . new Redirect('/', Redirect::TIMEOUT_SUCCESS)
+                ));
+                return $View;
+            } elseif ($tblAccount->getHasAuthentication(TblIdentification::NAME_USER_CREDENTIAL)
             ) {
-                return $this->frontendIdentificationAgb($tblAccount->getId());
+                // Entscheidung der Weiterleitung (nur bei Initialpasswort)
+                $changeInitialPassword = false;
+                $InitialPassword = Account::useService()->getAccountInitialPasswordByAccountWithoutLogin($tblAccount);
+                if ($InitialPassword && $InitialPassword == $tblAccount->getPassword()) {
+                    $changeInitialPassword = true;
+                } elseif($tblAccount->getPassword() == '547d0783ae13fa4ab68ae8f3a1f1ee44e6795be7137b1c14b808c393d328f2e7') {
+                    $changeInitialPassword = true;
+                }
+
+                $tblSetting = Account::useService()->getSettingByAccount($tblAccount, 'AGB');
+                if($tblSetting && $tblSetting->getValue() == TblSetting::VAR_ACCEPT_AGB && $changeInitialPassword) {
+                    return $this->getIdentificationLayout(
+                            new Headline('Anmelden', 'Bitte warten...')
+                            . new Redirect('/Platform/Gatekeeper/Authentication/InitialPasswordChange', Redirect::TIMEOUT_SUCCESS, array('AccountId' => $tblAccount->getId()))
+                        );
+                }
+                return $this->frontendIdentificationAgb($tblAccount->getId(), 0, false, true);
             }
         }
 
         // Field Definition
         $CredentialNameField = (new TextField('CredentialName', 'Benutzername', 'Benutzername', new Person()))
             ->setRequired()->setAutoFocus();
-        $CredentialLockField = (new PasswordField('CredentialLock', 'Passwort', 'Passwort', new EyeOpen()))
-            ->setRequired()->setDefaultValue($CredentialLock, true);
-        $CredentialLockField->setShow(new Lock());
+        $CredentialLockField = (new PasswordField('CredentialLock', 'Passwort', 'Passwort', new Lock()))
+            ->setRequired()->setDefaultValue($CredentialLock, true)->setShow();
 
         // Error Handling
         if ($CredentialName !== null) {
@@ -404,9 +432,8 @@ class Frontend extends Extension implements IFrontendInterface
             $Form.= new Layout(new LayoutGroup(new LayoutRow(
                 new LayoutColumn(array(
                     '<br/><br/><br/><br/>',
-                    new Title('Anmeldung UCS'),
+                    new Title('Anmeldung DLLP'),
                     new PrimaryLink('Login', 'SPHERE\Application\Platform\Gatekeeper\Saml\Login\DLLP')
-                    // Frontend dazu muss noch entschieden werden
 //                    .new PrimaryLink('Placeholder', 'SPHERE\Application\Platform\Gatekeeper\Saml\Login\Placeholder') // -> Beispiel kann für zukünftige IDP's verwendet werden
 
                 ))
@@ -488,7 +515,7 @@ class Frontend extends Extension implements IFrontendInterface
         if(isset($_SESSION['samlUserdata']['uid']) && !empty($_SESSION['samlUserdata']['uid'])){
             $AccountNameAPI = current($_SESSION['samlUserdata']['uid']);
         } else {
-            $AccountNameAPI = new Bold('UCS missing (uid)');
+            $AccountNameAPI = new Bold('DLLP missing (uid)');
         }
 
         if(isset($_SESSION['samlUserdata']['ucsschoolRecordUID']) && $_SESSION['samlUserdata']['ucsschoolRecordUID']){
@@ -496,7 +523,7 @@ class Frontend extends Extension implements IFrontendInterface
             $AccountId = current($_SESSION['samlUserdata']['ucsschoolRecordUID']);
             $tblAccount = Account::useService()->getAccountById($AccountId);
         } else {
-            $AccountId = new Bold('UCS missing (ucsschoolRecordUID)');
+            $AccountId = new Bold('DLLP missing (ucsschoolRecordUID)');
         }
 
         // AccountId gegen Prüfung
@@ -540,7 +567,7 @@ class Frontend extends Extension implements IFrontendInterface
                 || $tblAccount->getHasAuthentication(TblIdentification::NAME_TOKEN)
                 || $tblAccount->getHasAuthentication(TblIdentification::NAME_AUTHENTICATOR_APP)
             ) {
-                return $this->frontendIdentificationToken($tblAccount->getId(), null, $isCookieAvailable);
+                return $this->frontendIdentificationToken($tblAccount->getId(), null, $isCookieAvailable, false);
             } elseif ($tblAccount->getHasAuthentication(TblIdentification::NAME_CREDENTIAL)
                 || $tblAccount->getHasAuthentication(TblIdentification::NAME_USER_CREDENTIAL)
             ) {
@@ -554,7 +581,7 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $Stage->setContent(new Layout(new LayoutGroup(new LayoutRow(
-            new LayoutColumn(new Warning('Ihr Login von UCS '.$detailInfo.' ist im System nicht bekannt, bitte wenden Sie sich an einen zuständigen Administrator'))
+            new LayoutColumn(new Warning('Ihr Login von DLLP '.$detailInfo.' ist im System nicht bekannt, bitte wenden Sie sich an einen zuständigen Administrator'))
         ))));
 
         return $Stage;
@@ -588,9 +615,9 @@ class Frontend extends Extension implements IFrontendInterface
      * @param null|string $otpCredentialKey
      * @param bool        $isCookieAvailable
      *
-     * @return Stage
+     * @return Stage|string
      */
-    public function frontendIdentificationToken($tblAccount, $otpCredentialKey = null, $isCookieAvailable = false)
+    public function frontendIdentificationToken($tblAccount, $otpCredentialKey = null, $isCookieAvailable = false, $isTestInitial = true)
     {
         $View = new Stage(new YubiKey() . ' Anmelden', '', $this->getIdentificationEnvironment());
 
@@ -607,7 +634,9 @@ class Frontend extends Extension implements IFrontendInterface
             && ($tblAccount->getHasAuthentication(TblIdentification::NAME_SYSTEM) || $tblAccount->getHasAuthentication(TblIdentification::NAME_TOKEN))
         ) {
             // SSW-2129 OTP direkt aus Passwort-Manager funktioniert nicht in diesem Fall (beide Authentifizierungsverfahren aktiv)
-            $otpCredentialKeyField = (new PasswordField('otpCredentialKey', '', 'YubiKey oder Authenticator App'))->setRequired()->setAutoFocus();
+            $otpCredentialKeyField = (new PasswordField('otpCredentialKey', '', 'YubiKey oder Authenticator App'))
+                ->setRequired()
+                ->setAutoFocus();
         } elseif ($tblAccount->getHasAuthentication(TblIdentification::NAME_AUTHENTICATOR_APP)) {
             // Field Definition
             // SSW-2129 OTP direkt aus Passwort-Manager
@@ -618,7 +647,9 @@ class Frontend extends Extension implements IFrontendInterface
                 ->setAutoComplete();
         } else {
             // Field Definition
-            $otpCredentialKeyField = (new PasswordField('otpCredentialKey', 'YubiKey', 'YubiKey', new YubiKey()))->setRequired()->setAutoFocus();
+            $otpCredentialKeyField = (new PasswordField('otpCredentialKey', 'YubiKey', 'YubiKey', new YubiKey()))
+                ->setRequired()
+                ->setAutoFocus();
         }
 
         $FormError = new Container('');
@@ -629,6 +660,10 @@ class Frontend extends Extension implements IFrontendInterface
                 try {
                     $twoFactorApp = new TwoFactorApp();
                     if ($twoFactorApp->verifyCode($tblAccount->getAuthenticatorAppSecret(), $otpCredentialKey)) {
+                        // test password is initial?
+                        if($isTestInitial && ($ChangeContent = $this->getPasswortChangeTest($tblAccount))){
+                            return $ChangeContent;
+                        }
                         if (session_status() == PHP_SESSION_ACTIVE) {
                             session_regenerate_id();
                         }
@@ -667,6 +702,10 @@ class Frontend extends Extension implements IFrontendInterface
                     // Credential correct, Token correct -> LOGIN
                     try {
                         if (Token::useService()->isTokenValid($otpCredentialKey)) {
+                            // test password is initial?
+                            if(($ChangeContent = $this->getPasswortChangeTest($tblAccount))){
+                                return $ChangeContent;
+                            }
                             if (session_status() == PHP_SESSION_ACTIVE) {
                                 session_regenerate_id();
                             }
@@ -766,6 +805,25 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
+     * @return Layout|false
+     */
+    private function getPasswortChangeTest($tblAccount)
+    {
+        // nur Mandanten ohne DLLP
+
+
+        // Entscheidung der Weiterleitung (nur bei Initialpasswort)
+        if(Account::useService()->isAccountPWInitial($tblAccount)) {
+            return $this->getIdentificationLayout(
+                new Headline('Anmelden', 'Bitte warten...')
+                . new Redirect('/Platform/Gatekeeper/Authentication/InitialPasswordChange', Redirect::TIMEOUT_SUCCESS,
+                    array('AccountId' => $tblAccount->getId(), 'isConsumerSaved' => 0))
+            );
+        }
+        return false;
+    }
+
+    /**
      * @return DangerMessage
      */
     private function getCookieMessage()
@@ -807,26 +865,24 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param int  $tblAccount
-     * @param int  $tblIdentification
-     * @param int  $doAccept 0|1
-     * @param bool $isCookieAvailable
+     * @param $tblAccount
+     * @param $doAccept 0|1
+     * @param $isCookieAvailable
+     * @param $isInitialPasswort
      *
-     * @return Stage
+     * @return Stage|string
+     * @throws Exception
      */
-    public function frontendIdentificationAgb($tblAccount, $doAccept = 0, $isCookieAvailable = false)
+    public function frontendIdentificationAgb($tblAccount, $doAccept = 0, $isCookieAvailable = false, $isInitialPasswort = false)
     {
 
         $View = new Stage(new MoreItems().' Anmelden', '', $this->getIdentificationEnvironment());
-
         $tblAccount = Account::useService()->getAccountById($tblAccount);
-
         // Return on Input Error
         if (!$tblAccount || !$tblAccount->getServiceTblConsumer()) {
             // Restart Identification Process
             return $this->frontendIdentificationCredential();
         }
-
         // es sind keine Cookies erlaubt -> Login ist nicht möglich
         if (!isset($_COOKIE['cookies_available'])) { //  && $doAccept == 0
             // Bypass Cookies
@@ -835,7 +891,6 @@ class Frontend extends Extension implements IFrontendInterface
                     $tblAccount->getServiceTblConsumer()->getAcronym() . ' - ' . $tblAccount->getServiceTblConsumer()->getName(),
                     'Benutzer: ' . $tblAccount->getUsername()
                 );
-
                 $layout = new Layout(new LayoutGroup(new LayoutRow(array(
                     new LayoutColumn(array(
                         new Headline('Bitte geben Sie Ihre Zugangsdaten ein'),
@@ -844,15 +899,12 @@ class Frontend extends Extension implements IFrontendInterface
                         $this->getCookieMessage()
                     ))
                 ))));
-
                 $View->setContent($this->getIdentificationLayout($layout));
-
                 return $View;
             }
         }
 
         $Headline = 'Allgemeine Geschäftsbedingungen';
-
         // IS Accepted?
         // Sanatize Agb Setting
         $tblSetting = Account::useService()->getSettingByAccount($tblAccount, 'AGB');
@@ -864,15 +916,27 @@ class Frontend extends Extension implements IFrontendInterface
             if( $doAccept == 1 ) {
                 Account::useService()->setSettingByAccount($tblAccount, 'AGB', TblSetting::VAR_ACCEPT_AGB);
             }
+            // Entscheidung der Weiterleitung (nur bei Initialpasswort)
+            $changeInitialPassword = false;
+            $InitialPassword = Account::useService()->getAccountInitialPasswordByAccountWithoutLogin($tblAccount);
+            if ($InitialPassword && $InitialPassword == $tblAccount->getPassword()) {
+                $changeInitialPassword = true;
+            }
+            if($isInitialPasswort && $changeInitialPassword){
+                return $this->getIdentificationLayout(
+                    new Headline('Anmelden', 'Bitte warten...')
+                    . new Redirect('/Platform/Gatekeeper/Authentication/InitialPasswordChange',
+                        0, array('AccountId' => $tblAccount->getId()))
+                );
+            }
+
             // Credential correct, Agb accepted -> LOGIN
             Account::useService()->createSession($tblAccount);
             $View->setTitle( new Ok().' Anmelden' );
-            $View->setContent(
-                $this->getIdentificationLayout(
-                    new Headline('Anmelden', 'Bitte warten...')
-                    . new Redirect('/', Redirect::TIMEOUT_SUCCESS)
-                )
-            );
+            $View->setContent($this->getIdentificationLayout(
+                new Headline('Anmelden', 'Bitte warten...')
+                . new Redirect('/', Redirect::TIMEOUT_SUCCESS)
+            ));
             return $View;
         }
 
@@ -924,7 +988,8 @@ class Frontend extends Extension implements IFrontendInterface
                             new PullLeft( new Success('Einwilligen',new Route(__NAMESPACE__ . '/Agb'), new Enable(), array(
                                 'tblAccount' => $tblAccount,
                                 'doAccept' => 1,
-                                'isCookieAvailable' => $isCookieAvailable
+                                'isCookieAvailable' => $isCookieAvailable,
+                                'isInitialPasswort' => $isInitialPasswort
                             )) ),
                             new PullRight( new DangerLink('Ablehnen',new Route(__NAMESPACE__ ), new Disable(), array()) )
                         ))
@@ -943,6 +1008,84 @@ class Frontend extends Extension implements IFrontendInterface
         );
 
         return $View;
+    }
+
+    /**
+     * @param int $AccountId
+     * @param string $CredentialLock
+     * @param string $CredentialLockSafety
+     *
+     * @return Stage|string
+     */
+    public function frontendInitialPasswordChange(
+        int    $AccountId,
+        string $newCredentialLock = '',
+        string $newCredentialLockSafety = '',
+        bool   $isConsumerSaved = true // Schüler/Sorgeberechtigte am Mandanten hinterlegt
+    ){
+
+        $Stage = new Stage(new Star().' Anmelden', '', $this->getIdentificationEnvironment());
+        // Return on Input Error
+        if (!($tblAccount = Account::useService()->getAccountById($AccountId))) {
+            // Restart Identification Process
+            return $this->frontendIdentificationCredential();
+        }
+        $isChangePassword = false;
+        if($isConsumerSaved){
+            $InitialPassword = Account::useService()->getAccountInitialPasswordByAccountWithoutLogin($tblAccount);
+            if ($InitialPassword && $InitialPassword == $tblAccount->getPassword()) {
+                $isChangePassword = true;
+            }
+        } else {
+            if (Account::useService()->isAccountPWInitial($tblAccount)) {
+                $isChangePassword = true;
+            }
+        }
+
+        $form = new Form(new FormGroup(new FormRow(array(
+            new FormColumn(
+                new Panel('Passwort Pflichtänderung', array(
+                    (new PasswordField('newCredentialLock', 'Neues Passwort',
+                        'Neues Passwort', new Lock()))->setRequired()->setShow(),
+                    (new PasswordField('newCredentialLockSafety', 'Passwort wiederholen',
+                        'Passwort wiederholen', new Repeat()))->setRequired()->setShow(),
+                ), Panel::PANEL_TYPE_INFO)
+            ),
+        ))), new Primary('Speichern', new Save()));
+
+        if ($isChangePassword) {
+            // Passwort änderungspflicht
+            $Stage->setContent(
+                new Layout(new LayoutGroup(new LayoutRow(array(
+                    new LayoutColumn('', 2),
+                    new LayoutColumn(
+                        ($isConsumerSaved
+                            ? new Well(MyAccount::useService()->updatePasswordInitial($form, $tblAccount->getId(), $newCredentialLock, $newCredentialLockSafety))
+                            : new Well(Account::useService()->updatePasswordInitial($form, $tblAccount->getId(), $newCredentialLock, $newCredentialLockSafety))
+                        )
+
+                    , 5),
+                    new LayoutColumn(
+                        new Panel('Passwort Richtlinien',
+                            array('Das Passwort darf nicht das Initialpasswort sein',
+                                'Das Passwort muss mindestens 8 Zeichen lang sein',
+                                'Das Passwort muss 3 von 4 Kriterien erfüllen:'
+                            .new Container('1. mindestens ein Kleinbuchstabe')
+                            .new Container('2. mindestens ein Großbuchstabe')
+                            .new Container('3. mindestens ein Sonderzeichen')
+                            .new Container('4. mindestens eine Zahl'),
+                            )
+                        )
+                    , 3)
+                ))))
+            );
+            return $Stage;
+        } else {
+            Account::useService()->createSession($tblAccount);
+        }
+        return $this->getIdentificationLayout(
+            new Headline('Anmelden', 'Bitte warten...')
+            . new Redirect('/', 0));
     }
 
     /**

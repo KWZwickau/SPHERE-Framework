@@ -1051,7 +1051,8 @@ class ApiBasketVerification extends Extension implements IApiInterface
 //            $tblItemVariant = $tblBasketVerification->getServiceTblItemVariant();
 //            ($tblItemVariant ? $_POST['DebtorSelection']['Variant'] = $tblItemVariant->getId() : '');
             $Value = $tblBasketVerification->getValue(true);
-            ($Value !== '0,00' ? $Global->POST['DebtorSelection']['Price'] = $Value : '0,00');
+            $Global->POST['DebtorSelection']['Price'] = $Value;
+//            ($Value !== '0,00' ? $Global->POST['DebtorSelection']['Price'] = $Value : '0,00');
             $tblPersonDebtor = $tblBasketVerification->getServiceTblPersonDebtor();
             ($tblPersonDebtor ? $Global->POST['DebtorSelection']['Debtor'] = $tblPersonDebtor->getId() : '');
             $tblBankAccount = $tblBasketVerification->getServiceTblBankAccount();

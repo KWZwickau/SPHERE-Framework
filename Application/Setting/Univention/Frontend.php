@@ -80,7 +80,7 @@ class Frontend extends Extension implements IFrontendInterface
      */
     public function frontendUnivention()
     {
-        $Stage = new Stage('UCS', '');
+        $Stage = new Stage('DLLP', '');
 
         $Stage->setContent(
             new Layout(new LayoutGroup(array(
@@ -168,8 +168,8 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutColumn(
                         new Link((new Thumbnail(
                             FileSystem::getFileLoader('/Common/Style/Resource/SSWInfo.png')
-                            , 'Schnittstelle Schulsoftware zu DLLP / UCS'))->setPictureHeight()
-                            , '/Api/Document/Standard/Manual/Create/Pdf', null, array('Select' => 'SSW_UCS_DLLP')
+                            , 'Schnittstelle Schulsoftware zu DLLP'))->setPictureHeight()
+                            , '/Api/Document/Standard/Manual/Create/Pdf', null, array('Select' => 'SSW_DLLP')
                         )
                     , 2),
                 ))
@@ -187,7 +187,7 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendUnivAPI($Upload = '', $YearId = '')
     {
         set_time_limit(900);
-        $Stage = new Stage('UCS', 'Schnittstelle API');
+        $Stage = new Stage('DLLP', 'Schnittstelle API');
 
         $Acronym = Account::useService()->getMandantAcronym();
         $isLocalTest = false;
@@ -223,13 +223,13 @@ class Frontend extends Extension implements IFrontendInterface
 
             // early break if no answer
             if(!is_array($roleList) || !is_array($schoolList)){
-                $Stage->setContent(new Warning('UCS liefert keine Informationen'));
+                $Stage->setContent(new Warning('DLLP liefert keine Informationen'));
                 return $Stage;
             }
             // Mandant ist nicht in der Schulliste
             if( !array_key_exists($Acronym, $schoolList)){
 //                if(!in_array($Acronym, $excludeList)){
-                $Stage->setContent(new Warning('Ihr Schulträger ist noch nicht in UCS freigeschalten'));
+                $Stage->setContent(new Warning('Ihr Schulträger ist noch nicht in DLLP freigeschalten'));
                 return $Stage;
 //                }
             }
@@ -238,7 +238,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         $IsActiveAPI = false;
         if(($tblConsumer = Consumer::useService()->getConsumerBySession())
-         && ($tblConsumerLogin = Consumer::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_UCS))
+         && ($tblConsumerLogin = Consumer::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_DLLP))
         ){
             $IsActiveAPI = $tblConsumerLogin->getIsActiveAPI();
         }
@@ -320,7 +320,7 @@ class Frontend extends Extension implements IFrontendInterface
                     $isUpdate = false;
                     $CompareRow = array(
                         'User' => $AccountActive['name'],
-                        'UCS' => array(
+                        'DLLP' => array(
                             'firstname' => '',
                             'lastname' => '',
                             'email' => '',
@@ -345,14 +345,14 @@ class Frontend extends Extension implements IFrontendInterface
                     $ExistUser = $UserUniventionList[$AccountActive['record_uid']];
 
                     // Fill TableContent
-                    $CompareRow['UCS']['firstname'] = $ExistUser['firstname'];
-                    $CompareRow['UCS']['lastname'] = $ExistUser['lastname'];
-//                    $CompareRow['UCS']['email'] = $ExistUser['email'];
+                    $CompareRow['DLLP']['firstname'] = $ExistUser['firstname'];
+                    $CompareRow['DLLP']['lastname'] = $ExistUser['lastname'];
+//                    $CompareRow['DLLP']['email'] = $ExistUser['email'];
                     $Email = '';
                     if(isset($ExistUser['udm_properties']['e-mail'])){
                         $Email = current($ExistUser['udm_properties']['e-mail']);
                     }
-                    $CompareRow['UCS']['email'] = $Email;
+                    $CompareRow['DLLP']['email'] = $Email;
                     $recoveryMail = '';
                     if(isset($ExistUser['udm_properties']['PasswordRecoveryEmail'])){
                         $recoveryMail = $ExistUser['udm_properties']['PasswordRecoveryEmail'];
@@ -361,8 +361,8 @@ class Frontend extends Extension implements IFrontendInterface
                     if(isset($ExistUser['udm_properties']['DllpDienststellenschluessel'])){
                         $schoolCode = $ExistUser['udm_properties']['DllpDienststellenschluessel'];
                     }
-                    $CompareRow['UCS']['recoveryMail'] = $recoveryMail;
-                    $CompareRow['UCS']['schoolCode'] = $schoolCode;
+                    $CompareRow['DLLP']['recoveryMail'] = $recoveryMail;
+                    $CompareRow['DLLP']['schoolCode'] = $schoolCode;
                     if(!empty($ExistUser['roles'])){
                         $RoleShort = array();
                         foreach($ExistUser['roles'] as $roleTemp){
@@ -374,17 +374,17 @@ class Frontend extends Extension implements IFrontendInterface
                                 $RoleShort[] = 'Mitarbeiter';
                             }
                         }
-                        $CompareRow['UCS']['roles'] = implode(', ', $RoleShort);
+                        $CompareRow['DLLP']['roles'] = implode(', ', $RoleShort);
                     } else{
-                        $CompareRow['UCS']['roles'] = '---';
+                        $CompareRow['DLLP']['roles'] = '---';
                     }
-                    $SchoolListUCS = array();
-                    foreach($AccountActive['schools'] as $SchoolUCS){
+                    $SchoolListDLLP = array();
+                    foreach($AccountActive['schools'] as $SchoolDLLP){
                         //ToDO wieder entfernen
-                        $SchoolListUCS[] = $SchoolUCS;
-//                        $SchoolListUCS[] = substr($SchoolUCS, (strpos($SchoolUCS, 'schools/') + 8));
+                        $SchoolListDLLP[] = $SchoolDLLP;
+//                        $SchoolListDLLP[] = substr($SchoolDLLP, (strpos($SchoolDLLP, 'schools/') + 8));
                     }
-                    $CompareRow['UCS']['schools'] = implode(', ', $SchoolListUCS);
+                    $CompareRow['DLLP']['schools'] = implode(', ', $SchoolListDLLP);
                     sort($ExistUser['school_classes']);
                     if(!empty($ExistUser['school_classes'])){
                         $ClassString = '';
@@ -400,9 +400,9 @@ class Frontend extends Extension implements IFrontendInterface
                                 $ClassString = $ClassList;
                             }
                         }
-                        $CompareRow['UCS']['school_classes'] = $ClassString;
+                        $CompareRow['DLLP']['school_classes'] = $ClassString;
                     } else {
-                        $CompareRow['UCS']['school_classes'] = '---';
+                        $CompareRow['DLLP']['school_classes'] = '---';
                     }
 
                     $CompareRow['SSW']['firstname'] = $AccountActive['firstname'];
@@ -529,39 +529,39 @@ class Frontend extends Extension implements IFrontendInterface
                             // Layout in TableContent
                             $firstWith = 4;
                             $secondWith = 8;
-                            $CompareRow['UCS'] = new Small(
+                            $CompareRow['DLLP'] = new Small(
                                 new Layout(new LayoutGroup(array(
                                     new LayoutRow(array(
                                         new LayoutColumn(new Bold('Vorname:'), $firstWith),
-                                        new LayoutColumn($CompareRow['UCS']['firstname'], $secondWith),
+                                        new LayoutColumn($CompareRow['DLLP']['firstname'], $secondWith),
                                     )),
                                     new LayoutRow(array(
                                         new LayoutColumn(new Bold('Nachname:'), $firstWith),
-                                        new LayoutColumn($CompareRow['UCS']['lastname'], $secondWith),
+                                        new LayoutColumn($CompareRow['DLLP']['lastname'], $secondWith),
                                     )),
                                     new LayoutRow(array(
                                         new LayoutColumn(new Bold('Rolle:'), $firstWith),
-                                        new LayoutColumn($CompareRow['UCS']['roles'], $secondWith),
+                                        new LayoutColumn($CompareRow['DLLP']['roles'], $secondWith),
                                     )),
                                     new LayoutRow(array(
                                         new LayoutColumn(new Bold('E-Mail:'), $firstWith),
-                                        new LayoutColumn($CompareRow['UCS']['email'], $secondWith),
+                                        new LayoutColumn($CompareRow['DLLP']['email'], $secondWith),
                                     )),
                                     new LayoutRow(array(
                                         new LayoutColumn(new Bold('E-Mail Recovery:'), $firstWith),
-                                        new LayoutColumn($CompareRow['UCS']['recoveryMail'], $secondWith),
+                                        new LayoutColumn($CompareRow['DLLP']['recoveryMail'], $secondWith),
                                     )),
                                     new LayoutRow(array(
                                         new LayoutColumn(new Bold('Schule:'), $firstWith),
-                                        new LayoutColumn($CompareRow['UCS']['schools'], $secondWith),
+                                        new LayoutColumn($CompareRow['DLLP']['schools'], $secondWith),
                                     )),
                                     new LayoutRow(array(
                                         new LayoutColumn(new Bold('Klassen:'), $firstWith),
-                                        new LayoutColumn($CompareRow['UCS']['school_classes'], $secondWith),
+                                        new LayoutColumn($CompareRow['DLLP']['school_classes'], $secondWith),
                                     )),
                                     new LayoutRow(array(
                                         new LayoutColumn(new Bold('DISCH:'), $firstWith),
-                                        new LayoutColumn($CompareRow['UCS']['schoolCode'], $secondWith),
+                                        new LayoutColumn($CompareRow['DLLP']['schoolCode'], $secondWith),
                                     )),
                                 )))
                             );
@@ -710,28 +710,28 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $AccordionCreate = new Accordion();
-        $AccordionCreate->addItem('Benutzer die nicht in UCS angelegt werden können ('.$count['cantCreate'].')',
+        $AccordionCreate->addItem('Benutzer die nicht in DLLP angelegt werden können ('.$count['cantCreate'].')',
             '<br/><br/>'.
             new Listing($CantCreatePanelContent)
         );
-        $AccordionCreate->addItem('Benutzer für UCS anlegen ('.$count['create'].')',
+        $AccordionCreate->addItem('Benutzer für DLLP anlegen ('.$count['create'].')',
             new Listing($ContentCreate)
         );
 
         $AccordionDelete = new Accordion();
-        $AccordionDelete->addItem('Benutzer in UCS entfernen ('.$count['delete'].')',
+        $AccordionDelete->addItem('Benutzer in DLLP entfernen ('.$count['delete'].')',
             new Listing($ContentDelete)
         );
 
         $AccordionUpdate = new Accordion();
-        $AccordionUpdate->addItem('Benutzer die nicht in UCS angepasst werden können ('.$count['cantUpdate'].')',
+        $AccordionUpdate->addItem('Benutzer die nicht in DLLP angepasst werden können ('.$count['cantUpdate'].')',
             '<br/><br/>'.
             new Listing($CantUpdatePanelContent)
         );
         $AccordionUpdate->addItem('Benutzer anpassen ('.$count['update'].')',   // ' von '.$count['allUpdate'].
             new TableData($tblCompareUpdate, null, array(
                 'User' => 'Account',
-                'UCS' => 'Daten aus UCS',
+                'DLLP' => 'Daten aus DLLP',
                 'SSW' => 'Daten aus SSW',
                 'SSWCopy' => 'Daten Ergebnis',
             ), array(
@@ -755,7 +755,7 @@ class Frontend extends Extension implements IFrontendInterface
         $AccordionUntouched->addItem('Benutzer unverändert ('.$countOkAccount.')',
             new TableData($tblNoUpdateNeeded, null, array(
                 'User' => 'Account',
-                'SSW' => 'Daten von der SSW sind in UCS aktuell',
+                'SSW' => 'Daten von der SSW sind in DLLP aktuell',
             ), array(
 //                "paging" => false, // Deaktivieren Blättern
 //                "iDisplayLength" => -1,    // Alle Einträge zeigen
@@ -781,10 +781,10 @@ class Frontend extends Extension implements IFrontendInterface
                             new LayoutRow(array(
                                 new LayoutColumn(
                                     new SuccessText('('.$count['cantCreate'].') Benutzer, die nicht angelegt werden können').'<br/>'.
-                                    new SuccessText('('.$count['create'].') Benutzer für UCS anlegen')
+                                    new SuccessText('('.$count['create'].') Benutzer für DLLP anlegen')
                                 , 3),
                                 new LayoutColumn(
-                                    new DangerText('('.$count['delete'].') Benutzer in UCS entfernen')
+                                    new DangerText('('.$count['delete'].') Benutzer in DLLP entfernen')
                                 , 3),
                                 new LayoutColumn(
                                     new InfoText('('.$count['cantUpdate'].') Benutzer, die nicht angepasst werden können').'<br/>'.
@@ -920,10 +920,10 @@ class Frontend extends Extension implements IFrontendInterface
                         )
                     )))), 4),
                     new LayoutColumn(new Warning('Diese Schnittstelle legt neue Stammgruppen aus der Schulsoftware als
-                     Arbeitsgruppen im DLLP / UCS an und ordnet die entsprechenden Schüler / Lehrer (Lehrauftrag)
+                     Arbeitsgruppen im DLLP an und ordnet die entsprechenden Schüler / Lehrer (Lehrauftrag)
                      diesen Gruppen zu.'
                     .new Container('Bitte beachten Sie, dass die entsprechenden Schüler / Lehrer zuvor
-                     mittels der Schnittstelle '.new Bold('"UCS über API" erst nach DLLP / UCS übertragen').'
+                     mittels der Schnittstelle '.new Bold('"DLLP über API" erst nach DLLP übertragen').'
                      werden müssen.')
                     ), 8)
                 )),
@@ -941,12 +941,12 @@ class Frontend extends Extension implements IFrontendInterface
         }
         // early break if no answer
         if(!is_array($schoolList)){
-            $Stage->setContent(new Warning('UCS liefert keine Informationen'));
+            $Stage->setContent(new Warning('DLLP liefert keine Informationen'));
             return $Stage;
         }
         // Mandant ist nicht in der Schulliste
         if( !array_key_exists($Acronym, $schoolList)){
-            $Stage->setContent(new Warning('Ihr Schulträger ist noch nicht in UCS freigeschalten'));
+            $Stage->setContent(new Warning('Ihr Schulträger ist noch nicht in DLLP freigeschalten'));
             return $Stage;
         }
         $school = $schoolList[$Acronym];
@@ -1239,7 +1239,7 @@ class Frontend extends Extension implements IFrontendInterface
                             $KeyReplace = 'Schule:';
                             $MouseOver = (new ToolTip(new InfoIcon(), htmlspecialchars(
                                 'Schüler ist keiner Klasse zugewiesen <br />'
-                                .'oder Schule fehlt in UCS')))->enableHtml();
+                                .'oder Schule fehlt in DLLP')))->enableHtml();
                         break;
                         case 'udm_properties':
                             if(!$Value['schoolCode']){
@@ -1278,7 +1278,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 $KeyReplace = 'E-Mail:';
                                 $MouseOver = (new ToolTip(new InfoIcon(), htmlspecialchars(
 //                                    new DangerText('Fehler:').'<br />'.
-                                    'keine E-Mail als UCS Benutzername verwendet'
+                                    'keine E-Mail als DLLP Benutzername verwendet'
                                 )))->enableHtml();
                             break;
                             // recovery Mail optional
@@ -1367,7 +1367,7 @@ class Frontend extends Extension implements IFrontendInterface
      */
     public function frontendUnivCSV()
     {
-        $Stage = new Stage('UCS', 'Schnittstelle CSV');
+        $Stage = new Stage('DLLP', 'Schnittstelle CSV');
         $Stage->addButton(new Standard('CSV Mandant herunterladen', '/Api/Reporting/Univention/SchoolList/Download', new Download()));
         $Stage->addButton(new Standard('CSV User herunterladen', '/Api/Reporting/Univention/User/Download', new Download(), array(), 'Beinhaltet alle Schüler/Mitarbeiter/Lehrer Accounts'));
         // Schularten, welche keine E-Mail als Benutzernamen benötigen
@@ -1422,8 +1422,8 @@ class Frontend extends Extension implements IFrontendInterface
 
                 if(!$Data['mail'] && !$isExcluded){
                     $Data['mail'] = (new ToolTip(new Exclamation(), htmlspecialchars(new Minus().'
-                    Keine E-mail als '.new Bold('UCS Benutzername').' gepflegt')))->enableHtml().
-                    new DangerText('kein UCS Benutzername');
+                    Keine E-mail als '.new Bold('DLLP Benutzername').' gepflegt')))->enableHtml().
+                    new DangerText('kein DLLP Benutzername');
                     $IsError = true;
                 } else {
                     $Data['mail'] = false;

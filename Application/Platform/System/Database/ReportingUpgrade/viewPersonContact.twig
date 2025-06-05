@@ -47,6 +47,10 @@ SELECT
         where tP.Id = vCA.TblPerson_Id
         and vCA.TblType_Name = 'Hauptadresse'
     ) TblAddress_Nation,
+    (select vCA.TblAddress_AddressExtra from {{ ConsumerAcronym }}_SettingConsumer.viewContactAddress vCA
+        where tP.Id = vCA.TblPerson_Id
+        and vCA.TblType_Name = 'Hauptadresse'
+    ) TblAddress_AddressExtra,
     -- ----------------------------------------
     (select vCA.TblAddress_StreetName
         from {{ ConsumerAcronym }}_SettingConsumer.viewContactAddress vCA
@@ -93,7 +97,6 @@ SELECT
         LIMIT 0, 1
     ) TblState_Name2,
 
-
     (select vCA.TblAddress_Region from {{ ConsumerAcronym }}_SettingConsumer.viewContactAddress vCA
         where tP.Id = vCA.TblPerson_Id
         and vCA.TblType_Name = 'Zweit-/Nebenadresse'
@@ -105,6 +108,12 @@ SELECT
         and vCA.TblType_Name = 'Zweit-/Nebenadresse'
         LIMIT 0, 1
     ) TblAddress_Nation2,
+
+    (select vCA.TblAddress_AddressExtra from {{ ConsumerAcronym }}_SettingConsumer.viewContactAddress vCA
+        where tP.Id = vCA.TblPerson_Id
+        and vCA.TblType_Name = 'Zweit-/Nebenadresse'
+        LIMIT 0, 1
+    ) TblAddress_AddressExtra2,
     -- ----------------------------------------
     -- Phone
     (select group_concat(concat(

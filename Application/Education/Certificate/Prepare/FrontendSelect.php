@@ -157,7 +157,11 @@ abstract class FrontendSelect extends FrontendPreview
                 return $this->frontendHeadmasterSelectDivision();
             }
         } elseif ($hasDiplomaRight) {
-            return $this->frontendDiplomaSelectDivision();
+            if ($hasTeacherRight) {
+                return $this->frontendTeacherSelectDivision();
+            } else {
+                return $this->frontendDiplomaSelectDivision();
+            }
         } else {
             return $this->frontendTeacherSelectDivision();
         }

@@ -7,6 +7,7 @@ use SPHERE\Application\Api\Document\Storage\ApiPersonPicture;
 use SPHERE\Application\Api\Education\Graduation\Grade\ApiGradeBook;
 use SPHERE\Application\Api\People\Meta\Support\ApiSupportReadOnly;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
+use SPHERE\Application\Education\ClassRegister\Digital\Digital;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblGradeText;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblMinimumGradeCount;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblProposalBehaviorGrade;
@@ -925,17 +926,28 @@ class Frontend extends FrontendTestPlanning
             }
         }
 
-        // Kopfnotenvorschlag Button für Klassenlehrer
+        // Kopfnotenvorschlag/Kopfnoten Button für Klassenlehrer
         $buttonProposalBehaviorGrades = '';
         $showProposalBehaviorGrade = ($tblSetting = ConsumerSetting::useService()->getSetting('Education', 'Graduation', 'Evaluation', 'ShowProposalBehaviorGrade'))
             && $tblSetting->getValue();
-        if ($showProposalBehaviorGrade
+        $calcProposalBehaviorGrade = ($tblSetting = ConsumerSetting::useService()->getSetting('Education', 'Graduation', 'Evaluation', 'CalcProposalBehaviorGrade'))
+            && $tblSetting->getValue();
+        if (($showProposalBehaviorGrade || $calcProposalBehaviorGrade)
+            && $tblTask->getIsTypeBehavior()
             && ($tblDivisionCourse->getIsDivisionOrCoreGroup() || $tblDivisionCourse->getType() == TblDivisionCourseType::TYPE_TEACHING_GROUP)
             && ($tblPerson = Account::useService()->getPersonByLogin())
             && ($tblDivisionCourseMemberType = DivisionCourse::useService()->getDivisionCourseMemberTypeByIdentifier(TblDivisionCourseMemberType::TYPE_DIVISION_TEACHER))
             && (DivisionCourse::useService()->getDivisionCourseMemberByPerson($tblDivisionCourse, $tblDivisionCourseMemberType, $tblPerson))
         ) {
-            $buttonProposalBehaviorGrades = (new Standard('Kopfnotenvorschlag KL', ApiGradeBook::getEndpoint()))
+            if ($showProposalBehaviorGrade && $calcProposalBehaviorGrade) {
+                $name = 'Kopfnotenvorschlag und Kopfnoten KL';
+            } elseif ($calcProposalBehaviorGrade) {
+                $name = 'Kopfnoten KL';
+            } else {
+                $name = 'Kopfnotenvorschlag KL';
+            }
+
+            $buttonProposalBehaviorGrades = (new Standard($name, ApiGradeBook::getEndpoint()))
                 ->ajaxPipelineOnClick(ApiGradeBook::pipelineLoadViewProposalBehaviorGradeEditContent($DivisionCourseId, $SubjectId, $Filter, $TaskId));
         }
 
@@ -1168,6 +1180,14 @@ class Frontend extends FrontendTestPlanning
                         }
                     }
 
+                    // Vergessene Arbeitsmittel/ Hausaufgaben
+                    if (!isset($headerList['Forgotten'])) {
+                        $headerList['Forgotten'] = $this->getTableColumnHead('Vergessene Arbeitsmittel/ Hausaufgaben');
+                    }
+                    $bodyList[$tblPerson->getId()]['Forgotten'] = $this->getTableColumnBody(
+                        Digital::useService()->getForgottenDisplayByPersonAndYear($tblPerson, $tblYear, $tblSubject)
+                    );
+
                     // Kommentar Notenänderung
                     if (!isset($headerList['Comment'])) {
                         $headerList['Comment'] = $this->getTableColumnHead('Vermerk Noten&shy;änderung');
@@ -1349,10 +1369,22 @@ class Frontend extends FrontendTestPlanning
             )
             . $form;
 
+        $showProposalBehaviorGrade = ($tblSetting = ConsumerSetting::useService()->getSetting('Education', 'Graduation', 'Evaluation', 'ShowProposalBehaviorGrade'))
+            && $tblSetting->getValue();
+        $calcProposalBehaviorGrade = ($tblSetting = ConsumerSetting::useService()->getSetting('Education', 'Graduation', 'Evaluation', 'CalcProposalBehaviorGrade'))
+            && $tblSetting->getValue();
+        if ($showProposalBehaviorGrade && $calcProposalBehaviorGrade) {
+            $name = 'Kopfnotenvorschlag und Kopfnoten KL';
+        } elseif ($calcProposalBehaviorGrade) {
+            $name = 'Kopfnoten KL';
+        } else {
+            $name = 'Kopfnotenvorschlag KL';
+        }
+
         return new Title(
                 (new Standard("Zurück", ApiGradeBook::getEndpoint(), new ChevronLeft()))
                     ->ajaxPipelineOnClick(ApiGradeBook::pipelineLoadViewTaskGradeEditContent($DivisionCourseId, $SubjectId, $Filter, $TaskId))
-                . '&nbsp;&nbsp;&nbsp;&nbsp; Kopfnotenvorschlag KL - Eingabe'
+                . '&nbsp;&nbsp;&nbsp;&nbsp; ' . $name . ' - Eingabe'
                 . new Muted(new Small(" für Kurs: ")) . new Bold($tblDivisionCourse->getName())
             )
             . ApiSupportReadOnly::receiverOverViewModal()
@@ -1447,6 +1479,14 @@ class Frontend extends FrontendTestPlanning
                         $bodyList[$tblPerson->getId()][$key] = $this->getTableColumnBody($selectComplete);
                     }
                 }
+
+                // Vergessene Arbeitsmittel/ Hausaufgaben
+                if (!isset($headerList['Forgotten'])) {
+                    $headerList['Forgotten'] = $this->getTableColumnHead('Vergessene Arbeitsmittel/ Hausaufgaben');
+                }
+                $bodyList[$tblPerson->getId()]['Forgotten'] = $this->getTableColumnBody(
+                    Digital::useService()->getForgottenDisplayByPersonAndYear($tblPerson, $tblYear)
+                );
 
                 // Kommentar Notenänderung
                 if (!isset($headerList['Comment'])) {

@@ -1326,16 +1326,18 @@ abstract class Style extends Certificate
 
     /**
      * @param int $personId
+     * @param string $period
      * @param string $marginTop
      *
      * @return Slice
      */
-    protected function getCustomSubjectLanesBgj(int $personId, string $marginTop = '12px') : Slice
+    protected function getCustomSubjectLanesBgj(int $personId, string $period = 'Schulhalbjahr', string $marginTop = '12px') : Slice
     {
         $slice = (new Slice())
             ->styleMarginTop($marginTop)
             ->addSection((new Section())
-                ->addElementColumn($this->getElement('hat im zurückliegenden Schulhalbjahr folgende Leistungen erreicht:', self::TEXT_SIZE_NORMAL)));
+                ->addElementColumn($this->getElement('hat im zurückliegenden ' . $period
+                    . ' folgende Leistungen erreicht:', self::TEXT_SIZE_NORMAL)));
 
         $tblCertificateSubjectAll = Generator::useService()->getCertificateSubjectAll($this->getCertificateEntity());
         $tblGradeList = $this->getGrade();
@@ -2488,10 +2490,12 @@ abstract class Style extends Certificate
     /**
      * @param int $personId
      * @param string $marginTop
+     * @param string $seal
+     * @param string $textSize
      *
      * @return Slice
      */
-    public function getCustomFosSignPart(int $personId, string $marginTop = '25px', string $textSize = self::TEXT_SIZE_LARGE) : Slice
+    public function getCustomFosSignPart(int $personId, string $marginTop = '25px', string $seal = 'Siegel', string $textSize = self::TEXT_SIZE_LARGE) : Slice
     {
 //        $paddingTop = '-8px';
         $lineHeight = '85%';
@@ -2524,7 +2528,7 @@ abstract class Style extends Certificate
                     ->styleAlignCenter()
                     , '35%')
             )
-            ->addElement($this->getElement('Stempel', self::TEXT_SIZE_SMALL)->styleAlignCenter()->styleMarginTop('-10px'))
+            ->addElement($this->getElement($seal, self::TEXT_SIZE_SMALL)->styleAlignCenter()->styleMarginTop('-10px'))
             ->addSection((new Section())
                 ->addElementColumn($this->getElement('&nbsp;', $textSize)
                     ->styleAlignCenter()

@@ -35,6 +35,7 @@ class ViewContactAddress extends AbstractView
     const TBL_CITY_DISTRICT = 'TblCity_District';
     const TBL_ADDRESS_STATE = 'TblState_Name';
     const TBL_ADDRESS_NAME = 'TblAddress_Region';
+    const TBL_ADDRESS_ADDRESS_EXTRA = 'TblAddress_AddressExtra';
 
     /**
      * @return array
@@ -101,6 +102,10 @@ class ViewContactAddress extends AbstractView
      * @Column(type="string")
      */
     protected $TblAddress_Region;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblAddress_AddressExtra;
 
     public function loadNameDefinition()
     {
@@ -140,5 +145,6 @@ class ViewContactAddress extends AbstractView
     public function getTblCity_District(){return $this->TblCity_District;}
     public function getTblState_Name(){return $this->TblState_Name;}
     public function getTblAddress_Region(){return $this->TblAddress_Region;}
+    public function getTblAddress_AddressExtra(){return $this->TblAddress_AddressExtra;}
 
 }

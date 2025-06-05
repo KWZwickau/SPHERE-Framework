@@ -22,27 +22,6 @@ class Data extends AbstractData
         //deactivate DEMO (now REF)
 //        $this->createConsumer('DEMO', 'Mandant');
         $this->createConsumer('REF', TblConsumer::TYPE_SACHSEN, 'Referenz-Mandant');
-
-//        // cleanup after installation
-//        $tblConsumerActive = $this->getConsumerBySession();
-//        if($tblConsumerActive->getAcronym() === 'REF'){
-//            $AccountList = array(
-//                'EVSC',
-//                'EVSR',
-//                'EVAMTL',
-//                'EGE',
-//            );
-//
-//            if($AccountList){
-//                foreach ($AccountList as $Acronym) {
-//                    $tblConsumer = $this->getConsumerByAcronym($Acronym);
-//                    if ($tblConsumer){
-//                        $this->createConsumerLogin($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_UCS);
-//                    }
-//                }
-//            }
-//        }
-
     }
 
     /**

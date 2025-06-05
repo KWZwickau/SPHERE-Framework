@@ -70,7 +70,15 @@ class Frontend extends Extension implements IFrontendInterface
         return $stage;
     }
 
-    public function loadContactDetailsStageContent(): string
+    /**
+     * PersonIdList ist bereits gefüllt bei Modal in den Stammdaten - Personen Datenblatt
+     * ansonsten wird es über den angemeldeten Login ermittelt
+     *
+     * @param $PersonIdList
+     *
+     * @return string
+     */
+    public function loadContactDetailsStageContent($PersonIdList = null): string
     {
         $layoutGroupList = array();
 
@@ -81,21 +89,29 @@ class Frontend extends Extension implements IFrontendInterface
             new LayoutColumn(new Panel('Neue Kontakt-Daten welche noch nicht übernommenen wurden', '', Panel::PANEL_TYPE_DEFAULT), 12)
         )), new Title('Legende'));
 
-        if (($tblAccount = Account::useService()->getAccountBySession())
-            && ($tblUserAccount = UserAccount::useService()->getUserAccountByAccount($tblAccount))
-            && $tblUserAccount->getType() == TblUserAccount::VALUE_TYPE_STUDENT
-        ) {
-            // Schüler-Zugang
-            $tblPersonList = OnlineContactDetails::useService()->getPersonListFromStudentLogin();
-        } else {
-            // Mitarbeiter oder Eltern-Zugang
-            $tblPersonList = OnlineContactDetails::useService()->getPersonListFromCustodyLogin();
+        $hasEdit = false;
+        if (!$PersonIdList) {
+            $hasEdit = true;
+
+            if (($tblAccount = Account::useService()->getAccountBySession())
+                && ($tblUserAccount = UserAccount::useService()->getUserAccountByAccount($tblAccount))
+                && $tblUserAccount->getType() == TblUserAccount::VALUE_TYPE_STUDENT
+            ) {
+                // Schüler-Zugang
+                $tblPersonList = OnlineContactDetails::useService()->getPersonListFromStudentLogin();
+            } else {
+                // Mitarbeiter oder Eltern-Zugang
+                $tblPersonList = OnlineContactDetails::useService()->getPersonListFromCustodyLogin();
+            }
+
+            $PersonIdList = OnlineContactDetails::useService()->getPersonIdListFromPersonList($tblPersonList);
         }
 
-        if ($tblPersonList) {
-            $personIdList = OnlineContactDetails::useService()->getPersonIdListFromPersonList($tblPersonList);
-            foreach ($tblPersonList as $tblPerson) {
-                $layoutGroupList[] = $this->getPersonContactDetailsLayoutGroup($tblPerson, $personIdList);
+        if (!empty($PersonIdList)) {
+            foreach ($PersonIdList as $PersonId) {
+                if (($tblPerson = Person::useService()->getPersonById($PersonId))) {
+                    $layoutGroupList[] = $this->getPersonContactDetailsLayoutGroup($tblPerson, $PersonIdList, $hasEdit);
+                }
             }
         }
 
@@ -105,34 +121,47 @@ class Frontend extends Extension implements IFrontendInterface
     /**
      * @param TblPerson $tblPerson
      * @param array $personIdList
+     * @param bool $hasEdit
      *
      * @return LayoutGroup|null
      */
-    private function getPersonContactDetailsLayoutGroup(TblPerson $tblPerson, array $personIdList): ?LayoutGroup
+    private function getPersonContactDetailsLayoutGroup(TblPerson $tblPerson, array $personIdList, bool $hasEdit): ?LayoutGroup
     {
-        return new LayoutGroup(array(
-            new LayoutRow(new LayoutColumn(
-                new Title(
-                    $tblPerson->getLastFirstName() . ' ' .
-                    new Small(new Muted(DivisionCourse::useService()->getCurrentMainCoursesByPersonAndDate($tblPerson)))
-                )
-            )),
-            new LayoutRow(new LayoutColumn(
+        $layoutRows[] = new LayoutRow(new LayoutColumn(
+            new Title(
+                $tblPerson->getLastFirstName() . ' ' .
+                new Small(new Muted(DivisionCourse::useService()->getCurrentMainCoursesByPersonAndDate($tblPerson)))
+            )
+        ));
+
+        if ($hasEdit) {
+            $layoutRows[] = new LayoutRow(new LayoutColumn(
                 (new PrimaryLink('Neue Adresse hinzufügen', ApiOnlineContactDetails::getEndpoint(), new Plus()))
                     ->ajaxPipelineOnClick(ApiOnlineContactDetails::pipelineOpenCreateAddressModal($tblPerson->getId(), null, $personIdList))
                 . (new PrimaryLink('Neue Telefonnummer hinzufügen', ApiOnlineContactDetails::getEndpoint(), new Plus()))
                     ->ajaxPipelineOnClick(ApiOnlineContactDetails::pipelineOpenCreatePhoneModal($tblPerson->getId(), null, $personIdList))
                 . (new PrimaryLink('Neue E-Mail-Adresse hinzufügen', ApiOnlineContactDetails::getEndpoint(), new Plus()))
                     ->ajaxPipelineOnClick(ApiOnlineContactDetails::pipelineOpenCreateMailModal($tblPerson->getId(), null, $personIdList))
-            )),
-            new LayoutRow(new LayoutColumn(
-                $this->loadContactDetailsContent($tblPerson, $personIdList)
-            ))
+            ));
+        }
+
+        $layoutRows[] = new LayoutRow(new LayoutColumn(
+            $this->loadContactDetailsContent($tblPerson, $personIdList, $hasEdit)
         ));
+
+        return new LayoutGroup($layoutRows);
     }
 
-    private function loadContactDetailsContent(TblPerson $tblPerson, array $personIdList): string
+    private function loadContactDetailsContent(TblPerson $tblPerson, array $personIdList, bool $hasEdit): string
     {
+        if ($hasEdit) {
+            $countColumns = 4;
+            $columnWidth = 3;
+        } else {
+            $countColumns = 3;
+            $columnWidth = 4;
+        }
+
         if (isset($personIdList[$tblPerson->getId()])) {
             unset($personIdList[$tblPerson->getId()]);
         }
@@ -144,7 +173,7 @@ class Frontend extends Extension implements IFrontendInterface
                     Address::useService()->getPersonAllByAddress($tblAddressToPerson->getTblAddress()),
                     $personIdList,
                 );
-                $addressPanelList[] = new LayoutColumn($this->getAddressPanel($tblPerson, $tblAddressToPerson, $list), 3);
+                $addressPanelList[] = new LayoutColumn($this->getAddressPanel($tblPerson, $tblAddressToPerson, $list, $hasEdit), $columnWidth);
             }
         }
 
@@ -155,7 +184,7 @@ class Frontend extends Extension implements IFrontendInterface
                     Phone::useService()->getPersonAllByPhone($tblPhoneToPerson->getTblPhone()),
                     $personIdList,
                 );
-                $phonePanelList[] = new LayoutColumn($this->getPhonePanel($tblPerson, $tblPhoneToPerson, $list), 3);
+                $phonePanelList[] = new LayoutColumn($this->getPhonePanel($tblPerson, $tblPhoneToPerson, $list, $hasEdit), $columnWidth);
             }
         }
 
@@ -166,7 +195,7 @@ class Frontend extends Extension implements IFrontendInterface
                     Mail::useService()->getPersonAllByMail($tblMailToPerson->getTblMail()),
                     $personIdList,
                 );
-                $mailPanelList[] = new LayoutColumn($this->getMailPanel($tblPerson, $tblMailToPerson, $list), 3);
+                $mailPanelList[] = new LayoutColumn($this->getMailPanel($tblPerson, $tblMailToPerson, $list, $hasEdit), $columnWidth);
             }
         }
 
@@ -246,7 +275,7 @@ class Frontend extends Extension implements IFrontendInterface
             $layoutRowCount = 0;
             $layoutRow = null;
             foreach ($allList as $layoutColumn) {
-                if ($layoutRowCount % 4 == 0) {
+                if ($layoutRowCount % $countColumns == 0) {
                     $layoutRow = new LayoutRow(array());
                     $rows[] = $layoutRow;
                 }
@@ -489,10 +518,11 @@ class Frontend extends Extension implements IFrontendInterface
      * @param TblPerson $tblPerson
      * @param TblPhoneToPerson $tblPhoneToPerson
      * @param array $personIdList
+     * @param bool $hasEdit
      *
      * @return Panel
      */
-    private function getPhonePanel(TblPerson $tblPerson, TblPhoneToPerson $tblPhoneToPerson, array $personIdList): Panel
+    private function getPhonePanel(TblPerson $tblPerson, TblPhoneToPerson $tblPhoneToPerson, array $personIdList, bool $hasEdit): Panel
     {
         $tblType = $tblPhoneToPerson->getTblType();
         if ($tblType->getName() == 'Fax') {
@@ -503,9 +533,12 @@ class Frontend extends Extension implements IFrontendInterface
             $icon = new PhoneIcon();
         }
 
-        $editLink = (new Link(new Edit() . ' Bearbeiten', ApiOnlineContactDetails::getEndpoint(), null, array(), 'Änderungswunsch für diese Telefonnummer abgeben'))
-            ->ajaxPipelineOnClick(ApiOnlineContactDetails::pipelineOpenCreatePhoneModal(
-                $tblPerson->getId(), $tblPhoneToPerson->getId(), $personIdList));
+        $editLink = '';
+        if ($hasEdit) {
+            $editLink = (new Link(new Edit() . ' Bearbeiten', ApiOnlineContactDetails::getEndpoint(), null, array(), 'Änderungswunsch für diese Telefonnummer abgeben'))
+                ->ajaxPipelineOnClick(ApiOnlineContactDetails::pipelineOpenCreatePhoneModal(
+                    $tblPerson->getId(), $tblPhoneToPerson->getId(), $personIdList));
+        }
         $content[] = $tblPhoneToPerson->getTblPhone()->getNumber() . new PullRight($editLink);
 
         $hasOnlineContacts = false;
@@ -536,14 +569,19 @@ class Frontend extends Extension implements IFrontendInterface
      * @param TblPerson $tblPerson
      * @param TblAddressToPerson $tblAddressToPerson
      * @param array $personIdList
+     * @param bool $hasEdit
      *
      * @return Panel
      */
-    private function getAddressPanel(TblPerson $tblPerson, TblAddressToPerson $tblAddressToPerson, array $personIdList): Panel
+    private function getAddressPanel(TblPerson $tblPerson, TblAddressToPerson $tblAddressToPerson, array $personIdList, bool $hasEdit): Panel
     {
-        $editLink = (new Link(new Edit() . ' Bearbeiten', ApiOnlineContactDetails::getEndpoint(), null, array(), 'Änderungswunsch für diese Adresse abgeben'))
-            ->ajaxPipelineOnClick(ApiOnlineContactDetails::pipelineOpenCreateAddressModal(
-                $tblPerson->getId(), $tblAddressToPerson->getId(), $personIdList));
+        $editLink = '';
+        if ($hasEdit) {
+            $editLink = (new Link(new Edit() . ' Bearbeiten', ApiOnlineContactDetails::getEndpoint(), null, array(),
+                'Änderungswunsch für diese Adresse abgeben'))
+                ->ajaxPipelineOnClick(ApiOnlineContactDetails::pipelineOpenCreateAddressModal(
+                    $tblPerson->getId(), $tblAddressToPerson->getId(), $personIdList));
+        }
         $content[] = $tblAddressToPerson->getTblAddress()->getGuiTwoRowString() . new PullRight($editLink);
 
         $hasOnlineContacts = false;
@@ -566,17 +604,18 @@ class Frontend extends Extension implements IFrontendInterface
      * @param TblPerson $tblPerson
      * @param TblMailToPerson $tblMailToPerson
      * @param array $personIdList
+     * @param bool $hasEdit
      *
      * @return Panel
      */
-    private function getMailPanel(TblPerson $tblPerson, TblMailToPerson $tblMailToPerson, array $personIdList): Panel
+    private function getMailPanel(TblPerson $tblPerson, TblMailToPerson $tblMailToPerson, array $personIdList, bool $hasEdit): Panel
     {
         // Schüler mit geschäftlicher E-Mail-Adresse nicht bearbeiten
         $editLink = '';
         if (!(
             $tblMailToPerson->getTblType()->getName() == 'Geschäftlich'
             && Group::useService()->existsGroupPerson(Group::useService()->getGroupByMetaTable('STUDENT'), $tblPerson)
-        )) {
+        ) && $hasEdit) {
             $editLink = (new Link(new Edit() . ' Bearbeiten', ApiOnlineContactDetails::getEndpoint(), null, array(),
                 'Änderungswunsch für diese E-Mail-Adresse abgeben'))
                 ->ajaxPipelineOnClick(ApiOnlineContactDetails::pipelineOpenCreateMailModal(

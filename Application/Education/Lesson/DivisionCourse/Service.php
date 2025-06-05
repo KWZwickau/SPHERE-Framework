@@ -632,15 +632,15 @@ class Service extends ServiceYearChange
             $error = true;
         }
         if (isset($Data['Name']) && $Data['Name'] != '') {
-            // ist ein UCS Mandant?
-            $IsUCSMandant = false;
+            // ist ein DLLP Mandant?
+            $IsDLLPMandant = false;
             if(($tblConsumer = ConsumerGatekeeper::useService()->getConsumerBySession())
-                && ConsumerGatekeeper::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_UCS)
+                && ConsumerGatekeeper::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_DLLP)
             ){
-                $IsUCSMandant = true;
+                $IsDLLPMandant = true;
             }
-            // Name Zeicheneingrenzung für Klassen und Stammgruppen, falls diese an angeschlossene Systeme übertragen werden müssen (UCS)
-            if ($IsUCSMandant && $tblType && ($tblType->getIdentifier() == TblDivisionCourseType::TYPE_DIVISION || $tblType->getIdentifier() == TblDivisionCourseType::TYPE_CORE_GROUP)) {
+            // Name Zeicheneingrenzung für Klassen und Stammgruppen, falls diese an angeschlossene Systeme übertragen werden müssen (DLLP)
+            if ($IsDLLPMandant && $tblType && ($tblType->getIdentifier() == TblDivisionCourseType::TYPE_DIVISION || $tblType->getIdentifier() == TblDivisionCourseType::TYPE_CORE_GROUP)) {
                 // Gleiche Logik für Klassen und Stammgruppen
                 // erlaubte Zeichen: [a-zA-Z0-9 -]
                 // am Anfang und Ende dürfen nur Zahlen und Buchstaben sein
@@ -1514,9 +1514,10 @@ class Service extends ServiceYearChange
      * @param TblPerson $tblPerson
      * @param TblYear $tblYear
      * @param string $date
+     *
      * @return TblStudentEducation|bool
      */
-    public function getStudentEducationListByPersonAndYearAndDateWithLeaved(TblPerson $tblPerson, TblYear $tblYear, string $date = 'now'): TblStudentEducation|bool
+    public function getStudentEducationByPersonAndYearAndDateWithLeaved(TblPerson $tblPerson, TblYear $tblYear, string $date = 'now'): TblStudentEducation|bool
     {
         // Klassen wechsel im Schuljahr
         $dateTime = new DateTime($date);

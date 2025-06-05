@@ -12,6 +12,7 @@ use SPHERE\Application\Document\Generator\Repository\Slice;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCertificate;
 use SPHERE\Application\Education\Graduation\Grade\Grade;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
@@ -30,13 +31,32 @@ class ExamGradeListTechnical extends AbstractDocument
     private array $gradeList = array();
     private array $examList = array();
 
+    private array $subjectRankingList = array();
+
     function __construct(TblPrepareCertificate $tblPrepareCertificate, TblDivisionCourse $tblDivisionCourse)
     {
         $number = 1;
-        if (($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses())) {
+        if (($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses())
+            && ($tblYear = $tblDivisionCourse->getServiceTblYear())
+        ) {
             foreach ($tblPersonList as $tblPerson) {
                 $this->personList[$number] = $tblPerson;
                 $count = 2;
+
+                // falls noch keine Prüfungsnoten vorhanden sind
+                $type = 'WrittenExam';
+                $this->subjectRankingList[$tblPerson->getId()][$type][1] = Subject::useService()->getSubjectByVariantAcronym('DE');
+                $this->subjectRankingList[$tblPerson->getId()][$type][2] = Subject::useService()->getSubjectByVariantAcronym('EN');
+                $this->subjectRankingList[$tblPerson->getId()][$type][3] = Subject::useService()->getSubjectByVariantAcronym('MA');
+                if (($tblSubject = Subject::useService()->getSubjectByVariantAcronym('VBWL'))
+                    && DivisionCourse::useService()->getVirtualSubjectFromRealAndVirtualByPersonAndYearAndSubject($tblPerson, $tblYear, $tblSubject)
+                ) {
+                    $this->subjectRankingList[$tblPerson->getId()][$type][4] = $tblSubject;
+                } elseif (($tblSubject = Subject::useService()->getSubjectByVariantAcronym('GeSA'))
+                    && DivisionCourse::useService()->getVirtualSubjectFromRealAndVirtualByPersonAndYearAndSubject($tblPerson, $tblYear, $tblSubject)
+                ) {
+                    $this->subjectRankingList[$tblPerson->getId()][$type][4] = $tblSubject;
+                }
 
                 // Prüfungsnoten
                 if (($tblPrepareAdditionalGradeList = Prepare::useService()->getPrepareAdditionalGradeListBy($tblPrepareCertificate, $tblPerson))) {
@@ -66,10 +86,11 @@ class ExamGradeListTechnical extends AbstractDocument
 
                             if ($tblPrepareAdditionalGrade->getTblPrepareAdditionalGradeType()->getIdentifier() == 'PM')
                             {
+                                //  englisch darf nicht nochmal draufstehen, wenn es auch eine schriftliche Prüfung gibt
                                 if (($tblSubjectCompare = Subject::useService()->getSubjectByVariantAcronym('EN'))
                                     && $tblSubjectCompare->getId() == $tblSubjectDiploma->getId()
                                 ) {
-                                    $this->examList[$tblPerson->getId()]['VerbalExam'][1] = $tblSubjectDiploma;
+//                                    $this->examList[$tblPerson->getId()]['VerbalExam'][1] = $tblSubjectDiploma;
                                 } else {
                                     $this->examList[$tblPerson->getId()]['VerbalExam'][$count++] = $tblSubjectDiploma;
                                 }
@@ -194,7 +215,6 @@ class ExamGradeListTechnical extends AbstractDocument
         $slice->addElement($this->getElement($name, '4.5px')->styleTextBold());
 
         $identifierList = array();
-        $subjectRankingList = array();
         if (str_contains($name, 'schriftliche')) {
             $count = 4;
             $type = 'WrittenExam';
@@ -202,18 +222,12 @@ class ExamGradeListTechnical extends AbstractDocument
             $identifierList['PS'] = 'P';
             $identifierList['PM'] = 'M';
             $identifierList['EN'] = 'Z';
-
-            $subjectRankingList[1] = 'DE';
-            $subjectRankingList[2] = 'EN';
-            $subjectRankingList[3] = 'MA';
         } elseif (str_contains($name, 'mündliche')) {
             $count = 4;
             $type = 'VerbalExam';
             $identifierList['JN'] = 'V';
             $identifierList['PM'] = 'P';
             $identifierList['EN'] = 'Z';
-
-            $subjectRankingList[1] = 'EN';
         } else {
             $count = 2;
             $type = '';
@@ -241,8 +255,8 @@ class ExamGradeListTechnical extends AbstractDocument
                 if (($tblPerson = $this->personList[$row] ?? null)) {
                     if (isset($this->examList[$tblPerson->getId()][$type][$column])) {
                         $tblSubject = $this->examList[$tblPerson->getId()][$type][$column];
-                    } elseif (isset($subjectRankingList[$column])) {
-                        $tblSubject = Subject::useService()->getSubjectByVariantAcronym($subjectRankingList[$column]);
+                    } elseif (isset($this->subjectRankingList[$tblPerson->getId()][$type][$column])) {
+                        $tblSubject = $this->subjectRankingList[$tblPerson->getId()][$type][$column];
                     }
                 }
 

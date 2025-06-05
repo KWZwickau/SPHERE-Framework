@@ -34,6 +34,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Check;
 use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
+use SPHERE\Common\Frontend\Icon\Repository\Lock;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Select;
@@ -333,6 +334,8 @@ class Frontend extends Extension implements IFrontendInterface
                             new HiddenField('HiddenField', 'HiddenField', 'HiddenField'),
                             new TextArea('TextArea', 'TextArea', 'TextArea'),
                             new TextField('TextField', 'TextField', 'TextField'),
+                            (new PasswordField('PasswordFieldShow', '<- click to show', 'PasswordFieldShow', new Lock()))
+                            ->setShow()
                         ), 3),
                     )),
                     new FormRow(new FormColumn(new InfoText('<hr>'))),

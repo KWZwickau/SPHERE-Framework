@@ -602,6 +602,11 @@ class Frontend extends Extension implements IFrontendInterface
                                                         new TextField('Data[Birthplace]', 'Geboren in', 'Geburtsort')
                                                     , 6),
                                                 )),
+                                                new LayoutRow(
+                                                    new LayoutColumn(
+                                                        new TextField('Data[AddressExtra]', 'Adresszusatz', 'Adresszusatz')
+                                                    , 12)
+                                                ),
                                                 new LayoutRow(array(
                                                     new LayoutColumn(
                                                         new TextField('Data[AddressDistrict]', 'Ortsteil', 'Ortsteil')
@@ -732,6 +737,11 @@ class Frontend extends Extension implements IFrontendInterface
                                                         new TextField('Data[Birthplace]', 'Geboren in', 'Geburtsort')
                                                         , 6),
                                                 )),
+                                                new LayoutRow(
+                                                    new LayoutColumn(
+                                                        new TextField('Data[AddressExtra]', 'Adresszusatz', 'Adresszusatz')
+                                                        , 12)
+                                                ),
                                                 new LayoutRow(array(
                                                     new LayoutColumn(
                                                         new TextField('Data[AddressDistrict]', 'Ortsteil', 'Ortsteil')

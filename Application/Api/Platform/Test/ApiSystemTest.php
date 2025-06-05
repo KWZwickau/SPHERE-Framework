@@ -22,6 +22,7 @@ use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Listing;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\ProgressBar;
+use SPHERE\Common\Frontend\Layout\Repository\Ruler;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
@@ -266,7 +267,7 @@ class ApiSystemTest extends Extension implements IApiInterface
     public static function receiverThirdModal()
     {
 
-        return (new ModalReceiver())
+        return (new ModalReceiver(null, null, false))
             ->setIdentifier('ThirdModal');
     }
 
@@ -353,6 +354,8 @@ class ApiSystemTest extends Extension implements IApiInterface
         return new Layout(
             new LayoutGroup(
                 new LayoutRow(array(
+                    new LayoutColumn(new InfoMessage('Modal lässt sich nicht anders schließen als auf "Schließen" zu beenden.')
+                    .new Ruler()),
                     new LayoutColumn(
                         new SuccessMessage('Der Service ist erfolgreich gewesen')
                     ),
@@ -364,7 +367,7 @@ class ApiSystemTest extends Extension implements IApiInterface
                     ),
                 ))
             )
-        );
+        ).new Close();
     }
 
     //////////////////////////////////////// fourth Modal

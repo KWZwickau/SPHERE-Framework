@@ -1576,21 +1576,21 @@ class Service extends AbstractService
                         // Es darf nur maximal eine Person ausgewählt werden
                         if ($countPersons != 1) {
                             $errorMail = true;
-                            $Errors[$key]['Message'] = 'Zur Verwendung der E-Mail Adresse als UCS Benutzername 
-                                oder UCS "Passwort vergessen" darf nur genau eine Person ausgewählt werden.';
+                            $Errors[$key]['Message'] = 'Zur Verwendung der E-Mail Adresse als DLLP Benutzername 
+                                oder DLLP "Passwort vergessen" darf nur genau eine Person ausgewählt werden.';
                             $tblPersonMail = false;
                         } else {
                             $tblPersonMail = current($tblPersonList);
                         }
 
-                        // Typ muss Geschäftlich sein bei UCS Alias
+                        // Typ muss Geschäftlich sein bei DLLP Alias
                         if ($isAccountUserAlias && $tblType && $tblType->getName() != 'Geschäftlich') {
                             $errorMail = true;
-                            $Errors[$key]['Message'] = 'Zur Verwendung der E-Mail Adresse als UCS Benutzername 
+                            $Errors[$key]['Message'] = 'Zur Verwendung der E-Mail Adresse als DLLP Benutzername 
                                 muss der E-Mail Typ: Geschäftlich ausgewählt werden.';
                         }
 
-                        // Eindeutigkeit UCS Alias
+                        // Eindeutigkeit DLLP Alias
                         if ($isAccountUserAlias && $tblPersonMail) {
                             $errorMessage = '';
                             if (!Account::useService()->isUserAliasUnique($tblPersonMail, $address, $errorMessage)) {

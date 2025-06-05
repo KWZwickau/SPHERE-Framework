@@ -8,6 +8,7 @@ use SPHERE\Application\Api\Education\Certificate\Reporting\ApiReporting;
 use SPHERE\Application\Api\Education\ClassRegister\ApiAbsence;
 use SPHERE\Application\Api\Education\ClassRegister\ApiDiary;
 use SPHERE\Application\Api\Education\ClassRegister\ApiDigital;
+use SPHERE\Application\Api\Education\ClassRegister\ApiForgotten;
 use SPHERE\Application\Api\Education\ClassRegister\ApiInstructionItem;
 use SPHERE\Application\Api\Education\ClassRegister\ApiInstructionSetting;
 use SPHERE\Application\Api\Education\ClassRegister\ApiSortDivision;
@@ -22,6 +23,7 @@ use SPHERE\Application\Api\Education\DivisionCourse\ApiTeacherLectureship;
 use SPHERE\Application\Api\Education\DivisionCourse\ApiYearChange;
 use SPHERE\Application\Api\Education\Graduation\Grade\ApiGradeBook;
 use SPHERE\Application\Api\Education\Graduation\Grade\ApiScoreRule;
+use SPHERE\Application\Api\Education\Graduation\Grade\ApiScoreRuleBehavior;
 use SPHERE\Application\Api\Education\Graduation\Grade\ApiScoreType;
 use SPHERE\Application\Api\Education\Graduation\Grade\ApiStudentOverview;
 use SPHERE\Application\Api\Education\Graduation\Grade\ApiTask;
@@ -77,8 +79,10 @@ class Education implements IApplicationInterface
         Task::registerModule();
         ApiScoreType::registerApi();
         ApiScoreRule::registerApi();
+        ApiScoreRuleBehavior::registerApi();
         Gradebook::registerModule();
         ApiYear::registerApi();
         ApiPrintCertificate::registerApi();
+        ApiForgotten::registerApi();
     }
 }

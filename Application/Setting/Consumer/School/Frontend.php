@@ -84,10 +84,10 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage('Schulen', 'Übersicht');
         $Stage->addButton(new Standard('Schule hinzufügen', '/Setting/Consumer/School/Create'));
 
-        $IsUCSMandant = false;
+        $IsDLLPMandant = false;
         if(($tblConsumer = ConsumerGatekeeper::useService()->getConsumerBySession())
-        && ConsumerGatekeeper::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_UCS)){
-            $IsUCSMandant = true;
+        && ConsumerGatekeeper::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_DLLP)){
+            $IsDLLPMandant = true;
         }
 
         $Stage->setContent(
@@ -131,10 +131,10 @@ class Frontend extends Extension implements IFrontendInterface
                     ($CompanyNumber != '' ? Panel::PANEL_TYPE_SUCCESS : Panel::PANEL_TYPE_WARNING));
 
                 $StudentCodePanel = new Panel('Dienststellenschlüssel (DISCH)',
-                    ($SchoolCode ?: ($IsUCSMandant ? 'Pflichtfeld im UCS' : '')),
+                    ($SchoolCode ?: ($IsDLLPMandant ? 'Pflichtfeld im DLLP' : '')),
                     ($SchoolCode != ''
                         ? Panel::PANEL_TYPE_SUCCESS
-                        : ($IsUCSMandant
+                        : ($IsDLLPMandant
                             ? Panel::PANEL_TYPE_DANGER
                             : Panel::PANEL_TYPE_WARNING))
                 );
@@ -484,10 +484,10 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage('Schulinformationen', 'Bearbeiten');
         $Stage->addButton(new Standard('Zurück', '/Setting/Consumer/School', new ChevronLeft()));
 
-        $IsUCSMandant = false;
+        $IsDLLPMandant = false;
         if(($tblConsumer = ConsumerGatekeeper::useService()->getConsumerBySession())
-            && ConsumerGatekeeper::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_UCS)){
-            $IsUCSMandant = true;
+            && ConsumerGatekeeper::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_DLLP)){
+            $IsDLLPMandant = true;
         }
 
         $tblSchool = School::useService()->getSchoolById($Id);
@@ -507,8 +507,8 @@ class Frontend extends Extension implements IFrontendInterface
             , 6),
             new FormColumn(
                 new Panel('Dienststellenschlüssel (DISCH) '.
-                    ($IsUCSMandant
-                        ? new ToolTip(new Info(), 'Pflichtfeld im UCS')
+                    ($IsDLLPMandant
+                        ? new ToolTip(new Info(), 'Pflichtfeld im DLLP')
                         : ''),
                     new TextField('Data[SchoolCode]', '', ''),
                     Panel::PANEL_TYPE_SUCCESS)

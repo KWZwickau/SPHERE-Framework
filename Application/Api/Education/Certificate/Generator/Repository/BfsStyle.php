@@ -1041,7 +1041,28 @@ abstract class BfsStyle extends Certificate
                         {{ Content.P'.$personId.'.Grade.Data["'.$Subject['SubjectAcronym'].'"] }}
                     {% else %}
                         &ndash;
-                    {% endif %}'
+                    {% endif %}',
+                    '{% if((Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $Subject['SubjectAcronym'] . '"] is not empty)
+                        and (Content.P' . $personId . '.Grade.Data["' . $Subject['SubjectAcronym'] . '"] is not empty)
+                    ) %}
+                         7.7px
+                     {% else %}
+                         4px
+                     {% endif %}',
+                    '{% if((Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $Subject['SubjectAcronym'] . '"] is not empty)
+                        and (Content.P' . $personId . '.Grade.Data["' . $Subject['SubjectAcronym'] . '"] is not empty)
+                    ) %}
+                         7.8px
+                     {% else %}
+                         4px
+                     {% endif %}',
+                    '{% if((Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $Subject['SubjectAcronym'] . '"] is not empty)
+                        and (Content.P' . $personId . '.Grade.Data["' . $Subject['SubjectAcronym'] . '"] is not empty)
+                    ) %}
+                         8px
+                     {% else %}
+                         14px
+                     {% endif %}'
                 );
             }
         }
@@ -1056,7 +1077,7 @@ abstract class BfsStyle extends Certificate
         return $Slice;
     }
 
-    private function getSubjectLineAbg(Slice $slice, $subjectName, $subjectGrade)
+    private function getSubjectLineAbg(Slice $slice, $subjectName, $subjectGrade, string $paddingTop = '4px', string $paddingBottom = '4px', string $gradeTextSize = '14px')
     {
         $TextSize = '14px';
         $SubjectSection = (new Section());
@@ -1089,9 +1110,9 @@ abstract class BfsStyle extends Certificate
             ->styleBackgroundColor(self::BACKGROUND_GRADE_FIELD)
 //                    ->styleMarginTop('9px')
             ->styleMarginTop($marginTopGrade)
-            ->stylePaddingTop('4px')
-            ->stylePaddingBottom('4px')
-            ->styleTextSize($TextSize)
+            ->stylePaddingTop($paddingTop)
+            ->stylePaddingBottom($paddingBottom)
+            ->styleTextSize($gradeTextSize)
             , '15%');
         $slice->addSection($SubjectSection);
     }

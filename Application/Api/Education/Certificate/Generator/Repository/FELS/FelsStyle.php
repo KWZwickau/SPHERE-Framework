@@ -5,6 +5,10 @@ namespace SPHERE\Application\Api\Education\Certificate\Generator\Repository\FELS
 use SPHERE\Application\Education\Certificate\Generator\Repository\Element;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Section;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
+use SPHERE\Application\Education\Certificate\Prepare\Prepare;
+use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCertificate;
+use SPHERE\Application\People\Person\Person;
+use SPHERE\Application\Setting\Consumer\Consumer;
 
 /**
  * Class FelsStyle
@@ -64,5 +68,78 @@ class FelsStyle
                 ->addSection($section)
                 ->stylePaddingTop('24px')
                 ->styleHeight('80px');
+    }
+
+    /**
+     * @param $personId
+     * @param string $height
+     * @param string $marginTop
+     * @param bool $hasTeam
+     *
+     * @return Slice
+     */
+    public static function getCustomDescription($personId, string $height = '100px', string $marginTop = '10px', bool $hasTeam = true, ?TblPrepareCertificate $tblPrepareCertificate = null): Slice
+    {
+        $tblSetting = Consumer::useService()->getSetting('Education', 'Certificate', 'Generator', 'IsDescriptionAsJustify');
+
+        $slice = (new Slice())
+            ->styleMarginTop($marginTop)
+            ->styleHeight($height)
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('Fehltage entschuldigt:')
+                    , '25%')
+                ->addElementColumn((new Element())
+                    ->setContent('{% if(Content.P' . $personId . '.Input.Missing is not empty) %}
+                                        {{ Content.P' . $personId . '.Input.Missing }}
+                                    {% else %}
+                                        &nbsp;
+                                    {% endif %}')
+                    , '10%')
+                ->addElementColumn((new Element())
+                    ->setContent('unentschuldigt:')
+                    ->styleAlignRight()
+                    , '25%')
+                ->addElementColumn((new Element())
+                    ->setContent('{% if(Content.P' . $personId . '.Input.Bad.Missing is not empty) %}
+                                        {{ Content.P' . $personId . '.Input.Bad.Missing }}
+                                    {% else %}
+                                        &nbsp;
+                                    {% endif %}')
+                    ->styleAlignCenter()
+                    , '10%')
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    ->styleAlignCenter()
+                )
+        );
+
+        if ($hasTeam
+            && ($tblPerson = Person::useService()->getPersonById($personId))
+            && ($tblPrepareInformation = Prepare::useService()->getPrepareInformationBy($tblPrepareCertificate, $tblPerson, 'Team'))
+            && $tblPrepareInformation->getValue()
+        ) {
+            $slice->addElement((new Element())
+                ->styleMarginTop('5px')
+                ->setContent('Arbeitsgemeinschaften: ' . $tblPrepareInformation->getValue())
+            );
+        }
+
+        $element = (new Element())
+            ->styleMarginTop('5px')
+            ->setContent('Bemerkungen: {% if(Content.P'.$personId.'.Input.RemarkWithoutTeam is not empty) %}
+                                {{ Content.P'.$personId.'.Input.RemarkWithoutTeam|nl2br }}
+                            {% else %}
+                                ---
+                            {% endif %}');
+        if ($tblSetting && $tblSetting->getValue()) {
+            $element->styleAlignJustify();
+        }
+
+        $slice->addSection((new Section())
+            ->addElementColumn($element)
+        );
+
+        return $slice;
     }
 }

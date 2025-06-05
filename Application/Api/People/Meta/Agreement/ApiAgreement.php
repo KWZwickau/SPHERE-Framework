@@ -125,6 +125,7 @@ class ApiAgreement extends Extension implements IApiInterface
     {
 
         $tblPerson = Person::useService()->getPersonById($PersonId);
+        $isShowButtons = false;
         if(!$tblPerson){
             $HeadPanel = new Warning('Person wurde nicht gefunden');
             $WellAgreement = '';
@@ -133,7 +134,6 @@ class ApiAgreement extends Extension implements IApiInterface
             $FormColumnList = array();
             $Global = $this->getGlobal();
             if(($tblStudent = Student::useService()->getStudentByPerson($tblPerson))){
-                $isShowButtons = false;
                 if(($StudentAgreementTypeAll = Student::useService()->getStudentAgreementTypeAll())){
                     foreach($StudentAgreementTypeAll as $StudentAgreementType){
                         if($StudentAgreementType->getIsUnlocked()){

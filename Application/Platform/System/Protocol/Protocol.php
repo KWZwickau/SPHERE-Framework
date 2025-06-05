@@ -2,7 +2,9 @@
 namespace SPHERE\Application\Platform\System\Protocol;
 
 use SPHERE\Application\IModuleInterface;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\System\Protocol\Service\Entity\TblProtocol;
+use SPHERE\Application\Setting\MyAccount\MyAccount;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\AutoCompleter;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
@@ -36,6 +38,8 @@ use SPHERE\System\Database\Link\Identifier;
  */
 class Protocol implements IModuleInterface
 {
+
+    private string $MarkColor = 'yellow';
 
     public static function registerModule()
     {
@@ -110,6 +114,17 @@ class Protocol implements IModuleInterface
                 ), Panel::PANEL_TYPE_INFO)
                 , 4)
         ))), new Primary('Suchen'));
+
+        // standard color theme
+        $style = '<style>del {background-color: #FFA0A0;} ins {background-color: #A0FFA0;} pre {font-size: 10px;}</style>';
+        if(($tblAccount = Account::useService()->getAccountBySession())){
+            if(($SettingSurface = MyAccount::useService()->getSettingByAccount($tblAccount, 'Surface'))){
+                if($SettingSurface->getValue() == 3){
+                    $this->MarkColor = '#805d03';
+                    $style = '<style>del {background-color: #6c1717;} ins {background-color: #105c10;} pre {font-size: 10px;}</style>';
+                }
+            }
+        }
 
         $Message = array();
         if (!empty( $Filter )) {
@@ -209,7 +224,7 @@ class Protocol implements IModuleInterface
         }
 
         $Stage->setContent(
-            '<style>del {background-color: #FFA0A0;} ins {background-color: #A0FFA0;} pre {font-size: 10px;}</style>'.
+            $style.
             new Layout(array(
                 new LayoutGroup(
                     new LayoutRow(
@@ -285,7 +300,7 @@ class Protocol implements IModuleInterface
                     }
                     $Text = '!'.preg_quote(trim($Text), '!').'!is';
                 });
-                return preg_replace($Search[$Name], '<span style="background-color: yellow;">${0}</span>',
+                return preg_replace($Search[$Name], '<span style="background-color: '.$this->MarkColor.';">${0}</span>',
                     $Payload[$Name]);
             }
         }

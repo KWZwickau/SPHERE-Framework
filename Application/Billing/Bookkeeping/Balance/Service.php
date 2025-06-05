@@ -30,9 +30,13 @@ use SPHERE\Application\Contact\Mail\Mail;
 use SPHERE\Application\Document\Storage\FilePointer;
 use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\Education\Lesson\Lesson;
 use SPHERE\Application\People\Group\Group;
+use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\People\Relationship\Relationship;
+use SPHERE\Application\People\Relationship\Service\Entity\TblType;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
 use SPHERE\Common\Frontend\Icon\Repository\Info;
@@ -41,6 +45,7 @@ use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Danger as DangerText;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\System\Database\Binding\AbstractService;
+use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Service
@@ -345,18 +350,21 @@ class Service extends AbstractService
     }
 
     /**
-     * @param array $PriceSum
-     * @param array TblItem[] $tblItemList
+     * @param string $PriceSum
+     * @param TblItem[] $tblItemList
+     * @param string $Year
+     * @param int $From
+     * @param int $To
+     * @param bool $isMonthly
      *
-     * @return bool|FilePointer
-     * @throws DocumentTypeException
-     * @throws TypeFileException
+     * @return false|FilePointer
      */
-    public function createBalanceListExcel($PriceSum, $tblItemList = array(), $From = 1, $To = 12, $isMonthly = false)
+    public function createBalanceListExcel($PriceSum, $tblItemList = array(), $Year = '', $From = 1, $To = 12, $isMonthly = false)
     {
 
         $PersonList = array();
         if(!empty($PriceSum)){
+            $tblRelationshipType = Relationship::useService()->getTypeByName(TblType::IDENTIFIER_GUARDIAN);
             foreach($PriceSum as $DebtorId => $CauserList) {
                 if(($tblPersonDebtor = Person::useService()->getPersonById($DebtorId))){
                     $MailListDebtor = array();
@@ -380,6 +388,47 @@ class Service extends AbstractService
                     foreach($CauserList as $CauserId => $ItemContent) {
                         if(($tblPersonCauser = Person::useService()->getPersonById($CauserId))){
                             $Item = array();
+                            $Item['FirstNameS1'] = '';
+                            $Item['LastNameS1'] = '';
+                            $Item['FirstNameS2'] = '';
+                            $Item['LastNameS2'] = '';
+                            $Item['FirstNameS3'] = '';
+                            $Item['LastNameS3'] = '';
+
+                            // Sorgeberechtigte S1, S2, S3
+                            $tblRelationToPersonList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPersonCauser, $tblRelationshipType);
+                            if($tblRelationToPersonList){
+                                foreach($tblRelationToPersonList as $tblRelationToPerson){
+                                    if(($tblPersonCustody = $tblRelationToPerson->getServiceTblPersonFrom())){
+                                        switch ($tblRelationToPerson->getRanking()) {
+                                            case 1:
+                                                $Item['FirstNameS1'] = $tblPersonCustody->getFirstName();
+                                                $Item['LastNameS1'] = $tblPersonCustody->getLastName();
+                                                break;
+                                            case 2:
+                                                $Item['FirstNameS2'] = $tblPersonCustody->getFirstName();
+                                                $Item['LastNameS2'] = $tblPersonCustody->getLastName();
+                                                break;
+                                            case 3:
+                                                $Item['FirstNameS3'] = $tblPersonCustody->getFirstName();
+                                                $Item['LastNameS3'] = $tblPersonCustody->getLastName();
+                                                break;
+                                        }
+                                    }
+                                }
+                            }
+
+                            $Item['DivisionCourse'] = '';
+                            // Aktuelle Klasse (Datum von To (Month) und year erstellen
+                            $TempTo = str_pad($To, 2, 0, STR_PAD_LEFT);
+                            $DateString = '01.'.$TempTo.'.'.$Year;
+                            if(($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndDate($tblPersonCauser, $DateString))){
+                                if(($tblDivision = $tblStudentEducation->getTblDivision())){
+                                    $Item['DivisionCourse'] =$tblDivision->getName();
+                                } elseif(($tblCourse = $tblStudentEducation->getServiceTblCourse())) {
+                                    $Item['DivisionCourse'] =$tblCourse->getName();
+                                }
+                            }
 
                             $MailListCauser = array();
                             if(($tblToPersonList = Mail::useService()->getMailAllByPerson($tblPersonCauser))){
@@ -477,6 +526,13 @@ class Service extends AbstractService
             $export->setValue($export->getCell($column++, $row), "Nachname Beitragszahler");
             $export->setValue($export->getCell($column++, $row), "Vorname Beitragsverursacher");
             $export->setValue($export->getCell($column++, $row), "Nachname Beitragsverursacher");
+            $export->setValue($export->getCell($column++, $row), "Klasse / Stammgruppe");
+            $export->setValue($export->getCell($column++, $row), "Vorname S1");
+            $export->setValue($export->getCell($column++, $row), "Nachname S1");
+            $export->setValue($export->getCell($column++, $row), "Vorname S2");
+            $export->setValue($export->getCell($column++, $row), "Nachname S2");
+            $export->setValue($export->getCell($column++, $row), "Vorname S3");
+            $export->setValue($export->getCell($column++, $row), "Nachname S3");
             $export->setValue($export->getCell($column++, $row), "Straße");
             $export->setValue($export->getCell($column++, $row), "PLZ");
             $export->setValue($export->getCell($column++, $row), "Stadt");
@@ -505,6 +561,13 @@ class Service extends AbstractService
 
                 $export->setValue($export->getCell($column++, $row), $PersonData['CauserFirstName']);
                 $export->setValue($export->getCell($column++, $row), $PersonData['CauserLastName']);
+                $export->setValue($export->getCell($column++, $row), $PersonData['DivisionCourse']);
+                $export->setValue($export->getCell($column++, $row), $PersonData['FirstNameS1']);
+                $export->setValue($export->getCell($column++, $row), $PersonData['LastNameS1']);
+                $export->setValue($export->getCell($column++, $row), $PersonData['FirstNameS2']);
+                $export->setValue($export->getCell($column++, $row), $PersonData['LastNameS2']);
+                $export->setValue($export->getCell($column++, $row), $PersonData['FirstNameS3']);
+                $export->setValue($export->getCell($column++, $row), $PersonData['LastNameS3']);
 
                 $export->setValue($export->getCell($column++, $row), $PersonData['Street']);
                 $export->setValue($export->getCell($column++, $row), $PersonData['Code']);

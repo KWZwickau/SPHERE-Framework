@@ -9,7 +9,10 @@ use SPHERE\Application\Document\Generator\Repository\Frame;
 use SPHERE\Application\Document\Generator\Repository\Page;
 use SPHERE\Application\Document\Generator\Repository\Section;
 use SPHERE\Application\Document\Generator\Repository\Slice;
+use SPHERE\Application\People\Meta\Common\Service\Entity\TblCommonGender;
 use SPHERE\Application\People\Person\Person;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\People\Person\Service\Entity\TblSalutation;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer as GatekeeperConsumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
@@ -22,6 +25,7 @@ class PasswordChange extends AbstractDocument
 {
 
     const BLOCK_SPACE = '30px';
+    const BORDER = '4%';
 
     /**
      * PasswordChange constructor.
@@ -153,6 +157,23 @@ class PasswordChange extends AbstractDocument
                 Account::useService()->changeUpdateDate($tblUserAccount, TblUserAccount::VALUE_UPDATE_TYPE_RENEW);
             }
         };
+
+        $this->FieldValue['FirstLine'] = 'Lieber Nutzer,';
+        if(($tblPerson = Person::useService()->getPersonById($this->FieldValue['PersonId']))){
+            if($tblPerson->getSalutation() == TblSalutation::VALUE_MAN){
+                $this->FieldValue['FirstLine'] = 'Lieber '.$tblPerson->getSalutation().' '.$tblPerson->getLastName().',';
+            } elseif($tblPerson->getSalutation() == TblSalutation::VALUE_WOMAN) {
+                $this->FieldValue['FirstLine'] = 'Liebe '.$tblPerson->getSalutation().' '.$tblPerson->getLastName().',';
+            }else {
+                if($tblPerson->getGender() && $tblPerson->getGender()->getId() == TblCommonGender::VALUE_MALE){
+                    $this->FieldValue['FirstLine'] = 'Lieber '.$tblPerson->getFullName().',';
+                } elseif($tblPerson->getGender() && $tblPerson->getGender()->getId() == TblCommonGender::VALUE_FEMALE) {
+                    $this->FieldValue['FirstLine'] = 'Liebe '.$tblPerson->getFullName().',';
+                } else {
+                    $this->FieldValue['FirstLine'] = 'Liebe(r) '.$tblPerson->getFullName().',';
+                }
+            }
+        }
 
         return $this;
     }
@@ -290,7 +311,7 @@ class PasswordChange extends AbstractDocument
         return $Slice;
     }
 
-    private function getFirstLetterContent($Height = '500px')
+    private function getFirstLetterContent( $Height = '500px')
     {
         $Live = 'https://schulsoftware.schule';
 
@@ -299,506 +320,132 @@ class PasswordChange extends AbstractDocument
             $Live = 'https://ekbo.schulsoftware.schule';
         }
 
+        $PaidContent = '';
+        if(($tblSetting = Consumer::useService()->getSetting('ParentStudentAccess', 'Person', 'ContactDetails', 'PasswordRecoveryCost'))){
+            if(($Amount = $tblSetting->getValue())){
+                if ($this->FieldValue['IsParent']) {
+                    $PaidContent = 'Hierfür erheben wir einen Unkostenbeitrag von&nbsp;'.$Amount.'&nbsp;€, der Ihnen bei
+                     der nächsten Abrechnung belastet wird.';
+                } else {
+                    $PaidContent = 'Hierfür erheben wir einen Unkostenbeitrag von&nbsp;'.$Amount.'&nbsp;€, der Deinen
+                     Eltern berechnet wird.';
+                }
+            }
+        }
+
         $Slice = new Slice();
+        if ($this->FieldValue['IsParent']) {
+            $Slice->addElement($this->getTextElement('Ihre neuen Zugangsdaten für die Schulsoftware 
+            {% if '.$this->FieldValue['ChildCount'].' == 1 %}
+                    Ihres Kindes
+                {% elseif '.$this->FieldValue['ChildCount'].' == 2 %}
+                    Ihrer Kinder
+                {% else %}
+                    Ihres Kindes / Ihrer Kinder
+            {% endif %}')->styleTextBold());
+            $Slice->addElement($this->getTextElement($this->FieldValue['FirstLine']));
+            $Slice->addElement($this->getTextElement('Wunschgemäß übersenden wir Ihnen Ihre neuen Zugangsdaten für
+             die Schulsoftware
+             {% if '.$this->FieldValue['ChildCount'].' == 1 %}
+                    Ihres Kindes.
+                {% elseif '.$this->FieldValue['ChildCount'].' == 2 %}
+                    Ihrer Kinder.
+                {% else %}
+                    Ihres Kindes / Ihrer Kinder.
+            {% endif %}'));
+        } else {
+            $Slice->addElement($this->getTextElement('Deine neuen Zugangsdaten zur Schulsoftware')->styleTextBold());
+            $Slice->addElement($this->getTextElement($this->FieldValue['FirstLine']));
+            $Slice->addElement($this->getTextElement('Wunschgemäß übersenden wir Dir deine neue Zugangsdaten zur
+             Schulsoftware.'));
+        }
+        // password block
+        $Slice->addElement((new Element())->setContent('&nbsp;')->stylePaddingTop('18px'));
+        $Slice->addSection($this->getInfoSection('Adresse:', $Live));
+        $Slice->addSection($this->getInfoSection('Benutzername:', $this->FieldValue['UserAccount']));
+        $Slice->addSection($this->getInfoSection('Passwort:', $this->FieldValue['Password']));
+
         if ($this->FieldValue['IsParent']) {
             $Slice->addSection((new Section())
                 ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    , '4%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('Ihre neuen Zugangsdaten zur Notenübersicht
-                    {% if '.$this->FieldValue['ChildCount'].' == 1 %}
-                        Ihres Kindes
-                    {% elseif '.$this->FieldValue['ChildCount'].' == 2 %}
-                        Ihrer Kinder
-                    {% else %}
-                        Ihres Kindes / Ihrer Kinder
-                    {% endif %}')
-                    ->styleTextBold()
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    , '4%'
-                ))
-                ->addElement((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleHeight('40px')
-                )
-                ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    , '4%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('
-                    {% if '.$this->FieldValue['Gender'].' == 1 %}
-                        Lieber
-                    {% elseif '.$this->FieldValue['Gender'].' == 2 %}
-                        Liebe
-                    {% else %}
-                        Liebe(r)
-                    {% endif %}'
-                    .'{% if "'.$this->FieldValue['PersonSalutation'].'" == "" %}
-                        Herr/Frau
-                    {% else %}
-                        '.$this->FieldValue["PersonSalutation"].' '.'
-                    {% endif %}'
-                        . $this->FieldValue['PersonTitle'].' '
-                        . $this->FieldValue['PersonLastName'].',')
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    , '4%'
-                )
-            )
-            ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    , '4%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('sollten Sie das Passwort vergessen, bestehen zwei Möglichkeiten, das Passwort zurückzusetzen:')
-                    ->stylePaddingTop('12px')
-                    ->styleAlignJustify()
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    , '4%'
-                )
-            )
-            ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    , '4%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('1. Wir setzen das Passwort auf das Initialpasswort zurück. Diese Möglichkeit ist für Sie kostenfrei.')
-                    ->stylePaddingTop(self::BLOCK_SPACE)
-                    ->styleAlignJustify()
-                    ->stylePaddingLeft('35px')
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    , '4%'
-                )
-            )
-            ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    , '4%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('2. Wir generieren neue Zugangsdaten für Sie und übersenden Ihnen diese. Hierfür erheben
-                    wir einen Unkostenbeitrag von 5 €, der Ihnen bei der nächsten Abrechnung belastet wird.')
-                    ->stylePaddingTop('5px')
-                    ->styleAlignJustify()
-                    ->stylePaddingLeft('35px')
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    , '4%'
-                )
-            )
-            ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    , '4%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('Wunschgemäß übersenden wir Ihnen Ihre neuen Zugangsdaten zur Einsicht der Noten
-                    {% if '.$this->FieldValue['ChildCount'].' == 1 %}
-                        Ihres Kindes.
-                    {% elseif '.$this->FieldValue['ChildCount'].' == 2 %}
-                        Ihrer Kinder.
-                    {% else %}
-                        Ihres Kindes / Ihrer Kinder.
-                    {% endif %}')
-                    ->stylePaddingTop(self::BLOCK_SPACE)
-                    ->styleAlignJustify()
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    , '4%'
-                )
-            )
-            ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    , '9%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('Adresse:')
-                    ->stylePaddingTop(self::BLOCK_SPACE)
-                    , '18%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent($Live)
-                    ->stylePaddingTop(self::BLOCK_SPACE)
-                    , '69%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    , '4%'
-                )
-            )
-            ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    , '9%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('Benutzername:')
-                    , '18%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent($this->FieldValue['UserAccount'])
-                    , '69%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    , '4%'
-                )
-            )
-            ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    , '9%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('Passwort:')
-                    ->stylePaddingTop()
-                    , '18%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent($this->FieldValue['Password'])
-                    ->stylePaddingTop()
-                    , '69%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    , '4%'
-                )
-            )
-            ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    , '4%'
-                )
-                ->addElementColumn((new Element())
                     ->setContent('Bitte ändern Sie das Initialpasswort und notieren Sie sich das neue Passwort hier:')
                     ->stylePaddingTop(self::BLOCK_SPACE)
-                    , '73%'
+                    , '79%'
                 )
                 ->addElementColumn((new Element())
                     ->setContent('&nbsp;')
                     ->stylePaddingTop(self::BLOCK_SPACE)
                     ->styleBorderBottom()
-                    , '19%'
+                    , '21%'
                 )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    , '4%'
-                )
-            )
-            ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    , '4%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('Hierfür erheben wir einen Unkostenbeitrag von 5 €, der Ihnen bei der nächsten Abrechnung belastet wird.')
-                    ->stylePaddingTop(self::BLOCK_SPACE)
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    , '4%'
-                )
-            )
-            ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    , '4%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('Bitte heben Sie sich dieses Schreiben gut auf.')
-                    ->styleTextBold()
-                    ->stylePaddingTop(self::BLOCK_SPACE)
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    , '4%'
-                )
-            )
-            ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    , '4%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('Für Rückfragen stehen wir Ihnen gern zur Verfügung.')
-                    ->stylePaddingTop(self::BLOCK_SPACE)
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    , '4%'
-                )
-            )
-            ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    , '4%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('Dieses Schreiben wurde maschinell erstellt und ist auch ohne Unterschrift rechtsgültig.')
-                    ->stylePaddingTop(self::BLOCK_SPACE)
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    , '4%'
-                )
-            )
-            ->styleHeight($Height);
+            );
         } else {
             $Slice->addSection((new Section())
                 ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    , '4%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('Deine neuen Zugangsdaten zur Notenübersicht')
-                    ->styleTextBold()
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    , '4%'
-                ))
-                ->addElement((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleHeight('40px')
-                )
-                ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    , '4%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('
-                    {% if '.$this->FieldValue['Gender'].' == 1 %}
-                        Lieber 
-                    {% elseif '.$this->FieldValue['Gender'].' == 2 %}
-                        Liebe 
-                    {% else %}
-                        Liebe(r) 
-                    {% endif %}'
-                    . $this->FieldValue['PersonFirstLastName'].',')
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    , '4%'
-                )
-            )
-            ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    , '4%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('solltest Du das Passwort vergessen, bestehen zwei Möglichkeiten, das Passwort zurückzusetzen:')
-                    ->stylePaddingTop('12px')
-                    ->styleAlignJustify()
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    , '4%'
-                )
-            )
-            ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    , '4%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('1. Wir setzen das Passwort auf das Initialpasswort zurück. Diese Möglichkeit ist für Deine Eltern kostenfrei.')
-                    ->stylePaddingTop(self::BLOCK_SPACE)
-                    ->styleAlignJustify()
-                    ->stylePaddingLeft('35px')
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    , '4%'
-                )
-            )
-            ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    , '4%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('2. Wir generieren neue Zugangsdaten für Dich und übersenden Dir diese. Hierfür erheben wir einen Unkostenbeitrag von 5 €, der Deinen Eltern berechnet wird.')
-                    ->stylePaddingTop('5px')
-                    ->styleAlignJustify()
-                    ->stylePaddingLeft('35px')
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    , '4%'
-                )
-            )
-            ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    , '4%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('Wunschgemäß übersenden wir Dir neue Zugangsdaten zur Einsicht Deiner Noten.')
-                    ->stylePaddingTop(self::BLOCK_SPACE)
-                    ->styleAlignJustify()
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    , '4%'
-                )
-            )
-            ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    , '9%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('Adresse:')
-                    ->stylePaddingTop(self::BLOCK_SPACE)
-                    , '18%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent($Live)
-                    ->stylePaddingTop(self::BLOCK_SPACE)
-                    , '69%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    , '4%'
-                )
-            )
-            ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    , '9%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('Benutzername:')
-                    , '18%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent($this->FieldValue['UserAccount'])
-                    , '69%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    , '4%'
-                )
-            )
-            ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    , '9%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('Passwort:')
-                    ->stylePaddingTop()
-                    , '18%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent($this->FieldValue['Password'])
-                    ->stylePaddingTop()
-                    , '69%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    , '4%'
-                )
-            )
-            ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    , '4%'
-                )
-                ->addElementColumn((new Element())
                     ->setContent('Bitte ändere das Initialpasswort und notiere das neue Passwort hier:')
                     ->stylePaddingTop(self::BLOCK_SPACE)
-                    , '61%'
+                    , '66%'
                 )
                 ->addElementColumn((new Element())
                     ->setContent('&nbsp;')
                     ->stylePaddingTop(self::BLOCK_SPACE)
                     ->styleBorderBottom()
-                    , '31%'
+                    , '34%'
                 )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    , '4%'
-                )
-            )
-            ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    , '4%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('Hierfür erheben wir einen Unkostenbeitrag von 5 €, der Deinen Eltern berechnet wird.')
-                    ->stylePaddingTop(self::BLOCK_SPACE)
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    , '4%'
-                )
-            )
-            ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    , '4%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('Bitte hebe dieses Schreiben gut auf.')
-                    ->styleTextBold()
-                    ->stylePaddingTop(self::BLOCK_SPACE)
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    , '4%'
-                )
-            )
-            ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    , '4%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('Falls Du Rückfragen oder Probleme mit der Anwendung hast, so wende Dich bitte an unser Sekretariat.')
-                    ->stylePaddingTop(self::BLOCK_SPACE)
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    , '4%'
-                )
-            )
-            ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    , '4%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('Dieses Schreiben wurde maschinell erstellt und ist auch ohne Unterschrift rechtsgültig.')
-                    ->stylePaddingTop(self::BLOCK_SPACE)
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    , '4%'
-                )
-            )
-            ->styleHeight($Height);
+            );
         }
+        // end block
+        if($PaidContent){
+            $Slice->addElement($this->getTextElement($PaidContent));
+        }
+
+        if ($this->FieldValue['IsParent']) {
+            $Slice->addElement($this->getTextElement('Bitte heben Sie dieses Schreiben gut auf.')->styleTextBold());
+            $Slice->addElement($this->getTextElement('Für Rückfragen stehen wir Ihnen gern zur Verfügung.'));
+        } else {
+            $Slice->addElement($this->getTextElement('Bitte hebe dieses Schreiben gut auf.')->styleTextBold());
+            $Slice->addElement($this->getTextElement('Für Rückfragen stehen wir Dir gern zur Verfügung.'));
+        }
+
+        $Slice->addElement($this->getTextElement('Dieses Schreiben wurde maschinell erstellt und ist auch ohne Unterschrift rechtsgültig.'));
+        $Slice->styleHeight($Height);
+
+        // Ränder
+        $Slice = (new Slice())->addSection((new Section())
+            ->addElementColumn((new Element())->setContent('&nbsp;'), self::BORDER)
+            ->addSliceColumn($Slice)
+            ->addElementColumn((new Element())->setContent('&nbsp;'), self::BORDER)
+        );
+
         return $Slice;
+    }
+
+    /**
+     * @param $Text
+     * @return Element
+     */
+    private function getTextElement($Text = '')
+    {
+
+        $Element = new Element();
+        $Element->setContent($Text)
+            ->stylePaddingTop(self::BLOCK_SPACE);
+        return $Element;
+    }
+
+    /**
+     * @param $Info
+     * @param $Value
+     * @return Section
+     */
+    private function getInfoSection($Info = '', $Value = '')
+    {
+
+        $Section = new Section();
+        $Section->addElementColumn((new Element())->setContent('&nbsp;'), '5%');
+        $Section->addElementColumn((new Element())->setContent($Info), '22%');
+        $Section->addElementColumn((new Element())->setContent($Value), '73%');
+        return $Section;
     }
 
     /**

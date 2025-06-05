@@ -124,7 +124,7 @@ class GradebookOverview extends AbstractDocument
      */
     public function getGradebookOverviewSlice(TblPerson $tblPerson, TblYear $tblYear, string $View): Slice
     {
-        if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))) {
+        if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYearAndDateWithLeaved($tblPerson, $tblYear))) {
             return Grade::useService()->getStudentOverviewDataByPerson($tblPerson, $tblYear, $tblStudentEducation, $View == 'Parent', true);
         }
 

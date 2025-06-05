@@ -11,6 +11,8 @@ use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblGroupCategory;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Service\Setup;
 use SPHERE\Application\People\Meta\Student\Student;
+use SPHERE\Application\Transfer\Education\Education;
+use SPHERE\Application\Transfer\Education\Service\Entity\TblImportMapping;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
@@ -460,6 +462,23 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getSubjectByName($Name);
+    }
+
+    /**
+     * @param string $Acronym
+     *
+     * @return bool|TblSubject
+     */
+    public function getSubjectByMappingAccronym($Acronym)
+    {
+        // mapping
+        $tblSubject = Education::useService()->getImportMappingValueBy(TblImportMapping::TYPE_SUBJECT_ACRONYM_TO_SUBJECT_ID, $Acronym);
+        // no mapping found
+        if (!$tblSubject) {
+            // search subject with extended acronym
+            $tblSubject = $this->getSubjectByVariantAcronym($Acronym);
+        }
+        return $tblSubject;
     }
 
     /**

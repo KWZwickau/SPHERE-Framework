@@ -6,6 +6,7 @@ use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblMinimumGradeCountLevelLink;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblMinimumGradeCountSubjectLink;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreRuleBehaviorSubject;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreRuleSubject;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreRuleSubjectDivisionCourse;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreTypeSubject;
@@ -54,6 +55,7 @@ class Setup  extends AbstractSetup
         $this->setTableScoreRuleConditionList($schema, $tblScoreRule, $tblScoreCondition);
         $this->setTableScoreRuleSubject($schema, $tblScoreRule);
         $this->setTableScoreRuleSubjectDivisionCourse($schema, $tblScoreRule);
+        $this->setTableScoreRuleBehaviorSubject($schema);
 
         // MinimumGradeCount
         $tblMinimumGradeCount = $this->setTableMinimumGradeCount($schema, $tblGradeType);
@@ -381,5 +383,18 @@ class Setup  extends AbstractSetup
         $this->createColumn($table, 'serviceTblPersonTeacher', self::FIELD_TYPE_BIGINT, true);
 
         $this->createIndex($table, array('tblGraduationTask', 'serviceTblPerson'), false);
+    }
+
+    private function setTableScoreRuleBehaviorSubject(Schema &$schema)
+    {
+        $table = $this->createTable($schema, 'tblGraduationScoreRuleBehaviorSubject');
+        $this->createColumn($table, 'serviceTblSchoolType', self::FIELD_TYPE_BIGINT);
+        $this->createColumn($table, 'Level', self::FIELD_TYPE_INTEGER);
+        $this->createColumn($table, 'serviceTblSubject', self::FIELD_TYPE_BIGINT, true);
+        $this->createColumn($table, 'Multiplier');
+
+        $this->createIndex($table, array(TblScoreRuleBehaviorSubject::ATTR_SERVICE_TBL_SCHOOL_TYPE), false);
+        $this->createIndex($table, array(TblScoreRuleBehaviorSubject::ATTR_SERVICE_TBL_SCHOOL_TYPE, TblScoreRuleBehaviorSubject::ATTR_LEVEL), false);
+        $this->createIndex($table, array(TblScoreRuleBehaviorSubject::ATTR_SERVICE_TBL_SCHOOL_TYPE, TblScoreRuleBehaviorSubject::ATTR_LEVEL, TblScoreRuleBehaviorSubject::ATTR_SERVICE_TBL_SUBJECT), false);
     }
 }
