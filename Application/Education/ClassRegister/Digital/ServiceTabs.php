@@ -596,10 +596,11 @@ abstract class ServiceTabs extends ServiceForgotten
                 $absenceLessons = ($excusedLessons + $unExcusedLessons) . ' (' . new Success($excusedLessons) . ', '
                     . new Danger($unExcusedLessons) . ')';
 
+                $name = new Bold($tblPerson->getLastFirstNameWithCallNameUnderline(true));
                 $studentTable[] = array(
                     'Number'        => ++$count,
-                    'Name'          => new Bold($tblPerson->getLastFirstNameWithCallNameUnderline()),
-                    'NameSecond'    => new Bold($tblPerson->getLastFirstNameWithCallNameUnderline()),
+                    'Name'          => $name,
+                    'NameSecond'    => $name,
                     'Picture'       => $PersonPicture,
                     'Info'          => $integration . $medicalRecord . $agreement,
                     'Gender'        => $Gender,
