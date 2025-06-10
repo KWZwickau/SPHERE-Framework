@@ -296,9 +296,21 @@ class LevelTen extends AbstractBlock
             }
 
             if ($tblSubject) {
+                $tblSubjectAlternativ = null;
+                // Spezialfall EN2
+                if ($tblSubject->getAcronym() == 'EN') {
+                    $tblSubjectAlternativ = Subject::useService()->getSubjectByAcronym('EN2');
+                }
+
                 if (!(isset($this->AdvancedCourses[$tblSubject->getId()])
                     || isset($this->BasicCourses[$tblSubject->getId()]))
                 ) {
+                    if ($tblSubjectAlternativ
+                        && (isset($this->AdvancedCourses[$tblSubjectAlternativ->getId()]) || isset($this->BasicCourses[$tblSubjectAlternativ->getId()]))
+                    ) {
+                        continue;
+                    }
+
                     $list[$tblSubject->getAcronym()] = $tblSubject;
                 }
             }
