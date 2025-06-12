@@ -382,6 +382,7 @@ class ApiPrepare extends Extension implements IApiInterface
     public function loadDiplomaAverage($PrepareStudentId, $Key, $Jn, $SchoolTypeShortName, $Data)
     {
         $calc = '';
+        $gradeList = [];
         if (isset($Data[$PrepareStudentId])) {
             if (is_numeric($Jn)) {
                 $gradeList['JN'] = intval($Jn);
