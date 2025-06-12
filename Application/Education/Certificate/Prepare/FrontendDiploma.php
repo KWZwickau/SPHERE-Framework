@@ -642,9 +642,9 @@ abstract class FrontendDiploma extends Extension implements IFrontendInterface
 
                     $pipeLineList = array();
                     if (!$isApproved) {
-                        $pipeLineList[] = ApiPrepare::pipelineLoadDiplomaAverage($tblPrepareStudent->getId(), 'Average', $jn, $SchoolTypeShortName);
+                        $pipeLineList[] = ApiPrepare::pipelineLoadDiplomaAverage($tblPrepareStudent->getId(), 'Average', $gradeList['JN'] ?? null, $SchoolTypeShortName);
                         if (!isset($gradeList['EN'])) {
-                            $pipeLineList[] = ApiPrepare::pipelineLoadDiplomaAverage($tblPrepareStudent->getId(), 'EN', $jn, $SchoolTypeShortName);
+                            $pipeLineList[] = ApiPrepare::pipelineLoadDiplomaAverage($tblPrepareStudent->getId(), 'EN', $gradeList['JN'] ?? null, $SchoolTypeShortName);
                         }
                     }
 
