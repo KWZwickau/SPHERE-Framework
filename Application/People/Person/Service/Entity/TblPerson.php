@@ -1,12 +1,14 @@
 <?php
 namespace SPHERE\Application\People\Person\Service\Entity;
 
+use DateTime;
 use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Address\Service\Entity\TblAddress;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\People\Meta\Child\Child;
 use SPHERE\Application\People\Meta\Child\Service\Entity\TblChild;
 use SPHERE\Application\People\Meta\Common\Common;
@@ -15,6 +17,9 @@ use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudent;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\Setting\Consumer\Consumer;
+use SPHERE\Common\Frontend\Icon\Repository\PersonKey;
+use SPHERE\Common\Frontend\Icon\Repository\PersonParent;
+use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Frontend\Text\Repository\Underline;
 use SPHERE\System\Database\Fitting\Element;
 
@@ -253,9 +258,16 @@ class TblPerson extends Element
     }
 
     /**
+     * @param bool $showAgeIcon
+     *
      * @return string
      */
-    public function getLastFirstNameWithCallNameUnderline(): string
+    public function getLastFirstNameWithCallNameUnderline(bool $showAgeIcon = false): string
+    {
+       return $this->getLastFirstNameWithCallNameUnderlineCode() . ($showAgeIcon ? $this->getAgeIcon() : '');
+    }
+
+    private function getLastFirstNameWithCallNameUnderlineCode(): string
     {
         if (preg_match('![a-zA-Z]!s', $this->FirstName)) {
             $isDisplayCallNameAndLastName = ($tblSetting = Consumer::useService()->getSetting('People', 'Person', 'Student', 'DisplayCallNameAndLastName'))
@@ -274,6 +286,33 @@ class TblPerson extends Element
         }
 
         return trim($this->LastName);
+    }
+
+    /**
+     * @return string
+     */
+    public function getAgeIcon(): string
+    {
+        if (($tblSetting = Consumer::useService()->getSetting('People', 'Person', 'Student', 'ShowUnderage'))
+            && $tblSetting->getValue()
+            && ($birthday = $this->getBirthday())
+        ) {
+            $birthday = new DateTime($birthday);
+            $today = new DateTime('today');
+            $age = $birthday->diff($today)->y;
+
+            $isTechnical = ($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndDate($this))
+                && ($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())
+                && $tblSchoolType->isTechnical();
+
+            if ($isTechnical && $age < 18) {
+                return '&nbsp;&nbsp;' . new ToolTip(new PersonParent(), 'minderjährig');
+            } elseif (!$isTechnical && $age >= 18) {
+                return '&nbsp;&nbsp;' . new ToolTip(new PersonKey(), 'volljährig');
+            }
+        }
+
+        return '';
     }
 
     /**

@@ -287,7 +287,7 @@ class FrontendTabs extends FrontendSelectDivisionCourse
             && ($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))
             && ($tblYear = $tblDivisionCourse->getServiceTblYear())
         ) {
-            $PersonPanel = new Panel('Person', $tblPerson->getLastFirstNameWithCallNameUnderline(), Panel::PANEL_TYPE_INFO);
+            $PersonPanel = new Panel('Person', $tblPerson->getLastFirstNameWithCallNameUnderline(true), Panel::PANEL_TYPE_INFO);
             $DivisionPanel = new Panel('Kurse', DivisionCourse::useService()->getCurrentMainCoursesByPersonAndYear($tblPerson, $tblYear), Panel::PANEL_TYPE_INFO);
             $Content = (new Well(Student::useFrontend()->frontendIntegration($tblPerson)));
         } else {

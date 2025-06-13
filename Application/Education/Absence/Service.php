@@ -586,7 +586,7 @@ class Service extends AbstractService
             'Type' => $tblSchoolType ? $tblSchoolType->getName() : '',
             'TypeExcel' => $tblSchoolType ? $tblSchoolType->getShortName() : '',
             'Division' => $tblDivisionCourse ? $tblDivisionCourse->getName() : '',
-            'Person' => $tblPerson->getLastFirstNameWithCallNameUnderline(),
+            'Person' => $tblPerson->getLastFirstNameWithCallNameUnderline(true),
             'PersonExcel' => $tblPerson->getLastFirstName(),
             'DateSpan' => $tblAbsence->getDateSpan(),
             'DateSort' => $tblAbsence->getFromDate('Y.m.d'),

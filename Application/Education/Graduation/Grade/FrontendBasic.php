@@ -223,6 +223,7 @@ abstract class FrontendBasic extends Extension implements IFrontendInterface
      * @param array $pictureList
      * @param array $integrationList
      * @param array $courseList
+     * @param bool $isInactive
      *
      * @return array
      */
@@ -231,7 +232,7 @@ abstract class FrontendBasic extends Extension implements IFrontendInterface
     {
         $result['Number'] = $this->getTableColumnBody($count);
         $result['Person'] = $this->getTableColumnBody(
-            $isInactive ? new Strikethrough($tblPerson->getLastFirstNameWithCallNameUnderline()) : $tblPerson->getLastFirstNameWithCallNameUnderline()
+            $isInactive ? new Strikethrough($tblPerson->getLastFirstNameWithCallNameUnderline(true)) : $tblPerson->getLastFirstNameWithCallNameUnderline(true)
         );
 
         if ($hasPicture) {
