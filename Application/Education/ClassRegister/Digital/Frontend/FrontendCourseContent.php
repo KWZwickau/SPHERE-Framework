@@ -541,8 +541,8 @@ class FrontendCourseContent extends Extension implements IFrontendInterface
                 {
                     $dataList[] = new PullLeft($tblDivisionCourseMember->isInActive() ? new Strikethrough(++$count) : ++$count)
                         . new PullRight($tblDivisionCourseMember->isInActive()
-                            ? new Strikethrough($tblPerson->getLastFirstNameWithCallNameUnderline())
-                            : $tblPerson->getLastFirstNameWithCallNameUnderline()
+                            ? new Strikethrough($tblPerson->getLastFirstNameWithCallNameUnderline(true))
+                            : $tblPerson->getLastFirstNameWithCallNameUnderline(true)
                         );
                 }
             }

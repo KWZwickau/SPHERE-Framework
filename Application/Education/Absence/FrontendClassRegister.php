@@ -111,7 +111,7 @@ class FrontendClassRegister extends Extension implements IFrontendInterface
                                 new LayoutColumn(array(
                                     new Panel(
                                         'Schüler',
-                                        $tblPerson->getLastFirstNameWithCallNameUnderline(),
+                                        $tblPerson->getLastFirstNameWithCallNameUnderline(true),
                                         Panel::PANEL_TYPE_INFO
                                     )
                                 ), 6),
