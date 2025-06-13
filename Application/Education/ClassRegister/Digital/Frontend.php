@@ -6,6 +6,7 @@ use DateInterval;
 use DateTime;
 use SPHERE\Application\Api\Education\ClassRegister\ApiAbsence;
 use SPHERE\Application\Api\Education\ClassRegister\ApiDigital;
+use SPHERE\Application\Api\Education\ClassRegister\ApiForgotten;
 use SPHERE\Application\Education\Absence\Absence;
 use SPHERE\Application\Education\ClassRegister\Digital\Frontend\FrontendTabs;
 use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblFullTimeContent;
@@ -64,7 +65,6 @@ use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
-use SPHERE\System\Extension\Repository\Debugger;
 
 class Frontend extends FrontendTabs
 {
@@ -120,9 +120,20 @@ class Frontend extends FrontendTabs
         $Date = ($DateString == 'today' ? (new DateTime('today'))->format('d.m.Y') : $DateString);
 
         $buttons = (new Primary(
-            new Plus() . ' Thema/Hausaufgaben hinzufügen',
-            ApiDigital::getEndpoint()
+            new Plus() . ' Thema / HA hinzufügen',
+            ApiDigital::getEndpoint(),
+            null,
+            [],
+            'Thema / Hausaufgaben hinzufügen'
         ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenCreateLessonContentModal($DivisionCourseId, $Date));
+
+        $buttons .= (new Primary(
+            new Plus() . ' Vergessene AM / HA hinzufügen',
+            ApiForgotten::getEndpoint(),
+            null,
+            [],
+            ' Vergessene Arbeitsmittel / Hausaufgaben hinzufügen'
+        ))->ajaxPipelineOnClick(ApiForgotten::pipelineOpenCreateForgottenModal($DivisionCourseId, $Date));
 
         $buttons .= (new Primary(
             new Plus() . ' Ganztägig hinzufügen',
@@ -133,7 +144,7 @@ class Frontend extends FrontendTabs
             $buttons .= (new Primary(
                 new Plus() . ' Fehlzeit hinzufügen',
                 ApiAbsence::getEndpoint()
-            ))->ajaxPipelineOnClick(ApiAbsence::pipelineOpenCreateAbsenceModal(null, $DivisionCourseId, $Date));
+            ))->ajaxPipelineOnClick(ApiAbsence::pipelineOpenCreateAbsenceModal(null, $DivisionCourseId, $Date, true));
 
             $content = $this->getDayViewContent($DateString, $tblDivisionCourse);
             $link = (new Link('Wochenansicht', ApiDigital::getEndpoint(), null, array(), false, null, AbstractLink::TYPE_WHITE_LINK))
@@ -545,13 +556,22 @@ class Frontend extends FrontendTabs
     {
         $isEditAllowed = Digital::useService()->getIsLessonContentEditAllowed($tblLessonContent);
         $lessonContentId = $tblLessonContent->getId();
+        $contentHomework = $tblLessonContent->getHomework()
+            . ($tblLessonContent->getDueDateHomework() ? ' (Fälligkeit: ' . $tblLessonContent->getDueDateHomework() . ')' : '');
         $bodyList[$index] = array(
             'Lesson' => $isEditAllowed ? $this->getLessonsEditLink(new Bold(new Center($lesson)), $lessonContentId, $lesson) : new Bold(new Center($lesson)),
             'Subject' => $isEditAllowed ? $this->getLessonsEditLink($tblLessonContent->getDisplaySubject(true), $lessonContentId, $lesson) : $tblLessonContent->getDisplaySubject(true),
             'Room' => $isEditAllowed ? $this->getLessonsEditLink($tblLessonContent->getRoom(), $lessonContentId, $lesson) : $tblLessonContent->getRoom(),
             'Teacher' => $isEditAllowed ? $this->getLessonsEditLink($tblLessonContent->getTeacherString(), $lessonContentId, $lesson) : $tblLessonContent->getTeacherString(),
             'Content' => $isEditAllowed ? $this->getLessonsEditLink($tblLessonContent->getContent(), $lessonContentId, $lesson) : $tblLessonContent->getContent(),
-            'Homework' => $isEditAllowed ?$this->getLessonsEditLink($tblLessonContent->getHomework(), $lessonContentId, $lesson) : $tblLessonContent->getHomework(),
+            'Homework' => $isEditAllowed ?$this->getLessonsEditLink($contentHomework
+                . $this->getDueDateHomeworkLinks(
+                    ($tblDivisionCourse = $tblLessonContent->getServiceTblDivisionCourse()) ? $tblDivisionCourse->getId() : null,
+                    ($tblSubstituteSubject = $tblLessonContent->getServiceTblSubstituteSubject())
+                        ? $tblSubstituteSubject->getId()
+                        : (($tblSubject = $tblLessonContent->getServiceTblSubject()) ? $tblSubject->getId() : null),
+                    new DateTime($tblLessonContent->getDate())
+                ), $lessonContentId, $lesson) : $contentHomework,
 
             'Absence' => isset($absenceContent[$lesson]) ? implode(' - ', $absenceContent[$lesson]) : ''
         );
@@ -574,16 +594,86 @@ class Frontend extends FrontendTabs
             $DivisionCourseId, $date->format('d.m.Y'), $lesson == 0 ? -1 : $lesson, $SubjectId
         ));
 
+        // Hausaufgaben
+        if (($homework = $this->getDueDateHomeworkLinks($DivisionCourseId, $SubjectId, $date))) {
+
+        } else {
+            $homework = (new Link(
+                '<div style="height: 22px"></div>',
+                ApiForgotten::getEndpoint(),
+                null,
+                array(),
+                $lesson . '. Vergessene Arbeitsmittel/Hausaufgaben hinzufügen',
+            ))->ajaxPipelineOnClick(ApiForgotten::pipelineOpenCreateForgottenModal(
+                $DivisionCourseId, $date->format('d.m.Y'), null, $SubjectId
+            ));
+        }
+
+        // Fehlzeiten
+        if (isset($absenceContent[$lesson])) {
+            $absence = implode(' - ', $absenceContent[$lesson]);
+        } else {
+            $absence = (new Link(
+                '<div style="height: 22px"></div>',
+                ApiAbsence::getEndpoint(),
+                null,
+                array(),
+                $lesson . '. Fehlzeit hinzufügen',
+            ))->ajaxPipelineOnClick(ApiAbsence::pipelineOpenCreateAbsenceModal(
+                null, $DivisionCourseId, $date->format('d.m.Y'), true, $lesson
+            ));
+        }
+
         $bodyList[$index] = array(
             'Lesson' => $linkLesson,
             'Subject' => $this->getLessonsNewLink($subject, $date, $lesson, $DivisionCourseId, $SubjectId),
             'Room' => $this->getLessonsNewLink($room, $date, $lesson, $DivisionCourseId, $SubjectId),
             'Teacher' => $this->getLessonsNewLink('', $date, $lesson, $DivisionCourseId, $SubjectId),
             'Content' => $this->getLessonsNewLink('', $date, $lesson, $DivisionCourseId, $SubjectId),
-            'Homework' => $this->getLessonsNewLink('', $date, $lesson, $DivisionCourseId, $SubjectId),
+            'Homework' => $homework,
 
-            'Absence' => isset($absenceContent[$lesson]) ? implode(' - ', $absenceContent[$lesson]) : ''
+            'Absence' => $absence,
         );
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $SubjectId
+     * @param DateTime $date
+     *
+     * @return string
+     */
+    private function getDueDateHomeworkLinks($DivisionCourseId, $SubjectId, DateTime $date): string
+    {
+        $homework = '';
+        if ($SubjectId
+            && ($tblSubject = Subject::useService()->getSubjectById($SubjectId))
+            && ($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))
+            && ($dueDateHomeworkList = Digital::useService()->getDueDateHomeworkListBySubjectAndExactDueDate($tblDivisionCourse, $tblSubject, $date))
+        ) {
+            foreach ($dueDateHomeworkList as $dueDateHomework) {
+                // vergessen bearbeiten
+                if (($tblLessonContent = Digital::useService()->getLessonContentById($dueDateHomework['Id']))
+                    && ($tblForgotten = Digital::useService()->getForgottenByHomeworkAndDate($tblLessonContent, $date))
+                ) {
+                    $pipeline = ApiForgotten::pipelineOpenEditForgottenModal($tblForgotten->getId());
+                } else {
+                    // vergessen neu hinzufügen
+                    $pipeline = ApiForgotten::pipelineOpenCreateForgottenModal($DivisionCourseId, $date->format('d.m.Y'), null, $SubjectId, $dueDateHomework['Id']);
+                }
+
+                $homework .= new Container((new Link(
+                    'Kontrolle HA: ' . $dueDateHomework['Homework'],
+                    ApiForgotten::getEndpoint(),
+                    null,
+                    array(),
+                    'Vergessene Arbeitsmittel/Hausaufgaben ' . ($tblForgotten ? 'bearbeiten' : 'hinzufügen')
+                ))->ajaxPipelineOnClick($pipeline));
+            }
+            $homework = new PullRight($homework);
+        }
+
+        return $homework;
     }
 
     private function setDayViewOnlyContentBodyList(array &$bodyList, array $absenceContent, int $lesson, int $index, string $content)
@@ -1033,6 +1123,7 @@ class Frontend extends FrontendTabs
             $Global->POST['Data']['serviceTblPerson'] = ($tblPerson = $tblLessonContent->getServiceTblPerson()) ? $tblPerson->getId() : 0;
             $Global->POST['Data']['Content'] = $tblLessonContent->getContent(false);
             $Global->POST['Data']['Homework'] = $tblLessonContent->getHomework();
+            $Global->POST['Data']['DueDateHomework'] = $tblLessonContent->getDueDateHomework() ?: '';
             $Global->POST['Data']['Room'] = $tblLessonContent->getRoom();
 
             $Global->savePost();
@@ -1041,6 +1132,8 @@ class Frontend extends FrontendTabs
             if ($tblSubject && !$tblSubject->getIsActive()) {
                 $tblSubjectList[] = $tblSubject;
             }
+            // Datum
+            $Date = $tblLessonContent->getDate();
         } elseif ($Date || $Lesson) {
             // hinzufügen mit Startwerten
             $Global = $this->getGlobal();
@@ -1123,9 +1216,16 @@ class Frontend extends FrontendTabs
             ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenDeleteLessonContentModal($LessonContentId));
         }
 
+        // !beim Ändern des Datums wird zwar die Pipeline getriggert, allerdings wird das Datum nicht mit übertragen → und es alle HA angezeigt unabhängig von der Fälligkeit
+        $pipeLineLoadDueDateHomeworkContent = ApiForgotten::pipelineLoadDueDateHomeworkContent($tblDivisionCourse->getId(), $tblSubject ? $tblSubject->getId() : null);
+
         $formRowList[] = new FormRow(array(
             new FormColumn(
-                (new DatePicker('Data[Date]', '', 'Datum', new Calendar()))->setRequired()
+                (new DatePicker('Data[Date]', '', 'Datum', new Calendar()))
+                    ->setRequired()
+                    ->ajaxPipelineOnChange(
+                        $pipeLineLoadDueDateHomeworkContent
+                    )
                 , 6),
             new FormColumn(
                 (new SelectBox('Data[Lesson]', 'Unterrichtseinheit', array('{{ Name }}' => $lessons)))->setRequired()
@@ -1134,11 +1234,19 @@ class Frontend extends FrontendTabs
         $formRowList[] = new FormRow(array(
             new FormColumn(
                 (new SelectBox('Data[serviceTblSubject]', 'Fach', array('{{ Acronym }} - {{ Name }}' => $tblSubjectList)))
-                    ->ajaxPipelineOnChange(ApiDigital::pipelineLoadLessonContentLinkPanel($tblDivisionCourse->getId(), $tblSubject ? $tblSubject->getId() : null
+                    ->ajaxPipelineOnChange(array(
+                        ApiDigital::pipelineLoadLessonContentLinkPanel($tblDivisionCourse->getId(), $tblSubject ? $tblSubject->getId() : null),
+                        $pipeLineLoadDueDateHomeworkContent
                     ))
-                , 6),
+                    ->ajaxPipelineOnChange(
+                        $pipeLineLoadDueDateHomeworkContent
+                    )
+            , 6),
             new FormColumn(
-                new SelectBox('Data[serviceTblSubstituteSubject]', 'Vertretungsfach / zusätzliches Fach', array('{{ Acronym }} - {{ Name }}' => $tblSubjectList))
+                (new SelectBox('Data[serviceTblSubstituteSubject]', 'Vertretungsfach / zusätzliches Fach', array('{{ Acronym }} - {{ Name }}' => $tblSubjectList)))
+                    ->ajaxPipelineOnChange(
+                        $pipeLineLoadDueDateHomeworkContent
+                    )
                 , 6),
 //                    new FormColumn(
 //                        new SelectBox('Data[serviceTblPerson]', 'Lehrer', array('{{ FullName }}' => $tblTeacherList))
@@ -1170,7 +1278,13 @@ class Frontend extends FrontendTabs
         $formRowList[] = new FormRow(array(
             new FormColumn(
                 new TextField('Data[Homework]', 'Hausaufgaben', 'Hausaufgaben', new Home())
-            ),
+            , 9),
+            new FormColumn(
+                new DatePicker('Data[DueDateHomework]', '', 'HA Fälligkeit', new Calendar())
+            , 3),
+        ));
+        $formRowList[] = new FormRow(new FormColumn(
+           ApiForgotten::receiverBlock('', 'DueDateHomeworkContent')
         ));
         $formRowList[] = new FormRow(array(
             new FormColumn(

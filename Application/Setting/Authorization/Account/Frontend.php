@@ -458,32 +458,23 @@ class Frontend extends Extension implements IFrontendInterface
             $MaxString = $MaxString - strlen($tblConsumer->getAcronym().'-');
         }
         // Username Panel
+        $AccountNameField = (new TextField('Account[Name]', 'Benutzername (max. '.$MaxString.' Zeichen)', 'Benutzername', new Person()))
+            ->setPrefixValue($tblConsumer->getAcronym());
+        $PasswordChanceWarning = '';
         if ($tblAccount) {
-            $UsernamePanel = new Panel(new PersonKey().' Benutzerkonto', array(
-                (new TextField('Account[Name]', 'Benutzername (max. '.$MaxString.' Zeichen)', 'Benutzername',
-                    new Person()))
-                    ->setPrefixValue($tblConsumer->getAcronym())->setDisabled(),
-                new Danger('Die Passwort-Felder nur ausfüllen wenn das Passwort dieses Benutzers geändert werden soll'),
-                new PasswordField(
-                    'Account[Password]', 'Passwort (min. 8 Zeichen)', 'Passwort', new Lock()),
-                new PasswordField(
-                    'Account[PasswordSafety]', 'Passwort wiederholen', 'Passwort wiederholen',
-                    new Repeat()
-                ),
-            ), Panel::PANEL_TYPE_INFO);
-        } else {
-            $UsernamePanel = new Panel(new PersonKey().' Benutzerkonto', array(
-                (new TextField('Account[Name]', 'Benutzername (max. '.$MaxString.' Zeichen)', 'Benutzername',
-                    new Person()))
-                    ->setPrefixValue($tblConsumer->getAcronym()),
-                new PasswordField(
-                    'Account[Password]', 'Passwort (min. 8 Zeichen)', 'Passwort', new Lock()),
-                new PasswordField(
-                    'Account[PasswordSafety]', 'Passwort wiederholen', 'Passwort wiederholen',
-                    new Repeat()
-                ),
-            ), Panel::PANEL_TYPE_INFO);
+            $AccountNameField->setDisabled();
+            $PasswordChanceWarning = new Danger('Die Passwort-Felder nur ausfüllen wenn das Passwort dieses Benutzers geändert werden soll');
         }
+        $PanelContentList = array();
+        $PanelContentList[] = $AccountNameField;
+        if($PasswordChanceWarning){
+            $PanelContentList[] = $PasswordChanceWarning;
+        } else {
+
+        }
+        $PanelContentList[] = (new PasswordField('Account[Password]', 'Passwort (min. 8 Zeichen)', 'Passwort', new Lock()))->setShow();
+        $PanelContentList[] = (new PasswordField('Account[PasswordSafety]', 'Passwort wiederholen', 'Passwort wiederholen', new Repeat()))->setShow();
+        $UsernamePanel = new Panel(new PersonKey().' Benutzerkonto', $PanelContentList, Panel::PANEL_TYPE_INFO);
 
         return new Form(array(
             new FormGroup(array(
@@ -661,22 +652,22 @@ class Frontend extends Extension implements IFrontendInterface
                     $tblAuthorizationAll = array_filter(( $tblAuthorizationAll ));
                     $Content = array_merge($Content, $tblAuthorizationAll);
                 }
-                // ist ein UCS Mandant?
-                $IsUCSMandant = false;
+                // ist ein DLLP Mandant?
+                $IsDLLPMandant = false;
                 if(($tblConsumer = Consumer::useService()->getConsumerBySession())){
-                    if(Consumer::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_UCS)){
-                        $IsUCSMandant = true;
+                    if(Consumer::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_DLLP)){
+                        $IsDLLPMandant = true;
                     }
                 }
-                $UcsRemark = '';
-                if($IsUCSMandant){
-                    $UcsRemark = new WellReadOnly('Nach dem Löschen des Accounts in der Schulsoftware wird dieser auch über die UCS Schnittstelle aus dem DLLP Projekt gelöscht.');
+                $DLLPRemark = '';
+                if($IsDLLPMandant){
+                    $DLLPRemark = new WellReadOnly('Nach dem Löschen des Accounts in der Schulsoftware wird dieser auch über die DLLP Schnittstelle aus dem DLLP Projekt gelöscht.');
                 }
 
                 $Stage->setContent(
                     new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(array(
                         new Panel(new PersonKey().' Benutzerkonto', $Content, Panel::PANEL_TYPE_SUCCESS),
-                        new Panel(new Question().' Dieses Benutzerkonto wirklich löschen?', $UcsRemark,
+                        new Panel(new Question().' Dieses Benutzerkonto wirklich löschen?', $DLLPRemark,
                             Panel::PANEL_TYPE_DANGER,
                             new Standard(
                                 'Ja', '/Setting/Authorization/Account/Destroy', new Ok(),

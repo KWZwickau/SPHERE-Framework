@@ -798,6 +798,14 @@ abstract class FrontendTask extends FrontendStudentOverview
                                 $tblPrepareAdditionalGrade->getGrade(),
                                 DivisionCourse::useService()->getIsCourseSystemByPersonAndYear($tblPerson, $tblYear)
                             );
+
+                            if (($gradeValue = Grade::useService()->getGradeNumberValue($tblPrepareAdditionalGrade->getGrade())) !== null) {
+                                $sum += $gradeValue;
+                                $countGrades++;
+
+                                $subjectListSum[$tblSubject->getId()] += $gradeValue;
+                                $subjectListGradesCount[$tblSubject->getId()]++;
+                            }
                         // Stichtagsnote anzeigen
                         } else {
                             $gradeValue = null;

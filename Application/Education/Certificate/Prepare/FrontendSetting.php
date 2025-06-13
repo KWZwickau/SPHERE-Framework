@@ -10,6 +10,7 @@ use SPHERE\Application\Education\Absence\Absence;
 use SPHERE\Application\Education\Absence\Service\Entity\TblAbsence;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCertificate;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareStudent;
+use SPHERE\Application\Education\ClassRegister\Digital\Digital;
 use SPHERE\Application\Education\Graduation\Grade\Grade;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblGradeType;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTaskGrade;
@@ -145,10 +146,15 @@ abstract class FrontendSetting extends FrontendSelect
                 'Number' => '#',
                 'Name' => 'Name',
                 'Course' => 'Bildungsgang',
+                'Forgotten' => 'Vergessene Arbeitsmittel/ Hausaufgaben',
                 'Grades' => 'Einzelnoten in ' . ($tblCurrentGradeType ? $tblCurrentGradeType->getName() : ''),
                 'Average' => '&#216;',
                 'Data' => 'Zensur'
             );
+
+            if (!$tblCurrentGradeType || $tblCurrentGradeType->getName() != 'Ordnung') {
+                unset($columnTable['Forgotten']);
+            }
 
             $selectListWithTrend[-1] = '';
             for ($i = 1; $i < 5; $i++) {
@@ -175,6 +181,10 @@ abstract class FrontendSetting extends FrontendSelect
                     $studentTable[$tblPerson->getId()] = $this->getStudentBasicInformation($tblPerson, $tblYear, $tblPrepareStudent ?: null, $countPerson);
 
                     if ($tblCurrentGradeType) {
+                        if ($tblCurrentGradeType->getName() == 'Ordnung') {
+                            $studentTable[$tblPerson->getId()]['Forgotten'] = Digital::useService()->getForgottenDisplayByPersonAndYear($tblPerson, $tblYear);
+                        }
+
                         $subjectGradeList = array();
                         $gradeList = array();
                         $gradeListString = '';

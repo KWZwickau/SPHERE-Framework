@@ -22,7 +22,7 @@ use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Window\Stage;
 
-class FrontendSelectDivisionCourse extends FrontendCourseContent
+class FrontendSelectDivisionCourse extends FrontendForgotten
 {
     /**
      * @return Stage
@@ -211,11 +211,16 @@ class FrontendSelectDivisionCourse extends FrontendCourseContent
         } elseif ($yearFilterList) {
             foreach ($yearFilterList as $tblYear) {
                 if (($tblDivisionCourseListDivision = DivisionCourse::useService()->getDivisionCourseListBy($tblYear, TblDivisionCourseType::TYPE_DIVISION))) {
-                    $tblDivisionCourseList = $tblDivisionCourseListDivision;
+                    foreach($tblDivisionCourseListDivision as $tblDivisionCourse) {
+                        $tblDivisionCourseList[] = $tblDivisionCourse;
+                    }
                 }
                 if (($tblDivisionCourseListCoreGroup = DivisionCourse::useService()->getDivisionCourseListBy($tblYear,
                     TblDivisionCourseType::TYPE_CORE_GROUP))) {
-                    $tblDivisionCourseList = array_merge($tblDivisionCourseList, $tblDivisionCourseListCoreGroup);
+                    foreach($tblDivisionCourseListCoreGroup as $tblDivisionGroup) {
+                        $tblDivisionCourseList[] = $tblDivisionGroup;
+                    }
+
                 }
             }
         }

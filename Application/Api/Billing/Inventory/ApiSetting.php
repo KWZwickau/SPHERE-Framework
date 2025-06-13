@@ -262,8 +262,12 @@ class ApiSetting extends Extension implements IApiInterface
 
         switch($Category){
             case TblSetting::CATEGORY_REGULAR:
-                $IsSepaAccountNeed = (isset($Setting[TblSetting::IDENT_INVOICE_DELETE]) ? true : false);
-                Setting::useService()->createSetting(TblSetting::IDENT_INVOICE_DELETE, $IsSepaAccountNeed);
+                $IsInvoiceDelete = (isset($Setting[TblSetting::IDENT_INVOICE_DELETE]) ? true : false);
+                Setting::useService()->createSetting(TblSetting::IDENT_INVOICE_DELETE, $IsInvoiceDelete);
+                $isDebtorExtendedView = (isset($Setting[TblSetting::IDENT_DEBTOR_EXTENDED_VIEW]) ? true : false);
+                Setting::useService()->createSetting(TblSetting::IDENT_DEBTOR_EXTENDED_VIEW, $isDebtorExtendedView);
+                $isCauserExtendedView = (isset($Setting[TblSetting::IDENT_CAUSER_EXTENDED_VIEW]) ? true : false);
+                Setting::useService()->createSetting(TblSetting::IDENT_CAUSER_EXTENDED_VIEW, $isCauserExtendedView);
             break;
             case TblSetting::CATEGORY_SEPA:
                 $IsSepaAccountNeed = (isset($Setting[TblSetting::IDENT_IS_SEPA]) ? true : false);

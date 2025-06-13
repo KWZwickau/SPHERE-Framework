@@ -75,6 +75,17 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage('Mein Benutzerkonto', 'Passwort ändern');
         $Stage->addButton(new Standard('Zurück', '/Setting/MyAccount', new ChevronLeft()));
         $Receiver = ApiMyAccount::receiverComparePassword();
+        $PasswordField = (new PasswordField('CredentialLock', 'Neues Passwort',
+            'Neues Passwort',
+            new Lock()))->setRequired()
+            ->ajaxPipelineOnKeyUp(ApiMyAccount::pipelineComparePassword($Receiver))
+            ->setShow();
+        $PasswordCompareField = (new PasswordField('CredentialLockSafety', 'Passwort wiederholen',
+            'Passwort wiederholen',
+            new Repeat()))->setRequired()
+            ->ajaxPipelineOnKeyUp(ApiMyAccount::pipelineComparePassword($Receiver))
+            ->setShow();
+
         $Stage->setContent(
             new Layout(new LayoutGroup(new LayoutRow(array(
                 new LayoutColumn(
@@ -84,17 +95,8 @@ class Frontend extends Extension implements IFrontendInterface
                                 new FormRow(array(
                                     new FormColumn(
                                         new Panel('Passwort', array(
-                                            (new PasswordField('CredentialLock', 'Neues Passwort',
-                                                'Neues Passwort'
-//                                                    . new Small(new Warning('(Das Passwort muss mindestens 8 Zeichen lang sein.)'))
-                                                ,
-                                                new Lock()))->setRequired()
-                                                ->setAutoFocus()
-                                                ->ajaxPipelineOnKeyUp(ApiMyAccount::pipelineComparePassword($Receiver)),
-                                            (new PasswordField('CredentialLockSafety', 'Passwort wiederholen',
-                                                'Passwort wiederholen',
-                                                new Repeat()))->setRequired()
-                                                ->ajaxPipelineOnKeyUp(ApiMyAccount::pipelineComparePassword($Receiver))
+                                            $PasswordField,
+                                            $PasswordCompareField
                                         ), Panel::PANEL_TYPE_INFO)
                                     ),
                                 ))
@@ -123,18 +125,18 @@ class Frontend extends Extension implements IFrontendInterface
                 $item['Name'] = $tblConsumer->getName();
                 $item['Alias'] = $tblConsumer->getAlias();
                 $item['Kamenz'] = '';
-                $item['UCS'] = '';
+                $item['DLLP'] = '';
                 $item['Region'] = $tblConsumer->getType();
                 // Kamenz
                 $tblRole = Access::useService()->getRoleByName('Auswertung: Kamenz-Statistik');
                 if(Access::useService()->getRoleConsumerBy($tblRole, $tblConsumer)){
                     $item['Kamenz'] = 'Ja';
                 }
-                // UCS
-                if(($tblConsumerLogin = Consumer::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_UCS))){
-                    $item['UCS'] = 'API Verfügbar ';
+                // DLLP
+                if(($tblConsumerLogin = Consumer::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_DLLP))){
+                    $item['DLLP'] = 'API Verfügbar ';
                     if($tblConsumerLogin->getIsActiveAPI()){
-                        $item['UCS'] .= new Muted(new Small('Aktiv'));
+                        $item['DLLP'] .= new Muted(new Small('Aktiv'));
                     }
                 }
 
@@ -155,7 +157,7 @@ class Frontend extends Extension implements IFrontendInterface
                     'Name'    => 'Name',
                     'Alias'   => 'Alias',
                     'Kamenz'  => 'verwendet Kamenz',
-                    'UCS'     => 'verwendet UCS',
+                    'DLLP'    => 'verwendet DLLP',
                     'Region'  => 'Region',
                     'Option'  => ''
                 ))
@@ -324,7 +326,6 @@ class Frontend extends Extension implements IFrontendInterface
 //                                , new Standard('Zugriff auf Mandant ändern', new Route(__NAMESPACE__.'/Consumer'))
             )
         ), $colWidth);
-
 
         $Stage->setContent(new Layout(new LayoutGroup(new LayoutRow($LayoutColumnArray))));
 

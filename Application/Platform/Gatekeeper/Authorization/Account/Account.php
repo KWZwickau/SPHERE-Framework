@@ -20,24 +20,21 @@ class Account implements IModuleInterface
     {
 
         Database::registerService(__CLASS__);
-
 //        Main::getDisplay()->addModuleNavigation(new Link(new Link\Route(__NAMESPACE__),
 //            new Link\Name('Benutzerkonten')),
 //            new Link\Route('/Platform/Gatekeeper/Authorization')
 //        );
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__, 'Frontend::frontendAccount'
-        )
-        );
+//        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+//            __NAMESPACE__, 'Frontend::frontendAccount'
+//        ));
     }
 
     /**
-     * @return Frontend
+     * @return void
      */
     public static function useFrontend()
     {
-
-        return new Frontend();
+        // Implement useFrontend() method if necessary.
     }
 
     /**

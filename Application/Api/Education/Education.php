@@ -9,6 +9,7 @@ use SPHERE\Application\Api\Education\ClassRegister\ApiAbsence;
 use SPHERE\Application\Api\Education\ClassRegister\ApiDiary;
 use SPHERE\Application\Api\Education\ClassRegister\ApiDiaryRead;
 use SPHERE\Application\Api\Education\ClassRegister\ApiDigital;
+use SPHERE\Application\Api\Education\ClassRegister\ApiForgotten;
 use SPHERE\Application\Api\Education\ClassRegister\ApiInstructionItem;
 use SPHERE\Application\Api\Education\ClassRegister\ApiInstructionSetting;
 use SPHERE\Application\Api\Education\ClassRegister\ApiSortDivision;
@@ -84,5 +85,6 @@ class Education implements IApplicationInterface
         Gradebook::registerModule();
         ApiYear::registerApi();
         ApiPrintCertificate::registerApi();
+        ApiForgotten::registerApi();
     }
 }

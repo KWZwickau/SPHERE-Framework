@@ -952,7 +952,7 @@ class Service extends AbstractService
             if (!$tblSubject) {
                 $tblSubject = $this->getSubjectByAcronym('BI');
             }
-        } elseif ($acronym == 'RE' || $acronym == 'REV' || $acronym == 'RELI' || $acronym == 'REE' || $acronym == 'RE/e') {
+        } elseif ($acronym == 'RE' || $acronym == 'REV' || $acronym == 'RELI' || $acronym == 'REE' || $acronym == 'RE/e' || $acronym == 'REL') {
             $tblSubject = $this->getSubjectByAcronym('RE/e');
             if (!$tblSubject) {
                 $tblSubject = $this->getSubjectByAcronym('REV');
@@ -965,6 +965,9 @@ class Service extends AbstractService
             }
             if (!$tblSubject) {
                 $tblSubject = $this->getSubjectByAcronym('RE');
+            }
+            if (!$tblSubject) {
+                $tblSubject = $this->getSubjectByAcronym('REL');
             }
         } elseif ($acronym == 'REK' || $acronym == 'RE/k') {
             $tblSubject = $this->getSubjectByAcronym('RE/k');
@@ -989,7 +992,7 @@ class Service extends AbstractService
             if (!$tblSubject) {
                 $tblSubject = $this->getSubjectByAcronym('PHY');
             }
-        } elseif ($acronym == 'WTH' || $acronym == 'WTHD' || $acronym == 'WTHS' || $acronym == 'WTS') {
+        } elseif ($acronym == 'WTH' || $acronym == 'WTHD' || $acronym == 'WTHS' || $acronym == 'WTS' || $acronym == 'WTSd') {
             $tblSubject = $this->getSubjectByAcronym('WTH');
             if (!$tblSubject) {
                 $tblSubject = $this->getSubjectByAcronym('WTHD');
@@ -1000,6 +1003,9 @@ class Service extends AbstractService
             if (!$tblSubject) {
                 $tblSubject = $this->getSubjectByAcronym('WTS');
             }
+            if (!$tblSubject) {
+                $tblSubject = $this->getSubjectByAcronym('WTSd');
+            }
         } elseif ($acronym == 'G/R/W' || $acronym == 'GRW') {
             $tblSubject = $this->getSubjectByAcronym('G/R/W');
             if (!$tblSubject) {
@@ -1009,6 +1015,16 @@ class Service extends AbstractService
             $tblSubject = $this->getSubjectByAcronym('GK');
             if (!$tblSubject) {
                 $tblSubject = $this->getSubjectByAcronym('GKR');
+            }
+        } elseif ($acronym == 'CH' || $acronym == 'CHE') {
+            $tblSubject = $this->getSubjectByAcronym('CH');
+            if (!$tblSubject) {
+                $tblSubject = $this->getSubjectByAcronym('CHE');
+            }
+        } elseif ($acronym == 'SPO' || $acronym == 'SP') {
+            $tblSubject = $this->getSubjectByAcronym('SPO');
+            if (!$tblSubject) {
+                $tblSubject = $this->getSubjectByAcronym('SP');
             }
         } else {
             $tblSubject = $this->getSubjectByAcronym($acronym);

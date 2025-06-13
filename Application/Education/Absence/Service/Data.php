@@ -201,6 +201,35 @@ class Data extends AbstractData
 
     /**
      * @param TblAbsence $tblAbsence
+     * @param $Remark
+     * @param TblPerson|null $tblPersonStaff
+     *
+     * @return bool
+     */
+    public function updateAbsenceForMassAbsence(
+        TblAbsence $tblAbsence,
+        $Remark,
+        TblPerson $tblPersonStaff = null
+    ): bool {
+        $Manager = $this->getEntityManager();
+        /** @var TblAbsence $Entity */
+        $Entity = $Manager->getEntityById('TblAbsence', $tblAbsence->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setRemark($Remark);
+            $Entity->setServiceTblPersonStaff($tblPersonStaff);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param TblAbsence $tblAbsence
      * @param bool $IsSoftRemove
      *
      * @return bool
