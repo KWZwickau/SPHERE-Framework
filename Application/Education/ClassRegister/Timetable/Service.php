@@ -147,20 +147,6 @@ class Service extends AbstractService
     }
 
     /**
-     * @param DateTime          $Date
-     * @param int               $Hour
-     * @param TblDivisionCourse $tblCourse
-     * @param TblSubject|null   $tblSubstituteSubject
-     *
-     * @return bool|TblTimetableReplacement|TblTimetableReplacement[]
-     */
-    public function getTimeTableReplacementbyDateAndHourAndClass(DateTime $Date, int $Hour, TblDivisionCourse $tblCourse, TblSubject $tblSubstituteSubject = null)
-    {
-
-        return (new Data($this->getBinding()))->getTimeTableReplacementbyDateAndHourAndClass($Date, $Hour, $tblCourse, $tblSubstituteSubject);
-    }
-
-    /**
      * @return TblTimetableReplacementLog[]|null
      */
     public function getTimetableReplacementLogAll()
@@ -298,25 +284,30 @@ class Service extends AbstractService
      */
     public function createTimetableReplacementJsonBulk($ImportList):bool
     {
-        $UpdateList = array();
-        foreach($ImportList as &$import){
-            if(($tblTimeTableReplacement = TimetableTool::useService()->getTimeTableReplacementbyDateAndHourAndClass(
-                $import['Date'], $import['Hour'], $import['tblCourse'], $import['tblSubstituteSubject']))){
-                if(!is_array($tblTimeTableReplacement)){
-                    $import['ReplacementId'] = $tblTimeTableReplacement->getId();
-                    $UpdateList[] = $import;
-                } else {
-                    // Kommt mehr als 1 zurück (array) kann der Ursprung nicht genau ermittelt werden
-                    // Updateliste wird hier nicht ergänzt
-                    // Eintrag bleibt ein import
-                }
-                $import = false;
-            }
-        }
 
-        $ImportList = array_filter($ImportList);
-        // update
-        $this->updateTimetableReplacementJsonBulk($UpdateList);
+        // Update wird nicht mehr benötigt, aktuelle Einträge werden nach Datum erst entfernt und anschließen alle importiert.
+//        $UpdateList = array();
+//        foreach($ImportList as &$import){
+//            $tblTimeTableReplacement = TimetableTool::useService()->getTimeTableReplacementbyDateAndHourAndClass(
+//                $import['Date'], $import['Hour'], $import['tblCourse'], $import['tblSubject']?$import['tblSubject']:null);
+//            if($tblTimeTableReplacement) {
+//                if(!is_array($tblTimeTableReplacement)){
+//                    $import['ReplacementId'] = $tblTimeTableReplacement->getId();
+//                    $UpdateList[] = $import;
+//                } else {
+//                    // Kommt mehr als 1 zurück (array) kann der Ursprung nicht genau ermittelt werden
+//                    // Updateliste wird hier nicht ergänzt
+//                    // Eintrag wird auch nicht importiert
+//                }
+//                $import = false;
+//            }
+//        }
+//
+//        $ImportList = array_filter($ImportList);
+//        Debugger::devDump('Anzahl zu Importieren: '.count($ImportList));
+//        Debugger::devDump('Anzahl zu Updaten: '.count($UpdateList));
+//        // update
+//        $this->updateTimetableReplacementJsonBulk($UpdateList);
         // create
         return (new Data($this->getBinding()))->createTimetableReplacementJsonBulk($ImportList);
     }
@@ -809,6 +800,16 @@ class Service extends AbstractService
     public function destroyTimetableReplacementBulk($RemoveList): bool
     {
         return (new Data($this->getBinding()))->destroyTimetableReplacementBulk($RemoveList);
+    }
+
+    /**
+     * @param $RemoveList
+     *
+     * @return bool
+     */
+    public function destroyTimetableReplacementLogBulk(): bool
+    {
+        return (new Data($this->getBinding()))->destroyTimetableReplacementLogBulk();
     }
 
     /**

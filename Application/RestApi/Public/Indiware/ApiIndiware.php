@@ -2,7 +2,13 @@
 
 namespace SPHERE\Application\RestApi\Public\Indiware;
 
+use SPHERE\Application\Education\ClassRegister\Timetable\Timetable;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblSetting;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\RestApi\IApiInterface;
+use SPHERE\Application\Transfer\Indiware\ErrorLog\JsonReplacementTest;
+use SPHERE\Application\Transfer\Indiware\Import\Replacement\Replacement;
 use SPHERE\Common\Main;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
@@ -12,6 +18,9 @@ class ApiIndiware implements IApiInterface
     {
         Main::getRestApiDispatcher()->registerRoute(Main::getRestApiDispatcher()->createRoute(
            __NAMESPACE__ . '/Log' , __CLASS__  . '::getLog',
+        ));
+        Main::getRestApiDispatcher()->registerRoute(Main::getRestApiDispatcher()->createRoute(
+           __NAMESPACE__ . '/TimeTableReplacement' , __CLASS__  . '::getTimeTableReplacement',
         ));
     }
 
@@ -66,5 +75,46 @@ class ApiIndiware implements IApiInterface
 ////            echo "Nur PUT-Anfragen sind erlaubt.";
 //            return $JsonResponse->setData(array("success" => false, "message" => "only PUT-request are allowed."));
 //        }
+    }
+
+    public static function getTimeTableReplacement(string $Savety = ''): JsonResponse
+    {
+
+        $JsonResponse = new JsonResponse();
+        $StartControlNumber = strpos($Savety, '-');
+        $NumberControl = substr($Savety, $StartControlNumber+1);
+        $Mandant = substr($Savety, 0, $StartControlNumber);
+        $Code = '';
+        if((Consumer::useService()->getConsumerByAcronym($Mandant))){
+            if(($tblAccount = Account::useService()->getAccountByUsername($Mandant.'-Indiware'))){
+                if(($tblSetting = Account::useService()->getSettingByAccount($tblAccount, TblSetting::ATTR_INDIWARE_CODE))){
+                    $Code = $tblSetting->getValue();
+                }
+                if(($NumberControl) != $Code){
+                    // Code stimmt nicht überein
+                    return $JsonResponse->setData(array("Identifier" => "error", "message" => "Error_Code_1"));
+                }
+            } else {
+                // Indiware Account fehlt
+                return $JsonResponse->setData(array("Identifier" => "error", "message" => "Error_Code_2"));
+            }
+        } else {
+            // Mandant fehlt
+            return $JsonResponse->setData(array("Identifier" => "error", "message" => "Error_Code_3"));
+        }
+
+        // Login Service-Account
+        Account::useService()->createSession($tblAccount, session_id());
+        // entfernen alter Log Daten
+        Timetable::useService()->destroyTimetableReplacementLogBulk();
+
+        // JSON content laden
+        $json = file_get_contents('php://input');
+        // Test mit Lokalen Daten
+//        $json = (new JsonReplacementTest())->getJson($Mandant);
+        Replacement::useService()->importJsonReplacement($json);
+        // Logout Service-Account
+        Account::useService()->destroySession(null, session_id());
+        return $JsonResponse->setData(array("Identifier" => "success", "message" => "JSON saved in file.")); // , 'JSON' => $json
     }
 }

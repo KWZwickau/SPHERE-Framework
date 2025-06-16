@@ -48,6 +48,7 @@ class Data extends AbstractData
         $this->createIdentification('Credential', 'Benutzername / Passwort', true);
         $this->createIdentification('UserCredential', 'Benutzername / Passwort', true);
         $this->createIdentification('AuthenticatorApp', 'Benutzername / Passwort & Authenticator App', true);
+        $this->createIdentification('Service', 'Service Accounts ohne Nutzerzugriff', true);
     }
 
     /**

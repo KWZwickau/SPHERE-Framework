@@ -292,57 +292,6 @@ class Data extends AbstractData
     }
 
     /**
-     * @param DateTime          $Date
-     * @param int               $Hour
-     * @param TblDivisionCourse $tblCourse
-     * @param TblSubject|null   $tblSubstituteSubject
-     *
-     * @return bool|TblTimetableReplacement|TblTimetableReplacement[]
-     */
-    public function getTimeTableReplacementbyDateAndHourAndClass(DateTime $Date, int $Hour, TblDivisionCourse $tblCourse, TblSubject $tblSubstituteSubject = null)
-    {
-
-        $Manager = $this->getEntityManager();
-        $queryBuilder = $Manager->getQueryBuilder();
-
-//        if($tblSubstituteSubject){
-            $query = $queryBuilder->select('t')
-                ->from(__NAMESPACE__ . '\Entity\TblTimetableReplacement', 't')
-                ->where(
-                    $queryBuilder->expr()->eq('t.Date', '?1'),
-                    $queryBuilder->expr()->eq('t.Hour', '?2'),
-                    $queryBuilder->expr()->eq('t.serviceTblCourse', '?3'),
-                    $queryBuilder->expr()->eq('t.serviceTblSubstituteSubject', '?4'),
-                )
-                ->setParameter(1, $Date)
-                ->setParameter(2, $Hour)
-                ->setParameter(3, $tblCourse->getId())
-                ->setParameter(4, $tblSubstituteSubject ? $tblSubstituteSubject->getId(): null )
-                ->getQuery();
-//        } else {
-//            $query = $queryBuilder->select('t')
-//                ->from(__NAMESPACE__ . '\Entity\TblTimetableReplacement', 't')
-//                ->where(
-//                    $queryBuilder->expr()->eq('t.Date', '?1'),
-//                    $queryBuilder->expr()->eq('t.Hour', '?2'),
-//                    $queryBuilder->expr()->eq('t.serviceTblCourse', '?3'),
-//                )
-//                ->setParameter(1, $Date)
-//                ->setParameter(2, $Hour)
-//                ->setParameter(3, $tblCourse->getId())
-//                ->getQuery();
-//        }
-
-        $resultList = $query->getResult();
-        if(empty($resultList)){
-            return null;
-        } elseif(count($resultList) > 1){
-            return $resultList;
-        }
-        return current($resultList);
-    }
-
-    /**
      * @return TblTimetable[]|null
      */
     public function getTimetableAll(): ?array
@@ -560,7 +509,7 @@ class Data extends AbstractData
             foreach ($ImportList as $Row) {
                 $Entity = new TblTimetableReplacement();
                 $Entity->setDate($Row['Date']);
-                $Entity->setHour($Row['Hour']);
+                $Entity->setHour((int)$Row['Hour']);
                 $Entity->setRoom($Row['Room']);
                 $Entity->setIsCanceled($Row['IsCanceled']);
                 $Entity->setSubjectGroup('');
@@ -661,7 +610,7 @@ class Data extends AbstractData
         if (!empty($ErrorList)) {
             foreach ($ErrorList as $Row) {
                 $Entity = new TblTimetableReplacementLog();
-                $Entity->setSchoolName($Row['SchoolName']);
+//                $Entity->setSchoolName($Row['SchoolName']);
                 $Entity->setDate($Row['DateString']);
                 $Entity->setHour($Row['Hour']);
                 $Entity->setRoom($Row['Room']);
@@ -791,6 +740,27 @@ class Data extends AbstractData
     {
 
         $Manager = $this->getConnection()->getEntityManager();
+        if (!empty($EntityList)) {
+            foreach ($EntityList as $Entity) {
+                $Manager->bulkKillEntity($Entity);
+                Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity, true);
+            }
+            $Manager->flushCache();
+            Protocol::useService()->flushBulkEntries();
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @return bool
+     */
+    public function destroyTimetableReplacementLogBulk(): bool
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $EntityList = $Manager->getEntity('TblTimetableReplacementLog')
+            ->findAll();
         if (!empty($EntityList)) {
             foreach ($EntityList as $Entity) {
                 $Manager->bulkKillEntity($Entity);

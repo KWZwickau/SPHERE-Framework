@@ -33,9 +33,6 @@ class TblTimetableReplacementLog extends Element
     const ATTR_SERVICE_TBL_PERSON = 'PersonAcronym';
     const ATTR_ERROR = 'Error';
 
-
-    /** @Column(type="string") */
-    protected string $SchoolName;
     /** @Column(type="string") */
     protected string $Date;
     /** @Column(type="string") */
@@ -54,24 +51,6 @@ class TblTimetableReplacementLog extends Element
     protected string $PersonAcronym;
     /** @Column(type="string") */
     protected string $Error;
-
-    /**
-     * @return string
-     */
-    public function getSchoolName(): string
-    {
-
-        return $this->SchoolName;
-    }
-
-    /**
-     * @param string $SchoolName
-     * @return void
-     */
-    public function setSchoolName(string $SchoolName): void
-    {
-        $this->SchoolName = $SchoolName;
-    }
 
     /**
      * @return string
@@ -170,7 +149,7 @@ class TblTimetableReplacementLog extends Element
     /**
      * @return $SubjectSubstitute
      */
-    public function getSubjectSubstitute(string $SubjectSubstitute): string
+    public function getSubjectSubstitute(): string
     {
 
         return $this->SubjectSubstitute;
