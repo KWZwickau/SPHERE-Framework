@@ -604,200 +604,233 @@ class ReplacementService
         return utf8_encode($item);
     }
 
+    /**
+     * @param $Json
+     * @return void
+     */
     public function importJsonReplacement($Json){
 
         $ArrayData = json_decode($Json, true);
-        $ArrayDate = array();
+        $DateArray = array();
 //        $schoolName = '';
         $importList = array();
-        // ESS && EVSR über Webhook erhalten
+        // über Webhook erhalten
         if(isset($ArrayData['Gesamtexport']['Vertretungsplan']['Vertretungsplan'])
             && ($ReplacementList = $ArrayData['Gesamtexport']['Vertretungsplan']['Vertretungsplan'])){
-            $this->readReplacement($ReplacementList);
-            foreach($ReplacementList as $Replacement){
-//                // Kopf
-//                if(isset($Replacement['Kopf']['Schulname'])){
-//                    $schoolName = $Replacement['Kopf']['Schulname'];
-//                }
-                // Aktionen
-                if(isset($Replacement['Aktionen'])){
-                    $ReplacementEntryList = $Replacement['Aktionen'];
-                    foreach($ReplacementEntryList as $ReplacementEntry){
-                        $item = array();
-                        $Date = '';
-                        $DateString = '';
-                        $Hour = '';
-//                        $CourseList = array();
-                        $CourseStringV = '';
-                        $SubjectString = '';
-                        $tblSubject = false;
-                        $SubjectStringV = '';
-                        $IsCanceled = false;
-                        $tblSubjectV = false;
-                        $PersonV = '';
-                        $tblPersonV = false;
-                        $RoomString = '';
-                        $RoomV = false;
-                        if(isset($ReplacementEntry['Ak_DatumVon'])){
-                            $DateString = $ReplacementEntry['Ak_DatumVon'];
-                            $ArrayDate[] = $DateString;
-                            $Date = new DateTime($DateString);
-                        }
-                        $YearList = Term::useService()->getYearAllByDate($Date);
-                        if(isset($ReplacementEntry['Ak_StundeVon'])){
-                            $Hour = $ReplacementEntry['Ak_StundeVon'];
-                        }
-                        if(isset($ReplacementEntry['Ak_Fach'])){
-                            $SubjectString = $ReplacementEntry['Ak_Fach'];
-                            $tblSubject = Subject::useService()->getSubjectByAcronym($SubjectString);
-                        }
-                        if(isset($ReplacementEntry['Ak_VFach'])){
-                            $SubjectStringV = $ReplacementEntry['Ak_VFach'];
-                            if($SubjectStringV == ''){
-                                $IsCanceled = true;
-                            } else {
-                                $tblSubjectV = Subject::useService()->getSubjectByAcronym($SubjectStringV);
-                            }
-                        }
-                        if(isset($ReplacementEntry['VLehrer'])){
-                            $PersonV = implode(', ', $ReplacementEntry['VLehrer']);
-                            $TeacherAcronymV = current($ReplacementEntry['VLehrer']);
-                            if(($tblTeacherV = Teacher::useService()->getTeacherByAcronym($TeacherAcronymV))){
-                                $tblPersonV = $tblTeacherV->getServiceTblPerson();
-                            }
-                        }
-                        if(isset($ReplacementEntry['VRaeume'])){
-                            $RoomString = $ReplacementEntry['VRaeume'];
-                            $RoomV = current($RoomString);
-                        }
-                        $count = 1;
-                        if(isset($ReplacementEntry['Ak_StundenAnz'])){
-                            $count = (int)$ReplacementEntry['Ak_StundenAnz'];
-                        }
-//                        if(isset($ReplacementEntry['Klassen']) && !empty($ReplacementEntry['Klassen'])){
-//                            $CourseList = $ReplacementEntry['Klassen'];
-//                            foreach($CourseList as &$Course){
-//                                if($YearList){
-//                                    foreach($YearList as $Year){
-//                                        if(($tempCourse = DivisionCourse::useService()->getDivisionCourseByNameAndYear($Course, $Year))){
-//                                            $Course = $tempCourse;
-//                                            break;
-//                                        }
-//                                    }
-//                                }
-//                            }
-//                        }
-                        $CourseListTemp = array();
-                        if(isset($ReplacementEntry['VKlassen']) && !empty($ReplacementEntry['VKlassen'])){
-                            $CourseListV = $ReplacementEntry['VKlassen'];
-                            $CourseStringV = implode(', ', $CourseListV);
-                            foreach($CourseListV as $CourseV){
-                                if($YearList){
-                                    foreach($YearList as $Year){
-                                        if(($tempCourse = DivisionCourse::useService()->getDivisionCourseByNameAndYear($CourseV, $Year))){
-                                            // string durch tblDivisionCourse ersetzen
-                                            $CourseListTemp[] = $tempCourse;
-                                            break;
-                                        }
-                                    }
-                                }
-                            }
-                        }
+        // EVSR Händisch als Json erhalten
+//        if(isset($ArrayData['Vertretungsplan'])
+//            && ($ReplacementList = $ArrayData['Vertretungsplan'])){
+            $readList = $this->readReplacement($ReplacementList);
+            $importList = $this->getObjectList($readList);
+            $DateArray = $this->getDateArray($importList);
+        }
 
-//                        $item['SchoolName'] = $schoolName;
-                        $item['ReplacementId'] = '';
-                        $item['Date'] = $Date;
-                        $item['DateString'] = $DateString;
-                        $item['Room'] = $RoomV;
-                        $item['RoomString'] = $RoomString;
-                        $item['Course'] = $CourseStringV;
-                        $item['IsCanceled'] = $IsCanceled;
-                        $item['Subject'] = $SubjectString;
-                        $item['tblSubject'] = $tblSubject;
-                        $item['SubjectSubstitute'] = $SubjectStringV;
-                        $item['tblSubstituteSubject'] = $tblSubjectV;
-                        // eigentlich array
-                        $item['PersonAcronym'] = $PersonV;
-                        $item['tblPersonV'] = $tblPersonV;
+        // Datumsangaben aus dem JSON nach bereich Filtern
+        $this->cleanupReplacement($DateArray);
 
-                        // Mehrere Einträge erzeugen wenn notwendig
-                        if(!empty($CourseListTemp)){
-                            foreach($CourseListTemp as $Key => $CourseV){
+        // nicht funktionale Einträge rausfiltern
+        if(!empty($importList)){
+            $errorList = array();
+            foreach($importList as &$import){
+                $errorList[] = $this->validateImport($import);
+            }
+            $errorList = array_filter($errorList);
+            $importList = array_filter($importList);
+            // save ErrorList
+            if(!empty($errorList)) {
+                TimetableTool::useService()->createTimetableReplacementLog($errorList);
+            }
+            // save TimetableReplacement
+            if(!empty($importList)){
+                TimetableTool::useService()->createTimetableReplacementJsonBulk($importList);
+            }
+        }
+    }
+
+    /**
+     * @param array $ReplacementList
+     * @return array
+     */
+    private function readReplacement(array $ReplacementList = array()):array
+    {
+        $resultList = array();
+        foreach($ReplacementList as $Replacement){
+//            // Kopf
+//            if(isset($Replacement['Kopf']['Schulname'])){
+//                $schoolName = $Replacement['Kopf']['Schulname'];
+//            }
+            // Aktionen
+            if(isset($Replacement['Aktionen'])){
+                $ReplacementEntryList = $Replacement['Aktionen'];
+                foreach($ReplacementEntryList as $ReplacementEntry){
+                    $item = array();
+                    $item['Date'] = $ReplacementEntry['Ak_DatumVon']?:'';
+                    $Hour = $item['Hour'] = $ReplacementEntry['Ak_StundeVon']?:'';
+                    $item['Subject'] = $ReplacementEntry['Ak_Fach']?:'';
+                    $item['SubjectV'] = $ReplacementEntry['Ak_VFach']?:'';
+                    $item['PersonVArray'] = $ReplacementEntry['VLehrer']?:'';
+                    $item['RoomVArray'] = $ReplacementEntry['VRaeume']?:'';
+
+                    $count = 1;
+                    if(isset($ReplacementEntry['Ak_StundenAnz'])){
+                        $count = (int)$ReplacementEntry['Ak_StundenAnz'];
+                    }
+                    $CourseListV = $ReplacementEntry['VKlassen'];
+
+                    // Mehrere Einträge erzeugen wenn notwendig
+                    if(!empty($CourseListV)){
+                        foreach($CourseListV as $CourseV){
 //                                if($count > 1){
-                                    // mehrere Einträge
-                                    for($i = $Hour; $i < ($Hour + $count); $i++){
-                                        $item['Hour'] = (string)$i;
-                                        $item['tblCourse'] = $CourseV;
-                                        $item['Course'] = $CourseListV[$Key];
-                                        $importList[] = $item;
-                                    }
-//                                } else {
-//                                  // ein Eintrag
-//                                    $item['Hour'] = (string)$Hour;
-//                                    $item['tblCourse'] = $CourseV;
-//                                    $item['Course'] = $CourseV->getName();
-//                                    $importList[] = $item;
-//                                }
-                            }
-                        } else {
-                            // mehrere Einträge ohne Klasse
+                            // mehrere Einträge
                             for($i = $Hour; $i < ($Hour + $count); $i++){
                                 $item['Hour'] = (string)$i;
-                                $item['tblCourse'] = $CourseV;
-                                $item['Course'] = $CourseListV[0];
-                                $importList[] = $item;
+                                $item['Course'] = $CourseV;
+                                $resultList[] = $item;
                             }
                         }
-                    }
-                }
-            }
-//            Debugger::devDump($importList);
-
-            // Datumsangaben aus dem JSON nach bereich Filtern
-            if(!empty($ArrayDate)){
-                $ArrayDate = array_unique($ArrayDate);
-                $fromDate = false;
-                $toDate = false;
-                foreach($ArrayDate as $DateString){
-                    if(($compareDate = new DateTime($DateString))){
-                        if(!$fromDate || $fromDate > $compareDate) {
-                            $fromDate = $compareDate;
-                        }
-                        if(!$toDate || $compareDate > $toDate){
-                            $toDate = $compareDate;
+                    } else {
+                        // Einträge ohne Klasse
+                        for($j = $Hour; $j < ($Hour + $count); $j++){
+                            $item['Hour'] = (string)$j;
+                            $item['Course'] = '';
+                            $resultList[] = $item;
                         }
                     }
                 }
-                // übermittelten Zeitraum bereinigen
-                if($fromDate && $toDate){
-                    // clear to clean build up
-                    if(($tblTimetableReplacementList = TimetableTool::useService()->getTimetableReplacementByDate($fromDate, $toDate))){
-                        TimetableTool::useService()->destroyTimetableReplacementBulk($tblTimetableReplacementList);
+            }
+        }
+        return $resultList;
+    }
+
+    /**
+     * @param $readList
+     * @return array
+     */
+    private function getObjectList($readList):array
+    {
+
+        $resultList = array();
+        foreach ($readList as $read) {
+            $item = array();
+            $Date = $read['Date'];
+            $DateTime = new DateTime($Date);
+            $Hour = $read['Hour'];
+            $CourseV = $read['Course'];
+            $tblCourse = false;
+            $Subject = $read['Subject'];
+            $tblSubject = false;
+            $SubjectV = $read['SubjectV'];
+            $tblSubjectV = false;
+            $IsCanceled = ($SubjectV == ''? true : false);
+            $PersonV = current($read['PersonVArray']);
+            $tblPersonV = false;
+            $RoomV = current($read['RoomVArray']);
+
+            if($CourseV && ($YearList = Term::useService()->getYearAllByDate($DateTime))){ // Mapping
+                foreach($YearList as $Year){
+                    if (!($tblCourse = Education::useService()->getDivisionCourseByDivisionNameAndYear($CourseV, $Year))){
+                        if (!($tblCourse = Education::useService()->getImportMappingValueBy(TblImportMapping::TYPE_DIVISION_NAME_TO_DIVISION_COURSE_NAME, $CourseV, $Year))) {
+                            $tblCourse = Education::useService()->getImportMappingValueBy(TblImportMapping::TYPE_COURSE_NAME_TO_DIVISION_COURSE_NAME, $CourseV, $Year);
+                        }
+                    }
+                    if($tblCourse){
+                        break;
                     }
                 }
             }
-
-
-            // nicht funktionale Einträge rausfiltern
-            if(!empty($importList)){
-                $errorList = array();
-                foreach($importList as &$import){
-                    $errorList[] = $this->validateImport($import);
+            if($Subject){ // Mapping
+                if (!($tblSubject = Subject::useService()->getSubjectByVariantAcronym($Subject))) {
+                    $tblSubject = Education::useService()->getImportMappingValueBy(TblImportMapping::TYPE_SUBJECT_ACRONYM_TO_SUBJECT_ID, $Subject);
                 }
-                $errorList = array_filter($errorList);
-                $importList = array_filter($importList);
-                // save ErrorList
-                if(!empty($errorList)) {
-                    TimetableTool::useService()->createTimetableReplacementLog($errorList);
+            }
+            if($SubjectV){ // Mapping
+                if (!($tblSubjectV = Subject::useService()->getSubjectByVariantAcronym($SubjectV))) {
+                    $tblSubjectV = Education::useService()->getImportMappingValueBy(TblImportMapping::TYPE_SUBJECT_ACRONYM_TO_SUBJECT_ID, $SubjectV);
                 }
-                // save TimetableReplacement
-                if(!empty($importList)){
-                    TimetableTool::useService()->createTimetableReplacementJsonBulk($importList);
+            }
+            if($PersonV){ // Mapping
+                if (($tblTeacher = Teacher::useService()->getTeacherByAcronym($PersonV))) {
+                    $tblPersonV = $tblTeacher->getServiceTblPerson();
+                }
+                if(!$tblPersonV){
+                    $tblPersonV = Education::useService()->getImportMappingValueBy(TblImportMapping::TYPE_TEACHER_ACRONYM_TO_PERSON_ID, $PersonV);
+                }
+            }
+
+//            $item['SchoolName'] = $schoolName;
+//            $item['ReplacementId'] = '';
+            $item['Date'] = $DateTime;
+            $item['DateString'] = $Date;
+            $item['Hour'] = $Hour;
+            $item['Room'] = $RoomV;
+            $item['RoomString'] = $RoomV;
+            $item['Course'] = $CourseV;
+            $item['tblCourse'] = $tblCourse;
+            $item['IsCanceled'] = $IsCanceled;
+            $item['Subject'] = $Subject;
+            $item['tblSubject'] = $tblSubject;
+            $item['SubjectSubstitute'] = $SubjectV;
+            $item['tblSubstituteSubject'] = $tblSubjectV;
+            // eigentlich array
+            $item['PersonAcronym'] = $PersonV;
+            $item['tblPersonV'] = $tblPersonV;
+
+            $resultList[] = $item;
+        }
+        return $resultList;
+    }
+
+    /**
+     * @param $importList
+     * @return array
+     */
+    private function getDateArray($importList):array
+    {
+        $ArrayDateList = array();
+        if(!empty($importList)){
+            foreach($importList as $import){
+                if($import['DateString']){
+                    $ArrayDateList[] = $import['DateString'];
+                }
+            }
+            $ArrayDateList = array_unique($ArrayDateList);
+        }
+        return $ArrayDateList;
+    }
+
+    /**
+     * @param $DateArray
+     * @return void
+     */
+    private function cleanupReplacement($DateArray):void
+    {
+        if(!empty($DateArray)){
+            $fromDate = false;
+            $toDate = false;
+            foreach($DateArray as $DateString){
+                if(($compareDate = new DateTime($DateString))){
+                    if(!$fromDate || $fromDate > $compareDate) {
+                        $fromDate = $compareDate;
+                    }
+                    if(!$toDate || $compareDate > $toDate){
+                        $toDate = $compareDate;
+                    }
+                }
+            }
+            // übermittelten Zeitraum bereinigen
+            if($fromDate && $toDate){
+                // clear to clean build up
+                if(($tblTimetableReplacementList = TimetableTool::useService()->getTimetableReplacementByDate($fromDate, $toDate))){
+                    TimetableTool::useService()->destroyTimetableReplacementBulk($tblTimetableReplacementList);
                 }
             }
         }
     }
 
+    /**
+     * @param $import
+     * @return false|mixed
+     */
     private function validateImport(&$import)
     {
 
@@ -812,7 +845,7 @@ class ReplacementService
             $errors[] = '[Hour] => keine Stunde angegeben';
         }
         if (!$import['tblCourse']) {
-            $errors[] = $import['KlasseV'].' - [tblCourse] => keine passende Klasse gefunden';
+            $errors[] = $import['Course'].' - [tblCourse] => keine passende Klasse gefunden';
         }
         if (!$import['tblPersonV']) {
             $errors[] = $import['PersonAcronym'].' - [tblPersonV] => keine Vertretung gefunden';
@@ -822,7 +855,7 @@ class ReplacementService
         // "Ak_VFach": "GEO",
         // Fach nicht gefunden, soll als Fehler aufgenommen werden, leerer String ist für ein "anlegen" aber ok
 
-        if (!$import['tblSubject'] && $import['Subject']) {
+        if (!$import['tblSubject']) {
             $errors[] = $import['Subject'].' - [tblSubject] => keine Fach gefunden';
         }
         if (!$import['tblSubstituteSubject'] && !$import['IsCanceled']) {

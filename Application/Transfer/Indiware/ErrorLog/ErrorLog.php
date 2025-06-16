@@ -123,7 +123,7 @@ class ErrorLog extends Extension implements IModuleInterface
         }
         $Stage->addButton(new Standard('Json "Lokaler Test"', __NAMESPACE__.'/LocalJson', new Download()));
         $Stage->addButton(new Standard('Einstellung Übertragungscode', __NAMESPACE__.'/EditCode', new Plus()));
-        $Stage->addButton(new DangerLink('Entfernen', __NAMESPACE__.'/Clean', new Remove()));
+        $Stage->addButton(new DangerLink('Einträge entfernen', __NAMESPACE__.'/Clean', new Remove()));
         $ReplacementLogAll = Timetable::useService()->getTimeTableReplacementLogAll();
         $Date = false;
         $TableContent = array();
@@ -165,15 +165,16 @@ class ErrorLog extends Extension implements IModuleInterface
 
         $Stage->setContent(
             new Layout(new LayoutGroup(new LayoutRow(array(
-                new LayoutColumn($PanelCourse, 3),
-                new LayoutColumn($PanelSubject, 3),
-                new LayoutColumn($PanelPerson, 3),
-                new LayoutColumn($PanelExtra, 3),
                 new LayoutColumn(
                     ($Code
                         ? new Headline('Schnittstelle: '.$this->getRequest()->getHost().'/RestApi/Public/Indiware/TimeTableReplacement?Savety='.$MandantAcronym.'-'.$Code)
                         : new Warning('Schnittstelle: Freischaltung erforderlich!'))
                 ),
+                new LayoutColumn((!empty($TableContent)? new Title('Zusammenfassung der fehlerhaften Werte:'): '')),
+                new LayoutColumn($PanelCourse, 3),
+                new LayoutColumn($PanelSubject, 3),
+                new LayoutColumn($PanelPerson, 3),
+                new LayoutColumn($PanelExtra, 3),
                 new LayoutColumn(new Title('Zeitpunkt des letzten fehlerhaften Importes: '.($Date?: 'Keine Fehler vorhanden'))),
                 new LayoutColumn(
                     new TableData($TableContent, null, array(
