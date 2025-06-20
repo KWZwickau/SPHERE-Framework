@@ -20,7 +20,7 @@ class ApiIndiware implements IApiInterface
            __NAMESPACE__ . '/Log' , __CLASS__  . '::getLog',
         ));
         Main::getRestApiDispatcher()->registerRoute(Main::getRestApiDispatcher()->createRoute(
-           __NAMESPACE__ . '/TimeTableReplacement' , __CLASS__  . '::getTimeTableReplacement',
+           __NAMESPACE__ . '/TimeTable' , __CLASS__  . '::getTimeTable',
         ));
     }
 
@@ -77,7 +77,7 @@ class ApiIndiware implements IApiInterface
 //        }
     }
 
-    public static function getTimeTableReplacement(string $Savety = ''): JsonResponse
+    public static function getTimeTable(string $Savety = ''): JsonResponse
     {
 
         $JsonResponse = new JsonResponse();

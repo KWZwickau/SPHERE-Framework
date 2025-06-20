@@ -13,11 +13,9 @@ use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisio
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Meta\Teacher\Teacher;
-use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\Transfer\Education\Education;
 use SPHERE\Application\Transfer\Education\Service\Entity\TblImport;
 use SPHERE\Application\Transfer\Education\Service\Entity\TblImportMapping;
-use SPHERE\Application\Transfer\Indiware\Import\Timetable\Timetable;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
@@ -615,6 +613,7 @@ class ReplacementService
 //        $schoolName = '';
         $importList = array();
         // über Webhook erhalten
+
         if(isset($ArrayData['Gesamtexport']['Vertretungsplan']['Vertretungsplan'])
             && ($ReplacementList = $ArrayData['Gesamtexport']['Vertretungsplan']['Vertretungsplan'])){
         // EVSR Händisch als Json erhalten
@@ -682,8 +681,14 @@ class ReplacementService
                         foreach($CourseListV as $CourseV){
 //                                if($count > 1){
                             // mehrere Einträge
-                            for($i = $Hour; $i < ($Hour + $count); $i++){
-                                $item['Hour'] = (string)$i;
+                            if(is_numeric($Hour)){
+                                for($i = $Hour; $i < ($Hour + $count); $i++){
+                                    $item['Hour'] = (string)$i;
+                                    $item['Course'] = $CourseV;
+                                    $resultList[] = $item;
+                                }
+                            } else {
+                                $item['Hour'] = $Hour;
                                 $item['Course'] = $CourseV;
                                 $resultList[] = $item;
                             }
@@ -839,27 +844,30 @@ class ReplacementService
 //            $errors[] = '[SchoolName] => keine Schule angegeben';
 //        }
         if (!$import['DateString']) {
-            $errors[] = '[DateString] => kein Datum angegeben';
+            $errors[] = '[Datum] => kein Datum angegeben';
         }
         if (!$import['Hour']) {
-            $errors[] = '[Hour] => keine Stunde angegeben';
+            $errors[] = '[Stunde] => keine Stunde angegeben';
+        } elseif(!is_numeric($import['Hour'])){
+            $errors[] = '[Stunde] => Wert ist kein Zahl';
         }
         if (!$import['tblCourse']) {
-            $errors[] = $import['Course'].' - [tblCourse] => keine passende Klasse gefunden';
+            $errors[] = '[Klasse] - '.$import['Course'].' => keine passende Klasse gefunden';
         }
         if (!$import['tblPersonV']) {
-            $errors[] = $import['PersonAcronym'].' - [tblPersonV] => keine Vertretung gefunden';
+            $errors[] = '[Person] - '.$import['PersonAcronym'].' => Vertretung nicht gefunden';
         }
         // möglicherweise können Fächer auch ohne Fach angelegt sein (Bsp.: ESS)
         // "Ak_Fach": "",
         // "Ak_VFach": "GEO",
         // Fach nicht gefunden, soll als Fehler aufgenommen werden, leerer String ist für ein "anlegen" aber ok
-
-        if (!$import['tblSubject']) {
-            $errors[] = $import['Subject'].' - [tblSubject] => keine Fach gefunden';
+        if (!$import['tblSubject'] && $import['Subject']) {
+            $errors[] = '[Fach] - '.$import['Subject'].' => Fach nicht gefunden';
+        } elseif(!$import['tblSubject'] && !$import['tblSubstituteSubject']){
+            $errors[] = '[Fach] - '.($import['Subject']?:'[leer]').' => Fach nicht gefunden';
         }
         if (!$import['tblSubstituteSubject'] && !$import['IsCanceled']) {
-            $errors[] = $import['SubjectSubstitute'].' - [tblSubstituteSubject] => kein Vertretungsfach gefunden';
+            $errors[] = '[Vertretungsfach] - '.$import['SubjectSubstitute'].' => Fach nicht gefunden';
         }
         if (empty($errors)) {
             return false;

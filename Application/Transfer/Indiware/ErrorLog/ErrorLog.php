@@ -26,6 +26,7 @@ use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Headline;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Ruler;
@@ -44,6 +45,10 @@ use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Center;
+use SPHERE\Common\Frontend\Text\Repository\Danger as DangerText;
+use SPHERE\Common\Frontend\Text\Repository\Muted;
+use SPHERE\Common\Frontend\Text\Repository\Small;
+use SPHERE\Common\Frontend\Text\Repository\Warning as WarningText;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Redirect;
@@ -137,56 +142,70 @@ class ErrorLog extends Extension implements IModuleInterface
                     $Date = new Bold($Date);
                 }
                 $item['Date'] = $ReplacementLog->getDate();
+//                $item['Day'] = $this->getDayString($ReplacementLog->getDate());
                 $item['Hour'] = $ReplacementLog->getHour();
                 $item['Room'] = $ReplacementLog->getRoom();
                 $item['Course'] = $ReplacementLog->getCourse();
                 $item['PersonAcronym'] = $ReplacementLog->getPersonAcronym();
                 $item['IsCanceled'] = ($ReplacementLog->getIsCanceled() ? "Ausfall" : "" );
                 $item['Subject'] = $ReplacementLog->getSubject();
+//                $item['DisplaySubject'] =
+//                    ($ReplacementLog->getSubject()
+//                        ?:(!$ReplacementLog->getSubjectSubstitute()?new DangerText('[leer]'):''));
                 $item['SubjectSubstitute'] = $ReplacementLog->getSubjectSubstitute();
                 $ErrorList = explode(';', $ReplacementLog->getError());
                 $item['Error'] = implode("<br/>", $ErrorList);
+
+                // fill error & color
+                $item['Course'] = $this->fillErrorCountCourse($ErrorCountArray, $item['Course']);
+                $item['Subject'] = $this->fillErrorCountSubject($ErrorCountArray, $item['Subject'], $item['SubjectSubstitute']);
+                $item['SubjectSubstitute'] = $this->fillErrorCountSubject($ErrorCountArray, $item['SubjectSubstitute'], $item['SubjectSubstitute'], true);
+                $item['PersonAcronym'] = $this->fillErrorCountPerson($ErrorCountArray, $item['PersonAcronym']);
+                $item['Date'] = $this->fillErrorCount($ErrorCountArray, 'Date', $item['Date']);
+                $item['Hour'] = $this->fillErrorCount($ErrorCountArray, 'Hour', $item['Hour'], true);
+
+                // Add Content
+//                $item['Date'] .= '&nbsp;'.new Small(new Small(new Small(new Muted($this->getDayString($ReplacementLog->getDate())))));
+//                $item['Date'] .= '<div style="line-height: 5px;padding-top: -5px;>">' // font-size: 8px;
+//                        .new Small(new Small(new Muted($this->getDayString($ReplacementLog->getDate()))))
+//                    .'</div>';
+
                 $TableContent[] = $item;
-
-
-                $this->fillErrorCountCourse($ErrorCountArray, $item['Course']);
-                $this->fillErrorCountSubject($ErrorCountArray, $item['Subject']);
-                $this->fillErrorCountSubject($ErrorCountArray, $item['SubjectSubstitute']);
-                $this->fillErrorCountPerson($ErrorCountArray, $item['PersonAcronym']);
-                $this->fillErrorCount($ErrorCountArray, 'Date', $item['Date']);
-                $this->fillErrorCount($ErrorCountArray, 'Hour', $item['Hour']);
             });
         }
-
-        $PanelCourse = $this->getLogPanel($ErrorCountArray, 'Course');
-        $PanelSubject = $this->getLogPanel($ErrorCountArray, 'Subject');
-        $PanelPerson = $this->getLogPanel($ErrorCountArray, 'Person');
-        $PanelExtra = $this->getLogPanel($ErrorCountArray, 'Extra');
+        $ColumnCourse = $this->getLogLayoutColumn($ErrorCountArray, 'Course');
+        $ColumnSubject = $this->getLogLayoutColumn($ErrorCountArray, 'Subject');
+        $ColumnPerson = $this->getLogLayoutColumn($ErrorCountArray, 'Person');
+        $ColumnExtra = $this->getLogLayoutColumn($ErrorCountArray, 'Extra');
 
         $Stage->setContent(
             new Layout(new LayoutGroup(new LayoutRow(array(
                 new LayoutColumn(
                     ($Code
-                        ? new Headline('Schnittstelle: '.$this->getRequest()->getHost().'/RestApi/Public/Indiware/TimeTableReplacement?Savety='.$MandantAcronym.'-'.$Code)
+                        ? new Headline('Schnittstelle: '.$this->getRequest()->getHost().'/RestApi/Public/Indiware/TimeTable?Savety='.
+                            $MandantAcronym.'-'.$Code.'<br/><div style="height: 8px;"></div>'.
+                            'Zeitpunkt des letzten fehlerhaften Importes: '.($Date?: 'Keine Fehler vorhanden'))
                         : new Warning('Schnittstelle: Freischaltung erforderlich!'))
                 ),
-                new LayoutColumn((!empty($TableContent)? new Title('Zusammenfassung der fehlerhaften Werte:'): '')),
-                new LayoutColumn($PanelCourse, 3),
-                new LayoutColumn($PanelSubject, 3),
-                new LayoutColumn($PanelPerson, 3),
-                new LayoutColumn($PanelExtra, 3),
-                new LayoutColumn(new Title('Zeitpunkt des letzten fehlerhaften Importes: '.($Date?: 'Keine Fehler vorhanden'))),
+//                new LayoutColumn(new Headline('Zeitpunkt des letzten fehlerhaften Importes: '.($Date?: 'Keine Fehler vorhanden'))),
+                new LayoutColumn((!empty($TableContent)? new Title('Zusammenfassung der nicht zuweisbaren Daten:'): '')),
+                $ColumnCourse,
+                $ColumnSubject,
+                $ColumnPerson,
+                $ColumnExtra,
+                new LayoutColumn(new Title('Detailansicht:')),
                 new LayoutColumn(
                     new TableData($TableContent, null, array(
-                        'Date' => 'Datum',
-                        'Course' => 'Klasse',
-                        'Hour' => 'Stunde',
-                        'Subject' => 'Fach',
-                        'SubjectSubstitute' => 'Vertretungs Fach',
-                        'PersonAcronym' => 'Lehrer Kürzel',
-                        'Room' => 'Raum',
-                        'IsCanceled' => 'Ausfall',
-                        'Error' => 'Error',
+                        'Date'              => 'Datum',
+//                        'Day'               => 'Tag',
+                        'Course'            => 'Klasse',
+                        'Hour'              => 'Stunde',
+                        'Subject'           => 'Fach',
+                        'SubjectSubstitute' => 'Vert. Fach',
+                        'PersonAcronym'     => 'Lehrer Kürzel',
+                        'Room'              => 'Raum',
+                        'IsCanceled'        => 'Ausfall',
+                        'Error'             => 'Error',
                         ),
                         array(
                             'order' => array(
@@ -208,7 +227,7 @@ class ErrorLog extends Extension implements IModuleInterface
         return $Stage;
     }
 
-    private function fillErrorCount(&$ErrorCountArray = array(), $Key = '', $Value = '')
+    private function fillErrorCount(&$ErrorCountArray = array(), $Key = '', $Value = '', $IsNumeric = false)
     {
         if(!$Value){
             if(isset($ErrorCountArray['Extra'][$Key])){
@@ -216,7 +235,15 @@ class ErrorLog extends Extension implements IModuleInterface
             } else {
                 $ErrorCountArray['Extra'][$Key] = 1;
             }
+            return new DangerText($Value);
         }
+        if($IsNumeric){
+            if(!is_numeric($Value)){
+                return new DangerText($Value);
+            }
+        }
+
+        return $Value;
     }
 
     private function fillErrorCountCourse(&$ErrorCountArray = array(), $Value = '')
@@ -238,7 +265,7 @@ class ErrorLog extends Extension implements IModuleInterface
             }
         }
         if(!$Value){
-            $Value = 'Leer';
+            $Value = '[Leer]';
         }
         if(!$tblDivisionCourse){
             if(isset($ErrorCountArray['Course'][$Value])){
@@ -246,10 +273,12 @@ class ErrorLog extends Extension implements IModuleInterface
             } else {
                 $ErrorCountArray['Course'][$Value] = 1;
             }
+            return new DangerText($Value);
         }
+        return $Value;
     }
 
-    private function fillErrorCountSubject(&$ErrorCountArray = array(), $Value = '')
+    private function fillErrorCountSubject(&$ErrorCountArray = array(), $Value = '', $SubstituteSubject = false, $isSubstituteSubject = false)
     {
 
 
@@ -257,23 +286,28 @@ class ErrorLog extends Extension implements IModuleInterface
         if (!($tblSubject = Education::useService()->getImportMappingValueBy(TblImportMapping::TYPE_SUBJECT_ACRONYM_TO_SUBJECT_ID, $Value))) {
             $tblSubject = Subject::useService()->getSubjectByAcronym($Value);
         }
-        if(!$Value){
-            $Value = 'NA';
+        // nicht vorhandenes $Value auf Leer, ausnahme Vertretungsfach, dies ist bei einem Ausfall auch leer
+        if(!$Value && !$isSubstituteSubject){
+            $Value = '[Leer]';
         }
-
-        if(!$tblSubject){
-            if(isset($ErrorCountArray['Subject'][$Value])){
+        // Vertretungsfach lässt $Value leer, fällt damit aus der Übersicht raus
+        if(!$tblSubject && $Value) {
+            if(isset($ErrorCountArray['Subject'][$Value])) {
                 $ErrorCountArray['Subject'][$Value]++;
             } else {
                 $ErrorCountArray['Subject'][$Value] = 1;
             }
+            if($isSubstituteSubject || $SubstituteSubject === ''){
+                return new DangerText($Value);
+            } else {
+                return new WarningText($Value);
+            }
         }
+        return $Value;
     }
 
     private function fillErrorCountPerson(&$ErrorCountArray = array(), $Value = '')
     {
-
-
         // Mapping
         if (!($tblPerson = Education::useService()->getImportMappingValueBy(TblImportMapping::TYPE_TEACHER_ACRONYM_TO_PERSON_ID, $Value))) {
             $tblPerson = Teacher::useService()->getTeacherByAcronym($Value);
@@ -285,12 +319,34 @@ class ErrorLog extends Extension implements IModuleInterface
             } else {
                 $ErrorCountArray['Person'][$Value] = 1;
             }
+            return new DangerText($Value);
         }
+        return $Value;
     }
 
-    public function getLogPanel($ErrorCountArray = array(), $Key = '')
+    private function getDayString($DateString = 'now')
     {
+        $DateTime = new \DateTime($DateString);
+        $Day = $DateTime->format('w');
+        $DayList = array(0 => 'Sonntag',
+            1 => 'Montag',
+            2 => 'Dienstag',
+            3 => 'Mittwoch',
+            4 => 'Donnerstag',
+            5 => 'Freitag',
+            6 => 'Samstag');
+        return $DayList[$Day];
+    }
 
+    /**
+     * @param $ErrorCountArray
+     * @param $Key
+     *
+     * @return LayoutColumn|string
+     */
+    private function getLogLayoutColumn($ErrorCountArray = array(), $Key = '')
+    {
+        $size = 3;
         if($Key == 'Course'){
             $Content = array();
             if(!empty($ErrorCountArray['Course'])){
@@ -299,7 +355,7 @@ class ErrorLog extends Extension implements IModuleInterface
                 }
             }
             if(!empty($Content)){
-                return new Panel('Klassen', $Content, Panel::PANEL_TYPE_WARNING);
+                return new LayoutColumn(new Panel('Klassen', $Content, Panel::PANEL_TYPE_WARNING), $size);
             }
             return '';
         } elseif($Key == 'Subject'){
@@ -310,7 +366,7 @@ class ErrorLog extends Extension implements IModuleInterface
                 }
             }
             if(!empty($Content)){
-                return new Panel('Fächer', $Content, Panel::PANEL_TYPE_WARNING);
+                return new LayoutColumn(new Panel('Fächer', $Content, Panel::PANEL_TYPE_WARNING), $size);
             }
             return '';
         } elseif($Key == 'Person'){
@@ -321,7 +377,7 @@ class ErrorLog extends Extension implements IModuleInterface
                 }
             }
             if(!empty($Content)){
-                return new Panel('Lehrer', $Content, Panel::PANEL_TYPE_WARNING);
+                return new LayoutColumn(new Panel('Lehrer', $Content, Panel::PANEL_TYPE_WARNING), $size);
             }
             return '';
         } elseif($Key == 'Extra'){
@@ -332,7 +388,7 @@ class ErrorLog extends Extension implements IModuleInterface
                 }
             }
             if(!empty($Content)){
-                return new Panel('Zusätzliche Fehler', $Content, Panel::PANEL_TYPE_WARNING);
+                return new LayoutColumn(new Panel('Zusätzliche Fehler', $Content, Panel::PANEL_TYPE_WARNING), $size);
             }
             return '';
         }
@@ -375,7 +431,7 @@ class ErrorLog extends Extension implements IModuleInterface
                 new LayoutColumn(
                     $Code
                     ? new Headline('Adresse der Schnittstelle:').new Ruler().
-                        '<span style="font-size: 20px">'.$this->getRequest()->getHost().'/RestApi/Public/Indiware/TimeTableReplacement?Savety='.$MandantAcronym.'-'.$Code.'</span>'
+                        '<span style="font-size: 20px">'.$this->getRequest()->getHost().'/RestApi/Public/Indiware/TimeTable?Savety='.$MandantAcronym.'-'.$Code.'</span>'
                     : 'Zur aktivierung bitte erzeugten Code speichern'
                 ),
                 new LayoutColumn(

@@ -451,8 +451,8 @@ class JsonReplacementTest
               "Ak_Art": "Änd.",
               "Ak_DatumVon": "06.03.2025",
               "Ak_StundeVon": 1,
-              "Ak_Fach": "FAwp",
-              "Ak_VFach": "FAwp",
+              "Ak_Fach": "",
+              "Ak_VFach": "",
               "Klassen": [
                 "1Frue",
                 "2Frue",
@@ -460,14 +460,14 @@ class JsonReplacementTest
               ],
               "VKlassen": [
                 "1Frue",
-                "2Frue",
+                "2Frue2",
                 "3Frue"
               ],
               "Lehrer": [
-                "Lis"
+                "Lisa"
               ],
               "VLehrer": [
-                "Koe"
+                "Koer"
               ],
               "Raeume": [
                 ".Früh"
@@ -482,7 +482,7 @@ class JsonReplacementTest
               "Ak_Art": "Änd.",
               "Ak_DatumVon": "06.03.2025",
               "Ak_StundeVon": 2,
-              "Ak_Fach": "FAwp",
+              "Ak_Fach": "",
               "Ak_VFach": "FAwp",
               "Klassen": [
                 "2Frue",
@@ -490,7 +490,7 @@ class JsonReplacementTest
               ],
               "VKlassen": [
                 "2Frue",
-                "3Frue"
+                "3Frue3"
               ],
               "Lehrer": [
                 "Lis"
@@ -512,7 +512,7 @@ class JsonReplacementTest
               "Ak_DatumVon": "06.03.2025",
               "Ak_StundeVon": 3,
               "Ak_Fach": "FAwp",
-              "Ak_VFach": "FAwp",
+              "Ak_VFach": "FAwp3",
               "Klassen": [
                 "4Frue",
                 "4Herb",
