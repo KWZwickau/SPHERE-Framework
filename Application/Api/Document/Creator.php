@@ -1171,12 +1171,12 @@ class Creator extends Extension
         if($Select == 'Help'){
             $file = "Common/Style/Resource/Document/Manual/SSWHelp.pdf";
             header("Content-Type: application/pdf");
-            header("Content-Disposition: attachment; filename=Hilfe_Schulsoftware_17.06.2024.pdf");
+            header("Content-Disposition: attachment; filename=Hilfe_Schulsoftware_10.06.2025.pdf");
             header("Content-Length: ".filesize($file));
         } elseif($Select == 'UserRole') {
             $file = "Common/Style/Resource/Document/Manual/SSWUserRole.pdf";
             header("Content-Type: application/pdf");
-            header("Content-Disposition: attachment; filename=Benutzerrechte_Schulsoftware_27.10.2023.pdf");
+            header("Content-Disposition: attachment; filename=Benutzerrechte_Schulsoftware_06.06.2025.pdf");
             header("Content-Length: ".filesize($file));
         } elseif($Select == 'DigitalClassBook') {
             $file = "Common/Style/Resource/Document/Manual/SSWDigitalClassBook.pdf";

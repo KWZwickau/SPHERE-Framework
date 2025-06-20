@@ -44,7 +44,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutColumn('<h4>Schulsoftware Download der Hilfe</h4>'
                             . new Link((new Thumbnail(
                                 FileSystem::getFileLoader('/Common/Style/Resource/SSWInfo.png')
-                                , 'Allgemeine Hilfe', 'Stand:&nbsp;17.06.2024'))->setPictureHeight(), '/Api/Document/Standard/Manual/Create/Pdf', null, array('Select' => 'Help'))
+                                , 'Allgemeine Hilfe', 'Stand:&nbsp;10.06.2025'))->setPictureHeight(), '/Api/Document/Standard/Manual/Create/Pdf', null, array('Select' => 'Help'))
                             , 3),
                         new LayoutColumn('<h4>Lehrvideos <b>Kursverwaltung</b></h4>'
                             . (new Link((new Thumbnail(
@@ -72,7 +72,7 @@ class Frontend extends Extension implements IFrontendInterface
                         , 3),
                         new LayoutColumn(new Link((new Thumbnail(
                                 FileSystem::getFileLoader('/Common/Style/Resource/SSWUser.png')
-                                , 'Benutzerrechte', 'empfohlene Benutzerrechte Stand:&nbsp;27.10.2023'))->setPictureHeight()
+                                , 'Benutzerrechte', 'empfohlene Benutzerrechte Stand:&nbsp;06.06.2025'))->setPictureHeight()
                                 , '/Api/Document/Standard/Manual/Create/Pdf', null, array('Select' => 'UserRole')
                         ), 3),
                         new LayoutColumn(new Link((new Thumbnail(

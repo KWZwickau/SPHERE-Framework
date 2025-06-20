@@ -529,6 +529,8 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
             case 'Bildung: Klassenbuch (Schulleitung)':return $this->setToolTip('Digitales Klassenbuch, Inklusion und inkl. Verwaltung und Auswertung von
                 Belehrungen aller Klassen');
             case 'Bildung: Notenbuch (Inklusionsbeauftragte)':return $this->setToolTip('Notenbuch aller Schüler');
+            case 'Bildung: pädagogisches Tagebuch (Inklusionsbeauftragte)':return $this->setToolTip('pädagogisches Tagebuch (alle Klassen einsehen
+                [wie Schulleitung], ohne erstellen/bearbeiten/löschen)');
             case 'Bildung: pädagogisches Tagebuch (Klassenlehrer)':return $this->setToolTip('pädagogisches Tagebuch (Klassenlehrer mit eigener Klasse)');
             case 'Bildung: pädagogisches Tagebuch (Lehrer mit Lehrauftrag)':return $this->setToolTip('pädagogisches Tagebuch (Fachlehrer können auf 
                 päd. Tagebücher zugreifen, wo diese einen Lehrauftrag besitzen. Die Fachlehrer können nur eigene Einträge bearbeiten)');

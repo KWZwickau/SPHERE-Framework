@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\Education\Lesson\Term\Service\Entity;
 
+use DateTime;
 use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
@@ -123,5 +124,19 @@ class TblYear extends Element
         } else {
             return $this->getYear().' '.$this->getDescription();
         }
+    }
+
+    /**
+     * @return DateTime|null
+     */
+    public function getStartDateTime(): ?DateTime
+    {
+        list($startDate, $endDate) = Term::useService()->getStartDateAndEndDateOfYear($this);
+        if ($startDate)
+        {
+            return $startDate;
+        }
+
+        return null;
     }
 }

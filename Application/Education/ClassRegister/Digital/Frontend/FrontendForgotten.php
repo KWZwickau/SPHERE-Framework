@@ -433,7 +433,7 @@ class FrontendForgotten extends FrontendCourseContent
                     $sumTotal = $sumHomework + $sumEquipment; //Digital::useService()->getForgottenSumByPersonAndYear($tblPerson, $tblYear, null);
                     $dataList[] = array(
                         'Number' => $tblDivisionCourseMember->isInActive() ? new Strikethrough($count) : $count,
-                        'Name' => $tblDivisionCourseMember->isInActive() ? new Strikethrough($tblPerson->getLastFirstNameWithCallNameUnderline()) : $tblPerson->getLastFirstNameWithCallNameUnderline(),
+                        'Name' => $tblDivisionCourseMember->isInActive() ? new Strikethrough($tblPerson->getLastFirstNameWithCallNameUnderline(true)) : $tblPerson->getLastFirstNameWithCallNameUnderline(true),
                         'SumHomework' => $tblDivisionCourseMember->isInActive() ? new Strikethrough( $sumHomework . ' ') :  $sumHomework . ' ',
                         'SumEquipment' => $tblDivisionCourseMember->isInActive() ? new Strikethrough( $sumEquipment . ' ') :  $sumEquipment . ' ',
                         'SumTotal' => $tblDivisionCourseMember->isInActive() ? new Strikethrough( $sumTotal . ' ') :  $sumTotal . ' ',
