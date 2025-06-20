@@ -98,7 +98,8 @@ class FrontendStudentProcess extends FrontendReadOnly
                         || ($tblYear
                             && ($today = new \DateTime('today'))
                             && (list($startDate, $endDate) = Term::useService()->getStartDateAndEndDateOfYear($tblYear))
-                            && $startDate < $today && $endDate > $today
+                            // aktuelles Schuljahr und zukünftiges Schuljahr bearbeitbar
+                            && (($startDate < $today && $endDate > $today) || $startDate > $today)
                         )
                     ) {
                         $hasOption = true;
