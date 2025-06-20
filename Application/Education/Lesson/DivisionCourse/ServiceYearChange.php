@@ -2,6 +2,7 @@
 
 namespace SPHERE\Application\Education\Lesson\DivisionCourse;
 
+use DateTime;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\Education\Diary\Diary;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Data;
@@ -15,6 +16,10 @@ use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblTeacher
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\People\Group\Group;
+use SPHERE\Application\People\Group\Service\Entity\TblGroup;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransferType;
+use SPHERE\Application\People\Meta\Student\Student;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
@@ -56,14 +61,8 @@ abstract class ServiceYearChange extends ServiceTeacher
                 ) {
                     $dataSourceList[$level][$tblPerson->getId()] = $tblPerson->getLastFirstName();
 
-                    // Schüler mit Abgangszeugnis oder Abschlusszeugnis ignorieren
-                    if (Prepare::useService()->getIsLeaveOrDiplomaStudent($tblPerson, $tblYearSource)) {
-                        continue;
-                    }
-
-                    // SSWHD-3366 Schüler ignorieren welche nicht mehr in der Gruppe Schüler sind
-                    if (!Group::useService()->existsGroupPerson($tblGroupStudent, $tblPerson))
-                    {
+                    // folgende Schüler werden ignoriert beim Schuljahreswechsel
+                    if ($this->isIgnoreStudent($tblPerson, $tblYearSource, $tblYearTarget, $tblGroupStudent)) {
                         continue;
                     }
 
@@ -176,6 +175,41 @@ abstract class ServiceYearChange extends ServiceTeacher
     }
 
     /**
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYearSource
+     * @param TblYear $tblYearTarget
+     * @param TblGroup $tblGroupStudent
+     *
+     * @return bool
+     */
+    private function isIgnoreStudent(TblPerson $tblPerson, TblYear $tblYearSource, TblYear $tblYearTarget, TblGroup $tblGroupStudent): bool {
+        // Schüler mit Abgangszeugnis oder Abschlusszeugnis ignorieren
+        if (Prepare::useService()->getIsLeaveOrDiplomaStudent($tblPerson, $tblYearSource)) {
+            return true;
+        }
+
+        // SSWHD-3366 Schüler ignorieren welche nicht mehr in der Gruppe Schüler sind
+        if (!Group::useService()->existsGroupPerson($tblGroupStudent, $tblPerson))
+        {
+            return true;
+        }
+
+        // Abgangsdatum ist vor Beginn neues Schuljahr gesetzt
+        if (($tblStudent = $tblPerson->getStudent())
+            && ($tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier(TblStudentTransferType::LEAVE))
+            && ($tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent, $tblStudentTransferType))
+            && ($leaveDate = $tblStudentTransfer->getTransferDate())
+            && ($startDateTime = $tblYearTarget->getStartDateTime())
+            && ($leaveDateTime = new DateTime($leaveDate))
+            && $leaveDateTime < $startDateTime
+        ) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
      * @param TblType $tblSchoolType
      * @param TblYear $tblYearSource
      * @param TblYear $tblYearTarget
@@ -195,7 +229,7 @@ abstract class ServiceYearChange extends ServiceTeacher
         $createTeacherLectureshipList = array();
 
         $tblMemberTypeStudent = DivisionCourse::useService()->getDivisionCourseMemberTypeByIdentifier(TblDivisionCourseMemberType::TYPE_STUDENT);
-
+        $tblGroupStudent = Group::useService()->getGroupByMetaTable('STUDENT');
         if (($tblStudentEducationList = DivisionCourse::useService()->getStudentEducationListBy($tblYearSource, $tblSchoolType))) {
             $tblStudentEducationList = $this->getSorter($tblStudentEducationList)->sortObjectBy('Sort');
             /** @var TblStudentEducation $tblStudentEducationSource */
@@ -204,8 +238,8 @@ abstract class ServiceYearChange extends ServiceTeacher
                     && !$tblStudentEducationSource->isInActive()
                     && ($level = $tblStudentEducationSource->getLevel())
                 ) {
-                    // Schüler mit Abgangszeugnis oder Abschlusszeugnis ignorieren
-                    if (Prepare::useService()->getIsLeaveOrDiplomaStudent($tblPerson, $tblYearSource)) {
+                    // folgende Schüler werden ignoriert beim Schuljahreswechsel
+                    if ($this->isIgnoreStudent($tblPerson, $tblYearSource, $tblYearTarget, $tblGroupStudent)) {
                         continue;
                     }
 
