@@ -227,6 +227,26 @@ class Data extends DataLeave
     }
 
     /**
+     * @param TblPrepareInformation $tblPrepareInformation
+     *
+     * @return bool
+     */
+    public function destroyPrepareInformation(TblPrepareInformation $tblPrepareInformation): bool
+    {
+        $Manager = $this->getEntityManager();
+        /** @var TblPrepareInformation $Entity */
+        $Entity = $Manager->getEntityById('TblPrepareInformation', $tblPrepareInformation->getId());
+        if (null !== $Entity) {
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
+            $Manager->killEntity($Entity);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
      * @param TblDivisionCourse $tblDivisionCourse
      * @param TblGenerateCertificate|null $tblGenerateCertificate
      * @param TblPerson|null $tblPersonSigner

@@ -42,6 +42,7 @@ class ExamGradeListOS extends AbstractDocument
     private array $personList = array();
     private array $gradeList = array();
     private array $identifierList = array();
+    private array $languageList = array();
 
     function __construct(TblPrepareCertificate $tblPrepareCertificate, TblDivisionCourse $tblDivisionCourse)
     {
@@ -63,13 +64,23 @@ class ExamGradeListOS extends AbstractDocument
                         && $tblCourse->getName() == 'Hauptschule')
                 ) {
                     $this->personList[$number] = $tblPerson;
+                    $isNativeLanguage = ($tblPrepareInformation = Prepare::useService()->getPrepareInformationBy($tblPrepareCertificate, $tblPerson, 'IsNativeLanguage'))
+                        && $tblPrepareInformation->getValue();
 
                     // Prüfungsnoten
                     if (($tblPrepareAdditionalGradeList = Prepare::useService()->getPrepareAdditionalGradeListBy($tblPrepareCertificate, $tblPerson))) {
                         foreach ($tblPrepareAdditionalGradeList as $tblPrepareAdditionalGrade) {
                             if (($tblSubjectDiploma = $tblPrepareAdditionalGrade->getServiceTblSubject()) && $tblPrepareAdditionalGrade->getGrade()) {
                                 $identifier = $tblPrepareAdditionalGrade->getTblPrepareAdditionalGradeType()->getIdentifier();
-                                $this->gradeList[$number][$tblSubjectDiploma->getId()][$identifier] = $tblPrepareAdditionalGrade->getDisplayGrade();
+                                // Eintragung der Englisch schriftlichen Prüfungsnote bei Herkunftssprache
+                                if ($isNativeLanguage
+                                    && $identifier == 'PS'
+                                    && $tblSubjectDiploma->getName() == 'Englisch'
+                                ) {
+                                    $this->languageList[$number]['PS'] = $tblPrepareAdditionalGrade->getDisplayGrade();
+                                } else {
+                                    $this->gradeList[$number][$tblSubjectDiploma->getId()][$identifier] = $tblPrepareAdditionalGrade->getDisplayGrade();
+                                }
                             }
                         }
                     }
@@ -83,6 +94,14 @@ class ExamGradeListOS extends AbstractDocument
                                 $this->gradeList[$number][$tblSubjectYear->getId()]['JN'] = $tblTaskGrade->getDisplayGrade();
                             }
                         }
+                    }
+
+                    // Herkunftssprache
+                    if (($tblStudent = $tblPerson->getStudent())
+                        && ($language = $tblStudent->getMigrationBackground())
+                        && $isNativeLanguage
+                    ) {
+                        $this->languageList[$number]['Language'] = $language;
                     }
 
                     $number++;
@@ -492,8 +511,8 @@ class ExamGradeListOS extends AbstractDocument
         for ($i = 1; $i <= self::NUMBER_MAX; $i++)
         {
             $slice->addSection((new Section())
-                ->addElementColumn($this->getBodyElement()->styleAlignLeft(), $width)
-                ->addElementColumn($this->getBodyElement()->stylePaddingLeft('5px'))
+                ->addElementColumn($this->getBodyElement($this->languageList[$i]['PS'] ?? '&nbsp;')->styleAlignCenter(), $width)
+                ->addElementColumn($this->getBodyElement($this->languageList[$i]['Language'] ?? '&nbsp;')->stylePaddingLeft('5px'))
             );
         }
         return $slice->styleBorderBottom(self::BORDER);

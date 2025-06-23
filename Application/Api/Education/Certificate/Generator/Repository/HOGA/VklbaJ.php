@@ -111,8 +111,9 @@ class VklbaJ extends Style
             ->addSlice($this->getChosenArea($personId))
             ->addSlice($this->getPartialIntegration($personId))
             ->addSlice($this->getCustomFosRemark($personId, '15px', '110px', self::TEXT_SIZE_NORMAL))
-            ->addSlice($this->getCustomSignPartBgj($personId, '5px'))
-            ->addSlice($this->getCustomParentSign('10px'))
-            ->addSlice($this->getCustomInfoBgj('8px'));
+//            ->addSlice($this->getCustomSignPartBgj($personId, '5px'))
+//            ->addSlice($this->getCustomParentSign('10px'))
+            ->addSlice($this->getCustomFosSignPart($personId, '0px', 'Siegel', self::TEXT_SIZE_NORMAL))
+            ->addSlice($this->getCustomInfoBgj('-5px'));
     }
 }
