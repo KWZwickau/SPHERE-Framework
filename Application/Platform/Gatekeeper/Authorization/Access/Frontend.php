@@ -286,7 +286,7 @@ class Frontend
             '/Platform/Gatekeeper/OAuth2/Vidis',
             '/Platform/Gatekeeper/OAuth2/OAuthSite',
 //            '/RestApi/Public/Authorization/Login',
-//            '/RestApi/Public/Indiware/Log'
+            '/RestApi/Public/Indiware/Log',
         );
         if ($PublicRouteAll) {
             array_walk($PublicRouteAll, function (&$Route) use (&$publicRightList, $publicRouteList) {

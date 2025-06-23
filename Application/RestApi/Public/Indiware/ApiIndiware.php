@@ -30,6 +30,7 @@ class ApiIndiware implements IApiInterface
     public static function getLog(): JsonResponse
     {
 
+        exit;
         // http://192.168.92.128/RestApi/Public/Indiware/Log
         $Date = new \DateTime();
         $dateipfad = 'UnitTest/IndiwareLog/'.$Date->format('H_i_s').' Log '.$Date->format('d_m_Y').'.txt';
@@ -92,15 +93,15 @@ class ApiIndiware implements IApiInterface
                 }
                 if(($NumberControl) != $Code){
                     // Code stimmt nicht überein
-                    return $JsonResponse->setData(array("Identifier" => "error", "message" => "Error_Code_1"));
+                    return $JsonResponse->setData(array("Identifier" => "error", "message" => "Indiware_ErrorCode_1"));
                 }
             } else {
                 // Indiware Account fehlt
-                return $JsonResponse->setData(array("Identifier" => "error", "message" => "Error_Code_2"));
+                return $JsonResponse->setData(array("Identifier" => "error", "message" => "Indiware_ErrorCode_2"));
             }
         } else {
             // Mandant fehlt
-            return $JsonResponse->setData(array("Identifier" => "error", "message" => "Error_Code_3"));
+            return $JsonResponse->setData(array("Identifier" => "error", "message" => "Indiware_ErrorCode_3"));
         }
 
         // Login Service-Account
@@ -112,9 +113,19 @@ class ApiIndiware implements IApiInterface
         $json = file_get_contents('php://input');
         // Test mit Lokalen Daten
 //        $json = (new JsonReplacementTest())->getJson($Mandant);
-        Replacement::useService()->importJsonReplacement($json);
+
+        Account::useService()->destroySession(null, session_id());
+//        return $JsonResponse->setData(array("Identifier" => "error", "message" => getallheaders(), "JSON" => $json)); // , 'JSON' => $json
+
+        if(($message = Replacement::useService()->importJsonReplacement($json))){
+            // Logout Service-Account
+            Account::useService()->destroySession(null, session_id());
+            return $JsonResponse->setData(array("Identifier" => "error", "message" => $message)); // , 'JSON' => $json
+//            return $JsonResponse->setData(array("Identifier" => "success 2", "message" => "JSON 2 saved in file.")); // , 'JSON' => $json
+        }
         // Logout Service-Account
         Account::useService()->destroySession(null, session_id());
-        return $JsonResponse->setData(array("Identifier" => "success", "message" => "JSON saved in file.")); // , 'JSON' => $json
+
+        return $JsonResponse->setData(array("Identifier" => "success", "message" => "data saved")); // , 'JSON' => $json
     }
 }

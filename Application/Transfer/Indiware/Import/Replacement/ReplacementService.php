@@ -23,6 +23,7 @@ use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\System\Extension\Repository\Debugger;
 use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
+use Symfony\Component\HttpFoundation\JsonResponse;
 
 class ReplacementService
 {
@@ -603,10 +604,10 @@ class ReplacementService
     }
 
     /**
-     * @param $Json
-     * @return void
+     * @param string $Json
+     * @return string
      */
-    public function importJsonReplacement($Json){
+    public function importJsonReplacement(string $Json){
 
         $ArrayData = json_decode($Json, true);
         $DateArray = array();
@@ -614,8 +615,12 @@ class ReplacementService
         $importList = array();
         // über Webhook erhalten
 
-        if(isset($ArrayData['Gesamtexport']['Vertretungsplan']['Vertretungsplan'])
-            && ($ReplacementList = $ArrayData['Gesamtexport']['Vertretungsplan']['Vertretungsplan'])){
+        if(!isset($ArrayData['Gesamtexport']['Vertretungsplan']['Vertretungsplan'])){
+            TimetableTool::useService()->createTimetableReplacementLogEntity('Upload war kein Vertretungsplan oder ungültige/leere JSON');
+            return 'Kein Vertretungsplan';
+        }
+
+        if(($ReplacementList = $ArrayData['Gesamtexport']['Vertretungsplan']['Vertretungsplan'])){
         // EVSR Händisch als Json erhalten
 //        if(isset($ArrayData['Vertretungsplan'])
 //            && ($ReplacementList = $ArrayData['Vertretungsplan'])){
@@ -644,6 +649,11 @@ class ReplacementService
                 TimetableTool::useService()->createTimetableReplacementJsonBulk($importList);
             }
         }
+
+        if(empty($errorList)){
+            TimetableTool::useService()->createTimetableReplacementLogEntity('Upload ohne enthaltene Konflikte!');
+        }
+        return '';
     }
 
     /**

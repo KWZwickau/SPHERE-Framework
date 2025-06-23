@@ -313,6 +313,17 @@ class Service extends AbstractService
     }
 
     /**
+     * @param string $Message
+     * @return bool
+     */
+    public function createTimetableReplacementLogEntity($Message):bool
+    {
+
+        (new Data($this->getBinding()))->destroyTimetableReplacementLogAllBulk();
+        return (new Data($this->getBinding()))->createTimetableReplacementLogEntity($Message);
+    }
+
+    /**
      * @param array $ErrorList
      * @return bool
      */

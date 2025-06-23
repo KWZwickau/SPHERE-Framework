@@ -18,8 +18,11 @@ class RestApi implements IApiInterface
      */
     public static function registerApi(): void
     {
-        ApiIndiware::registerApi();
+        // public
 //        ApiAuthorization::registerApi();
+        ApiIndiware::registerApi();
+
+        // other
 //        ApiPerson::registerApi();
         ApiMenu::registerApi();
         ApiAbsence::registerApi();

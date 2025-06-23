@@ -600,6 +600,29 @@ class Data extends AbstractData
     }
 
     /**
+     * @param string $Message
+     * @return bool
+     */
+    public function createTimetableReplacementLogEntity(string $Message):bool
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $Entity = new TblTimetableReplacementLog();
+        $Entity->setDate((new DateTime())->format('Y-m-d'));
+        $Entity->setHour('');
+        $Entity->setRoom('');
+        $Entity->setIsCanceled(false);
+        $Entity->setSubject('');
+        $Entity->setSubjectSubstitute('');
+        $Entity->setCourse('');
+        $Entity->setPersonAcronym('');
+        $Entity->setError($Message);
+        $Manager->saveEntity($Entity);
+        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        return true;
+    }
+
+    /**
      * @param array $ErrorList
      * @return bool
      */

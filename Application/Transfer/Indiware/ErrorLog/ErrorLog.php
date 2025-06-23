@@ -37,6 +37,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Danger as DangerLink;
+use SPHERE\Common\Frontend\Link\Repository\Primary as PrimaryLink;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Info;
@@ -102,12 +103,11 @@ class ErrorLog extends Extension implements IModuleInterface
     {
         if(($ErrorLogList = Timetable::useService()->getTimeTableReplacementLogAll())){
             $ReplacementLog = current($ErrorLogList);
-                $Date = $ReplacementLog->getEntityCreate()->format('d.m.Y H:i:s');
+                $Date = $ReplacementLog->getEntityCreate()->format('d.m.Y').' um '.$ReplacementLog->getEntityCreate()->format('H:i:s');
                 $Date = ' am '.new Bold($Date);
 
             return new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
-                new Warning(new Center('Bei der Übertragung vom Vertretungsplan aus Indiware '.$Date.' sind ('.count($ErrorLogList).') Fehler aufgetreten.<br/>'.
-                    new \SPHERE\Common\Frontend\Link\Repository\Warning('Anzeigen', '/Transfer/Indiware/ErrorLog', new EyeOpen())))
+                new Info(new Center('Übertragung aus Indiware '.$Date.' kontrollieren '. new PrimaryLink('Anzeigen', '/Transfer/Indiware/ErrorLog', new EyeOpen())))
             ))));
         }
         return '';
@@ -128,99 +128,115 @@ class ErrorLog extends Extension implements IModuleInterface
         }
         $Stage->addButton(new Standard('Json "Lokaler Test"', __NAMESPACE__.'/LocalJson', new Download()));
         $Stage->addButton(new Standard('Einstellung Übertragungscode', __NAMESPACE__.'/EditCode', new Plus()));
-        $Stage->addButton(new DangerLink('Einträge entfernen', __NAMESPACE__.'/Clean', new Remove()));
-        $ReplacementLogAll = Timetable::useService()->getTimeTableReplacementLogAll();
+        $Stage->addButton(new DangerLink('Logfile zurücksetzen', __NAMESPACE__.'/Clean', new Remove()));
+        $tblReplacementLogAll = Timetable::useService()->getTimeTableReplacementLogAll();
         $Date = false;
         $TableContent = array();
         $ErrorCountArray = array();
-        if($ReplacementLogAll){
-            array_walk($ReplacementLogAll, function (&$ReplacementLog) use (&$TableContent, &$Date, &$ErrorCountArray) {
-                /** @var $ReplacementLog TblTimetableReplacementLog */
+        $isInformation = false;
+        $Message = '';
+        if($tblReplacementLogAll){
+            if(count($tblReplacementLogAll) == 1){
+                $isInformation = true;
+            }
+            array_walk($tblReplacementLogAll, function (&$tblReplacementLog) use (&$TableContent, &$Date, &$ErrorCountArray, $isInformation) {
+                /** @var $tblReplacementLog TblTimetableReplacementLog */
                 $item = array();
                 if(!$Date){
-                    $Date = $ReplacementLog->getEntityCreate()->format('d.m.Y');
+                    $Date = $tblReplacementLog->getEntityCreate()->format('d.m.Y H:i:s');
                     $Date = new Bold($Date);
                 }
-                $item['Date'] = $ReplacementLog->getDate();
-//                $item['Day'] = $this->getDayString($ReplacementLog->getDate());
-                $item['Hour'] = $ReplacementLog->getHour();
-                $item['Room'] = $ReplacementLog->getRoom();
-                $item['Course'] = $ReplacementLog->getCourse();
-                $item['PersonAcronym'] = $ReplacementLog->getPersonAcronym();
-                $item['IsCanceled'] = ($ReplacementLog->getIsCanceled() ? "Ausfall" : "" );
-                $item['Subject'] = $ReplacementLog->getSubject();
+                $item['Date'] = $tblReplacementLog->getDate();
+//                $item['Day'] = $this->getDayString($tblReplacementLog->getDate());
+                $item['Hour'] = $tblReplacementLog->getHour();
+                $item['Room'] = $tblReplacementLog->getRoom();
+                $item['Course'] = $tblReplacementLog->getCourse();
+                $item['PersonAcronym'] = $tblReplacementLog->getPersonAcronym();
+                $item['IsCanceled'] = ($tblReplacementLog->getIsCanceled() ? "Ausfall" : "" );
+                $item['Subject'] = $tblReplacementLog->getSubject();
 //                $item['DisplaySubject'] =
-//                    ($ReplacementLog->getSubject()
-//                        ?:(!$ReplacementLog->getSubjectSubstitute()?new DangerText('[leer]'):''));
-                $item['SubjectSubstitute'] = $ReplacementLog->getSubjectSubstitute();
-                $ErrorList = explode(';', $ReplacementLog->getError());
+//                    ($tblReplacementLog->getSubject()
+//                        ?:(!$tblReplacementLog->getSubjectSubstitute()?new DangerText('[leer]'):''));
+                $item['SubjectSubstitute'] = $tblReplacementLog->getSubjectSubstitute();
+                $ErrorList = explode(';', $tblReplacementLog->getError());
                 $item['Error'] = implode("<br/>", $ErrorList);
 
                 // fill error & color
-                $item['Course'] = $this->fillErrorCountCourse($ErrorCountArray, $item['Course']);
-                $item['Subject'] = $this->fillErrorCountSubject($ErrorCountArray, $item['Subject'], $item['SubjectSubstitute']);
+                $item['Course'] = $this->fillErrorCountCourse($ErrorCountArray, $item['Course'], $isInformation);
+                $item['Subject'] = $this->fillErrorCountSubject($ErrorCountArray, $item['Subject'], $item['SubjectSubstitute'], false, $isInformation);
                 $item['SubjectSubstitute'] = $this->fillErrorCountSubject($ErrorCountArray, $item['SubjectSubstitute'], $item['SubjectSubstitute'], true);
                 $item['PersonAcronym'] = $this->fillErrorCountPerson($ErrorCountArray, $item['PersonAcronym']);
                 $item['Date'] = $this->fillErrorCount($ErrorCountArray, 'Date', $item['Date']);
                 $item['Hour'] = $this->fillErrorCount($ErrorCountArray, 'Hour', $item['Hour'], true);
 
                 // Add Content
-//                $item['Date'] .= '&nbsp;'.new Small(new Small(new Small(new Muted($this->getDayString($ReplacementLog->getDate())))));
+//                $item['Date'] .= '&nbsp;'.new Small(new Small(new Small(new Muted($this->getDayString($tblReplacementLog->getDate())))));
 //                $item['Date'] .= '<div style="line-height: 5px;padding-top: -5px;>">' // font-size: 8px;
-//                        .new Small(new Small(new Muted($this->getDayString($ReplacementLog->getDate()))))
+//                        .new Small(new Small(new Muted($this->getDayString($tblReplacementLog->getDate()))))
 //                    .'</div>';
 
                 $TableContent[] = $item;
             });
         }
-        $ColumnCourse = $this->getLogLayoutColumn($ErrorCountArray, 'Course');
-        $ColumnSubject = $this->getLogLayoutColumn($ErrorCountArray, 'Subject');
-        $ColumnPerson = $this->getLogLayoutColumn($ErrorCountArray, 'Person');
-        $ColumnExtra = $this->getLogLayoutColumn($ErrorCountArray, 'Extra');
+        if(!$isInformation){
+            $ColumnSummary = new LayoutColumn(new Title('Zusammenfassung der nicht zuweisbaren Daten:'));
+            $ColumnCourse = $this->getLogLayoutColumn($ErrorCountArray, 'Course');
+            $ColumnSubject = $this->getLogLayoutColumn($ErrorCountArray, 'Subject');
+            $ColumnPerson = $this->getLogLayoutColumn($ErrorCountArray, 'Person');
+            $ColumnExtra = $this->getLogLayoutColumn($ErrorCountArray, 'Extra');
+        } else {
+            $ColumnSummary = '';
+            $ColumnCourse = '';
+            $ColumnSubject = '';
+            $ColumnPerson = '';
+            $ColumnExtra = '';
+        }
+        $ColumnDetail = new LayoutColumn(new Title('Detailansicht:'));
+        $ColumnTable = new LayoutColumn(
+            new TableData($TableContent, null, array(
+                'Date'              => 'Datum',
+//                'Day'               => 'Tag',
+                'Course'            => 'Klasse',
+                'Hour'              => 'Stunde',
+                'Subject'           => 'Fach',
+                'SubjectSubstitute' => 'Vert. Fach',
+                'PersonAcronym'     => 'Lehrer Kürzel',
+                'Room'              => 'Raum',
+                'IsCanceled'        => 'Ausfall',
+                'Error'             => 'Error',
+            ),
+                array(
+                    'order' => array(
+                        array(0, 'asc'),
+                        array(1, 'asc'),
+                        array(2, 'asc')
+                    ),
+                    'columnDefs' => array(
+//                    array('type' => 'de_date', 'targets' => array(0, 1)),
+//                    array('orderable' => false, 'width' => '1%', 'targets' => -1),
+                    ),
+                    'responsive' => false
+                )
+            ),
+        );
 
         $Stage->setContent(
-            new Layout(new LayoutGroup(new LayoutRow(array(
-                new LayoutColumn(
-                    ($Code
-                        ? new Headline('Schnittstelle: '.$this->getRequest()->getHost().'/RestApi/Public/Indiware/TimeTable?Savety='.
-                            $MandantAcronym.'-'.$Code.'<br/><div style="height: 8px;"></div>'.
-                            'Zeitpunkt des letzten fehlerhaften Importes: '.($Date?: 'Keine Fehler vorhanden'))
-                        : new Warning('Schnittstelle: Freischaltung erforderlich!'))
-                ),
-//                new LayoutColumn(new Headline('Zeitpunkt des letzten fehlerhaften Importes: '.($Date?: 'Keine Fehler vorhanden'))),
-                new LayoutColumn((!empty($TableContent)? new Title('Zusammenfassung der nicht zuweisbaren Daten:'): '')),
-                $ColumnCourse,
-                $ColumnSubject,
-                $ColumnPerson,
-                $ColumnExtra,
-                new LayoutColumn(new Title('Detailansicht:')),
-                new LayoutColumn(
-                    new TableData($TableContent, null, array(
-                        'Date'              => 'Datum',
-//                        'Day'               => 'Tag',
-                        'Course'            => 'Klasse',
-                        'Hour'              => 'Stunde',
-                        'Subject'           => 'Fach',
-                        'SubjectSubstitute' => 'Vert. Fach',
-                        'PersonAcronym'     => 'Lehrer Kürzel',
-                        'Room'              => 'Raum',
-                        'IsCanceled'        => 'Ausfall',
-                        'Error'             => 'Error',
-                        ),
-                        array(
-                            'order' => array(
-                                array(0, 'asc'),
-                                array(1, 'asc'),
-                                array(2, 'asc')
-                            ),
-                            'columnDefs' => array(
-        //                            array('type' => 'de_date', 'targets' => array(0, 1)),
-        //                            array('orderable' => false, 'width' => '1%', 'targets' => -1),
-                            ),
-                            'responsive' => false
-                        )
+            new Layout(new LayoutGroup(new LayoutRow(
+                array(
+                    new LayoutColumn(
+                        ($Code
+                            ? new Headline('Schnittstelle: '.$this->getRequest()->getHost().'/RestApi/Public/Indiware/TimeTable?Savety='.
+                                $MandantAcronym.'-'.$Code.'<br/><div style="height: 8px;"></div>'. 'Zeitpunkt Import: '.$Date)
+                            : new Warning('Schnittstelle: Freischaltung erforderlich!'))
                     ),
-                )
+//                    new LayoutColumn(new Headline('Zeitpunkt des letzten fehlerhaften Importes: '.($Date?: 'Keine Fehler vorhanden'))),
+                        $ColumnSummary,
+                        $ColumnCourse,
+                        $ColumnSubject,
+                        $ColumnPerson,
+                        $ColumnExtra,
+                        $ColumnDetail,
+                        $ColumnTable,
             ))))
         );
 
@@ -246,7 +262,7 @@ class ErrorLog extends Extension implements IModuleInterface
         return $Value;
     }
 
-    private function fillErrorCountCourse(&$ErrorCountArray = array(), $Value = '')
+    private function fillErrorCountCourse(&$ErrorCountArray = array(), $Value = '', $isInformation = false)
     {
 
         $tblDivisionCourse = false;
@@ -264,7 +280,7 @@ class ErrorLog extends Extension implements IModuleInterface
                 }
             }
         }
-        if(!$Value){
+        if(!$Value && !$isInformation){
             $Value = '[Leer]';
         }
         if(!$tblDivisionCourse){
@@ -278,7 +294,7 @@ class ErrorLog extends Extension implements IModuleInterface
         return $Value;
     }
 
-    private function fillErrorCountSubject(&$ErrorCountArray = array(), $Value = '', $SubstituteSubject = false, $isSubstituteSubject = false)
+    private function fillErrorCountSubject(&$ErrorCountArray = array(), $Value = '', $SubstituteSubject = false, $isSubstituteSubject = false, $isInformation = false)
     {
 
 
@@ -287,7 +303,7 @@ class ErrorLog extends Extension implements IModuleInterface
             $tblSubject = Subject::useService()->getSubjectByAcronym($Value);
         }
         // nicht vorhandenes $Value auf Leer, ausnahme Vertretungsfach, dies ist bei einem Ausfall auch leer
-        if(!$Value && !$isSubstituteSubject){
+        if(!$Value && !$isSubstituteSubject && !$isInformation){
             $Value = '[Leer]';
         }
         // Vertretungsfach lässt $Value leer, fällt damit aus der Übersicht raus

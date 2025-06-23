@@ -129,7 +129,7 @@ class Setup extends AbstractSetup
 
         $Table = $this->createTable($Schema, 'tblClassRegisterTimetableReplacement');
         $this->createColumn($Table, 'Date', self::FIELD_TYPE_DATETIME);
-        $this->createColumn($Table, 'Hour', self::FIELD_TYPE_STRING); // 1 - 12
+        $this->createColumn($Table, 'Hour', self::FIELD_TYPE_SMALLINT); // 1 - 12
         $this->createColumn($Table, 'Room', self::FIELD_TYPE_STRING);
         $this->createColumn($Table, 'IsCanceled', self::FIELD_TYPE_BOOLEAN, false, false);
         $this->createColumn($Table, 'SubjectGroup', self::FIELD_TYPE_STRING);
