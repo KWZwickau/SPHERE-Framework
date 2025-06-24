@@ -243,11 +243,11 @@ abstract class Style extends Certificate
      *
      * @return Slice
      */
-    protected function getCustomSubjectLanes($personId): Slice
+    protected function getCustomSubjectLanes($personId, $Height = '270px'): Slice
     {
         $SubjectSlice = (new Slice())
             ->styleMarginTop('35px')
-            ->styleHeight('270px');
+            ->styleHeight($Height);
 
         $tblCertificateSubjectAll = Generator::useService()->getCertificateSubjectAll($this->getCertificateEntity());
         $tblGradeList = $this->getGrade();
