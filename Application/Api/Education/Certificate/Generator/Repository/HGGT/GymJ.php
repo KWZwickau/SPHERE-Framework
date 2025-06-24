@@ -32,7 +32,7 @@ class GymJ extends Style
             ->addSlice($this->getCustomDivisionAndYear($personId, 'Schuljahr'))
             ->addSlice($this->getCustomRatingContent($personId))
             ->addSlice($this->getCustomGradeLanes($personId))
-            ->addSlice($this->getCustomSubjectLanes($personId))
+            ->addSlice($this->getCustomSubjectLanes($personId, '250px'))
             ->addSlice($this->getCustomRemark($personId))
             ->addSlice($this->getCustomMissing($personId))
             ->addSlice($this->getCustomTransfer($personId, false))
