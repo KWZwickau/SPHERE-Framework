@@ -127,7 +127,7 @@ class MsAbsLernen extends Certificate
                     ->styleAlignLeft()
                 )
                 ->addElement((new Element())
-                    ->setContent('Abschluss im Förderschwerpunkt Lernen gemäß <br> § 34a Absatz 1 der Schulordnung Förderschulen')
+                    ->setContent('Abschluss im Förderschwerpunkt Lernen gemäß <br> § 34b Absatz 1 der Schulordnung Förderschulen')
                     ->styleMarginTop('18px')
                     ->styleTextSize('20px')
                     ->styleTextBold()
@@ -185,7 +185,7 @@ class MsAbsLernen extends Certificate
                 $this->getTblStudentEducation() ?: null,
                 $this->getTblPrepareCertificate() ?: null
             ))->getExaminationsBoard('10px','11px'))
-            ->addSlice($this->getInfo('110px',
+            ->addSlice($this->getInfo('60px',
                 'Notenerläuterung:',
                 '1 = sehr gut; 2 = gut; 3 = befriedigend; 4 = ausreichend; 5 = mangelhaft; 6 = ungenügend',
                 '&nbsp;',

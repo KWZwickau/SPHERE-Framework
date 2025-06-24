@@ -234,13 +234,6 @@ class Data extends AbstractData
     {
         $tblConsumer = $this->tblConsumer = Consumer::useService()->getConsumerBySession();
 
-        // Kann nach DB Update wieder entfernt werden
-        if(($tblCertificate = $this->getCertificateByCertificateClassName('MsAbsHs'))){
-            if(!$tblCertificate->isChosenDefault()){
-                $this->updateCertificateIsChosenDefault($tblCertificate, true);
-            }
-        }
-
         if ($tblConsumer && $tblConsumer->getType() == TblConsumer::TYPE_SACHSEN) {
 
             // Informationen der Zeugnisse
@@ -330,6 +323,11 @@ class Data extends AbstractData
         }
         if (($tblCertificate = $this->getCertificateByCertificateClassName('MsAbgLernenHs'))) {
             $this->destroyCertificate($tblCertificate);
+        }
+
+        // Zeugnisvorlagen Nummer ändern
+        if (($tblCertificate = $this->getCertificateByCertificateClassName('MsAbsLernen'))) {
+            $this->updateCertificateNumber($tblCertificate, '3.11');
         }
     }
 
