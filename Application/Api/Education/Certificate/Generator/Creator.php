@@ -302,8 +302,7 @@ class Creator extends Extension
                     $Name . '-' . $tblDivisionCourse->getName() . '-' . date("Y-m-d H:i:s") . ".pdf"
                 )->__toString();
             } else {
-                return new Stage($Name, 'Keine weiteren Zeugnisse zum Druck bereit.')
-                    . new Redirect('/Education/Certificate/PrintCertificate');
+                return new Stage($Name, 'Keine weiteren Zeugnisse zum Druck bereit.');
             }
         }
 
@@ -554,9 +553,7 @@ class Creator extends Extension
                 return self::buildDownloadFile($File, $FileName);
 
             } else {
-
-                return new Stage($Name, 'Keine weiteren Zeugnisse zum Druck bereit.')
-                    . new Redirect('/Education/Certificate/PrintCertificate');
+                return new Stage($Name, 'Keine weiteren Zeugnisse zum Druck bereit.');
             }
         }
 
@@ -662,8 +659,7 @@ class Creator extends Extension
 
             } else {
 
-                return new Stage($Name, 'Keine weiteren Zeugnisse zum Druck bereit.')
-                    . new Redirect('/Education/Certificate/PrintCertificate');
+                return new Stage($Name, 'Keine weiteren Zeugnisse zum Druck bereit.');
             }
         }
 
