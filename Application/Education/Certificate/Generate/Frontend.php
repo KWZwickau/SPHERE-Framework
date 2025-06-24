@@ -114,6 +114,8 @@ class Frontend extends Extension
                             if ($tblSchoolType->getShortName() == 'Gy'
                                 || $tblSchoolType->getShortName() == 'BGy'
                                 || $tblSchoolType->getShortName() == 'OS'
+                                || $tblSchoolType->getShortName() == 'FS'
+                                || $tblSchoolType->getShortName() == 'BFS'
                             ) {
                                 $hasDiplomaCertificate = true;
                                 break;
