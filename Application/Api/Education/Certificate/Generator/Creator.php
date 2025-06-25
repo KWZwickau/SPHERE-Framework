@@ -22,7 +22,6 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Window\Display;
-use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\RedirectScript;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
@@ -250,7 +249,8 @@ class Creator extends Extension
                     if ($tblFileList) {
                         foreach ($tblFileList as $tblFile) {
                             $name = explode(' - ', $tblFile->getName());
-                            if (count($name) >= 4 && $name[3] == $tblPrepare->getId()) {
+                            // falls im Name des Zeugnisauftrags ein " - " ist steht die PrepareId nicht mehr an 4.Stelle -> jetzt letzte Stelle verwenden
+                            if (count($name) >= 4 && end($name) == $tblPrepare->getId()) {
                                 $personLastName = str_replace('ä', 'ae', $tblPerson->getLastName());
                                 $personLastName = str_replace('ü', 'ue', $personLastName);
                                 $personLastName = str_replace('ö', 'oe', $personLastName);
