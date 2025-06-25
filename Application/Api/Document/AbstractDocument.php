@@ -599,12 +599,10 @@ abstract class AbstractDocument
                             $Data['Person']['Contact']['All']['Mail'] .= $tblFromPerson->getLastFirstName().': ';
                             foreach ($tblToPersonMailList as $tblToPersonMail) {
                                 if (($tblMail = $tblToPersonMail->getTblMail())) {
-                                    if($tblToPerson->getRanking() == 1){
-                                        if($tblToPersonMail->getTblType()->getName() == 'Privat'){
-                                            $Data['Person']['Parent']['S'.$Ranking]['Mail']['Private'] = $tblMail->getAddress();
-                                        } else {
-                                            $Data['Person']['Parent']['S'.$Ranking]['Mail']['Business'] = $tblMail->getAddress();
-                                        }
+                                    if($tblToPersonMail->getTblType()->getName() == 'Privat'){
+                                        $Data['Person']['Parent']['S'.$Ranking]['Mail']['Private'] = $tblMail->getAddress();
+                                    } else {
+                                        $Data['Person']['Parent']['S'.$Ranking]['Mail']['Business'] = $tblMail->getAddress();
                                     }
 
                                     $Data['Person']['Contact']['All']['Person']['Mail'] .= $tblFromPerson->getLastFirstName().': '
