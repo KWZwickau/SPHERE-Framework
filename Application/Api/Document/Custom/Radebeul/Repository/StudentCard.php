@@ -1,5 +1,4 @@
 <?php
-
 namespace SPHERE\Application\Api\Document\Custom\Radebeul\Repository;
 
 use SPHERE\Application\Api\Document\AbstractDocument;
@@ -37,160 +36,150 @@ class StudentCard extends AbstractDocument
      */
     public function buildDocument(array $pageList = array(), string $Part = '0'): Frame
     {
+
+        return (new Frame())->addDocument((new Document())
+            ->addPage($this->buildPageOne())
+            ->addPage($this->buildPageTwo())
+        );
+    }
+
+    public function buildPageOne()
+    {
+
         $textSize = '16px';
         $fontFamily = 'MetaPro';
         $PaddingBottom = '18px';
 
-        return (new Frame())->addDocument((new Document())
-            ->addPage((new Page())
-                ->addSlice((new Slice())
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            , '20%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('Evangelisches Schulzentrum Radebeul')
-                            ->styleFontFamily($fontFamily)
-                            ->styleTextBold()
-                            ->stylePaddingTop('10px')
-                            ->styleAlignCenter()
-                            ->styleTextSize('23px')
-                            , '60%'
-                        )
-                        ->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/EVSR.jpg',
-                            '120px', '120px'))
-                            ->stylePaddingTop('10px')
-                            ->styleHeight('10px')
-                            , '20%'
-                        )
-                    )
+        return (new Page())
+        ->addSlice((new Slice())
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    , '20%'
                 )
-                ->addSlice((new Slice())
-                    ->addElement((new Element())
-                        ->setContent('Schülerbogen')
-                        ->styleFontFamily($fontFamily)
-                        ->styleTextBold()
-                        ->stylePaddingTop()
-                        ->styleAlignCenter()
-                        ->styleTextSize('23px')
-                        ->styleHeight('100px')
-                    )
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+//                            ->setContent('Evangelisches Schulzentrum Radebeul')
+                    ->styleFontFamily($fontFamily)
+                    ->styleTextBold()
+                    ->stylePaddingTop('50px')
+                    ->styleAlignCenter()
+                    ->styleTextSize('23px')
+                    , '60%'
                 )
-                ->addSlice((new Slice())
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('Name:')
-                            ->styleFontFamily($fontFamily)
-                            ->styleTextBold()
-                            ->styleTextSize($textSize)
-                            ->stylePaddingBottom($PaddingBottom)
-                            , '15%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('
+                ->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/EVSRDokument.jpg',
+                    '301px', '90px'))
+                    ->stylePaddingTop('10px')
+                    ->styleHeight('10px')
+                    , '20%'
+                )
+            )
+            ->addElement((new Element())
+                ->setContent('Schülerbogen')
+                ->styleFontFamily($fontFamily)
+                ->styleTextBold()
+                ->stylePaddingTop()
+                ->styleAlignCenter()
+                ->styleTextSize('23px')
+                ->styleHeight('100px')
+            )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('Name:')
+                    ->styleFontFamily($fontFamily)
+                    ->styleTextBold()
+                    ->styleTextSize($textSize)
+                    ->stylePaddingBottom($PaddingBottom)
+                    , '15%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('
                                 {% if( Content.Person.Data.Name.Last is not empty) %}
                                     {{ Content.Person.Data.Name.Last }}
                                 {% else %}
                                     &nbsp;
                                 {% endif %}
                             ')
-                            ->styleFontFamily($fontFamily)
-                            ->styleTextSize($textSize)
-                            ->styleBorderBottom('1px', '#000', 'dotted')
-                            , '30%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
-                            , '55%'
-                        )
-                    )
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('Vorname:')
-                            ->styleFontFamily($fontFamily)
-                            ->styleTextBold()
-                            ->styleTextSize($textSize)
-                            ->stylePaddingBottom($PaddingBottom)
-                            , '15%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('
+                    ->styleFontFamily($fontFamily)
+                    ->styleTextSize($textSize)
+                    , '85%'
+                )
+            )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('Vorname:')
+                    ->styleFontFamily($fontFamily)
+                    ->styleTextBold()
+                    ->styleTextSize($textSize)
+                    ->stylePaddingBottom($PaddingBottom)
+                    , '15%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('
                                 {% if( Content.Person.Data.Name.First is not empty) %}
                                     {{ Content.Person.Data.Name.First }}
                                 {% else %}
                                     &nbsp;
                                 {% endif %}
                             ')
-                            ->styleFontFamily($fontFamily)
-                            ->styleTextSize($textSize)
-                            ->styleBorderBottom('1px', '#000', 'dotted')
-                            , '30%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
-                            , '55%'
-                        )
-                    )
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('geboren am:')
-                            ->styleFontFamily($fontFamily)
-                            ->styleTextBold()
-                            ->styleTextSize($textSize)
-                            ->stylePaddingBottom($PaddingBottom)
-                            , '15%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('
+                    ->styleFontFamily($fontFamily)
+                    ->styleTextSize($textSize)
+                    , '85%'
+                )
+            )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('geboren am:')
+                    ->styleFontFamily($fontFamily)
+                    ->styleTextBold()
+                    ->styleTextSize($textSize)
+                    ->stylePaddingBottom($PaddingBottom)
+                    , '15%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('
                                 {% if(Content.Person.Common.BirthDates.Birthday is not empty) %}
                                     {{ Content.Person.Common.BirthDates.Birthday|date("d.m.Y") }}
                                 {% else %}
                                     &nbsp;
                                 {% endif %}
                             ')
-                            ->styleFontFamily($fontFamily)
-                            ->styleAlignCenter()
-                            ->styleTextSize($textSize)
-                            ->styleBorderBottom('1px', '#000', 'dotted')
-                            , '13%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('in:&nbsp;')
-                            ->styleFontFamily($fontFamily)
-                            ->styleTextBold()
-                            ->styleAlignRight()
-                            ->styleTextSize($textSize)
-                            , '4%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('
-                                {% if(Content.Person.Common.BirthDates.Birthplace is not empty) %}
-                                    {{ Content.Person.Common.BirthDates.Birthplace }}
-                                {% else %}
-                                    &nbsp;
-                                {% endif %}
-                            ')
-                            ->styleFontFamily($fontFamily)
-                            ->styleTextSize($textSize)
-                            ->styleBorderBottom('1px', '#000', 'dotted')
-                            , '23%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
-                            , '45%'
-                        )
-                    )
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('Anschrift:')
-                            ->styleFontFamily($fontFamily)
-                            ->styleTextBold()
-                            ->styleTextSize($textSize)
-                            ->stylePaddingBottom($PaddingBottom)
-                            , '15%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('
+                    ->styleFontFamily($fontFamily)
+                    ->styleTextSize($textSize)
+                    , '85%'
+                )
+//                        ->addElementColumn((new Element())
+//                            ->setContent('in:&nbsp;')
+//                            ->styleFontFamily($fontFamily)
+//                            ->styleTextBold()
+//                            ->styleAlignRight()
+//                            ->styleTextSize($textSize)
+//                            , '4%'
+//                        )
+//                        ->addElementColumn((new Element())
+//                            ->setContent('
+//                                {% if(Content.Person.Common.BirthDates.Birthplace is not empty) %}
+//                                    {{ Content.Person.Common.BirthDates.Birthplace }}
+//                                {% else %}
+//                                    &nbsp;
+//                                {% endif %}
+//                            ')
+//                            ->styleFontFamily($fontFamily)
+//                            ->styleTextSize($textSize)
+//                            ->styleBorderBottom('1px', '#000', 'dotted')
+//                            , '23%'
+//                        )
+            )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('Anschrift:')
+                    ->styleFontFamily($fontFamily)
+                    ->styleTextBold()
+                    ->styleTextSize($textSize)
+                    ->stylePaddingBottom($PaddingBottom)
+                    , '15%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('
                                 {% if(Content.Person.Address.Street.Name) %}
                                     {{ Content.Person.Address.Street.Name }}
                                     {% if(Content.Person.Address.Street.Number) %}
@@ -200,24 +189,19 @@ class StudentCard extends AbstractDocument
                                       &nbsp;
                                 {% endif %}
                             ')
-                            ->styleFontFamily($fontFamily)
-                            ->styleTextSize($textSize)
-                            ->styleBorderBottom('1px', '#000', 'dotted')
-                            , '40%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
-                            , '45%'
-                        )
-                    )
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
-                            ->stylePaddingBottom('26px')
-                            , '15%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('
+                    ->styleFontFamily($fontFamily)
+                    ->styleTextSize($textSize)
+                    , '85%'
+                )
+            )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    ->stylePaddingBottom('26px')
+                    , '15%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('
                                 {% if(Content.Person.Address.City.Name) %}
                                     {{ Content.Person.Address.City.Code }}
                                     {{ Content.Person.Address.City.Name }}
@@ -225,287 +209,387 @@ class StudentCard extends AbstractDocument
                                       &nbsp;
                                 {% endif %}
                             ')
-                            ->styleFontFamily($fontFamily)
-                            ->styleTextSize($textSize)
-                            ->styleBorderBottom('1px', '#000', 'dotted')
-                            , '40%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
-                            , '45%'
-                        )
-                    )
+                    ->styleFontFamily($fontFamily)
+                    ->styleTextSize($textSize)
+                    , '85%'
                 )
-                ->addSlice((new Slice())
-                    ->addElement((new Element())
-                        ->setContent('Mail-Adresse für Elternbriefe:')
-                        ->styleFontFamily($fontFamily)
-                        ->styleTextBold()
-                        ->styleTextSize($textSize)
-                    )
-                    ->addElement((new Element())
-                        ->setContent('
-                            {% if(Content.Person.Contact.All.Mail) %}
-                                {{ Content.Person.Contact.All.Mail }}
+            )
+            ->addElement((new Element())
+                ->setContent('Sorgeberechtigter:
+                        {% if(Content.Person.Parent.S1.Name.First) %}
+                                {{ Content.Person.Parent.S1.Name.First }}
+                            {% else %}
+                                  &nbsp;
+                            {% endif %}
+                            {% if(Content.Person.Parent.S1.Name.Last) %}
+                                {{ Content.Person.Parent.S1.Name.Last }}
+                            {% else %}
+                                  &nbsp;
+                            {% endif %}')
+                ->styleFontFamily($fontFamily)
+                ->styleTextBold()
+                ->styleTextSize($textSize)
+            )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('Telefonnummer Privat')
+                    ->styleFontFamily($fontFamily)
+                    ->styleTextSize($textSize)
+                    ->styleTextSize('11px')
+                    , '33%')
+                ->addElementColumn((new Element())
+                    ->setContent('Geschäftlich')
+                    ->styleFontFamily($fontFamily)
+                    ->styleTextSize($textSize)
+                    ->styleTextSize('11px')
+                    , '33%')
+                ->addElementColumn((new Element())
+                    ->setContent('Mobil')
+                    ->styleFontFamily($fontFamily)
+                    ->styleTextSize($textSize)
+                    ->styleTextSize('11px')
+                    , '33%')
+            )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('{% if(Content.Person.Parent.S1.Phone.Private) %}
+                                {{ Content.Person.Parent.S1.Phone.Private }}
+                            {% else %}
+                                  &nbsp;
+                            {% endif %}')
+                    ->styleFontFamily($fontFamily)
+                    ->styleTextSize($textSize)
+                    , '34%')
+                ->addElementColumn((new Element())
+                    ->setContent('{% if(Content.Person.Parent.S1.Phone.Business) %}
+                                {{ Content.Person.Parent.S1.Phone.Business }}
+                            {% else %}
+                                  &nbsp;
+                            {% endif %}')
+                    ->styleFontFamily($fontFamily)
+                    ->styleTextSize($textSize)
+                    , '33%')
+                ->addElementColumn((new Element())
+                    ->setContent('{% if(Content.Person.Parent.S1.Phone.Mobil) %}
+                                {{ Content.Person.Parent.S1.Phone.Mobil }}
+                            {% else %}
+                                  &nbsp;
+                            {% endif %}')
+                    ->styleFontFamily($fontFamily)
+                    ->styleTextSize($textSize)
+                    , '33%')
+            )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('Mail-Adresse für ElternInfoBoard:')
+                    ->styleFontFamily($fontFamily)
+                    ->styleTextSize($textSize)
+                    ->stylePaddingTop($PaddingBottom)
+                    , '38%')
+                ->addElementColumn((new Element())
+                    ->setContent('{% if(Content.Person.Parent.S1.Mail.Private) %}
+                                {{ Content.Person.Parent.S1.Mail.Private }}
+                            {% else %}
+                                  &nbsp;
+                            {% endif %}')
+                    ->styleFontFamily($fontFamily)
+                    ->styleTextSize($textSize)
+                    ->stylePaddingTop($PaddingBottom)
+                    ->styleBorderBottom('1px', '#000', 'dotted')
+                    , '62%')
+            )
+            ->addElement((new Element())
+                ->setContent('Sorgeberechtigter:
+                        {% if(Content.Person.Parent.S2.Name.First) %}
+                                {{ Content.Person.Parent.S2.Name.First }}
+                            {% else %}
+                                  &nbsp;
+                            {% endif %}
+                            {% if(Content.Person.Parent.S2.Name.Last) %}
+                                {{ Content.Person.Parent.S2.Name.Last }}
+                            {% else %}
+                                  &nbsp;
+                            {% endif %}')
+                ->styleFontFamily($fontFamily)
+                ->styleTextBold()
+                ->styleTextSize($textSize)
+                ->stylePaddingTop($PaddingBottom)
+            )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('Telefonnummer Privat')
+                    ->styleFontFamily($fontFamily)
+                    ->styleTextSize($textSize)
+                    ->styleTextSize('11px')
+                    , '33%')
+                ->addElementColumn((new Element())
+                    ->setContent('Geschäftlich')
+                    ->styleFontFamily($fontFamily)
+                    ->styleTextSize($textSize)
+                    ->styleTextSize('11px')
+                    , '33%')
+                ->addElementColumn((new Element())
+                    ->setContent('Mobil')
+                    ->styleFontFamily($fontFamily)
+                    ->styleTextSize($textSize)
+                    ->styleTextSize('11px')
+                    , '33%')
+            )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('{% if(Content.Person.Parent.S2.Phone.Private) %}
+                                {{ Content.Person.Parent.S2.Phone.Private }}
+                            {% else %}
+                                  &nbsp;
+                            {% endif %}')
+                    ->styleFontFamily($fontFamily)
+                    ->styleTextSize($textSize)
+                    , '34%')
+                ->addElementColumn((new Element())
+                    ->setContent('{% if(Content.Person.Parent.S2.Phone.Business) %}
+                                {{ Content.Person.Parent.S2.Phone.Business }}
+                            {% else %}
+                                  &nbsp;
+                            {% endif %}')
+                    ->styleFontFamily($fontFamily)
+                    ->styleTextSize($textSize)
+                    , '33%')
+                ->addElementColumn((new Element())
+                    ->setContent('{% if(Content.Person.Parent.S2.Phone.Mobil) %}
+                                {{ Content.Person.Parent.S2.Phone.Mobil }}
+                            {% else %}
+                                  &nbsp;
+                            {% endif %}')
+                    ->styleFontFamily($fontFamily)
+                    ->styleTextSize($textSize)
+                    , '33%')
+            )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('Mail-Adresse für ElternInfoBoard:')
+                    ->styleFontFamily($fontFamily)
+                    ->styleTextSize($textSize)
+                    ->stylePaddingTop($PaddingBottom)
+                    , '38%')
+                ->addElementColumn((new Element())
+                    ->setContent('{% if(Content.Person.Parent.S2.Mail.Private) %}
+                                {{ Content.Person.Parent.S2.Mail.Private }}
+                            {% else %}
+                                  &nbsp;
+                            {% endif %}')
+                    ->styleFontFamily($fontFamily)
+                    ->styleTextSize($textSize)
+                    ->stylePaddingTop($PaddingBottom)
+                    ->styleBorderBottom('1px', '#000', 'dotted')
+                    , '62%')
+            )
+            ->addElement((new Element())
+                ->setContent('Im Notfall zu benachrichtigen:')
+                ->styleFontFamily($fontFamily)
+                ->styleTextBold()
+                ->styleTextSize($textSize)
+                ->stylePaddingTop($PaddingBottom)
+            )
+            ->addElement((new Element())
+                ->setContent('
+                            {% if(Content.Person.Contact.Phone.Radebeul.EmergencyNumber) %}
+                                {{ Content.Person.Contact.Phone.Radebeul.EmergencyNumber }}
+                            {% else %}
+                              &nbsp;<br/>&nbsp;
+                            {% endif %}
+                        ')
+                ->styleFontFamily($fontFamily)
+                ->styleTextSize($textSize)
+                ->styleBorderBottom('1px', '#000', 'dotted')
+            )
+            ->addElement((new Element())
+                ->setContent('&nbsp;')
+            )
+            ->addElement((new Element())
+                ->setContent('Besonderheiten / Wichtiges / Allergien / Erkrankungen:')
+                ->styleFontFamily($fontFamily)
+                ->styleTextBold()
+                ->styleTextSize($textSize)
+            )
+            ->addElement((new Element())
+                ->setContent('
+                            {% if(Content.Student.MedicalRecord.Disease) %}
+                                {{ Content.Student.MedicalRecord.Disease|nl2br }}
                             {% else %}
                                   &nbsp;
                             {% endif %}
                         ')
-                        ->styleFontFamily($fontFamily)
-                        ->styleTextSize($textSize)
-                        ->styleBorderBottom('1px', '#000', 'dotted')
-                    )
-                )
-                ->addSlice((new Slice())
-                    ->addElement((new Element())
-                        ->setContent('Telefonnummer Sorgeberechtigte')
-                        ->styleFontFamily($fontFamily)
-                        ->styleTextBold()
-                        ->styleTextSize($textSize)
-                        ->stylePaddingTop($PaddingBottom)
-                    )
-                )
-                ->addSlice((new Slice())
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
-                            ->styleTextSize('11px')
-                            , '31%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('Privat')
-                            ->styleTextSize('11px')
-                            , '23%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('Geschäftlich')
-                            ->styleTextSize('11px')
-                            , '23%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('Mobil')
-                            ->styleTextSize('11px')
-                            , '23%'
-                        )
-                    )
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('
-                                {% if(Content.Person.Parent.Father.Name.LastFirst is not empty) %}
-                                    {{ Content.Person.Parent.Father.Name.LastFirst }}
-                                {% else %}
-                                      &nbsp;
-                                {% endif %}
-                            ')
-                            ->styleFontFamily($fontFamily)
-                            ->styleTextSize($textSize)
-                            ->styleBorderBottom('1px', '#000', 'dotted')
-                            , '31%')
-                        ->addElementColumn((new Element())
-                            ->setContent('
-                                {% if(Content.Person.Parent.Father.Phone.Private is not empty) %}
-                                    {{ Content.Person.Parent.Father.Phone.Private }}
-                                {% else %}
-                                      &nbsp;
-                                {% endif %}
-                            ')
-                            ->styleFontFamily($fontFamily)
-                            ->styleTextSize($textSize)
-                            ->styleBorderBottom('1px', '#000', 'dotted')
-                            , '23%')
-                        ->addElementColumn((new Element())
-                            ->setContent('
-                                {% if(Content.Person.Parent.Father.Phone.Business is not empty) %}
-                                    {{ Content.Person.Parent.Father.Phone.Business }}
-                                {% else %}
-                                      &nbsp;
-                                {% endif %}
-                            ')
-                            ->styleFontFamily($fontFamily)
-                            ->styleTextSize($textSize)
-                            ->styleBorderBottom('1px', '#000', 'dotted')
-                            , '23%')
-                        ->addElementColumn((new Element())
-                            ->setContent('
-                                {% if(Content.Person.Parent.Father.Phone.Mobil is not empty) %}
-                                    {{ Content.Person.Parent.Father.Phone.Mobil }}
-                                {% else %}
-                                      &nbsp;
-                                {% endif %}
-                            ')
-                            ->styleFontFamily($fontFamily)
-                            ->styleTextSize($textSize)
-                            ->styleBorderBottom('1px', '#000', 'dotted')
-                            , '23%')
-                    )
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('
-                                {% if(Content.Person.Parent.Mother.Name.LastFirst is not empty) %}
-                                    {{ Content.Person.Parent.Mother.Name.LastFirst }}
-                                {% else %}
-                                      &nbsp;
-                                {% endif %}
-                            ')
-                            ->styleFontFamily($fontFamily)
-                            ->styleTextSize($textSize)
-                            ->styleBorderBottom('1px', '#000', 'dotted')
-                            , '31%')
-                        ->addElementColumn((new Element())
-                            ->setContent('
-                                {% if(Content.Person.Parent.Mother.Phone.Private is not empty) %}
-                                    {{ Content.Person.Parent.Mother.Phone.Private }}
-                                {% else %}
-                                      &nbsp;
-                                {% endif %}
-                            ')
-                            ->styleFontFamily($fontFamily)
-                            ->styleTextSize($textSize)
-                            ->styleBorderBottom('1px', '#000', 'dotted')
-                            , '23%')
-                        ->addElementColumn((new Element())
-                            ->setContent('
-                                {% if(Content.Person.Parent.Mother.Phone.Business is not empty) %}
-                                    {{ Content.Person.Parent.Mother.Phone.Business }}
-                                {% else %}
-                                      &nbsp;
-                                {% endif %}
-                            ')
-                            ->styleFontFamily($fontFamily)
-                            ->styleTextSize($textSize)
-                            ->styleBorderBottom('1px', '#000', 'dotted')
-                            , '23%')
-                        ->addElementColumn((new Element())
-                            ->setContent('
-                                {% if(Content.Person.Parent.Mother.Phone.Mobil is not empty) %}
-                                    {{ Content.Person.Parent.Mother.Phone.Mobil }}
-                                {% else %}
-                                      &nbsp;
-                                {% endif %}
-                            ')
-                            ->styleFontFamily($fontFamily)
-                            ->styleTextSize($textSize)
-                            ->styleBorderBottom('1px', '#000', 'dotted')
-                            , '23%')
-                    )
-
-                )
-                ->addSlice((new Slice())
-                    ->addElement((new Element())
-                        ->setContent('Im Notfall zu benachrichtigen:')
-                        ->styleFontFamily($fontFamily)
-                        ->styleTextBold()
-                        ->styleTextSize($textSize)
-                        ->stylePaddingTop($PaddingBottom)
-                    )
-                    ->addElement((new Element())
-                        ->setContent('
-                                {% if(Content.Person.Contact.Phone.Radebeul.EmergencyNumber) %}
-                                    {{ Content.Person.Contact.Phone.Radebeul.EmergencyNumber }}
-                                {% endif %}
-                            ')
-                        ->styleFontFamily($fontFamily)
-                        ->styleTextSize($textSize)
-                        ->styleBorderBottom('1px', '#000', 'dotted')
-                    )
-                )
-                ->addSlice((new Slice())
-                    ->addElement((new Element())
-                        ->setContent('&nbsp;')
-                    )
-                )
-                ->addSlice((new Slice())
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('Besonderheiten / <br/> Wichtiges:')
-                            ->styleFontFamily($fontFamily)
-                            ->styleTextBold()
-                            ->styleTextSize($textSize)
-                            , '20%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
-                            , '5%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('
-                                {% if(Content.Student.MedicalRecord.Disease) %}
-                                    {{ Content.Student.MedicalRecord.Disease }}
-                                {% else %}
-                                      &nbsp;
-                                {% endif %}
-                            ')
-                            ->styleFontFamily($fontFamily)
-                            ->styleTextSize($textSize)
-                            ->styleMarginTop('10px')
-                            ->stylePaddingLeft('10px')
-                            ->stylePaddingRight('10px')
-                            ->styleHeight('135px')
-                            ->styleBorderAll('1px', '#000', 'dotted')
-                            , '65%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
-                            , '10%'
-                        )
-                    )
-                )
-                ->addSlice((new Slice())
-                    ->addElement((new Element())
-                        ->setContent('&nbsp;')
-                        ->styleHeight('75px')
-                    )
-                )
-                ->addSlice((new Slice())
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('
-                                {% if(Content.Document.PlaceDate) %}
-                                    {{ Content.Document.PlaceDate }}
-                                {% else %}
-                                      &nbsp;
-                                {% endif %}
-                            ')
-                            ->styleFontFamily($fontFamily)
-                            ->styleTextSize($textSize)
-                            ->styleBorderBottom('1px', '#000', 'dotted')
-                            ->styleAlignCenter()
-                            , '30%'
-                        )
-                        ->addElementColumn((new Element())
-                            , '40%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
-                            ->styleFontFamily($fontFamily)
-                            ->styleTextSize($textSize)
-                            ->styleBorderBottom('1px', '#000', 'dotted')
-                            , '30%'
-                        )
-                    )
-                )
-                ->addSlice((new Slice())
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('Ort, Datum')
-                            ->styleFontFamily($fontFamily)
-                            ->styleTextSize($textSize)
-                            ->styleAlignCenter()
-                            , '30%'
-                        )
-                        ->addElementColumn((new Element())
-                            , '40%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('Unterschrift')
-                            ->styleFontFamily($fontFamily)
-                            ->styleTextSize($textSize)
-                            ->styleAlignCenter()
-                            , '30%'
-                        )
-                    )
-                )
+                ->styleFontFamily($fontFamily)
+                ->styleTextSize($textSize)
+                ->styleMarginTop('10px')
+//                ->styleHeight('100px')
+//                ->styleBorderAll('1px', '#000', 'dotted')
             )
+            ->stylePaddingLeft('30px')
+            ->stylePaddingRight('30px')
         );
+    }
+
+    public function buildPageTwo()
+    {
+
+        $textSize = '16px';
+        $fontFamily = 'MetaPro';
+        $PaddingBottomLarge = '46px';
+
+        return (new Page())
+            ->addSlice((new Slice())
+                ->addElement((new Element())
+                    ->setContent('&nbsp;')
+                    ->styleHeight('150px')
+                )
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent($this->setCheckBox())
+                        , '5%')
+                    ->addElementColumn((new Element())
+                        ->setContent('Mein Kind darf im Rahmen des Schwimmunterrichts und während schulischer    
+                            Veranstaltungen, Klassenfahrten und Ausflügen der Schule und des Hortes, baden.
+                            Mein Kind ist:')
+                        ->styleFontFamily($fontFamily)
+                        ->styleLineHeight('90%')
+                        ->styleTextSize($textSize)
+                        , '95%')
+                )
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
+                        , '5%')
+                    ->addElementColumn((new Element())
+                        ->setContent($this->setCheckBox())
+                        ->stylePaddingTop('5px')
+                        , '5%')
+                    ->addElementColumn((new Element())
+                        ->setContent('Nichtschwimmer')
+                        ->styleFontFamily($fontFamily)
+                        ->styleTextSize($textSize)
+                        , '90%')
+                )
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
+                        , '5%')
+                    ->addElementColumn((new Element())
+                        ->setContent($this->setCheckBox())
+                        ->stylePaddingTop('5px')
+                        , '5%')
+                    ->addElementColumn((new Element())
+                        ->setContent('Schwimmer (Seepferdchen, ………………….. Schwimmstufe)')
+                        ->styleFontFamily($fontFamily)
+                        ->styleTextSize($textSize)
+                        ->stylePaddingBottom($PaddingBottomLarge)
+                        , '90%')
+                )
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent($this->setCheckBox())
+                        , '5%')
+                    ->addElementColumn((new Element())
+                        ->setContent('Mein Kind darf das Fahrrad für den Schulweg und bei der Durchführung 
+                            schulischer Veranstaltungen und Veranstaltungen des Hortes nutzen.
+                            Mein Kind hat ein verkehrssicheres Fahrrad, hält sich an die notwendigen Verkehrsregeln   
+                            und trägt einen Fahrradhelm.')
+                        ->styleFontFamily($fontFamily)
+                        ->styleLineHeight('90%')
+                        ->styleTextSize($textSize)
+                        ->stylePaddingBottom($PaddingBottomLarge)
+                        , '95%')
+                )
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent($this->setCheckBox())
+                        , '5%')
+                    ->addElementColumn((new Element())
+                        ->setContent('Mein Kind kann an Schulveranstaltungen teilnehmen, bei denen es auch durch 
+                            ehrenamtlich tätige und vom Träger der Einrichtungen entsprechend eingewiesene    
+                            Personen betreut wird.')
+                        ->styleFontFamily($fontFamily)
+                        ->styleLineHeight('90%')
+                        ->styleTextSize($textSize)
+                        ->stylePaddingBottom($PaddingBottomLarge)
+                        , '95%')
+                )
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent($this->setCheckBox())
+                        , '5%')
+                    ->addElementColumn((new Element())
+                        ->setContent('Mein Kind ist Vegetarier')
+                        ->styleFontFamily($fontFamily)
+                        ->styleLineHeight('90%')
+                        ->styleTextSize($textSize)
+                        ->stylePaddingBottom($PaddingBottomLarge)
+                        , '95%')
+                )
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent($this->setCheckBox())
+                        ->setContent('&nbsp;')
+                        , '5%')
+                    ->addElementColumn((new Element())
+                        ->setContent('Mein Kind besitzt monatlich ein Ticket für den ÖPNV:')
+                        ->styleFontFamily($fontFamily)
+                        ->styleLineHeight('90%')
+                        ->styleTextSize($textSize)
+                        , '95%')
+                )
+
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
+                        , '5%')
+                    ->addElementColumn((new Element())
+                        ->setContent($this->setCheckBox())
+                        ->stylePaddingTop('5px')
+                        , '5%')
+                    ->addElementColumn((new Element())
+                        ->setContent('Ja')
+                        ->styleFontFamily($fontFamily)
+                        ->styleTextSize($textSize)
+                        , '90%')
+                )
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
+                        , '5%')
+                    ->addElementColumn((new Element())
+                        ->setContent($this->setCheckBox())
+                        ->stylePaddingTop('5px')
+                        , '5%')
+                    ->addElementColumn((new Element())
+                        ->setContent('Nein')
+                        ->styleFontFamily($fontFamily)
+                        ->styleTextSize($textSize)
+                        ->stylePaddingBottom($PaddingBottomLarge)
+                        , '90%')
+                )
+                ->addElement((new Element())
+                    ->setContent('Datum:')
+                    ->styleFontFamily($fontFamily)
+                    ->styleTextSize($textSize)
+                    ->styleTextBold()
+                    ->stylePaddingBottom($PaddingBottomLarge)
+                )
+                ->addElement((new Element())
+                    ->setContent('Unterschrift aller Sorgeberechtigter')
+                    ->styleFontFamily($fontFamily)
+                    ->styleTextSize($textSize)
+                    ->styleTextBold()
+                    ->stylePaddingBottom($PaddingBottomLarge)
+                )
+                ->addElement((new Element())
+                    ->setContent('&nbsp;')
+                    ->styleBorderBottom('1px', '#000', 'dotted')
+                    ->styleTextBold()
+                )
+
+                ->stylePaddingLeft('30px')
+                ->stylePaddingRight('30px')
+            );
     }
 }

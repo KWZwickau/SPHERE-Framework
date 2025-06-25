@@ -125,6 +125,69 @@ class Creator extends Extension
     }
 
     /**
+     * @param null   $DivisionCourseId
+     * @param string $DocumentClass
+     * @param string $paperOrientation
+     * @param array  $Data
+     *
+     * @return Stage|string
+     */
+    public static function createMultiPdf($DivisionCourseId, $DocumentClass, $paperOrientation = Creator::PAPERORIENTATION_PORTRAIT, $Data = array())
+    {
+
+        $tblPersonList = false;
+        if(($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))){
+            $tblPersonList = $tblDivisionCourse->getStudents();
+        }
+        if($tblPersonList && class_exists($DocumentClass)){
+
+            // Fieldpointer auf dem der Merge durchgeführt wird, (download)
+            $MergeFile = Storage::createFilePointer('pdf');
+            $PdfMerger = new PdfMerge();
+            $FileList = array();
+
+            $documentName = '';
+            foreach($tblPersonList as $tblPerson){
+                $pageList = array();
+                // create PDF without Data and PersonId
+                /** @var AbstractDocument $Document */
+                $Data['Person']['Id'] = $tblPerson->getId();
+                if(!empty($Data)){
+                    $Document = new $DocumentClass($Data);
+                } else {
+                    $Document = new $DocumentClass();
+                }
+                $documentName = $Document->getName();
+                $pageList[] = $Document->buildDocument();
+                if(!empty($pageList)){
+                    // Tmp welches nicht sofort gelöscht werden soll (braucht man noch zum mergen)
+                    $File = self::buildDummyFile($Document, $Data, $pageList, $paperOrientation);
+                    // hinzufügen für das mergen
+                    $PdfMerger->addPdf($File);
+                    // speichern der Files zum nachträglichem bereinigen
+                    $FileList[] = $File;
+                }
+            }
+
+            $FileName = $documentName . $tblDivisionCourse->getDisplayName() . ' ' . date("Y-m-d") . ".pdf";
+            // mergen aller hinzugefügten PDF-Datein
+            $PdfMerger->mergePdf($MergeFile);
+            if(!empty($FileList)){
+                // aufräumen der Temp-Files
+                /** @var FilePointer $File */
+                foreach($FileList as $File){
+                    $File->setDestruct();
+                }
+            }
+
+            if(isset($MergeFile)){
+                return self::buildDownloadFile($MergeFile, $FileName);
+            }
+        }
+        return new Stage('Dokument', 'Konnte nicht erstellt werden.');
+    }
+
+    /**
      * @param $PersonId
      * @param $YearId
      * @param string $View
