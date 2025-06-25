@@ -632,7 +632,15 @@ abstract class ServiceCertificateContent extends ServiceAbitur
                                 }
                             }
 
-                            $Content['P' . $personId]['Grade']['Data'][$tblSubject->getAcronym()] = $grade;
+                            // OS: Prüfung in Herkunftssprache statt Englisch
+                            $post = '';
+                            if ($tblSubject->getName() == 'Englisch'
+                                && ($tblPrepareInformation = Prepare::useService()->getPrepareInformationBy($tblPrepare, $tblPerson, 'IsNativeLanguage'))
+                                && $tblPrepareInformation->getValue()
+                            ) {
+                                $post = '*';
+                            }
+                            $Content['P' . $personId]['Grade']['Data'][$tblSubject->getAcronym()] = $grade . $post;
                         }
                     }
                 }

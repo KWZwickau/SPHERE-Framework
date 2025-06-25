@@ -35,7 +35,7 @@ class SDataSecondary
         self::setMsAbsHsQ($Data, '3.6');
         self::setMsAbsLernenHs($Data, '3.10');
         self::setMsAbsLernenEquatedHs($Data, '3.10');
-        self::setMsAbsLernen($Data, '3.10');
+        self::setMsAbsLernen($Data, '3.11');
         self::setMsAbsRs($Data, '3.7');
         self::setMsAbg($Data, '3.3');
         self::setMsAbgGeistigeEntwicklung($Data, '3.9');

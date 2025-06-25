@@ -423,6 +423,17 @@ abstract class ServiceTemplateInformation extends ServiceLeave
                         $markPostList['Remark'] = true;
                     }
 
+                    // Oberschule Abschlusszeugnisse
+                    if (strpos($Certificate->getCertificateEntity()->getCertificate(), 'MsAbs') !== null) {
+                        if (!$hasRemarkText
+                            && ($tblPrepareInformation = Prepare::useService()->getPrepareInformationBy($tblPrepareCertificate, $tblPerson, 'IsNativeLanguage'))
+                            && $tblPrepareInformation->getValue()
+                        ) {
+                            $Global->POST['Data'][$tblPrepareStudent->getId()]['Remark'] = '* Die Herkunftssprache wurden nach §36 Absatz 2 SOOSA im Fach: Englisch abgelegt. Die Note im Fach Englisch wurde zu gleichen teilen aus der Jahresnote in Englisch und der Prüfungsnote in der Herkunftssprache gebildet.';
+                            $markPostList['Remark'] = true;
+                        }
+                    }
+
                     // Fachschule
                     if ($Certificate->getCertificateEntity()->getCertificate() == 'FsAbs'
                             || $Certificate->getCertificateEntity()->getCertificate() == 'FsAbsFhr'

@@ -207,6 +207,16 @@ class Service extends ServiceTemplateInformation
     }
 
     /**
+     * @param TblPrepareInformation $tblPrepareInformation
+     *
+     * @return bool
+     */
+    public function destroyPrepareInformation(TblPrepareInformation $tblPrepareInformation): bool
+    {
+        return (new Data($this->getBinding()))->destroyPrepareInformation($tblPrepareInformation);
+    }
+
+    /**
      * @param IFormInterface $Stage
      * @param TblPrepareCertificate $tblPrepare
      * @param $Data

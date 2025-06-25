@@ -558,6 +558,24 @@ class Frontend extends FrontendTabs
         $lessonContentId = $tblLessonContent->getId();
         $contentHomework = $tblLessonContent->getHomework()
             . ($tblLessonContent->getDueDateHomework() ? ' (Fälligkeit: ' . $tblLessonContent->getDueDateHomework() . ')' : '');
+        if (isset($absenceContent[$lesson])) {
+            $absence = implode(' - ', $absenceContent[$lesson]);
+        } else {
+            $absence = (new Link(
+                '<div style="height: 22px"></div>',
+                ApiAbsence::getEndpoint(),
+                null,
+                array(),
+                $lesson . '. Fehlzeit hinzufügen',
+            ))->ajaxPipelineOnClick(ApiAbsence::pipelineOpenCreateAbsenceModal(
+                null,
+                $tblLessonContent->getServiceTblDivisionCourse() ? $tblLessonContent->getServiceTblDivisionCourse()->getId() : null,
+                $tblLessonContent->getDate(),
+                true,
+                $lesson
+            ));
+        }
+
         $bodyList[$index] = array(
             'Lesson' => $isEditAllowed ? $this->getLessonsEditLink(new Bold(new Center($lesson)), $lessonContentId, $lesson) : new Bold(new Center($lesson)),
             'Subject' => $isEditAllowed ? $this->getLessonsEditLink($tblLessonContent->getDisplaySubject(true), $lessonContentId, $lesson) : $tblLessonContent->getDisplaySubject(true),
@@ -573,7 +591,7 @@ class Frontend extends FrontendTabs
                     new DateTime($tblLessonContent->getDate())
                 ), $lessonContentId, $lesson) : $contentHomework,
 
-            'Absence' => isset($absenceContent[$lesson]) ? implode(' - ', $absenceContent[$lesson]) : ''
+            'Absence' => $absence
         );
 
         $bodyBackgroundList[$index] = true;
@@ -596,17 +614,18 @@ class Frontend extends FrontendTabs
 
         // Hausaufgaben
         if (($homework = $this->getDueDateHomeworkLinks($DivisionCourseId, $SubjectId, $date))) {
-
+//            $homework = $this->getLessonsNewLink('', $date, $lesson, $DivisionCourseId, $SubjectId) . $homework;
         } else {
-            $homework = (new Link(
-                '<div style="height: 22px"></div>',
-                ApiForgotten::getEndpoint(),
-                null,
-                array(),
-                $lesson . '. Vergessene Arbeitsmittel/Hausaufgaben hinzufügen',
-            ))->ajaxPipelineOnClick(ApiForgotten::pipelineOpenCreateForgottenModal(
-                $DivisionCourseId, $date->format('d.m.Y'), null, $SubjectId
-            ));
+//            $homework = (new Link(
+//                '<div style="height: 22px"></div>',
+//                ApiForgotten::getEndpoint(),
+//                null,
+//                array(),
+//                $lesson . '. Vergessene Arbeitsmittel/Hausaufgaben hinzufügen',
+//            ))->ajaxPipelineOnClick(ApiForgotten::pipelineOpenCreateForgottenModal(
+//                $DivisionCourseId, $date->format('d.m.Y'), null, $SubjectId
+//            ));
+            $homework = $this->getLessonsNewLink('', $date, $lesson, $DivisionCourseId, $SubjectId);
         }
 
         // Fehlzeiten
