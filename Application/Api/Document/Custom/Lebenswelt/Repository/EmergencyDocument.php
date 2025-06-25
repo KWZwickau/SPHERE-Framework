@@ -160,9 +160,9 @@ class EmergencyDocument extends AbstractDocument
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('
-                                {% if(Content.Person.Parent.Mother.Name.First) %}
-                                    {{ Content.Person.Parent.Mother.Name.First }}
-                                    {{ Content.Person.Parent.Mother.Name.Last }}
+                                {% if(Content.Person.Parent.S1.Name.First) %}
+                                    {{ Content.Person.Parent.S1.Name.First }}
+                                    {{ Content.Person.Parent.S1.Name.Last }}
                                 {% else %}
                                       &nbsp;
                                 {% endif %}
@@ -175,9 +175,9 @@ class EmergencyDocument extends AbstractDocument
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('
-                                {% if(Content.Person.Parent.Father.Name.First) %}
-                                    {{ Content.Person.Parent.Father.Name.First }}
-                                    {{ Content.Person.Parent.Father.Name.Last }}
+                                {% if(Content.Person.Parent.S2.Name.First) %}
+                                    {{ Content.Person.Parent.S2.Name.First }}
+                                    {{ Content.Person.Parent.S2.Name.Last }}
                                 {% else %}
                                       &nbsp;
                                 {% endif %}
@@ -232,8 +232,8 @@ class EmergencyDocument extends AbstractDocument
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('
-                                {% if(Content.Person.Parent.Mother.Contact.Phone) %}
-                                    {{ Content.Person.Parent.Mother.Contact.Phone }}
+                                {% if(Content.Person.Parent.S1.Contact.Phone) %}
+                                    {{ Content.Person.Parent.S1.Contact.Phone }}
                                 {% else %}
                                       &nbsp;
                                 {% endif %}
@@ -246,8 +246,8 @@ class EmergencyDocument extends AbstractDocument
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('
-                                {% if(Content.Person.Parent.Father.Contact.Phone) %}
-                                    {{ Content.Person.Parent.Father.Contact.Phone }}
+                                {% if(Content.Person.Parent.S2.Contact.Phone) %}
+                                    {{ Content.Person.Parent.S2.Contact.Phone }}
                                 {% else %}
                                       &nbsp;
                                 {% endif %}
