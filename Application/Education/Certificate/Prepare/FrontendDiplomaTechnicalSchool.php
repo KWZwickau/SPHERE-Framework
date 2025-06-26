@@ -496,7 +496,9 @@ class FrontendDiplomaTechnicalSchool extends FrontendDiploma
             && $tblPrepareComplexExam->getGrade()
         ) {
             $global->POST['Data'][$tblPrepareStudent->getId()]['PS'] = $tblPrepareComplexExam->getGrade();
-            $gradeList['PS'] = $tblPrepareComplexExam->getGrade();
+            if (is_numeric($tblPrepareComplexExam->getGrade())) {
+                $gradeList['PS'] = $tblPrepareComplexExam->getGrade();
+            }
         }
         if (($tblPrepareComplexExam = Prepare::useService()->getPrepareComplexExamBy($tblPrepareStudent, 'EN', $ranking))
             && $tblPrepareComplexExam->getGrade()
