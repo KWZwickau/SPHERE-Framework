@@ -113,8 +113,7 @@ class ApiIndiware implements IApiInterface
         $json = file_get_contents('php://input');
         // Test mit Lokalen Daten
 //        $json = (new JsonReplacementTest())->getJson($Mandant);
-
-        Account::useService()->destroySession(null, session_id());
+//        Account::useService()->destroySession(null, session_id());
 //        return $JsonResponse->setData(array("Identifier" => "error", "message" => getallheaders(), "JSON" => $json)); // , 'JSON' => $json
 
         if(($message = Replacement::useService()->importJsonReplacement($json))){

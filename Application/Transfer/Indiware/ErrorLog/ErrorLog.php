@@ -225,7 +225,7 @@ class ErrorLog extends Extension implements IModuleInterface
                 array(
                     new LayoutColumn(
                         ($Code
-                            ? new Headline('Schnittstelle: '.$this->getRequest()->getHost().'/RestApi/Public/Indiware/TimeTable?Savety='.
+                            ? new Headline('Schnittstelle: '.'https://'.$this->getRequest()->getHost().'/RestApi/Public/Indiware/TimeTable?Savety='.
                                 $MandantAcronym.'-'.$Code.'<br/><div style="height: 8px;"></div>'. 'Zeitpunkt Import: '.$Date)
                             : new Warning('Schnittstelle: Freischaltung erforderlich!'))
                     ),
@@ -423,7 +423,9 @@ class ErrorLog extends Extension implements IModuleInterface
             }
         }
 
-        $rand = rand(10000, 99999);
+        //ToDO  GUID erstellen
+        $rand = $this->createGUID();
+//        $rand = rand(10000, 99999);
         if($Code){
             $_POST['Setting']['Code'] = $Code;
         } else {
@@ -432,7 +434,7 @@ class ErrorLog extends Extension implements IModuleInterface
 
         $form = new Form(new FormGroup(array(new FormRow(array(
             new FormColumn(
-                new Info('Erzeuge ein Zufälligen Code (10.000 - 99.999): '.$rand)
+                new Info('Erzeuge ein Zufälligen Code (GUID): '.$rand)
 //                new TextField('Setting[Code]', '', 'Indiware-Code'),
             ),
             new FormColumn(
@@ -447,7 +449,7 @@ class ErrorLog extends Extension implements IModuleInterface
                 new LayoutColumn(
                     $Code
                     ? new Headline('Adresse der Schnittstelle:').new Ruler().
-                        '<span style="font-size: 20px">'.$this->getRequest()->getHost().'/RestApi/Public/Indiware/TimeTable?Savety='.$MandantAcronym.'-'.$Code.'</span>'
+                        '<span style="font-size: 20px">'.'https://'.$this->getRequest()->getHost().'/RestApi/Public/Indiware/TimeTable?Savety='.$MandantAcronym.'-'.$Code.'</span>'
                     : 'Zur aktivierung bitte erzeugten Code speichern'
                 ),
                 new LayoutColumn(
@@ -456,6 +458,16 @@ class ErrorLog extends Extension implements IModuleInterface
                 new LayoutColumn(($Code ? '': new Well(ErrorLog::useService()->createCode($form, $Setting))), 6),
             )))));
         return $Stage;
+    }
+
+    private function createGUID()
+    {
+        if (function_exists('com_create_guid') === true)
+        {
+            return trim(com_create_guid(), '{}');
+        }
+
+        return sprintf('%04X%04X-%04X-%04X-%04X-%04X%04X%04X', mt_rand(0, 65535), mt_rand(0, 65535), mt_rand(0, 65535), mt_rand(16384, 20479), mt_rand(32768, 49151), mt_rand(0, 65535), mt_rand(0, 65535), mt_rand(0, 65535));
     }
 
     /**
