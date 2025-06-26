@@ -15,6 +15,7 @@ use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblStudentEducation;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
+use SPHERE\Application\People\Meta\Child\Child;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
@@ -245,6 +246,9 @@ abstract class AbstractDocument
                 if (!empty($Denomination)) {
                     $Data['Person']['Common']['isReligion'] = 'ja';
                 }
+                if(($tblChild = Child::useService()->getChildByPerson($this->getTblPerson()))){
+                    $Data['Person']['Common']['AuthorizedToCollect'] = $tblChild->getAuthorizedToCollect();
+                }
             }
         }
 
@@ -465,6 +469,7 @@ abstract class AbstractDocument
                             $Data['Person']['Parent']['S'.$Ranking]['AddressTwoRowString'] = $tblAddress->getGuiString();
                         }
 
+                        // @debrecated mother & father
                         if (!isset($Data['Person']['Parent']['Mother']['Name'])) {
                             $Data['Person']['Parent']['Mother']['Name']['First'] = $tblFromPerson->getFirstSecondName();
                             $Data['Person']['Parent']['Mother']['Name']['Last'] = $tblFromPerson->getLastName();
@@ -555,12 +560,16 @@ abstract class AbstractDocument
 
         $Data['Person']['Contact']['All']['Mail'] = '';
         $Data['Person']['Contact']['All']['Person']['Mail'] = '';
-        $Data['Person']['Parent']['Mother']['Phone']['Private'] = '';
-        $Data['Person']['Parent']['Mother']['Phone']['Business'] = '';
-        $Data['Person']['Parent']['Mother']['Phone']['Mobil'] = '';
-        $Data['Person']['Parent']['Father']['Phone']['Private'] = '';
-        $Data['Person']['Parent']['Father']['Phone']['Business'] = '';
-        $Data['Person']['Parent']['Father']['Phone']['Mobil'] = '';
+        $Data['Person']['Parent']['S1']['Phone']['Private'] = '';
+        $Data['Person']['Parent']['S1']['Phone']['Business'] = '';
+        $Data['Person']['Parent']['S1']['Phone']['Mobil'] = '';
+        $Data['Person']['Parent']['S1']['Mail']['Private'] = '';
+        $Data['Person']['Parent']['S1']['Mail']['Business'] = '';
+        $Data['Person']['Parent']['S2']['Phone']['Private'] = '';
+        $Data['Person']['Parent']['S2']['Phone']['Business'] = '';
+        $Data['Person']['Parent']['S2']['Phone']['Mobil'] = '';
+        $Data['Person']['Parent']['S2']['Mail']['Private'] = '';
+        $Data['Person']['Parent']['S2']['Mail']['Business'] = '';
         if ($this->getTblPerson()) {
             $tblToPersonMailList = Mail::useService()->getMailAllByPerson($this->getTblPerson());
             if ($tblToPersonMailList) {
@@ -575,21 +584,27 @@ abstract class AbstractDocument
                 }
                 $Data['Person']['Contact']['All']['Mail'] .= '<br/>';
             }
+
             if (($tblRelationshipList = Relationship::useService()->getPersonRelationshipAllByPerson($this->getTblPerson()))) {
-                $tblPersonMother = false;
-                $tblPersonFather = false;
                 foreach ($tblRelationshipList as $tblToPerson) {
                     if (($tblFromPerson = $tblToPerson->getServiceTblPersonFrom())
                         && $tblToPerson->getServiceTblPersonTo()
                         && $tblToPerson->getTblType()->getName() == 'Sorgeberechtigt'
                         && $tblToPerson->getServiceTblPersonTo()->getId() == $this->getTblPerson()->getId()
                     ) {
+                        $Ranking = $tblToPerson->getRanking();
                         // get mail string person name: type mail, type mail... <br/> by next person
                         $tblToPersonMailList = Mail::useService()->getMailAllByPerson($tblFromPerson);
                         if ($tblToPersonMailList) {
                             $Data['Person']['Contact']['All']['Mail'] .= $tblFromPerson->getLastFirstName().': ';
                             foreach ($tblToPersonMailList as $tblToPersonMail) {
                                 if (($tblMail = $tblToPersonMail->getTblMail())) {
+                                    if($tblToPersonMail->getTblType()->getName() == 'Privat'){
+                                        $Data['Person']['Parent']['S'.$Ranking]['Mail']['Private'] = $tblMail->getAddress();
+                                    } else {
+                                        $Data['Person']['Parent']['S'.$Ranking]['Mail']['Business'] = $tblMail->getAddress();
+                                    }
+
                                     $Data['Person']['Contact']['All']['Person']['Mail'] .= $tblFromPerson->getLastFirstName().': '
                                         .$tblMail->getAddress().';<br/>';
                                     // set next row if line ist to long
@@ -607,61 +622,28 @@ abstract class AbstractDocument
                             $Data['Person']['Contact']['All']['Mail'] .= '<br/>';
                         }
 
-                        // get type of phone number (each a single variable)
-                        if (!$tblPersonMother) {
-                            $tblPersonMother = $tblFromPerson;
-                        } elseif (!$tblPersonFather) {
-                            $tblPersonFather = $tblFromPerson;
-                        }
                         if (($tblPhoneList = Phone::useService()->getPhoneAllByPerson($tblFromPerson))) {
+                            foreach ($tblPhoneList as $tblToPersonPhone) {
+                                if ($tblToPersonPhone->getTblType()->getName() == 'Privat'
+                                    && $tblToPersonPhone->getTblType()->getDescription() == 'Festnetz'
+                                ) {
 
-                            if ($tblPersonMother && $tblPersonMother->getId() == $tblFromPerson->getId()) {
-                                foreach ($tblPhoneList as $tblToPersonPhone) {
-                                    if ($tblToPersonPhone->getTblType()->getName() == 'Privat'
-                                        && $tblToPersonPhone->getTblType()->getDescription() == 'Festnetz'
-                                    ) {
-
-                                        $Data['Person']['Parent']['Mother']['Phone']['Private'] .=
-                                            ($Data['Person']['Parent']['Mother']['Phone']['Private'] != '' ? '<br/>' : '')
-                                            .$tblToPersonPhone->getTblPhone()->getNumber();
-                                    } elseif ($tblToPersonPhone->getTblType()->getName() == 'Geschäftlich'
-                                        && $tblToPersonPhone->getTblType()->getDescription() == 'Festnetz'
-                                    ) {
-                                        $Data['Person']['Parent']['Mother']['Phone']['Business'] .=
-                                            ($Data['Person']['Parent']['Mother']['Phone']['Business'] != '' ? '<br/>' : '')
-                                            .$tblToPersonPhone->getTblPhone()->getNumber();
-                                    } elseif (($tblToPersonPhone->getTblType()->getName() == 'Privat'
-                                            || $tblToPersonPhone->getTblType()->getName() == 'Geschäftlich')
-                                        && $tblToPersonPhone->getTblType()->getDescription() == 'Mobil'
-                                    ) {
-                                        $Data['Person']['Parent']['Mother']['Phone']['Mobil'] .=
-                                            ($Data['Person']['Parent']['Mother']['Phone']['Mobil'] != '' ? '<br/>' : '')
-                                            .$tblToPersonPhone->getTblPhone()->getNumber();
-                                    }
-                                }
-                            }
-                            if ($tblPersonFather && $tblPersonFather->getId() == $tblFromPerson->getId()) {
-                                foreach ($tblPhoneList as $tblToPersonPhone) {
-                                    if ($tblToPersonPhone->getTblType()->getName() == 'Privat'
-                                        && $tblToPersonPhone->getTblType()->getDescription() == 'Festnetz'
-                                    ) {
-                                        $Data['Person']['Parent']['Father']['Phone']['Private'] .=
-                                            ($Data['Person']['Parent']['Father']['Phone']['Private'] != '' ? '<br/>' : '')
-                                            .$tblToPersonPhone->getTblPhone()->getNumber();
-                                    } elseif ($tblToPersonPhone->getTblType()->getName() == 'Geschäftlich'
-                                        && $tblToPersonPhone->getTblType()->getDescription() == 'Festnetz'
-                                    ) {
-                                        $Data['Person']['Parent']['Father']['Phone']['Business'] .=
-                                            ($Data['Person']['Parent']['Father']['Phone']['Business'] != '' ? '<br/>' : '')
-                                            .$tblToPersonPhone->getTblPhone()->getNumber();
-                                    } elseif (($tblToPersonPhone->getTblType()->getName() == 'Privat'
-                                            || $tblToPersonPhone->getTblType()->getName() == 'Geschäftlich')
-                                        && $tblToPersonPhone->getTblType()->getDescription() == 'Mobil'
-                                    ) {
-                                        $Data['Person']['Parent']['Father']['Phone']['Mobil'] .=
-                                            ($Data['Person']['Parent']['Father']['Phone']['Mobil'] != '' ? '<br/>' : '')
-                                            .$tblToPersonPhone->getTblPhone()->getNumber();
-                                    }
+                                    $Data['Person']['Parent']['S'.$Ranking]['Phone']['Private'] .=
+                                        ($Data['Person']['Parent']['S'.$Ranking]['Phone']['Private'] != '' ? '<br/>' : '')
+                                        .$tblToPersonPhone->getTblPhone()->getNumber();
+                                } elseif ($tblToPersonPhone->getTblType()->getName() == 'Geschäftlich'
+                                    && $tblToPersonPhone->getTblType()->getDescription() == 'Festnetz'
+                                ) {
+                                    $Data['Person']['Parent']['S'.$Ranking]['Phone']['Business'] .=
+                                        ($Data['Person']['Parent']['S'.$Ranking]['Phone']['Business'] != '' ? '<br/>' : '')
+                                        .$tblToPersonPhone->getTblPhone()->getNumber();
+                                } elseif (($tblToPersonPhone->getTblType()->getName() == 'Privat'
+                                        || $tblToPersonPhone->getTblType()->getName() == 'Geschäftlich')
+                                    && $tblToPersonPhone->getTblType()->getDescription() == 'Mobil'
+                                ) {
+                                    $Data['Person']['Parent']['S'.$Ranking]['Phone']['Mobil'] .=
+                                        ($Data['Person']['Parent']['S'.$Ranking]['Phone']['Mobil'] != '' ? '<br/>' : '')
+                                        .$tblToPersonPhone->getTblPhone()->getNumber();
                                 }
                             }
                             // get combination of person name and all found phone numbers
@@ -675,11 +657,8 @@ abstract class AbstractDocument
                                     sort($list);
                                 }
                                 if (!empty($list)) {
-                                    if (!isset($Data['Person']['Parent']['Mother']['Contact']['Phone'])) {
-                                        $Data['Person']['Parent']['Mother']['Contact']['Phone'] =
-                                            $tblFromPerson->getLastFirstName() . ': ' . implode(', ', $list);
-                                    } elseif (!isset($Data['Person']['Parent']['Father']['Contact']['Phone'])) {
-                                        $Data['Person']['Parent']['Father']['Contact']['Phone'] =
+                                    if (!isset($Data['Person']['Parent']['S'.$Ranking]['Contact']['Phone'])) {
+                                        $Data['Person']['Parent']['S'.$Ranking]['Contact']['Phone'] =
                                             $tblFromPerson->getLastFirstName() . ': ' . implode(', ', $list);
                                     }
                                 }
@@ -812,6 +791,7 @@ abstract class AbstractDocument
                 }
             }
         }
+        $phoneNumberList = array_unique($phoneNumberList);
 
         return $phoneNumberList;
     }
@@ -883,7 +863,8 @@ abstract class AbstractDocument
                     . ( isset( $phoneNumberList[1] ) ? '<br>'. $phoneNumberList[1] : '' )
                     . ( isset( $phoneNumberList[2] ) ? '<br>'. $phoneNumberList[2] : '' );
 
-                $Data['Person']['Contact']['Phone']['Radebeul']['EmergencyNumber'] = implode('; ', $phoneNumberList);
+//                $Data['Person']['Contact']['Phone']['Radebeul']['EmergencyNumber'] = implode('; ', $phoneNumberList);
+                $Data['Person']['Contact']['Phone']['Radebeul']['EmergencyNumber'] = $phone;
 
                 // 2 passen nur 2 Notfallnummern auf die neue Schülerkartei
                 $phoneNew = $phoneNumberList[0]

@@ -15,6 +15,7 @@ use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
+use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\HiddenField;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectCompleter;
@@ -572,6 +573,10 @@ abstract class FrontendDiploma extends Extension implements IFrontendInterface
             $columnTable[$item] = ($tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier($item))
                 ? $tblPrepareAdditionalGradeType->getName() : $item;
         }
+        // bei OS und Fach Englisch option für Herkunftssprache
+        if ($tblSubject->getName() == 'Englisch' && $SchoolTypeShortName == 'OS') {
+            $columnTable['IsNativeLanguage'] = 'Prüfung in Herkunftssprache';
+        }
 
         $columnTable['Average'] = '&#216;';
         $columnTable['EN'] = 'En&nbsp;(Endnote)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
@@ -593,9 +598,9 @@ abstract class FrontendDiploma extends Extension implements IFrontendInterface
                     && ($tblVirtualSubject = DivisionCourse::useService()->getVirtualSubjectFromRealAndVirtualByPersonAndYearAndSubject($tblPerson, $tblYear, $tblSubject))
                     && $tblVirtualSubject->getHasGrading()
                 ) {
+                    $Global = $this->getGlobal();
                     $gradeList = array();
                     if (($tblPrepareAdditionalGradeList = Prepare::useService()->getPrepareAdditionalGradeListBy($tblPrepare, $tblPerson))) {
-                        $Global = $this->getGlobal();
                         foreach ($tblPrepareAdditionalGradeList as $tblPrepareAdditionalGrade) {
                             if ($tblPrepareAdditionalGrade->getServiceTblSubject()
                                 && ($tblPrepareAdditionalGradeType = $tblPrepareAdditionalGrade->getTblPrepareAdditionalGradeType())
@@ -615,8 +620,14 @@ abstract class FrontendDiploma extends Extension implements IFrontendInterface
                                 }
                             }
                         }
-                        $Global->savePost();
                     }
+                    if (isset($columnTable['IsNativeLanguage'])
+                        && ($tblPrepareInformation = Prepare::useService()->getPrepareInformationBy($tblPrepare, $tblPerson, 'IsNativeLanguage'))
+                        && $tblPrepareInformation->getValue()
+                    ) {
+                        $Global->POST['Data'][$tblPrepareStudent->getId()]['IsNativeLanguage'] = 1;
+                    }
+                    $Global->savePost();
 
                     $isApproved = $tblPrepareStudent->isApproved();
                     $preName = 'Data[' . $tblPrepareStudent->getId() . ']';
@@ -650,6 +661,14 @@ abstract class FrontendDiploma extends Extension implements IFrontendInterface
 
                     foreach ($keyList as $key) {
                         $studentTable[$tblPerson->getId()][$key] = $this->getTextField($preName, $key, $isApproved, $pipeLineList);
+                    }
+
+                    if (isset($columnTable['IsNativeLanguage'])) {
+                        $checkbox = new CheckBox($preName . '[IsNativeLanguage]', '&nbsp;', 1);
+                        if ($isApproved) {
+                            $checkbox->setDisabled();
+                        }
+                        $studentTable[$tblPerson->getId()]['IsNativeLanguage'] = $checkbox;
                     }
 
                     if (!$isApproved && !isset($gradeList['EN'])) {

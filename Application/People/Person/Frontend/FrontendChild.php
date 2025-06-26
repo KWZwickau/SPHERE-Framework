@@ -77,7 +77,7 @@ class FrontendChild extends FrontendReadOnly
                 $content = new Layout(new LayoutGroup(array(
                     new LayoutRow(array(
                         self::getLayoutColumnLabel('Abholberechtigte'),
-                        self::getLayoutColumnValue($AuthorizedToCollect, 10),
+                        self::getLayoutColumnValue(nl2br($AuthorizedToCollect), 10),
                     )),
                 )));
 
@@ -197,7 +197,7 @@ class FrontendChild extends FrontendReadOnly
             new FormColumn(array(
                 new Panel('', array(
                     (new TextArea('Meta[AuthorizedToCollect]', '', 'Abholberechtigte'
-                        . (new CheckBox('Meta[CheckAuthorizedToCollect]', 'schriftliche Vollmacht liegt vor', 1)), null, 2)),
+                        . (new CheckBox('Meta[CheckAuthorizedToCollect]', 'schriftliche Vollmacht liegt vor', 1)), null, 3)),
                 ), Panel::PANEL_TYPE_INFO)
             )),
         ));
