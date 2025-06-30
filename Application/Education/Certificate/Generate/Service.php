@@ -135,7 +135,11 @@ class Service extends AbstractService
         }
 
         $tblAppointedDateTask = Grade::useService()->getTaskById($Data['AppointedDateTask']);
-        $tblBehaviorTask = Grade::useService()->getTaskById($Data['BehaviorTask']);
+        if(isset($Data['BehaviorTask'])){
+            $tblBehaviorTask = Grade::useService()->getTaskById($Data['BehaviorTask']);
+        } else {
+            $tblBehaviorTask = false;
+        }
 
         if ($tblGenerateCertificate = (new Data($this->getBinding()))->createGenerateCertificate(
             $tblYear,
