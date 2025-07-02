@@ -627,16 +627,21 @@ abstract class AbstractDocument
                                 if ($tblToPersonPhone->getTblType()->getName() == 'Privat'
                                     && $tblToPersonPhone->getTblType()->getDescription() == 'Festnetz'
                                 ) {
-
-                                    $Data['Person']['Parent']['S'.$Ranking]['Phone']['Private'] .=
-                                        ($Data['Person']['Parent']['S'.$Ranking]['Phone']['Private'] != '' ? '<br/>' : '')
-                                        .$tblToPersonPhone->getTblPhone()->getNumber();
+                                    if(isset($Data['Person']['Parent']['S'.$Ranking]['Phone']['Private'])
+                                    && $Data['Person']['Parent']['S'.$Ranking]['Phone']['Private'] != ''){
+                                        $Data['Person']['Parent']['S'.$Ranking]['Phone']['Private'] .= '<br/>'.$tblToPersonPhone->getTblPhone()->getNumber();
+                                    } else {
+                                        $Data['Person']['Parent']['S'.$Ranking]['Phone']['Private'] = $tblToPersonPhone->getTblPhone()->getNumber();
+                                    }
                                 } elseif ($tblToPersonPhone->getTblType()->getName() == 'Geschäftlich'
                                     && $tblToPersonPhone->getTblType()->getDescription() == 'Festnetz'
                                 ) {
-                                    $Data['Person']['Parent']['S'.$Ranking]['Phone']['Business'] .=
-                                        ($Data['Person']['Parent']['S'.$Ranking]['Phone']['Business'] != '' ? '<br/>' : '')
-                                        .$tblToPersonPhone->getTblPhone()->getNumber();
+                                    if(isset($Data['Person']['Parent']['S'.$Ranking]['Phone']['Business'])
+                                        && $Data['Person']['Parent']['S'.$Ranking]['Phone']['Business'] != ''){
+                                        $Data['Person']['Parent']['S'.$Ranking]['Phone']['Business'] .= '<br/>'.$tblToPersonPhone->getTblPhone()->getNumber();
+                                    } else {
+                                        $Data['Person']['Parent']['S'.$Ranking]['Phone']['Business'] = $tblToPersonPhone->getTblPhone()->getNumber();
+                                    }
                                 } elseif (($tblToPersonPhone->getTblType()->getName() == 'Privat'
                                         || $tblToPersonPhone->getTblType()->getName() == 'Geschäftlich')
                                     && $tblToPersonPhone->getTblType()->getDescription() == 'Mobil'
