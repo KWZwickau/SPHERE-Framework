@@ -313,11 +313,7 @@ class ErrorLog extends Extension implements IModuleInterface
             } else {
                 $ErrorCountArray['Subject'][$Value] = 1;
             }
-            if($isSubstituteSubject || $SubstituteSubject === ''){
                 return new DangerText($Value);
-            } else {
-                return new WarningText($Value);
-            }
         }
         return $Value;
     }
