@@ -227,6 +227,7 @@ class TblAccount extends Element
         ) {
             $Timeout = ( 60 * 30 );
         } else {
+            // z.B.: serviceAccounts
             $Timeout = ( 60 * 10 );
         }
 

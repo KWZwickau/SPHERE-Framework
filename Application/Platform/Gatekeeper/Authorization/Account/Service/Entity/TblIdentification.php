@@ -20,6 +20,7 @@ class TblIdentification extends Element
     const NAME_TOKEN = 'Token';
     const NAME_SYSTEM = 'System';
     const NAME_AUTHENTICATOR_APP = 'AuthenticatorApp';
+    const NAME_SERVICE = 'Service';
 
     const ATTR_NAME = 'Name';
 

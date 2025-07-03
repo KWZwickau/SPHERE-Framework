@@ -247,7 +247,7 @@ class Manager extends Extension
     final public function bulkSaveEntity($Entity)
     {
 
-        $Entity = $this->prepareEntity( $Entity, true );
+        $Entity = $this->prepareEntity( $Entity, false );
         $this->EntityManager->persist($Entity);
         return $this;
     }
@@ -282,7 +282,7 @@ class Manager extends Extension
                     $Entity->lifecycleCreate();
                 } else {
                     $Entity->lifecycleUpdate();
-        }
+                }
             }
         }
         return $Entity;

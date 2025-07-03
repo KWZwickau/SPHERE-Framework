@@ -27,6 +27,7 @@ use SPHERE\Application\Setting\Agb\Agb;
 use SPHERE\Application\Setting\MyAccount\MyAccount;
 use SPHERE\Application\Setting\User\Account\Account as UserAccount;
 use SPHERE\Application\Setting\User\Account\Service\Entity\TblUserAccount;
+use SPHERE\Application\Transfer\Indiware\ErrorLog\ErrorLog;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\PasswordField;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
@@ -221,6 +222,9 @@ class Frontend extends Extension implements IFrontendInterface
         if (Access::useService()->hasAuthorization('/Education/Lesson/Term/Create/Year')) {
             $contentMissingTimeSpan = Term::useFrontend()->getWelcome();
         }
+        if (Access::useService()->hasAuthorization('/Transfer/Indiware/ErrorLog')) {
+            $contentTimeTableReplacementErrorLog = ErrorLog::getWelcome();
+        }
 
         $Stage->setContent(
             new Layout(
@@ -246,6 +250,7 @@ class Frontend extends Extension implements IFrontendInterface
             . ($contentTeacherWelcome ?: '')
             . ($contentSecretariatWelcome ?: '')
             . ($contentMissingTimeSpan ?: '')
+            . ($contentTimeTableReplacementErrorLog ?: '')
             . $this->getCleanLocalStorage()
         );
 

@@ -69,6 +69,12 @@ class DataMaintenance extends Extension implements IModuleInterface
                 __NAMESPACE__.'/Frontend::frontendAllConsumers'
             )
         );
+        // ToDO nach dem Indiware test wieder entfernen
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/IndiwareLog',
+                __NAMESPACE__.'/Frontend::frontendIndiwareLog'
+            )
+        );
     }
 
     /**

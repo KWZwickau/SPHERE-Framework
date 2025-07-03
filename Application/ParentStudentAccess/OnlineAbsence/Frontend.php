@@ -6,12 +6,8 @@ use DateTime;
 use SPHERE\Application\Api\Education\ClassRegister\ApiAbsence;
 use SPHERE\Application\Api\ParentStudentAccess\ApiOnlineAbsence;
 use SPHERE\Application\Education\Absence\Absence;
-use SPHERE\Application\Education\Absence\Service\Entity\TblAbsence;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
-use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
-use SPHERE\Application\Setting\User\Account\Account as UserAccount;
-use SPHERE\Application\Setting\User\Account\Service\Entity\TblUserAccount;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
@@ -47,18 +43,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         $layoutGroupList = array();
 
-        if (($tblAccount = Account::useService()->getAccountBySession())
-            && ($tblUserAccount = UserAccount::useService()->getUserAccountByAccount($tblAccount))
-            && $tblUserAccount->getType() == TblUserAccount::VALUE_TYPE_STUDENT
-        ) {
-            // Schüler-Zugang
-            $tblPersonList = OnlineAbsence::useService()->getPersonListFromStudentLogin();
-            $source = TblAbsence::VALUE_SOURCE_ONLINE_STUDENT;
-        } else {
-            // Mitarbeiter oder Eltern-Zugang
-            $tblPersonList = OnlineAbsence::useService()->getPersonListFromCustodyLogin();
-            $source = TblAbsence::VALUE_SOURCE_ONLINE_CUSTODY;
-        }
+        list($tblPersonList, $source) = OnlineAbsence::useService()->getPersonListAndSourceFromAccountBySession();
 
         if ($tblPersonList) {
             foreach ($tblPersonList as $tblPerson) {
