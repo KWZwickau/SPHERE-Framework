@@ -25,6 +25,8 @@ use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Group\Group as GroupPerson;
 use SPHERE\Application\People\Group\Group as PersonGroup;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransferType;
+use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Meta\Teacher\Teacher;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -36,9 +38,11 @@ use SPHERE\Application\Setting\Consumer\School\School;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Icon\Repository\Calendar;
 use SPHERE\Common\Frontend\Icon\Repository\Info;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
+use SPHERE\Common\Frontend\Layout\Repository\WellReadOnly;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
@@ -2054,6 +2058,7 @@ class Service extends ServiceYearChange
     public function getCountStudentsDetailsByYear(TblYear $tblYear): string
     {
         $countSchoolTypeList = array();
+        $MissingPersonInDivisionList = array();
         $countTotal = 0;
         $missingStudentGroup = array();
         $tblGroupStudent = GroupPerson::useService()->getGroupByMetaTable('STUDENT');
@@ -2063,6 +2068,37 @@ class Service extends ServiceYearChange
                     $countTotal++;
                     $schoolTypeId = ($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType()) ? $tblSchoolType->getId() : 0;
                     $companyId = ($tblCompany = $tblStudentEducation->getServiceTblCompany()) ? $tblCompany->getId() : 0;
+
+                    if(!$tblStudentEducation->getTblDivision() && !$tblStudentEducation->getTblCoreGroup()){
+                        // Abgangsdatum
+                        $leaveDate = false;
+                        if(($tblStudent = $tblPerson->getStudent())){
+                            $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier(TblStudentTransferType::LEAVE);
+                            if(($tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent, $tblStudentTransferType))){
+                                $leaveDate = $tblStudentTransfer->getTransferDate();
+                            }
+                        }
+                        // test $tblStudentEducation mit eigener Schule?
+                        $isCompanyOwnSchool = false;
+                        if(($tblCompany = $tblStudentEducation->getserviceTblCompany())){
+                            $tblSchoolList = School::useService()->getSchoolAll();
+                            foreach($tblSchoolList as $tblSchool){
+                                if(($tblSchoolCompany = $tblSchool->getServiceTblCompany()) && $tblSchoolCompany->getId() == $tblCompany->getId()){
+                                    $isCompanyOwnSchool = true;
+                                }
+                            }
+                        }
+                        if($leaveDate && new DateTime($leaveDate) <= new DateTime()){
+                            // Wenn das Abgangsdatum erreicht ist, soll die Person nicht angezeigt aber für die Gesamtzählung mitgezählt werden
+                        } else {
+                            // kein Abgangsdatum hinterlegt, oder noch nicht erreicht
+                            if($isCompanyOwnSchool){
+                                // nur eigene Schulen berücksichtigen
+                                $MissingPersonInDivisionList[$schoolTypeId][$companyId][$tblPerson->getId()] = $tblPerson->getLastFirstName();
+                            }
+                        }
+                    }
+
                     if (isset($countSchoolTypeList[$schoolTypeId][$companyId])) {
                         $countSchoolTypeList[$schoolTypeId][$companyId]++;
                     } else {
@@ -2093,7 +2129,23 @@ class Service extends ServiceYearChange
                 } else {
                     $nameCompany = new Warning('Keine Schule');
                 }
-                $content[] = $nameCompany . new PullRight(new Muted($value . ' Schüler'));
+
+                $PersonList = array();
+                $countDivision = 0;
+                if(isset($MissingPersonInDivisionList[$schoolTypeId][$companyId])){
+                    $countDivision = count($MissingPersonInDivisionList[$schoolTypeId][$companyId]);
+                    $PersonList = $MissingPersonInDivisionList[$schoolTypeId][$companyId];
+                }
+                $ExtendedContent = '';
+                if($countDivision !== 0){
+                    $ExtendedContent = new Container(new Warning('Schüler mit "Schülerakte - Schulverlauf" aber ohne
+                    Klasse/Stammgruppe ist in der Gesamtzählung enthalten.'));
+                    foreach($PersonList as $Person){
+                        $ExtendedContent .= new Container('- '.$Person);
+                    }
+                    $ExtendedContent = new WellReadOnly($ExtendedContent);
+                }
+                $content[] = $nameCompany . new PullRight(new Muted($value . ' Schüler')).$ExtendedContent;
             }
 
             $panelList[$schoolTypeId] = new Panel(
