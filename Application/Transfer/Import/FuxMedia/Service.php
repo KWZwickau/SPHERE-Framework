@@ -1590,6 +1590,10 @@ class Service
                     $isSingleParent
                 );
 
+                // hinzufügen der sorgeberechtigten Gruppe (z.B. gefundene Lehrer)
+                $tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_CUSTODY);
+                Group::useService()->addGroupPerson($tblGroup, $tblPersonCustodyExists);
+
                 $countExists++;
 
                 return $tblPersonCustodyExists;
