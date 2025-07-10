@@ -76,6 +76,8 @@ class Data extends AbstractData
             $this->addCategorySubject($tblCategory, $tblSubject);
             $tblSubject = $this->createSubject('SPA', 'Spanisch');
             $this->addCategorySubject($tblCategory, $tblSubject);
+            $tblSubject = $this->createSubject('GR', 'Griechisch');
+            $this->addCategorySubject($tblCategory, $tblSubject);
 
             // Allgemeine Gruppe
             $tblCategory = $this->createCategory('Alle');
