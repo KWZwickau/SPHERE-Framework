@@ -2353,7 +2353,7 @@ class Service extends Extension
                             }
                             if(($tblDivisionCourseCoreGroup = $SiblingStudentEducation->getTblCoreGroup())){
                                 if($DivisionSting){
-                                    $DivisionSting = ', '.$tblDivisionCourseCoreGroup->getDisplayName();
+                                    $DivisionSting .= ', '.$tblDivisionCourseCoreGroup->getDisplayName();
                                 } else {
                                     $DivisionSting = $tblDivisionCourseCoreGroup->getDisplayName();
                                 }
