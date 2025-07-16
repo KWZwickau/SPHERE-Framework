@@ -21,6 +21,7 @@ class SDataBerufsfachschule
         self::setBfsJ($Data, 'B.01.02');
         self::setBfsPflegeJ($Data, 'B.02.02a');
         self::setBfsAbs($Data, 'B.01.05');
+        self::setBfsAbsGeneralistik($Data, '');
         self::setBfsAbg($Data, 'B.01.04');
         self::setBfsAbsMs($Data, 'B.01.05 + B.02.04');
         self::setBfsAbgGeneralistik($Data, 'B.02.03');
@@ -198,6 +199,22 @@ class SDataBerufsfachschule
             $Data->createCertificateInformation($tblCertificate, 'OperationTime4', 2);
 
             $Data->createCertificateInformation($tblCertificate, 'RemarkWithoutTeam', 3);
+        }
+    }
+
+    /**
+     * @param Data $Data
+     * @param $CertificateNumber
+     */
+    private static function setBfsAbsGeneralistik(Data $Data, $CertificateNumber): void
+    {
+
+        if (($tblCertificate = $Data->createCertificate('Berufsfachschule Abschlusszeugnis', 'Generalistik', 'BfsAbsGeneralistik',
+            null, false, false, false, $Data->getTblCertificateTypeDiploma(), $Data->getTblSchoolTypeBerufsfachschule()))
+        ) {
+            if ($tblCertificate->getCertificateNumber() != $CertificateNumber){
+                $Data->updateCertificateNumber($tblCertificate, $CertificateNumber);
+            }
         }
     }
 
