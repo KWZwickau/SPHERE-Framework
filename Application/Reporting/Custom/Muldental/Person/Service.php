@@ -166,6 +166,14 @@ class Service
                 array_push($TableContent, $item);
             });
         }
+
+        foreach($TableContent as $key => $Row) {
+            $Division[$key] = $Row['Division'];
+            $Gender[$key] = $Row['Gender'];
+            $Name[$key] = $Row['LastName'];
+        }
+        array_multisort($Division, SORT_ASC, $Gender, SORT_ASC, $Name, SORT_ASC, $TableContent);
+
         return $TableContent;
     }
 
