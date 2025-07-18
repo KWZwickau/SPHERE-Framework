@@ -266,6 +266,8 @@ class Service
         $row++;
         $export->setValue($export->getCell(0, $row), 'Stand '.date("d.m.Y"));
         $export->setStyle($export->getCell(0, $row), $export->getCell(4, $row))->mergeCells();
+        // Set Cursor default
+        $export->setStyle($export->getCell(0, 0), $export->getCell(0, 0))->setFontBold();
         $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
         return $fileLocation;
     }
