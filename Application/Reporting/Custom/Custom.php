@@ -43,7 +43,7 @@ class Custom implements IApplicationInterface
             if ($consumerAcronym === 'FESH') { // Hormersdorf
                 HormersdorfPerson::registerModule();
             }
-            if ($consumerAcronym === 'EVAMTL') { // Muldental
+            if ($consumerAcronym === 'EVAMTL') { // Muldental  || $consumerAcronym === 'REF'
                 MuldentalPerson::registerModule();
             }
             if ($consumerAcronym === 'EVSR') { // Radebeul

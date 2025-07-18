@@ -164,6 +164,10 @@ class Custom implements IModuleInterface
                     __NAMESPACE__ . '/Muldental/Common/ClassList/Download',
                     __NAMESPACE__ . '\Muldental\Common::downloadClassList'
                 ));
+                Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+                    __NAMESPACE__ . '/Muldental/Common/CoreList/Download',
+                    __NAMESPACE__ . '\Muldental\Common::downloadCoreList'
+                ));
             }
 
             // Bad Düben

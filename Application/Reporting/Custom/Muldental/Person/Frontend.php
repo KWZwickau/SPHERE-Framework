@@ -3,6 +3,7 @@ namespace SPHERE\Application\Reporting\Custom\Muldental\Person;
 
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblStudentEducation;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
@@ -26,6 +27,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
+use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Stage;
@@ -186,6 +188,127 @@ class Frontend extends Extension implements IFrontendInterface
                                 'PhoneNumbersGuardian2' => new ToolTip('S2 Tel. '.new Info(), 'Mobil'),
                                 'MailAddress'           => 'E-Mail',
                                 'Birthday'              => 'Geb.-Datum',
+                                'Insurance'             => 'Krankenkasse',
+                            ),
+                            array(
+                                "pageLength" => -1,
+                                "responsive" => false,
+                                'order'      => array(
+                                    array(2, 'asc'),
+                                    array(4, 'asc'),
+                                    array(5, 'asc'),
+                                ),
+                                "columnDefs" => array(
+                                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => array(4,5)),
+                                    array('type' => 'natural', 'targets' => 7),
+                                ),
+                            )
+                        )
+                    ))),
+                    PersonStandard::useFrontend()->getGenderLayoutGroup($tblPersonList)
+                ))
+            );
+        }
+        return $Stage;
+    }
+
+    /**
+     * @param int|null $DivisionCourseId
+     *
+     * @return Stage
+     */
+    public function frontendCoreList(?int $DivisionCourseId = null)
+    {
+
+        $Stage = new Stage('Auswertung', 'Stammgruppenlisten');
+        $Route = '/Reporting/Custom/Muldental/Person/CoreList';
+        if(!$DivisionCourseId){
+            $tblCoreGroupReportingList = array();
+            if(($tblYearList = Term::useService()->getYearByNow())){
+                foreach($tblYearList as $tblYear){
+                    if(($tblDivisionCourseList = DivisionCourse::useService()->getDivisionCourseListByYear($tblYear, true))){
+                        foreach($tblDivisionCourseList as $tblDivisionCourse){
+                            $DivisionCourseType = DivisionCourse::useService()->getDivisionCourseTypeByIdentifier(TblDivisionCourseType::TYPE_CORE_GROUP);
+                            if($tblDivisionCourse->getType()->getId() == $DivisionCourseType->getId()) {
+                                $tblCoreGroupReportingList[] = $tblDivisionCourse;
+                            }
+                        }
+                    }
+                }
+            }
+            $TableContent = array();
+            if ($tblCoreGroupReportingList) {
+                array_walk($tblCoreGroupReportingList, function (TblDivisionCourse $tblDivisionCourse) use (&$TableContent, $Route) {
+                    $Item['Year'] = $tblDivisionCourse->getYearName();
+                    $Item['DivisionCourse'] = $tblDivisionCourse->getDisplayName();
+                    $Item['CourseType'] = $tblDivisionCourse->getTypeName();
+                    $Item['SchoolType'] = $tblDivisionCourse->getSchoolTypeListFromStudents(true);
+                    $Item['Option'] = new Standard('', $Route, new EyeOpen(), array('DivisionCourseId' => $tblDivisionCourse->getId()), 'Anzeigen');
+                    $Item['Count'] = $tblDivisionCourse->getCountStudents();
+                    array_push($TableContent, $Item);
+                });
+            }
+            $Stage->setContent(new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
+                new TableData($TableContent, null,
+                    array(
+                        'Year' => 'Jahr',
+                        'DivisionCourse' => 'Kursname',
+                        'CourseType' => 'Typ',
+                        'SchoolType' => 'Schulart',
+                        'Count' => 'Schüler',
+                        'Option' => '',
+                    ), array(
+                        'columnDefs' => array(
+                            array('type' => 'natural', 'targets' => array(1,3)),
+                            array("orderable" => false, "targets"   => -1),
+                            array('searchable' => false, 'targets' => array(-1, -2)),
+                        ),
+                        'order' => array(
+                            array(0, 'desc'),
+                            array(2, 'asc'),
+                            array(1, 'asc')
+                        )
+                    ))
+                , 12))
+            , new Title(new Listing() . ' Übersicht'))));
+        } else {
+            $Stage->addButton(new Standard('Zurück', $Route, new ChevronLeft()));
+            if(!($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
+                return $Stage->setContent(new Warning('Klasse nicht verfügbar.'));
+            }
+            if(!($tblPersonList = $tblDivisionCourse->getStudents())) {
+                return $Stage->setContent(new Warning('Keine Schüler hinterlegt.'));
+            }
+            $TableContent = Person::useService()->createClassList($tblPersonList);
+            if(!empty($TableContent)) {
+                $Stage->addButton(new Primary('Herunterladen', '/Api/Reporting/Custom/Muldental/Common/CoreList/Download', new Download(),
+                        array('DivisionCourseId' => $tblDivisionCourse->getId()))
+                );
+                $Stage->setMessage(new Danger('Die dauerhafte Speicherung des Excel-Exports ist datenschutzrechtlich nicht zulässig!', new Exclamation()));
+            }
+            $Stage->setContent(
+                new Layout(array(
+                    new LayoutGroup(new LayoutRow(new LayoutColumn(
+                        new TableData($TableContent, null,
+                            array(
+                                'Division'              => 'Klasse(n)',
+                                'Type'                  => 'Schulart',
+                                'Mentor'                => 'Gruppe',
+                                'Gender'                => 'Geschlecht',
+                                'LastName'              => 'Nachname',
+                                'FirstName'             => 'Vorname',
+                                'StreetName'            => 'Straße',
+                                'StreetNumber'          => 'Nr.',
+                                'Code'                  => 'PLZ',
+                                'City'                  => 'Wohnort',
+                                'District'              => 'Ortsteil',
+                                'PhoneNumbersPrivate'   => new ToolTip('S1 Tel. privat '.new Info(), 'Festnetz'),
+                                'PhoneNumbersBusiness'  => new ToolTip('S1 Tel. dienstlich '.new Info(), 'Festnetz'),
+                                'PhoneNumbersGuardian1' => new ToolTip('S1 Tel. '.new Info(), 'Mobil'),
+                                'PhoneNumbersGuardian2' => new ToolTip('S2 Tel. '.new Info(), 'Mobil'),
+                                'MailAddress'           => 'E-Mail',
+                                'Birthday'              => 'Geb.-Datum',
+                                'Insurance'             => 'Krankenkasse',
                             ),
                             array(
                                 "pageLength" => -1,
