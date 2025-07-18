@@ -314,9 +314,9 @@ class Frontend extends Extension implements IFrontendInterface
                                 "pageLength" => -1,
                                 "responsive" => false,
                                 'order'      => array(
-                                    array(2, 'asc'),
+                                    array(0, 'asc'),
+                                    array(3, 'asc'),
                                     array(4, 'asc'),
-                                    array(5, 'asc'),
                                 ),
                                 "columnDefs" => array(
                                     array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => array(4,5)),
