@@ -4,6 +4,7 @@ namespace SPHERE\Application\Education\Lesson\Term;
 use SPHERE\Application\Api\Education\Term\YearHoliday;
 use SPHERE\Application\Api\Education\Term\YearPeriod;
 use SPHERE\Application\Corporation\Company\Company;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblPeriod;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
@@ -210,14 +211,24 @@ class Frontend extends FrontendWizard
         if ($tblYearAll) {
             array_walk($tblYearAll, function (TblYear $tblYear) use (&$TableContent) {
 
-                $tblPeriodAll = $tblYear->getPeriodList(false, true);
+                $Info = '';
+                if(($tblPeriodAll = $tblYear->getPeriodList(false, true))){
+                    foreach($tblPeriodAll as $tblPeriod){
+                        $Info .= new Container($tblPeriod->getDisplayName());
+                    }
+                }
+                if(($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseListByYear($tblYear))){
+                    $Info .= new Container(new Bold(count($tblDivisionCourse).' Kurse'));
+                }
+
                 $Temp['Year'] = $tblYear->getYear();
                 $Temp['Description'] = $tblYear->getDescription();
+                $Temp['Info'] = $Info;
                 $Temp['Option'] =
                     new Standard('', __NAMESPACE__ . '\Edit\Year', new Pencil(),
                         array('Id' => $tblYear->getId())
                     ) .
-                    (empty($tblPeriodAll)
+                    (!$tblPeriodAll && !$tblDivisionCourse
                         ? new Standard('', __NAMESPACE__ . '\Destroy\Year', new Remove(),
                             array('Id' => $tblYear->getId())
                         ) : ''
@@ -234,6 +245,7 @@ class Frontend extends FrontendWizard
                             new TableData($TableContent, null, array(
                                 'Year' => 'Jahr',
                                 'Description' => 'Beschreibung',
+                                'Info' => 'Verknüpfung',
                                 'Option' => '',
                             ))
                         )
@@ -331,15 +343,33 @@ class Frontend extends FrontendWizard
         if ($tblPeriodAll) {
             array_walk($tblPeriodAll, function (TblPeriod $tblPeriod) use (&$TableContent) {
 
+                $YearString = '';
+                $tblDivisionCourse = $tblYear = false;
+                if(($tblYearList = Term::useService()->getYearByPeriod($tblPeriod))){
+                    $tblYear =  current($tblYearList);
+                    $tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseListByYear($tblYear);
+                    foreach($tblYearList as $tblYear){
+                        $divisionCount = ' ()';
+                        if(($tblDivisionCourseTmp = DivisionCourse::useService()->getDivisionCourseListByYear($tblYear))){
+                            $divisionCount = ' ('.count($tblDivisionCourseTmp).')';
+                        }
+                        if($YearString){
+                            $YearString .= ', '.$tblYear->getYear().$divisionCount;
+                        } else {
+                            $YearString .= $tblYear->getYear().$divisionCount;
+                        }
+                    }
+                }
                 $Temp['Name'] = $tblPeriod->getName();
                 $Temp['Description'] = $tblPeriod->getDescription();
+                $Temp['YearString'] = $YearString;
                 $Temp['PeriodFrom'] = $tblPeriod->getFromDate();
                 $Temp['PeriodTo'] = $tblPeriod->getToDate();
                 $Temp['IsLevel12'] = $tblPeriod->isLevel12() ? new Check() : new Unchecked();
                 $Temp['Option'] =
                     new Standard('', __NAMESPACE__ . '\Edit\Period', new Pencil(),
                         array('Id' => $tblPeriod->getId()))
-                    . ((Term::useService()->getPeriodExistWithYear($tblPeriod) === false) ?
+                    . (!$tblYear && !$tblDivisionCourse ?
                         new Standard('', __NAMESPACE__ . '\Destroy\Period', new Remove(),
                             array('Id' => $tblPeriod->getId()))
                         : '');
@@ -357,18 +387,19 @@ class Frontend extends FrontendWizard
                                     'Name' => 'Name',
                                     'Description' => 'Beschreibung',
                                     'IsLevel12' => 'Für 12. Klasse Gy / 13. Klasse BGy',
+                                    'YearString' => 'Schuljahr (Anz. Kurse)',
                                     'PeriodFrom' => 'Zeitraum von',
                                     'PeriodTo' => 'Zeitraum Bis',
                                     'Option' => '',
                                 ),
                                 array(
                                     'order' => array(
-                                        array('3', 'desc'),
                                         array('4', 'desc'),
+                                        array('5', 'desc'),
                                         array('0', 'asc'),
                                     ),
                                     'columnDefs' => array(
-                                        array('type' => 'de_date', 'targets' => array(3, 4)),
+                                        array('type' => 'de_date', 'targets' => array(4, 5)),
                                     ),
                                 )
                             )
