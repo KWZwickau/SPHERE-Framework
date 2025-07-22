@@ -5,6 +5,7 @@ use SPHERE\Application\IApplicationInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Reporting\Custom\Chemnitz\Person\Person as ChemnitzPerson;
+use SPHERE\Application\Reporting\Custom\Hoga\Person\Person as HogaPerson;
 use SPHERE\Application\Reporting\Custom\Hormersdorf\Person\Person as HormersdorfPerson;
 use SPHERE\Application\Reporting\Custom\Herrnhut\Person\Person as HerrnhutPerson;
 use SPHERE\Application\Reporting\Custom\Coswig\Person\Person as CoswigPerson;
@@ -60,6 +61,9 @@ class Custom implements IApplicationInterface
             }
             if ($consumerAcronym === 'EVOSG') { // Gersdorf
                 GersdorfPerson::registerModule();
+            }
+            if ($consumerAcronym === 'HOGA' || $consumerAcronym === 'REF') { // Hoga -> kann nach dem livestellen wieder rausgenommen werden (Routen einstellen)
+                HogaPerson::registerModule();
             }
         }
 
