@@ -225,12 +225,12 @@ class Frontend extends FrontendWizard
                 $Temp['Description'] = $tblYear->getDescription();
                 $Temp['Info'] = $Info;
                 $Temp['Option'] =
-                    new Standard('', __NAMESPACE__ . '\Edit\Year', new Pencil(),
+                    new Standard('', __NAMESPACE__ . '\Edit\Year', new Edit(),
                         array('Id' => $tblYear->getId())
                     ) .
                     (!$tblPeriodAll && !$tblDivisionCourse
                         ? new Standard('', __NAMESPACE__ . '\Destroy\Year', new Remove(),
-                            array('Id' => $tblYear->getId())
+                            array('Id' => $tblYear->getId()), 'Löschen'
                         ) : ''
                     );
                 array_push($TableContent, $Temp);
@@ -247,6 +247,14 @@ class Frontend extends FrontendWizard
                                 'Description' => 'Beschreibung',
                                 'Info' => 'Verknüpfung',
                                 'Option' => '',
+                            ), array(
+                                'order' => array(
+                                    array('0', 'desc'),
+                                ),
+                                'columnDefs' => array(
+//                                    array('type' => 'de_date', 'targets' => array(0)),
+                                    array('orderable' => false, 'width' => '60px', 'targets' => -1),
+                                ),
                             ))
                         )
                     ), new Title(new ListingTable() . ' Übersicht')
@@ -367,11 +375,11 @@ class Frontend extends FrontendWizard
                 $Temp['PeriodTo'] = $tblPeriod->getToDate();
                 $Temp['IsLevel12'] = $tblPeriod->isLevel12() ? new Check() : new Unchecked();
                 $Temp['Option'] =
-                    new Standard('', __NAMESPACE__ . '\Edit\Period', new Pencil(),
+                    new Standard('', __NAMESPACE__ . '\Edit\Period', new Edit(),
                         array('Id' => $tblPeriod->getId()))
                     . (!$tblYear && !$tblDivisionCourse ?
                         new Standard('', __NAMESPACE__ . '\Destroy\Period', new Remove(),
-                            array('Id' => $tblPeriod->getId()))
+                            array('Id' => $tblPeriod->getId()), 'Löschen')
                         : '');
                 array_push($TableContent, $Temp);
             });
@@ -400,6 +408,7 @@ class Frontend extends FrontendWizard
                                     ),
                                     'columnDefs' => array(
                                         array('type' => 'de_date', 'targets' => array(4, 5)),
+                                        array('orderable' => false, 'width' => '60px', 'targets' => -1),
                                     ),
                                 )
                             )
