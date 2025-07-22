@@ -17,6 +17,7 @@ use SPHERE\Application\Education\Graduation\Grade\Grade;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
+use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
@@ -25,6 +26,7 @@ use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
+use SPHERE\Application\Setting\Consumer\Consumer as ConsumerSetting;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
@@ -589,13 +591,33 @@ class Frontend extends Extension
             )
         );
 
+        $tblProfileSubject  = false;
+        if (($tblSetting = ConsumerSetting::useService()->getSetting('Api', 'Education', 'Certificate', 'ProfileAcronym'))
+            && ($value = $tblSetting->getValue())
+        ) {
+            $tblProfileSubject = Subject::useService()->getSubjectByAcronym($value);
+        }
+        $tblOrientationSubject  = false;
+        if (($tblSetting = ConsumerSetting::useService()->getSetting('Api', 'Education', 'Certificate', 'OrientationAcronym'))
+            && ($value = $tblSetting->getValue())
+        ) {
+            $tblOrientationSubject = Subject::useService()->getSubjectByAcronym($value);
+        }
+        $tblStudentSubjectTypeProfile = Student::useService()->getStudentSubjectTypeByIdentifier('PROFILE');
+        $tblStudentSubjectTypeOrientation = Student::useService()->getStudentSubjectTypeByIdentifier('ORIENTATION');
+        $tblStudentSubjectTypeForeignLanguage = Student::useService()->getStudentSubjectTypeByIdentifier('FOREIGN_LANGUAGE');
+
         if (($tblGenerateCertificate = Generate::useService()->getGenerateCertificateById($GenerateCertificateId))
             && ($tblCertificateType = $tblGenerateCertificate->getServiceTblCertificateType())
+            && $tblStudentSubjectTypeProfile
+            && $tblStudentSubjectTypeOrientation
+            && $tblStudentSubjectTypeForeignLanguage
         ) {
             $tableData = array();
             if (($tblPrepareList = Prepare::useService()->getPrepareAllByGenerateCertificate($tblGenerateCertificate))
                 && ($tblYear = $tblGenerateCertificate->getServiceTblYear())
             ) {
+                $missingSubjects = array();
                 foreach ($tblPrepareList as $tblPrepare) {
                     if (($tblDivisionCourse = $tblPrepare->getServiceTblDivision())) {
                         $certificateNameList = array();
@@ -628,6 +650,14 @@ class Frontend extends Extension
                                             . $tblCertificate->getName()
                                             . ($tblCertificate->getDescription() ? ' ' . $tblCertificate->getDescription() : '');
                                     }
+
+                                    // fehlende Fächer
+                                    if (!empty(($tempList = Setting::useService()->getCheckCertificateMissingSubjectsForPerson(
+                                        $tblPerson, $tblYear, $tblCertificate, $tblProfileSubject, $tblOrientationSubject,
+                                        $tblStudentSubjectTypeProfile, $tblStudentSubjectTypeOrientation, $tblStudentSubjectTypeForeignLanguage
+                                    )))) {
+                                        $missingSubjects = array_merge($missingSubjects, $tempList);
+                                    }
                                 }
 
                                 // bei Abschlusszeugnisse Klassenstufe 9 OS nur Hauptschüler zählen
@@ -658,19 +688,18 @@ class Frontend extends Extension
                             }
                         }
 
-                        $hasMissingForeignLanguage = false;
                         // check missing subjects on certificates
-                        if (($missingSubjects = Setting::useService()->getCheckCertificateSubjectsForDivisionSubject($tblPrepare, $certificateNameList, $hasMissingForeignLanguage))) {
-                            ksort($missingSubjects);
-                        }
+//                        if (($missingSubjects = Setting::useService()->getCheckCertificateSubjectsForDivisionSubject($tblPrepare, $certificateNameList))) {
+//                            ksort($missingSubjects);
+//                        }
                         if ($missingSubjects) {
                             $missingSubjectsString = new Warning(new Ban() .  ' ' . implode(', ',
                                 $missingSubjects) . (count($missingSubjects) > 1 ? ' fehlen' : ' fehlt')
-                                . ' auf Zeugnisvorlage(n)'
-                                .($hasMissingForeignLanguage
-                                    ? ' ' . new ToolTip(new Info(),
-                                        'Bei Fremdsprachen kann die Warnung unter Umständen ignoriert werden,
-                                         bitte prüfen Sie die Detailansicht unter Bearbeiten.') : ''));
+                                . ' auf Zeugnisvorlage(n)');
+//                                .($hasMissingForeignLanguage
+//                                    ? ' ' . new ToolTip(new Info(),
+//                                        'Bei Fremdsprachen kann die Warnung unter Umständen ignoriert werden,
+//                                         bitte prüfen Sie die Detailansicht unter Bearbeiten.') : ''));
                         } else {
                             $missingSubjectsString = new Success(
                                 new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Alle Fächer sind zugeordnet.'
@@ -773,9 +802,29 @@ class Frontend extends Extension
                     array('GenerateCertificateId' => $tblGenerateCertificate->getId()))
             );
 
+            $tblProfileSubject  = false;
+            if (($tblSetting = ConsumerSetting::useService()->getSetting('Api', 'Education', 'Certificate', 'ProfileAcronym'))
+                && ($value = $tblSetting->getValue())
+            ) {
+                $tblProfileSubject = Subject::useService()->getSubjectByAcronym($value);
+            }
+            $tblOrientationSubject  = false;
+            if (($tblSetting = ConsumerSetting::useService()->getSetting('Api', 'Education', 'Certificate', 'OrientationAcronym'))
+                && ($value = $tblSetting->getValue())
+            ) {
+                $tblOrientationSubject = Subject::useService()->getSubjectByAcronym($value);
+            }
+            $tblStudentSubjectTypeProfile = Student::useService()->getStudentSubjectTypeByIdentifier('PROFILE');
+            $tblStudentSubjectTypeOrientation = Student::useService()->getStudentSubjectTypeByIdentifier('ORIENTATION');
+            $tblStudentSubjectTypeForeignLanguage = Student::useService()->getStudentSubjectTypeByIdentifier('FOREIGN_LANGUAGE');
+
             $isDiploma = $tblCertificateType->getIdentifier() == 'DIPLOMA';
             $tableData = array();
-            if (($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses())) {
+            if (($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses())
+                && $tblStudentSubjectTypeProfile
+                && $tblStudentSubjectTypeOrientation
+                && $tblStudentSubjectTypeForeignLanguage
+            ) {
                 $count = 0;
                 foreach ($tblPersonList as $tblPerson) {
                     $isMuted = false;
@@ -840,7 +889,10 @@ class Frontend extends Extension
                             $checkSubjectsString = new Success(
                                 new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Keine Fächerzuordnung erforderlich.'
                             );
-                        } elseif (($checkSubjectList = Setting::useService()->getCheckCertificateMissingSubjectsForPerson($tblPerson, $tblYear, $tblCertificate))) {
+                        } elseif (($checkSubjectList = Setting::useService()->getCheckCertificateMissingSubjectsForPerson(
+                            $tblPerson, $tblYear, $tblCertificate, $tblProfileSubject, $tblOrientationSubject,
+                            $tblStudentSubjectTypeProfile, $tblStudentSubjectTypeOrientation, $tblStudentSubjectTypeForeignLanguage
+                        ))) {
                             $checkSubjectsString = new WarningText(new Ban() . ' '
                                 . implode(', ', $checkSubjectList)
                                 . (count($checkSubjectList) > 1 ? ' fehlen' : ' fehlt') . ' auf Zeugnisvorlage');
