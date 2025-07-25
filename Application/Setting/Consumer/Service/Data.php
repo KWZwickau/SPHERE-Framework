@@ -136,6 +136,9 @@ class Data extends AbstractData
             'Zeugnisse', 'Sollen ' . $orientationName . 'e in das Bemerkungsfeld der Zeugnisse eingetragen werden. [Standard: Ja]', true);
         $this->createSetting('Education', 'Certificate', 'Diploma', 'DoNotShowSaxonyLogo', TblSetting::TYPE_BOOLEAN, '0',
             'Zeugnisse', 'Auf Abschlusszeugnissen und Abgangszeugnissen in A3 soll kein Sachsen-Logo aufgedruckt werden. [Standard: Nein]', true);
+        $this->createSetting('Education', 'Certificate', 'Diploma', 'CanDivisionTeacherPrepareDiploma', TblSetting::TYPE_STRING, '',
+            'Zeugnisse', 'Klassenlehrer/Tutoren können Abschlusszeugnisse vorbereiten. Festlegung mittels Kürzel der Schulart.
+            (Kürzel z.B. GS, OS, Gy, BS, BFS, BGJ, BVJ, BGy, FOS, FS, GMS, ISS) Mehrere Schularten sind mit Komma zu trennen. [Standard: ]', true);
 
         // Zeugnisse non-public
         $this->createSetting('Education', 'Certificate', 'Generate', 'PictureAddress', TblSetting::TYPE_STRING, '',
