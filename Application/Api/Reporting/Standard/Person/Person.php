@@ -622,4 +622,18 @@ class Person extends Extension
             $headerWidthList
         );
     }
+
+    /**
+     * @return false|string
+     */
+    public function downloadMovementReport($DateFrom, $DateTill)
+    {
+        list ($dataList, $headerList) = ReportingPerson::useService()->createMovementReportList($DateFrom, $DateTill, true);
+        if (!empty($dataList)) {
+            $fileLocation = ReportingPerson::useService()->createMovementReportExcel($dataList, $headerList, $DateFrom, $DateTill);
+            return FileSystem::getDownload($fileLocation->getRealPath(),
+                "Schülerliste Zugänger Abgänger ".(new DateTime())->format('d-m-Y').".xlsx")->__toString();
+        }
+        return false;
+    }
 }
