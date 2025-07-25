@@ -119,6 +119,7 @@ class Frontend extends Extension implements IFrontendInterface
 //        $IsChangePassword = false;
         $IsNavigationAssistance = false;
         $IsStudentAccount = false;
+        $contentTimeTableReplacementErrorLog = false;
 
         $tblAccount = Account::useService()->getAccountBySession();
         if ($tblAccount) {
