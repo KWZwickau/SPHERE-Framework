@@ -410,6 +410,10 @@ class Service extends ServiceTemplateInformation
 //                                && method_exists($Certificate, 'selectValuesFoesAbsText')
 //                            ) {
 //                                $value = $Certificate->selectValuesFoesAbsText()[$value];
+                            } elseif ($field == 'InDepthAssignment'
+                                && method_exists($Certificate, 'selectValuesInDepthAssignment')
+                            ) {
+                                $value = $Certificate->selectValuesInDepthAssignment()[$value];
                             }
 
                             // Zeugnistext umwandeln
@@ -564,6 +568,10 @@ class Service extends ServiceTemplateInformation
 //                    && method_exists($Certificate, 'selectValuesFoesAbsText')
 //                ) {
 //                    $value = $Certificate->selectValuesFoesAbsText()[$value];
+                } elseif ($field == 'InDepthAssignment'
+                    && method_exists($Certificate, 'selectValuesInDepthAssignment')
+                ) {
+                    $value = $Certificate->selectValuesInDepthAssignment()[$value];
                 }
 
                 if (($tblPrepareInformation = $this->getPrepareInformationBy($tblPrepare, $tblPerson, $field))) {

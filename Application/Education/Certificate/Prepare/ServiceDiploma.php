@@ -171,6 +171,10 @@ abstract class ServiceDiploma extends ServiceCertificateContent
 //                            && method_exists($Certificate, 'selectValuesFoesAbsText')
 //                        ) {
 //                            $value = $Certificate->selectValuesFoesAbsText()[$value];
+                        } elseif ($field == 'InDepthAssignment'
+                            && method_exists($Certificate, 'selectValuesInDepthAssignment')
+                        ) {
+                            $value = $Certificate->selectValuesInDepthAssignment()[$value];
                         } elseif ($field == 'AdditionalRemarkFhr') {
                             $value = 'hat erfolglos an der Prüfung zum Erwerb der Fachhochschulreife teilgenommen.';
                             $issetAdditionalRemarkFhr = true;
