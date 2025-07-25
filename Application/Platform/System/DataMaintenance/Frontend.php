@@ -806,10 +806,11 @@ UPDATE ".$Acronym."_SettingConsumer.tblUserAccount SET UpdateDate = date_add(Upd
     /**
      * @return Stage
      * @deprecated
+     * Codebeispiel aufheben
      */
     public function frontendIndiwareLog(): Stage
     {
-        $Stage = new Stage('Indiware Log', 'demo.schulsoftware.schule/RestApi/Public/Indiware/Log');
+        return $Stage = new Stage('Indiware Log', 'demo.schulsoftware.schule/RestApi/Public/Indiware/Log');
 //        $Stage->addButton(new Standard('Zurück', __NAMESPACE__, new ChevronLeft()));
 //
 //        $filePath = 'UnitTest/IndiwareLog/';
@@ -867,7 +868,6 @@ UPDATE ".$Acronym."_SettingConsumer.tblUserAccount SET UpdateDate = date_add(Upd
 //                , 8)
 //            ))))
 //        );
-
-        return $Stage;
+//        return $Stage;
     }
 }
