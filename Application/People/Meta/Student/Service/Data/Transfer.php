@@ -97,6 +97,32 @@ abstract class Transfer extends Agreement
     }
 
     /**
+     * @param $DateFrom
+     * @param $DateTill
+     * @param $tblStudentTransferType
+     * @return TblStudentTransfer[]|false
+     */
+    public function getStudentTransferByTimespanAndType($DateFrom, $DateTill, $tblStudentTransferType)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $queryBuilder = $Manager->getQueryBuilder();
+        $tblStudentTransfer = new TblStudentTransfer();
+
+        $query = $queryBuilder->select('tST')
+            ->from($tblStudentTransfer->getEntityFullName(), 'tST')
+            ->Where($queryBuilder->expr()->eq('tST.tblStudentTransferType', '?1'))
+            ->andWhere($queryBuilder->expr()->between('tST.TransferDate', '?2', '?3'))
+            ->setParameter(1, $tblStudentTransferType->getId())
+            ->setParameter(2, $DateFrom)
+            ->setParameter(3, $DateTill)
+            ->getQuery();
+        $tblStudentTransferList = $query->getResult();
+
+        return !empty($tblStudentTransferList) ? $tblStudentTransferList : false;
+    }
+
+    /**
      * @param TblCompany $tblCompany
      *
      * @return bool|TblStudentTransfer[]
