@@ -296,13 +296,13 @@ class TblPerson extends Element
         if (($tblSetting = Consumer::useService()->getSetting('People', 'Person', 'Student', 'ShowUnderage'))
             && $tblSetting->getValue()
             && ($birthday = $this->getBirthday())
+            && ($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndDate($this))
         ) {
             $birthday = new DateTime($birthday);
             $today = new DateTime('today');
             $age = $birthday->diff($today)->y;
 
-            $isTechnical = ($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndDate($this))
-                && ($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())
+            $isTechnical = ($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())
                 && $tblSchoolType->isTechnical();
 
             if ($isTechnical && $age < 18) {
