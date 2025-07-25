@@ -100,6 +100,20 @@ class Custom implements IModuleInterface
             }
 
             /*
+             * Hoga
+             */
+            if ($consumerAcronym === 'HOGA' || $consumerAcronym === 'REF') {
+                Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+                    __NAMESPACE__ . '/Hoga/Common/CleverReach/Download',
+                    __NAMESPACE__ . '\Hoga\Common::downloadCleverReach'
+                ));
+                Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+                    __NAMESPACE__ . '/Hoga/Common/CleverReach/DownloadCSV',
+                    __NAMESPACE__ . '\Hoga\Common::downloadCSVCleverReach'
+                ));
+            }
+
+            /*
              * Coswig
              */
             if ($consumerAcronym === 'EVSC' || $consumerAcronym === 'REF') {
