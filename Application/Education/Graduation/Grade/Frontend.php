@@ -124,11 +124,16 @@ class Frontend extends FrontendTestPlanning
                 )))))->disableSubmitAction();
         }
 
-        if (($tblYear =Grade::useService()->getYear())) {
-            $global = $this->getGlobal();
-            $global->POST["Data"]["Year"] = $tblYear->getId();
-            $global->savePost();
-        }
+        $global = $this->getGlobal();
+//        $tblSelectedYearList = Grade::useService()->getSelectedYearList();
+//        if (count($tblSelectedYearList) > 1) {
+//            $global->POST["Data"]["SelectedYear"] = -1;
+//        } elseif (count($tblSelectedYearList) == 1) {
+//            $tblYear = current($tblSelectedYearList);
+//            $global->POST["Data"]["SelectedYear"] = $tblYear->getId();
+//        }
+        $global->POST["Data"]["SelectedYear"] = Grade::useService()->getSelectYearId();
+        $global->savePost();
 
         if ($TaskId) {
             // von der Willkommensseite direkt zur Noteneingabe für Notenaufträge springen
@@ -139,6 +144,12 @@ class Frontend extends FrontendTestPlanning
         } else {
             $content = $this->loadViewGradeBookSelect();
         }
+
+        $tblYearList = Term::useService()->getYearAll();
+        $tblCurrentYears = new TblYear();
+        $tblCurrentYears->setName('Aktuelles Schuljahr');
+        $tblCurrentYears->setId(-1);
+        $tblYearList[] = $tblCurrentYears;
 
         $stage->setContent(
             new Container("&nbsp;")
@@ -153,7 +164,7 @@ class Frontend extends FrontendTestPlanning
                     new LayoutColumn(array(
                         ApiGradeBook::receiverBlock("", "ChangeYear"),
                         (new Form(new FormGroup(new FormRow(new FormColumn(
-                            (new SelectBox('Data[Year]', '', array("{{ DisplayName }}" => Term::useService()->getYearAll())))
+                            (new SelectBox('Data[SelectedYear]', '', array("{{ DisplayName }}" => $tblYearList)))
                                 // SSWHD-3287 API kann bei TaskId (springen von Startseite) doppelt geladen werden -> bei alter Selectbox geht es -> es kann aber jetzt bei Tablets zu Problemen kommen
                                 ->configureLibrary(Selectbox::LIBRARY_SELECTER)
                                 ->ajaxPipelineOnChange(array(ApiGradeBook::pipelineChangeYear()))

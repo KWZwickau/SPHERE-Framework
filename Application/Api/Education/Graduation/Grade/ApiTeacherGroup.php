@@ -230,7 +230,12 @@ class ApiTeacherGroup  extends Extension implements IApiInterface
             }
         } else {
             $Data['Type'] = $tblType->getId();
-            $Data['Year'] = ($tblYear = Grade::useService()->getYear()) ? $tblYear->getId() : null;
+            if (!isset($Data['Year'])) {
+                $Data['Year'] = false;
+                if (($tblYearList = Grade::useService()->getSelectedYearList()) && count($tblYearList) == 1) {
+                    $Data['Year'] = (current($tblYearList))->getId();
+                }
+            }
             if (($tblDivisionCourseNew = DivisionCourse::useService()->createDivisionCourse($Data))) {
                 // Schüler
                 if (isset($Data['Students'])) {

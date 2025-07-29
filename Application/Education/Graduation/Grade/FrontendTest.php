@@ -222,7 +222,7 @@ abstract class FrontendTest extends FrontendTeacherGroup
             )),
             new FormRow(array(
                 new FormColumn(
-                    $this->getDivisionCoursesSelectContent($SubjectId, $Filter)
+                    $this->getDivisionCoursesSelectContent($DivisionCourseId, $SubjectId, $Filter)
                 )
             )),
             new FormRow(array(
@@ -245,17 +245,20 @@ abstract class FrontendTest extends FrontendTeacherGroup
     }
 
     /**
+     * @param $DivisionCourseId
      * @param $SubjectId
      * @param $Filter
      *
      * @return Layout|Warning
      */
-    public function getDivisionCoursesSelectContent($SubjectId, $Filter)
+    public function getDivisionCoursesSelectContent($DivisionCourseId, $SubjectId, $Filter)
     {
         if (!($tblSubject = Subject::useService()->getSubjectById($SubjectId))) {
             return new Warning('Fach wurde nicht gefunden.', new Exclamation());
         }
-        if (!($tblYear = Grade::useService()->getYear())) {
+        if (!(($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))
+            && ($tblYear = $tblDivisionCourse->getServiceTblYear()))
+        ) {
             return new Warning('Schuljahr wurde nicht gefunden.', new Exclamation());
         }
 
