@@ -184,8 +184,11 @@ abstract class FrontendSelect extends FrontendPreview
         ) {
             if (($tblDivisionCourseList = DivisionCourse::useService()->getDivisionCourseListByDivisionTeacher($tblPerson, $tblYear))) {
                 foreach ($tblDivisionCourseList as $tblDivisionCourse) {
-                    $tblSchoolTypeList = $tblDivisionCourse->getSchoolTypeListFromStudents();
-                    $tblSchoolType = current($tblSchoolTypeList);
+                    $tblSchoolType = false;
+                    if (($tblSchoolTypeList = $tblDivisionCourse->getSchoolTypeListFromStudents())) {
+                        $tblSchoolType = current($tblSchoolTypeList);
+                    }
+
                     // nur Kurse anzeigen, wo auch ein Zeugnisauftrag existiert
                     if (($tblPrepareList = Prepare::useService()->getPrepareAllByDivisionCourse($tblDivisionCourse))) {
                         foreach ($tblPrepareList as $tblPrepare) {
@@ -195,6 +198,7 @@ abstract class FrontendSelect extends FrontendPreview
                                 || ($tblCertificateType->getIdentifier() == 'DIPLOMA'
                                     // Ausnahme bei gesetzter Mandanteneinstellung sollen die Klassenlehrer die Abschlusszeugnisse bearbeiten können
                                     && !(($tblSetting = ConsumerSetting::useService()->getSetting('Education', 'Certificate', 'Diploma', 'CanDivisionTeacherPrepareDiploma'))
+                                        && $tblSchoolType
                                         && ($tblSchoolTypeAllowedList = ConsumerSetting::useService()->getSchoolTypeBySettingString($tblSetting->getValue()))
                                         && isset($tblSchoolTypeAllowedList[$tblSchoolType->getId()])
                                     )
