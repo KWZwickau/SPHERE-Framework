@@ -1,5 +1,5 @@
 <?php
-namespace SPHERE\Application\Transfer\Indiware\Import;
+namespace SPHERE\Application\Transfer\Indiware\Import\Replacement;
 
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Common\Main;
@@ -11,13 +11,13 @@ class Replacement implements IModuleInterface
     {
 
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/Replacement', __NAMESPACE__.'/ReplacementFrontend::frontendReplacementDashboard'
+            __NAMESPACE__, __NAMESPACE__.'/ReplacementFrontend::frontendReplacementDashboard'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/Replacement/Prepare', __NAMESPACE__.'/ReplacementFrontend::frontendReplacementPrepare'
+            __NAMESPACE__.'/Prepare', __NAMESPACE__.'/ReplacementFrontend::frontendReplacementPrepare'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/Replacement/Import', __NAMESPACE__.'/ReplacementFrontend::frontendImportReplacement'
+            __NAMESPACE__.'/Import', __NAMESPACE__.'/ReplacementFrontend::frontendImportReplacement'
         ));
     }
 

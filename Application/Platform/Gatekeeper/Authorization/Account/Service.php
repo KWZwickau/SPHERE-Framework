@@ -4,6 +4,7 @@ namespace SPHERE\Application\Platform\Gatekeeper\Authorization\Account;
 use SPHERE\Application\Contact\Mail\Mail;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\TblRole;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account as GatekeeperAccount;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Data;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccountInitial;
@@ -673,6 +674,24 @@ class Service extends AbstractService
             (new Data($this->getBinding()))->createAccountInitial($Password, $tblAccount);
         }
         return $tblAccount;
+    }
+
+    /**
+     * @param string $Username
+     * @param TblConsumer $tblConsumer
+     *
+     * @return null|TblAccount
+     * @throws \Random\RandomException
+     */
+    public function createServiceAccount(string $Username, TblConsumer $tblConsumer): ?TblAccount
+    {
+
+        if(($tblAccount = GatekeeperAccount::useService()->insertAccount($Username, random_bytes(20), null, $tblConsumer, false, false, null, null))) {
+            GatekeeperAccount::useService()->addAccountAuthentication($tblAccount, GatekeeperAccount::useService()
+                ->getIdentificationByName(TblIdentification::NAME_SERVICE));
+            return $tblAccount;
+        }
+        return null;
     }
 
     /**

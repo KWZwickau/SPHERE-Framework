@@ -10,6 +10,7 @@ use SPHERE\Application\Document\Storage\FilePointer;
 use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\People\Relationship\Service\Entity\TblType;
@@ -55,6 +56,7 @@ class Service
                 $item['PhoneNumbersGuardian1'] = $item['ExcelPhoneNumbersGuardian1'] = '';
                 $item['PhoneNumbersGuardian2'] = $item['ExcelPhoneNumbersGuardian2'] = '';
                 $item['MailAddress'] = $item['ExcelMailAddress'] = '';
+                $item['Insurance'] = '';
                 $item = Person::useService()->getAddressDataFromPerson($tblPerson, $item);
                 foreach($tblYearList as $tblYear) {
                     if(($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))) {
@@ -156,9 +158,22 @@ class Service
                     $item['MailAddress'] .= implode(';<br>', $ContactMailList);
                     $item['ExcelMailAddress'] = implode(";\n ", $ContactMailList);
                 }
+                if(($tblStudent = $tblPerson->getStudent())){
+                    if(($tblStudetMedicalRecord = $tblStudent->getTblStudentMedicalRecord())){
+                        $item['Insurance'] = $tblStudetMedicalRecord->getInsurance();
+                    }
+                }
                 array_push($TableContent, $item);
             });
         }
+
+        foreach($TableContent as $key => $Row) {
+            $Division[$key] = $Row['Division'];
+            $Gender[$key] = $Row['Gender'];
+            $Name[$key] = $Row['LastName'];
+        }
+        array_multisort($Division, SORT_ASC, $Gender, SORT_ASC, $Name, SORT_ASC, $TableContent);
+
         return $TableContent;
     }
 
@@ -190,9 +205,10 @@ class Service
         $export->setValue($export->getCell($column++, $row), "S1 Tel.");
         $export->setValue($export->getCell($column++, $row), "S2 Tel.");
         $export->setValue($export->getCell($column++, $row), "E-Mail");
-        $export->setValue($export->getCell($column, $row++), "Geburtsd.");
+        $export->setValue($export->getCell($column++, $row), "Geburtsd.");
+        $export->setValue($export->getCell($column, $row++), "Krankenkasse");
         // Table Head
-        $export->setStyle($export->getCell(0, 0), $export->getCell(15, 0))
+        $export->setStyle($export->getCell(0, 0), $export->getCell(16, 0))
             ->setFontBold()
             ->setBorderAll()
             ->setBorderBottom(2);
@@ -203,7 +219,7 @@ class Service
         $MentorGroup = '';
         foreach ($TableContent as $PersonData) {
             // set border for each Person
-            $export->setStyle($export->getCell(0, $row), $export->getCell(15, $row))->setBorderTop();
+            $export->setStyle($export->getCell(0, $row), $export->getCell(16, $row))->setBorderTop();
             $export->setStyle($export->getCell(10, $row), $export->getCell(14, $row))->setWrapText();
             $column = 0;
             $export->setValue($export->getCell($column++, $row), $PersonData['Division']);
@@ -221,15 +237,16 @@ class Service
             $export->setValue($export->getCell($column++, $row), $PersonData['ExcelPhoneNumbersGuardian1']);
             $export->setValue($export->getCell($column++, $row), $PersonData['ExcelPhoneNumbersGuardian2']);
             $export->setValue($export->getCell($column++, $row), $PersonData['ExcelMailAddress']);
-            $export->setValue($export->getCell($column, $row++), $PersonData['Birthday']);
+            $export->setValue($export->getCell($column++, $row), $PersonData['Birthday']);
+            $export->setValue($export->getCell($column, $row++), $PersonData['Insurance']);
         }
         // Table Border
-        $export->setStyle($export->getCell(0, 1), $export->getCell(15, $row))->setAlignmentMiddle()->setBorderAll();
+        $export->setStyle($export->getCell(0, 1), $export->getCell(16, ($row - 1)))->setAlignmentMiddle()->setBorderAll();
         // Column Width
         $column = 0;
-        $export->setStyle($export->getCell($column, 0), $export->getCell($column++, $row))->setColumnWidth(3)->setFontSize(9);
+        $export->setStyle($export->getCell($column, 0), $export->getCell($column++, $row))->setColumnWidth(6)->setFontSize(9);
         $export->setStyle($export->getCell($column, 0), $export->getCell($column++, $row))->setColumnWidth(4)->setFontSize(9);
-        $export->setStyle($export->getCell($column, 0), $export->getCell($column++, $row))->setColumnWidth(7)->setFontSize(9);
+        $export->setStyle($export->getCell($column, 0), $export->getCell($column++, $row))->setColumnWidth(15)->setFontSize(9);
         $export->setStyle($export->getCell($column, 0), $export->getCell($column++, $row))->setColumnWidth(3)->setFontSize(9);
         $export->setStyle($export->getCell($column, 0), $export->getCell($column++, $row))->setColumnWidth(13)->setFontSize(9);
         $export->setStyle($export->getCell($column, 0), $export->getCell($column++, $row))->setColumnWidth(16)->setFontSize(9);
@@ -242,12 +259,15 @@ class Service
         $export->setStyle($export->getCell($column, 0), $export->getCell($column++, $row))->setColumnWidth(14)->setFontSize(9);
         $export->setStyle($export->getCell($column, 0), $export->getCell($column++, $row))->setColumnWidth(14)->setFontSize(9);
         $export->setStyle($export->getCell($column, 0), $export->getCell($column++, $row))->setColumnWidth(32)->setFontSize(9);
-        $export->setStyle($export->getCell($column, 0), $export->getCell($column, $row++))->setColumnWidth(9)->setFontSize(9);
+        $export->setStyle($export->getCell($column, 0), $export->getCell($column++, $row))->setColumnWidth(9)->setFontSize(9);
+        $export->setStyle($export->getCell($column, 0), $export->getCell($column, $row++))->setColumnWidth(15)->setFontSize(9);
         $row++;
         Person::setGenderFooter($export, $tblPersonList, $row, 0, 3);
         $row++;
         $export->setValue($export->getCell(0, $row), 'Stand '.date("d.m.Y"));
         $export->setStyle($export->getCell(0, $row), $export->getCell(4, $row))->mergeCells();
+        // Set Cursor default
+        $export->setStyle($export->getCell(0, 0), $export->getCell(0, 0))->setFontBold();
         $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
         return $fileLocation;
     }

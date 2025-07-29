@@ -343,7 +343,22 @@ abstract class FrontendDiploma extends Extension implements IFrontendInterface
         if (($tblPrepare = Prepare::useService()->getPrepareById($PrepareId))
             && ($tblDivisionCourse = $tblPrepare->getServiceTblDivision())
         ) {
-            $tabList = $this->getTabList($tblDivisionCourse);
+            // BFS Generalistik Abschlusszeugnis besitzt keine Fächerprüfungen
+            $hasSubjectList = true;
+            if ($SchoolTypeShortName == 'BFS'
+                && ($tblPrepareStudentList = Prepare::useService()->getPrepareStudentAllByPrepare($tblPrepare))
+            ) {
+                foreach ($tblPrepareStudentList as $tblPrepareStudent) {
+                    if (($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())
+                        && $tblCertificate->getCertificate() == 'BfsAbsGeneralistik'
+                    ) {
+                        $hasSubjectList = false;
+                        break;
+                    }
+                }
+            }
+
+            $tabList = $this->getTabList($tblDivisionCourse, $hasSubjectList);
             if ($Tab == '') {
                 $Tab = reset($tabList);
             }
@@ -370,9 +385,11 @@ abstract class FrontendDiploma extends Extension implements IFrontendInterface
         }
     }
 
-    private function getTabList(TblDivisionCourse $tblDivisionCourse): array
+    private function getTabList(TblDivisionCourse $tblDivisionCourse, bool $hasSubjectList): array
     {
-        if (($tblSubjectList = DivisionCourse::useService()->getSubjectListByDivisionCourse($tblDivisionCourse))) {
+        if ($hasSubjectList
+            && ($tblSubjectList = DivisionCourse::useService()->getSubjectListByDivisionCourse($tblDivisionCourse))
+        ) {
             $tblSubjectList = $this->getSorter($tblSubjectList)->sortObjectBy('Name');
             /** @var TblSubject $tblSubject */
             foreach ($tblSubjectList as $tblSubject) {

@@ -5,6 +5,7 @@ use SPHERE\Application\IClusterInterface;
 use SPHERE\Application\Transfer\Education\Education;
 use SPHERE\Application\Transfer\Export\Export;
 use SPHERE\Application\Transfer\Import\Import;
+use SPHERE\Application\Transfer\Indiware\Import\Replacement\Replacement;
 use SPHERE\Application\Transfer\Indiware\Indiware;
 use SPHERE\Application\Transfer\Untis\Untis;
 use SPHERE\Common\Main;

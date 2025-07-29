@@ -48,6 +48,7 @@ class Data extends AbstractData
         $this->createIdentification('Credential', 'Benutzername / Passwort', true);
         $this->createIdentification('UserCredential', 'Benutzername / Passwort', true);
         $this->createIdentification('AuthenticatorApp', 'Benutzername / Passwort & Authenticator App', true);
+        $this->createIdentification('Service', 'Service Accounts ohne Nutzerzugriff', true);
     }
 
     /**
@@ -1103,6 +1104,8 @@ class Data extends AbstractData
                 $Entity->setTimeout(time() + $Timeout);
                 $Manager->saveEntity($Entity);
             } else {
+                // todo erforderlich für externe API -> session
+                $Manager->flushCache(get_class($Entity));
                 (new DebuggerFactory())->createLogger(new CacheLogger())->addLog('Session Update in '.( $Gap - $Entity->getTimeout() ));
             }
             return true;

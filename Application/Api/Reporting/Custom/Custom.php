@@ -100,6 +100,20 @@ class Custom implements IModuleInterface
             }
 
             /*
+             * Hoga
+             */
+            if ($consumerAcronym === 'HOGA' || $consumerAcronym === 'REF') {
+                Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+                    __NAMESPACE__ . '/Hoga/Common/CleverReach/Download',
+                    __NAMESPACE__ . '\Hoga\Common::downloadCleverReach'
+                ));
+                Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+                    __NAMESPACE__ . '/Hoga/Common/CleverReach/DownloadCSV',
+                    __NAMESPACE__ . '\Hoga\Common::downloadCSVCleverReach'
+                ));
+            }
+
+            /*
              * Coswig
              */
             if ($consumerAcronym === 'EVSC' || $consumerAcronym === 'REF') {
@@ -163,6 +177,10 @@ class Custom implements IModuleInterface
                 Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
                     __NAMESPACE__ . '/Muldental/Common/ClassList/Download',
                     __NAMESPACE__ . '\Muldental\Common::downloadClassList'
+                ));
+                Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+                    __NAMESPACE__ . '/Muldental/Common/CoreList/Download',
+                    __NAMESPACE__ . '\Muldental\Common::downloadCoreList'
                 ));
             }
 

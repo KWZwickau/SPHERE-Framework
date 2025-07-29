@@ -34,6 +34,7 @@ class Person extends AbstractModule implements IModuleInterface
             new Link\Name('Mitarbeiter Einverständniserklärung')));
         Main::getDisplay()->addModuleNavigation(new Link(new Link\Route(__NAMESPACE__.'/ClassTeacher'), new Link\Name('Klassenlehrer')));
         Main::getDisplay()->addModuleNavigation(new Link(new Link\Route(__NAMESPACE__.'/Representative'), new Link\Name('Elternsprecher-Klassensprecher')));
+        Main::getDisplay()->addModuleNavigation(new Link(new Link\Route(__NAMESPACE__.'/MovementReport'), new Link\Name('Schülerliste Zugänger Abgänger')));
 
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(__NAMESPACE__, __NAMESPACE__.'\Frontend::frontendPerson'));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(__NAMESPACE__.'/ClassList', __NAMESPACE__.'\Frontend::frontendClassList'));
@@ -62,6 +63,8 @@ class Person extends AbstractModule implements IModuleInterface
             __NAMESPACE__.'\Frontend::frontendClassTeacher'));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(__NAMESPACE__.'/Representative',
             __NAMESPACE__.'\Frontend::frontendRepresentative'));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(__NAMESPACE__.'/MovementReport',
+            __NAMESPACE__.'\Frontend::frontendMovementReport'));
     }
 
     /**

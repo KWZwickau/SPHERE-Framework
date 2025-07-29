@@ -188,6 +188,11 @@ abstract class ServiceTemplateInformation extends ServiceLeave
 //                                    $Global->POST['Data'][$tblPrepareStudent->getId()][$tblPrepareInformation->getField()] =
 //                                        array_search($tblPrepareInformation->getValue(),
 //                                            $Certificate->selectValuesFoesAbsText());
+                            } elseif ($tblPrepareInformation->getField() == 'InDepthAssignment'
+                                && method_exists($Certificate, 'selectValuesInDepthAssignment')
+                            ) {
+                                $Global->POST['Data'][$tblPrepareStudent->getId()][$tblPrepareInformation->getField()] =
+                                    array_search($tblPrepareInformation->getValue(), $Certificate->selectValuesInDepthAssignment());
                             } elseif (strpos($tblPrepareInformation->getField(), '_GradeText')
                                 && ($tblGradeText = Grade::useService()->getGradeTextByName($tblPrepareInformation->getValue()))
                             ) {
@@ -488,7 +493,8 @@ abstract class ServiceTemplateInformation extends ServiceLeave
 
                     // Berufsfachschule
                     if (!$hasRemarkText
-                        && $Certificate->getCertificateEntity()->getCertificate() == 'BfsAbs'
+                        && ($Certificate->getCertificateEntity()->getCertificate() == 'BfsAbs'
+                            || $Certificate->getCertificateEntity()->getCertificate() == 'BfsAbsGeneralistik')
                     ) {
                         $technicalCourseName = Student::useService()->getTechnicalCourseGenderNameByPerson($tblPerson);
                         $Global->POST['Data'][$tblPrepareStudent->getId()]['RemarkWithoutTeam'] = "Der Abschluss \""
@@ -715,6 +721,10 @@ abstract class ServiceTemplateInformation extends ServiceLeave
 //                                                    && method_exists($Certificate, 'selectValuesFoesAbsText')
 //                                                ) {
 //                                                    $selectBoxData = $Certificate->selectValuesFoesAbsText();
+                                            } elseif ($PlaceholderName == 'Content.Input.InDepthAssignment'
+                                                && method_exists($Certificate, 'selectValuesInDepthAssignment')
+                                            ) {
+                                                $selectBoxData = $Certificate->selectValuesInDepthAssignment();
                                             } elseif (strpos($PlaceholderName, '_GradeText') !== false) {
                                                 if (($tblGradeTextList = Grade::useService()->getGradeTextAll())) {
                                                     $selectBoxData = array(TblGradeText::ATTR_NAME => $tblGradeTextList);

@@ -1,5 +1,5 @@
 <?php
-namespace SPHERE\Application\Transfer\Indiware\Import;
+namespace SPHERE\Application\Transfer\Indiware\Import\Timetable;
 
 use MOC\V\Component\Document\Component\Bridge\Repository\UniversalXml;
 use MOC\V\Component\Document\Document;

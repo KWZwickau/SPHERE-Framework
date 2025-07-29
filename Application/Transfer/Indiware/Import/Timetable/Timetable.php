@@ -1,5 +1,5 @@
 <?php
-namespace SPHERE\Application\Transfer\Indiware\Import;
+namespace SPHERE\Application\Transfer\Indiware\Import\Timetable;
 
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Common\Main;
@@ -11,19 +11,19 @@ class Timetable implements IModuleInterface
     {
 
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/Timetable', __NAMESPACE__.'/TimetableFrontend::frontendTimetableDashboard'
+            __NAMESPACE__, __NAMESPACE__.'/TimetableFrontend::frontendTimetableDashboard'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/Timetable/Prepare', __NAMESPACE__.'/TimetableFrontend::frontendTimetableImport'
+            __NAMESPACE__.'/Prepare', __NAMESPACE__.'/TimetableFrontend::frontendTimetableImport'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/Timetable/Import', __NAMESPACE__.'/TimetableFrontend::frontendImportTimetable'
+            __NAMESPACE__.'/Import', __NAMESPACE__.'/TimetableFrontend::frontendImportTimetable'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/Timetable/Edit', __NAMESPACE__.'/TimetableFrontend::frontendEditTimetable'
+            __NAMESPACE__.'/Edit', __NAMESPACE__.'/TimetableFrontend::frontendEditTimetable'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/Timetable/Remove', __NAMESPACE__.'/TimetableFrontend::frontendRemoveTimetable'
+            __NAMESPACE__.'/Remove', __NAMESPACE__.'/TimetableFrontend::frontendRemoveTimetable'
         ));
     }
 

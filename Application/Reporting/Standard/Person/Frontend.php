@@ -19,6 +19,7 @@ use SPHERE\Application\People\Meta\Agreement\Agreement;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\Reporting\Standard\Person\Person as ReportingPerson;
 use SPHERE\Application\Setting\Consumer\Consumer;
+use SPHERE\Common\Frontend\Form\Repository\Button\Primary as PrimaryForm;
 use SPHERE\Common\Frontend\Form\Repository\Field\AutoCompleter;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
@@ -36,6 +37,7 @@ use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
 use SPHERE\Common\Frontend\Icon\Repository\Filter;
 use SPHERE\Common\Frontend\Icon\Repository\Info;
 use SPHERE\Common\Frontend\Icon\Repository\Listing;
+use SPHERE\Common\Frontend\Icon\Repository\Person as PersonIcon;
 use SPHERE\Common\Frontend\Icon\Repository\Time;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
@@ -62,6 +64,7 @@ use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
+use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Frontend
@@ -960,7 +963,7 @@ class Frontend extends Extension implements IFrontendInterface
         return new Form(new FormGroup(array(
             new FormRow($FilterColumnList),
             new FormRow(new FormColumn(
-                new \SPHERE\Common\Frontend\Form\Repository\Button\Primary('Filtern')
+                new PrimaryForm('Filtern')
             ))
         )));
     }
@@ -1631,5 +1634,127 @@ class Frontend extends Extension implements IFrontendInterface
         )));
 
         return $Stage;
+    }
+
+    /**
+     * @return Stage
+     */
+    public function frontendMovementReport($DateFrom = null, $DateTill = null): Stage
+    {
+
+        $Stage = new Stage('Auswertung Schülerliste', 'Zugänger Abgänger');
+
+        // Anzeige der Daten nur mit aktivem Filter
+        if(!$DateFrom || !$DateTill){
+            $Date = new \DateTime();
+            if(empty($_POST['DateFrom'])){
+                $_POST['DateFrom'] = '1'.$Date->format('.m.Y');
+            }
+            if(empty($_POST['DateTill'])){
+                $day = date('d', strtotime('last day of this month'));
+                $_POST['DateTill'] = $day.$Date->format('.m.Y');
+            }
+
+            $Stage->setContent(new Layout(new LayoutGroup(new LayoutRow(array(
+//                new LayoutColumn('', 3),
+                new LayoutColumn(new Well(
+                    new Form(new FormGroup(new FormRow(array(
+                        new FormColumn(new Bold('Filtern von Schüler mit Angaben zur Auf- oder Abgabe in diesem Zeitraum:')),
+                        new FormColumn((new DatePicker('DateFrom', '', "Datum von"))->setRequired(), 6),
+                        new FormColumn((new DatePicker('DateTill', '', "Datum bis"))->setRequired(), 6)
+                    ))), new PrimaryForm('Filtern', new Filter()))
+                ), 6)
+            )))));
+            return $Stage;
+        }
+        $Stage->addButton(new Standard('Zurück', '/Reporting/Standard/Person/MovementReport', new ChevronLeft()));
+        $Stage->setMessage(new Danger('Die dauerhafte Speicherung des Excel-Exports ist datenschutzrechtlich nicht zulässig!', new Exclamation()));
+        $Stage->addButton(
+            new Primary('Herunterladen', '/Api/Reporting/Standard/Person/MovementReport/Download', new Download(),
+                array('DateFrom' => $DateFrom, 'DateTill' => $DateTill))
+        );
+
+        list($dataList, $headers) = ReportingPerson::useService()->createMovementReportList($DateFrom, $DateTill, false);
+
+        $studentCount = Person::useService()->getStudentGenderCountByDataList($dataList);
+        $Footer = $this->getGenderLayoutCount($studentCount);
+
+        $Stage->setContent(new Layout(new LayoutGroup(
+            new LayoutRow(new LayoutColumn(
+                new TableData($dataList, null, $headers,
+                    array(
+                        'columnDefs' => array(
+                            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => array(0, 1)),
+                            array('type' => 'de_date', 'targets' => array(5,7)),
+                        ),
+                        'order' => array(
+                            array(5, 'asc'),
+                            array(7, 'asc')
+                        ),
+                        'responsive' => false
+                    )
+                )
+                , 12),
+            ), new Title(new Listing().' Übersicht '.new Bold($DateFrom.' - '.$DateTill))
+        ))
+        .$Footer);
+
+        return $Stage;
+    }
+
+    /**
+     * @param array $StudentCount
+     *
+     * @return Layout
+     */
+    public function getGenderLayoutCount($StudentCount): Layout
+    {
+
+        $All = $StudentCount['All'];
+        $Female = $StudentCount['W'];
+        $Male = $StudentCount['M'];
+        $Divers = $StudentCount['D'];
+        $Other = $StudentCount['O'];
+        $Sum = $Female + $Male + $Divers + $Other;
+        $DiversColumn = new LayoutColumn(
+            new Panel('Divers', array(
+                'Anzahl: ' . $Divers,
+            ), Panel::PANEL_TYPE_INFO)
+            , 2);
+        $OtherColumn = new LayoutColumn(
+            new Panel('Ohne Angabe', array(
+                'Anzahl: ' . $Other,
+            ), Panel::PANEL_TYPE_INFO)
+            , 2);
+        return new Layout(new LayoutGroup(array(
+            new LayoutRow(array(
+                new LayoutColumn(
+                    new Panel('Weiblich', array(
+                        'Anzahl: ' . $Female,
+                    ), Panel::PANEL_TYPE_INFO)
+                    , 2),
+                new LayoutColumn(
+                    new Panel('Männlich', array(
+                        'Anzahl: ' . $Male,
+                    ), Panel::PANEL_TYPE_INFO)
+                    , 2),
+                ($Divers ? $DiversColumn : ''),
+                ($Other ? $OtherColumn : ''),
+                new LayoutColumn(
+                    new Panel('Gesamt', array(
+                        'Anzahl: '.$All,
+                    ), Panel::PANEL_TYPE_INFO)
+                    , 2)
+            )),
+            new LayoutRow(
+                new LayoutColumn(
+                    ($All > $Sum ?
+                        new Warning(new PersonIcon() . ' Die abweichende Anzahl der Geschlechter gegenüber der Gesamtanzahl
+                                    entsteht durch unvollständige Datenpflege. Bitte aktualisieren Sie die Angabe des Geschlechtes
+                                    in den Stammdaten der Personen.') :
+                        null)
+                )
+            )
+        )));
     }
 }

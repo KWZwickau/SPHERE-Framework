@@ -35,16 +35,20 @@ use SPHERE\Application\People\Meta\Agreement\Agreement;
 use SPHERE\Application\People\Meta\Club\Club;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Custody\Custody;
+use SPHERE\Application\People\Meta\Meta;
 use SPHERE\Application\People\Meta\Prospect\Prospect;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransferType;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Meta\Teacher\Teacher;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\People\Relationship\Service\Entity\TblToPerson as TblToPersonRelationship;
 use SPHERE\Application\People\Relationship\Service\Entity\TblType;
+use SPHERE\Application\Transfer\Transfer;
 use SPHERE\Common\Frontend\Link\Repository\Mailto;
 use SPHERE\Common\Frontend\Link\Repository\PhoneLink;
 use SPHERE\System\Extension\Extension;
+use SPHERE\System\Extension\Repository\Debugger;
 use SPHERE\System\Extension\Repository\Sorter\StringGermanOrderSorter;
 use SPHERE\System\Extension\Repository\Sorter\StringNaturalOrderSorter;
 
@@ -4555,5 +4559,240 @@ class Service extends Extension
         }
 
         return $data;
+    }
+
+    /**
+     * @param string $DateFrom
+     * @param string $DateTill
+     * @param bool $isExcel
+     * @return array
+     */
+    public function createMovementReportList($DateFrom, $DateTill, bool $isExcel): array
+    {
+        $DateFrom = new DateTime($DateFrom);
+        $DateTill = new DateTime($DateTill);
+
+        $headers = array();
+        $headers['LastName'] = 'Nachname';
+        $headers['FirstName'] = 'Vorname';
+        $headers['Gender'] = 'Geschlecht';
+//        if ($isExcel) {
+//            $headers['District'] = 'Ortsteil';
+//            $headers['StreetName'] = 'Straße';
+//            $headers['StreetNumber'] = 'Hausnr.';
+//            $headers['Code'] = 'PLZ';
+//            $headers['City'] = 'Ort';
+//        } else {
+            $headers['Address'] = 'Adresse';
+//        }
+        $headers['Course'] = 'Aktuelle Klasse';
+        $headers['arriveDate'] = 'Zugang am';
+        $headers['oldSchool'] = 'Abgebende Schule';
+        $headers['leaveDate'] = 'Abgang am';
+        $headers['newSchool'] = 'Aufnehmende Schule';
+
+        $preMergeList = array();
+        $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier(TblStudentTransferType::ARRIVE);
+        $tblStudentTransferList = Student::useService()->getStudentTransferByTimespanAndType($DateFrom, $DateTill, $tblStudentTransferType);
+        if($tblStudentTransferList){
+            $this->prepareDataListByStudentTransfer($tblStudentTransferList, $preMergeList, $tblStudentTransferType);
+        }
+
+        $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier(TblStudentTransferType::LEAVE);
+        $tblStudentTransferList = Student::useService()->getStudentTransferByTimespanAndType($DateFrom, $DateTill, $tblStudentTransferType);
+        if($tblStudentTransferList) {
+            $this->prepareDataListByStudentTransfer($tblStudentTransferList, $preMergeList, $tblStudentTransferType);
+        }
+        // verschiedene Einträge logisch (über Person) zusammen fügen
+        $dataList = array();
+        if(!empty($preMergeList)){
+            foreach($preMergeList as $entry) {
+                $dataList[$entry['PersonId']]['FirstName'] = ($entry['FirstName'] ?? '');
+                $dataList[$entry['PersonId']]['LastName'] = ($entry['LastName'] ?? '');
+                $dataList[$entry['PersonId']]['Gender'] = ($entry['Gender'] ?? '');
+                $dataList[$entry['PersonId']]['Course'] = ($entry['Course'] ?? '');
+                $dataList[$entry['PersonId']]['District'] = ($entry['District'] ?? '');
+                $dataList[$entry['PersonId']]['StreetName'] = ($entry['StreetName'] ?? '');
+                $dataList[$entry['PersonId']]['StreetNumber'] = ($entry['StreetNumber'] ?? '');
+                $dataList[$entry['PersonId']]['Code'] = ($entry['Code'] ?? '');
+                $dataList[$entry['PersonId']]['City'] = ($entry['City'] ?? '');
+                $dataList[$entry['PersonId']]['Address'] = ($entry['Address'] ?? '');
+                if(empty($dataList[$entry['PersonId']]['arriveDate'])){
+                    $dataList[$entry['PersonId']]['arriveDate'] = ($entry['arriveDate'] ?? '');
+                }
+                if(empty($dataList[$entry['PersonId']]['oldSchool'])){
+                    $dataList[$entry['PersonId']]['oldSchool'] = ($entry['oldSchool'] ?? '');
+                }
+                if(empty($dataList[$entry['PersonId']]['leaveDate'])){
+                    $dataList[$entry['PersonId']]['leaveDate'] = ($entry['leaveDate'] ?? '');
+                }
+                if(empty($dataList[$entry['PersonId']]['newSchool'])){
+                    $dataList[$entry['PersonId']]['newSchool'] = ($entry['newSchool'] ?? '');
+                }
+            }
+        }
+
+        return array($dataList, $headers);
+    }
+
+    /**
+     * @param array $tblStudentTransferList
+     * @param array $preMergeList
+     * @param TblStudentTransferType $preMergeList
+     */
+    private function prepareDataListByStudentTransfer(array $tblStudentTransferList,array &$preMergeList, TblStudentTransferType $tblStudentTransferType):void
+    {
+        if($tblStudentTransferList){
+            foreach($tblStudentTransferList as $tblStudentTransfer){
+                $item = array();
+                $item['FirstName'] = $item['LastName'] = '';
+                $item['Gender'] = $item['Course'] = '';
+                $item['StreetName'] = $item['StreetNumber'] = $item['Code'] = $item['City'] = $item['District'] = '';
+                $item['Address'] = '';
+                $item['arriveDate'] = $item['oldSchool'] = $item['leaveDate'] = $item['newSchool'] = '';
+                if(($tblStudent = $tblStudentTransfer->getTblStudent())){
+                    if($tblStudentTransferType->getIdentifier() == TblStudentTransferType::ARRIVE){
+                        $item['arriveDate'] = $tblStudentTransfer->getTransferDate();
+                        if(($tblCompany = $tblStudentTransfer->getServiceTblCompany())){
+                            $item['oldSchool'] = $tblCompany->getDisplayName();
+                        }
+                    } elseif($tblStudentTransferType->getIdentifier() == TblStudentTransferType::LEAVE){
+                        $item['leaveDate'] = $tblStudentTransfer->getTransferDate();
+                        if(($tblCompany = $tblStudentTransfer->getServiceTblCompany())){
+                            $item['newSchool'] = $tblCompany->getDisplayName();
+                        }
+                    }
+                    if(($tblPerson = $tblStudent->getServiceTblPerson())){
+                        $item['FirstName'] = $tblPerson->getFirstSecondName();
+                        $item['LastName'] = $tblPerson->getLastName();
+                        if(($tblGender = $tblPerson->getGender())){
+                            $item['Gender'] = $tblGender->getShortName();
+                        }
+                        $item['PersonId'] = $tblPerson->getId();
+                        if(($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndDate($tblPerson))){
+                            if(($tblDivisionCourse = $tblStudentEducation->getTblDivision())){
+                                $item['Course'] = $tblDivisionCourse->getDisplayName();
+                            }
+                        }
+                        // Address
+                        $item = $this->getAddressDataFromPerson($tblPerson, $item);
+                        array_push($preMergeList, $item);
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * @param $dataList
+     *
+     * @return array $StudentCount KeyList[All, M, W, D, O]
+     */
+    public function getStudentGenderCountByDataList($dataList)
+    {
+        $studentCount = array();
+        $studentCount['All'] = 0;
+        $studentCount['M'] = 0;
+        $studentCount['W'] = 0;
+        $studentCount['D'] = 0;
+        $studentCount['O'] = 0;
+        if(!empty($dataList)){
+            foreach($dataList as $data){
+                $studentCount['All']++;
+                if($data['Gender'] == 'm'){
+                    $studentCount['M']++;
+                } elseif($data['Gender'] == 'w'){
+                    $studentCount['W']++;
+                } elseif($data['Gender'] == 'd'){
+                    $studentCount['D']++;
+                } elseif($data['Gender'] == 'o'){
+                    $studentCount['O']++;
+                }
+            }
+        }
+        return $studentCount;
+    }
+
+    /**
+     * @param array $dataList
+     * @param array $headers
+     * @param string $DateFrom
+     * @param string $DateTill
+     *
+     * @return false|FilePointer
+     */
+    public function createMovementReportExcel(array $dataList, array $headers, $DateFrom, $DateTill)
+    {
+        if (!empty($dataList)) {
+            $fileLocation = Storage::createFilePointer('xlsx');
+            /** @var PhpExcel $export */
+            $export = Document::getDocument($fileLocation->getFileLocation());
+            $PaperOrientation = new PaperOrientationParameter('LANDSCAPE');
+            $export->setPaperOrientationParameter($PaperOrientation);
+            $row = 0;
+            $column = 0;
+            $columnMax = 5;
+            $export->setValue($export->getCell($column, $row), 'Schülerliste - Zugänger / Abgänger vom '.$DateFrom.' bis '.$DateTill);
+            $export->setStyle($export->getCell($column, $row), $export->getCell($columnMax, $row))
+                ->setFontBold()
+                ->setFontSize(14)
+                ->mergeCells();
+            $row++;
+            $export->setValue($export->getCell($column++, $row), "Zugang am");
+            $export->setValue($export->getCell($column++, $row), "Abgang am");
+            $export->setValue($export->getCell($column++, $row), "Name, Vorname");
+            $export->setValue($export->getCell($column++, $row), "Anschrift");
+            $export->setValue($export->getCell($column++, $row), "Aktuelle K.");
+            $export->setValue($export->getCell($column, $row), "Abgebende/Aufnehmende Schule");
+            $export->setStyle($export->getCell(0, $row), $export->getCell($column, $row))->setFontBold();
+            foreach ($dataList as $item) {
+                $row++;
+                $column = 0;
+                $export->setValue($export->getCell($column++, $row), $item['arriveDate']);
+                $export->setValue($export->getCell($column++, $row), $item['leaveDate']);
+                $export->setValue($export->getCell($column++, $row), $item['LastName'].', '.$item['FirstName']);
+                $export->setValue($export->getCell($column++, $row), $item['Address']);
+                $export->setValue($export->getCell($column++, $row), $item['Course']);
+                $export->setValue($export->getCell($column, $row), $item['oldSchool'].($item['oldSchool'] && $item['newSchool']? ' / ': '').$item['newSchool']);
+            }
+
+            // Spaltenbreite
+            $column = 0;
+            $columnWithList = array(12, 12, 20, 35, 10, 31);
+            foreach($columnWithList as $with){
+                $export->setStyle($export->getCell($column, 0), $export->getCell($column++, $row))->setColumnWidth($with);
+            }
+
+            $studentCount = $this->getStudentGenderCountByDataList($dataList);
+            $row++;
+            $column = 0;
+            $export->setValue($export->getCell($column, $row),
+                'Schüler: '.$studentCount['All'].'         '
+                .'Mädchen: '.$studentCount['W'].'         '
+                .'Jungen: '.$studentCount['M'].'         '
+                .'Divers: '.$studentCount['D'].'         '
+                .'Ohne Angabe: '.$studentCount['O']
+            );
+            $export->setStyle($export->getCell($column, $row), $export->getCell($columnMax, $row))->setFontBold()->mergeCells();
+            // border all
+            $export->setStyle($export->getCell(0, 0), $export->getCell($columnMax, $row))->setBorderAll();
+            // border big
+            // top
+            $export->setStyle($export->getCell(0, 0), $export->getCell($columnMax, 0))
+                ->setBorderBottom(2);
+            // outline
+            $export->setStyle($export->getCell(0, 0), $export->getCell($columnMax, $row))
+                ->setBorderTop(2)
+                ->setBorderBottom(2)
+                ->setBorderLeft(2)
+                ->setBorderRight(2);
+            // bottom
+            $export->setStyle($export->getCell(0, $row), $export->getCell($columnMax, $row))
+                ->setBorderTop(2);
+
+            $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
+            return $fileLocation;
+        }
+        return false;
     }
 }

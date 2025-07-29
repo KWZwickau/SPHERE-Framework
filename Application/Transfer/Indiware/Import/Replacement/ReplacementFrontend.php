@@ -1,5 +1,5 @@
 <?php
-namespace SPHERE\Application\Transfer\Indiware\Import;
+namespace SPHERE\Application\Transfer\Indiware\Import\Replacement;
 
 use MOC\V\Component\Document\Exception\DocumentTypeException as DocumentTypeException;
 use SPHERE\Application\Education\ClassRegister\Timetable\Timetable as TimetableClassregister;
@@ -34,7 +34,7 @@ use Symfony\Component\HttpFoundation\File\File;
 
 /**
  * Class ReplacementFrontend
- * @package SPHERE\Application\Transfer\Indiware\Import
+ * @package SPHERE\Application\Transfer\Indiware\Import\Replacement
  */
 class ReplacementFrontend extends Extension implements IFrontendInterface
 {

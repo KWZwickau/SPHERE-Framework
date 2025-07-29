@@ -72,7 +72,7 @@ class Frontend extends Extension implements IFrontendInterface
                         , 3),
                         new LayoutColumn(new Link((new Thumbnail(
                                 FileSystem::getFileLoader('/Common/Style/Resource/SSWUser.png')
-                                , 'Benutzerrechte', 'empfohlene Benutzerrechte Stand:&nbsp;27.10.2023'))->setPictureHeight()
+                                , 'Benutzerrechte', 'empfohlene Benutzerrechte Stand:&nbsp;06.06.2025'))->setPictureHeight()
                                 , '/Api/Document/Standard/Manual/Create/Pdf', null, array('Select' => 'UserRole')
                         ), 3),
                         new LayoutColumn(new Link((new Thumbnail(
