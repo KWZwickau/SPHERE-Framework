@@ -1659,7 +1659,7 @@ class Frontend extends Extension implements IFrontendInterface
 //                new LayoutColumn('', 3),
                 new LayoutColumn(new Well(
                     new Form(new FormGroup(new FormRow(array(
-                        new FormColumn(new Bold('Filtern von Schüler mit Angaben zur Auf- oder Abgabe in diesem Zeitraum:')),
+                        new FormColumn(new Bold('Filterung nach Aufnahme- und Abgabedatum Zeitraum:')),
                         new FormColumn((new DatePicker('DateFrom', '', "Datum von"))->setRequired(), 6),
                         new FormColumn((new DatePicker('DateTill', '', "Datum bis"))->setRequired(), 6)
                     ))), new PrimaryForm('Filtern', new Filter()))
