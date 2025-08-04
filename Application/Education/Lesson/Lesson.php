@@ -5,6 +5,7 @@ use SPHERE\Application\Education\Lesson\Course\Course;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\IApplicationInterface;
 use SPHERE\Application\Setting\Consumer\School\School;
 use SPHERE\Common\Main;
@@ -24,11 +25,11 @@ class Lesson implements IApplicationInterface
 
         Subject::registerModule();
         Term::registerModule();
-//        Division::registerModule();
         if (School::useService()->hasConsumerTechnicalSchool()){
             Course::registerModule();
         }
         DivisionCourse::registerModule();
+        Type::registerModule();
 
         Main::getDisplay()->addApplicationNavigation(
             new Link(new Link\Route(__NAMESPACE__), new Link\Name('Unterricht'))
