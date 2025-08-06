@@ -103,8 +103,9 @@ class Frontend extends Extension implements IFrontendInterface
                 // Mitarbeiter oder Eltern-Zugang
                 $tblPersonList = OnlineContactDetails::useService()->getPersonListFromCustodyLogin();
             }
-
-            $PersonIdList = OnlineContactDetails::useService()->getPersonIdListFromPersonList($tblPersonList);
+            if($tblPersonList) {
+                $PersonIdList = OnlineContactDetails::useService()->getPersonIdListFromPersonList($tblPersonList);
+            }
         }
 
         if (!empty($PersonIdList)) {
