@@ -545,8 +545,10 @@ abstract class ServiceYearChange extends ServiceTeacher
         if (preg_match_all('!\d+!', $tblDivisionCourse->getName(), $matches)) {
             $pos = strpos($tblDivisionCourse->getName(), $matches[0][0]);
             if ($pos === 0) {
-                $level = intval($matches[0][0]);
-                $newName = ($level + 1) . substr($newName, strlen($level));
+                $number = $matches[0][0];
+                $width = strlen($number);
+                $incremented  = str_pad(((int)$number) + 1, $width, "0", STR_PAD_LEFT);
+                $newName = $incremented . substr($newName, $width);
             }
         }
 
