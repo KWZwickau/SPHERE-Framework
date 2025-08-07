@@ -1,5 +1,4 @@
 <?php
-
 namespace SPHERE\Application\Api\Document\Standard\Repository\StudentTransfer;
 
 use SPHERE\Application\Api\Document\AbstractDocument;
@@ -84,6 +83,11 @@ class StudentTransfer extends AbstractDocument
         $this->FieldValue['DateUntil'] = (isset($DataPost['DateUntil']) && $DataPost['DateUntil'] != '' ? $DataPost['DateUntil'] : '__________');
         $this->FieldValue['SchoolEntry'] = (isset($DataPost['SchoolEntry']) && $DataPost['SchoolEntry'] != '' ? $DataPost['SchoolEntry'] : '&nbsp;');
         $this->FieldValue['SchoolEntryDivision'] = (isset($DataPost['SchoolEntryDivision']) && $DataPost['SchoolEntryDivision'] != '' ? $DataPost['SchoolEntryDivision'] : '&nbsp;');
+        $this->FieldValue['DivisionRepeat'] = (isset($DataPost['DivisionRepeat']) && $DataPost['DivisionRepeat'] != '' ? $DataPost['DivisionRepeat'] : '&nbsp;');
+        for($i = 1; $i<= 4; $i++){
+            $this->FieldValue['ForeignLanguage'.$i] = (isset($DataPost['ForeignLanguage'.$i]) && $DataPost['ForeignLanguage'.$i] != '' ? $DataPost['ForeignLanguage'.$i] : '&nbsp;');
+            $this->FieldValue['ForeignTime'.$i] = (isset($DataPost['ForeignTime'.$i]) && $DataPost['ForeignTime'.$i] != '' ? $DataPost['ForeignTime'.$i] : '&nbsp;');
+        }
         $this->FieldValue['DivisionRepeat'] = (isset($DataPost['DivisionRepeat']) && $DataPost['DivisionRepeat'] != '' ? $DataPost['DivisionRepeat'] : '&nbsp;');
         $this->FieldValue['Additional'] = (isset($DataPost['Additional']) && $DataPost['Additional'] != '' ? $DataPost['Additional'] : '&nbsp;');
 
@@ -484,6 +488,52 @@ class StudentTransfer extends AbstractDocument
     /**
      * @return Slice
      */
+    private function getStudentTransferForeignLanguage():Slice
+    {
+
+        $Slice = new Slice();
+        $Slice->addSection((new Section())
+            ->addElementColumn((new Element())
+                ->setContent('Fremdsprachenfolge')
+                ->styleBorderLeft()
+                ->styleTextSize('8pt')
+                ->styleHeight('4px')
+                , '80%')
+            ->addElementColumn((new Element())
+                ->setContent('ab / bis Klasse')
+                ->styleBorderRight()
+                ->styleTextSize('8pt')
+                ->styleHeight('4px')
+                , '20%')
+        );
+        for($i = 1; $i <= 4; $i++){
+            $Slice->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent($i.'. '.$this->FieldValue['ForeignLanguage'.$i])
+                    ->stylePaddingLeft($this->TextPaddingLeft)
+                    ->styleBorderLeft()
+                    ->styleBorderBottom()
+                    ->styleTextSize('12pt')
+                    ->stylePaddingTop('8px')
+                    ->styleHeight('24px')
+                    , '80%')
+                ->addElementColumn((new Element())
+                    ->setContent($this->FieldValue['ForeignTime'.$i])
+                    ->stylePaddingLeft($this->TextPaddingLeft)
+                    ->styleBorderRight()
+                    ->styleBorderBottom()
+                    ->styleTextSize('12pt')
+                    ->stylePaddingTop('8px')
+                    ->styleHeight('24px')
+                    , '20%')
+            );
+        }
+        return $Slice;
+    }
+
+    /**
+     * @return Slice
+     */
     private function getStudentTransferFooter()
     {
 
@@ -623,15 +673,19 @@ class StudentTransfer extends AbstractDocument
                 )
             )
             ->addSlice((new Slice())
-                ->addElement((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleHeight('47px')
-                )
-            )
-            ->addSlice((new Slice())
-                ->addElement((new Element())
-                    ->setContent('_')
-                    ->styleHeight('133px')
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('_')
+                        ->styleMarginTop('47px')
+                        ->styleHeight('133px')
+                        , '2%')
+                    ->addSliceColumn(
+                        $this->getStudentTransferForeignLanguage()
+                        , '96%'
+                    )
+                    ->addElementColumn((new Element())
+                            ->setContent('&nbsp;')
+                        , '2%')
                 )
             )
             ->addSlice((new Slice())
@@ -645,7 +699,7 @@ class StudentTransfer extends AbstractDocument
                     )
                     ->addElementColumn((new Element())
                         ->setContent('&nbsp;')
-                        , '20%'
+                        , '2%'
                     )
                 )
             );

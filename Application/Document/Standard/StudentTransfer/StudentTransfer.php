@@ -291,6 +291,17 @@ class StudentTransfer extends Extension
 //                        }
                     }
                 }
+                for($i = 1; $i <= 4; $i++) {
+                    if(($tblStudentSubject = $tblStudent->getTblStudentSubjectForeignLanguage($i))){
+                        if(($tblSubject = $tblStudentSubject->getServiceTblSubject())){
+                            $Global->POST['Data']['ForeignLanguage'.$i] = $tblSubject->getName();
+                        }
+                        if(($LevelFrom = $tblStudentSubject->getLevelFrom())){
+                            $LevelTill = $tblStudentSubject->getLevelTill();
+                            $Global->POST['Data']['ForeignTime'.$i] = $LevelFrom.' bis '.$LevelTill;
+                        }
+                    }
+                }
             }
 
             // Hauptadresse Schüler
@@ -401,7 +412,7 @@ class StudentTransfer extends Extension
             new FormGroup(array(
                 new FormRow(array(
                     new FormColumn(
-                        new HiddenField('Data[PersonId]')   //ToDO Hidden ersetzen
+                        new HiddenField('Data[PersonId]')
                     ),
                     new FormColumn(
                         new Layout(
@@ -527,7 +538,31 @@ class StudentTransfer extends Extension
                                                     new LayoutColumn(
                                                         new TextField('Data[DivisionRepeat]', 'Wiederholte Klassen',
                                                             'Wiederholte Klassen')
-                                                        , 4)
+                                                        , 4),
+                                                    new LayoutColumn(
+                                                        new TextField('Data[ForeignLanguage1]', 'Französisch', 'Fremdsprache 1')
+                                                        , 6),
+                                                    new LayoutColumn(
+                                                        new TextField('Data[ForeignTime1]', '5 bis 8', 'Zeitraum Fremdsprache 1')
+                                                        , 6),
+                                                    new LayoutColumn(
+                                                        new TextField('Data[ForeignLanguage2]', '', 'Fremdsprache 2')
+                                                        , 6),
+                                                    new LayoutColumn(
+                                                        new TextField('Data[ForeignTime2]', '', 'Zeitraum Fremdsprache 2')
+                                                        , 6),
+                                                    new LayoutColumn(
+                                                        new TextField('Data[ForeignLanguage3]', '', 'Fremdsprache 3')
+                                                        , 6),
+                                                    new LayoutColumn(
+                                                        new TextField('Data[ForeignTime3]', '', 'Zeitraum Fremdsprache 3')
+                                                        , 6),
+                                                    new LayoutColumn(
+                                                        new TextField('Data[ForeignLanguage4]', '', 'Fremdsprache 4')
+                                                        , 6),
+                                                    new LayoutColumn(
+                                                        new TextField('Data[ForeignTime4]', '', 'Zeitraum Fremdsprache 4')
+                                                        , 6)
                                                 ))
                                             )
                                         )
