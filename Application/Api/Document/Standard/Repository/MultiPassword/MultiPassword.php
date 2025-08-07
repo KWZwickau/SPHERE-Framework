@@ -486,7 +486,7 @@ class MultiPassword extends AbstractDocument
             ->addSection((new Section())
                 ->addSliceColumn(
                     $this->getAddressHead($AccountId)
-                        ->styleHeight('160px')
+                        ->styleHeight('155px')
                     , '57%')
                 ->addSliceColumn(
                     $this->getContactData()
@@ -496,7 +496,10 @@ class MultiPassword extends AbstractDocument
                 ->setContent('Zugangsdaten und Sicherheitsinformationen zur Anmeldung für die Schulsoftware')
                 ->styleTextBold()
             );
-        $Slice->addElement($this->getTextElement(''));
+        $Slice->addElement((new Element())
+            ->setContent('&nbsp;')
+            ->styleHeight('5px')
+        );
 
 //        $Slice->addElement($this->getTextElement($this->FieldValue['FirstLine']));
         $Slice->addElement($this->getTextElement($FirstLine));
