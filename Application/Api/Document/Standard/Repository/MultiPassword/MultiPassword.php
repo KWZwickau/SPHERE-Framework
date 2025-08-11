@@ -10,6 +10,8 @@ use SPHERE\Application\Document\Generator\Repository\Frame;
 use SPHERE\Application\Document\Generator\Repository\Page;
 use SPHERE\Application\Document\Generator\Repository\Section;
 use SPHERE\Application\Document\Generator\Repository\Slice;
+use SPHERE\Application\People\Group\Group;
+use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Meta\Common\Service\Entity\TblCommonGender;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Person\Service\Entity\TblSalutation;
@@ -95,9 +97,9 @@ class MultiPassword extends AbstractDocument
         $this->FieldValue['Place'] = (isset($DataPost['Place']) && $DataPost['Place'] != '' ? $DataPost['Place'].', den ' : '');
         $this->FieldValue['Date'] = (isset($DataPost['Date']) && $DataPost['Date'] != '' ? $DataPost['Date'] : '&nbsp;');
 
-        $tblPerson = false;
         if($this->FieldValue['GroupByTime'] && $this->FieldValue['GroupByCount']){
-            if(($tblUserAccountList = Account::useService()->getUserAccountByTimeAndCount(
+            if(($tblStudentGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_STUDENT))
+                && ($tblUserAccountList = Account::useService()->getUserAccountByTimeAndCount(
                 new DateTime($this->FieldValue['GroupByTime']), $this->FieldValue['GroupByCount']))){
                 foreach($tblUserAccountList as $tblUserAccount){
                     /** @var TblAccount $tblAccount */
@@ -144,12 +146,16 @@ class MultiPassword extends AbstractDocument
                             if(($tblToPersonList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson, $tblToPersonType))){
                                 $PersonNameList = array();
                                 foreach($tblToPersonList as $tblToPerson){
-                                    if(($tblPersonTo = $tblToPerson->getServiceTblPersonTo())){
+                                    if(($tblPersonTo = $tblToPerson->getServiceTblPersonTo())
+                                        && Group::useService()->existsGroupPerson($tblStudentGroup, $tblPersonTo)
+                                    ){
                                         $PersonNameList[] = $tblPersonTo->getFirstName().' '.$tblPersonTo->getLastName();
                                     }
                                 }
 
-                                $this->FieldValue['ChildList'][$tblAccount->getId()] = implode('<br/>', $PersonNameList);
+                                if ($PersonNameList) {
+                                    $this->FieldValue['ChildList'][$tblAccount->getId()] = implode('<br/>', $PersonNameList);
+                                }
                             }
 
                         }
