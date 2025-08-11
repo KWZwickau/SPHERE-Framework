@@ -20,10 +20,8 @@ use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
-use SPHERE\System\Extension\Repository\Debugger;
 use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
-use Symfony\Component\HttpFoundation\JsonResponse;
 
 class ReplacementService
 {
@@ -438,9 +436,9 @@ class ReplacementService
         }
 
         $TimeTableList = array();
-        if(($tblTimeTableList = TimetableClassRegister::useService()->getTimetableListByDateTime(new DateTime()))){
+        if(($tblTimeTableList = TimetableTool::useService()->getTimetableListByDateTime(new DateTime()))){
             foreach($tblTimeTableList as $tblTimeTable){
-                if(($tblTimeTableNodeList = TimetableClassRegister::useService()->getTimetableNodeListByTimetable($tblTimeTable))){
+                if(($tblTimeTableNodeList = TimetableTool::useService()->getTimetableNodeListByTimetable($tblTimeTable))){
                     foreach($tblTimeTableNodeList as $tblTimeTableNode){
                         if(($tblTimeTableCourse = $tblTimeTableNode->getServiceTblCourse()) && key_exists($tblTimeTableCourse->getId(), $tblCourseList)){
                             $Day = (string)$tblTimeTableNode->getDay();
@@ -575,7 +573,7 @@ class ReplacementService
         if(!empty($DateList) && !empty($CourseList)){
             foreach($DateList as $Date){
                 foreach($CourseList as $tblCourse){
-                    if(($tblTimetableReplacementList = TimetableClassRegister::useService()->getTimetableReplacementByTime($Date, null, $tblCourse))){
+                    if(($tblTimetableReplacementList = TimetableTool::useService()->getTimetableReplacementByTime($Date, null, $tblCourse))){
                         foreach($tblTimetableReplacementList as $tblTimetableReplacement){
                             $removeList[] = $tblTimetableReplacement;
                         }
@@ -584,7 +582,7 @@ class ReplacementService
             }
         }
         if(!empty($removeList)) {
-            TimetableClassRegister::useService()->destroyTimetableReplacementBulk($removeList);
+            TimetableTool::useService()->destroyTimetableReplacementBulk($removeList);
         }
     }
 
