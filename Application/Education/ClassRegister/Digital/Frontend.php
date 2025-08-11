@@ -1261,7 +1261,6 @@ class Frontend extends FrontendTabs
             new FormColumn(
                 (new SelectBox('Data[serviceTblSubstituteSubject]', 'Vertretungsfach / zusätzliches Fach', array('{{ Acronym }} - {{ Name }}' => $tblSubjectList)))
                     ->ajaxPipelineOnChange(array(
-                        ApiDigital::pipelineLoadLessonContentLinkPanel($tblDivisionCourse->getId(), $tblSubject ? $tblSubject->getId() : null),
                         $pipeLineLoadDueDateHomeworkContent
                     ))
                 , 6),
