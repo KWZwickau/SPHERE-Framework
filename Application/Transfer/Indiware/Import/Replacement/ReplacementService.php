@@ -589,7 +589,7 @@ class ReplacementService
     public function importTimetableReplacementBulk($importList)
     {
 
-        TimetableClassRegister::useService()->createTimetableReplacementBulk($importList);
+        TimetableTool::useService()->createTimetableReplacementBulk($importList);
     }
 
     private function getUtf8Encode(?string $item): string
