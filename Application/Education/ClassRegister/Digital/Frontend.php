@@ -1257,15 +1257,12 @@ class Frontend extends FrontendTabs
                         ApiDigital::pipelineLoadLessonContentLinkPanel($tblDivisionCourse->getId(), $tblSubject ? $tblSubject->getId() : null),
                         $pipeLineLoadDueDateHomeworkContent
                     ))
-                    ->ajaxPipelineOnChange(
-                        $pipeLineLoadDueDateHomeworkContent
-                    )
             , 6),
             new FormColumn(
                 (new SelectBox('Data[serviceTblSubstituteSubject]', 'Vertretungsfach / zusätzliches Fach', array('{{ Acronym }} - {{ Name }}' => $tblSubjectList)))
-                    ->ajaxPipelineOnChange(
+                    ->ajaxPipelineOnChange(array(
                         $pipeLineLoadDueDateHomeworkContent
-                    )
+                    ))
                 , 6),
 //                    new FormColumn(
 //                        new SelectBox('Data[serviceTblPerson]', 'Lehrer', array('{{ FullName }}' => $tblTeacherList))
