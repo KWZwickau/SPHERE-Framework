@@ -64,7 +64,7 @@ class TblTimetableReplacement extends Element
     /**
      * @Column(type="bigint")
      */
-    protected int $serviceTblSubject;
+    protected ?int $serviceTblSubject = null;
     /**
      * @Column(type="bigint")
      */

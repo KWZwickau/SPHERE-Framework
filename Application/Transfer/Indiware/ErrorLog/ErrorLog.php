@@ -485,8 +485,8 @@ class ErrorLog extends Extension implements IModuleInterface
 //        // entfernen alter Log Daten
         Timetable::useService()->destroyTimetableReplacementLogBulk();
         // Test mit Lokalen Daten
-        $Json = (new JsonReplacementTest())->getJson($Mandant);
-        Replacement::useService()->importJsonReplacement($Json);
+        $Json = (new JsonReplacementTest())->getJson($Mandant.'Manual');
+        Replacement::useService()->importJsonReplacement($Json, true);
 
 //        Account::useService()->destroySession(null, session_id());
         return $Stage;

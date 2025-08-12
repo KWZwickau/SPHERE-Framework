@@ -605,7 +605,7 @@ class ReplacementService
      * @param string $Json
      * @return string
      */
-    public function importJsonReplacement(string $Json){
+    public function importJsonReplacement(string $Json, $ManualTest = false){
 
         $ArrayData = json_decode($Json, true);
         $DateArray = array();
@@ -613,18 +613,33 @@ class ReplacementService
         $importList = array();
         // über Webhook erhalten
 
-        if(!isset($ArrayData['Gesamtexport']['Vertretungsplan']['Vertretungsplan'])){
-            TimetableTool::useService()->createTimetableReplacementLogEntity('Upload war kein Vertretungsplan oder ungültige/leere JSON');
-            return 'Kein Vertretungsplan';
-        }
+        if(!$ManualTest){
+            if(!isset($ArrayData['Gesamtexport']['Vertretungsplan']['Vertretungsplan'])){
+                TimetableTool::useService()->createTimetableReplacementLogEntity('Upload war kein Vertretungsplan oder ungültige/leere JSON');
+                return 'Kein Vertretungsplan';
+            }
 
-        if(($ReplacementList = $ArrayData['Gesamtexport']['Vertretungsplan']['Vertretungsplan'])){
-        // EVSR Händisch als Json erhalten
-//        if(isset($ArrayData['Vertretungsplan'])
-//            && ($ReplacementList = $ArrayData['Vertretungsplan'])){
-            $readList = $this->readReplacement($ReplacementList);
-            $importList = $this->getObjectList($readList);
-            $DateArray = $this->getDateArray($importList);
+            if(($ReplacementList = $ArrayData['Gesamtexport']['Vertretungsplan']['Vertretungsplan'])){
+              // EVSR Händisch als Json erhalten
+//            if(isset($ArrayData['Vertretungsplan'])
+//                && ($ReplacementList = $ArrayData['Vertretungsplan'])){
+                $readList = $this->readReplacement($ReplacementList);
+                $importList = $this->getObjectList($readList);
+                $DateArray = $this->getDateArray($importList);
+            }
+        } else {
+            // Manuel übertragene JSON sieht anders aus und muss deshalb anders ausgelesen werden
+            if(!isset($ArrayData['Vertretungsplan'])){
+                TimetableTool::useService()->createTimetableReplacementLogEntity('Upload war kein Vertretungsplan oder ungültige/leere JSON');
+                return 'Kein Vertretungsplan';
+            }
+                // EVSR Händisch als Json erhalten
+            if(isset($ArrayData['Vertretungsplan'])
+            && ($ReplacementList = $ArrayData['Vertretungsplan'])){
+                $readList = $this->readReplacement($ReplacementList);
+                $importList = $this->getObjectList($readList);
+                $DateArray = $this->getDateArray($importList);
+            }
         }
 
         // Datumsangaben aus dem JSON nach bereich Filtern
@@ -674,39 +689,50 @@ class ReplacementService
                     $item['Date'] = $ReplacementEntry['Ak_DatumVon']?:'';
                     $Hour = $item['Hour'] = $ReplacementEntry['Ak_StundeVon']?:'';
                     $item['Subject'] = $ReplacementEntry['Ak_Fach']?:'';
-                    $item['SubjectV'] = $ReplacementEntry['Ak_VFach']?:'';
-                    $item['PersonVArray'] = $ReplacementEntry['VLehrer']?:'';
-                    $item['RoomVArray'] = $ReplacementEntry['VRaeume']?:'';
+                    $item['SubjectV'] = isset($ReplacementEntry['Ak_VFach'])?$ReplacementEntry['Ak_VFach']:'';
+                    $item['PersonVArray'] = isset($ReplacementEntry['VLehrer'])?$ReplacementEntry['VLehrer']:array();
+                    $item['PersonArray'] = isset($ReplacementEntry['Lehrer'])?$ReplacementEntry['Lehrer']:array();
+                    $item['RoomVArray'] = isset($ReplacementEntry['VRaeume'])?$ReplacementEntry['VRaeume']:array();
 
                     $count = 1;
                     if(isset($ReplacementEntry['Ak_StundenAnz'])){
                         $count = (int)$ReplacementEntry['Ak_StundenAnz'];
                     }
-                    $CourseListV = $ReplacementEntry['VKlassen'];
+                    $OriginalCourseListV = isset($ReplacementEntry['Klassen'])?$ReplacementEntry['Klassen']: '';
+                    $CourseListV = isset($ReplacementEntry['VKlassen'])?$ReplacementEntry['VKlassen']: '';
 
                     // Mehrere Einträge erzeugen wenn notwendig
                     if(!empty($CourseListV)){
-                        foreach($CourseListV as $CourseV){
+                        foreach($CourseListV as $Key => $CourseV){
 //                                if($count > 1){
                             // mehrere Einträge
                             if(is_numeric($Hour)){
                                 for($i = $Hour; $i < ($Hour + $count); $i++){
                                     $item['Hour'] = (string)$i;
+                                    if(isset($OriginalCourseListV[$Key])){
+                                        $item['OriginalCourse'] = $OriginalCourseListV[$Key];
+                                    }
                                     $item['Course'] = $CourseV;
                                     $resultList[] = $item;
                                 }
                             } else {
                                 $item['Hour'] = $Hour;
+                                if(isset($OriginalCourseListV[$Key])){
+                                    $item['OriginalCourse'] = $OriginalCourseListV[$Key];
+                                }
                                 $item['Course'] = $CourseV;
                                 $resultList[] = $item;
                             }
                         }
                     } else {
-                        // Einträge ohne Klasse
-                        for($j = $Hour; $j < ($Hour + $count); $j++){
-                            $item['Hour'] = (string)$j;
-                            $item['Course'] = '';
-                            $resultList[] = $item;
+                        // Einträge ohne VKlasse
+                        foreach($OriginalCourseListV as $Course){
+                            for($j = $Hour; $j < ($Hour + $count); $j++){
+                                $item['Hour'] = (string)$j;
+                                $item['Course'] = '';
+                                $item['OriginalCourse'] = $Course;
+                                $resultList[] = $item;
+                            }
                         }
                     }
                 }
@@ -736,8 +762,16 @@ class ReplacementService
             $tblSubjectV = false;
             $IsCanceled = ($SubjectV == ''? true : false);
             $PersonV = current($read['PersonVArray']);
+            // InitialLehrer für den Ausfall eintragen
+            if(empty($PersonV) && $IsCanceled){
+                $PersonV = current($read['PersonArray']);
+            }
             $tblPersonV = false;
             $RoomV = current($read['RoomVArray']);
+
+            if($IsCanceled && !$CourseV){
+                $CourseV = $read['OriginalCourse'];
+            }
 
             if($CourseV && ($YearList = Term::useService()->getYearAllByDate($DateTime))){ // Mapping
                 foreach($YearList as $Year){
@@ -862,7 +896,7 @@ class ReplacementService
         if (!$import['tblCourse']) {
             $errors[] = '[Klasse] - '.$import['Course'].' => keine passende Klasse gefunden';
         }
-        if (!$import['tblPersonV']) {
+        if (!$import['tblPersonV'] && !$import['IsCanceled']) {
             $errors[] = '[Person] - '.$import['PersonAcronym'].' => Vertretung nicht gefunden';
         }
         // möglicherweise können Fächer auch ohne Fach angelegt sein (Bsp.: ESS)
