@@ -944,6 +944,36 @@ class JsonReplacementTest
           ],
           "InfoK": "Klassenleiterstunde",
           "InfoL": "Klassenleiterstunde"
+        },
+        {
+          "Ak_Id": 1033,
+          "Ak_UntNr": 0,
+          "Ak_Art": "Änd.",
+          "Ak_DatumVon": "13.08.2025",
+          "Ak_DatumNach": "13.08.2025",
+          "Ak_StundeVon": 1,
+          "Ak_StundeNach": 1,
+          "Ak_StundenAnz": 1,
+          "Ak_Fach": "FAwp",
+          "Ak_VFach": "MA",
+          "Klassen": [
+            "4Wint"
+          ],
+          "VKlassen": [
+            "4Wint"
+          ],
+          "Lehrer": [
+            "Li"
+          ],
+          "VLehrer": [
+            "Fuchs"
+          ],
+          "Raeume": [
+            ".Win"
+          ],
+          "VRaeume": [
+            ".Win"
+          ]
         }
       ]
     }
