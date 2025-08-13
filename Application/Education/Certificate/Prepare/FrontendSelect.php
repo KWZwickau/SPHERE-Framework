@@ -414,7 +414,7 @@ abstract class FrontendSelect extends FrontendPreview
                             'Route' => $Route
                         );
 
-                        if ($Route == 'Diploma' || $tblCertificateType->getIdentifier() == 'DIPLOMA'
+                        if (($Route == 'Diploma' || $tblCertificateType->getIdentifier() == 'DIPLOMA')
                             && (isset($tblSchoolTypeList[$tblSchoolTypeGy->getId()]) || isset($tblSchoolTypeList[$tblSchoolTypeBGy->getId()]))
                         ) {
                             // Gymnasium, Abitur
