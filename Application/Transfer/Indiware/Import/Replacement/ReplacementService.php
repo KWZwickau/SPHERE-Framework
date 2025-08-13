@@ -175,6 +175,7 @@ class ReplacementService
                         $DateTemp = clone($Date);
                         $item = array();
                         $plTag = $Pl->getChild('pl_tag');
+                        $item['Time'] = $Date;
                         $item['Tag'] = $plTag->getContent();
                         if(($plStunde = $Pl->getChild('pl_stunde'))){
                             $item['Hour'] = $plStunde->getContent();
@@ -428,7 +429,9 @@ class ReplacementService
         $tblCourseList = $this->getCourseList();
 
         $ReplaceList = array();
+        $DateTime = new DateTime('now');
         foreach($ImportList as $ImportRow){
+            $DateTime = $ImportRow['Time'];
             $Day = (string)$ImportRow['Tag'];
             $Hour = (string)$ImportRow['Hour'];
             $CourseId = (string)$ImportRow['CourseId'];
@@ -441,8 +444,8 @@ class ReplacementService
                 if(($tblTimeTableNodeList = TimetableTool::useService()->getTimetableNodeListByTimetable($tblTimeTable))){
                     foreach($tblTimeTableNodeList as $tblTimeTableNode){
                         if(($tblTimeTableCourse = $tblTimeTableNode->getServiceTblCourse()) && key_exists($tblTimeTableCourse->getId(), $tblCourseList)){
-                            // ToDO wochenübergreifend funktioniert die Wochenauswahl nicht
-                            $currentWeek = TimetableTool::useService()->getTimetableWeekName($tblTimeTableCourse, new DateTime('now'));
+                            // Datum wird anhand des Imports gesetzt (immer innerhalb einer Woche)
+                            $currentWeek = TimetableTool::useService()->getTimetableWeekName($tblTimeTableCourse, $DateTime);
                             $isWeekOk = false;
                             if(($Week = $tblTimeTableNode->getWeek()) && $Week == $currentWeek){
                                 // Wocheneintrag muss übereinstimmen
