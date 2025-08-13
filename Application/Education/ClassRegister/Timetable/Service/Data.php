@@ -474,7 +474,6 @@ class Data extends AbstractData
                 $Entity->setServiceTblSubstituteSubject($Row['tblSubstituteSubject']);
                 $Entity->setServiceTblCourse($Row['tblCourse']);
                 $Entity->setServiceTblPerson($Row['tblPerson'] ?? null);
-                Debugger::devDump($Entity);
                 $Manager->bulkSaveEntity($Entity);
                 Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity, true);
             }

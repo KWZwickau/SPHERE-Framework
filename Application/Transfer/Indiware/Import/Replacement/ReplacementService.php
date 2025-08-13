@@ -441,10 +441,22 @@ class ReplacementService
                 if(($tblTimeTableNodeList = TimetableTool::useService()->getTimetableNodeListByTimetable($tblTimeTable))){
                     foreach($tblTimeTableNodeList as $tblTimeTableNode){
                         if(($tblTimeTableCourse = $tblTimeTableNode->getServiceTblCourse()) && key_exists($tblTimeTableCourse->getId(), $tblCourseList)){
-                            $Day = (string)$tblTimeTableNode->getDay();
-                            $Hour = (string)$tblTimeTableNode->getHour();
-                            $CourseId = (string)$tblTimeTableNode->getServiceTblCourse()->getId();
-                            $TimeTableList[$Day][$Hour][$CourseId][] = $tblTimeTableNode;
+                            // ToDO wochenübergreifend funktioniert die Wochenauswahl nicht
+                            $currentWeek = TimetableTool::useService()->getTimetableWeekName($tblTimeTableCourse, new DateTime('now'));
+                            $isWeekOk = false;
+                            if(($Week = $tblTimeTableNode->getWeek()) && $Week == $currentWeek){
+                                // Wocheneintrag muss übereinstimmen
+                                $isWeekOk = true;
+                            } elseif(!$tblTimeTableNode->getWeek()) {
+                                // Wocheneintrag ist leer
+                                $isWeekOk = true;
+                            }
+                            if($isWeekOk){
+                                $Day = (string)$tblTimeTableNode->getDay();
+                                $Hour = (string)$tblTimeTableNode->getHour();
+                                $CourseId = (string)$tblTimeTableNode->getServiceTblCourse()->getId();
+                                $TimeTableList[$Day][$Hour][$CourseId][] = $tblTimeTableNode;
+                            }
                         }
                     }
                 }
