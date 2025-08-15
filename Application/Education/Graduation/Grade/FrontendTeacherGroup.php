@@ -10,6 +10,7 @@ use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisio
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblTeacherLectureship;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
+use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
@@ -58,24 +59,26 @@ abstract class FrontendTeacherGroup extends FrontendTask
     {
         $tblType = DivisionCourse::useService()->getDivisionCourseTypeByIdentifier(TblDivisionCourseType::TYPE_TEACHER_GROUP);
         if (($tblPerson = Account::useService()->getPersonByLogin())
-            && ($tblYear = Grade::useService()->getYear())
+            && ($tblYearList = Grade::useService()->getSelectedYearList())
         ) {
             $dataList = array();
-            if (($tblDivisionCourseList = DivisionCourse::useService()->getTeacherGroupListByTeacherAndYear($tblPerson, $tblYear))) {
-                foreach ($tblDivisionCourseList as $tblDivisionCourse) {
-                    $dataList[] = array(
-                        'Name' => $tblDivisionCourse->getName(),
-                        'Description' => $tblDivisionCourse->getDescription(),
-                        'Subject' => $tblDivisionCourse->getSubjectName(),
-                        'Students' => $tblDivisionCourse->getCountStudents(),
-                        'Option' =>
-                            (new Standard('', ApiTeacherGroup::getEndpoint(), new Pen(), array(), 'Lerngruppe bearbeiten'))
-                                ->ajaxPipelineOnClick(ApiTeacherGroup::pipelineLoadViewTeacherGroupEdit($tblDivisionCourse->getId()))
-                            . (new Standard('', ApiTeacherGroup::getEndpoint(), new ResizeVertical(), array(), 'Schüler sortieren'))
-                                ->ajaxPipelineOnClick(ApiTeacherGroup::pipelineLoadViewTeacherGroupSort($tblDivisionCourse->getId()))
-                            . (new Standard('', ApiTeacherGroup::getEndpoint(), new Remove(), array(), 'Lerngruppe Löschen'))
-                                ->ajaxPipelineOnClick(ApiTeacherGroup::pipelineLoadViewTeacherGroupDelete($tblDivisionCourse->getId()))
-                    );
+            foreach ($tblYearList as $tblYear) {
+                if (($tblDivisionCourseList = DivisionCourse::useService()->getTeacherGroupListByTeacherAndYear($tblPerson, $tblYear))) {
+                    foreach ($tblDivisionCourseList as $tblDivisionCourse) {
+                        $dataList[] = array(
+                            'Name' => $tblDivisionCourse->getName(),
+                            'Description' => $tblDivisionCourse->getDescription(),
+                            'Subject' => $tblDivisionCourse->getSubjectName(),
+                            'Students' => $tblDivisionCourse->getCountStudents(),
+                            'Option' =>
+                                (new Standard('', ApiTeacherGroup::getEndpoint(), new Pen(), array(), 'Lerngruppe bearbeiten'))
+                                    ->ajaxPipelineOnClick(ApiTeacherGroup::pipelineLoadViewTeacherGroupEdit($tblDivisionCourse->getId()))
+                                . (new Standard('', ApiTeacherGroup::getEndpoint(), new ResizeVertical(), array(), 'Schüler sortieren'))
+                                    ->ajaxPipelineOnClick(ApiTeacherGroup::pipelineLoadViewTeacherGroupSort($tblDivisionCourse->getId()))
+                                . (new Standard('', ApiTeacherGroup::getEndpoint(), new Remove(), array(), 'Lerngruppe Löschen'))
+                                    ->ajaxPipelineOnClick(ApiTeacherGroup::pipelineLoadViewTeacherGroupDelete($tblDivisionCourse->getId()))
+                        );
+                    }
                 }
             }
 
@@ -163,27 +166,42 @@ abstract class FrontendTeacherGroup extends FrontendTask
 
         $tblSubjectList = array();
         $subjectId = '';
+        $tblYearList = array();
         if ($tblDivisionCourse) {
-            $tblYear = $tblDivisionCourse->getServiceTblYear();
+            if (($tblYear = $tblDivisionCourse->getServiceTblYear())) {
+                $tblYearList[] = $tblYear;
+            }
             if (($tblSubject = $tblDivisionCourse->getServiceTblSubject())) {
                 $subjectId = $tblSubject->getId();
             }
         } else {
-            $tblYear = Grade::useService()->getYear();
+            $tblYearList = Grade::useService()->getSelectedYearList();
         }
-        if (!$tblDivisionCourse && $tblYear && ($tblPerson = Account::useService()->getPersonByLogin())) {
-            $tblSubjectList = DivisionCourse::useService()->getSubjectListByTeacherAndYear($tblPerson, $tblYear);
+        if (!$tblDivisionCourse && ($tblPerson = Account::useService()->getPersonByLogin())) {
+            foreach ($tblYearList as $tblYear) {
+                if (($tblSubjectListTemp = DivisionCourse::useService()->getSubjectListByTeacherAndYear($tblPerson, $tblYear))) {
+                    $tblSubjectList = array_merge($tblSubjectList, $tblSubjectListTemp);
+                }
+            }
         }
 
+        $isMultiYear = count($tblYearList) > 1;
+        if ($isMultiYear) {
+            $formColumns[] = new FormColumn(
+                (new SelectBox('Data[Year]', 'Schuljahr', array('{{ DisplayName }}' => $tblYearList)))
+                    ->setRequired()
+                    ->ajaxPipelineOnChange(ApiTeacherGroup::pipelineLoadTeacherGroupStudentSelect(null, null, $Data))
+                , 6);
+        }
+        $formColumns[] = new FormColumn($tblDivisionCourse
+            ? new Panel('Fach', $tblDivisionCourse->getSubjectName(), Panel::PANEL_TYPE_INFO)
+            : (new SelectBox('Data[Subject]', 'Fach', array('{{ DisplayName }}' => $tblSubjectList)))
+                ->setRequired()
+                ->ajaxPipelineOnChange(ApiTeacherGroup::pipelineLoadTeacherGroupStudentSelect(null, null, $Data))
+        , $isMultiYear ? 6 : 12);
+
         return (new Form(new FormGroup(array(
-            new FormRow(array(
-                new FormColumn($tblDivisionCourse
-                    ? new Panel('Fach', $tblDivisionCourse->getSubjectName(), Panel::PANEL_TYPE_INFO)
-                    : (new SelectBox('Data[Subject]', 'Fach', array('{{ DisplayName }}' => $tblSubjectList)))
-                        ->setRequired()
-                        ->ajaxPipelineOnChange(ApiTeacherGroup::pipelineLoadTeacherGroupStudentSelect(null, null, $Data))
-                )
-            )),
+            new FormRow($formColumns),
             new FormRow(array(
                 new FormColumn(
                     (new TextField('Data[Name]', '', 'Name', new Pen()))->setRequired()
@@ -194,7 +212,7 @@ abstract class FrontendTeacherGroup extends FrontendTask
             )),
             new FormRow(array(
                 new FormColumn(
-                    ApiTeacherGroup::receiverBlock($this->loadTeacherGroupStudentSelect($subjectId, $DivisionCourseId, $Data), 'TeacherGroupStudentSelect')
+                    ApiTeacherGroup::receiverBlock($DivisionCourseId ? $this->loadTeacherGroupStudentSelect($subjectId, $DivisionCourseId, $Data) : '', 'TeacherGroupStudentSelect')
                 )
             )),
             new FormRow(array(
@@ -225,10 +243,19 @@ abstract class FrontendTeacherGroup extends FrontendTask
             }
         }
 
+        $tblYear = false;
+        if ($DivisionCourseId && ($tblDivisionCourseTemp = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
+            $tblYear = $tblDivisionCourseTemp->getServiceTblYear();
+        } elseif (isset($Data['Year'])) {
+            $tblYear = Term::useService()->getYearById($Data['Year']);
+        } elseif (($tblYearList = Grade::useService()->getSelectedYearList()) && count($tblYearList) == 1) {
+            $tblYear = current($tblYearList);
+        }
+
         $tblDivisionCourseList = array();
         if (($tblSubject = Subject::useService()->getSubjectById($SubjectId))) {
             if (($tblPerson = Account::useService()->getPersonByLogin())
-                && ($tblYear = Grade::useService()->getYear())
+                && $tblYear
                 && ($tblTeacherLectureshipList = DivisionCourse::useService()->getTeacherLectureshipListBy($tblYear, $tblPerson, null, $tblSubject))
             ) {
                 $size = 3;

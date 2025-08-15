@@ -9,6 +9,7 @@ use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Type;
+use SPHERE\Application\Setting\Consumer\School\School;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
@@ -38,16 +39,21 @@ class FrontendTestPlanning extends FrontendTest
      */
     public function loadViewTestPlanningContent($Data = null): string
     {
+        $tblSchoolTypeList = School::useService()->getConsumerSchoolTypeAll();
         if ($Data == null) {
             $global = $this->getGlobal();
 
             $global->POST['Data']['GradeType'] = -SelectBoxItem::HIGHLIGHTED_IS_HIGHLIGHTED;
             $global->POST['Data']['Option'] = 2;
+            if (count($tblSchoolTypeList) == 1) {
+                $tblSchoolType = current($tblSchoolTypeList);
+                $global->POST['Data']['Type'] = $tblSchoolType->getId();
+            }
 
             $global->savePost();
         }
 
-        $typeSelectBox = new SelectBox('Data[Type]', 'Schulart', array('Name' => Type::useService()->getTypeAll()));
+        $typeSelectBox = new SelectBox('Data[Type]', 'Schulart', array('Name' => $tblSchoolTypeList));
         if (Grade::useService()->getRole() !== 'Teacher') {
             $typeSelectBox->setRequired();
         }
@@ -113,11 +119,20 @@ class FrontendTestPlanning extends FrontendTest
             return '';
         }
 
-        if (!($tblYear = Grade::useService()->getYear())) {
+        if (!($tblYearList = Grade::useService()->getSelectedYearList())) {
             return new Warning('Bitte wählen Sie ein Schuljahr aus!', new Exclamation());
         }
-        list($startDateTime, $endDateTime) = Term::useService()->getStartDateAndEndDateOfYear($tblYear);
-
+        $startDateTime = null;
+        $endDateTime = null;
+        foreach ($tblYearList as $tblYear) {
+            list($startDateTimeTemp, $endDateTimeTemp) = Term::useService()->getStartDateAndEndDateOfYear($tblYear);
+            if ($startDateTime == null || $startDateTimeTemp < $startDateTime) {
+                $startDateTime = $startDateTimeTemp;
+            }
+            if ($endDateTime == null || $endDateTimeTemp > $endDateTime) {
+                $endDateTime = $endDateTimeTemp;
+            }
+        }
 
         $tblType = Type::useService()->getTypeById($Data['Type']);
 
@@ -148,7 +163,7 @@ class FrontendTestPlanning extends FrontendTest
 
         $warning = '';
         $tblDivisionCourseList = Grade::useService()->getDivisionCourseListForMinimumGradeCountReporting(
-            $tblYear,
+            $tblYearList,
             $tblType ?: null,
             $IsDivisionTeacher,
             trim($Data['DivisionName']),

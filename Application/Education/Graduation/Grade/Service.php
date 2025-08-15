@@ -130,21 +130,36 @@ class Service extends ServiceTask
     }
 
     /**
-     * @return false|TblYear
+     * @return false|TblYear[]
      */
-    public function getYear()
+    public function getSelectedYearList(): bool|array
     {
         if (($tblAccountSetting = Consumer::useService()->getAccountSettingValue("GradeBookSelectedYearId"))
             && ($tblYear = Term::useService()->getYearById($tblAccountSetting))
         ) {
-            return $tblYear;
+            return array($tblYear);
         }
 
         if (($tblYearList = Term::useService()->getYearByNow())) {
-            return current($tblYearList);
+            return $tblYearList;
         }
 
         return false;
+    }
+
+    /**
+     * @return int
+     */
+    public function getSelectYearId(): int
+    {
+        if (($tblAccountSetting = Consumer::useService()->getAccountSettingValue("GradeBookSelectedYearId"))
+            && ($tblYear = Term::useService()->getYearById($tblAccountSetting))
+        ) {
+            return $tblYear->getId();
+        }
+
+        // Aktuelles Schuljahr
+        return -1;
     }
 
     /**
@@ -179,17 +194,14 @@ class Service extends ServiceTask
             case "Headmaster": return true;
             case "Teacher":
                 // der Lehrer darf nur aktuelles Schuljahr bearbeiten und benötigt Lehrauftrag oder eigene Lerngruppe
-                if (($tblYearSelected = $this->getYear())
-                    && ($tblYearList = Term::useService()->getYearByNow())
+                if (($tblYearList = Term::useService()->getYearByNow())
                     && ($tblPerson = Account::useService()->getPersonByLogin())
                     && ($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))
+                    && ($tblDivisionCourseYear = $tblDivisionCourse->getServiceTblYear())
                     && ($tblSubject = Subject::useService()->getSubjectById($SubjectId))
                 ) {
                     foreach ($tblYearList as $tblYear) {
-                        if ($tblYear->getId() == $tblYearSelected->getId()
-                            && ($tblYearFromDivisionCourse = $tblDivisionCourse->getServiceTblYear())
-                            && $tblYear->getId() == $tblYearFromDivisionCourse->getId()
-                        ) {
+                        if ($tblYear->getId() == $tblDivisionCourseYear->getId()) {
                             return $this->getHasTeacherLectureshipForDivisionCourseAndSubject($tblPerson, $tblDivisionCourse, $tblSubject);
                         }
                     }
@@ -262,7 +274,17 @@ class Service extends ServiceTask
         $error = false;
         $form = Grade::useFrontend()->formTeacherGroup($tblDivisionCourse ? $tblDivisionCourse->getId() : null, false, $Data);
 
-        $tblYear = $tblDivisionCourse ? $tblDivisionCourse->getServiceTblYear() : $this->getYear();
+        if ($tblDivisionCourse) {
+            $tblYear = $tblDivisionCourse->getServiceTblYear();
+        } elseif (!isset($Data['Year'])) {
+            $Data['Year'] = false;
+            if (($tblYearList = Grade::useService()->getSelectedYearList()) && count($tblYearList) == 1) {
+                $Data['Year'] = (current($tblYearList))->getId();
+            }
+            $tblYear = Term::useService()->getYearById($Data['Year']);
+        } else {
+            $tblYear = Term::useService()->getYearById($Data['Year']);
+        }
 
         if (!$tblDivisionCourse) {
             if (!isset($Data['Subject']) || !(Subject::useService()->getSubjectById($Data['Subject']))) {

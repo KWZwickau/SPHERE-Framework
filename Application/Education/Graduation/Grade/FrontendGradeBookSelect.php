@@ -40,10 +40,10 @@ abstract class FrontendGradeBookSelect extends FrontendExamGrade
     {
         $role = Grade::useService()->getRole();
         $isTeacher = $role == "Teacher";
-        if (($tblYear = Grade::useService()->getYear())) {
+        if (($tblYearList = Grade::useService()->getSelectedYearList())) {
             // Lehrer
             if ($isTeacher) {
-                $content = $this->getSelectGradeBookTeacher($tblYear);
+                $content = $this->getSelectGradeBookTeacher($tblYearList);
                 // Schulleitung, Integrationsbeauftragte
             } else {
                 $content = $this->getSelectGradeBookHeadmaster($Filter);
@@ -62,13 +62,26 @@ abstract class FrontendGradeBookSelect extends FrontendExamGrade
      */
     private function getSelectGradeBookHeadmaster($Filter): string
     {
+        // Filter bei mehr als einer Mandanten-Schulart anzeigen
+        $filter = '';
+        if (($tblSchoolTypeList = School::useService()->getConsumerSchoolTypeAll())) {
+            if (count($tblSchoolTypeList) == 1) {
+                if (empty($Filter)) {
+                    $Filter = array();
+                    $Filter['SchoolType'] = (current($tblSchoolTypeList))->getId();
+                }
+            } else {
+                $filter = new Panel(
+                    new Filter() . " Filter",
+                    $this->formFilter($Filter),
+                    Panel::PANEL_TYPE_INFO
+                );
+            }
+        }
+
         return
-            new Panel(
-                new Filter() . " Filter",
-                $this->formFilter($Filter),
-                Panel::PANEL_TYPE_INFO
-            )
-            . ApiGradeBook::receiverBlock($Filter == null ? $this->loadGradeBookSelectFilterContent($Filter) : "", "GradeBookSelectFilterContent");
+            $filter
+            . ApiGradeBook::receiverBlock($this->loadGradeBookSelectFilterContent($Filter), "GradeBookSelectFilterContent");
     }
 
     /**
@@ -107,18 +120,20 @@ abstract class FrontendGradeBookSelect extends FrontendExamGrade
     {
         $tblSchoolType = isset($Filter["SchoolType"]) ? Type::useService()->getTypeById($Filter["SchoolType"]) : false;
         if ($tblSchoolType
-            && ($tblYear = Grade::useService()->getYear())
+            && ($tblYearList = Grade::useService()->getSelectedYearList())
         ) {
             $dataList = array();
-            if (($tblDivisionCourseList = DivisionCourse::useService()->getDivisionCourseListBy($tblYear))) {
-                foreach ($tblDivisionCourseList as $tblDivisionCourse) {
-                    if (!($tblSchoolTypeList = $tblDivisionCourse->getSchoolTypeListFromStudents())
-                        || !isset($tblSchoolTypeList[$tblSchoolType->getId()])
-                    ) {
-                        continue;
-                    }
+            foreach ($tblYearList as $tblYear) {
+                if (($tblDivisionCourseList = DivisionCourse::useService()->getDivisionCourseListBy($tblYear))) {
+                    foreach ($tblDivisionCourseList as $tblDivisionCourse) {
+                        if (!($tblSchoolTypeList = $tblDivisionCourse->getSchoolTypeListFromStudents())
+                            || !isset($tblSchoolTypeList[$tblSchoolType->getId()])
+                        ) {
+                            continue;
+                        }
 
-                    $this->setDivisionCourseSelectDataList($dataList, $tblDivisionCourse, $tblYear, null, null, $Filter);
+                        $this->setDivisionCourseSelectDataList($dataList, $tblDivisionCourse, $tblYear, null, null, $Filter);
+                    }
                 }
             }
 
@@ -167,43 +182,46 @@ abstract class FrontendGradeBookSelect extends FrontendExamGrade
     }
 
     /**
-     * @param TblYear $tblYear
+     * @param $tblYearList
      *
      * @return string
      */
-    private function getSelectGradeBookTeacher(TblYear $tblYear): string
+    private function getSelectGradeBookTeacher($tblYearList): string
     {
-        if (($tblPersonLogin = Account::useService()->getPersonByLogin())
-            && ($tblTeacherLectureshipList = DivisionCourse::useService()->getTeacherLectureshipListBy($tblYear, $tblPersonLogin))
-        ) {
+        if (($tblPersonLogin = Account::useService()->getPersonByLogin())) {
             $divisionCourseSubjectList = array();
             $dataList = array();
-            // Lehraufträge
-            foreach ($tblTeacherLectureshipList as $tblTeacherLectureship) {
-                $this->setTeacherLectureshipSelectData($dataList, $tblTeacherLectureship, $divisionCourseSubjectList);
-            }
+            foreach ($tblYearList as $tblYear) {
+                if (($tblTeacherLectureshipList = DivisionCourse::useService()->getTeacherLectureshipListBy($tblYear, $tblPersonLogin))) {
+                    // Lehraufträge
+                    foreach ($tblTeacherLectureshipList as $tblTeacherLectureship) {
+                        $this->setTeacherLectureshipSelectData($dataList, $tblTeacherLectureship, $divisionCourseSubjectList);
+                    }
 
-            // Klassenlehrer aus den Lehraufträgen der Lehrer
-            if (($tblDivisionCourseList = DivisionCourse::useService()->getDivisionCourseListByDivisionTeacher($tblPersonLogin, $tblYear, true))) {
-                foreach ($tblDivisionCourseList as $tblDivisionCourse) {
-                    if (DivisionCourse::useService()->getIsCourseSystemByStudentsInDivisionCourse($tblDivisionCourse)) {
-                        // SekII
-                        if (($tblStudentSubjectList = DivisionCourse::useService()->getStudentSubjectListByStudentDivisionCourseAndPeriod($tblDivisionCourse, 1))) {
-                            foreach ($tblStudentSubjectList as $tblStudentSubject) {
-                                if (($tblDivisionCourseSubject = $tblStudentSubject->getTblDivisionCourse())
-                                    && !isset($divisionCourseSubjectList[$tblDivisionCourseSubject->getId()])
-                                ) {
-                                    $this->setDivisionCourseSelectDataList($dataList, $tblDivisionCourseSubject, $tblYear, $tblPersonLogin, $divisionCourseSubjectList);
+                    // Klassenlehrer aus den Lehraufträgen der Lehrer
+                    if (($tblDivisionCourseList = DivisionCourse::useService()->getDivisionCourseListByDivisionTeacher($tblPersonLogin, $tblYear, true))) {
+                        foreach ($tblDivisionCourseList as $tblDivisionCourse) {
+                            if (DivisionCourse::useService()->getIsCourseSystemByStudentsInDivisionCourse($tblDivisionCourse)) {
+                                // SekII
+                                if (($tblStudentSubjectList = DivisionCourse::useService()->getStudentSubjectListByStudentDivisionCourseAndPeriod($tblDivisionCourse,
+                                    1))) {
+                                    foreach ($tblStudentSubjectList as $tblStudentSubject) {
+                                        if (($tblDivisionCourseSubject = $tblStudentSubject->getTblDivisionCourse())
+                                            && !isset($divisionCourseSubjectList[$tblDivisionCourseSubject->getId()])
+                                        ) {
+                                            $this->setDivisionCourseSelectDataList($dataList, $tblDivisionCourseSubject, $tblYear, $tblPersonLogin,
+                                                $divisionCourseSubjectList);
+                                        }
+                                    }
                                 }
+                            } else {
+                                // SekI
+                                $this->setDivisionCourseSelectDataList($dataList, $tblDivisionCourse, $tblYear, $tblPersonLogin, $divisionCourseSubjectList);
                             }
                         }
-                    } else {
-                        // SekI
-                        $this->setDivisionCourseSelectDataList($dataList, $tblDivisionCourse, $tblYear, $tblPersonLogin, $divisionCourseSubjectList);
                     }
                 }
             }
-
             // bei der DataTable dürfen als Key nur Zahlen verwenden
             $dataList = array_values($dataList);
             $content = $this->getTable($dataList);

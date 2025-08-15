@@ -7,6 +7,7 @@ use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\Education\Graduation\Grade\Frontend;
+use SPHERE\Application\Education\Graduation\Grade\FrontendBasic;
 use SPHERE\Application\Education\Graduation\Grade\Grade;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblProposalBehaviorGrade;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTaskGrade;
@@ -14,7 +15,6 @@ use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTestCourseLi
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTestGrade;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
-use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\IApiInterface;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
@@ -30,6 +30,7 @@ use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
+use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\System\Extension\Extension;
 
 class ApiGradeBook extends Extension implements IApiInterface
@@ -142,13 +143,14 @@ class ApiGradeBook extends Extension implements IApiInterface
      */
     public function changeYear($Data = null): string
     {
-        if (isset($Data["Year"]) && ($tblYear = Term::useService()->getYearById($Data["Year"]))) {
+        if (isset($Data['SelectedYear'])) {
+            $YearId = $Data['SelectedYear'];
             $gradeBookSelectedYearId = Consumer::useService()->getAccountSettingValue("GradeBookSelectedYearId");
-            if (!$gradeBookSelectedYearId || $gradeBookSelectedYearId != $tblYear->getId()) {
-                Consumer::useService()->createAccountSetting("GradeBookSelectedYearId", $tblYear->getId());
+            if (!$gradeBookSelectedYearId || $gradeBookSelectedYearId != $YearId) {
+                Consumer::useService()->createAccountSetting("GradeBookSelectedYearId", $YearId);
 
                 return ""
-                    . self::pipelineLoadHeader(Frontend::VIEW_GRADE_BOOK_SELECT)
+                    . self::pipelineLoadHeader(FrontendBasic::VIEW_GRADE_BOOK_SELECT)
                     . self::pipelineLoadViewGradeBookSelect();
             }
         }
@@ -446,8 +448,10 @@ class ApiGradeBook extends Extension implements IApiInterface
         if (!($tblSubject = Subject::useService()->getSubjectById($SubjectId))) {
             return (new Danger("Fach wurde nicht gefunden!", new Exclamation()));
         }
-        if (!($tblYear = Grade::useService()->getYear())) {
-            return (new Danger("Schuljahr wurde nicht gefunden!", new Exclamation()));
+        if (!(($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))
+            && ($tblYear = $tblDivisionCourse->getServiceTblYear()))
+        ) {
+            return new Warning('Schuljahr wurde nicht gefunden.', new Exclamation());
         }
 
         if (($form = Grade::useService()->checkFormTest($Data, $DivisionCourseId, $SubjectId, $Filter, $TestId))) {
