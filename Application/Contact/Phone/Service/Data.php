@@ -292,6 +292,7 @@ class Data extends AbstractData
                 TblToPerson::SERVICE_TBL_PERSON => $tblPerson->getId(),
                 TblToPerson::ATT_TBL_PHONE      => $tblPhone->getId(),
                 TblToPerson::ATT_TBL_TYPE       => $tblType->getId(),
+                Element::ENTITY_REMOVE          => null
             ));
         if (null === $Entity) {
             $Entity = new TblToPerson();
