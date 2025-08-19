@@ -933,6 +933,11 @@ class Service extends AbstractService
      */
     public function getSubjectByVariantAcronym(string $acronym)
     {
+        // SSWHD-3628: Herausforderung SPO ist Sport und SP ist Spanisch
+        if (($tblSubject = $this->getSubjectByAcronym($acronym))) {
+            return $tblSubject;
+        }
+
         // abweichende Fächer
         if ($acronym == 'DE' || $acronym == 'D' || $acronym == 'DEU') {
             $tblSubject = $this->getSubjectByAcronym('DE');
