@@ -156,7 +156,7 @@ class ApiAbsence extends Extension implements IApiInterface
             null,
             $PersonId,
             $hasSearch,
-            $IsMassAbsence !== null,
+            $IsMassAbsence,
             $DivisionCourseId,
             $Date
         ), 'AbsenceModalContent');
@@ -201,7 +201,7 @@ class ApiAbsence extends Extension implements IApiInterface
                     ))
                 );
             }
-            $title = new Title(new Plus() . ' Fehlzeit hinzufügen' . ($IsMassAbsence ? ' (Masseneingabe)' : null) . $button);
+            $title = new Title(new Plus() . ' Fehlzeit hinzufügen' . ($IsMassAbsence ? ' (Masseneingabe)' : '') . $button);
         }
 
         return $title

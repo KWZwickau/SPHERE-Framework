@@ -76,7 +76,7 @@ class Frontend extends FrontendClassRegister
                 'Fehlzeit hinzufügen',
                 ApiAbsence::getEndpoint(),
                 new PlusSign()
-            ))->ajaxPipelineOnClick(ApiAbsence::pipelineOpenCreateAbsenceModal())
+            ))->ajaxPipelineOnClick(ApiAbsence::pipelineOpenCreateAbsenceModal(null, null, $now->format('d.m.Y')))
             . new Container('&nbsp;')
             . ApiAbsence::receiverModal()
             . new Panel(
