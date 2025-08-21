@@ -26,7 +26,7 @@ use SPHERE\System\Database\Fitting\Element;
  */
 class TblAbsence extends Element
 {
-    const VALUE_STATUS_NULL = 0;
+    const VALUE_STATUS_UNCLEAR = 0;
     const VALUE_STATUS_EXCUSED = 1;
     const VALUE_STATUS_UNEXCUSED = 2;
 
@@ -350,6 +350,7 @@ class TblAbsence extends Element
         switch ($this->getStatus()) {
             case self::VALUE_STATUS_EXCUSED: return 'entschuldigt';
             case self::VALUE_STATUS_UNEXCUSED: return 'unentschuldigt';
+            case self::VALUE_STATUS_UNCLEAR: return 'unklar';
             default: return '';
         }
     }
@@ -361,6 +362,7 @@ class TblAbsence extends Element
     {
         switch ($this->getStatus()) {
             case self::VALUE_STATUS_EXCUSED: return 'E';
+            case self::VALUE_STATUS_UNCLEAR:
             case self::VALUE_STATUS_UNEXCUSED: return 'U';
             default: return '';
         }
@@ -559,6 +561,8 @@ class TblAbsence extends Element
     {
         if ($this->getIsOnlineAbsence()) {
             return AbstractLink::TYPE_ORANGE_LINK;
+        } elseif ($this->getStatus() == self::VALUE_STATUS_UNCLEAR) {
+            return AbstractLink::TYPE_RED_LINK;
         } elseif (!$this->getIsCertificateRelevant()) {
             return AbstractLink::TYPE_MUTED_LINK;
         } else {

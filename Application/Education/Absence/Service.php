@@ -672,7 +672,7 @@ class Service extends AbstractService
                     continue;
                 }
 
-                if ($tblAbsence->getStatus() == TblAbsence::VALUE_STATUS_UNEXCUSED) {
+                if ($tblAbsence->getStatus() == TblAbsence::VALUE_STATUS_UNEXCUSED || $tblAbsence->getStatus() == TblAbsence::VALUE_STATUS_UNCLEAR) {
                     $days += intval($tblAbsence->getDays($tblYear, $tillDate, $tblCompany, $tblSchoolType, $countLessons));
                 }
             }
@@ -966,6 +966,9 @@ class Service extends AbstractService
                         $statusShort = 'E';
                     } elseif ($tblAbsence->getStatus() == TblAbsence::VALUE_STATUS_UNEXCUSED) {
                         $status = new \SPHERE\Common\Frontend\Text\Repository\Danger('unentschuldigt');
+                        $statusShort = 'U';
+                    } elseif ($tblAbsence->getStatus() == TblAbsence::VALUE_STATUS_UNCLEAR) {
+                        $status = new \SPHERE\Common\Frontend\Text\Repository\Danger('unklar');
                         $statusShort = 'U';
                     }
 

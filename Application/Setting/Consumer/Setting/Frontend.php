@@ -87,6 +87,7 @@ class Frontend extends Extension implements IFrontendInterface
             $selectBoxContent[] = new SelectBoxItem(TblAddress::VALUE_OT_STR_NR_PLZ_ORT, 'OT_STR_NR_PLZ_ORT');
 
             $selectBoxAbsence[] = new SelectBoxItem(TblAbsence::VALUE_STATUS_EXCUSED, 'entschuldigt');
+            $selectBoxAbsence[] = new SelectBoxItem(TblAbsence::VALUE_STATUS_UNCLEAR, 'unklar');
             $selectBoxAbsence[] = new SelectBoxItem(TblAbsence::VALUE_STATUS_UNEXCUSED, 'unentschuldigt');
 
             $fields = array();
@@ -120,7 +121,7 @@ class Frontend extends Extension implements IFrontendInterface
                             Term::useService()->getYearAll()
                     ));
                 } elseif ($tblSetting->getIdentifier() == 'DefaultStatusForNewOnlineAbsence' || $tblSetting->getIdentifier() == 'DefaultStatusForNewAbsence') {
-                    $field = new SelectBox('Data[' . $tblSetting->getId() . ']', $description, array('{{ Name }}' => $selectBoxAbsence));
+                    $field = new SelectBox('Data[' . $tblSetting->getId() . ']', $description, array('{{ Name }}' => $selectBoxAbsence), null, false, null);
                 } elseif ($tblSetting->getType() == TblSetting::TYPE_BOOLEAN) {
                     $field = new CheckBox('Data[' . $tblSetting->getId() . ']', $description, 1);
                 } elseif ($tblSetting->getType() == TblSetting::TYPE_STRING) {

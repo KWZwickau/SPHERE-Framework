@@ -467,6 +467,7 @@ class Frontend extends FrontendClassRegister
         $IsMassAbsence = null,
         $Lesson = null
     ): Form {
+        $hasStatusUnclear = false;
         if ($Data === null && $AbsenceId === null) {
             $global = $this->getGlobal();
             if ($Lesson !== null && $Lesson !== '') {
@@ -479,6 +480,9 @@ class Frontend extends FrontendClassRegister
 
             if (($tblSetting = Consumer::useService()->getSetting('Education', 'ClassRegister', 'Absence', 'DefaultStatusForNewAbsence'))) {
                 $status = $tblSetting->getValue();
+                if ($status == TblAbsence::VALUE_STATUS_UNCLEAR) {
+                    $hasStatusUnclear = true;
+                }
             } else {
                 $status = TblAbsence::VALUE_STATUS_UNEXCUSED;
             }
@@ -510,6 +514,10 @@ class Frontend extends FrontendClassRegister
             $global->POST['Data']['IsCertificateRelevant'] = $tblAbsence->getIsCertificateRelevant();
 
             $global->savePost();
+
+            if ($tblAbsence->getStatus() == TblAbsence::VALUE_STATUS_UNCLEAR) {
+                $hasStatusUnclear = true;
+            }
         } else {
             $isFullDay = $Data['IsFullDay'] ?? false;
         }
@@ -527,6 +535,24 @@ class Frontend extends FrontendClassRegister
         if ($DivisionCourseId) {
             $tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId);
             $tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses();
+        }
+
+        if ($hasStatusUnclear
+            || (($tblSetting = Consumer::useService()->getSetting(
+                'Education', 'ClassRegister', 'Absence', 'HasStatusUnclear'
+            ))
+                && $tblSetting->getValue())
+        ) {
+            $statusList = array(
+                new RadioBox('Data[Status]', 'entschuldigt', TblAbsence::VALUE_STATUS_EXCUSED),
+                new RadioBox('Data[Status]', 'unklar', TblAbsence::VALUE_STATUS_UNCLEAR),
+                new RadioBox('Data[Status]', 'unentschuldigt', TblAbsence::VALUE_STATUS_UNEXCUSED)
+            );
+        } else {
+            $statusList = array(
+                new RadioBox('Data[Status]', 'entschuldigt', TblAbsence::VALUE_STATUS_EXCUSED),
+                new RadioBox('Data[Status]', 'unentschuldigt', TblAbsence::VALUE_STATUS_UNEXCUSED)
+            );
         }
 
         $formRows = array();
@@ -596,10 +622,7 @@ class Frontend extends FrontendClassRegister
             new FormColumn(
                 new Panel(
                     'Status',
-                    array(
-                        new RadioBox('Data[Status]', 'entschuldigt', TblAbsence::VALUE_STATUS_EXCUSED),
-                        new RadioBox('Data[Status]', 'unentschuldigt', TblAbsence::VALUE_STATUS_UNEXCUSED)
-                    ),
+                    $statusList,
                     Panel::PANEL_TYPE_INFO
                 )
             ),

@@ -343,12 +343,15 @@ class Data extends AbstractData
         $this->createSetting('Education', 'ClassRegister', 'Absence', 'DefaultStatusForNewAbsence', TblSetting::TYPE_INTEGER, TblAbsence::VALUE_STATUS_UNEXCUSED, 'Fehlzeiten',
             'Voreingestellter Fehlzeiten-Status beim Erstellen einer neuen Fehlzeit [Standard: unentschuldigt]', true, 3);
         if (($tblSetting = $this->createSetting('Education', 'ClassRegister', 'Absence', 'UseClassRegisterForAbsence', TblSetting::TYPE_BOOLEAN,
-            '1', 'Fehlzeiten', 'Automatische Übernahme der Fehlzeiten aus dem Klassenbuch aufs Zeugnis [Standard: Ja]', true, 4))
+            '1', 'Fehlzeiten', 'Automatische Übernahme der Fehlzeiten aus dem Klassenbuch aufs Zeugnis [Standard: Ja]', true, 5))
         ) {
             $this->updateSettingDescription($tblSetting, $tblSetting->getCategory(),
                 'Automatische Übernahme der Fehlzeiten aus dem Klassenbuch aufs Zeugnis [Standard: Ja]', $tblSetting->isPublic());
-            $this->updateSettingSortOrder($tblSetting, 4);
+            $this->updateSettingSortOrder($tblSetting, 5);
         }
+        $this->createSetting('Education', 'ClassRegister', 'Absence', 'HasStatusUnclear', TblSetting::TYPE_BOOLEAN, '0',
+            'Fehlzeiten', 'Bei Fehlzeiten kann neben entschuldigt und unentschuldigt der Status: unklar ausgewählt werden [Standard: Nein]', true, 4
+        );
 
         // DLLP
         if (($tblSetting = $this->createSetting('Setting', 'Univention', 'Univention', 'API_Mail',

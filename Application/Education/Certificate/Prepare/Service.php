@@ -1133,6 +1133,8 @@ class Service extends ServiceTemplateInformation
                         }
                         if (Absence::useService()->getHasPersonAbsenceLessons($tblPerson, $startDateAbsence, $tillDateAbsence, TblAbsence::VALUE_STATUS_UNEXCUSED)) {
                             $StudentHasAbsenceLessonsList[$tblPerson->getId()][TblAbsence::VALUE_STATUS_UNEXCUSED] = true;
+                        } elseif (Absence::useService()->getHasPersonAbsenceLessons($tblPerson, $startDateAbsence, $tillDateAbsence, TblAbsence::VALUE_STATUS_UNCLEAR)) {
+                            $StudentHasAbsenceLessonsList[$tblPerson->getId()][TblAbsence::VALUE_STATUS_UNEXCUSED] = true;
                         }
                     }
                 }

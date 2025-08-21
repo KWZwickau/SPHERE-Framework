@@ -471,6 +471,16 @@ a.type-orange-link:focus {
     text-decoration: none;
 }
 
+a.type-red-link {
+    color: red;
+    text-decoration: none;
+}
+a.type-red-link:hover,
+a.type-red-link:focus {
+    color: #fb4e4a;
+    text-decoration: none;
+}
+
 .wellReadOnly {
     min-height: 20px;
     padding: 5px;

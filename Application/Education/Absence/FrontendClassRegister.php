@@ -188,6 +188,8 @@ class FrontendClassRegister extends Extension implements IFrontendInterface
                     $status = new Success('entschuldigt');
                 } elseif ($tblAbsence->getStatus() == TblAbsence::VALUE_STATUS_UNEXCUSED) {
                     $status = new \SPHERE\Common\Frontend\Text\Repository\Danger('unentschuldigt');
+                } elseif ($tblAbsence->getStatus() == TblAbsence::VALUE_STATUS_UNCLEAR) {
+                    $status = new \SPHERE\Common\Frontend\Text\Repository\Danger('unklar');
                 }
 
                 $isOnlineAbsence = $tblAbsence->getIsOnlineAbsence();
