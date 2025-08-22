@@ -76,6 +76,7 @@ class ApiAbsence extends Extension implements IApiInterface
         $Dispatcher->registerMethod('generateOrganizerWeekly');
         $Dispatcher->registerMethod('generateOrganizerMonthly');
         $Dispatcher->registerMethod('generateOrganizerForDivision');
+        $Dispatcher->registerMethod('generateOrganizerDaily');
 
         return $Dispatcher->callMethod($Method);
     }
@@ -440,7 +441,13 @@ class ApiAbsence extends Extension implements IApiInterface
             }
         }
 
-        return self::pipelineChangeWeek($date->format('W'), $date->format('Y'))
+        if (Consumer::useService()->getAccountSettingValue("AbsenceViewSekretariat") == 'Day') {
+            $viewSekretariat = self::pipelineChangeDailyDate($date->format('d.m.Y'));
+        } else {
+            $viewSekretariat = self::pipelineChangeWeek($date->format('W'), $date->format('Y'));
+        }
+
+        return $viewSekretariat
             // Kalenderansicht der Klasse
             . (Consumer::useService()->getAccountSettingValue('AbsenceView') == 'Month'
                 ? ($DivisionCourseId ? self::pipelineChangeMonth($DivisionCourseId, $date->format('m'), $date->format('Y')) : '')
@@ -806,6 +813,9 @@ class ApiAbsence extends Extension implements IApiInterface
      */
     public static function generateOrganizerWeekly(string $WeekNumber = '', string $Year = ''): string
     {
+        // View speichern
+        Consumer::useService()->createAccountSetting('AbsenceViewSekretariat', 'Week');
+
         return Absence::useFrontend()->LoadOrganizerWeekly($WeekNumber, $Year);
     }
 
@@ -903,5 +913,37 @@ class ApiAbsence extends Extension implements IApiInterface
     public static function generateOrganizerMonthly($DivisionId, $Month, $Year): string
     {
         return Absence::useFrontend()->generateOrganizerMonthly($DivisionId, $Month, $Year);
+    }
+
+    /**
+     * @param $Date
+     *
+     * @return Pipeline
+     */
+    public static function pipelineChangeDailyDate($Date): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+
+        $Emitter = new ServerEmitter(self::receiverBlock('', 'CalendarWeekContent'), self::getEndpoint());
+        $Emitter->setGetPayload(array(
+            self::API_TARGET => 'generateOrganizerDaily',
+            'Date' => $Date,
+        ));
+
+        $Pipeline->appendEmitter($Emitter);
+        return $Pipeline;
+    }
+
+    /**
+     * @param string $Date
+     *
+     * @return string
+     */
+    public static function generateOrganizerDaily(string $Date): string
+    {
+        // View speichern
+        Consumer::useService()->createAccountSetting('AbsenceViewSekretariat', 'Day');
+
+        return Absence::useFrontend()->LoadOrganizerDaily($Date);
     }
 }

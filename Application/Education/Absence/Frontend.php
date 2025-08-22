@@ -2,9 +2,11 @@
 
 namespace SPHERE\Application\Education\Absence;
 
+use DateInterval;
 use DateTime;
 use SPHERE\Application\Api\Education\ClassRegister\ApiAbsence;
 use SPHERE\Application\Education\Absence\Service\Entity\TblAbsence;
+use SPHERE\Application\Education\ClassRegister\Digital\Digital;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
@@ -40,6 +42,7 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\AbstractLink;
 use SPHERE\Common\Frontend\Link\Repository\Danger;
 use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Link\Repository\Primary as PrimaryLink;
@@ -71,6 +74,12 @@ class Frontend extends FrontendClassRegister
 
         $now = new DateTime('now');
 
+        if (Consumer::useService()->getAccountSettingValue("AbsenceViewSekretariat") == 'Day') {
+            $view = $this->LoadOrganizerDaily();
+        } else {
+            $view = $this->LoadOrganizerWeekly($now->format('W') , $now->format('Y'));
+        }
+
         $Stage->setContent(
             (new PrimaryLink(
                 'Fehlzeit hinzufügen',
@@ -79,11 +88,7 @@ class Frontend extends FrontendClassRegister
             ))->ajaxPipelineOnClick(ApiAbsence::pipelineOpenCreateAbsenceModal(null, null, $now->format('d.m.Y')))
             . new Container('&nbsp;')
             . ApiAbsence::receiverModal()
-            . new Panel(
-                new Calendar() . ' Kalender',
-                ApiAbsence::receiverBlock($this->LoadOrganizerWeekly($now->format('W') , $now->format('Y')), 'CalendarWeekContent'),
-                Panel::PANEL_TYPE_PRIMARY
-            )
+            . ApiAbsence::receiverBlock($view, 'CalendarWeekContent')
         );
 
         return $Stage;
@@ -346,7 +351,235 @@ class Frontend extends FrontendClassRegister
             ))
         );
 
-        return $Content . ' ';
+        $link = (new Link('Tagesansicht', ApiAbsence::getEndpoint(), null, array(), false, null, AbstractLink::TYPE_WHITE_LINK))
+            ->ajaxPipelineOnClick(ApiAbsence::pipelineChangeDailyDate('today'));
+
+        return new Panel(
+            new Calendar() . ' Kalender' . new PullRight($link),
+            $Content,
+            Panel::PANEL_TYPE_PRIMARY
+        );
+    }
+
+    /**
+     * @param string $Date
+     *
+     * @return string
+     */
+    public function LoadOrganizerDaily(string $Date = 'today'): string
+    {
+        $currentDate = new DateTime($Date);
+        $nowDate = new DateTime('today');
+        $currentDateString = $currentDate->format('d.m.Y');
+
+        $headerList = array();
+        $bodyList = array();
+
+        $organizerBaseData = $this->convertOrganizerBaseData();
+        $DayName = array(
+            '0' => 'Sonntag',
+            '1' => 'Montag',
+            '2' => 'Dienstag',
+            '3' => 'Mittwoch',
+            '4' => 'Donnerstag',
+            '5' => 'Freitag',
+            '6' => 'Samstag',
+        );
+        $MonthName = $organizerBaseData['monthNameShort'];
+
+        $absenceList = array();
+        $personList = array();
+        if (($tblAbsenceList = Absence::useService()->getAbsenceAllBetween($currentDate, $currentDate))) {
+            foreach ($tblAbsenceList as $tblAbsence) {
+                if (($tblPerson = $tblAbsence->getServiceTblPerson())) {
+                    if (!isset($personList[$tblPerson->getId()])) {
+                        $personList[$tblPerson->getId()] = $tblPerson;
+                    }
+
+                    self::setAbsenceWeekContent($absenceList, $tblPerson, $tblAbsence, $currentDateString);
+                }
+            }
+        }
+
+        if (!empty($personList)) {
+            $personList = $this->getSorter($personList)->sortObjectBy('LastFirstName', new StringGermanOrderSorter());
+            /** @var TblPerson $tblPerson */
+            foreach ($personList as $tblPerson) {
+                $personId = $tblPerson->getId();
+                if (isset($absenceList[$personId])
+                    && ($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndDate($tblPerson, $currentDateString))
+                ) {
+                    $tblDivision = $tblStudentEducation->getTblDivision();
+                    $tblCoreGroup = $tblStudentEducation->getTblCoreGroup();
+                    foreach ($absenceList[$personId] as $date => $item) {
+                        if ($tblDivision) {
+                            $dataList[$tblDivision->getId()][$date][$personId] = $item;
+                        }
+                        if ($tblCoreGroup) {
+                            $dataList[$tblCoreGroup->getId()][$date][$personId] = $item;
+                        }
+                    }
+                }
+            }
+        }
+
+        $backgroundColor = '#E0F0FF';
+        $minHeightHeader = '56px';
+        $minHeightBody = '38px';
+        $padding = '3px';
+
+        $headerList['Division'] = (new TableColumn(new Center(new Bold('Kurs'))))
+            ->setBackgroundColor($backgroundColor)
+            ->setVerticalAlign('middle')
+            ->setMinHeight($minHeightHeader)
+            ->setPadding($padding);
+
+        $DayAtWeek = $currentDate->format('w');
+        $Day = (int)$currentDate->format('d');
+
+        $isHoliday = false;
+        // Kalender-Inhalt erzeugen
+        if (($tblYearList = Term::useService()->getYearAllByDate($currentDate))) {
+            foreach ($tblYearList as $tblYear) {
+                $tblDivisionCourseList = array();
+                if (($tempList = DivisionCourse::useService()->getDivisionCourseListBy($tblYear, TblDivisionCourseType::TYPE_DIVISION))) {
+                    $tblDivisionCourseList = array_merge($tblDivisionCourseList, $tempList);
+                }
+                if (($tempList = DivisionCourse::useService()->getDivisionCourseListBy($tblYear, TblDivisionCourseType::TYPE_CORE_GROUP))) {
+                    $tblDivisionCourseList = array_merge($tblDivisionCourseList, $tempList);
+                }
+
+                $tblDivisionCourseList = $this->getSorter($tblDivisionCourseList)->sortObjectBy('DisplayName', new StringNaturalOrderSorter());
+                // Content der je Kurs erstellen
+                /** @var TblDivisionCourse $tblDivisionCourse */
+                foreach ($tblDivisionCourseList as $tblDivisionCourse) {
+                    $hasSaturdayLessons = $tblDivisionCourse->getHasSaturdayLessons();
+                    $tblCompanyList = $tblDivisionCourse->getCompanyListFromStudents();
+
+                    $countStudent = $tblDivisionCourse->getCountStudents();
+                    $bodyList[$tblDivisionCourse->getId()]['Division'] = (new TableColumn(new Center(new Bold($tblDivisionCourse->getName())
+                        . new ToolTip(new Small(' (' .  $countStudent  . ')'), $countStudent . ' Schüler'))))
+                        ->setBackgroundColor($backgroundColor)
+                        ->setVerticalAlign('middle')
+                        ->setMinHeight($minHeightBody)
+                        ->setPadding($padding);
+
+                    if ($hasSaturdayLessons) {
+                        $isWeekend = $DayAtWeek == 0;
+                    } else {
+                        $isWeekend = $DayAtWeek == 0 || $DayAtWeek == 6;
+                    }
+                    $isHoliday = Term::useService()->getHolidayByDayAndCompanyList($tblYear, $currentDate, $tblCompanyList ?: array());
+
+                    if (!isset($headerList['Day' . $Day])) {
+                        $columnHeader = (new TableColumn(new Center('&nbsp;' . new Container('Fehlende Schüler') . new Container('&nbsp;'))))
+                            ->setBackgroundColor($backgroundColor)
+                            ->setMinHeight($minHeightHeader)
+                            ->setPadding($padding);
+
+                        $headerList['Day' . $Day] = $columnHeader;
+                    }
+
+                    if ($isWeekend || $isHoliday) {
+                        $columnBody = (new TableColumn(new Center($isWeekend ? new Muted(new Small('w')) : new Muted(new Small('f')))))
+                            ->setBackgroundColor('lightgrey')
+                            ->setVerticalAlign('middle')
+                            ->setOpacity(0.5);
+                    } else {
+                        $columnBody = new TableColumn(new Center(
+                            isset($dataList[$tblDivisionCourse->getId()][$currentDateString])
+//                                ? implode('<br>', $dataList[$tblDivisionCourse->getId()][$currentDateString])
+                                ? implode('&nbsp;&nbsp;&nbsp;&nbsp;', $dataList[$tblDivisionCourse->getId()][$currentDateString])
+                                : '&nbsp;'
+                        ));
+                    }
+
+                    $bodyList[$tblDivisionCourse->getId()]['Day' . $Day] = $columnBody
+                        ->setMinHeight($minHeightBody)
+                        ->setVerticalAlign('middle')
+                        ->setPadding($padding);
+                }
+            }
+        }
+
+        $tableHead = new TableHead(new TableRow($headerList));
+        $rows = array();
+        foreach ($bodyList as $columnList) {
+            $rows[] = new TableRow($columnList);
+        }
+        $tableBody = new TableBody($rows);
+        $table = new Table($tableHead, $tableBody, null, false, null, 'TableCustom');
+
+        $dayText = new Bold($DayName[$DayAtWeek] . ', den ' . $currentDateString);
+        if ($isHoliday) {
+            $dayText = Digital::useFrontend()->getTextColor($dayText, 'lightgray');
+        } elseif ($currentDate == $nowDate) {
+            $dayText = Digital::useFrontend()->getTextColor($dayText, 'darkorange');
+        }
+
+        $addDays = 1;
+        $subDays = 1;
+        $nextDate = new DateTime($currentDateString);
+        $nextDate = $nextDate->add(new DateInterval('P'. $addDays . 'D'));
+        $previewsDate = new DateTime($currentDateString);
+        $previewsDate = $previewsDate->sub(new DateInterval('P' . $subDays . 'D'));
+
+        // Inhalt zusammenbasteln
+        $Content = new Layout(
+            new LayoutGroup(array(
+                new LayoutRow(
+                    new LayoutColumn(
+                        new Layout(new LayoutGroup(new LayoutRow(array(
+                                new LayoutColumn('&nbsp;', 3),
+                                new LayoutColumn(
+                                    new Center(
+                                        (new Link(new ChevronLeft(), ApiAbsence::getEndpoint(), null, array(),
+                                            $DayName[$previewsDate->format('w')] . ', den ' . $previewsDate->format('d.m.Y')))
+                                            ->ajaxPipelineOnClick(ApiAbsence::pipelineChangeDailyDate($previewsDate->format('d.m.Y')))
+                                    )
+                                    , 1),
+                                new LayoutColumn(
+                                    new Center($dayText)
+                                    , 4),
+                                new LayoutColumn(
+                                    new Center(
+                                        (new Link(new ChevronRight(), ApiAbsence::getEndpoint(), null, array(),
+                                            $DayName[$nextDate->format('w')] . ', den ' . $nextDate->format('d.m.Y')))
+                                            ->ajaxPipelineOnClick(ApiAbsence::pipelineChangeDailyDate($nextDate->format('d.m.Y')))
+                                    )
+                                    , 1),
+                                new LayoutColumn(
+                                    new PullRight((new Link(
+                                        ' Herunterladen',
+                                        '/Api/Reporting/Standard/Person/AbsenceBetweenList/Download',
+                                        new Download(),
+                                        array(
+                                            'StartDate' => $currentDateString,
+                                            'EndDate' => $currentDateString,
+                                        )
+                                    )))
+                                    , 3)
+                            )))
+                        )
+                        . '<div style="height: 5px;"></div>'
+                        , 12)
+                ),
+                new LayoutRow(
+                    new LayoutColumn(
+                        $table
+                    )
+                )
+            ))
+        );
+
+        $link = (new Link('Wochenansicht', ApiAbsence::getEndpoint(), null, array(), false, null, AbstractLink::TYPE_WHITE_LINK))
+            ->ajaxPipelineOnClick(ApiAbsence::pipelineChangeWeek($currentDate->format('W'), $currentDate->format('Y')));
+
+        return new Panel(
+            new Calendar() . ' Kalender' . new PullRight($link),
+            $Content,
+            Panel::PANEL_TYPE_PRIMARY
+        );
     }
 
     /**
