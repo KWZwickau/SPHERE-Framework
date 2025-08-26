@@ -198,6 +198,9 @@ abstract class Certificate extends Extension
             $InjectStyle = 'body { margin-bottom: -1.5cm !important; margin-left: 1.25cm !important; margin-right: 1.25cm !important; }';
         } elseif ($tblConsumer && $tblConsumer->isConsumer(TblConsumer::TYPE_SACHSEN, 'FELS')) {
             $InjectStyle = 'body { margin-bottom: -1.5cm !important; }';
+            // REF -> KG
+        } elseif ($tblConsumer && $tblConsumer->isConsumer(TblConsumer::TYPE_SACHSEN, 'KG')) {
+            $InjectStyle = 'body { margin-bottom: -1.5cm !important; margin-left: 0.8cm !important; margin-right: 0.8cm !important; }';
         }
 
         // Standardzeugnisse mit Breiteneinstellung
