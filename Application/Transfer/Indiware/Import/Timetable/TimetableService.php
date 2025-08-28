@@ -401,12 +401,14 @@ class TimetableService
                             $tblDivisionCourse = Education::useService()->getDivisionCourseByDivisionNameAndYear($Row['Course'], $tblYear);
                         }
 
-                        if ($tblDivisionCourse && $tblSubject) {
+                        if ($tblDivisionCourse) {
                             // Spezialfall: Stundenplan für SekII -> es werden direkt beim Stundenplan die SekII-Kurse zugeordnet, falls vorhanden
                             if (DivisionCourse::useService()->getIsCourseSystemByStudentsInDivisionCourse($tblDivisionCourse)
                                 && ($tblStudentList = $tblDivisionCourse->getStudents())
                                 && ($tblYear = $tblDivisionCourse->getServiceTblYear())
+                                && $tblSubject
                             ) {
+                                $tblDivisionCourse = false;
                                 foreach ($tblStudentList as $tblStudent) {
                                     if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblStudent, $tblYear))
                                         && ($level = $tblStudentEducation->getLevel())
