@@ -219,39 +219,58 @@ class FrontendTabs extends FrontendSelectDivisionCourse
                     ConsumerGatekeeper::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'EVOSG')
                         ? new LayoutGroup(new LayoutRow(array(
                         new LayoutColumn(
-                            new Link(new Thumbnail(
-                                FileSystem::getFileLoader('/Common/Style/Resource/SSWUser.png'), 'Individuelle Klassenliste'),
+                            new Link((new Thumbnail(
+                                FileSystem::getFileLoader('/Common/Style/Resource/SSWUser.png'), 'Individuelle Klassenliste'))->setPictureHeight(),
                                 '/Api/Reporting/Custom/IndividualClassRegisterDownload', null, array(
                                     'DivisionCourseId' => $DivisionCourseId,
                                     'Type'    => 'downloadClassList'
                                 ))
                             , 2),
                         new LayoutColumn(
-                            new Link(new Thumbnail(
-                                FileSystem::getFileLoader('/Common/Style/Resource/SSWAgreement.png'), 'Individuelle Unterschriftenliste'),
+                            new Link((new Thumbnail(
+                                FileSystem::getFileLoader('/Common/Style/Resource/SSWAgreement.png'), 'Individuelle Unterschriftenliste'))->setPictureHeight(),
                                 '/Api/Reporting/Custom/IndividualClassRegisterDownload', null, array(
                                     'DivisionCourseId' => $DivisionCourseId,
                                     'Type'    => 'downloadSignList'
                                 ))
                             , 2),
                         new LayoutColumn(
-                            new Link(new Thumbnail(
-                                FileSystem::getFileLoader('/Common/Style/Resource/SSWUser.png'), 'Individuelle Klassenliste Fremdsprachen'),
+                            new Link((new Thumbnail(
+                                FileSystem::getFileLoader('/Common/Style/Resource/SSWUser.png'), 'Individuelle Klassenliste Fremdsprachen'))->setPictureHeight(),
                                 '/Api/Reporting/Custom/IndividualClassRegisterDownload', null, array(
                                     'DivisionCourseId' => $DivisionCourseId,
                                     'Type'    => 'downloadElectiveClassList'
                                 ))
                             , 2),
                         new LayoutColumn(
-                            new Link(new Thumbnail(
-                                FileSystem::getFileLoader('/Common/Style/Resource/SSWUser.png'), 'Individuelle Telefonliste'),
+                            new Link((new Thumbnail(
+                                FileSystem::getFileLoader('/Common/Style/Resource/SSWUser.png'), 'Individuelle Telefonliste'))->setPictureHeight(),
                                 '/Api/Reporting/Custom/IndividualClassRegisterDownload', null, array(
                                     'DivisionCourseId' => $DivisionCourseId,
                                     'Type'    => 'downloadClassPhoneList'
                                 ))
                             , 2),
                     )), new Title(new Download() . ' Individual Download'))
-                        : null
+                        : null,
+                    ConsumerGatekeeper::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'KG')
+                        ? new LayoutGroup(new LayoutRow(array(
+                        new LayoutColumn(
+                            new Link((new Thumbnail(
+                                FileSystem::getFileLoader('/Common/Style/Resource/SSWAgreement.png'), 'Individuelle Unterschriftenliste'))->setPictureHeight(),
+                                '/Api/Reporting/Custom/Kreuzgymnasium/Common/SignList/Download', null, array(
+                                    'DivisionCourseId' => $DivisionCourseId
+                                ))
+                            , 2),
+                        new LayoutColumn(
+                            new Link((new Thumbnail(
+                                FileSystem::getFileLoader('/Common/Style/Resource/SSWAgreement.png'), 'Individuelle Unterschriftenliste Querformat'))->setPictureHeight(),
+                                '/Api/Reporting/Custom/Kreuzgymnasium/Common/SignList/Download', null, array(
+                                    'DivisionCourseId' => $DivisionCourseId,
+                                    'isLandscape' => 1
+                                ))
+                            , 2),
+                    )), new Title(new Download() . ' Individual Download'))
+                        : null,
                 ))
             );
         } else {

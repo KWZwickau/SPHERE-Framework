@@ -227,6 +227,22 @@ class Custom implements IModuleInterface
                     __NAMESPACE__ . '\Gersdorf\Common::downloadTeacherList'
                 ));
             }
+
+            /*
+             * Kreuzgymnasium
+             */
+            if ($consumerAcronym === 'KG' || $consumerAcronym === 'REF') {
+                Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+                    __NAMESPACE__ . '/Kreuzgymnasium/Common/SignList/Download',
+                    __NAMESPACE__ . '\Kreuzgymnasium\Common::downloadSignList'
+                ));
+            }
+            if ($consumerAcronym === 'KG' || $consumerAcronym === 'REF') {
+                Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+                    __NAMESPACE__ . '/Kreuzgymnasium/Common/StudentCount/Download',
+                    __NAMESPACE__ . '\Kreuzgymnasium\Common::downloadStudentCount'
+                ));
+            }
         }
 
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
