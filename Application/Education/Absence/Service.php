@@ -594,7 +594,7 @@ class Service extends AbstractService
             'DateTo' => ($isOnlineAbsence ? '<span style="color:darkorange">' . $tblAbsence->getToDate() . '</span>' : $tblAbsence->getToDate()),
             'PersonCreator' => $tblAbsence->getDisplayPersonCreator(false),
             'Status' => $tblAbsence->getStatusDisplayName(),
-            'StatusExcel' => $tblAbsence->getStatusDisplayShortName(),
+            'StatusExcel' => $tblAbsence->getStatus() == TblAbsence::VALUE_STATUS_UNCLEAR ? 'Unklar' : $tblAbsence->getStatusDisplayShortName(),
             'Remark' => $tblAbsence->getRemark(),
             'AbsenceType' => $tblAbsence->getTypeDisplayName(),
             'AbsenceTypeExcel' => $tblAbsence->getTypeDisplayShortName(),
@@ -965,7 +965,7 @@ class Service extends AbstractService
                         $status = new Success('entschuldigt');
                         $statusShort = 'E';
                     } elseif ($tblAbsence->getStatus() == TblAbsence::VALUE_STATUS_UNEXCUSED) {
-                        $status = new \SPHERE\Common\Frontend\Text\Repository\Danger('unentschuldigt');
+                        $status = new \SPHERE\Common\Frontend\Text\Repository\Warning('unentschuldigt');
                         $statusShort = 'U';
                     } elseif ($tblAbsence->getStatus() == TblAbsence::VALUE_STATUS_UNCLEAR) {
                         $status = new \SPHERE\Common\Frontend\Text\Repository\Danger('unklar');

@@ -56,10 +56,10 @@ use SPHERE\Common\Frontend\Table\Repository\Title;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Center;
-use SPHERE\Common\Frontend\Text\Repository\Danger;
 use SPHERE\Common\Frontend\Text\Repository\Info;
 use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
+use SPHERE\Common\Frontend\Text\Repository\Warning;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Repository\Sorter\StringNaturalOrderSorter;
 
@@ -592,9 +592,9 @@ abstract class ServiceTabs extends ServiceForgotten
                 $unExcusedDays = Absence::useService()->getUnexcusedDaysByPerson($tblPerson, $tblYear, $tblCompany ?: null, $tblSchoolType ?: null,
                     $fromDate, $tillDate, $unExcusedLessons);
                 $absenceDays = ($excusedDays + $unExcusedDays) . ' (' . new Success($excusedDays) . ', '
-                    . new Danger($unExcusedDays) . ')';
+                    . new Warning($unExcusedDays) . ')';
                 $absenceLessons = ($excusedLessons + $unExcusedLessons) . ' (' . new Success($excusedLessons) . ', '
-                    . new Danger($unExcusedLessons) . ')';
+                    . new Warning($unExcusedLessons) . ')';
 
                 $name = new Bold($tblPerson->getLastFirstNameWithCallNameUnderline(true));
                 $studentTable[] = array(

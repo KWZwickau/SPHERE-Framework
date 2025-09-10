@@ -23,6 +23,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\Question;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
+use SPHERE\Common\Frontend\Layout\Repository\CustomPanel;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
@@ -213,7 +214,8 @@ class ApiAbsence extends Extension implements IApiInterface
                                 'Schüler',
                                 $tblPerson->getFullName() . '&nbsp;&nbsp;'
                                     . (new Standard('', '/People/Person', new \SPHERE\Common\Frontend\Icon\Repository\Person(),
-                                    array('Id' => $tblPerson->getId()), 'zur Person'))->setExternal(),
+
+                                    array('Id' => $tblPerson->getId()), 'zur Person', 'CustomPanel-' . crc32('FirstPhoneNumberAnker')))->setExternal(),
                                 Panel::PANEL_TYPE_INFO
                             ), 6),
                             new LayoutColumn(new Panel(
@@ -441,10 +443,10 @@ class ApiAbsence extends Extension implements IApiInterface
             }
         }
 
-        if (Consumer::useService()->getAccountSettingValue("AbsenceViewSekretariat") == 'Day') {
-            $viewSekretariat = self::pipelineChangeDailyDate($date->format('d.m.Y'));
-        } else {
+        if (Consumer::useService()->getAccountSettingValue("AbsenceViewSekretariat") == 'Week') {
             $viewSekretariat = self::pipelineChangeWeek($date->format('W'), $date->format('Y'));
+        } else {
+            $viewSekretariat = self::pipelineChangeDailyDate($date->format('d.m.Y'));
         }
 
         return $viewSekretariat

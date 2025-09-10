@@ -40,6 +40,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Info;
 use SPHERE\Common\Frontend\Icon\Repository\MapMarker;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\IFrontendInterface;
+use SPHERE\Common\Frontend\Layout\Repository\CustomPanel;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Ruler;
@@ -368,15 +369,26 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
      * @param $content
      * @param string $options
      * @param string $panelType
-     * @return Panel
+     * @param bool $hasAnker
+     *
+     * @return CustomPanel|Panel
      */
-    public static function getContactPanel($title, $content, $options = '', $panelType = Panel::PANEL_TYPE_DEFAULT)
+    public static function getContactPanel($title, $content, $options = '', $panelType = Panel::PANEL_TYPE_DEFAULT, bool $hasAnker = false)
     {
-        return new Panel(
-            $title . ($options ? new PullRight($options) : ''),
-            $content,
-            $panelType
-        );
+        if ($hasAnker) {
+            return (new CustomPanel(
+                $title . ($options ? new PullRight($options) : ''),
+                $content,
+                $panelType
+            ))->setHash('FirstPhoneNumberAnker');
+
+        } else {
+            return new Panel(
+                $title . ($options ? new PullRight($options) : ''),
+                $content,
+                $panelType
+            );
+        }
     }
 
     /**

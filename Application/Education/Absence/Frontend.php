@@ -74,10 +74,10 @@ class Frontend extends FrontendClassRegister
 
         $now = new DateTime('now');
 
-        if (Consumer::useService()->getAccountSettingValue("AbsenceViewSekretariat") == 'Day') {
-            $view = $this->LoadOrganizerDaily();
-        } else {
+        if (Consumer::useService()->getAccountSettingValue("AbsenceViewSekretariat") == 'Week') {
             $view = $this->LoadOrganizerWeekly($now->format('W') , $now->format('Y'));
+        } else {
+            $view = $this->LoadOrganizerDaily();
         }
 
         $Stage->setContent(
