@@ -158,7 +158,8 @@ abstract class ServiceForgotten extends ServiceCourseContent
                 isset($Data['LessonContentId']) && ($tblLessonContent = Digital::useService()->getLessonContentById($Data['LessonContentId']))
                     ? $tblLessonContent : null,
                 isset($Data['CourseContentId']) && ($tblLessonContent = Digital::useService()->getCourseContentById($Data['CourseContentId']))
-                    ? $tblLessonContent : null
+                    ? $tblLessonContent : null,
+                $Data['Type']
             ))
         ) {
             if (isset($Data['Students'])) {
@@ -191,7 +192,8 @@ abstract class ServiceForgotten extends ServiceCourseContent
             isset($Data['LessonContentId']) && ($tblLessonContent = Digital::useService()->getLessonContentById($Data['LessonContentId']))
                 ? $tblLessonContent : null,
             isset($Data['CourseContentId']) && ($tblLessonContent = Digital::useService()->getCourseContentById($Data['CourseContentId']))
-                ? $tblLessonContent : null
+                ? $tblLessonContent : null,
+            $Data['Type']
         );
 
         if (($tblForgottenStudentList = $tblForgotten->getForgottenStudents())) {
