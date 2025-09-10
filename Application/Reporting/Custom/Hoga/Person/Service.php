@@ -55,6 +55,7 @@ class Service extends Extension
                     $item['ReligionChild'.$i] = ''; // auch Ethik
                     $item['ProfilChild'.$i] = '';
                 }
+                $isClass = false;
                 // Data Students
                 $tblRelationshipType = Relationship::useService()->getTypeByName(TblType::IDENTIFIER_GUARDIAN);
                 if($tblRelationshipType && ($tblRelationshipList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson, $tblRelationshipType))){
@@ -73,8 +74,10 @@ class Service extends Extension
                         if(($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndDate($tblPersonStudent))){
                             if(($tblDivisionCourse = $tblStudentEducation->getTblDivision())){
                                 $item['DivisionChild'.$countChild] = $tblDivisionCourse->getName();
+                                $isClass = true;
                             } elseif(($tblDivisionCourse = $tblStudentEducation->getTblCoreGroup())) {
                                 $item['DivisionChild'.$countChild] = $tblDivisionCourse->getName();
+                                $isClass = true;
                             }
                             if(($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())){
                                 $item['SchoolTypeChild'.$countChild] = $tblSchoolType->getName();
@@ -127,11 +130,14 @@ class Service extends Extension
                         }
                     }
                 }
-                // Alle Daten für jede E-Mail erzeugen
-                if(!empty($MailList)){
-                    foreach($MailList as $Mail){
-                        $item['Mail'] = $Mail;
-                        array_push($TableContent, $item);
+                // Kein in Sorgerecht befindliche Person ist aktuell in einer Klasse -> Eintrag nicht aufnehmen
+                if($isClass){
+                    // Alle Daten für jede E-Mail erzeugen
+                    if(!empty($MailList)){
+                        foreach($MailList as $Mail){
+                            $item['Mail'] = $Mail;
+                            array_push($TableContent, $item);
+                        }
                     }
                 }
             });
