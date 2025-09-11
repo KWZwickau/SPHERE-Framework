@@ -116,6 +116,11 @@ class Frontend extends Extension implements IFrontendInterface
                         ), 3),
                         new LayoutColumn(new Link((new Thumbnail(
                             FileSystem::getFileLoader('/Common/Style/Resource/SSWInfo.png')
+                            , 'Kurzleitfaden Erstellung Abiturzeugnisse', 'Stand:&nbsp;04.06.2025'))->setPictureHeight()
+                            , '/Api/Document/Standard/Manual/Create/Pdf', null, array('Select' => 'CertificateSekII')
+                        ), 3),
+                        new LayoutColumn(new Link((new Thumbnail(
+                            FileSystem::getFileLoader('/Common/Style/Resource/SSWInfo.png')
                             , 'Kurzleitfaden Abschluss-/Abgangszeugnisse', 'Stand:&nbsp;18.02.2025'))->setPictureHeight()
                             , '/Api/Document/Standard/Manual/Create/Pdf', null, array('Select' => 'Exam')
                         ), 3),

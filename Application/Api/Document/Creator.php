@@ -1256,6 +1256,11 @@ class Creator extends Extension
             header("Content-Type: application/pdf");
             header("Content-Disposition: attachment; filename=Kurzleitfaden_Zeugniserstellung.pdf");
             header("Content-Length: ".filesize($file));
+        } elseif($Select == 'CertificateSekII') {
+            $file = "Common/Style/Resource/Document/Manual/SSWCertificateSekII.pdf";
+            header("Content-Type: application/pdf");
+            header("Content-Disposition: attachment; filename=Kurzleitfaden_Zeugniserstellung.pdf");
+            header("Content-Length: ".filesize($file));
         } elseif($Select == 'Exam') {
             $file = "Common/Style/Resource/Document/Manual/SSW_Exam.pdf";
             header("Content-Type: application/pdf");
