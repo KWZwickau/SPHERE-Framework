@@ -1259,7 +1259,7 @@ class Creator extends Extension
         } elseif($Select == 'CertificateSekII') {
             $file = "Common/Style/Resource/Document/Manual/SSWCertificateSekII.pdf";
             header("Content-Type: application/pdf");
-            header("Content-Disposition: attachment; filename=Kurzleitfaden_Zeugniserstellung.pdf");
+            header("Content-Disposition: attachment; filename=Kurzleitfaden_Abiturzeugnisse.pdf");
             header("Content-Length: ".filesize($file));
         } elseif($Select == 'Exam') {
             $file = "Common/Style/Resource/Document/Manual/SSW_Exam.pdf";
