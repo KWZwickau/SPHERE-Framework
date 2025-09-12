@@ -210,6 +210,14 @@ class Data extends AbstractData
     }
 
     /**
+     * @return bool|TblType[]
+     */
+    public function getTypeAll()
+    {
+        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblType', array('Name'=>self::ORDER_ASC));
+    }
+
+    /**
      * @param TblCategory $tblCategory
      *
      * @return bool|TblType[]

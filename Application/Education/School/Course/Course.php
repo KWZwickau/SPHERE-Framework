@@ -26,14 +26,6 @@ class Course implements IModuleInterface
     public static function registerModule()
     {
 
-        Main::getDisplay()->addModuleNavigation(
-            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Bildungsgang'))
-        );
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__, __CLASS__.'::frontendDashboard'
-        ));
-
-        Main::getDispatcher()->registerWidget('School-Course', array(__CLASS__, 'widgetCourse'), 3, 3);
     }
 
     /**
@@ -43,29 +35,6 @@ class Course implements IModuleInterface
     {
 
         return new Frontend();
-    }
-
-    /**
-     * @return Panel
-     */
-    public static function widgetCourse()
-    {
-        $tblCourseAll = self::useService()->getCourseAll();
-        if ($tblCourseAll) {
-            /** @var TblCourse $tblCourse */
-            foreach ((array)$tblCourseAll as $Index => $tblCourse) {
-                $tblCourseAll[$tblCourse->getName()] =
-                    new Layout(new LayoutGroup(new LayoutRow(array(
-                        new LayoutColumn(
-                            $tblCourse->getName()
-                            . new Muted(new Small('<br/>' . $tblCourse->getDescription()))
-                        ),
-                    ))));
-                $tblCourseAll[$Index] = false;
-            }
-            $tblCourseAll = array_filter($tblCourseAll);
-        }
-        return new Panel('Bildungsgänge verfügbar', $tblCourseAll);
     }
 
     /**
