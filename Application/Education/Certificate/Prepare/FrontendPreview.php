@@ -9,8 +9,10 @@ use SPHERE\Application\Education\Absence\Absence;
 use SPHERE\Application\Education\Certificate\Setting\Setting;
 use SPHERE\Application\Education\Graduation\Grade\Grade;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Type;
+use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\Setting\Consumer\Consumer as ConsumerSetting;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
@@ -70,9 +72,29 @@ abstract class FrontendPreview extends FrontendLeaveTechnicalSchool
         $studentTable = array();
         $isSekII = false;
         $hasColumnCertificate = false;
+
+        $tblProfileSubject  = false;
+        if (($tblSetting = ConsumerSetting::useService()->getSetting('Api', 'Education', 'Certificate', 'ProfileAcronym'))
+            && ($value = $tblSetting->getValue())
+        ) {
+            $tblProfileSubject = Subject::useService()->getSubjectByAcronym($value);
+        }
+        $tblOrientationSubject  = false;
+        if (($tblSetting = ConsumerSetting::useService()->getSetting('Api', 'Education', 'Certificate', 'OrientationAcronym'))
+            && ($value = $tblSetting->getValue())
+        ) {
+            $tblOrientationSubject = Subject::useService()->getSubjectByAcronym($value);
+        }
+        $tblStudentSubjectTypeProfile = Student::useService()->getStudentSubjectTypeByIdentifier('PROFILE');
+        $tblStudentSubjectTypeOrientation = Student::useService()->getStudentSubjectTypeByIdentifier('ORIENTATION');
+        $tblStudentSubjectTypeForeignLanguage = Student::useService()->getStudentSubjectTypeByIdentifier('FOREIGN_LANGUAGE');
+
         if (($tblPrepare = Prepare::useService()->getPrepareById($PrepareId))
             && ($tblDivisionCourse = $tblPrepare->getServiceTblDivision())
             && ($tblYear = $tblDivisionCourse->getServiceTblYear())
+            && $tblStudentSubjectTypeProfile
+            && $tblStudentSubjectTypeOrientation
+            && $tblStudentSubjectTypeForeignLanguage
         ) {
             $Stage->addButton(new Standard(
                 'Zurück', '/Education/Certificate/Prepare/Prepare', new ChevronLeft(), array(
@@ -263,7 +285,10 @@ abstract class FrontendPreview extends FrontendLeaveTechnicalSchool
                             new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Keine Fächerzuordnung erforderlich.'
                         );
                     } elseif ($tblCertificate
-                        && ($checkSubjectList = Setting::useService()->getCheckCertificateMissingSubjectsForPerson($tblPerson, $tblYear, $tblCertificate))
+                        && ($checkSubjectList = Setting::useService()->getCheckCertificateMissingSubjectsForPerson(
+                            $tblPerson, $tblYear, $tblCertificate, $tblProfileSubject, $tblOrientationSubject,
+                            $tblStudentSubjectTypeProfile, $tblStudentSubjectTypeOrientation, $tblStudentSubjectTypeForeignLanguage
+                        ))
                     ) {
                         $checkSubjectsString = new WarningText(new Ban() . ' '
                             . implode(', ', $checkSubjectList)

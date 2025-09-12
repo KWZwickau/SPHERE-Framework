@@ -146,4 +146,28 @@ abstract class Subject extends Transfer
             $tblStudentSubjectType);
     }
 
+    /**
+     * @param TblStudent $tblStudent
+     * @param TblStudentSubjectType $tblStudentSubjectType
+     *
+     * @return false|TblStudentSubject
+     */
+    public function getFirstStudentSubjectByStudentAndSubjectType(TblStudent $tblStudent, TblStudentSubjectType $tblStudentSubjectType): bool|TblStudentSubject {
+        return (new Data($this->getBinding()))->getFirstStudentSubjectByStudentAndSubjectType($tblStudent, $tblStudentSubjectType);
+    }
+
+    /**
+     * @param TblStudent $tblStudent
+     * @param TblStudentSubjectType $tblStudentSubjectType
+     *
+     * @return bool|TblSubject
+     */
+    public function getFirstSubjectByStudentAndSubjectType(TblStudent $tblStudent, TblStudentSubjectType $tblStudentSubjectType): TblSubject|bool
+    {
+        if (($tblStudentSubject = $this->getFirstStudentSubjectByStudentAndSubjectType($tblStudent, $tblStudentSubjectType))) {
+            return $tblStudentSubject->getServiceTblSubject();
+        }
+
+        return false;
+    }
 }
