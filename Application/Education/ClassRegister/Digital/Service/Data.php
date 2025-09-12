@@ -3,6 +3,9 @@
 namespace SPHERE\Application\Education\ClassRegister\Digital\Service;
 
 use DateTime;
+use Doctrine\ORM\OptimisticLockException;
+use Doctrine\ORM\ORMException;
+use Doctrine\ORM\TransactionRequiredException;
 use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblCourseContent;
 use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblForgotten;
 use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblForgottenStudent;
@@ -1069,7 +1072,8 @@ class Data  extends AbstractData
      * @param string $Remark
      * @param TblLessonContent|null $tblLessonContent
      * @param TblCourseContent|null $tblCourseContent
-     * 
+     * @param bool $isHomework
+     *
      * @return TblForgotten
      */
     public function createForgotten(
@@ -1078,7 +1082,8 @@ class Data  extends AbstractData
         TblSubject $tblSubject,
         string $Remark,
         ?TblLessonContent $tblLessonContent,
-        ?TblCourseContent $tblCourseContent
+        ?TblCourseContent $tblCourseContent,
+        bool $isHomework
     ): TblForgotten {
 
         $Manager = $this->getEntityManager();
@@ -1090,7 +1095,8 @@ class Data  extends AbstractData
         $Entity->setRemark($Remark);
         $Entity->setTblLessonContent($tblLessonContent);
         $Entity->setTblCourseContent($tblCourseContent);
-        $Entity->setIsHomework($tblLessonContent || $tblCourseContent);
+//        $Entity->setIsHomework($tblLessonContent || $tblCourseContent);
+        $Entity->setIsHomework($isHomework);
 
         $Manager->saveEntity($Entity);
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
@@ -1105,7 +1111,8 @@ class Data  extends AbstractData
      * @param string $Remark
      * @param TblLessonContent|null $tblLessonContent
      * @param TblCourseContent|null $tblCourseContent
-     * 
+     * @param bool $isHomework
+     *
      * @return bool
      */
     public function updateForgotten(
@@ -1114,7 +1121,8 @@ class Data  extends AbstractData
         TblSubject $tblSubject,
         string $Remark,
         ?TblLessonContent $tblLessonContent,
-        ?TblCourseContent $tblCourseContent
+        ?TblCourseContent $tblCourseContent,
+        bool $isHomework
     ): bool {
         $Manager = $this->getConnection()->getEntityManager();
         /** @var TblForgotten $Entity */
@@ -1126,7 +1134,8 @@ class Data  extends AbstractData
             $Entity->setRemark($Remark);
             $Entity->setTblLessonContent($tblLessonContent);
             $Entity->setTblCourseContent($tblCourseContent);
-            $Entity->setIsHomework($tblLessonContent || $tblCourseContent);
+//            $Entity->setIsHomework($tblLessonContent || $tblCourseContent);
+            $Entity->setIsHomework($isHomework);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);

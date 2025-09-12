@@ -13,6 +13,7 @@ use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
+use SPHERE\Common\Frontend\Form\Repository\Field\RadioBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextArea;
 use SPHERE\Common\Frontend\Form\Repository\Title;
@@ -144,6 +145,7 @@ class FrontendForgotten extends FrontendCourseContent
             $Global = $this->getGlobal();
             $Global->POST['Data']['Date'] = $tblForgotten->getDate();
             $Global->POST['Data']['serviceTblSubject'] = ($tblSubject = $tblForgotten->getServiceTblSubject()) ? $tblSubject->getId() : 0;
+            $Global->POST['Data']['Type'] = $tblForgotten->getIsHomework() ? 1 : 0;
 
             //  muss direkt an der Select-Box gepostet werden
             $LessonContentId = ($tblLessonContent = $tblForgotten->getTblLessonContent()) ? $tblLessonContent->getId() : null;
@@ -173,6 +175,12 @@ class FrontendForgotten extends FrontendCourseContent
             $Global->POST['Data']['serviceTblSubject'] = $SubjectId;
             $Global->POST['Data']['LessonContentId'] = $LessonContentId;
             $Global->POST['Data']['CourseContentId'] = $CourseContentId;
+            // setze Radio auf Hausaufgaben bei Kontrolle
+            if ($LessonContentId && $CourseContentId) {
+                $Global->POST['Data']['Type'] = 1;
+            } else {
+                $Global->POST['Data']['Type'] = 0;
+            }
             $Global->savePost();
         }
 
@@ -219,6 +227,14 @@ class FrontendForgotten extends FrontendCourseContent
         return (new Form(array(
             new FormGroup(array(
                 $formRow,
+                new FormRow(array(
+                    new FormColumn(
+                        new RadioBox('Data[Type]', 'Arbeitsmittel', 0)
+                    , 6),
+                    new FormColumn(
+                        new RadioBox('Data[Type]', 'Hausaufgaben', 1)
+                    , 6),
+                )),
                 // Hausaufgaben laden zur Auswahl als selectBox abhängig vom ausgewählten Fach
                 new FormRow(array(
                     new FormColumn(
