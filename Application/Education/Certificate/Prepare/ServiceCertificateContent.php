@@ -316,6 +316,10 @@ abstract class ServiceCertificateContent extends ServiceAbitur
                         } elseif ($tblConsumer && $tblConsumer->isConsumer(TblConsumer::TYPE_SACHSEN, 'HGGT')) {
                             $Value = $tblPerson->getFirstSecondName() . ' ' . $tblPrepareInformation->getValue();
                             $Content['P' . $personId]['Input'][$tblPrepareInformation->getField()] = $this->useLetterFontReplacement($Value);
+                            // REF -> KG
+                        } elseif ($tblConsumer && $tblConsumer->isConsumer(TblConsumer::TYPE_SACHSEN, 'KG')) {
+                            $Value = $tblPerson->getFirstSecondName() . ' ' . $tblPrepareInformation->getValue();
+                            $Content['P' . $personId]['Input'][$tblPrepareInformation->getField()] = $this->useLetterFontReplacement($Value);
                         } else {
                             $Value = $tblPerson->getFirstSecondName(). ' ' . $tblPerson->getLastName() . ' ' . $tblPrepareInformation->getValue();
                             $Content['P' . $personId]['Input'][$tblPrepareInformation->getField()] = $this->useLetterFontReplacement($Value);

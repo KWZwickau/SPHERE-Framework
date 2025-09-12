@@ -239,8 +239,28 @@ abstract class ServiceTemplateInformation extends ServiceLeave
                                 }
                             }
                             if (!empty($tempList)) {
-                                $Global->POST['Data'][$tblPrepareStudent->getId()]['Team'] = implode(', ', $tempList);
-                                $Global->POST['Data'][$tblPrepareStudent->getId()]['TeamExtra'] = implode(', ', $tempList);
+                                // Es wird für die AG Arbeitsgemeinschaften ein Satz gebildet.
+                                // REF -> KG
+                                if (Consumer::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'KG')) {
+                                    $countItem = 0;
+                                    $teamText = $tblPerson->getFirstSecondName() . ' hat an der ';
+                                    foreach ($tempList as $subjectName) {
+                                        $countItem++;
+                                        if ($countItem == 1) {
+                                            $teamText .= $subjectName;
+                                        } elseif ($countItem == count($tempList)) {
+                                            $teamText .= ' und ' . $subjectName;
+                                        } else {
+                                            $teamText .= ', ' . $subjectName;
+                                        }
+                                    }
+                                    $teamText .= ' teilgenommen.';
+                                } else {
+                                    $teamText = implode(', ', $tempList);
+                                }
+
+                                $Global->POST['Data'][$tblPrepareStudent->getId()]['Team'] = $teamText;
+                                $Global->POST['Data'][$tblPrepareStudent->getId()]['TeamExtra'] = $teamText;
                                 $markPostList['Team'] = true;
                                 $markPostList['TeamExtra'] = true;
                             }
