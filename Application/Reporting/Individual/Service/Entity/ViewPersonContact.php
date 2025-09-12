@@ -33,6 +33,7 @@ class ViewPersonContact extends AbstractView
     // Sortierung beeinflusst die Gruppenreihenfolge im Frontend
     const TBL_PERSON_ID = 'TblPerson_Id';
 
+    const WHOLE_ADDRESS = 'whole_Address';
     const TBL_ADDRESS_ADDRESS_EXTRA = 'TblAddress_AddressExtra';
     const TBL_ADDRESS_STREET_NAME = 'TblAddress_StreetName';
     const TBL_ADDRESS_STREET_NUMBER = 'TblAddress_StreetNumber';
@@ -82,6 +83,10 @@ class ViewPersonContact extends AbstractView
      * @Column(type="string")
      */
     protected $TblPerson_Id;
+    /**
+     * @Column(type="string")
+     */
+    protected $whole_Address;
     /**
      * @Column(type="string")
      */
@@ -224,6 +229,7 @@ class ViewPersonContact extends AbstractView
     {
 
         //NameDefinition
+        $this->setNameDefinition(self::WHOLE_ADDRESS, 'Hauptadresse: Zusammengefasst');
         $this->setNameDefinition(self::TBL_ADDRESS_ADDRESS_EXTRA, 'Hauptadresse: Adresszusatz');
         $this->setNameDefinition(self::TBL_ADDRESS_STREET_NAME, 'Hauptadresse: Straße');
         $this->setNameDefinition(self::TBL_ADDRESS_STREET_NUMBER, 'Hauptadresse: Hausnummer');
@@ -235,7 +241,7 @@ class ViewPersonContact extends AbstractView
         $this->setNameDefinition(self::TBL_ADDRESS_STATE, 'Hauptadresse: Bundesland');
         $this->setNameDefinition(self::TBL_ADDRESS_NATION, 'Hauptadresse: Land');
 
-        $this->setNameDefinition(self::TBL_ADDRESS_ADDRESS_EXTRA, 'Hauptadresse: Adresszusatz');
+        $this->setNameDefinition(self::TBL_ADDRESS_ADDRESS_EXTRA_2, 'Nebenadresse: Adresszusatz');
         $this->setNameDefinition(self::TBL_ADDRESS_STREET_NAME_2, 'Nebenadresse: Straße');
         $this->setNameDefinition(self::TBL_ADDRESS_STREET_NUMBER_2, 'Nebenadresse: Hausnummer');
         $this->setNameDefinition(self::TBL_CITY_CODE_2, 'Nebenadresse: Postleitzahl');
@@ -261,6 +267,7 @@ class ViewPersonContact extends AbstractView
         $this->setNameDefinition(self::TBL_MAIL_ADDRESS_COMPANY, 'Person: E-Mail Geschäftlich');
 
         $this->setGroupDefinition('Hauptadresse', array(
+            self::WHOLE_ADDRESS,
             self::TBL_ADDRESS_ADDRESS_EXTRA,
             self::TBL_ADDRESS_STREET_NAME,
             self::TBL_ADDRESS_STREET_NUMBER,
