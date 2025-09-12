@@ -44,18 +44,18 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutColumn('<h4>Schulsoftware Download der Hilfe</h4>'
                             . new Link((new Thumbnail(
                                 FileSystem::getFileLoader('/Common/Style/Resource/SSWInfo.png')
-                                , 'Allgemeine Hilfe', 'Stand:&nbsp;10.06.2025'))->setPictureHeight(), '/Api/Document/Standard/Manual/Create/Pdf', null, array('Select' => 'Help'))
+                                , 'Allgemeine Hilfe', 'Stand:&nbsp;10.06.2025'))->setPictureHeight('100px'), '/Api/Document/Standard/Manual/Create/Pdf', null, array('Select' => 'Help'))
                             , 3),
                         new LayoutColumn('<h4>Lehrvideos <b>Kursverwaltung</b></h4>'
                             . (new Link((new Thumbnail(
                                 FileSystem::getFileLoader('/Common/Style/Resource/SSWImport.png')
-                                , 'Kursverwaltung', 'Stand:&nbsp;31.05.2023'))->setPictureHeight(), 'https://www.youtube.com/playlist?list=PLvZfeA-UBJ_z_MRV2-lVLoW3cnYJ4wEJh'))
+                                , 'Kursverwaltung', 'Stand:&nbsp;31.05.2023'))->setPictureHeight('100px'), 'https://www.youtube.com/playlist?list=PLvZfeA-UBJ_z_MRV2-lVLoW3cnYJ4wEJh'))
                                 ->setExternal()
                             , 3),
                         new LayoutColumn('<h4>Lehrvideos <b>Notenbuch</b></h4>'
                             . (new Link((new Thumbnail(
                                 FileSystem::getFileLoader('/Common/Style/Resource/SSWImport.png')
-                                , 'Notenbuch', 'Stand:&nbsp;07.07.2023'))->setPictureHeight(), 'https://www.youtube.com/playlist?list=PLvZfeA-UBJ_wjWmbKjMZbzBab1MJx-xKO'))
+                                , 'Notenbuch', 'Stand:&nbsp;07.07.2023'))->setPictureHeight('100px'), 'https://www.youtube.com/playlist?list=PLvZfeA-UBJ_wjWmbKjMZbzBab1MJx-xKO'))
                                 ->setExternal()
                             , 3),
 //                        new LayoutColumn('', 2),
@@ -67,61 +67,66 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutRow(array(
                         new LayoutColumn(new Link((new Thumbnail(
                                 FileSystem::getFileLoader('/Common/Style/Resource/SSWInfo.png')
-                                , 'Schulsoftware Leistungsbeschreibung', 'Stand 19.10.2023'))->setPictureHeight()
+                                , 'Schulsoftware Leistungsbeschreibung', 'Stand 19.10.2023'))->setPictureHeight('100px')
                                 , '/Api/Document/Standard/Manual/Create/Pdf', null, array('Select' => 'Leistungsbeschreibung'))
                         , 3),
                         new LayoutColumn(new Link((new Thumbnail(
                                 FileSystem::getFileLoader('/Common/Style/Resource/SSWUser.png')
-                                , 'Benutzerrechte', 'empfohlene Benutzerrechte Stand:&nbsp;06.06.2025'))->setPictureHeight()
+                                , 'Benutzerrechte', 'empfohlene Benutzerrechte Stand:&nbsp;06.06.2025'))->setPictureHeight('100px')
                                 , '/Api/Document/Standard/Manual/Create/Pdf', null, array('Select' => 'UserRole')
                         ), 3),
                         new LayoutColumn(new Link((new Thumbnail(
                             FileSystem::getFileLoader('/Common/Style/Resource/SSWInfo.png')
-                            , 'Schnittstelle Schulsoftware zu DLLP', 'Stand:&nbsp;19.05.2025'))->setPictureHeight()
+                            , 'Schnittstelle Schulsoftware zu DLLP', 'Stand:&nbsp;19.05.2025'))->setPictureHeight('100px')
                             , '/Api/Document/Standard/Manual/Create/Pdf', null, array('Select' => 'SSW_DLLP')
                         ), 3),
                         new LayoutColumn(new Link((new Thumbnail(
                             FileSystem::getFileLoader('/Common/Style/Resource/SSWInfo.png')
-                            , 'Schuljahreswechsel Schulsoftware zu DLLP', 'Stand:&nbsp;21.05.2025'))->setPictureHeight()
+                            , 'Schuljahreswechsel Schulsoftware zu DLLP', 'Stand:&nbsp;21.05.2025'))->setPictureHeight('100px')
                             , '/Api/Document/Standard/Manual/Create/Pdf', null, array('Select' => 'SSW_DLLP_year')
                         ), 3)
                     )),
                     new LayoutRow(array(
                         new LayoutColumn(new Link((new Thumbnail(
                             FileSystem::getFileLoader('/Common/Style/Resource/SSWInfo.png')
-                            , 'Digitales Klassenbuch', 'Stand:&nbsp;09.11.2022'))->setPictureHeight()
+                            , 'Digitales Klassenbuch', 'Stand:&nbsp;09.11.2022'))->setPictureHeight('100px')
                             , '/Api/Document/Standard/Manual/Create/Pdf', null, array('Select' => 'DigitalClassBook')
                         ), 3),
                         new LayoutColumn(new Link((new Thumbnail(
                             FileSystem::getFileLoader('/Common/Style/Resource/SSWInfo.png')
-                            , 'Anleitung Fakturierung', 'Stand:&nbsp;21.02.2022'))->setPictureHeight()
+                            , 'Anleitung Fakturierung', 'Stand:&nbsp;21.02.2022'))->setPictureHeight('100px')
                             , '/Api/Document/Standard/Manual/Create/Pdf', null, array('Select' => 'Billing')
                         ), 3),
                         new LayoutColumn(new Link((new Thumbnail(
                             FileSystem::getFileLoader('/Common/Style/Resource/SSWImport.png')
-                            , 'Indiware Import', 'Leitfaden zur Informationsbeschaffung'))->setPictureHeight()
+                            , 'Indiware Import', 'Leitfaden zur Informationsbeschaffung'))->setPictureHeight('100px')
                             , '/Api/Document/Standard/Manual/Create/Pdf', null, array('Select' => 'Indiware')
                         ), 3),
                         new LayoutColumn(new Link((new Thumbnail(
                             FileSystem::getFileLoader('/Common/Style/Resource/SSWImport.png')
-                            , 'Untis Import', 'Leitfaden zur Informationsbeschaffung'))->setPictureHeight()
+                            , 'Untis Import', 'Leitfaden zur Informationsbeschaffung'))->setPictureHeight('100px')
                             , '/Api/Document/Standard/Manual/Create/Pdf', null, array('Select' => 'Untis')
                         ), 3),
                     )),
                     new LayoutRow(array(
                         new LayoutColumn(new Link((new Thumbnail(
                             FileSystem::getFileLoader('/Common/Style/Resource/SSWInfo.png')
-                            , 'Kurzleitfaden Zeugniserstellung', 'Stand:&nbsp;28.04.2024'))->setPictureHeight()
+                            , 'Kurzleitfaden Zeugniserstellung', 'Stand:&nbsp;28.04.2024'))->setPictureHeight('100px')
                             , '/Api/Document/Standard/Manual/Create/Pdf', null, array('Select' => 'Certificate')
                         ), 3),
                         new LayoutColumn(new Link((new Thumbnail(
                             FileSystem::getFileLoader('/Common/Style/Resource/SSWInfo.png')
-                            , 'Kurzleitfaden Abschluss-/Abgangszeugnisse', 'Stand:&nbsp;18.02.2025'))->setPictureHeight()
+                            , 'Kurzleitfaden Erstellung Abiturzeugnisse', 'Stand:&nbsp;04.06.2025'))->setPictureHeight('100px')
+                            , '/Api/Document/Standard/Manual/Create/Pdf', null, array('Select' => 'CertificateSekII')
+                        ), 3),
+                        new LayoutColumn(new Link((new Thumbnail(
+                            FileSystem::getFileLoader('/Common/Style/Resource/SSWInfo.png')
+                            , 'Kurzleitfaden Abschluss-/Abgangszeugnisse', 'Stand:&nbsp;18.02.2025'))->setPictureHeight('100px')
                             , '/Api/Document/Standard/Manual/Create/Pdf', null, array('Select' => 'Exam')
                         ), 3),
                         new LayoutColumn(new Link((new Thumbnail(
                             FileSystem::getFileLoader('/Common/Style/Resource/SSWPrint.png')
-                            , 'Druck Abschlusszeugnisse A3', 'Stand:&nbsp;01.06.2021'))->setPictureHeight()
+                            , 'Druck Abschlusszeugnisse A3', 'Stand:&nbsp;01.06.2021'))->setPictureHeight('100px')
                             , '/Api/Document/Standard/Manual/Create/Pdf', null, array('Select' => 'PrintA3Certificate')
                         ), 3),
                     )),
