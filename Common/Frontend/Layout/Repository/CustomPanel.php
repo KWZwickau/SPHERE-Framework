@@ -40,17 +40,18 @@ class CustomPanel extends Extension implements ITemplateInterface
     /**
      * @param           $Title
      * @param           $Content
+     * @param           $Type
      * @param           $Footer
      */
-    public function __construct($Title, $Content, $Footer = null)
+    public function __construct($Title, $Content, $Type = CustomPanel::PANEL_TYPE_DEFAULT, $Footer = null)
     {
         $this->Template = $this->getTemplate(__DIR__.'/CustomPanel.twig');
         $this->Title = $Title;
         $this->Template->setVariable('Title', $this->Title);
         $this->Content = (is_array($Content) ? array_filter($Content) : $Content);
+        $this->Template->setVariable('Type', $Type);
         $this->Footer = (is_array($Footer) ? array_filter($Footer) : $Footer);
         $this->FormName = $this->getName();
-        $this->Template->setVariable('Type', Panel::PANEL_TYPE_DEFAULT);
     }
 
     /**
