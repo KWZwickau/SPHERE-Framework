@@ -711,7 +711,8 @@ class Frontend extends FrontendClassRegister
                 $global->POST['Data']['IsFullDay'] = 1;
             }
 
-            if (($tblSetting = Consumer::useService()->getSetting('Education', 'ClassRegister', 'Absence', 'DefaultStatusForNewAbsence'))) {
+            $defaultStatusForNewAbsence = $hasSearch ? 'DefaultStatusForNewAbsence' : 'DefaultStatusForNewAbsenceInDigital';
+            if (($tblSetting = Consumer::useService()->getSetting('Education', 'ClassRegister', 'Absence', $defaultStatusForNewAbsence))) {
                 $status = $tblSetting->getValue();
                 if ($status == TblAbsence::VALUE_STATUS_UNCLEAR) {
                     $hasStatusUnclear = true;
@@ -777,9 +778,9 @@ class Frontend extends FrontendClassRegister
                 && $tblSetting->getValue())
         ) {
             $statusList = array(
-                new RadioBox('Data[Status]', 'entschuldigt', TblAbsence::VALUE_STATUS_EXCUSED),
                 new RadioBox('Data[Status]', 'unklar', TblAbsence::VALUE_STATUS_UNCLEAR),
-                new RadioBox('Data[Status]', 'unentschuldigt', TblAbsence::VALUE_STATUS_UNEXCUSED)
+                new RadioBox('Data[Status]', 'unentschuldigt', TblAbsence::VALUE_STATUS_UNEXCUSED),
+                new RadioBox('Data[Status]', 'entschuldigt', TblAbsence::VALUE_STATUS_EXCUSED)
             );
         } else {
             $statusList = array(

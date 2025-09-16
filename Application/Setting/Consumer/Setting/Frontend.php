@@ -120,7 +120,10 @@ class Frontend extends Extension implements IFrontendInterface
                         '{{ Year }}' =>
                             Term::useService()->getYearAll()
                     ));
-                } elseif ($tblSetting->getIdentifier() == 'DefaultStatusForNewOnlineAbsence' || $tblSetting->getIdentifier() == 'DefaultStatusForNewAbsence') {
+                } elseif ($tblSetting->getIdentifier() == 'DefaultStatusForNewOnlineAbsence'
+                    || $tblSetting->getIdentifier() == 'DefaultStatusForNewAbsence'
+                    || $tblSetting->getIdentifier() == 'DefaultStatusForNewAbsenceInDigital'
+                ) {
                     $field = new SelectBox('Data[' . $tblSetting->getId() . ']', $description, array('{{ Name }}' => $selectBoxAbsence), null, false, null);
                 } elseif ($tblSetting->getType() == TblSetting::TYPE_BOOLEAN) {
                     $field = new CheckBox('Data[' . $tblSetting->getId() . ']', $description, 1);
