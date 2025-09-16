@@ -395,11 +395,11 @@ abstract class FrontendTest extends FrontendTeacherGroup
             if (!empty($panelContentList)) {
                 $columnList = array();
                 $size = 4;
-                foreach ($panelContentList as $data) {
+                foreach ($panelContentList as $week => $data) {
                     $columnList[] = new LayoutColumn(new Panel(
                         $data['Header'],
                         $data ['Content'],
-                        Panel::PANEL_TYPE_DEFAULT
+                        $week == $selectDate->format('W') ? Panel::PANEL_TYPE_INFO : Panel::PANEL_TYPE_DEFAULT
                     ), $size);
                 }
 

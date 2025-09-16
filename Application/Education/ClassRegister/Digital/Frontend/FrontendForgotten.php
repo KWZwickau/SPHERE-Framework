@@ -176,7 +176,7 @@ class FrontendForgotten extends FrontendCourseContent
             $Global->POST['Data']['LessonContentId'] = $LessonContentId;
             $Global->POST['Data']['CourseContentId'] = $CourseContentId;
             // setze Radio auf Hausaufgaben bei Kontrolle
-            if ($LessonContentId && $CourseContentId) {
+            if ($LessonContentId || $CourseContentId) {
                 $Global->POST['Data']['Type'] = 1;
             } else {
                 $Global->POST['Data']['Type'] = 0;
