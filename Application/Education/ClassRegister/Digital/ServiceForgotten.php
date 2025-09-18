@@ -144,10 +144,11 @@ abstract class ServiceForgotten extends ServiceCourseContent
      * @param $Data
      * @param TblDivisionCourse $tblDivisionCourse
      *
-     * @return bool
+     * @return TblForgotten|bool
      */
-    public function createForgotten($Data, TblDivisionCourse $tblDivisionCourse): bool
+    public function createForgotten($Data, TblDivisionCourse $tblDivisionCourse): TblForgotten|bool
     {
+        $tblForgotten = false;
         $tblSubject = $tblDivisionCourse->getServiceTblSubject() ?: Subject::useService()->getSubjectById($Data['serviceTblSubject']);
         if ($tblSubject &&
             ($tblForgotten = (new Data($this->getBinding()))->createForgotten(
@@ -171,7 +172,7 @@ abstract class ServiceForgotten extends ServiceCourseContent
             }
         }
 
-        return  true;
+        return $tblForgotten;
     }
 
     /**
