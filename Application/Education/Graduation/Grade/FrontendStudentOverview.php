@@ -143,7 +143,7 @@ abstract class FrontendStudentOverview extends FrontendScoreType
 
         return
             $filter
-            . ApiGradeBook::receiverBlock($this->loadGradeBookSelectFilterContent($Filter), "StudentOverviewSelectCourseFilterContent");
+            . ApiGradeBook::receiverBlock($this->loadStudentOverviewSelectCourseFilterContent($Filter), "StudentOverviewSelectCourseFilterContent");
     }
 
     /**
