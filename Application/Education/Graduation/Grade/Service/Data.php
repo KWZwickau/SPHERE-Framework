@@ -372,16 +372,18 @@ class Data extends DataTask
      * @param bool $IsContinues
      * @param string $Description
      * @param TblPerson|null $tblTeacher
+     * @param DateTime|null $SecondPeriodDate
      *
      * @return TblTest
      */
     public function createTest(TblYear $tblYear, TblSubject $tblSubject, TblGradeType $tblGradeType,
         ?DateTime $Date, ?DateTime $FinishDate, ?DateTime $CorrectionDate, ?DateTime $ReturnDate, bool $IsContinues, string $Description,
-        ?TblPerson $tblTeacher): TblTest
+        ?TblPerson $tblTeacher, ?DateTime $SecondPeriodDate): TblTest
     {
         $Manager = $this->getEntityManager();
 
         $Entity = new TblTest($tblYear, $tblSubject, $tblGradeType, $Date, $FinishDate, $CorrectionDate, $ReturnDate, $IsContinues, $Description, $tblTeacher);
+        $Entity->setSecondPeriodDate($SecondPeriodDate);
 
         $Manager->saveEntity($Entity);
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
@@ -398,11 +400,12 @@ class Data extends DataTask
      * @param DateTime|null $ReturnDate
      * @param bool $IsContinues
      * @param string $Description
+     * @param DateTime|null $SecondPeriodDate
      *
      * @return bool
      */
     public function updateTest(TblTest $tblTest, TblGradeType $tblGradeType,
-        ?DateTime $Date, ?DateTime $FinishDate, ?DateTime $CorrectionDate, ?DateTime $ReturnDate, bool $IsContinues, string $Description): bool
+        ?DateTime $Date, ?DateTime $FinishDate, ?DateTime $CorrectionDate, ?DateTime $ReturnDate, bool $IsContinues, string $Description, ?DateTime $SecondPeriodDate): bool
     {
         $Manager = $this->getEntityManager();
         /** @var TblTest $Entity */
@@ -411,6 +414,7 @@ class Data extends DataTask
         if (null !== $Entity) {
             $Entity->setTblGradeType($tblGradeType);
             $Entity->setDate($Date);
+            $Entity->setSecondPeriodDate($SecondPeriodDate);
             $Entity->setFinishDate($FinishDate);
             $Entity->setCorrectionDate($CorrectionDate);
             $Entity->setReturnDate($ReturnDate);
@@ -646,7 +650,13 @@ class Data extends DataTask
                     $queryBuilder->expr()->isNull('g.EntityRemove'),
                     $queryBuilder->expr()->orX(
                         $queryBuilder->expr()->andX(
+                            $queryBuilder->expr()->isNotNull('t.SecondPeriodDate'),
+                            $queryBuilder->expr()->gte('t.SecondPeriodDate', '?4'),
+                            $queryBuilder->expr()->lte('t.SecondPeriodDate', '?5'),
+                        ),
+                        $queryBuilder->expr()->andX(
                             $queryBuilder->expr()->isNotNull('t.Date'),
+                            $queryBuilder->expr()->isNull('t.SecondPeriodDate'),
                             $queryBuilder->expr()->gte('t.Date', '?4'),
                             $queryBuilder->expr()->lte('t.Date', '?5'),
                         ),
