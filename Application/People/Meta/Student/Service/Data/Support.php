@@ -687,6 +687,22 @@ abstract class Support extends Subject
     }
 
     /**
+     * @param TblSupport $tblSupport
+     *
+     * @return false|TblSupportFocus
+     */
+    public function getSupportSecondaryFocusBySupport(TblSupport $tblSupport)
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblSupportFocus',
+            array(
+                TblSupportFocus::ATTR_TBL_SUPPORT => $tblSupport->getId(),
+                TblSupportFocus::ATTR_IS_PRIMARY => false
+            )
+        );
+    }
+
+    /**
      * @param TblSupport          $tblSupport
      * @param TblSupportFocusType $tblSupportFocusType
      *

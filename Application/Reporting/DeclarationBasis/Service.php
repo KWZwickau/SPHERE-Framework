@@ -100,6 +100,10 @@ class Service extends Extension
 
                 // Seiten Generieren
                 $this->buildStudentTechnicalCountPage($export, $IsFirstTab, $Type, $SchoolCourse, $LevelList, $YearString, $tblSchoolActive, $date);
+                if(isset($DataFocus[$Type]) && !empty($DataFocus[$Type])){
+                    // Zusatzseite Namensliste Integration
+                    $this->buildStudentIntegrationListPage($export, $Type, $DataFocus[$Type], $tblSchoolActive);
+                }
             }
         }
 
@@ -376,7 +380,9 @@ Ist das Vertragsverhältnis am Stichtag bereits gekündigt und hat der Schüler 
 
         $isSaxony = Consumer::useService()->getConsumerBySessionIsConsumerType(TblConsumer::TYPE_SACHSEN);
         $isBerlin = Consumer::useService()->getConsumerBySessionIsConsumerType(TblConsumer::TYPE_BERLIN);
-
+        // deactivate remark
+        $isRemark = false;
+        $MaxColumnCount = 7;
         if(!empty($LevelList)) {
             $row = 0;
             // create Page
@@ -388,7 +394,7 @@ Ist das Vertragsverhältnis am Stichtag bereits gekündigt und hat der Schüler 
             $export->setPaperOrientationParameter($PaperOrientation);
             //Header
             $export->setValue($export->getCell(0, $row), "Namentliche Auflistung der gemeldeten Inklusionsschüler");
-            $export->setStyle($export->getCell(0, $row), $export->getCell(9, $row))->mergeCells()->setFontBold()->setAlignmentCenter()->setFontSize(14)
+            $export->setStyle($export->getCell(0, $row), $export->getCell($MaxColumnCount, $row))->mergeCells()->setFontBold()->setAlignmentCenter()->setFontSize(14)
                 ->setRowHeight(20);
             $row += 2;
             // Adresse suchen
@@ -420,53 +426,59 @@ Ist das Vertragsverhältnis am Stichtag bereits gekündigt und hat der Schüler 
             $export->setStyle($export->getCell(0, $row))->setFontSize(10);
             $row++;
             $export->setValue($export->getCell(0, $row), $SchoolString);
-            $export->setStyle($export->getCell(0, $row), $export->getCell(4, $row))->mergeCells();
+            $export->setStyle($export->getCell(0, $row), $export->getCell(3, $row))->mergeCells();
             $row++;
             if($SchoolStringExtended != '') {
                 $export->setValue($export->getCell(0, $row), $SchoolStringExtended);
-                $export->setStyle($export->getCell(0, $row), $export->getCell(4, $row))->mergeCells();
+                $export->setStyle($export->getCell(0, $row), $export->getCell(3, $row))->mergeCells();
                 $row++;
             }
             $export->setValue($export->getCell(0, $row), $AddressCompanyStreet);
-            $export->setStyle($export->getCell(0, $row), $export->getCell(4, $row))->mergeCells();
+            $export->setStyle($export->getCell(0, $row), $export->getCell(3, $row))->mergeCells();
             $row++;
             $export->setValue($export->getCell(0, $row), $AddressCompanyCodeCity);
-            $export->setStyle($export->getCell(0, $row), $export->getCell(4, $row))->mergeCells();
+            $export->setStyle($export->getCell(0, $row), $export->getCell(3, $row))->mergeCells();
             if($SchoolStringExtended == '') {
                 $row++;
                 $export->setValue($export->getCell(0, $row), '');
-                $export->setStyle($export->getCell(0, $row), $export->getCell(4, $row))->mergeCells();
+                $export->setStyle($export->getCell(0, $row), $export->getCell(3, $row))->mergeCells();
             }
             // Rahmen
-            $export->setStyle($export->getCell(0, $rowStartAddress), $export->getCell(4, $row))->setBorderOutline(2);
+            $export->setStyle($export->getCell(0, $rowStartAddress), $export->getCell(3, $row))->setBorderOutline(2);
             $row += 2;
             $export->setValue($export->getCell(0, $row), 'Bildungsgang (Schulart):');
             $export->setStyle($export->getCell(0, $row), $export->getCell(2, $row))->mergeCells()->setAlignmentRight()->setFontBold();
             $export->setValue($export->getCell(3, $row), $TypeIntegrativeList);
-            $export->setStyle($export->getCell(3, $row), $export->getCell(9, $row))->mergeCells()->setAlignmentCenter()->setBorderBottom();
+            $export->setStyle($export->getCell(3, $row), $export->getCell($MaxColumnCount, $row))->mergeCells()->setAlignmentCenter()->setBorderBottom();
             $row++;
             if($isSaxony) {
                 $export->setValue($export->getCell(3, $row), '(Bezeichnung entsprechend der Anlage zu § 1 ZuschussVO)');
-                $export->setStyle($export->getCell(3, $row), $export->getCell(9, $row))->mergeCells()->setAlignmentCenter()->setFontItalic();
+                $export->setStyle($export->getCell(3, $row), $export->getCell($MaxColumnCount, $row))->mergeCells()->setAlignmentCenter()->setFontItalic();
             }
             $row += 2;
             $rowStart = $row;
             // Header
             $export->setValue($export->getCell(0, $row), 'Name');
-            $export->setStyle($export->getCell(0, $row), $export->getCell(1, $row))->mergeCells()->setWrapText()->setAlignmentCenter()->setAlignmentMiddle()
-                ->setFontBold();
-            $export->setValue($export->getCell(2, $row), 'Vorname');
-            $export->setStyle($export->getCell(2, $row), $export->getCell(3, $row))->mergeCells()->setWrapText()->setAlignmentCenter()->setAlignmentMiddle()
-                ->setFontBold();
+            $export->setStyle($export->getCell(0, $row))->setWrapText()->setAlignmentCenter()->setAlignmentMiddle()->setFontBold();
+            $export->setValue($export->getCell(1, $row), 'Vorname');
+            $export->setStyle($export->getCell(1, $row))->setWrapText()->setAlignmentCenter()->setAlignmentMiddle()->setFontBold();
+            $export->setValue($export->getCell(2, $row), 'Geb. Datum');
+            $export->setStyle($export->getCell(2, $row))->setWrapText()->setAlignmentCenter()->setAlignmentMiddle()->setFontBold();
+            $export->setValue($export->getCell(3, $row), 'Datum des Antrags');
+            $export->setStyle($export->getCell(3, $row))->setWrapText()->setAlignmentCenter()->setAlignmentMiddle()->setFontBold();
             $export->setValue($export->getCell(4, $row), 'Datum des Bescheids');
             $export->setStyle($export->getCell(4, $row))->setWrapText()->setAlignmentCenter()->setAlignmentMiddle()->setFontBold();
             $export->setValue($export->getCell(5, $row), 'Klassen- stufe');
             $export->setStyle($export->getCell(5, $row))->setWrapText()->setAlignmentCenter()->setAlignmentMiddle()->setFontBold();
             $export->setValue($export->getCell(6, $row), 'Förderschwerpunkt');
-            $export->setStyle($export->getCell(6, $row), $export->getCell(8, $row))->mergeCells()->setWrapText()->setAlignmentCenter()->setAlignmentMiddle()
-                ->setFontBold();
-            $export->setValue($export->getCell(9, $row), 'Bemerkung');
-            $export->setStyle($export->getCell(9, $row))->setWrapText()->setAlignmentCenter()->setAlignmentMiddle()->setFontBold();
+            $export->setStyle($export->getCell(6, $row))->setWrapText()->setAlignmentCenter()->setAlignmentMiddle()->setFontBold();
+            $export->setValue($export->getCell(7, $row), 'weitere Förderschwerpunkte');
+            $export->setStyle($export->getCell(7, $row))->setWrapText()->setAlignmentCenter()->setAlignmentMiddle()->setFontBold();
+            if($isRemark){
+                $export->setValue($export->getCell(8, $row), 'Bemerkung');
+                $export->setStyle($export->getCell(8, $row))->setWrapText()->setAlignmentCenter()->setAlignmentMiddle()->setFontBold();
+            }
+
             $row++;
             ksort($LevelList);
             foreach ($LevelList as $LevelName => $FocusList) {
@@ -478,50 +490,80 @@ Ist das Vertragsverhältnis am Stichtag bereits gekündigt und hat der Schüler 
                         if(($tblSupport = Student::useService()->getSupportById($SupportId))
                             && ($tblPersonIntegrative = $tblSupport->getServiceTblPerson())
                         ) {
-                            $export->setValue($export->getCell(0, $row), $tblPersonIntegrative->getLastName());
-                            $export->setStyle($export->getCell(0, $row), $export->getCell(1, $row))->mergeCells()->setAlignmentMiddle();
-                            $export->setValue($export->getCell(2, $row), $tblPersonIntegrative->getFirstName());
-                            $export->setStyle($export->getCell(2, $row), $export->getCell(3, $row))->mergeCells()->setAlignmentMiddle();
+                            $BirthDate = $tblPersonIntegrative->getBirthday();
+                            $SupportInitialDate = '';
+                            $tblSupportType = Student::useService()->getSupportTypeByName('Förderantrag');
+                            if(($tblSupportByTypeList = Student::useService()->getSupportAllByPersonAndSupportType($tblPersonIntegrative, $tblSupportType))){
+                                $tblSupportByType = current($tblSupportByTypeList);
+                                $SupportInitialDate = $tblSupportByType->getDate();
+                            }
                             $DecisionDate = $tblSupport->getDate();
+                            $SupportTypeListing = '';
+                            $SupportFocusSecondaryList = Student::useService()->getSupportSecondaryFocusBySupport($tblSupport);
+                            if($SupportFocusSecondaryList){
+                                foreach ($SupportFocusSecondaryList as $SupportFocusSecondary) {
+                                    if(($tblSupportType = $SupportFocusSecondary->getTblSupportFocusType())){
+                                        if(!$SupportTypeListing){
+                                            $SupportTypeListing = $tblSupportType->getName();
+                                        } else {
+                                            $SupportTypeListing .= ', '.$tblSupportType->getName();
+                                        }
+                                    }
+                                }
+                            }
                             $IntegrationDescription = $tblSupport->getRemark(false);
+
+                            $export->setValue($export->getCell(0, $row), $tblPersonIntegrative->getLastName());
+                            $export->setStyle($export->getCell(0, $row))->setAlignmentMiddle();
+                            $export->setValue($export->getCell(1, $row), $tblPersonIntegrative->getFirstName());
+                            $export->setStyle($export->getCell(1, $row))->setAlignmentMiddle();
+                            $export->setValue($export->getCell(2, $row), $BirthDate);
+                            $export->setStyle($export->getCell(2, $row))->setAlignmentCenter()->setAlignmentMiddle();
+                            $export->setValue($export->getCell(3, $row), $SupportInitialDate);
+                            $export->setStyle($export->getCell(3, $row))->setAlignmentCenter()->setAlignmentMiddle();
                             $export->setValue($export->getCell(4, $row), $DecisionDate);
                             $export->setStyle($export->getCell(4, $row))->setAlignmentCenter()->setAlignmentMiddle();
                             $export->setValue($export->getCell(5, $row), $LevelName);
                             $export->setStyle($export->getCell(5, $row))->setAlignmentCenter()->setAlignmentMiddle();
                             $export->setValue($export->getCell(6, $row), $FocusName);
-                            $export->setStyle($export->getCell(6, $row), $export->getCell(8, $row))->setAlignmentMiddle()->mergeCells();
-                            $export->setValue($export->getCell(9, $row), $IntegrationDescription);
-                            $export->setStyle($export->getCell(9, $row))->setAlignmentMiddle()->setWrapText();
+                            $export->setStyle($export->getCell(6, $row))->setAlignmentMiddle();
+                            $export->setValue($export->getCell(7, $row), $SupportTypeListing);
+                            $export->setStyle($export->getCell(7, $row))->setAlignmentMiddle();
+                            if($isRemark) {
+                                $export->setValue($export->getCell(8, $row), $IntegrationDescription);
+                                $export->setStyle($export->getCell(8, $row))->setAlignmentMiddle()->setWrapText();
+                            }
                             $row++;
                         }
                     }
                 }
             }
             // Rahmen
-            $export->setStyle($export->getCell(0, $rowStart), $export->getCell((9), ($row - 1)))->setBorderAll()->setBorderOutline(2);
+            $export->setStyle($export->getCell(0, $rowStart), $export->getCell(($MaxColumnCount), ($row - 1)))->setBorderAll()->setBorderOutline(2);
             $export->setWorksheetFitToPage();
             $row += 2;
             $export->setValue($export->getCell(0, $row), (new DateTime())->format('d.m.Y'));
             $export->setStyle($export->getCell(0, $row), $export->getCell(2, $row))->mergeCells()->setBorderBottom();
-            $export->setStyle($export->getCell(6, $row), $export->getCell(9, $row))->setBorderBottom();
+            $export->setStyle($export->getCell(6, $row), $export->getCell($MaxColumnCount, $row))->setBorderBottom();
             $row++;
             $export->setValue($export->getCell(0, $row), 'Datum');
             $export->setValue($export->getCell(6, $row), 'Unterschrift');
             $row++;
             $export->setValue($export->getCell(6, $row), 'Vorsitzende(r) / Geschäftsführer(in) des Schulträgers');
             // Spaltenbreite Definieren + nach rechts rücken
-            $export->setStyle($export->getCell(0, 0))->setColumnWidth(8.5);
-            $export->setStyle($export->getCell(1, 0))->setColumnWidth(8.5);
-            $export->setStyle($export->getCell(2, 0))->setColumnWidth(8.5);
-            $export->setStyle($export->getCell(3, 0))->setColumnWidth(8.5);
-            $export->setStyle($export->getCell(4, 0))->setColumnWidth(12.0);
-            $export->setStyle($export->getCell(5, 0))->setColumnWidth(10.5);
-            $export->setStyle($export->getCell(6, 0))->setColumnWidth(10.5);
-            $export->setStyle($export->getCell(7, 0))->setColumnWidth(10.5);
-            $export->setStyle($export->getCell(8, 0))->setColumnWidth(10.5);
-            $export->setStyle($export->getCell(9, 0))->setColumnWidth(34.5);
+            $export->setStyle($export->getCell(0, 0))->setColumnWidth(16);
+            $export->setStyle($export->getCell(1, 0))->setColumnWidth(16);
+            $export->setStyle($export->getCell(2, 0))->setColumnWidth(12);
+            $export->setStyle($export->getCell(3, 0))->setColumnWidth(12);
+            $export->setStyle($export->getCell(4, 0))->setColumnWidth(12);
+            $export->setStyle($export->getCell(5, 0))->setColumnWidth(10);
+            $export->setStyle($export->getCell(6, 0))->setColumnWidth(32);
+            $export->setStyle($export->getCell(7, 0))->setColumnWidth(32);
+            if($isRemark) {
+                $export->setStyle($export->getCell(8, 0))->setColumnWidth(35);
+            }
             // Excel wählt den zuletzt bearbeiten Bereich aus -> Bildungsgang
-            $export->setStyle($export->getCell(3, 9))->setFontBold(false);
+            $export->setStyle($export->getCell(3, $MaxColumnCount))->setFontBold(false);
         }
     }
 

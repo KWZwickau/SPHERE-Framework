@@ -801,6 +801,17 @@ abstract class Support extends Subject
     }
 
     /**
+     * @param TblSupport $tblSupport
+     *
+     * @return false|TblSupportFocus[]
+     */
+    public function getSupportSecondaryFocusBySupport(TblSupport $tblSupport)
+    {
+
+        return (new Data($this->getBinding()))->getSupportSecondaryFocusBySupport($tblSupport);
+    }
+
+    /**
      * @param TblSpecial $tblSpecial
      *
      * @return bool|TblSpecialDisorderType[]
