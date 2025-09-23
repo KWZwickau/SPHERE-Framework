@@ -786,4 +786,37 @@ abstract class ServiceLeave extends ServiceDiploma
                 'YearId' => ($tblYear = $tblLeaveStudent->getServiceTblYear()) ? $tblYear->getId() : 0
             ));
     }
+
+    /**
+     * @param TblLeaveStudent $tblLeaveStudent
+     *
+     * @return false|TblLeaveAdditionalGrade[]
+     */
+    public function getLeaveAdditionalGradeAllByLeaveStudent(TblLeaveStudent $tblLeaveStudent)
+    {
+        return (new Data($this->getBinding()))->getLeaveAdditionalGradeAllByLeaveStudent($tblLeaveStudent);
+    }
+
+    /**
+     * @param TblLeaveStudent $tblLeaveStudent
+     *
+     * @return bool
+     */
+    public function destroyLeaveStudent(TblLeaveStudent $tblLeaveStudent): bool
+    {
+        if (($tblLeaveGradeList = $this->getLeaveGradeAllByLeaveStudent($tblLeaveStudent))) {
+            (new Data($this->getBinding()))->deleteEntityListBulk($tblLeaveGradeList);
+        }
+        if (($tblLeaveComplexExamList = $this->getLeaveComplexExamAllByLeaveStudent($tblLeaveStudent))) {
+            (new Data($this->getBinding()))->deleteEntityListBulk($tblLeaveComplexExamList);
+        }
+        if (($tblLeaveAdditionalGradeList = $this->getLeaveAdditionalGradeAllByLeaveStudent($tblLeaveStudent))) {
+            (new Data($this->getBinding()))->deleteEntityListBulk($tblLeaveAdditionalGradeList);
+        }
+        if (($tblLeaveInformationList = $this->getLeaveInformationAllByLeaveStudent($tblLeaveStudent))) {
+            (new Data($this->getBinding()))->deleteEntityListBulk($tblLeaveInformationList);
+        }
+
+        return (new Data($this->getBinding()))->destroyLeaveStudent($tblLeaveStudent);
+    }
 }
