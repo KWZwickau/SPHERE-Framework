@@ -15,7 +15,6 @@ use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblCategory;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\Education\School\Type\Type;
-use SPHERE\Application\People\Meta\Student\Service\Entity\TblSupportType;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
@@ -24,7 +23,6 @@ use SPHERE\Application\Setting\Consumer\School\School;
 use SPHERE\Application\Setting\Consumer\School\Service\Entity\TblSchool;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
-use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Service
@@ -102,6 +100,10 @@ class Service extends Extension
 
                 // Seiten Generieren
                 $this->buildStudentTechnicalCountPage($export, $IsFirstTab, $Type, $SchoolCourse, $LevelList, $YearString, $tblSchoolActive, $date);
+                if(isset($DataFocus[$Type]) && !empty($DataFocus[$Type])){
+                    // Zusatzseite Namensliste Integration
+                    $this->buildStudentIntegrationListPage($export, $Type, $DataFocus[$Type], $tblSchoolActive);
+                }
             }
         }
 
@@ -378,7 +380,9 @@ Ist das Vertragsverhältnis am Stichtag bereits gekündigt und hat der Schüler 
 
         $isSaxony = Consumer::useService()->getConsumerBySessionIsConsumerType(TblConsumer::TYPE_SACHSEN);
         $isBerlin = Consumer::useService()->getConsumerBySessionIsConsumerType(TblConsumer::TYPE_BERLIN);
-
+        // deactivate remark
+        $isRemark = false;
+        $MaxColumnCount = 7;
         if(!empty($LevelList)) {
             $row = 0;
             // create Page
@@ -390,7 +394,7 @@ Ist das Vertragsverhältnis am Stichtag bereits gekündigt und hat der Schüler 
             $export->setPaperOrientationParameter($PaperOrientation);
             //Header
             $export->setValue($export->getCell(0, $row), "Namentliche Auflistung der gemeldeten Inklusionsschüler");
-            $export->setStyle($export->getCell(0, $row), $export->getCell(8, $row))->mergeCells()->setFontBold()->setAlignmentCenter()->setFontSize(14)
+            $export->setStyle($export->getCell(0, $row), $export->getCell($MaxColumnCount, $row))->mergeCells()->setFontBold()->setAlignmentCenter()->setFontSize(14)
                 ->setRowHeight(20);
             $row += 2;
             // Adresse suchen
@@ -445,11 +449,11 @@ Ist das Vertragsverhältnis am Stichtag bereits gekündigt und hat der Schüler 
             $export->setValue($export->getCell(0, $row), 'Bildungsgang (Schulart):');
             $export->setStyle($export->getCell(0, $row), $export->getCell(2, $row))->mergeCells()->setAlignmentRight()->setFontBold();
             $export->setValue($export->getCell(3, $row), $TypeIntegrativeList);
-            $export->setStyle($export->getCell(3, $row), $export->getCell(8, $row))->mergeCells()->setAlignmentCenter()->setBorderBottom();
+            $export->setStyle($export->getCell(3, $row), $export->getCell($MaxColumnCount, $row))->mergeCells()->setAlignmentCenter()->setBorderBottom();
             $row++;
             if($isSaxony) {
                 $export->setValue($export->getCell(3, $row), '(Bezeichnung entsprechend der Anlage zu § 1 ZuschussVO)');
-                $export->setStyle($export->getCell(3, $row), $export->getCell(8, $row))->mergeCells()->setAlignmentCenter()->setFontItalic();
+                $export->setStyle($export->getCell(3, $row), $export->getCell($MaxColumnCount, $row))->mergeCells()->setAlignmentCenter()->setFontItalic();
             }
             $row += 2;
             $rowStart = $row;
@@ -470,8 +474,11 @@ Ist das Vertragsverhältnis am Stichtag bereits gekündigt und hat der Schüler 
             $export->setStyle($export->getCell(6, $row))->setWrapText()->setAlignmentCenter()->setAlignmentMiddle()->setFontBold();
             $export->setValue($export->getCell(7, $row), 'weitere Förderschwerpunkte');
             $export->setStyle($export->getCell(7, $row))->setWrapText()->setAlignmentCenter()->setAlignmentMiddle()->setFontBold();
-            $export->setValue($export->getCell(8, $row), 'Bemerkung');
-            $export->setStyle($export->getCell(8, $row))->setWrapText()->setAlignmentCenter()->setAlignmentMiddle()->setFontBold();
+            if($isRemark){
+                $export->setValue($export->getCell(8, $row), 'Bemerkung');
+                $export->setStyle($export->getCell(8, $row))->setWrapText()->setAlignmentCenter()->setAlignmentMiddle()->setFontBold();
+            }
+
             $row++;
             ksort($LevelList);
             foreach ($LevelList as $LevelName => $FocusList) {
@@ -522,20 +529,22 @@ Ist das Vertragsverhältnis am Stichtag bereits gekündigt und hat der Schüler 
                             $export->setStyle($export->getCell(6, $row))->setAlignmentMiddle();
                             $export->setValue($export->getCell(7, $row), $SupportTypeListing);
                             $export->setStyle($export->getCell(7, $row))->setAlignmentMiddle();
-                            $export->setValue($export->getCell(8, $row), $IntegrationDescription);
-                            $export->setStyle($export->getCell(8, $row))->setAlignmentMiddle()->setWrapText();
+                            if($isRemark) {
+                                $export->setValue($export->getCell(8, $row), $IntegrationDescription);
+                                $export->setStyle($export->getCell(8, $row))->setAlignmentMiddle()->setWrapText();
+                            }
                             $row++;
                         }
                     }
                 }
             }
             // Rahmen
-            $export->setStyle($export->getCell(0, $rowStart), $export->getCell((8), ($row - 1)))->setBorderAll()->setBorderOutline(2);
+            $export->setStyle($export->getCell(0, $rowStart), $export->getCell(($MaxColumnCount), ($row - 1)))->setBorderAll()->setBorderOutline(2);
             $export->setWorksheetFitToPage();
             $row += 2;
             $export->setValue($export->getCell(0, $row), (new DateTime())->format('d.m.Y'));
             $export->setStyle($export->getCell(0, $row), $export->getCell(2, $row))->mergeCells()->setBorderBottom();
-            $export->setStyle($export->getCell(6, $row), $export->getCell(8, $row))->setBorderBottom();
+            $export->setStyle($export->getCell(6, $row), $export->getCell($MaxColumnCount, $row))->setBorderBottom();
             $row++;
             $export->setValue($export->getCell(0, $row), 'Datum');
             $export->setValue($export->getCell(6, $row), 'Unterschrift');
@@ -550,9 +559,11 @@ Ist das Vertragsverhältnis am Stichtag bereits gekündigt und hat der Schüler 
             $export->setStyle($export->getCell(5, 0))->setColumnWidth(10);
             $export->setStyle($export->getCell(6, 0))->setColumnWidth(32);
             $export->setStyle($export->getCell(7, 0))->setColumnWidth(32);
-            $export->setStyle($export->getCell(8, 0))->setColumnWidth(35);
+            if($isRemark) {
+                $export->setStyle($export->getCell(8, 0))->setColumnWidth(35);
+            }
             // Excel wählt den zuletzt bearbeiten Bereich aus -> Bildungsgang
-            $export->setStyle($export->getCell(3, 8))->setFontBold(false);
+            $export->setStyle($export->getCell(3, $MaxColumnCount))->setFontBold(false);
         }
     }
 
