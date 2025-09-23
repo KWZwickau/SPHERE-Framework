@@ -9,6 +9,7 @@ use SPHERE\Application\Education\ClassRegister\Digital\Digital;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\IApiInterface;
+use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
 use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
@@ -354,10 +355,13 @@ class ApiForgotten extends Extension implements IApiInterface
             return $this->getForgottenModal($form);
         }
 
-        if (Digital::useService()->createForgotten($Data, $tblDivisionCourse)) {
+        if (($tblForgotten = Digital::useService()->createForgotten($Data, $tblDivisionCourse))) {
 
             return new Success('Vergessene Arbeitsmittel/Hausaufgaben wurde erfolgreich gespeichert.')
                 . self::pipelineLoadForgottenContent($DivisionCourseId, $Filter)
+                // Klassentagebuch neu laden
+                . ApiDigital::pipelineLoadLessonContentContent($tblDivisionCourse->getId(), $tblForgotten->getDate(),
+                    ($View = Consumer::useService()->getAccountSettingValue('LessonContentView')) ? $View : 'Day')
                 . self::pipelineClose();
         } else {
             return new Danger('Vergessene Arbeitsmittel/Hausaufgaben konnte nicht gespeichert werden.') . self::pipelineClose();

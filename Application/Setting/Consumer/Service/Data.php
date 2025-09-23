@@ -338,20 +338,35 @@ class Data extends AbstractData
         }
 
         // Fehlzeiten public
-        $this->createSetting('Education', 'ClassRegister', 'Absence', 'DefaultStatusForNewOnlineAbsence', TblSetting::TYPE_INTEGER, TblAbsence::VALUE_STATUS_UNEXCUSED, 'Fehlzeiten',
-            'Voreingestellter Fehlzeiten-Status beim Erstellen einer neuen Online Fehlzeiten von Eltern/Schüler [Standard: unentschuldigt]', true, 2);
-        $this->createSetting('Education', 'ClassRegister', 'Absence', 'DefaultStatusForNewAbsence', TblSetting::TYPE_INTEGER, TblAbsence::VALUE_STATUS_UNEXCUSED, 'Fehlzeiten',
-            'Voreingestellter Fehlzeiten-Status beim Erstellen einer neuen Fehlzeit [Standard: unentschuldigt]', true, 3);
+        if (($tblSetting = $this->createSetting('Education', 'ClassRegister', 'Absence', 'DefaultStatusForNewOnlineAbsence', TblSetting::TYPE_INTEGER, TblAbsence::VALUE_STATUS_UNEXCUSED, 'Fehlzeiten',
+            'Voreingestellter Fehlzeiten-Status beim Erstellen einer neuen Online Fehlzeiten von Eltern/Schüler [Standard: unentschuldigt]', true, 1))
+        ) {
+            $this->updateSettingSortOrder($tblSetting, 1);
+        }
+        $absenceStatus = TblAbsence::VALUE_STATUS_UNEXCUSED;
+        if (($tblSetting = $this->createSetting('Education', 'ClassRegister', 'Absence', 'DefaultStatusForNewAbsence', TblSetting::TYPE_INTEGER, TblAbsence::VALUE_STATUS_UNEXCUSED, 'Fehlzeiten',
+            'Voreingestellter Fehlzeiten-Status beim Erstellen einer neuen Fehlzeit im Bereich “Bildung Fehlzeiten” [Standard: unentschuldigt]', true, 2))
+        ) {
+            $absenceStatus = $tblSetting->getValue();
+            $this->updateSettingSortOrder($tblSetting, 2);
+            $this->updateSettingDescription($tblSetting, 'Fehlzeiten', 'Voreingestellter Fehlzeiten-Status beim Erstellen einer neuen Fehlzeit im Bereich “Bildung Fehlzeiten” [Standard: unentschuldigt]', true);
+        }
+        if (($tblSetting = $this->createSetting('Education', 'ClassRegister', 'Absence', 'DefaultStatusForNewAbsenceInDigital', TblSetting::TYPE_INTEGER, $absenceStatus, 'Fehlzeiten',
+            'Voreingestellter Fehlzeiten-Status beim Erstellen einer neuen Fehlzeit im Bereich “Bildung Digitales Klassenbuch” [Standard: unentschuldigt]', true, 3))
+        ) {
+            $this->updateSettingSortOrder($tblSetting, 3);
+        }
+        if (($tblSetting = $this->createSetting('Education', 'ClassRegister', 'Absence', 'HasStatusUnclear', TblSetting::TYPE_BOOLEAN, '0',
+            'Fehlzeiten', 'Bei Fehlzeiten kann neben “entschuldigt” und “unentschuldigt” zusätzlich der Status “unklar” ausgewählt werden [Standard: Nein]', true, 4
+        ))) {
+            $this->updateSettingSortOrder($tblSetting, 4);
+            $this->updateSettingDescription($tblSetting, 'Fehlzeiten', 'Bei Fehlzeiten kann neben “entschuldigt” und “unentschuldigt” zusätzlich der Status “unklar” ausgewählt werden [Standard: Nein]', true);
+        }
         if (($tblSetting = $this->createSetting('Education', 'ClassRegister', 'Absence', 'UseClassRegisterForAbsence', TblSetting::TYPE_BOOLEAN,
             '1', 'Fehlzeiten', 'Automatische Übernahme der Fehlzeiten aus dem Klassenbuch aufs Zeugnis [Standard: Ja]', true, 5))
         ) {
-            $this->updateSettingDescription($tblSetting, $tblSetting->getCategory(),
-                'Automatische Übernahme der Fehlzeiten aus dem Klassenbuch aufs Zeugnis [Standard: Ja]', $tblSetting->isPublic());
             $this->updateSettingSortOrder($tblSetting, 5);
         }
-        $this->createSetting('Education', 'ClassRegister', 'Absence', 'HasStatusUnclear', TblSetting::TYPE_BOOLEAN, '0',
-            'Fehlzeiten', 'Bei Fehlzeiten kann neben entschuldigt und unentschuldigt der Status: unklar ausgewählt werden [Standard: Nein]', true, 4
-        );
 
         // DLLP
         if (($tblSetting = $this->createSetting('Setting', 'Univention', 'Univention', 'API_Mail',
