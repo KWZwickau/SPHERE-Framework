@@ -46,6 +46,8 @@ use SPHERE\Common\Frontend\Link\Repository\AbstractLink;
 use SPHERE\Common\Frontend\Link\Repository\Danger;
 use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Link\Repository\Primary as PrimaryLink;
+use SPHERE\Common\Frontend\Link\Repository\ToggleCheckbox;
+use SPHERE\Common\Frontend\Link\Repository\ToggleSelective;
 use SPHERE\Common\Frontend\Message\IMessageInterface;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\Table;
@@ -891,7 +893,7 @@ class Frontend extends FrontendClassRegister
                     ), 'AbsenceStudentsContent'
                     )
                 )
-            )), new Title('Fehlende Schüler'));
+            )));
         }
         $formGroups[] = new FormGroup(
             $formRows
@@ -917,6 +919,7 @@ class Frontend extends FrontendClassRegister
     public function loadAbsenceStudentsContent(TblDivisionCourse $tblDivisionCourse, DateTime $fromDate = null, DateTime $toDate = null, IMessageInterface $message = null): string
     {
         $studentColumns = array();
+        $toggles = array();
         if (($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses())) {
             foreach ($tblPersonList as $tblPerson) {
                 // Schüler hat schon ganztägige Fehlzeit an diesem Tag → checkt und disable
@@ -931,13 +934,16 @@ class Frontend extends FrontendClassRegister
                     }
                 }
 
-                $checkBox = new CheckBox('Data[Students][' . $tblPerson->getId() . ']', $tblPerson->getLastFirstNameWithCallNameUnderline(), 1);
+                $name = 'Data[Students][' . $tblPerson->getId() . ']';
+                $checkBox = new CheckBox($name, $tblPerson->getLastFirstNameWithCallNameUnderline(), 1);
                 if ($hasAbsence) {
                     $global = $this->getGlobal();
                     $global->POST['Data']['Students'][$tblPerson->getId()] = 1;
                     $global->savePost();
 
                     $checkBox->setDisabled();
+                } else {
+                    $toggles[] = $name;
                 }
                 $studentColumns[$tblPerson->getId()] = new LayoutColumn($checkBox, 4);
             }
@@ -946,7 +952,8 @@ class Frontend extends FrontendClassRegister
         if ($studentColumns) {
             return new Layout(new LayoutGroup(new LayoutRow(
                 $studentColumns
-            ))) . $message . new Container('&nbsp;');
+            ), new \SPHERE\Common\Frontend\Layout\Repository\Title('Fehlende Schüler' . new PullRight(new ToggleSelective('Alle wählen/abwählen', $toggles)))))
+                . $message . new Container('&nbsp;');
         }
 
         return new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn('&nbsp;')))) . $message;
