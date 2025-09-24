@@ -57,29 +57,39 @@ class Service extends AbstractService
     }
 
     /**
-     * @param string $Route
+     * 1. User "has right" -> true
+     * 2. Route "needs right" or is api/app -> false
+     * 3. Route "is public" -> true
+     *
+     * @param string|null $route
      *
      * @return bool
      */
-    public function hasAuthorization($Route)
+    public function hasAuthorization(?string $route): bool
     {
-
         // Sanitize Route
-        $Route = '/'.trim($Route ?? '', '/');
-
-        // Cache
+        $route = '/'.trim($route ?? '', '/');
+        // Load
         $this->hydrateAuthorization();
-        if (in_array($Route, self::$AuthorizationCache) || in_array($Route, self::$AuthorizationRequest)) {
+        // Granted?
+        if (
+            in_array($route, self::$AuthorizationCache, true)
+            || in_array($route, self::$AuthorizationRequest, true)
+        ) {
             return true;
         }
-        if ($this->existsRightByName($Route) || preg_match('!^/Api/!is', $Route)) {
+        // Restricted?
+        if (
+            $this->existsRightByName($route)
+            || preg_match('!^/api/!i', $route)
+            || preg_match('!^/app/!i', $route)
+        ) {
             // MUST BE protected -> Access denied
             return false;
-        } else {
-            // Access valid PUBLIC -> Access granted
-            self::$AuthorizationRequest[] = $Route;
-            return true;
         }
+        // Valid via PUBLIC -> Access granted
+        self::$AuthorizationRequest[] = $route;
+        return true;
     }
 
     private function hydrateAuthorization()
