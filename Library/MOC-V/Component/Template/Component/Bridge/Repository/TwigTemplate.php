@@ -33,6 +33,7 @@ class TwigTemplate extends Bridge implements IBridgeInterface
     private $Loader = null;
     /** @var null|ArrayLoader[] */
     private $ArrayLoader = null;
+    private Environment $Instance;
 
     /**
      *
