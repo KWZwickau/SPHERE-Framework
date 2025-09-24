@@ -1,14 +1,19 @@
 <?php
+
 namespace SPHERE\Common;
 
 use Doctrine\DBAL\Driver\PDOException;
 use Doctrine\DBAL\Exception\InvalidFieldNameException;
 use Doctrine\DBAL\Exception\TableNotFoundException;
 use SPHERE\Application\Api\Api;
+use SPHERE\Application\App\App;
+use SPHERE\Application\App\Response\AbstractResponse;
+use SPHERE\Application\App\Response\Code\Response500;
 use SPHERE\Application\Billing\Billing;
 use SPHERE\Application\Contact\Contact;
 use SPHERE\Application\Corporation\Corporation;
 use SPHERE\Application\Dispatcher;
+use SPHERE\Application\DispatcherInterface;
 use SPHERE\Application\Document\DataProtectionOrdinance;
 use SPHERE\Application\Document\Document;
 use SPHERE\Application\Document\LegalNotice;
@@ -59,6 +64,7 @@ use SPHERE\System\Cache\Handler\TwigHandler;
 use SPHERE\System\Extension\Extension;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
+use Throwable;
 
 /**
  * Class Main
@@ -125,12 +131,8 @@ class Main extends Extension
         return self::$Display;
     }
 
-    /**
-     * @return Dispatcher
-     */
-    public static function getDispatcher()
+    public static function getDispatcher(): ?DispatcherInterface
     {
-
         return self::$Dispatcher;
     }
 
@@ -142,6 +144,9 @@ class Main extends Extension
         return self::$RestApiDispatcher;
     }
 
+    /**
+     * Main
+     */
     public function runPlatform()
     {
         /**
@@ -197,6 +202,27 @@ class Main extends Extension
             }
 
             exit(0);
+        }
+
+        /**
+         * APP-API
+         */
+        $pathInfo = self::getRequest()->getPathInfo();
+        if (preg_match('!^/app!i', $pathInfo)) {
+            try {
+                // Replace "default" dispatcher with app dispatcher
+                self::$Dispatcher = new \SPHERE\Application\App\Dispatcher(new \SPHERE\Application\App\Router());
+                // Register app cluster with app dispatcher
+                App::registerCluster();
+                // Run app
+                /** @var AbstractResponse $response */
+                $response = self::$Dispatcher->fetchRoute($pathInfo);
+                $response->send();
+                // Execution finished, app request served :-)
+                exit(0);
+            } catch (Throwable $throwable) {
+                return new Response500($throwable->getMessage(), $throwable->getTrace());
+            }
         }
 
         /**

@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application;
 
+use MOC\V\Component\Router\Component\Exception\ComponentException;
 use MOC\V\Component\Router\Component\IBridgeInterface;
 use MOC\V\Component\Router\Component\Parameter\Repository\RouteParameter;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
@@ -19,7 +20,7 @@ use SPHERE\System\Extension\Extension;
  *
  * @package SPHERE\Application
  */
-class Dispatcher extends Extension
+class Dispatcher extends Extension implements DispatcherInterface
 {
 
     /** @var IBridgeInterface|null $Router */
@@ -50,36 +51,36 @@ class Dispatcher extends Extension
     }
 
     /**
-     * @param RouteParameter $Route
+     * @param RouteParameter $route
      *
      * @throws \Exception
      */
-    public static function registerRoute(RouteParameter $Route)
+    public static function registerRoute(RouteParameter $route): void
     {
 
         try {
-            if (Access::useService()->hasAuthorization($Route->getPath())) {
-                if (in_array($Route->getPath(), self::$Router->getRouteList())) {
-                    throw new \Exception(__CLASS__.' > Route already available! ('.$Route->getPath().')');
+            if (Access::useService()->hasAuthorization($route->getPath())) {
+                if (in_array($route->getPath(), self::$Router->getRouteList())) {
+                    throw new \Exception(__CLASS__.' > Route already available! ('.$route->getPath().')');
                 } else {
-                    if (!preg_match('!^/?Api/!is', $Route->getPath())) {
-                        self::$Router->addRoute($Route);
+                    if (!preg_match('!^/?Api/!is', $route->getPath())) {
+                        self::$Router->addRoute($route);
                     } else {
-                        if (Access::useService()->existsRightByName('/'.$Route->getPath())) {
-                            self::$Router->addRoute($Route);
+                        if (Access::useService()->existsRightByName('/'.$route->getPath())) {
+                            self::$Router->addRoute($route);
                         } else {
-                            $Route = Main::getDispatcher()->createRoute(
-                                $Route->getPath(),
+                            $route = Main::getDispatcher()->createRoute(
+                                $route->getPath(),
                                 'SPHERE\Application\Platform\Assistance\Error\Frontend::frontendRoute'
                             );
-                            self::$Router->addRoute($Route);
+                            self::$Router->addRoute($route);
                         }
                     }
                 }
             }
-            if (!Access::useService()->existsRightByName('/'.$Route->getPath())) {
-                if (!in_array($Route->getPath(), self::$PublicRoutes)) {
-                    array_push(self::$PublicRoutes, '/'.$Route->getPath());
+            if (!Access::useService()->existsRightByName('/'.$route->getPath())) {
+                if (!in_array($route->getPath(), self::$PublicRoutes)) {
+                    array_push(self::$PublicRoutes, '/'.$route->getPath());
                 }
             }
         } catch (\Exception $Exception) {
@@ -87,27 +88,21 @@ class Dispatcher extends Extension
         }
     }
 
-    /**
-     * @param $Path
-     * @param $Controller
-     *
-     * @return RouteParameter
-     */
-    public static function createRoute($Path, $Controller)
+    public static function createRoute(string $path, string $controller): RouteParameter
     {
 
         // Map Controller Class to FQN
-        if (false === strpos($Controller, 'SPHERE')) {
-            $Controller = '\\'.$Path.'\\'.$Controller;
+        if (false === strpos($controller, 'SPHERE')) {
+            $controller = '\\'.$path.'\\'.$controller;
         }
         // Map Controller to Syntax
-        $Controller = str_replace(array('/', '//', '\\', '\\\\'), '\\', $Controller);
+        $controller = str_replace(array('/', '//', '\\', '\\\\'), '\\', $controller);
 
         // Map Route to FileSystem
-        $Path = str_replace(array('/', '//', '\\', '\\\\'), '/', $Path);
-        $Path = trim(str_replace('SPHERE/Application', '', $Path), '/');
+        $path = str_replace(array('/', '//', '\\', '\\\\'), '/', $path);
+        $path = trim(str_replace('SPHERE/Application', '', $path), '/');
 
-        return new RouteParameter($Path, $Controller);
+        return new RouteParameter($path, $controller);
     }
 
     /**
@@ -120,17 +115,14 @@ class Dispatcher extends Extension
     }
 
     /**
-     * @param $Path
-     *
-     * @return string
-     * @throws \Exception
+     * @throws ComponentException
      */
-    public static function fetchRoute($Path)
+    public static function fetchRoute(string $path): ?string
     {
 
-        $Path = trim($Path, '/');
-        if (in_array($Path, self::$Router->getRouteList())) {
-            return self::$Router->getRoute($Path);
+        $path = trim($path, '/');
+        if (in_array($path, self::$Router->getRouteList())) {
+            return self::$Router->getRoute($path);
         } else {
             if (Account::useService()->getAccountBySession()) {
                 return self::$Router->getRoute('Platform/Assistance/Error/Authorization');

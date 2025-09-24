@@ -1,10 +1,13 @@
 <?php
+
 namespace SPHERE\Application\App;
 
 use SPHERE\Application\App\Authentication\Authentication;
-use SPHERE\Application\IClusterInterface;
 
-class App implements IClusterInterface
+/**
+ *
+ */
+class App implements ClusterInterface
 {
     public static function registerCluster(): void
     {

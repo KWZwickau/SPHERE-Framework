@@ -2,82 +2,89 @@
 
 namespace SPHERE\Application\App;
 
-use Exception;
 use MOC\V\Component\Router\Component\IBridgeInterface;
 use MOC\V\Component\Router\Component\Parameter\Repository\RouteParameter;
+use SPHERE\Application\App\Response\Code\Response404;
+use SPHERE\Application\App\Response\Code\Response500;
+use SPHERE\Application\App\Response\ResponseInterface;
+use SPHERE\Application\DispatcherInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\System\Extension\Extension;
 use Throwable;
 
-class Dispatcher extends Extension
+/**
+ *
+ */
+class Dispatcher extends Extension implements DispatcherInterface
 {
-    private static ?IBridgeInterface $Router = null;
-    private static array $PublicRoutes = [];
+    private static array $publicRoutes = [
+        '/app/authentication/process/sign-in',
+        '/app/authentication/process/sign-out',
+        '/app/authentication/factor/credentials',
+        '/app/authentication/factor/yubikey',
+    ];
+    private static ?IBridgeInterface $router = null;
 
-    public function __construct(?IBridgeInterface $Router)
+    public function __construct(?IBridgeInterface $router)
     {
-        if (null !== $Router) {
-            self::$Router = $Router;
+        if (null !== $router) {
+            self::$router = $router;
         }
     }
 
-    public static function registerRoute(RouteParameter $Route): void
+    /**
+     * @throws AppException
+     */
+    public static function registerRoute(RouteParameter $route): void
     {
-        try {
-            if (Access::useService()->hasAuthorization($Route->getPath())) {
-                if (in_array($Route->getPath(), self::$Router->getRouteList())) {
-                    throw new Exception(__CLASS__ . ' > Route already available! (' . $Route->getPath() . ')');
-                } else {
-                    if (!preg_match('!^/?Api/!is', $Route->getPath())) {
-                        self::$Router->addRoute($Route);
-                    } else {
-                        if (Access::useService()->existsRightByName('/' . $Route->getPath())) {
-                            self::$Router->addRoute($Route);
-                        }
-                    }
-                }
+        $path = '/' . strtolower($route->getPath());
+
+        if (in_array($path, self::$publicRoutes, true)
+            || Access::useService()->hasAuthorization($path)
+        ) {
+            // Exists already?
+            if (in_array($path, self::$router->getRouteList(), true)) {
+                throw new AppException(__CLASS__ . ' > Route already available! (' . $path . ')');
             }
-            if (!Access::useService()->existsRightByName('/' . $Route->getPath())) {
-                if (!in_array($Route->getPath(), self::$PublicRoutes)) {
-                    self::$PublicRoutes[] = '/' . $Route->getPath();
-                }
+            // Add if restricted (additional check, in case "hasAuthorization" messes up)
+            if (in_array($path, self::$publicRoutes, true)
+                || Access::useService()->existsRightByName($path)
+            ) {
+                self::$router->addRoute($route);
+            } else {
+                throw new AppException(__CLASS__ . ' > Route has no authorization! (' . $path . ')');
             }
-        } catch (Exception $Exception) {
-            throw new Exception($Exception->getMessage());
         }
     }
 
-    public static function createRoute(string $Path, string $Controller): RouteParameter
+    public static function createRoute(string $path, string $controller): RouteParameter
     {
         // Map Controller Class to FQN
-        if (!str_contains($Controller, 'SPHERE')) {
-            $Controller = '\\' . $Path . '\\' . $Controller;
+        if (!str_contains($controller, 'SPHERE')) {
+            $controller = '\\' . $path . '\\' . $controller;
         }
         // Map Controller to Syntax
-        $Controller = str_replace(array('/', '//', '\\', '\\\\'), '\\', $Controller);
+        $controller = str_replace(['/', '//', '\\', '\\\\'], '\\', $controller);
 
         // Map Route to FileSystem
-        $Path = str_replace(array('/', '//', '\\', '\\\\'), '/', $Path);
-        $Path = trim(str_replace('SPHERE/Application', '', $Path), '/');
+        $path = str_replace(['/', '//', '\\', '\\\\'], '/', $path);
+        $path = trim(str_replace('SPHERE/Application', '', $path), '/');
 
-        return new RouteParameter($Path, $Controller);
+        return new RouteParameter($path, $controller);
     }
 
-    public static function fetchRoute(string $Path): ?string
+    public static function fetchRoute(string $path): ResponseInterface
     {
-        $Path = trim($Path, '/');
-        if (in_array($Path, self::$Router->getRouteList(), true)) {
+        $path = trim($path, '/');
+        if (in_array($path, self::$router->getRouteList(), true)) {
             try {
-                return self::$Router->getRoute($Path);
-            } catch (Throwable) {
-                return null;
+                /** @var ResponseInterface $response */
+                $response = self::$router->getRoute($path);
+                return $response;
+            } catch (Throwable $throwable) {
+                return new Response500($throwable->getMessage(), $throwable->getTrace());
             }
         }
-        return null;
-    }
-
-    public static function getPublicRoutes(): array
-    {
-        return self::$PublicRoutes;
+        return new Response404('Route not found', $path);
     }
 }
