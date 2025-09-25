@@ -125,7 +125,7 @@ class ErrorLog extends Extension implements IModuleInterface
         }
         // Lokaler Button wird nicht freigegeben
         $ButtonString = '';
-//        $ButtonString = new Standard('Json "Lokaler Test"', __NAMESPACE__.'/LocalJson', new Download());
+        $ButtonString = new Standard('Json "Lokaler Test"', __NAMESPACE__.'/LocalJson', new Download());
         $ButtonString .= new DangerLink('Logfile zurücksetzen', __NAMESPACE__.'/Clean', new Remove());
         if($Code){
             // anzeige nur bei vorhandenem Code
@@ -140,10 +140,13 @@ class ErrorLog extends Extension implements IModuleInterface
         $Date = false;
         $TableContent = array();
         $ErrorCountArray = array();
-        $isInformation = true;
+        $isInformation = false;
         if($tblReplacementLogAll){
-            if(!count($tblReplacementLogAll) == 1){
-                $isInformation = false;
+            if(count($tblReplacementLogAll) == 1
+                && ($tblReplacementLog = current($tblReplacementLogAll))
+                && $tblReplacementLog->getHour() == ''
+            ){
+                $isInformation = true;
             }
             array_walk($tblReplacementLogAll, function (&$tblReplacementLog) use (&$TableContent, &$Date, &$ErrorCountArray, $isInformation) {
                 /** @var $tblReplacementLog TblTimetableReplacementLog */
@@ -174,6 +177,8 @@ class ErrorLog extends Extension implements IModuleInterface
 
                 $TableContent[] = $item;
             });
+        } else {
+            $isInformation = true;
         }
 
         $ColumnSummary = $ColumnCourse = $ColumnSubject = $ColumnPerson = $ColumnExtra = '';
