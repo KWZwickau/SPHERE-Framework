@@ -497,7 +497,7 @@ class Gradebook extends AbstractDocument
          * Body
          */
         $tblTestGradeListByTest = array();
-        if (($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses())) {
+        if (($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses(false, true, new DateTime('today')))) {
             $number = 0;
             foreach ($tblPersonList as $tblPerson) {
                 if (!DivisionCourse::useService()->getVirtualSubjectFromRealAndVirtualByPersonAndYearAndSubject($tblPerson, $tblYear, $tblSubject)) {

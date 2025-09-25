@@ -2,6 +2,7 @@
 
 namespace SPHERE\Application\Education\Lesson\DivisionCourse\Frontend;
 
+use SPHERE\Application\Api\Education\DivisionCourse\ApiDivisionCourseStudent;
 use SPHERE\Application\Api\Education\DivisionCourse\ApiStudentSubject;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
@@ -11,6 +12,7 @@ use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblStudent
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblSubjectTable;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
+use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
@@ -20,6 +22,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\Check;
+use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Education;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
@@ -35,6 +38,10 @@ use SPHERE\Common\Frontend\Layout\Repository\PullClear;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
+use SPHERE\Common\Frontend\Layout\Structure\Layout;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
@@ -45,7 +52,9 @@ use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
+use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
+use SPHERE\Common\Window\Stage;
 
 class FrontendStudentSubject extends FrontendStudent
 {
@@ -280,6 +289,10 @@ class FrontendStudentSubject extends FrontendStudent
                     }
 
                     $dataList[$tblPerson->getId()] = $checkBox;
+                    $dataList[$tblPerson->getId()] = new Layout(new LayoutGroup(new LayoutRow(array(
+                        new LayoutColumn($checkBox, 3),
+                        new LayoutColumn(new Small(new Muted($tblPerson->getGenderString())), 9)
+                    ))));
                 }
             }
 
@@ -741,7 +754,10 @@ class FrontendStudentSubject extends FrontendStudent
 
                     $name = 'Data[StudentList][' . $tblPerson->getId() . ']';
                     $toggleList[$tblPerson->getId()] = $name;
-                    $dataList[$tblPerson->getId()] = new CheckBox($name, $tblPerson->getLastFirstName(), 1);
+                    $dataList[$tblPerson->getId()] = new Layout(new LayoutGroup(new LayoutRow(array(
+                        new LayoutColumn(new CheckBox($name, $tblPerson->getLastFirstName(), 1), 3),
+                        new LayoutColumn(new Small(new Muted($tblPerson->getGenderString())), 9)
+                    ))));
                 }
             }
 
@@ -804,5 +820,95 @@ class FrontendStudentSubject extends FrontendStudent
         }
 
         return new Danger('Kurs oder Schuljahr nicht gefunden', new Exclamation());
+    }
+
+    /**
+     * @param null $DivisionCourseId
+     * @param null $Filter
+     * @param null $Period
+     * @param null $Data
+     *
+     * @return Stage
+     */
+    public function frontendDivisionCourseStudentCourseSystem($DivisionCourseId = null, $Filter = null, $Period = null, $Data = null): Stage
+    {
+        $stage = new Stage('Schüler', '');
+        if (($tblSubjectDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))
+            && ($tblYear = $tblSubjectDivisionCourse->getServiceTblYear())
+        ) {
+            $stage->addButton((new Standard('Zurück', '/Education/Lesson/DivisionCourse/Show', new ChevronLeft(),
+                array('DivisionCourseId' => $tblSubjectDivisionCourse->getId(), 'Filter' => $Filter))));
+            $text = $tblSubjectDivisionCourse->getTypeName() . ' ' . new Bold($tblSubjectDivisionCourse->getName());
+            $stage->setDescription('der ' . $text . ' Schuljahr ' . new Bold($tblSubjectDivisionCourse->getYearName()));
+            if ($tblSubjectDivisionCourse->getDescription()) {
+                $stage->setMessage($tblSubjectDivisionCourse->getDescription());
+            }
+
+            $dataList = array();
+            $toggleList = array();
+            $tblStudentSubjectList = DivisionCourse::useService()->getStudentSubjectListBySubjectDivisionCourseAndPeriod($tblSubjectDivisionCourse, $Period);
+            $tblPersonList = array();
+            $global = $this->getGlobal();
+            $global->POST['Data']['StudentList'] = null;
+            if (($tblStudentSubjectList)) {
+                foreach ($tblStudentSubjectList as $tblStudentSubject) {
+                    if (($tblPerson = $tblStudentSubject->getServiceTblPerson())) {
+                        $tblPersonList[$tblPerson->getId()] = $tblPerson;
+                        $global->POST['Data']['StudentList'][$tblPerson->getId()] = 1;
+                    }
+                }
+            }
+            $global->savePost();
+
+            $level = substr($tblSubjectDivisionCourse->getName(), 0, 2);
+            $schoolTypeShort = substr($tblSubjectDivisionCourse->getName(), 2, 2);
+            if (($tblSchoolType = Type::useService()->getTypeByShortName($schoolTypeShort))
+                && ($tblStudentEducationList = DivisionCourse::useService()->getStudentEducationListBy($tblYear, $tblSchoolType, $level))
+            ) {
+                foreach ($tblStudentEducationList as $tblStudentEducation) {
+                    if (($tblPersonTemp = $tblStudentEducation->getServiceTblPerson())) {
+                        $tblPersonList[$tblPersonTemp->getId()] = $tblPersonTemp;
+                    }
+                }
+            }
+
+            if ($tblPersonList) {
+                $tblPersonList = $this->getSorter($tblPersonList)->sortObjectBy('LastFirstName');
+                /** @var TblPerson $tblPerson */
+                foreach ($tblPersonList as $tblPerson) {
+                    $name = 'Data[StudentList][' . $tblPerson->getId() . ']';
+                    $toggleList[$tblPerson->getId()] = $name;
+                    $dataList[$tblPerson->getId()] = new Layout(new LayoutGroup(new LayoutRow(array(
+                        new LayoutColumn(new CheckBox($name, $tblPerson->getLastFirstName(), 1), 3),
+                        new LayoutColumn(new Small(new Muted($tblPerson->getGenderString())), 9)
+                    ))));
+                }
+            }
+
+            $panel = new Panel('Schüler', $dataList, Panel::PANEL_TYPE_INFO);
+            $content = new ToggleSelective( 'Alle wählen/abwählen', $toggleList)
+                . new Container('&nbsp;')
+                . $panel
+                . (new Primary('Speichern', ApiStudentSubject::getEndpoint(), new Save()))
+                    ->ajaxPipelineOnClick(ApiStudentSubject::pipelineSaveStudentSubjectDivisionCourseList($DivisionCourseId, $Period, $tblSubjectDivisionCourse->getId(), $Filter))
+                . (new Primary('Abbrechen', '/Education/Lesson/DivisionCourse/Show', new Disable(), array('DivisionCourseId' => $tblSubjectDivisionCourse->getId(), 'Filter' => $Filter)));
+            $content = new Well((new Form(array(
+                new FormGroup(array(
+                    new FormRow(new FormColumn(
+                        new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn($content))))
+                    ))
+                )),
+            )))->disableSubmitAction());
+
+            $stage->setContent(
+                DivisionCourse::useService()->getDivisionCourseHeader($tblSubjectDivisionCourse, $Period)
+                    . ApiDivisionCourseStudent::receiverBlock($content, 'StudentSubjectContent')
+            );
+        } else {
+            $stage->addButton((new Standard('Zurück', '/Education/Lesson/DivisionCourse', new ChevronLeft())));
+            $stage->setContent(new Warning('Kurs nicht gefunden', new Exclamation()));
+        }
+
+        return $stage;
     }
 }

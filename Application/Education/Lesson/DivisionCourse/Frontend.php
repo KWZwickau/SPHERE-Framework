@@ -24,7 +24,6 @@ use SPHERE\Common\Frontend\Icon\Repository\Education;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
 use SPHERE\Common\Frontend\Icon\Repository\Filter;
-use SPHERE\Common\Frontend\Icon\Repository\Link as LinkIcon;
 use SPHERE\Common\Frontend\Icon\Repository\MinusSign;
 use SPHERE\Common\Frontend\Icon\Repository\Pen;
 use SPHERE\Common\Frontend\Icon\Repository\Person;
@@ -594,7 +593,9 @@ class Frontend extends FrontendYearChange
                 ))
             ), new \SPHERE\Common\Frontend\Layout\Repository\Title(new PersonGroup() . ' Schüler ' . $text .
                 ($tblDivisionCourse->getType()->getIsCourseSystem()
-                    ? ''
+                    ? new Link('Bearbeiten Schüler im 1.HJ', '/Education/Lesson/DivisionCourse/Student/CourseSystem', new Pen(), array('DivisionCourseId' => $tblDivisionCourse->getId(), 'Filter' => $Filter, 'Period' => 1))
+                        . ' | '
+                        . new Link('Bearbeiten Schüler im 2.HJ', '/Education/Lesson/DivisionCourse/Student/CourseSystem', new Pen(), array('DivisionCourseId' => $tblDivisionCourse->getId(), 'Filter' => $Filter, 'Period' => 2))
                     : new Link('Bearbeiten', '/Education/Lesson/DivisionCourse/Student', new Pen(), array('DivisionCourseId' => $tblDivisionCourse->getId(), 'Filter' => $Filter))
                     . ' | '
                     . new Link('Sortieren', '/Education/Lesson/DivisionCourse/Member/Sort', new ResizeVertical(),

@@ -581,9 +581,10 @@ abstract class FrontendTest extends FrontendTeacherGroup
         $integrationList = array();
         $pictureList = array();
         $courseList = array();
+        $dateTime = $tblTest->getSortDate() ?: new DateTime('today');
         if (($tblDivisionCourseList = $tblTest->getDivisionCourses())) {
             foreach ($tblDivisionCourseList as $tblDivisionCourse) {
-                if (($tempPersons = $tblDivisionCourse->getStudentsWithSubCourses())) {
+                if (($tempPersons = $tblDivisionCourse->getStudentsWithSubCourses(false, true, $dateTime))) {
                     foreach ($tempPersons as $tblPersonTemp) {
                         if (($tblVirtualSubject = DivisionCourse::useService()->getVirtualSubjectFromRealAndVirtualByPersonAndYearAndSubject(
                                 $tblPersonTemp, $tblYear, $tblSubject

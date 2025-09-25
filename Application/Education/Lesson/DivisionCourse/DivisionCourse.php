@@ -41,6 +41,9 @@ class DivisionCourse implements IModuleInterface
             __NAMESPACE__ . '/Student', __NAMESPACE__.'\Frontend::frontendDivisionCourseStudent'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '/Student/CourseSystem', __NAMESPACE__.'\Frontend::frontendDivisionCourseStudentCourseSystem'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '/DivisionTeacher', __NAMESPACE__.'\Frontend::frontendDivisionCourseDivisionTeacher'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(

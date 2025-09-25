@@ -534,7 +534,7 @@ class FrontendCourseContent extends Extension implements IFrontendInterface
     public function getStudentPanel(TblDivisionCourse $tblDivisionCourse): string
     {
         $dataList = array();
-        if (($tblDivisionCourseMemberList = $tblDivisionCourse->getStudentsWithSubCourses(true, false))) {
+        if (($tblDivisionCourseMemberList = $tblDivisionCourse->getStudentsWithSubCourses(true, false, new DateTime('today')))) {
             $count = 0;
             foreach ($tblDivisionCourseMemberList as $tblDivisionCourseMember) {
                 if (($tblPerson = $tblDivisionCourseMember->getServiceTblPerson()))

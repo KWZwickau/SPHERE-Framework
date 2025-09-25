@@ -439,7 +439,7 @@ class FrontendClassRegister extends Extension implements IFrontendInterface
         // Einträge für alle ausgewählten Personen anzeigen
         if ($tblDivisionCourse
             && ($tblYear = $tblDivisionCourse->getServiceTblYear())
-            && ($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses())
+            && ($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses(false, true, new DateTime('today')))
         ) {
             // Begrenzung auf den Zeitraum des aktuellen Schuljahres
             list($startDateSchoolYear, $endDateSchoolYear) = Term::useService()->getStartDateAndEndDateOfYear($tblYear);
@@ -808,7 +808,7 @@ class FrontendClassRegister extends Extension implements IFrontendInterface
         // Kalender-Inhalt erzeugen
         if ($tblDivisionCourse
             && ($tblYear = $tblDivisionCourse->getServiceTblYear())
-            && ($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses())
+            && ($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses(false, true, new DateTime('today')))
         ) {
             /** @var TblPerson $tblPerson */
             foreach ($tblPersonList as $tblPerson) {
