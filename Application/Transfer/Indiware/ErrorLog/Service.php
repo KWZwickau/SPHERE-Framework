@@ -5,6 +5,8 @@ namespace SPHERE\Application\Transfer\Indiware\ErrorLog;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblSetting;
 use SPHERE\Common\Frontend\Form\IFormInterface;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
+use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Window\Redirect;
 
@@ -31,6 +33,12 @@ class Service
         if (null === $Setting) {
             return $Form;
         }
+
+        if($Setting['Code'] && Account::useService()->getSettingByUniqueValue($Setting['Code'])){
+            return new Danger('Code '.$Setting['Code'].' bereits in Verwendung!'
+                .new Container('Versuche es nochmal, der Code wurde neu erzeugt.')).$Form;
+        }
+
         $consumerAcronym = Account::useService()->getMandantAcronym();
         if(!($tblAccount = Account::useService()->getAccountByUsername($consumerAcronym.'-Indiware'))){
             $tblAccount = Account::useService()->getAccountBySession();

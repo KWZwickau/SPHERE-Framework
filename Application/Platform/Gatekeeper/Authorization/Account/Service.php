@@ -1077,6 +1077,17 @@ class Service extends AbstractService
     }
 
     /**
+     * @param string $uniqueValue
+     *
+     * @return bool|TblSetting
+     */
+    public function getSettingByUniqueValue($uniqueValue)
+    {
+
+        return (new Data($this->getBinding()))->getSettingByUniqueValue($uniqueValue);
+    }
+
+    /**
      * @param TblAccount $tblAccount
      * @param string $Identifier
      * @param string $Value

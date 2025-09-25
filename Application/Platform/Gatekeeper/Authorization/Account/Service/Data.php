@@ -381,6 +381,19 @@ class Data extends AbstractData
     }
 
     /**
+     * @param string $uniqueValue
+     *
+     * @return bool|TblSetting
+     */
+    public function getSettingByUniqueValue($uniqueValue)
+    {
+
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblSetting', array(
+            TblSetting::ATTR_VALUE => $uniqueValue
+        ));
+    }
+
+    /**
      * @param TblAccount $tblAccount
      * @param string     $Identifier
      * @param string     $Value

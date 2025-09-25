@@ -1,9 +1,9 @@
 <?php
 namespace SPHERE\Application\Transfer\Indiware\ErrorLog;
 
+use SPHERE\Application\Api\Transfer\Indiware\ApiIndiware;
 use SPHERE\Application\Education\ClassRegister\Timetable\Service\Entity\TblTimetableReplacementLog;
 use SPHERE\Application\Education\ClassRegister\Timetable\Timetable;
-use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\IModuleInterface;
@@ -47,9 +47,6 @@ use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Center;
 use SPHERE\Common\Frontend\Text\Repository\Danger as DangerText;
-use SPHERE\Common\Frontend\Text\Repository\Muted;
-use SPHERE\Common\Frontend\Text\Repository\Small;
-use SPHERE\Common\Frontend\Text\Repository\Warning as WarningText;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Redirect;
@@ -126,18 +123,27 @@ class ErrorLog extends Extension implements IModuleInterface
                 $Code = $tblSetting->getValue();
             }
         }
-        $Stage->addButton(new Standard('Json "Lokaler Test"', __NAMESPACE__.'/LocalJson', new Download()));
-        $Stage->addButton(new Standard('Einstellung Übertragungscode', __NAMESPACE__.'/EditCode', new Plus()));
-        $Stage->addButton(new DangerLink('Logfile zurücksetzen', __NAMESPACE__.'/Clean', new Remove()));
+        // Lokaler Button wird nicht freigegeben
+        $ButtonString = '';
+//        $ButtonString = new Standard('Json "Lokaler Test"', __NAMESPACE__.'/LocalJson', new Download());
+        $ButtonString .= new DangerLink('Logfile zurücksetzen', __NAMESPACE__.'/Clean', new Remove());
+        if($Code){
+            // anzeige nur bei vorhandenem Code
+            $ReceiverURL = ApiIndiware::receiverContent((new Standard('URL anzeigen', '/Api/Transfer/Indiware/ApiIndiware', new EyeOpen()))
+                ->ajaxPipelineOnClick(ApiIndiware::pipelineShowUrl()),'HideButton');
+            $ButtonString .= $ReceiverURL;
+        } else {
+            // gibt es nur für Admin und auch nur, wenn kein Code vergeben ist
+            $ButtonString .= new Standard('Übertragungscode (Freischaltung)', __NAMESPACE__.'/EditCode', new Plus());
+        }
         $tblReplacementLogAll = Timetable::useService()->getTimeTableReplacementLogAll();
         $Date = false;
         $TableContent = array();
         $ErrorCountArray = array();
-        $isInformation = false;
-        $Message = '';
+        $isInformation = true;
         if($tblReplacementLogAll){
-            if(count($tblReplacementLogAll) == 1){
-                $isInformation = true;
+            if(!count($tblReplacementLogAll) == 1){
+                $isInformation = false;
             }
             array_walk($tblReplacementLogAll, function (&$tblReplacementLog) use (&$TableContent, &$Date, &$ErrorCountArray, $isInformation) {
                 /** @var $tblReplacementLog TblTimetableReplacementLog */
@@ -154,9 +160,6 @@ class ErrorLog extends Extension implements IModuleInterface
                 $item['PersonAcronym'] = $tblReplacementLog->getPersonAcronym();
                 $item['IsCanceled'] = ($tblReplacementLog->getIsCanceled() ? "Ausfall" : "" );
                 $item['Subject'] = $tblReplacementLog->getSubject();
-//                $item['DisplaySubject'] =
-//                    ($tblReplacementLog->getSubject()
-//                        ?:(!$tblReplacementLog->getSubjectSubstitute()?new DangerText('[leer]'):''));
                 $item['SubjectSubstitute'] = $tblReplacementLog->getSubjectSubstitute();
                 $ErrorList = explode(';', $tblReplacementLog->getError());
                 $item['Error'] = implode("<br/>", $ErrorList);
@@ -169,75 +172,83 @@ class ErrorLog extends Extension implements IModuleInterface
                 $item['Date'] = $this->fillErrorCount($ErrorCountArray, 'Date', $item['Date']);
                 $item['Hour'] = $this->fillErrorCount($ErrorCountArray, 'Hour', $item['Hour'], true);
 
-                // Add Content
-//                $item['Date'] .= '&nbsp;'.new Small(new Small(new Small(new Muted($this->getDayString($tblReplacementLog->getDate())))));
-//                $item['Date'] .= '<div style="line-height: 5px;padding-top: -5px;>">' // font-size: 8px;
-//                        .new Small(new Small(new Muted($this->getDayString($tblReplacementLog->getDate()))))
-//                    .'</div>';
-
                 $TableContent[] = $item;
             });
         }
+
+        $ColumnSummary = $ColumnCourse = $ColumnSubject = $ColumnPerson = $ColumnExtra = '';
         if(!$isInformation){
             $ColumnSummary = new LayoutColumn(new Title('Zusammenfassung der nicht zuweisbaren Daten:'));
             $ColumnCourse = $this->getLogLayoutColumn($ErrorCountArray, 'Course');
             $ColumnSubject = $this->getLogLayoutColumn($ErrorCountArray, 'Subject');
             $ColumnPerson = $this->getLogLayoutColumn($ErrorCountArray, 'Person');
             $ColumnExtra = $this->getLogLayoutColumn($ErrorCountArray, 'Extra');
-        } else {
-            $ColumnSummary = '';
-            $ColumnCourse = '';
-            $ColumnSubject = '';
-            $ColumnPerson = '';
-            $ColumnExtra = '';
         }
-        $ColumnDetail = new LayoutColumn(new Title('Detailansicht:'));
-        $ColumnTable = new LayoutColumn(
-            new TableData($TableContent, null, array(
-                'Date'              => 'Datum',
+        $ColumnDetail = $ColumnTable = '';
+        if($Code){
+            $ColumnDetail = new LayoutColumn(new Title('Detailansicht:'));
+            $ColumnTable = new LayoutColumn(
+                new TableData($TableContent, null, array(
+                    'Date'              => 'Datum',
 //                'Day'               => 'Tag',
-                'Course'            => 'Klasse',
-                'Hour'              => 'Stunde',
-                'Subject'           => 'Fach',
-                'SubjectSubstitute' => 'Vert. Fach',
-                'PersonAcronym'     => 'Lehrer Kürzel',
-                'Room'              => 'Raum',
-                'IsCanceled'        => 'Ausfall',
-                'Error'             => 'Error',
-            ),
-                array(
-                    'order' => array(
-                        array(0, 'asc'),
-                        array(1, 'asc'),
-                        array(2, 'asc')
-                    ),
-                    'columnDefs' => array(
+                    'Course'            => 'Klasse',
+                    'Hour'              => 'Stunde',
+                    'Subject'           => 'Fach',
+                    'SubjectSubstitute' => 'Vert. Fach',
+                    'PersonAcronym'     => 'Lehrer Kürzel',
+                    'Room'              => 'Raum',
+                    'IsCanceled'        => 'Ausfall',
+                    'Error'             => 'Error',
+                ),
+                    array(
+                        'order' => array(
+                            array(0, 'asc'),
+                            array(1, 'asc'),
+                            array(2, 'asc')
+                        ),
+                        'columnDefs' => array(
 //                    array('type' => 'de_date', 'targets' => array(0, 1)),
 //                    array('orderable' => false, 'width' => '1%', 'targets' => -1),
-                    ),
-                    'responsive' => false
-                )
-            ),
-        );
+                        ),
+                        'responsive' => false
+                    )
+                ),
+            );
+        }
 
+
+        $ReceiverURL = ApiIndiware::receiverContent('', 'ShowURL');
         $Stage->setContent(
-            new Layout(new LayoutGroup(new LayoutRow(
-                array(
+            new Layout(new LayoutGroup(array(
+                new LayoutRow(
+                    new LayoutColumn($ButtonString),
+                ),
+                new LayoutRow(
                     new LayoutColumn(
                         ($Code
-                            ? new Headline('Schnittstelle: '.'https://'.$this->getRequest()->getHost().'/RestApi/Public/Indiware/TimeTable?Savety='.
-                                $MandantAcronym.'-'.$Code.'<br/><div style="height: 8px;"></div>'. 'Zeitpunkt Import: '.$Date)
-                            : new Warning('Schnittstelle: Freischaltung erforderlich!'))
+                            ? $ReceiverURL
+                            .'<div style="height: 8px;"></div>'
+                            .'Zeitpunkt Import: '.$Date
+                            : '<div style="height: 8px;"></div>'
+                            .new Warning('Schnittstelle: Freischaltung erforderlich!'))
                     ),
-//                    new LayoutColumn(new Headline('Zeitpunkt des letzten fehlerhaften Importes: '.($Date?: 'Keine Fehler vorhanden'))),
-                        $ColumnSummary,
-                        $ColumnCourse,
-                        $ColumnSubject,
-                        $ColumnPerson,
-                        $ColumnExtra,
-                        $ColumnDetail,
-                        $ColumnTable,
-            ))))
+                ),
+                new LayoutRow(
+                    $ColumnSummary
+                ),
+                new LayoutRow(array(
+                    $ColumnCourse,
+                    $ColumnSubject,
+                    $ColumnPerson,
+                    $ColumnExtra,
+                )),
+                new LayoutRow(
+                    $ColumnDetail,
+                ),
+                new LayoutRow(
+                    $ColumnTable
+                )
+            )))
         );
 
         return $Stage;
@@ -419,9 +430,7 @@ class ErrorLog extends Extension implements IModuleInterface
             }
         }
 
-        //ToDO  GUID erstellen
         $rand = $this->createGUID();
-//        $rand = rand(10000, 99999);
         if($Code){
             $_POST['Setting']['Code'] = $Code;
         } else {
@@ -430,7 +439,7 @@ class ErrorLog extends Extension implements IModuleInterface
 
         $form = new Form(new FormGroup(array(new FormRow(array(
             new FormColumn(
-                new Info('Erzeuge ein Zufälligen Code (GUID): '.$rand)
+                new Info('Zufällig erzeugter Code (GUID): '.$rand)
 //                new TextField('Setting[Code]', '', 'Indiware-Code'),
             ),
             new FormColumn(
@@ -441,19 +450,47 @@ class ErrorLog extends Extension implements IModuleInterface
         $form->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
 
         $Stage->setContent(
-            new Layout(new LayoutGroup(new LayoutRow(array(
-                new LayoutColumn(
-                    $Code
-                    ? new Headline('Adresse der Schnittstelle:').new Ruler().
-                        '<span style="font-size: 20px">'.'https://'.$this->getRequest()->getHost().'/RestApi/Public/Indiware/TimeTable?Savety='.$MandantAcronym.'-'.$Code.'</span>'
-                    : 'Zur aktivierung bitte erzeugten Code speichern'
-                ),
-                new LayoutColumn(
+            new Layout(new LayoutGroup(array(
+                new LayoutRow(array(
+                    new LayoutColumn('', 3),
+                    new LayoutColumn(
+                        $Code
+                            ? $this->getStyledApiURL($Code)
+                            : new Info(new Container('Code wird autmoatsch erzeugt.')
+                            .new Container('Zur Aktivierung einfach speichern.')
+                            .new Container('Parallel wird ein Account [Kürzel]-Indiware erzeugt der für das speichern der Daten verwendet wird.')
+                        )
+                        , 6),
+                )),
+                new LayoutRow(new LayoutColumn(
                     '&nbsp;'
-                ),
-                new LayoutColumn(($Code ? '': new Well(ErrorLog::useService()->createCode($form, $Setting))), 6),
-            )))));
+                )),
+                new LayoutRow(array(
+                    new LayoutColumn('', 3),
+                    new LayoutColumn(($Code ? '': new Well(ErrorLog::useService()->createCode($form, $Setting))), 6),
+                )),
+            ))));
         return $Stage;
+    }
+
+    /**
+     * @param string $Code
+     *
+     * @return string
+     */
+    public function getStyledApiURL(string $Code = ''): string
+    {
+
+        if(!$Code){
+            $MandantAcronym = Account::useService()->getMandantAcronym();
+            if(($tblAccount = Account::useService()->getAccountByUsername($MandantAcronym.'-Indiware'))){
+                if(($tblSetting = Account::useService()->getSettingByAccount($tblAccount, TblSetting::ATTR_INDIWARE_CODE))){
+                    $Code = $tblSetting->getValue();
+                }
+            }
+        }
+        return new Headline('Adresse der Schnittstelle:').new Ruler().
+            '<span style="font-size: 20px">'.'https://'.$this->getRequest()->getHost().'/RestApi/Public/Indiware/TimeTable?Savety='.$Code.'</span>';
     }
 
     private function createGUID()
