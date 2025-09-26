@@ -18,6 +18,7 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer as ConsumerGatekeeper;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
+use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextArea;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
@@ -43,6 +44,7 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\AbstractLink;
 use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
@@ -56,6 +58,10 @@ use SPHERE\Common\Window\Stage;
 
 class FrontendTabs extends FrontendSelectDivisionCourse
 {
+    const WELCOME_VIEW_TIMETABLE = 'Timetable';
+    const WELCOME_VIEW_TEACHER_LECTURESHIP = 'TeacherLectureship';
+    const WELCOME_VIEW_ALL_DIGITAL = 'AllDigital';
+
     /**
      * @param null $DivisionCourseId
      * @param null $BackDivisionCourseId
@@ -687,5 +693,50 @@ class FrontendTabs extends FrontendSelectDivisionCourse
         }
 
         return $stage;
+    }
+
+    /**
+     * @param $View
+     * @param $Date
+     *
+     * @return string
+     */
+    public function loadWelcomeDigitalContent($View = null, $Date = null): string
+    {
+        // kein digitales Klassenbuch
+        if (!Access::useService()->hasAuthorization('/Api/Education/ClassRegister/ApiDigital')) {
+            return '';
+        }
+
+        $hasRightAllDigital = Access::useService()->hasAuthorization('/Education/ClassRegister/Digital/Headmaster');
+
+        if ($View == null) {
+            $View = Consumer::useService()->getAccountSettingValue('WelcomeDigitalView');
+            if (!$View) {
+                $View = self::WELCOME_VIEW_TIMETABLE;
+            }
+        }
+
+        $linkAllDigital = false;
+        if ($hasRightAllDigital) {
+            $linkAllDigital = (new Link('Ansicht: Alle Klassenbücher', ApiDigital::getEndpoint(), null, array(), false, null, AbstractLink::TYPE_WHITE_LINK))
+                ->ajaxPipelineOnClick(ApiDigital::pipelineLoadWelcomeDigitalContent(self::WELCOME_VIEW_ALL_DIGITAL));
+        }
+        $linkTeacherLectureship = (new Link('Ansicht: Fachlehrer', ApiDigital::getEndpoint(), null, array(), false, null, AbstractLink::TYPE_WHITE_LINK))
+            ->ajaxPipelineOnClick(ApiDigital::pipelineLoadWelcomeDigitalContent(self::WELCOME_VIEW_TEACHER_LECTURESHIP));
+        $linkTimetable = (new Link('Stundenplan', ApiDigital::getEndpoint(), null, array(), false, null, AbstractLink::TYPE_WHITE_LINK))
+            ->ajaxPipelineOnClick(ApiDigital::pipelineLoadWelcomeDigitalContent(self::WELCOME_VIEW_TIMETABLE));
+
+        $spacer = '&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;';
+
+        return match ($View) {
+            self::WELCOME_VIEW_TEACHER_LECTURESHIP => Digital::useService()->getDigitalClassRegisterPanelForTeacher('Digitales Klassenbuch (Ansicht: Fachlehrer)'
+                . new PullRight($linkTimetable . ($linkAllDigital ? $spacer . $linkAllDigital : ''))),
+            self::WELCOME_VIEW_ALL_DIGITAL => Digital::useService()->getDigitalClassRegisterPanelForTeacher('Digitales Klassenbuch (Ansicht: Alle Klassenbücher)'
+                . new PullRight($linkTimetable . $spacer . $linkTeacherLectureship), true),
+            self::WELCOME_VIEW_TIMETABLE => Timetable::useService()->getTimetablePanelForTeacher($Date ?: 'today',
+                new PullRight($linkTeacherLectureship . ($linkAllDigital ? $spacer . $linkAllDigital : ''))),
+            default => '',
+        };
     }
 }

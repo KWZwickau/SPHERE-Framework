@@ -4,8 +4,8 @@ namespace SPHERE\Application\Platform\Gatekeeper\Authentication;
 use DateTime;
 use Exception;
 use MOC\V\Core\FileSystem\FileSystem;
+use SPHERE\Application\Api\Education\ClassRegister\ApiDigital;
 use SPHERE\Application\Education\ClassRegister\Digital\Digital;
-use SPHERE\Application\Education\ClassRegister\Timetable\Timetable;
 use SPHERE\Application\Education\Graduation\Grade\Grade;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\ParentStudentAccess\OnlineAbsence\OnlineAbsence;
@@ -131,8 +131,7 @@ class Frontend extends Extension implements IFrontendInterface
                     && Group::useService()->existsGroupPerson($tblGroup, $tblPerson)
                 ) {
                     $contentTeacherWelcome = Grade::useService()->getTeacherWelcomeGradeTask($tblPerson)
-                        . (($timeTable = Timetable::useService()->getTimetablePanelForTeacher())
-                            ? $timeTable : Digital::useService()->getDigitalClassRegisterPanelForTeacher());
+                        . ApiDigital::receiverBlock(Digital::useFrontend()->loadWelcomeDigitalContent(), 'WelcomeDigitalContent');
                 }
             }
 

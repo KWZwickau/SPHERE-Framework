@@ -15,6 +15,7 @@ use SPHERE\Application\Education\ClassRegister\Timetable\Timetable;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseMemberType;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
@@ -487,8 +488,6 @@ class Service extends ServiceTabs
     {
         $resultList = array();
         if (($tblPerson = Account::useService()->getPersonByLogin())) {
-            $baseRoute = (Digital::useFrontend())::BASE_ROUTE;
-
             $tblDivisionCourseList = array();
             $checkedDivisionCourseList = array();
             // Lehraufträge -> dann alle Schüler des Lehrauftrags -> alle Klassen, Stammgruppen und SekII-Kurse der Schüler
@@ -527,48 +526,100 @@ class Service extends ServiceTabs
                 }
             }
 
-            /** @var TblDivisionCourse $tblDivisionCourse */
-            foreach ($tblDivisionCourseList as $tblDivisionCourse) {
-                // falsch vergebener Lehrauftrag direkt an der Klasse statt am SekII-Kurs im Falle der SekII
-                if ($tblDivisionCourse->getIsDivisionOrCoreGroup() && DivisionCourse::useService()->getIsCourseSystemByStudentsInDivisionCourse($tblDivisionCourse)) {
-                    continue;
-                    // Klassentagebuch
-                } elseif ($tblDivisionCourse->getIsDivisionOrCoreGroup()) {
-                    $resultList[] = array(
-                        'DivisionCourseId' => $tblDivisionCourse->getId(),
-                        'DivisionCourse' => $tblDivisionCourse->getDisplayName(),
-                        'DivisionCourseType' => $tblDivisionCourse->getTypeName(),
-                        'SchoolTypes' => $tblDivisionCourse->getSchoolTypeListFromStudents(true),
-                        'Option' => new Standard(
-                            '',
-                            $baseRoute . '/LessonContent',
-                            new Extern(),
-                            array(
-                                'DivisionCourseId' => $tblDivisionCourse->getId(),
-                                'BasicRoute' => $baseRoute . '/Teacher'
-                            ),
-                            'Zum Klassenbuch wechseln'
-                        )
-                    );
-                    // Kursheft (SekII-Kurs)
-                } elseif ($tblDivisionCourse->getType()->getIsCourseSystem()) {
-                    $resultList[] = array(
-                        'DivisionCourseId' => $tblDivisionCourse->getId(),
-                        'DivisionCourse' => $tblDivisionCourse->getDisplayName(),
-                        'DivisionCourseType' => $tblDivisionCourse->getTypeName(),
-                        'SchoolTypes' => $tblDivisionCourse->getSchoolTypeListFromStudents(true),
-                        'Option' => new Standard(
-                            '',
-                            $baseRoute . '/CourseContent',
-                            new Extern(),
-                            array(
-                                'DivisionCourseId' => $tblDivisionCourse->getId(),
-                                'BasicRoute' => $baseRoute . '/Teacher'
-                            ),
-                            'Zum Kursheft wechseln'
-                        )
-                    );
+            $resultList = $this->getResultListByDivisionCourseList($tblDivisionCourseList, false);
+        }
+
+        return $resultList;
+    }
+
+    /**
+     * @return array
+     */
+    public function getDigitalClassRegisterDataForAllDigital(): array
+    {
+        $tblDivisionCourseList = array();
+        if (($tblYearList = Term::useService()->getYearByNow())) {
+            foreach ($tblYearList as $tblYear) {
+                if (($tblDivisionCourseListDivision = DivisionCourse::useService()->getDivisionCourseListBy($tblYear, TblDivisionCourseType::TYPE_DIVISION))) {
+                    foreach($tblDivisionCourseListDivision as $tblDivisionCourse) {
+                        $tblDivisionCourseList[] = $tblDivisionCourse;
+                    }
                 }
+                if (($tblDivisionCourseListCoreGroup = DivisionCourse::useService()->getDivisionCourseListBy($tblYear,
+                    TblDivisionCourseType::TYPE_CORE_GROUP))) {
+                    foreach($tblDivisionCourseListCoreGroup as $tblDivisionGroup) {
+                        $tblDivisionCourseList[] = $tblDivisionGroup;
+                    }
+                }
+            }
+        }
+
+        return $this->getResultListByDivisionCourseList($tblDivisionCourseList, true);
+    }
+
+    /**
+     * @param array $tblDivisionCourseList
+     * @param bool $isAllDigital
+     *
+     * @return array
+     */
+    private function getResultListByDivisionCourseList(array $tblDivisionCourseList, bool $isAllDigital): array
+    {
+        $baseRoute = (Digital::useFrontend())::BASE_ROUTE;
+        $resultList = array();
+        /** @var TblDivisionCourse $tblDivisionCourse */
+        foreach ($tblDivisionCourseList as $tblDivisionCourse) {
+            $option = null;
+            // falsch vergebener Lehrauftrag direkt an der Klasse statt am SekII-Kurs im Falle der SekII
+            if ($tblDivisionCourse->getIsDivisionOrCoreGroup() && DivisionCourse::useService()->getIsCourseSystemByStudentsInDivisionCourse($tblDivisionCourse)) {
+                if (!$isAllDigital) {
+                    continue;
+                }
+
+                $option = new Standard(
+                    '',
+                    $baseRoute . '/SelectCourse',
+                    new Extern(),
+                    array(
+                        'DivisionCourseId' => $tblDivisionCourse->getId(),
+                        'BasicRoute' => $baseRoute . '/Headmaster'
+                    ),
+                    'Zur Kursheft-Auswahl wechseln'
+                );
+                // Klassentagebuch
+            } elseif ($tblDivisionCourse->getIsDivisionOrCoreGroup()) {
+                $option = new Standard(
+                    '',
+                    $baseRoute . '/LessonContent',
+                    new Extern(),
+                    array(
+                        'DivisionCourseId' => $tblDivisionCourse->getId(),
+                        'BasicRoute' => $baseRoute . ($isAllDigital ? '/Headmaster' : '/Teacher')
+                    ),
+                    'Zum Klassenbuch wechseln'
+                );
+                // Kursheft (SekII-Kurs)
+            } elseif ($tblDivisionCourse->getType()->getIsCourseSystem()) {
+                $option = new Standard(
+                    '',
+                    $baseRoute . '/CourseContent',
+                    new Extern(),
+                    array(
+                        'DivisionCourseId' => $tblDivisionCourse->getId(),
+                        'BasicRoute' => $baseRoute . ($isAllDigital ? '/Headmaster' : '/Teacher')
+                    ),
+                    'Zum Kursheft wechseln'
+                );
+            }
+
+            if ($option) {
+                $resultList[] = array(
+                    'DivisionCourseId' => $tblDivisionCourse->getId(),
+                    'DivisionCourse' => $tblDivisionCourse->getDisplayName(),
+                    'DivisionCourseType' => $tblDivisionCourse->getTypeName(),
+                    'SchoolTypes' => $tblDivisionCourse->getSchoolTypeListFromStudents(true),
+                    'Option' => $option
+                );
             }
         }
 
@@ -576,14 +627,22 @@ class Service extends ServiceTabs
     }
 
     /**
+     * @param string $panelHeader
+     * @param bool $isAllDigital
+     *
      * @return string
      */
-    public function getDigitalClassRegisterPanelForTeacher(): string
+    public function getDigitalClassRegisterPanelForTeacher(string $panelHeader, bool $isAllDigital = false): string
     {
-        $resultList = $this->getDigitalClassRegisterDataForTeacher();
+        if ($isAllDigital) {
+            $resultList = $this->getDigitalClassRegisterDataForAllDigital();
+        } else {
+            $resultList = $this->getDigitalClassRegisterDataForTeacher();
+        }
+
         if ($resultList) {
             return new Panel(
-                'Digitales Klassenbuch (Fachlehrer)',
+                $panelHeader,
                 new TableData(
                     $resultList,
                     null,
