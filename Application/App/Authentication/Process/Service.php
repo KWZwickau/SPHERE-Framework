@@ -2,7 +2,10 @@
 
 namespace SPHERE\Application\App\Authentication\Process;
 
+use Exception;
+use SPHERE\Application\App\AppException;
 use SPHERE\Application\App\Authentication\Process\Service\Data;
+use SPHERE\Application\App\Authentication\Process\Service\Entity\TblFactor;
 use SPHERE\Application\App\Authentication\Process\Service\Setup;
 use SPHERE\System\Database\Binding\AbstractService;
 
@@ -17,8 +20,9 @@ class Service extends AbstractService
      * @param bool $UTF8
      *
      * @return string
+     * @throws AppException
      */
-    public function setupService($doSimulation, $withData, $UTF8)
+    public function setupService($doSimulation, $withData, $UTF8): string
     {
         $Protocol = '';
         if (!$withData) {
@@ -28,5 +32,13 @@ class Service extends AbstractService
             (new Data($this->getBinding()))->setupDatabaseContent();
         }
         return $Protocol;
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function getFactorById(int $id): ?TblFactor
+    {
+        return (new Data($this->getBinding()))->getFactorById($id);
     }
 }

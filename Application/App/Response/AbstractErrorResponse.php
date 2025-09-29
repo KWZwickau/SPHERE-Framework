@@ -20,9 +20,12 @@ abstract class AbstractErrorResponse extends AbstractResponse implements ErrorIn
         $content = [
             'code' => $code,
             'title' => AbstractResponse::$statusTexts[$code] ?? 'Unknown error',
-            'error' => $content,
-            'context' => $context
+            'error' => $content
         ];
+
+        if (null !== $context) {
+            $content['context'] = $context;
+        }
 
         parent::__construct($content, $code);
     }

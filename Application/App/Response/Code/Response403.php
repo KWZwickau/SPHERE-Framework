@@ -6,6 +6,8 @@ namespace SPHERE\Application\App\Response\Code;
 use SPHERE\Application\App\Response\AbstractErrorResponse;
 
 /**
+ * Access hasn't been allowed
+ *
  * AbstractResponse::HTTP_FORBIDDEN
  */
 class Response403 extends AbstractErrorResponse

@@ -16,6 +16,7 @@ class AbstractResponse5xx extends AbstractErrorResponse
         // Prevent error debug information leakage
         if (!Debugger::isActive()) {
             $content = null;
+            $context = null;
         }
 
         parent::__construct($content, $code, $context);

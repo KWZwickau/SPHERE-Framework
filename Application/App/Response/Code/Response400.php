@@ -6,6 +6,8 @@ namespace SPHERE\Application\App\Response\Code;
 use SPHERE\Application\App\Response\AbstractErrorResponse;
 
 /**
+ * The program usage seems not right in some way (request syntax)
+ *
  * AbstractResponse::HTTP_BAD_REQUEST
  */
 class Response400 extends AbstractErrorResponse

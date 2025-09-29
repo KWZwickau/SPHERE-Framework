@@ -13,8 +13,4 @@ abstract class AbstractResponse extends JsonResponse implements ResponseInterfac
     {
         parent::__construct($content, $code);
     }
-
-    public function getTitle(): string {
-        return $this->statusText;
-    }
 }

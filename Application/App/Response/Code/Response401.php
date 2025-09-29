@@ -6,6 +6,8 @@ namespace SPHERE\Application\App\Response\Code;
 use SPHERE\Application\App\Response\AbstractErrorResponse;
 
 /**
+ * Authentication is needed or was rejected
+ *
  * AbstractResponse::HTTP_UNAUTHORIZED
  */
 class Response401 extends AbstractErrorResponse

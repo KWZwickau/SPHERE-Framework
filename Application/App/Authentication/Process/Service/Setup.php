@@ -36,7 +36,7 @@ class Setup extends AbstractSetup
          */
         $schema = clone $connection->getSchema();
         $tblFactor = $this->setTableFactor($schema);
-        $this->setTableIdentification($schema, $tblFactor);
+        $this->setTableStep($schema, $tblFactor);
         $this->setTableProcess($schema, $tblFactor);
         $this->setTableToken($schema);
         /**
@@ -51,31 +51,32 @@ class Setup extends AbstractSetup
         return $connection->getProtocol($Simulate);
     }
 
-    private function setTableFactor(Schema $Schema): Table
+    private function setTableFactor(Schema $schema): Table
     {
-        $table = $this->createTable($Schema, 'tblFactor');
-        $this->createColumn($table, 'factorName');
-        $this->createColumn($table, 'factorDescription', self::FIELD_TYPE_TEXT, true);
+        $table = $this->createTable($schema, 'tblFactor');
+        $this->createColumn($table, 'name');
+        $this->createColumn($table, 'description', self::FIELD_TYPE_TEXT, true);
         return $table;
     }
 
     /**
      * Which factor is used by which identification?
-     * Example: Identification "system" uses factor "credentials" and "yubikey"
+     * Example: The identification "system" uses factor "credentials" and "yubikey"
      */
-    private function setTableIdentification(Schema $Schema, Table $tblFactor): void
+    private function setTableStep(Schema $schema, Table $tblFactor): void
     {
-        $table = $this->createTable($Schema, 'tblIdentification');
+        $table = $this->createTable($schema, 'tblStep');
         $this->createServiceKey($table, new TblIdentification(''));
         $this->createForeignKey($table, $tblFactor);
+        $this->createColumn($table, 'sortOrder', self::FIELD_TYPE_INTEGER,false,0);
     }
 
     /**
      * The process of the current sign-in attempt
      */
-    private function setTableProcess(Schema $Schema, Table $tblFactor): void
+    private function setTableProcess(Schema $schema, Table $tblFactor): void
     {
-        $table = $this->createTable($Schema, 'tblProcess');
+        $table = $this->createTable($schema, 'tblProcess');
         $this->createServiceKey($table, new TblAccount(''));
         $this->createForeignKey($table, $tblFactor);
         /**
@@ -91,8 +92,8 @@ class Setup extends AbstractSetup
         $table = $this->createTable($Schema, 'tblToken');
         $this->createServiceKey($table, new TblAccount(''));
         $this->createColumn($table, 'authenticationToken', self::FIELD_TYPE_STRING, true);
-        $this->createColumn($table, 'authenticationTokenTimeout', self::FIELD_TYPE_INTEGER, true);
+        $this->createColumn($table, 'authenticationTimeout', self::FIELD_TYPE_INTEGER, true);
         $this->createColumn($table, 'accessToken', self::FIELD_TYPE_STRING, true);
-        $this->createColumn($table, 'accessTokenTimeout', self::FIELD_TYPE_INTEGER, true);
+        $this->createColumn($table, 'accessTimeout', self::FIELD_TYPE_INTEGER, true);
     }
 }

@@ -6,6 +6,8 @@ namespace SPHERE\Application\App\Response\Code;
 use SPHERE\Application\App\Response\AbstractErrorResponse;
 
 /**
+ * Using the wrong HTTP verb for the situation GET|POST|PUT|PATCH|DELETE|...
+ *
  * AbstractResponse::HTTP_METHOD_NOT_ALLOWED
  */
 class Response405 extends AbstractErrorResponse

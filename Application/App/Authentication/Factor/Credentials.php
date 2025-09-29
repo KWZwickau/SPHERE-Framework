@@ -46,10 +46,8 @@ class Credentials implements ModuleInterface
             ]);
         }
 
-
-
         // TODO:
 
-        return new Response200($tblAccount->getSessionTimeOut());
+        return new Response200(':o)');
     }
 }

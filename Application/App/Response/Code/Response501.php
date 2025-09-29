@@ -4,6 +4,8 @@ namespace SPHERE\Application\App\Response\Code;
 
 
 /**
+ * Things that should happen can't happen because they are not implemented yet
+ *
  * AbstractResponse5xx::HTTP_NOT_IMPLEMENTED
  */
 class Response501 extends AbstractResponse5xx

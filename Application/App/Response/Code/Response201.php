@@ -6,6 +6,8 @@ namespace SPHERE\Application\App\Response\Code;
 use SPHERE\Application\App\Response\AbstractSuccessResponse;
 
 /**
+ * There was data created
+ *
  * AbstractResponse::HTTP_CREATED
  */
 class Response201 extends AbstractSuccessResponse
