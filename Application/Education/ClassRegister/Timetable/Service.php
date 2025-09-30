@@ -598,6 +598,7 @@ class Service extends AbstractService
                 }
 
                 $tblLessonContent->setRoom($tblTimetableReplacement->getRoom());
+                $tblLessonContent->setServiceTblPerson($tblTimetableReplacement->getServiceTblPerson() ?: null);
                 $tblLessonContent->setIsCanceled($tblTimetableReplacement->getIsCanceled());
 
                 $resultList[] = $tblLessonContent;
@@ -618,6 +619,7 @@ class Service extends AbstractService
                     if ($tblTimetableNode->getServiceTblSubject() && !isset($subjectList[$tblTimetableNode->getServiceTblSubject()->getId()])) {
                         $tblLessonContent = new TblLessonContent();
                         $tblLessonContent->setServiceTblSubject($tblTimetableNode->getServiceTblSubject() ?: null);
+                        $tblLessonContent->setServiceTblPerson($tblTimetableNode->getServiceTblPerson() ?: null);
                         $tblLessonContent->setRoom($tblTimetableNode->getRoom());
                         $resultList[] = $tblLessonContent;
                     }
@@ -629,6 +631,7 @@ class Service extends AbstractService
                 foreach ($tblTimeTableNodeList as $tblTimetableNode) {
                     $tblLessonContent = new TblLessonContent();
                     $tblLessonContent->setServiceTblSubject($tblTimetableNode->getServiceTblSubject() ?: null);
+                    $tblLessonContent->setServiceTblPerson($tblTimetableNode->getServiceTblPerson() ?: null);
                     $tblLessonContent->setRoom($tblTimetableNode->getRoom());
                     $resultList[] = $tblLessonContent;
                 }
