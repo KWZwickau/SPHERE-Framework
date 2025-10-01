@@ -796,6 +796,10 @@ class Service extends AbstractService
         $ExportData = array();
         $AddressPersonCount = 1;
         $tblFilterCategory = $tblSerialLetter->getFilterCategory();
+        $isFemaleFirst = false; // DIN 5008 Standard
+        if(($Setting = Consumer::useService()->getSetting('Reporting', 'SerialLetter', 'GenderSort', 'FirstFemale'))){
+            $isFemaleFirst = $Setting->getValue();
+        }
         if(!empty($tblPersonList)) {
             $tblPersonList = $this->getSorter($tblPersonList)->sortObjectBy('LastFirstName', new StringGermanOrderSorter());
             /** @var TblPerson $tblPerson */
@@ -1015,6 +1019,7 @@ class Service extends AbstractService
                                         // Personenunabhängig
                                         foreach ($Address['PersonLastName'] as $Key => $LastName) {
                                             if ($firstAddressLine === '') {
+                                                // Initialbefüllung
                                                 if ($Address['PersonSalutation'][$Key] == 'Herr') {
                                                     $firstAddressLine = $Address['PersonSalutation'][$Key].'n';
                                                 }
@@ -1022,13 +1027,26 @@ class Service extends AbstractService
                                                     $firstAddressLine = $Address['PersonSalutation'][$Key];
                                                 }
                                             } else {
-                                                // Herrn steht immer vorne (DIN 5008)
-                                                if ($Address['PersonSalutation'][$Key] == 'Herr') {
-                                                    $firstAddressLine = $Address['PersonSalutation'][$Key].'n und '. $firstAddressLine;
-                                                }
-                                                // Frau steht immer hinten (DIN 5008)
-                                                if ($Address['PersonSalutation'][$Key] == 'Frau') {
-                                                    $firstAddressLine = $firstAddressLine.' und '.$Address['PersonSalutation'][$Key];
+                                                // Hinzufügen der 2.ten Person
+                                                if($isFemaleFirst){
+                                                    // Frau vorn
+                                                    if ($Address['PersonSalutation'][$Key] == 'Frau') {
+                                                        $firstAddressLine = $Address['PersonSalutation'][$Key].' und '. $firstAddressLine.'n';
+                                                    }
+                                                    // Herr hinten
+                                                    if ($Address['PersonSalutation'][$Key] == 'Herr') {
+                                                        $firstAddressLine = $firstAddressLine.' und '.$Address['PersonSalutation'][$Key].'n';
+                                                    }
+                                                } else {
+                                                    // DIN 5008 Standard. Wird in der regel aber genau andersrum gemacht. (Standard Einstellung)
+                                                    // Herrn steht immer vorne (DIN 5008)
+                                                    if ($Address['PersonSalutation'][$Key] == 'Herr') {
+                                                        $firstAddressLine = $Address['PersonSalutation'][$Key].'n und '. $firstAddressLine;
+                                                    }
+                                                    // Frau steht immer hinten (DIN 5008)
+                                                    if ($Address['PersonSalutation'][$Key] == 'Frau') {
+                                                        $firstAddressLine = $firstAddressLine.' und '.$Address['PersonSalutation'][$Key];
+                                                    }
                                                 }
                                             }
                                             if ($secondAddressLine === '') {
