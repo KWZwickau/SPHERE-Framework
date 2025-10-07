@@ -55,6 +55,9 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblResponsibility', 'CompanyNumber')) {
             $Table->addColumn('CompanyNumber', 'string');
         }
+        if (!$this->getConnection()->hasColumn('tblResponsibility', 'CompanyNumberStaff')) {
+            $Table->addColumn('CompanyNumberStaff', 'string');
+        }
 
         return $Table;
     }
