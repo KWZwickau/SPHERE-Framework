@@ -431,7 +431,7 @@ class Frontend extends FrontendTabs
                             $subjectIdList[$SubjectId] = 1;
 
                             $this->setDayViewNewLinkBodyList($bodyList, $absenceContent, $i, $index, $DivisionCourseId, $date,
-                                $tblLessonContentTemp->getDisplaySubject(true), $tblLessonContentTemp->getRoom(), $SubjectId);
+                                $tblLessonContentTemp->getDisplaySubject(true), $tblLessonContentTemp->getRoom(), $tblLessonContentTemp->getTeacherString(false), $SubjectId);
                         }
                     }
                 }
@@ -458,7 +458,7 @@ class Frontend extends FrontendTabs
                         $subjectIdList[$SubjectId] = 1;
 
                         $this->setDayViewNewLinkBodyList($bodyList, $absenceContent, $i, $index, $DivisionCourseId, $date,
-                            $tblLessonContentTemp->getDisplaySubject(true), $tblLessonContentTemp->getRoom(), $SubjectId);
+                            $tblLessonContentTemp->getDisplaySubject(true), $tblLessonContentTemp->getRoom(), $tblLessonContentTemp->getTeacherString(false), $SubjectId);
                     }
                 }
             //  alternativ zum importierten Stundenplan wird nach vorherige Einträge gesucht
@@ -468,10 +468,10 @@ class Frontend extends FrontendTabs
                 ))
             ) {
                 $this->setDayViewNewLinkBodyList($bodyList, $absenceContent, $i, $index, $DivisionCourseId, $date,
-                    $tblLessonContentTemp->getDisplaySubject(true), $tblLessonContentTemp->getRoom());
+                    $tblLessonContentTemp->getDisplaySubject(true), $tblLessonContentTemp->getRoom(), $tblLessonContentTemp->getTeacherString(false));
             // neu links
             } else {
-                $this->setDayViewNewLinkBodyList($bodyList, $absenceContent, $i, $index, $DivisionCourseId, $date, '', '');
+                $this->setDayViewNewLinkBodyList($bodyList, $absenceContent, $i, $index, $DivisionCourseId, $date, '', '', '');
             }
         }
         ksort($bodyList);
@@ -596,7 +596,7 @@ class Frontend extends FrontendTabs
     }
 
     private function setDayViewNewLinkBodyList(array &$bodyList, array $absenceContent, int $lesson, int $index, int $DivisionCourseId, DateTime $date,
-        string $subject, string $room, int $SubjectId = null)
+        string $subject, string $room, string $teacher, int $SubjectId = null)
     {
         $linkLesson = (new Link(
             new Center($lesson),
@@ -645,7 +645,7 @@ class Frontend extends FrontendTabs
             'Lesson' => $linkLesson,
             'Subject' => $this->getLessonsNewLink($subject, $date, $lesson, $DivisionCourseId, $SubjectId),
             'Room' => $this->getLessonsNewLink($room, $date, $lesson, $DivisionCourseId, $SubjectId),
-            'Teacher' => $this->getLessonsNewLink('', $date, $lesson, $DivisionCourseId, $SubjectId),
+            'Teacher' => $this->getLessonsNewLink($teacher, $date, $lesson, $DivisionCourseId, $SubjectId),
             'Content' => $this->getLessonsNewLink('', $date, $lesson, $DivisionCourseId, $SubjectId),
             'Homework' => $homework,
 
@@ -852,26 +852,13 @@ class Frontend extends FrontendTabs
             $dateStringList[$day] = $startDate->format('d.m.Y');
             if (($tblLessonContentList = Digital::useService()->getLessonContentAllByDate($startDate, $tblDivisionCourse))) {
                 foreach ($tblLessonContentList as $tblLessonContent) {
-                    $teacher = '';
-                    if (($tblPerson = $tblLessonContent->getServiceTblPerson())) {
-                        if (($tblTeacher = Teacher::useService()->getTeacherByPerson($tblPerson))
-                            && ($acronym = $tblTeacher->getAcronym())
-                        ) {
-                            $teacher = $acronym;
-                        } else {
-                            if (strlen($tblPerson->getLastName()) > 5) {
-                                $teacher = mb_substr($tblPerson->getLastName(), 0, 5) . '.';
-                            }
-                        }
-                    }
-
                     $lesson = $tblLessonContent->getLesson();
                     if ($lesson > $maxLesson) {
                         $maxLesson = $lesson;
                     }
 
                     $display = $tblLessonContent->getDisplaySubject(true)
-                        . ($teacher ? ' (' . $teacher . ')' : '')
+                        . (($teacher = $tblLessonContent->getTeacherString(false)) ? ' (' . $teacher . ')' : '')
                         . ($tblLessonContent->getContent() ? new Container('Inhalt: ' . $tblLessonContent->getContent()) : '')
                         . ($tblLessonContent->getHomework() ? new Container('Hausaufgaben: ' . $tblLessonContent->getHomework()) : '');
                     if ($isReadOnly || !Digital::useService()->getIsLessonContentEditAllowed($tblLessonContent)) {
@@ -917,7 +904,8 @@ class Frontend extends FrontendTabs
                             if (!isset($subjectIdListByDayAndLesson[$i][$j][$SubjectId])) {
                                 $subjectIdListByDayAndLesson[$i][$j][$SubjectId] = 1;
 
-                                $cellContent = $tblLessonContentTemp->getDisplaySubject(true);
+                                $cellContent = $tblLessonContentTemp->getDisplaySubject(true)
+                                    . (($teacher = $tblLessonContentTemp->getTeacherString(false)) ? ' (' . $teacher . ')' : '');
 
                                 if ($cell) {
                                     $cell .= new Container(new Center('--------------------'));
@@ -949,7 +937,8 @@ class Frontend extends FrontendTabs
                             if (!isset($subjectIdList[$SubjectId])) {
                                 $subjectIdList[$SubjectId] = 1;
                             }
-                            $cellContent = $tblLessonContentTemp->getDisplaySubject(true);
+                            $cellContent = $tblLessonContentTemp->getDisplaySubject(true)
+                                . (($teacher = $tblLessonContentTemp->getTeacherString(false)) ? ' (' . $teacher . ')' : '');
 
                             if ($cell) {
                                 $cell .= new Container(new Center('--------------------'));
@@ -968,7 +957,8 @@ class Frontend extends FrontendTabs
                             $tblDivisionCourse, new DateTime($dateStringList[$j]), $i
                         ))
                     ) {
-                        $cellContent = $tblLessonContentTemp->getDisplaySubject(true);
+                        $cellContent = $tblLessonContentTemp->getDisplaySubject(true)
+                            . (($teacher = $tblLessonContentTemp->getTeacherString(false)) ? ' (' . $teacher . ')' : '');;
                         $cell = (new Link(
                             $cellContent,
                             ApiDigital::getEndpoint(),
