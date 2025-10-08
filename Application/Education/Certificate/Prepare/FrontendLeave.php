@@ -38,10 +38,14 @@ use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\Calendar;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
+use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
+use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
+use SPHERE\Common\Frontend\Icon\Repository\Question;
+use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Select;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
@@ -118,17 +122,31 @@ class FrontendLeave extends FrontendDiplomaTechnicalSchool
                             || $tblType->getName() == 'Berufliches Gymnasium'
                         )
                     ) {
+                        $deleteButton = '';
+                        $certificate = '';
+                        if (($tblLeaveStudent = Prepare::useService()->getLeaveStudentBy($tblPerson, $tblSelectYear))) {
+                            $deleteButton = new Standard(
+                                '', '/Education/Certificate/Prepare/Leave/Student/Delete', new Remove(),
+                                array(
+                                    'Id' => $tblLeaveStudent->getId(),
+                                ),
+                                'Löschen'
+                            );
+                            $certificate = ($tblCertificate = $tblLeaveStudent->getServiceTblCertificate()) ? $tblCertificate->getName() : '';
+                        }
+
                         $studentTable[] = array(
                             'Name' => $tblPerson->getLastFirstNameWithCallNameUnderline(),
                             'Division' => DivisionCourse::useService()->getCurrentMainCoursesByPersonAndYear($tblPerson, $tblSelectYear),
-                            'Option' => new Standard(
+                            'Certificate' => $certificate,
+                            'Option' => (new Standard(
                                 '', '/Education/Certificate/Prepare/Leave/Student', new Select(),
                                 array(
                                     'PersonId' => $tblPerson->getId(),
                                     'YearId' => $tblSelectYear->getId(),
                                 ),
                                 'Auswählen'
-                            )
+                            )) . $deleteButton,
                         );
                     }
                 }
@@ -151,15 +169,17 @@ class FrontendLeave extends FrontendDiplomaTechnicalSchool
                                 array(
                                     'Name' => 'Name',
                                     'Division' => 'Kurs',
+                                    'Certificate' => 'Zeugnisvorlage',
                                     'Option' => ''
                                 ),
                                 array(
                                     'order'      => array(
+                                        array('2', 'desc'),
                                         array('0', 'asc'),
                                     ),
                                     'columnDefs' => array(
                                         array('type' => 'natural', 'targets' => 1),
-                                        array('orderable' => false, 'width' => '1%', 'targets' => -1),
+                                        array('orderable' => false, 'width' => '60px', 'targets' => -1),
                                     ),
                                 )
                             )
@@ -1063,5 +1083,73 @@ class FrontendLeave extends FrontendDiplomaTechnicalSchool
         }
 
         return $layoutGroups;
+    }
+
+    /**
+     * @param $Id
+     * @param $Confirm
+     *
+     * @return Stage
+     */
+    public function frontendDestroyLeaveStudent($Id = null, $Confirm = null): Stage
+    {
+        $Stage = new Stage('Abgangszeugnis', 'Löschen');
+        if (($tblLeaveStudent = Prepare::useService()->getLeaveStudentById($Id))
+            && ($tblYear = $tblLeaveStudent->getServiceTblYear())
+            && ($tblPerson = $tblLeaveStudent->getServiceTblPerson())
+        ) {
+            $Stage->addButton(new Standard(
+                'Zurück', '/Education/Certificate/Prepare/Leave', new ChevronLeft(), array('YearId' => $tblYear->getId())
+            ));
+
+            $content[] = 'Person: ' . $tblPerson->getFullName();
+            $content[] = 'Schuljahr: ' . $tblYear->getDisplayName();
+            $content[] = 'Zeugnisvorlage: ' . (($tblCertificate = $tblLeaveStudent->getServiceTblCertificate()) ? $tblCertificate->getName() : '');
+
+            if (!$Confirm) {
+                $Stage->setContent(
+                    new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(array(
+                        new Panel(
+                            new Question() . ' Dieses Abgangszeugnis wirklich löschen?',
+                            $content,
+                            Panel::PANEL_TYPE_DANGER,
+                            new Standard(
+                                'Ja', '/Education/Certificate/Prepare/Leave/Student/Delete', new Ok(),
+                                array(
+                                    'Id' => $Id,
+                                    'Confirm' => true
+                                )
+                            )
+                            . new Standard(
+                                'Nein', '/Education/Certificate/Prepare/Leave', new Disable(), array('YearId' => $tblYear->getId())
+                            )
+                        ),
+                    )))))
+                );
+            } else {
+                $Stage->setContent(
+                    new Layout(new LayoutGroup(array(
+                        new LayoutRow(new LayoutColumn(
+                            (Prepare::useService()->destroyLeaveStudent($tblLeaveStudent)
+                                ? new \SPHERE\Common\Frontend\Message\Repository\Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Das Abgangszeugnis wurde gelöscht')
+                                . new Redirect('/Education/Certificate/Prepare/Leave', Redirect::TIMEOUT_SUCCESS, array('YearId' => $tblYear->getId()))
+                                : new Danger(new Ban() . ' Das Abgangszeugnis konnte nicht gelöscht werden')
+                                . new Redirect('/Education/Certificate/Prepare/Leave', Redirect::TIMEOUT_ERROR, array('YearId' => $tblYear->getId()))
+                            )
+                        ))
+                    )))
+                );
+            }
+        } else {
+            $Stage->setContent(
+                new Layout(new LayoutGroup(array(
+                    new LayoutRow(new LayoutColumn(array(
+                        new Danger(new Ban() . ' Das Abgangszeugnis konnte nicht gefunden werden'),
+                        new Redirect('/Education/Certificate/Prepare/Leave', Redirect::TIMEOUT_ERROR)
+                    )))
+                )))
+            );
+        }
+        return $Stage;
     }
 }
