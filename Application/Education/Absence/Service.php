@@ -499,7 +499,7 @@ class Service extends AbstractService
         if (!empty($tblDivisionCourseList)) {
             /** @var TblDivisionCourse $tblDivisionCourse */
             foreach ($tblDivisionCourseList as $tblDivisionCourse) {
-                if (($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses())) {
+                if (($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses(false, true, new DateTime('today')))) {
                     foreach ($tblPersonList as $tblPersonItem) {
                         if (($tblAbsencePersonList = $this->getAbsenceAllBetweenByPerson($tblPersonItem, $fromDate, $toDate))) {
                             $tblAbsenceList = array_merge($tblAbsenceList, $tblAbsencePersonList);

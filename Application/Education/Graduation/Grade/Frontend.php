@@ -214,7 +214,7 @@ class Frontend extends FrontendTestPlanning
 
             $inactiveStudentList = array();
             if ($ShowInActive) {
-                $tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses(true);
+                $tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses(true, true, new DateTime('today'));
                 if (($tblDivisionCourseMemberList = $tblDivisionCourse->getStudentsWithSubCourses(true, false))) {
                     /** @var TblDivisionCourseMember $tblDivisionCourseMember */
                     foreach ($tblDivisionCourseMemberList as $tblDivisionCourseMember) {
@@ -224,7 +224,7 @@ class Frontend extends FrontendTestPlanning
                     }
                 }
             } else {
-                $tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses();
+                $tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses(false, true, new DateTime('today'));
                 if (($countInActive = $tblDivisionCourse->getCountInActiveStudents())) {
                     $tempContent = $countInActive == 1 ? ' inaktiven' : ' inaktive';
                     $optionInActive = (new CheckBox('Data[OptionInActive]', $countInActive . $tempContent . ' Schüler mit anzeigen', 1))
@@ -1685,7 +1685,7 @@ class Frontend extends FrontendTestPlanning
         ) {
             $textKurs = new Bold($tblDivisionCourse->getDisplayName());
             $textSubject = new Bold($tblSubject->getDisplayName());
-            $tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses();
+            $tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses(false, true, new DateTime('today'));
 
             $bodyList = array();
             $integrationList = array();

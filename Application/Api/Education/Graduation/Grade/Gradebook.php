@@ -86,7 +86,7 @@ class Gradebook implements IModuleInterface
 
         $isShortYear = false;
         $tblYear = $tblDivisionCourse->getServiceTblYear();
-        if (($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses())) {
+        if (($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses(false, true, new DateTime('today')))) {
             foreach ($tblPersonList as $tblPerson) {
                 if (DivisionCourse::useService()->getIsShortYearByPersonAndYear($tblPerson, $tblYear)) {
                     $isShortYear = true;
@@ -187,7 +187,7 @@ class Gradebook implements IModuleInterface
         }
 
         $tblTestGradeListByTest = array();
-        if (($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses())) {
+        if ($tblPersonList) {
             $number = 0;
             foreach ($tblPersonList as $tblPerson) {
                 $data = array();

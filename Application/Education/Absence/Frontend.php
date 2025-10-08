@@ -770,7 +770,7 @@ class Frontend extends FrontendClassRegister
         $tblPersonList = false;
         if ($DivisionCourseId) {
             $tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId);
-            $tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses();
+            $tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses(false, true, new DateTime('today'));
         }
 
         if ($hasStatusUnclear
@@ -920,7 +920,7 @@ class Frontend extends FrontendClassRegister
     {
         $studentColumns = array();
         $toggles = array();
-        if (($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses())) {
+        if (($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses(false, true, new DateTime('today')))) {
             foreach ($tblPersonList as $tblPerson) {
                 // Schüler hat schon ganztägige Fehlzeit an diesem Tag → checkt und disable
                 $hasAbsence = false;

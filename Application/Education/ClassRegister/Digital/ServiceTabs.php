@@ -479,7 +479,7 @@ abstract class ServiceTabs extends ServiceForgotten
      */
     public function getStudentTable(TblDivisionCourse $tblDivisionCourse, string $BasicRoute, string $ReturnRoute): string
     {
-        if (($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses())
+        if (($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses(false, true, new DateTime('today')))
             && ($tblYear = $tblDivisionCourse->getServiceTblYear())
             && (list($fromDate, $tillDate) = Term::useService()->getStartDateAndEndDateOfYear($tblYear))
             && $fromDate

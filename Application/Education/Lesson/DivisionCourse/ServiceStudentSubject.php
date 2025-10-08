@@ -229,7 +229,7 @@ abstract class ServiceStudentSubject extends ServiceCourseSystem
     {
         $tblStudentSubjectList = array();
         if (($tblYear = $tblDivisionCourse->getServiceTblYear())
-            && ($tblStudentList = DivisionCourse::useService()->getStudentListBy($tblDivisionCourse))
+            && ($tblStudentList = $tblDivisionCourse->getStudents())
         ) {
             foreach ($tblStudentList as $tblPerson) {
                 if (($tblStudentSubject = $this->getStudentSubjectByPersonAndYearAndDivisionCourseAndPeriod($tblPerson, $tblYear, $tblSubjectDivisionCourse, $Period))) {
