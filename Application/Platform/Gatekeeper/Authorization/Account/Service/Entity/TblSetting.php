@@ -19,6 +19,7 @@ class TblSetting extends Element
     const ATTR_TBL_ACCOUNT = 'tblAccount';
     const ATTR_IDENTIFIER = 'Identifier';
     const ATTR_INDIWARE_CODE = 'Indiware_Code';
+    const ATTR_VALUE = 'Value';
     const VAR_EMPTY_AGB = '0';
     const VAR_ACCEPT_AGB = '1';
     const VAR_UPDATE_AGB = '2';

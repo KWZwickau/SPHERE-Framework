@@ -81,50 +81,30 @@ class ApiIndiware implements IApiInterface
     public static function getTimeTable(string $Savety = ''): JsonResponse
     {
 
-        $JsonResponse = new JsonResponse();
-        $StartControlNumber = strpos($Savety, '-');
-        $NumberControl = substr($Savety, $StartControlNumber+1);
-        $Mandant = substr($Savety, 0, $StartControlNumber);
-        $Code = '';
-        if((Consumer::useService()->getConsumerByAcronym($Mandant))){
-            if(($tblAccount = Account::useService()->getAccountByUsername($Mandant.'-Indiware'))){
-                if(($tblSetting = Account::useService()->getSettingByAccount($tblAccount, TblSetting::ATTR_INDIWARE_CODE))){
-                    $Code = $tblSetting->getValue();
-                }
-                if(($NumberControl) != $Code){
-                    // Code stimmt nicht überein
-                    return $JsonResponse->setData(array("Identifier" => "error", "message" => "Indiware_ErrorCode_1"));
-                }
-            } else {
-                // Indiware Account fehlt
-                return $JsonResponse->setData(array("Identifier" => "error", "message" => "Indiware_ErrorCode_2"));
-            }
-        } else {
-            // Mandant fehlt
-            return $JsonResponse->setData(array("Identifier" => "error", "message" => "Indiware_ErrorCode_3"));
+        $JsonResponse = new JsonResponse(null, JsonResponse::HTTP_ACCEPTED);
+        $JsonResponse->setData(array("status" => "202", "message" => "accepted"));
+
+        if(!($tblSetting = Account::useService()->getSettingByUniqueValue($Savety))) {
+//            return $JsonResponse->setData(array("status" => "202", "message" => "accepted"));
+            return $JsonResponse;
+        }
+        if(!($tblAccount = $tblSetting->getTblAccount())) {
+//            return $JsonResponse->setData(array("status" => "202", "message" => "accepted"));
+            return $JsonResponse;
         }
 
         // Login Service-Account
         Account::useService()->createSession($tblAccount, session_id());
-        // entfernen alter Log Daten
+        // remove old log data
         Timetable::useService()->destroyTimetableReplacementLogBulk();
-
         // JSON content laden
         $json = file_get_contents('php://input');
-        // Test mit Lokalen Daten
-//        $json = (new JsonReplacementTest())->getJson($Mandant);
-//        Account::useService()->destroySession(null, session_id());
-//        return $JsonResponse->setData(array("Identifier" => "error", "message" => getallheaders(), "JSON" => $json)); // , 'JSON' => $json
-
-        if(($message = Replacement::useService()->importJsonReplacement($json))){
-            // Logout Service-Account
-            Account::useService()->destroySession(null, session_id());
-            return $JsonResponse->setData(array("Identifier" => "error", "message" => $message)); // , 'JSON' => $json
-//            return $JsonResponse->setData(array("Identifier" => "success 2", "message" => "JSON 2 saved in file.")); // , 'JSON' => $json
-        }
+        // import -> return value ignored
+        Replacement::useService()->importJsonReplacement($json);
         // Logout Service-Account
         Account::useService()->destroySession(null, session_id());
 
-        return $JsonResponse->setData(array("Identifier" => "success", "message" => "data saved")); // , 'JSON' => $json
+//        return $JsonResponse->setData(array("Identifier" => "success", "message" => "data saved")); // , 'JSON' => $json
+        return $JsonResponse;
     }
 }
