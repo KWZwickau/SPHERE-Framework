@@ -1239,7 +1239,7 @@ class Creator extends Extension
         } elseif($Select == 'UserRole') {
             $file = "Common/Style/Resource/Document/Manual/SSWUserRole.pdf";
             header("Content-Type: application/pdf");
-            header("Content-Disposition: attachment; filename=Benutzerrechte_Schulsoftware_06.06.2025.pdf");
+            header("Content-Disposition: attachment; filename=Benutzerrechte_Schulsoftware_08.10.2025.pdf");
             header("Content-Length: ".filesize($file));
         } elseif($Select == 'DigitalClassBook') {
             $file = "Common/Style/Resource/Document/Manual/SSWDigitalClassBook.pdf";

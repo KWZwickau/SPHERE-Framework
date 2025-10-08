@@ -522,7 +522,7 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
             case 'Auswertung: Kamenz-Statistik':return $this->setToolTip('Auswertungen für die Kamenz-Statistik (verfügbar für Schulträger, die die anteilige
                 Kostenübernahme für diese Auswertung über die Schulstiftung explizit zugesagt haben)');
             case 'Bildung: Fehlzeiten (Verwaltung)': return $this->setToolTip('Fehlzeitenverwaltung Kalenderansicht mit direkter Suche über alle Schüler');
-            case 'Bildung: Inklusion': return $this->setToolTip('Übersicht und Bearbeitung aller Inklusionsschüler');
+            case 'Bildung: Inklusion': return $this->setToolTip('Übersicht und Bearbeitung Förderverlauf, Entwicklungsbesonderheiten und Nachteilsausgleich');
             case 'Bildung: Klassenbuch (Lehrer mit Lehrauftrag)':  return $this->setToolTip('Digitales Klassenbuch für Lehrer mit Lehrauftrag und
                 Klassenlehrer');
             case 'Bildung: Klassenbuch (Alle Klassenbücher)': return $this->setToolTip('Digitales Klassenbuch aller Klassen');
