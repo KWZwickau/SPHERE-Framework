@@ -5,6 +5,8 @@ use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\Education\Diary\Diary;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\IApiInterface;
+use SPHERE\Application\People\Person\Person;
+use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
 use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
@@ -18,23 +20,10 @@ use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
-use SPHERE\Common\Frontend\Icon\Repository\Ok;
-use SPHERE\Common\Frontend\Icon\Repository\Plus;
-use SPHERE\Common\Frontend\Icon\Repository\Question;
-use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Select;
-use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
-use SPHERE\Common\Frontend\Layout\Repository\Well;
-use SPHERE\Common\Frontend\Layout\Structure\Layout;
-use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
-use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
-use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
-use SPHERE\Common\Frontend\Link\Repository\Danger as DangerLink;
 use SPHERE\Common\Frontend\Link\Repository\Primary;
-use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
-use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Extension\Extension;
@@ -62,6 +51,8 @@ class ApiDiaryRead extends Extension implements IApiInterface
 
         $Dispatcher->registerMethod('openSelectStudentModal');
         $Dispatcher->registerMethod('saveSelectStudentModal');
+
+        $Dispatcher->registerMethod('changeShowAllYears');
 
         return $Dispatcher->callMethod($Method);
     }
@@ -232,5 +223,45 @@ class ApiDiaryRead extends Extension implements IApiInterface
                 'StudentId' => $Data['Student'] ?? null
             )
         ) . self::pipelineClose();
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $PersonId
+     * @param $BasicRoute
+     *
+     * @return Pipeline
+     */
+    public static function pipelineChangeShowAllYears($DivisionCourseId, $PersonId, $BasicRoute): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'DiaryContent'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'changeShowAllYears',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'DivisionCourseId' => $DivisionCourseId,
+            'PersonId' => $PersonId,
+            'BasicRoute' => $BasicRoute
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    public function changeShowAllYears($DivisionCourseId, $PersonId, $BasicRoute, $Data = null): string
+    {
+        if (!($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
+            return new Danger('Der Kurs wurde nicht gefunden', new Exclamation());
+        }
+        $tblPerson = false;
+        if ($PersonId) {
+            $tblPerson = Person::useService()->getPersonById($PersonId);
+        }
+
+        $showAllYears = isset($Data['ShowAllYears']);
+        Consumer::useService()->createAccountSetting('DiaryShowAllYears', $showAllYears);
+
+        return Diary::useFrontend()->loadDiaryTable($tblDivisionCourse, $tblPerson ?: null, $BasicRoute, $showAllYears);
     }
 }
