@@ -49,6 +49,10 @@ class TblTest extends Element
     /**
      * @Column(type="datetime")
      */
+    protected ?DateTime $SecondPeriodDate = null;
+    /**
+     * @Column(type="datetime")
+     */
     protected ?DateTime $FinishDate = null;
     /**
      * @Column(type="datetime")
@@ -174,6 +178,30 @@ class TblTest extends Element
     public function setDate(?DateTime $Date): void
     {
         $this->Date = $Date;
+    }
+
+    /**
+     * @return DateTime|null
+     */
+    public function getSecondPeriodDate(): ?DateTime
+    {
+        return $this->SecondPeriodDate;
+    }
+
+    /**
+     * @return string
+     */
+    public function getSecondPeriodDateString(): string
+    {
+        return $this->SecondPeriodDate instanceof DateTime ? $this->SecondPeriodDate->format('d.m.Y') : '';
+    }
+
+    /**
+     * @param DateTime|null $Date
+     */
+    public function setSecondPeriodDate(?DateTime $Date): void
+    {
+        $this->SecondPeriodDate = $Date;
     }
 
     /**

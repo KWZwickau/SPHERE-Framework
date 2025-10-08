@@ -100,6 +100,7 @@ class Setup  extends AbstractSetup
         $this->createForeignKey($table, $tblGradeType);
 
         $this->createColumn($table, 'Date', self::FIELD_TYPE_DATETIME, true);
+        $this->createColumn($table, 'SecondPeriodDate', self::FIELD_TYPE_DATETIME, true);
         $this->createColumn($table, 'FinishDate', self::FIELD_TYPE_DATETIME, true);
         $this->createColumn($table, 'CorrectionDate', self::FIELD_TYPE_DATETIME, true);
         $this->createColumn($table, 'ReturnDate', self::FIELD_TYPE_DATETIME, true);

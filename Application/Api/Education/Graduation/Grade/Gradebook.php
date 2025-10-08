@@ -128,7 +128,9 @@ class Gradebook implements IModuleInterface
                     foreach ($tblTestList as $tblTest) {
                         if (($tblGradeType = $tblTest->getTblGradeType())) {
                             $dateTime = null;
-                            if ($tblTest->getDate()) {
+                            if ($tblTest->getSecondPeriodDate()) {
+                                $dateTime = $tblTest->getSecondPeriodDate();
+                            } elseif ($tblTest->getDate()) {
                                 $dateTime = $tblTest->getDate();
                             } elseif ($tblTest->getIsContinues() && $tblTest->getFinishDate()) {
                                 $dateTime = $tblTest->getFinishDate();
@@ -141,7 +143,9 @@ class Gradebook implements IModuleInterface
                                 }
                             }
 
-                            $headerList[0]['Test_' . $tblTest->getId()] = $dateTime ? $dateTime->format('d.m.') : '';
+                            $dateTimeTest = $tblTest->getSortDate();
+
+                            $headerList[0]['Test_' . $tblTest->getId()] = $dateTimeTest ? $dateTimeTest->format('d.m.') : '';
                             $headerList[1]['Test_' . $tblTest->getId()] = $tblGradeType->getCode();
 
                             if ($tblGradeType->getIsHighlighted()) {

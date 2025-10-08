@@ -719,7 +719,7 @@ class Frontend extends FrontendTestPlanning
         $isRoleHeadmaster = Grade::useService()->getRole() == 'Headmaster';
         if ($tblTestList) {
             foreach ($tblTestList as $tblTest) {
-                $virtualTestTaskList[] = new VirtualTestTask($tblTest->getDate() ?: $tblTest->getFinishDate(), $tblTest);
+                $virtualTestTaskList[] = new VirtualTestTask($tblTest->getFinishDate() ?: ($tblTest->getSecondPeriodDate() ?: $tblTest->getDate()), $tblTest);
             }
         }
         if (($tblTaskList = Grade::useService()->getTaskListByStudentsInDivisionCourse($tblDivisionCourse))) {
