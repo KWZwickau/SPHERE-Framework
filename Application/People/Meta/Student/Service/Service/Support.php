@@ -532,6 +532,15 @@ abstract class Support extends Subject
     }
 
     /**
+     * @return false|TblSpecial[]
+     */
+    public function getSpecialByAll()
+    {
+
+        return ( new Data($this->getBinding()) )->getSpecialByAll();
+    }
+
+    /**
      * @param $Id
      *
      * @return false|TblHandyCap
@@ -543,12 +552,39 @@ abstract class Support extends Subject
     }
 
     /**
-     * @return false|TblSpecial
+     * @return false|TblHandyCap[]
      */
     public function getHandyCapAll()
     {
 
         return ( new Data($this->getBinding()) )->getHandyCapAll();
+    }
+
+    /**
+     * @return false|TblSupport[]
+     */
+    public function getSupportListByDate(\DateTime $Date)
+    {
+
+        return ( new Data($this->getBinding()) )->getSupportListByDate($Date);
+    }
+
+    /**
+     * @return false|TblSpecial[]
+     */
+    public function getSpecialListByDate(\DateTime $Date)
+    {
+
+        return ( new Data($this->getBinding()) )->getSpecialListByDate($Date);
+    }
+
+    /**
+     * @return false|TblHandyCap[]
+     */
+    public function getHandyCapListByDate(\DateTime $Date)
+    {
+
+        return ( new Data($this->getBinding()) )->getHandyCapListByDate($Date);
     }
 
     /**
