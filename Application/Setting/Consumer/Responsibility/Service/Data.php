@@ -57,10 +57,11 @@ class Data extends AbstractData
     /**
      * @param TblCompany $tblCompany
      * @param string     $CompanyNumber
+     * @param string     $CompanyNumberStaff
      *
      * @return bool|TblResponsibility
      */
-    public function addResponsibility(TblCompany $tblCompany, $CompanyNumber = '')
+    public function addResponsibility(TblCompany $tblCompany, string $CompanyNumber = '', string $CompanyNumberStaff = '')
     {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -72,6 +73,7 @@ class Data extends AbstractData
             $Entity = new TblResponsibility();
             $Entity->setServiceTblCompany($tblCompany);
             $Entity->setCompanyNumber($CompanyNumber);
+            $Entity->setCompanyNumberStaff($CompanyNumberStaff);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
 
@@ -84,10 +86,11 @@ class Data extends AbstractData
     /**
      * @param TblResponsibility $tblResponsibility
      * @param string            $CompanyNumber
+     * @param string            $CompanyNumberStaff
      *
      * @return bool
      */
-    public function updateResponsibility(TblResponsibility $tblResponsibility, $CompanyNumber = '')
+    public function updateResponsibility(TblResponsibility $tblResponsibility, string $CompanyNumber = '', string $CompanyNumberStaff = ''): bool
     {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -97,6 +100,7 @@ class Data extends AbstractData
         if ($Entity) {
             $Protocol = clone $Entity;
             $Entity->setCompanyNumber($CompanyNumber);
+            $Entity->setCompanyNumberStaff($CompanyNumberStaff);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
             return true;

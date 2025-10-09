@@ -719,10 +719,10 @@ class FrontendTabs extends FrontendSelectDivisionCourse
 
         $linkAllDigital = false;
         if ($hasRightAllDigital) {
-            $linkAllDigital = (new Link('Ansicht: Alle Klassenbücher', ApiDigital::getEndpoint(), null, array(), false, null, AbstractLink::TYPE_WHITE_LINK))
+            $linkAllDigital = (new Link('Alle Klassenbücher', ApiDigital::getEndpoint(), null, array(), false, null, AbstractLink::TYPE_WHITE_LINK))
                 ->ajaxPipelineOnClick(ApiDigital::pipelineLoadWelcomeDigitalContent(self::WELCOME_VIEW_ALL_DIGITAL));
         }
-        $linkTeacherLectureship = (new Link('Ansicht: Fachlehrer', ApiDigital::getEndpoint(), null, array(), false, null, AbstractLink::TYPE_WHITE_LINK))
+        $linkTeacherLectureship = (new Link('Digitales Klassenbuch: Fachlehrer', ApiDigital::getEndpoint(), null, array(), false, null, AbstractLink::TYPE_WHITE_LINK))
             ->ajaxPipelineOnClick(ApiDigital::pipelineLoadWelcomeDigitalContent(self::WELCOME_VIEW_TEACHER_LECTURESHIP));
         $linkTimetable = (new Link('Stundenplan', ApiDigital::getEndpoint(), null, array(), false, null, AbstractLink::TYPE_WHITE_LINK))
             ->ajaxPipelineOnClick(ApiDigital::pipelineLoadWelcomeDigitalContent(self::WELCOME_VIEW_TIMETABLE));

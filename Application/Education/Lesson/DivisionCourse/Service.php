@@ -767,6 +767,29 @@ class Service extends ServiceYearChange
             (new Data($this->getBinding()))->destroyStudentSubjectBulkList($tblStudentSubjectList);
         }
 
+        // alle Schüler-Bildung Verknüpfungen bei Klassen bzw Stammgruppen löschen
+        if ($tblDivisionCourse->getIsDivisionOrCoreGroup()
+            && ($tblYear = $tblDivisionCourse->getServiceTblYear())
+            && ($tblStudentEducationList = $this->getStudentEducationListBy($tblYear, null, null,
+                $tblDivisionCourse->getTypeIdentifier() == TblDivisionCourseType::TYPE_DIVISION ? $tblDivisionCourse : null,
+                $tblDivisionCourse->getTypeIdentifier() == TblDivisionCourseType::TYPE_CORE_GROUP ? $tblDivisionCourse : null
+            ))
+        ) {
+            $updateStudentEducationList = [];
+            foreach ($tblStudentEducationList as $tblStudentEducation) {
+                if ($tblDivisionCourse->getTypeIdentifier() == TblDivisionCourseType::TYPE_DIVISION) {
+                    $tblStudentEducation->setTblDivision(null);
+                    $tblStudentEducation->setDivisionSortOrder(null);
+                } else {
+                    $tblStudentEducation->setTblCoreGroup(null);
+                    $tblStudentEducation->setCoreGroupSortOrder(null);
+                }
+                $updateStudentEducationList[] = $tblStudentEducation;
+            }
+
+            (new Data($this->getBinding()))->updateEntityListBulk($updateStudentEducationList);
+        }
+
         // alle Lehraufträge löschen
         if (($tblTeacherLectureshipList = $this->getTeacherLectureshipListBy(null, null, $tblDivisionCourse, null))) {
             foreach ($tblTeacherLectureshipList as $tblTeacherLectureship) {
@@ -1240,23 +1263,28 @@ class Service extends ServiceYearChange
 
     /**
      * @param TblDivisionCourse $tblDivisionCourse
+     * @param null $Period
      *
      * @return string
      */
-    public function getDivisionCourseHeader(TblDivisionCourse $tblDivisionCourse): string
+    public function getDivisionCourseHeader(TblDivisionCourse $tblDivisionCourse, $Period = null): string
     {
-        $content[] = $tblDivisionCourse->getName() . ' ' . new Small(new Muted($tblDivisionCourse->getTypeName()));
+        $contentCourse[] = $tblDivisionCourse->getName() . ' ' . new Small(new Muted($tblDivisionCourse->getTypeName()));
         if ($tblDivisionCourse->getType()->getIsCourseSystem() || $tblDivisionCourse->getTypeIdentifier() == TblDivisionCourseType::TYPE_TEACHER_GROUP) {
-            $content[] = $tblDivisionCourse->getSubjectName();
+            $contentCourse[] = $tblDivisionCourse->getSubjectName();
+        }
+        $contentYear[] = $tblDivisionCourse->getYearName();
+        if ($Period) {
+            $contentYear[] = $Period . '. Halbjahr';
         }
 
         return new Layout(new LayoutGroup(array(
             new LayoutRow(array(
                 new LayoutColumn(
-                    new Panel('Kurs', $content, Panel::PANEL_TYPE_INFO)
+                    new Panel('Kurs', $contentCourse, Panel::PANEL_TYPE_INFO)
                     , 6),
                 new LayoutColumn(
-                    new Panel('Schuljahr', $tblDivisionCourse->getYearName(), Panel::PANEL_TYPE_INFO)
+                    new Panel('Schuljahr', $contentYear, Panel::PANEL_TYPE_INFO)
                     , 6)
             ))
         )));

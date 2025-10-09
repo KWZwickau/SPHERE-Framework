@@ -388,6 +388,7 @@ class Service extends AbstractService
                     foreach($CauserList as $CauserId => $ItemContent) {
                         if(($tblPersonCauser = Person::useService()->getPersonById($CauserId))){
                             $Item = array();
+                            $Item['Gender'] = $tblPersonCauser->getGenderString();
                             $Item['FirstNameS1'] = '';
                             $Item['LastNameS1'] = '';
                             $Item['FirstNameS2'] = '';
@@ -524,6 +525,7 @@ class Service extends AbstractService
             $export->setValue($export->getCell($column++, $row), "Titel Beitragszahler");
             $export->setValue($export->getCell($column++, $row), "Vorname Beitragszahler");
             $export->setValue($export->getCell($column++, $row), "Nachname Beitragszahler");
+            $export->setValue($export->getCell($column++, $row), "Geschlecht");
             $export->setValue($export->getCell($column++, $row), "Vorname Beitragsverursacher");
             $export->setValue($export->getCell($column++, $row), "Nachname Beitragsverursacher");
             $export->setValue($export->getCell($column++, $row), "Klasse / Stammgruppe");
@@ -558,6 +560,7 @@ class Service extends AbstractService
                 $export->setValue($export->getCell($column++, $row), $PersonData['DebtorTitle']);
                 $export->setValue($export->getCell($column++, $row), $PersonData['DebtorFirstName']);
                 $export->setValue($export->getCell($column++, $row), $PersonData['DebtorLastName']);
+                $export->setValue($export->getCell($column++, $row), $PersonData['Gender']);
 
                 $export->setValue($export->getCell($column++, $row), $PersonData['CauserFirstName']);
                 $export->setValue($export->getCell($column++, $row), $PersonData['CauserLastName']);

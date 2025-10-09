@@ -86,20 +86,28 @@ class TblHandyCap extends Element
     }
 
     /**
-     * @return string
+     * @param $returnDateTime
+     *
+     * @return \DateTime|false|string
      */
-    public function getDate()
+    public function getDate($returnDateTime = false)
     {
 
         if (null === $this->Date) {
             return false;
         }
-        /** @var \DateTime $SchoolAttendanceStartDate */
-        $SchoolAttendanceStartDate = $this->Date;
-        if ($SchoolAttendanceStartDate instanceof \DateTime) {
-            return $SchoolAttendanceStartDate->format('d.m.Y');
+        /** @var \DateTime $Date */
+        $Date = $this->Date;
+        if($returnDateTime){
+            if ($Date instanceof \DateTime) {
+                return $Date;
+            }
+            return false;
+        }
+        if ($Date instanceof \DateTime) {
+            return $Date->format('d.m.Y');
         } else {
-            return (string)$SchoolAttendanceStartDate;
+            return (string)$Date;
         }
     }
 

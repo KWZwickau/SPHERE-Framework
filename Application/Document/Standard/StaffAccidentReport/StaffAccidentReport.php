@@ -154,7 +154,7 @@ class StaffAccidentReport extends Extension
             if ($tblResponsibilityList) {
                 /** @var TblResponsibility $tblResponsibility */
                 $tblResponsibility = current($tblResponsibilityList);
-                $Global->POST['Data']['CompanyNumber'] = $tblResponsibility->getCompanyNumber();
+                $Global->POST['Data']['CompanyNumberStaff'] = $tblResponsibility->getCompanyNumberStaff();
 //                $tblResponsibilityCompany = $tblResponsibility->getServiceTblCompany();
 //                if ($tblResponsibilityCompany) {
 //                    $Global->POST['Data']['SchoolResponsibility'] = $tblResponsibilityCompany->getDisplayName();
@@ -261,7 +261,7 @@ class StaffAccidentReport extends Extension
                 new LayoutGroup(
                     new LayoutRow(array(
                         new LayoutColumn(
-                            new TextField('Data[CompanyNumber]', 'Unternehmensnr.',
+                            new TextField('Data[CompanyNumberStaff]', 'Unternehmensnr.',
                                 new Sup(2).' Unternehmensnummer des Unfallversicherungsträgers')
                             , 6)
                     ))

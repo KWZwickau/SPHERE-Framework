@@ -193,15 +193,13 @@ class FrontendCourseContent extends Extension implements IFrontendInterface
                         new Plus() . ' Thema / HA hinzufügen',
                         ApiDigital::getEndpoint(),
                         null,
-                        [],
-                        'Thema / Hausaufgaben hinzufügen'
+                        []
                     ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenCreateCourseContentModal($DivisionCourseId))
                     . (new Primary(
                         new Plus() . ' Vergessene AM / HA hinzufügen',
                         ApiForgotten::getEndpoint(),
                         null,
-                        [],
-                        'Vergessene Arbeitsmittel / Hausaufgaben hinzufügen'
+                        []
                     ))->ajaxPipelineOnClick(ApiForgotten::pipelineOpenCreateForgottenModal($DivisionCourseId, (new DateTime('today'))->format('d.m.Y')))
                     . (new Primary(
                         new Plus() . ' Fehlzeit hinzufügen',
@@ -534,7 +532,7 @@ class FrontendCourseContent extends Extension implements IFrontendInterface
     public function getStudentPanel(TblDivisionCourse $tblDivisionCourse): string
     {
         $dataList = array();
-        if (($tblDivisionCourseMemberList = $tblDivisionCourse->getStudentsWithSubCourses(true, false))) {
+        if (($tblDivisionCourseMemberList = $tblDivisionCourse->getStudentsWithSubCourses(true, false, new DateTime('today')))) {
             $count = 0;
             foreach ($tblDivisionCourseMemberList as $tblDivisionCourseMember) {
                 if (($tblPerson = $tblDivisionCourseMember->getServiceTblPerson()))
