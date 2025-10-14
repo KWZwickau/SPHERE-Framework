@@ -90,6 +90,8 @@ class ApiDigital extends Extension implements IApiInterface
 
         $Dispatcher->registerMethod('loadWelcomeDigitalContent');
 
+        $Dispatcher->registerMethod('loadDirectJumpToGradebookContent');
+
         return $Dispatcher->callMethod($Method);
     }
 
@@ -168,7 +170,8 @@ class ApiDigital extends Extension implements IApiInterface
         // View speichern
         Consumer::useService()->createAccountSetting('LessonContentView', $View);
 
-        return Digital::useFrontend()->loadLessonContentTable($tblDivisionCourse, $Date, $View);
+        return Digital::useFrontend()->loadLessonContentTable($tblDivisionCourse, $Date, $View)
+            . ($View === 'Day' ? self::pipelineLoadDirectJumpToGradebookContent($DivisionCourseId, $Date) : '');
     }
 
     /**
@@ -1526,5 +1529,38 @@ class ApiDigital extends Extension implements IApiInterface
         Consumer::useService()->createAccountSetting('WelcomeDigitalView', $View);
 
         return Digital::useFrontend()->loadWelcomeDigitalContent($View, $Date);
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $Date
+     *
+     * @return Pipeline
+     */
+    public static function pipelineLoadDirectJumpToGradebookContent($DivisionCourseId, $Date): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'DirectJumpToGradebookContent'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'loadDirectJumpToGradebookContent',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'DivisionCourseId' => $DivisionCourseId,
+            'Date' => $Date
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param null $DivisionCourseId
+     * @param null $Date
+     *
+     * @return string
+     */
+    public function loadDirectJumpToGradebookContent($DivisionCourseId = null, $Date = null) : string
+    {
+        return Digital::useFrontend()->loadDirectJumpToGradebookContent($DivisionCourseId, $Date);
     }
 }

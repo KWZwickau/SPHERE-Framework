@@ -11,14 +11,20 @@ use SPHERE\Application\Education\Absence\Absence;
 use SPHERE\Application\Education\ClassRegister\Digital\Frontend\FrontendTabs;
 use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblFullTimeContent;
 use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblLessonContent;
+use SPHERE\Application\Education\ClassRegister\Timetable\Service\Entity\TblTimetableNode;
 use SPHERE\Application\Education\ClassRegister\Timetable\Timetable;
+use SPHERE\Application\Education\Graduation\Grade\Grade;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTest;
 use SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount\SelectBoxItem;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblTeacherLectureship;
+use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
-use SPHERE\Application\People\Meta\Teacher\Teacher;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
@@ -34,6 +40,7 @@ use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronRight;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
+use SPHERE\Common\Frontend\Icon\Repository\Extern;
 use SPHERE\Common\Frontend\Icon\Repository\Home;
 use SPHERE\Common\Frontend\Icon\Repository\Info;
 use SPHERE\Common\Frontend\Icon\Repository\MapMarker;
@@ -49,6 +56,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\AbstractLink;
+use SPHERE\Common\Frontend\Link\Repository\External;
 use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
@@ -96,7 +104,8 @@ class Frontend extends FrontendTabs
                     )),
                     new LayoutGroup(new LayoutRow(new LayoutColumn(
                         ApiDigital::receiverBlock($this->loadLessonContentTable($tblDivisionCourse), 'LessonContentContent')
-                    )), new Title(new Book() . ' Klassentagebuch')),
+                    )), new Title(new Book() . ' Klassentagebuch' . new PullRight(ApiDigital::receiverBlock(
+                        $this->loadDirectJumpToGradebookContent($DivisionCourseId), 'DirectJumpToGradebookContent')))),
                 ))
             );
         } else {
@@ -105,6 +114,104 @@ class Frontend extends FrontendTabs
         }
 
         return $stage;
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $Date
+     *
+     * @return string
+     */
+    public function loadDirectJumpToGradebookContent($DivisionCourseId = null, $Date = null): string
+    {
+        $dateTime = new DateTime($Date === null ? 'today': $Date);
+        $link = '';
+
+        $tblPersonLogin = Account::useService()->getPersonByLogin();
+        if ($tblPersonLogin
+            && ($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))
+            && ($tblTeacherLectureshipList = DivisionCourse::useService()->getTeacherLectureshipListBy(null, $tblPersonLogin, $tblDivisionCourse))
+        ) {
+            // nur 1 Leerauftrag in der Klasse → direkt ins Notenbuch springen
+            if (count($tblTeacherLectureshipList) == 1) {
+                /** @var TblTeacherLectureship $tblTeacherLectureship */
+                $tblTeacherLectureship = reset($tblTeacherLectureshipList);
+                if (($tblDivisionCourseLectureship = $tblTeacherLectureship->getTblDivisionCourse())
+                    && ($tblSubjectLectureship = $tblTeacherLectureship->getServiceTblSubject())
+                ) {
+                    $link = $this->getGradebookLink($tblPersonLogin, $tblDivisionCourseLectureship, $tblSubjectLectureship);
+                }
+            // prüfen des Stundenplans
+            } elseif (($tblTimetableNodeList = Timetable::useService()->getTimetableDataForTeacher($dateTime))) {
+                $tempList = [];
+                /** @var TblTimetableNode $tblTimetableNode */
+                foreach ($tblTimetableNodeList as $tblTimetableNode) {
+                    if (($tblDivisionCourseTimetableNode = $tblTimetableNode->getServiceTblCourse())
+                        && ($tblSubjectTimetableNode = $tblTimetableNode->getServiceTblSubject())
+                        && DivisionCourse::useService()->getTeacherLectureshipListBy(null, $tblPersonLogin, $tblDivisionCourseTimetableNode, $tblSubjectTimetableNode)
+                    ) {
+                        $tempList[$tblSubjectTimetableNode->getId()] = array(
+                            'tblDivisionCourse' => $tblDivisionCourseTimetableNode,
+                            'tblSubject' => $tblSubjectTimetableNode,
+                        );
+                    }
+                }
+
+                // nur 1 Fach in der Klasse im Stundenplan für den ausgewählten Tag → direkt ins Notenbuch springen
+                if (count($tempList) == 1) {
+                    $temp = reset($tempList);
+                    $link = $this->getGradebookLink($tblPersonLogin, $temp['tblDivisionCourse'], $temp['tblSubject']);
+                }
+            }
+        }
+
+        // alternativ zur Notenbuch-Auswahl
+        if (!$link) {
+            $link = $this->getGradebookOverviewLink();
+        }
+
+        return $link;
+    }
+
+    private function getGradebookOverviewLink(): string
+    {
+        return (new External(
+            'Zur Notenbuch-Auswahl',
+            '/Education/Graduation/Grade/GradeBook',
+            new Extern(),
+            [],
+            'Zur Notenbuch-Auswahl wechseln'
+        ));
+    }
+
+    private function getGradebookLink(TblPerson $tblPerson, TblDivisionCourse $tblDivisionCourse, TblSubject $tblSubject): string
+    {
+        // bei genau einer Lerngruppe → direkt in die Lerngruppe springen
+        $teacherGroups = Grade::useService()->getTeacherGroupsByTeacherAndDivisionCourseAndSubject($tblPerson, $tblDivisionCourse, $tblSubject);
+        $count = count($teacherGroups);
+
+        $jumpDivisionCourseId = null;
+        if ($count === 1) {
+            $jumpDivisionCourseId = reset($teacherGroups)->getId();
+        } elseif ($count === 0) {
+            $jumpDivisionCourseId = $tblDivisionCourse->getId();
+        }
+
+        if ($jumpDivisionCourseId) {
+            return (new External(
+                'Zum Notenbuch',
+                '/Education/Graduation/Grade/GradeBook',
+                new Extern(),
+                array(
+                    'DivisionCourseId' => $jumpDivisionCourseId,
+                    'SubjectId' => $tblSubject->getId(),
+                    'IsDirectJump' => true
+                ),
+                'Zum Notenbuch wechseln'
+            ));
+        } else {
+            return $this->getGradebookOverviewLink();
+        }
     }
 
     /**
@@ -304,6 +411,8 @@ class Frontend extends FrontendTabs
         $headerList['Teacher'] = $this->getTableHeadColumn('Lehrer', '50px');
         $headerList['Content'] = $this->getTableHeadColumn('Thema');
         $headerList['Homework'] = $this->getTableHeadColumn('Hausaufgaben');
+//        $headerList['Test'] = $this->getTableHeadColumn('Leistungs&shy;überprüfung');
+        $headerList['Test'] = $this->getTableHeadColumn(new ToolTip('LÜ', 'Leistungs&shy;überprüfung'));
         $headerList['Absence'] = $this->getTableHeadColumn('Fehlzeiten');
 
         $maxLesson = 12;
@@ -368,6 +477,7 @@ class Frontend extends FrontendTabs
                     'Teacher' => '',
                     'Content' => '',
                     'Homework' => '',
+                    'Test' => '',
                     'Absence' => implode(' - ', $absenceContent['Day'])
                 );
             }
@@ -380,10 +490,14 @@ class Frontend extends FrontendTabs
                     'Teacher' => '',
                     'Content' => '',
                     'Homework' => '',
+                    'Test' => '',
                     'Absence' => implode(' - ', $absenceContent[0])
                 );
             }
         }
+
+        $tblTestList = Grade::useService()->getTestListForDigitalByDate($date);
+        $tblDivisionCourseListByStudentsInDivisionCourse = DivisionCourse::useService()->getDivisionCourseListByStudentsInDivisionCourse($tblDivisionCourse);
 
         $lessonContentList = array();
         if (($tblLessonContentList = Digital::useService()->getLessonContentAllByDate($date, $tblDivisionCourse))) {
@@ -415,7 +529,8 @@ class Frontend extends FrontendTabs
                             : null);
                     $subjectIdList[$SubjectId] = 1;
                     $index = $i * 10 + $count++;
-                    $this->setDayViewEditBodyList($bodyList, $bodyBackgroundList, $absenceContent, $tblLessonContentTemp, $i, $index);
+                    $this->setDayViewEditBodyList($bodyList, $bodyBackgroundList, $absenceContent, $tblLessonContentTemp, $i, $index,
+                        $tblTestList, $tblDivisionCourseListByStudentsInDivisionCourse);
                 }
                 // weitere Einträge aus dem Stundenplan
                 if (($tblLessonContentTempList = Timetable::useService()->getLessonContentListFromTimeTableNodeWithReplacementBy($tblDivisionCourse, $date, $i))) {
@@ -431,7 +546,8 @@ class Frontend extends FrontendTabs
                             $subjectIdList[$SubjectId] = 1;
 
                             $this->setDayViewNewLinkBodyList($bodyList, $absenceContent, $i, $index, $DivisionCourseId, $date,
-                                $tblLessonContentTemp->getDisplaySubject(true), $tblLessonContentTemp->getRoom(), $tblLessonContentTemp->getTeacherString(false), $SubjectId);
+                                $tblLessonContentTemp->getDisplaySubject(true), $tblLessonContentTemp->getRoom(), $tblLessonContentTemp->getTeacherString(false),
+                                $SubjectId, $tblTestList, $tblDivisionCourseListByStudentsInDivisionCourse);
                         }
                     }
                 }
@@ -458,7 +574,8 @@ class Frontend extends FrontendTabs
                         $subjectIdList[$SubjectId] = 1;
 
                         $this->setDayViewNewLinkBodyList($bodyList, $absenceContent, $i, $index, $DivisionCourseId, $date,
-                            $tblLessonContentTemp->getDisplaySubject(true), $tblLessonContentTemp->getRoom(), $tblLessonContentTemp->getTeacherString(false), $SubjectId);
+                            $tblLessonContentTemp->getDisplaySubject(true), $tblLessonContentTemp->getRoom(), $tblLessonContentTemp->getTeacherString(false),
+                            $SubjectId, $tblTestList, $tblDivisionCourseListByStudentsInDivisionCourse);
                     }
                 }
             //  alternativ zum importierten Stundenplan wird nach vorherige Einträge gesucht
@@ -468,7 +585,9 @@ class Frontend extends FrontendTabs
                 ))
             ) {
                 $this->setDayViewNewLinkBodyList($bodyList, $absenceContent, $i, $index, $DivisionCourseId, $date,
-                    $tblLessonContentTemp->getDisplaySubject(true), $tblLessonContentTemp->getRoom(), $tblLessonContentTemp->getTeacherString(false));
+                    $tblLessonContentTemp->getDisplaySubject(true), $tblLessonContentTemp->getRoom(), $tblLessonContentTemp->getTeacherString(false),
+                    $tblLessonContentTemp->getServiceTblSubject() ? $tblLessonContentTemp->getServiceTblSubject()->getId() : null,
+                    $tblTestList, $tblDivisionCourseListByStudentsInDivisionCourse);
             // neu links
             } else {
                 $this->setDayViewNewLinkBodyList($bodyList, $absenceContent, $i, $index, $DivisionCourseId, $date, '', '', '');
@@ -550,12 +669,17 @@ class Frontend extends FrontendTabs
         return $content . Digital::useService()->getCanceledSubjectOverview($date, $tblDivisionCourse) . ' ';
     }
 
-    private function setDayViewEditBodyList(array &$bodyList, array &$bodyBackgroundList, array $absenceContent, TblLessonContent $tblLessonContent, int $lesson, int $index)
+    private function setDayViewEditBodyList(array &$bodyList, array &$bodyBackgroundList, array $absenceContent, TblLessonContent $tblLessonContent,
+        int $lesson, int $index, array $tblTestList, array $tblDivisionCourseListByStudentsInDivisionCourse)
     {
         $isEditAllowed = Digital::useService()->getIsLessonContentEditAllowed($tblLessonContent);
         $lessonContentId = $tblLessonContent->getId();
         $contentHomework = $tblLessonContent->getHomework()
             . ($tblLessonContent->getDueDateHomework() ? ' (Fälligkeit: ' . $tblLessonContent->getDueDateHomework() . ')' : '');
+        $DivisionCourseId = $tblLessonContent->getServiceTblDivisionCourse() ? $tblLessonContent->getServiceTblDivisionCourse()->getId() : null;
+        $SubjectId = $tblLessonContent->getServiceTblSubstituteSubject()
+            ? $tblLessonContent->getServiceTblSubstituteSubject()->getId()
+            : ($tblLessonContent->getServiceTblSubject() ? $tblLessonContent->getServiceTblSubject()->getId() : null);
         if (isset($absenceContent[$lesson])) {
             $absence = implode(' - ', $absenceContent[$lesson]);
         } else {
@@ -567,7 +691,7 @@ class Frontend extends FrontendTabs
                 $lesson . '. Fehlzeit hinzufügen',
             ))->ajaxPipelineOnClick(ApiAbsence::pipelineOpenCreateAbsenceModal(
                 null,
-                $tblLessonContent->getServiceTblDivisionCourse() ? $tblLessonContent->getServiceTblDivisionCourse()->getId() : null,
+                $DivisionCourseId,
                 $tblLessonContent->getDate(),
                 true,
                 $lesson
@@ -588,7 +712,9 @@ class Frontend extends FrontendTabs
                         : (($tblSubject = $tblLessonContent->getServiceTblSubject()) ? $tblSubject->getId() : null),
                     new DateTime($tblLessonContent->getDate())
                 ), $lessonContentId, $lesson) : $contentHomework,
-
+            'Test' => $tblLessonContent->getIsCanceled() && !$tblLessonContent->getServiceTblSubstituteSubject()
+                    ? ''
+                    : $this->getTestColumnContent($tblTestList, $DivisionCourseId, $SubjectId, $tblDivisionCourseListByStudentsInDivisionCourse),
             'Absence' => $absence
         );
 
@@ -596,7 +722,7 @@ class Frontend extends FrontendTabs
     }
 
     private function setDayViewNewLinkBodyList(array &$bodyList, array $absenceContent, int $lesson, int $index, int $DivisionCourseId, DateTime $date,
-        string $subject, string $room, string $teacher, int $SubjectId = null)
+        string $subject, string $room, string $teacher, int $SubjectId = null, array $tblTestList = array(), array $tblDivisionCourseListByStudentsInDivisionCourse = array())
     {
         $linkLesson = (new Link(
             new Center($lesson),
@@ -648,9 +774,63 @@ class Frontend extends FrontendTabs
             'Teacher' => $this->getLessonsNewLink($teacher, $date, $lesson, $DivisionCourseId, $SubjectId),
             'Content' => $this->getLessonsNewLink('', $date, $lesson, $DivisionCourseId, $SubjectId),
             'Homework' => $homework,
-
+            'Test' => $this->getTestColumnContent($tblTestList, $DivisionCourseId, $SubjectId, $tblDivisionCourseListByStudentsInDivisionCourse),
             'Absence' => $absence,
         );
+    }
+
+    private function getTestColumnContent(array $tblTestList, int $DivisionCourseId, ?int $SubjectId, array $tblDivisionCourseListByStudentsInDivisionCourse): string
+    {
+        $result = '';
+        $tblPersonLogin = Account::useService()->getPersonByLogin();
+        if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))
+            && ($tblSubject = Subject::useService()->getSubjectById($SubjectId))
+            && isset($tblTestList[$tblSubject->getId()])
+        ) {
+            /** @var TblTest $tblTest */
+            foreach ($tblTestList[$tblSubject->getId()] as $tblTest) {
+                if (($tblGradeType = $tblTest->getTblGradeType())) {
+                    $isLink = false;
+                    $linkId = null;
+                    // Leistungsüberprüfung wird direkt in Klasse oder Stammgruppe geschrieben
+                    if (($isAdd = isset($tblTest->getDivisionCourses()[$tblDivisionCourse->getId()]))) {
+                        if ($tblPersonLogin) {
+                            $isLink = (bool) DivisionCourse::useService()->getTeacherLectureshipListBy(null, $tblPersonLogin, $tblDivisionCourse, $tblSubject);
+                            $linkId = $tblDivisionCourse;
+                        }
+                    } else {
+                    // Leistungsüberprüfung wird in einer Lerngruppe geschrieben
+                        foreach(DivisionCourse::useService()->getDivisionCourseSubjectListBySubject($tblDivisionCourseListByStudentsInDivisionCourse, $tblSubject) as $tblDivisionCourseTemp) {
+                            if (isset($tblTest->getDivisionCourses()[$tblDivisionCourseTemp->getId()])) {
+                                $isAdd = true;
+                                $isLink = $tblPersonLogin && $tblDivisionCourseTemp->getDivisionTeacherList($tblPersonLogin->getId());
+                                $linkId = $tblDivisionCourseTemp->getId();
+                                break;
+                            }
+                        }
+                    }
+
+                    if ($isAdd) {
+                        $toolTip = new Container($tblTest->getGradeTypeDisplayName())
+                            . ($tblTest->getDescription() ? new Container('Beschreibung: ' . $tblTest->getDescription()) : '')
+                            . new Container('Kurse: ' . $tblTest->getDivisionCoursesAsString())
+                            . ($isLink ? new Container('&nbsp;') . new Container('Leistungsüberprüfung im Notenbuch in neuen Tab öffnen') : '');
+                        $content = (new ToolTip($tblGradeType->getCode(), $toolTip))->enableHtml();
+                        $result .= ($result ? ', ' : '')
+                            . ($isLink
+                                ? (new Link($content, '/Education/Graduation/Grade/GradeBook', new Extern(), array(
+                                    'DivisionCourseId' => $linkId,
+                                    'SubjectId' => $SubjectId,
+                                    'TestId' => $tblTest->getId(),
+                                    'IsDirectJump' => true
+                                )))->setExternal()
+                                : $content);
+                    }
+                }
+            }
+        }
+
+        return $result;
     }
 
     /**
@@ -702,6 +882,7 @@ class Frontend extends FrontendTabs
             'Teacher' => '',
             'Content' => $content,
             'Homework' => '',
+            'Test' => '',
 
             'Absence' => isset($absenceContent[$lesson]) ? implode(' - ', $absenceContent[$lesson]) : ''
         );

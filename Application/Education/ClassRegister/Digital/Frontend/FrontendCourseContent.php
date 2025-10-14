@@ -205,25 +205,23 @@ class FrontendCourseContent extends Extension implements IFrontendInterface
                         new Plus() . ' Fehlzeit hinzufügen',
                         ApiAbsence::getEndpoint()
                     ))->ajaxPipelineOnClick(ApiAbsence::pipelineOpenCreateAbsenceModal(null, $DivisionCourseId, null, true))
-                    , 8),
-                new LayoutColumn(
-                    new PullRight(
-                        (new External(
-                            'zum Notenbuch',
-                            '/Education/Graduation/Grade/GradeBook',
-                            new Extern(),
-                            array(
-                                'DivisionCourseId' => $tblDivisionCourse->getId(),
-                                'SubjectId' => ($tblSubject = $tblDivisionCourse->getServiceTblSubject()) ? $tblSubject->getId() : null,
-                                'IsDirectJump' => true
-                            ),
-                            'Zum Notenbuch wechseln'
-                        ))
-                    )
-                    , 4)
-                ))
-            )))
-            . ApiDigital::receiverBlock($this->loadCourseContentTable($tblDivisionCourse), 'CourseContentContent');
+                ),
+            ))
+        ))) . ApiDigital::receiverBlock($this->loadCourseContentTable($tblDivisionCourse), 'CourseContentContent');
+
+        $linkGradebook = new PullRight(
+            (new External(
+                'Zum Notenbuch',
+                '/Education/Graduation/Grade/GradeBook',
+                new Extern(),
+                array(
+                    'DivisionCourseId' => $tblDivisionCourse->getId(),
+                    'SubjectId' => ($tblSubject = $tblDivisionCourse->getServiceTblSubject()) ? $tblSubject->getId() : null,
+                    'IsDirectJump' => true
+                ),
+                'Zum Notenbuch wechseln'
+            ))
+        );
 
         $stage->setContent(
             ApiDigital::receiverModal()
@@ -242,7 +240,7 @@ class FrontendCourseContent extends Extension implements IFrontendInterface
                             , 2),
                         new LayoutColumn($layout, 10)
                     ))
-                ), new Title(new Book() . ' Kursheft'))
+                ), new Title(new Book() . ' Kursheft' . $linkGradebook))
             ))
         );
 

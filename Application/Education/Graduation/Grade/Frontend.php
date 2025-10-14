@@ -78,11 +78,12 @@ class Frontend extends FrontendTestPlanning
      * @param null $DivisionCourseId
      * @param null $SubjectId
      * @param null $TaskId
+     * @param null $TestId
      * @param null $IsDirectJump
      *
      * @return Stage
      */
-    public function frontendGradeBook($DivisionCourseId = null, $SubjectId = null, $TaskId = null, $IsDirectJump = null): Stage
+    public function frontendGradeBook($DivisionCourseId = null, $SubjectId = null, $TaskId = null, $TestId = null, $IsDirectJump = null): Stage
     {
         $stage = new Stage();
 
@@ -139,6 +140,9 @@ class Frontend extends FrontendTestPlanning
         if ($TaskId) {
             // von der Willkommensseite direkt zur Noteneingabe für Notenaufträge springen
             $content = $this->loadViewTaskGradeEditContent($DivisionCourseId, $SubjectId, array(), $TaskId);
+        } elseif ($TestId) {
+            // Direkt im Entsprechen Notenbuch zur Bearbeitung des Tests springen
+            $content = $this->loadViewTestEditContent($DivisionCourseId, $SubjectId, array(), $TestId);
         } elseif ($IsDirectJump) {
             // Direkt ins Notenbuch springen, von einer anderen Stelle in der Schulsoftware (Kursheft im digitalen Klassenbuch)
             $content = $this->loadViewGradeBookContent($DivisionCourseId, $SubjectId, array());

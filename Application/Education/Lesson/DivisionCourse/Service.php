@@ -2330,15 +2330,15 @@ class Service extends ServiceYearChange
             }
         }
 
-        return empty($tblDivisionCourseList) ? false : $tblDivisionCourseList;
+        return $tblDivisionCourseList;
     }
 
     /**
      * @param TblDivisionCourse $tblDivisionCourse
      *
-     * @return TblDivisionCourse[]|false
+     * @return bool|TblDivisionCourse[]
      */
-    public function getDivisionCourseListByStudentsInDivisionCourse(TblDivisionCourse $tblDivisionCourse)
+    public function getDivisionCourseListByStudentsInDivisionCourse(TblDivisionCourse $tblDivisionCourse): bool|array
     {
         $tblDivisionCourseList = array();
         if (($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses())
@@ -2434,5 +2434,25 @@ class Service extends ServiceYearChange
 
             return $resultList;
         }
+    }
+
+    /**
+     * @param array $tblDivisionCourseList
+     * @param TblSubject $tblSubject
+     *
+     * @return TblDivisionCourse[]
+     */
+    public function getDivisionCourseSubjectListBySubject(array $tblDivisionCourseList, TblSubject $tblSubject): array {
+        $resultList = [];
+        /** @var TblDivisionCourse $tblDivisionCourse */
+        foreach ($tblDivisionCourseList as $tblDivisionCourse) {
+            if (($tblDivisionCourseSubject = $tblDivisionCourse->getServiceTblSubject())
+                && $tblDivisionCourseSubject->getId() == $tblSubject->getId()
+            ) {
+                $resultList[$tblDivisionCourse->getId()] = $tblDivisionCourse;
+            }
+        }
+
+        return $resultList;
     }
 }
