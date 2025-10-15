@@ -49,6 +49,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\PullClear;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
@@ -59,7 +60,6 @@ use SPHERE\Common\Frontend\Link\Repository\AbstractLink;
 use SPHERE\Common\Frontend\Link\Repository\External;
 use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Link\Repository\Primary;
-use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\Table;
@@ -70,43 +70,45 @@ use SPHERE\Common\Frontend\Table\Structure\TableRow;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Center;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
+use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 
 class Frontend extends FrontendTabs
 {
-    /**
-     * @param null $DivisionCourseId
-     * @param string $BasicRoute
-     *
-     * @return Stage|string
-     */
-    public function frontendLessonContent(
-        $DivisionCourseId = null,
-        string $BasicRoute = '/Education/ClassRegister/Digital/Teacher'
-    ) {
-        $stage = new Stage('Digitales Klassenbuch', 'Klassentagebuch');
-        $stage->addButton(new Standard('Zurück', $BasicRoute, new ChevronLeft()));
+    public function getStage($DivisionCourseId, string $BasicRoute, string $Route, string $icon, string $name, string $content,
+        $BackDivisionCourseId = null, string $titleOption = ''): string
+    {
+        if (Consumer::useService()->getAccountSettingValue('DigitalShowExtraInfo')) {
+            $global = $this->getGlobal();
+            $global->POST['Data']['ShowExtraInfo'] = 1;
+            $global->savePost();
+        }
 
-        // Klassenbuch Ansicht
-        if ($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId)) {
-            // View speichern
-            Consumer::useService()->createAccountSetting('LessonContentView', 'Day');
+        $form = new Form(new FormGroup(new FormRow(new FormColumn(
+            (new CheckBox('Data[ShowExtraInfo]', 'Weitere Informationen anzeigen', 1))
+                ->ajaxPipelineOnChange(ApiDigital::pipelineLoadAdditionalInformationContent($DivisionCourseId))
+        ))));
+
+        $stage = new Stage();
+        if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
+            $titleText = '&nbsp;' . $icon . ' ' . $name
+                . new Muted(new Small(' für ' . $tblDivisionCourse->getTypeName() . ': ')) . new Bold($tblDivisionCourse->getDisplayName())
+                . ($tblDivisionCourse->getType()->getIsCourseSystem()
+                    ? new Muted(new Small(' im Fach: ')) . $tblDivisionCourse->getSubjectName()
+                    : '');
 
             $stage->setContent(
-                ApiDigital::receiverModal()
-                . ApiAbsence::receiverModal()
-                . new Layout(array(
-                    new LayoutGroup(array(
-                        Digital::useService()->getHeadLayoutRow($tblDivisionCourse),
-                        Digital::useService()->getHeadButtonListLayoutRow($tblDivisionCourse, '/Education/ClassRegister/Digital/LessonContent', $BasicRoute)
-                    )),
-                    new LayoutGroup(new LayoutRow(new LayoutColumn(
-                        ApiDigital::receiverBlock($this->loadLessonContentTable($tblDivisionCourse), 'LessonContentContent')
-                    )), new Title(new Book() . ' Klassentagebuch' . new PullRight(ApiDigital::receiverBlock(
-                        $this->loadDirectJumpToGradebookContent($DivisionCourseId), 'DirectJumpToGradebookContent')))),
-                ))
+                new PullClear(new Container('<h3>Digitales Klassenbuch' . new Small(new PullRight($form))) . '</h3>')
+//                 new Container("&nbsp;")
+//                $form
+                . ApiDigital::receiverBlock($this->loadAdditionalInformationContent($DivisionCourseId), 'AdditionalInformationContent')
+                . new Container(($tblDivisionCourse->getType()->getIsCourseSystem()
+                    ? Digital::useService()->getHeadButtonListForCourseSystem($tblDivisionCourse, $Route, $BasicRoute, $BackDivisionCourseId)
+                    : Digital::useService()->getHeadButtonList($tblDivisionCourse, $Route, $BasicRoute)))
+                . new Title($titleText . new PullRight($titleOption))
+                . $content
             );
         } else {
             return new Danger('Kurs nicht gefunden', new Exclamation())
@@ -114,6 +116,31 @@ class Frontend extends FrontendTabs
         }
 
         return $stage;
+    }
+
+    /**
+     * @param null $DivisionCourseId
+     * @param string $BasicRoute
+     *
+     * @return string
+     */
+    public function frontendLessonContent(
+        $DivisionCourseId = null,
+        string $BasicRoute = '/Education/ClassRegister/Digital/Teacher'
+    ): string {
+        // View speichern
+        Consumer::useService()->createAccountSetting('LessonContentView', 'Day');
+        $titleOption = ApiDigital::receiverBlock($this->loadDirectJumpToGradebookContent($DivisionCourseId), 'DirectJumpToGradebookContent');
+
+        $icon = new Book();
+        $name = 'Klassentagebuch';
+        $Route = '/Education/ClassRegister/Digital/LessonContent';
+        $subContent = true ? $this->loadLessonContentTable($DivisionCourseId) : ApiDigital::pipelineLoadLessonContentContent($DivisionCourseId);
+        $content = ApiDigital::receiverModal()
+            . ApiAbsence::receiverModal()
+            . ApiDigital::receiverBlock($subContent, 'LessonContentContent');
+
+        return Digital::useFrontend()->getStage($DivisionCourseId, $BasicRoute, $Route, $icon, $name, $content, null, $titleOption);
     }
 
     /**
@@ -215,15 +242,23 @@ class Frontend extends FrontendTabs
     }
 
     /**
-     * @param TblDivisionCourse $tblDivisionCourse
+     * @param $DivisionCourseId
      * @param string $DateString
      * @param string $View
+     * @param bool|null $isStudentCollapsed
      *
      * @return string
      */
-    public function loadLessonContentTable(TblDivisionCourse $tblDivisionCourse, string $DateString = 'today', string $View = 'Day'): string
+    public function loadLessonContentTable($DivisionCourseId, string $DateString = 'today', string $View = 'Day', ?bool $isStudentCollapsed = null): string
     {
-        $DivisionCourseId = $tblDivisionCourse->getId();
+        if (!($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
+            return '';
+        }
+
+        if ($View === 'Day' && $isStudentCollapsed === null) {
+            $isStudentCollapsed = Consumer::useService()->getAccountSettingValue('DigitalStudentCollapsed');
+        }
+
         $Date = ($DateString == 'today' ? (new DateTime('today'))->format('d.m.Y') : $DateString);
 
         $buttons = (new Primary(
@@ -268,34 +303,62 @@ class Frontend extends FrontendTabs
                 new PullRight(
                     $datePicker
                 )
-                , 12),
-//            new FormColumn(
-//                new PullRight((new Primary('Datum auswählen', '', new Select()))->ajaxPipelineOnClick(ApiDigital::pipelineLoadLessonContentContent(
-//                    $DivisionId, $GroupId, $DateString, $View
-//                )))
-//                , 5)
+            ),
         )))))->disableSubmitAction();
 
-        $layout = new Layout(new LayoutGroup(new LayoutRow(array(
-//                new LayoutColumn($buttons, $View == 'Day' ? 7 : 8),
-//                new LayoutColumn($form, $View == 'Day' ? 5 : 4)
-//                new LayoutColumn($buttons, 8),
-//                new LayoutColumn($form, 4)
+        $layout = new Layout(new LayoutGroup(array(
+            new LayoutRow(array(
                 new LayoutColumn($buttons, 9),
                 new LayoutColumn($form, 3)
-            ))))
-            . new Container('&nbsp;')
-            . new Panel(
-                new Book() . ' Klassenbuch' . new PullRight($link),
-                $content,
-                Panel::PANEL_TYPE_PRIMARY
-            );
+            )),
+            new LayoutRow(array(
+                new LayoutColumn(
+                    new Panel(
+                        new Book() . ' Klassenbuch' . new PullRight($link),
+                        $content,
+                        Panel::PANEL_TYPE_PRIMARY
+                    )
+                )
+            ))
+        )));
 
+        // todo SSW-2862
         if ($View == 'Day') {
+            $left = $isStudentCollapsed ? 1 : 2;
+            $right = 12 - $left;
+
+            if ($isStudentCollapsed) {
+                $link = (new Link('', ApiDigital::getEndpoint(), new ChevronRight(), [], 'Schüler ausklappen'))
+                    ->ajaxPipelineOnClick(ApiDigital::pipelineLoadLessonContentContent($DivisionCourseId, $Date, $View, 'false'));
+            } else {
+                $link = new PullRight((new Link('', ApiDigital::getEndpoint(), new ChevronLeft(), [], 'Schüler einklappen'))
+                    ->ajaxPipelineOnClick(ApiDigital::pipelineLoadLessonContentContent($DivisionCourseId, $Date, $View, 'true')));
+            }
             $layout = new Layout(new LayoutGroup(new LayoutRow(array(
-                new LayoutColumn($this->getStudentPanel($tblDivisionCourse), 2),
-                new LayoutColumn($layout, 10),
+                new LayoutColumn($this->getStudentPanel($tblDivisionCourse, $isStudentCollapsed, $link), $left),
+                new LayoutColumn($layout, $right)
             ))));
+
+//            $layout = '
+//                <div class="container">
+//                  <div class="row">
+//                    <!-- Panel links -->
+//                    <div class="panel panel-default pull-left" style="width:60px;">
+//                      <div class="panel-heading">S</div>
+//                      <div class="panel-body">
+//                        1
+//                      </div>
+//                    </div>
+//
+//                    <!-- Content rechts -->
+//                    <div>
+//                      <p> ' . $layout . '</p>
+//                    </div>
+//                  </div>
+//                </div>
+//            ';
+
+//            $layout = new PullLeft($this->getStudentPanel($tblDivisionCourse)) . new PullClear($layout);
         }
 
         return $layout;
@@ -850,6 +913,7 @@ class Frontend extends FrontendTabs
         ) {
             foreach ($dueDateHomeworkList as $dueDateHomework) {
                 // vergessen bearbeiten
+                $tblForgotten= false;
                 if (($tblLessonContent = Digital::useService()->getLessonContentById($dueDateHomework['Id']))
                     && ($tblForgotten = Digital::useService()->getForgottenByHomeworkAndDate($tblLessonContent, $date))
                 ) {
@@ -1568,5 +1632,24 @@ class Frontend extends FrontendTabs
         return (new Form(new FormGroup(
             $formRowList
         )))->disableSubmitAction();
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param bool|null $isShown
+     *
+     * @return string
+     */
+    public function loadAdditionalInformationContent($DivisionCourseId, ?bool $isShown = null): string
+    {
+        if ($isShown === null) {
+            $isShown = Consumer::useService()->getAccountSettingValue('DigitalShowExtraInfo');
+        }
+
+        if ($isShown && ($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
+            return Digital::useService()->getHeadContent($tblDivisionCourse);
+        }
+
+        return '';
     }
 }

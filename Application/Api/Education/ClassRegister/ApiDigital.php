@@ -92,6 +92,8 @@ class ApiDigital extends Extension implements IApiInterface
 
         $Dispatcher->registerMethod('loadDirectJumpToGradebookContent');
 
+        $Dispatcher->registerMethod('loadAdditionalInformationContent');
+
         return $Dispatcher->callMethod($Method);
     }
 
@@ -129,10 +131,11 @@ class ApiDigital extends Extension implements IApiInterface
      * @param string|null $DivisionCourseId
      * @param string $Date
      * @param string $View
+     * @param string $StudentCollapsed
      *
      * @return Pipeline
      */
-    public static function pipelineLoadLessonContentContent(string $DivisionCourseId = null, string $Date = 'today', string $View = 'Day'): Pipeline
+    public static function pipelineLoadLessonContentContent(string $DivisionCourseId = null, string $Date = 'today', string $View = 'Day', string $StudentCollapsed = ''): Pipeline
     {
         $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'LessonContentContent'), self::getEndpoint());
@@ -142,7 +145,8 @@ class ApiDigital extends Extension implements IApiInterface
         $ModalEmitter->setPostPayload(array(
             'DivisionCourseId' => $DivisionCourseId,
             'Date' => $Date,
-            'View' => $View
+            'View' => $View,
+            'StudentCollapsed' => $StudentCollapsed
         ));
         $Pipeline->appendEmitter($ModalEmitter);
 
@@ -153,13 +157,15 @@ class ApiDigital extends Extension implements IApiInterface
      * @param string|null $DivisionCourseId
      * @param string $Date
      * @param string $View
+     * @param string $StudentCollapsed
      * @param null $Data
      *
      * @return string
      */
-    public function loadLessonContentContent(string $DivisionCourseId = null, string $Date = 'today', string $View = 'Day', $Data = null) : string
+    public function loadLessonContentContent(string $DivisionCourseId = null, string $Date = 'today', string $View = 'Day',
+        string $StudentCollapsed = '', $Data = null) : string
     {
-        if (!($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
+        if (!DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId)) {
             return new Danger('Der Kurs wurde nicht gefunden', new Exclamation());
         }
 
@@ -170,7 +176,14 @@ class ApiDigital extends Extension implements IApiInterface
         // View speichern
         Consumer::useService()->createAccountSetting('LessonContentView', $View);
 
-        return Digital::useFrontend()->loadLessonContentTable($tblDivisionCourse, $Date, $View)
+        $isStudentCollapsed = null;
+        if (!empty($StudentCollapsed)) {
+            $isStudentCollapsed = $StudentCollapsed === 'true';
+            // IsStudentCollapsed speichern
+            Consumer::useService()->createAccountSetting('DigitalStudentCollapsed', $isStudentCollapsed);
+        }
+
+        return Digital::useFrontend()->loadLessonContentTable($DivisionCourseId, $Date, $View, $isStudentCollapsed)
             . ($View === 'Day' ? self::pipelineLoadDirectJumpToGradebookContent($DivisionCourseId, $Date) : '');
     }
 
@@ -1562,5 +1575,44 @@ class ApiDigital extends Extension implements IApiInterface
     public function loadDirectJumpToGradebookContent($DivisionCourseId = null, $Date = null) : string
     {
         return Digital::useFrontend()->loadDirectJumpToGradebookContent($DivisionCourseId, $Date);
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $ShowExtraInfo
+     *
+     * @return Pipeline
+     */
+    public static function pipelineLoadAdditionalInformationContent($DivisionCourseId, $ShowExtraInfo = null): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'AdditionalInformationContent'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'loadAdditionalInformationContent',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'DivisionCourseId' => $DivisionCourseId,
+            'ShowExtraInfo' => $ShowExtraInfo
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param null $DivisionCourseId
+     * @param null $ShowExtraInfo
+     * @param null $Data
+     *
+     * @return string
+     */
+    public function loadAdditionalInformationContent($DivisionCourseId = null, $ShowExtraInfo = null, $Data = null) : string
+    {
+        // todo SSW-2862
+//        $isShown = $ShowExtraInfo === 'true';
+        $isShown = isset($Data['ShowExtraInfo']);
+        Consumer::useService()->createAccountSetting('DigitalShowExtraInfo', $isShown);
+
+        return Digital::useFrontend()->loadAdditionalInformationContent($DivisionCourseId, $isShown);
     }
 }

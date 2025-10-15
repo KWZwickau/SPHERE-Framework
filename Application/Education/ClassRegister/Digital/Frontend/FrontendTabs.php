@@ -67,38 +67,19 @@ class FrontendTabs extends FrontendSelectDivisionCourse
      * @param null $BackDivisionCourseId
      * @param string $BasicRoute
      *
-     * @return Stage|string
+     * @return string
      */
     public function frontendStudentList(
         $DivisionCourseId = null,
         $BackDivisionCourseId = null,
         string $BasicRoute = '/Education/ClassRegister/Digital/Teacher'
-    ) {
-        $stage = new Stage('Digitales Klassenbuch', 'Schülerliste');
+    ): string {
+        $icon = new PersonGroup();
+        $name = 'Schülerliste';
+        $Route = '/Education/ClassRegister/Digital/Student';
+        $content = Digital::useService()->getStudentTable($DivisionCourseId, $BasicRoute, '/Education/ClassRegister/Digital/Student');
 
-        if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
-            $stage->addButton($this->getBackButton($tblDivisionCourse, $BackDivisionCourseId, $BasicRoute));
-
-            $stage->setContent(
-                new Layout(array(
-                    new LayoutGroup(array(
-                        Digital::useService()->getHeadLayoutRow($tblDivisionCourse),
-                        $tblDivisionCourse->getType()->getIsCourseSystem()
-                            ? Digital::useService()->getHeadButtonListLayoutRowForCourseSystem($tblDivisionCourse, '/Education/ClassRegister/Digital/Student',
-                                $BasicRoute, $BackDivisionCourseId)
-                            : Digital::useService()->getHeadButtonListLayoutRow($tblDivisionCourse, '/Education/ClassRegister/Digital/Student', $BasicRoute)
-                    )),
-                    new LayoutGroup(new LayoutRow(new LayoutColumn(
-                        Digital::useService()->getStudentTable($tblDivisionCourse, $BasicRoute, '/Education/ClassRegister/Digital/Student')
-                    )), new Title(new PersonGroup() . ' Schülerliste'))
-                ))
-            );
-        } else {
-            return new Danger('Kurs nicht gefunden', new Exclamation())
-                . new Redirect($BasicRoute, Redirect::TIMEOUT_ERROR);
-        }
-
-        return $stage;
+        return Digital::useFrontend()->getStage($DivisionCourseId, $BasicRoute, $Route, $icon, $name, $content, $BackDivisionCourseId);
     }
 
     /**
@@ -129,20 +110,21 @@ class FrontendTabs extends FrontendSelectDivisionCourse
      * @param null $BackDivisionCourseId
      * @param string $BasicRoute
      *
-     * @return Stage|string
+     * @return string
      */
     public function frontendDownload(
         $DivisionCourseId = null,
         $BackDivisionCourseId = null,
         string $BasicRoute = '/Education/ClassRegister/Digital/Teacher'
-    ) {
-        $stage = new Stage('Digitales Klassenbuch', 'Download');
+    ): string {
+        $icon = new Download();
+        $name = 'Download';
+        $Route = '/Education/ClassRegister/Digital/Download';
+        $content = '';
 
         if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
-            $stage->addButton($this->getBackButton($tblDivisionCourse, $BackDivisionCourseId, $BasicRoute));
-
             if ($tblDivisionCourse->getType()->getIsCourseSystem()) {
-                $name = 'Kursliste';
+                $text = 'Kursliste';
                 $printLink = (new Link((new Thumbnail(
                     FileSystem::getFileLoader('/Common/Style/Resource/SSWPrint.png'), 'Kursheft'))->setPictureHeight(),
                     '/Api/Document/Standard/CourseContent/Create', null, array(
@@ -150,9 +132,9 @@ class FrontendTabs extends FrontendSelectDivisionCourse
                     )))->setExternal();
             } else {
                 if (($isCoreGroup = $tblDivisionCourse->getTypeIdentifier() == TblDivisionCourseType::TYPE_CORE_GROUP)) {
-                    $name = 'Stammgruppenliste';
+                    $text = 'Stammgruppenliste';
                 } else {
-                    $name = 'Klassenliste';
+                    $text = 'Klassenliste';
                 }
 
                 $isCourseSystem = DivisionCourse::useService()->getIsCourseSystemByStudentsInDivisionCourse($tblDivisionCourse);
@@ -169,122 +151,110 @@ class FrontendTabs extends FrontendSelectDivisionCourse
                 }
             }
 
-            $stage->setContent(
-                new Layout(array(
-                    new LayoutGroup(array(
-                        Digital::useService()->getHeadLayoutRow($tblDivisionCourse),
-                        $tblDivisionCourse->getType()->getIsCourseSystem()
-                            ? Digital::useService()->getHeadButtonListLayoutRowForCourseSystem($tblDivisionCourse, '/Education/ClassRegister/Digital/Download',
-                                $BasicRoute, $BackDivisionCourseId)
-                            : Digital::useService()->getHeadButtonListLayoutRow($tblDivisionCourse, '/Education/ClassRegister/Digital/Download', $BasicRoute)
-                    )),
-                    new LayoutGroup(new LayoutRow(array(
-                        new LayoutColumn(
-                            new Danger('Die dauerhafte Speicherung des Excel-Exports ist datenschutzrechtlich nicht zulässig!',
-                                new Exclamation())
-                        ),
-                        new LayoutColumn(
-                            new Link((new Thumbnail(
-                                FileSystem::getFileLoader('/Common/Style/Resource/SSWAgreement.png'), $name . ' Einverständnis&shy;erklärung'))->setPictureHeight(),
-                                '/Api/Reporting/Standard/Person/AgreementClassList/Download', null, array(
-                                    'DivisionCourseId' => $DivisionCourseId
-                                ))
-                            , 2),
-                        new LayoutColumn(
-                            new Link((new Thumbnail(
-                                FileSystem::getFileLoader('/Common/Style/Resource/SSWMedical.png'), $name . ' Krankenakte'))->setPictureHeight(),
-                                '/Api/Reporting/Standard/Person/MedicalRecordClassList/Download', null, array(
-                                    'DivisionCourseId' => $DivisionCourseId
-                                ))
-                            , 2),
-                        new LayoutColumn(
-                            new Link((new Thumbnail(
-                                FileSystem::getFileLoader('/Common/Style/Resource/SSWUser.png'), $name . ' Schülerliste'))->setPictureHeight(),
-                                '/Api/Reporting/Standard/Person/ClassList/Download', null, array(
-                                    'DivisionCourseId' => $DivisionCourseId
-                                ))
-                            , 2),
-                        new LayoutColumn(
-                            new Link((new Thumbnail(
-                                FileSystem::getFileLoader('/Common/Style/Resource/SSWAbsence.png'), $name . ' zeugnis&shy;relevante Fehlzeiten'))->setPictureHeight(),
-                                '/Api/Reporting/Standard/Person/ClassRegister/Absence/Download', null, array(
-                                    'DivisionCourseId' => $DivisionCourseId
-                                ))
-                            , 2),
-                        new LayoutColumn(
-                            new Link((new Thumbnail(
-                                FileSystem::getFileLoader('/Common/Style/Resource/SSWAbsence.png'), $name . ' Monatliche Fehlzeiten'))->setPictureHeight(),
-                                '/Api/Reporting/Standard/Person/ClassRegister/AbsenceMonthly/Download', null, array(
-                                    'DivisionCourseId' => $DivisionCourseId
-                                ))
-                            , 2),
-                        new LayoutColumn(
-                            $printLink
-                            , 2),
-                    )), new Title(new Download() . ' Download')),
-                    ConsumerGatekeeper::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'EVOSG')
-                        ? new LayoutGroup(new LayoutRow(array(
-                        new LayoutColumn(
-                            new Link((new Thumbnail(
-                                FileSystem::getFileLoader('/Common/Style/Resource/SSWUser.png'), 'Individuelle Klassenliste'))->setPictureHeight(),
-                                '/Api/Reporting/Custom/IndividualClassRegisterDownload', null, array(
-                                    'DivisionCourseId' => $DivisionCourseId,
-                                    'Type'    => 'downloadClassList'
-                                ))
-                            , 2),
-                        new LayoutColumn(
-                            new Link((new Thumbnail(
-                                FileSystem::getFileLoader('/Common/Style/Resource/SSWAgreement.png'), 'Individuelle Unterschriftenliste'))->setPictureHeight(),
-                                '/Api/Reporting/Custom/IndividualClassRegisterDownload', null, array(
-                                    'DivisionCourseId' => $DivisionCourseId,
-                                    'Type'    => 'downloadSignList'
-                                ))
-                            , 2),
-                        new LayoutColumn(
-                            new Link((new Thumbnail(
-                                FileSystem::getFileLoader('/Common/Style/Resource/SSWUser.png'), 'Individuelle Klassenliste Fremdsprachen'))->setPictureHeight(),
-                                '/Api/Reporting/Custom/IndividualClassRegisterDownload', null, array(
-                                    'DivisionCourseId' => $DivisionCourseId,
-                                    'Type'    => 'downloadElectiveClassList'
-                                ))
-                            , 2),
-                        new LayoutColumn(
-                            new Link((new Thumbnail(
-                                FileSystem::getFileLoader('/Common/Style/Resource/SSWUser.png'), 'Individuelle Telefonliste'))->setPictureHeight(),
-                                '/Api/Reporting/Custom/IndividualClassRegisterDownload', null, array(
-                                    'DivisionCourseId' => $DivisionCourseId,
-                                    'Type'    => 'downloadClassPhoneList'
-                                ))
-                            , 2),
-                    )), new Title(new Download() . ' Individual Download'))
-                        : null,
-                    ConsumerGatekeeper::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'KG')
-                        ? new LayoutGroup(new LayoutRow(array(
-                        new LayoutColumn(
-                            new Link((new Thumbnail(
-                                FileSystem::getFileLoader('/Common/Style/Resource/SSWAgreement.png'), 'Individuelle Unterschriftenliste'))->setPictureHeight(),
-                                '/Api/Reporting/Custom/Kreuzgymnasium/Common/SignList/Download', null, array(
-                                    'DivisionCourseId' => $DivisionCourseId
-                                ))
-                            , 2),
-                        new LayoutColumn(
-                            new Link((new Thumbnail(
-                                FileSystem::getFileLoader('/Common/Style/Resource/SSWAgreement.png'), 'Individuelle Unterschriftenliste Querformat'))->setPictureHeight(),
-                                '/Api/Reporting/Custom/Kreuzgymnasium/Common/SignList/Download', null, array(
-                                    'DivisionCourseId' => $DivisionCourseId,
-                                    'isLandscape' => 1
-                                ))
-                            , 2),
-                    )), new Title(new Download() . ' Individual Download'))
-                        : null,
-                ))
-            );
-        } else {
-            return new Danger('Klasse oder Gruppe nicht gefunden', new Exclamation())
-                . new Redirect($BasicRoute, Redirect::TIMEOUT_ERROR);
+            $content = new Layout(array(
+                new LayoutGroup(new LayoutRow(array(
+                    new LayoutColumn(
+                        new Danger('Die dauerhafte Speicherung des Excel-Exports ist datenschutzrechtlich nicht zulässig!',
+                            new Exclamation())
+                    ),
+                    new LayoutColumn(
+                        new Link((new Thumbnail(
+                            FileSystem::getFileLoader('/Common/Style/Resource/SSWAgreement.png'), $text . ' Einverständnis&shy;erklärung'))->setPictureHeight(),
+                            '/Api/Reporting/Standard/Person/AgreementClassList/Download', null, array(
+                                'DivisionCourseId' => $DivisionCourseId
+                            ))
+                        , 2),
+                    new LayoutColumn(
+                        new Link((new Thumbnail(
+                            FileSystem::getFileLoader('/Common/Style/Resource/SSWMedical.png'), $text . ' Krankenakte'))->setPictureHeight(),
+                            '/Api/Reporting/Standard/Person/MedicalRecordClassList/Download', null, array(
+                                'DivisionCourseId' => $DivisionCourseId
+                            ))
+                        , 2),
+                    new LayoutColumn(
+                        new Link((new Thumbnail(
+                            FileSystem::getFileLoader('/Common/Style/Resource/SSWUser.png'), $text . ' Schülerliste'))->setPictureHeight(),
+                            '/Api/Reporting/Standard/Person/ClassList/Download', null, array(
+                                'DivisionCourseId' => $DivisionCourseId
+                            ))
+                        , 2),
+                    new LayoutColumn(
+                        new Link((new Thumbnail(
+                            FileSystem::getFileLoader('/Common/Style/Resource/SSWAbsence.png'), $text . ' zeugnis&shy;relevante Fehlzeiten'))->setPictureHeight(),
+                            '/Api/Reporting/Standard/Person/ClassRegister/Absence/Download', null, array(
+                                'DivisionCourseId' => $DivisionCourseId
+                            ))
+                        , 2),
+                    new LayoutColumn(
+                        new Link((new Thumbnail(
+                            FileSystem::getFileLoader('/Common/Style/Resource/SSWAbsence.png'), $text . ' Monatliche Fehlzeiten'))->setPictureHeight(),
+                            '/Api/Reporting/Standard/Person/ClassRegister/AbsenceMonthly/Download', null, array(
+                                'DivisionCourseId' => $DivisionCourseId
+                            ))
+                        , 2),
+                    new LayoutColumn(
+                        $printLink
+                        , 2),
+                ))),
+                ConsumerGatekeeper::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'EVOSG')
+                    ? new LayoutGroup(new LayoutRow(array(
+                    new LayoutColumn(
+                        new Link((new Thumbnail(
+                            FileSystem::getFileLoader('/Common/Style/Resource/SSWUser.png'), 'Individuelle Klassenliste'))->setPictureHeight(),
+                            '/Api/Reporting/Custom/IndividualClassRegisterDownload', null, array(
+                                'DivisionCourseId' => $DivisionCourseId,
+                                'Type'    => 'downloadClassList'
+                            ))
+                        , 2),
+                    new LayoutColumn(
+                        new Link((new Thumbnail(
+                            FileSystem::getFileLoader('/Common/Style/Resource/SSWAgreement.png'), 'Individuelle Unterschriftenliste'))->setPictureHeight(),
+                            '/Api/Reporting/Custom/IndividualClassRegisterDownload', null, array(
+                                'DivisionCourseId' => $DivisionCourseId,
+                                'Type'    => 'downloadSignList'
+                            ))
+                        , 2),
+                    new LayoutColumn(
+                        new Link((new Thumbnail(
+                            FileSystem::getFileLoader('/Common/Style/Resource/SSWUser.png'), 'Individuelle Klassenliste Fremdsprachen'))->setPictureHeight(),
+                            '/Api/Reporting/Custom/IndividualClassRegisterDownload', null, array(
+                                'DivisionCourseId' => $DivisionCourseId,
+                                'Type'    => 'downloadElectiveClassList'
+                            ))
+                        , 2),
+                    new LayoutColumn(
+                        new Link((new Thumbnail(
+                            FileSystem::getFileLoader('/Common/Style/Resource/SSWUser.png'), 'Individuelle Telefonliste'))->setPictureHeight(),
+                            '/Api/Reporting/Custom/IndividualClassRegisterDownload', null, array(
+                                'DivisionCourseId' => $DivisionCourseId,
+                                'Type'    => 'downloadClassPhoneList'
+                            ))
+                        , 2),
+                )), new Title($icon . ' Individual Download'))
+                    : null,
+                ConsumerGatekeeper::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'KG')
+                    ? new LayoutGroup(new LayoutRow(array(
+                    new LayoutColumn(
+                        new Link((new Thumbnail(
+                            FileSystem::getFileLoader('/Common/Style/Resource/SSWAgreement.png'), 'Individuelle Unterschriftenliste'))->setPictureHeight(),
+                            '/Api/Reporting/Custom/Kreuzgymnasium/Common/SignList/Download', null, array(
+                                'DivisionCourseId' => $DivisionCourseId
+                            ))
+                        , 2),
+                    new LayoutColumn(
+                        new Link((new Thumbnail(
+                            FileSystem::getFileLoader('/Common/Style/Resource/SSWAgreement.png'), 'Individuelle Unterschriftenliste Querformat'))->setPictureHeight(),
+                            '/Api/Reporting/Custom/Kreuzgymnasium/Common/SignList/Download', null, array(
+                                'DivisionCourseId' => $DivisionCourseId,
+                                'isLandscape' => 1
+                            ))
+                        , 2),
+                )), new Title($icon . ' Individual Download'))
+                    : null,
+            ));
         }
 
-        return $stage;
+        return Digital::useFrontend()->getStage($DivisionCourseId, $BasicRoute, $Route, $icon, $name, $content, $BackDivisionCourseId);
     }
 
     /**
@@ -349,88 +319,50 @@ class FrontendTabs extends FrontendSelectDivisionCourse
      * @param null $BackDivisionCourseId
      * @param string $BasicRoute
      *
-     * @return Stage|string
+     * @return string
      */
     public function frontendLectureship(
         $DivisionCourseId = null,
         $BackDivisionCourseId = null,
         string $BasicRoute = '/Education/ClassRegister/Digital/Teacher'
-    ) {
-        $stage = new Stage('Digitales Klassenbuch', 'Unterrichtete Fächer / Lehrer');
+    ): string {
+        $icon = new Listing();
+        $name = 'Unterrichtete Fächer / Lehrer';
+        $Route = '/Education/ClassRegister/Digital/Lectureship';
+        $content = Digital::useService()->getSubjectsAndLectureshipByDivisionCourse($DivisionCourseId);
 
-        if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
-            $stage->addButton($this->getBackButton($tblDivisionCourse, $BackDivisionCourseId, $BasicRoute));
-
-            $content = Digital::useService()->getSubjectsAndLectureshipByDivisionCourse($tblDivisionCourse);
-
-            $stage->setContent(
-                new Layout(array(
-                    new LayoutGroup(array(
-                        Digital::useService()->getHeadLayoutRow($tblDivisionCourse),
-                        $tblDivisionCourse->getType()->getIsCourseSystem()
-                            ? Digital::useService()->getHeadButtonListLayoutRowForCourseSystem($tblDivisionCourse, '/Education/ClassRegister/Digital/Lectureship',
-                                $BasicRoute, $BackDivisionCourseId)
-                            : Digital::useService()->getHeadButtonListLayoutRow($tblDivisionCourse, '/Education/ClassRegister/Digital/Lectureship', $BasicRoute)
-                    )),
-                    new LayoutGroup(new LayoutRow(new LayoutColumn(
-                        $content
-                    )), new Title(new Listing() . ' Unterrichtete Fächer / Lehrer'))
-                ))
-            );
-        } else {
-            return new Danger('Klasse oder Gruppe nicht gefunden', new Exclamation())
-                . new Redirect($BasicRoute, Redirect::TIMEOUT_ERROR);
-        }
-
-        return $stage;
+        return Digital::useFrontend()->getStage($DivisionCourseId, $BasicRoute, $Route, $icon, $name, $content, $BackDivisionCourseId);
     }
 
     /**
      * @param null $DivisionCourseId
      * @param string $BasicRoute
      *
-     * @return Stage|string
+     * @return string
      */
     public function frontendLessonWeek(
         $DivisionCourseId = null,
         string $BasicRoute = '/Education/ClassRegister/Digital/Teacher'
-    ) {
-        $stage = new Stage('Digitales Klassenbuch', 'Kontrolle');
-
+    ): string {
+        $icon = new Ok();
+        $name = 'Klassentagebuch Kontrolle';
+        $Route = '/Education/ClassRegister/Digital/LessonWeek';
+        $content = '';
         if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
-            $stage->addButton($this->getBackButton($tblDivisionCourse, null, $BasicRoute));
-
             $hasDivisionTeacherRight = (($tblPerson = Account::useService()->getPersonByLogin())
                 && ($tblDivisionCourseMemberType = DivisionCourse::useService()->getDivisionCourseMemberTypeByIdentifier(TblDivisionCourseMemberType::TYPE_DIVISION_TEACHER))
                 && (DivisionCourse::useService()->getDivisionCourseMemberByPerson($tblDivisionCourse, $tblDivisionCourseMemberType, $tblPerson))
             );
             $hasHeadmasterRight = Access::useService()->hasAuthorization('/Education/ClassRegister/Digital/Instruction/Setting');
             // Schulleitung soll auch die Klassenbücher für die Klassenlehrer abnehmen dürfen
-            if ($hasHeadmasterRight)  {
+            if ($hasHeadmasterRight) {
                 $hasDivisionTeacherRight = true;
             }
 
             $content = ApiDigital::receiverBlock($this->loadLessonWeekTable($tblDivisionCourse, $hasDivisionTeacherRight, $hasHeadmasterRight), 'LessonWeekContent');
-
-            $stage->setContent(
-                new Layout(array(
-                    new LayoutGroup(array(
-                        Digital::useService()->getHeadLayoutRow($tblDivisionCourse),
-                        $tblDivisionCourse->getType()->getIsCourseSystem()
-                            ? null
-                            : Digital::useService()->getHeadButtonListLayoutRow($tblDivisionCourse, '/Education/ClassRegister/Digital/LessonWeek', $BasicRoute)
-                    )),
-                    new LayoutGroup(new LayoutRow(new LayoutColumn(
-                        $content
-                    )), new Title(new Ok() . ' Klassentagebuch Kontrolle'))
-                ))
-            );
-        } else {
-            return new Danger('Klasse oder Gruppe nicht gefunden', new Exclamation())
-                . new Redirect($BasicRoute, Redirect::TIMEOUT_ERROR);
         }
 
-        return $stage;
+        return Digital::useFrontend()->getStage($DivisionCourseId, $BasicRoute, $Route, $icon, $name, $content);
     }
 
     /**
@@ -614,20 +546,20 @@ class FrontendTabs extends FrontendSelectDivisionCourse
      * @param null $BackDivisionCourseId
      * @param string $BasicRoute
      *
-     * @return Stage|string
+     * @return string
      */
     public function frontendHoliday(
         $DivisionCourseId = null,
         $BackDivisionCourseId = null,
         string $BasicRoute = '/Education/ClassRegister/Digital/Teacher'
-    ) {
-        $stage = new Stage('Digitales Klassenbuch', 'Ferien / Unterrichtsfreie Tage');
-
+    ): string {
+        $icon = new Holiday();
+        $name = 'Ferien / Unterrichtsfreie Tage';
+        $Route = '/Education/ClassRegister/Digital/Holiday';
+        $content = '';
         if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))
             && ($tblYear = $tblDivisionCourse->getServiceTblYear())
         ) {
-            $stage->addButton($this->getBackButton($tblDivisionCourse, $BackDivisionCourseId, $BasicRoute));
-
             $list = array();
             $dataList = array();
 
@@ -656,6 +588,7 @@ class FrontendTabs extends FrontendSelectDivisionCourse
                     'Type' => $tblHoliday->getTblHolidayType()->getName()
                 );
             }
+
             $content = new TableData($dataList, null, array(
                 'FromDate' => 'Datum von',
                 'ToDate' => 'Datum bis',
@@ -668,31 +601,13 @@ class FrontendTabs extends FrontendSelectDivisionCourse
                         array(1, 'desc')
                     ),
                     'columnDefs' => array(
-                        array('type' => 'de_date', 'targets' => array(0,1)),
+                        array('type' => 'de_date', 'targets' => array(0, 1)),
                     )
                 )
             );
-
-            $stage->setContent(
-                new Layout(array(
-                    new LayoutGroup(array(
-                        Digital::useService()->getHeadLayoutRow($tblDivisionCourse),
-                        $tblDivisionCourse->getType()->getIsCourseSystem()
-                            ? Digital::useService()->getHeadButtonListLayoutRowForCourseSystem($tblDivisionCourse, '/Education/ClassRegister/Digital/Holiday',
-                                $BasicRoute, $BackDivisionCourseId)
-                            : Digital::useService()->getHeadButtonListLayoutRow($tblDivisionCourse, '/Education/ClassRegister/Digital/Holiday', $BasicRoute)
-                    )),
-                    new LayoutGroup(new LayoutRow(new LayoutColumn(
-                        $content
-                    )), new Title(new Holiday() . ' Ferien / Unterrichtsfreie Tage'))
-                ))
-            );
-        } else {
-            return new Danger('Kurs wurde nicht gefunden', new Exclamation())
-                . new Redirect($BasicRoute, Redirect::TIMEOUT_ERROR);
         }
 
-        return $stage;
+        return Digital::useFrontend()->getStage($DivisionCourseId, $BasicRoute, $Route, $icon, $name, $content, $BackDivisionCourseId);
     }
 
     /**

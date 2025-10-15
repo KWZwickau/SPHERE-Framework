@@ -48,7 +48,9 @@ use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\PullClear;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
+use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
@@ -215,9 +217,9 @@ abstract class ServiceTabs extends ServiceForgotten
     /**
      * @param TblDivisionCourse $tblDivisionCourse
      *
-     * @return LayoutRow
+     * @return string
      */
-    public function getHeadLayoutRow(TblDivisionCourse $tblDivisionCourse): LayoutRow
+    public function getHeadContent(TblDivisionCourse $tblDivisionCourse): string
     {
         $content[] = $tblDivisionCourse->getTypeName() . ': ' . $tblDivisionCourse->getDisplayName();
 
@@ -292,9 +294,11 @@ abstract class ServiceTabs extends ServiceForgotten
             $content[] = 'Klassensprecher: ' . implode(', ', $representativeList);
         }
 
-        return new LayoutRow(array(
-            new LayoutColumn(new Panel($tblDivisionCourse->getTypeName(), $content, Panel::PANEL_TYPE_INFO), 6),
-            new LayoutColumn(new Panel('Schuljahr', ($tblYear = $tblDivisionCourse->getServiceTblYear()) ? $tblYear->getDisplayName() : '', Panel::PANEL_TYPE_INFO), 6)
+        return new Layout(new LayoutGroup(
+            new LayoutRow(array(
+                new LayoutColumn(new Panel($tblDivisionCourse->getTypeName(), $content, Panel::PANEL_TYPE_INFO), 6),
+                new LayoutColumn(new Panel('Schuljahr', ($tblYear = $tblDivisionCourse->getServiceTblYear()) ? $tblYear->getDisplayName() : '', Panel::PANEL_TYPE_INFO), 6)
+            ))
         ));
     }
 
@@ -303,14 +307,15 @@ abstract class ServiceTabs extends ServiceForgotten
      * @param string $Route
      * @param string $BasicRoute
      *
-     * @return LayoutRow
+     * @return string
      */
-    public function getHeadButtonListLayoutRow(TblDivisionCourse $tblDivisionCourse,
-        string $Route = '/Education/ClassRegister/Digital/LessonContent', string $BasicRoute = ''): LayoutRow
+    public function getHeadButtonList(TblDivisionCourse $tblDivisionCourse,
+        string $Route = '/Education/ClassRegister/Digital/LessonContent', string $BasicRoute = ''): string
     {
         $isCourseSystem = DivisionCourse::useService()->getIsCourseSystemByStudentsInDivisionCourse($tblDivisionCourse);
         $DivisionCourseId = $tblDivisionCourse->getId();
 
+        $buttonList[] = Digital::useFrontend()->getBackButton($tblDivisionCourse, null, $BasicRoute);
         if ($isCourseSystem) {
             $buttonList[] = $this->getButton('Kursheft auswählen', '/Education/ClassRegister/Digital/SelectCourse', new Book(),
                 $DivisionCourseId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/SelectCourse');
@@ -356,7 +361,7 @@ abstract class ServiceTabs extends ServiceForgotten
         $buttonList[] = $this->getButton('Download', '/Education/ClassRegister/Digital/Download',
             new Download(), $DivisionCourseId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/Download');
 
-        return new LayoutRow(new LayoutColumn($buttonList));
+        return implode(' ', $buttonList);
     }
 
     /**
@@ -414,11 +419,13 @@ abstract class ServiceTabs extends ServiceForgotten
      * @param string $BasicRoute
      * @param null $BackDivisionCourseId
      *
-     * @return LayoutRow
+     * @return string
      */
-    public function getHeadButtonListLayoutRowForCourseSystem(TblDivisionCourse $tblDivisionCourse,
-        string $Route = '/Education/ClassRegister/Digital/CourseContent', string $BasicRoute = '', $BackDivisionCourseId = null): LayoutRow
+    public function getHeadButtonListForCourseSystem(TblDivisionCourse $tblDivisionCourse,
+        string $Route = '/Education/ClassRegister/Digital/CourseContent', string $BasicRoute = '', $BackDivisionCourseId = null): string
     {
+        $buttonList[] = Digital::useFrontend()->getBackButton($tblDivisionCourse, $BackDivisionCourseId, $BasicRoute);
+
         $DivisionCourseId = $tblDivisionCourse->getId();
         $buttonList[] = $this->getButtonCourseSystem('Kursheft', '/Education/ClassRegister/Digital/CourseContent', new Book(),
             $DivisionCourseId, $BackDivisionCourseId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/CourseContent');
@@ -444,7 +451,7 @@ abstract class ServiceTabs extends ServiceForgotten
         $buttonList[] = $this->getButtonCourseSystem('Download', '/Education/ClassRegister/Digital/Download', new Download(),
             $DivisionCourseId, $BackDivisionCourseId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/Download');
 
-        return new LayoutRow(new LayoutColumn($buttonList));
+        return implode(' ', $buttonList);
     }
 
     /**
@@ -471,15 +478,16 @@ abstract class ServiceTabs extends ServiceForgotten
     }
 
     /**
-     * @param TblDivisionCourse $tblDivisionCourse
+     * @param $DivisionCourseId
      * @param string $BasicRoute
      * @param string $ReturnRoute
      *
      * @return string
      */
-    public function getStudentTable(TblDivisionCourse $tblDivisionCourse, string $BasicRoute, string $ReturnRoute): string
+    public function getStudentTable($DivisionCourseId, string $BasicRoute, string $ReturnRoute): string
     {
-        if (($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses(false, true, new DateTime('today')))
+        if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))
+            && ($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses(false, true, new DateTime('today')))
             && ($tblYear = $tblDivisionCourse->getServiceTblYear())
             && (list($fromDate, $tillDate) = Term::useService()->getStartDateAndEndDateOfYear($tblYear))
             && $fromDate
@@ -700,14 +708,16 @@ abstract class ServiceTabs extends ServiceForgotten
     }
 
     /**
-     * @param TblDivisionCourse $tblDivisionCourse
+     * @param $DivisionCourseId
      *
      * @return string
      */
-    public function getSubjectsAndLectureshipByDivisionCourse(TblDivisionCourse $tblDivisionCourse): string
+    public function getSubjectsAndLectureshipByDivisionCourse($DivisionCourseId): string
     {
         $dataList = array();
-        if (DivisionCourse::useService()->getIsCourseSystemByStudentsInDivisionCourse($tblDivisionCourse)) {
+        if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))
+            && DivisionCourse::useService()->getIsCourseSystemByStudentsInDivisionCourse($tblDivisionCourse)
+        ) {
             if (($tblYear = $tblDivisionCourse->getServiceTblYear())) {
                 $tempList = array();
                 if (($tblStudentSubjectList = DivisionCourse::useService()->getStudentSubjectListByStudentDivisionCourseAndPeriod($tblDivisionCourse, 1))) {
