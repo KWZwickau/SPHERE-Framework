@@ -8,6 +8,7 @@ use SPHERE\Application\Api\Education\ClassRegister\ApiAbsence;
 use SPHERE\Application\Api\Education\ClassRegister\ApiDigital;
 use SPHERE\Application\Api\Education\ClassRegister\ApiForgotten;
 use SPHERE\Application\Education\Absence\Absence;
+use SPHERE\Application\Education\Certificate\Generator\Repository\Element\Ruler;
 use SPHERE\Application\Education\ClassRegister\Digital\Frontend\FrontendTabs;
 use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblFullTimeContent;
 use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblLessonContent;
@@ -49,9 +50,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
-use SPHERE\Common\Frontend\Layout\Repository\PullClear;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
-use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
@@ -91,7 +90,7 @@ class Frontend extends FrontendTabs
                 ->ajaxPipelineOnChange(ApiDigital::pipelineLoadAdditionalInformationContent($DivisionCourseId))
         ))));
 
-        $stage = new Stage();
+        $stage = new Stage('Digitales Klassenbuch');
         if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
             $titleText = '&nbsp;' . $icon . ' ' . $name
                 . new Muted(new Small(' für ' . $tblDivisionCourse->getTypeName() . ': ')) . new Bold($tblDivisionCourse->getDisplayName())
@@ -100,14 +99,17 @@ class Frontend extends FrontendTabs
                     : '');
 
             $stage->setContent(
-                new PullClear(new Container('<h3>Digitales Klassenbuch' . new Small(new PullRight($form))) . '</h3>')
-//                 new Container("&nbsp;")
-//                $form
-                . ApiDigital::receiverBlock($this->loadAdditionalInformationContent($DivisionCourseId), 'AdditionalInformationContent')
-                . new Container(($tblDivisionCourse->getType()->getIsCourseSystem()
+                (new Container("&nbsp;"))->setStyle(array('height: 10px;'))
+                 . new Container(($tblDivisionCourse->getType()->getIsCourseSystem()
                     ? Digital::useService()->getHeadButtonListForCourseSystem($tblDivisionCourse, $Route, $BasicRoute, $BackDivisionCourseId)
                     : Digital::useService()->getHeadButtonList($tblDivisionCourse, $Route, $BasicRoute)))
-                . new Title($titleText . new PullRight($titleOption))
+                . ApiDigital::receiverBlock($this->loadAdditionalInformationContent($DivisionCourseId), 'AdditionalInformationContent')
+                . new Layout(new LayoutGroup(new LayoutRow(array(
+                     new LayoutColumn(@"<h4>{$titleText}</h4>", 6),
+                     new LayoutColumn((new Container($form))->setStyle(array('margin-top: 12.5px;')), 3),
+                     new LayoutColumn(new PullRight((new Container($titleOption))->setStyle(array('margin-top: 17.5px;'))), 3)
+                ))))
+                . new Ruler()
                 . $content
             );
         } else {
@@ -135,10 +137,9 @@ class Frontend extends FrontendTabs
         $icon = new Book();
         $name = 'Klassentagebuch';
         $Route = '/Education/ClassRegister/Digital/LessonContent';
-        $subContent = true ? $this->loadLessonContentTable($DivisionCourseId) : ApiDigital::pipelineLoadLessonContentContent($DivisionCourseId);
         $content = ApiDigital::receiverModal()
             . ApiAbsence::receiverModal()
-            . ApiDigital::receiverBlock($subContent, 'LessonContentContent');
+            . ApiDigital::receiverBlock($this->loadLessonContentTable($DivisionCourseId), 'LessonContentContent');
 
         return Digital::useFrontend()->getStage($DivisionCourseId, $BasicRoute, $Route, $icon, $name, $content, null, $titleOption);
     }
@@ -261,7 +262,19 @@ class Frontend extends FrontendTabs
 
         $Date = ($DateString == 'today' ? (new DateTime('today'))->format('d.m.Y') : $DateString);
 
-        $buttons = (new Primary(
+        $buttons = '';
+        if ($isStudentCollapsed) {
+            $linkStudents = (new Primary('', ApiDigital::getEndpoint(), new ChevronRight(), [], 'Schüler anzeigen'))
+                ->ajaxPipelineOnClick(ApiDigital::pipelineLoadLessonContentContent($DivisionCourseId, $Date, $View, 'false'));
+            if ($View == 'Day') {
+                $buttons = $linkStudents;
+            }
+        } else {
+            $linkStudents = new PullRight((new Link('', ApiDigital::getEndpoint(), new ChevronLeft(), [], 'Schüler ausblenden'))
+                ->ajaxPipelineOnClick(ApiDigital::pipelineLoadLessonContentContent($DivisionCourseId, $Date, $View, 'true')));
+        }
+
+        $buttons .= (new Primary(
             new Plus() . ' Thema / HA hinzufügen',
             ApiDigital::getEndpoint(),
             null,
@@ -322,43 +335,13 @@ class Frontend extends FrontendTabs
             ))
         )));
 
-        // todo SSW-2862
         if ($View == 'Day') {
-            $left = $isStudentCollapsed ? 1 : 2;
-            $right = 12 - $left;
-
-            if ($isStudentCollapsed) {
-                $link = (new Link('', ApiDigital::getEndpoint(), new ChevronRight(), [], 'Schüler ausklappen'))
-                    ->ajaxPipelineOnClick(ApiDigital::pipelineLoadLessonContentContent($DivisionCourseId, $Date, $View, 'false'));
-            } else {
-                $link = new PullRight((new Link('', ApiDigital::getEndpoint(), new ChevronLeft(), [], 'Schüler einklappen'))
-                    ->ajaxPipelineOnClick(ApiDigital::pipelineLoadLessonContentContent($DivisionCourseId, $Date, $View, 'true')));
+            if (!$isStudentCollapsed) {
+                $layout = new Layout(new LayoutGroup(new LayoutRow(array(
+                    new LayoutColumn($this->getStudentPanel($tblDivisionCourse, $isStudentCollapsed, $linkStudents), 2),
+                    new LayoutColumn($layout, 10)
+                ))));
             }
-            $layout = new Layout(new LayoutGroup(new LayoutRow(array(
-                new LayoutColumn($this->getStudentPanel($tblDivisionCourse, $isStudentCollapsed, $link), $left),
-                new LayoutColumn($layout, $right)
-            ))));
-
-//            $layout = '
-//                <div class="container">
-//                  <div class="row">
-//                    <!-- Panel links -->
-//                    <div class="panel panel-default pull-left" style="width:60px;">
-//                      <div class="panel-heading">S</div>
-//                      <div class="panel-body">
-//                        1
-//                      </div>
-//                    </div>
-//
-//                    <!-- Content rechts -->
-//                    <div>
-//                      <p> ' . $layout . '</p>
-//                    </div>
-//                  </div>
-//                </div>
-//            ';
-
-//            $layout = new PullLeft($this->getStudentPanel($tblDivisionCourse)) . new PullClear($layout);
         }
 
         return $layout;
@@ -1647,9 +1630,9 @@ class Frontend extends FrontendTabs
         }
 
         if ($isShown && ($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
-            return Digital::useService()->getHeadContent($tblDivisionCourse);
+            return (new Container("&nbsp;"))->setStyle(array('height: 25px;')) . Digital::useService()->getHeadContent($tblDivisionCourse);
         }
 
-        return '';
+        return (new Container("&nbsp;"))->setStyle(array('height: 5px;'));
     }
 }

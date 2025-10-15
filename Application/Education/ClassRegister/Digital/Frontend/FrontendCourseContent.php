@@ -26,6 +26,8 @@ use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Book;
 use SPHERE\Common\Frontend\Icon\Repository\Calendar;
 use SPHERE\Common\Frontend\Icon\Repository\Check;
+use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
+use SPHERE\Common\Frontend\Icon\Repository\ChevronRight;
 use SPHERE\Common\Frontend\Icon\Repository\Comment;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Extern;
@@ -177,10 +179,55 @@ class FrontendCourseContent extends Extension implements IFrontendInterface
                 ))
             );
 
-            $layout = new Layout(new LayoutGroup(array(
+            $content = ApiDigital::receiverModal()
+                . ApiAbsence::receiverModal()
+                . ApiDigital::receiverBlock($this->loadCourseContentContent($tblDivisionCourse), 'CourseContentContent');
+        }
+
+        return Digital::useFrontend()->getStage($DivisionCourseId, $BasicRoute, $Route, $icon, $name, $content, $BackDivisionCourseId, $linkGradebook);
+    }
+
+    public function loadCourseContentContent(TblDivisionCourse $tblDivisionCourse, bool $IsControl = false, ?bool $isStudentCollapsed = null): string
+    {
+        $DivisionCourseId = $tblDivisionCourse->getId();
+
+        if ($IsControl) {
+            return ApiDigital::receiverModal()
+                . ApiAbsence::receiverModal()
+                . new Layout(array(
+                    new LayoutGroup(array(
+                        new LayoutRow(array(
+                            new LayoutColumn(
+                                (new Primary(
+                                    new Check() . ' Kenntnis genommen (SL)',
+                                    ApiInstructionSetting::getEndpoint()
+                                ))->ajaxPipelineOnClick(ApiInstructionSetting::pipelineSaveHeadmasterNoticed($DivisionCourseId))
+                                . $this->loadCourseContentTable($tblDivisionCourse, true)
+                            )
+                        ))
+                    ))
+                ));
+        } else {
+            if ($isStudentCollapsed === null) {
+                $isStudentCollapsed = Consumer::useService()->getAccountSettingValue('DigitalStudentCollapsed');
+            }
+
+            $addLink = '';
+            if ($isStudentCollapsed) {
+                $linkStudents = (new Primary('', ApiDigital::getEndpoint(), new ChevronRight(), [], 'Schüler anzeigen'))
+                    ->ajaxPipelineOnClick(ApiDigital::pipelineLoadCourseContentContent($DivisionCourseId, 'false', 'false'));
+                $addLink = $linkStudents;
+            } else {
+                $linkStudents = new PullRight((new Link('', ApiDigital::getEndpoint(), new ChevronLeft(), [], 'Schüler ausblenden'))
+                    ->ajaxPipelineOnClick(ApiDigital::pipelineLoadCourseContentContent($DivisionCourseId, 'false', 'true')));
+            }
+
+            $layout = ApiDigital::receiverBlock($this->loadCourseMissingStudentContent($tblDivisionCourse), 'CourseMissingStudentContent')
+                . new Layout(new LayoutGroup(array(
                     new LayoutRow(array(
                         new LayoutColumn(
-                            (new Primary(
+                            $addLink
+                            . (new Primary(
                                 new Plus() . ' Thema / HA hinzufügen',
                                 ApiDigital::getEndpoint(),
                                 null,
@@ -198,25 +245,18 @@ class FrontendCourseContent extends Extension implements IFrontendInterface
                             ))->ajaxPipelineOnClick(ApiAbsence::pipelineOpenCreateAbsenceModal(null, $DivisionCourseId, null, true))
                         ),
                     ))
-                ))) . ApiDigital::receiverBlock($this->loadCourseContentTable($tblDivisionCourse), 'CourseContentContent');
+                )))
+                . $this->loadCourseContentTable($tblDivisionCourse);
 
-            // todo SSW-2862
-            $content = ApiDigital::receiverModal()
-                . ApiAbsence::receiverModal()
-                . new Layout(array(
-                    new LayoutGroup(array(
-                        new LayoutRow(array(
-                            new LayoutColumn(
-                                ApiDigital::receiverBlock($this->loadCourseMissingStudentContent($tblDivisionCourse), 'CourseMissingStudentContent')
-                                . $this->getStudentPanel($tblDivisionCourse)
-                                , 2),
-                            new LayoutColumn($layout, 10)
-                        ))
-                    ))
-                ));
+            if (!$isStudentCollapsed) {
+                $layout = new Layout(new LayoutGroup(new LayoutRow(array(
+                    new LayoutColumn($this->getStudentPanel($tblDivisionCourse, $isStudentCollapsed, $linkStudents), 2),
+                    new LayoutColumn($layout, 10)
+                ))));
+            }
+
+            return $layout;
         }
-
-        return Digital::useFrontend()->getStage($DivisionCourseId, $BasicRoute, $Route, $icon, $name, $content, $BackDivisionCourseId, $linkGradebook);
     }
 
     /**
@@ -594,19 +634,7 @@ class FrontendCourseContent extends Extension implements IFrontendInterface
         if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
             $content = ApiDigital::receiverModal()
                 . ApiAbsence::receiverModal()
-                . new Layout(array(
-                    new LayoutGroup(array(
-                        new LayoutRow(array(
-                            new LayoutColumn(
-                                (new Primary(
-                                    new Check() . ' Kenntnis genommen (SL)',
-                                    ApiInstructionSetting::getEndpoint()
-                                ))->ajaxPipelineOnClick(ApiInstructionSetting::pipelineSaveHeadmasterNoticed($DivisionCourseId))
-                                . ApiDigital::receiverBlock($this->loadCourseContentTable($tblDivisionCourse, true), 'CourseContentContent')
-                            )
-                        ))
-                    ))
-                ));
+                . ApiDigital::receiverBlock($this->loadCourseContentContent($tblDivisionCourse, true), 'CourseContentContent');
         }
 
         return Digital::useFrontend()->getStage($DivisionCourseId, $BasicRoute, $Route, $icon, $name, $content, $BackDivisionCourseId);

@@ -1138,10 +1138,11 @@ class ApiDigital extends Extension implements IApiInterface
     /**
      * @param string|null $DivisionCourseId
      * @param string $IsControl
+     * @param string $StudentCollapsed
      *
      * @return Pipeline
      */
-    public static function pipelineLoadCourseContentContent(string $DivisionCourseId = null, string $IsControl = 'false'): Pipeline
+    public static function pipelineLoadCourseContentContent(string $DivisionCourseId = null, string $IsControl = 'false', string $StudentCollapsed = ''): Pipeline
     {
         $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'CourseContentContent'), self::getEndpoint());
@@ -1150,7 +1151,8 @@ class ApiDigital extends Extension implements IApiInterface
         ));
         $ModalEmitter->setPostPayload(array(
             'DivisionCourseId' => $DivisionCourseId,
-            'IsControl' => $IsControl
+            'IsControl' => $IsControl,
+            'StudentCollapsed' => $StudentCollapsed
         ));
         $Pipeline->appendEmitter($ModalEmitter);
 
@@ -1160,16 +1162,24 @@ class ApiDigital extends Extension implements IApiInterface
     /**
      * @param string|null $DivisionCourseId
      * @param string $IsControl
+     * @param string $StudentCollapsed
      *
      * @return string
      */
-    public function loadCourseContentContent(string $DivisionCourseId = null, string $IsControl = 'false') : string
+    public function loadCourseContentContent(string $DivisionCourseId = null, string $IsControl = 'false', string $StudentCollapsed = '') : string
     {
         if (!($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
             return new Danger('Der SekII-Kurs wurde nicht gefunden', new Exclamation());
         }
 
-        return Digital::useFrontend()->loadCourseContentTable($tblDivisionCourse, $IsControl == 'true');
+        $isStudentCollapsed = null;
+        if (!empty($StudentCollapsed)) {
+            $isStudentCollapsed = $StudentCollapsed === 'true';
+            // IsStudentCollapsed speichern
+            Consumer::useService()->createAccountSetting('DigitalStudentCollapsed', $isStudentCollapsed);
+        }
+
+        return Digital::useFrontend()->loadCourseContentContent($tblDivisionCourse, $IsControl == 'true', $isStudentCollapsed);
     }
 
     /**
@@ -1579,11 +1589,10 @@ class ApiDigital extends Extension implements IApiInterface
 
     /**
      * @param $DivisionCourseId
-     * @param $ShowExtraInfo
      *
      * @return Pipeline
      */
-    public static function pipelineLoadAdditionalInformationContent($DivisionCourseId, $ShowExtraInfo = null): Pipeline
+    public static function pipelineLoadAdditionalInformationContent($DivisionCourseId): Pipeline
     {
         $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'AdditionalInformationContent'), self::getEndpoint());
@@ -1591,8 +1600,7 @@ class ApiDigital extends Extension implements IApiInterface
             self::API_TARGET => 'loadAdditionalInformationContent',
         ));
         $ModalEmitter->setPostPayload(array(
-            'DivisionCourseId' => $DivisionCourseId,
-            'ShowExtraInfo' => $ShowExtraInfo
+            'DivisionCourseId' => $DivisionCourseId
         ));
         $Pipeline->appendEmitter($ModalEmitter);
 
@@ -1601,15 +1609,12 @@ class ApiDigital extends Extension implements IApiInterface
 
     /**
      * @param null $DivisionCourseId
-     * @param null $ShowExtraInfo
      * @param null $Data
      *
      * @return string
      */
-    public function loadAdditionalInformationContent($DivisionCourseId = null, $ShowExtraInfo = null, $Data = null) : string
+    public function loadAdditionalInformationContent($DivisionCourseId = null, $Data = null) : string
     {
-        // todo SSW-2862
-//        $isShown = $ShowExtraInfo === 'true';
         $isShown = isset($Data['ShowExtraInfo']);
         Consumer::useService()->createAccountSetting('DigitalShowExtraInfo', $isShown);
 
