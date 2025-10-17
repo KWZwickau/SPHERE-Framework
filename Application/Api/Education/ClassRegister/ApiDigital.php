@@ -87,12 +87,10 @@ class ApiDigital extends Extension implements IApiInterface
         $Dispatcher->registerMethod('saveDeleteCourseContentModal');
 
         $Dispatcher->registerMethod('loadCourseMissingStudentContent');
-
         $Dispatcher->registerMethod('loadWelcomeDigitalContent');
-
         $Dispatcher->registerMethod('loadDirectJumpToGradebookContent');
-
         $Dispatcher->registerMethod('loadAdditionalInformationContent');
+        $Dispatcher->registerMethod('loadTeacherViewContent');
 
         return $Dispatcher->callMethod($Method);
     }
@@ -345,6 +343,7 @@ class ApiDigital extends Extension implements IApiInterface
             return new Success('Thema/Hausaufgaben wurde erfolgreich gespeichert.')
                 . self::pipelineLoadLessonContentContent($DivisionCourseId, $Data['Date'],
                     ($View = Consumer::useService()->getAccountSettingValue('LessonContentView')) ? $View : 'Day')
+                . self::pipelineLoadTeacherViewContent(($tblYear = $tblDivisionCourse->getServiceTblYear()) ? $tblYear->getId() : null, 'LoadFilter')
                 . self::pipelineClose();
         } else {
             return new Danger('Thema/Hausaufgaben konnte nicht gespeichert werden.') . self::pipelineClose();
@@ -438,6 +437,7 @@ class ApiDigital extends Extension implements IApiInterface
             return new Success('Thema/Hausaufgaben wurde erfolgreich gespeichert.')
                 . self::pipelineLoadLessonContentContent($tblDivisionCourse->getId(), $Data['Date'],
                     ($View = Consumer::useService()->getAccountSettingValue('LessonContentView')) ? $View : 'Day')
+                . self::pipelineLoadTeacherViewContent(($tblYear = $tblDivisionCourse->getServiceTblYear()) ? $tblYear->getId() : null, 'LoadFilter')
                 . self::pipelineClose();
         } else {
             return new Danger('Thema/Hausaufgaben konnte nicht gespeichert werden.') . self::pipelineClose();
@@ -546,6 +546,7 @@ class ApiDigital extends Extension implements IApiInterface
             return new Success('Thema/Hausaufgaben wurde erfolgreich gelöscht.')
                 . self::pipelineLoadLessonContentContent($tblDivisionCourse->getId(), $date,
                     ($View = Consumer::useService()->getAccountSettingValue('LessonContentView')) ? $View : 'Day')
+                . self::pipelineLoadTeacherViewContent(($tblYear = $tblDivisionCourse->getServiceTblYear()) ? $tblYear->getId() : null, 'LoadFilter')
                 . self::pipelineClose();
         } else {
             return new Danger('Thema/Hausaufgaben konnte nicht gelöscht werden.') . self::pipelineClose();
@@ -1619,5 +1620,51 @@ class ApiDigital extends Extension implements IApiInterface
         Consumer::useService()->createAccountSetting('DigitalShowExtraInfo', $isShown);
 
         return Digital::useFrontend()->loadAdditionalInformationContent($DivisionCourseId, $isShown);
+    }
+
+    /**
+     * @param $YearId
+     * @param null $Filter
+     *
+     * @return Pipeline
+     */
+    public static function pipelineLoadTeacherViewContent($YearId, $Filter = null): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'TeacherViewContent'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'loadTeacherViewContent',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'YearId' => $YearId,
+            'Filter' => $Filter
+        ));
+        $ModalEmitter->setLoadingMessage('Daten werden geladen');
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param null $YearId
+     * @param null $Filter
+     *
+     * @return string
+     */
+    public function loadTeacherViewContent($YearId = null, $Filter = null): string
+    {
+        if ($Filter === 'LoadFilter') {
+            $Filter = null;
+            // load filter from json
+            if (($value = Consumer::useService()->getAccountSettingValue('DigitalTeacherViewFilter')))
+            {
+                $Filter = json_decode($value, true);
+            }
+        } elseif (is_array($Filter)) {
+            // save filter as json
+            Consumer::useService()->createAccountSetting('DigitalTeacherViewFilter', json_encode($Filter));
+        }
+
+        return Digital::useFrontend()->loadTeacherViewContent($YearId, $Filter);
     }
 }

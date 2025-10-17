@@ -3,9 +3,6 @@
 namespace SPHERE\Application\Education\ClassRegister\Digital\Service;
 
 use DateTime;
-use Doctrine\ORM\OptimisticLockException;
-use Doctrine\ORM\ORMException;
-use Doctrine\ORM\TransactionRequiredException;
 use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblCourseContent;
 use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblForgotten;
 use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblForgottenStudent;
@@ -270,6 +267,78 @@ class Data  extends AbstractData
         $resultList = $query->getResult();
 
         return empty($resultList) ? false : $resultList;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     * @param TblSubject|null $tblSubject
+     *
+     * @return TblLessonContent[]
+     */
+    public function getLessonContentAllByTeacherAndYear(TblPerson $tblPerson, TblYear $tblYear, ?TblSubject $tblSubject = null): array
+    {
+        $queryBuilder = $this->getEntityManager()->getQueryBuilder();
+
+        $builder = $queryBuilder->select('t')
+            ->from(TblLessonContent::class, 't')
+            ->join(TblDivisionCourse::class, 'c')
+            ->where(
+                $queryBuilder->expr()->andX(
+                    $queryBuilder->expr()->eq('t.serviceTblDivision', 'c.Id'),
+                    $queryBuilder->expr()->eq('t.serviceTblPerson', '?1'),
+                    $queryBuilder->expr()->eq('c.serviceTblYear', '?2')
+                )
+            )
+            ->setParameter(1, $tblPerson->getId())
+            ->setParameter(2, $tblYear->getId());
+
+        if ($tblSubject) {
+            $builder->andWhere(
+                $queryBuilder->expr()->orX(
+                    $queryBuilder->expr()->eq('t.serviceTblSubject', '?3'),
+                    $queryBuilder->expr()->eq('t.serviceTblSubstituteSubject', '?3')
+                )
+            );
+            $builder->setParameter(3, $tblSubject->getId());
+        }
+
+        return $builder->getQuery()->getResult();
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param TblSubject|null $tblSubject
+     *
+     * @return TblLessonContent[]
+     */
+    public function getLessonContentAllByTeacherAndDivisionCourse(TblPerson $tblPerson, TblDivisionCourse $tblDivisionCourse, ?TblSubject $tblSubject = null): array
+    {
+        $queryBuilder = $this->getEntityManager()->getQueryBuilder();
+
+        $builder = $queryBuilder->select('t')
+            ->from(TblLessonContent::class, 't')
+            ->where(
+                $queryBuilder->expr()->andX(
+                    $queryBuilder->expr()->eq('t.serviceTblPerson', '?1'),
+                    $queryBuilder->expr()->eq('t.serviceTblDivision', '?2')
+                )
+            )
+            ->setParameter(1, $tblPerson->getId())
+            ->setParameter(2, $tblDivisionCourse->getId());
+
+        if ($tblSubject) {
+            $builder->andWhere(
+                $queryBuilder->expr()->orX(
+                    $queryBuilder->expr()->eq('t.serviceTblSubject', '?3'),
+                    $queryBuilder->expr()->eq('t.serviceTblSubstituteSubject', '?3')
+                )
+            );
+            $builder->setParameter(3, $tblSubject->getId());
+        }
+
+        return $builder->getQuery()->getResult();
     }
 
     /**

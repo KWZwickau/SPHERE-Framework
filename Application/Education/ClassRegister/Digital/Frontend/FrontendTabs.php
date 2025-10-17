@@ -4,6 +4,7 @@ namespace SPHERE\Application\Education\ClassRegister\Digital\Frontend;
 use DateInterval;
 use DateTime;
 use MOC\V\Core\FileSystem\FileSystem;
+use SPHERE\Application\Api\Education\ClassRegister\ApiAbsence;
 use SPHERE\Application\Api\Education\ClassRegister\ApiDigital;
 use SPHERE\Application\Education\ClassRegister\Digital\Digital;
 use SPHERE\Application\Education\ClassRegister\Timetable\Timetable;
@@ -11,6 +12,8 @@ use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseMemberType;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
+use SPHERE\Application\Education\Lesson\Subject\Subject;
+use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
@@ -19,6 +22,8 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer as ConsumerGatekeeper;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Setting\Consumer\Consumer;
+use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
+use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextArea;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
@@ -29,12 +34,17 @@ use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
+use SPHERE\Common\Frontend\Icon\Repository\Filter;
 use SPHERE\Common\Frontend\Icon\Repository\Holiday;
 use SPHERE\Common\Frontend\Icon\Repository\Listing;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\PersonGroup;
+use SPHERE\Common\Frontend\Icon\Repository\Person as PersonIcon;
+use SPHERE\Common\Frontend\Icon\Repository\Plus;
+use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Unchecked;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Thumbnail;
@@ -53,7 +63,8 @@ use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Success;
-use SPHERE\Common\Window\Redirect;
+use SPHERE\Common\Frontend\Text\Repository\ToolTip;
+use SPHERE\Common\Frontend\Text\Repository\Warning as WarningText;
 use SPHERE\Common\Window\Stage;
 
 class FrontendTabs extends FrontendSelectDivisionCourse
@@ -61,6 +72,193 @@ class FrontendTabs extends FrontendSelectDivisionCourse
     const WELCOME_VIEW_TIMETABLE = 'Timetable';
     const WELCOME_VIEW_TEACHER_LECTURESHIP = 'TeacherLectureship';
     const WELCOME_VIEW_ALL_DIGITAL = 'AllDigital';
+
+    /**
+     * @param null $DivisionCourseId
+     * @param null $BackDivisionCourseId
+     * @param string $BasicRoute
+     *
+     * @return string
+     */
+    public function frontendTeacherView(
+        $DivisionCourseId = null,
+        $BackDivisionCourseId = null,
+        string $BasicRoute = '/Education/ClassRegister/Digital/Teacher'
+    ): string {
+        $icon = new PersonIcon();
+        $name = 'Lehreransicht';
+        $Route = '/Education/ClassRegister/Digital/TeacherView';
+        $content = '';
+        if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))
+            && ($tblYear = $tblDivisionCourse->getServiceTblYear())
+        ) {
+            $content = ApiDigital::receiverModal()
+                . ApiAbsence::receiverModal()
+                . new Panel(new Filter() . ' Filter', $this->formTeacherViewFilter($tblYear), Panel::PANEL_TYPE_INFO)
+                . ApiDigital::receiverBlock($this->loadTeacherViewContent($tblYear), 'TeacherViewContent');
+        }
+
+        return Digital::useFrontend()->getStage($DivisionCourseId, $BasicRoute, $Route, $icon, $name, $content, $BackDivisionCourseId);
+    }
+
+    public function loadTeacherViewContent($YearId = null, $Filter = null): string
+    {
+        if (!($tblYear = Term::useService()->getYearById($YearId))) {
+            return new Danger('Schuljahr nicht gefunden', new Exclamation());
+        }
+
+        if (!($tblPerson = Account::useService()->getPersonByLogin())) {
+            return new Warning('Person zum eingeloggten Benutzerkonto nicht gefunden', new Exclamation());
+        }
+
+        $tblSubjectFilter = null;
+        if (isset($Filter['SubjectId'])) {
+            $tblSubjectFilter = Subject::useService()->getSubjectById($Filter['SubjectId']);
+        }
+
+        $tblDivisionCourseFilter = null;
+        if (isset($Filter['DivisionCourseId'])) {
+            $tblDivisionCourseFilter = DivisionCourse::useService()->getDivisionCourseById($Filter['DivisionCourseId']);
+        }
+
+        $tblLessonContentList = $tblDivisionCourseFilter
+            ? Digital::useService()->getLessonContentAllByTeacherAndDivisionCourse($tblPerson, $tblDivisionCourseFilter, $tblSubjectFilter ?: null)
+            : Digital::useService()->getLessonContentAllByTeacherAndYear($tblPerson, $tblYear, $tblSubjectFilter ?: null);
+
+        // setze Identifier für Ermittlung fehlender Einträge
+        $tblLessonContentList = Digital::useService()->getLessonContentListWithIdentifier($tblLessonContentList);
+
+        // ergänzt fehlende Einträge an Hand vom Stundenplan und Vertretungsplan
+        Digital::useService()->addMissingLessonContentList($tblLessonContentList, $tblPerson, $tblYear,
+            $tblDivisionCourseFilter ?: null, $tblSubjectFilter ?: null);
+
+        $dataList = [];
+        if ($tblLessonContentList) {
+            // TODO fehlzeiten
+            // TODO tests
+
+            foreach ($tblLessonContentList as $tblLessonContent) {
+                $isMissing = $tblLessonContent->getId() == 0;
+
+                if (isset($Filter['OnlyMissing']) && !$isMissing) {
+                    continue;
+                }
+
+                $dataList[] = [
+                    'Check' => $this->getDisplayMissing($isMissing ? new Unchecked() : new Check(), $isMissing),
+                    'Date' => $tblLessonContent->getDate(),
+                    'DivisionCourse' => $this->getDisplayMissing(
+                        ($tblDivisionCourse = $tblLessonContent->getServiceTblDivisionCourse()) ? $tblDivisionCourse->getName() : '', $isMissing),
+                    'Lesson' => $this->getDisplayMissing($tblLessonContent->getLessonDisplay(true), $isMissing),
+                    'Subject' => $this->getDisplayMissing($tblLessonContent->getDisplaySubject(true), $isMissing),
+                    'Room' => $this->getDisplayMissing($tblLessonContent->getRoom(), $isMissing),
+                    'Content' => $this->getDisplayMissing($tblLessonContent->getContent(), $isMissing),
+                    'Homework' => $this->getDisplayMissing($tblLessonContent->getHomework(), $isMissing),
+//                    'Test' => new ToolTip('LÜ', 'Leistungsüberprüfung'),
+//                    'Absence' => '',
+                    'Option' => $isMissing
+                        ? (new Standard(
+                            '',
+                            ApiDigital::getEndpoint(),
+                            new Plus(),
+                            array(),
+                            'Hinzufügen'
+                        ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenCreateLessonContentModal(
+                            $tblDivisionCourse->getId(), $tblLessonContent->getDate(), $tblLessonContent->getLesson(),
+                            ($tblSubject = $tblLessonContent->getServiceTblSubject()) ? $tblSubject->getId() : null
+                        ))
+                        : (new Standard(
+                            '',
+                            ApiDigital::getEndpoint(),
+                            new Edit(),
+                            array(),
+                            'Bearbeiten'
+                        ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenEditLessonContentModal($tblLessonContent->getId()))
+                        . (new Standard(
+                            '',
+                            ApiDigital::getEndpoint(),
+                            new Remove(),
+                            array(),
+                            'Löschen'
+                        ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenDeleteLessonContentModal($tblLessonContent->getId()))
+                ];
+            }
+        }
+
+        $columns = array(
+            'Check' => ' ',
+            'Date' => 'Datum',
+            'DivisionCourse' => 'Kurs',
+            'Subject' => 'Fach',
+            'Lesson' => new ToolTip('UE', 'Unterrichtseinheit'),
+            'Room' => 'Raum',
+            'Content' => 'Thema',
+            'Homework' => 'Hausaufgaben',
+//            'Test' => new ToolTip('LÜ', 'Leistungsüberprüfung'),
+//            'Absence' => 'Fehlzeiten',
+            'Option' => ''
+        );
+
+        return new TableData(
+            $dataList,
+            null,
+            $columns,
+            array(
+                'order' => array(
+                    array(1, 'desc'),
+                    array(2, 'asc'),
+                ),
+                'columnDefs' => array(
+                    array('type' => 'de_date', 'targets' => 1),
+                    array('type' => 'natural', 'targets' => 2),
+                    array('width' => '10px', 'targets' => 0),
+                    array('width' => '60px', 'targets' => 1),
+//                    array('width' => '60px', 'targets' => 3),
+//                    array('width' => '30px', 'targets' => 4),
+//                    array('width' => '30px', 'targets' => 5),
+                    array('width' => '60px', 'targets' => -1),
+                    array('orderable' => false, 'searchable' => false, 'targets' => [0, -1]),
+                ),
+                'responsive' => false,
+                'paging' => false,
+//                'info' => false,
+//                'searching' => false,
+            )
+        );
+    }
+
+    public function formTeacherViewFilter(TblYear $tblYear): Form
+    {
+        $tblDivisionCourseList = Digital::useService()->getDivisionCourseListForDigital([$tblYear]);
+
+        $checkBox = (new CheckBox('Filter[OnlyMissing]', new Bold('Nur fehlende Einträge anzeigen'), 1))
+            ->ajaxPipelineOnChange(ApiDigital::pipelineLoadTeacherViewContent($tblYear->getId()));
+
+        return new Form(new FormGroup(array(
+            new FormRow(array(
+                new FormColumn(
+                    (new SelectBox('Filter[DivisionCourseId]', 'Kurs', array('{{ Name }}' => $tblDivisionCourseList)))
+                        ->ajaxPipelineOnChange(ApiDigital::pipelineLoadTeacherViewContent($tblYear->getId()))
+                    , 6),
+                new FormColumn(
+                    (new SelectBox('Filter[SubjectId]', 'Fach', array('{{ DisplayName }}' => Subject::useService()->getSubjectAll())))
+                        ->ajaxPipelineOnChange(ApiDigital::pipelineLoadTeacherViewContent($tblYear->getId()))
+                    , 6),
+            )),
+            new FormRow(array(
+                new FormColumn(
+                    new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
+                        (new Container($checkBox))->setStyle(['margin-top: 7.5px;', 'margin-bottom: 7.5px'])
+                    ))))
+                ),
+            )),
+        )));
+    }
+
+    private function getDisplayMissing(string $content, bool $isMissing): string
+    {
+        return $isMissing ? new WarningText($content) : new Success($content);
+    }
 
     /**
      * @param null $DivisionCourseId
@@ -77,7 +275,7 @@ class FrontendTabs extends FrontendSelectDivisionCourse
         $icon = new PersonGroup();
         $name = 'Schülerliste';
         $Route = '/Education/ClassRegister/Digital/Student';
-        $content = Digital::useService()->getStudentTable($DivisionCourseId, $BasicRoute, '/Education/ClassRegister/Digital/Student');
+        $content = Digital::useService()->getStudentTable($DivisionCourseId, $BasicRoute, $Route);
 
         return Digital::useFrontend()->getStage($DivisionCourseId, $BasicRoute, $Route, $icon, $name, $content, $BackDivisionCourseId);
     }
@@ -411,14 +609,14 @@ class FrontendTabs extends FrontendSelectDivisionCourse
                 $isHoliday = Term::useService()->getIsSchoolWeekHoliday($dateString, $tblYear, $tblCompanyList ?: array(), $hasSaturdayLessons);
 
                 // Rechte prüfen
-                $newDivisionTeacher = new \SPHERE\Common\Frontend\Text\Repository\Warning(new Unchecked() . ' noch nicht bestätigt')
+                $newDivisionTeacher = new WarningText(new Unchecked() . ' noch nicht bestätigt')
                     . new PullRight(($hasDivisionTeacherRight
                             ? (new Link('Bestätigen', ApiDigital::getEndpoint(), new Check()))->ajaxPipelineOnClick(
                                 ApiDigital::pipelineSaveLessonWeekCheck($DivisionCourseId, $dateString, 'DivisionTeacher', 'SET',
                                     $hasDivisionTeacherRight, $hasHeadmasterRight))
                             : '')
                         . '|');
-                $newHeadmaster = new \SPHERE\Common\Frontend\Text\Repository\Warning(new Unchecked() . ' noch nicht bestätigt')
+                $newHeadmaster = new WarningText(new Unchecked() . ' noch nicht bestätigt')
                     . new PullRight($hasHeadmasterRight
                         ? (new Link('Bestätigen', ApiDigital::getEndpoint(), new Check()))->ajaxPipelineOnClick(
                             ApiDigital::pipelineSaveLessonWeekCheck($DivisionCourseId, $dateString, 'Headmaster', 'SET',

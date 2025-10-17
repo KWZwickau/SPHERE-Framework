@@ -201,30 +201,7 @@ class FrontendSelectDivisionCourse extends FrontendForgotten
             $IsAllYears, $YearId, Access::useService()->hasAuthorization('/Education/ClassRegister/Digital/Instruction/Setting'), true, $yearFilterList, $hasLastYearsTemp, true);
 
         $dataList = array();
-        $tblDivisionCourseList = array();
-        if ($IsAllYears) {
-            if (($tblDivisionCourseListDivision = DivisionCourse::useService()->getDivisionCourseListBy(null, TblDivisionCourseType::TYPE_DIVISION))) {
-                $tblDivisionCourseList = $tblDivisionCourseListDivision;
-            }
-            if (($tblDivisionCourseListCoreGroup = DivisionCourse::useService()->getDivisionCourseListBy(null, TblDivisionCourseType::TYPE_CORE_GROUP))) {
-                $tblDivisionCourseList = array_merge($tblDivisionCourseList, $tblDivisionCourseListCoreGroup);
-            }
-        } elseif ($yearFilterList) {
-            foreach ($yearFilterList as $tblYear) {
-                if (($tblDivisionCourseListDivision = DivisionCourse::useService()->getDivisionCourseListBy($tblYear, TblDivisionCourseType::TYPE_DIVISION))) {
-                    foreach($tblDivisionCourseListDivision as $tblDivisionCourse) {
-                        $tblDivisionCourseList[] = $tblDivisionCourse;
-                    }
-                }
-                if (($tblDivisionCourseListCoreGroup = DivisionCourse::useService()->getDivisionCourseListBy($tblYear,
-                    TblDivisionCourseType::TYPE_CORE_GROUP))) {
-                    foreach($tblDivisionCourseListCoreGroup as $tblDivisionGroup) {
-                        $tblDivisionCourseList[] = $tblDivisionGroup;
-                    }
-
-                }
-            }
-        }
+        $tblDivisionCourseList = Digital::useService()->getDivisionCourseListForDigital($yearFilterList, $IsAllYears);
 
         /** @var TblDivisionCourse $tblDivisionCourse */
         foreach ($tblDivisionCourseList as $tblDivisionCourse) {

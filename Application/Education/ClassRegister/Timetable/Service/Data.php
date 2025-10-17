@@ -2,7 +2,6 @@
 namespace SPHERE\Application\Education\ClassRegister\Timetable\Service;
 
 use DateTime;
-use PhpOffice\PhpSpreadsheet\Calculation\MathTrig\IntClass;
 use SPHERE\Application\Education\ClassRegister\Timetable\Service\Entity\TblTimetableNode;
 use SPHERE\Application\Education\ClassRegister\Timetable\Service\Entity\TblTimetable;
 use SPHERE\Application\Education\ClassRegister\Timetable\Service\Entity\TblTimetableReplacement;
@@ -14,7 +13,6 @@ use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Database\Binding\AbstractData;
 use SPHERE\System\Database\Fitting\Element;
-use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Data
@@ -86,6 +84,33 @@ class Data extends AbstractData
         $resultList = $query->getResult();
 
         return empty($resultList) ? false : $resultList;
+    }
+
+    /**
+     * @param DateTime $fromDate
+     * @param DateTime $toDate
+     *
+     * @return TblTimetable[]
+     */
+    public function getTimetableListBetween(DateTime $fromDate, DateTime $toDate): array
+    {
+        $queryBuilder = $this->getEntityManager()->getQueryBuilder();
+
+        $query = $queryBuilder->select('t')
+            ->from(TblTimetable::class, 't')
+            ->where($queryBuilder->expr()->orX(
+                $queryBuilder->expr()->between('t.DateFrom', '?1', '?2'),
+                $queryBuilder->expr()->between('t.DateTo', '?1', '?2'),
+                $queryBuilder->expr()->andX(
+                    $queryBuilder->expr()->lte('t.DateFrom', '?1'),
+                    $queryBuilder->expr()->gte('t.DateTo', '?2')
+                )
+            ))
+            ->setParameter(1, $fromDate)
+            ->setParameter(2, $toDate)
+            ->getQuery();
+
+        return $query->getResult();
     }
 
     /**
@@ -190,6 +215,47 @@ class Data extends AbstractData
             TblTimetableNode::ATTR_DAY => self::ORDER_ASC,
             TblTimetableNode::ATTR_HOUR => self::ORDER_ASC
         ));
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblTimetable $tblTimeTable
+     * @param int|null $day
+     * @param TblDivisionCourse|null $tblDivisionCourseFilter
+     * @param TblSubject|null $tblSubjectFilter
+     *
+     * @return TblTimetableNode[]
+     */
+    public function getTimeTableNodeListByTeacher(TblPerson $tblPerson, TblTimetable $tblTimeTable,
+        ?int $day = null, ?TblDivisionCourse $tblDivisionCourseFilter = null, ?TblSubject $tblSubjectFilter = null): array
+    {
+        $queryBuilder = $this->getEntityManager()->getQueryBuilder();
+
+        $builder = $queryBuilder->select('t')
+            ->from(TblTimetableNode::class, 't')
+            ->where($queryBuilder->expr()->andX(
+                $queryBuilder->expr()->eq('t.serviceTblPerson', '?1'),
+                $queryBuilder->expr()->eq('t.tblClassRegisterTimetable', '?2')
+            ))
+            ->setParameter(1, $tblPerson->getId())
+            ->setParameter(2, $tblTimeTable->getId());
+
+        if ($day !== null) {
+            $builder->andWhere($queryBuilder->expr()->eq('t.Day', '?3'));
+            $builder->setParameter(3, $day);
+        }
+
+        if ($tblDivisionCourseFilter) {
+            $builder->andWhere($queryBuilder->expr()->eq('t.serviceTblCourse', '?4'));
+            $builder->setParameter(4, $tblDivisionCourseFilter->getId());
+        }
+
+        if ($tblSubjectFilter) {
+            $builder->andWhere($queryBuilder->expr()->eq('t.serviceTblSubject', '?5'));
+            $builder->setParameter(5, $tblSubjectFilter->getId());
+        }
+
+        return $builder->getQuery()->getResult();
     }
 
     /**

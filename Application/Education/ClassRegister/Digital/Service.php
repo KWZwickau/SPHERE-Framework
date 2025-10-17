@@ -187,6 +187,30 @@ class Service extends ServiceTabs
     }
 
     /**
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     * @param TblSubject|null $tblSubject
+     *
+     * @return TblLessonContent[]
+     */
+    public function getLessonContentAllByTeacherAndYear(TblPerson $tblPerson, TblYear $tblYear, ?TblSubject $tblSubject = null): array
+    {
+        return (new Data($this->getBinding()))->getLessonContentAllByTeacherAndYear($tblPerson, $tblYear, $tblSubject);
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param TblSubject|null $tblSubject
+     *
+     * @return TblLessonContent[]
+     */
+    public function getLessonContentAllByTeacherAndDivisionCourse(TblPerson $tblPerson, TblDivisionCourse $tblDivisionCourse, ?TblSubject $tblSubject = null): array
+    {
+        return (new Data($this->getBinding()))->getLessonContentAllByTeacherAndDivisionCourse($tblPerson, $tblDivisionCourse, $tblSubject);
+    }
+
+    /**
      * @param $Data
      * @param TblDivisionCourse $tblDivisionCourse
      * @param TblLessonContent|null $tblLessonContent
@@ -1045,5 +1069,35 @@ class Service extends ServiceTabs
     public function getIsSubjectUsedInDigital(TblSubject $tblSubject): bool
     {
         return (new Data($this->getBinding()))->getIsSubjectUsedInDigital($tblSubject);
+    }
+
+    /**
+     * @param array $tblYearList
+     * @param bool $IsAllYears
+     *
+     * @return TblDivisionCourse[]
+     */
+    public function getDivisionCourseListForDigital(array $tblYearList, bool $IsAllYears = false): array
+    {
+        $tblDivisionCourseList = [];
+        if ($IsAllYears) {
+            if (($tblDivisionCourseListDivision = DivisionCourse::useService()->getDivisionCourseListBy(null, TblDivisionCourseType::TYPE_DIVISION))) {
+                $tblDivisionCourseList = array_merge($tblDivisionCourseList, $tblDivisionCourseListDivision);
+            }
+            if (($tblDivisionCourseListCoreGroup = DivisionCourse::useService()->getDivisionCourseListBy(null, TblDivisionCourseType::TYPE_CORE_GROUP))) {
+                $tblDivisionCourseList = array_merge($tblDivisionCourseList, $tblDivisionCourseListCoreGroup);
+            }
+        } else {
+            foreach ($tblYearList as $tblYear) {
+                if (($tblDivisionCourseListDivision = DivisionCourse::useService()->getDivisionCourseListBy($tblYear, TblDivisionCourseType::TYPE_DIVISION))) {
+                    $tblDivisionCourseList = array_merge($tblDivisionCourseList, $tblDivisionCourseListDivision);
+                }
+                if (($tblDivisionCourseListCoreGroup = DivisionCourse::useService()->getDivisionCourseListBy($tblYear, TblDivisionCourseType::TYPE_CORE_GROUP))) {
+                    $tblDivisionCourseList = array_merge($tblDivisionCourseList, $tblDivisionCourseListCoreGroup);
+                }
+            }
+        }
+
+        return $tblDivisionCourseList;
     }
 }
