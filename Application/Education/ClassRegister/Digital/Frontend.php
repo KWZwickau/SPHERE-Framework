@@ -825,7 +825,7 @@ class Frontend extends FrontendTabs
         );
     }
 
-    private function getTestColumnContent(array $tblTestList, int $DivisionCourseId, ?int $SubjectId, array $tblDivisionCourseListByStudentsInDivisionCourse): string
+    public function getTestColumnContent(array $tblTestList, int $DivisionCourseId, ?int $SubjectId, array $tblDivisionCourseListByStudentsInDivisionCourse): string
     {
         $result = '';
         $tblPersonLogin = Account::useService()->getPersonByLogin();

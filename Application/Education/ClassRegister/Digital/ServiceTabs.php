@@ -45,7 +45,6 @@ use SPHERE\Common\Frontend\Icon\Repository\Hospital;
 use SPHERE\Common\Frontend\Icon\Repository\Info as InfoIcon;
 use SPHERE\Common\Frontend\Icon\Repository\Listing;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
-use SPHERE\Common\Frontend\Icon\Repository\Person as PersonIcon;
 use SPHERE\Common\Frontend\Icon\Repository\PersonGroup;
 use SPHERE\Common\Frontend\Icon\Repository\Tag;
 use SPHERE\Common\Frontend\Icon\Repository\Time;
@@ -329,8 +328,8 @@ abstract class ServiceTabs extends ServiceForgotten
                 $DivisionCourseId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/LessonContent');
         }
 
-        $buttonList[] = $this->getButton('Lehreransicht', '/Education/ClassRegister/Digital/TeacherView', new PersonIcon(),
-            $DivisionCourseId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/TeacherView');
+        $buttonList[] = $this->getButton('Kontrolle FL', '/Education/ClassRegister/Digital/TeacherControl', new Ok(),
+            $DivisionCourseId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/TeacherControl');
 
         // Klassentagebuch Kontrolle: nur für Klassenlehrer, Tudor oder Schulleitung
         if ((($tblPerson = Account::useService()->getPersonByLogin())
@@ -341,7 +340,7 @@ abstract class ServiceTabs extends ServiceForgotten
         ) {
             // Klassentagebuch Kontrolle: nicht bei Kurssystemen
             if (!$isCourseSystem) {
-                $buttonList[] = $this->getButton('Klassentagebuch Kontrolle', '/Education/ClassRegister/Digital/LessonWeek', new Ok(),
+                $buttonList[] = $this->getButton('Kontrolle KL / SL', '/Education/ClassRegister/Digital/LessonWeek', new Ok(),
                     $DivisionCourseId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/LessonWeek');
             }
         }
@@ -864,89 +863,95 @@ abstract class ServiceTabs extends ServiceForgotten
     /**
      * @param array $tblLessonContentList
      * @param TblPerson $tblPerson
-     * @param TblYear $tblYear
+     * @param array $tblYearList
      * @param TblDivisionCourse|null $tblDivisionCourseFilter
      * @param TblSubject|null $tblSubjectFilter
      *
      * @return void
      */
-    public function addMissingLessonContentList(array &$tblLessonContentList, TblPerson $tblPerson, TblYear $tblYear,
-        ?TblDivisionCourse $tblDivisionCourseFilter = null, ?TblSubject $tblSubjectFilter = null): void
+    public function addMissingLessonContentList(array &$tblLessonContentList, array $tblYearList,
+        TblPerson $tblPerson, ?TblDivisionCourse $tblDivisionCourseFilter = null, ?TblSubject $tblSubjectFilter = null): void
     {
-        /** @var DateTime $startDate */
-        list($startDate, $endDate) = Term::useService()->getStartDateAndEndDateOfYear($tblYear);
-        $today = (new DateTime('today'))->modify('-1 day');
-        if ($today < $endDate) {
-            $endDate = $today;
-        }
+        foreach ($tblYearList as $tblYear) {
+            /** @var DateTime $startDate */
+            list($startDate, $endDate) = Term::useService()->getStartDateAndEndDateOfYear($tblYear);
+            $today = (new DateTime('today'))->modify('-1 day');
+            if ($today < $endDate) {
+                $endDate = $today;
+            }
 
-        $companies = [];
-        $tblDivisionCourseList = [];
-        if ($tblDivisionCourseFilter) {
-            $tblDivisionCourseList[$tblDivisionCourseFilter->getId()] = $tblDivisionCourseFilter;
-            $this->setCompanies($tblDivisionCourseFilter, $companies);
-        }
+            $companies = [];
+            $tblDivisionCourseList = [];
+            if ($tblDivisionCourseFilter) {
+                $tblDivisionCourseList[$tblDivisionCourseFilter->getId()] = $tblDivisionCourseFilter;
+                $this->setCompanies($tblDivisionCourseFilter, $companies);
+            }
 
-        $tblTimetableList = Timetable::useService()->getTimetableListBetween($startDate, $endDate);
-        $timetables = [];
-        foreach ($tblTimetableList as $tblTimetable) {
-            for ($day = 1; $day < 7; $day++) {
-                if (($tblTimeTableNodeList = Timetable::useService()->getTimeTableNodeListByTeacher($tblPerson, $tblTimetable,
-                    $day, $tblDivisionCourseFilter, $tblSubjectFilter))
-                ) {
-                    // php 8.3 ??
-                    if (!isset($timetables[$day])) {
-                        $timetables[$day] = [];
-                    }
+            $tblTimetableList = Timetable::useService()->getTimetableListBetween($startDate, $endDate);
+            $timetables = [];
+            foreach ($tblTimetableList as $tblTimetable) {
+                for ($day = 1; $day < 7; $day++) {
+                    if (($tblTimeTableNodeList = Timetable::useService()->getTimeTableNodeListByTeacher($tblPerson, $tblTimetable,
+                        $day, $tblDivisionCourseFilter, $tblSubjectFilter))
+                    ) {
+                        // php 8.3 ??
+                        if (!isset($timetables[$day])) {
+                            $timetables[$day] = [];
+                        }
 
-                    $timetables[$day][$tblTimetable->getId()] = [
-                        'FromDate' => $tblTimetable->getDateFrom(true),
-                        'ToDate' => $tblTimetable->getDateTo(true),
-                        'tblTimetableNodeList' => $tblTimeTableNodeList,
-                        'tblTimetable' => $tblTimetable
-                    ];
-
-                    // Klassen hinzufügen
-                    if (!$tblDivisionCourseFilter) {
+                        $tblDivisionCourseListForDay = [];
                         foreach ($tblTimeTableNodeList as $tblTimeTableNodeTemp) {
-                            if (($tblDivisionCourseTemp = $tblTimeTableNodeTemp->getServiceTblCourse())
-                                && !isset($tblDivisionCourseList[$tblDivisionCourseTemp->getId()])
-                            ) {
-                                $tblDivisionCourseList[$tblDivisionCourseTemp->getId()] = $tblDivisionCourseTemp;
-                                $this->setCompanies($tblDivisionCourseTemp, $companies);
+                            if (($tblDivisionCourseTemp = $tblTimeTableNodeTemp->getServiceTblCourse())) {
+                                // Klassen hinzufügen für Schule (Ferien)
+                                if (!isset($tblDivisionCourseList[$tblDivisionCourseTemp->getId()])) {
+                                    $tblDivisionCourseList[$tblDivisionCourseTemp->getId()] = $tblDivisionCourseTemp;
+                                    $this->setCompanies($tblDivisionCourseTemp, $companies);
+                                }
+
+                                // Klassenliste für den Wochentag für Vertretungsplan
+                                if (!isset($tblDivisionCourseListForDay[$tblDivisionCourseTemp->getId()])) {
+                                    $tblDivisionCourseListForDay[$tblDivisionCourseTemp->getId()] = $tblDivisionCourseTemp;
+                                }
                             }
                         }
+
+                        $timetables[$day][$tblTimetable->getId()] = [
+                            'FromDate' => $tblTimetable->getDateFrom(true),
+                            'ToDate' => $tblTimetable->getDateTo(true),
+                            'tblTimetableNodeList' => $tblTimeTableNodeList,
+                            'tblTimetable' => $tblTimetable,
+                            'tblDivisionCourseListForDay' => $tblDivisionCourseListForDay
+                        ];
                     }
                 }
             }
-        }
 
-        $this->runDays($tblLessonContentList, $startDate, $endDate, $tblYear, $timetables, $companies, $tblDivisionCourseList);
+            $this->runDays($tblLessonContentList, $startDate, $endDate, $tblYear, $timetables, $companies);
+        }
     }
 
-    private function runDays(array &$tblLessonContentList, DateTime $startDate, DateTime $endDate, TblYear $tblYear, array $timetables, array $companies,
-        array $tblDivisionCourseList): void
+    private function runDays(array &$tblLessonContentList, DateTime $startDate, DateTime $endDate, TblYear $tblYear, array $timetables, array $companies): void
     {
         $intervall = new DateInterval('P1D');
         while ($startDate <= $endDate) {
             $dayOfWeek = (int)$startDate->format('w');
             if (isset($timetables[$dayOfWeek])) {
-                // vertretungsplan für Tag
-                // TODO eventuell Kurs auf Tagesbasis
-                $tblTimetableReplacementList = [];
-                foreach ($tblDivisionCourseList as $tblDivisionCourseTemp) {
-                    // TODO zusätzlich Stunden im vertretungsplan
-                    if (($tempList = Timetable::useService()->getTimetableReplacementByTime($startDate, null, $tblDivisionCourseTemp))) {
-                        foreach ($tempList as $item) {
-                            $tblTimetableReplacementList[$item->getIdentifier()] = $item;
-                        }
-                    }
-                }
-
                 $holidays = [];
                 $fullTimes = [];
                 foreach ($timetables[$dayOfWeek] as $timetableArray) {
                     if ($timetableArray['FromDate'] <= $startDate && $timetableArray['ToDate'] >= $startDate) {
+                        // vertretungsplan für Tag abhängig von Klassen an dem Tag
+                        // TODO zusätzlich Stunde in einer andere Klasse
+                        $tblTimetableReplacementList = [];
+                        foreach ($timetableArray['tblDivisionCourseListForDay'] as $tblDivisionCourseTemp) {
+                            // TODO zusätzlich Stunden im vertretungsplan
+                            if (($tempList = Timetable::useService()->getTimetableReplacementByTime($startDate, null, $tblDivisionCourseTemp))) {
+                                foreach ($tempList as $item) {
+                                    $tblTimetableReplacementList[$item->getIdentifier()] = $item;
+                                }
+                            }
+                        }
+
                         /** @var TblTimetableNode $tblTimetableNode */
                         foreach ($timetableArray['tblTimetableNodeList'] as $tblTimetableNode) {
                             if (($tblDivisionCourse = $tblTimetableNode->getServiceTblCourse())

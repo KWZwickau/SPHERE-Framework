@@ -7,6 +7,7 @@ use MOC\V\Core\FileSystem\FileSystem;
 use SPHERE\Application\Api\Education\ClassRegister\ApiAbsence;
 use SPHERE\Application\Api\Education\ClassRegister\ApiDigital;
 use SPHERE\Application\Education\ClassRegister\Digital\Digital;
+use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblLessonContent;
 use SPHERE\Application\Education\ClassRegister\Timetable\Timetable;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
@@ -39,7 +40,6 @@ use SPHERE\Common\Frontend\Icon\Repository\Holiday;
 use SPHERE\Common\Frontend\Icon\Repository\Listing;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\PersonGroup;
-use SPHERE\Common\Frontend\Icon\Repository\Person as PersonIcon;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
@@ -80,22 +80,30 @@ class FrontendTabs extends FrontendSelectDivisionCourse
      *
      * @return string
      */
-    public function frontendTeacherView(
+    public function frontendTeacherControl(
         $DivisionCourseId = null,
         $BackDivisionCourseId = null,
         string $BasicRoute = '/Education/ClassRegister/Digital/Teacher'
     ): string {
-        $icon = new PersonIcon();
+        $icon = new Ok();
         $name = 'Lehreransicht';
-        $Route = '/Education/ClassRegister/Digital/TeacherView';
+        $Route = '/Education/ClassRegister/Digital/TeacherControl';
         $content = '';
         if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))
             && ($tblYear = $tblDivisionCourse->getServiceTblYear())
         ) {
+            $Filter = ['DivisionCourseId' => $DivisionCourseId];
+            // save filter as json
+            Consumer::useService()->createAccountSetting('DigitalTeacherViewFilter', json_encode($Filter));
+
+            $global = $this->getGlobal();
+            $global->POST['Filter']['DivisionCourseId'] = $DivisionCourseId;
+            $global->savePost();
+
             $content = ApiDigital::receiverModal()
                 . ApiAbsence::receiverModal()
                 . new Panel(new Filter() . ' Filter', $this->formTeacherViewFilter($tblYear), Panel::PANEL_TYPE_INFO)
-                . ApiDigital::receiverBlock($this->loadTeacherViewContent($tblYear), 'TeacherViewContent');
+                . ApiDigital::receiverBlock($this->loadTeacherViewContent($tblYear->getId(), $Filter), 'TeacherViewContent');
         }
 
         return Digital::useFrontend()->getStage($DivisionCourseId, $BasicRoute, $Route, $icon, $name, $content, $BackDivisionCourseId);
@@ -103,8 +111,15 @@ class FrontendTabs extends FrontendSelectDivisionCourse
 
     public function loadTeacherViewContent($YearId = null, $Filter = null): string
     {
-        if (!($tblYear = Term::useService()->getYearById($YearId))) {
-            return new Danger('Schuljahr nicht gefunden', new Exclamation());
+        if ($YearId) {
+            if (!($tblYear = Term::useService()->getYearById($YearId))) {
+                return new Danger('Schuljahr nicht gefunden', new Exclamation());
+            }
+            $tblYearList = [$tblYear];
+        } else {
+            if (!($tblYearList = Term::useService()->getYearByNow())) {
+                return new Danger('Schuljahr nicht gefunden', new Exclamation());
+            }
         }
 
         if (!($tblPerson = Account::useService()->getPersonByLogin())) {
@@ -121,28 +136,44 @@ class FrontendTabs extends FrontendSelectDivisionCourse
             $tblDivisionCourseFilter = DivisionCourse::useService()->getDivisionCourseById($Filter['DivisionCourseId']);
         }
 
-        $tblLessonContentList = $tblDivisionCourseFilter
-            ? Digital::useService()->getLessonContentAllByTeacherAndDivisionCourse($tblPerson, $tblDivisionCourseFilter, $tblSubjectFilter ?: null)
-            : Digital::useService()->getLessonContentAllByTeacherAndYear($tblPerson, $tblYear, $tblSubjectFilter ?: null);
+        if ($tblDivisionCourseFilter) {
+            $tblLessonContentList = Digital::useService()->getLessonContentAllByTeacherAndDivisionCourse(
+                $tblPerson, $tblDivisionCourseFilter, $tblSubjectFilter ?: null);
+        } else {
+            $tblLessonContentList = [];
+            foreach ($tblYearList as $tblYearTemp) {
+                if (($tempList = Digital::useService()->getLessonContentAllByTeacherAndYear($tblPerson, $tblYearTemp, $tblSubjectFilter ?: null))) {
+                    $tblLessonContentList = array_merge($tblLessonContentList, $tempList);
+                }
+            }
+        }
 
         // setze Identifier für Ermittlung fehlender Einträge
         $tblLessonContentList = Digital::useService()->getLessonContentListWithIdentifier($tblLessonContentList);
 
         // ergänzt fehlende Einträge an Hand vom Stundenplan und Vertretungsplan
-        Digital::useService()->addMissingLessonContentList($tblLessonContentList, $tblPerson, $tblYear,
-            $tblDivisionCourseFilter ?: null, $tblSubjectFilter ?: null);
+        Digital::useService()->addMissingLessonContentList($tblLessonContentList, $tblYearList,
+            $tblPerson, $tblDivisionCourseFilter ?: null, $tblSubjectFilter ?: null);
 
         $dataList = [];
         if ($tblLessonContentList) {
-            // TODO fehlzeiten
-            // TODO tests
+            // fehlzeiten
 
+//            $tblTestList = [];
+            /** @var TblLessonContent $tblLessonContent */
             foreach ($tblLessonContentList as $tblLessonContent) {
                 $isMissing = $tblLessonContent->getId() == 0;
 
                 if (isset($Filter['OnlyMissing']) && !$isMissing) {
                     continue;
                 }
+
+                // tests
+//                if (!isset($tblTestList[$tblLessonContent->getDate()])) {
+//                    $tblTestList[$tblLessonContent->getDate()] = Grade::useService()->getTestListForDigitalByDate(new DateTime($tblLessonContent->getDate()));
+//                }
+
+                $tblSubject = $tblLessonContent->getServiceTblSubject();
 
                 $dataList[] = [
                     'Check' => $this->getDisplayMissing($isMissing ? new Unchecked() : new Check(), $isMissing),
@@ -154,7 +185,10 @@ class FrontendTabs extends FrontendSelectDivisionCourse
                     'Room' => $this->getDisplayMissing($tblLessonContent->getRoom(), $isMissing),
                     'Content' => $this->getDisplayMissing($tblLessonContent->getContent(), $isMissing),
                     'Homework' => $this->getDisplayMissing($tblLessonContent->getHomework(), $isMissing),
-//                    'Test' => new ToolTip('LÜ', 'Leistungsüberprüfung'),
+//                    $tblDivisionCourseListByStudentsInDivisionCourse = DivisionCourse::useService()->getDivisionCourseListByStudentsInDivisionCourse($tblDivisionCourse);
+//                    'Test' => Digital::useFrontend()->getTestColumnContent(
+//                        $tblTestList[$tblLessonContent->getDate()], $tblDivisionCourse->getId(), $tblSubject ? $tblSubject->getId() : null, []
+//                    ),
 //                    'Absence' => '',
                     'Option' => $isMissing
                         ? (new Standard(
@@ -164,8 +198,7 @@ class FrontendTabs extends FrontendSelectDivisionCourse
                             array(),
                             'Hinzufügen'
                         ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenCreateLessonContentModal(
-                            $tblDivisionCourse->getId(), $tblLessonContent->getDate(), $tblLessonContent->getLesson(),
-                            ($tblSubject = $tblLessonContent->getServiceTblSubject()) ? $tblSubject->getId() : null
+                            $tblDivisionCourse->getId(), $tblLessonContent->getDate(), $tblLessonContent->getLesson(), $tblSubject ? $tblSubject->getId() : null
                         ))
                         : (new Standard(
                             '',
@@ -189,8 +222,8 @@ class FrontendTabs extends FrontendSelectDivisionCourse
             'Check' => ' ',
             'Date' => 'Datum',
             'DivisionCourse' => 'Kurs',
-            'Subject' => 'Fach',
             'Lesson' => new ToolTip('UE', 'Unterrichtseinheit'),
+            'Subject' => 'Fach',
             'Room' => 'Raum',
             'Content' => 'Thema',
             'Homework' => 'Hausaufgaben',
@@ -207,15 +240,13 @@ class FrontendTabs extends FrontendSelectDivisionCourse
                 'order' => array(
                     array(1, 'desc'),
                     array(2, 'asc'),
+                    array(3, 'desc'),
                 ),
                 'columnDefs' => array(
                     array('type' => 'de_date', 'targets' => 1),
                     array('type' => 'natural', 'targets' => 2),
                     array('width' => '10px', 'targets' => 0),
                     array('width' => '60px', 'targets' => 1),
-//                    array('width' => '60px', 'targets' => 3),
-//                    array('width' => '30px', 'targets' => 4),
-//                    array('width' => '30px', 'targets' => 5),
                     array('width' => '60px', 'targets' => -1),
                     array('orderable' => false, 'searchable' => false, 'targets' => [0, -1]),
                 ),
@@ -227,22 +258,37 @@ class FrontendTabs extends FrontendSelectDivisionCourse
         );
     }
 
-    public function formTeacherViewFilter(TblYear $tblYear): Form
+    /**
+     * @param TblYear|null $tblYear
+     *
+     * @return Form
+     */
+    public function formTeacherViewFilter(?TblYear $tblYear): Form
     {
-        $tblDivisionCourseList = Digital::useService()->getDivisionCourseListForDigital([$tblYear]);
+        if ($tblYear)  {
+            $tblYearList = [$tblYear];
+            $YearId = $tblYear->getId();
+        } else {
+            $YearId = null;
+            if (!($tblYearList = Term::useService()->getYearByNow())) {
+                $tblYearList = [];
+            }
+        }
+
+        $tblDivisionCourseList = Digital::useService()->getDivisionCourseListForDigital($tblYearList);
 
         $checkBox = (new CheckBox('Filter[OnlyMissing]', new Bold('Nur fehlende Einträge anzeigen'), 1))
-            ->ajaxPipelineOnChange(ApiDigital::pipelineLoadTeacherViewContent($tblYear->getId()));
+            ->ajaxPipelineOnChange(ApiDigital::pipelineLoadTeacherViewContent($YearId));
 
         return new Form(new FormGroup(array(
             new FormRow(array(
                 new FormColumn(
                     (new SelectBox('Filter[DivisionCourseId]', 'Kurs', array('{{ Name }}' => $tblDivisionCourseList)))
-                        ->ajaxPipelineOnChange(ApiDigital::pipelineLoadTeacherViewContent($tblYear->getId()))
+                        ->ajaxPipelineOnChange(ApiDigital::pipelineLoadTeacherViewContent($YearId))
                     , 6),
                 new FormColumn(
                     (new SelectBox('Filter[SubjectId]', 'Fach', array('{{ DisplayName }}' => Subject::useService()->getSubjectAll())))
-                        ->ajaxPipelineOnChange(ApiDigital::pipelineLoadTeacherViewContent($tblYear->getId()))
+                        ->ajaxPipelineOnChange(ApiDigital::pipelineLoadTeacherViewContent($YearId))
                     , 6),
             )),
             new FormRow(array(
