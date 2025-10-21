@@ -74,6 +74,9 @@ class Service extends Extension
                 // Zusatzseite Namensliste Integration
                 $this->buildStudentIntegrationListPage($export, $Type, $DataFocus[$Type], $tblSchoolActive);
             }
+//            if(empty($LevelList)){
+//                unset($DataContent[$Type]);
+//            }
         }
         // Berufsbildende Schulen anfügen
         // alphabetisch sortiert (Schulart)
@@ -97,12 +100,14 @@ class Service extends Extension
                 } else {
                     $tblSchoolActive = $this->getSchoolByType($tblSchoolList, $Type);
                 }
-
-                // Seiten Generieren
-                $this->buildStudentTechnicalCountPage($export, $IsFirstTab, $Type, $SchoolCourse, $LevelList, $YearString, $tblSchoolActive, $date);
-                if(isset($DataFocus[$Type]) && !empty($DataFocus[$Type])){
-                    // Zusatzseite Namensliste Integration
-                    $this->buildStudentIntegrationListPage($export, $Type, $DataFocus[$Type], $tblSchoolActive);
+                // Schulart fehlerhaft eingestellt soll keine Seite erzeugen
+                if($tblSchoolActive){
+                    // Seiten Generieren
+                    $this->buildStudentTechnicalCountPage($export, $IsFirstTab, $Type, $SchoolCourse, $LevelList, $YearString, $tblSchoolActive, $date);
+                    if(isset($DataFocus[$Type]) && !empty($DataFocus[$Type])){
+                        // Zusatzseite Namensliste Integration
+                        $this->buildStudentIntegrationListPage($export, $Type, $DataFocus[$Type], $tblSchoolActive);
+                    }
                 }
             }
         }
