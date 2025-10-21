@@ -10,13 +10,13 @@ use SPHERE\Common\Main;
 /**
  *
  */
-class YubiKey implements ModuleInterface
+class Token implements ModuleInterface
 {
     public static function registerModule(): void
     {
         Main::getDispatcher()::registerRoute(
             Main::getDispatcher()::createRoute(
-                __NAMESPACE__ . '/yubikey', __CLASS__ . '::handleRequest'
+                __NAMESPACE__ . '/token', __CLASS__ . '::handleRequest'
             )
         );
     }

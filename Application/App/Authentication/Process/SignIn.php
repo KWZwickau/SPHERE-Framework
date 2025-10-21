@@ -18,7 +18,7 @@ class SignIn implements ModuleInterface
     public static function registerModule(): void
     {
         Main::getDispatcher()::registerRoute(Main::getDispatcher()::createRoute(
-            __NAMESPACE__ . '/Sign-In', __CLASS__ . '::handleRequest'
+            __NAMESPACE__ . '/sign-in', __CLASS__ . '::handleRequest'
         ));
     }
 

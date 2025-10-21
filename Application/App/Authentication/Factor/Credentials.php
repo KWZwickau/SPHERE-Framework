@@ -19,7 +19,7 @@ class Credentials implements ModuleInterface
     {
         Main::getDispatcher()::registerRoute(
             Main::getDispatcher()::createRoute(
-                __NAMESPACE__ . '/Credentials', __CLASS__ . '::handleRequest'
+                __NAMESPACE__ . '/credentials', __CLASS__ . '::handleRequest'
             )
         );
     }

@@ -18,9 +18,11 @@ use Throwable;
 class Dispatcher extends Extension implements DispatcherInterface
 {
     private static array $publicRoutes = [
+        '/app/authentication/status',
         '/app/authentication/process/sign-in',
         '/app/authentication/process/sign-out',
         '/app/authentication/factor/credentials',
+        '/app/authentication/factor/token',
         '/app/authentication/factor/yubikey',
     ];
     private static ?IBridgeInterface $router = null;

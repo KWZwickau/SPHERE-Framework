@@ -81,7 +81,7 @@ Things to know:
 
 ### 2. Show Login
 
-- The first factor is *always* "credentials"
+- The first factor MUST BE *always* "credentials"
 
 1. Get the current state of the sign-in process for the user
    - Ask for username/email/...
