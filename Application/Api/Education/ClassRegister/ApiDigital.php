@@ -906,17 +906,18 @@ class ApiDigital extends Extension implements IApiInterface
 
     /**
      * @param string $DivisionCourseId
+     * @param string|null $Date
      * @param string|null $hasDivisionTeacherRight
      * @param string|null $hasHeadmasterRight
-     * @param string|null $Date
+     * @param string|null $isOpen
      *
      * @return Pipeline
      */
-    public static function pipelineLoadLessonWeekContent(string $DivisionCourseId, string $hasDivisionTeacherRight = null,
-        string $hasHeadmasterRight = null, string $Date = null): Pipeline
+    public static function pipelineLoadLessonWeekContent(string $DivisionCourseId, string $Date = null,
+        string $hasDivisionTeacherRight = null, string $hasHeadmasterRight = null, string $isOpen = null): Pipeline
     {
         $Pipeline = new Pipeline(false);
-        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'LessonWeekContent'), self::getEndpoint());
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'LessonWeekContent_' . $Date), self::getEndpoint());
         $ModalEmitter->setGetPayload(array(
             self::API_TARGET => 'loadLessonWeekContent',
         ));
@@ -925,6 +926,7 @@ class ApiDigital extends Extension implements IApiInterface
             'Date' => $Date,
             'hasDivisionTeacherRight' => $hasDivisionTeacherRight,
             'hasHeadmasterRight' => $hasHeadmasterRight,
+            'isOpen' => $isOpen
         ));
         $Pipeline->appendEmitter($ModalEmitter);
 
@@ -933,36 +935,40 @@ class ApiDigital extends Extension implements IApiInterface
 
     /**
      * @param string $DivisionCourseId
+     * @param string|null $Date
      * @param string|null $hasDivisionTeacherRight
      * @param string|null $hasHeadmasterRight
-     * @param string|null $Date
+     * @param string|null $isOpen
      *
      * @return string
      */
-    public function loadLessonWeekContent(string $DivisionCourseId, string $hasDivisionTeacherRight = null,
-        string $hasHeadmasterRight = null, string $Date = null) : string
+    public function loadLessonWeekContent(string $DivisionCourseId, string $Date = null,
+        string $hasDivisionTeacherRight = null, string $hasHeadmasterRight = null, string $isOpen = null) : string
     {
         if (!($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
             return new Danger('Der Kurs wurde nicht gefunden', new Exclamation());
         }
 
-        return Digital::useFrontend()->loadLessonWeekTable($tblDivisionCourse, $hasDivisionTeacherRight == '1', $hasHeadmasterRight == '1', $Date);
+        return Digital::useFrontend()->loadLessonWeekContent($tblDivisionCourse, $Date,
+            $hasDivisionTeacherRight == '1', $hasHeadmasterRight == '1', $isOpen == '1');
     }
 
     /**
-     * @param string|null $DivisionCourseId
+     * @param string $DivisionCourseId
      * @param string $Date
      * @param string $Type
      * @param string $Direction
      * @param string|null $hasDivisionTeacherRight
      * @param string|null $hasHeadmasterRight
+     * @param string|null $isOpen
+     *
      * @return Pipeline
      */
     public static function pipelineSaveLessonWeekCheck(string $DivisionCourseId, string $Date = '', string $Type = '',
-        string $Direction = '', string $hasDivisionTeacherRight = null, string $hasHeadmasterRight = null): Pipeline
+        string $Direction = '', string $hasDivisionTeacherRight = null, string $hasHeadmasterRight = null, string $isOpen = null): Pipeline
     {
         $Pipeline = new Pipeline(false);
-        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'LessonWeekContent'), self::getEndpoint());
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'LessonWeekContent_' . $Date), self::getEndpoint());
         $ModalEmitter->setGetPayload(array(
             self::API_TARGET => 'saveLessonWeekCheck',
         ));
@@ -972,7 +978,8 @@ class ApiDigital extends Extension implements IApiInterface
             'Type' => $Type,
             'Direction' => $Direction,
             'hasDivisionTeacherRight' => $hasDivisionTeacherRight,
-            'hasHeadmasterRight' => $hasHeadmasterRight
+            'hasHeadmasterRight' => $hasHeadmasterRight,
+            'isOpen' => $isOpen
         ));
         $Pipeline->appendEmitter($ModalEmitter);
 
@@ -986,11 +993,12 @@ class ApiDigital extends Extension implements IApiInterface
      * @param string $Direction
      * @param string|null $hasDivisionTeacherRight
      * @param string|null $hasHeadmasterRight
+     * @param string|null $isOpen
      *
      * @return Pipeline
      */
     public function saveLessonWeekCheck(string $DivisionCourseId, string $Date = '', string $Type = '',
-        string $Direction = '', string $hasDivisionTeacherRight = null, string $hasHeadmasterRight = null): Pipeline
+        string $Direction = '', string $hasDivisionTeacherRight = null, string $hasHeadmasterRight = null, string $isOpen = null): Pipeline
     {
         $tblPerson = Account::useService()->getPersonByLogin();
         $Date = new DateTime($Date);
@@ -1047,7 +1055,8 @@ class ApiDigital extends Extension implements IApiInterface
             }
         }
 
-        return self::pipelineLoadLessonWeekContent($DivisionCourseId, $hasDivisionTeacherRight == '1', $hasHeadmasterRight == '1');
+        return self::pipelineLoadLessonWeekContent($DivisionCourseId, $Date->format('d.m.Y'),
+            $hasDivisionTeacherRight == '1', $hasHeadmasterRight == '1', $isOpen == '1');
     }
 
     /**

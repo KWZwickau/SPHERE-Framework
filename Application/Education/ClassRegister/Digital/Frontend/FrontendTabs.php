@@ -31,7 +31,9 @@ use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Check;
+use SPHERE\Common\Frontend\Icon\Repository\ChevronDown;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
+use SPHERE\Common\Frontend\Icon\Repository\ChevronUp;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
@@ -628,8 +630,6 @@ class FrontendTabs extends FrontendSelectDivisionCourse
             return new Danger('Kein Schuljahr gefunden!', new Exclamation());
         }
 
-        $DivisionCourseId = $tblDivisionCourse->getId();
-
         /** @var DateTime $startDate */
         /** @var DateTime $endDate */
         list($startDate, $endDate) = Term::useService()->getStartDateAndEndDateOfYear($tblYear);
@@ -646,112 +646,132 @@ class FrontendTabs extends FrontendSelectDivisionCourse
                     $startDate->add(new DateInterval('P7D'));
                 }
             }
-            $startDate = Timetable::useService()->getStartDateOfWeek($startDate);
-            $dataList = array();
-            while ($startDate <= $endDate) {
-                $dateString = $startDate->format('d.m.Y');
-
-                // Prüfung, ob die gesamte Woche Ferien sind
-                $isHoliday = Term::useService()->getIsSchoolWeekHoliday($dateString, $tblYear, $tblCompanyList ?: array(), $hasSaturdayLessons);
-
-                // Rechte prüfen
-                $newDivisionTeacher = new WarningText(new Unchecked() . ' noch nicht bestätigt')
-                    . new PullRight(($hasDivisionTeacherRight
-                            ? (new Link('Bestätigen', ApiDigital::getEndpoint(), new Check()))->ajaxPipelineOnClick(
-                                ApiDigital::pipelineSaveLessonWeekCheck($DivisionCourseId, $dateString, 'DivisionTeacher', 'SET',
-                                    $hasDivisionTeacherRight, $hasHeadmasterRight))
-                            : '')
-                        . '|');
-                $newHeadmaster = new WarningText(new Unchecked() . ' noch nicht bestätigt')
-                    . new PullRight($hasHeadmasterRight
-                        ? (new Link('Bestätigen', ApiDigital::getEndpoint(), new Check()))->ajaxPipelineOnClick(
-                            ApiDigital::pipelineSaveLessonWeekCheck($DivisionCourseId, $dateString, 'Headmaster', 'SET',
-                                $hasDivisionTeacherRight, $hasHeadmasterRight))
-                        : ''
-                    );
-
-                if (($tblLessonWeek = Digital::useService()->getLessonWeekByDate($tblDivisionCourse, $startDate))) {
-                    if ($tblLessonWeek->getDateDivisionTeacher()) {
-                        $divisionTeacherText = new Success(
-                                new Check() . ' am ' . $tblLessonWeek->getDateDivisionTeacher() . ' von '
-                                . (($divisionTeacher = $tblLessonWeek->getServiceTblPersonDivisionTeacher()) ? $divisionTeacher->getLastName() : '')
-                                . ' bestätigt.'
-                            )
-                            . new PullRight(
-                                ($hasDivisionTeacherRight
-                                    ? (new Link('Rückgängig', ApiDigital::getEndpoint(), new Unchecked()))->ajaxPipelineOnClick(
-                                        ApiDigital::pipelineSaveLessonWeekCheck($DivisionCourseId, $dateString, 'DivisionTeacher', 'UNSET',
-                                            $hasDivisionTeacherRight, $hasHeadmasterRight))
-                                    : '')
-                                . '|');
-                    } else {
-                        $divisionTeacherText = $newDivisionTeacher;
-                    }
-
-                    if ($tblLessonWeek->getDateHeadmaster()) {
-                        $headmasterText = new Success(new Check() . ' am ' . $tblLessonWeek->getDateHeadmaster() . ' von '
-                            . (($headmaster = $tblLessonWeek->getServiceTblPersonHeadmaster()) ? $headmaster->getLastName() : '')
-                            . ' bestätigt.'
-                            . new PullRight($hasHeadmasterRight
-                                ? (new Link('Rückgängig', ApiDigital::getEndpoint(), new Unchecked()))->ajaxPipelineOnClick(
-                                    ApiDigital::pipelineSaveLessonWeekCheck($DivisionCourseId, $dateString, 'Headmaster', 'UNSET',
-                                        $hasDivisionTeacherRight, $hasHeadmasterRight))
-                                : ''
-                            )
-                        );
-                    } else {
-                        $headmasterText = $newHeadmaster;
-                    }
-                } else {
-                    $divisionTeacherText = $newDivisionTeacher;
-                    $headmasterText = $newHeadmaster;
-                }
-
-                $displayWeek = new Bold('KW' . $startDate->format('W')) . ' (' . $dateString . ')';
-                if ($dateString == $Date) {
-                    $item = new Well(
-                        Digital::useFrontend()->getWeekViewContent($dateString, $tblDivisionCourse, false, true)
-                        . new Layout(new LayoutGroup(new LayoutRow(array(
-                            new LayoutColumn($displayWeek
-                                . (new Link(' schließen', ApiDigital::getEndpoint()))
-                                    ->ajaxPipelineOnClick(ApiDigital::pipelineLoadLessonWeekContent($DivisionCourseId, $hasDivisionTeacherRight, $hasHeadmasterRight))
-                                . new PullRight('|'), 4),
-                            new LayoutColumn($divisionTeacherText, 4),
-                            new LayoutColumn($headmasterText, 4),
-                        ))))
-                    );
-                } else {
-                    $item = new Layout(new LayoutGroup(new LayoutRow(array(
-                        new LayoutColumn(
-                            $displayWeek
-                            . (new Link(' anzeigen', ApiDigital::getEndpoint()))
-                                ->ajaxPipelineOnClick(ApiDigital::pipelineLoadLessonWeekContent($DivisionCourseId, $hasDivisionTeacherRight, $hasHeadmasterRight, $dateString))
-                            . new PullRight('|')
-                            , 4),
-                        new LayoutColumn($divisionTeacherText, 4),
-                        new LayoutColumn($headmasterText, 4),
-                    ))));
-                }
-
-                if (!$isHoliday) {
-                    $dataList[] = $item;
-                }
-
-                $startDate->add(new DateInterval('P7D'));
+            // nur bis zum aktuellen Tag anzeigen
+            $today = new DateTime('today');
+            if ($today < $endDate) {
+                $endDate = $today;
             }
 
-            $content = new Panel(
-                new Layout(new LayoutGroup(new LayoutRow(array(
-                    new LayoutColumn('KW' . new PullRight('|'), 4),
-                    new LayoutColumn('Für die Vollständigkeit der Angaben (Klassenlehrer)' . new PullRight('|'), 4),
+            $date = Timetable::useService()->getStartDateOfWeek($endDate);
+            $dataList = array();
+            $intervall = new DateInterval('P7D');
+            while ($date >= $startDate) {
+                $dateString = $date->format('d.m.Y');
+
+                // Prüfung, ob die gesamte Woche Ferien sind
+                if (!Term::useService()->getIsSchoolWeekHoliday($dateString, $tblYear, $tblCompanyList ?: array(), $hasSaturdayLessons)) {
+                    $dataList[] =  ApiDigital::receiverBlock(
+                        $this->loadLessonWeekContent($tblDivisionCourse, $dateString, $hasDivisionTeacherRight, $hasHeadmasterRight, false),
+                        'LessonWeekContent_' . $dateString);
+                }
+
+                $date->sub($intervall);
+            }
+
+            $content = new Title(new Layout(new LayoutGroup(new LayoutRow(array(
+                    new LayoutColumn('KW', 4),
+                    new LayoutColumn('Für die Vollständigkeit der Angaben (Klassenlehrer)', 4),
                     new LayoutColumn('Zur Kenntnis genommen (Schulleitung)', 4),
-                )))),
-                $dataList,
-                Panel::PANEL_TYPE_PRIMARY
-            );
+                )))))
+                . implode(' ', $dataList);
         }
 
         return $content;
+    }
+
+    /**
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param string $DateString
+     * @param bool $hasDivisionTeacherRight
+     * @param bool $hasHeadmasterRight
+     * @param bool $isOpen
+     *
+     * @return string
+     */
+    public function loadLessonWeekContent(TblDivisionCourse $tblDivisionCourse, string $DateString,
+        bool $hasDivisionTeacherRight, bool $hasHeadmasterRight, bool $isOpen): string
+    {
+        $date = new DateTime($DateString);
+        $week = 'KW' . str_pad($date->format('W'), 2, '0', STR_PAD_LEFT);
+        $displayWeek = new Bold($week) . ' (' . $DateString . ')';
+
+        $dateDivisionTeacher = false;
+        $dateHeadmaster = false;
+        $divisionTeacherName = '';
+        $headmasterName = '';
+        if (($tblLessonWeek = Digital::useService()->getLessonWeekByDate($tblDivisionCourse, $date))) {
+            $dateDivisionTeacher = $tblLessonWeek->getDateDivisionTeacher();
+            $divisionTeacherName = (($divisionTeacher = $tblLessonWeek->getServiceTblPersonDivisionTeacher()) ? $divisionTeacher->getLastName() : '');
+
+            $dateHeadmaster = $tblLessonWeek->getDateHeadmaster();
+            $headmasterName = (($headmaster = $tblLessonWeek->getServiceTblPersonHeadmaster()) ? $headmaster->getLastName() : '');
+        }
+        if ($isOpen) {
+            $space = '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
+
+            if ($dateDivisionTeacher) {
+                $divisionTeacherHeader = new Check() . ' KL';
+                $divisionTeacherBody = new Success(new Check() . @" KL am {$dateDivisionTeacher} von {$divisionTeacherName} bestätigt.")
+                    . ($hasDivisionTeacherRight
+                        ? $space . (new Primary('KL Rückgängig', ApiDigital::getEndpoint(), new Unchecked()))
+                            ->ajaxPipelineOnClick(ApiDigital::pipelineSaveLessonWeekCheck($tblDivisionCourse->getId(), $DateString, 'DivisionTeacher', 'UNSET',
+                                true, $hasHeadmasterRight))
+                        : '');
+            } else {
+                $divisionTeacherHeader = new Unchecked() . ' KL';
+                $divisionTeacherBody = new WarningText(new Unchecked() . ' KL noch nicht bestätigt')
+                    . ($hasDivisionTeacherRight
+                        ? $space . (new Primary('KL Bestätigen', ApiDigital::getEndpoint(), new Check()))
+                            ->ajaxPipelineOnClick(ApiDigital::pipelineSaveLessonWeekCheck($tblDivisionCourse->getId(), $DateString, 'DivisionTeacher', 'SET',
+                                true, $hasHeadmasterRight))
+                        : '');
+            }
+
+            if ($dateHeadmaster) {
+                $headmasterHeader = new Check() . ' SL';
+                $headmasterBody = new Success(new Check() . @" SL am {$dateHeadmaster} von {$headmasterName} bestätigt.")
+                    . ($hasHeadmasterRight
+                        ? $space . (new Primary('SL Rückgängig', ApiDigital::getEndpoint(), new Unchecked()))
+                            ->ajaxPipelineOnClick(ApiDigital::pipelineSaveLessonWeekCheck($tblDivisionCourse->getId(), $DateString, 'Headmaster', 'UNSET',
+                                $hasDivisionTeacherRight, true))
+                        : '');
+            } else {
+                $headmasterHeader = new Unchecked() . ' SL';
+                $headmasterBody = new WarningText(new Unchecked() . ' SL noch nicht bestätigt')
+                    . ($hasHeadmasterRight
+                        ? $space . (new Primary('SL Bestätigen', ApiDigital::getEndpoint(), new Check()))
+                            ->ajaxPipelineOnClick(ApiDigital::pipelineSaveLessonWeekCheck($tblDivisionCourse->getId(), $DateString, 'Headmaster', 'SET',
+                                $hasDivisionTeacherRight, true))
+                        : '');
+            }
+
+        } else {
+            $divisionTeacherHeader = $dateDivisionTeacher ? new Success(new Check() . ' KL') : new WarningText(new Unchecked() . ' KL');
+            $headmasterHeader = $dateHeadmaster ? new Success(new Check() . ' SL') : new WarningText(new Unchecked() . ' SL');
+        }
+
+        $name = '<div style="height: 16px">'
+            . new Layout(new LayoutGroup(new LayoutRow(array(
+                new LayoutColumn($displayWeek, 4),
+                new LayoutColumn($divisionTeacherHeader, 4),
+                new LayoutColumn($headmasterHeader . new PullRight($isOpen ? new ChevronUp() : new ChevronDown()), 4),
+            ))))
+            . '</div>';
+        $link = (new Link($name, ApiDigital::getEndpoint()))
+            ->ajaxPipelineOnClick(ApiDigital::pipelineLoadLessonWeekContent($tblDivisionCourse->getId(), $DateString,
+                $hasDivisionTeacherRight, $hasHeadmasterRight, !$isOpen));
+
+        return new Panel(
+            $link,
+            $isOpen
+                ? Digital::useFrontend()->getWeekViewContent($DateString, $tblDivisionCourse, false, true)
+                    . new Layout(new LayoutGroup(new LayoutRow(array(
+                        new LayoutColumn($displayWeek, 4),
+                        new LayoutColumn($divisionTeacherBody, 4),
+                        new LayoutColumn($headmasterBody, 4)
+                    ))))
+                : '',
+            $isOpen ? Panel::PANEL_TYPE_PRIMARY : ($dateDivisionTeacher && $dateHeadmaster ? Panel::PANEL_TYPE_SUCCESS : Panel::PANEL_TYPE_INFO));
     }
 
     /**
