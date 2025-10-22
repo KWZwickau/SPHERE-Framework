@@ -211,6 +211,18 @@ class Service extends ServiceTabs
     }
 
     /**
+     * @param TblPerson $tblPerson
+     * @param DateTime $fromDate
+     * @param DateTime $toDate
+     *
+     * @return TblLessonContent[]
+     */
+    public function getLessonContentAllByTeacherAndBetween(TblPerson $tblPerson, DateTime $fromDate, DateTime $toDate): array
+    {
+        return (new Data($this->getBinding()))->getLessonContentAllByTeacherAndBetween($tblPerson, $fromDate, $toDate);
+    }
+
+    /**
      * @param $Data
      * @param TblDivisionCourse $tblDivisionCourse
      * @param TblLessonContent|null $tblLessonContent

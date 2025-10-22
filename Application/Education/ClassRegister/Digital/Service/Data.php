@@ -342,6 +342,34 @@ class Data  extends AbstractData
     }
 
     /**
+     * @param TblPerson $tblPerson
+     * @param DateTime $fromDate
+     * @param DateTime $toDate
+     *
+     * @return TblLessonContent[]
+     */
+    public function getLessonContentAllByTeacherAndBetween(TblPerson $tblPerson, DateTime $fromDate, DateTime $toDate): array
+    {
+        $Manager = $this->getEntityManager();
+        $queryBuilder = $Manager->getQueryBuilder();
+
+        $query = $queryBuilder->select('t')
+            ->from(TblLessonContent::class, 't')
+            ->where(
+                $queryBuilder->expr()->andX(
+                    $queryBuilder->expr()->between('t.Date', '?1', '?2'),
+                    $queryBuilder->expr()->eq('t.serviceTblPerson', '?3')
+                )
+            )
+            ->setParameter(1, $fromDate)
+            ->setParameter(2, $toDate)
+            ->setParameter(3, $tblPerson->getId())
+            ->getQuery();
+
+        return $query->getResult();
+    }
+
+    /**
      * @param DateTime $toDate
      * @param TblDivisionCourse $tblDivisionCourse
      *

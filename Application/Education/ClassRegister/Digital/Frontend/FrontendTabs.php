@@ -178,11 +178,16 @@ class FrontendTabs extends FrontendSelectDivisionCourse
                 $tblSubject = $tblLessonContent->getServiceTblSubject();
 
                 $dataList[] = [
+                    // Sortierungsfelder dürfen nicht eingefärbt werden
+                    // mit Farben nach 3 spalten wird wahrscheinlich nichts
                     'Check' => $this->getDisplayMissing($isMissing ? new Unchecked() : new Check(), $isMissing),
+//                    'Date' => $this->getDisplayMissing($tblLessonContent->getDate(), $isMissing, true),
+//                    'DivisionCourse' => $this->getDisplayMissing(
+//                        ($tblDivisionCourse = $tblLessonContent->getServiceTblDivisionCourse()) ? $tblDivisionCourse->getName() : '', $isMissing),
+//                    'Lesson' => $this->getDisplayMissing($tblLessonContent->getLessonDisplay(true), $isMissing),
                     'Date' => $tblLessonContent->getDate(),
-                    'DivisionCourse' => $this->getDisplayMissing(
-                        ($tblDivisionCourse = $tblLessonContent->getServiceTblDivisionCourse()) ? $tblDivisionCourse->getName() : '', $isMissing),
-                    'Lesson' => $this->getDisplayMissing($tblLessonContent->getLessonDisplay(true), $isMissing),
+                    'DivisionCourse' => ($tblDivisionCourse = $tblLessonContent->getServiceTblDivisionCourse()) ? $tblDivisionCourse->getName() : '',
+                    'Lesson' =>$tblLessonContent->getLessonDisplay(true),
                     'Subject' => $this->getDisplayMissing($tblLessonContent->getDisplaySubject(true), $isMissing),
                     'Room' => $this->getDisplayMissing($tblLessonContent->getRoom(), $isMissing),
                     'Content' => $this->getDisplayMissing($tblLessonContent->getContent(), $isMissing),
@@ -247,6 +252,7 @@ class FrontendTabs extends FrontendSelectDivisionCourse
                 'columnDefs' => array(
                     array('type' => 'de_date', 'targets' => 1),
                     array('type' => 'natural', 'targets' => 2),
+                    array('type' => 'natural', 'targets' => 3),
                     array('width' => '10px', 'targets' => 0),
                     array('width' => '60px', 'targets' => 1),
                     array('width' => '60px', 'targets' => -1),
@@ -303,9 +309,17 @@ class FrontendTabs extends FrontendSelectDivisionCourse
         )));
     }
 
-    private function getDisplayMissing(string $content, bool $isMissing): string
+    /**
+     * @param string $content
+     * @param bool $isMissing
+     * @param bool $isDate
+     *
+     * @return string
+     */
+    private function getDisplayMissing(string $content, bool $isMissing, bool $isDate = false): string
     {
-        return $isMissing ? new WarningText($content) : new Success($content);
+        return '<span hidden>' . ($isDate ? (new DateTime($content))->format('Y-m-d') : $content) . '</span>'
+            . ($isMissing ? new WarningText($content) : new Success($content));
     }
 
     /**

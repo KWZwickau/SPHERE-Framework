@@ -39,6 +39,8 @@ use SPHERE\Common\Frontend\Icon\Repository\Commodity;
 use SPHERE\Common\Frontend\Icon\Repository\CommodityItem;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
+use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
+use SPHERE\Common\Frontend\Icon\Repository\Extern;
 use SPHERE\Common\Frontend\Icon\Repository\History;
 use SPHERE\Common\Frontend\Icon\Repository\Holiday;
 use SPHERE\Common\Frontend\Icon\Repository\Hospital;
@@ -58,6 +60,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
+use SPHERE\Common\Frontend\Message\Repository\Warning as WarningMessage;
 use SPHERE\Common\Frontend\Table\Repository\Title;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
@@ -862,22 +865,31 @@ abstract class ServiceTabs extends ServiceForgotten
 
     /**
      * @param array $tblLessonContentList
-     * @param TblPerson $tblPerson
      * @param array $tblYearList
+     * @param TblPerson $tblPerson
      * @param TblDivisionCourse|null $tblDivisionCourseFilter
      * @param TblSubject|null $tblSubjectFilter
+     * @param DateTime|null $useStartDate
+     * @param bool $isBreakByFoundMissing
      *
-     * @return void
+     * @return bool
      */
-    public function addMissingLessonContentList(array &$tblLessonContentList, array $tblYearList,
-        TblPerson $tblPerson, ?TblDivisionCourse $tblDivisionCourseFilter = null, ?TblSubject $tblSubjectFilter = null): void
+    public function addMissingLessonContentList(array &$tblLessonContentList, array $tblYearList, TblPerson $tblPerson,
+        ?TblDivisionCourse $tblDivisionCourseFilter = null, ?TblSubject $tblSubjectFilter = null,
+        ?DateTime $useStartDate = null, bool $isBreakByFoundMissing = false): bool
     {
         foreach ($tblYearList as $tblYear) {
-            /** @var DateTime $startDate */
-            list($startDate, $endDate) = Term::useService()->getStartDateAndEndDateOfYear($tblYear);
-            $today = (new DateTime('today'))->modify('-1 day');
-            if ($today < $endDate) {
-                $endDate = $today;
+            $beforeToday = (new DateTime('today'))->modify('-1 day');
+            if ($useStartDate) {
+                $startDate = clone $useStartDate;
+                $endDate = $beforeToday;
+            } else {
+                /** @var DateTime $startDate */
+                list($startDate, $endDate) = Term::useService()->getStartDateAndEndDateOfYear($tblYear);
+
+                if ($beforeToday < $endDate) {
+                    $endDate = $beforeToday;
+                }
             }
 
             $companies = [];
@@ -926,11 +938,29 @@ abstract class ServiceTabs extends ServiceForgotten
                 }
             }
 
-            $this->runDays($tblLessonContentList, $startDate, $endDate, $tblYear, $timetables, $companies);
+            $foundMissing = $this->runDays($tblLessonContentList, $startDate, $endDate, $tblPerson, $tblYear, $timetables, $companies, $isBreakByFoundMissing);
+            if ($isBreakByFoundMissing && $foundMissing) {
+                return true;
+            }
         }
+
+        return false;
     }
 
-    private function runDays(array &$tblLessonContentList, DateTime $startDate, DateTime $endDate, TblYear $tblYear, array $timetables, array $companies): void
+    /**
+     * @param array $tblLessonContentList
+     * @param DateTime $startDate
+     * @param DateTime $endDate
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     * @param array $timetables
+     * @param array $companies
+     * @param bool $isBreakByFoundMissing
+     *
+     * @return bool
+     */
+    private function runDays(array &$tblLessonContentList, DateTime $startDate, DateTime $endDate,
+        TblPerson $tblPerson, TblYear $tblYear, array $timetables, array $companies, bool $isBreakByFoundMissing): bool
     {
         $intervall = new DateInterval('P1D');
         while ($startDate <= $endDate) {
@@ -941,13 +971,19 @@ abstract class ServiceTabs extends ServiceForgotten
                 foreach ($timetables[$dayOfWeek] as $timetableArray) {
                     if ($timetableArray['FromDate'] <= $startDate && $timetableArray['ToDate'] >= $startDate) {
                         // vertretungsplan für Tag abhängig von Klassen an dem Tag
-                        // TODO zusätzlich Stunde in einer andere Klasse
                         $tblTimetableReplacementList = [];
+                        // zusätzlich Stunden im vertretungsplan
+                        $tblTimetableReplacementAdditionalList = [];
                         foreach ($timetableArray['tblDivisionCourseListForDay'] as $tblDivisionCourseTemp) {
-                            // TODO zusätzlich Stunden im vertretungsplan
                             if (($tempList = Timetable::useService()->getTimetableReplacementByTime($startDate, null, $tblDivisionCourseTemp))) {
                                 foreach ($tempList as $item) {
                                     $tblTimetableReplacementList[$item->getIdentifier()] = $item;
+                                    // zusätzlich Stunden im vertretungsplan
+                                    if (($tblPersonReplacement = $item->getServiceTblPerson())
+                                        && $tblPersonReplacement->getId() == $tblPerson->getId()
+                                    ) {
+                                        $tblTimetableReplacementAdditionalList[$item->getIdentifier()] = $item;
+                                    }
                                 }
                             }
                         }
@@ -988,6 +1024,8 @@ abstract class ServiceTabs extends ServiceForgotten
                                 $identifier = $startDate->format('d.m.Y') . '_' . $tblDivisionCourse->getId() . '_' . $tblSubject->getId() . '_' . $tblTimetableNode->getHour();
                                 $isMissing = !isset($tblLessonContentList[$identifier]);
                                 $isReplacement = isset($tblTimetableReplacementList[$identifier]);
+                                // ist keine zusätzliche Stunde im vertretungsplan
+                                unset($tblTimetableReplacementAdditionalList[$identifier]);
 
                                 if ($isMissing) {
                                     $tblPerson = $tblTimetableNode->getServiceTblPerson();
@@ -1007,6 +1045,9 @@ abstract class ServiceTabs extends ServiceForgotten
                                         $tblLessonContent->setRoom($tblTimetableNode->getRoom());
 
                                         $tblLessonContentList[] = $tblLessonContent;
+                                        if ($isBreakByFoundMissing) {
+                                            return true;
+                                        }
                                     // Vertretungsplan
                                     } else {
                                         /** @var TblTimetableReplacement $tblTimetableReplacement */
@@ -1020,9 +1061,33 @@ abstract class ServiceTabs extends ServiceForgotten
                                             $tblLessonContent->setIsCanceled((bool) $tblTimetableReplacement->getIsCanceled());
 
                                             $tblLessonContentList[] = $tblLessonContent;
+                                            if ($isBreakByFoundMissing) {
+                                                return true;
+                                            }
                                         }
                                     }
                                 }
+                            }
+                        }
+
+                        // zusätzliche Stunden im Vertretungsplan hinzufügen
+                        foreach ($tblTimetableReplacementAdditionalList as $tblTimetableReplacement) {
+                            $tblLessonContent = new TblLessonContent();
+                            // muss eigene DateTime sein
+                            $tblLessonContent->setDate(clone $startDate);
+                            $tblLessonContent->setServiceTblDivisionCourse($tblTimetableReplacement->getServiceTblCourse() ?: null);
+                            $tblLessonContent->setLesson($tblTimetableReplacement->getHour());
+                            $tblLessonContent->setServiceTblPerson($tblPerson ?: null);
+                            $tblLessonContent->setHomework('');
+                            $tblLessonContent->setContent('');
+                            $tblLessonContent->setServiceTblSubject($tblTimetableReplacement->getServiceTblSubject() ?: null);
+                            $tblLessonContent->setRoom($tblTimetableReplacement->getRoom());
+                            $tblLessonContent->setServiceTblSubstituteSubject($tblTimetableReplacement->getServiceTblSubstituteSubject() ?: null);
+                            $tblLessonContent->setIsCanceled((bool) $tblTimetableReplacement->getIsCanceled());
+
+                            $tblLessonContentList[] = $tblLessonContent;
+                            if ($isBreakByFoundMissing) {
+                                return true;
                             }
                         }
                     }
@@ -1031,6 +1096,8 @@ abstract class ServiceTabs extends ServiceForgotten
 
             $startDate = $startDate->add($intervall);
         }
+
+        return false;
     }
 
     private function setCompanies(TblDivisionCourse $tblDivisionCourse, &$companies): void
@@ -1056,5 +1123,37 @@ abstract class ServiceTabs extends ServiceForgotten
         }
 
         return $list;
+    }
+
+    /**
+     * @param int $days
+     *
+     * @return string
+     */
+    public function getMissingDigital(int $days): string
+    {
+        $today = new DateTime('today');
+        $endDate = clone $today;
+        $startDate = $today->sub(new DateInterval('P' . $days . 'D'));
+
+        if (($tblPerson = Account::useService()->getPersonByLogin())
+            && ($tblYearList = Term::useService()->getYearByNow())
+        ) {
+            $tblLessonContentList = Digital::useService()->getLessonContentAllByTeacherAndBetween($tblPerson, $startDate, $endDate);
+
+            // setze Identifier für Ermittlung fehlender Einträge
+            $tblLessonContentList = Digital::useService()->getLessonContentListWithIdentifier($tblLessonContentList);
+
+            // ergänzt fehlende Einträge an Hand vom Stundenplan und Vertretungsplan
+            if (Digital::useService()->addMissingLessonContentList($tblLessonContentList, $tblYearList, $tblPerson, null, null, $startDate, true)) {
+                $link = new Standard('', '/Education/ClassRegister/Digital/TeacherView',
+                    new Extern(), [], 'Zu Fehlende Klassentagebuch-Einträge wechseln');
+
+                return new WarningMessage('Sie haben im Digitalen Klassenbuch fehlende Einträge in den letzten ' . $days . ' Tagen. '
+                    . $link, new Exclamation());
+            }
+        }
+
+        return '';
     }
 }
