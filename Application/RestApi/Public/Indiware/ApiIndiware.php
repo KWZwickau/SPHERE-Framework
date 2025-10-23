@@ -81,7 +81,7 @@ class ApiIndiware implements IApiInterface
     public static function getTimeTable(string $Savety = ''): JsonResponse
     {
 
-        $JsonResponse = new JsonResponse(null, JsonResponse::HTTP_ACCEPTED);
+        $JsonResponse = new JsonResponse(); // null, JsonResponse::HTTP_ACCEPTED
         $JsonResponse->setData(array("status" => "202", "message" => "accepted"));
 
         if(!($tblSetting = Account::useService()->getSettingByUniqueValue($Savety))) {
