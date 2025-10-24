@@ -928,6 +928,7 @@ class ApiDigital extends Extension implements IApiInterface
             'hasHeadmasterRight' => $hasHeadmasterRight,
             'isOpen' => $isOpen
         ));
+        $ModalEmitter->setLoadingMessage('Daten werden geladen');
         $Pipeline->appendEmitter($ModalEmitter);
 
         return $Pipeline;

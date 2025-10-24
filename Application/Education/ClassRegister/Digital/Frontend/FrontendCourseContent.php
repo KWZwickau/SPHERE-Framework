@@ -9,6 +9,8 @@ use SPHERE\Application\Api\Education\ClassRegister\ApiForgotten;
 use SPHERE\Application\Api\Education\ClassRegister\ApiInstructionSetting;
 use SPHERE\Application\Education\Absence\Absence;
 use SPHERE\Application\Education\ClassRegister\Digital\Digital;
+use SPHERE\Application\Education\ClassRegister\Timetable\Service\Entity\TblTimetableNode;
+use SPHERE\Application\Education\ClassRegister\Timetable\Timetable;
 use SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount\SelectBoxItem;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
@@ -437,9 +439,20 @@ class FrontendCourseContent extends Extension implements IFrontendInterface
 
         if ($setPost && !$CourseContentId) {
             $Global = $this->getGlobal();
-            $Date = (new DateTime('today'))->format('d.m.Y');
+            $today = new DateTime('today');
+            $Date = $today->format('d.m.Y');
             $Global->POST['Data']['Date'] = $Date;
             $Global->POST['Data']['IsDoubleLesson'] = 1;
+            // setzen UE falls nur einmal Doppelstunde am Tag im Stundenplan ist
+            if (($list = Timetable::useService()->getTimeTableNodeListBy($tblDivisionCourse, $today, null))
+                && count($list) <= 2
+            ) {
+                $list = $this->getSorter($list)->sortObjectBy(TblTimetableNode::ATTR_HOUR);
+                /** @var TblTimetableNode $tblTimetableNode */
+                $tblTimetableNode = $list[0];
+                $Global->POST['Data']['Lesson'] = $tblTimetableNode->getHour();
+            }
+
             $Global->savePost();
         }
 

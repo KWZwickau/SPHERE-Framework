@@ -247,7 +247,7 @@ class FrontendTabs extends FrontendSelectDivisionCourse
                 'order' => array(
                     array(1, 'desc'),
                     array(2, 'asc'),
-                    array(3, 'desc'),
+                    array(3, 'asc'),
                 ),
                 'columnDefs' => array(
                     array('type' => 'de_date', 'targets' => 1),
@@ -760,8 +760,10 @@ class FrontendTabs extends FrontendSelectDivisionCourse
             }
 
         } else {
-            $divisionTeacherHeader = $dateDivisionTeacher ? new Success(new Check() . ' KL') : new WarningText(new Unchecked() . ' KL');
-            $headmasterHeader = $dateHeadmaster ? new Success(new Check() . ' SL') : new WarningText(new Unchecked() . ' SL');
+//            $divisionTeacherHeader = $dateDivisionTeacher ? new Success(new Check() . ' KL') : new WarningText(new Unchecked() . ' KL');
+//            $headmasterHeader = $dateHeadmaster ? new Success(new Check() . ' SL') : new WarningText(new Unchecked() . ' SL');
+            $divisionTeacherHeader = $dateDivisionTeacher ? new Check() . ' KL' : new Unchecked() . ' KL';
+            $headmasterHeader = $dateHeadmaster ? new Check() . ' SL' : new Unchecked() . ' SL';
         }
 
         $name = '<div style="height: 16px">'
@@ -775,17 +777,26 @@ class FrontendTabs extends FrontendSelectDivisionCourse
             ->ajaxPipelineOnClick(ApiDigital::pipelineLoadLessonWeekContent($tblDivisionCourse->getId(), $DateString,
                 $hasDivisionTeacherRight, $hasHeadmasterRight, !$isOpen));
 
+        if ($dateDivisionTeacher && $dateHeadmaster) {
+            $panelType = Panel::PANEL_TYPE_SUCCESS;
+        } elseif ($dateDivisionTeacher) {
+            $panelType = Panel::PANEL_TYPE_INFO;
+        } else {
+            $panelType = Panel::PANEL_TYPE_DEFAULT;
+        }
+
         return new Panel(
             $link,
             $isOpen
                 ? Digital::useFrontend()->getWeekViewContent($DateString, $tblDivisionCourse, false, true)
                     . new Layout(new LayoutGroup(new LayoutRow(array(
-                        new LayoutColumn($displayWeek, 4),
+//                        new LayoutColumn($displayWeek, 4),
+                        new LayoutColumn('', 4),
                         new LayoutColumn($divisionTeacherBody, 4),
                         new LayoutColumn($headmasterBody, 4)
                     ))))
                 : '',
-            $isOpen ? Panel::PANEL_TYPE_PRIMARY : ($dateDivisionTeacher && $dateHeadmaster ? Panel::PANEL_TYPE_SUCCESS : Panel::PANEL_TYPE_INFO));
+            $panelType);
     }
 
     /**

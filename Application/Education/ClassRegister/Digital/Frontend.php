@@ -830,9 +830,21 @@ class Frontend extends FrontendTabs
         );
     }
 
-    public function getTestColumnContent(array $tblTestList, int $DivisionCourseId, ?int $SubjectId, array $tblDivisionCourseListByStudentsInDivisionCourse): string
+    /**
+     * @param array $tblTestList
+     * @param int $DivisionCourseId
+     * @param int|null $SubjectId
+     * @param array $tblDivisionCourseListByStudentsInDivisionCourse
+     * @param bool $isLinkOnly
+     *
+     * @return string|array
+     */
+    public function getTestColumnContent(array $tblTestList, int $DivisionCourseId, ?int $SubjectId,
+        array $tblDivisionCourseListByStudentsInDivisionCourse, bool $isLinkOnly = true)
+    : string|array
     {
         $result = '';
+        $resultList = [];
         $tblPersonLogin = Account::useService()->getPersonByLogin();
         if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))
             && ($tblSubject = Subject::useService()->getSubjectById($SubjectId))
@@ -867,21 +879,28 @@ class Frontend extends FrontendTabs
                             . new Container('Kurse: ' . $tblTest->getDivisionCoursesAsString())
                             . ($isLink ? new Container('&nbsp;') . new Container('Leistungsüberprüfung im Notenbuch in neuen Tab öffnen') : '');
                         $content = (new ToolTip($tblGradeType->getCode(), $toolTip))->enableHtml();
+                        if ($isLink) {
+                            $content = (new Link($content, '/Education/Graduation/Grade/GradeBook', new Extern(), array(
+                                'DivisionCourseId' => $linkId,
+                                'SubjectId' => $SubjectId,
+                                'TestId' => $tblTest->getId(),
+                                'IsDirectJump' => true
+                            )))->setExternal();
+                        }
                         $result .= ($result ? ', ' : '')
-                            . ($isLink
-                                ? (new Link($content, '/Education/Graduation/Grade/GradeBook', new Extern(), array(
-                                    'DivisionCourseId' => $linkId,
-                                    'SubjectId' => $SubjectId,
-                                    'TestId' => $tblTest->getId(),
-                                    'IsDirectJump' => true
-                                )))->setExternal()
-                                : $content);
+                            . $content;
+
+                        if (!$isLinkOnly) {
+                            $resultList[] = $tblTest->getGradeTypeDisplayName()
+                                . ($tblTest->getDescription() ? ': ' . $tblTest->getDescription() : '')
+                                . ($isLink ? '&nbsp;&nbsp;&nbsp;' . $content : '');
+                        }
                     }
                 }
             }
         }
 
-        return $result;
+        return $isLinkOnly ? $result : $resultList;
     }
 
     /**
@@ -1538,12 +1557,25 @@ class Frontend extends FrontendTabs
             ));
         }
         $inputContent = new TextField('Data[Content]', 'Thema', 'Thema', new Edit());
+        $testArray = [];
         if ($tblSubject) {
             $inputContent->setAutoFocus();
+
+            // get tests
+            if (($tblTestList = Grade::useService()->getTestListForDigitalByDate(new DateTime($Date)))) {
+                $tblDivisionCourseListByStudentsInDivisionCourse =
+                    DivisionCourse::useService()->getDivisionCourseListByStudentsInDivisionCourse($tblDivisionCourse);
+                $testArray = $this->getTestColumnContent($tblTestList, $tblDivisionCourse->getId(), $SubjectId,
+                    $tblDivisionCourseListByStudentsInDivisionCourse, false);
+            }
         }
         $formRowList[] = new FormRow(array(
             new FormColumn(
-                $inputContent
+                $testArray
+                    ? new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
+                        $inputContent . new Panel(@"Leistungsüberprüfungen am $Date im Fach: {$tblSubject->getDisplayName()}", $testArray)
+                    ))))
+                    : $inputContent
             ),
         ));
         $formRowList[] = new FormRow(array(

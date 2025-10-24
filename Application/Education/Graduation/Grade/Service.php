@@ -1020,9 +1020,9 @@ class Service extends ServiceTask
      * @param TblDivisionCourse $tblDivisionCourse
      * @param TblSubject $tblSubject
      *
-     * @return TblDivisionCourse[]|false
+     * @return TblDivisionCourse[]
      */
-    public function getTeacherGroupsByTeacherAndDivisionCourseAndSubject(TblPerson $tblPerson, TblDivisionCourse $tblDivisionCourse, TblSubject $tblSubject): array|bool
+    public function getTeacherGroupsByTeacherAndDivisionCourseAndSubject(TblPerson $tblPerson, TblDivisionCourse $tblDivisionCourse, TblSubject $tblSubject): array
     {
         $resultList = [];
         if (($tblYear = $tblDivisionCourse->getServiceTblYear())
@@ -1036,6 +1036,6 @@ class Service extends ServiceTask
             }
         }
 
-        return empty($resultList) ? false : $resultList;
+        return $resultList;
     }
 }

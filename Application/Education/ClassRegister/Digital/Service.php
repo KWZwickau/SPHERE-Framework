@@ -260,6 +260,12 @@ class Service extends ServiceTabs
             $form->setError('Data[Lesson]', 'Bitte geben Sie eine Unterrichtseinheit an');
             $error = true;
         }
+        // Prüfen, ob Thema gesetzt wenn nicht Ausfall
+        if (!isset($Data['IsCanceled']) && empty($Data['Content'])) {
+            $form->setError('Data[Content]', 'Bitte geben Sie ein Thema an');
+            $error = true;
+        }
+
 
         // nicht mehr verwenden da es als zusätzliches Fach benutzt werden soll
 //        // bei einem gesetzten Vertretungsfach muss auch ein Fach ausgewählt werden
@@ -366,20 +372,27 @@ class Service extends ServiceTabs
                 }
             }
 
-            return new Panel(
-                'Wochenübersicht',
-                (new TableData($dataList, null, $columns, false))->setHash('Week')
-                    . new Bold('Wochenbemerkung:')
-                    . new Container($remark)
-                    . ($hasEdit
-                        ? new Container((new Primary(
-                            new Edit() . ' Bearbeiten',
-                            ApiDigital::getEndpoint()
-                        ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenEditLessonWeekRemarkModal($tblDivisionCourse, $fromDate->format('d.m.Y'))))
-                        . new Container($checking)
-                        : ''),
-                Panel::PANEL_TYPE_INFO
-            );
+            $weekRemark = new Bold('Wochenbemerkung:')
+                . new Container($remark);
+
+            if ($hasEdit) {
+                return new Panel(
+                    'Wochenübersicht',
+                    (new TableData($dataList, null, $columns, false))->setHash('Week')
+                        . $weekRemark
+                        // bitte drin lassen, falls wir es doch wieder bei beiden varianten anzeigen wollen
+                        . ($hasEdit
+                            ? new Container((new Primary(
+                                new Edit() . ' Bearbeiten',
+                                ApiDigital::getEndpoint()
+                            ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenEditLessonWeekRemarkModal($tblDivisionCourse, $fromDate->format('d.m.Y'))))
+                            . new Container($checking)
+                            : ''),
+                    Panel::PANEL_TYPE_INFO
+                );
+            } else {
+                return $weekRemark;
+            }
         }
 
         return '';
