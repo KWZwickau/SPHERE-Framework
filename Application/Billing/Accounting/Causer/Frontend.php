@@ -671,6 +671,7 @@ class Frontend extends Extension implements IFrontendInterface
                     $PeriodPayType = 'Zahlungszeitraum: ';
                     $FromDate = 'Beitragspflicht ab: ';
                     $ToDate = 'Beitragspflicht bis: ';
+                    $PriceDate = 'now';
 
                     if(($tblDebtorPeriodType = $tblDebtorSelection->getTblDebtorPeriodType())){
                         $PeriodPayType .= new Bold($tblDebtorPeriodType->getName());
@@ -681,7 +682,8 @@ class Frontend extends Extension implements IFrontendInterface
                         $FromDate .= new Bold('---');
                     }
                     if($tblDebtorSelection->getToDate()){
-                        $ToDate .= new Bold($tblDebtorSelection->getToDate());
+                        $PriceDate = $tblDebtorSelection->getToDate();
+                        $ToDate .= new Bold($PriceDate);
                     } else {
                         $ToDate .= new Bold('kein Enddatum');
                     }
@@ -705,7 +707,7 @@ class Frontend extends Extension implements IFrontendInterface
                     }
                     $PriceString = new WarningText(new WarningIcon().' kein aktueller Preis');
                     if(($tblItemVariant = $tblDebtorSelection->getServiceTblItemVariant())){
-                        if($tblItemCalculation = Item::useService()->getItemCalculationNowByItemVariant($tblItemVariant)){
+                        if($tblItemCalculation = Item::useService()->getItemCalculationNowByItemVariant($tblItemVariant, $PriceDate)){
                             $PriceString = $tblItemCalculation->getPriceString();
                         }
                         $ItemVariant = $tblItemVariant->getName().': '.new Bold($PriceString);
