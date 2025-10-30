@@ -309,6 +309,8 @@ class Frontend extends Extension implements IFrontendInterface
                 'Address'        => 'Adresse',
                 'Birthday'       => 'Geburtsdatum',
                 'Birthplace'     => 'Geburtsort',
+                'PhoneStudent'   => 'Tel. Schüler'.
+                    new ToolTip(new Info(), 'p=Privat; g=Geschäftlich; n=Notfall; f=Fax'),
                 'Guardian1'      => 'Sorgeberechtigter 1',
                 'PhoneGuardian1' => 'Tel. Sorgeber. 1 '.
                     new ToolTip(new Info(), 'p=Privat; g=Geschäftlich; n=Notfall; f=Fax'),
