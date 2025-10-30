@@ -674,6 +674,7 @@ class Service
                  */
                 $Location = array(
                     'Nr'           => null,
+                    'ImportId'     => null,
                     'Geschlecht'   => null,
                     'Name'         => null,
                     'Vorname'      => null,
@@ -780,8 +781,9 @@ class Service
 //                        $Hort = trim($Document->getValue($Document->getCell($Location['Hort'], $RunY)));
                         $Hort = '';
                         $studentGender = trim($Document->getValue($Document->getCell($Location['Geschlecht'], $RunY)));
+                        $ImportId = trim($Document->getValue($Document->getCell($Location['ImportId'], $RunY)));
                         //
-                        $tblPerson = $this->setPersonStudent($firstName, $secondName, $callName, $lastName, $Hort, $studentGender, true);
+                        $tblPerson = $this->setPersonStudent($firstName, $secondName, $callName, $lastName, $Hort, $studentGender, true, $ImportId);
                         $countProspect++;
 
                         // common & birthday
