@@ -2,16 +2,23 @@
 
 namespace SPHERE\Application\Education\ClassRegister\Digital\Frontend;
 
+use SPHERE\Application\Api\Education\ClassRegister\ApiAbsence;
+use SPHERE\Application\Api\Education\ClassRegister\ApiDigital;
 use SPHERE\Application\Education\Certificate\Prepare\View;
 use SPHERE\Application\Education\ClassRegister\Digital\Digital;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
-use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
+use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
+use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Application\Setting\Consumer\Consumer as ConsumerSetting;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
+use SPHERE\Common\Frontend\Icon\Repository\Filter;
+use SPHERE\Common\Frontend\Icon\Repository\ListingTable;
 use SPHERE\Common\Frontend\Icon\Repository\Select;
+use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\Ruler;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
@@ -20,6 +27,8 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
+use SPHERE\Common\Frontend\Text\Repository\Bold;
+use SPHERE\Common\Frontend\Text\Repository\Info;
 use SPHERE\Common\Window\Stage;
 
 class FrontendSelectDivisionCourse extends FrontendForgotten
@@ -166,6 +175,7 @@ class FrontendSelectDivisionCourse extends FrontendForgotten
         $Stage->setContent(
             new Layout(array(
                 new LayoutGroup(array(
+                    new LayoutRow(new LayoutColumn($this->getButtons('/Education/ClassRegister/Digital/Teacher'))),
                     new LayoutRow(array(
                         empty($buttonList)
                             ? null
@@ -174,8 +184,70 @@ class FrontendSelectDivisionCourse extends FrontendForgotten
                             ? new LayoutColumn(array($table))
                             : null
                     ))
-                ), new Title(new Select() . ' Auswahl'))
+                ))
             ))
+        );
+
+        return $Stage;
+    }
+
+    private function getButtons(string $Route): array
+    {
+        $buttons = [];
+        $buttons[] = $this->getButton('Auswahl', '/Education/ClassRegister/Digital/Teacher', new Select(),
+            $Route == '/Education/ClassRegister/Digital/Teacher');
+        $buttons[] = $this->getButton('Fehlende Klassentagebuch-Einträge', '/Education/ClassRegister/Digital/TeacherView', new ListingTable(),
+            $Route == '/Education/ClassRegister/Digital/TeacherView');
+        $buttons[] = new Ruler();
+
+        return $buttons;
+    }
+
+    private function getButton(string $name, string $route, $icon, bool $isSelected): Standard
+    {
+        return new Standard(
+            $isSelected ? new Info(new Bold($name)) : $name,
+            $route,
+            $icon
+        );
+    }
+
+    /**
+     * @param $YearId
+     *
+     * @return Stage
+     */
+    public function frontendTeacherView($YearId = null): Stage
+    {
+        $Stage = new Stage('Digitales Klassenbuch', 'Fehlende Klassentagebuch-Einträge');
+
+        $Filter = ['OnlyMissing' => 1];
+        // save filter as json
+        Consumer::useService()->createAccountSetting('DigitalTeacherViewFilter', json_encode($Filter));
+
+        $global = $this->getGlobal();
+        $global->POST['Filter']['OnlyMissing'] = 1;
+        $global->savePost();
+
+        Digital::useService()->setHeaderButtonList($Stage, View::TEACHER, self::BASE_ROUTE);
+        $yearFilterList = array();
+        $hasLastYearsTemp = ($tblSetting = ConsumerSetting::useService()->getSetting('Education', 'ClassRegister', 'LessonContent', 'HasTeacherAccessToLastYearDigital'))
+            && $tblSetting->getValue();
+        $buttonList = Digital::useService()->setYearGroupButtonList(self::BASE_ROUTE . '/TeacherView', false, $YearId, false, true, $yearFilterList, $hasLastYearsTemp);
+
+        $tblYear = Term::useService()->getYearById($YearId);
+
+        $Stage->setContent(
+            new Layout(new LayoutGroup(array(
+                new LayoutRow(new LayoutColumn($this->getButtons('/Education/ClassRegister/Digital/TeacherView'))),
+                new LayoutRow(new LayoutColumn($buttonList)),
+                new LayoutRow(new LayoutColumn(
+                    ApiDigital::receiverModal()
+                    . ApiAbsence::receiverModal()
+                    . new Panel(new Filter() . ' Filter', Digital::useFrontend()->formTeacherViewFilter($tblYear ?: null), Panel::PANEL_TYPE_INFO)
+                    . ApiDigital::receiverBlock(Digital::useFrontend()->loadTeacherViewContent($YearId, $Filter), 'TeacherViewContent')
+                ))
+            )))
         );
 
         return $Stage;
@@ -201,30 +273,7 @@ class FrontendSelectDivisionCourse extends FrontendForgotten
             $IsAllYears, $YearId, Access::useService()->hasAuthorization('/Education/ClassRegister/Digital/Instruction/Setting'), true, $yearFilterList, $hasLastYearsTemp, true);
 
         $dataList = array();
-        $tblDivisionCourseList = array();
-        if ($IsAllYears) {
-            if (($tblDivisionCourseListDivision = DivisionCourse::useService()->getDivisionCourseListBy(null, TblDivisionCourseType::TYPE_DIVISION))) {
-                $tblDivisionCourseList = $tblDivisionCourseListDivision;
-            }
-            if (($tblDivisionCourseListCoreGroup = DivisionCourse::useService()->getDivisionCourseListBy(null, TblDivisionCourseType::TYPE_CORE_GROUP))) {
-                $tblDivisionCourseList = array_merge($tblDivisionCourseList, $tblDivisionCourseListCoreGroup);
-            }
-        } elseif ($yearFilterList) {
-            foreach ($yearFilterList as $tblYear) {
-                if (($tblDivisionCourseListDivision = DivisionCourse::useService()->getDivisionCourseListBy($tblYear, TblDivisionCourseType::TYPE_DIVISION))) {
-                    foreach($tblDivisionCourseListDivision as $tblDivisionCourse) {
-                        $tblDivisionCourseList[] = $tblDivisionCourse;
-                    }
-                }
-                if (($tblDivisionCourseListCoreGroup = DivisionCourse::useService()->getDivisionCourseListBy($tblYear,
-                    TblDivisionCourseType::TYPE_CORE_GROUP))) {
-                    foreach($tblDivisionCourseListCoreGroup as $tblDivisionGroup) {
-                        $tblDivisionCourseList[] = $tblDivisionGroup;
-                    }
-
-                }
-            }
-        }
+        $tblDivisionCourseList = Digital::useService()->getDivisionCourseListForDigital($yearFilterList, $IsAllYears);
 
         /** @var TblDivisionCourse $tblDivisionCourse */
         foreach ($tblDivisionCourseList as $tblDivisionCourse) {

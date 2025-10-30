@@ -18,6 +18,8 @@ use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblFullTim
 use SPHERE\Application\Education\ClassRegister\Instruction\Instruction;
 use SPHERE\Application\Education\ClassRegister\Instruction\Service\Entity\TblInstruction;
 use SPHERE\Application\Education\ClassRegister\Timetable\Timetable;
+use SPHERE\Application\Education\Graduation\Grade\Grade;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTest;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseMember;
@@ -35,6 +37,7 @@ use SPHERE\System\Extension\Repository\Sorter\DateTimeSorter;
 class ClassRegister extends AbstractDocument
 {
     protected TblDivisionCourse $tblDivisionCourse;
+    protected array $tblDivisionCourseListByStudentsInDivisionCourse = [];
     protected ?TblYear $tblYear = null;
     protected ?TblCompany $tblCompany = null;
     protected string $name = '&nbsp;';
@@ -67,6 +70,7 @@ class ClassRegister extends AbstractDocument
     public function __construct(TblDivisionCourse $tblDivisionCourse)
     {
         $this->tblDivisionCourse = $tblDivisionCourse;
+        $this->tblDivisionCourseListByStudentsInDivisionCourse = DivisionCourse::useService()->getDivisionCourseListByStudentsInDivisionCourse($tblDivisionCourse);
         $this->name = $tblDivisionCourse->getTypeName() . 'ntagebuch';
         $this->tblYear = ($tblYear = $tblDivisionCourse->getServiceTblYear()) ?: null;
         $this->typeName = $tblDivisionCourse->getTypeName();
@@ -921,6 +925,8 @@ class ClassRegister extends AbstractDocument
                 }
             }
 
+            $tblTestList = Grade::useService()->getTestListForDigitalByDate($dateTime);
+
             $count = 0;
             $slice = (new Slice())
                 ->styleBorderTop()
@@ -944,10 +950,37 @@ class ClassRegister extends AbstractDocument
                             $absence .= ($absence ? ', ' : '') . implode(', ', $absenceContent[$i]);
                         }
 
+                        $extraContent = '';
+                        // Leistungsüberprüfung an Inhalt anhängen
+                        if ( (($tblSubject = $tblLessonContent->getServiceTblSubstituteSubject())
+                                || (!$tblLessonContent->getIsCanceled() && ($tblSubject = $tblLessonContent->getServiceTblSubject())))
+                            && isset($tblTestList[$tblSubject->getId()])
+                        ) {
+                            /** @var TblTest $tblTest */
+                            foreach ($tblTestList[$tblSubject->getId()] as $tblTest) {
+                                if (($tblGradeType = $tblTest->getTblGradeType())) {
+                                    // Leistungsüberprüfung wird direkt in Klasse oder Stammgruppe geschrieben
+                                    if (!($isAdd = isset($tblTest->getDivisionCourses()[$this->tblDivisionCourse->getId()]))) {
+                                        // Leistungsüberprüfung wird in einer Lerngruppe geschrieben
+                                        foreach(DivisionCourse::useService()->getDivisionCourseSubjectListBySubject($this->tblDivisionCourseListByStudentsInDivisionCourse, $tblSubject) as $tblDivisionCourseTemp) {
+                                            if (isset($tblTest->getDivisionCourses()[$tblDivisionCourseTemp->getId()])) {
+                                                $isAdd = true;
+                                                break;
+                                            }
+                                        }
+                                    }
+
+                                    if ($isAdd) {
+                                        $extraContent = ' (' . $tblGradeType->getCode() . ')';
+                                    }
+                                }
+                            }
+                        }
+
                         $slice->addSection((new Section())
                             ->addElementColumn($this->getElement($i . '.')->styleAlignCenter(), $width[2])
                             ->addElementColumn($this->getElement($tblLessonContent->getDisplaySubject(true)), $width[3])
-                            ->addElementColumn($this->getElement($tblLessonContent->getContent(), 32, 80), $width[4])
+                            ->addElementColumn($this->getElement($tblLessonContent->getContent() . $extraContent, 32, 80), $width[4])
                             ->addElementColumn($this->getElement($tblLessonContent->getHomework(), 32, 80), $width[5])
                             ->addElementColumn($this->getElement($absence, 11), $width[6])
                             ->addElementColumn($this->getElement($tblLessonContent->getTeacherString()), $width[7])

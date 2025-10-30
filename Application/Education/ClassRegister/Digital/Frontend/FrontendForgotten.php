@@ -23,7 +23,6 @@ use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Calendar;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
-use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Filter;
 use SPHERE\Common\Frontend\Icon\Repository\History;
 use SPHERE\Common\Frontend\Icon\Repository\Pen;
@@ -32,20 +31,15 @@ use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
-use SPHERE\Common\Frontend\Layout\Repository\PullClear;
-use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
-use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Strikethrough;
-use SPHERE\Common\Window\Redirect;
-use SPHERE\Common\Window\Stage;
 
 class FrontendForgotten extends FrontendCourseContent
 {
@@ -267,7 +261,7 @@ class FrontendForgotten extends FrontendCourseContent
      * @param string $View
      * @param null $Filter
      *
-     * @return Stage|string
+     * @return string
      */
     public function frontendForgotten(
         $DivisionCourseId = null,
@@ -275,18 +269,19 @@ class FrontendForgotten extends FrontendCourseContent
         string $BasicRoute = '/Education/ClassRegister/Digital/Teacher',
         string $View = 'ForgottenOverview',
         $Filter = null
-    ): string|Stage {
-        $stage = new Stage('Digitales Klassenbuch', 'Vergessene Arbeitsmittel/Hausaufgaben');
-
+    ): string {
+        $icon = new History();
+        $name = 'Vergessene Arbeitsmittel/Hausaufgaben';
+        $Route = '/Education/ClassRegister/Digital/Forgotten';
+        $content = '';
+        $titleOption = '';
         if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
-            $stage->addButton(Digital::useFrontend()->getBackButton($tblDivisionCourse, $BackDivisionCourseId, $BasicRoute));
-
             if ($View == 'ForgottenOverview') {
                 $content = ApiForgotten::receiverModal()
                     . new Panel(new Filter() . ' Filter', $this->formFilter($tblDivisionCourse), Panel::PANEL_TYPE_INFO)
                     . ApiForgotten::receiverBlock($this->loadForgottenTable($tblDivisionCourse, $Filter), 'ForgottenContent');
 
-                $button = new Standard('Zur Schüleransicht wechseln', '/Education/ClassRegister/Digital/Forgotten', new PersonGroup(), array(
+                $titleOption = new Standard('Zur Schüleransicht wechseln', '/Education/ClassRegister/Digital/Forgotten', new PersonGroup(), array(
                     'DivisionCourseId' => $DivisionCourseId,
                     'BachDivisionCourseId' => $BackDivisionCourseId,
                     'BasicRoute' => $BasicRoute,
@@ -296,7 +291,7 @@ class FrontendForgotten extends FrontendCourseContent
             } else {
                 $content = $this->loadForgottenStudentOverviewTable($tblDivisionCourse);
 
-                $button = new Standard('Zur Vergessene Arbeitsmittel/Hausaufgaben-Übersicht wechseln', '/Education/ClassRegister/Digital/Forgotten', new History(), array(
+                $titleOption = new Standard('Zur Vergessene Arbeitsmittel/Hausaufgaben-Übersicht wechseln', '/Education/ClassRegister/Digital/Forgotten', new History(), array(
                     'DivisionCourseId' => $DivisionCourseId,
                     'BachDivisionCourseId' => $BackDivisionCourseId,
                     'BasicRoute' => $BasicRoute,
@@ -304,27 +299,9 @@ class FrontendForgotten extends FrontendCourseContent
                     'Filter' => $Filter
                 ));
             }
-
-            $stage->setContent(
-                new Layout(array(
-                    new LayoutGroup(array(
-                        Digital::useService()->getHeadLayoutRow($tblDivisionCourse),
-                        $tblDivisionCourse->getType()->getIsCourseSystem()
-                            ? Digital::useService()->getHeadButtonListLayoutRowForCourseSystem($tblDivisionCourse, '/Education/ClassRegister/Digital/Forgotten',
-                            $BasicRoute, $BackDivisionCourseId)
-                            : Digital::useService()->getHeadButtonListLayoutRow($tblDivisionCourse, '/Education/ClassRegister/Digital/Forgotten', $BasicRoute)
-                    )),
-                    new LayoutGroup(new LayoutRow(new LayoutColumn(
-                        $content
-                    )), new \SPHERE\Common\Frontend\Layout\Repository\Title(new PullClear(new History() . ' Vergessene Arbeitsmittel/Hausaufgaben' . new PullRight($button))))
-                ))
-            );
-        } else {
-            return new Danger('Klasse oder Gruppe nicht gefunden', new Exclamation())
-                . new Redirect($BasicRoute, Redirect::TIMEOUT_ERROR);
         }
 
-        return $stage;
+        return Digital::useFrontend()->getStage($DivisionCourseId, $BasicRoute, $Route, $icon, $name, $content, $BackDivisionCourseId, $titleOption);
     }
 
     /**
@@ -415,7 +392,7 @@ class FrontendForgotten extends FrontendCourseContent
                     $columns,
                     array(
                         'columnDefs' => array(
-                            array('type'        => 'de_date', 'targets' => 1),
+                            array('type'        => 'de_date', 'targets' => 0),
                             array('searchable'  => false, 'targets' => array(-1, -2)),
                             array('orderable'   => false, 'width' => '60px', 'targets' => -1),
                         ),

@@ -111,9 +111,9 @@ class Service extends ServiceTask
     /**
      * @param TblTest $tblTest
      *
-     * @return false|TblDivisionCourse[]
+     * @return TblDivisionCourse[]
      */
-    public function getDivisionCourseListByTest(TblTest $tblTest)
+    public function getDivisionCourseListByTest(TblTest $tblTest): array
     {
         return (new Data($this->getBinding()))->getDivisionCourseListByTest($tblTest);
     }
@@ -994,5 +994,48 @@ class Service extends ServiceTask
         }
 
         return $tblTestList;
+    }
+
+    /**
+     * @param DateTime $date
+     *
+     * @return TblTest[]
+     */
+    public function getTestListForDigitalByDate(DateTime $date): array
+    {
+        $resultList = [];
+        if (($tblTestList = (new Data($this->getBinding()))->getTestListByDate($date))) {
+            foreach ($tblTestList as $tblTest) {
+                if (($tblSubject = $tblTest->getServiceTblSubject())) {
+                    $resultList[$tblSubject->getId()][$tblTest->getId()] = $tblTest;
+                }
+            }
+        }
+
+        return $resultList;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param TblSubject $tblSubject
+     *
+     * @return TblDivisionCourse[]
+     */
+    public function getTeacherGroupsByTeacherAndDivisionCourseAndSubject(TblPerson $tblPerson, TblDivisionCourse $tblDivisionCourse, TblSubject $tblSubject): array
+    {
+        $resultList = [];
+        if (($tblYear = $tblDivisionCourse->getServiceTblYear())
+            && ($tblDivisionCourseList = DivisionCourse::useService()->getTeacherGroupListByTeacherAndYear($tblPerson, $tblYear, $tblSubject))
+        ) {
+            $checkDivisionCourseList = DivisionCourse::useService()->getDivisionCourseListByStudentsInDivisionCourse($tblDivisionCourse);
+            foreach ($tblDivisionCourseList as $tblDivisionCourseTemp) {
+                if (isset($checkDivisionCourseList[$tblDivisionCourseTemp->getId()])) {
+                    $resultList[$tblDivisionCourseTemp->getId()] = $tblDivisionCourseTemp;
+                }
+            }
+        }
+
+        return $resultList;
     }
 }

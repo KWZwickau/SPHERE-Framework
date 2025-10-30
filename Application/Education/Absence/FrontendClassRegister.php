@@ -18,7 +18,6 @@ use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronRight;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
-use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\PersonGroup;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
@@ -26,7 +25,6 @@ use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
-use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
@@ -49,7 +47,6 @@ use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
-use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 
@@ -291,17 +288,18 @@ class FrontendClassRegister extends Extension implements IFrontendInterface
      * @param null $BackDivisionCourseId
      * @param string $BasicRoute
      *
-     * @return Stage|string
+     * @return string
      */
     public function frontendAbsenceMonth(
         $DivisionCourseId = null,
         $BackDivisionCourseId = null,
         string $BasicRoute = '/Education/ClassRegister/Digital/Teacher'
-    ) {
-        $stage = new Stage('Digitales Klassenbuch', 'Fehlzeiten (Kalenderansicht)');
-
+    ): string {
+        $icon = new Calendar();
+        $name = 'Fehlzeiten (Kalenderansicht)';
+        $Route = '/Education/ClassRegister/Digital/AbsenceMonth';
+        $content = '';
         if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
-            $stage->addButton(Digital::useFrontend()->getBackButton($tblDivisionCourse, $BackDivisionCourseId, $BasicRoute));
             $currentDate = new DateTime('now');
             // wenn der aktuelle Tag im Schuljahr ist dann diesen Anzeigen, ansonsten erster Tag des Schuljahres
             if (($tblYear = $tblDivisionCourse->getServiceTblYear())) {
@@ -313,32 +311,16 @@ class FrontendClassRegister extends Extension implements IFrontendInterface
                 }
             }
 
-            $stage->setContent(
-                new Layout(array(
-                    new LayoutGroup(array(
-                        Digital::useService()->getHeadLayoutRow($tblDivisionCourse),
-                        $tblDivisionCourse->getType()->getIsCourseSystem()
-                            ? Digital::useService()->getHeadButtonListLayoutRowForCourseSystem($tblDivisionCourse, '/Education/ClassRegister/Digital/AbsenceMonth',
-                                $BasicRoute, $BackDivisionCourseId)
-                            : Digital::useService()->getHeadButtonListLayoutRow($tblDivisionCourse, '/Education/ClassRegister/Digital/AbsenceMonth', $BasicRoute)
-                    )),
-                    new LayoutGroup(new LayoutRow(new LayoutColumn(
-                        ApiAbsence::receiverModal()
-                        . ApiAbsence::receiverBlock(
-                            Consumer::useService()->getAccountSettingValue('AbsenceView') == 'Month'
-                                ? ApiAbsence::generateOrganizerMonthly($tblDivisionCourse->getId(), $currentDate->format('m'), $currentDate->format('Y'))
-                                : ApiAbsence::generateOrganizerForDivisionWeekly($tblDivisionCourse->getId(), $currentDate->format('W'), $currentDate->format('Y')),
-                            'CalendarContent'
-                        )
-                    )), new Title(new Calendar() . ' Fehlzeiten (Kalenderansicht)'))
-                ))
-            );
-        } else {
-            return new Danger('Klasse nicht gefunden', new Exclamation())
-                . new Redirect($BasicRoute, Redirect::TIMEOUT_ERROR);
+            $content = ApiAbsence::receiverModal()
+                . ApiAbsence::receiverBlock(
+                    Consumer::useService()->getAccountSettingValue('AbsenceView') == 'Month'
+                        ? ApiAbsence::generateOrganizerMonthly($tblDivisionCourse->getId(), $currentDate->format('m'), $currentDate->format('Y'))
+                        : ApiAbsence::generateOrganizerForDivisionWeekly($tblDivisionCourse->getId(), $currentDate->format('W'), $currentDate->format('Y')),
+                    'CalendarContent'
+                );
         }
 
-        return $stage;
+        return Digital::useFrontend()->getStage($DivisionCourseId, $BasicRoute, $Route, $icon, $name, $content, $BackDivisionCourseId);
     }
 
     /**

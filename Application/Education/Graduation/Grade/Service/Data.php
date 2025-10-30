@@ -132,9 +132,9 @@ class Data extends DataTask
     /**
      * @param TblTest $tblTest
      *
-     * @return false|TblDivisionCourse[]
+     * @return TblDivisionCourse[]
      */
-    public function getDivisionCourseListByTest(TblTest $tblTest)
+    public function getDivisionCourseListByTest(TblTest $tblTest): array
     {
         $resultList = array();
         if (($tempList = $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblTestCourseLink',
@@ -148,7 +148,7 @@ class Data extends DataTask
             }
         }
 
-        return empty($resultList) ? false : $resultList;
+        return $resultList;
     }
 
     /**
@@ -806,5 +806,16 @@ class Data extends DataTask
         $resultList = $query->getResult();
 
         return empty($resultList) ? false : $resultList;
+    }
+
+    /**
+     * @param DateTime $date
+     *
+     * @return bool|TblTest[]
+     */
+    public function getTestListByDate(DateTime $date): bool|array
+    {
+        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblTest',
+            array(TblTest::ATTR_DATE => $date));
     }
 }

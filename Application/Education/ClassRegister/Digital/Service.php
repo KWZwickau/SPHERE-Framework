@@ -187,6 +187,42 @@ class Service extends ServiceTabs
     }
 
     /**
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     * @param TblSubject|null $tblSubject
+     *
+     * @return TblLessonContent[]
+     */
+    public function getLessonContentAllByTeacherAndYear(TblPerson $tblPerson, TblYear $tblYear, ?TblSubject $tblSubject = null): array
+    {
+        return (new Data($this->getBinding()))->getLessonContentAllByTeacherAndYear($tblPerson, $tblYear, $tblSubject);
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param TblSubject|null $tblSubject
+     *
+     * @return TblLessonContent[]
+     */
+    public function getLessonContentAllByTeacherAndDivisionCourse(TblPerson $tblPerson, TblDivisionCourse $tblDivisionCourse, ?TblSubject $tblSubject = null): array
+    {
+        return (new Data($this->getBinding()))->getLessonContentAllByTeacherAndDivisionCourse($tblPerson, $tblDivisionCourse, $tblSubject);
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param DateTime $fromDate
+     * @param DateTime $toDate
+     *
+     * @return TblLessonContent[]
+     */
+    public function getLessonContentAllByTeacherAndBetween(TblPerson $tblPerson, DateTime $fromDate, DateTime $toDate): array
+    {
+        return (new Data($this->getBinding()))->getLessonContentAllByTeacherAndBetween($tblPerson, $fromDate, $toDate);
+    }
+
+    /**
      * @param $Data
      * @param TblDivisionCourse $tblDivisionCourse
      * @param TblLessonContent|null $tblLessonContent
@@ -224,6 +260,12 @@ class Service extends ServiceTabs
             $form->setError('Data[Lesson]', 'Bitte geben Sie eine Unterrichtseinheit an');
             $error = true;
         }
+        // Prüfen, ob Thema gesetzt wenn nicht Ausfall
+        if (!isset($Data['IsCanceled']) && empty($Data['Content'])) {
+            $form->setError('Data[Content]', 'Bitte geben Sie ein Thema an');
+            $error = true;
+        }
+
 
         // nicht mehr verwenden da es als zusätzliches Fach benutzt werden soll
 //        // bei einem gesetzten Vertretungsfach muss auch ein Fach ausgewählt werden
@@ -330,20 +372,27 @@ class Service extends ServiceTabs
                 }
             }
 
-            return new Panel(
-                'Wochenübersicht',
-                (new TableData($dataList, null, $columns, false))->setHash('Week')
-                    . new Bold('Wochenbemerkung:')
-                    . new Container($remark)
-                    . ($hasEdit
-                        ? new Container((new Primary(
-                            new Edit() . ' Bearbeiten',
-                            ApiDigital::getEndpoint()
-                        ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenEditLessonWeekRemarkModal($tblDivisionCourse, $fromDate->format('d.m.Y'))))
-                        . new Container($checking)
-                        : ''),
-                Panel::PANEL_TYPE_INFO
-            );
+            $weekRemark = new Bold('Wochenbemerkung:')
+                . new Container($remark);
+
+            if ($hasEdit) {
+                return new Panel(
+                    'Wochenübersicht',
+                    (new TableData($dataList, null, $columns, false))->setHash('Week')
+                        . $weekRemark
+                        // bitte drin lassen, falls wir es doch wieder bei beiden varianten anzeigen wollen
+                        . ($hasEdit
+                            ? new Container((new Primary(
+                                new Edit() . ' Bearbeiten',
+                                ApiDigital::getEndpoint()
+                            ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenEditLessonWeekRemarkModal($tblDivisionCourse, $fromDate->format('d.m.Y'))))
+                            . new Container($checking)
+                            : ''),
+                    Panel::PANEL_TYPE_INFO
+                );
+            } else {
+                return $weekRemark;
+            }
         }
 
         return '';
@@ -1045,5 +1094,35 @@ class Service extends ServiceTabs
     public function getIsSubjectUsedInDigital(TblSubject $tblSubject): bool
     {
         return (new Data($this->getBinding()))->getIsSubjectUsedInDigital($tblSubject);
+    }
+
+    /**
+     * @param array $tblYearList
+     * @param bool $IsAllYears
+     *
+     * @return TblDivisionCourse[]
+     */
+    public function getDivisionCourseListForDigital(array $tblYearList, bool $IsAllYears = false): array
+    {
+        $tblDivisionCourseList = [];
+        if ($IsAllYears) {
+            if (($tblDivisionCourseListDivision = DivisionCourse::useService()->getDivisionCourseListBy(null, TblDivisionCourseType::TYPE_DIVISION))) {
+                $tblDivisionCourseList = array_merge($tblDivisionCourseList, $tblDivisionCourseListDivision);
+            }
+            if (($tblDivisionCourseListCoreGroup = DivisionCourse::useService()->getDivisionCourseListBy(null, TblDivisionCourseType::TYPE_CORE_GROUP))) {
+                $tblDivisionCourseList = array_merge($tblDivisionCourseList, $tblDivisionCourseListCoreGroup);
+            }
+        } else {
+            foreach ($tblYearList as $tblYear) {
+                if (($tblDivisionCourseListDivision = DivisionCourse::useService()->getDivisionCourseListBy($tblYear, TblDivisionCourseType::TYPE_DIVISION))) {
+                    $tblDivisionCourseList = array_merge($tblDivisionCourseList, $tblDivisionCourseListDivision);
+                }
+                if (($tblDivisionCourseListCoreGroup = DivisionCourse::useService()->getDivisionCourseListBy($tblYear, TblDivisionCourseType::TYPE_CORE_GROUP))) {
+                    $tblDivisionCourseList = array_merge($tblDivisionCourseList, $tblDivisionCourseListCoreGroup);
+                }
+            }
+        }
+
+        return $tblDivisionCourseList;
     }
 }

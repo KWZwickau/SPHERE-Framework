@@ -4,13 +4,17 @@ namespace SPHERE\Application\Education\ClassRegister\Digital\Frontend;
 use DateInterval;
 use DateTime;
 use MOC\V\Core\FileSystem\FileSystem;
+use SPHERE\Application\Api\Education\ClassRegister\ApiAbsence;
 use SPHERE\Application\Api\Education\ClassRegister\ApiDigital;
 use SPHERE\Application\Education\ClassRegister\Digital\Digital;
+use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblLessonContent;
 use SPHERE\Application\Education\ClassRegister\Timetable\Timetable;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseMemberType;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
+use SPHERE\Application\Education\Lesson\Subject\Subject;
+use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
@@ -19,22 +23,30 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer as ConsumerGatekeeper;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Setting\Consumer\Consumer;
+use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
+use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextArea;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Check;
+use SPHERE\Common\Frontend\Icon\Repository\ChevronDown;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
+use SPHERE\Common\Frontend\Icon\Repository\ChevronUp;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
+use SPHERE\Common\Frontend\Icon\Repository\Filter;
 use SPHERE\Common\Frontend\Icon\Repository\Holiday;
 use SPHERE\Common\Frontend\Icon\Repository\Listing;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\PersonGroup;
+use SPHERE\Common\Frontend\Icon\Repository\Plus;
+use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Unchecked;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Thumbnail;
@@ -53,7 +65,8 @@ use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Success;
-use SPHERE\Common\Window\Redirect;
+use SPHERE\Common\Frontend\Text\Repository\ToolTip;
+use SPHERE\Common\Frontend\Text\Repository\Warning as WarningText;
 use SPHERE\Common\Window\Stage;
 
 class FrontendTabs extends FrontendSelectDivisionCourse
@@ -67,38 +80,266 @@ class FrontendTabs extends FrontendSelectDivisionCourse
      * @param null $BackDivisionCourseId
      * @param string $BasicRoute
      *
-     * @return Stage|string
+     * @return string
+     */
+    public function frontendTeacherControl(
+        $DivisionCourseId = null,
+        $BackDivisionCourseId = null,
+        string $BasicRoute = '/Education/ClassRegister/Digital/Teacher'
+    ): string {
+        $icon = new Ok();
+        $name = 'Lehreransicht';
+        $Route = '/Education/ClassRegister/Digital/TeacherControl';
+        $content = '';
+        if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))
+            && ($tblYear = $tblDivisionCourse->getServiceTblYear())
+        ) {
+            $Filter = ['DivisionCourseId' => $DivisionCourseId];
+            // save filter as json
+            Consumer::useService()->createAccountSetting('DigitalTeacherViewFilter', json_encode($Filter));
+
+            $global = $this->getGlobal();
+            $global->POST['Filter']['DivisionCourseId'] = $DivisionCourseId;
+            $global->savePost();
+
+            $content = ApiDigital::receiverModal()
+                . ApiAbsence::receiverModal()
+                . new Panel(new Filter() . ' Filter', $this->formTeacherViewFilter($tblYear), Panel::PANEL_TYPE_INFO)
+                . ApiDigital::receiverBlock($this->loadTeacherViewContent($tblYear->getId(), $Filter), 'TeacherViewContent');
+        }
+
+        return Digital::useFrontend()->getStage($DivisionCourseId, $BasicRoute, $Route, $icon, $name, $content, $BackDivisionCourseId);
+    }
+
+    public function loadTeacherViewContent($YearId = null, $Filter = null): string
+    {
+        if ($YearId) {
+            if (!($tblYear = Term::useService()->getYearById($YearId))) {
+                return new Danger('Schuljahr nicht gefunden', new Exclamation());
+            }
+            $tblYearList = [$tblYear];
+        } else {
+            if (!($tblYearList = Term::useService()->getYearByNow())) {
+                return new Danger('Schuljahr nicht gefunden', new Exclamation());
+            }
+        }
+
+        if (!($tblPerson = Account::useService()->getPersonByLogin())) {
+            return new Warning('Person zum eingeloggten Benutzerkonto nicht gefunden', new Exclamation());
+        }
+
+        $tblSubjectFilter = null;
+        if (isset($Filter['SubjectId'])) {
+            $tblSubjectFilter = Subject::useService()->getSubjectById($Filter['SubjectId']);
+        }
+
+        $tblDivisionCourseFilter = null;
+        if (isset($Filter['DivisionCourseId'])) {
+            $tblDivisionCourseFilter = DivisionCourse::useService()->getDivisionCourseById($Filter['DivisionCourseId']);
+        }
+
+        if ($tblDivisionCourseFilter) {
+            $tblLessonContentList = Digital::useService()->getLessonContentAllByTeacherAndDivisionCourse(
+                $tblPerson, $tblDivisionCourseFilter, $tblSubjectFilter ?: null);
+        } else {
+            $tblLessonContentList = [];
+            foreach ($tblYearList as $tblYearTemp) {
+                if (($tempList = Digital::useService()->getLessonContentAllByTeacherAndYear($tblPerson, $tblYearTemp, $tblSubjectFilter ?: null))) {
+                    $tblLessonContentList = array_merge($tblLessonContentList, $tempList);
+                }
+            }
+        }
+
+        // setze Identifier für Ermittlung fehlender Einträge
+        $tblLessonContentList = Digital::useService()->getLessonContentListWithIdentifier($tblLessonContentList);
+
+        // ergänzt fehlende Einträge an Hand vom Stundenplan und Vertretungsplan
+        Digital::useService()->addMissingLessonContentList($tblLessonContentList, $tblYearList,
+            $tblPerson, $tblDivisionCourseFilter ?: null, $tblSubjectFilter ?: null);
+
+        $dataList = [];
+        if ($tblLessonContentList) {
+            // fehlzeiten
+
+//            $tblTestList = [];
+            /** @var TblLessonContent $tblLessonContent */
+            foreach ($tblLessonContentList as $tblLessonContent) {
+                $isMissing = $tblLessonContent->getId() == 0;
+
+                if (isset($Filter['OnlyMissing']) && !$isMissing) {
+                    continue;
+                }
+
+                // tests
+//                if (!isset($tblTestList[$tblLessonContent->getDate()])) {
+//                    $tblTestList[$tblLessonContent->getDate()] = Grade::useService()->getTestListForDigitalByDate(new DateTime($tblLessonContent->getDate()));
+//                }
+
+                $tblSubject = $tblLessonContent->getServiceTblSubject();
+
+                $dataList[] = [
+                    // Sortierungsfelder dürfen nicht eingefärbt werden
+                    // mit Farben nach 3 spalten wird wahrscheinlich nichts
+                    'Check' => $this->getDisplayMissing($isMissing ? new Unchecked() : new Check(), $isMissing),
+//                    'Date' => $this->getDisplayMissing($tblLessonContent->getDate(), $isMissing, true),
+//                    'DivisionCourse' => $this->getDisplayMissing(
+//                        ($tblDivisionCourse = $tblLessonContent->getServiceTblDivisionCourse()) ? $tblDivisionCourse->getName() : '', $isMissing),
+//                    'Lesson' => $this->getDisplayMissing($tblLessonContent->getLessonDisplay(true), $isMissing),
+                    'Date' => $tblLessonContent->getDate(),
+                    'DivisionCourse' => ($tblDivisionCourse = $tblLessonContent->getServiceTblDivisionCourse()) ? $tblDivisionCourse->getName() : '',
+                    'Lesson' =>$tblLessonContent->getLessonDisplay(true),
+                    'Subject' => $this->getDisplayMissing($tblLessonContent->getDisplaySubject(true), $isMissing),
+                    'Room' => $this->getDisplayMissing($tblLessonContent->getRoom(), $isMissing),
+                    'Content' => $this->getDisplayMissing($tblLessonContent->getContent(), $isMissing),
+                    'Homework' => $this->getDisplayMissing($tblLessonContent->getHomework(), $isMissing),
+//                    $tblDivisionCourseListByStudentsInDivisionCourse = DivisionCourse::useService()->getDivisionCourseListByStudentsInDivisionCourse($tblDivisionCourse);
+//                    'Test' => Digital::useFrontend()->getTestColumnContent(
+//                        $tblTestList[$tblLessonContent->getDate()], $tblDivisionCourse->getId(), $tblSubject ? $tblSubject->getId() : null, []
+//                    ),
+//                    'Absence' => '',
+                    'Option' => $isMissing
+                        ? (new Standard(
+                            '',
+                            ApiDigital::getEndpoint(),
+                            new Plus(),
+                            array(),
+                            'Hinzufügen'
+                        ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenCreateLessonContentModal(
+                            $tblDivisionCourse->getId(), $tblLessonContent->getDate(), $tblLessonContent->getLesson(), $tblSubject ? $tblSubject->getId() : null
+                        ))
+                        : (new Standard(
+                            '',
+                            ApiDigital::getEndpoint(),
+                            new Edit(),
+                            array(),
+                            'Bearbeiten'
+                        ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenEditLessonContentModal($tblLessonContent->getId()))
+                        . (new Standard(
+                            '',
+                            ApiDigital::getEndpoint(),
+                            new Remove(),
+                            array(),
+                            'Löschen'
+                        ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenDeleteLessonContentModal($tblLessonContent->getId()))
+                ];
+            }
+        }
+
+        $columns = array(
+            'Check' => ' ',
+            'Date' => 'Datum',
+            'DivisionCourse' => 'Kurs',
+            'Lesson' => new ToolTip('UE', 'Unterrichtseinheit'),
+            'Subject' => 'Fach',
+            'Room' => 'Raum',
+            'Content' => 'Thema',
+            'Homework' => 'Hausaufgaben',
+//            'Test' => new ToolTip('LÜ', 'Leistungsüberprüfung'),
+//            'Absence' => 'Fehlzeiten',
+            'Option' => ''
+        );
+
+        return new TableData(
+            $dataList,
+            null,
+            $columns,
+            array(
+                'order' => array(
+                    array(1, 'desc'),
+                    array(2, 'asc'),
+                    array(3, 'asc'),
+                ),
+                'columnDefs' => array(
+                    array('type' => 'de_date', 'targets' => 1),
+                    array('type' => 'natural', 'targets' => 2),
+                    array('type' => 'natural', 'targets' => 3),
+                    array('width' => '10px', 'targets' => 0),
+                    array('width' => '60px', 'targets' => 1),
+                    array('width' => '60px', 'targets' => -1),
+                    array('orderable' => false, 'searchable' => false, 'targets' => [0, -1]),
+                ),
+                'responsive' => false,
+                'paging' => false,
+//                'info' => false,
+//                'searching' => false,
+            )
+        );
+    }
+
+    /**
+     * @param TblYear|null $tblYear
+     *
+     * @return Form
+     */
+    public function formTeacherViewFilter(?TblYear $tblYear): Form
+    {
+        if ($tblYear)  {
+            $tblYearList = [$tblYear];
+            $YearId = $tblYear->getId();
+        } else {
+            $YearId = null;
+            if (!($tblYearList = Term::useService()->getYearByNow())) {
+                $tblYearList = [];
+            }
+        }
+
+        $tblDivisionCourseList = Digital::useService()->getDivisionCourseListForDigital($tblYearList);
+
+        $checkBox = (new CheckBox('Filter[OnlyMissing]', new Bold('Nur fehlende Einträge anzeigen'), 1))
+            ->ajaxPipelineOnChange(ApiDigital::pipelineLoadTeacherViewContent($YearId));
+
+        return new Form(new FormGroup(array(
+            new FormRow(array(
+                new FormColumn(
+                    (new SelectBox('Filter[DivisionCourseId]', 'Kurs', array('{{ Name }}' => $tblDivisionCourseList)))
+                        ->ajaxPipelineOnChange(ApiDigital::pipelineLoadTeacherViewContent($YearId))
+                    , 6),
+                new FormColumn(
+                    (new SelectBox('Filter[SubjectId]', 'Fach', array('{{ DisplayName }}' => Subject::useService()->getSubjectAll())))
+                        ->ajaxPipelineOnChange(ApiDigital::pipelineLoadTeacherViewContent($YearId))
+                    , 6),
+            )),
+            new FormRow(array(
+                new FormColumn(
+                    new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
+                        (new Container($checkBox))->setStyle(['margin-top: 7.5px;', 'margin-bottom: 7.5px'])
+                    ))))
+                ),
+            )),
+        )));
+    }
+
+    /**
+     * @param string $content
+     * @param bool $isMissing
+     * @param bool $isDate
+     *
+     * @return string
+     */
+    private function getDisplayMissing(string $content, bool $isMissing, bool $isDate = false): string
+    {
+        return '<span hidden>' . ($isDate ? (new DateTime($content))->format('Y-m-d') : $content) . '</span>'
+            . ($isMissing ? new WarningText($content) : new Success($content));
+    }
+
+    /**
+     * @param null $DivisionCourseId
+     * @param null $BackDivisionCourseId
+     * @param string $BasicRoute
+     *
+     * @return string
      */
     public function frontendStudentList(
         $DivisionCourseId = null,
         $BackDivisionCourseId = null,
         string $BasicRoute = '/Education/ClassRegister/Digital/Teacher'
-    ) {
-        $stage = new Stage('Digitales Klassenbuch', 'Schülerliste');
+    ): string {
+        $icon = new PersonGroup();
+        $name = 'Schülerliste';
+        $Route = '/Education/ClassRegister/Digital/Student';
+        $content = Digital::useService()->getStudentTable($DivisionCourseId, $BasicRoute, $Route);
 
-        if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
-            $stage->addButton($this->getBackButton($tblDivisionCourse, $BackDivisionCourseId, $BasicRoute));
-
-            $stage->setContent(
-                new Layout(array(
-                    new LayoutGroup(array(
-                        Digital::useService()->getHeadLayoutRow($tblDivisionCourse),
-                        $tblDivisionCourse->getType()->getIsCourseSystem()
-                            ? Digital::useService()->getHeadButtonListLayoutRowForCourseSystem($tblDivisionCourse, '/Education/ClassRegister/Digital/Student',
-                                $BasicRoute, $BackDivisionCourseId)
-                            : Digital::useService()->getHeadButtonListLayoutRow($tblDivisionCourse, '/Education/ClassRegister/Digital/Student', $BasicRoute)
-                    )),
-                    new LayoutGroup(new LayoutRow(new LayoutColumn(
-                        Digital::useService()->getStudentTable($tblDivisionCourse, $BasicRoute, '/Education/ClassRegister/Digital/Student')
-                    )), new Title(new PersonGroup() . ' Schülerliste'))
-                ))
-            );
-        } else {
-            return new Danger('Kurs nicht gefunden', new Exclamation())
-                . new Redirect($BasicRoute, Redirect::TIMEOUT_ERROR);
-        }
-
-        return $stage;
+        return Digital::useFrontend()->getStage($DivisionCourseId, $BasicRoute, $Route, $icon, $name, $content, $BackDivisionCourseId);
     }
 
     /**
@@ -129,20 +370,21 @@ class FrontendTabs extends FrontendSelectDivisionCourse
      * @param null $BackDivisionCourseId
      * @param string $BasicRoute
      *
-     * @return Stage|string
+     * @return string
      */
     public function frontendDownload(
         $DivisionCourseId = null,
         $BackDivisionCourseId = null,
         string $BasicRoute = '/Education/ClassRegister/Digital/Teacher'
-    ) {
-        $stage = new Stage('Digitales Klassenbuch', 'Download');
+    ): string {
+        $icon = new Download();
+        $name = 'Download';
+        $Route = '/Education/ClassRegister/Digital/Download';
+        $content = '';
 
         if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
-            $stage->addButton($this->getBackButton($tblDivisionCourse, $BackDivisionCourseId, $BasicRoute));
-
             if ($tblDivisionCourse->getType()->getIsCourseSystem()) {
-                $name = 'Kursliste';
+                $text = 'Kursliste';
                 $printLink = (new Link((new Thumbnail(
                     FileSystem::getFileLoader('/Common/Style/Resource/SSWPrint.png'), 'Kursheft'))->setPictureHeight(),
                     '/Api/Document/Standard/CourseContent/Create', null, array(
@@ -150,9 +392,9 @@ class FrontendTabs extends FrontendSelectDivisionCourse
                     )))->setExternal();
             } else {
                 if (($isCoreGroup = $tblDivisionCourse->getTypeIdentifier() == TblDivisionCourseType::TYPE_CORE_GROUP)) {
-                    $name = 'Stammgruppenliste';
+                    $text = 'Stammgruppenliste';
                 } else {
-                    $name = 'Klassenliste';
+                    $text = 'Klassenliste';
                 }
 
                 $isCourseSystem = DivisionCourse::useService()->getIsCourseSystemByStudentsInDivisionCourse($tblDivisionCourse);
@@ -169,122 +411,110 @@ class FrontendTabs extends FrontendSelectDivisionCourse
                 }
             }
 
-            $stage->setContent(
-                new Layout(array(
-                    new LayoutGroup(array(
-                        Digital::useService()->getHeadLayoutRow($tblDivisionCourse),
-                        $tblDivisionCourse->getType()->getIsCourseSystem()
-                            ? Digital::useService()->getHeadButtonListLayoutRowForCourseSystem($tblDivisionCourse, '/Education/ClassRegister/Digital/Download',
-                                $BasicRoute, $BackDivisionCourseId)
-                            : Digital::useService()->getHeadButtonListLayoutRow($tblDivisionCourse, '/Education/ClassRegister/Digital/Download', $BasicRoute)
-                    )),
-                    new LayoutGroup(new LayoutRow(array(
-                        new LayoutColumn(
-                            new Danger('Die dauerhafte Speicherung des Excel-Exports ist datenschutzrechtlich nicht zulässig!',
-                                new Exclamation())
-                        ),
-                        new LayoutColumn(
-                            new Link((new Thumbnail(
-                                FileSystem::getFileLoader('/Common/Style/Resource/SSWAgreement.png'), $name . ' Einverständnis&shy;erklärung'))->setPictureHeight(),
-                                '/Api/Reporting/Standard/Person/AgreementClassList/Download', null, array(
-                                    'DivisionCourseId' => $DivisionCourseId
-                                ))
-                            , 2),
-                        new LayoutColumn(
-                            new Link((new Thumbnail(
-                                FileSystem::getFileLoader('/Common/Style/Resource/SSWMedical.png'), $name . ' Krankenakte'))->setPictureHeight(),
-                                '/Api/Reporting/Standard/Person/MedicalRecordClassList/Download', null, array(
-                                    'DivisionCourseId' => $DivisionCourseId
-                                ))
-                            , 2),
-                        new LayoutColumn(
-                            new Link((new Thumbnail(
-                                FileSystem::getFileLoader('/Common/Style/Resource/SSWUser.png'), $name . ' Schülerliste'))->setPictureHeight(),
-                                '/Api/Reporting/Standard/Person/ClassList/Download', null, array(
-                                    'DivisionCourseId' => $DivisionCourseId
-                                ))
-                            , 2),
-                        new LayoutColumn(
-                            new Link((new Thumbnail(
-                                FileSystem::getFileLoader('/Common/Style/Resource/SSWAbsence.png'), $name . ' zeugnis&shy;relevante Fehlzeiten'))->setPictureHeight(),
-                                '/Api/Reporting/Standard/Person/ClassRegister/Absence/Download', null, array(
-                                    'DivisionCourseId' => $DivisionCourseId
-                                ))
-                            , 2),
-                        new LayoutColumn(
-                            new Link((new Thumbnail(
-                                FileSystem::getFileLoader('/Common/Style/Resource/SSWAbsence.png'), $name . ' Monatliche Fehlzeiten'))->setPictureHeight(),
-                                '/Api/Reporting/Standard/Person/ClassRegister/AbsenceMonthly/Download', null, array(
-                                    'DivisionCourseId' => $DivisionCourseId
-                                ))
-                            , 2),
-                        new LayoutColumn(
-                            $printLink
-                            , 2),
-                    )), new Title(new Download() . ' Download')),
-                    ConsumerGatekeeper::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'EVOSG')
-                        ? new LayoutGroup(new LayoutRow(array(
-                        new LayoutColumn(
-                            new Link((new Thumbnail(
-                                FileSystem::getFileLoader('/Common/Style/Resource/SSWUser.png'), 'Individuelle Klassenliste'))->setPictureHeight(),
-                                '/Api/Reporting/Custom/IndividualClassRegisterDownload', null, array(
-                                    'DivisionCourseId' => $DivisionCourseId,
-                                    'Type'    => 'downloadClassList'
-                                ))
-                            , 2),
-                        new LayoutColumn(
-                            new Link((new Thumbnail(
-                                FileSystem::getFileLoader('/Common/Style/Resource/SSWAgreement.png'), 'Individuelle Unterschriftenliste'))->setPictureHeight(),
-                                '/Api/Reporting/Custom/IndividualClassRegisterDownload', null, array(
-                                    'DivisionCourseId' => $DivisionCourseId,
-                                    'Type'    => 'downloadSignList'
-                                ))
-                            , 2),
-                        new LayoutColumn(
-                            new Link((new Thumbnail(
-                                FileSystem::getFileLoader('/Common/Style/Resource/SSWUser.png'), 'Individuelle Klassenliste Fremdsprachen'))->setPictureHeight(),
-                                '/Api/Reporting/Custom/IndividualClassRegisterDownload', null, array(
-                                    'DivisionCourseId' => $DivisionCourseId,
-                                    'Type'    => 'downloadElectiveClassList'
-                                ))
-                            , 2),
-                        new LayoutColumn(
-                            new Link((new Thumbnail(
-                                FileSystem::getFileLoader('/Common/Style/Resource/SSWUser.png'), 'Individuelle Telefonliste'))->setPictureHeight(),
-                                '/Api/Reporting/Custom/IndividualClassRegisterDownload', null, array(
-                                    'DivisionCourseId' => $DivisionCourseId,
-                                    'Type'    => 'downloadClassPhoneList'
-                                ))
-                            , 2),
-                    )), new Title(new Download() . ' Individual Download'))
-                        : null,
-                    ConsumerGatekeeper::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'KG')
-                        ? new LayoutGroup(new LayoutRow(array(
-                        new LayoutColumn(
-                            new Link((new Thumbnail(
-                                FileSystem::getFileLoader('/Common/Style/Resource/SSWAgreement.png'), 'Individuelle Unterschriftenliste'))->setPictureHeight(),
-                                '/Api/Reporting/Custom/Kreuzgymnasium/Common/SignList/Download', null, array(
-                                    'DivisionCourseId' => $DivisionCourseId
-                                ))
-                            , 2),
-                        new LayoutColumn(
-                            new Link((new Thumbnail(
-                                FileSystem::getFileLoader('/Common/Style/Resource/SSWAgreement.png'), 'Individuelle Unterschriftenliste Querformat'))->setPictureHeight(),
-                                '/Api/Reporting/Custom/Kreuzgymnasium/Common/SignList/Download', null, array(
-                                    'DivisionCourseId' => $DivisionCourseId,
-                                    'isLandscape' => 1
-                                ))
-                            , 2),
-                    )), new Title(new Download() . ' Individual Download'))
-                        : null,
-                ))
-            );
-        } else {
-            return new Danger('Klasse oder Gruppe nicht gefunden', new Exclamation())
-                . new Redirect($BasicRoute, Redirect::TIMEOUT_ERROR);
+            $content = new Layout(array(
+                new LayoutGroup(new LayoutRow(array(
+                    new LayoutColumn(
+                        new Danger('Die dauerhafte Speicherung des Excel-Exports ist datenschutzrechtlich nicht zulässig!',
+                            new Exclamation())
+                    ),
+                    new LayoutColumn(
+                        new Link((new Thumbnail(
+                            FileSystem::getFileLoader('/Common/Style/Resource/SSWAgreement.png'), $text . ' Einverständnis&shy;erklärung'))->setPictureHeight(),
+                            '/Api/Reporting/Standard/Person/AgreementClassList/Download', null, array(
+                                'DivisionCourseId' => $DivisionCourseId
+                            ))
+                        , 2),
+                    new LayoutColumn(
+                        new Link((new Thumbnail(
+                            FileSystem::getFileLoader('/Common/Style/Resource/SSWMedical.png'), $text . ' Krankenakte'))->setPictureHeight(),
+                            '/Api/Reporting/Standard/Person/MedicalRecordClassList/Download', null, array(
+                                'DivisionCourseId' => $DivisionCourseId
+                            ))
+                        , 2),
+                    new LayoutColumn(
+                        new Link((new Thumbnail(
+                            FileSystem::getFileLoader('/Common/Style/Resource/SSWUser.png'), $text . ' Schülerliste'))->setPictureHeight(),
+                            '/Api/Reporting/Standard/Person/ClassList/Download', null, array(
+                                'DivisionCourseId' => $DivisionCourseId
+                            ))
+                        , 2),
+                    new LayoutColumn(
+                        new Link((new Thumbnail(
+                            FileSystem::getFileLoader('/Common/Style/Resource/SSWAbsence.png'), $text . ' zeugnis&shy;relevante Fehlzeiten'))->setPictureHeight(),
+                            '/Api/Reporting/Standard/Person/ClassRegister/Absence/Download', null, array(
+                                'DivisionCourseId' => $DivisionCourseId
+                            ))
+                        , 2),
+                    new LayoutColumn(
+                        new Link((new Thumbnail(
+                            FileSystem::getFileLoader('/Common/Style/Resource/SSWAbsence.png'), $text . ' Monatliche Fehlzeiten'))->setPictureHeight(),
+                            '/Api/Reporting/Standard/Person/ClassRegister/AbsenceMonthly/Download', null, array(
+                                'DivisionCourseId' => $DivisionCourseId
+                            ))
+                        , 2),
+                    new LayoutColumn(
+                        $printLink
+                        , 2),
+                ))),
+                ConsumerGatekeeper::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'EVOSG')
+                    ? new LayoutGroup(new LayoutRow(array(
+                    new LayoutColumn(
+                        new Link((new Thumbnail(
+                            FileSystem::getFileLoader('/Common/Style/Resource/SSWUser.png'), 'Individuelle Klassenliste'))->setPictureHeight(),
+                            '/Api/Reporting/Custom/IndividualClassRegisterDownload', null, array(
+                                'DivisionCourseId' => $DivisionCourseId,
+                                'Type'    => 'downloadClassList'
+                            ))
+                        , 2),
+                    new LayoutColumn(
+                        new Link((new Thumbnail(
+                            FileSystem::getFileLoader('/Common/Style/Resource/SSWAgreement.png'), 'Individuelle Unterschriftenliste'))->setPictureHeight(),
+                            '/Api/Reporting/Custom/IndividualClassRegisterDownload', null, array(
+                                'DivisionCourseId' => $DivisionCourseId,
+                                'Type'    => 'downloadSignList'
+                            ))
+                        , 2),
+                    new LayoutColumn(
+                        new Link((new Thumbnail(
+                            FileSystem::getFileLoader('/Common/Style/Resource/SSWUser.png'), 'Individuelle Klassenliste Fremdsprachen'))->setPictureHeight(),
+                            '/Api/Reporting/Custom/IndividualClassRegisterDownload', null, array(
+                                'DivisionCourseId' => $DivisionCourseId,
+                                'Type'    => 'downloadElectiveClassList'
+                            ))
+                        , 2),
+                    new LayoutColumn(
+                        new Link((new Thumbnail(
+                            FileSystem::getFileLoader('/Common/Style/Resource/SSWUser.png'), 'Individuelle Telefonliste'))->setPictureHeight(),
+                            '/Api/Reporting/Custom/IndividualClassRegisterDownload', null, array(
+                                'DivisionCourseId' => $DivisionCourseId,
+                                'Type'    => 'downloadClassPhoneList'
+                            ))
+                        , 2),
+                )), new Title($icon . ' Individual Download'))
+                    : null,
+                ConsumerGatekeeper::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'KG')
+                    ? new LayoutGroup(new LayoutRow(array(
+                    new LayoutColumn(
+                        new Link((new Thumbnail(
+                            FileSystem::getFileLoader('/Common/Style/Resource/SSWAgreement.png'), 'Individuelle Unterschriftenliste'))->setPictureHeight(),
+                            '/Api/Reporting/Custom/Kreuzgymnasium/Common/SignList/Download', null, array(
+                                'DivisionCourseId' => $DivisionCourseId
+                            ))
+                        , 2),
+                    new LayoutColumn(
+                        new Link((new Thumbnail(
+                            FileSystem::getFileLoader('/Common/Style/Resource/SSWAgreement.png'), 'Individuelle Unterschriftenliste Querformat'))->setPictureHeight(),
+                            '/Api/Reporting/Custom/Kreuzgymnasium/Common/SignList/Download', null, array(
+                                'DivisionCourseId' => $DivisionCourseId,
+                                'isLandscape' => 1
+                            ))
+                        , 2),
+                )), new Title($icon . ' Individual Download'))
+                    : null,
+            ));
         }
 
-        return $stage;
+        return Digital::useFrontend()->getStage($DivisionCourseId, $BasicRoute, $Route, $icon, $name, $content, $BackDivisionCourseId);
     }
 
     /**
@@ -349,88 +579,50 @@ class FrontendTabs extends FrontendSelectDivisionCourse
      * @param null $BackDivisionCourseId
      * @param string $BasicRoute
      *
-     * @return Stage|string
+     * @return string
      */
     public function frontendLectureship(
         $DivisionCourseId = null,
         $BackDivisionCourseId = null,
         string $BasicRoute = '/Education/ClassRegister/Digital/Teacher'
-    ) {
-        $stage = new Stage('Digitales Klassenbuch', 'Unterrichtete Fächer / Lehrer');
+    ): string {
+        $icon = new Listing();
+        $name = 'Unterrichtete Fächer / Lehrer';
+        $Route = '/Education/ClassRegister/Digital/Lectureship';
+        $content = Digital::useService()->getSubjectsAndLectureshipByDivisionCourse($DivisionCourseId);
 
-        if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
-            $stage->addButton($this->getBackButton($tblDivisionCourse, $BackDivisionCourseId, $BasicRoute));
-
-            $content = Digital::useService()->getSubjectsAndLectureshipByDivisionCourse($tblDivisionCourse);
-
-            $stage->setContent(
-                new Layout(array(
-                    new LayoutGroup(array(
-                        Digital::useService()->getHeadLayoutRow($tblDivisionCourse),
-                        $tblDivisionCourse->getType()->getIsCourseSystem()
-                            ? Digital::useService()->getHeadButtonListLayoutRowForCourseSystem($tblDivisionCourse, '/Education/ClassRegister/Digital/Lectureship',
-                                $BasicRoute, $BackDivisionCourseId)
-                            : Digital::useService()->getHeadButtonListLayoutRow($tblDivisionCourse, '/Education/ClassRegister/Digital/Lectureship', $BasicRoute)
-                    )),
-                    new LayoutGroup(new LayoutRow(new LayoutColumn(
-                        $content
-                    )), new Title(new Listing() . ' Unterrichtete Fächer / Lehrer'))
-                ))
-            );
-        } else {
-            return new Danger('Klasse oder Gruppe nicht gefunden', new Exclamation())
-                . new Redirect($BasicRoute, Redirect::TIMEOUT_ERROR);
-        }
-
-        return $stage;
+        return Digital::useFrontend()->getStage($DivisionCourseId, $BasicRoute, $Route, $icon, $name, $content, $BackDivisionCourseId);
     }
 
     /**
      * @param null $DivisionCourseId
      * @param string $BasicRoute
      *
-     * @return Stage|string
+     * @return string
      */
     public function frontendLessonWeek(
         $DivisionCourseId = null,
         string $BasicRoute = '/Education/ClassRegister/Digital/Teacher'
-    ) {
-        $stage = new Stage('Digitales Klassenbuch', 'Kontrolle');
-
+    ): string {
+        $icon = new Ok();
+        $name = 'Klassentagebuch Kontrolle';
+        $Route = '/Education/ClassRegister/Digital/LessonWeek';
+        $content = '';
         if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
-            $stage->addButton($this->getBackButton($tblDivisionCourse, null, $BasicRoute));
-
             $hasDivisionTeacherRight = (($tblPerson = Account::useService()->getPersonByLogin())
                 && ($tblDivisionCourseMemberType = DivisionCourse::useService()->getDivisionCourseMemberTypeByIdentifier(TblDivisionCourseMemberType::TYPE_DIVISION_TEACHER))
                 && (DivisionCourse::useService()->getDivisionCourseMemberByPerson($tblDivisionCourse, $tblDivisionCourseMemberType, $tblPerson))
             );
             $hasHeadmasterRight = Access::useService()->hasAuthorization('/Education/ClassRegister/Digital/Instruction/Setting');
             // Schulleitung soll auch die Klassenbücher für die Klassenlehrer abnehmen dürfen
-            if ($hasHeadmasterRight)  {
+            if ($hasHeadmasterRight) {
                 $hasDivisionTeacherRight = true;
             }
 
             $content = ApiDigital::receiverBlock($this->loadLessonWeekTable($tblDivisionCourse, $hasDivisionTeacherRight, $hasHeadmasterRight), 'LessonWeekContent');
-
-            $stage->setContent(
-                new Layout(array(
-                    new LayoutGroup(array(
-                        Digital::useService()->getHeadLayoutRow($tblDivisionCourse),
-                        $tblDivisionCourse->getType()->getIsCourseSystem()
-                            ? null
-                            : Digital::useService()->getHeadButtonListLayoutRow($tblDivisionCourse, '/Education/ClassRegister/Digital/LessonWeek', $BasicRoute)
-                    )),
-                    new LayoutGroup(new LayoutRow(new LayoutColumn(
-                        $content
-                    )), new Title(new Ok() . ' Klassentagebuch Kontrolle'))
-                ))
-            );
-        } else {
-            return new Danger('Klasse oder Gruppe nicht gefunden', new Exclamation())
-                . new Redirect($BasicRoute, Redirect::TIMEOUT_ERROR);
         }
 
-        return $stage;
+        return Digital::useFrontend()->getStage($DivisionCourseId, $BasicRoute, $Route, $icon, $name, $content);
     }
 
     /**
@@ -452,8 +644,6 @@ class FrontendTabs extends FrontendSelectDivisionCourse
             return new Danger('Kein Schuljahr gefunden!', new Exclamation());
         }
 
-        $DivisionCourseId = $tblDivisionCourse->getId();
-
         /** @var DateTime $startDate */
         /** @var DateTime $endDate */
         list($startDate, $endDate) = Term::useService()->getStartDateAndEndDateOfYear($tblYear);
@@ -470,112 +660,143 @@ class FrontendTabs extends FrontendSelectDivisionCourse
                     $startDate->add(new DateInterval('P7D'));
                 }
             }
-            $startDate = Timetable::useService()->getStartDateOfWeek($startDate);
-            $dataList = array();
-            while ($startDate <= $endDate) {
-                $dateString = $startDate->format('d.m.Y');
-
-                // Prüfung, ob die gesamte Woche Ferien sind
-                $isHoliday = Term::useService()->getIsSchoolWeekHoliday($dateString, $tblYear, $tblCompanyList ?: array(), $hasSaturdayLessons);
-
-                // Rechte prüfen
-                $newDivisionTeacher = new \SPHERE\Common\Frontend\Text\Repository\Warning(new Unchecked() . ' noch nicht bestätigt')
-                    . new PullRight(($hasDivisionTeacherRight
-                            ? (new Link('Bestätigen', ApiDigital::getEndpoint(), new Check()))->ajaxPipelineOnClick(
-                                ApiDigital::pipelineSaveLessonWeekCheck($DivisionCourseId, $dateString, 'DivisionTeacher', 'SET',
-                                    $hasDivisionTeacherRight, $hasHeadmasterRight))
-                            : '')
-                        . '|');
-                $newHeadmaster = new \SPHERE\Common\Frontend\Text\Repository\Warning(new Unchecked() . ' noch nicht bestätigt')
-                    . new PullRight($hasHeadmasterRight
-                        ? (new Link('Bestätigen', ApiDigital::getEndpoint(), new Check()))->ajaxPipelineOnClick(
-                            ApiDigital::pipelineSaveLessonWeekCheck($DivisionCourseId, $dateString, 'Headmaster', 'SET',
-                                $hasDivisionTeacherRight, $hasHeadmasterRight))
-                        : ''
-                    );
-
-                if (($tblLessonWeek = Digital::useService()->getLessonWeekByDate($tblDivisionCourse, $startDate))) {
-                    if ($tblLessonWeek->getDateDivisionTeacher()) {
-                        $divisionTeacherText = new Success(
-                                new Check() . ' am ' . $tblLessonWeek->getDateDivisionTeacher() . ' von '
-                                . (($divisionTeacher = $tblLessonWeek->getServiceTblPersonDivisionTeacher()) ? $divisionTeacher->getLastName() : '')
-                                . ' bestätigt.'
-                            )
-                            . new PullRight(
-                                ($hasDivisionTeacherRight
-                                    ? (new Link('Rückgängig', ApiDigital::getEndpoint(), new Unchecked()))->ajaxPipelineOnClick(
-                                        ApiDigital::pipelineSaveLessonWeekCheck($DivisionCourseId, $dateString, 'DivisionTeacher', 'UNSET',
-                                            $hasDivisionTeacherRight, $hasHeadmasterRight))
-                                    : '')
-                                . '|');
-                    } else {
-                        $divisionTeacherText = $newDivisionTeacher;
-                    }
-
-                    if ($tblLessonWeek->getDateHeadmaster()) {
-                        $headmasterText = new Success(new Check() . ' am ' . $tblLessonWeek->getDateHeadmaster() . ' von '
-                            . (($headmaster = $tblLessonWeek->getServiceTblPersonHeadmaster()) ? $headmaster->getLastName() : '')
-                            . ' bestätigt.'
-                            . new PullRight($hasHeadmasterRight
-                                ? (new Link('Rückgängig', ApiDigital::getEndpoint(), new Unchecked()))->ajaxPipelineOnClick(
-                                    ApiDigital::pipelineSaveLessonWeekCheck($DivisionCourseId, $dateString, 'Headmaster', 'UNSET',
-                                        $hasDivisionTeacherRight, $hasHeadmasterRight))
-                                : ''
-                            )
-                        );
-                    } else {
-                        $headmasterText = $newHeadmaster;
-                    }
-                } else {
-                    $divisionTeacherText = $newDivisionTeacher;
-                    $headmasterText = $newHeadmaster;
-                }
-
-                $displayWeek = new Bold('KW' . $startDate->format('W')) . ' (' . $dateString . ')';
-                if ($dateString == $Date) {
-                    $item = new Well(
-                        Digital::useFrontend()->getWeekViewContent($dateString, $tblDivisionCourse, false, true)
-                        . new Layout(new LayoutGroup(new LayoutRow(array(
-                            new LayoutColumn($displayWeek
-                                . (new Link(' schließen', ApiDigital::getEndpoint()))
-                                    ->ajaxPipelineOnClick(ApiDigital::pipelineLoadLessonWeekContent($DivisionCourseId, $hasDivisionTeacherRight, $hasHeadmasterRight))
-                                . new PullRight('|'), 4),
-                            new LayoutColumn($divisionTeacherText, 4),
-                            new LayoutColumn($headmasterText, 4),
-                        ))))
-                    );
-                } else {
-                    $item = new Layout(new LayoutGroup(new LayoutRow(array(
-                        new LayoutColumn(
-                            $displayWeek
-                            . (new Link(' anzeigen', ApiDigital::getEndpoint()))
-                                ->ajaxPipelineOnClick(ApiDigital::pipelineLoadLessonWeekContent($DivisionCourseId, $hasDivisionTeacherRight, $hasHeadmasterRight, $dateString))
-                            . new PullRight('|')
-                            , 4),
-                        new LayoutColumn($divisionTeacherText, 4),
-                        new LayoutColumn($headmasterText, 4),
-                    ))));
-                }
-
-                if (!$isHoliday) {
-                    $dataList[] = $item;
-                }
-
-                $startDate->add(new DateInterval('P7D'));
+            // nur bis zum aktuellen Tag anzeigen
+            $today = new DateTime('today');
+            if ($today < $endDate) {
+                $endDate = $today;
             }
 
-            $content = new Panel(
-                new Layout(new LayoutGroup(new LayoutRow(array(
-                    new LayoutColumn('KW' . new PullRight('|'), 4),
-                    new LayoutColumn('Für die Vollständigkeit der Angaben (Klassenlehrer)' . new PullRight('|'), 4),
+            $date = Timetable::useService()->getStartDateOfWeek($endDate);
+            $dataList = array();
+            $intervall = new DateInterval('P7D');
+            while ($date >= $startDate) {
+                $dateString = $date->format('d.m.Y');
+
+                // Prüfung, ob die gesamte Woche Ferien sind
+                if (!Term::useService()->getIsSchoolWeekHoliday($dateString, $tblYear, $tblCompanyList ?: array(), $hasSaturdayLessons)) {
+                    $dataList[] =  ApiDigital::receiverBlock(
+                        $this->loadLessonWeekContent($tblDivisionCourse, $dateString, $hasDivisionTeacherRight, $hasHeadmasterRight, false),
+                        'LessonWeekContent_' . $dateString);
+                }
+
+                $date->sub($intervall);
+            }
+
+            $content = new Title(new Layout(new LayoutGroup(new LayoutRow(array(
+                    new LayoutColumn('KW', 4),
+                    new LayoutColumn('Für die Vollständigkeit der Angaben (Klassenlehrer)', 4),
                     new LayoutColumn('Zur Kenntnis genommen (Schulleitung)', 4),
-                )))),
-                $dataList,
-                Panel::PANEL_TYPE_PRIMARY
-            );
+                )))))
+                . implode(' ', $dataList);
         }
 
         return $content;
+    }
+
+    /**
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param string $DateString
+     * @param bool $hasDivisionTeacherRight
+     * @param bool $hasHeadmasterRight
+     * @param bool $isOpen
+     *
+     * @return string
+     */
+    public function loadLessonWeekContent(TblDivisionCourse $tblDivisionCourse, string $DateString,
+        bool $hasDivisionTeacherRight, bool $hasHeadmasterRight, bool $isOpen): string
+    {
+        $date = new DateTime($DateString);
+        $week = 'KW' . str_pad($date->format('W'), 2, '0', STR_PAD_LEFT);
+        $displayWeek = new Bold($week) . ' (' . $DateString . ')';
+
+        $dateDivisionTeacher = false;
+        $dateHeadmaster = false;
+        $divisionTeacherName = '';
+        $headmasterName = '';
+        if (($tblLessonWeek = Digital::useService()->getLessonWeekByDate($tblDivisionCourse, $date))) {
+            $dateDivisionTeacher = $tblLessonWeek->getDateDivisionTeacher();
+            $divisionTeacherName = (($divisionTeacher = $tblLessonWeek->getServiceTblPersonDivisionTeacher()) ? $divisionTeacher->getLastName() : '');
+
+            $dateHeadmaster = $tblLessonWeek->getDateHeadmaster();
+            $headmasterName = (($headmaster = $tblLessonWeek->getServiceTblPersonHeadmaster()) ? $headmaster->getLastName() : '');
+        }
+        if ($isOpen) {
+            $space = '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
+
+            if ($dateDivisionTeacher) {
+                $divisionTeacherHeader = new Check() . ' KL';
+                $divisionTeacherBody = new Success(new Check() . @" KL am {$dateDivisionTeacher} von {$divisionTeacherName} bestätigt.")
+                    . ($hasDivisionTeacherRight
+                        ? $space . (new Primary('KL Rückgängig', ApiDigital::getEndpoint(), new Unchecked()))
+                            ->ajaxPipelineOnClick(ApiDigital::pipelineSaveLessonWeekCheck($tblDivisionCourse->getId(), $DateString, 'DivisionTeacher', 'UNSET',
+                                true, $hasHeadmasterRight))
+                        : '');
+            } else {
+                $divisionTeacherHeader = new Unchecked() . ' KL';
+                $divisionTeacherBody = new WarningText(new Unchecked() . ' KL noch nicht bestätigt')
+                    . ($hasDivisionTeacherRight
+                        ? $space . (new Primary('KL Bestätigen', ApiDigital::getEndpoint(), new Check()))
+                            ->ajaxPipelineOnClick(ApiDigital::pipelineSaveLessonWeekCheck($tblDivisionCourse->getId(), $DateString, 'DivisionTeacher', 'SET',
+                                true, $hasHeadmasterRight))
+                        : '');
+            }
+
+            if ($dateHeadmaster) {
+                $headmasterHeader = new Check() . ' SL';
+                $headmasterBody = new Success(new Check() . @" SL am {$dateHeadmaster} von {$headmasterName} bestätigt.")
+                    . ($hasHeadmasterRight
+                        ? $space . (new Primary('SL Rückgängig', ApiDigital::getEndpoint(), new Unchecked()))
+                            ->ajaxPipelineOnClick(ApiDigital::pipelineSaveLessonWeekCheck($tblDivisionCourse->getId(), $DateString, 'Headmaster', 'UNSET',
+                                $hasDivisionTeacherRight, true))
+                        : '');
+            } else {
+                $headmasterHeader = new Unchecked() . ' SL';
+                $headmasterBody = new WarningText(new Unchecked() . ' SL noch nicht bestätigt')
+                    . ($hasHeadmasterRight
+                        ? $space . (new Primary('SL Bestätigen', ApiDigital::getEndpoint(), new Check()))
+                            ->ajaxPipelineOnClick(ApiDigital::pipelineSaveLessonWeekCheck($tblDivisionCourse->getId(), $DateString, 'Headmaster', 'SET',
+                                $hasDivisionTeacherRight, true))
+                        : '');
+            }
+
+        } else {
+//            $divisionTeacherHeader = $dateDivisionTeacher ? new Success(new Check() . ' KL') : new WarningText(new Unchecked() . ' KL');
+//            $headmasterHeader = $dateHeadmaster ? new Success(new Check() . ' SL') : new WarningText(new Unchecked() . ' SL');
+            $divisionTeacherHeader = $dateDivisionTeacher ? new Check() . ' KL' : new Unchecked() . ' KL';
+            $headmasterHeader = $dateHeadmaster ? new Check() . ' SL' : new Unchecked() . ' SL';
+        }
+
+        $name = '<div style="height: 16px">'
+            . new Layout(new LayoutGroup(new LayoutRow(array(
+                new LayoutColumn($displayWeek, 4),
+                new LayoutColumn($divisionTeacherHeader, 4),
+                new LayoutColumn($headmasterHeader . new PullRight($isOpen ? new ChevronUp() : new ChevronDown()), 4),
+            ))))
+            . '</div>';
+        $link = (new Link($name, ApiDigital::getEndpoint()))
+            ->ajaxPipelineOnClick(ApiDigital::pipelineLoadLessonWeekContent($tblDivisionCourse->getId(), $DateString,
+                $hasDivisionTeacherRight, $hasHeadmasterRight, !$isOpen));
+
+        if ($dateDivisionTeacher && $dateHeadmaster) {
+            $panelType = Panel::PANEL_TYPE_SUCCESS;
+        } elseif ($dateDivisionTeacher) {
+            $panelType = Panel::PANEL_TYPE_INFO;
+        } else {
+            $panelType = Panel::PANEL_TYPE_DEFAULT;
+        }
+
+        return new Panel(
+            $link,
+            $isOpen
+                ? Digital::useFrontend()->getWeekViewContent($DateString, $tblDivisionCourse, false, true)
+                    . new Layout(new LayoutGroup(new LayoutRow(array(
+//                        new LayoutColumn($displayWeek, 4),
+                        new LayoutColumn('', 4),
+                        new LayoutColumn($divisionTeacherBody, 4),
+                        new LayoutColumn($headmasterBody, 4)
+                    ))))
+                : '',
+            $panelType);
     }
 
     /**
@@ -614,20 +835,20 @@ class FrontendTabs extends FrontendSelectDivisionCourse
      * @param null $BackDivisionCourseId
      * @param string $BasicRoute
      *
-     * @return Stage|string
+     * @return string
      */
     public function frontendHoliday(
         $DivisionCourseId = null,
         $BackDivisionCourseId = null,
         string $BasicRoute = '/Education/ClassRegister/Digital/Teacher'
-    ) {
-        $stage = new Stage('Digitales Klassenbuch', 'Ferien / Unterrichtsfreie Tage');
-
+    ): string {
+        $icon = new Holiday();
+        $name = 'Ferien / Unterrichtsfreie Tage';
+        $Route = '/Education/ClassRegister/Digital/Holiday';
+        $content = '';
         if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))
             && ($tblYear = $tblDivisionCourse->getServiceTblYear())
         ) {
-            $stage->addButton($this->getBackButton($tblDivisionCourse, $BackDivisionCourseId, $BasicRoute));
-
             $list = array();
             $dataList = array();
 
@@ -656,6 +877,7 @@ class FrontendTabs extends FrontendSelectDivisionCourse
                     'Type' => $tblHoliday->getTblHolidayType()->getName()
                 );
             }
+
             $content = new TableData($dataList, null, array(
                 'FromDate' => 'Datum von',
                 'ToDate' => 'Datum bis',
@@ -668,31 +890,13 @@ class FrontendTabs extends FrontendSelectDivisionCourse
                         array(1, 'desc')
                     ),
                     'columnDefs' => array(
-                        array('type' => 'de_date', 'targets' => array(0,1)),
+                        array('type' => 'de_date', 'targets' => array(0, 1)),
                     )
                 )
             );
-
-            $stage->setContent(
-                new Layout(array(
-                    new LayoutGroup(array(
-                        Digital::useService()->getHeadLayoutRow($tblDivisionCourse),
-                        $tblDivisionCourse->getType()->getIsCourseSystem()
-                            ? Digital::useService()->getHeadButtonListLayoutRowForCourseSystem($tblDivisionCourse, '/Education/ClassRegister/Digital/Holiday',
-                                $BasicRoute, $BackDivisionCourseId)
-                            : Digital::useService()->getHeadButtonListLayoutRow($tblDivisionCourse, '/Education/ClassRegister/Digital/Holiday', $BasicRoute)
-                    )),
-                    new LayoutGroup(new LayoutRow(new LayoutColumn(
-                        $content
-                    )), new Title(new Holiday() . ' Ferien / Unterrichtsfreie Tage'))
-                ))
-            );
-        } else {
-            return new Danger('Kurs wurde nicht gefunden', new Exclamation())
-                . new Redirect($BasicRoute, Redirect::TIMEOUT_ERROR);
         }
 
-        return $stage;
+        return Digital::useFrontend()->getStage($DivisionCourseId, $BasicRoute, $Route, $icon, $name, $content, $BackDivisionCourseId);
     }
 
     /**
