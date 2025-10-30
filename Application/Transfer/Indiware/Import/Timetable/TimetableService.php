@@ -346,9 +346,12 @@ class TimetableService
                     if($item['Number'] != ''
                         && $item['Week'] != ''
                         && $item['Date'] != ''){
-                        array_push($WeekImport, $item);
+                        // eindeutiger Schlüssel
+                        $key = $item['Week'] . '|' . $item['Date'];
+                        if (!isset($WeekImport[$key])) {
+                            $WeekImport[$key] = $item;
+                        }
                     }
-
                 }
             }
         }
