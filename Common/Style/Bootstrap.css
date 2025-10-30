@@ -257,6 +257,10 @@ th {
   src: url('/Library/Bootstrap.Glyphicons/1.9.0/glyphicons_halflings/web/html_css/fonts/glyphicons-halflings-regular.eot');
   src: url('/Library/Bootstrap.Glyphicons/1.9.0/glyphicons_halflings/web/html_css/fonts/glyphicons-halflings-regular.eot?#iefix') format('embedded-opentype'), url('/Library/Bootstrap.Glyphicons/1.9.0/glyphicons_halflings/web/html_css/fonts/glyphicons-halflings-regular.woff2') format('woff2'), url('/Library/Bootstrap.Glyphicons/1.9.0/glyphicons_halflings/web/html_css/fonts/glyphicons-halflings-regular.woff') format('woff'), url('/Library/Bootstrap.Glyphicons/1.9.0/glyphicons_halflings/web/html_css/fonts/glyphicons-halflings-regular.ttf') format('truetype'), url('/Library/Bootstrap.Glyphicons/1.9.0/glyphicons_halflings/web/html_css/fonts/glyphicons-halflings-regular.svg#glyphicons_halflingsregular') format('svg');
 }
+.bootstrap-datetimepicker-widget .today {
+  background-color: #e6e6e6;
+  border-radius: 15%;
+}
 .glyphicon {
   position: relative;
   top: 1px;
