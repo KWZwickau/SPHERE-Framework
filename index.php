@@ -2,6 +2,8 @@
 namespace SPHERE;
 
 use MOC\V\Core\AutoLoader\AutoLoader;
+use SPHERE\Application\App\App;
+use SPHERE\Application\App\Response\Code\Response503;
 use SPHERE\Common\Main;
 use SPHERE\System\Cache\CacheFactory;
 use SPHERE\System\Cache\Handler\APCuHandler;
@@ -13,6 +15,7 @@ use SPHERE\System\Cache\Handler\SmartyHandler;
 use SPHERE\System\Cache\Handler\TwigHandler;
 use SPHERE\System\Config\ConfigFactory;
 use SPHERE\System\Config\Reader\IniReader;
+use SPHERE\System\Extension\Extension;
 use SPHERE\System\Extension\Repository\Debugger;
 
 /**
@@ -40,6 +43,14 @@ $Main = new Main();
 
 // Install
 if (false) {
+    // Use JSON response with app requests
+    $pathInfo = Extension::getRequest()->getPathInfo();
+    if (preg_match('!^/app!i', $pathInfo)) {
+        (new Response503('System update/install'))->send();
+        exit(0);
+    }
+    // Normal HTML requests going through
+    App::registerCluster();
     Main::registerApiPlatform();
     Main::registerGuiPlatform();
     Main::runSelfHeal();

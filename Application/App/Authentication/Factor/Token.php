@@ -26,4 +26,9 @@ class Token implements ModuleInterface
         // TODO: Execute MFA-Step > YubiKey
         return new Response501(null);
     }
+
+    public static function useService()
+    {
+        // TODO: Implement useService() method.
+    }
 }

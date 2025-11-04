@@ -10,7 +10,7 @@ use SPHERE\System\Extension\Repository\Debugger;
  */
 abstract class AbstractErrorResponse extends AbstractResponse implements ErrorInterface
 {
-    public function __construct(mixed $content, int $code, mixed $context = null)
+    public function __construct(mixed $content, int $code, mixed $context = null, $headers = [])
     {
         // Prevent error debug information leakage
         if (!Debugger::isActive()) {
@@ -24,9 +24,9 @@ abstract class AbstractErrorResponse extends AbstractResponse implements ErrorIn
         ];
 
         if (null !== $context) {
-            $content['context'] = $context;
+            $content['debug-context'] = $context;
         }
 
-        parent::__construct($content, $code);
+        parent::__construct($content, $code, $headers);
     }
 }

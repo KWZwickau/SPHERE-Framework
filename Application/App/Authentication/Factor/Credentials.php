@@ -50,4 +50,9 @@ class Credentials implements ModuleInterface
 
         return new Response200(':o)');
     }
+
+    public static function useService()
+    {
+        // TODO: Implement useService() method.
+    }
 }

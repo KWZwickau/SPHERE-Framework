@@ -1,0 +1,212 @@
+openapi: 3.1.0
+info:
+    title: SSW - APP - Api Specification
+    description: SSW - APP - Api Specification
+    version: 0.1.0
+    contact:
+        name: 'Gerd Christian Kunze'
+        email: 'gerdchristian.kunze@haus-der-edv.de'
+
+servers:
+    -   url: 'https://ssw.hgs29.synology.me/app'
+        description: Development environment
+
+tags:
+    -   name: Authentication
+
+components:
+    securitySchemes:
+        accessToken:
+            description: 'Token provided via MFA & Authorization-Token'
+            type: apiKey
+            name: accessToken
+            in: header
+
+    schemas:
+        Response.Success.200:
+            type: object
+            required:
+                - code
+                - message
+            properties:
+                code:
+                    type: number
+                    example: 200
+                message:
+                    type: string
+                    example: 'Success'
+        Response.Success.201:
+            type: object
+            required:
+                - code
+                - message
+            properties:
+                code:
+                    type: number
+                    example: 201
+                message:
+                    type: string
+                    example: 'Created'
+
+        Response.Error.401:
+            description: |
+                The authorization header is missing
+
+                The authorization token used is not valid
+            type: object
+            required:
+                - code
+                - message
+            properties:
+                code:
+                    type: number
+                    example: 401
+                message:
+                    type: string
+                    example: 'Unauthorized'
+                content:
+                    type: string
+                    example: 'The reason for the refusal'
+        Response.Error.403:
+            description: |
+                The client does not have access rights to the content
+            type: object
+            required:
+                - code
+                - message
+            properties:
+                code:
+                    type: number
+                    example: 403
+                message:
+                    type: string
+                    example: 'Forbidden'
+                content:
+                    type: string
+                    example: 'The reason for the refusal'
+        Response.Error.404:
+            description: |
+                No data was determined for the requested parameters
+            type: object
+            required:
+                - code
+                - message
+            properties:
+                code:
+                    type: number
+                    example: 404
+                message:
+                    type: string
+                    example: 'Not Found'
+        Response.Error.405:
+            description: |
+                The method used for the request was not allowed
+            type: object
+            required:
+                - code
+                - message
+            properties:
+                code:
+                    type: number
+                    example: 405
+                message:
+                    type: string
+                    example: 'Method Not Allowed'
+        Response.Error.409:
+            description: |
+                No data could be created for the requested parameters
+            type: object
+            required:
+                - code
+                - message
+            properties:
+                code:
+                    type: number
+                    example: 409
+                message:
+                    type: string
+                    example: 'Conflict'
+                content:
+                    type: string
+                    example: 'The reason for the conflict'
+        Response.Error.422:
+            description: |
+                The validation of the parameters has detected an error
+            type: object
+            required:
+                - code
+                - message
+            properties:
+                code:
+                    type: number
+                    example: 422
+                message:
+                    type: string
+                    example: 'Unprocessable Entity'
+                content:
+                    type: array
+                    items: { }
+                    example:
+                        - 'Validation error messages'
+        Response.Error.500:
+            description: |
+                A technical error has occurred in current systems
+
+                Retry the operation if possible and reasonable
+            type: object
+            required:
+                - code
+                - message
+            properties:
+                code:
+                    type: number
+                    example: 500
+                message:
+                    type: string
+                    example: 'Internal Server Error'
+        Response.Error.502:
+            description: |
+                A technical error has occurred in downstream systems
+
+                Retry the operation if possible and reasonable
+            type: object
+            required:
+                - code
+                - message
+            properties:
+                code:
+                    type: number
+                    example: 502
+                message:
+                    type: string
+                    example: 'Bad Gateway'
+
+security:
+    - accessToken: []
+
+paths:
+    /authentication/status:
+        description: 'Get current authentication status'
+        get:
+            tags:
+                - Authentication
+            security: []
+            parameters:
+            - name: credentialDevice
+              in: query
+              schema:
+                  type: string
+
+
+    /authentication/process/sign-in:
+        get:
+            tags:
+                - Authentication
+            security: []
+
+#        '/app/authentication/status',
+#        '/app/authentication/process/sign-in',
+#        '/app/authentication/process/sign-out',
+#        '/app/authentication/factor/credentials',
+#        '/app/authentication/factor/token',
+#        '/app/authentication/factor/yubikey',

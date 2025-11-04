@@ -641,7 +641,7 @@ class Database extends Extension implements IModuleInterface
                 if ($Inspection->isInternal()) {
                     $Class = false;
                 } else {
-                    if ($Inspection->implementsInterface('\SPHERE\Application\IModuleInterface')) {
+                    if ($this->inspectClass($Inspection)) {
                         /** @var IModuleInterface $Class */
                         if (!$Inspection->isAbstract()) {
                             $Class = $Inspection->newInstance();
@@ -675,7 +675,7 @@ class Database extends Extension implements IModuleInterface
                 if ($Inspection->isInternal()) {
                     $Class = false;
                 } else {
-                    if ($Inspection->implementsInterface('\SPHERE\Application\IModuleInterface')) {
+                    if ($this->inspectClass($Inspection)) {
                         /** @var IModuleInterface $Class */
                         if (!$Inspection->isAbstract()) {
                             $Class = $Inspection->newInstance();
@@ -707,7 +707,7 @@ class Database extends Extension implements IModuleInterface
                 if ($Inspection->isInternal()) {
                     $Class = false;
                 } else {
-                    if ($Inspection->implementsInterface('\SPHERE\Application\IModuleInterface')) {
+                    if ($this->inspectClass($Inspection)) {
                         /** @var IModuleInterface $Class */
                         if (!$Inspection->isAbstract()) {
                             $Class = $Inspection->newInstance();
@@ -744,5 +744,20 @@ class Database extends Extension implements IModuleInterface
 
         $Stage->setContent(new Listing($ClassList));
         return $Stage;
+    }
+
+    private function inspectClass(\ReflectionClass $Inspection): bool
+    {
+        $inspectInterfaces = [
+            '\SPHERE\Application\IModuleInterface',
+            '\SPHERE\Application\App\ModuleInterface',
+        ];
+
+        foreach ($inspectInterfaces as $interface) {
+            if($Inspection->implementsInterface($interface)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

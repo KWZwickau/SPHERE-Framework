@@ -18,12 +18,11 @@ use Throwable;
 class Dispatcher extends Extension implements DispatcherInterface
 {
     private static array $publicRoutes = [
-        '/app/authentication/status',
         '/app/authentication/process/sign-in',
         '/app/authentication/process/sign-out',
         '/app/authentication/factor/credentials',
-        '/app/authentication/factor/token',
         '/app/authentication/factor/yubikey',
+        '/app/authentication/factor/token',
     ];
     private static ?IBridgeInterface $router = null;
 
@@ -32,6 +31,11 @@ class Dispatcher extends Extension implements DispatcherInterface
         if (null !== $router) {
             self::$router = $router;
         }
+
+        set_error_handler(static function ($code, $content, $file, $line) {
+            (new Response500($content, ['line' => $line, 'file' => $file, 'code' => $code]))->send();
+            exit();
+        });
     }
 
     /**

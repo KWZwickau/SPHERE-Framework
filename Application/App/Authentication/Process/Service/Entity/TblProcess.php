@@ -2,30 +2,26 @@
 
 namespace SPHERE\Application\App\Authentication\Process\Service\Entity;
 
-use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use Exception;
 use SPHERE\Application\App\Authentication\Authentication;
-use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
-use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
  * @Entity
  * @Table(name="tblProcess")
- * @Cache(usage="READ_ONLY")
  */
 class TblProcess extends Element
 {
-    public const SERVICE_TBL_ACCOUNT = 'serviceTblAccount';
+    public const ATTR_TBL_TOKEN = 'tblToken';
     public const ATTR_TBL_FACTOR = 'tblFactor';
     public const ATTR_IS_SOLVED = 'isSolved';
     /**
      * @Column(type="bigint")
      */
-    protected $serviceTblAccount;
+    protected $tblToken;
     /**
      * @Column(type="bigint")
      */
@@ -34,6 +30,32 @@ class TblProcess extends Element
      * @Column(type="boolean", nullable=true)
      */
     protected $isSolved;
+
+    /**
+     * @throws Exception
+     */
+    public function getTblToken(): ?TblToken
+    {
+        if (null === $this->tblToken) {
+            return null;
+        }
+        return Authentication::useService()->getTokenById($this->tblToken);
+    }
+
+    public function setTblToken(?TblToken $tblToken): void
+    {
+        $this->tblToken = $tblToken?->getId();
+    }
+
+    public function getDeviceId(): ?string
+    {
+        return $this->deviceId;
+    }
+
+    public function setDeviceId(?string $deviceId): void
+    {
+        $this->deviceId = $deviceId;
+    }
 
     /**
      * @throws Exception
@@ -49,19 +71,6 @@ class TblProcess extends Element
     public function setTblFactor(?TblFactor $tblFactor): void
     {
         $this->tblFactor = $tblFactor?->getId();
-    }
-
-    public function getServiceTblAccount(): ?TblAccount
-    {
-        if (null === $this->serviceTblAccount) {
-            return null;
-        }
-        return Account::useService()->getAccountById($this->serviceTblAccount);
-    }
-
-    public function setServiceTblAccount(?TblAccount $tblAccount): void
-    {
-        $this->serviceTblAccount = $tblAccount?->getId();
     }
 
     public function getIsSolved(): ?bool

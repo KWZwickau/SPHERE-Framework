@@ -37,8 +37,8 @@ class Setup extends AbstractSetup
         $schema = clone $connection->getSchema();
         $tblFactor = $this->setTableFactor($schema);
         $this->setTableStep($schema, $tblFactor);
-        $this->setTableProcess($schema, $tblFactor);
-        $this->setTableToken($schema);
+        $tblToken = $this->setTableToken($schema);
+        $this->setTableProcess($schema, $tblToken, $tblFactor);
         /**
          * Migration & Protocol
          */
@@ -68,32 +68,35 @@ class Setup extends AbstractSetup
         $table = $this->createTable($schema, 'tblStep');
         $this->createServiceKey($table, new TblIdentification(''));
         $this->createForeignKey($table, $tblFactor);
-        $this->createColumn($table, 'sortOrder', self::FIELD_TYPE_INTEGER,false,0);
+        $this->createColumn($table, 'sortOrder', self::FIELD_TYPE_INTEGER, false, 0);
+    }
+
+    private function setTableToken(Schema $Schema): Table
+    {
+        $table = $this->createTable($Schema, 'tblToken');
+        $this->createServiceKey($table, new TblAccount(''));
+        $this->createColumn($table, 'deviceToken', self::FIELD_TYPE_STRING, true);
+        $this->createColumn($table, 'processToken', self::FIELD_TYPE_STRING, true);
+        $this->createColumn($table, 'authenticationToken', self::FIELD_TYPE_STRING, true);
+        $this->createColumn($table, 'authenticationTimeout', self::FIELD_TYPE_INTEGER, true);
+        $this->createColumn($table, 'accessToken', self::FIELD_TYPE_STRING, true);
+        $this->createColumn($table, 'accessTimeout', self::FIELD_TYPE_INTEGER, true);
+        $this->createIndex($table, ['serviceTblAccount', 'deviceToken']);
+        return $table;
     }
 
     /**
      * The process of the current sign-in attempt
      */
-    private function setTableProcess(Schema $schema, Table $tblFactor): void
+    private function setTableProcess(Schema $schema, Table $tblToken, Table $tblFactor): void
     {
         $table = $this->createTable($schema, 'tblProcess');
-        $this->createServiceKey($table, new TblAccount(''));
+        $this->createForeignKey($table, $tblToken);
         $this->createForeignKey($table, $tblFactor);
         /**
-         * null = not attempted
          * true = the factor was successfully resolved
-         * false = the attempt failed
+         * false = the attempt failed or has no answer yet
          */
-        $this->createColumn($table, 'isSolved', self::FIELD_TYPE_BOOLEAN, true);
-    }
-
-    private function setTableToken(Schema $Schema): void
-    {
-        $table = $this->createTable($Schema, 'tblToken');
-        $this->createServiceKey($table, new TblAccount(''));
-        $this->createColumn($table, 'authenticationToken', self::FIELD_TYPE_STRING, true);
-        $this->createColumn($table, 'authenticationTimeout', self::FIELD_TYPE_INTEGER, true);
-        $this->createColumn($table, 'accessToken', self::FIELD_TYPE_STRING, true);
-        $this->createColumn($table, 'accessTimeout', self::FIELD_TYPE_INTEGER, true);
+        $this->createColumn($table, 'isSolved', self::FIELD_TYPE_BOOLEAN, false, false);
     }
 }

@@ -2,7 +2,6 @@
 
 namespace SPHERE\Application\App\Authentication\Process\Service\Entity;
 
-use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
@@ -13,15 +12,26 @@ use SPHERE\System\Database\Fitting\Element;
 /**
  * @Entity
  * @Table(name="tblToken")
- * @Cache(usage="READ_ONLY")
  */
 class TblToken extends Element
 {
     public const SERVICE_TBL_ACCOUNT = 'serviceTblAccount';
+    public const ATTR_DEVICE_TOKEN = 'deviceToken';
+    public const ATTR_PROCESS_TOKEN = 'processToken';
+    public const ATTR_AUTHENTICATION_TOKEN = 'authenticationToken';
+    public const ATTR_ACCESS_TOKEN = 'accessToken';
     /**
      * @Column(type="bigint")
      */
     protected $serviceTblAccount;
+    /**
+     * @Column(type="string")
+     */
+    protected ?string $deviceToken;
+    /**
+     * @Column(type="string")
+     */
+    protected ?string $processToken;
     /**
      * @Column(type="string")
      */
@@ -52,6 +62,26 @@ class TblToken extends Element
         $this->serviceTblAccount = $tblAccount?->getId();
     }
 
+    public function getDeviceToken(): ?string
+    {
+        return $this->deviceToken;
+    }
+
+    public function setDeviceToken(?string $deviceToken): void
+    {
+        $this->deviceToken = $deviceToken;
+    }
+
+    public function getProcessToken(): ?string
+    {
+        return $this->processToken;
+    }
+
+    public function setProcessToken(?string $processToken): void
+    {
+        $this->processToken = $processToken;
+    }
+
     public function getAuthenticationToken(): ?string
     {
         return $this->authenticationToken;
@@ -71,7 +101,6 @@ class TblToken extends Element
     {
         $this->authenticationTimeout = $authenticationTimeout;
     }
-
 
     public function getAccessToken(): ?string
     {

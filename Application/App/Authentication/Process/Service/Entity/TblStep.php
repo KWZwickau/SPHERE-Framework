@@ -20,6 +20,7 @@ use SPHERE\System\Database\Fitting\Element;
 class TblStep extends Element
 {
     public const ATTR_TBL_FACTOR = 'tblFactor';
+    public const ATTR_SORT_ORDER = 'sortOrder';
     public const SERVICE_TBL_IDENTIFICATION = 'serviceTblIdentification';
     /**
      * @Column(type="bigint")
