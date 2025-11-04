@@ -2209,6 +2209,7 @@ class Service extends Extension
             $item['BirthPlace'] = $tblPerson->getBirthplaceString();
             $item['School'] = '';
             $item['SchoolType'] = '';
+            $item['CourseType'] = '';
             $item['Denomination'] = $tblPerson->getDenominationString();
             $item['Nationality'] = $tblPerson->getNationalityString();
             $item['StreetName'] = $item['StreetNumber'] = $item['Code'] = $item['City'] = $item['District'] = '';
