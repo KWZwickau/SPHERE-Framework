@@ -5,6 +5,7 @@ namespace SPHERE\Application\App\Authentication\Process\Service\Entity;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
+use SPHERE\Application\App\Authentication\Authentication;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
 use SPHERE\System\Database\Fitting\Element;
@@ -16,22 +17,19 @@ use SPHERE\System\Database\Fitting\Element;
 class TblToken extends Element
 {
     public const SERVICE_TBL_ACCOUNT = 'serviceTblAccount';
-    public const ATTR_DEVICE_TOKEN = 'deviceToken';
-    public const ATTR_PROCESS_TOKEN = 'processToken';
+    public const ATTR_TBL_DEVICE = 'tblDevice';
     public const ATTR_AUTHENTICATION_TOKEN = 'authenticationToken';
+    public const ATTR_AUTHENTICATION_TIMEOUT = 'authenticationTimeout';
     public const ATTR_ACCESS_TOKEN = 'accessToken';
+    public const ATTR_ACCESS_TIMEOUT = 'accessTimeout';
     /**
      * @Column(type="bigint")
      */
     protected $serviceTblAccount;
     /**
-     * @Column(type="string")
+     * @Column(type="bigint")
      */
-    protected ?string $deviceToken;
-    /**
-     * @Column(type="string")
-     */
-    protected ?string $processToken;
+    protected $tblDevice;
     /**
      * @Column(type="string")
      */
@@ -62,24 +60,17 @@ class TblToken extends Element
         $this->serviceTblAccount = $tblAccount?->getId();
     }
 
-    public function getDeviceToken(): ?string
+    public function getTblDevice(): ?TblDevice
     {
-        return $this->deviceToken;
+        if (null === $this->tblDevice) {
+            return null;
+        }
+        return Authentication::useService()->getDeviceById($this->tblDevice);
     }
 
-    public function setDeviceToken(?string $deviceToken): void
+    public function setTblDevice(?TblDevice $tblDevice): void
     {
-        $this->deviceToken = $deviceToken;
-    }
-
-    public function getProcessToken(): ?string
-    {
-        return $this->processToken;
-    }
-
-    public function setProcessToken(?string $processToken): void
-    {
-        $this->processToken = $processToken;
+        $this->tblDevice = $tblDevice?->getId();
     }
 
     public function getAuthenticationToken(): ?string

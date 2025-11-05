@@ -2,44 +2,45 @@
 
 namespace SPHERE\Application\App\Authentication\Process;
 
+use SPHERE\Application\App\AppException;
+use SPHERE\Application\App\Authentication\Authentication;
+use SPHERE\Application\App\Dispatcher;
 use SPHERE\Application\App\ModuleInterface;
 use SPHERE\Application\App\Response\Code\Response307;
 use SPHERE\Application\App\Response\Code\Response400;
-use SPHERE\Application\App\Response\Code\Response401;
 use SPHERE\Application\App\Response\Code\Response403;
 use SPHERE\Application\App\Response\Code\Response405;
 use SPHERE\Application\App\Response\Code\Response422;
 use SPHERE\Application\App\Response\Code\Response500;
-use SPHERE\Application\App\Response\Code\Response501;
-use SPHERE\Application\App\Response\Code\Response502;
 use SPHERE\Application\App\Response\ResponseInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Common\Main;
 use SPHERE\System\Database\Link\Identifier;
-use Throwable;
 
 /**
  *
  */
 class SignIn implements ModuleInterface
 {
+    /**
+     * @throws AppException
+     */
     public static function registerModule(): void
     {
-        Main::getDispatcher()::registerRoute(Main::getDispatcher()::createRoute(
-            __NAMESPACE__ . '/sign-in', __CLASS__ . '::handleRequest'
-        ));
+        /** @var Dispatcher $dispatcher */
+        $dispatcher = Main::getDispatcher();
+        $route = $dispatcher::createRoute(__NAMESPACE__ . '/sign-in', __CLASS__ . '::handleRequest');
+        $dispatcher::registerRoute($route, true);
     }
 
     public static function handleRequest(
         ?string $credentialIdentifier = null,
-        ?string $deviceToken = null,
+        ?string $deviceIdentifier = null,
         ?string $processToken = null,
     ): ResponseInterface {
-
         // ---
         // Validate request input
         // ---
-
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             return new Response405($_SERVER['REQUEST_METHOD']);
         }
@@ -47,24 +48,34 @@ class SignIn implements ModuleInterface
         // ---
         // Validate user input
         // ---
-
         // Test availability (structure)
         if (
-            null === $deviceToken
+            null === $deviceIdentifier
             || null === $credentialIdentifier
         ) {
             return new Response400('Credentials not provided');
         }
         // Test compatibility (content)
         if (
-            empty($deviceToken)
+            empty($deviceIdentifier)
             || empty($credentialIdentifier)
         ) {
             return new Response422('Credentials not provided');
         }
-        if(empty($processToken)) {
+
+        // ---
+        // Validate process token
+        // ---
+        if (empty($processToken)) {
             // Generate new process token
             $processToken = hash('sha256', uniqid('processToken', true));
+            // Find/Create device and bind process token with device
+            $tblDevice = Authentication::useService()->getDeviceWithIdentifierAndToken(
+                $deviceIdentifier, $processToken
+            );
+            if (!$tblDevice) {
+                return new Response403('Credentials not valid');
+            }
             return new Response307(
                 '/app/authentication/process/sign-in?processToken=' . $processToken . '#' . __LINE__
             );
@@ -73,12 +84,32 @@ class SignIn implements ModuleInterface
         // ---
         // Find current target
         // ---
-
         // Find Account
         $tblAccount = Account::useService()->getAccountByUsername($credentialIdentifier);
         if (!$tblAccount) {
             return new Response403('Credentials not valid');
         }
+        // Find device
+        $tblDevice = Authentication::useService()->getDeviceByIdentifier($deviceIdentifier);
+        if (!$tblDevice) {
+            return new Response403('Credentials not valid');
+        }
+        // Validate process
+        if (
+            null === $tblDevice->getProcessToken()
+            || null === $tblDevice->getProcessTimeout()
+            || $tblDevice->getProcessToken() !== $processToken
+            || $tblDevice->getProcessTimeout() < time()
+        ) {
+            // New process startet or timed out? -> Reset sign-in process
+            Authentication::useService()->resetAllSteps($tblAccount, $tblDevice);
+            // Try again
+            return new Response307('/app/authentication/process/sign-in#' . __LINE__);
+        }
+
+
+
+        /*
 
         // Find or create token entity
         try {
@@ -268,7 +299,7 @@ class SignIn implements ModuleInterface
 
 //        self::useService()->updateAuthenticationToken($tblToken);
 //        self::useService()->updateAuthenticationTimeout($tblToken);
-
+*/
         return new Response500('Authentication not accessible');
     }
 

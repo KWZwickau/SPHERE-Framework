@@ -35,10 +35,14 @@ class Setup extends AbstractSetup
          * Table
          */
         $schema = clone $connection->getSchema();
+
+        $tblDevice = $this->setTableDevice($schema);
+        $this->setTableToken($schema, $tblDevice);
+
         $tblFactor = $this->setTableFactor($schema);
-        $this->setTableStep($schema, $tblFactor);
-        $tblToken = $this->setTableToken($schema);
-        $this->setTableProcess($schema, $tblToken, $tblFactor);
+        $tblProcess = $this->setTableProcess($schema, $tblFactor);
+
+        $this->setTableStep($schema, $tblDevice, $tblProcess);
         /**
          * Migration & Protocol
          */
@@ -49,6 +53,15 @@ class Setup extends AbstractSetup
             $connection->setUTF8();
         }
         return $connection->getProtocol($Simulate);
+    }
+
+    private function setTableDevice(Schema $Schema): Table
+    {
+        $table = $this->createTable($Schema, 'tblDevice');
+        $this->createColumn($table, 'deviceIdentifier');
+        $this->createColumn($table, 'processToken', self::FIELD_TYPE_STRING, true);
+        $this->createColumn($table, 'processTimeout', self::FIELD_TYPE_INTEGER, true);
+        return $table;
     }
 
     private function setTableFactor(Schema $schema): Table
@@ -63,36 +76,35 @@ class Setup extends AbstractSetup
      * Which factor is used by which identification?
      * Example: The identification "system" uses factor "credentials" and "yubikey"
      */
-    private function setTableStep(Schema $schema, Table $tblFactor): void
+    private function setTableProcess(Schema $schema, Table $tblFactor): Table
     {
-        $table = $this->createTable($schema, 'tblStep');
+        $table = $this->createTable($schema, 'tblProcess');
         $this->createServiceKey($table, new TblIdentification(''));
         $this->createForeignKey($table, $tblFactor);
         $this->createColumn($table, 'sortOrder', self::FIELD_TYPE_INTEGER, false, 0);
+        return $table;
     }
 
-    private function setTableToken(Schema $Schema): Table
+    private function setTableToken(Schema $Schema, Table $tblDevice): void
     {
         $table = $this->createTable($Schema, 'tblToken');
         $this->createServiceKey($table, new TblAccount(''));
-        $this->createColumn($table, 'deviceToken', self::FIELD_TYPE_STRING, true);
-        $this->createColumn($table, 'processToken', self::FIELD_TYPE_STRING, true);
+        $this->createForeignKey($table, $tblDevice);
         $this->createColumn($table, 'authenticationToken', self::FIELD_TYPE_STRING, true);
         $this->createColumn($table, 'authenticationTimeout', self::FIELD_TYPE_INTEGER, true);
         $this->createColumn($table, 'accessToken', self::FIELD_TYPE_STRING, true);
         $this->createColumn($table, 'accessTimeout', self::FIELD_TYPE_INTEGER, true);
-        $this->createIndex($table, ['serviceTblAccount', 'deviceToken']);
-        return $table;
     }
 
     /**
      * The process of the current sign-in attempt
      */
-    private function setTableProcess(Schema $schema, Table $tblToken, Table $tblFactor): void
+    private function setTableStep(Schema $schema, Table $tblDevice, Table $tblProcess): void
     {
-        $table = $this->createTable($schema, 'tblProcess');
-        $this->createForeignKey($table, $tblToken);
-        $this->createForeignKey($table, $tblFactor);
+        $table = $this->createTable($schema, 'tblStep');
+        $this->createServiceKey($table, new TblAccount(''));
+        $this->createForeignKey($table, $tblDevice);
+        $this->createForeignKey($table, $tblProcess);
         /**
          * true = the factor was successfully resolved
          * false = the attempt failed or has no answer yet

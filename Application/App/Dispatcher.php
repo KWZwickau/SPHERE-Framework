@@ -17,13 +17,7 @@ use Throwable;
  */
 class Dispatcher extends Extension implements DispatcherInterface
 {
-    private static array $publicRoutes = [
-        '/app/authentication/process/sign-in',
-        '/app/authentication/process/sign-out',
-        '/app/authentication/factor/credentials',
-        '/app/authentication/factor/yubikey',
-        '/app/authentication/factor/token',
-    ];
+    public static array $publicRoutes = [];
     private static ?IBridgeInterface $router = null;
 
     public function __construct(?IBridgeInterface $router)
@@ -36,14 +30,27 @@ class Dispatcher extends Extension implements DispatcherInterface
             (new Response500($content, ['line' => $line, 'file' => $file, 'code' => $code]))->send();
             exit();
         });
+        set_exception_handler(static function (?Throwable $throwable) {
+            (new Response500($throwable?->getMessage(), [
+                'line' => $throwable?->getLine(),
+                'file' => $throwable?->getFile(),
+                'code' => $throwable?->getCode(),
+                'trace' => $throwable?->getTrace(),
+            ]))->send();
+            exit();
+        });
     }
 
     /**
      * @throws AppException
      */
-    public static function registerRoute(RouteParameter $route): void
+    public static function registerRoute(RouteParameter $route, bool $asPublic = false): void
     {
         $path = '/' . strtolower($route->getPath());
+
+        if ($asPublic) {
+            self::addPublicRoute($path);
+        }
 
         if (in_array($path, self::$publicRoutes, true)
             || Access::useService()->hasAuthorization($path)
@@ -61,6 +68,12 @@ class Dispatcher extends Extension implements DispatcherInterface
                 throw new AppException(__CLASS__ . ' > Route has no authorization! (' . $path . ')');
             }
         }
+    }
+
+    private static function addPublicRoute(string $route): void
+    {
+        self::$publicRoutes[] = '/' . strtolower(trim($route, '/'));
+        self::$publicRoutes = array_unique(self::$publicRoutes);
     }
 
     public static function createRoute(string $path, string $controller): RouteParameter

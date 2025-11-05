@@ -223,6 +223,22 @@ class Manager extends Extension
     }
 
     /**
+     * @param Element|object $Entity
+     *
+     * @return Manager|EntityManager
+     */
+    final public function updateEntity($Entity)
+    {
+        if(!$this->EntityManager->contains($Entity)) {
+            throw new \RuntimeException('Entity not recognized');
+        }
+        $Entity->lifecycleUpdate();
+        $this->flushCache(get_class($Entity));
+        (new DataCacheHandler(__METHOD__))->addDependency($Entity)->clearData();
+        return $this;
+    }
+
+    /**
      * @param Element $Entity
      *
      * @return Manager|EntityManager

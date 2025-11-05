@@ -46,11 +46,10 @@ if (false) {
     // Use JSON response with app requests
     $pathInfo = Extension::getRequest()->getPathInfo();
     if (preg_match('!^/app!i', $pathInfo)) {
-        (new Response503('System update/install'))->send();
+        Debugger::$Enabled = true;
+        (new Response503('The server cannot handle the request (because it is down for maintenance)'))->send();
         exit(0);
     }
-    // Normal HTML requests going through
-    App::registerCluster();
     Main::registerApiPlatform();
     Main::registerGuiPlatform();
     Main::runSelfHeal();

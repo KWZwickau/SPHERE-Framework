@@ -214,6 +214,12 @@ class Main extends Extension
                 self::$Dispatcher = new \SPHERE\Application\App\Dispatcher(new \SPHERE\Application\App\Router());
                 // Register app cluster with app dispatcher
                 App::registerCluster();
+                // Setup
+                if(false) {
+                    $Protocol = (new System\Database\Database())->frontendSetup(false, true);
+                    (new Response($Protocol))->send();
+                    exit(0);
+                }
                 // Run app
                 /** @var AbstractResponse $response */
                 $response = self::$Dispatcher->fetchRoute($pathInfo);
@@ -221,7 +227,8 @@ class Main extends Extension
                 // Execution finished, app request served :-)
                 exit(0);
             } catch (Throwable $throwable) {
-                return new Response500($throwable->getMessage(), $throwable->getTrace());
+                (new Response500($throwable->getMessage(), $throwable->getTrace()))->send();
+                exit(1);
             }
         }
 

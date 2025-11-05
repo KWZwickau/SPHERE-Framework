@@ -2,6 +2,8 @@
 
 namespace SPHERE\Application\App\Authentication\Factor;
 
+use SPHERE\Application\App\AppException;
+use SPHERE\Application\App\Dispatcher;
 use SPHERE\Application\App\ModuleInterface;
 use SPHERE\Application\App\Response\Code\Response200;
 use SPHERE\Application\App\Response\Code\Response400;
@@ -15,13 +17,15 @@ use SPHERE\Common\Main;
  */
 class Credentials implements ModuleInterface
 {
+    /**
+     * @throws AppException
+     */
     public static function registerModule(): void
     {
-        Main::getDispatcher()::registerRoute(
-            Main::getDispatcher()::createRoute(
-                __NAMESPACE__ . '/credentials', __CLASS__ . '::handleRequest'
-            )
-        );
+        /** @var Dispatcher $dispatcher */
+        $dispatcher = Main::getDispatcher();
+        $route = $dispatcher::createRoute(__NAMESPACE__ . '/credentials', __CLASS__ . '::handleRequest');
+        $dispatcher::registerRoute($route, true);
     }
 
     public static function handleRequest(

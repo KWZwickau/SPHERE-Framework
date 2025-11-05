@@ -2,60 +2,38 @@
 
 namespace SPHERE\Application\App\Authentication\Process\Service\Entity;
 
+use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use Exception;
 use SPHERE\Application\App\Authentication\Authentication;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblIdentification;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
  * @Entity
  * @Table(name="tblProcess")
+ * @Cache(usage="READ_ONLY")
  */
 class TblProcess extends Element
 {
-    public const ATTR_TBL_TOKEN = 'tblToken';
+    public const SERVICE_TBL_IDENTIFICATION = 'serviceTblIdentification';
     public const ATTR_TBL_FACTOR = 'tblFactor';
-    public const ATTR_IS_SOLVED = 'isSolved';
+    public const ATTR_SORT_ORDER = 'sortOrder';
     /**
      * @Column(type="bigint")
      */
-    protected $tblToken;
+    protected $serviceTblIdentification;
     /**
      * @Column(type="bigint")
      */
     protected $tblFactor;
     /**
-     * @Column(type="boolean", nullable=true)
+     * @Column(type="integer")
      */
-    protected $isSolved;
-
-    /**
-     * @throws Exception
-     */
-    public function getTblToken(): ?TblToken
-    {
-        if (null === $this->tblToken) {
-            return null;
-        }
-        return Authentication::useService()->getTokenById($this->tblToken);
-    }
-
-    public function setTblToken(?TblToken $tblToken): void
-    {
-        $this->tblToken = $tblToken?->getId();
-    }
-
-    public function getDeviceId(): ?string
-    {
-        return $this->deviceId;
-    }
-
-    public function setDeviceId(?string $deviceId): void
-    {
-        $this->deviceId = $deviceId;
-    }
+    protected ?int $sortOrder;
 
     /**
      * @throws Exception
@@ -73,13 +51,36 @@ class TblProcess extends Element
         $this->tblFactor = $tblFactor?->getId();
     }
 
-    public function getIsSolved(): ?bool
+    public function getServiceTblIdentification(): ?TblIdentification
     {
-        return $this->isSolved;
+        if (null === $this->serviceTblIdentification) {
+            return null;
+        }
+        $entity = Account::useService()->getIdentificationById($this->serviceTblIdentification);
+        if (false === $entity) {
+            return null;
+        }
+        return $entity;
     }
 
-    public function setIsSolved(?bool $isSolved): void
+    public function setServiceTblIdentification(?TblIdentification $tblIdentification): void
     {
-        $this->isSolved = $isSolved;
+        $this->serviceTblIdentification = $tblIdentification?->getId();
+    }
+
+    /**
+     * @return int|null
+     */
+    public function getSortOrder(): ?int
+    {
+        return $this->sortOrder;
+    }
+
+    /**
+     * @param int|null $sortOrder
+     */
+    public function setSortOrder(?int $sortOrder): void
+    {
+        $this->sortOrder = $sortOrder;
     }
 }

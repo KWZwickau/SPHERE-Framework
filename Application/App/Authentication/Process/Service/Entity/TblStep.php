@@ -2,85 +2,88 @@
 
 namespace SPHERE\Application\App\Authentication\Process\Service\Entity;
 
-use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use Exception;
 use SPHERE\Application\App\Authentication\Authentication;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
-use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblIdentification;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
  * @Entity
  * @Table(name="tblStep")
- * @Cache(usage="READ_ONLY")
  */
 class TblStep extends Element
 {
-    public const ATTR_TBL_FACTOR = 'tblFactor';
-    public const ATTR_SORT_ORDER = 'sortOrder';
-    public const SERVICE_TBL_IDENTIFICATION = 'serviceTblIdentification';
+    public const SERVICE_TBL_ACCOUNT = 'serviceTblAccount';
+    public const ATTR_TBL_DEVICE = 'tblDevice';
+    public const ATTR_TBL_PROCESS = 'tblProcess';
+    public const ATTR_IS_SOLVED = 'isSolved';
     /**
      * @Column(type="bigint")
      */
-    protected $tblFactor;
+    protected $serviceTblAccount;
     /**
      * @Column(type="bigint")
      */
-    protected $serviceTblIdentification;
+    protected $tblDevice;
     /**
-     * @Column(type="integer")
+     * @Column(type="bigint")
      */
-    protected ?int $sortOrder;
+    protected $tblProcess;
+    /**
+     * @Column(type="boolean", nullable=true)
+     */
+    protected $isSolved;
+
+    public function getServiceTblAccount(): ?TblAccount
+    {
+        if (null === $this->serviceTblAccount) {
+            return null;
+        }
+        return Account::useService()->getAccountById($this->serviceTblAccount);
+    }
+
+    public function setServiceTblAccount(?TblAccount $tblAccount): void
+    {
+        $this->serviceTblAccount = $tblAccount?->getId();
+    }
 
     /**
      * @throws Exception
      */
-    public function getTblFactor(): ?TblFactor
+    public function getTblDevice(): TblDevice
     {
-        if (null === $this->tblFactor) {
-            return null;
-        }
-        return Authentication::useService()->getFactorById($this->tblFactor);
+        return Authentication::useService()->getDeviceById($this->tblDevice);
     }
 
-    public function setTblFactor(?TblFactor $tblFactor): void
+    public function setTblDevice(TblDevice $tblDevice): void
     {
-        $this->tblFactor = $tblFactor?->getId();
-    }
-
-    public function getServiceTblIdentification(): ?TblIdentification
-    {
-        if (null === $this->serviceTblIdentification) {
-            return null;
-        }
-        $entity = Account::useService()->getIdentificationById($this->serviceTblIdentification);
-        if (false === $entity) {
-            return null;
-        }
-        return $entity;
-    }
-
-    public function setServiceTblIdentification(?TblIdentification $tblIdentification): void
-    {
-        $this->serviceTblIdentification = $tblIdentification?->getId();
+        $this->tblDevice = $tblDevice->getId();
     }
 
     /**
-     * @return int|null
+     * @throws Exception
      */
-    public function getSortOrder(): ?int
+    public function getTblProcess(): TblProcess
     {
-        return $this->sortOrder;
+        return Authentication::useService()->getProcessById($this->tblProcess);
     }
 
-    /**
-     * @param int|null $sortOrder
-     */
-    public function setSortOrder(?int $sortOrder): void
+    public function setTblProcess(TblProcess $tblProcess): void
     {
-        $this->sortOrder = $sortOrder;
+        $this->tblProcess = $tblProcess->getId();
+    }
+
+    public function getIsSolved(): ?bool
+    {
+        return $this->isSolved;
+    }
+
+    public function setIsSolved(?bool $isSolved): void
+    {
+        $this->isSolved = $isSolved;
     }
 }
