@@ -704,6 +704,7 @@ abstract class ServiceTabs extends ServiceForgotten
                             array('type'  => Consumer::useService()->getGermanSortBySetting(), 'targets' => array(1, -7)),
                             array('type' => 'natural', 'targets' => array(-2, -3)),
                             array('width' => '60px', 'targets' => 3),
+                            array('type' => 'de_date', 'targets' => 5),
                             array('width' => '60px', 'targets' => -2),
                             array('width' => '60px', 'targets' => -3),
                             array('width' => '180px', 'targets' => -6),
