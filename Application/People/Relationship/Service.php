@@ -867,4 +867,37 @@ class Service extends AbstractService
 
         return $result;
     }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param array $tblRelationshipTypes
+     *
+     * @return array
+     */
+    public function getPersonRelationshipList(TblPerson $tblPerson, array $tblRelationshipTypes): array
+    {
+        $personList = [];
+        $personList[$tblPerson->getId()] = ['tblPerson' => $tblPerson, 'tblRelationshipType' => null];
+
+        if (($tblRelationshipList = $this->getPersonRelationshipAllByPerson($tblPerson))) {
+            foreach ($tblRelationshipList as $tblRelationship) {
+                // Beziehungstypen ausfiltern
+                if (!isset($tblRelationshipTypes[$tblRelationship->getTblType()->getId()])) {
+                    continue;
+                }
+
+                if (($tblPersonTo = $tblRelationship->getServiceTblPersonTo())
+                    && $tblPersonTo->getId() != $tblPerson->getId()
+                ) {
+                    $personList[$tblPersonTo->getId()] = ['tblPerson' => $tblPersonTo, 'tblRelationshipType' => $tblRelationship->getTblType()];
+                } elseif (($tblPersonFrom = $tblRelationship->getServiceTblPersonFrom())
+                    && $tblPersonFrom->getId() != $tblPerson->getId()
+                ) {
+                    $personList[$tblPersonFrom->getId()] = ['tblPerson' => $tblPersonFrom, 'tblRelationshipType' => $tblRelationship->getTblType()];
+                }
+            }
+        }
+
+        return $personList;
+    }
 }

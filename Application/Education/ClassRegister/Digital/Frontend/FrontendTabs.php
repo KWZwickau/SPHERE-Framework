@@ -69,7 +69,7 @@ use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Frontend\Text\Repository\Warning as WarningText;
 use SPHERE\Common\Window\Stage;
 
-class FrontendTabs extends FrontendSelectDivisionCourse
+class FrontendTabs extends FrontendStudentList
 {
     const WELCOME_VIEW_TIMETABLE = 'Timetable';
     const WELCOME_VIEW_TEACHER_LECTURESHIP = 'TeacherLectureship';
@@ -323,26 +323,6 @@ class FrontendTabs extends FrontendSelectDivisionCourse
     }
 
     /**
-     * @param null $DivisionCourseId
-     * @param null $BackDivisionCourseId
-     * @param string $BasicRoute
-     *
-     * @return string
-     */
-    public function frontendStudentList(
-        $DivisionCourseId = null,
-        $BackDivisionCourseId = null,
-        string $BasicRoute = '/Education/ClassRegister/Digital/Teacher'
-    ): string {
-        $icon = new PersonGroup();
-        $name = 'Schülerliste';
-        $Route = '/Education/ClassRegister/Digital/Student';
-        $content = Digital::useService()->getStudentTable($DivisionCourseId, $BasicRoute, $Route);
-
-        return Digital::useFrontend()->getStage($DivisionCourseId, $BasicRoute, $Route, $icon, $name, $content, $BackDivisionCourseId);
-    }
-
-    /**
      * @param TblDivisionCourse $tblDivisionCourse
      * @param $BackDivisionCourseId
      * @param $BasicRoute
@@ -533,6 +513,7 @@ class FrontendTabs extends FrontendSelectDivisionCourse
             $Stage->addButton(new Standard('Zurück', $ReturnRoute, new ChevronLeft(),
                     array(
                         'DivisionCourseId' => $DivisionCourseId,
+                        'PersonId' => $PersonId,
                         'BasicRoute' => $BasicRoute,
                     ))
             );

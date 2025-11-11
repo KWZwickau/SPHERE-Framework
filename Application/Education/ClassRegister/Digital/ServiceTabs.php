@@ -4,12 +4,6 @@ namespace SPHERE\Application\Education\ClassRegister\Digital;
 
 use DateInterval;
 use DateTime;
-use SPHERE\Application\Api\Document\Storage\ApiPersonPicture;
-use SPHERE\Application\Api\People\Meta\Agreement\ApiAgreement;
-use SPHERE\Application\Api\People\Meta\MedicalRecord\MedicalRecordReadOnly;
-use SPHERE\Application\Api\People\Meta\Support\ApiSupportReadOnly;
-use SPHERE\Application\Document\Storage\Storage;
-use SPHERE\Application\Education\Absence\Absence;
 use SPHERE\Application\Education\Certificate\Prepare\View;
 use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblLessonContent;
 use SPHERE\Application\Education\ClassRegister\Timetable\Service\Entity\TblTimetableNode;
@@ -24,18 +18,12 @@ use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
-use SPHERE\Application\People\Meta\Common\Common;
-use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Meta\Teacher\Teacher;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
-use SPHERE\Application\Reporting\Standard\Person\Person;
-use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Icon\Repository\Book;
 use SPHERE\Common\Frontend\Icon\Repository\Calendar;
-use SPHERE\Common\Frontend\Icon\Repository\Check;
-use SPHERE\Common\Frontend\Icon\Repository\Commodity;
 use SPHERE\Common\Frontend\Icon\Repository\CommodityItem;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
@@ -43,13 +31,9 @@ use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Extern;
 use SPHERE\Common\Frontend\Icon\Repository\History;
 use SPHERE\Common\Frontend\Icon\Repository\Holiday;
-use SPHERE\Common\Frontend\Icon\Repository\Hospital;
-use SPHERE\Common\Frontend\Icon\Repository\Info as InfoIcon;
 use SPHERE\Common\Frontend\Icon\Repository\Listing;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\PersonGroup;
-use SPHERE\Common\Frontend\Icon\Repository\Tag;
-use SPHERE\Common\Frontend\Icon\Repository\Time;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\PullClear;
@@ -58,17 +42,13 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
-use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Warning as WarningMessage;
 use SPHERE\Common\Frontend\Table\Repository\Title;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
-use SPHERE\Common\Frontend\Text\Repository\Center;
 use SPHERE\Common\Frontend\Text\Repository\Info;
-use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
-use SPHERE\Common\Frontend\Text\Repository\Warning;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Repository\Sorter\StringNaturalOrderSorter;
 
@@ -352,7 +332,7 @@ abstract class ServiceTabs extends ServiceForgotten
             $DivisionCourseId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/Student');
 
         // Fehlzeiten (Kalenderansicht) nur bei Klassen anzeigen
-        $buttonList[] = $this->getButton('Fehlzeiten (Kalenderansicht)', '/Education/ClassRegister/Digital/AbsenceMonth',
+        $buttonList[] = $this->getButton('Fehlzeiten', '/Education/ClassRegister/Digital/AbsenceMonth',
             new Calendar(), $DivisionCourseId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/AbsenceMonth');
 
         // Belehrungen: nicht bei Kurssystemen → Belehrungen direkt im Kursheft
@@ -485,237 +465,6 @@ abstract class ServiceTabs extends ServiceForgotten
         }
 
         return $IsToolTip ? new ToolTip($teacher, $tblPerson->getFullName()) : $teacher;
-    }
-
-    /**
-     * @param $DivisionCourseId
-     * @param string $BasicRoute
-     * @param string $ReturnRoute
-     *
-     * @return string
-     */
-    public function getStudentTable($DivisionCourseId, string $BasicRoute, string $ReturnRoute): string
-    {
-        if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))
-            && ($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses(false, true, new DateTime('today')))
-            && ($tblYear = $tblDivisionCourse->getServiceTblYear())
-            && (list($fromDate, $tillDate) = Term::useService()->getStartDateAndEndDateOfYear($tblYear))
-            && $fromDate
-            && $tillDate
-        ) {
-            $studentTable = array();
-            $count = 0;
-            $hasColumnCourse = false;
-            $hasDivision = false;
-            $hasCoreGroup = false;
-            $hasSchoolAttendanceYear = false;
-            foreach ($tblPersonList as $tblPerson) {
-                $schoolType = '';
-                $level = '';
-                $divisionName = '';
-                $divisionTeacher = '';
-                $coreGroupName = '';
-                $coreGroupTeacher = '';
-                $schoolAttendanceYear = '';
-                $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
-
-                if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))) {
-                    $tblCompany = $tblStudentEducation->getServiceTblCompany();
-                    if (($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())) {
-                        $schoolType = $tblSchoolType->getShortName();
-                        // Schulbesuchsjahr bei Förderschulen anzeigen
-                        if ($tblSchoolType->getShortName() == 'FöS') {
-                            $hasSchoolAttendanceYear = true;
-                            $schoolAttendanceYear = $tblStudent->getSchoolAttendanceYear(false);
-                        }
-                    }
-                    $tblCourse = $tblStudentEducation->getServiceTblCourse();
-                    $level = $tblStudentEducation->getLevel();
-                    if (($tblDivision = $tblStudentEducation->getTblDivision())) {
-                        $hasDivision = true;
-                        $divisionName = $tblDivision->getName();
-                        $divisionTeacher = $tblDivision->getDivisionTeacherNameListString(', ');
-                    }
-                    if (($tblCoreGroup = $tblStudentEducation->getTblCoreGroup())) {
-                        $hasCoreGroup = true;
-                        $coreGroupName = $tblCoreGroup->getName();
-                        $coreGroupTeacher = $tblCoreGroup->getDivisionTeacherNameListString(', ');
-                    }
-                } else {
-                    $tblCompany = false;
-                    $tblSchoolType = false;
-                    $tblCourse = false;
-                }
-
-                $birthday = '';
-                $Gender = '';
-                if (($tblCommon = Common::useService()->getCommonByPerson($tblPerson))) {
-                    if ($tblCommon->getTblCommonBirthDates()) {
-                        $birthday = $tblCommon->getTblCommonBirthDates()->getBirthday();
-                        $tblGender = $tblCommon->getTblCommonBirthDates()->getTblCommonGender();
-                        if ($tblGender) {
-                            $Gender = $tblGender->getShortName();
-                        }
-                    }
-                }
-                $PersonPicture = '';
-                if(($tblPersonPicture = Storage::useService()->getPersonPictureByPerson($tblPerson))){
-                    $PersonPicture = new Center((new Link($tblPersonPicture->getPicture('50px', '10px'), $tblPerson->getId()))
-                        ->ajaxPipelineOnClick(ApiPersonPicture::pipelineShowPersonPicture($tblPerson->getId())));
-                }
-
-                if ($tblSchoolType && $tblSchoolType->isTechnical()) {
-                    $courseName = Student::useService()->getTechnicalCourseGenderNameByPerson($tblPerson);
-                } else {
-                    $courseName = $tblCourse ? $tblCourse->getName() : '';
-                }
-                if (!$hasColumnCourse && $courseName) {
-                    $hasColumnCourse = true;
-                }
-
-                $medicalRecord = '';
-                $agreement = '';
-                $integration = '';
-
-                if ($tblStudent) {
-                    if (($tblMedicalRecord = $tblStudent->getTblStudentMedicalRecord())
-                        && ($tblMedicalRecord->getDisease()
-                            || $tblMedicalRecord->getMedication()
-                            || $tblMedicalRecord->getAttendingDoctor())
-                    ) {
-                        $medicalRecord = (new Standard('', MedicalRecordReadOnly::getEndpoint(), new Hospital(), array(), 'Krankenakte'))
-                            ->ajaxPipelineOnClick(MedicalRecordReadOnly::pipelineOpenOverViewModal($tblPerson->getId()));
-                    }
-
-                    if (Student::useService()->getStudentAgreementAllByStudent($tblStudent)) {
-                        $agreement = (new Standard('', ApiAgreement::getEndpoint(), new Check(), array(), 'Einverständniserklärung'))
-                            ->ajaxPipelineOnClick(ApiAgreement::pipelineOpenOverViewModal($tblPerson->getId()));
-                    }
-                }
-
-                if (Student::useService()->getIsSupportByPerson($tblPerson)) {
-                    $integration = (new Standard('', ApiSupportReadOnly::getEndpoint(), new Tag(), array(), 'Inklusion'))
-                        ->ajaxPipelineOnClick(ApiSupportReadOnly::pipelineOpenOverViewModal($tblPerson->getId()));
-                }
-
-                // Kontakt-Daten
-                $contacts = array();
-                $contacts = Person::useService()->getContactDataFromPerson($tblPerson, $contacts);
-
-                // Fehlzeiten
-                $unExcusedLessons = 0;
-                $excusedLessons = 0;
-                $excusedDays = Absence::useService()->getExcusedDaysByPerson($tblPerson, $tblYear, $tblCompany ?: null, $tblSchoolType ?: null,
-                    $fromDate, $tillDate, $excusedLessons);
-                $unExcusedDays = Absence::useService()->getUnexcusedDaysByPerson($tblPerson, $tblYear, $tblCompany ?: null, $tblSchoolType ?: null,
-                    $fromDate, $tillDate, $unExcusedLessons);
-                $absenceDays = ($excusedDays + $unExcusedDays) . ' (' . new Success($excusedDays) . ', '
-                    . new Warning($unExcusedDays) . ')';
-                $absenceLessons = ($excusedLessons + $unExcusedLessons) . ' (' . new Success($excusedLessons) . ', '
-                    . new Warning($unExcusedLessons) . ')';
-
-                $name = new Bold($tblPerson->getLastFirstNameWithCallNameUnderline(true));
-                $studentTable[] = array(
-                    'Number'        => ++$count,
-                    'Name'          => $name,
-                    'NameSecond'    => $name,
-                    'Picture'       => $PersonPicture,
-                    'Info'          => $integration . $medicalRecord . $agreement,
-                    'Gender'        => $Gender,
-                    'Address'       => ($tblAddress = $tblPerson->fetchMainAddress()) ? $tblAddress->getGuiTwoRowString() : '',
-                    'Phone'         => $contacts['PhoneFixed'] ?? '',
-                    'Mail'          => $contacts['MailFrontendListFixed'] ?? '',
-                    'Birthday'      => $birthday,
-                    'SchoolType'    => $schoolType,
-                    'Level'         => $level,
-                    'Course'        => $courseName,
-                    'DivisionName'  => $divisionName,
-                    'DivisionTeacher' => $divisionTeacher,
-                    'CoreGroupName' => $coreGroupName,
-                    'CoreGroupTeacher' => $coreGroupTeacher,
-                    'SchoolAttendanceYear' => $schoolAttendanceYear,
-                    'AbsenceDays'   => $absenceDays,
-                    'AbsenceLessons'=> $absenceLessons,
-                    'Option'        =>
-                        (new Standard(
-                            '', '/Education/ClassRegister/Digital/AbsenceStudent', new Time(),
-                            array(
-                                'DivisionCourseId' => $tblDivisionCourse->getId(),
-                                'PersonId'   => $tblPerson->getId(),
-                                'BasicRoute' => $BasicRoute,
-                                'ReturnRoute'=> $ReturnRoute
-                            ),
-                            'Fehlzeiten des Schülers verwalten'
-                        ))
-                        . (new Standard(
-                            '', '/Education/ClassRegister/Digital/Integration', new Commodity(),
-                            array(
-                                'DivisionCourseId' => $tblDivisionCourse->getId(),
-                                'PersonId'   => $tblPerson->getId(),
-                                'BasicRoute' => $BasicRoute,
-                                'ReturnRoute'=> $ReturnRoute,
-                            ),
-                            'Inklusion des Schülers verwalten'
-                        ))
-                );
-            }
-
-            $columns['Number'] = '#';
-            $columns['Name'] = 'Name';
-            $columns['Picture'] = 'Foto';
-            $columns['Info'] = 'Info';
-            $columns['Gender'] = 'Ge&shy;schlecht';
-            $columns['Birthday'] = 'Geburts&shy;datum';
-            $columns['SchoolType'] = 'Schul&shy;art';
-            $columns['Level'] = 'Klassen&shy;stufe';
-            if ($hasColumnCourse) {
-                $columns['Course'] = 'Bildungs&shy;gang';
-            }
-            if ($hasDivision) {
-                $columns['DivisionName'] = 'Klasse';
-                $columns['DivisionTeacher'] = 'Klassen&shy;lehrer';
-            }
-            if ($hasCoreGroup) {
-                $columns['CoreGroupName'] = 'Stamm&shy;gruppe';
-                $columns['CoreGroupTeacher'] = 'Tutor';
-            }
-            if ($hasSchoolAttendanceYear) {
-                $columns['SchoolAttendanceYear'] = 'SBJ';
-            }
-
-            $columns['NameSecond'] = 'Name';
-            $columns['Address'] = 'Adresse';
-            $columns['Phone'] = new ToolTip('Telefon '. new InfoIcon(), 'p=Privat; g=Geschäftlich; n=Notfall; f=Fax; Bev.=Bevollmächtigt; Vorm.=Vormund; NK=Notfallkontakt');
-            $columns['Mail'] = 'E-Mail';
-            $columns['AbsenceDays'] = 'Zeugnis&shy;relevante Fehlzeiten Tage<br>(E, U)';
-            $columns['AbsenceLessons'] = 'Zeugnis&shy;relevante Fehlzeiten UE<br>(E, U)';
-            $columns['Option'] = '';
-
-            return
-                ApiSupportReadOnly::receiverOverViewModal()
-                . MedicalRecordReadOnly::receiverOverViewModal()
-                . ApiAgreement::receiverOverViewModal()
-                . ApiPersonPicture::receiverModal()
-                . (($inActivePanel = Person::useFrontend()->getInActiveStudentPanel($tblDivisionCourse, true, $BasicRoute, $ReturnRoute)) ? $inActivePanel : '')
-                . (new TableData($studentTable, null, $columns,
-                    array(
-                        'paging' => false,
-                        'columnDefs' => array(
-                            array('type'  => Consumer::useService()->getGermanSortBySetting(), 'targets' => array(1, -7)),
-                            array('type' => 'natural', 'targets' => array(-2, -3)),
-                            array('width' => '60px', 'targets' => 3),
-                            array('type' => 'de_date', 'targets' => 5),
-                            array('width' => '60px', 'targets' => -2),
-                            array('width' => '60px', 'targets' => -3),
-                            array('width' => '180px', 'targets' => -6),
-                            array('orderable' => false, 'width' => '60px', 'targets' => -1),
-                        ),
-                        'responsive' => false
-                    )
-                ));
-        }
-
-        return '';
     }
 
     /**
