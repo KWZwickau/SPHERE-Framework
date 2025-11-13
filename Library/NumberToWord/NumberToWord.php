@@ -19,14 +19,11 @@ class NumberToWord
     {
 
         if($fNumber != ''){
-            $fNumber = str_replace('€', '', $fNumber);
+            $fNumber = (float)str_replace('€', '', $fNumber);
             // Tausender Trennzeichen entfernen
-            $fNumber = (float)str_replace('.', '', $fNumber);
             // Dezimal mit Punkt
-            $fNumber = (float)str_replace(',', '.', $fNumber);
-            // Zahl mit korrektem Trennzeichen
             // Zahl auf 2 Nachkommastellen runden (wenn zu lang)
-            $fNumber = round($fNumber, 2);
+            $fNumber = (float)number_format($fNumber, 2, ',', '.');
             $positionC = strpos($fNumber, '.');
             if($positionC){
                 $numberInt = substr($fNumber, 0, $positionC);
