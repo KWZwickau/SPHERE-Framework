@@ -92,6 +92,10 @@ class ApiDigital extends Extension implements IApiInterface
         $Dispatcher->registerMethod('loadAdditionalInformationContent');
         $Dispatcher->registerMethod('loadTeacherViewContent');
 
+        $Dispatcher->registerMethod('loadStudentListButton');
+        $Dispatcher->registerMethod('loadStudentListContent');
+        $Dispatcher->registerMethod('saveStudentListFilter');
+
         return $Dispatcher->callMethod($Method);
     }
 
@@ -1676,5 +1680,133 @@ class ApiDigital extends Extension implements IApiInterface
         }
 
         return Digital::useFrontend()->loadTeacherViewContent($YearId, $Filter);
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $BasicRoute
+     * @param $ReturnRoute
+     * @param $IsDownload
+     *
+     * @return Pipeline
+     */
+    public static function pipelineLoadStudentListButton($DivisionCourseId, $BasicRoute, $ReturnRoute, $IsDownload): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+
+        $Emitter = new ServerEmitter(self::receiverBlock('', 'StudentListButton'), self::getEndpoint());
+        $Emitter->setGetPayload(array(
+            self::API_TARGET => 'loadStudentListButton',
+            'DivisionCourseId' => $DivisionCourseId,
+            'BasicRoute' => $BasicRoute,
+            'ReturnRoute' => $ReturnRoute,
+            'IsDownload' => $IsDownload
+        ));
+        $Pipeline->appendEmitter($Emitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $BasicRoute
+     * @param $ReturnRoute
+     * @param $IsDownload
+     *
+     * @return string
+     */
+    public static function loadStudentListButton($DivisionCourseId, $BasicRoute, $ReturnRoute, $IsDownload): string
+    {
+        $isDownload = $IsDownload === 'true';
+
+        return Digital::useFrontend()->loadStudentListButton($DivisionCourseId, $BasicRoute, $ReturnRoute, !$isDownload)
+            . self::pipelineLoadStudentListContent($DivisionCourseId, $BasicRoute, $ReturnRoute, $isDownload);
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $BasicRoute
+     * @param $ReturnRoute
+     * @param $IsDownload
+     *
+     * @return Pipeline
+     */
+    public static function pipelineLoadStudentListContent($DivisionCourseId, $BasicRoute, $ReturnRoute, $IsDownload): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+
+        $Emitter = new ServerEmitter(self::receiverBlock('', 'StudentListContent'), self::getEndpoint());
+        $Emitter->setGetPayload(array(
+            self::API_TARGET => 'loadStudentListContent',
+            'DivisionCourseId' => $DivisionCourseId,
+            'BasicRoute' => $BasicRoute,
+            'ReturnRoute' => $ReturnRoute,
+            'IsDownload' => $IsDownload
+        ));
+        $Emitter->setLoadingMessage('Daten werden geladen');
+        $Pipeline->appendEmitter($Emitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $BasicRoute
+     * @param $ReturnRoute
+     * @param $IsDownload
+     *
+     * @return string
+     */
+    public static function loadStudentListContent($DivisionCourseId, $BasicRoute, $ReturnRoute, $IsDownload): string
+    {
+        return $IsDownload
+            ? Digital::useFrontend()->loadDownloadFilter($DivisionCourseId)
+            : Digital::useFrontend()->getStudentListContent($DivisionCourseId, $BasicRoute, $ReturnRoute);
+    }
+
+    /**
+     * @param $DivisionCourseId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineSaveStudentListFilter($DivisionCourseId): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+
+        $Emitter = new ServerEmitter(self::receiverBlock('', 'StudentListContent'), self::getEndpoint());
+        $Emitter->setGetPayload(array(
+            self::API_TARGET => 'saveStudentListFilter',
+            'DivisionCourseId' => $DivisionCourseId,
+        ));
+        $Emitter->setLoadingMessage('Daten werden geladen');
+        $Pipeline->appendEmitter($Emitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $Data
+     *
+     * @return string
+     */
+    public static function saveStudentListFilter($DivisionCourseId, $Data = null): string
+    {
+        if (isset($Data['Columns'])) {
+            $columns = json_encode($Data['Columns']);
+        } else {
+            return new Warning('Bitte wählen Sie mindestens eine Spalte aus!', new Exclamation())
+                . Digital::useFrontend()->loadDownloadFilter($DivisionCourseId);
+        }
+        $freeTexts = '';
+        if (isset($Data['FreeTexts'])) {
+            $freeTexts = json_encode($Data['FreeTexts']);
+        }
+
+        if (($tblPerson = Account::useService()->getPersonByLogin())) {
+            Digital::useService()->updateStudentListColumn($tblPerson, $columns, $freeTexts);
+        }
+
+        return Digital::useFrontend()->loadDownloadContent($DivisionCourseId);
     }
 }

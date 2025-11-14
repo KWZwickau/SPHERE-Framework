@@ -45,6 +45,7 @@ use SPHERE\Application\Document\Storage\FilePointer;
 use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Absence\Absence;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
+use SPHERE\Application\Education\ClassRegister\Digital\Digital;
 use SPHERE\Application\Education\Graduation\Grade\Grade;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
@@ -1756,5 +1757,53 @@ class Creator extends Extension
         }
 
         return $Document->getPageList($headerList, $headerWidthList, $bodyList, $preTextList);
+    }
+
+    /**
+     * @param null $DivisionCourseId
+     * @param bool $Redirect
+     *
+     * @return string
+     */
+    public static function createIndividualStudentListPdf($DivisionCourseId = null, bool $Redirect = true): string
+    {
+        if ($Redirect) {
+            return \SPHERE\Application\Api\Education\Certificate\Generator\Creator::displayWaitingPage(
+                '/Api/Document/Standard/ClassRegister/StudentList/Individual/Create',
+                array(
+                    'DivisionCourseId' => $DivisionCourseId,
+                    'Redirect' => 0
+                )
+            );
+        }
+
+        if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
+
+            list($headerList, $dataList, $headerPdfWeightList) = Digital::useService()->getStudentListDownloadContent($tblDivisionCourse);
+
+            // Spaltenbreite
+            $headerWidthList = [];
+            $sum = array_sum($headerPdfWeightList);
+            foreach ($headerPdfWeightList as $key => $value) {
+                $headerWidthList[$key] = ((100 * $value / $sum)) . '%';
+            }
+
+            $tblType = $tblDivisionCourse->getType();
+            $name = (new \SPHERE\Application\Api\Reporting\Standard\Person\Person)->getDivisionCourseTypeNameList($tblDivisionCourse, $tblType);
+            $preTextList[] = str_replace('_', ': ', $name);
+            $preTextList[] = 'Stand: ' . (new DateTime())->format('d.m.Y');
+
+            $Document = new DocumentBuilder($name . '_' . (new DateTime())->format('d-m-Y'));
+            $pageList[] = $Document->getPageList($headerList, $headerWidthList, $dataList, $preTextList);
+
+            $paperOrientation = count($headerList) > 4 ? Creator::PAPERORIENTATION_LANDSCAPE : Creator::PAPERORIENTATION_PORTRAIT;
+            $File = self::buildDummyFile($Document, array(), $pageList, $paperOrientation);
+
+            $FileName = $Document->getName() . '.pdf';
+
+            return self::buildDownloadFile($File, $FileName);
+        }
+
+        return "Kein Download vorhanden!";
     }
 }

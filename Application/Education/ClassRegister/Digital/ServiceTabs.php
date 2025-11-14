@@ -5,7 +5,9 @@ namespace SPHERE\Application\Education\ClassRegister\Digital;
 use DateInterval;
 use DateTime;
 use SPHERE\Application\Education\Certificate\Prepare\View;
+use SPHERE\Application\Education\ClassRegister\Digital\Service\Data;
 use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblLessonContent;
+use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblStudentListColumn;
 use SPHERE\Application\Education\ClassRegister\Timetable\Service\Entity\TblTimetableNode;
 use SPHERE\Application\Education\ClassRegister\Timetable\Service\Entity\TblTimetableReplacement;
 use SPHERE\Application\Education\ClassRegister\Timetable\Timetable;
@@ -59,7 +61,7 @@ abstract class ServiceTabs extends ServiceForgotten
      * @param $view
      * @param $Route
      */
-    public function setHeaderButtonList(Stage $Stage, $view, $Route)
+    public function setHeaderButtonList(Stage $Stage, $view, $Route): void
     {
         $hasTeacherRight = Access::useService()->hasAuthorization($Route . '/Teacher');
         $hasHeadmasterRight = Access::useService()->hasAuthorization($Route . '/Headmaster');
@@ -905,5 +907,124 @@ abstract class ServiceTabs extends ServiceForgotten
         }
 
         return '';
+    }
+
+    /**
+     * @return string[]
+     */
+    public function getStudentListColumnAll(): array
+    {
+        return [
+            'Number' => 'Nr.',
+            'LastName' => 'Name',
+            'FirstName' => 'Vorname',
+            'Gender' => 'Geschlecht',
+            'Birthday' => 'Geburtsdatum',
+            'Address' => 'Adresse',
+            'FreeText1' => 'Freies Textfeld 1',
+            'FreeText2' => 'Freies Textfeld 2',
+            'FreeText3' => 'Freies Textfeld 3',
+        ];
+    }
+
+    /**
+     * @return int[]
+     */
+    public function getStudentListColumnExcelWidth(): array
+    {
+        return [
+            'Number' => 5,
+            'LastName' => 22,
+            'FirstName' => 22,
+            'Gender' => 11,
+            'Birthday' => 14,
+            'Address' => 40,
+            'FreeText1' => 25,
+            'FreeText2' => 25,
+            'FreeText3' => 25,
+        ];
+    }
+
+    /**
+     * @return float[]
+     */
+    public function getStudentListColumnPdfWidthWeight(): array
+    {
+        return [
+            'Number' => 0.4,
+            'LastName' => 1.2,
+            'FirstName' => 1.2,
+            'Gender' => 0.8,
+            'Birthday' => 1.0,
+            'Address' => 2.5,
+            'FreeText1' => 1.0,
+            'FreeText2' => 1.0,
+            'FreeText3' => 1.0,
+        ];
+    }
+
+    /**
+     * @param TblDivisionCourse $tblDivisionCourse
+     *
+     * @return array
+     */
+    public function getStudentListDownloadContent(TblDivisionCourse $tblDivisionCourse): array
+    {
+        $columns = $this->getStudentListColumnAll();
+        $pdfWidthWeights = $this->getStudentListColumnPdfWidthWeight();
+
+        $headerList = [];
+        $headerPdfWeightList = [];
+        if (($tblPerson = Account::useService()->getPersonByLogin())
+            && ($tblStudentListColumn = Digital::useService()->getStudentListColumn($tblPerson))
+        ) {
+            $freeTexts = $tblStudentListColumn->getFreeTexts();
+            foreach ($tblStudentListColumn->getColumns() as $identifier => $value) {
+                $headerList[$identifier] = str_contains($identifier, 'FreeText') ? $freeTexts[$identifier] : $columns[$identifier];
+                $headerPdfWeightList[$identifier] = $pdfWidthWeights[$identifier] ?? 1.0;
+            }
+        }
+
+        $dataList = [];
+        if (($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses(false, true, new DateTime('today')))) {
+            $count = 0;
+            foreach($tblPersonList as $tblPerson) {
+                $dataList[] = [
+                    'Number' => ++$count,
+                    'LastName' => $tblPerson->getLastName(),
+                    'FirstName' => $tblPerson->getFirstName(),
+                    'Gender' => $tblPerson->getGenderString(),
+                    'Birthday' => $tblPerson->getBirthday(),
+                    'Address' => ($tblAddress = $tblPerson->fetchMainAddress()) ? $tblAddress->getGuiString(false) : '',
+                    'FreeText1' => '',
+                    'FreeText2' => '',
+                    'FreeText3' => '',
+                ];
+            }
+        }
+
+        return [$headerList, $dataList, $headerPdfWeightList];
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param string $columns
+     * @param string $freeTexts
+     *
+     * @return TblStudentListColumn
+     */
+    public function updateStudentListColumn(TblPerson $tblPerson, string $columns, string $freeTexts): TblStudentListColumn
+    {
+        return (new Data($this->getBinding()))->updateStudentListColumn($tblPerson, $columns, $freeTexts);
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     *
+     * @return false|TblStudentListColumn
+     */
+    public function getStudentListColumn(TblPerson $tblPerson): false|TblStudentListColumn
+    {
+        return (new Data($this->getBinding()))->getStudentListColumn($tblPerson);
     }
 }

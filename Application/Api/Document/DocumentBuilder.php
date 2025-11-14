@@ -72,7 +72,7 @@ class DocumentBuilder extends AbstractDocument
         $sectionHeader = new Section();
         foreach ($headerNameList as $key => $header) {
             $sectionHeader->addElementColumn((new Element())
-                ->setContent($header)
+                ->setContent($header ?: '&nbsp;')
                 ->styleAlignCenter()
                 ->styleBorderLeft()
                 ->styleBorderTop()
