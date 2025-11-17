@@ -92,9 +92,8 @@ class ApiDigital extends Extension implements IApiInterface
         $Dispatcher->registerMethod('loadAdditionalInformationContent');
         $Dispatcher->registerMethod('loadTeacherViewContent');
 
-        $Dispatcher->registerMethod('loadStudentListButton');
-        $Dispatcher->registerMethod('loadStudentListContent');
-        $Dispatcher->registerMethod('saveStudentListFilter');
+        $Dispatcher->registerMethod('loadIndividualDownloadContent');
+        $Dispatcher->registerMethod('saveDownloadFilter');
 
         return $Dispatcher->callMethod($Method);
     }
@@ -1684,64 +1683,17 @@ class ApiDigital extends Extension implements IApiInterface
 
     /**
      * @param $DivisionCourseId
-     * @param $BasicRoute
-     * @param $ReturnRoute
-     * @param $IsDownload
      *
      * @return Pipeline
      */
-    public static function pipelineLoadStudentListButton($DivisionCourseId, $BasicRoute, $ReturnRoute, $IsDownload): Pipeline
+    public static function pipelineLoadIndividualDownloadContent($DivisionCourseId): Pipeline
     {
         $Pipeline = new Pipeline(false);
 
-        $Emitter = new ServerEmitter(self::receiverBlock('', 'StudentListButton'), self::getEndpoint());
+        $Emitter = new ServerEmitter(self::receiverBlock('', 'DownloadContent'), self::getEndpoint());
         $Emitter->setGetPayload(array(
-            self::API_TARGET => 'loadStudentListButton',
+            self::API_TARGET => 'loadIndividualDownloadContent',
             'DivisionCourseId' => $DivisionCourseId,
-            'BasicRoute' => $BasicRoute,
-            'ReturnRoute' => $ReturnRoute,
-            'IsDownload' => $IsDownload
-        ));
-        $Pipeline->appendEmitter($Emitter);
-
-        return $Pipeline;
-    }
-
-    /**
-     * @param $DivisionCourseId
-     * @param $BasicRoute
-     * @param $ReturnRoute
-     * @param $IsDownload
-     *
-     * @return string
-     */
-    public static function loadStudentListButton($DivisionCourseId, $BasicRoute, $ReturnRoute, $IsDownload): string
-    {
-        $isDownload = $IsDownload === 'true';
-
-        return Digital::useFrontend()->loadStudentListButton($DivisionCourseId, $BasicRoute, $ReturnRoute, !$isDownload)
-            . self::pipelineLoadStudentListContent($DivisionCourseId, $BasicRoute, $ReturnRoute, $isDownload);
-    }
-
-    /**
-     * @param $DivisionCourseId
-     * @param $BasicRoute
-     * @param $ReturnRoute
-     * @param $IsDownload
-     *
-     * @return Pipeline
-     */
-    public static function pipelineLoadStudentListContent($DivisionCourseId, $BasicRoute, $ReturnRoute, $IsDownload): Pipeline
-    {
-        $Pipeline = new Pipeline(false);
-
-        $Emitter = new ServerEmitter(self::receiverBlock('', 'StudentListContent'), self::getEndpoint());
-        $Emitter->setGetPayload(array(
-            self::API_TARGET => 'loadStudentListContent',
-            'DivisionCourseId' => $DivisionCourseId,
-            'BasicRoute' => $BasicRoute,
-            'ReturnRoute' => $ReturnRoute,
-            'IsDownload' => $IsDownload
         ));
         $Emitter->setLoadingMessage('Daten werden geladen');
         $Pipeline->appendEmitter($Emitter);
@@ -1751,17 +1703,12 @@ class ApiDigital extends Extension implements IApiInterface
 
     /**
      * @param $DivisionCourseId
-     * @param $BasicRoute
-     * @param $ReturnRoute
-     * @param $IsDownload
      *
      * @return string
      */
-    public static function loadStudentListContent($DivisionCourseId, $BasicRoute, $ReturnRoute, $IsDownload): string
+    public static function loadIndividualDownloadContent($DivisionCourseId): string
     {
-        return $IsDownload
-            ? Digital::useFrontend()->loadDownloadFilter($DivisionCourseId)
-            : Digital::useFrontend()->getStudentListContent($DivisionCourseId, $BasicRoute, $ReturnRoute);
+        return Digital::useFrontend()->loadDownloadFilter($DivisionCourseId);
     }
 
     /**
@@ -1769,13 +1716,13 @@ class ApiDigital extends Extension implements IApiInterface
      *
      * @return Pipeline
      */
-    public static function pipelineSaveStudentListFilter($DivisionCourseId): Pipeline
+    public static function pipelineSaveDownloadFilter($DivisionCourseId): Pipeline
     {
         $Pipeline = new Pipeline(false);
 
-        $Emitter = new ServerEmitter(self::receiverBlock('', 'StudentListContent'), self::getEndpoint());
+        $Emitter = new ServerEmitter(self::receiverBlock('', 'DownloadContent'), self::getEndpoint());
         $Emitter->setGetPayload(array(
-            self::API_TARGET => 'saveStudentListFilter',
+            self::API_TARGET => 'saveDownloadFilter',
             'DivisionCourseId' => $DivisionCourseId,
         ));
         $Emitter->setLoadingMessage('Daten werden geladen');
@@ -1790,7 +1737,7 @@ class ApiDigital extends Extension implements IApiInterface
      *
      * @return string
      */
-    public static function saveStudentListFilter($DivisionCourseId, $Data = null): string
+    public static function saveDownloadFilter($DivisionCourseId, $Data = null): string
     {
         if (isset($Data['Columns'])) {
             $columns = json_encode($Data['Columns']);
@@ -1807,6 +1754,6 @@ class ApiDigital extends Extension implements IApiInterface
             Digital::useService()->updateStudentListColumn($tblPerson, $columns, $freeTexts);
         }
 
-        return Digital::useFrontend()->loadDownloadContent($DivisionCourseId);
+        return Digital::useFrontend()->loadIndividualDownloadContent($DivisionCourseId);
     }
 }
