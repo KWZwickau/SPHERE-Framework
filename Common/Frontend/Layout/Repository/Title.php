@@ -74,4 +74,20 @@ class Title extends Extension implements ITemplateInterface
         $this->Menu[] = $Button->__toString();
         return $this;
     }
+
+    /**
+     * @return string
+     */
+    public function getTitle(): string
+    {
+        return $this->Title;
+    }
+
+    /**
+     * @return string
+     */
+    public function getDescription(): string
+    {
+        return $this->Description;
+    }
 }

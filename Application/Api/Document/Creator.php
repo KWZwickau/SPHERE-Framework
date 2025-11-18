@@ -1806,4 +1806,44 @@ class Creator extends Extension
 
         return "Kein Download vorhanden!";
     }
+
+    /**
+     * @param null $DivisionCourseId
+     * @param null $PersonId
+     * @param bool $Redirect
+     *
+     * @return string
+     */
+    public static function createStudentDetailPdf($DivisionCourseId = null, $PersonId = null, bool $Redirect = true): string
+    {
+        if ($Redirect) {
+            return \SPHERE\Application\Api\Education\Certificate\Generator\Creator::displayWaitingPage(
+                '/Api/Document/Standard/ClassRegister/StudentDetail/Create',
+                array(
+                    'DivisionCourseId' => $DivisionCourseId,
+                    'PersonId' => $PersonId,
+                    'Redirect' => 0
+                )
+            );
+        }
+
+        if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))
+            && ($tblPerson = Person::useService()->getPersonById($PersonId))
+        ) {
+            if (($layout = Digital::useFrontend()->getStudentDetailLayout($tblDivisionCourse, $tblPerson, true))) {
+                $studentName = str_replace(',', '', $tblPerson->getLastFirstName());
+                $studentName = str_replace(' ', '_', $studentName);
+                $Document = new DocumentBuilder('Schülerdetails_' . $studentName .  '_' . (new DateTime())->format('d-m-Y'));
+                $pageList[] = $Document->getPageListByLayout($layout);
+
+                $File = self::buildDummyFile($Document, array(), $pageList);
+
+                $FileName = $Document->getName() . '.pdf';
+
+                return self::buildDownloadFile($File, $FileName);
+            }
+        }
+
+        return "Kein Download vorhanden!";
+    }
 }

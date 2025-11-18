@@ -11,10 +11,13 @@ use SPHERE\Application\Api\People\Meta\Support\ApiSupportReadOnly;
 use SPHERE\Application\Contact\Mail\Mail;
 use SPHERE\Application\Contact\Phone\Phone;
 use SPHERE\Application\Contact\Phone\Service\Entity\TblToPerson;
+use SPHERE\Application\Document\Generator\Repository\Element\Image;
 use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Absence\Absence;
 use SPHERE\Application\Education\ClassRegister\Digital\Digital;
+use SPHERE\Application\Education\Graduation\Grade\Grade;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Meta\Common\Common;
@@ -29,6 +32,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\Check;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Commodity;
+use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Education;
 use SPHERE\Common\Frontend\Icon\Repository\Envelope;
 use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
@@ -48,6 +52,7 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\External;
 use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Link\Repository\Mailto;
 use SPHERE\Common\Frontend\Link\Repository\PhoneLink;
@@ -315,10 +320,6 @@ class FrontendStudentList extends FrontendSelectDivisionCourse
 
         if (($tblPerson = Person::useService()->getPersonById($PersonId))
             && ($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))
-            && ($tblYear = $tblDivisionCourse->getServiceTblYear())
-            && (list($fromDate, $tillDate) = Term::useService()->getStartDateAndEndDateOfYear($tblYear))
-            && $fromDate
-            && $tillDate
         ) {
             $tblStudent = $tblPerson->getStudent();
 
@@ -353,6 +354,63 @@ class FrontendStudentList extends FrontendSelectDivisionCourse
                 $Stage->addButton((new Standard('Inklusion', ApiSupportReadOnly::getEndpoint(), new Tag(), array(), 'Inklusion'))
                     ->ajaxPipelineOnClick(ApiSupportReadOnly::pipelineOpenOverViewModal($tblPerson->getId())));
             }
+
+            $absenceButton = (new Standard(
+                'Fehlzeiten bearbeiten', '/Education/ClassRegister/Digital/AbsenceStudent', new Time(),
+                array(
+                    'DivisionCourseId' => $tblDivisionCourse->getId(),
+                    'PersonId' => $tblPerson->getId(),
+                    'BasicRoute' => $BasicRoute,
+                    'ReturnRoute' => $Route
+                ),
+                'Fehlzeiten des Schülers verwalten'
+            ));
+            $Stage->addButton($absenceButton);
+
+            $Stage->addButton(new External('Herunterladen', '/Api/Document/Standard/ClassRegister/StudentDetail/Create', new Download(), [
+                'DivisionCourseId' => $DivisionCourseId,
+                'PersonId' => $tblPerson->getId(),
+            ], 'Detailansicht des Schülers als PDF herunterladen'));
+
+            $Stage->setContent(
+                ApiSupportReadOnly::receiverOverViewModal()
+                . MedicalRecordReadOnly::receiverOverViewModal()
+                . ApiAgreement::receiverOverViewModal()
+                . ApiPersonPicture::receiverModal()
+                . $this->getStudentDetailLayout($tblDivisionCourse, $tblPerson, false, $absenceButton)
+            );
+
+            return $Stage;
+        } else {
+
+            return $Stage . new Danger('Person nicht gefunden.', new Ban());
+        }
+    }
+
+    /**
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param TblPerson $tblPerson
+     * @param bool $isDownload
+     * @param string $absenceButton
+     *
+     * @return Layout|null
+     */
+    public function getStudentDetailLayout(TblDivisionCourse $tblDivisionCourse, TblPerson $tblPerson, bool $isDownload, string $absenceButton = ''): ?Layout
+    {
+        if ($isDownload) {
+            $pictureHeight = '115px';
+            $sizeContact = 6;
+        } else {
+            $pictureHeight = '138px';
+            $sizeContact = 4;
+        }
+
+        if (($tblYear = $tblDivisionCourse->getServiceTblYear())
+            && (list($fromDate, $tillDate) = Term::useService()->getStartDateAndEndDateOfYear($tblYear))
+            && $fromDate
+            && $tillDate
+        ) {
+            $tblStudent = $tblPerson->getStudent();
 
             $panelStudent = new Panel(
                 'Schüler',
@@ -389,7 +447,7 @@ class FrontendStudentList extends FrontendSelectDivisionCourse
                 if ($tblSchoolType && $tblSchoolType->isTechnical()) {
                     $content['course'] = 'Bildungsgang: ' . Student::useService()->getTechnicalCourseGenderNameByPerson($tblPerson);
                 } else {
-                    $content['course'] = 'Bildungsgang: ' .  ($tblCourse ? $tblCourse->getName() : '');
+                    $content['course'] = 'Bildungsgang: ' . ($tblCourse ? $tblCourse->getName() : '');
                 }
                 // Schulbesuchsjahr bei Förderschulen anzeigen
                 if ($tblSchoolType && $tblSchoolType->getShortName() == 'FöS' && $tblStudent) {
@@ -416,19 +474,16 @@ class FrontendStudentList extends FrontendSelectDivisionCourse
             // Fehlzeiten
             list($absenceDays, $absenceLessons)
                 = Absence::useService()->getAbsenceDataByStudent($tblPerson, $tblYear, $tblCompany ?: null, $tblSchoolType ?: null, $fromDate, $tillDate);
-            $standard = (new Standard(
-                'Fehlzeiten bearbeiten', '/Education/ClassRegister/Digital/AbsenceStudent', new Time(),
-                array(
-                    'DivisionCourseId' => $tblDivisionCourse->getId(),
-                    'PersonId' => $tblPerson->getId(),
-                    'BasicRoute' => $BasicRoute,
-                    'ReturnRoute' => $Route
-                ),
-                'Fehlzeiten des Schülers verwalten'
-            ));
-            $Stage->addButton($standard);
-            $panelAbsence = new Panel(new Time() . ' Fehlzeiten',new PullRight($standard) . new Container('Zeugnisrelevante Fehlzeiten Tage (E, U): ' . $absenceDays)
-                . new Container('Zeugnisrelevante Fehlzeiten UE (E, U): ' . $absenceLessons), Panel::PANEL_TYPE_INFO);
+            if ($isDownload) {
+                $contentAbsence = [
+                    'Zeugnisrelevante Fehlzeiten Tage (E, U): ' . $absenceDays,
+                    'Zeugnisrelevante Fehlzeiten UE (E, U): ' . $absenceLessons
+                ];
+            } else {
+                $contentAbsence = new PullRight($absenceButton) . new Container('Zeugnisrelevante Fehlzeiten Tage (E, U): ' . $absenceDays)
+                    . new Container('Zeugnisrelevante Fehlzeiten UE (E, U): ' . $absenceLessons);
+            }
+            $panelAbsence = new Panel(new Time() . ' Fehlzeiten', $contentAbsence, Panel::PANEL_TYPE_INFO);
 
             // vergessene Arbeitsmittel
             $sumHomework = Digital::useService()->getForgottenSumByPersonAndYear($tblPerson, $tblYear, true);
@@ -442,17 +497,21 @@ class FrontendStudentList extends FrontendSelectDivisionCourse
 
             $rows = [];
             if (($tblPersonPicture = Storage::useService()->getPersonPictureByPerson($tblPerson))) {
-                $PersonPicture = (new Link($tblPersonPicture->getPicture('138px', '10px'), $tblPerson->getId()))
+                $PersonPicture = (new Link($tblPersonPicture->getPicture($pictureHeight, '10px'), $tblPerson->getId()))
                     ->ajaxPipelineOnClick(ApiPersonPicture::pipelineShowPersonPicture($tblPerson->getId()));
             } else {
-                $File = FileSystem::getFileLoader('/Common/Style/Resource/SSWIcon.png');
-                $PersonPicture = '<img src="' . $File->getLocation() . '" style="height: 138px; border-radius: 10px; opacity: 0.2">';
+                if ($isDownload) {
+                    $PersonPicture = new Image('/Common/Style/Resource/SSWIcon.png', 'auto', $pictureHeight, 0.2);
+                } else {
+                    $File = FileSystem::getFileLoader('/Common/Style/Resource/SSWIcon.png');
+                    $PersonPicture = '<img src="' . $File->getLocation() . '" style="height: ' . $pictureHeight . '; border-radius: 10px; opacity: 0.2">';
+                }
             }
             $rows[] = new LayoutRow(array(
-                new LayoutColumn(new Layout(new LayoutGroup(new LayoutRow(array(
-                    new LayoutColumn($panelStudent),
-                    new LayoutColumn($panelCourse),
-                )))), 10),
+                new LayoutColumn(new Layout(new LayoutGroup(array(
+                    new LayoutRow(new LayoutColumn($panelStudent)),
+                    new LayoutRow(new LayoutColumn($panelCourse)),
+                ))), 10),
                 new LayoutColumn(new Center($PersonPicture), 2),
             ));
 
@@ -462,7 +521,7 @@ class FrontendStudentList extends FrontendSelectDivisionCourse
             ));
             $rows[] = new LayoutRow(array(
                 new LayoutColumn($panelEducation, 6),
-                new LayoutColumn($panelAddress . $panelAuthorizedToCollect, 6),
+                new LayoutColumn([$panelAddress, $panelAuthorizedToCollect], 6),
             ));
             $rows[] = new LayoutRow(array(
                 new LayoutColumn($panelForgotten, 6),
@@ -472,42 +531,31 @@ class FrontendStudentList extends FrontendSelectDivisionCourse
             $tblRelationshipTypes = $this->getRelationshipTypes();
 
             // telefonnummern inklusive Bemerkung
-            $layoutPhone = '';
             if ($phones = $this->getPhones($tblPerson, $tblRelationshipTypes)) {
-                $layoutPhone = new Title(new PhoneIcon() . ' Telefonnummern');
                 $columns = [];
                 foreach ($phones as $phone) {
-                    $columns[] = new LayoutColumn($phone, 4);
+                    $columns[] = new LayoutColumn($phone, $sizeContact);
                 }
-                $layoutPhone .= new Layout(new LayoutGroup(new LayoutRow($columns)));
+
+                $rows[] = new LayoutRow(new LayoutColumn(new Title(new PhoneIcon() . ' Telefonnummern')));
+                $rows = array_merge($rows, Grade::useService()->getLayoutRowsByLayoutColumnList($columns, $sizeContact));
             }
 
             // emails
-            $layoutMail = '';
             if ($mails = $this->getMails($tblPerson, $tblRelationshipTypes)) {
-                $layoutMail = new Title(new PhoneIcon() . ' E-Mail Adressen');
                 $columns = [];
                 foreach ($mails as $mail) {
-                    $columns[] = new LayoutColumn($mail, 4);
+                    $columns[] = new LayoutColumn($mail, $sizeContact);
                 }
-                $layoutMail .= new Layout(new LayoutGroup(new LayoutRow($columns)));
+
+                $rows[] = new LayoutRow(new LayoutColumn(new Title(new Envelope() . ' E-Mail Adressen')));
+                $rows = array_merge($rows, Grade::useService()->getLayoutRowsByLayoutColumnList($columns, $sizeContact));
             }
 
-            $Stage->setContent(
-                ApiSupportReadOnly::receiverOverViewModal()
-                . MedicalRecordReadOnly::receiverOverViewModal()
-                . ApiAgreement::receiverOverViewModal()
-                . ApiPersonPicture::receiverModal()
-                . new Layout(new LayoutGroup($rows))
-                . $layoutPhone
-                . $layoutMail
-            );
-
-            return $Stage;
-        } else {
-
-            return $Stage . new Danger('Person nicht gefunden.', new Ban());
+            return new Layout(new LayoutGroup($rows));
         }
+
+        return null;
     }
 
     /**
