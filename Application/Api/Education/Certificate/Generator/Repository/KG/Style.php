@@ -3,10 +3,14 @@
 namespace SPHERE\Application\Api\Education\Certificate\Generator\Repository\KG;
 
 use SPHERE\Application\Api\Education\Certificate\Generator\Certificate;
+use SPHERE\Application\Education\Absence\Absence;
+use SPHERE\Application\Education\Absence\Service\Entity\TblAbsence;
 use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Element;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Section;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
+use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\Setting\Consumer\Consumer;
 
 abstract class Style extends Certificate
@@ -409,19 +413,46 @@ abstract class Style extends Certificate
      */
     public function getCustomAbsence(int $personId) : Slice
     {
+        // Spezial Fall DKC - Dresdner Kreuz Chor
+        $absenceExtra = '';
+        if (($tblPerson = Person::useService()->getPersonById($personId))
+            && ($tblYear = $this->getYear())
+            && (list($startDate, $endDate) = Term::useService()->getStartDateAndEndDateOfYear($tblYear))
+            && $startDate
+            && $endDate
+            && ($tblAbsenceList = Absence::useService()->getAbsenceAllBetweenByPerson($tblPerson, $startDate, $endDate))
+        ) {
+            $tblCompany = $this->getTblCompany();
+            $tblSchoolType = $this->getTblSchoolType();
+            $countDays = 0;
+            foreach ($tblAbsenceList as $tblAbsence) {
+                if ($tblAbsence->getIsCertificateRelevant()
+                    && $tblAbsence->getStatus() == TblAbsence::VALUE_STATUS_EXCUSED
+                    && str_contains(mb_strtolower($tblAbsence->getRemark()), 'dkc')
+                    && ($days = $tblAbsence->getDays($tblYear, null, $tblCompany ?: null, $tblSchoolType ?: null))
+                ) {
+                    $countDays += $days;
+                }
+            }
+
+            if ($countDays > 0) {
+                $absenceExtra = ', davon ' . $countDays . ' DKC';
+            }
+        }
+
         return (new Slice())
             ->styleMarginTop('4px')
             ->addSection((new Section())
                 ->addElementColumn($this->getElement('Fehltage')->styleTextBold(), '30%')
-                ->addElementColumn($this->getElement('entschuldigt:'), '20%')
+                ->addElementColumn($this->getElement('entschuldigt:'), '13%')
                 ->addElementColumn($this->getElement(
                     '{% if(Content.P' . $personId . '.Input.Missing is not empty) %}
-                        {{ Content.P' . $personId . '.Input.Missing }}
+                        {{ Content.P' . $personId . '.Input.Missing }}' . $absenceExtra . '  
                     {% else %}
                         &nbsp;
                     {% endif %}',
-                ), '17%')
-                ->addElementColumn($this->getElement('unentschuldigt:'), '20%')
+                ), '25%')
+                ->addElementColumn($this->getElement('unentschuldigt:'), '15%')
                 ->addElementColumn($this->getElement(
                     '{% if(Content.P' . $personId . '.Input.Bad.Missing is not empty) %}
                         {{ Content.P' . $personId . '.Input.Bad.Missing }}
@@ -528,7 +559,7 @@ abstract class Style extends Certificate
                         {% if(Content.P' . $personId . '.DivisionTeacher.Description is not empty) %}
                             {{ Content.P' . $personId . '.DivisionTeacher.Description }}
                         {% else %}
-                            Schulleiter(in)
+                            Klassenlehrer(in)
                         {% endif %}'
                         ))
                         ->addElement($this->getElementSignPart('
@@ -552,7 +583,7 @@ abstract class Style extends Certificate
                             {% if(Content.P' . $personId . '.DivisionTeacher.Description is not empty) %}
                                 {{ Content.P' . $personId . '.DivisionTeacher.Description }}
                             {% else %}
-                                Schulleiter(in)
+                                Klassenlehrer(in)
                             {% endif %}'
                         ))
                         ->addElement($this->getElementSignPart('

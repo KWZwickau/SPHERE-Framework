@@ -304,6 +304,14 @@ abstract class Certificate extends Extension
     }
 
     /**
+     * @return bool|\SPHERE\Application\Education\School\Type\Service\Entity\TblType
+     */
+    public function getTblSchoolType(): bool|\SPHERE\Application\Education\School\Type\Service\Entity\TblType
+    {
+        return $this->getTblStudentEducation() ? $this->getTblStudentEducation()->getServiceTblSchoolType() : false;
+    }
+
+    /**
      * @return false|TblCourse
      */
     public function getTblCourse()
