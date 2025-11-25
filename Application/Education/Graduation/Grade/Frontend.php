@@ -666,9 +666,9 @@ class Frontend extends FrontendTestPlanning
                         && ($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())
                     ) {
                         // SEKII
-                        if (DivisionCourse::useService()->getIsCourseSystemBySchoolTypeAndLevel($tblSchoolType, $tblStudentEducation->getLevel())) {
+                        if (DivisionCourse::useService()->getIsCourseSystemBySchoolTypeAndLevel($tblSchoolType, $tblStudentEducation->getLevel() ?: 0)) {
                             $tempList = $periodList['Normal'] ?? array();
-                            if (DivisionCourse::useService()->getIsShortYearBySchoolTypeAndLevel($tblSchoolType, $tblStudentEducation->getLevel())
+                            if (DivisionCourse::useService()->getIsShortYearBySchoolTypeAndLevel($tblSchoolType, $tblStudentEducation->getLevel() ?: 0)
                                 && isset($periodList['Short'])
                             ) {
                                 $tempList = $periodList['Short'];
