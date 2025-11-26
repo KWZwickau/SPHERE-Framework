@@ -59,7 +59,9 @@ class Data extends AbstractData
 
         $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblCreditor')->findOneBy(array(
-            TblCreditor::ATTR_OWNER => $Owner
+            TblCreditor::ATTR_OWNER => $Owner,
+            TblCreditor::ATTR_CREDITOR_ID => $CreditorId,
+            TblCreditor::ATTR_IBAN => $IBAN,
         ));
 
         if($Entity === null){
