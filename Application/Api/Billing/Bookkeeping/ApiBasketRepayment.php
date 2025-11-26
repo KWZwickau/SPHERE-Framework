@@ -135,7 +135,7 @@ class ApiBasketRepayment extends Extension implements IApiInterface
 
         $FormContentLeft[] = (new TextField('Basket[Name]', 'Name der Abrechnug', 'Name'))->setRequired();
         $FormContentLeft[] = new TextField('Basket[Description]', 'Beschreibung', 'Beschreibung');
-        $FormContentLeft[] = (new SelectBox('Basket[Creditor]', 'Gläubiger', array('{{ Owner }} - {{ CreditorId }}' => $CreditorList)))->setRequired();
+        $FormContentLeft[] = (new SelectBox('Basket[Creditor]', 'Gläubiger', array('{{ Owner }} - {{ IBAN }}' => $CreditorList)))->setRequired(); // - {{ CreditorId }}
         $FormContentLeft[] = (new DatePicker('Basket[TargetTime]', '', 'Fälligkeitsdatum'))->setRequired();
         //Rechnungsdatum ist nur bei Datev Pflichtfeld
         $IsDatev = false;
