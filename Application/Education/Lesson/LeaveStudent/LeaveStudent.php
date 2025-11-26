@@ -3,9 +3,11 @@
 namespace SPHERE\Application\Education\Lesson\LeaveStudent;
 
 use SPHERE\Application\IModuleInterface;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Common\Frontend\Icon\Repository\Transfer;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
+use SPHERE\System\Database\Link\Identifier;
 
 class LeaveStudent implements IModuleInterface
 {
@@ -20,11 +22,20 @@ class LeaveStudent implements IModuleInterface
         ));
     }
 
-    public static function useService()
+    /**
+     * @return Service
+     */
+    public static function useService(): Service
     {
-
+        return new Service(new Identifier('Education', 'Application', null, null,
+            Consumer::useService()->getConsumerBySession()),
+            __DIR__ . '/Service/Entity', __NAMESPACE__ . '\Service\Entity'
+        );
     }
 
+    /**
+     * @return Frontend
+     */
     public static function useFrontend(): Frontend
     {
         return new Frontend();
