@@ -182,31 +182,100 @@ components:
                     example: 'Bad Gateway'
 
 security:
-    - accessToken: []
+    -   accessToken: [ ]
 
 paths:
-    /authentication/status:
-        description: 'Get current authentication status'
-        get:
+    /authentication/process/sign-in?processToken={processToken}:
+        post:
+            description: 'Create a stateful token'
             tags:
                 - Authentication
-            security: []
+            security: [ ]
             parameters:
-            - name: credentialDevice
-              in: query
-              schema:
-                  type: string
-
-
-    /authentication/process/sign-in:
-        get:
+                -   name: processToken
+                    in: query
+                    schema:
+                        type: string
+            requestBody:
+                required: true
+                content:
+                    application/x-www-form-urlencoded:
+                        schema:
+                            type: object
+                            properties:
+                                deviceIdentifier:
+                                    type: string
+                                credentialIdentifier:
+                                    type: string
+                            required:
+                                - deviceIdentifier
+                                - credentialIdentifier
+    /authentication/process/sign-out:
+        post:
+            description: 'Invalidate current state'
             tags:
                 - Authentication
-            security: []
+            security: [ ]
+            requestBody:
+                required: true
+                content:
+                    application/x-www-form-urlencoded:
+                        schema:
+                            type: object
+                            properties:
+                                deviceIdentifier:
+                                    type: string
+                            required:
+                                - deviceIdentifier
 
-#        '/app/authentication/status',
-#        '/app/authentication/process/sign-in',
-#        '/app/authentication/process/sign-out',
-#        '/app/authentication/factor/credentials',
-#        '/app/authentication/factor/token',
-#        '/app/authentication/factor/yubikey',
+    /authentication/factor/credentials:
+        post:
+            description: 'Invalidate current state'
+            tags:
+                - Authentication
+            security: [ ]
+            requestBody:
+                required: true
+                content:
+                    application/x-www-form-urlencoded:
+                        schema:
+                            type: object
+                            properties:
+                                deviceIdentifier:
+                                    type: string
+                            required:
+                                - deviceIdentifier
+    /authentication/factor/token:
+        post:
+            description: 'Invalidate current state'
+            tags:
+                - Authentication
+            security: [ ]
+            requestBody:
+                required: true
+                content:
+                    application/x-www-form-urlencoded:
+                        schema:
+                            type: object
+                            properties:
+                                deviceIdentifier:
+                                    type: string
+                            required:
+                                - deviceIdentifier
+    /authentication/factor/yubikey:
+        post:
+            description: 'Invalidate current state'
+            tags:
+                - Authentication
+            security: [ ]
+            requestBody:
+                required: true
+                content:
+                    application/x-www-form-urlencoded:
+                        schema:
+                            type: object
+                            properties:
+                                deviceIdentifier:
+                                    type: string
+                            required:
+                                - deviceIdentifier

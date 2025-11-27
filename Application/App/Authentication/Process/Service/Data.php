@@ -14,6 +14,7 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblIdentification;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Database\Binding\AbstractData;
+use Throwable;
 
 /**
  *
@@ -28,15 +29,15 @@ class Data extends AbstractData
             throw new RuntimeException('Failed to create factor');
         }
         $tblIdentification = Account::useService()->getIdentificationByName('Credential');
-        $this->createProcess($tblIdentification, $tblFactor1, 1);
+        $this->modifyProcess($tblIdentification, $tblFactor1, 1);
 
         $tblFactor2 = $this->createFactor('YubiKey', 'YubiKey');
         if (null === $tblFactor2) {
             throw new RuntimeException('Failed to create factor');
         }
         $tblIdentification = Account::useService()->getIdentificationByName('Token');
-        $this->createProcess($tblIdentification, $tblFactor1, 1);
-        $this->createProcess($tblIdentification, $tblFactor2, 2);
+        $this->modifyProcess($tblIdentification, $tblFactor1, 1);
+        $this->modifyProcess($tblIdentification, $tblFactor2, 2);
 
     }
 
@@ -59,7 +60,7 @@ class Data extends AbstractData
         return $entity;
     }
 
-    public function createProcess(
+    public function modifyProcess(
         TblIdentification $tblIdentification,
         TblFactor $tblFactor,
         ?int $sortOrder = null
@@ -82,8 +83,9 @@ class Data extends AbstractData
             $manager->saveEntity($entity);
             Protocol::useService()->createInsertEntry($connection->getDatabase(), $entity);
         } elseif (
-            null !== $sortOrder
+            (null !== $sortOrder && $entity->getSortOrder() !== $sortOrder)
         ) {
+            /** @var TblProcess $protocol */
             $protocol = clone $entity;
             $entity->setSortOrder($sortOrder);
             $manager->updateEntity($entity);
@@ -92,7 +94,7 @@ class Data extends AbstractData
         return $entity;
     }
 
-    public function createDevice(
+    public function modifyDevice(
         string $deviceIdentifier,
         ?string $processToken = null,
         ?int $processTimeout = null,
@@ -114,9 +116,10 @@ class Data extends AbstractData
             $manager->saveEntity($entity);
             Protocol::useService()->createInsertEntry($connection->getDatabase(), $entity);
         } elseif (
-            null !== $processToken
-            || null !== $processTimeout
+            (null !== $processToken && $entity->getProcessToken() !== $processToken)
+            || (null !== $processTimeout && $entity->getProcessTimeout() !== $processTimeout)
         ) {
+            /** @var TblDevice $protocol */
             $protocol = clone $entity;
             $entity->setProcessToken($processToken);
             $entity->setProcessTimeout($processTimeout);
@@ -126,7 +129,7 @@ class Data extends AbstractData
         return $entity;
     }
 
-    public function createStep(
+    public function modifyStep(
         TblAccount $tblAccount,
         TblDevice $tblDevice,
         TblProcess $tblProcess,
@@ -151,7 +154,10 @@ class Data extends AbstractData
             $entity->setIsSolved($isSolved);
             $manager->saveEntity($entity);
             Protocol::useService()->createInsertEntry($connection->getDatabase(), $entity);
-        } elseif (null !== $isSolved) {
+        } elseif (
+            (null !== $isSolved && $entity->getIsSolved() !== $isSolved)
+        ) {
+            /** @var TblStep $protocol */
             $protocol = clone $entity;
             $entity->setIsSolved($isSolved);
             $manager->updateEntity($entity);
@@ -160,7 +166,7 @@ class Data extends AbstractData
         return $entity;
     }
 
-    public function createToken(
+    public function modifyToken(
         TblAccount $tblAccount,
         TblDevice $tblDevice,
         ?string $authenticationToken = null,
@@ -189,11 +195,12 @@ class Data extends AbstractData
             $manager->saveEntity($entity);
             Protocol::useService()->createInsertEntry($connection->getDatabase(), $entity);
         } elseif (
-            null !== $authenticationToken
-            || null !== $authenticationTimeout
-            || null !== $accessToken
-            || null !== $accessTimeout
+            (null !== $authenticationToken && $entity->getAuthenticationToken() !== $authenticationToken)
+            || (null !== $authenticationTimeout && $entity->getAuthenticationTimeout() !== $authenticationTimeout)
+            || (null !== $accessToken && $entity->getAccessToken() !== $accessToken)
+            || (null !== $accessTimeout && $entity->getAccessTimeout() !== $accessTimeout)
         ) {
+            /** @var TblToken $protocol */
             $protocol = clone $entity;
             $entity->setAuthenticationToken($authenticationToken);
             $entity->setAuthenticationTimeout($authenticationTimeout);
@@ -277,6 +284,49 @@ class Data extends AbstractData
         return $entity;
     }
 
+    /**
+     * @throws Exception
+     */
+    public function getTokenByAccess(string $accessToken): ?TblToken
+    {
+        $connection = $this->getConnection();
+        if (null === $connection) {
+            return null;
+        }
+        $manager = $connection->getEntityManager();
+        /** @var TblToken|null $entity */
+        $entity = $manager->getEntity('TblToken')->findOneBy([TblToken::ATTR_ACCESS_TOKEN => $accessToken]);
+        if (!$entity) {
+            return null;
+        }
+        // Token timed out
+        if($entity->getAccessTimeout() < time()){
+            return null;
+        }
+        return $entity;
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function getTokenByAuthentication(string $authenticationToken): ?TblToken
+    {
+        $connection = $this->getConnection();
+        if (null === $connection) {
+            return null;
+        }
+        $manager = $connection->getEntityManager();
+        /** @var TblToken|null $entity */
+        $entity = $manager->getEntity('TblToken')->findOneBy([TblToken::ATTR_AUTHENTICATION_TOKEN => $authenticationToken]);
+        if (!$entity) {
+            return null;
+        }
+        // Token timed out
+        if($entity->getAuthenticationTimeout() < time()){
+            return null;
+        }
+        return $entity;
+    }
 
     /**
      * @throws Exception
@@ -300,7 +350,7 @@ class Data extends AbstractData
      * @param TblAccount $tblAccount
      * @param TblDevice  $tblDevice
      *
-     * @return TblStep[]|array|null
+     * @return TblStep[]|null
      */
     public function getAllStepsByAccountAndDevice(TblAccount $tblAccount, TblDevice $tblDevice): ?array
     {
@@ -317,7 +367,65 @@ class Data extends AbstractData
         if (empty($entities)) {
             return null;
         }
+
+        // Sort TblStep by TblProcess->sortOrder
+        usort($entities, static function (TblStep $a, TblStep $b) {
+            try {
+                return $a->getTblProcess()->getSortOrder() <=> $b->getTblProcess()->getSortOrder();
+            } catch (Throwable) {
+                return 0;
+            }
+        });
+
         return $entities;
+    }
+
+    /**
+     * @param TblIdentification $tblIdentification
+     *
+     * @return TblProcess[]|null
+     */
+    public function getAllProcessesByIdentification(TblIdentification $tblIdentification): ?array
+    {
+        $connection = $this->getConnection();
+        if (null === $connection) {
+            return null;
+        }
+        $manager = $connection->getEntityManager();
+        /** @var TblProcess[]|null $entity */
+        $entities = $manager->getEntity('TblProcess')->findBy([
+            TblProcess::SERVICE_TBL_IDENTIFICATION => $tblIdentification->getId(),
+        ]);
+        if (empty($entities)) {
+            return null;
+        }
+        return $entities;
+    }
+
+    /**
+     * @param TblStep $tblStep
+     *
+     * @return null|bool
+     */
+    public function destroyStep(TblStep $tblStep): ?bool
+    {
+        $connection = $this->getConnection();
+        if (null === $connection) {
+            return null;
+        }
+        $manager = $connection->getEntityManager();
+        /** @var TblStep|null $entity */
+        try {
+            $entity = $manager->getEntityById('TblStep', $tblStep->getId());
+        } catch (Throwable) {
+            return null;
+        }
+        if (null === $entity) {
+            return false;
+        }
+        Protocol::useService()->createDeleteEntry($connection->getDatabase(), $entity);
+        $manager->killEntity($entity);
+        return true;
     }
 
 }

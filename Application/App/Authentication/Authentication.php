@@ -17,11 +17,17 @@ use SPHERE\System\Database\Link\Identifier;
  */
 class Authentication implements ApplicationInterface
 {
+    // 60 * 60 * 24 * 120 => 120 Days
+    public const AUTHENTICATION_TOKEN_TIMEOUT = 60 * 60 * 24 * 120;
+    // 60 * 60 / 2 => 1/2 Hour
+    public const ACCESS_TOKEN_TIMEOUT = 60 * 60 / 2;
+    // 60 * 60 / 4 => 1/4 Hour
+    public const PROCESS_TOKEN_TIMEOUT = 60 * 60 / 4;
+
     public static function registerApplication(): void
     {
         SignIn::registerModule();
         SignOut::registerModule();
-        Refresh::registerModule();
 
         Credentials::registerModule();
         Token::registerModule();
@@ -33,5 +39,18 @@ class Authentication implements ApplicationInterface
         return new Service(new Identifier('Platform', 'App', 'Authentication'),
             __DIR__ . '/Process/Service/Entity', __NAMESPACE__ . '\Process\Service\Entity'
         );
+    }
+
+    public static function produceProcessToken(): string
+    {
+        return hash('sha1', uniqid(__METHOD__, true));
+    }
+    public static function produceAccessToken(): string
+    {
+        return hash('sha256', uniqid(__METHOD__, true));
+    }
+    public static function produceAuthenticationToken(): string
+    {
+        return hash('sha512', uniqid(__METHOD__, true));
     }
 }

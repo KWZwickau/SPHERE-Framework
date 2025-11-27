@@ -4,18 +4,24 @@ namespace SPHERE\Application\App\Authentication\Process;
 
 use SPHERE\Application\App\AppException;
 use SPHERE\Application\App\Authentication\Authentication;
+use SPHERE\Application\App\Authentication\Process\Service\Entity\TblStep;
 use SPHERE\Application\App\Dispatcher;
 use SPHERE\Application\App\ModuleInterface;
+use SPHERE\Application\App\Response\Code\Response201;
 use SPHERE\Application\App\Response\Code\Response307;
 use SPHERE\Application\App\Response\Code\Response400;
+use SPHERE\Application\App\Response\Code\Response401;
 use SPHERE\Application\App\Response\Code\Response403;
 use SPHERE\Application\App\Response\Code\Response405;
 use SPHERE\Application\App\Response\Code\Response422;
 use SPHERE\Application\App\Response\Code\Response500;
+use SPHERE\Application\App\Response\Code\Response501;
 use SPHERE\Application\App\Response\ResponseInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Common\Main;
 use SPHERE\System\Database\Link\Identifier;
+use Symfony\Component\HttpFoundation\Request;
+use Throwable;
 
 /**
  *
@@ -37,38 +43,98 @@ class SignIn implements ModuleInterface
         ?string $credentialIdentifier = null,
         ?string $deviceIdentifier = null,
         ?string $processToken = null,
+        ?string $authenticationToken = null,
     ): ResponseInterface {
-        // ---
+        // -----
         // Validate request input
-        // ---
+        // -----
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             return new Response405($_SERVER['REQUEST_METHOD']);
         }
-
-        // ---
+        // -----
         // Validate user input
-        // ---
+        // -----
         // Test availability (structure)
         if (
             null === $deviceIdentifier
             || null === $credentialIdentifier
         ) {
-            return new Response400('Credentials not provided');
+            return new Response400([
+                'url' => '/app/authentication/process/sign-in#' . __LINE__,
+                'method' => Request::METHOD_POST,
+                'provide' => [
+                    'deviceIdentifier' => [
+                        'type' => 'string',
+                        'sensitive' => true
+                    ]
+                ],
+                'prompt' => [
+                    'credentialIdentifier' => [
+                        'label' => 'Benutzername',
+                        'type' => 'string'
+                    ]
+                ]
+            ]);
         }
         // Test compatibility (content)
         if (
             empty($deviceIdentifier)
             || empty($credentialIdentifier)
         ) {
-            return new Response422('Credentials not provided');
+            return new Response422([
+                'url' => '/app/authentication/process/sign-in#' . __LINE__,
+                'method' => Request::METHOD_POST,
+                'provide' => [
+                    'deviceIdentifier' => [
+                        'type' => 'string',
+                        'sensitive' => true
+                    ]
+                ],
+                'prompt' => [
+                    'credentialIdentifier' => [
+                        'label' => 'Benutzername',
+                        'type' => 'string'
+                    ]
+                ]
+            ]);
+        }
+        // Find Account
+        $tblAccount = Account::useService()->getAccountByUsername($credentialIdentifier);
+        if (!$tblAccount) {
+            return new Response403('Credentials not valid');
         }
 
-        // ---
+        // -----
+        // (A) Find/validate current Authentication-Token
+        // - Validate Authentication
+        // - Skip to (B) if invalid
+        // - Create or update accessToken
+        // -----
+        if (!empty($authenticationToken)) {
+            $tblToken = Authentication::useService()->getTokenByAuthentication($authenticationToken);
+            if (null === $tblToken) {
+                return new Response401('Token not valid');
+            }
+            if ($tblToken->getTblDevice()?->getDeviceIdentifier() !== $deviceIdentifier) {
+                return new Response401('Device not valid');
+            }
+            if ($tblToken->getServiceTblAccount()?->getUsername() !== $credentialIdentifier) {
+                return new Response401('Account not valid');
+            }
+            $tblToken = Authentication::useService()->createAccessToken($tblToken);
+            return new Response201(['accessToken' => $tblToken->getAccessToken()]);
+        }
+
+        // -----
+        // (B) Find/validate current MFA-Target
+        // - Validate Process (and processToken)
+        // - Prevent partly solved MFA
+        // - Reset Steps to unsolved (if Process is invalid)
+        // -----
         // Validate process token
-        // ---
         if (empty($processToken)) {
             // Generate new process token
-            $processToken = hash('sha256', uniqid('processToken', true));
+            $processToken = Authentication::produceProcessToken();
             // Find/Create device and bind process token with device
             $tblDevice = Authentication::useService()->getDeviceWithIdentifierAndToken(
                 $deviceIdentifier, $processToken
@@ -76,18 +142,11 @@ class SignIn implements ModuleInterface
             if (!$tblDevice) {
                 return new Response403('Credentials not valid');
             }
+            // New process startet or timed out? -> Reset sign-in process
+            Authentication::useService()->resetAllSteps($tblAccount, $tblDevice);
             return new Response307(
                 '/app/authentication/process/sign-in?processToken=' . $processToken . '#' . __LINE__
             );
-        }
-
-        // ---
-        // Find current target
-        // ---
-        // Find Account
-        $tblAccount = Account::useService()->getAccountByUsername($credentialIdentifier);
-        if (!$tblAccount) {
-            return new Response403('Credentials not valid');
         }
         // Find device
         $tblDevice = Authentication::useService()->getDeviceByIdentifier($deviceIdentifier);
@@ -107,165 +166,28 @@ class SignIn implements ModuleInterface
             return new Response307('/app/authentication/process/sign-in#' . __LINE__);
         }
 
-
-
-        /*
-
-        // Find or create token entity
-        try {
-            $tblToken = self::useService()->getToken($tblAccount, $deviceToken);
-        } catch (Throwable $exception) {
-            return new Response500($exception->getMessage(), $exception->getTrace());
-        }
-
-        // If no process token is given or matched then re-/run everything (except credentials)
-        if (!$tblToken || $processToken !== $tblToken->getProcessToken()) {
-
-            try {
-                $tblToken = self::useService()->createToken($tblAccount, $deviceToken, $processToken);
-                if (!$tblToken) {
-                    return new Response502('Sign-In not accessible');
-                }
-            } catch (Throwable $exception) {
-                return new Response500($exception->getMessage(), $exception->getTrace());
-            }
-
-            // Reset all solved process (except credentials)
-            try {
-                $tblFactorCredential = self::useService()->getFactorByName('Credentials');
-                if (!$tblFactorCredential) {
-                    return new Response502('Factors not accessible');
-                }
-            } catch (Throwable $exception) {
-                return new Response500($exception->getMessage(), $exception->getTrace());
-            }
-            try {
-                $tblProcesses = self::useService()->getProcessesByToken($tblToken, true);
-            } catch (Throwable $exception) {
-                return new Response500($exception->getMessage(), $exception->getTrace());
-            }
-            if (!empty($tblProcesses)) {
-                foreach ($tblProcesses as $tblProcess) {
-                    try {
-                        $tblFactorProcess = $tblProcess->getTblFactor();
-                        if (!$tblFactorProcess) {
-                            return new Response502('Factors not accessible');
-                        }
-                        if ($tblFactorProcess->getId() !== $tblFactorCredential->getId()) {
-                            self::useService()->updateProcessSolved($tblProcess, false);
-                        }
-                    } catch (Throwable $exception) {
-                        return new Response500($exception->getMessage(), $exception->getTrace());
-                    }
-                }
-            }
-
-            return new Response401('New process started',
-                '/app/authentication/process/sign-in?processToken=' . $processToken . '#' . __LINE__
-            );
-        }
-
-        // ---
-        // Validate current process against identification requirements
-        // ---
-
-        // Validate process list integrity
-        try {
-            // Select all current processes
-            $tblProcesses = self::useService()->getProcessesByToken($tblToken);
-        } catch (Throwable $exception) {
-            return new Response500($exception->getMessage(), $exception->getTrace());
-        }
-        // Find account identification factors (steps)
-        $tblAuthentications = Account::useService()->getAuthenticationListByAccount($tblAccount);
-        if (!$tblAuthentications) {
-            return new Response502('Authentication not accessible');
-        }
-        try {
-            $tblSteps = [];
-            foreach ($tblAuthentications as $tblAuthentication) {
-                $tblStepList = self::useService()->getStepsByIdentification(
-                    $tblAuthentication->getTblIdentification()
-                );
-                if (null === $tblStepList) {
-                    // This identification has no mfa steps ô.O
-                    continue;
-                }
-                $tblSteps += $tblStepList;
-            }
-            $tblSteps = array_unique($tblSteps);
-        } catch (Throwable $exception) {
-            return new Response500($exception->getMessage(), $exception->getTrace());
-        }
-        // If new process list, then fill with current identification requirement
-        if (empty($tblProcesses)) {
-            foreach ($tblSteps as $tblStep) {
-                try {
-                    self::useService()->createProcess($tblToken, $tblStep->getTblFactor());
-                } catch (Throwable $exception) {
-                    return new Response500($exception->getMessage(), $exception->getTrace());
-                }
-            }
-        } else {
-            // If not empty, then validate current process against required steps
-            foreach ($tblSteps as $tblStep) {
-                try {
-                    $tblFactorStep = $tblStep->getTblFactor();
-                    if (null === $tblFactorStep) {
-                        return new Response502('Factors not accessible');
-                    }
-                } catch (Throwable $exception) {
-                    return new Response500($exception->getMessage(), $exception->getTrace());
-                }
-                // Continue step if any process has a matching factor
-                foreach ($tblProcesses as $tblProcess) {
-                    try {
-                        $tblFactorProcess = $tblProcess->getTblFactor();
-                        if (null === $tblFactorProcess) {
-                            return new Response502('Factors not accessible');
-                        }
-                    } catch (Throwable $exception) {
-                        return new Response500($exception->getMessage(), $exception->getTrace());
-                    }
-                    if ($tblFactorProcess->getId() === $tblFactorStep->getId()) {
-                        continue 2;
-                    }
-                }
-                // Step factor not satisfied by process, clear current process and start over
-                foreach ($tblProcesses as $tblProcess) {
-                    try {
-                        self::useService()->destroyProcess($tblProcess);
-                    } catch (Throwable $exception) {
-                        return new Response500($exception->getMessage(), $exception->getTrace());
-                    }
-                }
-                // Retry
-                return new Response307(
-                    '/app/authentication/process/sign-in?processToken=' . $processToken . '#' . __LINE__
-                );
-            }
-        }
-
-        // ---
+        // -----
+        // Re-/Create or remove current MFA steps (if necessary)
+        // -----
+        Authentication::useService()->createAllSteps($tblAccount, $tblDevice);
+        // -----
         // Find current challenge
-        // ---
-
-//        return new Response501((new DebuggerFactory())->createLogger(new QueryLogger())->getLog());
-
-        // If process token provided point to next unsolved factor
-        try {
-            $tblProcesses = self::useService()->getProcessesByToken($tblToken, false);
-            if (!empty($tblProcesses)) {
-                $tblProcess = current($tblProcesses);
-                $tblFactor = $tblProcess->getTblFactor();
-                if (!$tblFactor) {
-                    return new Response502('Factors not accessible');
+        // -----
+        /** @var TblStep[] $tblSteps */
+        $tblSteps = Authentication::useService()->getAllStepsByAccountAndDevice($tblAccount, $tblDevice);
+        foreach ($tblSteps as $tblStep) {
+            if (!$tblStep->getIsSolved()) {
+                try {
+                    $factorName = $tblStep->getTblProcess()->getTblFactor()?->getName();
+                } catch (Throwable $exception) {
+                    return new Response500($exception->getMessage(), $exception->getTrace());
                 }
                 // TODO: Move switch and information into db to TblFactor
-                switch ($tblFactor->getName()) {
+                switch ($factorName) {
                     case 'Credentials':
                         return new Response401([
                             'url' => '/app/authentication/factor/credentials?processToken=' . $processToken . '#' . __LINE__,
+                            'method' => Request::METHOD_POST,
                             'prompt' => [
                                 'credentialIdentifier' => [
                                     'label' => 'Benutzername',
@@ -281,6 +203,7 @@ class SignIn implements ModuleInterface
                     case 'Yubikey':
                         return new Response401([
                             'url' => '/app/authentication/factor/yubikey?processToken=' . $processToken . '#' . __LINE__,
+                            'method' => Request::METHOD_POST,
                             'prompt' => [
                                 'credentialToken' => [
                                     'label' => 'YubiKey',
@@ -290,17 +213,26 @@ class SignIn implements ModuleInterface
                             ]
                         ]);
                     default:
-                        return new Response501('Factor not implemented', $tblFactor->getName());
+                        return new Response501('Factor not implemented', $factorName);
                 }
             }
-        } catch (Throwable $exception) {
-            return new Response500($exception->getMessage(), $exception->getTrace());
         }
 
-//        self::useService()->updateAuthenticationToken($tblToken);
-//        self::useService()->updateAuthenticationTimeout($tblToken);
-*/
-        return new Response500('Authentication not accessible');
+        // -----
+        // (C) All Steps are solved :-)
+        // - Create or update authenticationToken
+        // -----
+        $tblToken = Authentication::useService()->createAuthenticationToken($tblAccount, $tblDevice);
+        if (null === $tblToken) {
+            return new Response401('Token not valid');
+        }
+        if ($tblToken->getTblDevice()?->getDeviceIdentifier() !== $deviceIdentifier) {
+            return new Response401('Device not valid');
+        }
+        if ($tblToken->getServiceTblAccount()?->getUsername() !== $credentialIdentifier) {
+            return new Response401('Account not valid');
+        }
+        return new Response201(['authenticationToken' => $tblToken->getAccessToken()]);
     }
 
     public static function useService(): Service
