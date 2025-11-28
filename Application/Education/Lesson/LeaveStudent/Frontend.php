@@ -74,6 +74,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         $stage->setContent(
             new Panel(new Filter() . ' Filter', $this->formFilter(), Panel::PANEL_TYPE_INFO)
+            . ApiLeaveStudent::receiverModal()
             . ApiLeaveStudent::receiverBlock($this->loadContent(), 'Content')
         );
 
@@ -211,7 +212,7 @@ class Frontend extends Extension implements IFrontendInterface
             ))
         ]));
 
-        return ApiLeaveStudent::receiverModal() . $content;
+        return $content;
     }
 
     private function getPersonData(TblType $tblSchoolType, TblYear $tblYear, TblPerson $tblPerson, ?TblStudentEducation $tblStudentEducation,

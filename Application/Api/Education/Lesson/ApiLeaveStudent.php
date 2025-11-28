@@ -15,13 +15,10 @@ use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
 use SPHERE\Common\Frontend\Ajax\Receiver\ModalReceiver;
 use SPHERE\Common\Frontend\Ajax\Template\CloseModal;
 use SPHERE\Common\Frontend\Form\Repository\Button\Close;
-use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Success as SuccessIcon;
-use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
-use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\System\Extension\Extension;
 
 class ApiLeaveStudent extends Extension implements IApiInterface
@@ -40,6 +37,7 @@ class ApiLeaveStudent extends Extension implements IApiInterface
         $Dispatcher->registerMethod('openAddStudentModal');
         $Dispatcher->registerMethod('searchPerson');
         $Dispatcher->registerMethod('saveAddStudentModal');
+        $Dispatcher->registerMethod('openEditModal');
 
         return $Dispatcher->callMethod($Method);
     }
@@ -60,9 +58,6 @@ class ApiLeaveStudent extends Extension implements IApiInterface
      */
     public static function receiverModal(): ModalReceiver
     {
-//        $closeButton = (new Standard('Schließen', self::getEndpoint(), new Disable()))
-//            ->ajaxPipelineOnClick([self::pipelineLoadContent(), self::pipelineClose()]);
-
         return (new ModalReceiver(null, new Close()))->setIdentifier('ModalReceiver');
     }
 
@@ -80,10 +75,11 @@ class ApiLeaveStudent extends Extension implements IApiInterface
     /**
      * @param null $SchoolTypeId
      * @param null $YearId
+     * @param string $hasLoadingMessage
      *
      * @return Pipeline
      */
-    public static function pipelineLoadContent($SchoolTypeId = null, $YearId = null): Pipeline
+    public static function pipelineLoadContent($SchoolTypeId = null, $YearId = null, string $hasLoadingMessage = 'true'): Pipeline
     {
         $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'Content'), self::getEndpoint());
@@ -94,7 +90,9 @@ class ApiLeaveStudent extends Extension implements IApiInterface
             'SchoolTypeId' => $SchoolTypeId,
             'YearId' => $YearId,
         ));
-        $ModalEmitter->setLoadingMessage('Daten werden geladen');
+        if ($hasLoadingMessage === 'true') {
+            $ModalEmitter->setLoadingMessage('Daten werden geladen');
+        }
         $Pipeline->appendEmitter($ModalEmitter);
 
         return $Pipeline;
@@ -248,10 +246,10 @@ class ApiLeaveStudent extends Extension implements IApiInterface
                 $_POST['Search'] = '';
 
                 return new Success(@"{$tblPerson->getLastFirstNameWithCallNameUnderline()} wurde erfolgreich den Schulabgängern hinzugefügt", new SuccessIcon())
-                    . self::pipelineClose()
-                    . self::pipelineLoadContent($SchoolTypeId, $YearId)
-                    ;
-                    // . LeaveStudent::useFrontend()->loadAddStudentContent($SchoolTypeId, $YearId);
+//                    . self::pipelineClose()
+//                    . self::pipelineLoadContent($SchoolTypeId, $YearId);
+                     . LeaveStudent::useFrontend()->loadAddStudentContent($SchoolTypeId, $YearId)
+                    . self::pipelineLoadContent($SchoolTypeId, $YearId, 'false');
             }
         }
 
