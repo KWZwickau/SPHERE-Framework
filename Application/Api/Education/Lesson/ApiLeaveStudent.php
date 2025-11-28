@@ -34,10 +34,13 @@ class ApiLeaveStudent extends Extension implements IApiInterface
     {
         $Dispatcher = new Dispatcher(__CLASS__);
         $Dispatcher->registerMethod('loadContent');
+
         $Dispatcher->registerMethod('openAddStudentModal');
         $Dispatcher->registerMethod('searchPerson');
         $Dispatcher->registerMethod('saveAddStudentModal');
+
         $Dispatcher->registerMethod('openEditModal');
+        $Dispatcher->registerMethod('saveEditModal');
 
         return $Dispatcher->callMethod($Method);
     }
@@ -104,6 +107,7 @@ class ApiLeaveStudent extends Extension implements IApiInterface
      * @param null $Data
      *
      * @return string
+     * @noinspection PhpUnused
      */
     public function loadContent($SchoolTypeId = null, $YearId = null, $Data = null): string
     {
@@ -146,6 +150,7 @@ class ApiLeaveStudent extends Extension implements IApiInterface
      * @param null|array $Data
      *
      * @return string
+     * @noinspection PhpUnused
      */
     public function openAddStudentModal($SchoolTypeId, $YearId, ?array $Data = null): string
     {
@@ -187,6 +192,7 @@ class ApiLeaveStudent extends Extension implements IApiInterface
      * @param null $Search
      *
      * @return string
+     * @noinspection PhpUnused
      */
     public function searchPerson($SchoolTypeId = null, $YearId = null, $Search = null): string
     {
@@ -224,6 +230,7 @@ class ApiLeaveStudent extends Extension implements IApiInterface
      * @param $PersonId
      *
      * @return string
+     * @noinspection PhpUnused
      */
     public function saveAddStudentModal($SchoolTypeId = null, $YearId = null, $PersonId = null): string
     {
@@ -254,5 +261,116 @@ class ApiLeaveStudent extends Extension implements IApiInterface
         }
 
         return new Danger('Person wurde nicht gefunden!', new Exclamation());
+    }
+
+    /**
+     * @param $SchoolTypeId
+     * @param $YearId
+     * @param $Identifier
+     *
+     * @return Pipeline
+     */
+    public static function pipelineOpenEditModal($SchoolTypeId, $YearId, $Identifier): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'openEditModal',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'SchoolTypeId' => $SchoolTypeId,
+            'YearId' => $YearId,
+            'Identifier' => $Identifier
+        ));
+
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $SchoolTypeId
+     * @param $YearId
+     * @param $Identifier
+     * @param null|array $Data
+     *
+     * @return string
+     * @noinspection PhpUnused
+     */
+    public function openEditModal($SchoolTypeId, $YearId, $Identifier, ?array $Data = null): string
+    {
+        if (($tblSchoolType = Type::useService()->getTypeById($SchoolTypeId))
+            && ($tblYear = Term::useService()->getYearById($YearId))
+        ) {
+            LeaveStudent::useService()->updateLeaveStudent($tblSchoolType, $tblYear, $Data ?: null);
+        }
+
+        return LeaveStudent::useFrontend()->loadEditModalContent($SchoolTypeId, $YearId, $Identifier, $Data);
+    }
+
+    /**
+     * @param $SchoolTypeId
+     * @param $YearId
+     * @param $Identifier
+     * @param $EditData
+     *
+     * @return Pipeline
+     */
+    public static function pipelineEditModalSave($SchoolTypeId, $YearId, $Identifier, $EditData): Pipeline
+    {
+        $Pipeline = new Pipeline();
+        $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'saveEditModal'
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'SchoolTypeId' => $SchoolTypeId,
+            'YearId' => $YearId,
+            'Identifier' => $Identifier,
+            'EditData' => $EditData,
+        ));
+        $ModalEmitter->setLoadingMessage('Wird bearbeitet');
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param null $SchoolTypeId
+     * @param null $YearId
+     * @param null $Identifier
+     * @param null $EditData
+     *
+     * @return string
+     * @noinspection PhpUnused
+     */
+    public function saveEditModal($SchoolTypeId = null, $YearId = null, $Identifier = null, $EditData = null): string
+    {
+        if (!($tblSchoolType = Type::useService()->getTypeById($SchoolTypeId))
+            || !($tblYear = Term::useService()->getYearById($YearId))
+        ) {
+            return new Danger('Daten konnten nicht gespeichert werden', new Exclamation());
+        }
+
+        $Data = [];
+        if (($tblLeaveStudent = LeaveStudent::useService()->getLeaveStudentBy($tblSchoolType, $tblYear))) {
+            $Data = $tblLeaveStudent->getData();
+        }
+
+
+        $value = $EditData[$Identifier] ?? null;
+        if (isset($EditData['Persons'])) {
+            foreach ($EditData['Persons'] as $personId => $selected) {
+                if (isset($Data[$personId][$Identifier])) {
+                    $Data[$personId][$Identifier] = $value;
+                }
+            }
+        }
+
+        LeaveStudent::useService()->updateLeaveStudent($tblSchoolType, $tblYear, $Data);
+
+        return new Success('Daten wurde erfolgreich übernommen', new SuccessIcon())
+            . self::pipelineClose()
+            . self::pipelineLoadContent($SchoolTypeId, $YearId);
     }
 }

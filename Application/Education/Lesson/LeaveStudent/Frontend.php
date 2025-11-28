@@ -4,6 +4,7 @@ namespace SPHERE\Application\Education\Lesson\LeaveStudent;
 
 use DateTime;
 use SPHERE\Application\Api\Education\Lesson\ApiLeaveStudent;
+use SPHERE\Application\Corporation\Company\Company;
 use SPHERE\Application\Corporation\Group\Group as CorporationGroup;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
@@ -29,10 +30,12 @@ use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\Calendar;
+use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Filter;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
+use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Search;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
@@ -40,6 +43,7 @@ use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
+use SPHERE\Common\Frontend\Link\Repository\ToggleCheckbox;
 use SPHERE\Common\Frontend\Message\IMessageInterface;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
@@ -48,6 +52,7 @@ use SPHERE\System\Extension\Extension;
 
 class Frontend extends Extension implements IFrontendInterface
 {
+    /** @noinspection PhpUnused */
     public function frontendLeaveStudent(): Stage
     {
         $stage = new Stage('Schulabgänger');
@@ -183,10 +188,19 @@ class Frontend extends Extension implements IFrontendInterface
         $headerColumnList['Select'] = $frontendDivisionCourse->getTableHeaderColumn('Auswahl', $backgroundColor);
         $headerColumnList['Name'] = $frontendDivisionCourse->getTableHeaderColumn('Name', $backgroundColor);
         $headerColumnList['DivisionCourse'] = $frontendDivisionCourse->getTableHeaderColumn('Aktueller Kurs', $backgroundColor);
-        $headerColumnList['LeaveDate'] = $frontendDivisionCourse->getTableHeaderColumn('Abgangsdatum', $backgroundColor);
+        $headerColumnList['LeaveDate'] = $frontendDivisionCourse->getTableHeaderColumn(
+            'Abgangsdatum' . $this->getEditButton($tblSchoolType, $tblYear, 'LeaveDate'),
+            $backgroundColor
+        );
+        $headerColumnList['Company'] = $frontendDivisionCourse->getTableHeaderColumn(
+            'Aufnehmende Schule'  . $this->getEditButton($tblSchoolType, $tblYear, 'Company'),
+            $backgroundColor
+        );
         $headerColumnList['GroupArchive'] = $frontendDivisionCourse->getTableHeaderColumn('In Gruppe: "Ehemalige (Archiv)" verschieben', $backgroundColor);
-        $headerColumnList['GroupIndividual'] = $frontendDivisionCourse->getTableHeaderColumn('In individuelle Gruppe verschieben', $backgroundColor);
-        $headerColumnList['Company'] = $frontendDivisionCourse->getTableHeaderColumn('Aufnehmende Schule', $backgroundColor);
+        $headerColumnList['GroupIndividual'] = $frontendDivisionCourse->getTableHeaderColumn(
+            'In individuelle Gruppe verschieben' . $this->getEditButton($tblSchoolType, $tblYear, 'GroupIndividual'),
+            $backgroundColor
+        );
 
         // Sortierung nach mehreren Properties
         usort($dataList, function ($a, $b) {
@@ -213,6 +227,12 @@ class Frontend extends Extension implements IFrontendInterface
         ]));
 
         return $content;
+    }
+
+    private function getEditButton(TblType $tblSchoolType, TblYear $tblYear, string $identifier): string
+    {
+        return ' ' . (new Standard('Alle bearbeiten', ApiLeaveStudent::getEndpoint()))
+            ->ajaxPipelineOnClick(ApiLeaveStudent::pipelineOpenEditModal($tblSchoolType->getId(), $tblYear->getId(), $identifier));
     }
 
     private function getPersonData(TblType $tblSchoolType, TblYear $tblYear, TblPerson $tblPerson, ?TblStudentEducation $tblStudentEducation,
@@ -284,27 +304,34 @@ class Frontend extends Extension implements IFrontendInterface
 
             $post->savePost();
 
-            $divisionCourse = '';
-            if ($tblStudentEducation) {
-                if (($tblDivision = $tblStudentEducation->getTblDivision())) {
-                    $divisionCourse = $tblDivision->getName();
-                } elseif (($tblCoreGroup = $tblStudentEducation->getTblCoreGroup())) {
-                    $divisionCourse = $tblCoreGroup->getName();
-                }
-            }
+
 
             return [
                 'Select' => new CheckBox(@"Data[{$tblPerson->getId()}][Select]", ' ', 1),
                 'Name' => $tblPerson->getLastFirstNameWithCallNameUnderline(true) . (isset($data['Added']) ? new HiddenField(@"Data[{$tblPerson->getId()}][Added]") : ''),
-                'DivisionCourse' => $divisionCourse,
+                'DivisionCourse' => $this->getDivisionCourseName($tblStudentEducation ?: null),
                 'LeaveDate' => new DatePicker(@"Data[{$tblPerson->getId()}][LeaveDate]", '', '', new Calendar()),
+                'Company' => new SelectBox(@"Data[{$tblPerson->getId()}][Company]", '', ['{{ Name }}' => $tblCompanies]),
                 'GroupArchive' => (new CheckBox(@"Data[{$tblPerson->getId()}][GroupArchive]", ' ', 1))->setChecked()->setDisabled(),
                 'GroupIndividual' => new SelectBox(@"Data[{$tblPerson->getId()}][GroupIndividual]", '', ['{{ Name }}' => $tblGroupsCustom]),
-                'Company' => new SelectBox(@"Data[{$tblPerson->getId()}][Company]", '', ['{{ Name }}' => $tblCompanies]),
             ];
         }
 
         return null;
+    }
+
+    private function getDivisionCourseName(?TblStudentEducation $tblStudentEducation): string
+    {
+        $divisionCourse = '';
+        if ($tblStudentEducation) {
+            if (($tblDivision = $tblStudentEducation->getTblDivision())) {
+                $divisionCourse = $tblDivision->getName();
+            } elseif (($tblCoreGroup = $tblStudentEducation->getTblCoreGroup())) {
+                $divisionCourse = $tblCoreGroup->getName();
+            }
+        }
+
+        return $divisionCourse;
     }
 
     /**
@@ -364,22 +391,15 @@ class Frontend extends Extension implements IFrontendInterface
                     // nur nach Schülern suchen
                     if (Group::useService()->existsGroupPerson($tblGroup, $tblPerson)) {
                         $schoolType = '';
-                        $divisionCourse = '';
                         if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYearAndDateWithLeaved($tblPerson, $tblYear))) {
                             $schoolType = ($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType()) ? $tblSchoolType->getName() : '';
-
-                            if (($tblDivision = $tblStudentEducation->getTblDivision())) {
-                                $divisionCourse  = $tblDivision->getName();
-                            } elseif (($tblCoreGroup = $tblStudentEducation->getTblCoreGroup())) {
-                                $divisionCourse  = $tblCoreGroup->getName();
-                            }
                         }
 
                         $resultList[] = array(
                             'FirstName' => $tblPerson->getFirstSecondName(),
                             'LastName' => $tblPerson->getLastName(),
                             'SchoolType' => $schoolType,
-                            'DivisionCourse' => $divisionCourse,
+                            'DivisionCourse' => $this->getDivisionCourseName($tblStudentEducation ?: null),
                             'Option' => isset($Data[$tblPerson->getId()])
                                 ? new \SPHERE\Common\Frontend\Text\Repository\Warning('bereits enthalten')
                                 : (new Standard('', ApiLeaveStudent::getEndpoint(), new PlusSign()))
@@ -422,5 +442,101 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         return $result . ($message ?: '');
+    }
+
+    /**
+     * @param $SchoolTypeId
+     * @param $YearId
+     * @param string $Identifier
+     * @param array $Data
+     * @param array|null $EditData
+     *
+     * @return string
+     */
+    public function loadEditModalContent($SchoolTypeId, $YearId, string $Identifier, array $Data, ?array $EditData = null): string
+    {
+        /** @noinspection PhpUnusedLocalVariableInspection */
+        if (!($tblSchoolType = Type::useService()->getTypeById($SchoolTypeId))
+            || !($tblYear = Term::useService()->getYearById($YearId))
+        ) {
+            return '';
+        }
+
+        $name = match ($Identifier) {
+            'LeaveDate' => 'Abgangsdatum',
+            'GroupIndividual' => 'Individuelle Gruppe',
+            'Company' => 'Aufnehmende Schule',
+            default => ''
+        };
+
+        $frontendDivisionCourse = DivisionCourse::useFrontend();
+        $backgroundColor = '#E0F0FF';
+
+        $headerColumnList = [];
+        $headerColumnList['Select'] = $frontendDivisionCourse->getTableHeaderColumn('Auswahl', $backgroundColor);
+        $headerColumnList['Name'] = $frontendDivisionCourse->getTableHeaderColumn('Name', $backgroundColor);
+        $headerColumnList['DivisionCourse'] = $frontendDivisionCourse->getTableHeaderColumn('Aktueller Kurs', $backgroundColor);
+        $headerColumnList[$Identifier] = $frontendDivisionCourse->getTableHeaderColumn($name, $backgroundColor);
+
+        $dataList = [];
+        $global = $this->getGlobal();
+        foreach ($Data as $personId => $item) {
+            if (($tblPerson = Person::useService()->getPersonById($personId))) {
+                $global->POST['EditData']['Persons'][$personId] = 1;
+                $global->savePost();
+
+                $content = match($Identifier) {
+                    'LeaveDate' => $item['LeaveDate'] ?? '',
+                    'GroupIndividual' => $item['GroupIndividual']
+                        ? (($tblGroup = Group::useService()->getGroupById($item['GroupIndividual']))
+                            ? $tblGroup->getName()
+                            : ''
+                        )
+                        : '',
+                    'Company' => $item['Company']
+                        ? (($tblCompany = Company::useService()->getCompanyById($item['Company']))
+                            ? $tblCompany->getName()
+                            : ''
+                        )
+                        : '',
+                    default => ''
+                };
+
+                $tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear);
+
+                $dataList[] = [
+                    'Select' => new CheckBox(@"EditData[Persons][{$tblPerson->getId()}]", ' ', 1),
+                    'Name' => $tblPerson->getLastFirstNameWithCallNameUnderline(true),
+                    'DivisionCourse' => $this->getDivisionCourseName($tblStudentEducation ?: null),
+                    $Identifier => $content,
+                ];
+            }
+        }
+
+        $field = match ($Identifier) {
+            'LeaveDate' => new DatePicker('EditData[LeaveDate]', '', '', new Calendar()),
+            'GroupIndividual' => new SelectBox('EditData[GroupIndividual]', '',
+                ['{{ Name }}' => Group::useService()->getGroupAllSorted(true)]),
+            'Company' => new SelectBox('EditData[Company]', '',
+                ['{{ Name }}' => CorporationGroup::useService()->getCompanyAllByGroup(CorporationGroup::useService()->getGroupByMetaTable('SCHOOL'))]),
+            default => ''
+        };
+
+        $form = new Form(new FormGroup([
+            new FormRow(new FormColumn(
+                DivisionCourse::useFrontend()->getTableCustom($headerColumnList, $dataList)
+            )),
+            new FormRow(new FormColumn(
+                new Panel($name, $field, Panel::PANEL_TYPE_INFO)
+            )),
+            new FormRow(new FormColumn(
+                (new Primary('Speichern', ApiLeaveStudent::getEndpoint(), new Save()))
+                    ->ajaxPipelineOnClick(ApiLeaveStudent::pipelineEditModalSave($SchoolTypeId, $YearId, $Identifier, $EditData))
+            )),
+        ]));
+
+        return new Title(new Edit() . ' Massenänderung für: ' . $name)
+            . new ToggleCheckbox('Alle auswählen/abwählen', $form)
+            . $form;
     }
 }
