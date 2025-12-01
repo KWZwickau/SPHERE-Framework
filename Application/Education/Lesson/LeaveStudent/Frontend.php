@@ -35,12 +35,14 @@ use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Filter;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
+use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Search;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
+use SPHERE\Common\Frontend\Link\Repository\Danger;
 use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Link\Repository\ToggleCheckbox;
@@ -223,7 +225,13 @@ class Frontend extends Extension implements IFrontendInterface
             )),
             new FormRow(new FormColumn(
                 DivisionCourse::useFrontend()->getTableCustom($headerColumnList, $dataList)
-            ))
+            )),
+            new FormRow(new FormColumn([
+                (new Danger('Unwiderruflich Speichern', ApiLeaveStudent::getEndpoint(), new Save()))
+                    ->ajaxPipelineOnClick(ApiLeaveStudent::pipelineSaveLeaveStudent($tblSchoolType->getId(), $tblYear->getId())),
+                (new Standard('Abbrechen', ApiLeaveStudent::getEndpoint(), new Remove()))
+                    ->ajaxPipelineOnClick(ApiLeaveStudent::pipelineCancelLeaveStudent($tblSchoolType->getId(), $tblYear->getId()))
+            ])),
         ]));
 
         return $content;

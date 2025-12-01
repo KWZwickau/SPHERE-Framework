@@ -2,12 +2,17 @@
 
 namespace SPHERE\Application\Api\Education\Lesson;
 
+use DateTime;
 use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
+use SPHERE\Application\Corporation\Company\Company;
 use SPHERE\Application\Education\Lesson\LeaveStudent\LeaveStudent;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\IApiInterface;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransfer;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransferType;
+use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
@@ -41,6 +46,9 @@ class ApiLeaveStudent extends Extension implements IApiInterface
 
         $Dispatcher->registerMethod('openEditModal');
         $Dispatcher->registerMethod('saveEditModal');
+
+        $Dispatcher->registerMethod('cancelLeaveStudent');
+        $Dispatcher->registerMethod('saveLeaveStudent');
 
         return $Dispatcher->callMethod($Method);
     }
@@ -371,6 +379,135 @@ class ApiLeaveStudent extends Extension implements IApiInterface
 
         return new Success('Daten wurde erfolgreich übernommen', new SuccessIcon())
             . self::pipelineClose()
+            . self::pipelineLoadContent($SchoolTypeId, $YearId);
+    }
+
+    /**
+     * @param $SchoolTypeId
+     * @param $YearId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineCancelLeaveStudent($SchoolTypeId, $YearId): Pipeline
+    {
+        $Pipeline = new Pipeline();
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'Content'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'cancelLeaveStudent'
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'SchoolTypeId' => $SchoolTypeId,
+            'YearId' => $YearId,
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param null $SchoolTypeId
+     * @param null $YearId
+     *
+     * @return string
+     * @noinspection PhpUnused
+     */
+    public function cancelLeaveStudent($SchoolTypeId = null, $YearId = null): string
+    {
+        if (!($tblSchoolType = Type::useService()->getTypeById($SchoolTypeId))
+            || !($tblYear = Term::useService()->getYearById($YearId))
+        ) {
+            return new Danger('Daten konnten nicht gespeichert werden', new Exclamation());
+        }
+
+        // Daten leeren
+        LeaveStudent::useService()->updateLeaveStudent($tblSchoolType, $tblYear, []);
+
+        return new Success('Daten wurde zurückgesetzt', new SuccessIcon())
+            . self::pipelineLoadContent($SchoolTypeId, $YearId);
+    }
+
+    /**
+     * @param $SchoolTypeId
+     * @param $YearId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineSaveLeaveStudent($SchoolTypeId, $YearId): Pipeline
+    {
+        $Pipeline = new Pipeline();
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'Content'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'saveLeaveStudent'
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'SchoolTypeId' => $SchoolTypeId,
+            'YearId' => $YearId,
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param null $SchoolTypeId
+     * @param null $YearId
+     * @param null $Data
+     *
+     * @return string
+     */
+    public function saveLeaveStudent($SchoolTypeId = null, $YearId = null, $Data = null): string
+    {
+        if (!($tblSchoolType = Type::useService()->getTypeById($SchoolTypeId))
+            || !($tblYear = Term::useService()->getYearById($YearId))
+        ) {
+            return new Danger('Daten konnten nicht gespeichert werden', new Exclamation());
+        }
+
+        $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier(TblStudentTransferType::LEAVE);
+        $bulkStudentTransferSave = [];
+        $bulkStudentTransferProtocol = [];
+        foreach ($Data as $personId => $item) {
+            if (isset($item['Select'])
+                && ($tblPerson = Person::useService()->getPersonById($personId))
+            ) {
+                if (!empty($item['LeaveDate']) || !empty($item['Company'])) {
+                    if (!($tblStudent = $tblPerson->getStudent())) {
+                        $tblStudent = Student::useService()->createStudent($tblPerson);
+                    }
+
+                    if (!($tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent, $tblStudentTransferType))) {
+                        $tblStudentTransfer = new TblStudentTransfer();
+                        $bulkStudentTransferProtocol[] = false;
+                        $tblStudentTransfer->setTblStudent($tblStudent);
+                        $tblStudentTransfer->setTblStudentTransferType($tblStudentTransferType);
+                        $tblStudentTransfer->setRemark('');
+                    } else {
+                        $bulkStudentTransferProtocol[] = clone $tblStudentTransfer;
+                    }
+
+                    if (!empty($item['LeaveDate'])) {
+                        $tblStudentTransfer->setTransferDate(new DateTime($item['LeaveDate']));
+                    }
+                    if (!empty($item['Company']) && ($tblCompany = Company::useService()->getCompanyById($item['Company']))) {
+                        $tblStudentTransfer->setServiceTblCompany($tblCompany);
+                    }
+
+                    $bulkStudentTransferSave[] = $tblStudentTransfer;
+                }
+
+                // TODO: Gruppen
+
+                // TODO: Schülerbildung
+            }
+        }
+
+        if (!empty($bulkStudentTransferSave)) {
+            Student::useService()->bulkSaveEntityList($bulkStudentTransferSave, $bulkStudentTransferProtocol);
+        }
+
+        // TODO: meldung Admin Nutzerzugänge
+
+        return new Success('Daten wurde zurückgesetzt', new SuccessIcon())
             . self::pipelineLoadContent($SchoolTypeId, $YearId);
     }
 }
