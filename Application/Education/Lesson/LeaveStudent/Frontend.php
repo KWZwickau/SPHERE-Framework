@@ -77,6 +77,7 @@ class Frontend extends Extension implements IFrontendInterface
             . new Container('&nbsp;&nbsp;&nbsp;3. Schulabgänger wird optional in eine ausgewählte individuelle Personen-Gruppe hinzugefügt')
             . new Container('&nbsp;&nbsp;&nbsp;4. Für Schulabgänger wird das ausgewählte Abgangsdatum gesetzt')
             . new Container('&nbsp;&nbsp;&nbsp;5. Für Schulabgänger wird optional die ausgewählte Aufnehmende Schule gesetzt')
+            . new Container('&nbsp;&nbsp;&nbsp;6. Für Schulabgänger wird der Schulverlauf (Schülerbildung) für zukünftige Schuljahre entfernt')
         );
 
         $stage->setContent(
@@ -301,7 +302,7 @@ class Frontend extends Extension implements IFrontendInterface
         if ($isAdd) {
             $post = $this->getGlobal();
 
-            $post->POST['Data'][$tblPerson->getId()]['Select'] = isset($data['Select']) ?: $isSelected;
+            $post->POST['Data'][$tblPerson->getId()]['Select'] = empty($data) ? $isSelected : (isset($data['Select']) ?: 0);
             $post->POST['Data'][$tblPerson->getId()]['LeaveDate'] = $data['LeaveDate']
                 ?? ($leaveDate ? $leaveDate->format('d.m.Y') : $endDate->format('d.m.Y'));
             $post->POST['Data'][$tblPerson->getId()]['Company'] = $data['Company']
@@ -311,8 +312,6 @@ class Frontend extends Extension implements IFrontendInterface
             }
 
             $post->savePost();
-
-
 
             return [
                 'Select' => new CheckBox(@"Data[{$tblPerson->getId()}][Select]", ' ', 1),

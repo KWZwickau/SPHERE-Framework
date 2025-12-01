@@ -6,10 +6,12 @@ use DateTime;
 use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\Corporation\Company\Company;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\LeaveStudent\LeaveStudent;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\IApiInterface;
+use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransfer;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransferType;
 use SPHERE\Application\People\Meta\Student\Student;
@@ -454,22 +456,39 @@ class ApiLeaveStudent extends Extension implements IApiInterface
      * @param null $Data
      *
      * @return string
+     * @noinspection PhpUnused
      */
     public function saveLeaveStudent($SchoolTypeId = null, $YearId = null, $Data = null): string
     {
+        /** @noinspection PhpUnusedLocalVariableInspection */
         if (!($tblSchoolType = Type::useService()->getTypeById($SchoolTypeId))
             || !($tblYear = Term::useService()->getYearById($YearId))
         ) {
             return new Danger('Daten konnten nicht gespeichert werden', new Exclamation());
         }
 
+        $tblFuturYears = [];
+        $endDate = $tblYear->getEndDateTime();
+        if (($tblYearList = Term::useService()->getYearAll())) {
+            foreach ($tblYearList as $year) {
+                $startDate = $year->getStartDateTime();
+                if ($startDate > $endDate) {
+                    $tblFuturYears[$year->getId()] = $year;
+                }
+            }
+        }
+
+        $tblGroupStudent = Group::useService()->getGroupByMetaTable('STUDENT');
+        $tblGroupArchive = Group::useService()->getGroupByMetaTable('ARCHIVE');
         $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier(TblStudentTransferType::LEAVE);
         $bulkStudentTransferSave = [];
         $bulkStudentTransferProtocol = [];
+        $count = 0;
         foreach ($Data as $personId => $item) {
             if (isset($item['Select'])
                 && ($tblPerson = Person::useService()->getPersonById($personId))
             ) {
+                $count++;
                 if (!empty($item['LeaveDate']) || !empty($item['Company'])) {
                     if (!($tblStudent = $tblPerson->getStudent())) {
                         $tblStudent = Student::useService()->createStudent($tblPerson);
@@ -495,9 +514,30 @@ class ApiLeaveStudent extends Extension implements IApiInterface
                     $bulkStudentTransferSave[] = $tblStudentTransfer;
                 }
 
-                // TODO: Gruppen
+                // Gruppen
+                if (Group::useService()->existsGroupPerson($tblGroupStudent, $tblPerson)) {
+                    Group::useService()->removeGroupPerson($tblGroupStudent, $tblPerson);
+                }
+                if (!Group::useService()->existsGroupPerson($tblGroupArchive, $tblPerson)) {
+                    Group::useService()->addGroupPerson($tblGroupArchive, $tblPerson);
+                }
+                if (!empty($item['GroupIndividual'])
+                    && ($tblGroup = Group::useService()->getGroupById($item['GroupIndividual']))
+                    && !Group::useService()->existsGroupPerson($tblGroup, $tblPerson)
+                ) {
+                    Group::useService()->addGroupPerson($tblGroup, $tblPerson);
+                }
 
-                // TODO: Schülerbildung
+                // Schülerbildung löschen, falls es diese für die zukunft gibt
+                if (($tblStudentEducationList = DivisionCourse::useService()->getStudentEducationListByPerson($tblPerson))) {
+                    foreach ($tblStudentEducationList as $tblStudentEducation) {
+                        if (($tblYearTemp = $tblStudentEducation->getServiceTblYear())
+                            && isset($tblFuturYears[$tblYearTemp->getId()])
+                        ) {
+                            DivisionCourse::useService()->destroyStudentEducation($tblStudentEducation);
+                        }
+                    }
+                }
             }
         }
 
@@ -507,7 +547,8 @@ class ApiLeaveStudent extends Extension implements IApiInterface
 
         // TODO: meldung Admin Nutzerzugänge
 
-        return new Success('Daten wurde zurückgesetzt', new SuccessIcon())
-            . self::pipelineLoadContent($SchoolTypeId, $YearId);
+        // TODO: Weiterleitung zu abmeldebescheinigung
+
+        return new Success(@"$count Schüler wurden zu Schulabgänger gemacht", new SuccessIcon());
     }
 }
