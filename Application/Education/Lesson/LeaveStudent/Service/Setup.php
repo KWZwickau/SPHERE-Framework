@@ -44,5 +44,7 @@ class Setup extends AbstractSetup
         $this->createColumn($table, 'serviceTblSchoolType', self::FIELD_TYPE_BIGINT);
         $this->createColumn($table, 'serviceTblYear', self::FIELD_TYPE_INTEGER);
         $this->createColumn($table, 'Data', self::FIELD_TYPE_TEXT);
+        $this->createColumn($table, 'IsPrintView', self::FIELD_TYPE_BOOLEAN);
+        $this->createColumn($table, 'DocumentDate', self::FIELD_TYPE_DATETIME, true);
     }
 }

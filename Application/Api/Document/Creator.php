@@ -47,6 +47,7 @@ use SPHERE\Application\Education\Absence\Absence;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\Education\Graduation\Grade\Grade;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\Education\Lesson\LeaveStudent\LeaveStudent;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Term;
@@ -1404,6 +1405,82 @@ class Creator extends Extension
                     $PdfMerger->addPdf($File);
                     // speichern der Files zum nachträglichem bereinigen
                     $FileList[] = $File;
+                }
+
+                // mergen aller hinzugefügten PDF-Datein
+                $PdfMerger->mergePdf($MergeFile);
+                if(!empty($FileList)){
+                    // aufräumen der Temp-Files
+                    /** @var FilePointer $File */
+                    foreach($FileList as $File){
+                        $File->setDestruct();
+                    }
+                }
+
+                if (!empty($FileList)) {
+                    $FileName = 'Abmeldebescheinigung Kurs ' . $tblDivisionCourse->getName() . ' ' . date("Y-m-d") . ".pdf";
+
+                    return self::buildDownloadFile($MergeFile, $FileName);
+                }
+            }
+        }
+
+        return "Keine Abmeldebescheinigung vorhanden!";
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $PersonIdList
+     * @param $LeaveStudentId
+     * @param bool $Redirect
+     *
+     * @return string
+     */
+    public static function createLeaveStudentSignOutCertificatePdf($DivisionCourseId, $PersonIdList, $LeaveStudentId, bool $Redirect): string
+    {
+        if ($Redirect) {
+            return \SPHERE\Application\Api\Education\Certificate\Generator\Creator::displayWaitingPage(
+                '/Api/Document/Standard/SignOutCertificate/CreateLeaveStudent',
+                array(
+                    'DivisionCourseId' => $DivisionCourseId,
+                    'PersonIdList' => $PersonIdList,
+                    'LeaveStudentId' => $LeaveStudentId,
+                    'Redirect' => 0
+                )
+            );
+        }
+
+        if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))
+            && ($tblYear = $tblDivisionCourse->getServiceTblYear())
+        ) {
+            // Filepointer auf dem der Merge durchgeführt wird, (download)
+            $MergeFile = Storage::createFilePointer('pdf');
+            $PdfMerger = new PdfMerge();
+
+            if (!empty($PersonIdList)){
+                $FileList = array();
+
+                if (($tblLeaveStudent = LeaveStudent::useService()->getLeaveStudentById($LeaveStudentId))
+                    && $tblLeaveStudent->getDocumentDate()
+                ) {
+                    $Data['Date'] = $tblLeaveStudent->getDocumentDate()->format('d.m.Y');
+                } else {
+                    $Data['Date'] = (new DateTime('today'))->format('d.m.Y');
+                }
+
+                foreach ($PersonIdList as $personId) {
+                    if (($tblPerson = Person::useService()->getPersonById($personId))) {
+                        set_time_limit(300);
+
+                        $Document = new SignOutCertificate(\SPHERE\Application\Document\Standard\SignOutCertificate\SignOutCertificate::useService()
+                            ->getSignOutCertificateData($tblPerson, $tblYear, $Data));
+                        $File = self::buildDummyFile($Document, array(), array());
+
+                        // hinzufügen für das mergen
+                        $PdfMerger->addPdf($File);
+                        // speichern der Files zum nachträglichem bereinigen
+                        $FileList[] = $File;
+                    }
                 }
 
                 // mergen aller hinzugefügten PDF-Datein

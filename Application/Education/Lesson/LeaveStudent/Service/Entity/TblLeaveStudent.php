@@ -2,6 +2,7 @@
 
 namespace SPHERE\Application\Education\Lesson\LeaveStudent\Service\Entity;
 
+use DateTime;
 use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
@@ -34,6 +35,14 @@ class TblLeaveStudent extends Element
      * @Column(type="string")
      */
     protected string $Data;
+    /**
+     * @Column(type="boolean")
+     */
+    protected bool $IsPrintView;
+    /**
+     * @Column(type="datetime")
+     */
+    protected ?DateTime $DocumentDate = null;
 
     /**
      * @return false|TblType
@@ -82,5 +91,41 @@ class TblLeaveStudent extends Element
     public function setData(array $Data): void
     {
         $this->Data = json_encode($Data);
+    }
+
+    /**
+     * @return bool
+     */
+    public function isPrintView(): bool
+    {
+        return $this->IsPrintView;
+    }
+
+    /**
+     * @param bool $IsPrintView
+     *
+     * @return void
+     */
+    public function setIsPrintView(bool $IsPrintView): void
+    {
+        $this->IsPrintView = $IsPrintView;
+    }
+
+    /**
+     * @return DateTime|null
+     */
+    public function getDocumentDate(): ?DateTime
+    {
+        return $this->DocumentDate;
+    }
+
+    /**
+     * @param DateTime|null $DocumentDate
+     *
+     * @return void
+     */
+    public function setDocumentDate(?DateTime $DocumentDate): void
+    {
+        $this->DocumentDate = $DocumentDate;
     }
 }

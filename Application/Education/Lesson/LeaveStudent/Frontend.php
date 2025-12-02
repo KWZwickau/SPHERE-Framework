@@ -9,6 +9,7 @@ use SPHERE\Application\Corporation\Group\Group as CorporationGroup;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblStudentEducation;
+use SPHERE\Application\Education\Lesson\LeaveStudent\Service\Entity\TblLeaveStudent;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
@@ -30,6 +31,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\Calendar;
+use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Filter;
@@ -111,11 +113,12 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param $Data
+     * @param null $Data
+     * @param bool $loadFormData
      *
      * @return string
      */
-    public function loadContent($Data = null): string
+    public function loadContent($Data = null, bool $loadFormData = true): string
     {
         $content = '';
         $tblSchoolType = false;
@@ -132,6 +135,18 @@ class Frontend extends Extension implements IFrontendInterface
             return $content;
         }
 
+        // gespeicherte Daten laden
+        $formData = [];
+        if (($tblLeaveStudent = LeaveStudent::useService()->getLeaveStudentBy($tblSchoolType, $tblYear))) {
+            if ($tblLeaveStudent->isPrintView()) {
+                return $this->loadPrintView($tblLeaveStudent);
+            }
+
+            if ($loadFormData) {
+                $formData = $tblLeaveStudent->getData();
+            }
+        }
+
         $dataList = [];
         if (($tblStudentEducationList = DivisionCourse::useService()->getStudentEducationListBy($tblYear, $tblSchoolType, null, null, null, false))) {
             list(, $endDate) = Term::useService()->getStartDateAndEndDateOfYear($tblYear);
@@ -143,12 +158,6 @@ class Frontend extends Extension implements IFrontendInterface
             $tblCompanies = CorporationGroup::useService()->getCompanyAllByGroup(CorporationGroup::useService()->getGroupByMetaTable('SCHOOL'));
 
             $tblStudentEducationList = $this->getSorter($tblStudentEducationList)->sortObjectBy('Sort');
-
-            // gespeicherte Daten laden
-            $formData = [];
-            if (($tblLeaveStudent = LeaveStudent::useService()->getLeaveStudentBy($tblSchoolType, $tblYear))) {
-                $formData = $tblLeaveStudent->getData();
-            }
 
             // automatische Schulabgänger ermitteln
             /** @var TblStudentEducation $tblStudentEducation */
@@ -545,5 +554,117 @@ class Frontend extends Extension implements IFrontendInterface
         return new Title(new Edit() . ' Massenänderung für: ' . $name)
             . new ToggleCheckbox('Alle auswählen/abwählen', $form)
             . $form;
+    }
+
+    /**
+     * @param TblLeaveStudent $tblLeaveStudent
+     *
+     * @return string
+     */
+    public function loadPrintView(TblLeaveStudent $tblLeaveStudent): string
+    {
+        if (!($tblSchoolType = $tblLeaveStudent->getServiceTblSchoolType())
+            || !($tblYear = $tblLeaveStudent->getServiceTblYear())
+        ) {
+            return new \SPHERE\Common\Frontend\Message\Repository\Danger('Schulart bzw. Schuljahr wurde nicht gefunden!', new Exclamation());
+        }
+
+        $global = $this->getGlobal();
+        if ($tblLeaveStudent->getDocumentDate()) {
+            $global->POST['Data']['Date'] = $tblLeaveStudent->getDocumentDate()->format('d.m.Y');
+        } else {
+            $today = (new DateTime('today'));
+            $global->POST['Data']['Date'] = $today->format('d.m.Y');
+            LeaveStudent::useService()->updateLeaveStudentSetDocumentDate($tblSchoolType, $tblYear, $today);
+        }
+        $global->savePost();
+
+        $dataList = [];
+        $personIdList = [];
+        foreach ($tblLeaveStudent->getData() as $personId => $item) {
+            if (!isset($item['Select'])
+                || !($tblPerson = Person::useService()->getPersonById($personId))
+            ) {
+                continue;
+            }
+
+            $tblDivisionCourse = null;
+            if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYearWithLeaved($tblPerson, $tblYear))) {
+                if (($tblDivision = $tblStudentEducation->getTblDivision())) {
+                    $tblDivisionCourse = $tblDivision;
+                } elseif (($tblCoreGroup = $tblStudentEducation->getTblCoreGroup())) {
+                    $tblDivisionCourse = $tblCoreGroup;
+                }
+            }
+            if (!$tblDivisionCourse) {
+                continue;
+            }
+
+            if (!isset($dataList[$tblDivisionCourse->getId()])) {
+                $personIdList[$tblDivisionCourse->getId()] = [$personId];
+                $dataList[$tblDivisionCourse->getId()] = [
+                    'Year' => $tblDivisionCourse->getYearName(),
+                    'DivisionCourse' => $tblDivisionCourse->getDisplayName(),
+                    'DivisionCourseType' => $tblDivisionCourse->getTypeName(),
+                    'SchoolTypes' => $tblDivisionCourse->getSchoolTypeListFromStudents(true),
+                    'Count' => 1,
+                    'Option' => ''
+                ];
+            } else {
+                $dataList[$tblDivisionCourse->getId()]['Count']++;
+                $personIdList[$tblDivisionCourse->getId()][] = $personId;
+            }
+        }
+
+        foreach ($dataList as $divisionCourseId => &$value) {
+            $value['Option'] = (new Primary('Download', '/Api/Document/Standard/SignOutCertificate/CreateLeaveStudent', new Download(), [
+                'DivisionCourseId' => $divisionCourseId,
+                'PersonIdList' => $personIdList[$divisionCourseId],
+                'LeaveStudentId' => $tblLeaveStudent->getId()
+            ]))
+            ->setExternal();
+        }
+
+        $table = new TableData($dataList, null,
+            array(
+                'Year' => 'Schuljahr',
+                'DivisionCourse' => 'Kurs',
+                'DivisionCourseType' => 'Kurs-Typ',
+                'SchoolTypes' => 'Schularten',
+                'Count' => 'Schüler',
+                'Option' => '',
+            ), array(
+                'order' => array(
+                    array('0', 'desc'),
+                    array('1', 'asc'),
+                ),
+                'columnDefs' => array(
+                    array('type' => 'natural', 'targets' => 1),
+                    array('orderable' => false, 'width' => '1%', 'targets' => -1)
+                ),
+                'responsive' => false
+            ));
+
+        return new Warning('Bitte informieren Sie Ihren Administrator, dieser soll bitte noch die Schüler- und Eltern-Zugänge entfernen.', new Exclamation())
+            . ApiLeaveStudent::receiverBlock('', 'DocumentDateContent')
+            . new Form(new FormGroup(array(
+                new FormRow(array(
+                    new FormColumn(
+                        new Panel(
+                            'Datum der Ausstellung (Dokument - Datum)',
+                            (new DatePicker('Data[Date]', '', '', new Calendar()))
+                                ->ajaxPipelineOnChange(ApiLeaveStudent::pipelineSaveDocumentDate($tblSchoolType->getId(), $tblYear->getId())),
+                            Panel::PANEL_TYPE_INFO
+                        )
+                    , 6)
+                )),
+                new FormRow(array(
+                    new FormColumn(
+                        $table
+                    )
+                ))
+            )))
+            . (new Standard('Abbrechen', ApiLeaveStudent::getEndpoint(), new Remove()))
+                ->ajaxPipelineOnClick(ApiLeaveStudent::pipelineCancelLeaveStudent($tblSchoolType->getId(), $tblYear->getId()));
     }
 }

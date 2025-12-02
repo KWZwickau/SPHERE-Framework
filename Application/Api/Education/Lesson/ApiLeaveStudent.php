@@ -52,6 +52,8 @@ class ApiLeaveStudent extends Extension implements IApiInterface
         $Dispatcher->registerMethod('cancelLeaveStudent');
         $Dispatcher->registerMethod('saveLeaveStudent');
 
+        $Dispatcher->registerMethod('saveDocumentDate');
+
         return $Dispatcher->callMethod($Method);
     }
 
@@ -121,13 +123,15 @@ class ApiLeaveStudent extends Extension implements IApiInterface
      */
     public function loadContent($SchoolTypeId = null, $YearId = null, $Data = null): string
     {
+        $loadFormData = false;
         if ($SchoolTypeId && $YearId) {
+            $loadFormData = true;
             $Data = [];
             $Data['SchoolType'] = $SchoolTypeId;
             $Data['Year'] = $YearId;
         }
 
-        return LeaveStudent::useFrontend()->loadContent($Data);
+        return LeaveStudent::useFrontend()->loadContent($Data, $loadFormData);
     }
 
 
@@ -422,7 +426,7 @@ class ApiLeaveStudent extends Extension implements IApiInterface
         }
 
         // Daten leeren
-        LeaveStudent::useService()->updateLeaveStudent($tblSchoolType, $tblYear, []);
+        LeaveStudent::useService()->updateLeaveStudent($tblSchoolType, $tblYear, [], false);
 
         return new Success('Daten wurde zurückgesetzt', new SuccessIcon())
             . self::pipelineLoadContent($SchoolTypeId, $YearId);
@@ -460,12 +464,13 @@ class ApiLeaveStudent extends Extension implements IApiInterface
      */
     public function saveLeaveStudent($SchoolTypeId = null, $YearId = null, $Data = null): string
     {
-        /** @noinspection PhpUnusedLocalVariableInspection */
         if (!($tblSchoolType = Type::useService()->getTypeById($SchoolTypeId))
             || !($tblYear = Term::useService()->getYearById($YearId))
         ) {
             return new Danger('Daten konnten nicht gespeichert werden', new Exclamation());
         }
+
+        $tblLeaveStudent = LeaveStudent::useService()->updateLeaveStudent($tblSchoolType, $tblYear, $Data ?: [], true);
 
         $tblFuturYears = [];
         $endDate = $tblYear->getEndDateTime();
@@ -545,10 +550,50 @@ class ApiLeaveStudent extends Extension implements IApiInterface
             Student::useService()->bulkSaveEntityList($bulkStudentTransferSave, $bulkStudentTransferProtocol);
         }
 
-        // TODO: meldung Admin Nutzerzugänge
+        return new Success(@"$count Schüler wurden zu Schulabgänger gemacht", new SuccessIcon())
+            . LeaveStudent::useFrontend()->loadPrintView($tblLeaveStudent);
+    }
 
-        // TODO: Weiterleitung zu abmeldebescheinigung
+    /**
+     * @param $SchoolTypeId
+     * @param $YearId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineSaveDocumentDate($SchoolTypeId, $YearId): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'DocumentDateContent'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'saveDocumentDate',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'SchoolTypeId' => $SchoolTypeId,
+            'YearId' => $YearId,
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
 
-        return new Success(@"$count Schüler wurden zu Schulabgänger gemacht", new SuccessIcon());
+        return $Pipeline;
+    }
+
+    /**
+     * @param $SchoolTypeId
+     * @param $YearId
+     * @param null $Data
+     *
+     * @return string
+     * @noinspection PhpUnused
+     */
+    public function saveDocumentDate($SchoolTypeId, $YearId, $Data = null): string
+    {
+        if (!($tblSchoolType = Type::useService()->getTypeById($SchoolTypeId))
+            || !($tblYear = Term::useService()->getYearById($YearId))
+        ) {
+            return new Danger('Datum der Ausstellung konnte nicht gespeichert werden', new Exclamation());
+        }
+
+        LeaveStudent::useService()->updateLeaveStudentSetDocumentDate($tblSchoolType, $tblYear, empty($Data['Date']) ? null : new DateTime($Data['Date']));
+
+        return '';
     }
 }

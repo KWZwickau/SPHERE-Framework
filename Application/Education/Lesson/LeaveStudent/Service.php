@@ -2,6 +2,7 @@
 
 namespace SPHERE\Application\Education\Lesson\LeaveStudent;
 
+use DateTime;
 use SPHERE\Application\Education\Lesson\LeaveStudent\Service\Data;
 use SPHERE\Application\Education\Lesson\LeaveStudent\Service\Entity\TblLeaveStudent;
 use SPHERE\Application\Education\Lesson\LeaveStudent\Service\Setup;
@@ -32,6 +33,16 @@ class Service extends AbstractService
     }
 
     /**
+     * @param $id
+     *
+     * @return TblLeaveStudent|false
+     */
+    public function getLeaveStudentById($id): TblLeaveStudent|false
+    {
+        return (new Data($this->getBinding()))->getLeaveStudentById($id);
+    }
+
+    /**
      * @param TblType $tblSchoolType
      * @param TblYear $tblYear
      *
@@ -46,11 +57,24 @@ class Service extends AbstractService
      * @param TblType $tblSchoolType
      * @param TblYear $tblYear
      * @param array $Data
+     * @param bool|null $IsPrintView
      *
      * @return TblLeaveStudent
      */
-    public function updateLeaveStudent(TblType $tblSchoolType, TblYear $tblYear, array $Data): TblLeaveStudent
+    public function updateLeaveStudent(TblType $tblSchoolType, TblYear $tblYear, array $Data, ?bool $IsPrintView = null): TblLeaveStudent
     {
-        return (new Data($this->getBinding()))->updateLeaveStudent($tblSchoolType, $tblYear, $Data);
+        return (new Data($this->getBinding()))->updateLeaveStudent($tblSchoolType, $tblYear, $Data, $IsPrintView);
+    }
+
+    /**
+     * @param TblType $tblSchoolType
+     * @param TblYear $tblYear
+     * @param DateTime|null $documentDate
+     *
+     * @return TblLeaveStudent
+     */
+    public function updateLeaveStudentSetDocumentDate(TblType $tblSchoolType, TblYear $tblYear, ?DateTime $documentDate): TblLeaveStudent
+    {
+        return (new Data($this->getBinding()))->updateLeaveStudentSetDocumentDate($tblSchoolType, $tblYear, $documentDate);
     }
 }
