@@ -647,6 +647,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         return new Warning('Bitte informieren Sie Ihren Administrator, dieser soll bitte noch die Schüler- und Eltern-Zugänge entfernen.', new Exclamation())
             . ApiLeaveStudent::receiverBlock('', 'DocumentDateContent')
+            . new Title('Abmeldebescheinigung', 'Kursweise drucken')
             . new Form(new FormGroup(array(
                 new FormRow(array(
                     new FormColumn(
