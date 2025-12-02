@@ -171,7 +171,7 @@ class ApiLeaveStudent extends Extension implements IApiInterface
         if (($tblSchoolType = Type::useService()->getTypeById($SchoolTypeId))
             && ($tblYear = Term::useService()->getYearById($YearId))
         ) {
-            LeaveStudent::useService()->updateLeaveStudent($tblSchoolType, $tblYear, $Data ?: null);
+            LeaveStudent::useService()->updateLeaveStudent($tblSchoolType, $tblYear, $Data ?: []);
         }
 
         return LeaveStudent::useFrontend()->loadAddStudentContent($SchoolTypeId, $YearId);

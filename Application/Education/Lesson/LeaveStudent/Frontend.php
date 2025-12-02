@@ -234,14 +234,20 @@ class Frontend extends Extension implements IFrontendInterface
                 new Container('&nbsp;')
             )),
             new FormRow(new FormColumn(
-                DivisionCourse::useFrontend()->getTableCustom($headerColumnList, $dataList)
+                empty($dataList)
+                    ? new Warning('Keine weiteren Schulabgänger gefunden.', new Ban())
+                    : DivisionCourse::useFrontend()->getTableCustom($headerColumnList, $dataList)
             )),
-            new FormRow(new FormColumn([
-                (new Danger('Unwiderruflich Speichern', ApiLeaveStudent::getEndpoint(), new Save()))
-                    ->ajaxPipelineOnClick(ApiLeaveStudent::pipelineSaveLeaveStudent($tblSchoolType->getId(), $tblYear->getId())),
-                (new Standard('Abbrechen', ApiLeaveStudent::getEndpoint(), new Remove()))
-                    ->ajaxPipelineOnClick(ApiLeaveStudent::pipelineCancelLeaveStudent($tblSchoolType->getId(), $tblYear->getId()))
-            ])),
+            new FormRow(new FormColumn(
+                empty($dataList)
+                    ? []
+                    : [
+                        (new Danger('Unwiderruflich Speichern', ApiLeaveStudent::getEndpoint(), new Save()))
+                            ->ajaxPipelineOnClick(ApiLeaveStudent::pipelineSaveLeaveStudent($tblSchoolType->getId(), $tblYear->getId())),
+                        (new Standard('Abbrechen', ApiLeaveStudent::getEndpoint(), new Remove()))
+                            ->ajaxPipelineOnClick(ApiLeaveStudent::pipelineCancelLeaveStudent($tblSchoolType->getId(), $tblYear->getId()))
+                    ]
+            )),
         ]));
 
         return $content;
