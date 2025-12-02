@@ -92,7 +92,6 @@ use SPHERE\System\Debugger\DebuggerFactory;
 use SPHERE\System\Debugger\Logger\ErrorLogger;
 use SPHERE\System\Debugger\Logger\FileLogger;
 use SPHERE\System\Extension\Extension;
-use SPHERE\System\Extension\Repository\Debugger;
 use SPHERE\System\Extension\Repository\phpSaml;
 
 /**
