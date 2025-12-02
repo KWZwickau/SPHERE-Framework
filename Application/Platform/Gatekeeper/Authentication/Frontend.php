@@ -92,6 +92,7 @@ use SPHERE\System\Debugger\DebuggerFactory;
 use SPHERE\System\Debugger\Logger\ErrorLogger;
 use SPHERE\System\Debugger\Logger\FileLogger;
 use SPHERE\System\Extension\Extension;
+use SPHERE\System\Extension\Repository\Debugger;
 use SPHERE\System\Extension\Repository\phpSaml;
 
 /**
@@ -109,9 +110,11 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Willkommen', '', '');
-        $Date = '2022-08-18 ';
-        $IsMaintenance = (new DateTime('now') >= new DateTime($Date.'13:00:00')
-                       && new DateTime('now') <= new DateTime($Date.'23:59:59'));
+        $DateStart = '2025-12-08 ';
+        $DateEnd = '2025-12-09 ';
+        $IsMaintenance = (new DateTime('now') >= new DateTime($DateStart.'00:00:00')
+                       && new DateTime('now') <= new DateTime($DateEnd.'06:00:00'));
+        $IsMaintenance = true;
         $maintenanceMessage = '';
         $contentTeacherWelcome = false;
         $contentSecretariatWelcome = false;
@@ -165,37 +168,38 @@ class Frontend extends Extension implements IFrontendInterface
         }
         if ($IsMaintenance) {
             $now = new DateTime();
-            if ($now >= new DateTime('22:00')) {
-                $PanelColor = Panel::PANEL_TYPE_DANGER;
-                $maintenanceMessage = new Panel(new Headline(new Bold(new Center(new Cog().' Wartung &nbsp;'.new CogWheels()))),
-                    new DangerMessage(new Container(new Center(new Bold('Achtung laufende Wartungsarbeiten seit 22:00
-                        bis vorraussichtlich 0:00.')))
-                    .new Container(new Center(new Bold('Es wird empfohlen, sich wegen der Wartung abzumelden,
-                     um Datenverlust der getätigten Eingaben zu vermeiden.')))
-                    .new Container((new ProgressBar(0,100,0, 8))->setColor(ProgressBar::BAR_COLOR_SUCCESS, ProgressBar::BAR_COLOR_DANGER))
-                    , null, false, '8', '5'), $PanelColor);
-            } elseif ($now >= new DateTime('20:00')) {
+//            if ($now >= new DateTime('22:00')) {
+//                $PanelColor = Panel::PANEL_TYPE_DANGER;
+//                $maintenanceMessage = new Panel(new Headline(new Bold(new Center(new Cog().' Wartung &nbsp;'.new CogWheels()))),
+//                    new DangerMessage(new Container(new Center(new Bold('Achtung laufende Wartungsarbeiten seit 22:00
+//                        bis vorraussichtlich 0:00.')))
+//                    .new Container(new Center(new Bold('Es wird empfohlen, sich wegen der Wartung abzumelden,
+//                     um Datenverlust der getätigten Eingaben zu vermeiden.')))
+//                    .new Container((new ProgressBar(0,100,0, 8))->setColor(ProgressBar::BAR_COLOR_SUCCESS, ProgressBar::BAR_COLOR_DANGER))
+//                    , null, false, '8', '5'), $PanelColor);
+//            } elseif ($now >= new DateTime('20:00')) {
+//                $PanelColor = Panel::PANEL_TYPE_WARNING;
+//                $DiffTime = (new DateTime('now'))->diff(new DateTime($Date.' 22:00:00'));
+////                $DiffTime = (new DateTime('now'))->diff(new DateTime('2021-07-28 22:00:00'));
+//                $Minutes = $DiffTime->h * 60;
+//                $Minutes = $Minutes + $DiffTime->i;
+//                $aktiveProgressbar = $Minutes/120*100;
+//                $doneProgressbar = 100 - $aktiveProgressbar;
+//                $maintenanceMessage = new Panel(new Headline(new Bold(new Center(new Cog().' Wartung &nbsp;'.new CogWheels()))),
+//                    new DangerMessage(new Container(new Center('Achtung heute ('.$now->format('d.m.Y')
+//                            .') ab 22:00 Wartungsarbeiten, voraussichtlich 2 Stunden.')).new Container(new Center(new Bold('Es wird empfohlen, sich
+//                        vor der Wartung abzumelden, um Datenverlust von den Eingaben zu vermeiden.').' ('.new Italic('noch '.$Minutes.' Minuten').')'))
+//                        .new Container((new ProgressBar(0, $doneProgressbar, $aktiveProgressbar, 8))->setColor(ProgressBar::BAR_COLOR_SUCCESS, ProgressBar::BAR_COLOR_WARNING, ProgressBar::BAR_COLOR_SUCCESS))
+//                        , null, false, '8', '5'), $PanelColor
+//                );
+//            } elseif ($now >= new DateTime('9:00')) {
                 $PanelColor = Panel::PANEL_TYPE_WARNING;
-                $DiffTime = (new DateTime('now'))->diff(new DateTime($Date.' 22:00:00'));
-//                $DiffTime = (new DateTime('now'))->diff(new DateTime('2021-07-28 22:00:00'));
-                $Minutes = $DiffTime->h * 60;
-                $Minutes = $Minutes + $DiffTime->i;
-                $aktiveProgressbar = $Minutes/120*100;
-                $doneProgressbar = 100 - $aktiveProgressbar;
-                $maintenanceMessage = new Panel(new Headline(new Bold(new Center(new Cog().' Wartung &nbsp;'.new CogWheels()))),
-                    new DangerMessage(new Container(new Center('Achtung heute ('.$now->format('d.m.Y')
-                            .') ab 22:00 Wartungsarbeiten, voraussichtlich 2 Stunden.')).new Container(new Center(new Bold('Es wird empfohlen, sich 
-                        vor der Wartung abzumelden, um Datenverlust von den Eingaben zu vermeiden.').' ('.new Italic('noch '.$Minutes.' Minuten').')'))
-                        .new Container((new ProgressBar(0, $doneProgressbar, $aktiveProgressbar, 8))->setColor(ProgressBar::BAR_COLOR_SUCCESS, ProgressBar::BAR_COLOR_WARNING, ProgressBar::BAR_COLOR_SUCCESS))
-                        , null, false, '8', '5'), $PanelColor
+                $maintenanceMessage = new Panel(new Headline(new Bold(new Center(new Cog().' Wartung &nbsp;'.new CogWheels()))
+                .new Center('Am 9.12.2025 ist die Schulsoftware voraussichtlich zwischen 3 und 6 Uhr nicht erreichbar.')), '', $PanelColor
+//                    new Warning(new Center('Achtung am ('.$DateEnd->format('d.m.Y').') ab 03:00
+//                     Wartungsarbeiten, voraussichtlich 2 Stunden.'), null, false, '8', '5'), $PanelColor
                 );
-            } elseif ($now >= new DateTime('9:00')) {
-                $PanelColor = Panel::PANEL_TYPE_WARNING;
-                $maintenanceMessage = new Panel(new Headline(new Bold(new Center(new Cog().' Wartung &nbsp;'.new CogWheels()))),
-                    new Warning(new Center('Achtung heute ('.$now->format('d.m.Y').') ab 22:00
-                     Wartungsarbeiten, voraussichtlich 2 Stunden.'), null, false, '8', '5'), $PanelColor
-                );
-            }
+//            }
         }
 
         // specialLogin?
