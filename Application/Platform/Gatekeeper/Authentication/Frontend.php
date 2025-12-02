@@ -114,7 +114,6 @@ class Frontend extends Extension implements IFrontendInterface
         $DateEnd = '2025-12-09 ';
         $IsMaintenance = (new DateTime('now') >= new DateTime($DateStart.'00:00:00')
                        && new DateTime('now') <= new DateTime($DateEnd.'06:00:00'));
-        $IsMaintenance = true;
         $maintenanceMessage = '';
         $contentTeacherWelcome = false;
         $contentSecretariatWelcome = false;
