@@ -200,6 +200,16 @@ class TblStudentSubject extends Element
     }
 
     /**
+     * @return int
+     */
+    public function getPeriodOnlyNumberOfPeriod(): int
+    {
+        list(, $period) = explode("/", $this->getPeriodIdentifier(), 2);
+
+        return (int) $period;
+    }
+
+    /**
      * @return string|null
      */
     public function getPeriodIdentifier(): ?string

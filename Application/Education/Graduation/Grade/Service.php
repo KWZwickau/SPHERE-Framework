@@ -371,15 +371,16 @@ class Service extends ServiceTask
      * @param bool $IsContinues
      * @param string $Description
      * @param TblPerson|null $tblTeacher
+     * @param DateTime|null $SecondPeriodDate
      *
      * @return TblTest
      */
     public function createTest(TblYear $tblYear, TblSubject $tblSubject, TblGradeType $tblGradeType,
         ?DateTime $Date, ?DateTime $FinishDate, ?DateTime $CorrectionDate, ?DateTime $ReturnDate, bool $IsContinues, string $Description,
-        ?TblPerson $tblTeacher): TblTest
+        ?TblPerson $tblTeacher, ?DateTime $SecondPeriodDate): TblTest
     {
         return (new Data($this->getBinding()))->createTest($tblYear, $tblSubject, $tblGradeType, $Date, $FinishDate, $CorrectionDate, $ReturnDate, $IsContinues,
-            $Description, $tblTeacher);
+            $Description, $tblTeacher, $SecondPeriodDate);
     }
 
     /**
@@ -391,13 +392,14 @@ class Service extends ServiceTask
      * @param DateTime|null $ReturnDate
      * @param bool $IsContinues
      * @param string $Description
+     * @param DateTime|null $SecondPeriodDate
      *
      * @return bool
      */
     public function updateTest(TblTest $tblTest, TblGradeType $tblGradeType,
-        ?DateTime $Date, ?DateTime $FinishDate, ?DateTime $CorrectionDate, ?DateTime $ReturnDate, bool $IsContinues, string $Description): bool
+        ?DateTime $Date, ?DateTime $FinishDate, ?DateTime $CorrectionDate, ?DateTime $ReturnDate, bool $IsContinues, string $Description, ?DateTime $SecondPeriodDate): bool
     {
-        return (new Data($this->getBinding()))->updateTest($tblTest, $tblGradeType, $Date, $FinishDate, $CorrectionDate, $ReturnDate, $IsContinues, $Description);
+        return (new Data($this->getBinding()))->updateTest($tblTest, $tblGradeType, $Date, $FinishDate, $CorrectionDate, $ReturnDate, $IsContinues, $Description, $SecondPeriodDate);
     }
 
     /**
@@ -708,7 +710,7 @@ class Service extends ServiceTask
                 switch ($virtualTestTask->getType()) {
                     case VirtualTestTask::TYPE_TEST:
                         $tblTest = $virtualTestTask->getTblTest();
-                        $date = $tblTest->getFinishDate() ?: $tblTest->getDate();
+                        $date = $tblTest->getFinishDate() ?: ($tblTest->getSecondPeriodDate() ?: $tblTest->getDate());
                         $hasPeriodFound = false;
                         $count = 0;
                         if ($date && isset($averagePeriodList['Periods'])) {

@@ -274,7 +274,8 @@ abstract class ServiceStudentOverview extends ServiceScoreCalc
 
                         if($isAddTest) {
                             $date = $tblTest->getDate() ?: $tblTest->getFinishDate();
-                            $periodNumber = $date > $halfYearDate ? 2 : 1;
+                            $dateForPeriod = $tblTest->getFinishDate() ?: ($tblTest->getSecondPeriodDate() ?: $tblTest->getDate());
+                            $periodNumber = $dateForPeriod > $halfYearDate ? 2 : 1;
                             if (!isset($virtualTestTaskList[$tblSubject->getId()][$periodNumber][$tblTest->getId()])) {
                                 $countColumns[$periodNumber]++;
                                 $virtualTestTaskList[$tblSubject->getId()][$periodNumber][$tblTest->getId()] = new VirtualTestTask($date, $tblTest);

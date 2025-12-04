@@ -15,6 +15,7 @@ use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTestCourseLi
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTestGrade;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
+use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblPeriod;
 use SPHERE\Application\IApiInterface;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
@@ -258,6 +259,12 @@ class ApiGradeBook extends Extension implements IApiInterface
      */
     public function loadViewGradeBookSelect($Filter): string
     {
+//        if (isset($Filter['SchoolType'])
+//            && ($tblConsumer = \SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer::useService()->getConsumerBySession())
+//        ) {
+//            Consumer::useService()->createAccountSetting('GradeBookHeadmasterSelectSchoolTypeByConsumerId_' . $tblConsumer->getId(), $Filter['SchoolType']);
+//        }
+
         return Grade::useFrontend()->loadViewGradeBookSelect($Filter);
     }
 
@@ -448,8 +455,8 @@ class ApiGradeBook extends Extension implements IApiInterface
         if (!($tblSubject = Subject::useService()->getSubjectById($SubjectId))) {
             return (new Danger("Fach wurde nicht gefunden!", new Exclamation()));
         }
-        if (!(($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))
-            && ($tblYear = $tblDivisionCourse->getServiceTblYear()))
+        if (!($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))
+            || !($tblYear = $tblDivisionCourse->getServiceTblYear())
         ) {
             return new Warning('Schuljahr wurde nicht gefunden.', new Exclamation());
         }
@@ -467,9 +474,28 @@ class ApiGradeBook extends Extension implements IApiInterface
         $isContinues = isset($Data['IsContinues']);
         $description = $Data['Description'];
         $newTestId = null;
+        $secondPeriodDate = null;
+        if (isset($Data['IsSecondPeriod'])
+            && ($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses())
+        ) {
+            // Startdatum vom 2.HJ ermitteln
+            foreach ($tblPersonList as $tblPerson) {
+                if (($tblPeriodList = $tblYear->getPeriodListByPerson($tblPerson))
+                    && count($tblPeriodList) == 2
+                ) {
+                    // 2. HJ
+                    $tblPeriodList = array_values($tblPeriodList);
+                    /** @var TblPeriod $tblPeriod */
+                    $tblPeriod = $tblPeriodList[1];
+                    $secondPeriodDate = $tblPeriod->getFromDateTime();
+
+                    break;
+                }
+            }
+        }
 
         if (($tblTest = Grade::useService()->getTestById($TestId))) {
-            Grade::useService()->updateTest($tblTest, $tblGradeType, $date, $finishDate, $correctionDate, $returnDate, $isContinues, $description);
+            Grade::useService()->updateTest($tblTest, $tblGradeType, $date, $finishDate, $correctionDate, $returnDate, $isContinues, $description, $secondPeriodDate);
 
             $createList = array();
             $removeList = array();
@@ -504,7 +530,7 @@ class ApiGradeBook extends Extension implements IApiInterface
         } else {
             if (($tblTestNew = Grade::useService()->createTest(
                 $tblYear, $tblSubject, $tblGradeType, $date, $finishDate, $correctionDate, $returnDate, $isContinues, $description,
-                Account::useService()->getPersonByLogin() ?: null
+                Account::useService()->getPersonByLogin() ?: null, $secondPeriodDate
             ))) {
                 // Kurse hinzufügen
                 if (isset($Data['DivisionCourses'])) {

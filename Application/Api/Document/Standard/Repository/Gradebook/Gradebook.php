@@ -338,7 +338,9 @@ class Gradebook extends AbstractDocument
             foreach ($tblTestList as $tblTest) {
                 if (($tblGradeType = $tblTest->getTblGradeType())) {
                     $dateTime = null;
-                    if ($tblTest->getDate()) {
+                    if ($tblTest->getSecondPeriodDate()) {
+                        $dateTime = $tblTest->getSecondPeriodDate();
+                    } elseif ($tblTest->getDate()) {
                         $dateTime = $tblTest->getDate();
                     } elseif ($tblTest->getIsContinues() && $tblTest->getFinishDate()) {
                         $dateTime = $tblTest->getFinishDate();
@@ -351,7 +353,7 @@ class Gradebook extends AbstractDocument
                             continue;
                         }
 
-                        $date = $dateTime->format('d.m.');
+                        $date = $tblTest->getSortDate()->format('d.m.');
                     }
 
                     $count++;
@@ -497,7 +499,7 @@ class Gradebook extends AbstractDocument
          * Body
          */
         $tblTestGradeListByTest = array();
-        if (($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses())) {
+        if (($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses(false, true, new DateTime('today')))) {
             $number = 0;
             foreach ($tblPersonList as $tblPerson) {
                 if (!DivisionCourse::useService()->getVirtualSubjectFromRealAndVirtualByPersonAndYearAndSubject($tblPerson, $tblYear, $tblSubject)) {

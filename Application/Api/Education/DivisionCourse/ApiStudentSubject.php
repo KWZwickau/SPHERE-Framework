@@ -15,6 +15,7 @@ use SPHERE\Common\Frontend\Form\Repository\Button\Close;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
+use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Extension\Extension;
 
 class ApiStudentSubject extends Extension implements IApiInterface
@@ -288,10 +289,12 @@ class ApiStudentSubject extends Extension implements IApiInterface
     /**
      * @param $DivisionCourseId
      * @param $Period
+     * @param null $SubjectDivisionCourseId
+     * @param null $Filter
      *
      * @return Pipeline
      */
-    public static function pipelineSaveStudentSubjectDivisionCourseList($DivisionCourseId, $Period): Pipeline
+    public static function pipelineSaveStudentSubjectDivisionCourseList($DivisionCourseId, $Period, $SubjectDivisionCourseId = null, $Filter = null): Pipeline
     {
         $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'StudentSubjectContent'), self::getEndpoint());
@@ -301,6 +304,8 @@ class ApiStudentSubject extends Extension implements IApiInterface
         $ModalEmitter->setPostPayload(array(
             'DivisionCourseId' => $DivisionCourseId,
             'Period' => $Period,
+            'SubjectDivisionCourseId' => $SubjectDivisionCourseId,
+            'Filter' => $Filter
         ));
         $Pipeline->appendEmitter($ModalEmitter);
 
@@ -310,19 +315,29 @@ class ApiStudentSubject extends Extension implements IApiInterface
     /**
      * @param $DivisionCourseId
      * @param $Period
+     * @param $SubjectDivisionCourseId
+     * @param $Filter
      * @param null $Data
      *
      * @return string
      */
-    public function saveStudentSubjectDivisionCourseList($DivisionCourseId, $Period, $Data = null): string
+    public function saveStudentSubjectDivisionCourseList($DivisionCourseId, $Period, $SubjectDivisionCourseId, $Filter, $Data = null): string
     {
         if (!($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
             return new Danger('Kurs wurde nicht gefunden', new Exclamation());
         }
 
+        // Speicherung direkt im SekII-Kurs wird somit nicht ausgewählt
+        if ($SubjectDivisionCourseId) {
+            $Data['SubjectDivisionCourse'] = $SubjectDivisionCourseId;
+            $result = new Redirect('/Education/Lesson/DivisionCourse/Show', Redirect::TIMEOUT_SUCCESS, array('DivisionCourseId' => $DivisionCourseId, 'Filter' => $Filter));
+        } else {
+            $result = self::pipelineLoadStudentSubjectContent($DivisionCourseId);
+        }
+
         if (DivisionCourse::useService()->createStudentSubjectDivisionCourseList($tblDivisionCourse, $Period, $Data)) {
             return new Success('Die Schüler-SekII-Kurse wurden erfolgreich gespeichert.')
-                . self::pipelineLoadStudentSubjectContent($DivisionCourseId);
+                . $result;
         } else {
             return new Danger('Die Schüler-SekII-Kurse konnten nicht gespeichert werden.');
         }

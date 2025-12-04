@@ -113,7 +113,8 @@ class FrontendSelectDivisionCourse extends FrontendForgotten
             foreach ($tblDivisionCourseList as $tblDivisionCourse) {
                 if ($tblDivisionCourse->getType()->getIsCourseSystem()) {
                     $route = self::BASE_ROUTE . '/CourseContent';
-                } elseif (DivisionCourse::useService()->getIsCourseSystemByStudentsInDivisionCourse($tblDivisionCourse)) {
+                    // SSW-2850 Ausnahme für KG DKC
+                } elseif ($tblDivisionCourse->getName() != '2526 DKC' && DivisionCourse::useService()->getIsCourseSystemByStudentsInDivisionCourse($tblDivisionCourse)) {
                     $route = self::BASE_ROUTE . '/SelectCourse';
                 } else {
                     $route = self::BASE_ROUTE . '/LessonContent';
@@ -235,7 +236,9 @@ class FrontendSelectDivisionCourse extends FrontendForgotten
                 'Teachers' => $tblDivisionCourse->getDivisionTeacherNameListString(),
                 'Option' => new Standard(
                     '',
-                    DivisionCourse::useService()->getIsCourseSystemByStudentsInDivisionCourse($tblDivisionCourse)
+                    // SSW-2850 Ausnahme für KG DKC
+                    $tblDivisionCourse->getName() != '2526 DKC'
+                    && DivisionCourse::useService()->getIsCourseSystemByStudentsInDivisionCourse($tblDivisionCourse)
                         ? self::BASE_ROUTE . '/SelectCourse'
                         : self::BASE_ROUTE . '/LessonContent',
                     new Select(),

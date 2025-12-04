@@ -1,7 +1,9 @@
 <?php
 namespace SPHERE\Application\Education\ClassRegister\Timetable;
 
+use DateInterval;
 use DateTime;
+use SPHERE\Application\Api\Education\ClassRegister\ApiDigital;
 use SPHERE\Application\Education\ClassRegister\Digital\Digital;
 use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblLessonContent;
 use SPHERE\Application\Education\ClassRegister\Timetable\Service\Data;
@@ -11,10 +13,8 @@ use SPHERE\Application\Education\ClassRegister\Timetable\Service\Entity\TblTimet
 use SPHERE\Application\Education\ClassRegister\Timetable\Service\Entity\TblTimetableReplacementLog;
 use SPHERE\Application\Education\ClassRegister\Timetable\Service\Entity\TblTimetableWeek;
 use SPHERE\Application\Education\ClassRegister\Timetable\Service\Setup;
-use SPHERE\Application\Education\ClassRegister\Timetable\Timetable as TimetableTool;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
-use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Person\Person;
@@ -22,14 +22,22 @@ use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Form\Structure\Form;
+use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
+use SPHERE\Common\Frontend\Icon\Repository\ChevronRight;
 use SPHERE\Common\Frontend\Icon\Repository\Extern;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Structure\Layout;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
+use SPHERE\Common\Frontend\Text\Repository\Bold;
+use SPHERE\Common\Frontend\Text\Repository\Center;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
-use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Service
@@ -590,6 +598,7 @@ class Service extends AbstractService
                 }
 
                 $tblLessonContent->setRoom($tblTimetableReplacement->getRoom());
+                $tblLessonContent->setServiceTblPerson($tblTimetableReplacement->getServiceTblPerson() ?: null);
                 $tblLessonContent->setIsCanceled($tblTimetableReplacement->getIsCanceled());
 
                 $resultList[] = $tblLessonContent;
@@ -610,6 +619,7 @@ class Service extends AbstractService
                     if ($tblTimetableNode->getServiceTblSubject() && !isset($subjectList[$tblTimetableNode->getServiceTblSubject()->getId()])) {
                         $tblLessonContent = new TblLessonContent();
                         $tblLessonContent->setServiceTblSubject($tblTimetableNode->getServiceTblSubject() ?: null);
+                        $tblLessonContent->setServiceTblPerson($tblTimetableNode->getServiceTblPerson() ?: null);
                         $tblLessonContent->setRoom($tblTimetableNode->getRoom());
                         $resultList[] = $tblLessonContent;
                     }
@@ -621,6 +631,7 @@ class Service extends AbstractService
                 foreach ($tblTimeTableNodeList as $tblTimetableNode) {
                     $tblLessonContent = new TblLessonContent();
                     $tblLessonContent->setServiceTblSubject($tblTimetableNode->getServiceTblSubject() ?: null);
+                    $tblLessonContent->setServiceTblPerson($tblTimetableNode->getServiceTblPerson() ?: null);
                     $tblLessonContent->setRoom($tblTimetableNode->getRoom());
                     $resultList[] = $tblLessonContent;
                 }
@@ -713,94 +724,146 @@ class Service extends AbstractService
     }
 
     /**
+     * @param string $Date
+     * @param string $panelHeaderExtension
+     *
      * @return string
      */
-    public function getTimetablePanelForTeacher()
+    public function getTimetablePanelForTeacher(string $Date, string $panelHeaderExtension): string
     {
-        $dateTime = new DateTime('today');
+        $dateTime = new DateTime($Date);
         $resultList = $this->getTimetableDataForTeacher($dateTime);
 
-        if ($resultList) {
-            $dataList = array();
-            $baseRoute = (Digital::useFrontend())::BASE_ROUTE;
-            foreach ($resultList as $item) {
-                /** @var TblDivisionCourse $tblDivisionCourse */
-                if (($tblDivisionCourse = $item->getServiceTblCourse()) && ($tblSubject = $item->getServiceTblSubject())) {
-                    if ($tblDivisionCourse->getType()->getIsCourseSystem()) {
-                        $option = new Standard(
-                            '',
-                            $baseRoute . '/CourseContent',
-                            new Extern(),
-                            array(
-                                'DivisionCourseId' => $tblDivisionCourse->getId(),
-                                'BasicRoute' => $baseRoute . '/Teacher'
-                            ),
-                            'Zum Kursheft wechseln'
-                        );
-                    } else {
-                        $option = new Standard(
-                            '',
-                            $baseRoute . '/LessonContent',
-                            new Extern(),
-                            array(
-                                'DivisionCourseId' => $tblDivisionCourse->getId(),
-                                'BasicRoute' => $baseRoute . '/Teacher'
-                            ),
-                            'Zum Klassenbuch wechseln'
-                        );
-                    }
-
-                    $dataList[] = array(
-                        'Lesson' => $item->getHour(),
-                        'DivisionCourse' => $tblDivisionCourse->getDisplayName(),
-                        'Subject' => $tblSubject->getDisplayName(),
-                        'Room' => $item->getRoom(),
-                        'Option' => $option
+        $dataList = array();
+        $baseRoute = (Digital::useFrontend())::BASE_ROUTE;
+        foreach ($resultList as $item) {
+            /** @var TblDivisionCourse $tblDivisionCourse */
+            if (($tblDivisionCourse = $item->getServiceTblCourse()) && ($tblSubject = $item->getServiceTblSubject())) {
+                if ($tblDivisionCourse->getType()->getIsCourseSystem()) {
+                    $option = new Standard(
+                        '',
+                        $baseRoute . '/CourseContent',
+                        new Extern(),
+                        array(
+                            'DivisionCourseId' => $tblDivisionCourse->getId(),
+                            'BasicRoute' => $baseRoute . '/Teacher'
+                        ),
+                        'Zum Kursheft wechseln'
+                    );
+                } else {
+                    $option = new Standard(
+                        '',
+                        $baseRoute . '/LessonContent',
+                        new Extern(),
+                        array(
+                            'DivisionCourseId' => $tblDivisionCourse->getId(),
+                            'BasicRoute' => $baseRoute . '/Teacher'
+                        ),
+                        'Zum Klassenbuch wechseln'
                     );
                 }
+
+                $dataList[] = array(
+                    'Lesson' => $item->getHour(),
+                    'DivisionCourse' => $tblDivisionCourse->getDisplayName(),
+                    'Subject' => $tblSubject->getDisplayName(),
+                    'Room' => $item->getRoom(),
+                    'Option' => $option
+                );
             }
-
-            $dayName = array(
-                '0' => 'Sonntag',
-                '1' => 'Montag',
-                '2' => 'Dienstag',
-                '3' => 'Mittwoch',
-                '4' => 'Donnerstag',
-                '5' => 'Freitag',
-                '6' => 'Samstag',
-            );
-            $dayAtWeek = $dateTime->format('w');
-
-            return new Panel(
-                'Stundenplan am ' . $dayName[$dayAtWeek] . ', den ' . $dateTime->format('d.m.Y'),
-                new TableData($dataList, null, array(
-                    'Lesson' => 'UE',
-                    'DivisionCourse' => 'Kurs',
-                    'Subject' => 'Fach',
-                    'Room' => 'Raum',
-                    'Option' => ''
-                ),
-                array(
-                    'order' => array(
-                        array('0', 'asc'),
-                        array('1', 'asc'),
-                    ),
-                    'columnDefs' => array(
-                        array('type' => 'natural', 'targets' => 1),
-                        array('orderable' => false, 'width' => '1%', 'targets' => -1)
-                    ),
-                    'pageLength' => -1,
-                    'paging' => false,
-                    'info' => false,
-                    'searching' => false,
-                    'responsive' => false
-                )),
-                Panel::PANEL_TYPE_PRIMARY
-            );
-
         }
 
-        return '';
+        $dayName = array(
+            '0' => 'Sonntag',
+            '1' => 'Montag',
+            '2' => 'Dienstag',
+            '3' => 'Mittwoch',
+            '4' => 'Donnerstag',
+            '5' => 'Freitag',
+            '6' => 'Samstag',
+        );
+        $dayAtWeek = $dateTime->format('w');
+
+        $table = new TableData(
+            $dataList,
+            null,
+            array(
+            'Lesson' => 'UE',
+                'DivisionCourse' => 'Kurs',
+                'Subject' => 'Fach',
+                'Room' => 'Raum',
+                'Option' => ''
+            ),
+            array(
+                'order' => array(
+                    array('0', 'asc'),
+                    array('1', 'asc'),
+                ),
+                'columnDefs' => array(
+                    array('type' => 'natural', 'targets' => 1),
+                    array('orderable' => false, 'width' => '1%', 'targets' => -1)
+                ),
+                'pageLength' => -1,
+                'paging' => false,
+                'info' => false,
+                'searching' => false,
+                'responsive' => false
+            )
+        );
+
+        $previewsDate = (new DateTime($dateTime->format('d.m.Y')))->sub(new DateInterval('P1D'));
+        $nextDate = (new DateTime($dateTime->format('d.m.Y')))->add(new DateInterval('P1D'));
+        $View = Digital::useFrontend()::WELCOME_VIEW_TIMETABLE;
+
+        $dayText = new Bold($dayName[$dayAtWeek] . ', den ' . $dateTime->format('d.m.Y'));
+        if ($dateTime == new DateTime('today')) {
+            $dayText = Digital::useFrontend()->getTextColor($dayText, 'darkorange');
+        }
+
+        $content = new Layout(
+            new LayoutGroup(array(
+                new LayoutRow(new LayoutColumn('&nbsp;')),
+                new LayoutRow(
+                    new LayoutColumn(
+                        new Layout(new LayoutGroup(new LayoutRow(array(
+                                new LayoutColumn('&nbsp;', 3),
+                                new LayoutColumn(
+                                    new Center(
+                                        (new Link(new ChevronLeft(), ApiDigital::getEndpoint(), null, array(),
+                                            $dayName[$previewsDate->format('w')] . ', den ' . $previewsDate->format('d.m.Y')))
+                                            ->ajaxPipelineOnClick(ApiDigital::pipelineLoadWelcomeDigitalContent($View, $previewsDate->format('d.m.Y')))
+                                    )
+                                    , 1),
+                                new LayoutColumn(
+                                    new Center($dayText)
+                                    , 4),
+                                new LayoutColumn(
+                                    new Center(
+                                        (new Link(new ChevronRight(), ApiDigital::getEndpoint(), null, array(),
+                                            $dayName[$nextDate->format('w')] . ', den ' . $nextDate->format('d.m.Y')))
+                                            ->ajaxPipelineOnClick(ApiDigital::pipelineLoadWelcomeDigitalContent($View, $nextDate->format('d.m.Y')))
+                                    )
+                                    , 1),
+                                new LayoutColumn('&nbsp;', 3),
+                            )))
+                        )
+//                        . '<div style="height: 5px;"></div>'
+                        , 12)
+                ),
+                new LayoutRow(
+                    new LayoutColumn(
+                        $table
+                    )
+                )
+            ))
+        );
+
+        return new Panel(
+//            'Stundenplan am ' . $dayName[$dayAtWeek] . ', den ' . $dateTime->format('d.m.Y') . $panelHeaderExtension,
+            'Stundenplan' . $panelHeaderExtension,
+            $content,
+            Panel::PANEL_TYPE_PRIMARY
+        );
     }
 
     /**

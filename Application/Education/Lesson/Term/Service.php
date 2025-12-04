@@ -255,7 +255,7 @@ class Service extends AbstractService
     /**
      * @param TblPeriod $tblPeriod
      *
-     * @return array|bool
+     * @return false|TblYear[]
      */
     public function getYearByPeriod(TblPeriod $tblPeriod)
     {

@@ -187,6 +187,8 @@ class Frontend extends Extension implements IFrontendInterface
                 'Address'          => 'Adresse',
                 'Phone'            => new ToolTip('Telefon '.new Info(),
                     'p=Privat; g=Geschäftlich; n=Notfall; f=Fax; Bev.=Bevollmächtigt; Vorm.=Vormund; NK=Notfallkontakt'),
+                'MailFrontendListFixed' => 'E-Mail',
+//                'Mail' => 'E-Mail2',
                 'Level'            => 'Stufe',
                 'Division'         => 'Klasse',
                 'DivisionTeacher'  => 'Klassenlehrer',
@@ -309,6 +311,8 @@ class Frontend extends Extension implements IFrontendInterface
                 'Address'        => 'Adresse',
                 'Birthday'       => 'Geburtsdatum',
                 'Birthplace'     => 'Geburtsort',
+                'PhoneStudent'   => 'Tel. Schüler'.
+                    new ToolTip(new Info(), 'p=Privat; g=Geschäftlich; n=Notfall; f=Fax'),
                 'Guardian1'      => 'Sorgeberechtigter 1',
                 'PhoneGuardian1' => 'Tel. Sorgeber. 1 '.
                     new ToolTip(new Info(), 'p=Privat; g=Geschäftlich; n=Notfall; f=Fax'),
@@ -1274,7 +1278,7 @@ class Frontend extends Extension implements IFrontendInterface
      * @param TblDivisionCourse $tblDivisionCourse
      *
      * @return bool|Panel
-     */ // ToDO weiter verfolgen
+     */
     public function getInActiveStudentPanel(TblDivisionCourse $tblDivisionCourse, bool $hasAbsenceButton = false, string $BasicRoute = '', string $ReturnRoute = '')
     {
         $inActiveStudentList = array();

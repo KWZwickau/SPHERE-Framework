@@ -88,6 +88,8 @@ class ApiDigital extends Extension implements IApiInterface
 
         $Dispatcher->registerMethod('loadCourseMissingStudentContent');
 
+        $Dispatcher->registerMethod('loadWelcomeDigitalContent');
+
         return $Dispatcher->callMethod($Method);
     }
 
@@ -1488,5 +1490,41 @@ class ApiDigital extends Extension implements IApiInterface
         }
 
         return Digital::useFrontend()->loadCourseMissingStudentContent($tblDivisionCourse);
+    }
+
+    /**
+     * @param $View
+     * @param null $Date
+     *
+     * @return Pipeline
+     */
+    public static function pipelineLoadWelcomeDigitalContent($View, $Date = null): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'WelcomeDigitalContent'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'loadWelcomeDigitalContent',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'View' => $View,
+            'Date' => $Date
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $View
+     * @param $Date
+     *
+     * @return string
+     */
+    public function loadWelcomeDigitalContent($View, $Date) : string
+    {
+        // View speichern
+        Consumer::useService()->createAccountSetting('WelcomeDigitalView', $View);
+
+        return Digital::useFrontend()->loadWelcomeDigitalContent($View, $Date);
     }
 }

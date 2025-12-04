@@ -44,7 +44,7 @@ class Style extends Extension
         $this->FieldValue['SchoolAddressCity'] = (isset($DataPost['SchoolAddressCity']) && $DataPost['SchoolAddressCity'] != '' ? $DataPost['SchoolAddressCity'] : '&nbsp;');
         // responibility
         $this->FieldValue['SchoolResponsibility'] = (isset($DataPost['SchoolResponsibility']) && $DataPost['SchoolResponsibility'] != '' ? $DataPost['SchoolResponsibility'] : '&nbsp;');
-        $this->FieldValue['CompanyNumber'] = (isset($DataPost['CompanyNumber']) && $DataPost['CompanyNumber'] != '' ? $DataPost['CompanyNumber'] : '&nbsp;');
+        $this->FieldValue['CompanyNumberStaff'] = (isset($DataPost['CompanyNumberStaff']) && $DataPost['CompanyNumberStaff'] != '' ? $DataPost['CompanyNumberStaff'] : '&nbsp;');
         // letter target
         $this->FieldValue['AddressTarget'] = (isset($DataPost['AddressTarget']) && $DataPost['AddressTarget'] != '' ? $DataPost['AddressTarget'] : '&nbsp;');
         $this->FieldValue['TargetAddressStreet'] = (isset($DataPost['TargetAddressStreet']) && $DataPost['TargetAddressStreet'] != '' ? $DataPost['TargetAddressStreet'] : '&nbsp;');
@@ -257,7 +257,7 @@ class Style extends Extension
                 ->styleTextSize('11px')
             )
             ->addElement((new Element())
-                ->setContent($this->FieldValue['CompanyNumber'])
+                ->setContent($this->FieldValue['CompanyNumberStaff'])
                 ->styleTextSize('12px')
             )
             , '40%'

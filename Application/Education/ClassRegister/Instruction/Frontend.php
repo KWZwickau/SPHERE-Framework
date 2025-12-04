@@ -2,6 +2,7 @@
 
 namespace SPHERE\Application\Education\ClassRegister\Instruction;
 
+use DateTime;
 use SPHERE\Application\Api\Education\ClassRegister\ApiInstructionItem;
 use SPHERE\Application\Api\Education\ClassRegister\ApiInstructionSetting;
 use SPHERE\Application\Education\ClassRegister\Digital\Digital;
@@ -352,7 +353,7 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $columns = array();
-        if (($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses())) {
+        if (($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses(false, true, new DateTime('today')))) {
             $missingPersonTotal = Instruction::useService()->getMissingStudentsByInstruction($tblInstruction, $tblDivisionCourse);
             foreach ($tblPersonList as $tblPerson) {
                 // bei Nachbelehrung nur die fehlenden Schüler zur Auswahl anzeigen

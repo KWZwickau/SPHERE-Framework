@@ -534,6 +534,7 @@ class Service extends Extension
                 $item['Birthday'] = $tblPerson->getBirthday();
                 $item['Birthplace'] = $tblPerson->getBirthplaceString();
                 $item['StudentNumber'] = '';
+                $item['PhoneStudent'] = $item['PhoneStudentExcel'] = '';
                 $item['Guardian1'] = $item['PhoneGuardian1'] = $item['PhoneGuardian1Excel'] = '';
                 $item['Guardian2'] = $item['PhoneGuardian2'] = $item['PhoneGuardian2Excel'] = '';
                 $item['Guardian3'] = $item['PhoneGuardian3'] = $item['PhoneGuardian3Excel'] = '';
@@ -565,6 +566,10 @@ class Service extends Extension
                         }
                     }
                 }
+
+                $item['PhoneStudent'] = $this->getPhoneList($tblPerson);
+                $item['PhoneStudentExcel'] = $this->getPhoneList($tblPerson, true);
+
                 if ($tblPersonG1) {
                     $item['Guardian1'] = $tblPersonG1->getFullName();
                     $item['PhoneGuardian1'] = $this->getPhoneList($tblPersonG1);
@@ -637,6 +642,7 @@ class Service extends Extension
         $export->setValue($export->getCell($column++, "0"), "Ortsteil");
         $export->setValue($export->getCell($column++, "0"), "Geburtsdatum");
         $export->setValue($export->getCell($column++, "0"), "Geburtsort");
+        $export->setValue($export->getCell($column++, "0"), "Tel. Schüler");
         $export->setValue($export->getCell($column++, "0"), "Sorgeberechtigter 1");
         $export->setValue($export->getCell($column++, "0"), "Tel. Sorgeber. 1");
         $export->setValue($export->getCell($column++, "0"), "Sorgeberechtigter 2");
@@ -666,6 +672,7 @@ class Service extends Extension
             $export->setValue($export->getCell($column++, $row), $PersonData['District']);
             $export->setValue($export->getCell($column++, $row), $PersonData['Birthday']);
             $export->setValue($export->getCell($column++, $row), $PersonData['Birthplace']);
+            $export->setValue($export->getCell($column++, $row), $PersonData['PhoneStudentExcel']);
             $export->setValue($export->getCell($column++, $row), $PersonData['Guardian1']);
             $export->setValue($export->getCell($column++, $row), $PersonData['PhoneGuardian1Excel']);
             $export->setValue($export->getCell($column++, $row), $PersonData['Guardian2']);
@@ -2202,6 +2209,7 @@ class Service extends Extension
             $item['BirthPlace'] = $tblPerson->getBirthplaceString();
             $item['School'] = '';
             $item['SchoolType'] = '';
+            $item['CourseType'] = '';
             $item['Denomination'] = $tblPerson->getDenominationString();
             $item['Nationality'] = $tblPerson->getNationalityString();
             $item['StreetName'] = $item['StreetNumber'] = $item['Code'] = $item['City'] = $item['District'] = '';

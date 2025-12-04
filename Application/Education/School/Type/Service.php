@@ -48,6 +48,14 @@ class Service extends AbstractService
     }
 
     /**
+     * @return bool|TblType[]
+     */
+    public function getTypeAllAll()
+    {
+        return (new Data($this->getBinding()))->getTypeAll();
+    }
+
+    /**
      * @param TblCategory $tblCategory
      *
      * @return bool|TblType[]

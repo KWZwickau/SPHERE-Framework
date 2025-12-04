@@ -492,7 +492,7 @@ class MultiPassword extends AbstractDocument
             ->addSection((new Section())
                 ->addSliceColumn(
                     $this->getAddressHead($AccountId)
-                        ->styleHeight('155px')
+                        ->styleHeight('200px')
                     , '57%')
                 ->addSliceColumn(
                     $this->getContactData()

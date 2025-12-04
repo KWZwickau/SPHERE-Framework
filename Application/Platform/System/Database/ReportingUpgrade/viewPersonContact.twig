@@ -1,6 +1,12 @@
 SELECT
     tP.Id AS TblPerson_Id,
 
+    (select vCA.whole_Address
+        from {{ ConsumerAcronym }}_SettingConsumer.viewContactAddress vCA
+        where tP.Id = vCA.TblPerson_Id
+        and vCA.TblType_Name = 'Hauptadresse'
+    ) whole_Address,
+
     (select vCA.TblAddress_StreetName
         from {{ ConsumerAcronym }}_SettingConsumer.viewContactAddress vCA
         where tP.Id = vCA.TblPerson_Id
