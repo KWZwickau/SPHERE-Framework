@@ -35,6 +35,9 @@ class TblYear extends Element
      */
     protected $Description;
 
+    private ?DateTime $startDate = null;
+    private ?DateTime $endDate = null;
+
     /**
      * @return string
      */
@@ -131,12 +134,22 @@ class TblYear extends Element
      */
     public function getStartDateTime(): ?DateTime
     {
-        list($startDate, $endDate) = Term::useService()->getStartDateAndEndDateOfYear($this);
-        if ($startDate)
-        {
-            return $startDate;
+        if ($this->startDate == null) {
+            list($this->startDate, $this->endDate) = Term::useService()->getStartDateAndEndDateOfYear($this);
         }
 
-        return null;
+        return $this->startDate;
+    }
+
+    /**
+     * @return DateTime|null
+     */
+    public function getEndDateTime(): ?DateTime
+    {
+        if ($this->endDate == null) {
+            list($this->startDate, $this->endDate) = Term::useService()->getStartDateAndEndDateOfYear($this);
+        }
+
+        return $this->endDate;
     }
 }

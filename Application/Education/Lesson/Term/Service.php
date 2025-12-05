@@ -1083,10 +1083,10 @@ class Service extends AbstractService
      *
      * @return array
      */
-    public function getStartDateAndEndDateOfYear(TblYear $tblYear)
+    public function getStartDateAndEndDateOfYear(TblYear $tblYear): array
     {
-        $startDate = false;
-        $endDate = false;
+        $startDate = null;
+        $endDate = null;
         if (($tblPeriodList = $tblYear->getPeriodList(false, true))) {
             foreach ($tblPeriodList as $tblPeriod) {
                 if ($startDate) {

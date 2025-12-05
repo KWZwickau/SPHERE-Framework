@@ -834,14 +834,17 @@ class Data extends DataTeacher
      * @param null $level
      * @param TblDivisionCourse|null $tblDivision
      * @param TblDivisionCourse|null $tblCoreGroup
+     * @param bool $isLeaveDateNull
      *
      * @return false|TblStudentEducation[]
      */
     public function getStudentEducationListBy(TblYear $tblYear, TblType $tblSchoolType = null, $level = null, TblDivisionCourse $tblDivision = null,
-        TblDivisionCourse $tblCoreGroup = null)
+        TblDivisionCourse $tblCoreGroup = null, bool $isLeaveDateNull = true)
     {
         $parameters[TblStudentEducation::ATTR_SERVICE_TBL_YEAR] = $tblYear->getId();
-        $parameters[TblStudentEducation::ATTR_LEAVE_DATE] = null;
+        if ($isLeaveDateNull) {
+            $parameters[TblStudentEducation::ATTR_LEAVE_DATE] = null;
+        }
         if ($tblSchoolType) {
             $parameters[TblStudentEducation::ATTR_SERVICE_TBL_SCHOOL_TYPE] = $tblSchoolType->getId();
         }
