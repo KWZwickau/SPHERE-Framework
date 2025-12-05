@@ -113,7 +113,9 @@ class FrontendStudentProcess extends FrontendReadOnly
                     }
                     $studentEducationList[] = $item;
 
-                    if (!$isInActive && $levelValue && !isset($levelList[$levelValue])) {
+                    if (!$isInActive && $levelValue && !isset($levelList[$levelValue])
+                        && $schoolType != 'Kindertageseinrichtung'
+                    ) {
                         $levelList[$levelValue] = $levelValue;
                     }
                 }
