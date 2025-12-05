@@ -4,6 +4,7 @@ namespace SPHERE\Application\Api\Reporting\Standard;
 
 use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel;
 use MOC\V\Component\Document\Component\Parameter\Repository\FileParameter;
+use MOC\V\Component\Document\Component\Parameter\Repository\PaperOrientationParameter;
 use MOC\V\Component\Document\Document;
 use MOC\V\Core\FileSystem\FileSystem;
 use SPHERE\Application\Document\Storage\Storage;
@@ -16,10 +17,12 @@ class ExcelBuilder
      * @param array $dataList
      * @param array|null $preTextList
      * @param array|null $headerWidthList
+     * @param bool $isLandscape
      *
-     * @return false|string
+     * @return string
      */
-    public static function getDownloadFile(string $fileName, array $headerNameList, array $dataList, ?array $preTextList = null, ?array $headerWidthList = null)
+    public static function getDownloadFile(string $fileName, array $headerNameList, array $dataList,
+        ?array $preTextList = null, ?array $headerWidthList = null, bool $isLandscape = false): string
     {
         if (!empty($dataList)) {
             $fileLocation = Storage::createFilePointer('xlsx');
@@ -57,11 +60,16 @@ class ExcelBuilder
                     $column++;
                 }
             }
+
+            if ($isLandscape) {
+                $export->setPaperOrientationParameter(new PaperOrientationParameter('LANDSCAPE'));
+            }
+
             $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
 
             return FileSystem::getDownload($fileLocation->getRealPath(), $fileName . ".xlsx")->__toString();
         }
 
-        return false;
+        return '';
     }
 }

@@ -102,6 +102,12 @@ class Standard extends Extension implements IModuleInterface
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '/StudentOverviewCourse/Create', __CLASS__ . '::createGradeOverviewDivisionCoursePdf'
         ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '/ClassRegister/StudentList/Individual/Create','SPHERE\Application\Api\Document\Creator::createIndividualStudentListPdf'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '/ClassRegister/StudentDetail/Create','SPHERE\Application\Api\Document\Creator::createStudentDetailPdf'
+        ));
 
         ApiStandard::registerApi();
     }

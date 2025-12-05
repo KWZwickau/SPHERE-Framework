@@ -6,7 +6,7 @@ use SPHERE\Application\Document\Generator\Repository\Element;
 class Image extends Element
 {
 
-    public function __construct($Location, $Width = 'auto', $Height = 'auto')
+    public function __construct($Location, $Width = 'auto', $Height = 'auto', $Opacity = 1.0)
     {
 
         parent::__construct();
@@ -15,7 +15,8 @@ class Image extends Element
             define("DOMPDF_ENABLE_REMOTE", true);
         }
 
-        $this->setContent('<img src="'.$this->getPdfImage($Location).'" style="width: '.$Width.' !important; height: '.$Height.' !important;"/>');
+        $this->setContent('<img src="'.$this->getPdfImage($Location).'" style="width: '.$Width.' !important; height: '.$Height.' !important; opacity: '
+            . $Opacity . '" />');
     }
 
     private function getPdfImage($Location)

@@ -24,6 +24,9 @@ class ClassRegister extends Extension implements IModuleInterface
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '/Reorder', __CLASS__ . '::reorderDivision'
         ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '/StudentListFilter/Reorder', __CLASS__ . '::reorderStudentListFilter'
+        ));
     }
 
     /**
@@ -83,5 +86,13 @@ class ClassRegister extends Extension implements IModuleInterface
         }
 
         return (new Response())->addError( 'Fehler!', new HazardSign().' Die Sortierung der Mitglieder konnte nicht aktualisiert werden.', 0);
+    }
+
+    /**
+     * @return Response
+     */
+    public function reorderStudentListFilter(): Response
+    {
+        return (new Response())->addData(new Success() . ' Die Sortierung wurde erfolgreich aktualisiert.');
     }
 }

@@ -92,6 +92,9 @@ class ApiDigital extends Extension implements IApiInterface
         $Dispatcher->registerMethod('loadAdditionalInformationContent');
         $Dispatcher->registerMethod('loadTeacherViewContent');
 
+        $Dispatcher->registerMethod('loadIndividualDownloadContent');
+        $Dispatcher->registerMethod('saveDownloadFilter');
+
         return $Dispatcher->callMethod($Method);
     }
 
@@ -1676,5 +1679,81 @@ class ApiDigital extends Extension implements IApiInterface
         }
 
         return Digital::useFrontend()->loadTeacherViewContent($YearId, $Filter);
+    }
+
+    /**
+     * @param $DivisionCourseId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineLoadIndividualDownloadContent($DivisionCourseId): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+
+        $Emitter = new ServerEmitter(self::receiverBlock('', 'DownloadContent'), self::getEndpoint());
+        $Emitter->setGetPayload(array(
+            self::API_TARGET => 'loadIndividualDownloadContent',
+            'DivisionCourseId' => $DivisionCourseId,
+        ));
+        $Emitter->setLoadingMessage('Daten werden geladen');
+        $Pipeline->appendEmitter($Emitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $DivisionCourseId
+     *
+     * @return string
+     */
+    public static function loadIndividualDownloadContent($DivisionCourseId): string
+    {
+        return Digital::useFrontend()->loadDownloadFilter($DivisionCourseId);
+    }
+
+    /**
+     * @param $DivisionCourseId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineSaveDownloadFilter($DivisionCourseId): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+
+        $Emitter = new ServerEmitter(self::receiverBlock('', 'DownloadContent'), self::getEndpoint());
+        $Emitter->setGetPayload(array(
+            self::API_TARGET => 'saveDownloadFilter',
+            'DivisionCourseId' => $DivisionCourseId,
+        ));
+        $Emitter->setLoadingMessage('Daten werden geladen');
+        $Pipeline->appendEmitter($Emitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $Data
+     *
+     * @return string
+     */
+    public static function saveDownloadFilter($DivisionCourseId, $Data = null): string
+    {
+        if (isset($Data['Columns'])) {
+            $columns = json_encode($Data['Columns']);
+        } else {
+            return new Warning('Bitte wählen Sie mindestens eine Spalte aus!', new Exclamation())
+                . Digital::useFrontend()->loadDownloadFilter($DivisionCourseId);
+        }
+        $freeTexts = '';
+        if (isset($Data['FreeTexts'])) {
+            $freeTexts = json_encode($Data['FreeTexts']);
+        }
+
+        if (($tblPerson = Account::useService()->getPersonByLogin())) {
+            Digital::useService()->updateStudentListColumn($tblPerson, $columns, $freeTexts);
+        }
+
+        return Digital::useFrontend()->loadIndividualDownloadContent($DivisionCourseId);
     }
 }
