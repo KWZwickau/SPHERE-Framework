@@ -311,26 +311,18 @@ class TblTeacherLectureship extends Element
 
     /**
      * @param bool $isString
-     * @return false|string|TblPerson[]
+     *
+     * @return string|TblPerson[]
      */
-    public function getSubjectTeachers(bool $isString = true)
+    public function getSubjectTeachers(bool $isString = true): array|string
     {
-        $tblPersonList = array();
         if (($tblDivisionCourse = $this->getTblDivisionCourse())
             && ($tblSubject = $this->getServiceTblSubject())
         ) {
-            if (($tblTeacherLectureshipList = DivisionCourse::useService()->getTeacherLectureshipListBy(null, null, $tblDivisionCourse, $tblSubject))) {
-                foreach ($tblTeacherLectureshipList as $tblTeacherLectureship) {
-                    if (($tblPerson = $tblTeacherLectureship->getServiceTblPerson())) {
-                        $tblPersonList[$tblPerson->getId()] = $isString ? $tblTeacherLectureship->getTeacherName() : $tblPerson;
-                    }
-                }
-            }
+            return DivisionCourse::useService()->getSubjectTeachers($tblDivisionCourse, $tblSubject, $isString);
         }
 
-        return empty($tblPersonList)
-            ? false
-            : ($isString ? implode(", ", $tblPersonList) : $tblPersonList);
+        return $isString ? '' : [];
     }
 
 

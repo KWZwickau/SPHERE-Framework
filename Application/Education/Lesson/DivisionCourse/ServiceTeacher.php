@@ -108,4 +108,29 @@ abstract class ServiceTeacher extends ServiceSubjectTable
     {
         return (new Data($this->getBinding()))->getSubjectListByTeacherAndYear($tblPerson, $tblYear);
     }
+
+    /**
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param TblSubject $tblSubject
+     * @param bool $isString
+     *
+     * @return string|TblPerson[]
+     */
+    public function getSubjectTeachers(TblDivisionCourse $tblDivisionCourse, TblSubject $tblSubject, bool $isString = true): string|array
+    {
+        $tblPersonList = array();
+
+        if (($tblTeacherLectureshipList = DivisionCourse::useService()->getTeacherLectureshipListBy(null, null, $tblDivisionCourse, $tblSubject))) {
+            foreach ($tblTeacherLectureshipList as $tblTeacherLectureship) {
+                if (($tblPerson = $tblTeacherLectureship->getServiceTblPerson())) {
+                    $tblPersonList[$tblPerson->getId()] = $isString ? $tblTeacherLectureship->getTeacherName() : $tblPerson;
+                }
+            }
+        }
+
+
+        return $isString
+            ? implode(", ", $tblPersonList)
+            : $tblPersonList;
+    }
 }

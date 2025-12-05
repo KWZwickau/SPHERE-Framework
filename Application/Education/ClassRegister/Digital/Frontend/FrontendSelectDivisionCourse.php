@@ -129,12 +129,17 @@ class FrontendSelectDivisionCourse extends FrontendForgotten
                     $route = self::BASE_ROUTE . '/LessonContent';
                 }
 
+                $teachers = $tblDivisionCourse->getDivisionTeacherNameListString();
+                if (!$teachers && $tblDivisionCourse->getType()->getIsCourseSystem() && ($tblSubject = $tblDivisionCourse->getServiceTblSubject())) {
+                    $teachers = DivisionCourse::useService()->getSubjectTeachers($tblDivisionCourse, $tblSubject);
+                }
+
                 $dataList[] = array(
                     'Year' => $tblDivisionCourse->getYearName(),
                     'DivisionCourse' => $tblDivisionCourse->getDisplayName(),
                     'DivisionCourseType' => $tblDivisionCourse->getTypeName(),
                     'SchoolTypes' => $tblDivisionCourse->getSchoolTypeListFromStudents(true),
-                    'Teachers' => $tblDivisionCourse->getDivisionTeacherNameListString(),
+                    'Teachers' => $teachers,
                     'Option' => new Standard(
                         '',
                         $route,
