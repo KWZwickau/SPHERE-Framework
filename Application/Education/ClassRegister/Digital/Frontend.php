@@ -548,6 +548,9 @@ class Frontend extends FrontendTabs
 
         $tblTestList = Grade::useService()->getTestListForDigitalByDate($date);
         $tblDivisionCourseListByStudentsInDivisionCourse = DivisionCourse::useService()->getDivisionCourseListByStudentsInDivisionCourse($tblDivisionCourse);
+        if(!$tblDivisionCourseListByStudentsInDivisionCourse){
+            $tblDivisionCourseListByStudentsInDivisionCourse = array();
+        }
 
         $lessonContentList = array();
         if (($tblLessonContentList = Digital::useService()->getLessonContentAllByDate($date, $tblDivisionCourse))) {
