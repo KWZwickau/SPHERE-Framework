@@ -22,6 +22,7 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblIdentification;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblSetting;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumerLogin;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Token;
 use SPHERE\Application\Setting\Agb\Agb;
 use SPHERE\Application\Setting\MyAccount\MyAccount;
@@ -346,6 +347,15 @@ class Frontend extends Extension implements IFrontendInterface
             $tblAccount = Account::useService()->getAccountByCredential($CredentialName, $CredentialLock);
         }
 
+        // Prüfung auf sperre
+        if($tblAccount){
+            if(($tblConsumer = $tblAccount->getServiceTblConsumer())){
+                if(Consumer::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_SSW_STOP)){
+                    return $View->setContent(new Warning('Ihr Schulträger ist aktuell gesperrt, Bitte wenden Sie sich an Ihren Vertragspartner.'));
+                }
+            }
+        }
+
         // Matching Account found?
         if ($tblAccount) {
             if ($tblAccount->getHasAuthentication(TblIdentification::NAME_SYSTEM)
@@ -532,6 +542,15 @@ class Frontend extends Extension implements IFrontendInterface
             $tblAccount = Account::useService()->getAccountById($AccountId);
         } else {
             $AccountId = new Bold('DLLP missing (ucsschoolRecordUID)');
+        }
+
+        // Prüfung auf sperre
+        if($tblAccount){
+            if(($tblConsumer = $tblAccount->getServiceTblConsumer())){
+                if(Consumer::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_SSW_STOP)){
+                    return $Stage->setContent(new Warning('Ihr Schulträger ist aktuell gesperrt, Bitte wenden Sie sich an Ihren Vertragspartner.'));
+                }
+            }
         }
 
         // AccountId gegen Prüfung
