@@ -1571,7 +1571,7 @@ class Frontend extends FrontendTabs
             if (($tblTestList = Grade::useService()->getTestListForDigitalByDate(new DateTime($Date)))) {
                 $tblDivisionCourseListByStudentsInDivisionCourse =
                     DivisionCourse::useService()->getDivisionCourseListByStudentsInDivisionCourse($tblDivisionCourse);
-                $testArray = $this->getTestColumnContent($tblTestList, $tblDivisionCourse->getId(), $SubjectId,
+                $testArray = $this->getTestColumnContent($tblTestList, $tblDivisionCourse->getId(), $SubjectId ? (int) $SubjectId : null,
                     $tblDivisionCourseListByStudentsInDivisionCourse, false);
             }
         }
