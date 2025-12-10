@@ -548,6 +548,9 @@ class Frontend extends FrontendTabs
 
         $tblTestList = Grade::useService()->getTestListForDigitalByDate($date);
         $tblDivisionCourseListByStudentsInDivisionCourse = DivisionCourse::useService()->getDivisionCourseListByStudentsInDivisionCourse($tblDivisionCourse);
+        if(!$tblDivisionCourseListByStudentsInDivisionCourse){
+            $tblDivisionCourseListByStudentsInDivisionCourse = array();
+        }
 
         $lessonContentList = array();
         if (($tblLessonContentList = Digital::useService()->getLessonContentAllByDate($date, $tblDivisionCourse))) {
@@ -1454,9 +1457,11 @@ class Frontend extends FrontendTabs
                     $tblSubjectTemp = $tblLessonContentTemp->getServiceTblSubject();
                     if (!$SubjectId || ($tblSubjectTemp && $tblSubjectTemp->getId() == $SubjectId)) {
                         $tblSubject = $tblSubjectTemp;
-                        $Global->POST['Data']['serviceTblSubject'] = $tblSubjectTemp ? $tblSubjectTemp->getId() : 0;
+                        $Global->POST['Data']['serviceTblSubject'] = $tblSubjectTemp && $tblSubjectTemp->getIsActive()
+                            ? $tblSubjectTemp->getId() : 0;
                         $Global->POST['Data']['serviceTblSubstituteSubject'] =
-                            $tblLessonContentTemp->getServiceTblSubstituteSubject() ? $tblLessonContentTemp->getServiceTblSubstituteSubject()->getId() : 0;
+                            $tblLessonContentTemp->getServiceTblSubstituteSubject() && $tblLessonContentTemp->getServiceTblSubstituteSubject()->getIsActive()
+                                ? $tblLessonContentTemp->getServiceTblSubstituteSubject()->getId() : 0;
                         $Global->POST['Data']['Room'] = $tblLessonContentTemp->getRoom();
                         $Global->POST['Data']['IsCanceled'] = $tblLessonContentTemp->getIsCanceled() ? 1 : 0;
                         break;
@@ -1471,7 +1476,8 @@ class Frontend extends FrontendTabs
             ) {
                 $Global = $this->getGlobal();
 
-                $Global->POST['Data']['serviceTblSubject'] = ($tblSubject = $tblLessonContentTemp->getServiceTblSubject()) ? $tblSubject->getId() : 0;
+                $Global->POST['Data']['serviceTblSubject'] = ($tblSubject = $tblLessonContentTemp->getServiceTblSubject()) && $tblSubject->getIsActive()
+                    ? $tblSubject->getId() : 0;
                 $Global->POST['Data']['Room'] = $tblLessonContentTemp->getRoom();
 
                 $Global->savePost();

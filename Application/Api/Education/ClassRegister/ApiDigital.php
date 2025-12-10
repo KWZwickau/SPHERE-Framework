@@ -306,6 +306,11 @@ class ApiDigital extends Extension implements IApiInterface
             // bei Doppelstunde die Daten auch für die nächste UE speichern
             if (isset($Data['IsDoubleLesson']) && isset($Data['Lesson'])) {
                 $lessonDouble = $lesson + 1;
+
+                // SSWHD-3832 Hausaufgabe nur im Original setzen, nicht doppelt
+                $Data['Homework'] = '';
+                $Data['DueDateHomework'] = '';
+
                 $tblLessonContentDouble = Digital::useService()->createLessonContent($Data, $lessonDouble, $tblDivisionCourse);
             } else {
                 $lessonDouble = false;

@@ -994,6 +994,11 @@ abstract class ServiceTabs extends ServiceForgotten
                             if (($tblDivisionCourse = $tblTimetableNode->getServiceTblCourse())
                                 && ($tblSubject = $tblTimetableNode->getServiceTblSubject())
                             ) {
+                                // SekII-Kurse ignorieren
+                                if ($tblDivisionCourse->getType()->getIsCourseSystem()) {
+                                    continue;
+                                }
+
                                 // ganztägig prüfen
                                 if (!isset($fullTimes[$tblDivisionCourse->getId()])) {
                                     $fullTimes[$tblDivisionCourse->getId()] = Digital::useService()->getFullTimeContentListByDivisionCourseAndDate(
@@ -1073,6 +1078,13 @@ abstract class ServiceTabs extends ServiceForgotten
 
                         // zusätzliche Stunden im Vertretungsplan hinzufügen
                         foreach ($tblTimetableReplacementAdditionalList as $tblTimetableReplacement) {
+                            // SekII-Kurse ignorieren
+                            if (($tblDivisionCourseReplacement = $tblTimetableReplacement->getServiceTblCourse())
+                                && $tblDivisionCourseReplacement->getType()->getIsCourseSystem()
+                            ) {
+                                continue;
+                            }
+
                             $tblLessonContent = new TblLessonContent();
                             // muss eigene DateTime sein
                             $tblLessonContent->setDate(clone $startDate);
