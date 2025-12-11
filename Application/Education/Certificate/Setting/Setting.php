@@ -35,6 +35,9 @@ class Setting extends Extension implements IModuleInterface
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__, __NAMESPACE__.'\Frontend::frontendDashboard'
         ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '\Preview', __NAMESPACE__ . '\FrontendPreviewCertificate::frontend'
+        ));
     }
 
     /**

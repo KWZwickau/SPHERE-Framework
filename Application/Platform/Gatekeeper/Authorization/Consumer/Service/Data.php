@@ -53,12 +53,16 @@ class Data extends AbstractData
     }
 
     /**
-     * @param integer $Id
+     * @param $Id
+     * @param bool $isForced
      *
-     * @return bool|TblConsumer
+     * @return false|TblConsumer
      */
-    public function getConsumerById($Id)
+    public function getConsumerById($Id, bool $isForced = false)
     {
+        if ($isForced) {
+            return $this->getForceEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblConsumer', $Id);
+        }
 
         return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblConsumer', $Id);
     }

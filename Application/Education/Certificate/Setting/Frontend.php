@@ -1164,7 +1164,7 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    private static function setSettingMenue(Stage $Stage, $Route = 'Template')
+    public static function setSettingMenue(Stage $Stage, string $Route = 'Template'): Stage
     {
 
         $text = 'Zeugnisvorlagen';
@@ -1181,6 +1181,11 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->addButton(new Standard($Route == 'Implement' ? new Edit() . ' ' . $text : $text,
             '/Education/Certificate/Setting/Implement', null, null,
             'Standardzeugnisse hinzufügen'));
+
+        $text = 'Zeugnisvorlagen Vorschau';
+        $Stage->addButton(new Standard($Route == 'Preview' ? new Edit() . ' ' . $text : $text,
+            '/Education/Certificate/Setting/Preview', null, null,
+            'Zeugnisvorlagen anschauen'));
 
         return $Stage;
     }

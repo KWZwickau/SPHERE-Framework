@@ -106,15 +106,17 @@ class TblCertificate extends Element
     protected $CertificateNumber;
 
     /**
+     * @param bool $isForced
+     *
      * @return bool|TblConsumer
      */
-    public function getServiceTblConsumer()
+    public function getServiceTblConsumer(bool $isForced = false)
     {
 
         if (null === $this->serviceTblConsumer) {
             return false;
         } else {
-            return Consumer::useService()->getConsumerById($this->serviceTblConsumer);
+            return Consumer::useService()->getConsumerById($this->serviceTblConsumer, $isForced);
         }
     }
 

@@ -474,7 +474,8 @@ class GymAbitur extends Certificate
         /*
          * Block II
          */
-        if (($tblPrepareInformation = Prepare::useService()->getPrepareInformationBy($this->getTblPrepareCertificate(), $tblPerson, 'IsBellUsed'))
+        if ($this->getTblPrepareCertificate()
+            && ($tblPrepareInformation = Prepare::useService()->getPrepareInformationBy($this->getTblPrepareCertificate(), $tblPerson, 'IsBellUsed'))
             && $tblPrepareInformation->getValue()
         ) {
             $isBellUsed = true;
@@ -483,7 +484,9 @@ class GymAbitur extends Certificate
         }
 
         $bellPoints = '&ndash;';
-        if (($tblPrepareInformation = Prepare::useService()->getPrepareInformationBy($this->getTblPrepareCertificate(), $tblPerson, 'BellPoints'))) {
+        if ($this->getTblPrepareCertificate()
+            && ($tblPrepareInformation = Prepare::useService()->getPrepareInformationBy($this->getTblPrepareCertificate(), $tblPerson, 'BellPoints'))
+        ) {
             $value = $tblPrepareInformation->getValue();
             if ($value !== null && $value !== '') {
                 $bellPoints = ($isBellUsed ? '' : '(')
@@ -492,16 +495,19 @@ class GymAbitur extends Certificate
             }
         }
 
-        // Berechnung der Gesamtqualifikation und der Durchschnittsnote
-        /** @noinspection PhpUnusedLocalVariableInspection */
-        list($countCourses, $resultBlockI) = Prepare::useService()->getResultForAbiturBlockI(
-            $this->getTblPrepareCertificate(),
-            $tblPerson
-        );
-        $resultBlockII = Prepare::useService()->getResultForAbiturBlockII(
-            $this->getTblPrepareCertificate(),
-            $tblPerson
-        );
+        $resultBlockI = $resultBlockII = 0;
+        if ($this->getTblPrepareCertificate()) {
+            // Berechnung der Gesamtqualifikation und der Durchschnittsnote
+            /** @noinspection PhpUnusedLocalVariableInspection */
+            list($countCourses, $resultBlockI) = Prepare::useService()->getResultForAbiturBlockI(
+                $this->getTblPrepareCertificate(),
+                $tblPerson
+            );
+            $resultBlockII = Prepare::useService()->getResultForAbiturBlockII(
+                $this->getTblPrepareCertificate(),
+                $tblPerson
+            );
+        }
         $resultPoints = $resultBlockI + $resultBlockII;
         if ($resultBlockI >= 200 && $resultBlockII >= 100) {
             $resultAverageGrade = Prepare::useService()->getResultForAbiturAverageGrade($resultPoints);
@@ -1503,7 +1509,8 @@ class GymAbitur extends Certificate
             );
 
         // Zensuren ausblenden wenn der Schüler widersprochen hat
-        if (($tblPrepareInformation = Prepare::useService()->getPrepareInformationBy($this->getTblPrepareCertificate(),
+        if ($this->getTblPrepareCertificate()
+            && ($tblPrepareInformation = Prepare::useService()->getPrepareInformationBy($this->getTblPrepareCertificate(),
             $tblPerson, 'LevelTenGradesAreNotShown'))
         ) {
             $levelTenGradesAreNotShown = $tblPrepareInformation->getValue();
@@ -1513,11 +1520,13 @@ class GymAbitur extends Certificate
 
         $i = 1;
         $tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('LEVEL-10');
-        if (($tblPrepareAdditionalGradeList = Prepare::useService()->getPrepareAdditionalGradeListBy(
-            $this->getTblPrepareCertificate(),
-            $tblPerson,
-            $tblPrepareAdditionalGradeType
-        ))) {
+        if ($this->getTblPrepareCertificate()
+            && ($tblPrepareAdditionalGradeList = Prepare::useService()->getPrepareAdditionalGradeListBy(
+                $this->getTblPrepareCertificate(),
+                $tblPerson,
+                $tblPrepareAdditionalGradeType
+            ))
+        ) {
             foreach ($tblPrepareAdditionalGradeList as $tblPrepareAdditionalGrade) {
                 $subject = '&ndash;';
                 $grade = '&ndash;';

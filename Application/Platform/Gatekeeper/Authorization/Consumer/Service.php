@@ -45,17 +45,18 @@ class Service extends AbstractService
 
     /**
      * @param integer $Id
+     * @param bool $isForced
      *
      * @return bool|TblConsumer
      */
-    public function getConsumerById($Id)
+    public function getConsumerById($Id, bool $isForced = false)
     {
 
         if (is_numeric($Id)) {
             if (array_key_exists($Id, self::$ConsumerByIdCache)) {
                 return self::$ConsumerByIdCache[$Id];
             }
-            self::$ConsumerByIdCache[$Id] = (new Data($this->getBinding()))->getConsumerById($Id);
+            self::$ConsumerByIdCache[$Id] = (new Data($this->getBinding()))->getConsumerById($Id, $isForced);
             return self::$ConsumerByIdCache[$Id];
         } else {
             return false;
