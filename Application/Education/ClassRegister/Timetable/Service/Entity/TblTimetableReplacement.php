@@ -283,7 +283,7 @@ class TblTimetableReplacement extends Element
      */
     public function getIdentifier(bool $withTeacher = false): string
     {
-        return $this->getDate() . '_' . $this->serviceTblCourse . '_' . $this->serviceTblSubject . '_' . $this->Hour
+        return $this->getDate() . '_' . $this->serviceTblCourse . '_' . ($this->serviceTblSubject ?: $this->serviceTblSubstituteSubject) . '_' . $this->Hour
             . ($withTeacher ?  '_' . $this->serviceTblPerson : '');
     }
 }

@@ -733,6 +733,8 @@ abstract class ServiceTabs extends ServiceForgotten
                                     // zusätzlich Stunden im vertretungsplan
                                     if (($tblPersonReplacement = $item->getServiceTblPerson())
                                         && $tblPersonReplacement->getId() == $tblPerson->getId()
+                                        // SSWHD-3832 bei Verschiebung im Stundenplan sind es keine zusätzlichen Stunden
+                                        && !$item->getServiceTblSubject()
                                     ) {
                                         $tblTimetableReplacementAdditionalList[$item->getIdentifier()] = $item;
                                     }
@@ -745,12 +747,22 @@ abstract class ServiceTabs extends ServiceForgotten
                             if (($tblDivisionCourse = $tblTimetableNode->getServiceTblCourse())
                                 && ($tblSubject = $tblTimetableNode->getServiceTblSubject())
                             ) {
+                                $identifier = $startDate->format('d.m.Y') . '_' . $tblDivisionCourse->getId() . '_' . $tblSubject->getId() . '_' . $tblTimetableNode->getHour();
+
+                                // SekII-Kurse ignorieren
+                                if ($tblDivisionCourse->getType()->getIsCourseSystem()) {
+                                    continue;
+                                }
+
                                 // ganztägig prüfen
                                 if (!isset($fullTimes[$tblDivisionCourse->getId()])) {
                                     $fullTimes[$tblDivisionCourse->getId()] = Digital::useService()->getFullTimeContentListByDivisionCourseAndDate(
                                         $tblDivisionCourse, $startDate);
                                 }
                                 if ($fullTimes[$tblDivisionCourse->getId()]) {
+                                    // ist keine zusätzliche Stunde im vertretungsplan
+                                    unset($tblTimetableReplacementAdditionalList[$identifier]);
+
                                     continue;
                                 }
 
@@ -773,7 +785,6 @@ abstract class ServiceTabs extends ServiceForgotten
                                 }
 
                                 // prüfen, ob es den Eintrag gibt
-                                $identifier = $startDate->format('d.m.Y') . '_' . $tblDivisionCourse->getId() . '_' . $tblSubject->getId() . '_' . $tblTimetableNode->getHour();
                                 $isMissing = !isset($tblLessonContentList[$identifier]);
                                 $isReplacement = isset($tblTimetableReplacementList[$identifier]);
                                 // ist keine zusätzliche Stunde im vertretungsplan
@@ -824,6 +835,13 @@ abstract class ServiceTabs extends ServiceForgotten
 
                         // zusätzliche Stunden im Vertretungsplan hinzufügen
                         foreach ($tblTimetableReplacementAdditionalList as $tblTimetableReplacement) {
+                            // SekII-Kurse ignorieren
+                            if (($tblDivisionCourseReplacement = $tblTimetableReplacement->getServiceTblCourse())
+                                && $tblDivisionCourseReplacement->getType()->getIsCourseSystem()
+                            ) {
+                                continue;
+                            }
+
                             $tblLessonContent = new TblLessonContent();
                             // muss eigene DateTime sein
                             $tblLessonContent->setDate(clone $startDate);
