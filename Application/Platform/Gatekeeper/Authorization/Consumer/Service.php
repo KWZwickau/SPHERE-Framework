@@ -225,6 +225,35 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblConsumer $tblConsumer
+     * @param string      $SystemName
+     * @param bool        $isButtonActive
+     * @return TblConsumerLogin
+     */
+    public function createConsumerLogin($tblConsumer, $SystemName, $isButtonActive): TblConsumerLogin
+    {
+        return (new Data($this->getBinding()))->createConsumerLogin($tblConsumer, $SystemName, $isButtonActive);
+    }
+
+    /**
+     * @param TblConsumerLogin $tblConsumerLogin
+     * @param bool             $isButtonActive
+     * @return TblConsumerLogin
+     */
+    public function updateConsumerLogin($tblConsumerLogin, $isButtonActive): TblConsumerLogin
+    {
+        return (new Data($this->getBinding()))->updateConsumerLogin($tblConsumerLogin, $isButtonActive);
+    }
+
+    /**
+     * @return bool
+     */
+    public function removeConsumerLogin($tblConsumerLogin): bool
+    {
+        return (new Data($this->getBinding()))->removeConsumerLogin($tblConsumerLogin);
+    }
+
+    /**
      * @param string $Acronym
      *
      * @return bool|TblConsumer

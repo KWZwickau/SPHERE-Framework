@@ -1,9 +1,9 @@
 <?php
-
 namespace SPHERE\Application\Platform\System\BasicData\Service;
 
 use SPHERE\Application\Platform\System\BasicData\Service\Entity\TblHoliday;
 use SPHERE\Application\Platform\System\BasicData\Service\Entity\TblHolidayType;
+use SPHERE\Application\Platform\System\BasicData\Service\Entity\TblMaintenance;
 use SPHERE\Application\Platform\System\BasicData\Service\Entity\TblState;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Database\Binding\AbstractData;
@@ -225,5 +225,110 @@ class Data extends AbstractData
 //        }
 
         return $Entity;
+    }
+
+    /**
+     * @return false|TblMaintenance[]
+     */
+    public function getMaintenanceAll()
+    {
+        return $this->getCachedEntityList(__METHOD__, $this->getEntityManager(), 'TblMaintenance');
+    }
+
+    /**
+     * @param $Id
+     * @return false|TblMaintenance
+     */
+    public function getMaintenanceById($Id)
+    {
+        return $this->getCachedEntityById(__METHOD__, $this->getEntityManager(), 'TblMaintenance', $Id);
+    }
+
+    /**
+     * @return false|TblMaintenance
+     */
+    public function getMaintenanceByDate($Date = '')
+    {
+
+        if($Date){
+            $now = new \DateTime($Date);
+        } else {
+            $now = new \DateTime('now');
+        }
+        return $this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'tblMaintenance',
+            array(
+                TblMaintenance::ATTR_MAINTENANCE_DATE => $now
+            ));
+
+//        $queryBuilder = $Manager->getQueryBuilder();
+//        $query = $queryBuilder->select('t')
+//            ->from(__NAMESPACE__ . '\Entity\TblMaintenance', 't')
+//            ->where($queryBuilder->expr()->andX(
+//                $queryBuilder->expr()->lte('t.StartDate', '?1'),
+//                $queryBuilder->expr()->gte('t.MaintenanceDate', '?1')
+//            ))
+//            ->setParameter(1, $now)
+//            ->getQuery();
+//        $resultList = $query->getResult();
+//        return empty($resultList) ? false : current($resultList);
+
+    }
+
+    /**
+     * @param string $StartDate
+     * @param string $MaintenanceDate
+     * @param string $PreWarningTime
+     * @param string $ActiveWarningTime
+     * @param string $EndWarningTime
+     * @return TblMaintenance
+     */
+    public function createMaintenance($StartDate, $MaintenanceDate, $PreWarningTime, $ActiveWarningTime, $EndWarningTime)
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+        $Entity = new TblMaintenance();
+        $Entity->setStartDate($StartDate);
+        $Entity->setMaintenanceDate($MaintenanceDate);
+        $Entity->setPreWarningTime($PreWarningTime);
+        $Entity->setActiveWarningTime($ActiveWarningTime);
+        $Entity->setEndWarningTime($EndWarningTime);
+        $Manager->saveEntity($Entity);
+        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        return $Entity;
+    }
+
+    /**
+     * @param TblMaintenance $tblMaintenance
+     * @param string $StartDate
+     * @param string $MaintenanceDate
+     * @param string $PreWarningTime
+     * @param string $ActiveWarningTime
+     * @param string $EndWarningTime
+     * @return TblMaintenance
+     */
+    public function updateMaintenance(TblMaintenance $tblMaintenance, $StartDate, $MaintenanceDate, $PreWarningTime, $ActiveWarningTime, $EndWarningTime)
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+        $clone = clone $tblMaintenance;
+        $tblMaintenance->setStartDate($StartDate);
+        $tblMaintenance->setMaintenanceDate($MaintenanceDate);
+        $tblMaintenance->setPreWarningTime($PreWarningTime);
+        $tblMaintenance->setActiveWarningTime($ActiveWarningTime);
+        $tblMaintenance->setEndWarningTime($EndWarningTime);
+        $Manager->saveEntity($tblMaintenance);
+        Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $clone, $tblMaintenance);
+        return $tblMaintenance;
+    }
+
+    /**
+     * @param TblMaintenance $tblMaintenance
+     * @return true
+     */
+    public function deleteMaintenance(TblMaintenance $tblMaintenance)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $tblMaintenance);
+        $Manager->killEntity($tblMaintenance);
+        return true;
     }
 }

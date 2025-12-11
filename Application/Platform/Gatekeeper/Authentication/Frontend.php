@@ -24,6 +24,7 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumerLogin;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Token;
+use SPHERE\Application\Platform\System\BasicData\BasicData;
 use SPHERE\Application\Setting\Agb\Agb;
 use SPHERE\Application\Setting\MyAccount\MyAccount;
 use SPHERE\Application\Setting\User\Account\Account as UserAccount;
@@ -110,11 +111,7 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Willkommen', '', '');
-        $DateStart = '2025-12-08 ';
-        $DateEnd = '2025-12-09 ';
-        $IsMaintenance = (new DateTime('now') >= new DateTime($DateStart.'00:00:00')
-                       && new DateTime('now') <= new DateTime($DateEnd.'06:00:00'));
-        $maintenanceMessage = '';
+        $contentMaintenance = $this->layoutMaintenance();
         $contentTeacherWelcome = false;
         $contentSecretariatWelcome = false;
         $contentMissingTimeSpan = false;
@@ -166,41 +163,6 @@ class Frontend extends Extension implements IFrontendInterface
 //                }
             }
         }
-        if ($IsMaintenance) {
-            $now = new DateTime();
-//            if ($now >= new DateTime('22:00')) {
-//                $PanelColor = Panel::PANEL_TYPE_DANGER;
-//                $maintenanceMessage = new Panel(new Headline(new Bold(new Center(new Cog().' Wartung &nbsp;'.new CogWheels()))),
-//                    new DangerMessage(new Container(new Center(new Bold('Achtung laufende Wartungsarbeiten seit 22:00
-//                        bis vorraussichtlich 0:00.')))
-//                    .new Container(new Center(new Bold('Es wird empfohlen, sich wegen der Wartung abzumelden,
-//                     um Datenverlust der getätigten Eingaben zu vermeiden.')))
-//                    .new Container((new ProgressBar(0,100,0, 8))->setColor(ProgressBar::BAR_COLOR_SUCCESS, ProgressBar::BAR_COLOR_DANGER))
-//                    , null, false, '8', '5'), $PanelColor);
-//            } elseif ($now >= new DateTime('20:00')) {
-//                $PanelColor = Panel::PANEL_TYPE_WARNING;
-//                $DiffTime = (new DateTime('now'))->diff(new DateTime($Date.' 22:00:00'));
-////                $DiffTime = (new DateTime('now'))->diff(new DateTime('2021-07-28 22:00:00'));
-//                $Minutes = $DiffTime->h * 60;
-//                $Minutes = $Minutes + $DiffTime->i;
-//                $aktiveProgressbar = $Minutes/120*100;
-//                $doneProgressbar = 100 - $aktiveProgressbar;
-//                $maintenanceMessage = new Panel(new Headline(new Bold(new Center(new Cog().' Wartung &nbsp;'.new CogWheels()))),
-//                    new DangerMessage(new Container(new Center('Achtung heute ('.$now->format('d.m.Y')
-//                            .') ab 22:00 Wartungsarbeiten, voraussichtlich 2 Stunden.')).new Container(new Center(new Bold('Es wird empfohlen, sich
-//                        vor der Wartung abzumelden, um Datenverlust von den Eingaben zu vermeiden.').' ('.new Italic('noch '.$Minutes.' Minuten').')'))
-//                        .new Container((new ProgressBar(0, $doneProgressbar, $aktiveProgressbar, 8))->setColor(ProgressBar::BAR_COLOR_SUCCESS, ProgressBar::BAR_COLOR_WARNING, ProgressBar::BAR_COLOR_SUCCESS))
-//                        , null, false, '8', '5'), $PanelColor
-//                );
-//            } elseif ($now >= new DateTime('9:00')) {
-                $PanelColor = Panel::PANEL_TYPE_WARNING;
-                $maintenanceMessage = new Panel(new Headline(new Bold(new Center(new Cog().' Wartung &nbsp;'.new CogWheels()))
-                .new Center('Am 9.12.2025 ist die Schulsoftware voraussichtlich zwischen 3 und 6 Uhr nicht erreichbar.')), '', $PanelColor
-//                    new Warning(new Center('Achtung am ('.$DateEnd->format('d.m.Y').') ab 03:00
-//                     Wartungsarbeiten, voraussichtlich 2 Stunden.'), null, false, '8', '5'), $PanelColor
-                );
-//            }
-        }
 
         // specialLogin?
         $isConsumerLogin = false;
@@ -231,18 +193,7 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $Stage->setContent(
-            new Layout(
-                new LayoutGroup(
-                    new LayoutRow(
-                        new LayoutColumn(
-                            ($IsMaintenance
-                                ? $maintenanceMessage
-                                : ''
-                            )
-                        )
-                    )
-                )
-            )
+            ($contentMaintenance ?: '')
 //            .($IsChangePassword && !$isConsumerLogin
 //                ? $this->layoutPasswordChange()
 //                : ''
@@ -259,6 +210,84 @@ class Frontend extends Extension implements IFrontendInterface
         );
 
         return $Stage;
+    }
+
+    private function layoutMaintenance()
+    {
+
+        $now = new DateTime();
+        $tblMaintenance = BasicData::useService()->getMaintenanceByDate($now->format('d-m-Y'));
+        if(!$tblMaintenance){
+            return '';
+        }
+
+        $StartDate = $tblMaintenance->getStartDate();
+        $MaintenanceDate = $tblMaintenance->getMaintenanceDate();
+        $PreWarningTime = $tblMaintenance->getPreWarningTime();
+        $ActiveWarningTime = $tblMaintenance->getActiveWarningTime();
+        $EndWarningTime = $tblMaintenance->getEndWarningTime();
+
+        $IsMaintenance = (new DateTime('now') >= new DateTime($StartDate->format('d.m.Y').' '.'00:00:00')
+            && new DateTime('now') <= new DateTime($MaintenanceDate->format('d.m.Y').' '.'23:59:59'));
+        $IsMaintenanceDay = (new DateTime('now') >= new DateTime($MaintenanceDate->format('d.m.Y').' '.'00:00:00')
+            && new DateTime('now') <= new DateTime($MaintenanceDate->format('d.m.Y').' '.'23:59:59'));
+        $maintenanceMessage = '';
+
+        if($IsMaintenanceDay){
+            if ($now >= new DateTime($MaintenanceDate->format('d.m.Y').' '.$ActiveWarningTime) && $now <= new DateTime($MaintenanceDate->format('d.m.Y').' '.$EndWarningTime)) {
+                $PanelColor = Panel::PANEL_TYPE_DANGER;
+                $maintenanceMessage = new Panel(new Headline(new Bold(new Center(new Cog().' Wartung &nbsp;'.new CogWheels()))),
+                    new DangerMessage(new Container(new Center(new Bold('Achtung laufende Wartungsarbeiten seit '.$ActiveWarningTime.'
+                        bis vorraussichtlich '.$EndWarningTime.'.')))
+                        .new Container(new Center(new Bold('Es wird empfohlen, sich wegen der Wartung abzumelden,
+                     um Datenverlust der getätigten Eingaben zu vermeiden.')))
+                        .new Container((new ProgressBar(0,100,0, 8))->setColor(ProgressBar::BAR_COLOR_SUCCESS, ProgressBar::BAR_COLOR_DANGER))
+                        , null, false, '8', '5'), $PanelColor);
+            } elseif ($now >= new DateTime($PreWarningTime) && $now <= new DateTime($EndWarningTime)) {
+                $PanelColor = Panel::PANEL_TYPE_WARNING;
+                $DiffTimeMaintenance = (new DateTime($MaintenanceDate->format('d.m.Y').' '.$ActiveWarningTime))->diff(new DateTime($MaintenanceDate->format('d.m.Y').' '.$EndWarningTime));
+                $DiffTime = (new DateTime('now'))->diff(new DateTime($MaintenanceDate->format('d.m.Y').$ActiveWarningTime));
+//                $DiffTime = (new DateTime('now'))->diff(new DateTime('2021-07-28 22:00:00'));
+                $MinutesRest =
+                $Minutes = $DiffTime->h * 60 + $DiffTime->i;
+                $Minutes = $Minutes + $DiffTime->h;
+                $aktiveProgressbar = $Minutes/120*100;
+                $doneProgressbar = 100 - $aktiveProgressbar;
+                $maintenanceMessage = new Panel(new Headline(new Bold(new Center(new Cog().' Wartung &nbsp;'.new CogWheels()))),
+                    new DangerMessage(new Container(new Center('Achtung heute ('.$now->format('d.m.Y')
+                            .') ab '.$ActiveWarningTime.' Wartungsarbeiten, voraussichtlich '.($DiffTimeMaintenance->h + ($DiffTimeMaintenance->i ? 1 : 0 )).' Stunden.'))
+                        .new Container(new Center(new Bold('Es wird empfohlen, sich
+                        vor der Wartung abzumelden, um Datenverlust von den Eingaben zu vermeiden.').' ('.new Italic('noch '.$Minutes.' Minuten').')'))
+                        .new Container((new ProgressBar(0, $doneProgressbar, $aktiveProgressbar, 8))
+                            ->setColor(ProgressBar::BAR_COLOR_SUCCESS, ProgressBar::BAR_COLOR_WARNING, ProgressBar::BAR_COLOR_SUCCESS))
+                        , null, false, '8', '5'), $PanelColor
+                );
+            } elseif($now < new DateTime($PreWarningTime)) {
+                $PanelColor = Panel::PANEL_TYPE_WARNING;
+                $maintenanceMessage = new Panel(new Headline(new Bold(new Center(new Cog().' Wartung &nbsp;'.new CogWheels()))
+                    .new Center('Am '.$MaintenanceDate->format('d.m.Y').' ist die Schulsoftware voraussichtlich zwischen '.$ActiveWarningTime.' und '
+                        .$EndWarningTime.' Uhr in Wartungsarbeiten.')), '', $PanelColor
+                );
+            } else {
+                // Wartung ist vorbei, keine Anzeige mehr
+            }
+        } elseif ($IsMaintenance) {
+            $PanelColor = Panel::PANEL_TYPE_WARNING;
+            $maintenanceMessage = new Panel(new Headline(new Bold(new Center(new Cog().' Wartung &nbsp;'.new CogWheels()))
+                .new Center('Am '.$MaintenanceDate->format('d.m.Y').' ist die Schulsoftware voraussichtlich zwischen '.$ActiveWarningTime.' und '
+                    .$EndWarningTime.' Uhr in Wartungsarbeiten.')), '', $PanelColor
+            );
+        }
+
+        return new Layout(
+            new LayoutGroup(
+                new LayoutRow(
+                    new LayoutColumn(
+                        $maintenanceMessage
+                    )
+                )
+            )
+        );
     }
 
     /**
