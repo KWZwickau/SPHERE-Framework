@@ -187,6 +187,19 @@ class Service extends ServiceTabs
     }
 
     /**
+     * @param DateTime $date
+     * @param int $lesson
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param TblSubject $tblSubject
+     *
+     * @return TblLessonContent|bool
+     */
+    public function getLessonContentBy(DateTime $date, int $lesson, TblDivisionCourse $tblDivisionCourse, TblSubject $tblSubject): TblLessonContent|bool
+    {
+        return (new Data($this->getBinding()))->getLessonContentBy($date, $lesson, $tblDivisionCourse, $tblSubject);
+    }
+
+    /**
      * @param TblPerson $tblPerson
      * @param TblYear $tblYear
      * @param TblSubject|null $tblSubject

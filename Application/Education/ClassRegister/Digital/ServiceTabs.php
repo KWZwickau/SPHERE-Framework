@@ -1034,7 +1034,9 @@ abstract class ServiceTabs extends ServiceForgotten
                                 }
 
                                 // prüfen, ob es den Eintrag gibt
-                                $isMissing = !isset($tblLessonContentList[$identifier]);
+                                $isMissing = !isset($tblLessonContentList[$identifier])
+                                    // oder ein anderer Lehrer eingetragen hat
+                                    && !Digital::useService()->getLessonContentBy($startDate, $tblTimetableNode->getHour(), $tblDivisionCourse, $tblSubject);
                                 $isReplacement = isset($tblTimetableReplacementList[$identifier]);
                                 // ist keine zusätzliche Stunde im vertretungsplan
                                 unset($tblTimetableReplacementAdditionalList[$identifier]);

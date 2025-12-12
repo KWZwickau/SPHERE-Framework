@@ -240,6 +240,24 @@ class Data  extends AbstractData
     }
 
     /**
+     * @param DateTime $date
+     * @param int $lesson
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param TblSubject $tblSubject
+     *
+     * @return TblLessonContent|bool
+     */
+    public function getLessonContentBy(DateTime $date, int $lesson, TblDivisionCourse $tblDivisionCourse, TblSubject $tblSubject): TblLessonContent|bool
+    {
+        return $this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblLessonContent', [
+            TblLessonContent::ATTR_DATE => $date,
+            TblLessonContent::ATTR_LESSON => $lesson,
+            TblLessonContent::ATTR_SERVICE_TBL_DIVISION_COURSE => $tblDivisionCourse->getId(),
+            TblLessonContent::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId()
+        ]);
+    }
+
+    /**
      * @param DateTime $fromDate
      * @param DateTime $toDate
      * @param TblDivisionCourse $tblDivisionCourse
