@@ -163,12 +163,14 @@ class Service extends AbstractService
     }
 
     /**
+     * @param bool $isForced
+     *
      * @return bool|TblConsumer[]
      */
-    public function getConsumerAll()
+    public function getConsumerAll(bool $isForced = false)
     {
 
-        return (new Data($this->getBinding()))->getConsumerAll();
+        return (new Data($this->getBinding()))->getConsumerAll($isForced);
     }
 
     /**

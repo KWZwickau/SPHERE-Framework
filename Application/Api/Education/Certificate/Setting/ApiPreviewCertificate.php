@@ -25,6 +25,8 @@ class ApiPreviewCertificate extends Extension implements IApiInterface
         $Dispatcher = new Dispatcher(__CLASS__);
 
         $Dispatcher->registerMethod('loadContent');
+        $Dispatcher->registerMethod('loadCertificatePreview');
+        $Dispatcher->registerMethod('loadDownloadButton');
 
         return $Dispatcher->callMethod($Method);
     }
@@ -40,10 +42,13 @@ class ApiPreviewCertificate extends Extension implements IApiInterface
         return (new BlockReceiver($Content))->setIdentifier($Identifier);
     }
 
+
     /**
+     * @param $Filter
+     *
      * @return Pipeline
      */
-    public static function pipelineLoadContent(): Pipeline
+    public static function pipelineLoadContent($Filter): Pipeline
     {
         $pipeline = new Pipeline(false);
 
@@ -51,9 +56,37 @@ class ApiPreviewCertificate extends Extension implements IApiInterface
         $emitter->setGetPayload(array(
             self::API_TARGET => 'loadContent',
         ));
-//        $emitter->setPostPayload(array(
-//            'PrepareId' => $PrepareId
-//        ));
+        $emitter->setPostPayload(array(
+            'Filter' => $Filter
+        ));
+        $emitter->setLoadingMessage('Bitte warten', 'Die Zeugnisvorlagen werden geladen');
+        $pipeline->appendEmitter($emitter);
+
+        return $pipeline;
+    }
+
+    /**
+     * @param $Filter
+     *
+     * @return string
+     * @noinspection PhpUnused
+     */
+    public function loadContent($Filter = null): string
+    {
+        return (new FrontendPreviewCertificate())->loadContent($Filter);
+    }
+
+    /**
+     * @return Pipeline
+     */
+    public static function pipelineLoadCertificatePreview(): Pipeline
+    {
+        $pipeline = new Pipeline(false);
+
+        $emitter = new ServerEmitter(self::receiverContent('', 'CertificatePreview'), self::getEndpoint());
+        $emitter->setGetPayload(array(
+            self::API_TARGET => 'loadCertificatePreview',
+        ));
         $pipeline->appendEmitter($emitter);
 
         return $pipeline;
@@ -63,9 +96,37 @@ class ApiPreviewCertificate extends Extension implements IApiInterface
      * @param $Data
      *
      * @return string
+     * @noinspection PhpUnused
      */
-    public function loadContent($Data = null): string
+    public function loadCertificatePreview($Data = null): string
     {
-        return (new FrontendPreviewCertificate())->loadContent($Data);
+        return (new FrontendPreviewCertificate())->loadCertificatePreview($Data);
+    }
+
+    /**
+     * @return Pipeline
+     */
+    public static function pipelineLoadDownloadButton(): Pipeline
+    {
+        $pipeline = new Pipeline(false);
+
+        $emitter = new ServerEmitter(self::receiverContent('', 'DownloadButton'), self::getEndpoint());
+        $emitter->setGetPayload(array(
+            self::API_TARGET => 'loadDownloadButton',
+        ));
+        $pipeline->appendEmitter($emitter);
+
+        return $pipeline;
+    }
+
+    /**
+     * @param $Data
+     *
+     * @return string
+     * @noinspection PhpUnused
+     */
+    public function loadDownloadButton($Data = null): string
+    {
+        return (new FrontendPreviewCertificate())->loadDownloadButton($Data);
     }
 }

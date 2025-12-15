@@ -582,7 +582,6 @@ abstract class Certificate extends Extension
             $separator = false;
         }
         $isLargeCompanyName = false;
-        $name = '';
         $empty = '&nbsp;';
         // get company name
         if (($tblPerson = Person::useService()->getPersonById($personId))
@@ -599,6 +598,14 @@ abstract class Certificate extends Extension
                 $name = $tblCompany->getName() . new Container($tblCompany->getExtendedName());
                 $empty .= new Container('&nbsp;');
             }
+        // Für Zeugnisvorschau
+        } else {
+            $name = '
+                {% if(Content.P' . $personId . '.Company.Data.Name is not empty) %}
+                    {{ Content.P' . $personId . '.Company.Data.Name }}
+                {% else %}
+                    &nbsp;
+                {% endif %}';
         }
 
         $SchoolSlice = (new Slice());
