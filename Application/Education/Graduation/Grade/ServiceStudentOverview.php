@@ -315,12 +315,15 @@ abstract class ServiceStudentOverview extends ServiceScoreCalc
         $widthGradeNumber = (100 - $withSubjectNumber) / (2 * $countMaxColumn + ($isShownAverage ? 1 : 0));
         $widthGrade = $widthGradeNumber . '%';
 
+        $tblPeriodPositionList = [];
         if ($tblPeriodList) {
             $countPeriod = 0;
             foreach($tblPeriodList as $tblPeriod) {
+                $countPeriod++;
+                $tblPeriodPositionList[$countPeriod] = $tblPeriod;
                 $headerList[$tblPeriod->getId()] = $frontend->getTableColumnHead($tblPeriod->getDisplayName(), true, null, $countMaxColumn);
                 $headerPdfSection->addElementColumn(GradebookOverview::getHeaderElement($tblPeriod->getDisplayName()), ($countMaxColumn * $widthGradeNumber) . '%');
-                $headerApiList[++$countPeriod] = array(
+                $headerApiList[$countPeriod] = array(
                     'Name' => $tblPeriod->getName(),
                     'Period' => $tblPeriod->getFromDate() . ' - ' . $tblPeriod->getToDate(),
                 );
@@ -444,7 +447,7 @@ abstract class ServiceStudentOverview extends ServiceScoreCalc
                     if ($isShownAverage) {
                         if (isset($testGrades[$i])) {
                             list ($average, $scoreRuleText, $error) = Grade::useService()->getCalcStudentAverage($tblPerson, $tblYear, $testGrades[$i],
-                                $tblScoreRule ?: null);
+                                $tblScoreRule ?: null, $tblPeriodPositionList[$i] ?? null);
                             $toolTip = Grade::useService()->getCalcStudentAverageToolTipByAverage($average, $scoreRuleText, $error);
 
                             $testGrades['All'] = array_merge($testGrades['All'], $testGrades[$i]);
