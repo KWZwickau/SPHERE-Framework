@@ -130,8 +130,6 @@ abstract class Certificate extends Extension
             }
         }
 
-        $tblConsumer = \SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer::useService()->getConsumerBySession();
-
         $isWidth = false;
         $InjectStyle = '';
 
@@ -144,6 +142,16 @@ abstract class Certificate extends Extension
             $certificate = 'SPHERE\Application\Api\Education\Certificate\Generator\Repository\\'. key($certificateList);
         } else {
             $certificate = get_class($this);
+        }
+
+        $tblConsumer = \SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer::useService()->getConsumerBySession();
+        // für Zeugnisvorlage-Vorschau den Mandanten von der Zeugnisvorlage verwenden
+        if (($tblCertificateTemp = Generator::useService()->getCertificateByCertificateClassName(
+                str_replace('SPHERE\Application\Api\Education\Certificate\Generator\Repository\\', '', $certificate))
+            )
+            && ($tblConsumerTemp = $tblCertificateTemp->getServiceTblConsumer(true))
+        ) {
+            $tblConsumer = $tblConsumerTemp;
         }
 
         // für Lernentwicklungsbericht von Radebeul 2cm Rand (1,4 cm scheint Standard zu seien)

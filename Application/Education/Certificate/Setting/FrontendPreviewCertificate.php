@@ -125,7 +125,7 @@ class FrontendPreviewCertificate extends Extension implements IFrontendInterface
                     (($tblConsumerCertificate = $tblCertificate->getServiceTblConsumer(true)) ? $tblConsumerCertificate->getAcronym() . ' - ' : '')
                     . $tblCertificate->getName()
                     . (($description = $tblCertificate->getDescription()) ? ' - ' . $description : '')
-                ;
+                    . (($certificateNumber = $tblCertificate->getCertificateNumber()) ? ' ' . $certificateNumber : '');
             }
         }
 
@@ -134,6 +134,8 @@ class FrontendPreviewCertificate extends Extension implements IFrontendInterface
         $global->POST['Data']['LastName'] = 'Mustermann';
         $global->POST['Data']['Division'] = '8a';
         $global->POST['Data']['Year'] = '2025/26';
+        $global->POST['Data']['Birthday'] = '01.01.2010';
+        $global->POST['Data']['Birthplace'] = 'Chemnitz';
         $global->POST['Data']['Company'] = 'Schulzentrum Niederdorf';
 
         $global->savePost();
@@ -171,6 +173,16 @@ class FrontendPreviewCertificate extends Extension implements IFrontendInterface
                     , 6),
                 new FormColumn(
                     (new TextField('Data[Year]', '', 'Schuljahr'))
+                        ->ajaxPipelineOnKeyUp([ApiPreviewCertificate::pipelineLoadCertificatePreview(), ApiPreviewCertificate::pipelineLoadDownloadButton()])
+                    , 6)
+            ]),
+            new FormRow([
+                new FormColumn(
+                    (new TextField('Data[Birthday]', '', 'Geburtsdatum'))
+                        ->ajaxPipelineOnKeyUp([ApiPreviewCertificate::pipelineLoadCertificatePreview(), ApiPreviewCertificate::pipelineLoadDownloadButton()])
+                    , 6),
+                new FormColumn(
+                    (new TextField('Data[Birthplace]', '', 'Geburtsort'))
                         ->ajaxPipelineOnKeyUp([ApiPreviewCertificate::pipelineLoadCertificatePreview(), ApiPreviewCertificate::pipelineLoadDownloadButton()])
                     , 6)
             ]),
@@ -292,6 +304,8 @@ class FrontendPreviewCertificate extends Extension implements IFrontendInterface
         $Content['P' . $personId]['Person']['Data']['Name']['Last'] = $Data['LastName'] ?? '';
         $Content['P' . $personId]['Division']['Data']['Name'] = $Data['Division'] ?? '';
         $Content['P' . $personId]['Division']['Data']['Year'] = $Data['Year'] ?? '';
+        $Content['P' . $personId]['Person']['Common']['BirthDates']['Birthday'] = $Data['Birthday'] ?? '';
+        $Content['P' . $personId]['Person']['Common']['BirthDates']['Birthplace'] = $Data['Birthplace'] ?? '';
         $Content['P' . $personId]['Company']['Data']['Name'] = $Data['Company'] ?? '';
         $Content['P' . $personId]['Input']['Remark'] = $Data['Remark'] ?? '';
 
