@@ -335,10 +335,12 @@ abstract class ServiceStudentOverview extends ServiceScoreCalc
             ];
         }
 
+        $tblPeriodPositionList = [];
         if ($tblPeriodList) {
             $countPeriod = 0;
             foreach($tblPeriodList as $tblPeriod) {
                 $countPeriod++;
+                $tblPeriodPositionList[$countPeriod] = $tblPeriod;
                 $headerList[$tblPeriod->getId()] = $frontend->getTableColumnHead($tblPeriod->getDisplayName(), true, null, $countMaxColumn);
                 if ($IsTwoPage) {
                     $headerPdfList[$countPeriod][] = [
