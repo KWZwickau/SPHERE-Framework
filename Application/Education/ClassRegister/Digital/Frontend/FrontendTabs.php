@@ -16,10 +16,13 @@ use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisio
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\People\Group\Group;
+use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblIdentification;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer as ConsumerGatekeeper;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Setting\Consumer\Consumer;
@@ -124,7 +127,17 @@ class FrontendTabs extends FrontendSelectDivisionCourse
             }
         }
 
-        if (!($tblPerson = Account::useService()->getPersonByLogin())) {
+        // Für Support-Fälle können System-Accounts den Lehrer auswählen
+        $isSystemAccount = ($tblAccount = Account::useService()->getAccountBySession())
+            && $tblAccount->getHasAuthentication(TblIdentification::NAME_SYSTEM);
+
+        if ($isSystemAccount && isset($Filter['tblPerson'])) {
+            $tblPerson = Person::useService()->getPersonById($Filter['tblPerson']);
+        } else {
+            $tblPerson = Account::useService()->getPersonByLogin();
+        }
+
+        if (!$tblPerson) {
             return new Warning('Person zum eingeloggten Benutzerkonto nicht gefunden', new Exclamation());
         }
 
@@ -288,17 +301,33 @@ class FrontendTabs extends FrontendSelectDivisionCourse
         $checkBox = (new CheckBox('Filter[OnlyMissing]', new Bold('Nur fehlende Einträge anzeigen'), 1))
             ->ajaxPipelineOnChange(ApiDigital::pipelineLoadTeacherViewContent($YearId));
 
+        // Für Support-Fälle können System-Accounts den Lehrer auswählen
+        $isSystemAccount = ($tblAccount = Account::useService()->getAccountBySession())
+            && $tblAccount->getHasAuthentication(TblIdentification::NAME_SYSTEM);
+
+        $columns = [];
+        $size = 6;
+        if ($isSystemAccount) {
+            $size = 4;
+            $tblTeacherList = Group::useService()->getPersonAllByGroup(Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_TEACHER));
+            $columns[] = new FormColumn(
+                (new SelectBox('Filter[tblPerson]', 'Lehrer', array('{{ LastFirstName }}' => $tblTeacherList)))
+                    ->ajaxPipelineOnChange(ApiDigital::pipelineLoadTeacherViewContent($YearId))
+                , $size);
+        }
+
+        $columns[] = new FormColumn(
+            (new SelectBox('Filter[DivisionCourseId]', 'Kurs', array('{{ Name }}' => $tblDivisionCourseList)))
+                ->ajaxPipelineOnChange(ApiDigital::pipelineLoadTeacherViewContent($YearId))
+        , $size);
+
+        $columns[] = new FormColumn(
+            (new SelectBox('Filter[SubjectId]', 'Fach', array('{{ DisplayName }}' => Subject::useService()->getSubjectAll())))
+                ->ajaxPipelineOnChange(ApiDigital::pipelineLoadTeacherViewContent($YearId))
+        , $size);
+
         return new Form(new FormGroup(array(
-            new FormRow(array(
-                new FormColumn(
-                    (new SelectBox('Filter[DivisionCourseId]', 'Kurs', array('{{ Name }}' => $tblDivisionCourseList)))
-                        ->ajaxPipelineOnChange(ApiDigital::pipelineLoadTeacherViewContent($YearId))
-                    , 6),
-                new FormColumn(
-                    (new SelectBox('Filter[SubjectId]', 'Fach', array('{{ DisplayName }}' => Subject::useService()->getSubjectAll())))
-                        ->ajaxPipelineOnChange(ApiDigital::pipelineLoadTeacherViewContent($YearId))
-                    , 6),
-            )),
+            new FormRow($columns),
             new FormRow(array(
                 new FormColumn(
                     new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
