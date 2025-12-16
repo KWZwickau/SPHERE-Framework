@@ -173,6 +173,19 @@ class Service extends AbstractService
     }
 
     /**
+     * get reverse mapping
+     *
+     * @param string $Type
+     * @param string $Mapping
+     *
+     * @return false|TblImportMapping
+     */
+    public function getImportMappingByMapping(string $Type, string $Mapping): TblImportMapping|bool
+    {
+        return (new Data($this->getBinding()))->getImportMappingByMapping($Type, $Mapping);
+    }
+
+    /**
      * @param string $Type
      * @param string $Original
      * @param TblYear|null $tblYear

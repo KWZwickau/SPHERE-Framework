@@ -1421,13 +1421,14 @@ class Service extends ServiceYearChange
      * @param null $level
      * @param TblDivisionCourse|null $tblDivision
      * @param TblDivisionCourse|null $tblCoreGroup
+     * @param bool $isLeaveDateNull
      *
      * @return false|TblStudentEducation[]
      */
     public function getStudentEducationListBy(TblYear $tblYear, TblType $tblSchoolType = null, $level = null, TblDivisionCourse $tblDivision = null,
-        TblDivisionCourse $tblCoreGroup = null)
+        TblDivisionCourse $tblCoreGroup = null, bool $isLeaveDateNull = true)
     {
-        return (new Data($this->getBinding()))->getStudentEducationListBy($tblYear, $tblSchoolType, $level, $tblDivision, $tblCoreGroup);
+        return (new Data($this->getBinding()))->getStudentEducationListBy($tblYear, $tblSchoolType, $level, $tblDivision, $tblCoreGroup, $isLeaveDateNull);
     }
 
     /**

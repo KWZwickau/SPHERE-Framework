@@ -3,6 +3,7 @@ namespace SPHERE\Application\Education\Lesson;
 
 use SPHERE\Application\Education\Lesson\Course\Course;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\Education\Lesson\LeaveStudent\LeaveStudent;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Type;
@@ -30,6 +31,7 @@ class Lesson implements IApplicationInterface
         }
         DivisionCourse::registerModule();
         Type::registerModule();
+        LeaveStudent::registerModule();
 
         Main::getDisplay()->addApplicationNavigation(
             new Link(new Link\Route(__NAMESPACE__), new Link\Name('Unterricht'))

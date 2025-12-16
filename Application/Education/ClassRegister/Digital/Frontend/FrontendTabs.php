@@ -3,7 +3,6 @@ namespace SPHERE\Application\Education\ClassRegister\Digital\Frontend;
 
 use DateInterval;
 use DateTime;
-use MOC\V\Core\FileSystem\FileSystem;
 use SPHERE\Application\Api\Education\ClassRegister\ApiAbsence;
 use SPHERE\Application\Api\Education\ClassRegister\ApiDigital;
 use SPHERE\Application\Education\ClassRegister\Digital\Digital;
@@ -12,16 +11,16 @@ use SPHERE\Application\Education\ClassRegister\Timetable\Timetable;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseMemberType;
-use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\People\Group\Group;
+use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
-use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer as ConsumerGatekeeper;
-use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblIdentification;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
@@ -34,14 +33,12 @@ use SPHERE\Common\Frontend\Icon\Repository\Check;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronDown;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronUp;
-use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Filter;
 use SPHERE\Common\Frontend\Icon\Repository\Holiday;
 use SPHERE\Common\Frontend\Icon\Repository\Listing;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
-use SPHERE\Common\Frontend\Icon\Repository\PersonGroup;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
@@ -49,7 +46,6 @@ use SPHERE\Common\Frontend\Icon\Repository\Unchecked;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
-use SPHERE\Common\Frontend\Layout\Repository\Thumbnail;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
@@ -69,7 +65,7 @@ use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Frontend\Text\Repository\Warning as WarningText;
 use SPHERE\Common\Window\Stage;
 
-class FrontendTabs extends FrontendSelectDivisionCourse
+class FrontendTabs extends FrontendStudentList
 {
     const WELCOME_VIEW_TIMETABLE = 'Timetable';
     const WELCOME_VIEW_TEACHER_LECTURESHIP = 'TeacherLectureship';
@@ -111,6 +107,12 @@ class FrontendTabs extends FrontendSelectDivisionCourse
         return Digital::useFrontend()->getStage($DivisionCourseId, $BasicRoute, $Route, $icon, $name, $content, $BackDivisionCourseId);
     }
 
+    /**
+     * @param $YearId
+     * @param $Filter
+     *
+     * @return string
+     */
     public function loadTeacherViewContent($YearId = null, $Filter = null): string
     {
         if ($YearId) {
@@ -124,7 +126,17 @@ class FrontendTabs extends FrontendSelectDivisionCourse
             }
         }
 
-        if (!($tblPerson = Account::useService()->getPersonByLogin())) {
+        // Für Support-Fälle können System-Accounts den Lehrer auswählen
+        $isSystemAccount = ($tblAccount = Account::useService()->getAccountBySession())
+            && $tblAccount->getHasAuthentication(TblIdentification::NAME_SYSTEM);
+
+        if ($isSystemAccount && isset($Filter['tblPerson'])) {
+            $tblPerson = Person::useService()->getPersonById($Filter['tblPerson']);
+        } else {
+            $tblPerson = Account::useService()->getPersonByLogin();
+        }
+
+        if (!$tblPerson) {
             return new Warning('Person zum eingeloggten Benutzerkonto nicht gefunden', new Exclamation());
         }
 
@@ -288,17 +300,33 @@ class FrontendTabs extends FrontendSelectDivisionCourse
         $checkBox = (new CheckBox('Filter[OnlyMissing]', new Bold('Nur fehlende Einträge anzeigen'), 1))
             ->ajaxPipelineOnChange(ApiDigital::pipelineLoadTeacherViewContent($YearId));
 
+        // Für Support-Fälle können System-Accounts den Lehrer auswählen
+        $isSystemAccount = ($tblAccount = Account::useService()->getAccountBySession())
+            && $tblAccount->getHasAuthentication(TblIdentification::NAME_SYSTEM);
+
+        $columns = [];
+        $size = 6;
+        if ($isSystemAccount) {
+            $size = 4;
+            $tblTeacherList = Group::useService()->getPersonAllByGroup(Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_TEACHER));
+            $columns[] = new FormColumn(
+                (new SelectBox('Filter[tblPerson]', 'Lehrer', array('{{ LastFirstName }}' => $tblTeacherList)))
+                    ->ajaxPipelineOnChange(ApiDigital::pipelineLoadTeacherViewContent($YearId))
+                , $size);
+        }
+
+        $columns[] = new FormColumn(
+            (new SelectBox('Filter[DivisionCourseId]', 'Kurs', array('{{ Name }}' => $tblDivisionCourseList)))
+                ->ajaxPipelineOnChange(ApiDigital::pipelineLoadTeacherViewContent($YearId))
+        , $size);
+
+        $columns[] = new FormColumn(
+            (new SelectBox('Filter[SubjectId]', 'Fach', array('{{ DisplayName }}' => Subject::useService()->getSubjectAll())))
+                ->ajaxPipelineOnChange(ApiDigital::pipelineLoadTeacherViewContent($YearId))
+        , $size);
+
         return new Form(new FormGroup(array(
-            new FormRow(array(
-                new FormColumn(
-                    (new SelectBox('Filter[DivisionCourseId]', 'Kurs', array('{{ Name }}' => $tblDivisionCourseList)))
-                        ->ajaxPipelineOnChange(ApiDigital::pipelineLoadTeacherViewContent($YearId))
-                    , 6),
-                new FormColumn(
-                    (new SelectBox('Filter[SubjectId]', 'Fach', array('{{ DisplayName }}' => Subject::useService()->getSubjectAll())))
-                        ->ajaxPipelineOnChange(ApiDigital::pipelineLoadTeacherViewContent($YearId))
-                    , 6),
-            )),
+            new FormRow($columns),
             new FormRow(array(
                 new FormColumn(
                     new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
@@ -320,26 +348,6 @@ class FrontendTabs extends FrontendSelectDivisionCourse
     {
         return '<span hidden>' . ($isDate ? (new DateTime($content))->format('Y-m-d') : $content) . '</span>'
             . ($isMissing ? new WarningText($content) : new Success($content));
-    }
-
-    /**
-     * @param null $DivisionCourseId
-     * @param null $BackDivisionCourseId
-     * @param string $BasicRoute
-     *
-     * @return string
-     */
-    public function frontendStudentList(
-        $DivisionCourseId = null,
-        $BackDivisionCourseId = null,
-        string $BasicRoute = '/Education/ClassRegister/Digital/Teacher'
-    ): string {
-        $icon = new PersonGroup();
-        $name = 'Schülerliste';
-        $Route = '/Education/ClassRegister/Digital/Student';
-        $content = Digital::useService()->getStudentTable($DivisionCourseId, $BasicRoute, $Route);
-
-        return Digital::useFrontend()->getStage($DivisionCourseId, $BasicRoute, $Route, $icon, $name, $content, $BackDivisionCourseId);
     }
 
     /**
@@ -367,158 +375,6 @@ class FrontendTabs extends FrontendSelectDivisionCourse
 
     /**
      * @param null $DivisionCourseId
-     * @param null $BackDivisionCourseId
-     * @param string $BasicRoute
-     *
-     * @return string
-     */
-    public function frontendDownload(
-        $DivisionCourseId = null,
-        $BackDivisionCourseId = null,
-        string $BasicRoute = '/Education/ClassRegister/Digital/Teacher'
-    ): string {
-        $icon = new Download();
-        $name = 'Download';
-        $Route = '/Education/ClassRegister/Digital/Download';
-        $content = '';
-
-        if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
-            if ($tblDivisionCourse->getType()->getIsCourseSystem()) {
-                $text = 'Kursliste';
-                $printLink = (new Link((new Thumbnail(
-                    FileSystem::getFileLoader('/Common/Style/Resource/SSWPrint.png'), 'Kursheft'))->setPictureHeight(),
-                    '/Api/Document/Standard/CourseContent/Create', null, array(
-                        'DivisionCourseId' => $DivisionCourseId
-                    )))->setExternal();
-            } else {
-                if (($isCoreGroup = $tblDivisionCourse->getTypeIdentifier() == TblDivisionCourseType::TYPE_CORE_GROUP)) {
-                    $text = 'Stammgruppenliste';
-                } else {
-                    $text = 'Klassenliste';
-                }
-
-                $isCourseSystem = DivisionCourse::useService()->getIsCourseSystemByStudentsInDivisionCourse($tblDivisionCourse);
-
-                if ($isCourseSystem) {
-                    $printLink = null;
-                } else {
-                    $printLink = (new Link((new Thumbnail(
-                        FileSystem::getFileLoader('/Common/Style/Resource/SSWPrint.png'),
-                        $isCoreGroup ?  'Stammgruppen&shy;tagebuch' : ' Klassen&shy;tagebuch'))->setPictureHeight(),
-                        '/Api/Document/Standard/ClassRegister/Create', null, array(
-                            'DivisionCourseId' => $DivisionCourseId
-                        )))->setExternal();
-                }
-            }
-
-            $content = new Layout(array(
-                new LayoutGroup(new LayoutRow(array(
-                    new LayoutColumn(
-                        new Danger('Die dauerhafte Speicherung des Excel-Exports ist datenschutzrechtlich nicht zulässig!',
-                            new Exclamation())
-                    ),
-                    new LayoutColumn(
-                        new Link((new Thumbnail(
-                            FileSystem::getFileLoader('/Common/Style/Resource/SSWAgreement.png'), $text . ' Einverständnis&shy;erklärung'))->setPictureHeight(),
-                            '/Api/Reporting/Standard/Person/AgreementClassList/Download', null, array(
-                                'DivisionCourseId' => $DivisionCourseId
-                            ))
-                        , 2),
-                    new LayoutColumn(
-                        new Link((new Thumbnail(
-                            FileSystem::getFileLoader('/Common/Style/Resource/SSWMedical.png'), $text . ' Krankenakte'))->setPictureHeight(),
-                            '/Api/Reporting/Standard/Person/MedicalRecordClassList/Download', null, array(
-                                'DivisionCourseId' => $DivisionCourseId
-                            ))
-                        , 2),
-                    new LayoutColumn(
-                        new Link((new Thumbnail(
-                            FileSystem::getFileLoader('/Common/Style/Resource/SSWUser.png'), $text . ' Schülerliste'))->setPictureHeight(),
-                            '/Api/Reporting/Standard/Person/ClassList/Download', null, array(
-                                'DivisionCourseId' => $DivisionCourseId
-                            ))
-                        , 2),
-                    new LayoutColumn(
-                        new Link((new Thumbnail(
-                            FileSystem::getFileLoader('/Common/Style/Resource/SSWAbsence.png'), $text . ' zeugnis&shy;relevante Fehlzeiten'))->setPictureHeight(),
-                            '/Api/Reporting/Standard/Person/ClassRegister/Absence/Download', null, array(
-                                'DivisionCourseId' => $DivisionCourseId
-                            ))
-                        , 2),
-                    new LayoutColumn(
-                        new Link((new Thumbnail(
-                            FileSystem::getFileLoader('/Common/Style/Resource/SSWAbsence.png'), $text . ' Monatliche Fehlzeiten'))->setPictureHeight(),
-                            '/Api/Reporting/Standard/Person/ClassRegister/AbsenceMonthly/Download', null, array(
-                                'DivisionCourseId' => $DivisionCourseId
-                            ))
-                        , 2),
-                    new LayoutColumn(
-                        $printLink
-                        , 2),
-                ))),
-                ConsumerGatekeeper::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'EVOSG')
-                    ? new LayoutGroup(new LayoutRow(array(
-                    new LayoutColumn(
-                        new Link((new Thumbnail(
-                            FileSystem::getFileLoader('/Common/Style/Resource/SSWUser.png'), 'Individuelle Klassenliste'))->setPictureHeight(),
-                            '/Api/Reporting/Custom/IndividualClassRegisterDownload', null, array(
-                                'DivisionCourseId' => $DivisionCourseId,
-                                'Type'    => 'downloadClassList'
-                            ))
-                        , 2),
-                    new LayoutColumn(
-                        new Link((new Thumbnail(
-                            FileSystem::getFileLoader('/Common/Style/Resource/SSWAgreement.png'), 'Individuelle Unterschriftenliste'))->setPictureHeight(),
-                            '/Api/Reporting/Custom/IndividualClassRegisterDownload', null, array(
-                                'DivisionCourseId' => $DivisionCourseId,
-                                'Type'    => 'downloadSignList'
-                            ))
-                        , 2),
-                    new LayoutColumn(
-                        new Link((new Thumbnail(
-                            FileSystem::getFileLoader('/Common/Style/Resource/SSWUser.png'), 'Individuelle Klassenliste Fremdsprachen'))->setPictureHeight(),
-                            '/Api/Reporting/Custom/IndividualClassRegisterDownload', null, array(
-                                'DivisionCourseId' => $DivisionCourseId,
-                                'Type'    => 'downloadElectiveClassList'
-                            ))
-                        , 2),
-                    new LayoutColumn(
-                        new Link((new Thumbnail(
-                            FileSystem::getFileLoader('/Common/Style/Resource/SSWUser.png'), 'Individuelle Telefonliste'))->setPictureHeight(),
-                            '/Api/Reporting/Custom/IndividualClassRegisterDownload', null, array(
-                                'DivisionCourseId' => $DivisionCourseId,
-                                'Type'    => 'downloadClassPhoneList'
-                            ))
-                        , 2),
-                )), new Title($icon . ' Individual Download'))
-                    : null,
-                ConsumerGatekeeper::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'KG')
-                    ? new LayoutGroup(new LayoutRow(array(
-                    new LayoutColumn(
-                        new Link((new Thumbnail(
-                            FileSystem::getFileLoader('/Common/Style/Resource/SSWAgreement.png'), 'Individuelle Unterschriftenliste'))->setPictureHeight(),
-                            '/Api/Reporting/Custom/Kreuzgymnasium/Common/SignList/Download', null, array(
-                                'DivisionCourseId' => $DivisionCourseId
-                            ))
-                        , 2),
-                    new LayoutColumn(
-                        new Link((new Thumbnail(
-                            FileSystem::getFileLoader('/Common/Style/Resource/SSWAgreement.png'), 'Individuelle Unterschriftenliste Querformat'))->setPictureHeight(),
-                            '/Api/Reporting/Custom/Kreuzgymnasium/Common/SignList/Download', null, array(
-                                'DivisionCourseId' => $DivisionCourseId,
-                                'isLandscape' => 1
-                            ))
-                        , 2),
-                )), new Title($icon . ' Individual Download'))
-                    : null,
-            ));
-        }
-
-        return Digital::useFrontend()->getStage($DivisionCourseId, $BasicRoute, $Route, $icon, $name, $content, $BackDivisionCourseId);
-    }
-
-    /**
-     * @param null $DivisionCourseId
      * @param null $PersonId
      * @param string $BasicRoute
      * @param string $ReturnRoute
@@ -533,6 +389,7 @@ class FrontendTabs extends FrontendSelectDivisionCourse
             $Stage->addButton(new Standard('Zurück', $ReturnRoute, new ChevronLeft(),
                     array(
                         'DivisionCourseId' => $DivisionCourseId,
+                        'PersonId' => $PersonId,
                         'BasicRoute' => $BasicRoute,
                     ))
             );

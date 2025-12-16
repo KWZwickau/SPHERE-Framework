@@ -88,6 +88,9 @@ class Standard extends Extension implements IModuleInterface
             __NAMESPACE__ . '/SignOutCertificate/CreateMulti', __CLASS__ . '::createSignOutCertificateMultiPdf'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '/SignOutCertificate/CreateLeaveStudent', __CLASS__ . '::createSignOutCertificateLeaveStudentPdf'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '/ClassRegister/Create', __CLASS__ . '::createClassRegisterPdf'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
@@ -101,6 +104,12 @@ class Standard extends Extension implements IModuleInterface
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '/StudentOverviewCourse/Create', __CLASS__ . '::createGradeOverviewDivisionCoursePdf'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '/ClassRegister/StudentList/Individual/Create','SPHERE\Application\Api\Document\Creator::createIndividualStudentListPdf'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '/ClassRegister/StudentDetail/Create','SPHERE\Application\Api\Document\Creator::createStudentDetailPdf'
         ));
 
         ApiStandard::registerApi();
@@ -304,6 +313,19 @@ class Standard extends Extension implements IModuleInterface
     public static function createSignOutCertificateMultiPdf($DivisionCourseId = null, array $Data = array(), bool $Redirect = true): string
     {
         return Creator::createMultiSignOutCertificatePdf($DivisionCourseId, $Data, $Redirect);
+    }
+
+    /**
+     * @param null $DivisionCourseId
+     * @param null $PersonIdList
+     * @param null $LeaveStudentId
+     * @param bool $Redirect
+     *
+     * @return string
+     */
+    public static function createSignOutCertificateLeaveStudentPdf($DivisionCourseId = null, $PersonIdList = null, $LeaveStudentId = null, bool $Redirect = true): string
+    {
+        return Creator::createLeaveStudentSignOutCertificatePdf($DivisionCourseId, $PersonIdList, $LeaveStudentId, $Redirect);
     }
 
     /**

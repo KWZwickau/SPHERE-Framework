@@ -8,6 +8,8 @@ use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Contact\Phone\Phone;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Common\Frontend\Icon\Repository\PhoneFax;
+use SPHERE\Common\Frontend\Icon\Repository\PhoneMobil;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -142,5 +144,21 @@ class TblToPerson extends Element
     public function setIsEmergencyContact(bool $IsEmergencyContact): void
     {
         $this->IsEmergencyContact = $IsEmergencyContact;
+    }
+
+    /**
+     * @return string
+     */
+    public function getIcon(): string
+    {
+        $tblType = $this->getTblType();
+        if ($tblType->getName() == 'Fax') {
+            return new PhoneFax();
+        }
+        if ($tblType->getDescription() == 'Mobil') {
+            return new PhoneMobil();
+        }
+
+        return new \SPHERE\Common\Frontend\Icon\Repository\Phone();
     }
 }

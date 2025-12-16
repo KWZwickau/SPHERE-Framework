@@ -41,7 +41,7 @@ use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Strikethrough;
 
-class FrontendForgotten extends FrontendCourseContent
+class FrontendForgotten extends FrontendDownload
 {
     /**
      * @param TblDivisionCourse $tblDivisionCourse

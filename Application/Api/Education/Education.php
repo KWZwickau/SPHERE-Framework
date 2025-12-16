@@ -31,6 +31,7 @@ use SPHERE\Application\Api\Education\Graduation\Grade\ApiTask;
 use SPHERE\Application\Api\Education\Graduation\Grade\ApiTeacherGroup;
 use SPHERE\Application\Api\Education\Graduation\Grade\Gradebook;
 use SPHERE\Application\Api\Education\Graduation\Grade\Task;
+use SPHERE\Application\Api\Education\Lesson\ApiLeaveStudent;
 use SPHERE\Application\Api\Education\Prepare\ApiPrepare;
 use SPHERE\Application\Api\Education\Prepare\Prepare;
 use SPHERE\Application\Api\Education\School\ApiCourse;
@@ -86,5 +87,6 @@ class Education implements IApplicationInterface
         ApiYear::registerApi();
         ApiPrintCertificate::registerApi();
         ApiForgotten::registerApi();
+        ApiLeaveStudent::registerApi();
     }
 }

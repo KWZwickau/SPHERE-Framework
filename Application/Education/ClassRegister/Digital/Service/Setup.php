@@ -9,6 +9,7 @@ use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblForgott
 use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblFullTimeContent;
 use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblLessonContent;
 use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblLessonWeek;
+use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblStudentListColumn;
 use SPHERE\System\Database\Binding\AbstractSetup;
 
 class Setup  extends AbstractSetup
@@ -32,6 +33,7 @@ class Setup  extends AbstractSetup
         $this->setTableFullTimeContent($Schema);
         $tblForgotten = $this->setTableForgotten($Schema, $tblLessonContent, $tblCourseContent);
         $this->setTableForgottenStudent($Schema, $tblForgotten);
+        $this->setTableStudentListColumn($Schema);
 
         /**
          * Migration & Protocol
@@ -216,5 +218,19 @@ class Setup  extends AbstractSetup
         $this->createColumn($Table, 'serviceTblPerson', self::FIELD_TYPE_BIGINT, true);
 
         $this->createForeignKey($Table, $tblForgotten);
+    }
+
+    /**
+     * @param Schema $Schema
+     */
+    private function setTableStudentListColumn(Schema &$Schema): void
+    {
+        $Table = $this->getConnection()->createTable($Schema, 'tblClassRegisterStudentListColumn');
+
+        $this->createColumn($Table, 'serviceTblPerson', self::FIELD_TYPE_BIGINT);
+        $this->createColumn($Table, 'Columns', self::FIELD_TYPE_TEXT);
+        $this->createColumn($Table, 'FreeTexts', self::FIELD_TYPE_TEXT);
+
+        $this->createIndex($Table, [TblStudentListColumn::ATTR_SERVICE_TBL_PERSON], false);
     }
 }

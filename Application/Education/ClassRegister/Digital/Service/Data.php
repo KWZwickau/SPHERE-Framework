@@ -10,6 +10,7 @@ use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblFullTim
 use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblLessonContent;
 use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblLessonContentLink;
 use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblLessonWeek;
+use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblStudentListColumn;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
@@ -237,6 +238,24 @@ class Data  extends AbstractData
                 TblLessonContent::ATTR_SERVICE_TBL_DIVISION_COURSE => $tblDivisionCourse->getId()
             ), array(Element::ENTITY_CREATE => self::ORDER_ASC));
         }
+    }
+
+    /**
+     * @param DateTime $date
+     * @param int $lesson
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param TblSubject $tblSubject
+     *
+     * @return TblLessonContent|bool
+     */
+    public function getLessonContentBy(DateTime $date, int $lesson, TblDivisionCourse $tblDivisionCourse, TblSubject $tblSubject): TblLessonContent|bool
+    {
+        return $this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblLessonContent', [
+            TblLessonContent::ATTR_DATE => $date,
+            TblLessonContent::ATTR_LESSON => $lesson,
+            TblLessonContent::ATTR_SERVICE_TBL_DIVISION_COURSE => $tblDivisionCourse->getId(),
+            TblLessonContent::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId()
+        ]);
     }
 
     /**
@@ -1447,5 +1466,53 @@ class Data  extends AbstractData
             ->getResult();
 
         return empty($resultList) ? false : current($resultList);
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param string $columns
+     * @param string $freeTexts
+     *
+     * @return TblStudentListColumn
+     */
+    public function updateStudentListColumn(TblPerson $tblPerson, string $columns, string $freeTexts): TblStudentListColumn
+    {
+        $Manager = $this->getEntityManager();
+        $Entity = $Manager->getEntity('TblStudentListColumn')
+            ->findOneBy(
+                array(
+                    TblStudentListColumn::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
+                )
+            );
+        if (null === $Entity) {
+            $Entity = new TblStudentListColumn();
+            $Entity->setServiceTblPerson($tblPerson);
+            $Entity->setColumns($columns);
+            $Entity->setFreeTexts($freeTexts);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        } else {
+            $Protocol = clone $Entity;
+            $Entity->setServiceTblPerson($tblPerson);
+            $Entity->setColumns($columns);
+            $Entity->setFreeTexts($freeTexts);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+        }
+
+        return $Entity;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     *
+     * @return false|TblStudentListColumn
+     */
+    public function getStudentListColumn(TblPerson $tblPerson): false|TblStudentListColumn
+    {
+        return $this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblStudentListColumn',
+            [TblStudentListColumn::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()]);
     }
 }
