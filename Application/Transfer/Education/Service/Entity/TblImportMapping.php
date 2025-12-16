@@ -22,6 +22,7 @@ class TblImportMapping extends Element
 
     const ATTR_TYPE = 'Type';
     const ATTR_ORIGINAL = 'Original';
+    const ATTR_MAPPING = 'Mapping';
 
     /**
      * @Column(type="string")
