@@ -143,10 +143,14 @@ class ApiConsumerLogin extends Extension implements IApiInterface
             $SelectBoxActive = array(1 => 'Aktivieren', 2 => 'Inaktiv');
         }
 
-        $FormRow = new FormRow(array(
-            new FormColumn(new SelectBox('Data[Active]', $SystemName.' Status', $SelectBoxActive), 4),
-            new FormColumn((new CheckBox('Data[ActiveButton]', 'Buttons', 1))->setPaddingTop(), 2),
-        ));
+
+        if($SystemName == TblConsumerLogin::VALUE_SYSTEM_DLLP) {
+            $FormRow = new FormRow(array(
+                new FormColumn(new SelectBox('Data[Active]', $SystemName.' Status', $SelectBoxActive), 4),
+                new FormColumn((new CheckBox('Data[ActiveButton]', 'Buttons KelvinAPI', 1))->setPaddingTop(), 2),
+            ));
+        }
+        // Sonderfall gedrehte Logik
         if($SystemName == TblConsumerLogin::VALUE_SYSTEM_SSW_STOP){
             $SelectBoxActive = array(1 => 'SSW Zugriff stoppen', 2 => 'SSW ist Aktiv');
             if($tblConsumerLogin){
@@ -154,6 +158,12 @@ class ApiConsumerLogin extends Extension implements IApiInterface
             }
             $FormRow = new FormRow(array(
                 new FormColumn(new SelectBox('Data[Active]', $SystemName.' Status', $SelectBoxActive), 4),
+            ));
+        }
+        if(!$FormRow){
+            $FormRow = new FormRow(array(
+                new FormColumn(new SelectBox('Data[Active]', $SystemName.' Status', $SelectBoxActive), 4),
+                new FormColumn((new CheckBox('Data[ActiveButton]', 'Buttons', 1))->setPaddingTop(), 2),
             ));
         }
 

@@ -255,22 +255,22 @@ class Data extends AbstractData
         } else {
             $now = new \DateTime('now');
         }
-        return $this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'tblMaintenance',
-            array(
-                TblMaintenance::ATTR_MAINTENANCE_DATE => $now
-            ));
-
-//        $queryBuilder = $Manager->getQueryBuilder();
-//        $query = $queryBuilder->select('t')
-//            ->from(__NAMESPACE__ . '\Entity\TblMaintenance', 't')
-//            ->where($queryBuilder->expr()->andX(
-//                $queryBuilder->expr()->lte('t.StartDate', '?1'),
-//                $queryBuilder->expr()->gte('t.MaintenanceDate', '?1')
-//            ))
-//            ->setParameter(1, $now)
-//            ->getQuery();
-//        $resultList = $query->getResult();
-//        return empty($resultList) ? false : current($resultList);
+//        return $this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'tblMaintenance',
+//            array(
+//                TblMaintenance::ATTR_MAINTENANCE_DATE => $now
+//            ));
+        $Manager = $this->getConnection()->getEntityManager();
+        $queryBuilder = $Manager->getQueryBuilder();
+        $query = $queryBuilder->select('t')
+            ->from(__NAMESPACE__ . '\Entity\TblMaintenance', 't')
+            ->where($queryBuilder->expr()->andX(
+                $queryBuilder->expr()->lte('t.StartDate', '?1'),
+                $queryBuilder->expr()->gte('t.MaintenanceDate', '?1')
+            ))
+            ->setParameter(1, $now)
+            ->getQuery();
+        $resultList = $query->getResult();
+        return empty($resultList) ? false : current($resultList);
 
     }
 

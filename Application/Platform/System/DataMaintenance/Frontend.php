@@ -93,46 +93,48 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage->setContent(new Layout(new LayoutGroup(new LayoutRow(array(
             new LayoutColumn(array(
-                new Panel(new Center('Wartung'),
-                    new Center(new Standard('Einstellen', __NAMESPACE__.'/Maintenance')),)
-            ), 4),
-            new LayoutColumn(array(
-                new Panel(new Center('Protokoll älter als: '.$DateTime->format('d.m.Y')),
-                    new Center(new Standard('Protokolleinträge', __NAMESPACE__.'/Protocol')))
-            ), 4),
-            new LayoutColumn(array(
-                new Panel(new Center('Gelöschte Personen'),
-                    new Center(($CountSoftRemovePerson >= 1
+                new Panel(new Bold('Gelöschte Personen'), // new Center('Gelöschte Personen'),
+                    ($CountSoftRemovePerson >= 1
                         ? new Standard('Personenübersicht ('.$CountSoftRemovePerson.')', __NAMESPACE__.'/Restore/Person')
                         : new Success('Keine Personen gelöscht')
-                    ))
-                )
-            ), 4),
-            new LayoutColumn(array(
-                new Panel(new Center('Einstellung API & Sperrung'), new Center(new Standard('Einstellung', __NAMESPACE__.'/ConsumerLogin')))
-            ), 4),
-            // niedrige Prio, wird einmal im Jahr benötigt
-            new LayoutColumn(array(
-                new Panel(new Center('Jährliches DEV Update (Datum) wird um 1 Jahr erhöht'),
-                    new Center(new Standard('Jährliches Update', __NAMESPACE__.'/Yearly', null, array(), 'Anzeige eines SQL Script\'s'))
-                )
+                    )
+                    , Panel::PANEL_TYPE_INFO)
             ), 4),
             // niedrige Prio, wird höchstens bei wunsch neuer Mandanten nach tests benötigt
             new LayoutColumn(array(
-                new Panel(new Center('Benutzer-Accounts löschen'), new Center(
+                new Panel(new Bold('Benutzer-Accounts löschen'), // new Center('Benutzer-Accounts löschen'),
                     new Standard('&nbsp;Alle Schüler '.new Label($StudentAccountCount, Label::LABEL_TYPE_INFO), __NAMESPACE__.'/OverView',
                         new EyeOpen(), array('AccountType' => 'STUDENT'))
                     .new Standard('&nbsp;Alle Sorgeberechtigte '.new Label($CustodyAccountCount, Label::LABEL_TYPE_INFO), __NAMESPACE__.'/OverView',
                         new EyeOpen(), array('AccountType' => 'CUSTODY'))
-                ))
+                    , Panel::PANEL_TYPE_INFO)
             ), 4),
+            new LayoutColumn(array(
+                new Panel(new Bold('Wartung'), // new Center('Wartung'),
+                    new Standard('Einstellen', __NAMESPACE__.'/Maintenance'), Panel::PANEL_TYPE_INFO)
+            ), 4),
+            new LayoutColumn('<br/>'),
+            new LayoutColumn(array(
+                new Panel(new Bold('Einstellung DLLP KelvinAPI & SSW Sperrung'), // new Center('Einstellung API & Sperrung'), new Center(new Standard('Einstellung', __NAMESPACE__.'/ConsumerLogin'))
+                    new Standard('Einstellung', __NAMESPACE__.'/ConsumerLogin'), Panel::PANEL_TYPE_INFO)
+            ), 4),
+            new LayoutColumn(array(
+                new Panel(new Bold('Protokoll älter als: '.$DateTime->format('d.m.Y')), //new Center('Protokoll älter als: '.$DateTime->format('d.m.Y')),
+                    new Standard('Protokolleinträge', __NAMESPACE__.'/Protocol'), Panel::PANEL_TYPE_INFO)
+            ), 4),
+            // niedrige Prio, wird einmal im Jahr benötigt
+            new LayoutColumn(array(
+                new Panel(new Bold('Jährliches DEV Update (Datum) wird um 1 Jahr erhöht'), // new Center('Jährliches DEV Update (Datum) wird um 1 Jahr erhöht'),
+                    new Standard('Jährliches Update', __NAMESPACE__.'/Yearly', null, array(), 'Anzeige eines SQL Script\'s')
+                    , Panel::PANEL_TYPE_INFO)
+            ), 4),
+            new LayoutColumn('<br/>'),
 //          // niedrige Prio, wird nur als Information behalten
             new LayoutColumn(array(
-                new Panel(new Center('Document Storage'),
-                    new Center(
+                new Panel(new Bold('Document Storage'), // new Center('Document Storage'),
                     // Dateien (Zeugnisse) nachträglich initial einstellen
 //                        new Standard('Datei-Größe setzen für alte Dateien', __NAMESPACE__.'/DocumentStorage/FileSize').
-                            new Standard('Datei-Größe aller Mandanten einsehen', __NAMESPACE__.'/DocumentStorage/AllConsumers')))
+                            new Standard('Datei-Größe aller Mandanten einsehen', __NAMESPACE__.'/DocumentStorage/AllConsumers'), Panel::PANEL_TYPE_INFO)
                 ), 4),
 //            new LayoutColumn(array(
 //                new TitleLayout('Zensuren/Noten'),
@@ -237,7 +239,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage('Wartungseintrag', 'löschen');
         BasicData::useService()->deleteMaintenance($MaintenanceId);
-        $Stage->setContent(new Success('Wartungseintrag gelöscht').new Redirect(__NAMESPACE__.'/Maintenance/Delete', Redirect::TIMEOUT_SUCCESS));
+        $Stage->setContent(new Success('Wartungseintrag gelöscht').new Redirect('/Platform/System/DataMaintenance/Maintenance', Redirect::TIMEOUT_SUCCESS));
         return $Stage;
     }
 
@@ -657,7 +659,7 @@ class Frontend extends Extension implements IFrontendInterface
             $TableContent[] = $item;
         }
 
-        return new TableData($TableContent, new Title('Einstellungen DLLP & SSW Sperrung'),
+        return new TableData($TableContent, new Title('Einstellung DLLP KelvinAPI & SSW Sperrung'),
             array(
                 'Acronym' => 'Kürzel',
                 'Name' => 'Name',
