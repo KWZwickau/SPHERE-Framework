@@ -888,6 +888,13 @@ abstract class ServiceCertificateContent extends ServiceAbitur
                     //str_replace('.', ',', $average);
                 }
 
+                // Notendurchschnitt der angegebenen Fächer ohne Englisch für Bildungsempfehlung Förderschulen
+                $average = $this->calcSubjectGradesAverageWithoutEnglish($tblPrepareStudent);
+                if ($average) {
+                    $Content['P' . $personId]['Grade']['Data']['AverageWithoutEN'] = number_format($average, 1, ',', '.');
+                    //str_replace('.', ',', $average);
+                }
+
                 // Notendurchschnitt aller anderen Fächer für Bildungsempfehlung
                 $average = $this->calcSubjectGradesAverageOthers($tblPrepareStudent);
                 if ($average) {
@@ -1160,6 +1167,43 @@ abstract class ServiceCertificateContent extends ServiceAbitur
                 $gradeList = array();
                 foreach ($tblCertificateSubjectAll as $tblCertificateSubject) {
                     if (($tblSubject = $tblCertificateSubject->getServiceTblSubject())) {
+                        if (($tblTaskGrade = Grade::useService()->getTaskGradeByPersonAndTaskAndSubject($tblPerson, $tblAppointedDateTask, $tblSubject))
+                            && $tblTaskGrade->getIsGradeNumeric()
+                        ) {
+                            $gradeList[] = $tblTaskGrade->getGradeNumberValue();
+                        }
+                    }
+                }
+
+                if (!empty($gradeList)) {
+                    return round(floatval(array_sum($gradeList) / count($gradeList)), 1);
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @param TblPrepareStudent $tblPrepareStudent
+     *
+     * @return bool|float
+     */
+    private function calcSubjectGradesAverageWithoutEnglish(TblPrepareStudent $tblPrepareStudent): float|bool
+    {
+        if (($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())
+            && ($tblPrepare = $tblPrepareStudent->getTblPrepareCertificate())
+            && ($tblPerson = $tblPrepareStudent->getServiceTblPerson())
+            && ($tblAppointedDateTask = $tblPrepare->getServiceTblAppointedDateTask())
+        ) {
+            $tblCertificateSubjectAll = Generator::useService()->getCertificateSubjectAll($tblCertificate);
+
+            if ($tblCertificateSubjectAll) {
+                $gradeList = array();
+                foreach ($tblCertificateSubjectAll as $tblCertificateSubject) {
+                    if (($tblSubject = $tblCertificateSubject->getServiceTblSubject())
+                        && $tblSubject->getName() != 'Englisch'
+                    ) {
                         if (($tblTaskGrade = Grade::useService()->getTaskGradeByPersonAndTaskAndSubject($tblPerson, $tblAppointedDateTask, $tblSubject))
                             && $tblTaskGrade->getIsGradeNumeric()
                         ) {
