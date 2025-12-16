@@ -209,6 +209,20 @@ class Data extends AbstractData
 
     /**
      * @param string $Type
+     * @param string $Mapping
+     *
+     * @return false|TblImportMapping
+     */
+    public function getImportMappingByMapping(string $Type, string $Mapping): TblImportMapping|bool
+    {
+        return $this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblImportMapping', array(
+            TblImportMapping::ATTR_TYPE => $Type,
+            TblImportMapping::ATTR_MAPPING => $Mapping
+        ));
+    }
+
+    /**
+     * @param string $Type
      * @param string $Original
      * @param string $Mapping
      *
