@@ -374,7 +374,7 @@ class TblLessonContent extends Element
      */
     public function getIdentifier(bool $withTeacher = false): string
     {
-        return $this->getDate() . '_' . $this->serviceTblDivision . '_' . $this->serviceTblSubject . '_' . $this->Lesson
+        return $this->getDate() . '_' . $this->serviceTblDivision . '_' . ($this->serviceTblSubject ?: $this->serviceTblSubstituteSubject) . '_' . $this->Lesson
             . ($withTeacher ?  '_' . $this->serviceTblPerson : '');
     }
 }
