@@ -462,6 +462,7 @@ class Service extends AbstractService
                             $Item['DebtorLastName'] = $tblPersonDebtor->getLastName();
                             // Causer
                             $Item['CauserFirstName'] = $tblPersonCauser->getFirstName();
+                            $Item['CauserSecondName'] = $tblPersonCauser->getSecondName();
                             $Item['CauserLastName'] = $tblPersonCauser->getLastName();
 
                             // Gesamt
@@ -527,6 +528,7 @@ class Service extends AbstractService
             $export->setValue($export->getCell($column++, $row), "Nachname Beitragszahler");
             $export->setValue($export->getCell($column++, $row), "Geschlecht");
             $export->setValue($export->getCell($column++, $row), "Vorname Beitragsverursacher");
+            $export->setValue($export->getCell($column++, $row), "Zweiter Vorname Beitragsverursacher");
             $export->setValue($export->getCell($column++, $row), "Nachname Beitragsverursacher");
             $export->setValue($export->getCell($column++, $row), "Klasse / Stammgruppe");
             $export->setValue($export->getCell($column++, $row), "Vorname S1");
@@ -563,6 +565,7 @@ class Service extends AbstractService
                 $export->setValue($export->getCell($column++, $row), $PersonData['Gender']);
 
                 $export->setValue($export->getCell($column++, $row), $PersonData['CauserFirstName']);
+                $export->setValue($export->getCell($column++, $row), $PersonData['CauserSecondName']);
                 $export->setValue($export->getCell($column++, $row), $PersonData['CauserLastName']);
                 $export->setValue($export->getCell($column++, $row), $PersonData['DivisionCourse']);
                 $export->setValue($export->getCell($column++, $row), $PersonData['FirstNameS1']);
