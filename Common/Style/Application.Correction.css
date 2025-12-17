@@ -593,6 +593,16 @@ a.type-orange-link:focus {
     text-decoration: none;
 }
 
+a.type-warning-link {
+    color: #ad852c;
+    text-decoration: none;
+}
+a.type-warning-link:hover,
+a.type-warning-link:focus {
+    color: #cda03d;
+    text-decoration: none;
+}
+
 a.type-red-link {
     color: red;
     text-decoration: none;

@@ -74,6 +74,7 @@ class Setup  extends AbstractSetup
         $this->createIndex($Table, array(TblLessonContent::ATTR_DATE, TblLessonContent::ATTR_LESSON, TblLessonContent::ATTR_SERVICE_TBL_DIVISION_COURSE), false);
         $this->createIndex($Table, array(TblLessonContent::ATTR_DATE, TblLessonContent::ATTR_SERVICE_TBL_DIVISION_COURSE), false);
         $this->createIndex($Table, array('serviceTblSubject'), false);
+        $this->createIndex($Table, array('serviceTblPerson', TblLessonContent::ATTR_SERVICE_TBL_DIVISION_COURSE), false);
 
         return $Table;
     }

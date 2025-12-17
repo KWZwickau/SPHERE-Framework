@@ -132,6 +132,7 @@ class Frontend extends Extension implements IFrontendInterface
                     && Group::useService()->existsGroupPerson($tblGroup, $tblPerson)
                 ) {
                     $contentTeacherWelcome = Grade::useService()->getTeacherWelcomeGradeTask($tblPerson)
+                        . Digital::useService()->getMissingDigital(7)
                         . ApiDigital::receiverBlock(Digital::useFrontend()->loadWelcomeDigitalContent(), 'WelcomeDigitalContent');
                 }
             }

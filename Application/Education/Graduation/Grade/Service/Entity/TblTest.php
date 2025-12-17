@@ -29,6 +29,7 @@ class TblTest extends Element
     const ATTR_TBL_GRADE_TYPE = 'tblGraduationGradeType';
     const ATTR_SERVICE_TBL_SUBJECT = 'serviceTblSubject';
     const ATTR_SERVICE_TBL_YEAR = 'serviceTblYear';
+    const ATTR_DATE = 'Date';
 
     /**
      * @Column(type="bigint")
@@ -319,11 +320,24 @@ class TblTest extends Element
     }
 
     /**
-     * @return false|TblDivisionCourse[]
+     * @return TblDivisionCourse[]
      */
-    public function getDivisionCourses()
+    public function getDivisionCourses(): array
     {
         return Grade::useService()->getDivisionCourseListByTest($this);
+    }
+
+    /**
+     * @return string
+     */
+    public function getDivisionCoursesAsString(): string
+    {
+        $list = [];
+        foreach ($this->getDivisionCourses() as $tblDivisionCourse) {
+            $list[$tblDivisionCourse->getId()] = $tblDivisionCourse->getName();
+        }
+
+        return implode(', ', $list);
     }
 
     /**

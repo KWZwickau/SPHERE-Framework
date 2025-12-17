@@ -44,13 +44,11 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
-use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Frontend\Text\Repository\Warning;
-use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 use SPHERE\System\Extension\Repository\Sorter\StringNaturalOrderSorter;
@@ -193,41 +191,23 @@ class Frontend extends Extension implements IFrontendInterface
      * @param null $BackDivisionCourseId
      * @param string $BasicRoute
      *
-     * @return Stage|string
+     * @return string
      */
     public function frontendInstruction(
         $DivisionCourseId = null,
         $BackDivisionCourseId = null,
         string $BasicRoute = '/Education/ClassRegister/Digital/Teacher'
-    ) {
-        $stage = new Stage('Digitales Klassenbuch', 'Belehrungen');
-
+    ): string {
+        $icon = new CommodityItem();
+        $name = 'Belehrungen';
+        $Route = '/Education/ClassRegister/Digital/Instruction';
+        $content = '';
         if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
-            $stage->addButton(Digital::useFrontend()->getBackButton($tblDivisionCourse, $BackDivisionCourseId, $BasicRoute));
-            $stage->setContent(
-                new Layout(array(
-                    new LayoutGroup(array(
-                        Digital::useService()->getHeadLayoutRow($tblDivisionCourse),
-                        $tblDivisionCourse->getType()->getIsCourseSystem()
-                            ? Digital::useService()->getHeadButtonListLayoutRowForCourseSystem($tblDivisionCourse, '/Education/ClassRegister/Digital/Instruction',
-                                $BasicRoute, $BackDivisionCourseId)
-                            : Digital::useService()->getHeadButtonListLayoutRow($tblDivisionCourse, '/Education/ClassRegister/Digital/Instruction', $BasicRoute)
-                    )),
-                    new LayoutGroup(new LayoutRow(new LayoutColumn(
-                        ApiInstructionItem::receiverModal()
-                        . ApiInstructionItem::receiverBlock(
-                            $this->loadInstructionItemTable($tblDivisionCourse),
-                            'InstructionItemContent'
-                        )
-                    )), new Title(new CommodityItem() . ' Belehrungen'))
-                ))
-            );
-        } else {
-            return new Danger('Klasse oder Gruppe nicht gefunden', new Exclamation())
-                . new Redirect($BasicRoute, Redirect::TIMEOUT_ERROR);
+            $content = ApiInstructionItem::receiverModal()
+                . ApiInstructionItem::receiverBlock($this->loadInstructionItemTable($tblDivisionCourse), 'InstructionItemContent');
         }
 
-        return $stage;
+        return Digital::useFrontend()->getStage($DivisionCourseId, $BasicRoute, $Route, $icon, $name, $content, $BackDivisionCourseId);
     }
 
     /**

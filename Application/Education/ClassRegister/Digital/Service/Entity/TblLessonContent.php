@@ -208,11 +208,14 @@ class TblLessonContent extends Element
     }
 
     /**
+     * @param bool $isShort
+     *
      * @return string
      */
-    public function getLessonDisplay(): string
+    public function getLessonDisplay(bool $isShort = false): string
     {
-        return $this->Lesson === null ? '' : $this->Lesson . '. Unterrichtseinheit';
+        $text = $isShort ? '. UE' : '. Unterrichtseinheit';
+        return $this->Lesson === null ? '' : $this->Lesson . $text;
     }
 
     /**
@@ -362,5 +365,16 @@ class TblLessonContent extends Element
     public function getLinkedLessonContentAll()
     {
         return Digital::useService()->getLessonContentLinkAllByLessonContent($this);
+    }
+
+    /**
+     * @param bool $withTeacher
+     *
+     * @return string
+     */
+    public function getIdentifier(bool $withTeacher = false): string
+    {
+        return $this->getDate() . '_' . $this->serviceTblDivision . '_' . ($this->serviceTblSubject ?: $this->serviceTblSubstituteSubject) . '_' . $this->Lesson
+            . ($withTeacher ?  '_' . $this->serviceTblPerson : '');
     }
 }

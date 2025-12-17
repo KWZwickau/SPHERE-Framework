@@ -15,6 +15,7 @@ use SPHERE\Application\Education\ClassRegister\Timetable\Service\Entity\TblTimet
 use SPHERE\Application\Education\ClassRegister\Timetable\Service\Setup;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
+use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Person\Person;
@@ -106,6 +107,17 @@ class Service extends AbstractService
     public function getTimetableListByDateTime(DateTime $Date)
     {
         return (new Data($this->getBinding()))->getTimetableListByDateTime($Date);
+    }
+
+    /**
+     * @param DateTime $fromDate
+     * @param DateTime $toDate
+     *
+     * @return TblTimetable[]
+     */
+    public function getTimetableListBetween(DateTime $fromDate, DateTime $toDate): array
+    {
+        return (new Data($this->getBinding()))->getTimetableListBetween($fromDate, $toDate);
     }
 
     /**
@@ -563,6 +575,21 @@ class Service extends AbstractService
     public function getTimetableNodeListByTimetableAndDivisionCourse(TblTimetable $tblTimetable, TblDivisionCourse $tblDivisionCourse)
     {
         return (new Data($this->getBinding()))->getTimetableNodeListByTimetableAndDivisionCourse($tblTimetable, $tblDivisionCourse);
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblTimetable $tblTimeTable
+     * @param int|null $day
+     * @param TblDivisionCourse|null $tblDivisionCourseFilter
+     * @param TblSubject|null $tblSubjectFilter
+     *
+     * @return TblTimetableNode[]
+     */
+    public function getTimeTableNodeListByTeacher(TblPerson $tblPerson,TblTimetable $tblTimeTable,
+        ?int $day = null, ?TblDivisionCourse $tblDivisionCourseFilter = null, ?TblSubject $tblSubjectFilter = null): array
+    {
+        return (new Data($this->getBinding()))->getTimeTableNodeListByTeacher($tblPerson, $tblTimeTable, $day, $tblDivisionCourseFilter, $tblSubjectFilter);
     }
 
     /**
@@ -1256,6 +1283,22 @@ class Service extends AbstractService
 
                 return '';
             }
+        }
+
+        return '';
+    }
+
+    /**
+     * @param TblTimetable $tblTimetable
+     * @param DateTime $dateTime
+     *
+     * @return false|TblTimetableWeek
+     */
+    public function getTimetableWeekNameByTimeTableAndDate(TblTimetable $tblTimetable, DateTime $dateTime): bool|TblTimetableWeek
+    {
+        $startDate = $this->getStartDateOfWeek($dateTime);
+        if (($tblTimetableWeek = (new Data($this->getBinding()))->getTimetableWeekByTimeTableAndDate($tblTimetable, $startDate))) {
+            return $tblTimetableWeek->getWeek();
         }
 
         return '';

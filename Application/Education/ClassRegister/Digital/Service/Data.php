@@ -3,9 +3,6 @@
 namespace SPHERE\Application\Education\ClassRegister\Digital\Service;
 
 use DateTime;
-use Doctrine\ORM\OptimisticLockException;
-use Doctrine\ORM\ORMException;
-use Doctrine\ORM\TransactionRequiredException;
 use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblCourseContent;
 use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblForgotten;
 use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblForgottenStudent;
@@ -243,6 +240,24 @@ class Data  extends AbstractData
     }
 
     /**
+     * @param DateTime $date
+     * @param int $lesson
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param TblSubject $tblSubject
+     *
+     * @return TblLessonContent|bool
+     */
+    public function getLessonContentBy(DateTime $date, int $lesson, TblDivisionCourse $tblDivisionCourse, TblSubject $tblSubject): TblLessonContent|bool
+    {
+        return $this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblLessonContent', [
+            TblLessonContent::ATTR_DATE => $date,
+            TblLessonContent::ATTR_LESSON => $lesson,
+            TblLessonContent::ATTR_SERVICE_TBL_DIVISION_COURSE => $tblDivisionCourse->getId(),
+            TblLessonContent::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId()
+        ]);
+    }
+
+    /**
      * @param DateTime $fromDate
      * @param DateTime $toDate
      * @param TblDivisionCourse $tblDivisionCourse
@@ -270,6 +285,106 @@ class Data  extends AbstractData
         $resultList = $query->getResult();
 
         return empty($resultList) ? false : $resultList;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     * @param TblSubject|null $tblSubject
+     *
+     * @return TblLessonContent[]
+     */
+    public function getLessonContentAllByTeacherAndYear(TblPerson $tblPerson, TblYear $tblYear, ?TblSubject $tblSubject = null): array
+    {
+        $queryBuilder = $this->getEntityManager()->getQueryBuilder();
+
+        $builder = $queryBuilder->select('t')
+            ->from(TblLessonContent::class, 't')
+            ->join(TblDivisionCourse::class, 'c')
+            ->where(
+                $queryBuilder->expr()->andX(
+                    $queryBuilder->expr()->eq('t.serviceTblDivision', 'c.Id'),
+                    $queryBuilder->expr()->eq('t.serviceTblPerson', '?1'),
+                    $queryBuilder->expr()->eq('c.serviceTblYear', '?2')
+                )
+            )
+            ->setParameter(1, $tblPerson->getId())
+            ->setParameter(2, $tblYear->getId());
+
+        if ($tblSubject) {
+            $builder->andWhere(
+                $queryBuilder->expr()->orX(
+                    $queryBuilder->expr()->eq('t.serviceTblSubject', '?3'),
+                    $queryBuilder->expr()->eq('t.serviceTblSubstituteSubject', '?3')
+                )
+            );
+            $builder->setParameter(3, $tblSubject->getId());
+        }
+
+        return $builder->getQuery()->getResult();
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param TblSubject|null $tblSubject
+     *
+     * @return TblLessonContent[]
+     */
+    public function getLessonContentAllByTeacherAndDivisionCourse(TblPerson $tblPerson, TblDivisionCourse $tblDivisionCourse, ?TblSubject $tblSubject = null): array
+    {
+        $queryBuilder = $this->getEntityManager()->getQueryBuilder();
+
+        $builder = $queryBuilder->select('t')
+            ->from(TblLessonContent::class, 't')
+            ->where(
+                $queryBuilder->expr()->andX(
+                    $queryBuilder->expr()->eq('t.serviceTblPerson', '?1'),
+                    $queryBuilder->expr()->eq('t.serviceTblDivision', '?2')
+                )
+            )
+            ->setParameter(1, $tblPerson->getId())
+            ->setParameter(2, $tblDivisionCourse->getId());
+
+        if ($tblSubject) {
+            $builder->andWhere(
+                $queryBuilder->expr()->orX(
+                    $queryBuilder->expr()->eq('t.serviceTblSubject', '?3'),
+                    $queryBuilder->expr()->eq('t.serviceTblSubstituteSubject', '?3')
+                )
+            );
+            $builder->setParameter(3, $tblSubject->getId());
+        }
+
+        return $builder->getQuery()->getResult();
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param DateTime $fromDate
+     * @param DateTime $toDate
+     *
+     * @return TblLessonContent[]
+     */
+    public function getLessonContentAllByTeacherAndBetween(TblPerson $tblPerson, DateTime $fromDate, DateTime $toDate): array
+    {
+        $Manager = $this->getEntityManager();
+        $queryBuilder = $Manager->getQueryBuilder();
+
+        $query = $queryBuilder->select('t')
+            ->from(TblLessonContent::class, 't')
+            ->where(
+                $queryBuilder->expr()->andX(
+                    $queryBuilder->expr()->between('t.Date', '?1', '?2'),
+                    $queryBuilder->expr()->eq('t.serviceTblPerson', '?3')
+                )
+            )
+            ->setParameter(1, $fromDate)
+            ->setParameter(2, $toDate)
+            ->setParameter(3, $tblPerson->getId())
+            ->getQuery();
+
+        return $query->getResult();
     }
 
     /**

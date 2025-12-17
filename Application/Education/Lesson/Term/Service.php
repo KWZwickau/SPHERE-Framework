@@ -1202,7 +1202,7 @@ class Service extends AbstractService
     {
         $date = new DateTime($date);
         $isHoliday = false;
-        for ($i = 0; $i < $hasSaturdayLessons ? 6 : 5; $i++) {
+        for ($i = 0; $i < ($hasSaturdayLessons ? 6 : 5); $i++) {
             if ($i > 0) {
                 $date->add(new DateInterval('P1D'));
             }
