@@ -310,36 +310,36 @@ class Service extends AbstractService
 
         if ($tblPerson) {
             // Verlängerung einer bestehenden Fehlzeit
-            $date = new DateTime($Data['FromDate']);
-            $date = $date->sub(new DateInterval('P1D'));
-            if (($tblAbsenceList = $this->getAbsenceAllBetweenByPerson($tblPerson, $date))) {
-                foreach ($tblAbsenceList as $item) {
-                    $fromDate = $item->getFromDateTime();
-                    $toDate = $item->getToDateTime();
-                    // beachte nur bei gleichen Status und Zeugnisrelevant
-                    // nur bei ganztägig
-                    if (isset($Data['IsCertificateRelevant']) == $item->getIsCertificateRelevant()
-                        && $Data['Status'] == $item->getStatus()
-                        && $item->getCountLessons()== 0 && !isset($Data['UE'])
-                        && ((!$toDate && $fromDate == $date) || ($toDate && $toDate == $date))
-                    ) {
-                        // update
-                        (new Data($this->getBinding()))->updateAbsence(
-                            $item,
-                            $item->getFromDate(),
-                            $Data['ToDate'] ?: $Data['FromDate'],
-                            $item->getStatus(),
-                            // bemerkung anhängen
-                            (($remark = $item->getRemark()) ? $remark . ' ' : '') . $Data['Remark'],
-                            $item->getType(),
-                            $tblPersonStaff ?: null,
-                            $item->getIsCertificateRelevant()
-                        );
-
-                        return true;
-                    }
-                }
-            }
+//            $date = new DateTime($Data['FromDate']);
+//            $date = $date->sub(new DateInterval('P1D'));
+//            if (($tblAbsenceList = $this->getAbsenceAllBetweenByPerson($tblPerson, $date))) {
+//                foreach ($tblAbsenceList as $item) {
+//                    $fromDate = $item->getFromDateTime();
+//                    $toDate = $item->getToDateTime();
+//                    // beachte nur bei gleichen Status und Zeugnisrelevant
+//                    // nur bei ganztägig
+//                    if (isset($Data['IsCertificateRelevant']) == $item->getIsCertificateRelevant()
+//                        && $Data['Status'] == $item->getStatus()
+//                        && $item->getCountLessons()== 0 && !isset($Data['UE'])
+//                        && ((!$toDate && $fromDate == $date) || ($toDate && $toDate == $date))
+//                    ) {
+//                        // update
+//                        (new Data($this->getBinding()))->updateAbsence(
+//                            $item,
+//                            $item->getFromDate(),
+//                            $Data['ToDate'] ?: $Data['FromDate'],
+//                            $item->getStatus(),
+//                            // bemerkung anhängen
+//                            (($remark = $item->getRemark()) ? $remark . ' ' : '') . $Data['Remark'],
+//                            $item->getType(),
+//                            $tblPersonStaff ?: null,
+//                            $item->getIsCertificateRelevant()
+//                        );
+//
+//                        return true;
+//                    }
+//                }
+//            }
 
             if (($tblAbsence = (new Data($this->getBinding()))->createAbsence(
                 $tblPerson,
