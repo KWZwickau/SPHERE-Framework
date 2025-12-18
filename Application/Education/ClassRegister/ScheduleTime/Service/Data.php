@@ -28,6 +28,50 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblType $tblSchoolType
+     * @param int $secondaryLevel
+     *
+     * @return TblScheduleTime|bool
+     */
+    public function getScheduleTimeBySchoolTypeAndSecondaryLevel(TblType $tblSchoolType, int $secondaryLevel): TblScheduleTime|bool
+    {
+        $Manager = $this->getEntityManager();
+        $queryBuilder = $Manager->getQueryBuilder();
+
+        if (TblScheduleTime::SECONDARY_LEVEL_ONLY_FIRST == $secondaryLevel) {
+            $querySecondary = $queryBuilder->expr()->orX(
+                $queryBuilder->expr()->eq('t.SecondaryLevel', TblScheduleTime::SECONDARY_LEVEL_ONLY_FIRST),
+                $queryBuilder->expr()->eq('t.SecondaryLevel', TblScheduleTime::SECONDARY_LEVEL_ALL),
+            );
+        } elseif (TblScheduleTime::SECONDARY_LEVEL_ONLY_SECOND == $secondaryLevel) {
+            $querySecondary = $queryBuilder->expr()->orX(
+                $queryBuilder->expr()->eq('t.SecondaryLevel', TblScheduleTime::SECONDARY_LEVEL_ONLY_SECOND),
+                $queryBuilder->expr()->eq('t.SecondaryLevel', TblScheduleTime::SECONDARY_LEVEL_ALL),
+            );
+        } else {
+            $querySecondary = $queryBuilder->expr()->eq('t.SecondaryLevel', TblScheduleTime::SECONDARY_LEVEL_ALL);
+        }
+
+        $query = $queryBuilder->select('t')
+            ->from(TblScheduleTime::class, 't')
+            ->join(TblScheduleTimeSchoolType::class, 's')
+            ->where(
+                $queryBuilder->expr()->andX(
+                    $queryBuilder->expr()->eq('t.Id', 's.tblClassRegisterScheduleTime'),
+                    $queryBuilder->expr()->eq('s.serviceTblSchoolType', '?1'),
+                    $querySecondary
+                ),
+            )
+            ->setParameter(1, $tblSchoolType->getId())
+            ->distinct()
+            ->getQuery();
+
+        $resultList = $query->getResult();
+
+        return empty($resultList) ? false : current($resultList);
+    }
+
+    /**
      * @return TblScheduleTime[]
      */
     public function getScheduleTimeAll(): array

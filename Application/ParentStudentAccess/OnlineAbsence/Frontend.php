@@ -167,7 +167,6 @@ class Frontend extends Extension implements IFrontendInterface
             $isFullDay = $Data['IsFullDay'] ?? false;
         }
 
-
         $formRows[] = new FormRow(array(
             new FormColumn(
                 new DatePicker('Data[FromDate]', '', 'Datum von', new Calendar()), 6
@@ -178,8 +177,8 @@ class Frontend extends Extension implements IFrontendInterface
         ));
         $formRows[] = new FormRow(array(
             new FormColumn(array(
-                (new CheckBox('Data[IsFullDay]', 'ganztägig', 1))->ajaxPipelineOnClick(ApiAbsence::pipelineLoadLesson()),
-                ApiAbsence::receiverBlock(Absence::useFrontend()->loadLesson($isFullDay, $messageLesson), 'loadLesson')
+                (new CheckBox('Data[IsFullDay]', 'ganztägig', 1))->ajaxPipelineOnClick(ApiAbsence::pipelineLoadLesson($PersonId)),
+                ApiAbsence::receiverBlock(Absence::useFrontend()->loadLesson($isFullDay, $messageLesson, $PersonId), 'loadLesson')
             ))
         ));
         $formRows[] = new FormRow(array(

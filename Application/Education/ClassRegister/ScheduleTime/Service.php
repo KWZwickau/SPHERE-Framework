@@ -127,6 +127,30 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblType $tblSchoolType
+     * @param int $secondaryLevel
+     *
+     * @return array
+     */
+    public function getSlotsBySchoolType(TblType $tblSchoolType, int $secondaryLevel): array
+    {
+        if (!($tblScheduleTime = (new Data($this->getBinding()))->getScheduleTimeBySchoolTypeAndSecondaryLevel($tblSchoolType, $secondaryLevel))) {
+            return [];
+        }
+
+        $result = [];
+        foreach($this->getScheduleTimeSlotsByScheduleTime($tblScheduleTime) as $tblScheduleTimeSlot) {
+            $result[$tblScheduleTimeSlot->getLesson()] = [
+                'Lesson' => $tblScheduleTimeSlot->getLesson(),
+                'StartTime' => $tblScheduleTimeSlot->getStartTime(),
+                'EndTime' => $tblScheduleTimeSlot->getEndTime(),
+            ];
+        }
+
+        return $result;
+    }
+
+    /**
      * @param $Data
      * @param TblScheduleTime|null $tblScheduleTime
      *
