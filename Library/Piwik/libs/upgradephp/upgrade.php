@@ -177,7 +177,7 @@ if(function_exists('parse_ini_file')) {
 			if (!preg_match('/^[a-zA-Z0-9[]/', $line)) {continue;}
 
 			// Sections
-			if ($line{0} == '[') {
+            if ($line[0] == '[') {
 				$tmp = explode(']', $line);
 				$sections[] = trim(substr($tmp[0], 1));
 				$i++;
