@@ -377,12 +377,11 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         // Prüfung auf sperre
-        if($tblAccount){
-            if(($tblConsumer = $tblAccount->getServiceTblConsumer())){
-                if(Consumer::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_SSW_STOP)){
-                    return $View->setContent(new Warning('Ihr Schulträger ist aktuell gesperrt, Bitte wenden Sie sich an Ihren Vertragspartner.'));
-                }
-            }
+        if($tblAccount
+        && !$tblAccount->getHasAuthentication(TblIdentification::NAME_SYSTEM)
+        && ($tblConsumer = $tblAccount->getServiceTblConsumer())
+        && (Consumer::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_SSW_STOP))){
+            return $View->setContent(new Warning('Ihr Schulträger ist aktuell gesperrt, Bitte wenden Sie sich an Ihren Vertragspartner.'));
         }
 
         // Matching Account found?
@@ -574,12 +573,11 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         // Prüfung auf sperre
-        if($tblAccount){
-            if(($tblConsumer = $tblAccount->getServiceTblConsumer())){
-                if(Consumer::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_SSW_STOP)){
-                    return $Stage->setContent(new Warning('Ihr Schulträger ist aktuell gesperrt, Bitte wenden Sie sich an Ihren Vertragspartner.'));
-                }
-            }
+        if($tblAccount
+            && !$tblAccount->getHasAuthentication(TblIdentification::NAME_SYSTEM)
+            && ($tblConsumer = $tblAccount->getServiceTblConsumer())
+            && (Consumer::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_SSW_STOP))){
+                return $Stage->setContent(new Warning('Ihr Schulträger ist aktuell gesperrt, Bitte wenden Sie sich an Ihren Vertragspartner.'));
         }
 
         // AccountId gegen Prüfung
