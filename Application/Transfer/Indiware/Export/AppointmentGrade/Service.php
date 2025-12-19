@@ -58,11 +58,33 @@ class Service extends AbstractService
     /**
      * @param TblPerson $tblPerson
      *
-     * @return false|TblIndiwareStudentSubjectOrder
+     * @return array
      */
-    public function getIndiwareStudentSubjectOrderByPerson(TblPerson $tblPerson)
+    public function getIndiwareStudentSubjectOrderByPerson(TblPerson $tblPerson): array
     {
-        return (new Data($this->getBinding()))->getIndiwareStudentSubjectOrderByPerson($tblPerson);
+        if (($item = (new Data($this->getBinding()))->getIndiwareStudentSubjectOrderByPerson($tblPerson))) {
+            return [
+                strtolower($item->getSubject1()) => '1',
+                strtolower($item->getSubject2()) => '2',
+                strtolower($item->getSubject3()) => '3',
+                strtolower($item->getSubject4()) => '4',
+                strtolower($item->getSubject5()) => '5',
+                strtolower($item->getSubject6()) => '6',
+                strtolower($item->getSubject7()) => '7',
+                strtolower($item->getSubject8()) => '8',
+                strtolower($item->getSubject9()) => '9',
+                strtolower($item->getSubject10()) => '10',
+                strtolower($item->getSubject11()) => '11',
+                strtolower($item->getSubject12()) => '12',
+                strtolower($item->getSubject13()) => '13',
+                strtolower($item->getSubject14()) => '14',
+                strtolower($item->getSubject15()) => '15',
+                strtolower($item->getSubject16()) => '16',
+                strtolower($item->getSubject17()) => '17',
+            ];
+        }
+
+        return [];
     }
 
     /**
@@ -142,49 +164,23 @@ class Service extends AbstractService
                 ) {
                     foreach ($tblTaskGradeList as $tblTaskGrade) {
                         if (($tblSubject = $tblTaskGrade->getServiceTblSubject())) {
+                            $position = null;
+                            $acronym = strtolower($tblSubject->getAcronym());
+                            if (isset($StudentSubjectOrder[$acronym])) {
+                                $position = $StudentSubjectOrder[$acronym];
+                            }
                             // hinterlegtes Mapping verwenden z.B. bei EN2
-                            if (($tblImportMapping = Education::useService()->getImportMappingByMapping(
+                            elseif (($tblImportMapping = Education::useService()->getImportMappingByMapping(
                                 TblImportMapping::TYPE_SUBJECT_ACRONYM_TO_SUBJECT_ID, $tblSubject->getId()
                             ))) {
                                 $acronym = strtolower($tblImportMapping->getOriginal());
-                            } else {
-                                $acronym = strtolower($tblSubject->getAcronym());
+                                if (isset($StudentSubjectOrder[$acronym])) {
+                                    $position = $StudentSubjectOrder[$acronym];
+                                }
                             }
 
-                            if (strtolower($StudentSubjectOrder->getSubject1()) == $acronym) {
-                                $PeopleGradeList[$tblPerson->getId()]['1'] = $tblTaskGrade->getGrade();
-                            } elseif (strtolower($StudentSubjectOrder->getSubject2()) == $acronym) {
-                                $PeopleGradeList[$tblPerson->getId()]['2'] = $tblTaskGrade->getGrade();
-                            } elseif (strtolower($StudentSubjectOrder->getSubject3()) == $acronym) {
-                                $PeopleGradeList[$tblPerson->getId()]['3'] = $tblTaskGrade->getGrade();
-                            } elseif (strtolower($StudentSubjectOrder->getSubject4()) == $acronym) {
-                                $PeopleGradeList[$tblPerson->getId()]['4'] = $tblTaskGrade->getGrade();
-                            } elseif (strtolower($StudentSubjectOrder->getSubject5()) == $acronym) {
-                                $PeopleGradeList[$tblPerson->getId()]['5'] = $tblTaskGrade->getGrade();
-                            } elseif (strtolower($StudentSubjectOrder->getSubject6()) == $acronym) {
-                                $PeopleGradeList[$tblPerson->getId()]['6'] = $tblTaskGrade->getGrade();
-                            } elseif (strtolower($StudentSubjectOrder->getSubject7()) == $acronym) {
-                                $PeopleGradeList[$tblPerson->getId()]['7'] = $tblTaskGrade->getGrade();
-                            } elseif (strtolower($StudentSubjectOrder->getSubject8()) == $acronym) {
-                                $PeopleGradeList[$tblPerson->getId()]['8'] = $tblTaskGrade->getGrade();
-                            } elseif (strtolower($StudentSubjectOrder->getSubject9()) == $acronym) {
-                                $PeopleGradeList[$tblPerson->getId()]['9'] = $tblTaskGrade->getGrade();
-                            } elseif (strtolower($StudentSubjectOrder->getSubject10()) == $acronym) {
-                                $PeopleGradeList[$tblPerson->getId()]['10'] = $tblTaskGrade->getGrade();
-                            } elseif (strtolower($StudentSubjectOrder->getSubject11()) == $acronym) {
-                                $PeopleGradeList[$tblPerson->getId()]['11'] = $tblTaskGrade->getGrade();
-                            } elseif (strtolower($StudentSubjectOrder->getSubject12()) == $acronym) {
-                                $PeopleGradeList[$tblPerson->getId()]['12'] = $tblTaskGrade->getGrade();
-                            } elseif (strtolower($StudentSubjectOrder->getSubject13()) == $acronym) {
-                                $PeopleGradeList[$tblPerson->getId()]['13'] = $tblTaskGrade->getGrade();
-                            } elseif (strtolower($StudentSubjectOrder->getSubject14()) == $acronym) {
-                                $PeopleGradeList[$tblPerson->getId()]['14'] = $tblTaskGrade->getGrade();
-                            } elseif (strtolower($StudentSubjectOrder->getSubject15()) == $acronym) {
-                                $PeopleGradeList[$tblPerson->getId()]['15'] = $tblTaskGrade->getGrade();
-                            } elseif (strtolower($StudentSubjectOrder->getSubject16()) == $acronym) {
-                                $PeopleGradeList[$tblPerson->getId()]['16'] = $tblTaskGrade->getGrade();
-                            } elseif (strtolower($StudentSubjectOrder->getSubject17()) == $acronym) {
-                                $PeopleGradeList[$tblPerson->getId()]['17'] = $tblTaskGrade->getGrade();
+                            if ($position) {
+                                $PeopleGradeList[$tblPerson->getId()][$position] = $tblTaskGrade->getGrade();
                             }
                         }
                     }
