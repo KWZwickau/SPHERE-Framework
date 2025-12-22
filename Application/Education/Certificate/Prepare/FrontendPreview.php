@@ -71,7 +71,8 @@ abstract class FrontendPreview extends FrontendLeaveTechnicalSchool
         $tblBehaviorTask = false;
         $studentTable = array();
         $isSekII = false;
-        $hasColumnCertificate = false;
+        $hasColumnAbsence = false;
+        $hasColumnBehaviorGrades = false;
 
         $tblProfileSubject  = false;
         if (($tblSetting = ConsumerSetting::useService()->getSetting('Api', 'Education', 'Certificate', 'ProfileAcronym'))
@@ -200,32 +201,30 @@ abstract class FrontendPreview extends FrontendLeaveTechnicalSchool
                         $subjectGradesText = 'Kein Stichtagsnotenauftrag ausgewählt';
                     }
 
-                    // Kopfnoten zählen
-                    $countBehaviorGrades = 0;
-                    if ($tblBehaviorTask) {
-                        if (($tblTaskGradeList = Prepare::useService()->getBehaviorGradeAllByPrepareCertificateAndPerson($tblPrepare, $tblPerson))) {
-                            $countBehaviorGrades = count($tblTaskGradeList);
-                        }
-                        $behaviorGradesText = $countBehaviorGrades . ' von ' . $countBehavior; // . ' Zensuren&nbsp;';
-                    } else {
-                        $behaviorGradesText = 'Kein Kopfnoten&shy;auftrag ausgewählt';
-                    }
-
                     $excusedDays = '&nbsp;';
                     $unexcusedDays = '&nbsp;';
+                    $behaviorGradesDisplayText = '&nbsp;';
                     $tblCertificate = false;
                     if ($tblPrepareStudent && ($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())) {
                         // Prüfen, ob die Zeugnisvorlage: Fehlzeiten besitzt
-                        if (isset($certificateList[$tblCertificate->getId()])) {
-                            $hasCertificateAbsence = $certificateList[$tblCertificate->getId()];
+                        if (isset($certificateList[$tblCertificate->getId()]['Absence'])) {
+                            $hasCertificateAbsence = $certificateList[$tblCertificate->getId()]['Absence'];
                         } else {
                             $hasCertificateAbsence = Prepare::useService()->hasCertificateAbsence($tblCertificate, $tblPerson);
-                            $certificateList[$tblCertificate->getId()] = $hasCertificateAbsence;
+                            $certificateList[$tblCertificate->getId()]['Absence'] = $hasCertificateAbsence;
+                        }
+
+                        // Prüfen, ob die Zeugnisvorlage: Kopfnoten besitzt
+                        if (isset($certificateList[$tblCertificate->getId()]['BehaviorGrades'])) {
+                            $hasBehaviorGrades = $certificateList[$tblCertificate->getId()]['BehaviorGrades'];
+                        } else {
+                            $hasBehaviorGrades = Prepare::useService()->hasCertificateBehaviorGrades($tblCertificate, $tblPerson);
+                            $certificateList[$tblCertificate->getId()]['BehaviorGrades'] = $hasBehaviorGrades;
                         }
 
                         if ($hasCertificateAbsence) {
                             // Fehlzeiten nur Anzeigen, wenn Fehltage auf der Zeugnisvorlage sind
-                            $hasColumnCertificate = true;
+                            $hasColumnAbsence = true;
                             $excusedDays = $tblPrepareStudent->getExcusedDays();
                             $unexcusedDays = $tblPrepareStudent->getUnexcusedDays();
                             if ($useClassRegisterForAbsence) {
@@ -265,14 +264,29 @@ abstract class FrontendPreview extends FrontendLeaveTechnicalSchool
                                 }
                             }
                         }
+
+                        if ($hasBehaviorGrades) {
+                            $hasColumnBehaviorGrades = true;
+                            // Kopfnoten zählen
+                            $countBehaviorGrades = 0;
+                            if ($tblBehaviorTask) {
+                                if (($tblTaskGradeList = Prepare::useService()->getBehaviorGradeAllByPrepareCertificateAndPerson($tblPrepare, $tblPerson))) {
+                                    $countBehaviorGrades = count($tblTaskGradeList);
+                                }
+                                $behaviorGradesText = $countBehaviorGrades . ' von ' . $countBehavior; // . ' Zensuren&nbsp;';
+                            } else {
+                                $behaviorGradesText = 'Kein Kopfnoten&shy;auftrag ausgewählt';
+                            }
+
+                            $behaviorGradesDisplayText = $countBehaviorGrades < $countBehavior || !$tblBehaviorTask
+                                ? new WarningText(new Exclamation() . ' ' . $behaviorGradesText)
+                                : new Success(new Enable() . ' ' . $behaviorGradesText);
+                        }
                     }
 
                     $subjectGradesDisplayText = $countSubjectGrades < $countSubjects || !$tblPrepare->getServiceTblAppointedDateTask()
                         ? new WarningText(new Exclamation() . ' ' . $subjectGradesText)
                         : new Success(new Enable() . ' ' . $subjectGradesText);
-                    $behaviorGradesDisplayText = $countBehaviorGrades < $countBehavior || !$tblBehaviorTask
-                        ? new WarningText(new Exclamation() . ' ' . $behaviorGradesText)
-                        : new Success(new Enable() . ' ' . $behaviorGradesText);
 
                     // Abitur Fächerprüfung ignorieren
                     if ($tblCertificate
@@ -383,11 +397,11 @@ abstract class FrontendPreview extends FrontendLeaveTechnicalSchool
             }
 
             // Sekundarstufe II besitzt keine Kopfnoten und Fehlzeiten
-            if ($isSekII) {
+            if ($isSekII || !$hasColumnBehaviorGrades) {
                 unset($columnTable['BehaviorGrades']);
             }
 
-            if (!$hasColumnCertificate) {
+            if (!$hasColumnAbsence) {
                 unset($columnTable['ExcusedAbsence']);
                 unset($columnTable['UnexcusedAbsence']);
             }
