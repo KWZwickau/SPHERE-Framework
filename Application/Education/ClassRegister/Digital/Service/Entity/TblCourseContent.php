@@ -186,6 +186,14 @@ class TblCourseContent extends Element
     }
 
     /**
+     * @return DateTime|null
+     */
+    public function getDateTime(): ?DateTime
+    {
+        return $this->Date;
+    }
+
+    /**
      * @param null|DateTime $Date
      */
     public function setDate(DateTime $Date = null)

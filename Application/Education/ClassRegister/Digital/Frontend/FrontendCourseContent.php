@@ -271,6 +271,7 @@ class FrontendCourseContent extends Extension implements IFrontendInterface
     {
         $dataList = array();
         $hasTypeOption = false;
+        $dayName = Absence::useFrontend()->getDayName();
         $divisionCourseList = array('0' => $tblDivisionCourse);
         if (($tblCourseContentList = Digital::useService()->getCourseContentListBy($tblDivisionCourse))) {
             foreach ($tblCourseContentList as $tblCourseContent) {
@@ -323,6 +324,7 @@ class FrontendCourseContent extends Extension implements IFrontendInterface
 
                 $dataList[] = array(
                     'Date' => $tblCourseContent->getDate(),
+                    'DayOfWeek' => $tblCourseContent->getDateTime() ? $dayName[$tblCourseContent->getDateTime()->format('w')] : '',
                     'Lesson' => new Center(implode(', ', $lessonArray)),
                     'CountLessons' => new Center($tblCourseContent->getCountLessons()),
                     'Content' => $tblCourseContent->getContent(),
@@ -356,6 +358,7 @@ class FrontendCourseContent extends Extension implements IFrontendInterface
         if ($IsControl)  {
             $columns = array(
                 'Date' => 'Datum',
+                'DayOfWeek' => 'Wochen&shy;tag',
                 'Lesson' => new ToolTip('UE', 'Unterrichtseinheit'),
                 'CountLessons' => 'Anzahl UEs',
                 'Room' => 'Raum',
@@ -369,6 +372,7 @@ class FrontendCourseContent extends Extension implements IFrontendInterface
         } else {
             $columns = array(
                 'Date' => 'Datum',
+                'DayOfWeek' => 'Wochen&shy;tag',
                 'Lesson' => new ToolTip('UE', 'Unterrichtseinheit'),
                 'CountLessons' => 'Anzahl UEs',
                 'Room' => 'Raum',
@@ -392,11 +396,12 @@ class FrontendCourseContent extends Extension implements IFrontendInterface
                 'columnDefs' => array(
                     array('type' => 'de_date', 'targets' => 0),
                     array('width' => '50px', 'targets' => 0),
-                    array('width' => '25px', 'targets' => 1),
+                    array('width' => '40px', 'targets' => 1),
                     array('width' => '25px', 'targets' => 2),
                     array('width' => '25px', 'targets' => 3),
-                    array('width' => '50px', 'targets' => 8),
-//                    array('width' => '60px', 'targets' => -1),
+                    array('width' => '25px', 'targets' => 4),
+                    array('width' => '50px', 'targets' => -2),
+                    array('width' => $IsControl ? '200px' : '60px', 'targets' => -1),
                 ),
                 'responsive' => false,
                 'paging' => false,
