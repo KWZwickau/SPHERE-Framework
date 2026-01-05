@@ -7,19 +7,18 @@ use SPHERE\Application\App\Authentication\Authentication;
 use SPHERE\Application\App\Authentication\Process\Service\Entity\TblStep;
 use SPHERE\Application\App\Dispatcher;
 use SPHERE\Application\App\ModuleInterface;
+use SPHERE\Application\App\Response\Authentication\SignIn\EmptyBasicFields;
+use SPHERE\Application\App\Response\Authentication\SignIn\MissingBasicFields;
+use SPHERE\Application\App\Response\Authentication\SignIn\RequestMethod;
+use SPHERE\Application\App\Response\Authentication\SignIn\RetryProcess;
 use SPHERE\Application\App\Response\Code\Response201;
-use SPHERE\Application\App\Response\Code\Response307;
-use SPHERE\Application\App\Response\Code\Response400;
 use SPHERE\Application\App\Response\Code\Response401;
 use SPHERE\Application\App\Response\Code\Response403;
-use SPHERE\Application\App\Response\Code\Response405;
-use SPHERE\Application\App\Response\Code\Response422;
 use SPHERE\Application\App\Response\Code\Response500;
 use SPHERE\Application\App\Response\Code\Response501;
 use SPHERE\Application\App\Response\ResponseInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Common\Main;
-use SPHERE\System\Database\Link\Identifier;
 use Symfony\Component\HttpFoundation\Request;
 use Throwable;
 
@@ -48,8 +47,8 @@ class SignIn implements ModuleInterface
         // -----
         // Validate request input
         // -----
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            return new Response405($_SERVER['REQUEST_METHOD']);
+        if (!RequestMethod::wasPostMethod()) {
+            return RequestMethod::wasWrong();
         }
         // -----
         // Validate user input
@@ -59,44 +58,14 @@ class SignIn implements ModuleInterface
             null === $deviceIdentifier
             || null === $credentialIdentifier
         ) {
-            return new Response400([
-                'url' => '/app/authentication/process/sign-in#' . __LINE__,
-                'method' => Request::METHOD_POST,
-                'provide' => [
-                    'deviceIdentifier' => [
-                        'type' => 'string',
-                        'sensitive' => true
-                    ]
-                ],
-                'prompt' => [
-                    'credentialIdentifier' => [
-                        'label' => 'Benutzername',
-                        'type' => 'string'
-                    ]
-                ]
-            ]);
+            return new MissingBasicFields();
         }
         // Test compatibility (content)
         if (
             empty($deviceIdentifier)
             || empty($credentialIdentifier)
         ) {
-            return new Response422([
-                'url' => '/app/authentication/process/sign-in#' . __LINE__,
-                'method' => Request::METHOD_POST,
-                'provide' => [
-                    'deviceIdentifier' => [
-                        'type' => 'string',
-                        'sensitive' => true
-                    ]
-                ],
-                'prompt' => [
-                    'credentialIdentifier' => [
-                        'label' => 'Benutzername',
-                        'type' => 'string'
-                    ]
-                ]
-            ]);
+            return new EmptyBasicFields();
         }
         // Find Account
         $tblAccount = Account::useService()->getAccountByUsername($credentialIdentifier);
@@ -144,9 +113,7 @@ class SignIn implements ModuleInterface
             }
             // New process startet or timed out? -> Reset sign-in process
             Authentication::useService()->resetAllSteps($tblAccount, $tblDevice);
-            return new Response307(
-                '/app/authentication/process/sign-in?processToken=' . $processToken . '#' . __LINE__
-            );
+            return new RetryProcess($processToken);
         }
         // Find device
         $tblDevice = Authentication::useService()->getDeviceByIdentifier($deviceIdentifier);
@@ -163,7 +130,7 @@ class SignIn implements ModuleInterface
             // New process startet or timed out? -> Reset sign-in process
             Authentication::useService()->resetAllSteps($tblAccount, $tblDevice);
             // Try again
-            return new Response307('/app/authentication/process/sign-in#' . __LINE__);
+            return new RetryProcess();
         }
 
         // -----
@@ -175,6 +142,10 @@ class SignIn implements ModuleInterface
         // -----
         /** @var TblStep[] $tblSteps */
         $tblSteps = Authentication::useService()->getAllStepsByAccountAndDevice($tblAccount, $tblDevice);
+        // Sec-Check: Steps defined
+        if(empty($tblSteps)) {
+            return new Response501('Steps not available');
+        }
         foreach ($tblSteps as $tblStep) {
             if (!$tblStep->getIsSolved()) {
                 try {
@@ -200,7 +171,7 @@ class SignIn implements ModuleInterface
                                 ],
                             ]
                         ]);
-                    case 'Yubikey':
+                    case 'YubiKey':
                         return new Response401([
                             'url' => '/app/authentication/factor/yubikey?processToken=' . $processToken . '#' . __LINE__,
                             'method' => Request::METHOD_POST,
@@ -209,6 +180,30 @@ class SignIn implements ModuleInterface
                                     'label' => 'YubiKey',
                                     'type' => 'string',
                                     'sensitive' => true
+                                ],
+                            ]
+                        ]);
+                    case 'Authenticator':
+                        return new Response401([
+                            'url' => '/app/authentication/factor/authenticator?processToken=' . $processToken . '#' . __LINE__,
+                            'method' => Request::METHOD_POST,
+                            'prompt' => [
+                                'credentialToken' => [
+                                    'title' => 'Authenticator App',
+                                    'label' => 'Code',
+                                    'type' => 'string'
+                                ],
+                            ]
+                        ]);
+                    case 'Google':
+                        return new Response401([
+                            'url' => '/app/authentication/factor/google?processToken=' . $processToken . '#' . __LINE__,
+                            'method' => Request::METHOD_POST,
+                            'prompt' => [
+                                'credentialToken' => [
+                                    'title' => 'Google-Authenticator',
+                                    'label' => 'Code',
+                                    'type' => 'string'
                                 ],
                             ]
                         ]);
@@ -223,6 +218,7 @@ class SignIn implements ModuleInterface
         // - Create or update authenticationToken
         // -----
         $tblToken = Authentication::useService()->createAuthenticationToken($tblAccount, $tblDevice);
+        // Sec-Check: Token issued for current request
         if (null === $tblToken) {
             return new Response401('Token not valid');
         }
@@ -232,13 +228,11 @@ class SignIn implements ModuleInterface
         if ($tblToken->getServiceTblAccount()?->getUsername() !== $credentialIdentifier) {
             return new Response401('Account not valid');
         }
-        return new Response201(['authenticationToken' => $tblToken->getAccessToken()]);
+        return new Response201(['authenticationToken' => $tblToken->getAuthenticationToken()]);
     }
 
     public static function useService(): Service
     {
-        return new Service(new Identifier('Platform', 'App', 'Authentication'),
-            __DIR__ . '/Service/Entity', __NAMESPACE__ . '\Service\Entity'
-        );
+        return Authentication::useService();
     }
 }

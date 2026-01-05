@@ -9,21 +9,16 @@ use SPHERE\Application\App\Dispatcher;
 use SPHERE\Application\App\ModuleInterface;
 use SPHERE\Application\App\Response\Authentication\SignIn\EmptyBasicFields;
 use SPHERE\Application\App\Response\Authentication\SignIn\MissingBasicFields;
-use SPHERE\Application\App\Response\Authentication\SignIn\RetryProcess;
 use SPHERE\Application\App\Response\Authentication\SignIn\RequestMethod;
-use SPHERE\Application\App\Response\Code\Response400;
-use SPHERE\Application\App\Response\Code\Response401;
+use SPHERE\Application\App\Response\Code\Response501;
 use SPHERE\Application\App\Response\ResponseInterface;
-use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Common\Main;
 
 /**
  *
  */
-class Credentials implements ModuleInterface
+class Authenticator implements ModuleInterface
 {
-    public const FACTOR_NAME = 'Credentials';
-
     /**
      * @throws AppException
      */
@@ -31,7 +26,7 @@ class Credentials implements ModuleInterface
     {
         /** @var Dispatcher $dispatcher */
         $dispatcher = Main::getDispatcher();
-        $route = $dispatcher::createRoute(__NAMESPACE__ . '/credentials', __CLASS__ . '::handleRequest');
+        $route = $dispatcher::createRoute(__NAMESPACE__ . '/authenticator', __CLASS__ . '::handleRequest');
         $dispatcher::registerRoute($route, true);
     }
 
@@ -40,7 +35,6 @@ class Credentials implements ModuleInterface
         ?string $processToken = null,
         ?string $credentialIdentifier = null,
 
-        ?string $credentialPassword = null
     ): ResponseInterface {
 
         // -----
@@ -69,28 +63,8 @@ class Credentials implements ModuleInterface
             return new EmptyBasicFields($processToken);
         }
 
-        // TODO: Execute 1. MFA-Step > Username & Password
-        if (empty($credentialIdentifier) || empty($credentialPassword)) {
-            return new Response400('Credentials not provided', [
-                'credentialIdentifier' => $credentialIdentifier,
-                'credentialPassword' => $credentialPassword
-            ]);
-        }
-
-        $tblAccount = Account::useService()->getAccountByCredential($credentialIdentifier, $credentialPassword);
-
-        if (!$tblAccount) {
-            return new Response401('Credentials not valid', [
-                'credentialIdentifier' => $credentialIdentifier,
-                'credentialPassword' => $credentialPassword
-            ]);
-        }
-
-        // TODO:
-        Authentication::produceProcessToken();
-        Authentication::useService()->getDeviceWithIdentifierAndToken();
-
-        return new RetryProcess();
+        // TODO: Execute MFA-Step > AuthApp
+        return new Response501(null);
     }
 
     public static function useService(): Service

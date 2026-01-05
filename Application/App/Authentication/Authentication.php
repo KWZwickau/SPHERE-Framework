@@ -4,9 +4,8 @@ namespace SPHERE\Application\App\Authentication;
 
 use SPHERE\Application\App\ApplicationInterface;
 use SPHERE\Application\App\Authentication\Factor\Credentials;
-use SPHERE\Application\App\Authentication\Factor\Token;
+use SPHERE\Application\App\Authentication\Factor\Authenticator;
 use SPHERE\Application\App\Authentication\Factor\YubiKey;
-use SPHERE\Application\App\Authentication\Process\Refresh;
 use SPHERE\Application\App\Authentication\Process\Service;
 use SPHERE\Application\App\Authentication\Process\SignIn;
 use SPHERE\Application\App\Authentication\Process\SignOut;
@@ -30,7 +29,7 @@ class Authentication implements ApplicationInterface
         SignOut::registerModule();
 
         Credentials::registerModule();
-        Token::registerModule();
+        Authenticator::registerModule();
         YubiKey::registerModule();
     }
 
