@@ -27,6 +27,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Calendar;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Clock;
+use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
@@ -44,6 +45,7 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\External;
 use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
@@ -369,6 +371,12 @@ class Frontend extends Extension implements IFrontendInterface
     {
         $stage = new Stage('Stundenplan', 'Bearbeiten');
         $stage->addButton((new Standard('Zurück', '/Education/ClassRegister/Digital/Timetable/Select', new ChevronLeft(), array('TimetableId' => $TimetableId))));
+        $stage->addButton(
+            new External('Herunterladen', '/Api/Document/Standard/ClassRegister/Timetable/Create', new Download(), [
+                'TimetableId' => $TimetableId,
+                'DivisionCourseId' => $DivisionCourseId,
+            ], 'Stundenplan als PDF herunterladen')
+        );
 
         if (!($tblTimetable = Timetable::useService()->getTimetableById($TimetableId))) {
             return $stage . new Danger('Der Stundenplan wurde nicht gefunden', new Exclamation());

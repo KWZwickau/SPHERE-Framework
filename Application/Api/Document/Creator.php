@@ -46,6 +46,7 @@ use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Absence\Absence;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\Education\ClassRegister\Digital\Digital;
+use SPHERE\Application\Education\ClassRegister\Timetable\Timetable;
 use SPHERE\Application\Education\Graduation\Grade\Grade;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\LeaveStudent\LeaveStudent;
@@ -1919,6 +1920,51 @@ class Creator extends Extension
 
                 return self::buildDownloadFile($File, $FileName);
             }
+        }
+
+        return "Kein Download vorhanden!";
+    }
+
+    /**
+     * @param null $TimetableId
+     * @param null $DivisionCourseId
+     * @param bool $Redirect
+     *
+     * @return string
+     */
+    public static function createTimetablePdf($TimetableId = null, $DivisionCourseId = null, bool $Redirect = true): string
+    {
+        if ($Redirect) {
+            return \SPHERE\Application\Api\Education\Certificate\Generator\Creator::displayWaitingPage(
+                '/Api/Document/Standard/ClassRegister/Timetable/Create',
+                array(
+                    'TimetableId' => $TimetableId,
+                    'DivisionCourseId' => $DivisionCourseId,
+                    'Redirect' => 0
+                )
+            );
+        }
+
+        if (($tblTimetable = Timetable::useService()->getTimetableById($TimetableId))
+            && ($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))
+        ) {
+            list($headerList, $dataList) = Timetable::useService()->getTimetableDivisionData($tblTimetable, $tblDivisionCourse);
+
+            // Spaltenbreite
+            $headerWidthList = [];
+
+            $name = 'Stundenplan ' . $tblDivisionCourse->getName();
+            $preTextList[] = str_replace('_', ': ', $name);
+            $preTextList[] = 'Stand: ' . (new DateTime())->format('d.m.Y');
+
+            $Document = new DocumentBuilder($name . ' ' . (new DateTime())->format('d-m-Y'));
+            $pageList[] = $Document->getPageList($headerList, $headerWidthList, $dataList, $preTextList);
+
+            $File = self::buildDummyFile($Document, array(), $pageList, Creator::PAPERORIENTATION_LANDSCAPE);
+
+            $FileName = $Document->getName() . '.pdf';
+
+            return self::buildDownloadFile($File, $FileName);
         }
 
         return "Kein Download vorhanden!";
