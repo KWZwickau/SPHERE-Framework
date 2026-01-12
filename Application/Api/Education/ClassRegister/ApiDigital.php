@@ -7,6 +7,7 @@ use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\Education\ClassRegister\Digital\Digital;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\IApiInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
@@ -248,7 +249,7 @@ class ApiDigital extends Extension implements IApiInterface
         }
 
         return $title
-            . Digital::useService()->getLessonContentLinkedDisplayPanel($LessonContentId)
+            . Digital::useService()->getLessonContentLinkedDisplayPanelByLessonContentId($LessonContentId)
             . new Layout(array(
                     new LayoutGroup(
                         new LayoutRow(
@@ -437,9 +438,22 @@ class ApiDigital extends Extension implements IApiInterface
         }
 
         if (Digital::useService()->updateLessonContent($tblLessonContent, $Data)) {
+            // verknüpfte Klassentagebucheinträge und Kurshefteinträge updaten
             if (($tblLessonContentLinkedList = $tblLessonContent->getLinkedLessonContentAll())) {
-                foreach ($tblLessonContentLinkedList as $tblLessonContentItem) {
-                    Digital::useService()->updateLessonContent($tblLessonContentItem, $Data);
+                foreach ($tblLessonContentLinkedList as $tblLessonContentLink) {
+                    if (($tblLessonContentItem = $tblLessonContentLink->getTblLessonContent())
+                        && $tblLessonContentItem->getId() != $LessonContentId
+                    ) {
+                        Digital::useService()->updateLessonContent($tblLessonContentItem, $Data);
+                    } elseif (($tblCourseContentItem = $tblLessonContentLink->getTblCourseContent())) {
+                        $Data['Remark'] = $tblCourseContentItem->getRemark();
+                        if ($tblCourseContentItem->getCountLessons() == 2) {
+                            $Data['IsTrippleLesson'] = 1;
+                        } elseif ($tblCourseContentItem->getCountLessons() == 1) {
+                            $Data['IsDoubleLesson'] = 1;
+                        }
+                        Digital::useService()->updateCourseContent($tblCourseContentItem, $Data);
+                    }
                 }
             }
             return new Success('Thema/Hausaufgaben wurde erfolgreich gespeichert.')
@@ -484,7 +498,7 @@ class ApiDigital extends Extension implements IApiInterface
         }
 
         return new Title(new Remove() . ' Thema/Hausaufgaben löschen')
-            . (($linkedPanel = Digital::useService()->getLessonContentLinkedDisplayPanel($LessonContentId)) ? : '')
+            . (($linkedPanel = Digital::useService()->getLessonContentLinkedDisplayPanelByLessonContentId($LessonContentId)) ? : '')
             . new Layout(
                 new LayoutGroup(
                     new LayoutRow(
@@ -1250,6 +1264,7 @@ class ApiDigital extends Extension implements IApiInterface
         }
 
         return $title
+            . Digital::useService()->getLessonContentLinkedDisplayPanelByCourseContentId($CourseContentId)
             . new Layout(array(
                     new LayoutGroup(
                         new LayoutRow(
@@ -1301,7 +1316,48 @@ class ApiDigital extends Extension implements IApiInterface
             return $this->getCourseContentModal($form);
         }
 
-        if (Digital::useService()->createCourseContent($Data, $tblDivisionCourse)) {
+        if (($tblCourseContent = Digital::useService()->createCourseContent($Data, $tblDivisionCourse))) {
+            // bei nicht SekII-kurs parallel in Klasse und Stammgruppe speichern
+            if (!$tblDivisionCourse->getType()->getIsCourseSystem()
+                && ($tblDivisionCourseList = DivisionCourse::useService()->getDivisionCourseListByStudentsInDivisionCourse($tblDivisionCourse))
+            ) {
+                $LinkId = Digital::useService()->getNextLinkId();
+                Digital::useService()->createCourseContentLink($tblCourseContent, $LinkId);
+
+                // key -1 bei 0. UE
+                $lesson = $Data['Lesson'];
+                if ($lesson == -1) {
+                    $lesson = 0;
+                }
+                $Data['serviceTblSubject'] = $tblDivisionCourse->getServiceTblSubject() ? $tblDivisionCourse->getServiceTblSubject()->getId() : null;
+//                $DataWithoutHomework = $Data;
+//                // SSWHD-3832 Hausaufgabe nur im Original setzen, nicht doppelt
+//                $DataWithoutHomework['Homework'] = '';
+//                $DataWithoutHomework['DueDateHomework'] = '';
+
+                foreach ($tblDivisionCourseList as $tblDivisionCourseTemp) {
+                    if ($tblDivisionCourseTemp->getType()->getIdentifier() == TblDivisionCourseType::TYPE_DIVISION
+                        || $tblDivisionCourseTemp->getType()->getIdentifier() == TblDivisionCourseType::TYPE_CORE_GROUP
+                    ) {
+                        $tblLessonContent = Digital::useService()->createLessonContent($Data, $lesson, $tblDivisionCourseTemp);
+                        Digital::useService()->createLessonContentLink($tblLessonContent, $LinkId);
+
+                        // erstmal nicht setzen bzw. zur Auswahl setzen, ansonsten gibt es größere Herausforderungen zwecks HA und Lesson beim Bearbeiten des Eintrags
+//                        // Doppelstunde
+//                        if (isset($Data['IsDoubleLesson'])) {
+//                            $tblLessonContentDouble = Digital::useService()->createLessonContent($DataWithoutHomework, $lesson + 1, $tblDivisionCourseTemp);
+//                            Digital::useService()->createLessonContentLink($tblLessonContentDouble, $LinkId);
+//                        }
+//
+//                        // Dreifachstunde
+//                        if (isset($Data['IsTrippleLesson'])) {
+//                            $tblLessonContentTripple = Digital::useService()->createLessonContent($DataWithoutHomework, $lesson + 2, $tblDivisionCourseTemp);
+//                            Digital::useService()->createLessonContentLink($tblLessonContentTripple, $LinkId);
+//                        }
+                    }
+                }
+            }
+
             return new Success('Thema/Hausaufgaben wurde erfolgreich gespeichert.')
                 . self::pipelineLoadCourseContentContent($DivisionCourseId)
                 . self::pipelineClose();
@@ -1392,6 +1448,22 @@ class ApiDigital extends Extension implements IApiInterface
         }
 
         if (Digital::useService()->updateCourseContent($tblCourseContent, $Data)) {
+            // verknüpfte Klassentagebucheinträge und Kurshefteinträge updaten
+            if (($tblLessonContentLinkedList = $tblCourseContent->getLinkedLessonContentAll())) {
+                foreach ($tblLessonContentLinkedList as $tblLessonContentLink) {
+                    if (($tblLessonContentItem = $tblLessonContentLink->getTblLessonContent())) {
+                        $Data['serviceTblSubject'] = ($tblSubject = $tblDivisionCourse->getServiceTblSubject()) ? $tblSubject->getId() : null;
+                        $Data['serviceTblSubstituteSubject'] = ($tblSubstituteSubject = $tblLessonContentItem->getServiceTblSubstituteSubject())
+                            ? $tblSubstituteSubject->getId() : null;
+                        Digital::useService()->updateLessonContent($tblLessonContentItem, $Data);
+                    } elseif (($tblCourseContentItem = $tblLessonContentLink->getTblCourseContent())
+                        && $tblCourseContentItem->getId() != $CourseContentId
+                    ) {
+                        Digital::useService()->updateCourseContent($tblCourseContentItem, $Data);
+                    }
+                }
+            }
+
             return new Success('Thema/Hausaufgaben wurde erfolgreich gespeichert.')
                 . self::pipelineLoadCourseContentContent($tblDivisionCourse->getId())
                 . self::pipelineClose();
@@ -1432,6 +1504,7 @@ class ApiDigital extends Extension implements IApiInterface
         }
 
         return new Title(new Remove() . ' Thema/Hausaufgaben löschen')
+            . (($linkedPanel = Digital::useService()->getLessonContentLinkedDisplayPanelByCourseContentId($CourseContentId)) ? : '')
             . new Layout(
                 new LayoutGroup(
                     new LayoutRow(
@@ -1448,6 +1521,7 @@ class ApiDigital extends Extension implements IApiInterface
                                 ),
                                 Panel::PANEL_TYPE_DANGER
                             )
+                            . ($linkedPanel ? new Warning('Verknüpfte Thema/Hausaufgaben werden mit gelöscht.', new Exclamation()) : '')
                             . (new DangerLink('Ja', self::getEndpoint(), new Ok()))
                                 ->ajaxPipelineOnClick(self::pipelineDeleteCourseContentSave($CourseContentId))
                             . (new Standard('Nein', self::getEndpoint(), new Remove()))

@@ -49,6 +49,7 @@ class ApiDivisionCourse extends Extension implements IApiInterface
         $Dispatcher = new Dispatcher(__CLASS__);
         $Dispatcher->registerMethod('loadDivisionCourseContent');
         $Dispatcher->registerMethod('loadSubjectSelectBox');
+        $Dispatcher->registerMethod('loadDigitalCheckbox');
         $Dispatcher->registerMethod('openCreateDivisionCourseModal');
         $Dispatcher->registerMethod('saveCreateDivisionCourseModal');
         $Dispatcher->registerMethod('openEditDivisionCourseModal');
@@ -133,7 +134,7 @@ class ApiDivisionCourse extends Extension implements IApiInterface
      */
     public static function pipelineLoadSubjectSelectBox($Error, $Data): Pipeline
     {
-        $Pipeline = new Pipeline(true);
+        $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'SubjectSelectBox'), self::getEndpoint());
         $ModalEmitter->setGetPayload(array(
             self::API_TARGET => 'loadSubjectSelectBox',
@@ -156,6 +157,39 @@ class ApiDivisionCourse extends Extension implements IApiInterface
     public function loadSubjectSelectBox($Error, $Data = null): ?SelectBox
     {
         return DivisionCourse::useFrontend()->loadSubjectSelectBox($Error, $Data);
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $Data
+     *
+     * @return Pipeline
+     */
+    public static function pipelineLoadDigitalCheckbox($DivisionCourseId, $Data): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'DigitalCheckbox'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'loadDigitalCheckbox',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'DivisionCourseId' => $DivisionCourseId,
+            'Data' => $Data
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param null $Data
+     *
+     * @return string
+     */
+    public function loadDigitalCheckbox($DivisionCourseId, $Data = null): string
+    {
+        return DivisionCourse::useFrontend()->loadDigitalCheckbox($DivisionCourseId, $Data);
     }
 
     /**

@@ -404,4 +404,12 @@ class TblCourseContent extends Element
             return new Warning(new Unchecked() . ' noch nicht bestätigt');
         }
     }
+
+    /**
+     * @return false|TblLessonContentLink[]
+     */
+    public function getLinkedLessonContentAll(): array|bool
+    {
+        return Digital::useService()->getLessonContentLinkAllByCourseContent($this);
+    }
 }

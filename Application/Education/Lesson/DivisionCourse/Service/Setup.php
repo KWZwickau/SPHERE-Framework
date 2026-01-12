@@ -77,6 +77,7 @@ class Setup extends AbstractSetup
         $this->createColumn($table, 'serviceTblSubject', self::FIELD_TYPE_BIGINT, true);
         $this->createColumn($table, 'IsShownInPersonData', self::FIELD_TYPE_BOOLEAN);
         $this->createColumn($table, 'IsReporting', self::FIELD_TYPE_BOOLEAN);
+        $this->createColumn($table, 'IsDigital', self::FIELD_TYPE_BOOLEAN);
 
         // todo kann nach der vollständigen Migration der Alt-Daten gedropt werden
         $this->createColumn($table, 'MigrateGroupId', self::FIELD_TYPE_BIGINT, true);

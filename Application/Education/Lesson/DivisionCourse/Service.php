@@ -210,6 +210,17 @@ class Service extends ServiceYearChange
     }
 
     /**
+     * @param TblYear|null $tblYear
+     * @param string|null $TypeIdentifier
+     *
+     * @return false|TblDivisionCourse[]
+     */
+    public function getDivisionCourseListByIsDigital(TblYear $tblYear = null, ?string $TypeIdentifier = ''): bool|array
+    {
+        return (new Data($this->getBinding()))->getDivisionCourseListByIsDigital($tblYear, $TypeIdentifier);
+    }
+
+    /**
      * @param string $name
      * @param array|null $tblYearList
      * @param bool $isOnlyTypeDivisionOrCoreGroup
@@ -702,7 +713,7 @@ class Service extends ServiceYearChange
         ) {
             $tblSubject = isset($Data['Subject']) ? Subject::useService()->getSubjectById($Data['Subject']) : null;
             return (new Data($this->getBinding()))->createDivisionCourse($tblType, $tblYear, $Data['Name'], $Data['Description'],
-                isset($Data['IsShownInPersonData']), isset($Data['IsReporting']), $tblSubject);
+                isset($Data['IsShownInPersonData']), isset($Data['IsReporting']), $tblSubject, isset($Data['IsDigital']));
         } else {
             return false;
         }
@@ -729,7 +740,7 @@ class Service extends ServiceYearChange
         ?TblSubject $tblSubject = null): TblDivisionCourse
     {
 
-        return (new Data($this->getBinding()))->createDivisionCourse($tblType, $tblYear, $name, $description, $isShownInPersonData, $isReporting, $tblSubject);
+        return (new Data($this->getBinding()))->createDivisionCourse($tblType, $tblYear, $name, $description, $isShownInPersonData, $isReporting, $tblSubject, false);
     }
 
     /**
@@ -742,7 +753,7 @@ class Service extends ServiceYearChange
     {
         $tblSubject = isset($Data['Subject']) ? Subject::useService()->getSubjectById($Data['Subject']) : null;
         return (new Data($this->getBinding()))->updateDivisionCourse($tblDivisionCourse, $Data['Name'], $Data['Description'],
-            isset($Data['IsShownInPersonData']), isset($Data['IsReporting']), $tblSubject);
+            isset($Data['IsShownInPersonData']), isset($Data['IsReporting']), $tblSubject, isset($Data['IsDigital']));
     }
 
     /**

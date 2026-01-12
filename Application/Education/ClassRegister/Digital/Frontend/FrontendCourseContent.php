@@ -442,7 +442,7 @@ class FrontendCourseContent extends Extension implements IFrontendInterface
             $today = new DateTime('today');
             $Date = $today->format('d.m.Y');
             $Global->POST['Data']['Date'] = $Date;
-            $Global->POST['Data']['IsDoubleLesson'] = 1;
+            $Global->POST['Data']['IsDoubleLesson'] = $tblDivisionCourse->getType()->getIsCourseSystem() ? 1 : 0;
             // setzen UE falls nur einmal Doppelstunde am Tag im Stundenplan ist
             if (($list = Timetable::useService()->getTimeTableNodeListBy($tblDivisionCourse, $today, null))
                 && count($list) <= 2
@@ -504,14 +504,17 @@ class FrontendCourseContent extends Extension implements IFrontendInterface
                         (new SelectBox('Data[Lesson]', 'Unterrichtseinheit', array('{{ Name }}' => $lessons)))->setRequired()
                         , 6),
                 )),
-                new FormRow(array(
-                    new FormColumn(
-                        new CheckBox('Data[IsDoubleLesson]', 'Doppelstunde', 1)
-                    , 6),
-                    new FormColumn(
-                        new CheckBox('Data[IsTrippleLesson]', 'Dreifachstunde', 1)
-                    , 6),
-                )),
+                // nur bei SekII-Anzeigen, ansonsten gibt es größere Herausforderungen zwecks HA und Lesson beim Bearbeiten des Eintrags
+                $tblDivisionCourse->getType()->getIsCourseSystem()
+                    ? new FormRow(array(
+                        new FormColumn(
+                            new CheckBox('Data[IsDoubleLesson]', 'Doppelstunde', 1)
+                        , 6),
+                        new FormColumn(
+                            new CheckBox('Data[IsTrippleLesson]', 'Dreifachstunde', 1)
+                        , 6),
+                    ))
+                    : null,
                 new FormRow(array(
                     new FormColumn(
                         new TextField('Data[Content]', 'Thema', 'Thema', new Edit())
