@@ -166,6 +166,13 @@ class Service extends AbstractService
                         array_push($Error,
                             'Eine Notenangabe an der Position ' . $LaneIndex . ':' . $LaneRanking . ' konnte nicht gespeichert werden'
                         );
+                    } else {
+                        // Löschen
+                        if (($tblCertificateGrade = Generator::useService()->getCertificateGradeByIndex(
+                            $tblCertificate, $LaneIndex, $LaneRanking
+                        ))) {
+                            (new Data($this->getBinding()))->destroyCertificateGrade($tblCertificateGrade);
+                        }
                     }
                 }
             }
