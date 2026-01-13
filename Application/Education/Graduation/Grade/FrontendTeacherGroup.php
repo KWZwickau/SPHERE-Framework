@@ -155,6 +155,7 @@ abstract class FrontendTeacherGroup extends FrontendTask
             $Global = $this->getGlobal();
             $Global->POST['Data']['Name'] = $tblDivisionCourse->getName();
             $Global->POST['Data']['Description'] = $tblDivisionCourse->getDescription();
+            $Global->POST['Data']['IsDigital'] = $tblDivisionCourse->getIsDigital() ? 1 : 0;
             if (($tblStudentList = $tblDivisionCourse->getStudents())) {
                 foreach ($tblStudentList as $tblStudent) {
                     $Global->POST['Data']['Students'][$tblStudent->getId()] = 1;
@@ -200,6 +201,10 @@ abstract class FrontendTeacherGroup extends FrontendTask
                 ->ajaxPipelineOnChange(ApiTeacherGroup::pipelineLoadTeacherGroupStudentSelect(null, null, $Data))
         , $isMultiYear ? 6 : 12);
 
+        $hasTeacherRightToCreateCourseContentForTeacherGroup = ($tblSetting = \SPHERE\Application\Setting\Consumer\Consumer::useService()->getSetting(
+            'Education', 'ClassRegister', 'CourseContent', 'HasTeacherRightToCreateCourseContentForTeacherGroup'
+        )) && $tblSetting->getValue();
+
         return (new Form(new FormGroup(array(
             new FormRow($formColumns),
             new FormRow(array(
@@ -210,6 +215,13 @@ abstract class FrontendTeacherGroup extends FrontendTask
                     new TextField('Data[Description]', '', 'Beschreibung', new Pen())
                     , 6),
             )),
+            $hasTeacherRightToCreateCourseContentForTeacherGroup
+                ? new FormRow(array(
+                    new FormColumn(
+                        new CheckBox('Data[IsDigital]', 'Kursheft führen', 1)
+                    )
+                ))
+                : null,
             new FormRow(array(
                 new FormColumn(
                     ApiTeacherGroup::receiverBlock($DivisionCourseId ? $this->loadTeacherGroupStudentSelect($subjectId, $DivisionCourseId, $Data) : '', 'TeacherGroupStudentSelect')

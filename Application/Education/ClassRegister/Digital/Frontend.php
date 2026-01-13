@@ -96,15 +96,15 @@ class Frontend extends FrontendTabs
         if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
             $titleText = '&nbsp;' . $icon . ' ' . $name
                 . new Muted(new Small(' für ' . $tblDivisionCourse->getTypeName() . ': ')) . new Bold($tblDivisionCourse->getDisplayName())
-                . ($tblDivisionCourse->getType()->getIsCourseSystem()
+                . ($tblDivisionCourse->getServiceTblSubject()
                     ? new Muted(new Small(' im Fach: ')) . $tblDivisionCourse->getSubjectName()
                     : '');
 
             $stage->setContent(
                 (new Container("&nbsp;"))->setStyle(array('height: 10px;'))
-                 . new Container(($tblDivisionCourse->getType()->getIsCourseSystem()
+                 . new Container($tblDivisionCourse->getType()->getIsCourseSystem()  || $tblDivisionCourse->getServiceTblSubject()
                     ? Digital::useService()->getHeadButtonListForCourseSystem($tblDivisionCourse, $Route, $BasicRoute, $BackDivisionCourseId)
-                    : Digital::useService()->getHeadButtonList($tblDivisionCourse, $Route, $BasicRoute)))
+                    : Digital::useService()->getHeadButtonList($tblDivisionCourse, $Route, $BasicRoute))
                 . ApiDigital::receiverBlock($this->loadAdditionalInformationContent($DivisionCourseId), 'AdditionalInformationContent')
                 . new Layout(new LayoutGroup(new LayoutRow(array(
                      new LayoutColumn(@"<h4>{$titleText}</h4>", 6),

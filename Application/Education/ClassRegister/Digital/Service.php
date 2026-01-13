@@ -665,7 +665,7 @@ class Service extends ServiceTabs
                     'Zum Klassenbuch wechseln'
                 );
                 // Kursheft (SekII-Kurs)
-            } elseif ($tblDivisionCourse->getType()->getIsCourseSystem()) {
+            } elseif ($tblDivisionCourse->getType()->getIsCourseSystem() || $tblDivisionCourse->getIsDigital()) {
                 $option = new Standard(
                     '',
                     $baseRoute . '/CourseContent',

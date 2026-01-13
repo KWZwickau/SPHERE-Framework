@@ -34,6 +34,7 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer as Co
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer as GatekeeperConsumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumerLogin;
+use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Application\Setting\Consumer\School\School;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Icon\Repository\Calendar;
@@ -746,14 +747,23 @@ class Service extends ServiceYearChange
     /**
      * @param TblDivisionCourse $tblDivisionCourse
      * @param array $Data
+     * @param bool $isTeacher
      *
      * @return bool
      */
-    public function updateDivisionCourse(TblDivisionCourse $tblDivisionCourse, array $Data): bool
+    public function updateDivisionCourse(TblDivisionCourse $tblDivisionCourse, array $Data, bool $isTeacher = false): bool
     {
+        $isDigital = isset($Data['IsDigital']);
+        $hasTeacherRightToCreateCourseContentForTeacherGroup = ($tblSetting = Consumer::useService()->getSetting(
+                'Education', 'ClassRegister', 'CourseContent', 'HasTeacherRightToCreateCourseContentForTeacherGroup'
+            )) && $tblSetting->getValue();
+        if ($isTeacher && !$hasTeacherRightToCreateCourseContentForTeacherGroup) {
+            $isDigital = $tblDivisionCourse->getIsDigital();
+        }
+
         $tblSubject = isset($Data['Subject']) ? Subject::useService()->getSubjectById($Data['Subject']) : null;
         return (new Data($this->getBinding()))->updateDivisionCourse($tblDivisionCourse, $Data['Name'], $Data['Description'],
-            isset($Data['IsShownInPersonData']), isset($Data['IsReporting']), $tblSubject, isset($Data['IsDigital']));
+            isset($Data['IsShownInPersonData']), isset($Data['IsReporting']), $tblSubject, $isDigital);
     }
 
     /**

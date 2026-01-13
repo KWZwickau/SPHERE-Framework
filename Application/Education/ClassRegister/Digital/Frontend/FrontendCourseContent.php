@@ -32,6 +32,7 @@ use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronRight;
 use SPHERE\Common\Frontend\Icon\Repository\Comment;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
+use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Extern;
 use SPHERE\Common\Frontend\Icon\Repository\Home;
 use SPHERE\Common\Frontend\Icon\Repository\MapMarker;
@@ -52,6 +53,7 @@ use SPHERE\Common\Frontend\Link\Repository\External;
 use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
+use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Center;
@@ -224,7 +226,16 @@ class FrontendCourseContent extends Extension implements IFrontendInterface
                     ->ajaxPipelineOnClick(ApiDigital::pipelineLoadCourseContentContent($DivisionCourseId, 'false', 'true')));
             }
 
-            $layout = ApiDigital::receiverBlock($this->loadCourseMissingStudentContent($tblDivisionCourse), 'CourseMissingStudentContent')
+            $text = '';
+            if (!$tblDivisionCourse->getType()->getIsCourseSystem()) {
+                $text = new Warning('Eintragungen für Thema / HA ins Kursheft der ' . $tblDivisionCourse->getTypeName()
+                    . ' werden parallel ins Klassentagebuch der Klassen bzw. Stammgruppen der enthaltenen Schüler eingetragen.
+                    Hingegen Eintragungen für Thema / HA direkt im Klassentagebuch werden im Kursheft nicht hinzugefügt, da 
+                    z.B. parallele Lerngruppen geben kann.', new Exclamation());
+            }
+
+            $layout = $text
+                . ApiDigital::receiverBlock($this->loadCourseMissingStudentContent($tblDivisionCourse), 'CourseMissingStudentContent')
                 . new Layout(new LayoutGroup(array(
                     new LayoutRow(array(
                         new LayoutColumn(
@@ -244,7 +255,8 @@ class FrontendCourseContent extends Extension implements IFrontendInterface
                             . (new Primary(
                                 new Plus() . ' Fehlzeit hinzufügen',
                                 ApiAbsence::getEndpoint()
-                            ))->ajaxPipelineOnClick(ApiAbsence::pipelineOpenCreateAbsenceModal(null, $DivisionCourseId, null, true))
+                            ))->ajaxPipelineOnClick(ApiAbsence::pipelineOpenCreateAbsenceModal(
+                                null, $DivisionCourseId, (new DateTime('today'))->format('d.m.Y'), true))
                         ),
                     ))
                 )))

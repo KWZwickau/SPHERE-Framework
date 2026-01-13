@@ -310,6 +310,9 @@ class Data extends AbstractData
         $this->createSetting('Education', 'ClassRegister', 'LessonContent', 'HasTeacherAccessToLastYearDigital', TblSetting::TYPE_BOOLEAN, '0',
             'Klassenbücher', 'Fachlehrer können auf die Klassenbücher des letzten vergangenen Schuljahres zugreifen [Standard: Nein]', true
         );
+        $this->createSetting('Education', 'ClassRegister', 'CourseContent', 'HasTeacherRightToCreateCourseContentForTeacherGroup', TblSetting::TYPE_BOOLEAN, '0',
+            'Klassenbücher', 'Fachlehrer können für Ihre eigenen Lerngruppen eigenständig ein Kursheft anlegen [Standard: Nein]', true
+        );
 
         // Leistungsüberprüfungen public
         if (($tblSetting = $this->createSetting('Education', 'Graduation', 'Evaluation', 'ShowProposalBehaviorGrade',

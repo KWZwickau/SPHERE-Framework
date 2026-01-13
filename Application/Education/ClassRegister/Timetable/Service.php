@@ -13,6 +13,7 @@ use SPHERE\Application\Education\ClassRegister\Timetable\Service\Entity\TblTimet
 use SPHERE\Application\Education\ClassRegister\Timetable\Service\Entity\TblTimetableReplacementLog;
 use SPHERE\Application\Education\ClassRegister\Timetable\Service\Entity\TblTimetableWeek;
 use SPHERE\Application\Education\ClassRegister\Timetable\Service\Setup;
+use SPHERE\Application\Education\Graduation\Grade\Grade;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
@@ -766,7 +767,24 @@ class Service extends AbstractService
         foreach ($resultList as $item) {
             /** @var TblDivisionCourse $tblDivisionCourse */
             if (($tblDivisionCourse = $item->getServiceTblCourse()) && ($tblSubject = $item->getServiceTblSubject())) {
-                if ($tblDivisionCourse->getType()->getIsCourseSystem()) {
+                // Lerngruppe statt Klassentagebuch anzeigen, wenn Lehrer eine Lerngruppe mit Kursheft in dem Fach hat
+                if (($tblPerson = Account::useService()->getPersonByLogin())
+                    && ($teacherGroups = Grade::useService()->getTeacherGroupsByTeacherAndDivisionCourseAndSubject(
+                        $tblPerson, $tblDivisionCourse, $tblSubject, true
+                    ))
+                ) {
+                    $tblDivisionCourseTeacherGroup = reset($teacherGroups);
+                    $option = new Standard(
+                        '',
+                        $baseRoute . '/CourseContent',
+                        new Extern(),
+                        array(
+                            'DivisionCourseId' => $tblDivisionCourseTeacherGroup->getId(),
+                            'BasicRoute' => $baseRoute . '/Teacher'
+                        ),
+                        'Zum Kursheft wechseln'
+                    );
+                } elseif ($tblDivisionCourse->getType()->getIsCourseSystem()) {
                     $option = new Standard(
                         '',
                         $baseRoute . '/CourseContent',
