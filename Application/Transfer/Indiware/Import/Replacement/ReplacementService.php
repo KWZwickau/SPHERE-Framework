@@ -20,6 +20,7 @@ use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
+use SPHERE\System\Extension\Extension;
 use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
@@ -613,7 +614,7 @@ class ReplacementService
             return '';
         }
 
-        return utf8_encode($item);
+        return Extension::encodeUTF8($item);
     }
 
     /**

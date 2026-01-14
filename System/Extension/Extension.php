@@ -187,4 +187,26 @@ class Extension
         }
         return false;
     }
+
+    /**
+     * @param string $s
+     * @param string $code
+     *
+     * @return array|false|mixed|string|string[]|null
+     */
+    public static function decodeUTF8(string $s, string $code = 'ISO-8859-1')
+    {
+        return mb_convert_encoding($s, $code, 'UTF-8');
+    }
+
+    /**
+     * @param string $s
+     * @param string $code
+     *
+     * @return array|false|mixed|string|string[]|null
+     */
+    public static function encodeUTF8(string $s, string $code = 'ISO-8859-1')
+    {
+        return mb_convert_encoding($s, 'UTF-8', $code);
+    }
 }

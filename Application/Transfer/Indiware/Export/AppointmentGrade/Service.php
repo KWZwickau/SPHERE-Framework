@@ -17,6 +17,7 @@ use SPHERE\Application\Transfer\Indiware\Export\AppointmentGrade\Service\Data;
 use SPHERE\Application\Transfer\Indiware\Export\AppointmentGrade\Service\Entity\TblIndiwareStudentSubjectOrder;
 use SPHERE\Application\Transfer\Indiware\Export\AppointmentGrade\Service\Setup;
 use SPHERE\System\Database\Binding\AbstractService;
+use SPHERE\System\Extension\Extension;
 
 /**
  * Class Service
@@ -155,8 +156,8 @@ class Service extends AbstractService
         if ($tblPersonList) {
             /** @var TblPerson $tblPerson */
             foreach ($tblPersonList as $tblPerson) {
-                $PeopleGradeList[$tblPerson->getId()]['FirstName'] = utf8_decode($tblPerson->getFirstSecondName());
-                $PeopleGradeList[$tblPerson->getId()]['LastName'] = utf8_decode($tblPerson->getLastName());
+                $PeopleGradeList[$tblPerson->getId()]['FirstName'] = Extension::decodeUTF8($tblPerson->getFirstSecondName());
+                $PeopleGradeList[$tblPerson->getId()]['LastName'] = Extension::decodeUTF8($tblPerson->getLastName());
                 $PeopleGradeList[$tblPerson->getId()]['Birthday'] = $tblPerson->getBirthday();
 
                 if (($tblTaskGradeList = Grade::useService()->getTaskGradeListByTaskAndPerson($tblTask, $tblPerson))
