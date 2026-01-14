@@ -50,6 +50,7 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Database\Binding\AbstractData;
 use SPHERE\System\Database\Fitting\Element;
+use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Data
@@ -234,6 +235,14 @@ class Data extends AbstractData
     public function setupDatabaseContent()
     {
         $tblConsumer = $this->tblConsumer = Consumer::useService()->getConsumerBySession();
+
+        // Live to Demo -> Demo correction
+        if(($tblCertificateList = $this->getCertificateAllByDoubleBackslash())) {
+            foreach($tblCertificateList as $tblCertificate){
+                $URL = str_replace('\\\\', '\\', $tblCertificate->getCertificate());
+                $this->updateCertificateURL($tblCertificate, $URL);
+            }
+        }
 
         if ($tblConsumer && $tblConsumer->getType() == TblConsumer::TYPE_SACHSEN) {
 
@@ -737,6 +746,31 @@ class Data extends AbstractData
     }
 
     /**
+     *
+     * @return bool|TblCertificate[]
+     */
+    public function getCertificateAllByDoubleBackslash()
+    {
+
+        $queryBuilder = $this->getEntityManager()->getQueryBuilder();
+
+        $query = $queryBuilder->select('tC')
+            ->from(TblCertificate::class, 'tC')
+            ->where(
+                $queryBuilder->expr()->andX(
+                    $queryBuilder->expr()->isNull('tC.EntityRemove'),
+                    $queryBuilder->expr()->like('tC.Certificate', '?1'),
+                ),
+            )
+            ->setParameter(1, '%\\\\\\\\%')
+            ->getQuery();
+
+        $resultList = $query->getResult();
+
+        return empty($resultList) ? false : $resultList;
+    }
+
+    /**
      * @param $Id
      *
      * @return bool|TblCertificateSubject
@@ -1103,6 +1137,29 @@ class Data extends AbstractData
             return true;
         }
 
+        return false;
+    }
+
+    /**
+     * @param TblCertificate $tblCertificate
+     * @param $URL
+     *
+     * @return bool
+     */
+    public function updateCertificateURL(
+        TblCertificate $tblCertificate,
+        $URL
+    ) {
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblCertificate $Entity */
+        $Entity = $Manager->getEntityById('TblCertificate', $tblCertificate->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setCertificate($URL);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+            return true;
+        }
         return false;
     }
 
