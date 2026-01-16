@@ -924,7 +924,7 @@ class Data extends DataTeacher
     {
         $Manager = $this->getEntityManager();
         /** @var TblStudentEducation $Protocol */
-        $Protocol = $Manager->getEntityById('TblStudentEducation', $tblStudentEducation->getId());
+        $Protocol = $Manager->getEntityManagedForProtocol('TblStudentEducation', $tblStudentEducation->getId());
         if (null !== $Protocol) {
             $Manager->saveEntity($tblStudentEducation);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $tblStudentEducation);
@@ -1287,9 +1287,10 @@ class Data extends DataTeacher
         $Manager = $this->getConnection()->getEntityManager();
 
         foreach ($tblDivisionCourseMemberList as $tblDivisionCourseMember) {
-            $Manager->bulkSaveEntity($tblDivisionCourseMember);
             /** @var TblDivisionCourseMember $Entity */
-            $Entity = $Manager->getEntityById('TblDivisionCourseMember', $tblDivisionCourseMember->getId());
+            $Entity = $Manager->getEntityManagedForProtocol('TblDivisionCourseMember', $tblDivisionCourseMember->getId());
+
+            $Manager->bulkSaveEntity($tblDivisionCourseMember);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Entity, $tblDivisionCourseMember, true);
         }
 
@@ -1539,9 +1540,10 @@ class Data extends DataTeacher
         $Manager = $this->getConnection()->getEntityManager();
 
         foreach ($tblStudentEducationList as $tblStudentEducation) {
-            $Manager->bulkSaveEntity($tblStudentEducation);
             /** @var TblStudentEducation $Entity */
-            $Entity = $Manager->getEntityById('TblStudentEducation', $tblStudentEducation->getId());
+            $Entity = $Manager->getEntityManagedForProtocol('TblStudentEducation', $tblStudentEducation->getId());
+
+            $Manager->bulkSaveEntity($tblStudentEducation);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Entity, $tblStudentEducation, true);
         }
 
@@ -2017,9 +2019,10 @@ class Data extends DataTeacher
 
         /** @var Element $tblElement */
         foreach ($tblEntityList as $tblElement) {
-            $Manager->bulkSaveEntity($tblElement);
             /** @var Element $Entity */
-            $Entity = $Manager->getEntityById($tblElement->getEntityShortName(), $tblElement->getId());
+            $Entity = $Manager->getEntityManagedForProtocol($tblElement->getEntityShortName(), $tblElement->getId());
+
+            $Manager->bulkSaveEntity($tblElement);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Entity, $tblElement, true);
         }
 
