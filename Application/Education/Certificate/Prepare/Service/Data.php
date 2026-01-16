@@ -1288,9 +1288,10 @@ class Data extends DataLeave
         $Manager = $this->getEntityManager();
         /** @var Element $tblElement */
         foreach ($tblEntityList as $tblElement) {
-            $Manager->bulkSaveEntity($tblElement);
             /** @var Element $Entity */
-            $Entity = $Manager->getEntityById($tblElement->getEntityShortName(), $tblElement->getId());
+            $Entity = $Manager->getEntityManagedForProtocol($tblElement->getEntityShortName(), $tblElement->getId());
+
+            $Manager->bulkSaveEntity($tblElement);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Entity, $tblElement, true);
         }
 
