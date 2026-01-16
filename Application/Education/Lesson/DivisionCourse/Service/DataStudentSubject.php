@@ -187,9 +187,10 @@ abstract class DataStudentSubject extends DataMigrate
         $Manager = $this->getConnection()->getEntityManager();
 
         foreach ($tblStudentSubjectList as $tblStudentSubject) {
-            $Manager->bulkSaveEntity($tblStudentSubject);
             /** @var TblStudentSubject $Entity */
-            $Entity = $Manager->getEntityById('TblStudentSubject', $tblStudentSubject->getId());
+            $Entity = $Manager->getEntityManagedForProtocol('TblStudentSubject', $tblStudentSubject->getId());
+
+            $Manager->bulkSaveEntity($tblStudentSubject);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Entity, $tblStudentSubject, true);
         }
 
