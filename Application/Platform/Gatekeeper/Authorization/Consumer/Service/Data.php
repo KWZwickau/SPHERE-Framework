@@ -53,12 +53,16 @@ class Data extends AbstractData
     }
 
     /**
-     * @param integer $Id
+     * @param $Id
+     * @param bool $isForced
      *
-     * @return bool|TblConsumer
+     * @return false|TblConsumer
      */
-    public function getConsumerById($Id)
+    public function getConsumerById($Id, bool $isForced = false)
     {
+        if ($isForced) {
+            return $this->getForceEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblConsumer', $Id);
+        }
 
         return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblConsumer', $Id);
     }
@@ -133,10 +137,15 @@ class Data extends AbstractData
     }
 
     /**
+     * @param bool $isForced
+     *
      * @return TblConsumer[]|bool
      */
-    public function getConsumerAll()
+    public function getConsumerAll(bool $isForced = false)
     {
+        if ($isForced) {
+            return $this->getForceEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblConsumer');
+        }
 
         return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblConsumer');
     }

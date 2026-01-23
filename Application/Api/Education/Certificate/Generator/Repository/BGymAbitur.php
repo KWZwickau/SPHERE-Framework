@@ -534,7 +534,8 @@ class BGymAbitur extends BGymDiplomaStyle
             );
 
         // Zensuren ausblenden wenn der Schüler widersprochen hat
-        if (($tblPrepareInformation = Prepare::useService()->getPrepareInformationBy($this->getTblPrepareCertificate(),
+        if ($this->getTblPrepareCertificate()
+            && ($tblPrepareInformation = Prepare::useService()->getPrepareInformationBy($this->getTblPrepareCertificate(),
             $tblPerson, 'LevelTenGradesAreNotShown'))
         ) {
             $levelTenGradesAreNotShown = $tblPrepareInformation->getValue();
@@ -543,11 +544,13 @@ class BGymAbitur extends BGymDiplomaStyle
         }
 
         $tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('LEVEL-11');
-        if (($tblPrepareAdditionalGradeList = Prepare::useService()->getPrepareAdditionalGradeListBy(
-            $this->getTblPrepareCertificate(),
-            $tblPerson,
-            $tblPrepareAdditionalGradeType
-        ))) {
+        if ($this->getTblPrepareCertificate()
+           && ($tblPrepareAdditionalGradeList = Prepare::useService()->getPrepareAdditionalGradeListBy(
+                $this->getTblPrepareCertificate(),
+                $tblPerson,
+                $tblPrepareAdditionalGradeType
+            ))
+        ) {
             foreach ($tblPrepareAdditionalGradeList as $tblPrepareAdditionalGrade) {
                 $subject = '&ndash;';
                 $grade = '&ndash;';
@@ -941,6 +944,7 @@ class BGymAbitur extends BGymDiplomaStyle
         $bellPoints = '&ndash;';
         $gradeText = '&ndash;';
         if (($tblPerson = Person::useService()->getPersonById($personId))
+            && $this->getTblPrepareCertificate()
             && ($tblPrepareInformation = Prepare::useService()->getPrepareInformationBy($this->getTblPrepareCertificate(), $tblPerson, 'BellPoints'))
         ) {
             $value = $tblPrepareInformation->getValue();
@@ -1008,8 +1012,8 @@ class BGymAbitur extends BGymDiplomaStyle
     private function getResult($personId): Slice
     {
         $textSize = '11px';
-        $resultBlockI = '&ndash;';
-        $resultBlockII = '&ndash;';
+        $resultBlockI = 0;
+        $resultBlockII = 0;
         $resultAverageGrade = '&ndash;';
         $resultAverageWord = '&ndash;';
 
