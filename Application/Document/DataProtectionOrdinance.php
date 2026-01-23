@@ -93,14 +93,16 @@ class DataProtectionOrdinance implements IClusterInterface, IApplicationInterfac
                             sich bitte per E-Mail an unseren Datenschutzbeauftragten.'),
                             new Container('&nbsp;'),
                             new Panel(
-                                'Herr Erik Kahnt (Vertreter im Amt) ',
+                                'Kontaktdaten des Datenschutzbeauftragten',
                                 array(
-                                    'Der Datenschutzbeauftragte für Kirche und Diakonie',
-                                    'Leiter der Aufsichtsbehörde',
-                                    'Dienstsitz: 09117 Chemnitz, Reichenbrander Str. 4',
-                                    'Telefon: 0351 4692-460',
+//                                    'Der Datenschutzbeauftragte für Kirche und Diakonie',
+//                                    'Leiter der Aufsichtsbehörde',
+//                                    'Dienstsitz: 09117 Chemnitz, Reichenbrander Str. 4',
+//                                    'Telefon: 0351 4692-460',
+                                    'Telefon: 0171 - 3485795 ',
 //                                    'Fax: 0351 4692-469',
-                                    'E-Mail: datenschutzbeauftragter@evlks.de',
+//                                    'E-Mail: datenschutzbeauftragter@evlks.de',
+                                    'E-Mail: datenschutz@esdigmbh.de',
                                 )
                             )
                         ))
