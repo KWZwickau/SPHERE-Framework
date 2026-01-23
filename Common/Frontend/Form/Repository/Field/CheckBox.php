@@ -48,6 +48,17 @@ class CheckBox extends AbstractField implements IFieldInterface
     }
 
     /**
+     * @return CheckBox
+     */
+    public function setPaddingTop($PaddingTop = '20px')
+    {
+
+//        $this->PaddingTop = $PaddingTop;
+        $this->Template->setVariable('ElementPaddingTop', $PaddingTop);
+        return $this;
+    }
+
+    /**
      * @return string
      */
     public function getContent()

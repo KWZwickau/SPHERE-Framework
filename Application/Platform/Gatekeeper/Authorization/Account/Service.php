@@ -20,10 +20,10 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Service\Entity\TblToken;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Token;
-use SPHERE\Application\Setting\User\Account\Service\Entity\TblUserAccount;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
 use SPHERE\Common\Frontend\Ajax\Template\Notify;
 use SPHERE\Common\Frontend\Form\IFormInterface;
+use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Window\Redirect;
@@ -830,35 +830,17 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblPerson $tblPerson
-     *
-     * @return bool|TblAccount[]
-     */
-    public function getAccountListByActiveConsumer()
-    {
-
-        $tblConsumer = Consumer::useService()->getConsumerBySession();
-        return (new Data($this->getBinding()))->getAccountListByConsumer($tblConsumer);
-    }
-
-    /**
      * @param TblIdentification $tblIdentification
      *
      * @return TblAccount[]|bool
      */
-    public function getAccountListByIdentification(TblIdentification $tblIdentification)
+    public function getAccountListByIdentification(TblIdentification $tblIdentification): array|bool
     {
-
-        $returnList = array();
-        if(($tblAccountList = $this->getAccountListByActiveConsumer())){
-            foreach($tblAccountList as $tblAccount){
-                if ($tblAccount->getHasAuthentication($tblIdentification->getName())) {
-                    $returnList[] = $tblAccount;
-                }
-            }
+        if (!($tblConsumer = Consumer::useService()->getConsumerBySession())) {
+            return false;
         }
 
-        return (!empty($returnList) ? $returnList : false);
+        return (new Data($this->getBinding()))->getAccountListByIdentification($tblIdentification, $tblConsumer);
     }
 
     /**

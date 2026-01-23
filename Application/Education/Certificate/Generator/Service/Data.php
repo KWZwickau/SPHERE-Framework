@@ -267,64 +267,64 @@ class Data extends AbstractData
 
             $this->setCertificateGradeInformation();
 
-            if ($tblConsumer->getAcronym() == 'ESZC') {
+            if ($tblConsumer->getAcronym() == 'ESZC' || $tblConsumer->getAcronym() == 'REF') {
                 IDataESZC::setCertificateIndividually($this);
             }
-            if ($tblConsumer->getAcronym() == 'EVSC') {
+            if ($tblConsumer->getAcronym() == 'EVSC' || $tblConsumer->getAcronym() == 'REF') {
                 IDataEVSC::setCertificateIndividually($this);
             }
-            if ($tblConsumer->getAcronym() == 'FESH') {
+            if ($tblConsumer->getAcronym() == 'FESH' || $tblConsumer->getAcronym() == 'REF') {
                 IDataFESH::setCertificateIndividually($this);
             }
-            if ($tblConsumer->getAcronym() == 'EVSR') {
+            if ($tblConsumer->getAcronym() == 'EVSR' || $tblConsumer->getAcronym() == 'REF') {
                 IDataEVSR::setCertificateIndividually($this);
             }
-            if ($tblConsumer->getAcronym() == 'ESS') {
+            if ($tblConsumer->getAcronym() == 'ESS' || $tblConsumer->getAcronym() == 'REF') {
                 IDataESS::setCertificateIndividually($this);
             }
-            if ($tblConsumer->getAcronym() == 'EVAMTL') {
+            if ($tblConsumer->getAcronym() == 'EVAMTL' || $tblConsumer->getAcronym() == 'REF') {
                 IDataEVAMTL::setCertificateIndividually($this);
             }
-            if ($tblConsumer->getAcronym() == 'ESRL') {
+            if ($tblConsumer->getAcronym() == 'ESRL' || $tblConsumer->getAcronym() == 'REF') {
                 IDataESRL::setCertificateIndividually($this);
             }
-            if ($tblConsumer->getAcronym() == 'CMS') {
+            if ($tblConsumer->getAcronym() == 'CMS' || $tblConsumer->getAcronym() == 'REF') {
                 IDataCMS::setCertificateIndividually($this);
             }
-            if ($tblConsumer->getAcronym() == 'EZSH') {
+            if ($tblConsumer->getAcronym() == 'EZSH' || $tblConsumer->getAcronym() == 'REF') {
                 IDataEZSH::setCertificateIndividually($this);
             }
-            if ($tblConsumer->getAcronym() == 'CSW') {
+            if ($tblConsumer->getAcronym() == 'CSW' || $tblConsumer->getAcronym() == 'REF') {
                 IDataCSW::setCertificateIndividually($this);
             }
-            if ($tblConsumer->getAcronym() == 'EVGSM') {
+            if ($tblConsumer->getAcronym() == 'EVGSM' || $tblConsumer->getAcronym() == 'REF') {
                 IDataEVGSM::setCertificateIndividually($this);
             }
-            if ($tblConsumer->getAcronym() == 'ESBD') { //  || $tblConsumer->getAcronym() == 'REF' // local Test
+            if ($tblConsumer->getAcronym() == 'ESBD' || $tblConsumer->getAcronym() == 'REF') {
                 IDataESBD::setCertificateIndividually($this);
             }
-            if ($tblConsumer->getAcronym() == 'FELS') {
+            if ($tblConsumer->getAcronym() == 'FELS' || $tblConsumer->getAcronym() == 'REF') {
                 IDataFELS::setCertificateIndividually($this);
             }
-            if ($tblConsumer->getAcronym() == 'LWSZ') {
+            if ($tblConsumer->getAcronym() == 'LWSZ' || $tblConsumer->getAcronym() == 'REF') {
                 IDataLWSZ::setCertificateIndividually($this);
             }
-            if ($tblConsumer->getAcronym() == 'EMSP') {
+            if ($tblConsumer->getAcronym() == 'EMSP' || $tblConsumer->getAcronym() == 'REF') {
                 IDataEMSP::setCertificateIndividually($this);
             }
-            if ($tblConsumer->getAcronym() == 'EVMO') {
+            if ($tblConsumer->getAcronym() == 'EVMO' || $tblConsumer->getAcronym() == 'REF') {
                 IDataEVMO::setCertificateIndividually($this);
             }
-            if ($tblConsumer->getAcronym() == 'HOGA') { // || $tblConsumer->getAcronym() == 'REF') {
+            if ($tblConsumer->getAcronym() == 'HOGA' || $tblConsumer->getAcronym() == 'REF') {
                 IDataHOGA::setCertificateIndividually($this);
             }
-            if ($tblConsumer->getAcronym() == 'MLS') {
+            if ($tblConsumer->getAcronym() == 'MLS' || $tblConsumer->getAcronym() == 'REF') {
                 IDataMLS::setCertificateIndividually($this);
             }
-            if ($tblConsumer->getAcronym() == 'HGGT') {
+            if ($tblConsumer->getAcronym() == 'HGGT' || $tblConsumer->getAcronym() == 'REF') {
                 IDataHGGT::setCertificateIndividually($this);
             }
-            if ($tblConsumer->getAcronym() == 'KG') {
+            if ($tblConsumer->getAcronym() == 'KG' || $tblConsumer->getAcronym() == 'REF') {
                 IDataKG::setCertificateIndividually($this);
             }
         }

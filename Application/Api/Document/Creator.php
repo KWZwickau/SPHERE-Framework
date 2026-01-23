@@ -203,7 +203,7 @@ class Creator extends Extension
             && ($tblYear = Term::useService()->getYearById($YearId))
         ) {
             $Document = new GradebookOverview\GradebookOverview();
-            $pageList[] = $Document->buildPage($tblPerson, $tblYear, $View);
+            $pageList = $Document->buildPage($tblPerson, $tblYear, $View);
 
             $File = self::buildDummyFile($Document, array(), $pageList, $paperOrientation);
 
@@ -246,7 +246,7 @@ class Creator extends Extension
                     $Document = new GradebookOverview\GradebookOverview();
                     $documentName = $Document->getName();
 
-                    $pageList[] = $Document->buildPage($tblPerson, $tblYear, 'All');
+                    $pageList = array_merge($pageList, $Document->buildPage($tblPerson, $tblYear, 'All'));
                 }
 
                 if(!empty($pageList)){

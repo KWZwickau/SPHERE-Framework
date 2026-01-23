@@ -12,6 +12,7 @@ use SPHERE\Application\Document\Storage\Service\Entity\TblBinary;
 use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
+use SPHERE\Application\Education\Certificate\Setting\FrontendPreviewCertificate;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -191,6 +192,48 @@ class Creator extends Extension
         }
 
         return new Stage($Name, 'Nicht gefunden');
+    }
+
+    /**
+     * @param null $Data
+     * @param string $Name
+     * @param bool $Redirect
+     *
+     * @return string
+     */
+    public function previewTemplatePdf($Data = null, $Name = 'Zeugnis Muster', $Redirect = true): string
+    {
+        if ($Redirect) {
+            return self::displayWaitingPage('/Api/Education/Certificate/Generator/PreviewTemplate', array(
+                'Data' => $Data,
+                'Name' => $Name,
+                'Redirect' => 0
+            ));
+        }
+
+        if (!isset($Data['tblCertificate'])
+            || !($tblCertificate = Generator::useService()->getCertificateById($Data['tblCertificate']))
+        ) {
+            return new Stage($Name, 'Nicht gefunden');
+        }
+
+        $CertificateClass = '\SPHERE\Application\Api\Education\Certificate\Generator\Repository\\' . $tblCertificate->getCertificate();
+        if (!class_exists($CertificateClass)) {
+            return new Stage($Name, 'Nicht gefunden');
+        }
+
+        /** @var Certificate $Template */
+        $Certificate = new $CertificateClass();
+
+        $tblPerson = new TblPerson();
+        $tblPerson->setId(0);
+        $Content = (new FrontendPreviewCertificate())->getCertificateContent($tblPerson->getId(), $Data);
+
+        $File = $this->buildDummyFile($Certificate, $tblPerson, $Content);
+
+        $FileName = $Name . " " . $tblCertificate->getName() . ' ' . $tblCertificate->getDescription() . ' ' . date("Y-m-d H:i:s") . ".pdf";
+
+        return $this->buildDownloadFile($File, $FileName);
     }
 
     /**

@@ -45,17 +45,18 @@ class Service extends AbstractService
 
     /**
      * @param integer $Id
+     * @param bool $isForced
      *
      * @return bool|TblConsumer
      */
-    public function getConsumerById($Id)
+    public function getConsumerById($Id, bool $isForced = false)
     {
 
         if (is_numeric($Id)) {
             if (array_key_exists($Id, self::$ConsumerByIdCache)) {
                 return self::$ConsumerByIdCache[$Id];
             }
-            self::$ConsumerByIdCache[$Id] = (new Data($this->getBinding()))->getConsumerById($Id);
+            self::$ConsumerByIdCache[$Id] = (new Data($this->getBinding()))->getConsumerById($Id, $isForced);
             return self::$ConsumerByIdCache[$Id];
         } else {
             return false;
@@ -162,12 +163,14 @@ class Service extends AbstractService
     }
 
     /**
+     * @param bool $isForced
+     *
      * @return bool|TblConsumer[]
      */
-    public function getConsumerAll()
+    public function getConsumerAll(bool $isForced = false)
     {
 
-        return (new Data($this->getBinding()))->getConsumerAll();
+        return (new Data($this->getBinding()))->getConsumerAll($isForced);
     }
 
     /**
@@ -222,6 +225,35 @@ class Service extends AbstractService
         if(($tblConsumer = $this->getConsumerBySession())){
             (new Data($this->getBinding()))->updateConsumer($tblConsumer);
         }
+    }
+
+    /**
+     * @param TblConsumer $tblConsumer
+     * @param string      $SystemName
+     * @param bool        $isButtonActive
+     * @return TblConsumerLogin
+     */
+    public function createConsumerLogin($tblConsumer, $SystemName, $isButtonActive): TblConsumerLogin
+    {
+        return (new Data($this->getBinding()))->createConsumerLogin($tblConsumer, $SystemName, $isButtonActive);
+    }
+
+    /**
+     * @param TblConsumerLogin $tblConsumerLogin
+     * @param bool             $isButtonActive
+     * @return TblConsumerLogin
+     */
+    public function updateConsumerLogin($tblConsumerLogin, $isButtonActive): TblConsumerLogin
+    {
+        return (new Data($this->getBinding()))->updateConsumerLogin($tblConsumerLogin, $isButtonActive);
+    }
+
+    /**
+     * @return bool
+     */
+    public function removeConsumerLogin($tblConsumerLogin): bool
+    {
+        return (new Data($this->getBinding()))->removeConsumerLogin($tblConsumerLogin);
     }
 
     /**

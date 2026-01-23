@@ -25,6 +25,16 @@ class DataMaintenance extends Extension implements IModuleInterface
             )
         );
         Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Maintenance',
+                __NAMESPACE__.'/Frontend::frontendMaintenance'
+            )
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Maintenance/Delete',
+                __NAMESPACE__.'/Frontend::frontendMaintenanceDelete'
+            )
+        );
+        Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/Protocol',
                 __NAMESPACE__.'/Frontend::frontendProtocol'
             )
@@ -50,15 +60,20 @@ class DataMaintenance extends Extension implements IModuleInterface
             )
         );
         Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'\ConsumerLogin',
+                __NAMESPACE__ . '/Frontend::frontendConsumerLogin'
+            )
+        );
+        Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/Yearly',
                 __NAMESPACE__.'/Frontend::frontendYearly'
             )
         );
-        Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__.'/DivisionCourse',
-                __NAMESPACE__.'/Frontend::frontendDivisionCourse'
-            )
-        );
+//        Main::getDispatcher()->registerRoute(
+//            Main::getDispatcher()->createRoute(__NAMESPACE__.'/DivisionCourse',
+//                __NAMESPACE__.'/Frontend::frontendDivisionCourse'
+//            )
+//        );
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/DocumentStorage/FileSize',
                 __NAMESPACE__.'/Frontend::frontendFileSize'
