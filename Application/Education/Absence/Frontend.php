@@ -7,10 +7,13 @@ use DateTime;
 use SPHERE\Application\Api\Education\ClassRegister\ApiAbsence;
 use SPHERE\Application\Education\Absence\Service\Entity\TblAbsence;
 use SPHERE\Application\Education\ClassRegister\Digital\Digital;
+use SPHERE\Application\Education\ClassRegister\ScheduleTime\ScheduleTime;
+use SPHERE\Application\Education\ClassRegister\ScheduleTime\Service\Entity\TblScheduleTime;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
 use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -844,8 +847,8 @@ class Frontend extends FrontendClassRegister
 
         $formRows[] = new FormRow(array(
             new FormColumn(array(
-                (new CheckBox('Data[IsFullDay]', 'ganztägig', 1))->ajaxPipelineOnClick(ApiAbsence::pipelineLoadLesson()),
-                ApiAbsence::receiverBlock($this->loadLesson($isFullDay, $messageLesson), 'loadLesson')
+                (new CheckBox('Data[IsFullDay]', 'ganztägig', 1))->ajaxPipelineOnClick(ApiAbsence::pipelineLoadLesson($PersonId, $DivisionCourseId)),
+                ApiAbsence::receiverBlock($this->loadLesson($isFullDay, null, $PersonId, $DivisionCourseId), 'loadLesson')
             ))
         ));
         $formRows[] = new FormRow(array(
@@ -1027,10 +1030,12 @@ class Frontend extends FrontendClassRegister
     /**
      * @param bool $IsFullDay
      * @param IMessageInterface|null $message
+     * @param null $PersonId
+     * @param null $DivisionCourseId
      *
      * @return string
      */
-    public function loadLesson(bool $IsFullDay, IMessageInterface $message = null): string
+    public function loadLesson(bool $IsFullDay, IMessageInterface $message = null, $PersonId = null, $DivisionCourseId = null): string
     {
         if ($IsFullDay) {
             if ($message === null) {
@@ -1040,12 +1045,15 @@ class Frontend extends FrontendClassRegister
             }
 
         } else {
+            // Zeitplan für die Unterrichtseinheiten anzeigen
+            $slots = $this->getSlots($PersonId, $DivisionCourseId);
+
             $left = array();
             $right = array();
             for ($i = 0; $i < 7; $i++) {
-                $left[] = $this->setCheckBoxLesson($i);
+                $left[] = $this->setCheckBoxLesson($i, $slots);
                 if ($i < 6) {
-                    $right[] = $this->setCheckBoxLesson($i + 7);
+                    $right[] = $this->setCheckBoxLesson($i + 7, $slots);
                 }
             }
 
@@ -1061,14 +1069,45 @@ class Frontend extends FrontendClassRegister
         }
     }
 
+    private function getSlots($PersonId, $DivisionCourseId): array
+    {
+        $tblSchoolType = null;
+        $secondarySchool = TblScheduleTime::SECONDARY_LEVEL_ONLY_FIRST;
+        $slots = [];
+        if ($PersonId && ($tblPerson = Person::useService()->getPersonById($PersonId))) {
+            if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndDate($tblPerson))
+                && ($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())
+            ) {
+                if (DivisionCourse::useService()->getIsCourseSystemBySchoolTypeAndLevel($tblSchoolType, $tblStudentEducation->getLevel())) {
+                    $secondarySchool = TblScheduleTime::SECONDARY_LEVEL_ONLY_SECOND;
+                }
+            }
+        } elseif ($DivisionCourseId && ($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
+            if (($tblSchoolTypeList = DivisionCourse::useService()->getSchoolTypeListByDivisionCourse($tblDivisionCourse))) {
+                $tblSchoolType = current($tblSchoolTypeList);
+            }
+            if (DivisionCourse::useService()->getIsCourseSystemByStudentsInDivisionCourse($tblDivisionCourse)) {
+                $secondarySchool = TblScheduleTime::SECONDARY_LEVEL_ONLY_SECOND;
+            }
+        }
+        if ($tblSchoolType) {
+            $slots = ScheduleTime::useService()->getSlotsBySchoolType($tblSchoolType, $secondarySchool);
+        }
+
+        return $slots;
+    }
+
     /**
      * @param $i
+     * @param array $slots
      *
      * @return CheckBox
      */
-    private function setCheckBoxLesson($i): CheckBox
+    private function setCheckBoxLesson($i, array $slots): CheckBox
     {
-        return new CheckBox('Data[UE][' . $i . ']', $i . '. Unterrichtseinheit', 1);
+        return new CheckBox('Data[UE][' . $i . ']', $i . '. Unterrichtseinheit'
+            . (isset($slots[$i]) ? ' (' . $slots[$i]['StartTime'] . ' - ' . $slots[$i]['EndTime'] . ')' : '')
+            , 1);
     }
 
     /**

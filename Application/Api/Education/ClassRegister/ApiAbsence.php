@@ -741,27 +741,41 @@ class ApiAbsence extends Extension implements IApiInterface
     }
 
     /**
+     * @param null $PersonId
+     * @param null $DivisionCourseId
+     *
      * @return Pipeline
      */
-    public static function pipelineLoadLesson(): Pipeline
+    public static function pipelineLoadLesson($PersonId = null, $DivisionCourseId = null): Pipeline
     {
         $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'loadLesson'), self::getEndpoint());
         $ModalEmitter->setGetPayload(array(
             self::API_TARGET => 'loadLesson',
         ));
-
+        $ModalEmitter->setPostPayload(array(
+            'PersonId' => $PersonId,
+            'DivisionCourseId' => $DivisionCourseId
+        ));
         $Pipeline->appendEmitter($ModalEmitter);
 
         return $Pipeline;
     }
 
     /**
+     * @param null $PersonId
+     * @param null $DivisionCourseId
+     * @param null $Data
+     *
      * @return string
      */
-    public function loadLesson(): string
+    public function loadLesson($PersonId = null, $DivisionCourseId = null, $Data = null): string
     {
-        return Absence::useFrontend()->loadLesson(isset($_POST['Data']['IsFullDay']));
+        if ($PersonId == null && isset($Data['PersonId'])) {
+            $PersonId = $Data['PersonId'];
+        }
+
+        return Absence::useFrontend()->loadLesson(isset($Data['IsFullDay']), null, $PersonId, $DivisionCourseId);
     }
 
     /**
