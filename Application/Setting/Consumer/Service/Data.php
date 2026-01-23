@@ -87,7 +87,7 @@ class Data extends AbstractData
              hinterlegt werden. Adresse des Bildes: [Standard: ]');
         $this->createSetting('Api', 'Document', 'Standard', 'PasswordChange_PictureHeight', TblSetting::TYPE_STRING, '',
             'Dokumente', 'Für die Eltern und Schülerzugänge sowie Passwortänderungsanschreiben kann ein Bild (Logo)
-             hinterlegt werden. Höhe des Bildes (Maximal 120px): [Standard: 120px]');
+             hinterlegt werden. Höhe des Bildes (Maximal 110px): [Standard: 90px]');
         $this->createSetting('Api', 'Document', 'Standard', 'SignOutCertificate_PictureAddress', TblSetting::TYPE_STRING,
             '', 'Dokumente', 'Für die Abmeldebescheinigung kann ein Bild (Logo) hinterlegt werden. Adresse des Bildes: [Standard: ]');
         $this->createSetting('Api', 'Document', 'Standard', 'SignOutCertificate_PictureHeight', TblSetting::TYPE_STRING,
