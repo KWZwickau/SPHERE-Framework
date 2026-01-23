@@ -1,5 +1,4 @@
 <?php
-
 namespace SPHERE\Application\Platform\System\BasicData;
 
 use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel;
@@ -8,6 +7,7 @@ use PhpOffice\PhpSpreadsheet\Shared\Date;
 use SPHERE\Application\Platform\System\BasicData\Service\Data;
 use SPHERE\Application\Platform\System\BasicData\Service\Entity\TblHoliday;
 use SPHERE\Application\Platform\System\BasicData\Service\Entity\TblHolidayType;
+use SPHERE\Application\Platform\System\BasicData\Service\Entity\TblMaintenance;
 use SPHERE\Application\Platform\System\BasicData\Service\Entity\TblState;
 use SPHERE\Application\Platform\System\BasicData\Service\Setup;
 use SPHERE\Common\Frontend\Form\IFormInterface;
@@ -16,6 +16,7 @@ use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Repository\Title;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
+use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
@@ -295,5 +296,76 @@ class Service extends AbstractService
                     'Message' => 'Fehlermeldung',
                     'Result' => 'Ergebnis'
                 ))));
+    }
+
+    public function getMaintenanceById($Id)
+    {
+
+        return (new Data($this->getBinding()))->getMaintenanceById($Id);
+    }
+
+    /**
+     * @return false|TblMaintenance[]
+     */
+    public function getMaintenanceAll()
+    {
+
+        return (new Data($this->getBinding()))->getMaintenanceAll();
+    }
+
+    /**
+     * @param $Date
+     * @return false|TblMaintenance
+     */
+    public function getMaintenanceByDate($Date = 'now')
+    {
+
+        return (new Data($this->getBinding()))->getMaintenanceByDate($Date);
+    }
+
+    /**
+     * @param IFormInterface $Form
+     * @param array $Data
+     * @return string
+     */
+    public function createMaintenance(IFormInterface $Form, array $Data = array())
+    {
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $Data || empty($Data)) {
+            return $Form;
+        }
+
+        $StartDate = $Data['StartDate'];
+        $MaintenanceDate = $Data['MaintenanceDate'];
+        $PreWarningTime = $Data['PreWarningTime'];
+        $ActiveWarningTime = $Data['ActiveWarningTime'];
+        $EndWarningTime = $Data['EndWarningTime'];
+
+        if(!$StartDate ||!$MaintenanceDate ||!$PreWarningTime ||!$ActiveWarningTime ||!$EndWarningTime){
+            return new Danger('Es müssen alle Felder gepflegt werden').$Form;
+        }
+
+        $tblMaintenance = $this->getMaintenanceByDate($MaintenanceDate);
+        if($tblMaintenance){
+            (new Data($this->getBinding()))->updateMaintenance($tblMaintenance, $StartDate, $MaintenanceDate, $PreWarningTime, $ActiveWarningTime, $EndWarningTime);
+            $Message = 'Maintenance wurde bearbeitet.';
+        } else {
+            (new Data($this->getBinding()))->createMaintenance($StartDate, $MaintenanceDate, $PreWarningTime, $ActiveWarningTime, $EndWarningTime);
+            $Message = 'Maintenance wurde erstellt.';
+        }
+        return new Success($Message).new Redirect('/Platform/System/DataMaintenance/Maintenance', Redirect::TIMEOUT_SUCCESS);
+    }
+
+    /**
+     * @param $MaintenanceId
+     * @return void
+     */
+    public function deleteMaintenance($MaintenanceId)
+    {
+        $tblMaintenance = $this->getMaintenanceById($MaintenanceId);
+        (new Data($this->getBinding()))->deleteMaintenance($tblMaintenance);
     }
 }

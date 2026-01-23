@@ -20,6 +20,7 @@ class TblConsumerLogin extends Element
     const ATTR_TBL_CONSUMER = 'tblConsumer';
 
     const VALUE_SYSTEM_DLLP = 'Univention';
+    const VALUE_SYSTEM_SSW_STOP = 'SSWStop';
 
     /**
      * @Column(type="string")

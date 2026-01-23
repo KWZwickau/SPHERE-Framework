@@ -1,10 +1,7 @@
 <?php
-
 namespace SPHERE\Application\Platform\System\DataMaintenance;
 
-use SPHERE\Application\Api\Platform\DataMaintenance\ApiDocumentStorage;
-use SPHERE\Application\Api\Platform\DataMaintenance\ApiMigrateDivision;
-use SPHERE\Application\Api\Transfer\Indiware\IndiwareLog\ApiIndiware;
+use SPHERE\Application\Api\Platform\DataMaintenance\ApiConsumerLogin;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
@@ -14,19 +11,29 @@ use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account as AccountAuthorization;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblUser;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer as GatekeeperConsumer;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumerLogin;
+use SPHERE\Application\Platform\System\BasicData\BasicData;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Application\Setting\User\Account\Account;
 use SPHERE\Application\Setting\User\Account\Service\Entity\TblUserAccount;
+use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
+use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
+use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
+use SPHERE\Common\Frontend\Form\Structure\Form;
+use SPHERE\Common\Frontend\Form\Structure\FormColumn;
+use SPHERE\Common\Frontend\Form\Structure\FormGroup;
+use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
-use SPHERE\Common\Frontend\Icon\Repository\Download;
+use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Question;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
+use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Server;
 use SPHERE\Common\Frontend\Icon\Repository\Success as SuccessIcon;
 use SPHERE\Common\Frontend\Icon\Repository\Upload;
@@ -36,13 +43,14 @@ use SPHERE\Common\Frontend\Layout\Repository\Label;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\ProgressBar;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
-use SPHERE\Common\Frontend\Layout\Repository\Title as TitleLayout;
+use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Danger as DangerLink;
 use SPHERE\Common\Frontend\Link\Repository\External;
+use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Info;
@@ -53,7 +61,7 @@ use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Center;
 use SPHERE\Common\Frontend\Text\Repository\Code;
-use SPHERE\Common\Frontend\Text\Repository\Muted;
+use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\RedirectScript;
 use SPHERE\Common\Window\Stage;
@@ -69,45 +77,6 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Datenpflege');
-        // Schüler Account Zählung
-        $tblUserAccountList = Account::useService()->getUserAccountAllByType(TblUserAccount::VALUE_TYPE_STUDENT);
-        $StudentAccountCount = ($tblUserAccountList ? count($tblUserAccountList) : 0);
-        // Sorgeberechtigte Account Zählung
-        $tblUserAccountList = Account::useService()->getUserAccountAllByType(TblUserAccount::VALUE_TYPE_CUSTODY);
-        $CustodyAccountCount = ($tblUserAccountList ? count($tblUserAccountList) : 0);
-
-        // Import Integration
-//        $IsImport = false;
-//        if(Student::useService()->countSupportAll() !== '0'){
-//            $IsImport = true;
-//        }
-//        if(!$IsImport && Student::useService()->countSpecialAll() !== '0'){
-//            $IsImport = true;
-//        }
-//
-//        $ImportCount = 0;
-//        if(!$IsImport && ($tblStudentAll = Student::useService()->getStudentAll())) {
-//            foreach ($tblStudentAll as $tblStudent) {
-//                $tblPerson = $tblStudent->getServiceTblPerson();
-//                if (($tblStudentIntegration = $tblStudent->getTblStudentIntegration())) {
-//                    $Request = $tblStudentIntegration->getCoachingRequestDate();
-//                    $Counsel = $tblStudentIntegration->getCoachingCounselDate();
-//                    $Decision = $tblStudentIntegration->getCoachingDecisionDate();
-//                    if ($tblPerson && ($Request || $Counsel || $Decision)) {
-//                        $ImportCount++;
-//                    }
-//                }
-//            }
-//        }
-//        if($IsImport){
-//            $IntegrationColumn = new LayoutColumn('');
-//        } else {
-//            $IntegrationColumn = new LayoutColumn(array(
-//                new TitleLayout('Integration', 'Übernehmen'),
-//                new Standard('Import aus alter Datenbank '.new Label($ImportCount, Label::LABEL_TYPE_INFO), __NAMESPACE__.'/Integration', new CogWheels())
-//            ));
-//        }
-
         // SoftRemoved Person
         $CountSoftRemovePerson = 0;
         if (($tblPersonList = Person::useService()->getPersonAllBySoftRemove())) {
@@ -115,73 +84,165 @@ class Frontend extends Extension implements IFrontendInterface
         }
         $DateTime = new \DateTime();
         $DateTime->sub(new \DateInterval('P' . $this->ProtocolActiveDays . 'D'));
-//        $ProtocolCount = Protocol::useService()->getProtocolCountBeforeDate($DateTime);
+        // Schüler Account Zählung
+        $tblUserAccountList = Account::useService()->getUserAccountAllByType(TblUserAccount::VALUE_TYPE_STUDENT);
+        $StudentAccountCount = ($tblUserAccountList ? count($tblUserAccountList) : 0);
+        // Sorgeberechtigte Account Zählung
+        $tblUserAccountList = Account::useService()->getUserAccountAllByType(TblUserAccount::VALUE_TYPE_CUSTODY);
+        $CustodyAccountCount = ($tblUserAccountList ? count($tblUserAccountList) : 0);
 
-        $Stage->setContent( new Layout(
-            new LayoutGroup(
-                new LayoutRow(array(
-                    new LayoutColumn(array(
-                            new TitleLayout('Protokoll älter als: '.$DateTime->format('d.m.Y')),
-//                            new Standard('Protokolleinträge ('.number_format($ProtocolCount, 0, ',', '.').')', __NAMESPACE__.'/Protocol'),
-                            new Standard('Protokolleinträge', __NAMESPACE__.'/Protocol'),
-                        )
-                    ),
-                    new LayoutColumn(array(
-                        new TitleLayout('Gelöschte Personen'),
-                        ($CountSoftRemovePerson >= 1
-                            ? new Standard('Personenübersicht ('.$CountSoftRemovePerson.')', __NAMESPACE__.'/Restore/Person')
-                            : new Success('Keine Personen gelöscht')
-                        )
-                    )),
-                    new LayoutColumn(array(
-                        new TitleLayout('Benutzer-Accounts löschen'),
-                        new Standard('Alle Schüler '.new Label($StudentAccountCount, Label::LABEL_TYPE_INFO), __NAMESPACE__.'/OverView', new EyeOpen(),
-                            array('AccountType' => 'STUDENT')),
-                        new Standard('Alle Sorgeberechtigte '.new Label($CustodyAccountCount, Label::LABEL_TYPE_INFO), __NAMESPACE__.'/OverView', new EyeOpen(),
-                            array('AccountType' => 'CUSTODY'))
-                    )),
-//                    new LayoutColumn(array(
-//                        new TitleLayout('Zensuren/Noten'),
-//                        (new Standard('Verschieben', __NAMESPACE__.'/Grade'))
-//                        .  (new Standard('Unerreichbare Zensuren', __NAMESPACE__.'/GradeUnreachable'))
-//                    )),
-                    new LayoutColumn(array(
-                            new TitleLayout('Jährliches DEV Update (Datum) wird um 1 Jahr erhöht'),
-                            new Standard('Jährliches Update', __NAMESPACE__.'/Yearly', null, array(), 'Anzeige eines SQL Script\'s')
-                        )
-                    ),
-//                    $IntegrationColumn,
-                    new LayoutColumn(array(
-                            new TitleLayout('Migration Klassen zu Kursen'),
-                            new Standard('Migration Klassen', __NAMESPACE__.'/DivisionCourse')
-                        )
-                    ),
-                    new LayoutColumn(array(
-                            new TitleLayout('Document Storage'),
-                            new Standard('Datei-Größe setzen für alte Dateien', __NAMESPACE__.'/DocumentStorage/FileSize'),
-                            new Standard('Datei-Größe aller Mandanten', __NAMESPACE__.'/DocumentStorage/AllConsumers')
-                        )
-                    ),
-//                    // Ehemaliger Indiware Tests
-//                    new LayoutColumn(array(
-//                        new TitleLayout('Indiware Log', new External('demo.schulsoftware.schule/RestApi/Public/Indiware/Log'
-//                                , '/RestApi/Public/Indiware/Log').new Muted(' Erzeugt ein Log')),
-//                        new Standard('Datei-Übersicht', __NAMESPACE__ . '/IndiwareLog')
-//                    )),
-                ))
-            )
-        ));
+        $Stage->setContent(new Layout(new LayoutGroup(new LayoutRow(array(
+            new LayoutColumn(array(
+                new Panel(new Bold('Gelöschte Personen'), // new Center('Gelöschte Personen'),
+                    ($CountSoftRemovePerson >= 1
+                        ? new Standard('Personenübersicht ('.$CountSoftRemovePerson.')', __NAMESPACE__.'/Restore/Person')
+                        : new Success('Keine Personen gelöscht')
+                    )
+                    , Panel::PANEL_TYPE_INFO)
+            ), 4),
+            // niedrige Prio, wird höchstens bei wunsch neuer Mandanten nach tests benötigt
+            new LayoutColumn(array(
+                new Panel(new Bold('Benutzer-Accounts löschen'), // new Center('Benutzer-Accounts löschen'),
+                    new Standard('&nbsp;Alle Schüler '.new Label($StudentAccountCount, Label::LABEL_TYPE_INFO), __NAMESPACE__.'/OverView',
+                        new EyeOpen(), array('AccountType' => 'STUDENT'))
+                    .new Standard('&nbsp;Alle Sorgeberechtigte '.new Label($CustodyAccountCount, Label::LABEL_TYPE_INFO), __NAMESPACE__.'/OverView',
+                        new EyeOpen(), array('AccountType' => 'CUSTODY'))
+                    , Panel::PANEL_TYPE_INFO)
+            ), 4),
+            new LayoutColumn(array(
+                new Panel(new Bold('Wartung'), // new Center('Wartung'),
+                    new Standard('Einstellen', __NAMESPACE__.'/Maintenance'), Panel::PANEL_TYPE_INFO)
+            ), 4),
+            new LayoutColumn('<br/>'),
+            new LayoutColumn(array(
+                new Panel(new Bold('Einstellung DLLP KelvinAPI & SSW Sperrung'), // new Center('Einstellung API & Sperrung'), new Center(new Standard('Einstellung', __NAMESPACE__.'/ConsumerLogin'))
+                    new Standard('Einstellung', __NAMESPACE__.'/ConsumerLogin'), Panel::PANEL_TYPE_INFO)
+            ), 4),
+            new LayoutColumn(array(
+                new Panel(new Bold('Protokoll älter als: '.$DateTime->format('d.m.Y')), //new Center('Protokoll älter als: '.$DateTime->format('d.m.Y')),
+                    new Standard('Protokolleinträge', __NAMESPACE__.'/Protocol'), Panel::PANEL_TYPE_INFO)
+            ), 4),
+            // niedrige Prio, wird einmal im Jahr benötigt
+            new LayoutColumn(array(
+                new Panel(new Bold('Jährliches DEV Update (Datum) wird um 1 Jahr erhöht'), // new Center('Jährliches DEV Update (Datum) wird um 1 Jahr erhöht'),
+                    new Standard('Jährliches Update', __NAMESPACE__.'/Yearly', null, array(), 'Anzeige eines SQL Script\'s')
+                    , Panel::PANEL_TYPE_INFO)
+            ), 4),
+            new LayoutColumn('<br/>'),
+//          // niedrige Prio, wird nur als Information behalten
+            new LayoutColumn(array(
+                new Panel(new Bold('Document Storage'), // new Center('Document Storage'),
+                    // Dateien (Zeugnisse) nachträglich initial einstellen
+//                        new Standard('Datei-Größe setzen für alte Dateien', __NAMESPACE__.'/DocumentStorage/FileSize').
+                            new Standard('Datei-Größe aller Mandanten einsehen', __NAMESPACE__.'/DocumentStorage/AllConsumers'), Panel::PANEL_TYPE_INFO)
+                ), 4),
+//            new LayoutColumn(array(
+//                new TitleLayout('Zensuren/Noten'),
+//                (new Standard('Verschieben', __NAMESPACE__.'/Grade'))
+//                .  (new Standard('Unerreichbare Zensuren', __NAMESPACE__.'/GradeUnreachable'))
+//            )),
+//            // Integration der klassen in das neue Konstrukt ist durch
+//            new LayoutColumn(array(
+//                    new TitleLayout('Migration Klassen zu Kursen'),
+//                    new Standard('Migration Klassen', __NAMESPACE__.'/DivisionCourse')
+//                )
+//            ),
+//            // Ehemaliger Indiware Tests
+//            new LayoutColumn(array(
+//                new TitleLayout('Indiware Log', new External('demo.schulsoftware.schule/RestApi/Public/Indiware/Log'
+//                        , '/RestApi/Public/Indiware/Log').new Muted(' Erzeugt ein Log')),
+//                new Standard('Datei-Übersicht', __NAMESPACE__ . '/IndiwareLog')
+//            )),
+        )))));
 
         return $Stage;
     }
 
-//    public function getProtocolEntryCount()
-//    {
-//        $DateTime = new \DateTime();
-//        $DateTime->sub(new \DateInterval('P' . $this->ProtocolActiveDays . 'D'));
-//        $ProtocolCount = Protocol::useService()->getProtocolCountBeforeDate($DateTime);
-//        return $ProtocolCount;
-//    }
+    public function frontendMaintenance($Data = array())
+    {
+
+        $Stage = new Stage('Wartungseinstellung');
+        $Stage->addButton(new Standard('Zurück', __NAMESPACE__, new ChevronLeft()));
+
+        for($i = 0; $i <24; $i++){
+            for($j = 0; $j < 60; $j = $j + 15){
+                $TimeList[$i.':'.($j == 0? '00' : $j)] = $i.':'.($j == 0? '00' : $j);
+            }
+        }
+        $TimeList['23:59'] = '23:59';
+
+        if(empty($Data)){
+            $_POST['Data']['StartDate'] = (new \DateTime('now'))->format('d.m.Y');
+            $_POST['Data']['PreWarningTime'] = '20:00';
+            $_POST['Data']['ActiveWarningTime'] = '22:00';
+            $_POST['Data']['EndWarningTime'] = '23:59';
+        }
+
+        $tblMaintenanceAll = BasicData::useService()->getMaintenanceAll();
+        $tableContent = array();
+        if($tblMaintenanceAll){
+            foreach($tblMaintenanceAll as $tblMaintenance){
+                $item = array();
+                $item['StartDate'] = $tblMaintenance->getStartDate()->format('d.m.Y');
+                $item['MaintenanceDate'] = $tblMaintenance->getMaintenanceDate()->format('d.m.Y');
+                $item['PreWarningTime'] = $tblMaintenance->getPreWarningTime();
+                $item['ActiveWarningTime'] = $tblMaintenance->getActiveWarningTime();
+                $item['EndWarningTime'] = $tblMaintenance->getEndWarningTime();
+                $item['Option'] = new ToolTip(new DangerLink('', __NAMESPACE__.'/Maintenance/Delete', new Remove(),
+                    array('MaintenanceId' => $tblMaintenance->getId())), 'Eintrag&nbsp;löschen');
+                $tableContent[] = $item;
+            }
+        }
+
+        $Stage->setContent(new Well(
+                BasicData::useService()->createMaintenance(
+                    new Form(new FormGroup(array(
+                        new FormRow(array(
+                            new FormColumn(new DatePicker('Data[StartDate]', '', 'Datum ab wann soll die Warnung angezeigt werden'), 4),
+                            new FormColumn(new DatePicker('Data[MaintenanceDate]', '', 'Datum Wartungstag (vorhandene werden bearbeitet)'), 4),
+                        )),
+                        new FormRow(array(
+                            new FormColumn(new SelectBox('Data[PreWarningTime]', 'Zeit Anzeige mit "Ladebalken (2h)" bis zur Wartung', $TimeList, null, false), 4),
+                            new FormColumn(new SelectBox('Data[ActiveWarningTime]', 'Zeit Wartung ist aktiv', $TimeList, null, false), 4),
+                            new FormColumn(new SelectBox('Data[EndWarningTime]', 'Zeit Wartung wird nicht mehr angezeigt', $TimeList, null, false), 4),
+                        ))
+                    )), new Primary('Speichern', new Save())), $Data)
+            )
+        .new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
+            new TableData($tableContent, new Title('Verlauf Wartungen'), array(
+                'StartDate' => 'Datum Anzeigebeginn',
+                'MaintenanceDate' => 'Datum Wartungsdatum',
+                'PreWarningTime' => 'Uhrzeit Timer mit Ladebalken',
+                'ActiveWarningTime' => 'Uhrzeit Aktive Warnung beim Einloggen',
+                'EndWarningTime' => 'Uhrzeit Ende der Warnung',
+                'Option' => ''),
+                array(
+                    'order' => array(
+                        array(0, 'asc'),
+                    ),
+                    'columnDefs' => array(
+                        array('type' => 'de_date', 'targets' => 0),
+                        array('type' => 'de_date', 'targets' => 1),
+                        array('orderable' => false, 'width' => '30px', 'targets' => -1),
+                        array('searchable' => false, 'targets' => -1),
+                    )
+                )
+            )
+            ))))
+        );
+
+        return $Stage;
+    }
+
+    public function frontendMaintenanceDelete($MaintenanceId = '')
+    {
+
+        $Stage = new Stage('Wartungseintrag', 'löschen');
+        BasicData::useService()->deleteMaintenance($MaintenanceId);
+        $Stage->setContent(new Success('Wartungseintrag gelöscht').new Redirect('/Platform/System/DataMaintenance/Maintenance', Redirect::TIMEOUT_SUCCESS));
+        return $Stage;
+    }
+
     /**
      * @return int
      */
@@ -195,13 +256,11 @@ class Frontend extends Extension implements IFrontendInterface
 
         ini_set('memory_limit', '1G');
         ini_set('display_errors', 1);
-
         // ab wann sollen Protokoll-Einträge gelöcht werden
         $DateTime = new \DateTime();
         $DateTime->sub(new \DateInterval('P' . $this->ProtocolActiveDays . 'D'));
         $Stage = new Stage('Protokoll', 'Einträge');
         $Stage->addButton(new Standard('Zurück', __NAMESPACE__, new ChevronLeft()));
-
         // Loding Screen
         if($loading){
             $Stage->setContent(new Layout(new LayoutGroup(new LayoutRow(array(
@@ -213,7 +272,6 @@ class Frontend extends Extension implements IFrontendInterface
             return $Stage;
         // Service Working
         } elseif($doDelete) {
-            $ProtocolCount = Protocol::useService()->getProtocolCountBeforeDate($DateTime);
             Debugger::setTime();
             if(Protocol::useService()->deleteProtocolAllBeforeDate($DateTime, $this->deleteMax)){
                 $executionTime = round(Debugger::getTime());
@@ -236,35 +294,32 @@ class Frontend extends Extension implements IFrontendInterface
         if(($tblProtocol = Protocol::useService()->getProtocolFirstEntry())){
             $ProtocolFirstDate = $tblProtocol->getEntityCreate()->format('d.m.Y');
         }
-
         $TimeInfo = 'Bei '.number_format($this->deleteMax, 0, ',', '.').' Einträgen dauert das löschen ca. 15 Sek.';
         $Stage->setContent(
-            new Layout(new LayoutGroup(new LayoutRow(
-                new LayoutColumn(
-                    new Panel(new Center(new Bold('Zusammenfassung')),
-                        array(
-                            $this->InPanelLayout('zu löschende Protokolleinträge:', $ProtocolCount),
-                            $this->InPanelLayout('Protokoll aktiv seit: ', $ProtocolFirstDate),
-                            $this->InPanelLayout('Zieldatum (vor '.$this->ProtocolActiveDays.' Tagen): ', $DateTime->format('d.m.Y')),
-                            new Center($TimeInfo),
-                            new Center(
-                                ($ProtocolCount >= 1
-                                    ? new Standard('Protokolleinträge ('.
-                                        ($ProtocolCount >= $this->deleteMax
-                                            ? number_format($this->deleteMax, 0, ',', '.')
-                                            :number_format($ProtocolCount, 0, ',', '.')
-                                        ).') löschen'
-                                        , __NAMESPACE__.'/Protocol', new Remove(), array('loading' => true))
-                                    : new Success('Keine Protokolleinträge älter als '.$DateTime->format('d.m.Y'))
-                                )
-                            ),
-                            new Warning(new Center('Durch exponentielles Wachstum der Zeit beim löschen von Daten, auf '
-                                    .number_format($this->deleteMax, 0,',', '.').' beschränkt.')
-                                , null, false, 3,0),
-                            ($time ? $this->InPanelLayout('Löschdauer:', $time.'Sek.') : '')
-                        ))
-                    , 5)
-            )))
+            new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
+                new Panel(new Center(new Bold('Zusammenfassung')),
+                    array(
+                        $this->InPanelLayout('zu löschende Protokolleinträge:', $ProtocolCount),
+                        $this->InPanelLayout('Protokoll aktiv seit: ', $ProtocolFirstDate),
+                        $this->InPanelLayout('Zieldatum (vor '.$this->ProtocolActiveDays.' Tagen): ', $DateTime->format('d.m.Y')),
+                        new Center($TimeInfo),
+                        new Center(
+                            ($ProtocolCount >= 1
+                                ? new Standard('Protokolleinträge ('.
+                                    ($ProtocolCount >= $this->deleteMax
+                                        ? number_format($this->deleteMax, 0, ',', '.')
+                                        :number_format($ProtocolCount, 0, ',', '.')
+                                    ).') löschen'
+                                    , __NAMESPACE__.'/Protocol', new Remove(), array('loading' => true))
+                                : new Success('Keine Protokolleinträge älter als '.$DateTime->format('d.m.Y'))
+                            )
+                        ),
+                        new Warning(new Center('Durch exponentielles Wachstum der Zeit beim löschen von Daten, auf '
+                                .number_format($this->deleteMax, 0,',', '.').' beschränkt.')
+                            , null, false, 3,0),
+                        ($time ? $this->InPanelLayout('Löschdauer:', $time.'Sek.') : '')
+                    ))
+                , 5))))
         );
 
         return $Stage;
@@ -310,7 +365,6 @@ class Frontend extends Extension implements IFrontendInterface
                 }
             }
         }
-
         $Stage->setContent(
             empty($dataList)
                 ? new Warning('Es sind keine soft gelöschten Person vorhanden.', new Exclamation())
@@ -365,7 +419,6 @@ class Frontend extends Extension implements IFrontendInterface
                     )
                 );
             }
-
             if ($IsRestore) {
                 $columns =  array(
                     'Number' => '#',
@@ -380,7 +433,6 @@ class Frontend extends Extension implements IFrontendInterface
                     'EntityRemove' => 'Gelöscht am'
                 );
             }
-
             $Stage->setContent(
                 ($IsRestore ? new Success('Die Daten wurden wieder hergestellt.', new SuccessIcon()) : '')
                 . new TableData(Person::useService()->getRestoreDetailList($tblPerson, $IsRestore), null, $columns,
@@ -418,7 +470,6 @@ class Frontend extends Extension implements IFrontendInterface
                     $Item['Account'] = '';
                     $Item['User'] = '';
                     $Item['Type'] = '';
-
                     $tblAccount = $tblUserAccount->getServiceTblAccount();
                     if ($tblAccount) {
                         $Item['Account'] = $tblAccount->getUsername();
@@ -441,16 +492,9 @@ class Frontend extends Extension implements IFrontendInterface
                 });
             } else {
                 $Stage->setContent(
-                    new Layout(
-                        new LayoutGroup(
-                            new LayoutRow(
-                                new LayoutColumn(
-                                    new Warning('Es sind keine Accounts für den Typ: "'.$AccountType.'" vorhanden')
-                                )
-                            )
-                        )
-                    )
-                );
+                    new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
+                        new Warning('Es sind keine Accounts für den Typ: "'.$AccountType.'" vorhanden')
+                    )))));
             }
         }
         if (!empty($TableContent)) {
@@ -476,7 +520,6 @@ class Frontend extends Extension implements IFrontendInterface
                 )
             );
         }
-
         return $Stage;
     }
 
@@ -492,10 +535,7 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage('Benutzeraccounts', 'Löschen');
 
         if (($tblUserAccountList = Account::useService()->getUserAccountAllByType($AccountType))) {
-            $Stage->addButton(new Standard(
-                'Zurück', __NAMESPACE__, new ChevronLeft()
-            ));
-
+            $Stage->addButton(new Standard('Zurück', __NAMESPACE__, new ChevronLeft()));
             if (!$Confirm) {
                 $Type = 'Unbekannt';
                 if ($AccountType == 'STUDENT') {
@@ -509,25 +549,17 @@ class Frontend extends Extension implements IFrontendInterface
                             new Question().' Löschabfrage',
                             'Sollen die Accounts mit dem Typ "'.new Bold($Type).'" wirklich gelöscht werden? (Anzahl: '.count($tblUserAccountList).')',
                             Panel::PANEL_TYPE_DANGER,
-                            new Standard(
-                                'Ja', __NAMESPACE__.'/Destroy', new Ok(),
-                                array(
-                                    'AccountType' => $AccountType,
-                                    'Confirm'     => true
-                                )
+                            new Standard('Ja', __NAMESPACE__.'/Destroy', new Ok(),
+                                array('AccountType' => $AccountType, 'Confirm' => true)
                             )
-                            .new Standard(
-                                'Nein', __NAMESPACE__, new Disable()
-                            )
+                            .new Standard('Nein', __NAMESPACE__, new Disable())
                         ),
                     )))))
                 );
             } else {
-
                 $AccountList = array();
                 $UserAccountList = array();
                 //Service delete complete Account
-
                 foreach ($tblUserAccountList as $tblUserAccount) {
                     if ($tblUserAccount) {
                         $tblAccount = $tblUserAccount->getServiceTblAccount();
@@ -543,36 +575,32 @@ class Frontend extends Extension implements IFrontendInterface
                         }
                     }
                 }
-
-
                 $Stage->setContent(
-                    new Layout(new LayoutGroup(array(
-                        new LayoutRow(new LayoutColumn(
-                            (empty($AccountList) && empty($UserAccountList)
-                                ? new Success(new SuccessIcon().' Die Accounts wurden erfolgreich gelöscht')
+                    new Layout(new LayoutGroup(array(new LayoutRow(new LayoutColumn(
+                        (empty($AccountList) && empty($UserAccountList)
+                            ? new Success(new SuccessIcon().' Die Accounts wurden erfolgreich gelöscht')
                                 .new Redirect('/Platform/System/DataMaintenance', Redirect::TIMEOUT_SUCCESS)
                                 : new Danger(new Remove().' Die Angezeigten Accounts konnten nicht gelöscht werden.')
-                                .new Layout(new LayoutGroup(new LayoutRow(array(
-                                    new LayoutColumn(
-                                        new TableData($AccountList, new Title('Account'), array(
-                                            'Id'                 => 'Id',
-                                            'Username'           => 'Benutzer',
-                                            'serviceTblConsumer' => 'Consumer Id',
+                            .new Layout(new LayoutGroup(new LayoutRow(array(
+                                new LayoutColumn(
+                                    new TableData($AccountList, new Title('Account'), array(
+                                        'Id'                 => 'Id',
+                                        'Username'           => 'Benutzer',
+                                        'serviceTblConsumer' => 'Consumer Id',
+                                    ))
+                                    , 6),
+                                new LayoutColumn(
+                                    new TableData($UserAccountList, new Title('UserAccount')
+                                        , array(
+                                            'Id'                => 'Id',
+                                            'serviceTblAccount' => 'Account Id',
+                                            'EntityCreate'      => 'Erstellungsdatum',
+                                            'EntityUpdate'      => 'Letztes Update',
                                         ))
-                                        , 6),
-                                    new LayoutColumn(
-                                        new TableData($UserAccountList, new Title('UserAccount')
-                                            , array(
-                                                'Id'                => 'Id',
-                                                'serviceTblAccount' => 'Account Id',
-                                                'EntityCreate'      => 'Erstellungsdatum',
-                                                'EntityUpdate'      => 'Letztes Update',
-                                            ))
-                                        , 6),
-                                ))))
-                            )
-                        ))
-                    )))
+                                    , 6),
+                            ))))
+                        )
+                    )))))
                 );
             }
         } else {
@@ -588,35 +616,96 @@ class Frontend extends Extension implements IFrontendInterface
         return $Stage;
     }
 
+    public function frontendConsumerLogin()
+    {
+
+        $Stage = new Stage('Mandanten', 'Consumerlogin');
+        $Stage->addButton(new Standard('Zurück', __NAMESPACE__, new ChevronLeft()));
+
+        $Stage->setContent(
+            ApiConsumerLogin::receiverModal('Modal')
+            .new Layout(new LayoutGroup(array(new LayoutRow(
+            new LayoutColumn(
+                ApiConsumerLogin::receiverBlock($this->getConsumerLoginTable(), 'ConsumerLoginTable') // ApiConsumerLogin::pipelineReload()
+            )
+        )))));
+
+        return $Stage;
+    }
+
+    /**
+     * @return array
+     */
+    public static function getConsumerLoginTable(): TableData
+    {
+
+        $tblConsumerAll = GatekeeperConsumer::useService()->getConsumerAll();
+        $TableContent = array();
+        foreach ($tblConsumerAll as $tblConsumer) {
+            $item = array();
+            $item['Acronym'] = $tblConsumer->getAcronym();
+            $item['Name'] = $tblConsumer->getName();
+            $item['Type'] = $tblConsumer->getType();
+            $item['DLLP'] = (new Link(new Edit(), ''))->ajaxPipelineOnClick(ApiConsumerLogin::pipelineOpenModal($tblConsumer->getId(), TblConsumerLogin::VALUE_SYSTEM_DLLP)); // ApiConsumerLogin::API_TARGET;
+            $item['SSWStop'] = (new Link(new Edit(), ''))->ajaxPipelineOnClick(ApiConsumerLogin::pipelineOpenModal($tblConsumer->getId(), TblConsumerLogin::VALUE_SYSTEM_SSW_STOP)); // ApiConsumerLogin::API_TARGET;
+            if(($tblConsumerLogin = GatekeeperConsumer::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_DLLP))){
+                $item['DLLP'] = (new Link(new Edit().' KelvinAPI Aktiv'.($tblConsumerLogin->getIsActiveAPI()? ' + Buttons Aktiv': ''), ''))
+                    ->ajaxPipelineOnClick(ApiConsumerLogin::pipelineOpenModal($tblConsumer->getId(), TblConsumerLogin::VALUE_SYSTEM_DLLP));
+            }
+            if(($tblConsumerLogin = GatekeeperConsumer::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_SSW_STOP))){
+                $item['SSWStop'] = (new Link(new Edit().' SSW Deaktiviert', ''))
+                    ->ajaxPipelineOnClick(ApiConsumerLogin::pipelineOpenModal($tblConsumer->getId(), 'SSWStop'));
+            }
+            $TableContent[] = $item;
+        }
+
+        return new TableData($TableContent, new Title('Einstellung DLLP KelvinAPI & SSW Sperrung'),
+            array(
+                'Acronym' => 'Kürzel',
+                'Name' => 'Name',
+                'Type' => 'Bundesland',
+                'DLLP' => 'DLLP',
+                'SSWStop' => 'Sperrung SSW',
+            ), array(
+                'columnDefs' => array(
+                    array('width' => '80px', 'targets' => 0),
+                    array('width' => '400px', 'targets' => 1),
+                    array('width' => '100px', 'targets' => 2),
+                ),
+                'order'      => array(array(0, 'asc')),
+                'pageLength' => -1,
+                'paging'     => false,
+//                        'info'       => false,
+//                        'searching'  => false,
+//                        'responsive' => false
+            )
+        );
+    }
+
     /**
      * @return Stage
      */
     public function frontendYearly()
     {
 
-        $tblConsumer = \SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer::useService()->getConsumerBySession();
+        $tblConsumer = GatekeeperConsumer::useService()->getConsumerBySession();
         $Acronym = $tblConsumer->getAcronym();
         $Stage = new Stage('SQL Anweisung');
-        $Stage->addButton(new Standard('Zurück', '/Platform/System/Anonymous', new ChevronLeft()));
-
-        $Stage->setContent(new Layout(
-            new LayoutGroup(array(
+        $Stage->addButton(new Standard('Zurück', __NAMESPACE__, new ChevronLeft()));
+        $Stage->setContent(new Layout(new LayoutGroup(array(
                 new LayoutRow(array(
                     new LayoutColumn(
                         new Info('Ausführen des SQL Script\'s in der Datenbank ('.new Bold('aktueller Mandant!').')'
                             .new Container('Diesen bitte in der Datenbank ausführen.'))
-                        , 6),
+                    , 6),
                     new LayoutColumn(
-                        new Info(
-                            new Container(new Bold('Nach SQL Script notwendig!&nbsp;&nbsp;&nbsp;')
-                                .new External('Cache löschen', '/Platform/System/Cache', new Server(),
-                                    array('Clear' => 1)))
-                        )
-                        , 6)
+                        new Info(new Container(
+                            new Bold('Nach SQL Script notwendig!&nbsp;&nbsp;&nbsp;')
+                            .new External('Cache löschen', '/Platform/System/Cache', new Server(), array('Clear' => 1))
+                        ))
+                    , 6)
                 )),
-                new LayoutRow(
-                    new LayoutColumn(
-                        new Code("
+                new LayoutRow(new LayoutColumn(new Code("
 UPDATE ".$Acronym."_BillingInvoice.tblBankReference SET ReferenceDate = date_add(ReferenceDate, interval 1 YEAR);
 UPDATE ".$Acronym."_BillingInvoice.tblBasket SET Year = Year + 1, TargetTime = date_add(TargetTime, interval 1 YEAR), BillTime = date_add(BillTime, interval 1 YEAR);
 UPDATE ".$Acronym."_BillingInvoice.tblBasket SET SepaDate = date_add(SepaDate, interval 1 YEAR) where SepaDate IS NOT NULL;
@@ -674,15 +763,15 @@ UPDATE ".$Acronym."_SettingConsumer.tblUserAccount SET ExportDate = date_add(Exp
 UPDATE ".$Acronym."_SettingConsumer.tblUserAccount SET GroupByTime = date_add(GroupByTime, interval 1 YEAR) where GroupByTime IS NOT NULL;
 UPDATE ".$Acronym."_SettingConsumer.tblUserAccount SET UpdateDate = date_add(UpdateDate, interval 1 YEAR) where UpdateDate IS NOT NULL;"
 // UPDATE ".$Acronym."_SettingConsumer.tblPrepareInformation SET Value = CONCAT(SUBSTRING_INDEX(Value, '.',2),'.',YEAR(CURDATE())) where Field LIKE 'DateConference' OR Field LIKE 'DateConsulting'OR Field LIKE 'DateCertifcate';"
-                        )
-                    )
-                )
+                )))
             ))
         ));
 
         return $Stage;
     }
+
     /**
+     * @deprecated
      * @return Stage
      */
     public function frontendDivisionCourse(): Stage
@@ -725,25 +814,25 @@ UPDATE ".$Acronym."_SettingConsumer.tblUserAccount SET UpdateDate = date_add(Upd
     /**
      * @return Stage
      */
-    public function frontendFileSize(): Stage
-    {
-        $stage = new Stage('Document Storage', 'Datei-Größe setzen für alte Dateien');
-        $stage->addButton(new Standard('Zurück', __NAMESPACE__, new ChevronLeft()));
-
-        ini_set('memory_limit', '2G');
-
-        if (Storage::useService()->getBinariesWithoutFileSize(1)) {
-            $stage->setContent(
-//                new Warning('Press F12 before', new Exclamation())
-                ApiDocumentStorage::receiverBlock(ApiDocumentStorage::pipelineStatus(ApiDocumentStorage::STATUS_BUTTON), 'Status')
-                . ApiDocumentStorage::receiverBlock('', 'FileSize_0')
-            );
-        } else {
-            $stage->setContent(new Success('Die Datei-Größen wurden bereits für alle Dateien gesetzt.'));
-        }
-
-        return $stage;
-    }
+//    public function frontendFileSize(): Stage
+//    {
+//        $stage = new Stage('Document Storage', 'Datei-Größe setzen für alte Dateien');
+//        $stage->addButton(new Standard('Zurück', __NAMESPACE__, new ChevronLeft()));
+//
+//        ini_set('memory_limit', '2G');
+//
+//        if (Storage::useService()->getBinariesWithoutFileSize(1)) {
+//            $stage->setContent(
+////                new Warning('Press F12 before', new Exclamation())
+//                ApiDocumentStorage::receiverBlock(ApiDocumentStorage::pipelineStatus(ApiDocumentStorage::STATUS_BUTTON), 'Status')
+//                . ApiDocumentStorage::receiverBlock('', 'FileSize_0')
+//            );
+//        } else {
+//            $stage->setContent(new Success('Die Datei-Größen wurden bereits für alle Dateien gesetzt.'));
+//        }
+//
+//        return $stage;
+//    }
 
     /**
      * @return Stage
@@ -803,71 +892,71 @@ UPDATE ".$Acronym."_SettingConsumer.tblUserAccount SET UpdateDate = date_add(Upd
         return $stage;
     }
 
-    /**
-     * @return Stage
-     * @deprecated
-     * Codebeispiel aufheben
-     */
-    public function frontendIndiwareLog(): Stage
-    {
-        return $Stage = new Stage('Indiware Log', 'demo.schulsoftware.schule/RestApi/Public/Indiware/Log');
-//        $Stage->addButton(new Standard('Zurück', __NAMESPACE__, new ChevronLeft()));
-//
-//        $filePath = 'UnitTest/IndiwareLog/';
-//        $directoryContentList = scandir($filePath);
-//        $content = array();
-//        foreach($directoryContentList as $Key => $fileName){
-//            if($Key < 2){
-//                continue;
-//            }
-//
-//            $File = 'UnitTest/IndiwareLog/'.$fileName;
-//            // Ersetze die Unterstriche durch die entsprechenden Zeichen
-//            $formattedFileName = str_replace('_', ':', substr($fileName, 0, 8)) // Zeit umwandeln
-//                . substr($fileName, 8, 4) // "Log" übernehmen
-//                . str_replace('_', '.', substr($fileName, 12)); // Datum umwandeln
-//            $item = array();
-//            $item['Name'] = $formattedFileName;
-//            $item['Time'] = date ("d.m.Y", filemtime($File));
-//            $item['Path'] = $filePath;
-//            $item['Download'] = (new Standard('', '/Api/Transfer/Indiware/IndiwareLog/Download', new Download(),
-//                array('fileName' => $fileName), 'Anzeigen'))->setExternal()
-//            .(new Standard('', '#', new EyeOpen()))->ajaxPipelineOnClick(ApiIndiware::pipelineShowFileContent($fileName))
-//            ;
-//            $content[] = array_merge($content, $item);
-//        }
-//        $Receiver = (new ApiIndiware())::receiverContent();
-//        $Stage->setContent(
-//            new Layout(new LayoutGroup(new LayoutRow(array(
-////                new LayoutColumn( '',4),
-//                new LayoutColumn(
-//                    new TableData(
-//                        $content,
-//                        null,
-//                        array(
-//                            'Name' => 'Name',
-//                            'Time' => 'Erstellung',
-////                            'Path' => 'Route',
-//                            'Download' => '',
-//                        ),
-//                        array(
-//                            'order' => array(
-//                                array('1', 'desc'),
-//                                array('0', 'desc'),
-//                            ),
-//                            'columnDefs' => array(
-//                                // Erstellungsdatum
-//                                array('type' => 'de_date', 'targets' => 1),
-//                                array('type' => 'natural', 'targets' => 0),
-//                            ),
-//                        )
-//                    )
-//                , 4),
-//                new LayoutColumn(
-//                    $Receiver
-//                , 8)
-//            ))))
-//        );
-//        return $Stage;
-    }
+//    /**
+//     * @return Stage
+//     * @deprecated
+//     * Codebeispiel aufheben
+//     */
+//    public function frontendIndiwareLog(): Stage
+//    {
+//        return $Stage = new Stage('Indiware Log', 'demo.schulsoftware.schule/RestApi/Public/Indiware/Log');
+////        $Stage->addButton(new Standard('Zurück', __NAMESPACE__, new ChevronLeft()));
+////
+////        $filePath = 'UnitTest/IndiwareLog/';
+////        $directoryContentList = scandir($filePath);
+////        $content = array();
+////        foreach($directoryContentList as $Key => $fileName){
+////            if($Key < 2){
+////                continue;
+////            }
+////
+////            $File = 'UnitTest/IndiwareLog/'.$fileName;
+////            // Ersetze die Unterstriche durch die entsprechenden Zeichen
+////            $formattedFileName = str_replace('_', ':', substr($fileName, 0, 8)) // Zeit umwandeln
+////                . substr($fileName, 8, 4) // "Log" übernehmen
+////                . str_replace('_', '.', substr($fileName, 12)); // Datum umwandeln
+////            $item = array();
+////            $item['Name'] = $formattedFileName;
+////            $item['Time'] = date ("d.m.Y", filemtime($File));
+////            $item['Path'] = $filePath;
+////            $item['Download'] = (new Standard('', '/Api/Transfer/Indiware/IndiwareLog/Download', new Download(),
+////                array('fileName' => $fileName), 'Anzeigen'))->setExternal()
+////            .(new Standard('', '#', new EyeOpen()))->ajaxPipelineOnClick(ApiIndiware::pipelineShowFileContent($fileName))
+////            ;
+////            $content[] = array_merge($content, $item);
+////        }
+////        $Receiver = (new ApiIndiware())::receiverContent();
+////        $Stage->setContent(
+////            new Layout(new LayoutGroup(new LayoutRow(array(
+//////                new LayoutColumn( '',4),
+////                new LayoutColumn(
+////                    new TableData(
+////                        $content,
+////                        null,
+////                        array(
+////                            'Name' => 'Name',
+////                            'Time' => 'Erstellung',
+//////                            'Path' => 'Route',
+////                            'Download' => '',
+////                        ),
+////                        array(
+////                            'order' => array(
+////                                array('1', 'desc'),
+////                                array('0', 'desc'),
+////                            ),
+////                            'columnDefs' => array(
+////                                // Erstellungsdatum
+////                                array('type' => 'de_date', 'targets' => 1),
+////                                array('type' => 'natural', 'targets' => 0),
+////                            ),
+////                        )
+////                    )
+////                , 4),
+////                new LayoutColumn(
+////                    $Receiver
+////                , 8)
+////            ))))
+////        );
+////        return $Stage;
+//    }
 }
