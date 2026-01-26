@@ -1246,7 +1246,7 @@ class Service extends AbstractService
                 $occupation = $person['Occupation'];
                 $employment = $person['Employment'];
 
-                $tblCommonGender = Common::useService()->getCommonGenderById($person['Gender']);
+                $tblCommonGender = Common::useService()->getCommonGenderById($person['Gender'] ?? null);
                 $isSingleParent = isset($person['IsSingleParent']);
                 $relationshipRemark = $person['RelationshipRemark'];
 
