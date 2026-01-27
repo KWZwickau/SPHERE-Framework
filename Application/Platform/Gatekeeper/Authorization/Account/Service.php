@@ -115,7 +115,7 @@ class Service extends AbstractService
      */
     public function getAccountBySession($Session = null)
     {
-        if(isset(self::$AccountBySessionCache[$Session])) {
+        if(isset(self::$AccountBySessionCache[$Session]) && !empty(self::$AccountBySessionCache[$Session])) {
             return self::$AccountBySessionCache[$Session];
         }
         $tblAccount = (new Data($this->getBinding()))->getAccountBySession($Session);
