@@ -702,6 +702,7 @@ abstract class ServiceCertificateContent extends ServiceAbitur
                                 && $tblTaskGrade->getTblGradeText()->getName() != '&ndash;'
                             ) {
                                 $Content['P' . $personId]['Grade']['Data']['IsShrinkSize'][$tblSubjectTemp->getAcronym()] = true;
+                                $Content['P' . $personId]['Grade']['Data']['GradeTextShortName'][$tblSubjectTemp->getAcronym()] = $tblTaskGrade->getTblGradeText()->getShortName();
                             }
                         }
                     }
