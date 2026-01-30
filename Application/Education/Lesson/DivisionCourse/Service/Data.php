@@ -2,6 +2,8 @@
 namespace SPHERE\Application\Education\Lesson\DivisionCourse\Service;
 
 use DateTime;
+use SPHERE\Application\Corporation\Company\Company;
+use SPHERE\Application\Education\Lesson\Course\Course;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseLink;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseMember;
@@ -917,17 +919,57 @@ class Data extends DataTeacher
 
     /**
      * @param TblStudentEducation $tblStudentEducation
+     * @param $Data
      *
      * @return bool
      */
-    public function updateStudentEducation(TblStudentEducation $tblStudentEducation): bool
+    public function updateStudentEducation(TblStudentEducation $tblStudentEducation, $Data): bool
     {
         $Manager = $this->getEntityManager();
-        /** @var TblStudentEducation $Protocol */
-        $Protocol = $Manager->getEntityManagedForProtocol('TblStudentEducation', $tblStudentEducation->getId());
-        if (null !== $Protocol) {
-            $Manager->saveEntity($tblStudentEducation);
-            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $tblStudentEducation);
+        /** @var TblStudentEducation $Entity */
+        $Entity = $Manager->getEntityById('TblStudentEducation', $tblStudentEducation->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $tblStudentEducation->setServiceTblSchoolType(Type::useService()->getTypeById($Data['SchoolType']) ?: null);
+            $tblStudentEducation->setServiceTblCompany(Company::useService()->getCompanyById($Data['Company']) ?: null);
+            $tblStudentEducation->setLevel($Data['Level']);
+            $tblStudentEducation->setServiceTblCourse(Course::useService()->getCourseById($Data['Course']) ?: null);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param TblStudentEducation $tblStudentEducation
+     * @param TblDivisionCourse|null $tblDivisionCourse
+     * @param int|null $sortOrder
+     * @param string $divisionTypeIdentifier
+     *
+     * @return bool
+     */
+    public function updateStudentEducationDivisionCourse(
+        TblStudentEducation $tblStudentEducation, ?TblDivisionCourse $tblDivisionCourse, ?int $sortOrder, string $divisionTypeIdentifier
+    ): bool {
+        $Manager = $this->getEntityManager();
+        /** @var TblStudentEducation $Entity */
+        $Entity = $Manager->getEntityById('TblStudentEducation', $tblStudentEducation->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            if ($divisionTypeIdentifier == TblDivisionCourseType::TYPE_DIVISION) {
+                $tblStudentEducation->setTblDivision($tblDivisionCourse);
+                $tblStudentEducation->setDivisionSortOrder($sortOrder);
+            } else {
+                $tblStudentEducation->setTblCoreGroup($tblDivisionCourse);
+                $tblStudentEducation->setCoreGroupSortOrder($sortOrder);
+            }
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
 
             return true;
         }
@@ -962,11 +1004,12 @@ class Data extends DataTeacher
      * @param TblDivisionCourse|null $tblCoreGroup
      * @param $coreGroupSortOrder
      * @param DateTime|null $leaveDate
+     * @param int|null $level
      *
      * @return bool
      */
     public function updateStudentEducationByProperties(TblStudentEducation $tblStudentEducation, ?TblDivisionCourse $tblDivision, $divisionSortOrder,
-        ?TblDivisionCourse $tblCoreGroup, $coreGroupSortOrder, ?DateTime $leaveDate): bool
+        ?TblDivisionCourse $tblCoreGroup, $coreGroupSortOrder, ?DateTime $leaveDate, ?int $level): bool
     {
         $Manager = $this->getEntityManager();
         /** @var TblStudentEducation $Entity */
@@ -978,6 +1021,7 @@ class Data extends DataTeacher
             $Entity->setTblCoreGroup($tblCoreGroup);
             $Entity->setCoreGroupSortOrder($coreGroupSortOrder);
             $Entity->setLeaveDate($leaveDate);
+            $Entity->setLevel($level);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
@@ -1278,20 +1322,25 @@ class Data extends DataTeacher
     }
 
     /**
-     * @param array $tblDivisionCourseMemberList
+     * @param array $list
      *
      * @return bool
      */
-    public function updateDivisionCourseMemberBulk(array $tblDivisionCourseMemberList): bool
+    public function updateDivisionCourseMemberBulk(array $list): bool
     {
         $Manager = $this->getConnection()->getEntityManager();
 
-        foreach ($tblDivisionCourseMemberList as $tblDivisionCourseMember) {
+        foreach ($list as $id => $value) {
             /** @var TblDivisionCourseMember $Entity */
-            $Entity = $Manager->getEntityManagedForProtocol('TblDivisionCourseMember', $tblDivisionCourseMember->getId());
+            $Entity = $Manager->getEntityById('TblDivisionCourseMember', $id);
+            $Protocol = clone $Entity;
 
-            $Manager->bulkSaveEntity($tblDivisionCourseMember);
-            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Entity, $tblDivisionCourseMember, true);
+            if (null !== $Entity) {
+                $Entity->setSortOrder($value);
+
+                $Manager->bulkSaveEntity($Entity);
+                Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity, true);
+            }
         }
 
         $Manager->flushCache();
@@ -1531,20 +1580,38 @@ class Data extends DataTeacher
     }
 
     /**
-     * @param array $tblStudentEducationList
+     * @param array $list
+     * @param string $propertyName
      *
      * @return bool
      */
-    public function updateStudentEducationBulk(array $tblStudentEducationList): bool
+    public function updateStudentEducationBulk(array $list, string $propertyName): bool
     {
         $Manager = $this->getConnection()->getEntityManager();
 
-        foreach ($tblStudentEducationList as $tblStudentEducation) {
+        foreach ($list as $id => $value) {
             /** @var TblStudentEducation $Entity */
-            $Entity = $Manager->getEntityManagedForProtocol('TblStudentEducation', $tblStudentEducation->getId());
+            $Entity = $Manager->getEntityById('TblStudentEducation', $id);
+            $Protocol = clone $Entity;
 
-            $Manager->bulkSaveEntity($tblStudentEducation);
-            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Entity, $tblStudentEducation, true);
+            if (null !== $Entity) {
+                if ($propertyName == TblStudentEducation::ATTR_SERVICE_TBL_COMPANY) {
+                    $Entity->setServiceTblCompany($value);
+                } elseif ($propertyName == TblStudentEducation::ATTR_SERVICE_TBL_COURSE) {
+                    $Entity->setServiceTblCourse($value);
+                } elseif ($propertyName == TblStudentEducation::ATTR_LEVEL) {
+                    $Entity->setLevel($value);
+                } elseif ($propertyName == TblStudentEducation::ATTR_SERVICE_TBL_SCHOOL_TYPE) {
+                    $Entity->setServiceTblSchoolType($value);
+                } elseif ($propertyName == TblStudentEducation::ATTR_DIVISION_SORT_ORDER) {
+                    $Entity->setDivisionSortOrder($value);
+                } elseif ($propertyName == TblStudentEducation::ATTR_CORE_GROUP_SORT_ORDER) {
+                    $Entity->setCoreGroupSortOrder($value);
+                }
+
+                $Manager->bulkSaveEntity($Entity);
+                Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity, true);
+            }
         }
 
         $Manager->flushCache();
@@ -2000,30 +2067,6 @@ class Data extends DataTeacher
         foreach ($tblEntityList as $tblEntity) {
             $Manager->bulkSaveEntity($tblEntity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $tblEntity, true);
-        }
-
-        $Manager->flushCache();
-        Protocol::useService()->flushBulkEntries();
-
-        return true;
-    }
-
-    /**
-     * @param array $tblEntityList
-     *
-     * @return bool
-     */
-    public function updateEntityListBulk(array $tblEntityList): bool
-    {
-        $Manager = $this->getEntityManager();
-
-        /** @var Element $tblElement */
-        foreach ($tblEntityList as $tblElement) {
-            /** @var Element $Entity */
-            $Entity = $Manager->getEntityManagedForProtocol($tblElement->getEntityShortName(), $tblElement->getId());
-
-            $Manager->bulkSaveEntity($tblElement);
-            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Entity, $tblElement, true);
         }
 
         $Manager->flushCache();

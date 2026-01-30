@@ -7,6 +7,7 @@ use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseMember;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseMemberType;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
 use SPHERE\Application\IApiInterface;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\Setting\Consumer\Consumer;
@@ -641,12 +642,25 @@ class ApiDivisionCourseMember extends Extension implements IApiInterface
         }
 
         if ($tblMemberList) {
+            $updateList = [];
             $count = 1;
             /** @var TblDivisionCourseMember $tblMember */
             foreach ($tblMemberList as $tblMember) {
-                $tblMember->setSortOrder($count++);
+                // bei Klassen und Stammgruppen bei Schülern ist TblDivisionCourseMember nur virtuell, da es an der Schülerbildung hängt,
+                // Member ändern und wird dann im nächsten Schritt bei TblStudentEducation geändert
+                if ($MemberTypeIdentifier == TblDivisionCourseMemberType::TYPE_STUDENT
+                    && ($tblDivisionCourse->getTypeIdentifier() == TblDivisionCourseType::TYPE_DIVISION
+                        || $tblDivisionCourse->getTypeIdentifier() == TblDivisionCourseType::TYPE_CORE_GROUP)
+                ) {
+                    $tblMember->setSortOrder($count);
+                    $updateList[] = $tblMember;
+                } else {
+                    $updateList[$tblMember->getId()] = $count;
+                }
+
+                $count++;
             }
-            DivisionCourse::useService()->updateDivisionCourseMemberBulkSortOrder($tblMemberList, $MemberTypeIdentifier, $tblDivisionCourse->getType() ?: null);
+            DivisionCourse::useService()->updateDivisionCourseMemberBulkSortOrder($updateList, $MemberTypeIdentifier, $tblDivisionCourse->getType() ?: null);
 
             return new Success('Die ' . $memberName . ' wurden erfolgreich sortiert.')
                 . self::pipelineLoadSortMemberContent($DivisionCourseId, $MemberTypeIdentifier)

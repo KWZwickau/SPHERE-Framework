@@ -40,21 +40,25 @@ class Data extends AbstractData
     }
 
     /**
-     * @param array $tblEntityList
+     * @param array $list
      *
      * @return bool
      */
-    public function updateEntityListBulk(array $tblEntityList): bool
+    public function updateImportStudentListBulk(array $list): bool
     {
         $Manager = $this->getEntityManager();
 
-        /** @var Element $tblElement */
-        foreach ($tblEntityList as $tblElement) {
-            /** @var Element $Entity */
-            $Entity = $Manager->getEntityManagedForProtocol($tblElement->getEntityShortName(), $tblElement->getId());
+        foreach ($list as $importStudentId => $value) {
+            /** @var TblImportStudent $Entity */
+            $Entity = $Manager->getEntityById('TblImportStudent', $importStudentId);
+            $Protocol = clone $Entity;
 
-            $Manager->bulkSaveEntity($tblElement);
-            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Entity, $tblElement, true);
+            if (null !== $Entity) {
+                $Entity->setServiceTblPerson($value);
+
+                $Manager->bulkSaveEntity($Entity);
+                Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity, true);
+            }
         }
 
         $Manager->flushCache();

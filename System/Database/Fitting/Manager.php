@@ -100,26 +100,6 @@ class Manager extends Extension
     }
 
     /**
-     * gets original entity from DB only for Protocol usage
-     *
-     * @param $ClassName
-     * @param $Id
-     *
-     * @return object|null
-     * @throws ORMException
-     * @throws OptimisticLockException
-     * @throws TransactionRequiredException
-     * @throws \Doctrine\ORM\Exception\ORMException
-     */
-    public function getEntityManagedForProtocol($ClassName, $Id): ?object
-    {
-        $entity = $this->EntityManager->find($this->Namespace.$ClassName, $Id);
-        $this->EntityManager->detach($entity);
-
-        return $this->EntityManager->find($this->Namespace.$ClassName, $Id);
-    }
-
-    /**
      * @param Element $Entity
      *
      * @return Manager|EntityManager

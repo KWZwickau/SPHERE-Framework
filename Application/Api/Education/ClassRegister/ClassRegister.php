@@ -3,6 +3,8 @@ namespace SPHERE\Application\Api\Education\ClassRegister;
 
 use SPHERE\Application\Api\Response;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseMemberType;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\IServiceInterface;
 use SPHERE\Common\Frontend\Icon\Repository\HazardSign;
@@ -62,19 +64,46 @@ class ClassRegister extends Extension implements IModuleInterface
         ) {
             if (($tblMemberList = DivisionCourse::useService()->getDivisionCourseMemberListBy($tblDivisionCourse, $Additional['MemberTypeIdentifier'], true, false))) {
                 $count = 1;
-                $updateList = array();
-                foreach ($tblMemberList as $tblMember) {
-                    $tblMember->setSortOrder($count);
-                    $updateList[$count++] = $tblMember;
-                }
 
-                foreach ($Reorder as $item) {
-                    if (isset($item['pre']) && isset($item['post'])) {
-                        $pre = $item['pre'];
-                        $post = $item['post'];
+                // bei Klassen und Stammgruppen bei Schülern ist TblDivisionCourseMember nur virtuell, da es an der Schülerbildung hängt,
+                // Member ändern und wird dann im nächsten Schritt bei TblStudentEducation geändert
+                if ($tblMemberType->getIdentifier() == TblDivisionCourseMemberType::TYPE_STUDENT
+                    && ($tblDivisionCourse->getTypeIdentifier() == TblDivisionCourseType::TYPE_DIVISION
+                        || $tblDivisionCourse->getTypeIdentifier() == TblDivisionCourseType::TYPE_CORE_GROUP)
+                ) {
+                    $updateList = array();
+                    foreach ($tblMemberList as $tblMember) {
+                        $tblMember->setSortOrder($count);
+                        $updateList[$count++] = $tblMember;
+                    }
 
-                        if (isset($updateList[$pre])) {
-                            $updateList[$pre]->setSortOrder($post);
+                    foreach ($Reorder as $item) {
+                        if (isset($item['pre']) && isset($item['post'])) {
+                            $pre = $item['pre'];
+                            $post = $item['post'];
+
+                            if (isset($updateList[$pre])) {
+                                $updateList[$pre]->setSortOrder($post);
+                            }
+                        }
+                    }
+                } else {
+                    $tempList = array();
+                    $updateList = array();
+                    foreach ($tblMemberList as $tblMember) {
+                        $tempList[$count] = $tblMember->getId();
+                        $updateList[$tblMember->getId()] = $count;
+                        $count++;
+                    }
+
+                    foreach ($Reorder as $item) {
+                        if (isset($item['pre']) && isset($item['post'])) {
+                            $pre = $item['pre'];
+                            $post = $item['post'];
+
+                            if (isset($tempList[$pre])) {
+                                $updateList[$tempList[$pre]] = $post;
+                            }
                         }
                     }
                 }

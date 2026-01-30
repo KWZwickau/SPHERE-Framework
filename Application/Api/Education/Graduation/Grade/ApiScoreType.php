@@ -133,8 +133,9 @@ class ApiScoreType extends Extension implements IApiInterface
                         && $tblScoreTypeSubject->getIsOverrideScoreTypeException() != isset($Data['Subjects'][$tblScoreTypeSubject->getLevel()][$tblSubject->getId()])
                     ) {
                         // update
-                        $tblScoreTypeSubject->setIsOverrideScoreTypeException(!$tblScoreTypeSubject->getIsOverrideScoreTypeException());
-                        $updateList[] = $tblScoreTypeSubject;
+                        $updateList[$tblScoreTypeSubject->getId()] = [
+                            'IsOverrideScoreTypeException' => !$tblScoreTypeSubject->getIsOverrideScoreTypeException()
+                        ];
                     }
                 }
             }
@@ -161,8 +162,9 @@ class ApiScoreType extends Extension implements IApiInterface
                                 // update
                             } elseif (($tblScoreTypeSubject = Grade::useService()->getScoreTypeSubjectBySchoolTypeAndLevelAndSubject($tblSchoolType, $level,
                                 $tblSubject))) {
-                                $tblScoreTypeSubject->setTblScoreType($tblScoreType);
-                                $updateList[] = $tblScoreTypeSubject;
+                                $updateList[$tblScoreTypeSubject->getId()] = [
+                                    'ScoreType' => $tblScoreType
+                                ];
                                 // neu
                             } else {
                                 $createList[] = new TblScoreTypeSubject($tblSchoolType, $level, $tblSubject, $tblScoreType);
@@ -177,7 +179,7 @@ class ApiScoreType extends Extension implements IApiInterface
             Grade::useService()->createEntityListBulk($createList);
         }
         if (!empty($updateList)) {
-            Grade::useService()->updateEntityListBulk($updateList);
+            Grade::useService()->updateScoreTypeSubjectListBulk($updateList);
         }
         if (!empty($removeList)) {
             Grade::useService()->deleteEntityListBulk($removeList);
