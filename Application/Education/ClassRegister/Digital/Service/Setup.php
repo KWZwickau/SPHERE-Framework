@@ -27,9 +27,9 @@ class Setup  extends AbstractSetup
          */
         $Schema = clone $this->getConnection()->getSchema();
         $tblLessonContent = $this->setTableLessonContent($Schema);
-        $this->setTableLessonContentLink($Schema, $tblLessonContent);
         $this->setTableLessonWeek($Schema);
         $tblCourseContent = $this->setTableCourseContent($Schema);
+        $this->setTableLessonContentLink($Schema, $tblLessonContent, $tblCourseContent);
         $this->setTableFullTimeContent($Schema);
         $tblForgotten = $this->setTableForgotten($Schema, $tblLessonContent, $tblCourseContent);
         $this->setTableForgottenStudent($Schema, $tblForgotten);
@@ -83,15 +83,17 @@ class Setup  extends AbstractSetup
 
     /**
      * @param Schema $Schema
-     * @param Table  $tblLessonContent
+     * @param Table $tblLessonContent
+     * @param Table $tblCourseContent
      */
-    private function setTableLessonContentLink(Schema &$Schema, Table $tblLessonContent)
+    private function setTableLessonContentLink(Schema &$Schema, Table $tblLessonContent, Table $tblCourseContent): void
     {
 
         $Table = $this->getConnection()->createTable($Schema, 'tblClassRegisterLessonContentLink');
         $this->createColumn($Table, 'LinkId', self::FIELD_TYPE_BIGINT);
 
         $this->getConnection()->addForeignKey($Table, $tblLessonContent, true);
+        $this->getConnection()->addForeignKey($Table, $tblCourseContent, true);
     }
 
     /**

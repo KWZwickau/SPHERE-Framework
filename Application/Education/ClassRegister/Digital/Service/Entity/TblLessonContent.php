@@ -360,9 +360,9 @@ class TblLessonContent extends Element
     }
 
     /**
-     * @return false|TblLessonContent[]
+     * @return false|TblLessonContentLink[]
      */
-    public function getLinkedLessonContentAll()
+    public function getLinkedLessonContentAll(): array|bool
     {
         return Digital::useService()->getLessonContentLinkAllByLessonContent($this);
     }

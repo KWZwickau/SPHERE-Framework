@@ -138,11 +138,12 @@ class Data extends DataTeacher
      * @param bool $isShownInPersonData
      * @param bool $isReporting
      * @param TblSubject|null $tblSubject
+     * @param bool $isDigital
      *
      * @return TblDivisionCourse
      */
     public function createDivisionCourse(TblDivisionCourseType $tblType, TblYear $tblYear, string $name, string $description,
-        bool $isShownInPersonData, bool $isReporting, ?TblSubject $tblSubject): TblDivisionCourse
+        bool $isShownInPersonData, bool $isReporting, ?TblSubject $tblSubject, bool $isDigital): TblDivisionCourse
     {
         $Manager = $this->getEntityManager();
         $Entity = $Manager->getEntity('TblDivisionCourse')->findOneBy(array(
@@ -151,6 +152,8 @@ class Data extends DataTeacher
         ));
         if($Entity === null) {
             $Entity = TblDivisionCourse::withParameter($tblType, $tblYear, $name, $description, $isShownInPersonData, $isReporting, $tblSubject);
+            $Entity->setIsDigital($isDigital);
+
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         }
@@ -165,11 +168,12 @@ class Data extends DataTeacher
      * @param bool $isShownInPersonData
      * @param bool $isReporting
      * @param TblSubject|null $tblSubject
+     * @param bool $isDigital
      *
      * @return bool
      */
     public function updateDivisionCourse(TblDivisionCourse $tblDivisionCourse, string $name, string $description,
-        bool $isShownInPersonData, bool $isReporting, ?TblSubject $tblSubject): bool
+        bool $isShownInPersonData, bool $isReporting, ?TblSubject $tblSubject, bool $isDigital): bool
     {
         $Manager = $this->getEntityManager();
         /** @var TblDivisionCourse $Entity */
@@ -181,6 +185,7 @@ class Data extends DataTeacher
             $Entity->setIsShownInPersonData($isShownInPersonData);
             $Entity->setIsReporting($isReporting);
             $Entity->setServiceTblSubject($tblSubject);
+            $Entity->setIsDigital($isDigital);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
@@ -301,6 +306,25 @@ class Data extends DataTeacher
     public function getDivisionCourseListByIsShownInPersonData(TblYear $tblYear = null, ?string $TypeIdentifier = '')
     {
         $parameterList[TblDivisionCourse::ATTR_IS_SHOWN_IN_PERSON_DATA] = 1;
+        if ($TypeIdentifier && ($tblType = $this->getDivisionCourseTypeByIdentifier($TypeIdentifier))) {
+            $parameterList[TblDivisionCourse::ATTR_TBL_TYPE] = $tblType->getId();
+        }
+        if ($tblYear) {
+            $parameterList[TblDivisionCourse::SERVICE_TBL_YEAR] = $tblYear->getId();
+        }
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblDivisionCourse', $parameterList, array(TblDivisionCourse::ATTR_NAME => self::ORDER_ASC));
+    }
+
+    /**
+     * @param TblYear|null $tblYear
+     * @param string|null $TypeIdentifier
+     *
+     * @return false|TblDivisionCourse[]
+     */
+    public function getDivisionCourseListByIsDigital(TblYear $tblYear = null, ?string $TypeIdentifier = ''): bool|array
+    {
+        $parameterList[TblDivisionCourse::ATTR_IS_DIGITAL] = 1;
         if ($TypeIdentifier && ($tblType = $this->getDivisionCourseTypeByIdentifier($TypeIdentifier))) {
             $parameterList[TblDivisionCourse::ATTR_TBL_TYPE] = $tblType->getId();
         }

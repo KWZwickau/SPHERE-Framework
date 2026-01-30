@@ -1019,10 +1019,12 @@ class Service extends ServiceTask
      * @param TblPerson $tblPerson
      * @param TblDivisionCourse $tblDivisionCourse
      * @param TblSubject $tblSubject
+     * @param bool $OnlyIsDigital
      *
      * @return TblDivisionCourse[]
      */
-    public function getTeacherGroupsByTeacherAndDivisionCourseAndSubject(TblPerson $tblPerson, TblDivisionCourse $tblDivisionCourse, TblSubject $tblSubject): array
+    public function getTeacherGroupsByTeacherAndDivisionCourseAndSubject(TblPerson $tblPerson, TblDivisionCourse $tblDivisionCourse, TblSubject $tblSubject,
+        bool $OnlyIsDigital = false): array
     {
         $resultList = [];
         if (($tblYear = $tblDivisionCourse->getServiceTblYear())
@@ -1031,6 +1033,10 @@ class Service extends ServiceTask
             $checkDivisionCourseList = DivisionCourse::useService()->getDivisionCourseListByStudentsInDivisionCourse($tblDivisionCourse);
             foreach ($tblDivisionCourseList as $tblDivisionCourseTemp) {
                 if (isset($checkDivisionCourseList[$tblDivisionCourseTemp->getId()])) {
+                    if ($OnlyIsDigital && !$tblDivisionCourseTemp->getIsDigital()) {
+                        continue;
+                    }
+
                     $resultList[$tblDivisionCourseTemp->getId()] = $tblDivisionCourseTemp;
                 }
             }

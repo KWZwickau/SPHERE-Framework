@@ -430,8 +430,8 @@ class ApiAbsence extends Extension implements IApiInterface
             && ($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))
         ) {
             // Kursheft
-            if ($tblDivisionCourse->getTypeIdentifier() == TblDivisionCourseType::TYPE_ADVANCED_COURSE
-                || $tblDivisionCourse->getTypeIdentifier() == TblDivisionCourseType::TYPE_BASIC_COURSE
+            if ($tblDivisionCourse->getType()->getIsCourseSystem()
+                || $tblDivisionCourse->getServiceTblSubject()
             ) {
                 $reloadDigital = ApiDigital::pipelineLoadCourseContentContent($tblDivisionCourse->getId(), ($tblSubject = $tblDivisionCourse->getServiceTblSubject()) ? $tblSubject->getId() : null)
                     . ApiDigital::pipelineLoadCourseMissingStudentContent($tblDivisionCourse->getId());

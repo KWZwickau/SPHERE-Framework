@@ -69,7 +69,7 @@ class FrontendDownload extends FrontendCourseContent
         $content = '';
         $icon = new Download();
         if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
-            if ($tblDivisionCourse->getType()->getIsCourseSystem()) {
+            if ($tblDivisionCourse->getType()->getIsCourseSystem() || $tblDivisionCourse->getServiceTblSubject()) {
                 $text = 'Kursliste';
                 $printLink = (new Link((new Thumbnail(
                     FileSystem::getFileLoader('/Common/Style/Resource/SSWPrint.png'), 'Kursheft'))->setPictureHeight(),

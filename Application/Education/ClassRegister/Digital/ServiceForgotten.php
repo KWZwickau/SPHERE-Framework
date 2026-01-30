@@ -40,7 +40,7 @@ abstract class ServiceForgotten extends ServiceCourseContent
         ?int $limit = null
     ): bool|array {
         $resultList = [];
-        if ($tblDivisionCourse->getType()->getIsCourseSystem()) {
+        if ($tblDivisionCourse->getType()->getIsCourseSystem() || $tblDivisionCourse->getServiceTblSubject()) {
             if ($list = (new Data($this->getBinding()))->getDueDateHomeworkListByCourseSystem($tblDivisionCourse, $date, $limit)) {
                 foreach ($list as $tblCourseContent) {
                     $resultList[$tblCourseContent->getId()] = array(

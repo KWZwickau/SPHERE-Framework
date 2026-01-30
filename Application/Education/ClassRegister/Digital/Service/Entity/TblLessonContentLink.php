@@ -17,17 +17,21 @@ use SPHERE\System\Database\Fitting\Element;
 class TblLessonContentLink extends Element
 {
     const ATTR_TBL_LESSON_CONTENT = 'tblClassRegisterLessonContent';
+    const ATTR_TBL_COURSE_CONTENT = 'tblClassRegisterCourseContent';
     const ATTR_TBL_LINK_ID = 'LinkId';
 
     /**
      * @Column(type="bigint")
      */
     protected $LinkId;
-
     /**
      * @Column(type="bigint")
      */
     protected $tblClassRegisterLessonContent;
+    /**
+     * @Column(type="bigint")
+     */
+    protected $tblClassRegisterCourseContent;
 
     /**
      * @return bool|TblLessonContent
@@ -47,6 +51,26 @@ class TblLessonContentLink extends Element
     public function setTblLessonContent(?TblLessonContent $tblLessonContent)
     {
         $this->tblClassRegisterLessonContent = ( null === $tblLessonContent ? null : $tblLessonContent->getId() );
+    }
+
+    /**
+     * @return bool|TblCourseContent
+     */
+    public function getTblCourseContent(): bool|TblCourseContent
+    {
+        if (null === $this->tblClassRegisterCourseContent) {
+            return false;
+        } else {
+            return Digital::useService()->getCourseContentById($this->tblClassRegisterCourseContent);
+        }
+    }
+
+    /**
+     * @param TblCourseContent|null $tblCourseContent
+     */
+    public function setTblCourseContent(?TblCourseContent $tblCourseContent): void
+    {
+        $this->tblClassRegisterCourseContent = ( null === $tblCourseContent ? null : $tblCourseContent->getId() );
     }
 
     /**

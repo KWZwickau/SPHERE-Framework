@@ -28,6 +28,7 @@ class TblDivisionCourse extends Element
     const SERVICE_TBL_YEAR = 'serviceTblYear';
     const ATTR_IS_SHOWN_IN_PERSON_DATA = 'IsShownInPersonData';
     const ATTR_IS_REPORTING = 'IsReporting';
+    const ATTR_IS_DIGITAL = 'IsDigital';
 
     const ATTR_MIGRATE_GROUP_ID = 'MigrateGroupId';
     const ATTR_MIGRATE_SEK_COURSE = 'MigrateSekCourse';
@@ -70,6 +71,11 @@ class TblDivisionCourse extends Element
      * @Column(type="boolean")
      */
     protected bool $IsReporting = false;
+
+    /**
+     * @Column(type="boolean")
+     */
+    protected bool $IsDigital = false;
 
     /**
      * @Column(type="bigint")
@@ -248,6 +254,22 @@ class TblDivisionCourse extends Element
     public function setIsReporting(bool $IsReporting): void
     {
         $this->IsReporting = $IsReporting;
+    }
+
+    /**
+     * @return bool
+     */
+    public function getIsDigital(): bool
+    {
+        return $this->IsDigital;
+    }
+
+    /**
+     * @param bool $isDigital
+     */
+    public function setIsDigital(bool $isDigital): void
+    {
+        $this->IsDigital = $isDigital;
     }
 
     /**
