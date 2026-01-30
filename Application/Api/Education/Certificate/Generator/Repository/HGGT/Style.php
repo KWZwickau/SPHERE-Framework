@@ -7,6 +7,9 @@ use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Element;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Section;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
+use SPHERE\Application\Education\Graduation\Grade\Grade;
+use SPHERE\Application\Education\Lesson\Subject\Subject;
+use SPHERE\Application\People\Person\Person;
 
 abstract class Style extends Certificate
 {
@@ -14,6 +17,7 @@ abstract class Style extends Certificate
     const MARGIN_TOP_GRADE_LINE = '8px';
     const SUBJECT_WIDTH = 32;
     const GRADE_WIDTH = 4;
+    const GRADE_WIDTH_GRADE_TEXT_ONLY_LEFT = 14;
     const SPACE_WIDTH = 100  - 2 * (self::SUBJECT_WIDTH + self::GRADE_WIDTH);
 
     /**
@@ -295,6 +299,10 @@ abstract class Style extends Certificate
             }
             $SubjectStructure = $SubjectLayout;
 
+            $tblTask = $this->getTblPrepareCertificate() ? $this->getTblPrepareCertificate()->getServiceTblAppointedDateTask() : null;
+            $tblPerson = Person::useService()->getPersonById($personId);
+
+            $isLastGradeText = false;
             foreach ($SubjectStructure as $SubjectList) {
                 // Sort Lane-Ranking (1,2...)
                 ksort($SubjectList);
@@ -308,23 +316,31 @@ abstract class Style extends Certificate
                 foreach ($SubjectList as $Lane => $Subject) {
                     if ($Lane > 1) {
                         $SubjectSection->addElementColumn((new Element())
-                            , self::SPACE_WIDTH . '%');
+                            , $isLastGradeText
+                                ? (100 - (2 * self::SUBJECT_WIDTH) - self::GRADE_WIDTH - self::GRADE_WIDTH_GRADE_TEXT_ONLY_LEFT ) . '%'
+                                : self::SPACE_WIDTH . '%');
                     }
+
+                    // aus dem Twig kann man leider keine bool variable im php machen
+                    $isGradeText = $tblTask && $tblPerson
+                        && ($tblSubject = Subject::useService()->getSubjectByAcronym($Subject['SubjectAcronym']))
+                        && ($tblTaskGrade = Grade::useService()->getTaskGradeByPersonAndTaskAndSubject($tblPerson, $tblTask, $tblSubject))
+                        && $tblTaskGrade->getTblGradeText()
+                        && $tblTaskGrade->getTblGradeText()->getName() != '&ndash;';
 
                     $this->setGradeLine(
                         $SubjectSection,
                         $Subject['SubjectAcronym'] == 'GRW' ? 'G / R / W' : $Subject['SubjectName'],
-                        '{% if(Content.P' . $personId.'.Grade.Data.GradeTextShortName["'.$Subject['SubjectAcronym'].'"] is not empty) %}
-                             {{ Content.P' . $personId.'.Grade.Data.GradeTextShortName["'.$Subject['SubjectAcronym'].'"] }}
+                        '{% if(Content.P' . $personId.'.Grade.Data["'.$Subject['SubjectAcronym'].'"] is not empty) %}
+                             {{ Content.P' . $personId.'.Grade.Data["'.$Subject['SubjectAcronym'].'"] }}
                         {% else %}
-                            {% if(Content.P' . $personId.'.Grade.Data["'.$Subject['SubjectAcronym'].'"] is not empty) %}
-                                 {{ Content.P' . $personId.'.Grade.Data["'.$Subject['SubjectAcronym'].'"] }}
-                            {% else %}
-                                &ndash;
-                            {% endif %}
+                            &ndash;
                         {% endif %}',
+                        $isGradeText,
+                        $Lane == 1 && $isGradeText ? self::GRADE_WIDTH_GRADE_TEXT_ONLY_LEFT . '%' : self::GRADE_WIDTH . '%'
                     );
 
+                    $isLastGradeText = $isGradeText;
                 }
 
                 if (count($SubjectList) == 1 && isset($SubjectList[1])) {
@@ -405,18 +421,28 @@ abstract class Style extends Certificate
      * @param Section $section
      * @param string $subjectName
      * @param string $grade
+     * @param bool $isGradeText
+     * @param string $gradeWidth
      */
-    protected function setGradeLine(Section $section, string $subjectName, string $grade): void
+    protected function setGradeLine(Section $section, string $subjectName, string $grade, bool $isGradeText = false, string $gradeWidth = self::GRADE_WIDTH . '%'): void
     {
         $section->addElementColumn($this->getCustomBoldElement()
                 ->setContent($subjectName)
                 ->styleMarginTop(self::MARGIN_TOP_GRADE_LINE)
             , self::SUBJECT_WIDTH . '%');
-        $section->addElementColumn($this->getCustomBoldElement()
+
+        if ($isGradeText) {
+            $element = (new Element())
+                ->styleTextSize('10pt');
+        } else {
+            $element = $this->getCustomBoldElement();
+        }
+
+        $section->addElementColumn($element
                 ->setContent($grade)
 //                ->styleAlignRight()
                 ->styleMarginTop(self::MARGIN_TOP_GRADE_LINE)
-            , self::GRADE_WIDTH . '%');
+            , $gradeWidth);
     }
 
     /**
