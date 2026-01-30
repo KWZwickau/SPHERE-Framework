@@ -314,10 +314,14 @@ abstract class Style extends Certificate
                     $this->setGradeLine(
                         $SubjectSection,
                         $Subject['SubjectAcronym'] == 'GRW' ? 'G / R / W' : $Subject['SubjectName'],
-                        '{% if(Content.P' . $personId.'.Grade.Data["'.$Subject['SubjectAcronym'].'"] is not empty) %}
-                             {{ Content.P' . $personId.'.Grade.Data["'.$Subject['SubjectAcronym'].'"] }}
+                        '{% if(Content.P' . $personId.'.Grade.Data.GradeTextShortName["'.$Subject['SubjectAcronym'].'"] is not empty) %}
+                             {{ Content.P' . $personId.'.Grade.Data.GradeTextShortName["'.$Subject['SubjectAcronym'].'"] }}
                         {% else %}
-                            &ndash;
+                            {% if(Content.P' . $personId.'.Grade.Data["'.$Subject['SubjectAcronym'].'"] is not empty) %}
+                                 {{ Content.P' . $personId.'.Grade.Data["'.$Subject['SubjectAcronym'].'"] }}
+                            {% else %}
+                                &ndash;
+                            {% endif %}
                         {% endif %}',
                     );
 
