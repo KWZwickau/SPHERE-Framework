@@ -1656,28 +1656,4 @@ class Data extends AbstractData
             TblCertificateLevel::ATTR_LEVEL => null
         ));
     }
-
-    /**
-     * @param array $tblEntityList
-     *
-     * @return bool
-     */
-    public function updateEntityListBulk(array $tblEntityList): bool
-    {
-        $Manager = $this->getEntityManager();
-
-        /** @var Element $tblElement */
-        foreach ($tblEntityList as $tblElement) {
-            /** @var Element $Entity */
-            $Entity = $Manager->getEntityManagedForProtocol($tblElement->getEntityShortName(), $tblElement->getId());
-
-            $Manager->bulkSaveEntity($tblElement);
-            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Entity, $tblElement, true);
-        }
-
-        $Manager->flushCache();
-        Protocol::useService()->flushBulkEntries();
-
-        return true;
-    }
 }

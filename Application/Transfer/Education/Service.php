@@ -67,16 +67,6 @@ class Service extends AbstractService
      *
      * @return bool
      */
-    public function updateEntityListBulk(array $tblEntityList): bool
-    {
-        return (new Data($this->getBinding()))->updateEntityListBulk($tblEntityList);
-    }
-
-    /**
-     * @param array $tblEntityList
-     *
-     * @return bool
-     */
     public function deleteEntityListBulk(array $tblEntityList): bool
     {
         return (new Data($this->getBinding()))->deleteEntityListBulk($tblEntityList);
@@ -570,18 +560,16 @@ class Service extends AbstractService
                         continue;
                     // Person wird gemappt
                     } elseif (($tblPerson = Person::useService()->getPersonById($PersonId))) {
-                        $tblImportStudent->setServiceTblPerson($tblPerson);
-                        $updateImportStudentList[$tblImportStudent->getId()] = $tblImportStudent;
+                        $updateImportStudentList[$tblImportStudent->getId()] = $tblPerson;
                     // vorhandenes Personen-Mapping löschen
                     } elseif ($tblImportStudent->getServiceTblPerson()) {
-                        $tblImportStudent->setServiceTblPerson();
-                        $updateImportStudentList[$tblImportStudent->getId()] = $tblImportStudent;
+                        $updateImportStudentList[$tblImportStudent->getId()] = null;
                     }
                 }
             }
 
             if (!empty($updateImportStudentList)) {
-                $this->updateEntityListBulk($updateImportStudentList);
+                (new Data($this->getBinding()))->updateImportStudentListBulk($updateImportStudentList);
             }
         }
 
