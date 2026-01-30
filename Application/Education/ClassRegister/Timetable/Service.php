@@ -22,11 +22,13 @@ use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
+use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronRight;
 use SPHERE\Common\Frontend\Icon\Repository\Extern;
+use SPHERE\Common\Frontend\Icon\Repository\Pen;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
@@ -1320,5 +1322,64 @@ class Service extends AbstractService
         }
 
         return '';
+    }
+
+    /**
+     * @param TblTimetable $tblTimetable
+     * @param TblDivisionCourse $tblDivisionCourse
+     *
+     * @return array
+     */
+    public function getTimetableDivisionData(TblTimetable $tblTimetable, TblDivisionCourse $tblDivisionCourse): array
+    {
+        $headerList = [];
+        $bodyList = [];
+        $headerList['UE'] = 'UE';
+
+        if ($tblDivisionCourse->getHasSaturdayLessons()) {
+            $daysInWeek = 6;
+        } else {
+            $daysInWeek = 5;
+        }
+
+        $maxLesson = 12;
+        if (($tblSetting = Consumer::useService()->getSetting('Education', 'ClassRegister', 'LessonContent', 'StartsLessonContentWithZeroLesson'))
+            && $tblSetting->getValue()
+        ) {
+            $minLesson = 0;
+        } else {
+            $minLesson = 1;
+        }
+
+        $dayNames = array(
+            '0' => 'Sonntag',
+            '1' => 'Montag',
+            '2' => 'Dienstag',
+            '3' => 'Mittwoch',
+            '4' => 'Donnerstag',
+            '5' => 'Freitag',
+            '6' => 'Samstag',
+        );
+
+        for ($day = 1; $day <= $daysInWeek; $day++) {
+            $headerList[$dayNames[$day]] = $dayNames[$day];
+            for ($lesson = $minLesson; $lesson <= $maxLesson; $lesson++) {
+                $bodyList[$lesson]['UE'] = $lesson . '.';
+            }
+            if (($tblTimetableNodeList = Timetable::useService()->getTimetableNodeListByTimetableAndDivisionCourseAndDay($tblTimetable, $tblDivisionCourse, $day))) {
+                foreach ($tblTimetableNodeList as $tblTimetableNode) {
+                    $bodyList[$tblTimetableNode->getHour()][$dayNames[$day]]
+                        = (isset($bodyList[$tblTimetableNode->getHour()][$day]) ? $bodyList[$tblTimetableNode->getHour()][$day] . ', ' : '')
+                        . (($tblSubject = $tblTimetableNode->getServiceTblSubject()) ? $tblSubject->getAcronym() : '')
+                        . ($tblTimetableNode->getWeek() ? ' (' . $tblTimetableNode->getWeek() . ')' : '')
+                        . (($room = $tblTimetableNode->getRoom()) ? ' [' . $room . ']' : '');
+                }
+            }
+        }
+
+        return [
+            $headerList,
+            $bodyList
+        ];
     }
 }
