@@ -19,11 +19,14 @@ class NumberToWord
     {
 
         if($fNumber != ''){
-            $fNumber = (float)str_replace('€', '', $fNumber);
-            // Tausender Trennzeichen entfernen
-            // Dezimal mit Punkt
-            // Zahl auf 2 Nachkommastellen runden (wenn zu lang)
-            $fNumber = (float)number_format($fNumber, 2, ',', '.');
+            // float macht aus tausender Zahlen plötzlich einstellige Zahlen.
+//            $fNumber = (float)str_replace('€', '', $fNumber);
+//            // Tausender Trennzeichen entfernen
+//            // Dezimal mit Punkt
+//            // Zahl auf 2 Nachkommastellen runden (wenn zu lang)
+//            Debugger::devDump($fNumber);
+            $fNumber = str_replace(['.', ',', '€', ' '], ['', '.', '', ''], $fNumber);
+            $fNumber = (float)$fNumber;
             $positionC = strpos($fNumber, '.');
             if($positionC){
                 $numberInt = substr($fNumber, 0, $positionC);
@@ -46,7 +49,6 @@ class NumberToWord
             if($IsMoney){
                 return self::num2text($numberInt).' Euro und '.self::num2text($numberFloat).' Cent';
             }
-
             return self::num2text($numberInt).' und '.self::num2text($numberFloat);
         }
         return self::num2text(0).' Euro';

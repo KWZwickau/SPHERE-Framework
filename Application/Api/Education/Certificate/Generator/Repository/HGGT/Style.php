@@ -314,10 +314,14 @@ abstract class Style extends Certificate
                     $this->setGradeLine(
                         $SubjectSection,
                         $Subject['SubjectAcronym'] == 'GRW' ? 'G / R / W' : $Subject['SubjectName'],
-                        '{% if(Content.P' . $personId.'.Grade.Data["'.$Subject['SubjectAcronym'].'"] is not empty) %}
-                             {{ Content.P' . $personId.'.Grade.Data["'.$Subject['SubjectAcronym'].'"] }}
+                        '{% if(Content.P' . $personId.'.Grade.Data.GradeTextShortName["'.$Subject['SubjectAcronym'].'"] is not empty) %}
+                             {{ Content.P' . $personId.'.Grade.Data.GradeTextShortName["'.$Subject['SubjectAcronym'].'"] }}
                         {% else %}
-                            &ndash;
+                            {% if(Content.P' . $personId.'.Grade.Data["'.$Subject['SubjectAcronym'].'"] is not empty) %}
+                                 {{ Content.P' . $personId.'.Grade.Data["'.$Subject['SubjectAcronym'].'"] }}
+                            {% else %}
+                                &ndash;
+                            {% endif %}
                         {% endif %}',
                     );
 
@@ -607,12 +611,12 @@ abstract class Style extends Certificate
                     ->addElementColumn((new Element())
                         , '40%')
                     ->addElementColumn((new Element())
-                        ->setContent(
-                            '{% if(Content.P' . $personId . '.DivisionTeacher.Name is not empty) %}
-                                {{ Content.P' . $personId . '.DivisionTeacher.Name }}
-                            {% else %}
-                                &nbsp;
-                            {% endif %}'
+                        ->setContent('&nbsp;'
+//                            '{% if(Content.P' . $personId . '.DivisionTeacher.Name is not empty) %}
+//                                {{ Content.P' . $personId . '.DivisionTeacher.Name }}
+//                            {% else %}
+//                                &nbsp;
+//                            {% endif %}'
                         )
                         ->styleTextSize('10pt')
                         ->stylePaddingTop('2px')
@@ -649,12 +653,12 @@ abstract class Style extends Certificate
                     ->addElementColumn((new Element())
                         , '70%')
                     ->addElementColumn((new Element())
-                        ->setContent(
-                            '{% if(Content.P' . $personId . '.DivisionTeacher.Name is not empty) %}
-                                {{ Content.P' . $personId . '.DivisionTeacher.Name }}
-                            {% else %}
-                                &nbsp;
-                            {% endif %}'
+                        ->setContent('&nbsp;'
+//                            '{% if(Content.P' . $personId . '.DivisionTeacher.Name is not empty) %}
+//                                {{ Content.P' . $personId . '.DivisionTeacher.Name }}
+//                            {% else %}
+//                                &nbsp;
+//                            {% endif %}'
                         )
                         ->styleTextSize('10pt')
                         ->stylePaddingTop('2px')
