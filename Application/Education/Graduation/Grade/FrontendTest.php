@@ -237,7 +237,7 @@ abstract class FrontendTest extends FrontendTeacherGroup
             )),
             new FormRow(array(
                 new FormColumn(
-                    $this->getDivisionCoursesSelectContent($DivisionCourseId, $SubjectId, $Filter)
+                    $this->getDivisionCoursesSelectContent($DivisionCourseId, $SubjectId, $Filter, $tblTest ?: null)
                 )
             )),
             new FormRow(array(
@@ -263,10 +263,11 @@ abstract class FrontendTest extends FrontendTeacherGroup
      * @param $DivisionCourseId
      * @param $SubjectId
      * @param $Filter
+     * @param TblTest|null $tblTest
      *
      * @return Layout|Warning
      */
-    public function getDivisionCoursesSelectContent($DivisionCourseId, $SubjectId, $Filter)
+    public function getDivisionCoursesSelectContent($DivisionCourseId, $SubjectId, $Filter, ?TblTest $tblTest): Layout|Warning
     {
         if (!($tblSubject = Subject::useService()->getSubjectById($SubjectId))) {
             return new Warning('Fach wurde nicht gefunden.', new Exclamation());
@@ -303,6 +304,17 @@ abstract class FrontendTest extends FrontendTeacherGroup
                         $contentPanelList[$tblDivisionCourse->getType()->getId()][$tblDivisionCourse->getId()]
                             = (new CheckBox("Data[DivisionCourses][{$tblDivisionCourse->getId()}]", $tblDivisionCourse->getDisplayName(), 1))
                                 ->ajaxPipelineOnChange(ApiGradeBook::pipelineLoadTestPlanning());
+                    }
+                }
+
+                // bereits ausgewählte Kurse mit hinzufügen (z.B. Lerngruppe) für Schulleitung
+                if ($tblTest) {
+                    foreach ($tblTest->getDivisionCourses() as $tblDivisionCourseTemp) {
+                        if (!isset($contentPanelList[$tblDivisionCourseTemp->getType()->getId()][$tblDivisionCourseTemp->getId()])) {
+                            $contentPanelList[$tblDivisionCourseTemp->getType()->getId()][$tblDivisionCourseTemp->getId()]
+                                = (new CheckBox("Data[DivisionCourses][{$tblDivisionCourseTemp->getId()}]", $tblDivisionCourseTemp->getDisplayName(), 1))
+                                ->ajaxPipelineOnChange(ApiGradeBook::pipelineLoadTestPlanning());
+                        }
                     }
                 }
             }
