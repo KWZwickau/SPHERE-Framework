@@ -434,7 +434,17 @@ abstract class ServiceYearChange extends ServiceTeacher
                 (new Data($this->getBinding()))->createEntityListBulk($createStudentEducationList);
             }
             if (!empty($updateStudentEducationList)) {
-                (new Data($this->getBinding()))->updateEntityListBulk($updateStudentEducationList);
+                foreach ($updateStudentEducationList as $tblStudentEducationUpdate) {
+                    (new Data($this->getBinding()))->updateStudentEducationByProperties(
+                        $tblStudentEducationUpdate,
+                        $tblStudentEducationUpdate->getTblDivision() ?: null,
+                        $tblStudentEducationUpdate->getDivisionSortOrder(),
+                        $tblStudentEducationUpdate->getTblCoreGroup() ?: null,
+                        $tblStudentEducationUpdate->getCoreGroupSortOrder(),
+                        $tblStudentEducationUpdate->getLeaveDateTime(),
+                        $tblStudentEducationUpdate->getLevel()
+                    );
+                }
             }
             if (!empty($createMemberList)) {
                 (new Data($this->getBinding()))->createEntityListBulk($createMemberList);
@@ -570,7 +580,7 @@ abstract class ServiceYearChange extends ServiceTeacher
         $divisionCourseTargetList = array();
         $divisionCourseStudentList = array();
         $createMemberList = array();
-        $updateStudentEducationList = array();
+        $updateStudentEducationListCoreGroup = array();
         if (($tblStudentEducationList = DivisionCourse::useService()->getStudentEducationListBy($tblYearSource))) {
             $tblStudentEducationList = $this->getSorter($tblStudentEducationList)->sortObjectBy('Sort');
             /** @var TblStudentEducation $tblStudentEducationSource */
@@ -594,8 +604,7 @@ abstract class ServiceYearChange extends ServiceTeacher
                     $divisionCourseStudentList[$tblCoreGroupSource->getId()][$tblPerson->getId()] = $tblPerson->getLastFirstName();
 
                     if ($isSave) {
-                        $tblStudentEducationTarget->setTblCoreGroup($divisionCourseTargetList[$tblCoreGroupSource->getId()] ?? null);
-                        $updateStudentEducationList[] = $tblStudentEducationTarget;
+                        $updateStudentEducationListCoreGroup[$tblStudentEducationTarget->getId()] = $divisionCourseTargetList[$tblCoreGroupSource->getId()] ?? null;
                     }
                 }
             }
@@ -615,8 +624,8 @@ abstract class ServiceYearChange extends ServiceTeacher
         }
 
         if ($isSave) {
-            if (!empty($updateStudentEducationList)) {
-                (new Data($this->getBinding()))->updateEntityListBulk($updateStudentEducationList);
+            if (!empty($updateStudentEducationListCoreGroup)) {
+                (new Data($this->getBinding()))->updateStudentEducationBulk($updateStudentEducationListCoreGroup, TblStudentEducation::ATTR_TBL_CORE_GROUP);
             }
             if (!empty($createMemberList)) {
                 (new Data($this->getBinding()))->createEntityListBulk($createMemberList);

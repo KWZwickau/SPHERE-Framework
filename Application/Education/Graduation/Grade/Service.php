@@ -430,13 +430,73 @@ class Service extends ServiceTask
     }
 
     /**
-     * @param array $tblEntityList
+     * @param array $list
      *
      * @return bool
      */
-    public function updateEntityListBulk(array $tblEntityList): bool
+    public function updateTestGradeListBulk(array $list): bool
     {
-        return (new Data($this->getBinding()))->updateEntityListBulk($tblEntityList);
+        return (new Data($this->getBinding()))->updateTestGradeListBulk($list);
+    }
+
+    /**
+     * @param array $list
+     *
+     * @return bool
+     */
+    public function updateTaskGradeListBulk(array $list): bool
+    {
+        return (new Data($this->getBinding()))->updateTaskGradeListBulk($list);
+    }
+
+    /**
+     * @param array $list
+     *
+     * @return bool
+     */
+    public function updateProposalBehaviorGradeListBulk(array $list): bool
+    {
+        return (new Data($this->getBinding()))->updateProposalBehaviorGradeListBulk($list);
+    }
+
+    /**
+     * @param array $list
+     *
+     * @return bool
+     */
+    public function updateScoreTypeSubjectListBulk(array $list): bool
+    {
+        return (new Data($this->getBinding()))->updateScoreTypeSubjectListBulk($list);
+    }
+
+    /**
+     * @param array $list
+     *
+     * @return bool
+     */
+    public function updateScoreRuleBehaviorSubjectListBulk(array $list): bool
+    {
+        return (new Data($this->getBinding()))->updateScoreRuleBehaviorSubjectListBulk($list);
+    }
+
+    /**
+     * @param array $list
+     *
+     * @return bool
+     */
+    public function updateScoreRuleSubjectListBulk(array $list): bool
+    {
+        return (new Data($this->getBinding()))->updateScoreRuleSubjectListBulk($list);
+    }
+
+    /**
+     * @param array $list
+     *
+     * @return bool
+     */
+    public function updateScoreRuleSubjectDivisionCourseListBulk(array $list): bool
+    {
+        return (new Data($this->getBinding()))->updateScoreRuleSubjectDivisionCourseListBulk($list);
     }
 
     /**

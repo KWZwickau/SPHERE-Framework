@@ -178,20 +178,25 @@ abstract class DataStudentSubject extends DataMigrate
     }
 
     /**
-     * @param array $tblStudentSubjectList
+     * @param array $list
      *
      * @return bool
      */
-    public function updateStudentSubjectBulkList(array $tblStudentSubjectList): bool
+    public function updateStudentSubjectBulkSetHasGradingList(array $list): bool
     {
         $Manager = $this->getConnection()->getEntityManager();
 
-        foreach ($tblStudentSubjectList as $tblStudentSubject) {
+        foreach ($list as $studentSubjectId => $value) {
             /** @var TblStudentSubject $Entity */
-            $Entity = $Manager->getEntityManagedForProtocol('TblStudentSubject', $tblStudentSubject->getId());
+            $Entity = $Manager->getEntityById('TblStudentSubject', $studentSubjectId);
+            $Protocol = clone $Entity;
 
-            $Manager->bulkSaveEntity($tblStudentSubject);
-            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Entity, $tblStudentSubject, true);
+            if (null !== $Entity) {
+                $Entity->setHasGrading($value);
+
+                $Manager->bulkSaveEntity($Entity);
+                Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity, true);
+            }
         }
 
         $Manager->flushCache();

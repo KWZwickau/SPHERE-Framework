@@ -714,12 +714,13 @@ class ApiGradeBook extends Extension implements IApiInterface
                                 || $comment != $tblTestGrade->getComment()
                                 || $publicComment != $tblTestGrade->getPublicComment()
                             ) {
-                                $tblTestGrade->setGrade($gradeValue);
-                                $tblTestGrade->setDate($date);
-                                $tblTestGrade->setComment($comment);
-                                $tblTestGrade->setPublicComment($publicComment);
-                                $tblTestGrade->setServiceTblPersonTeacher($tblTeacher ?: null);
-                                $updateList[] = $tblTestGrade;
+                                $updateList[$tblTestGrade->getId()] = [
+                                    'Grade' => $gradeValue,
+                                    'Date' => $date,
+                                    'Comment' => $comment,
+                                    'PublicComment' => $publicComment,
+                                    'PersonTeacher' => $tblTeacher ?: null
+                                ];
                             }
                         } else {
                             $deleteList[] = $tblTestGrade;
@@ -737,7 +738,7 @@ class ApiGradeBook extends Extension implements IApiInterface
             Grade::useService()->createEntityListBulk($createList);
         }
         if (!empty($updateList)) {
-            Grade::useService()->updateEntityListBulk($updateList);
+            Grade::useService()->updateTestGradeListBulk($updateList);
         }
         if (!empty($deleteList)) {
             Grade::useService()->deleteEntityListBulk($deleteList);
@@ -951,10 +952,11 @@ class ApiGradeBook extends Extension implements IApiInterface
                                             if ($gradeValue != $tblTaskGrade->getGrade()
                                                 || $comment != $tblTaskGrade->getComment()
                                             ) {
-                                                $tblTaskGrade->setGrade($gradeValue);
-                                                $tblTaskGrade->setComment($comment);
-                                                $tblTaskGrade->setServiceTblPersonTeacher($tblTeacher ?: null);
-                                                $updateList[] = $tblTaskGrade;
+                                                $updateList[$tblTaskGrade->getId()] = [
+                                                    'Grade' => $gradeValue,
+                                                    'Comment' => $comment,
+                                                    'PersonTeacher' => $tblTeacher ?: null
+                                                ];
                                             }
                                         } else {
                                             $deleteList[] = $tblTaskGrade;
@@ -989,11 +991,12 @@ class ApiGradeBook extends Extension implements IApiInterface
                                     || $gradeTextId != $gradeTextTempId
                                     || $comment != $tblTaskGrade->getComment()
                                 ) {
-                                    $tblTaskGrade->setGrade($gradeValue);
-                                    $tblTaskGrade->setTblGradeText($tblGradeText ?: null);
-                                    $tblTaskGrade->setComment($comment);
-                                    $tblTaskGrade->setServiceTblPersonTeacher($tblTeacher ?: null);
-                                    $updateList[] = $tblTaskGrade;
+                                    $updateList[$tblTaskGrade->getId()] = [
+                                        'Grade' => $gradeValue,
+                                        'GradeText' => $tblGradeText ?: null,
+                                        'Comment' => $comment,
+                                        'PersonTeacher' => $tblTeacher ?: null
+                                    ];
                                 }
                             } else {
                                 $deleteList[] = $tblTaskGrade;
@@ -1013,7 +1016,7 @@ class ApiGradeBook extends Extension implements IApiInterface
             Grade::useService()->createEntityListBulk($createList);
         }
         if (!empty($updateList)) {
-            Grade::useService()->updateEntityListBulk($updateList);
+            Grade::useService()->updateTaskGradeListBulk($updateList);
         }
         if (!empty($deleteList)) {
             Grade::useService()->deleteEntityListBulk($deleteList);
@@ -1137,10 +1140,11 @@ class ApiGradeBook extends Extension implements IApiInterface
                                         if ($gradeValue != $tblProposalBehaviorGrade->getGrade()
                                             || $comment != $tblProposalBehaviorGrade->getComment()
                                         ) {
-                                            $tblProposalBehaviorGrade->setGrade($gradeValue);
-                                            $tblProposalBehaviorGrade->setComment($comment);
-                                            $tblProposalBehaviorGrade->setServiceTblPersonTeacher($tblTeacher ?: null);
-                                            $updateList[] = $tblProposalBehaviorGrade;
+                                            $updateList[$tblProposalBehaviorGrade->getId()] = [
+                                                'Grade' => $gradeValue,
+                                                'Comment' => $comment,
+                                                'PersonTeacher' => $tblTeacher ?: null
+                                            ];
                                         }
                                     } else {
                                         $deleteList[] = $tblProposalBehaviorGrade;
@@ -1163,7 +1167,7 @@ class ApiGradeBook extends Extension implements IApiInterface
             Grade::useService()->createEntityListBulk($createList);
         }
         if (!empty($updateList)) {
-            Grade::useService()->updateEntityListBulk($updateList);
+            Grade::useService()->updateProposalBehaviorGradeListBulk($updateList);
         }
         if (!empty($deleteList)) {
             Grade::useService()->deleteEntityListBulk($deleteList);
