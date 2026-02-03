@@ -25,6 +25,7 @@ use SPHERE\Application\Api\Education\DivisionCourse\ApiSubjectTable;
 use SPHERE\Application\Api\Education\DivisionCourse\ApiTeacherLectureship;
 use SPHERE\Application\Api\Education\DivisionCourse\ApiYearChange;
 use SPHERE\Application\Api\Education\Graduation\Grade\ApiGradeBook;
+use SPHERE\Application\Api\Education\Graduation\Grade\ApiGradeType;
 use SPHERE\Application\Api\Education\Graduation\Grade\ApiScoreRule;
 use SPHERE\Application\Api\Education\Graduation\Grade\ApiScoreRuleBehavior;
 use SPHERE\Application\Api\Education\Graduation\Grade\ApiScoreType;
@@ -50,9 +51,8 @@ use SPHERE\Application\IApplicationInterface;
 class Education implements IApplicationInterface
 {
 
-    public static function registerApplication()
+    public static function registerApplication(): void
     {
-
         Certificate::registerModule();
         ClassRegister::registerModule();
         ApiDiary::registerApi();
@@ -92,5 +92,6 @@ class Education implements IApplicationInterface
         ApiLeaveStudent::registerApi();
         ApiPreviewCertificate::registerApi();
         ApiScheduleTime::registerApi();
+        ApiGradeType::registerApi();
     }
 }
