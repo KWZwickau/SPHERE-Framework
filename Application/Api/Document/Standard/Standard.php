@@ -49,6 +49,9 @@ class Standard extends Extension implements IModuleInterface
             __NAMESPACE__.'/SignOutCertificate/Create', __CLASS__.'::createSignOutCertificatePdf'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/SignInCertificate/Create', __CLASS__.'::createSignInCertificatePdf'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/AccidentReport/Create', __CLASS__.'::createAccidentReportPdf'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
@@ -217,6 +220,16 @@ class Standard extends Extension implements IModuleInterface
     public static function createSignOutCertificatePdf($Data = array())
     {
         return Creator::createDataPdf($Data, 'SignOutCertificate', Creator::PAPERORIENTATION_PORTRAIT);
+    }
+
+    /**
+     * @param array $Data
+     *
+     * @return Stage|string
+     */
+    public static function createSignInCertificatePdf($Data = array())
+    {
+        return Creator::createDataPdf($Data, 'SignInCertificate', Creator::PAPERORIENTATION_PORTRAIT);
     }
 
     /**
