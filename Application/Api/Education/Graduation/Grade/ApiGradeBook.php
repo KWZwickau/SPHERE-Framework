@@ -1,4 +1,4 @@
-<?php
+<?php /** @noinspection PhpUnused */
 
 namespace SPHERE\Application\Api\Education\Graduation\Grade;
 
@@ -49,6 +49,7 @@ class ApiGradeBook extends Extension implements IApiInterface
         $Dispatcher->registerMethod('changeYear');
         $Dispatcher->registerMethod('changeRole');
         $Dispatcher->registerMethod('loadHeader');
+        $Dispatcher->registerMethod('changeShowDivisionTeacherGradeBooks');
 
         $Dispatcher->registerMethod('loadViewGradeBookSelect');
         $Dispatcher->registerMethod('loadGradeBookSelectFilterContent');
@@ -194,7 +195,7 @@ class ApiGradeBook extends Extension implements IApiInterface
             Consumer::useService()->createAccountSetting("GradeBookRole", $role);
 
             return ""
-                . self::pipelineLoadHeader(Frontend::VIEW_GRADE_BOOK_SELECT)
+                . self::pipelineLoadHeader(FrontendBasic::VIEW_GRADE_BOOK_SELECT)
                 . self::pipelineLoadViewGradeBookSelect();
         }
 
@@ -232,11 +233,47 @@ class ApiGradeBook extends Extension implements IApiInterface
     }
 
     /**
+     * @return Pipeline
+     */
+    public static function pipelineChangeShowDivisionTeacherGradeBooks(): Pipeline
+    {
+        $Pipeline = new Pipeline(true);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'Content'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'changeShowDivisionTeacherGradeBooks',
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param null $Data
+     *
+     * @return string
+     */
+    public function changeShowDivisionTeacherGradeBooks($Data = null): string
+    {
+        $show = isset($Data['ShowDivisionTeacherGradeBooks']);
+
+        $value = Consumer::useService()->getAccountSettingValue("DontShowDivisionTeacherGradeBooks");
+        if ($value == $show) {
+            Consumer::useService()->createAccountSetting("DontShowDivisionTeacherGradeBooks", !$value);
+
+            return ""
+                . self::pipelineLoadViewGradeBookSelect(null, $value ? 'true' : 'false');
+        }
+
+        return "";
+    }
+
+    /**
      * @param null $Filter
+     * @param string $DontShowDivisionTeacherGradeBooks
      *
      * @return Pipeline
      */
-    public static function pipelineLoadViewGradeBookSelect($Filter = null): Pipeline
+    public static function pipelineLoadViewGradeBookSelect($Filter = null, string $DontShowDivisionTeacherGradeBooks = 'null'): Pipeline
     {
         $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'Content'), self::getEndpoint());
@@ -244,7 +281,8 @@ class ApiGradeBook extends Extension implements IApiInterface
             self::API_TARGET => 'loadViewGradeBookSelect',
         ));
         $ModalEmitter->setPostPayload(array(
-            'Filter' => $Filter
+            'Filter' => $Filter,
+            'DontShowDivisionTeacherGradeBooks' => $DontShowDivisionTeacherGradeBooks,
         ));
         $ModalEmitter->setLoadingMessage("Daten werden geladen");
         $Pipeline->appendEmitter($ModalEmitter);
@@ -254,10 +292,11 @@ class ApiGradeBook extends Extension implements IApiInterface
 
     /**
      * @param $Filter
+     * @param $DontShowDivisionTeacherGradeBooks
      *
      * @return string
      */
-    public function loadViewGradeBookSelect($Filter): string
+    public function loadViewGradeBookSelect($Filter, $DontShowDivisionTeacherGradeBooks): string
     {
 //        if (isset($Filter['SchoolType'])
 //            && ($tblConsumer = \SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer::useService()->getConsumerBySession())
@@ -265,7 +304,15 @@ class ApiGradeBook extends Extension implements IApiInterface
 //            Consumer::useService()->createAccountSetting('GradeBookHeadmasterSelectSchoolTypeByConsumerId_' . $tblConsumer->getId(), $Filter['SchoolType']);
 //        }
 
-        return Grade::useFrontend()->loadViewGradeBookSelect($Filter);
+        if ($DontShowDivisionTeacherGradeBooks == 'true') {
+            $boolean = false;
+        } elseif ($DontShowDivisionTeacherGradeBooks == 'false') {
+            $boolean = true;
+        } else {
+            $boolean = null;
+        }
+
+        return Grade::useFrontend()->loadViewGradeBookSelect($Filter, $boolean);
     }
 
     /**
@@ -378,7 +425,7 @@ class ApiGradeBook extends Extension implements IApiInterface
      * @param $TestId
      * @param $DivisionCourseId
      * @param $SubjectId
-     * @param null $Filter
+     * @param $Filter
      *
      * @return Pipeline
      */
@@ -1231,9 +1278,9 @@ class ApiGradeBook extends Extension implements IApiInterface
     /**
      * @param $DivisionCourseId
      *
-     * @return Danger|string
+     * @return string
      */
-    public function setGradeText($DivisionCourseId)
+    public function setGradeText($DivisionCourseId): string
     {
         if (!($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
             return (new Danger('Kurs nicht gefunden', new Exclamation()));
@@ -1307,6 +1354,7 @@ class ApiGradeBook extends Extension implements IApiInterface
 
     /**
      * @param $TestId
+     * @param null $Data
      *
      * @return String
      */
@@ -1458,9 +1506,9 @@ class ApiGradeBook extends Extension implements IApiInterface
     /**
      * @param $TestId
      *
-     * @return Danger|string
+     * @return string
      */
-    public function setAttendance($TestId)
+    public function setAttendance($TestId): string
     {
         if (!($tblTest = Grade::useService()->getTestById($TestId))) {
             return (new Danger('Leistungsüberprüfung nicht gefunden', new Exclamation()));
@@ -1509,7 +1557,7 @@ class ApiGradeBook extends Extension implements IApiInterface
      * @param $isAttendance
      * @param $PersonId
      *
-     * @return SelectBox
+     * @return CheckBox
      */
     public function changeAttendance($isAttendance, $PersonId): CheckBox
     {
