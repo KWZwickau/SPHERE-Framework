@@ -664,8 +664,12 @@ abstract class ServiceTabs extends ServiceForgotten
                         }
 
                         $tblDivisionCourseListForDay = [];
+                        $tblTimeTableNodeListOnlySekI = [];
                         foreach ($tblTimeTableNodeList as $tblTimeTableNodeTemp) {
-                            if (($tblDivisionCourseTemp = $tblTimeTableNodeTemp->getServiceTblCourse())) {
+                            if (($tblDivisionCourseTemp = $tblTimeTableNodeTemp->getServiceTblCourse())
+                                // SSWHD-3921 SEKII ignorieren
+                                && !DivisionCourse::useService()->getIsCourseSystemByStudentsInDivisionCourse($tblDivisionCourseTemp)
+                            ) {
                                 // Klassen hinzufügen für Schule (Ferien)
                                 if (!isset($tblDivisionCourseList[$tblDivisionCourseTemp->getId()])) {
                                     $tblDivisionCourseList[$tblDivisionCourseTemp->getId()] = $tblDivisionCourseTemp;
@@ -676,13 +680,15 @@ abstract class ServiceTabs extends ServiceForgotten
                                 if (!isset($tblDivisionCourseListForDay[$tblDivisionCourseTemp->getId()])) {
                                     $tblDivisionCourseListForDay[$tblDivisionCourseTemp->getId()] = $tblDivisionCourseTemp;
                                 }
+
+                                $tblTimeTableNodeListOnlySekI[] = $tblTimeTableNodeTemp;
                             }
                         }
 
                         $timetables[$day][$tblTimetable->getId()] = [
                             'FromDate' => $tblTimetable->getDateFrom(true),
                             'ToDate' => $tblTimetable->getDateTo(true),
-                            'tblTimetableNodeList' => $tblTimeTableNodeList,
+                            'tblTimetableNodeList' => $tblTimeTableNodeListOnlySekI,
                             'tblTimetable' => $tblTimetable,
                             'tblDivisionCourseListForDay' => $tblDivisionCourseListForDay
                         ];
