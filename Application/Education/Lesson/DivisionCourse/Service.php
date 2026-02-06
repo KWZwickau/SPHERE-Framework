@@ -1935,6 +1935,11 @@ class Service extends ServiceYearChange
             $tblStudentEducationNew->setServiceTblCompany($tblCompany);
             $tblStudentEducationNew->setServiceTblCourse(Course::useService()->getCourseById($Data['Course']) ?: null);
 
+            // neu nur anlegen, wenn eine Klasse und oder Stammgruppe ausgewählt ist
+            if (!$tblStudentEducationNew->getTblDivision() && !$tblStudentEducationNew->getTblCoreGroup()) {
+                return true;
+            }
+
             if ((new Data($this->getBinding()))->createStudentEducation($tblStudentEducationNew)) {
                 return true;
             }
