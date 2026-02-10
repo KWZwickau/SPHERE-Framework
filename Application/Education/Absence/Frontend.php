@@ -982,9 +982,10 @@ class Frontend extends FrontendClassRegister
                 foreach ($tblPersonList as $tblPerson) {
                     // nur nach Schülern suchen
                     if (Group::useService()->existsGroupPerson($tblGroup, $tblPerson)) {
-                        $radio = (new RadioBox('Data[PersonId]', '&nbsp;', $tblPerson->getId()))->ajaxPipelineOnClick(
-                            ApiAbsence::pipelineLoadType()
-                        );
+                        $radio = (new RadioBox('Data[PersonId]', '&nbsp;', $tblPerson->getId()))->ajaxPipelineOnClick([
+                            ApiAbsence::pipelineLoadType(),
+                            ApiAbsence::pipelineLoadLesson()
+                        ]);
 
                         $resultList[] = array(
                             'Select' => $radio,

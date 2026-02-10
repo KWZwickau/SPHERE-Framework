@@ -207,10 +207,10 @@ class Frontend extends Extension implements IFrontendInterface
                         (new Container(new Bold('UE')))->setStyle(['padding-left: 30px;'])
                     , 2),
                     new LayoutColumn(
-                        new Bold('Startzeit')
+                        new Bold('Startzeit') . ' (HH:mm)'
                     , 5),
                     new LayoutColumn(
-                        new Bold('Endzeit')
+                        new Bold('Endzeit') . ' (HH:mm)'
                     , 5)
                 ))))
             )),

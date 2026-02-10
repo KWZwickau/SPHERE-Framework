@@ -176,7 +176,7 @@ class Service extends AbstractService
 
                 if (!empty($startTime)) {
                     if (!$this->validTime($startTime)) {
-                        $form->setError("Data[Times][$lesson][StartTime]", 'Bitte geben Sie eine gültige Uhrzeit an');
+                        $form->setError("Data[Times][$lesson][StartTime]", 'Bitte geben Sie eine gültige Uhrzeit (HH:mm) an');
                         $error = true;
                     }
                 } elseif (!empty($endTime)) {
@@ -186,7 +186,7 @@ class Service extends AbstractService
 
                 if (!empty($endTime)) {
                     if (!$this->validTime($endTime)) {
-                        $form->setError("Data[Times][$lesson][EndTime]", 'Bitte geben Sie eine gültige Uhrzeit an');
+                        $form->setError("Data[Times][$lesson][EndTime]", 'Bitte geben Sie eine gültige Uhrzeit (HH:mm) an');
                         $error = true;
                     }
                 } elseif (!empty($startTime)) {
