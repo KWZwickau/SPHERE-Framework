@@ -27,7 +27,7 @@ use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Window\Redirect;
-use SPHERE\System\Cache\Handler\MemcachedHandler;
+use SPHERE\System\Cache\Handler\RedisHandler;
 use SPHERE\System\Database\Binding\AbstractService;
 use SPHERE\System\Token\YubiKey\ComponentException;
 
@@ -230,7 +230,7 @@ class Service extends AbstractService
                 // Generate New Id
                 session_regenerate_id(true);
             }
-            $this->getCache(new MemcachedHandler())->clearSlot('PUBLIC');
+            $this->getCache(new RedisHandler())->clearSlot('PUBLIC');
             return $Redirect;
         } else {
             return (new Data($this->getBinding()))->destroySession($Session);

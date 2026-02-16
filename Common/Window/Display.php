@@ -5,14 +5,13 @@ use MOC\V\Component\Template\Component\IBridgeInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
-use SPHERE\Application\Platform\Roadmap\Roadmap;
 use SPHERE\Common\Frontend\ITemplateInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Accordion;
 use SPHERE\Common\Frontend\Layout\Repository\Listing;
 use SPHERE\Common\Script;
 use SPHERE\Common\Style;
 use SPHERE\Common\Window\Navigation\Link;
-use SPHERE\System\Cache\Handler\MemcachedHandler;
+use SPHERE\System\Cache\Handler\RedisHandler;
 use SPHERE\System\Debugger\Logger\BenchmarkLogger;
 use SPHERE\System\Debugger\Logger\CacheLogger;
 use SPHERE\System\Debugger\Logger\ErrorLogger;
@@ -358,7 +357,7 @@ class Display extends Extension implements ITemplateInterface
         }
 
         $this->Template->setVariable('Content', implode('', $this->Content));
-        $this->Template->setVariable('CacheSlot', (new MemcachedHandler())->getSlot());
+        $this->Template->setVariable('CacheSlot', (new RedisHandler())->getSlot());
         $this->Template->setVariable('MemoryPeak', $this->formatBytes(memory_get_peak_usage()));
 
         if( function_exists( 'sys_getloadavg' ) ) {
@@ -395,27 +394,6 @@ class Display extends Extension implements ITemplateInterface
             )
         );
 
-        // Read RoadMap-Version
-        $VersionRelease = null;
-        $VersionPreview = null;
-        try {
-            if (($Cache = $this->getCache(new MemcachedHandler())) instanceof MemcachedHandler) {
-                if(
-                    (null === ($VersionRelease = $Cache->getValue( 'RoadMap-VersionRelease', __METHOD__ )))
-                    ||
-                    (null === ($VersionPreview = $Cache->getValue( 'RoadMap-VersionPreview', __METHOD__ )))
-                ) {
-                    $Map = (new Roadmap())->getRoadmap();
-                    $VersionRelease = $Map->getVersionRelease();
-                    $Cache->setValue('RoadMap-VersionRelease', $VersionRelease, 3600, __METHOD__);
-                    $VersionPreview = $Map->getVersionPreview();
-                    $Cache->setValue('RoadMap-VersionPreview', $VersionPreview, 3600, __METHOD__);
-                }
-            }
-        } catch (\Exception $Exception) {
-            // Silent fail
-        }
-
         // Set Depending Information
         switch (strtolower($this->getRequest()->getHost())) {
             case 'www.schulsoftware.schule':
@@ -424,7 +402,6 @@ class Display extends Extension implements ITemplateInterface
                 $BrandTitle = '<a class="navbar-brand-icon" href="/">
                 <img src="/Common/Style/Resource/Schulsoftware-font.svg" alt="Schulsottware" style="height: 40px">
                 </a>';
-                $this->Template->setVariable('RoadmapVersion', $VersionRelease ? $VersionRelease : 'Roadmap');
                 break;
             case 'trial.schulsoftware.schule':
             case 'trial.kreda.schule':
@@ -432,7 +409,6 @@ class Display extends Extension implements ITemplateInterface
                 <img src="/Common/Style/Resource/Schulsoftware-font.svg" alt="Schulsottware" style="height: 40px">
                 </a><a class="navbar-brand" href="/">
                 <span class="text-info" style="margin-top: 3px">Trial</span></a>';
-                $this->Template->setVariable('RoadmapVersion', $VersionRelease ? $VersionRelease : 'Roadmap');
                 break;
             case 'demo.schulsoftware.schule':
             case 'ekbodemo.schulsoftware.schule':
@@ -440,7 +416,6 @@ class Display extends Extension implements ITemplateInterface
                 $BrandTitle = '<a class="navbar-brand-icon" href="/">
                 <img src="/Common/Style/Resource/Schulsoftware-font-demo.svg" alt="Schulsottware" style="height: 40px">
                 </a>';
-                $this->Template->setVariable('RoadmapVersion', $VersionPreview ? $VersionPreview : 'Roadmap');
                 break;
             case 'nightly.schulsoftware.schule':
             case 'nightly.kreda.schule':
@@ -448,7 +423,6 @@ class Display extends Extension implements ITemplateInterface
                 <img src="/Common/Style/Resource/Schulsoftware-font_dev_r.svg" alt="Schulsottware" style="height: 40px">
                 </a><a class="navbar-brand" href="/">
                 <span class="text-danger">Nightly</span></a>';
-                $this->Template->setVariable('RoadmapVersion', $VersionPreview ? $VersionPreview : 'Roadmap');
                 break;
             case '192.168.240.128':
                 $BrandTitle = '<a class="navbar-brand-icon" href="/">
@@ -456,7 +430,6 @@ class Display extends Extension implements ITemplateInterface
                 </a><a class="navbar-brand" href="/">
                 <span class="text-warning" style="padding-top: 11px;">'.$this->getRequest()->getHost().'
                 </span></a>';
-                $this->Template->setVariable('RoadmapVersion', 'Roadmap');
                 break;
             case '192.168.109.128':
             case '192.168.150.128':
@@ -465,7 +438,6 @@ class Display extends Extension implements ITemplateInterface
                 </a><a class="navbar-brand" href="/">
                 <span style="padding-top: 11px; color: #ff9944">'.$this->getRequest()->getHost().'
                 </span></a>';   // class="text-primary"
-                $this->Template->setVariable('RoadmapVersion', 'Roadmap');
                 break;
             default:
                 $BrandTitle = '<a class="navbar-brand-icon" href="/">
@@ -473,7 +445,6 @@ class Display extends Extension implements ITemplateInterface
                 </a><a class="navbar-brand" href="/">
                 <span class="text-warning" style="padding-top: 11px">'.$this->getRequest()->getHost().'
                 </span></a>';
-                $this->Template->setVariable('RoadmapVersion', 'Roadmap');
         }
         $this->Template->setVariable('BrandSwitch', $BrandTitle);
 

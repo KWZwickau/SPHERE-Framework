@@ -16,6 +16,7 @@ use SPHERE\System\Cache\Handler\CookieHandler;
 use SPHERE\System\Cache\Handler\MemcachedHandler;
 use SPHERE\System\Cache\Handler\MemoryHandler;
 use SPHERE\System\Cache\Handler\OpCacheHandler;
+use SPHERE\System\Cache\Handler\RedisHandler;
 use SPHERE\System\Cache\Handler\SmartyHandler;
 use SPHERE\System\Cache\Handler\TwigHandler;
 use SPHERE\System\Extension\Extension;
@@ -74,6 +75,7 @@ class Database extends Extension implements IModuleInterface
                     Account::useService()->changeConsumer($tblConsumer);
 
                     $this->getCache(new CookieHandler())->clearCache();
+                    $this->getCache(new RedisHandler())->clearCache();
                     $this->getCache(new MemcachedHandler())->clearCache();
                     $this->getCache(new APCuHandler())->clearCache();
                     $this->getCache(new MemoryHandler())->clearCache();

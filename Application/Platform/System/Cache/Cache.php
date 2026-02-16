@@ -25,6 +25,7 @@ use SPHERE\System\Cache\Handler\CookieHandler;
 use SPHERE\System\Cache\Handler\MemcachedHandler;
 use SPHERE\System\Cache\Handler\MemoryHandler;
 use SPHERE\System\Cache\Handler\OpCacheHandler;
+use SPHERE\System\Cache\Handler\RedisHandler;
 use SPHERE\System\Cache\Handler\SmartyHandler;
 use SPHERE\System\Cache\Handler\TwigHandler;
 use SPHERE\System\Extension\Extension;
@@ -89,6 +90,7 @@ class Cache extends Extension implements IModuleInterface
 
         $CacheStack = array(
             'Cookie'    => $this->getCache(new CookieHandler()),
+            'Redis' => $this->getCache(new RedisHandler()),
             'Memcached' => $this->getCache(new MemcachedHandler()),
             'APCu'      => $this->getCache(new APCuHandler()),
             'Memory'    => $this->getCache(new MemoryHandler()),
