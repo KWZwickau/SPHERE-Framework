@@ -531,7 +531,7 @@ class MultiPassword extends AbstractDocument
              Kleinbuchstaben, Ziffern und evtl. auch noch Sonderzeichen zu verwenden. <u>Bitte geben Sie Ihre
              Zugangsdaten nicht weiter, denn es erhält jeder Sorgeberechtigte und jeder Schüler einen eigenen
              personengebundenen Nutzerzugang.</u>'));
-            $Slice->addElement($this->getTextElement(''));
+//            $Slice->addElement($this->getTextElement(''));
             $Slice->addElement($this->getTextElement('Verwenden Sie bitte für den Zugriff folgende Zugangsdaten:'));
         } else {
             $Slice->addElement($this->getTextElement('ab sofort stellen wir dir einen Zugang zu unserer
@@ -565,7 +565,7 @@ class MultiPassword extends AbstractDocument
         }
         $Slice->addElement($this->getTextElement(''));
         $Slice->addSection($this->getInfoSection('Passwort:', $this->FieldValue['Password'][$AccountId]));
-        $Slice->addElement($this->getTextElement(''));
+//        $Slice->addElement($this->getTextElement(''));
 
         if ($this->FieldValue['IsParent']) {
             $Slice->addElement($this->getTextElement('Lesen Sie sich die Datenschutzbestimmungen und Nutzungsbedingungen genau durch. Wenn Sie
@@ -773,6 +773,6 @@ class MultiPassword extends AbstractDocument
             $value = (string)$tblSetting->getValue();
         }
 
-        return $value ? $value : '120px';
+        return $value ? $value : '90px';
     }
 }

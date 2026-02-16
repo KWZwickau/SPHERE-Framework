@@ -20,7 +20,6 @@ use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
 use SPHERE\Common\Frontend\Form\Repository\Field\RadioBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
-use SPHERE\Common\Frontend\Form\Repository\Title;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
@@ -46,7 +45,6 @@ use SPHERE\Common\Frontend\Link\Repository\AbstractLink;
 use SPHERE\Common\Frontend\Link\Repository\Danger;
 use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Link\Repository\Primary as PrimaryLink;
-use SPHERE\Common\Frontend\Link\Repository\ToggleCheckbox;
 use SPHERE\Common\Frontend\Link\Repository\ToggleSelective;
 use SPHERE\Common\Frontend\Message\IMessageInterface;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
@@ -67,6 +65,22 @@ use SPHERE\System\Extension\Repository\Sorter\StringNaturalOrderSorter;
 
 class Frontend extends FrontendClassRegister
 {
+    /**
+     * @return string[]
+     */
+    public function getDayName(): array
+    {
+        return [
+            '0' => 'Sonntag',
+            '1' => 'Montag',
+            '2' => 'Dienstag',
+            '3' => 'Mittwoch',
+            '4' => 'Donnerstag',
+            '5' => 'Freitag',
+            '6' => 'Samstag'
+        ];
+    }
+
     /**
      * @return Stage
      */
@@ -377,17 +391,7 @@ class Frontend extends FrontendClassRegister
         $headerList = array();
         $bodyList = array();
 
-        $organizerBaseData = $this->convertOrganizerBaseData();
-        $DayName = array(
-            '0' => 'Sonntag',
-            '1' => 'Montag',
-            '2' => 'Dienstag',
-            '3' => 'Mittwoch',
-            '4' => 'Donnerstag',
-            '5' => 'Freitag',
-            '6' => 'Samstag',
-        );
-        $MonthName = $organizerBaseData['monthNameShort'];
+        $DayName = self::getDayName();
 
         $absenceList = array();
         $personList = array();

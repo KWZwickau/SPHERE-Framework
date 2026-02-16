@@ -1174,6 +1174,36 @@ class Service extends ServiceTemplateInformation
     }
 
     /**
+     * @param TblCertificate $tblCertificate
+     * @param TblPerson|null $tblPerson
+     *
+     * @return bool
+     */
+    public function hasCertificateBehaviorGrades(TblCertificate $tblCertificate, TblPerson $tblPerson = null): bool
+    {
+        $CertificateClass = '\SPHERE\Application\Api\Education\Certificate\Generator\Repository\\' . $tblCertificate->getCertificate();
+        if (class_exists($CertificateClass)) {
+            /** @var Certificate $Certificate */
+            $Certificate = new $CertificateClass();
+
+            // create Certificate with Placeholders
+            $pageList[$tblPerson ? $tblPerson->getId() : 0] = $Certificate->buildPages($tblPerson);
+            $Certificate->createCertificate(array(), $pageList);
+
+            if (($PlaceholderList = $Certificate->getCertificate()->getPlaceholder())) {
+                foreach ($PlaceholderList as $PlaceHolder) {
+                    // Content.P1116.Input["KBE"]
+                    if (str_contains($PlaceHolder, 'Input["')) {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * @param TblDivisionCourse $tblDivisionCourse
      *
      * @return false|TblPrepareCertificate[]

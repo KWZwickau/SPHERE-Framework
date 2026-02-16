@@ -9,6 +9,7 @@ use SPHERE\Application\Contact\Phone\Service\Entity\TblType;
 use SPHERE\Application\Contact\Phone\Service\Setup;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\System\Database\Binding\AbstractService;
 
 /**
@@ -541,5 +542,29 @@ class Service extends AbstractService
         $Number
     ): TblPhone {
         return (new Data($this->getBinding()))->createPhone($Number);
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param array $tblRelationshipTypes
+     *
+     * @return array
+     */
+    public function getPhoneListByStudent(TblPerson $tblPerson, array $tblRelationshipTypes): array
+    {
+        $personList = Relationship::useService()->getPersonRelationshipList($tblPerson, $tblRelationshipTypes);
+
+        $phoneList = [];
+        foreach ($personList as $person) {
+            if (($tblToPersonList = $this->getPhoneAllByPerson($person['tblPerson']))) {
+                $phoneList[$person['tblPerson']->getId()] = [
+                    'tblPerson' => $person['tblPerson'],
+                    'tblRelationshipType' => $person['tblRelationshipType'],
+                    'tblToPersonList' => $tblToPersonList,
+                ];
+            }
+        }
+
+        return $phoneList;
     }
 }

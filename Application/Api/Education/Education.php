@@ -5,6 +5,7 @@ use SPHERE\Application\Api\Education\Certificate\Certificate;
 use SPHERE\Application\Api\Education\Certificate\Generate\ApiGenerate;
 use SPHERE\Application\Api\Education\Certificate\PrintCertificate\ApiPrintCertificate;
 use SPHERE\Application\Api\Education\Certificate\Reporting\ApiReporting;
+use SPHERE\Application\Api\Education\Certificate\Setting\ApiPreviewCertificate;
 use SPHERE\Application\Api\Education\ClassRegister\ApiAbsence;
 use SPHERE\Application\Api\Education\ClassRegister\ApiDiary;
 use SPHERE\Application\Api\Education\ClassRegister\ApiDiaryRead;
@@ -31,6 +32,7 @@ use SPHERE\Application\Api\Education\Graduation\Grade\ApiTask;
 use SPHERE\Application\Api\Education\Graduation\Grade\ApiTeacherGroup;
 use SPHERE\Application\Api\Education\Graduation\Grade\Gradebook;
 use SPHERE\Application\Api\Education\Graduation\Grade\Task;
+use SPHERE\Application\Api\Education\Lesson\ApiLeaveStudent;
 use SPHERE\Application\Api\Education\Prepare\ApiPrepare;
 use SPHERE\Application\Api\Education\Prepare\Prepare;
 use SPHERE\Application\Api\Education\School\ApiCourse;
@@ -86,5 +88,7 @@ class Education implements IApplicationInterface
         ApiYear::registerApi();
         ApiPrintCertificate::registerApi();
         ApiForgotten::registerApi();
+        ApiLeaveStudent::registerApi();
+        ApiPreviewCertificate::registerApi();
     }
 }

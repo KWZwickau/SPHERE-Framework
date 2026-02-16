@@ -1279,28 +1279,6 @@ class Data extends DataLeave
     }
 
     /**
-     * @param array $tblEntityList
-     *
-     * @return bool
-     */
-    public function updateEntityListBulk(array $tblEntityList): bool
-    {
-        $Manager = $this->getEntityManager();
-        /** @var Element $tblElement */
-        foreach ($tblEntityList as $tblElement) {
-            $Manager->bulkSaveEntity($tblElement);
-            /** @var Element $Entity */
-            $Entity = $Manager->getEntityById($tblElement->getEntityShortName(), $tblElement->getId());
-            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Entity, $tblElement, true);
-        }
-
-        $Manager->flushCache();
-        Protocol::useService()->flushBulkEntries();
-
-        return true;
-    }
-
-    /**
      * @param TblPerson $tblPerson
      * @param TblCertificateType $tblCertificateType
      *

@@ -6,8 +6,14 @@ use DateTime;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblGradeText;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblGradeType;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblMinimumGradeCount;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblProposalBehaviorGrade;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreConditionGradeTypeList;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreGroupGradeTypeList;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreRuleBehaviorSubject;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreRuleSubject;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreRuleSubjectDivisionCourse;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreTypeSubject;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTaskGrade;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTaskGradeTypeLink;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTest;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTestCourseLink;
@@ -451,20 +457,207 @@ class Data extends DataTask
     }
 
     /**
-     * @param array $tblEntityList
+     * @param array $list
      *
      * @return bool
      */
-    public function updateEntityListBulk(array $tblEntityList): bool
+    public function updateTestGradeListBulk(array $list): bool
     {
-        $Manager = $this->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
 
-        /** @var Element $tblElement */
-        foreach ($tblEntityList as $tblElement) {
-            $Manager->bulkSaveEntity($tblElement);
-            /** @var Element $Entity */
-            $Entity = $Manager->getEntityById($tblElement->getEntityShortName(), $tblElement->getId());
-            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Entity, $tblElement, true);
+        foreach ($list as $id => $value) {
+            /** @var TblTestGrade $Entity */
+            $Entity = $Manager->getEntityById('TblTestGrade', $id);
+            $Protocol = clone $Entity;
+
+            if (null !== $Entity) {
+                $Entity->setGrade($value['Grade']);
+                $Entity->setDate($value['Date']);
+                $Entity->setComment($value['Comment']);
+                $Entity->setPublicComment($value['PublicComment']);
+                $Entity->setServiceTblPersonTeacher($value['PersonTeacher']);
+
+                $Manager->bulkSaveEntity($Entity);
+                Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity, true);
+            }
+        }
+
+        $Manager->flushCache();
+        Protocol::useService()->flushBulkEntries();
+
+        return true;
+    }
+
+    /**
+     * @param array $list
+     *
+     * @return bool
+     */
+    public function updateTaskGradeListBulk(array $list): bool
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+
+        foreach ($list as $id => $value) {
+            /** @var TblTaskGrade $Entity */
+            $Entity = $Manager->getEntityById('TblTaskGrade', $id);
+            $Protocol = clone $Entity;
+
+            if (null !== $Entity) {
+                $Entity->setGrade($value['Grade']);
+                $Entity->setTblGradeText($value['GradeText'] ?? null);
+                $Entity->setComment($value['Comment']);
+                $Entity->setServiceTblPersonTeacher($value['PersonTeacher']);
+
+                $Manager->bulkSaveEntity($Entity);
+                Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity, true);
+            }
+        }
+
+        $Manager->flushCache();
+        Protocol::useService()->flushBulkEntries();
+
+        return true;
+    }
+
+    /**
+     * @param array $list
+     *
+     * @return bool
+     */
+    public function updateProposalBehaviorGradeListBulk(array $list): bool
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+
+        foreach ($list as $id => $value) {
+            /** @var TblProposalBehaviorGrade $Entity */
+            $Entity = $Manager->getEntityById('TblProposalBehaviorGrade', $id);
+            $Protocol = clone $Entity;
+
+            if (null !== $Entity) {
+                $Entity->setGrade($value['Grade']);
+                $Entity->setComment($value['Comment']);
+                $Entity->setServiceTblPersonTeacher($value['PersonTeacher']);
+
+                $Manager->bulkSaveEntity($Entity);
+                Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity, true);
+            }
+        }
+
+        $Manager->flushCache();
+        Protocol::useService()->flushBulkEntries();
+
+        return true;
+    }
+
+    /**
+     * @param array $list
+     *
+     * @return bool
+     */
+    public function updateScoreTypeSubjectListBulk(array $list): bool
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+
+        foreach ($list as $id => $value) {
+            /** @var TblScoreTypeSubject $Entity */
+            $Entity = $Manager->getEntityById('TblScoreTypeSubject', $id);
+            $Protocol = clone $Entity;
+
+            if (null !== $Entity) {
+                if (isset($value['ScoreType'])) {
+                    $Entity->setTblScoreType($value['ScoreType']);
+                }
+                if (isset($value['IsOverrideScoreTypeException'])) {
+                    $Entity->setIsOverrideScoreTypeException($value['IsOverrideScoreTypeException']);
+                }
+
+                $Manager->bulkSaveEntity($Entity);
+                Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity, true);
+            }
+        }
+
+        $Manager->flushCache();
+        Protocol::useService()->flushBulkEntries();
+
+        return true;
+    }
+
+    /**
+     * @param array $list
+     *
+     * @return bool
+     */
+    public function updateScoreRuleBehaviorSubjectListBulk(array $list): bool
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+
+        foreach ($list as $id => $value) {
+            /** @var TblScoreRuleBehaviorSubject $Entity */
+            $Entity = $Manager->getEntityById('TblScoreRuleBehaviorSubject', $id);
+            $Protocol = clone $Entity;
+
+            if (null !== $Entity) {
+                $Entity->setMultiplier($value['Multiplier']);
+
+                $Manager->bulkSaveEntity($Entity);
+                Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity, true);
+            }
+        }
+
+        $Manager->flushCache();
+        Protocol::useService()->flushBulkEntries();
+
+        return true;
+    }
+
+    /**
+     * @param array $list
+     *
+     * @return bool
+     */
+    public function updateScoreRuleSubjectListBulk(array $list): bool
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+
+        foreach ($list as $id => $value) {
+            /** @var TblScoreRuleSubject $Entity */
+            $Entity = $Manager->getEntityById('TblScoreRuleSubject', $id);
+            $Protocol = clone $Entity;
+
+            if (null !== $Entity) {
+                $Entity->setTblScoreRule($value['ScoreRule']);
+
+                $Manager->bulkSaveEntity($Entity);
+                Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity, true);
+            }
+        }
+
+        $Manager->flushCache();
+        Protocol::useService()->flushBulkEntries();
+
+        return true;
+    }
+
+    /**
+     * @param array $list
+     *
+     * @return bool
+     */
+    public function updateScoreRuleSubjectDivisionCourseListBulk(array $list): bool
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+
+        foreach ($list as $id => $value) {
+            /** @var TblScoreRuleSubjectDivisionCourse $Entity */
+            $Entity = $Manager->getEntityById('TblScoreRuleSubjectDivisionCourse', $id);
+            $Protocol = clone $Entity;
+
+            if (null !== $Entity) {
+                $Entity->setTblScoreRule($value['ScoreRule']);
+
+                $Manager->bulkSaveEntity($Entity);
+                Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity, true);
+            }
         }
 
         $Manager->flushCache();

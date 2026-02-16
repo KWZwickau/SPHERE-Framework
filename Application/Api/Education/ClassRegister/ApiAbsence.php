@@ -23,7 +23,6 @@ use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\Question;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
-use SPHERE\Common\Frontend\Layout\Repository\CustomPanel;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
@@ -36,6 +35,7 @@ use SPHERE\Common\Frontend\Link\Repository\Danger as DangerLink;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
+use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\System\Extension\Extension;
@@ -78,6 +78,8 @@ class ApiAbsence extends Extension implements IApiInterface
         $Dispatcher->registerMethod('generateOrganizerMonthly');
         $Dispatcher->registerMethod('generateOrganizerForDivision');
         $Dispatcher->registerMethod('generateOrganizerDaily');
+        $Dispatcher->registerMethod('loadStudentTable');
+        $Dispatcher->registerMethod('loadAbsenceButton');
 
         return $Dispatcher->callMethod($Method);
     }
@@ -840,8 +842,9 @@ class ApiAbsence extends Extension implements IApiInterface
             'Month' => $Month,
             'Year' => $Year
         ));
-
+        $Emitter->setLoadingMessage('Daten werden geladen');
         $Pipeline->appendEmitter($Emitter);
+
         return $Pipeline;
     }
 
@@ -864,8 +867,9 @@ class ApiAbsence extends Extension implements IApiInterface
             'Year' => $Year,
             'WeekNumber' => $WeekNumber
         ));
-
+        $Emitter->setLoadingMessage('Daten werden geladen');
         $Pipeline->appendEmitter($Emitter);
+
         return $Pipeline;
     }
 
@@ -947,5 +951,100 @@ class ApiAbsence extends Extension implements IApiInterface
         Consumer::useService()->createAccountSetting('AbsenceViewSekretariat', 'Day');
 
         return Absence::useFrontend()->LoadOrganizerDaily($Date);
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $BasicRoute
+     * @param $ReturnRoute
+     *
+     * @return Pipeline
+     */
+    public static function pipelineLoadStudentTable($DivisionCourseId, $BasicRoute, $ReturnRoute): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+
+        $Emitter = new ServerEmitter(self::receiverBlock('', 'CalendarContent'), self::getEndpoint());
+        $Emitter->setGetPayload(array(
+            self::API_TARGET => 'loadStudentTable',
+            'DivisionCourseId' => $DivisionCourseId,
+            'BasicRoute' => $BasicRoute,
+            'ReturnRoute' => $ReturnRoute
+        ));
+        $Emitter->setLoadingMessage('Daten werden geladen');
+        $Pipeline->appendEmitter($Emitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $BasicRoute
+     * @param $ReturnRoute
+     *
+     * @return string
+     */
+    public static function loadStudentTable($DivisionCourseId, $BasicRoute, $ReturnRoute): string
+    {
+        if (!($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
+            return new Warning('Kurse nicht vorhanden!', new Exclamation());
+        }
+
+        return Absence::useFrontend()->loadStudentTableContent($tblDivisionCourse, $BasicRoute, $ReturnRoute);
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $BasicRoute
+     * @param $ReturnRoute
+     * @param $Date
+     *
+     * @return Pipeline
+     */
+    public static function pipelineLoadAbsenceButton($DivisionCourseId, $BasicRoute, $ReturnRoute, $Date): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+
+        $Emitter = new ServerEmitter(self::receiverBlock('', 'AbsenceButton'), self::getEndpoint());
+        $Emitter->setGetPayload(array(
+            self::API_TARGET => 'loadAbsenceButton',
+            'DivisionCourseId' => $DivisionCourseId,
+            'BasicRoute' => $BasicRoute,
+            'ReturnRoute' => $ReturnRoute,
+            'Date' => $Date
+        ));
+        $Pipeline->appendEmitter($Emitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $BasicRoute
+     * @param $ReturnRoute
+     * @param $Date
+     *
+     * @return string
+     */
+    public static function loadAbsenceButton($DivisionCourseId, $BasicRoute, $ReturnRoute, $Date): string
+    {
+        $isCalendar = Consumer::useService()->getAccountSettingValue('AbsenceViewContent') == 'Calendar';
+        // View speichern
+        Consumer::useService()->createAccountSetting('AbsenceViewContent', $isCalendar ? 'List' : 'Calendar');
+        $isCalendar = !$isCalendar;
+
+        if ($isCalendar) {
+            $currentDate = new DateTime($Date);
+            if (Consumer::useService()->getAccountSettingValue('AbsenceView') == 'Month') {
+                $pipeline = self::pipelineChangeMonth($DivisionCourseId, $currentDate->format('m'), $currentDate->format('Y'));
+            } else {
+                $pipeline = self::pipelineChangeWeekForDivision($DivisionCourseId, $currentDate->format('W'), $currentDate->format('Y'));
+            }
+        } else {
+            $pipeline = self::pipelineLoadStudentTable($DivisionCourseId, $BasicRoute, $ReturnRoute);
+        }
+
+        return $pipeline
+            . Absence::useFrontend()->loadAbsenceButton($DivisionCourseId, $BasicRoute, $ReturnRoute, new DateTime($Date), $isCalendar);
     }
 }

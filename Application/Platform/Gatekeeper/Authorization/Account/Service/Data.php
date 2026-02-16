@@ -1275,22 +1275,6 @@ class Data extends AbstractData
     }
 
     /**
-     * @param TblConsumer       $tblConsumer
-     *
-     * @return bool|TblAccount[]
-     */
-    public function getAccountListByConsumer(TblConsumer $tblConsumer)
-    {
-
-        $EntityList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
-            'TblAccount',
-            array(
-                TblAccount::SERVICE_TBL_CONSUMER => $tblConsumer->getId(),
-            ));
-        return (!empty($EntityList) ? $EntityList : false);
-    }
-
-    /**
      * @param TblAccount $tblAccount
      *
      * @return bool|TblUser[]
@@ -1465,5 +1449,34 @@ class Data extends AbstractData
         }
 
         return false;
+    }
+
+    /**
+     * @param TblIdentification $tblIdentification
+     * @param TblConsumer $tblConsumer
+     *
+     * @return TblAccount[]|bool
+     */
+    public function getAccountListByIdentification(TblIdentification $tblIdentification, TblConsumer $tblConsumer): array|bool
+    {
+        $queryBuilder = $this->getEntityManager()->getQueryBuilder();
+
+        $query = $queryBuilder->select('a')
+            ->from(TblAccount::class, 'a')
+            ->leftJoin(TblAuthentication::class, 'au', 'WITH', 'a.Id = au.tblAccount')
+            ->where(
+                $queryBuilder->expr()->andX(
+                    $queryBuilder->expr()->isNull('a.EntityRemove'),
+                    $queryBuilder->expr()->eq('a.serviceTblConsumer', '?2'),
+                    $queryBuilder->expr()->eq('au.tblIdentification', '?1')
+                ),
+            )
+            ->setParameter(1, $tblIdentification->getId())
+            ->setParameter(2, $tblConsumer->getId())
+            ->getQuery();
+
+        $resultList = $query->getResult();
+
+        return empty($resultList) ? false : $resultList;
     }
 }

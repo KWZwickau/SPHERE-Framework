@@ -702,6 +702,7 @@ abstract class ServiceCertificateContent extends ServiceAbitur
                                 && $tblTaskGrade->getTblGradeText()->getName() != '&ndash;'
                             ) {
                                 $Content['P' . $personId]['Grade']['Data']['IsShrinkSize'][$tblSubjectTemp->getAcronym()] = true;
+                                $Content['P' . $personId]['Grade']['Data']['GradeTextShortName'][$tblSubjectTemp->getAcronym()] = $tblTaskGrade->getTblGradeText()->getShortName();
                             }
                         }
                     }
@@ -1269,7 +1270,7 @@ abstract class ServiceCertificateContent extends ServiceAbitur
             'Č', 'Ď', 'Ě', 'Ň', 'Ř', 'Ť', 'Ů',
             'č', 'ď', 'ě', 'ň', 'ř', 'ť', 'ů',
             'Ą', 'Ć', 'Ę', 'Ł', 'Ń', 'Ś', 'Ź', 'Ż',
-            'ą', 'ć', 'ę', 'ł', 'ń', 'ś', 'ź', 'ż'
+            'ą', 'ć', 'ę', 'ł', 'ń', 'ś', 'š', 'ź', 'ż'
         );
         foreach($LetterCorrectionList as $Letter){
             $String = str_replace($Letter, $FirstPart.$Letter.$LastPart, $String);

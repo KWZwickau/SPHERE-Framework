@@ -44,7 +44,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutColumn('<h4>Schulsoftware Download der Hilfe</h4>'
                             . new Link((new Thumbnail(
                                 FileSystem::getFileLoader('/Common/Style/Resource/SSWInfo.png')
-                                , 'Allgemeine Hilfe', 'Stand:&nbsp;10.06.2025'))->setPictureHeight('100px'), '/Api/Document/Standard/Manual/Create/Pdf', null, array('Select' => 'Help'))
+                                , 'Allgemeine Hilfe', 'Stand:&nbsp;19.01.2026'))->setPictureHeight('100px'), '/Api/Document/Standard/Manual/Create/Pdf', null, array('Select' => 'Help'))
                             , 3),
                         new LayoutColumn('<h4>Lehrvideos <b>Kursverwaltung</b></h4>'
                             . (new Link((new Thumbnail(

@@ -2,6 +2,7 @@
 namespace SPHERE\Application\Api\Platform;
 
 use SPHERE\Application\Api\Platform\Database\Database;
+use SPHERE\Application\Api\Platform\DataMaintenance\ApiConsumerLogin;
 use SPHERE\Application\Api\Platform\DataMaintenance\ApiDocumentStorage;
 use SPHERE\Application\Api\Platform\DataMaintenance\ApiMigrateDivision;
 use SPHERE\Application\Api\Platform\Gatekeeper\ApiAuthenticatorApp;
@@ -26,10 +27,11 @@ class Platform implements IApplicationInterface
         Database::registerModule();
         View::registerModule();
         Gatekeeper::registerModule();
+        ApiConsumerLogin::registerApi();
 //        ApiUserGroup::registerApi();
         ApiSystemTest::registerApi();
         ApiAuthenticatorApp::registerApi();
-        ApiMigrateDivision::registerApi();
+//        ApiMigrateDivision::registerApi();
         ApiDocumentStorage::registerApi();
         ApiReloadReceiver::registerApi();
     }

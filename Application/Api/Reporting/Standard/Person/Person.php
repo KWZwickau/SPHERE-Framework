@@ -7,6 +7,7 @@ use SPHERE\Application\Api\Reporting\Standard\ExcelBuilder;
 use SPHERE\Application\Education\Absence\Absence;
 use SPHERE\Application\Education\Certificate\Reporting\Reporting;
 use SPHERE\Application\Education\Certificate\Reporting\View;
+use SPHERE\Application\Education\ClassRegister\Digital\Digital;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
@@ -31,7 +32,7 @@ class Person extends Extension
      *
      * @return string
      */
-    private function getDivisionCourseTypeNameList(TblDivisionCourse $tblDivisionCourse, TblDivisionCourseType $tblDivisionCourseType)
+    public function getDivisionCourseTypeNameList(TblDivisionCourse $tblDivisionCourse, TblDivisionCourseType $tblDivisionCourseType): string
     {
 
         switch ($tblDivisionCourseType->getIdentifier()) {
@@ -89,6 +90,37 @@ class Person extends Extension
             return FileSystem::getDownload($fileLocation->getRealPath(), "Erweiterte_".$name.'_'.date("Y-m-d").".xlsx")->__toString();
         }
         return false;
+    }
+
+    /**
+     * @param int $DivisionCourseId
+     *
+     * @return string
+     */
+    public function downloadIndividualClassList(int $DivisionCourseId): string
+    {
+        if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
+            $tblType = $tblDivisionCourse->getType();
+            $name = $this->getDivisionCourseTypeNameList($tblDivisionCourse, $tblType);
+
+            list($headerList, $dataList) = Digital::useService()->getStudentListDownloadContent($tblDivisionCourse);
+
+            $isLandscape = count($headerList) > 5;
+
+            return ExcelBuilder::getDownloadFile(
+                $name . '_' . (new DateTime())->format('d-m-Y'),
+                $headerList,
+                $dataList,
+                [
+                    str_replace('_', ': ', $name),
+                    'Stand: ' . (new DateTime())->format('d.m.Y')
+                ],
+                Digital::useService()->getStudentListColumnExcelWidth(),
+                $isLandscape
+            );
+        }
+
+        return 'Keine Daten vorhanden!';
     }
 
     /**

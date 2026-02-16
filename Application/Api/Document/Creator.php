@@ -45,8 +45,10 @@ use SPHERE\Application\Document\Storage\FilePointer;
 use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Absence\Absence;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
+use SPHERE\Application\Education\ClassRegister\Digital\Digital;
 use SPHERE\Application\Education\Graduation\Grade\Grade;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\Education\Lesson\LeaveStudent\LeaveStudent;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Term;
@@ -201,7 +203,7 @@ class Creator extends Extension
             && ($tblYear = Term::useService()->getYearById($YearId))
         ) {
             $Document = new GradebookOverview\GradebookOverview();
-            $pageList[] = $Document->buildPage($tblPerson, $tblYear, $View);
+            $pageList = $Document->buildPage($tblPerson, $tblYear, $View);
 
             $File = self::buildDummyFile($Document, array(), $pageList, $paperOrientation);
 
@@ -244,7 +246,7 @@ class Creator extends Extension
                     $Document = new GradebookOverview\GradebookOverview();
                     $documentName = $Document->getName();
 
-                    $pageList[] = $Document->buildPage($tblPerson, $tblYear, 'All');
+                    $pageList = array_merge($pageList, $Document->buildPage($tblPerson, $tblYear, 'All'));
                 }
 
                 if(!empty($pageList)){
@@ -1234,7 +1236,7 @@ class Creator extends Extension
         if($Select == 'Help'){
             $file = "Common/Style/Resource/Document/Manual/SSWHelp.pdf";
             header("Content-Type: application/pdf");
-            header("Content-Disposition: attachment; filename=Hilfe_Schulsoftware_10.06.2025.pdf");
+            header("Content-Disposition: attachment; filename=Hilfe_Schulsoftware_19.01.2026.pdf");
             header("Content-Length: ".filesize($file));
         } elseif($Select == 'UserRole') {
             $file = "Common/Style/Resource/Document/Manual/SSWUserRole.pdf";
@@ -1404,6 +1406,82 @@ class Creator extends Extension
                     $PdfMerger->addPdf($File);
                     // speichern der Files zum nachträglichem bereinigen
                     $FileList[] = $File;
+                }
+
+                // mergen aller hinzugefügten PDF-Datein
+                $PdfMerger->mergePdf($MergeFile);
+                if(!empty($FileList)){
+                    // aufräumen der Temp-Files
+                    /** @var FilePointer $File */
+                    foreach($FileList as $File){
+                        $File->setDestruct();
+                    }
+                }
+
+                if (!empty($FileList)) {
+                    $FileName = 'Abmeldebescheinigung Kurs ' . $tblDivisionCourse->getName() . ' ' . date("Y-m-d") . ".pdf";
+
+                    return self::buildDownloadFile($MergeFile, $FileName);
+                }
+            }
+        }
+
+        return "Keine Abmeldebescheinigung vorhanden!";
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $PersonIdList
+     * @param $LeaveStudentId
+     * @param bool $Redirect
+     *
+     * @return string
+     */
+    public static function createLeaveStudentSignOutCertificatePdf($DivisionCourseId, $PersonIdList, $LeaveStudentId, bool $Redirect): string
+    {
+        if ($Redirect) {
+            return \SPHERE\Application\Api\Education\Certificate\Generator\Creator::displayWaitingPage(
+                '/Api/Document/Standard/SignOutCertificate/CreateLeaveStudent',
+                array(
+                    'DivisionCourseId' => $DivisionCourseId,
+                    'PersonIdList' => $PersonIdList,
+                    'LeaveStudentId' => $LeaveStudentId,
+                    'Redirect' => 0
+                )
+            );
+        }
+
+        if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))
+            && ($tblYear = $tblDivisionCourse->getServiceTblYear())
+        ) {
+            // Filepointer auf dem der Merge durchgeführt wird, (download)
+            $MergeFile = Storage::createFilePointer('pdf');
+            $PdfMerger = new PdfMerge();
+
+            if (!empty($PersonIdList)){
+                $FileList = array();
+
+                if (($tblLeaveStudent = LeaveStudent::useService()->getLeaveStudentById($LeaveStudentId))
+                    && $tblLeaveStudent->getDocumentDate()
+                ) {
+                    $Data['Date'] = $tblLeaveStudent->getDocumentDate()->format('d.m.Y');
+                } else {
+                    $Data['Date'] = (new DateTime('today'))->format('d.m.Y');
+                }
+
+                foreach ($PersonIdList as $personId) {
+                    if (($tblPerson = Person::useService()->getPersonById($personId))) {
+                        set_time_limit(300);
+
+                        $Document = new SignOutCertificate(\SPHERE\Application\Document\Standard\SignOutCertificate\SignOutCertificate::useService()
+                            ->getSignOutCertificateData($tblPerson, $tblYear, $Data));
+                        $File = self::buildDummyFile($Document, array(), array());
+
+                        // hinzufügen für das mergen
+                        $PdfMerger->addPdf($File);
+                        // speichern der Files zum nachträglichem bereinigen
+                        $FileList[] = $File;
+                    }
                 }
 
                 // mergen aller hinzugefügten PDF-Datein
@@ -1756,5 +1834,93 @@ class Creator extends Extension
         }
 
         return $Document->getPageList($headerList, $headerWidthList, $bodyList, $preTextList);
+    }
+
+    /**
+     * @param null $DivisionCourseId
+     * @param bool $Redirect
+     *
+     * @return string
+     */
+    public static function createIndividualStudentListPdf($DivisionCourseId = null, bool $Redirect = true): string
+    {
+        if ($Redirect) {
+            return \SPHERE\Application\Api\Education\Certificate\Generator\Creator::displayWaitingPage(
+                '/Api/Document/Standard/ClassRegister/StudentList/Individual/Create',
+                array(
+                    'DivisionCourseId' => $DivisionCourseId,
+                    'Redirect' => 0
+                )
+            );
+        }
+
+        if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
+
+            list($headerList, $dataList, $headerPdfWeightList) = Digital::useService()->getStudentListDownloadContent($tblDivisionCourse);
+
+            // Spaltenbreite
+            $headerWidthList = [];
+            $sum = array_sum($headerPdfWeightList);
+            foreach ($headerPdfWeightList as $key => $value) {
+                $headerWidthList[$key] = ((100 * $value / $sum)) . '%';
+            }
+
+            $tblType = $tblDivisionCourse->getType();
+            $name = (new \SPHERE\Application\Api\Reporting\Standard\Person\Person)->getDivisionCourseTypeNameList($tblDivisionCourse, $tblType);
+            $preTextList[] = str_replace('_', ': ', $name);
+            $preTextList[] = 'Stand: ' . (new DateTime())->format('d.m.Y');
+
+            $Document = new DocumentBuilder($name . '_' . (new DateTime())->format('d-m-Y'));
+            $pageList[] = $Document->getPageList($headerList, $headerWidthList, $dataList, $preTextList);
+
+            $paperOrientation = count($headerList) > 4 ? Creator::PAPERORIENTATION_LANDSCAPE : Creator::PAPERORIENTATION_PORTRAIT;
+            $File = self::buildDummyFile($Document, array(), $pageList, $paperOrientation);
+
+            $FileName = $Document->getName() . '.pdf';
+
+            return self::buildDownloadFile($File, $FileName);
+        }
+
+        return "Kein Download vorhanden!";
+    }
+
+    /**
+     * @param null $DivisionCourseId
+     * @param null $PersonId
+     * @param bool $Redirect
+     *
+     * @return string
+     */
+    public static function createStudentDetailPdf($DivisionCourseId = null, $PersonId = null, bool $Redirect = true): string
+    {
+        if ($Redirect) {
+            return \SPHERE\Application\Api\Education\Certificate\Generator\Creator::displayWaitingPage(
+                '/Api/Document/Standard/ClassRegister/StudentDetail/Create',
+                array(
+                    'DivisionCourseId' => $DivisionCourseId,
+                    'PersonId' => $PersonId,
+                    'Redirect' => 0
+                )
+            );
+        }
+
+        if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))
+            && ($tblPerson = Person::useService()->getPersonById($PersonId))
+        ) {
+            if (($layout = Digital::useFrontend()->getStudentDetailLayout($tblDivisionCourse, $tblPerson, true))) {
+                $studentName = str_replace(',', '', $tblPerson->getLastFirstName());
+                $studentName = str_replace(' ', '_', $studentName);
+                $Document = new DocumentBuilder('Schülerdetails_' . $studentName .  '_' . (new DateTime())->format('d-m-Y'));
+                $pageList[] = $Document->getPageListByLayout($layout);
+
+                $File = self::buildDummyFile($Document, array(), $pageList);
+
+                $FileName = $Document->getName() . '.pdf';
+
+                return self::buildDownloadFile($File, $FileName);
+            }
+        }
+
+        return "Kein Download vorhanden!";
     }
 }

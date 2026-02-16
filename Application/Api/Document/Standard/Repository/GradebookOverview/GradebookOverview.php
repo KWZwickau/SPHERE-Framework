@@ -35,13 +35,54 @@ class GradebookOverview extends AbstractDocument
      * @param TblYear $tblYear
      * @param string $View
      *
-     * @return Page
+     * @return Page[]
      */
-    public function buildPage(TblPerson $tblPerson, TblYear $tblYear, string $View = 'Parent'): Page
+    public function buildPage(TblPerson $tblPerson, TblYear $tblYear, string $View = 'Parent'): array
     {
-        return (new Page())
-            ->addSlice($this->getPageHeaderSlice($tblPerson, $tblYear))
-            ->addSlice($this->getGradebookOverviewSlice($tblPerson, $tblYear, $View));
+        $pageList = [];
+        if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYearAndDateWithLeaved($tblPerson, $tblYear))) {
+            $dataPdf = Grade::useService()->getStudentOverviewDataByPerson($tblPerson, $tblYear, $tblStudentEducation, $View == 'Parent', true);
+            $isTwoPage = $dataPdf['isTwoPage'];
+            $headerPdfList = $dataPdf['headerPdfList'];
+            $bodyPdfList = $dataPdf['bodyPdfList'];
+
+            if ($isTwoPage) {
+                $pageList[] = (new Page())
+                    ->addSlice($this->getPageHeaderSlice($tblPerson, $tblYear))
+                    ->addSlice($this->getSliceBody([$headerPdfList[1]], false))
+                    ->addSlice($this->getSliceBody($bodyPdfList[1]));
+
+                $pageList[] = (new Page())
+                    ->addSlice($this->getPageHeaderSlice($tblPerson, $tblYear))
+                    ->addSlice($this->getSliceBody([$headerPdfList[2]], false))
+                    ->addSlice($this->getSliceBody($bodyPdfList[2]));
+            } else {
+                $pageList[] = (new Page())
+                    ->addSlice($this->getPageHeaderSlice($tblPerson, $tblYear))
+                    ->addSlice($this->getSliceBody([$headerPdfList], false))
+                    ->addSlice($this->getSliceBody($bodyPdfList));
+            }
+        }
+
+        return $pageList;
+    }
+
+    private function getSliceBody(array $dataList, bool $hasBorderBottom = true): Slice
+    {
+        $slice = new Slice();
+        foreach ($dataList as $row) {
+            $section = new Section();
+            foreach ($row as $item) {
+                $section->addElementColumn($item['Content'], $item['Width']);
+            }
+            $slice->addSection($section);
+        }
+
+        if ($hasBorderBottom) {
+            $slice->styleBorderBottom();
+        }
+
+        return $slice;
     }
 
     /**
@@ -116,22 +157,6 @@ class GradebookOverview extends AbstractDocument
                     ->setContent(''), '33%'
                 )
             )->stylePaddingBottom('2px');
-    }
-
-    /**
-     * @param TblPerson $tblPerson
-     * @param TblYear $tblYear
-     * @param string $View
-     *
-     * @return Slice
-     */
-    public function getGradebookOverviewSlice(TblPerson $tblPerson, TblYear $tblYear, string $View): Slice
-    {
-        if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYearAndDateWithLeaved($tblPerson, $tblYear))) {
-            return Grade::useService()->getStudentOverviewDataByPerson($tblPerson, $tblYear, $tblStudentEducation, $View == 'Parent', true);
-        }
-
-        return new Slice();
     }
 
     /**

@@ -53,12 +53,16 @@ class Data extends AbstractData
     }
 
     /**
-     * @param integer $Id
+     * @param $Id
+     * @param bool $isForced
      *
-     * @return bool|TblConsumer
+     * @return false|TblConsumer
      */
-    public function getConsumerById($Id)
+    public function getConsumerById($Id, bool $isForced = false)
     {
+        if ($isForced) {
+            return $this->getForceEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblConsumer', $Id);
+        }
 
         return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblConsumer', $Id);
     }
@@ -133,10 +137,15 @@ class Data extends AbstractData
     }
 
     /**
+     * @param bool $isForced
+     *
      * @return TblConsumer[]|bool
      */
-    public function getConsumerAll()
+    public function getConsumerAll(bool $isForced = false)
     {
+        if ($isForced) {
+            return $this->getForceEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblConsumer');
+        }
 
         return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblConsumer');
     }
@@ -189,37 +198,6 @@ class Data extends AbstractData
     }
 
     /**
-     * @param TblConsumer $tblConsumer
-     * @param string      $SystemName
-     *
-     * @return TblConsumerLogin
-     */
-    public function createConsumerLogin(TblConsumer $tblConsumer, $SystemName = '')
-    {
-
-        $Manager = $this->getConnection()->getEntityManager();
-
-        $Entity = $Manager->getEntity('TblConsumerLogin')->findOneBy(array(
-            TblConsumerLogin::ATTR_SYSTEM_NAME => $SystemName,
-            TblConsumerLogin::ATTR_TBL_CONSUMER => $tblConsumer->getId(),
-        ));
-
-        if(null === $Entity){
-            $Entity = new TblConsumerLogin();
-            $Entity->setSystemName($SystemName);
-            $Entity->setTblConsumer($tblConsumer);
-            $Entity->setIsActiveAPI(false);
-            $Manager->saveEntity($Entity);
-
-            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
-                $Entity);
-        }
-        return $Entity;
-    }
-
-
-
-    /**
      * @param string $Acronym
      * @param string $Name
      * @param string $Alias
@@ -239,5 +217,74 @@ class Data extends AbstractData
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         }
         return $Entity;
+    }
+
+    /**
+     * @param TblConsumer $tblConsumer
+     * @param string      $SystemName
+     * @param string      $isButtonActive
+     *
+     * @return TblConsumerLogin
+     */
+    public function createConsumerLogin(TblConsumer $tblConsumer, $SystemName, $isButtonActive = false)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $Entity = $Manager->getEntity('TblConsumerLogin')->findOneBy(array(
+            TblConsumerLogin::ATTR_SYSTEM_NAME => $SystemName,
+            TblConsumerLogin::ATTR_TBL_CONSUMER => $tblConsumer->getId(),
+        ));
+        if(null === $Entity){
+            $Entity = new TblConsumerLogin();
+            $Entity->setSystemName($SystemName);
+            $Entity->setTblConsumer($tblConsumer);
+            $Entity->setIsActiveAPI($isButtonActive);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
+                $Entity);
+        }
+        return $Entity;
+    }
+
+    /**
+     * @param TblConsumerLogin $tblConsumerLogin
+     * @param bool $isButtonActive
+     *
+     * @return TblConsumerLogin
+     */
+    public function updateConsumerLogin(TblConsumerLogin $tblConsumerLogin, $isButtonActive)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+//        $ConsumerId = $tblConsumerLogin->getId();
+//        $Entity = $Manager->getEntity('TblConsumer')->find($ConsumerId);
+        /** @var TblConsumerLogin $tblConsumerLogin */
+        if (null !== $tblConsumerLogin) {
+            $tblConsumerLogin->setEntityUpdate();
+            $tblConsumerLogin->setIsActiveAPI($isButtonActive);
+            $Manager->saveEntity($tblConsumerLogin);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $tblConsumerLogin);
+        }
+        return $tblConsumerLogin;
+    }
+
+    /**
+     * @param TblConsumerLogin $tblConsumerLogin
+     *
+     * @return bool
+     */
+    public function removeConsumerLogin(TblConsumerLogin $tblConsumerLogin)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+//        $ConsumerId = $tblConsumerLogin->getId();
+//        $Entity = $Manager->getEntity('TblConsumer')->find($ConsumerId);
+        /** @var TblConsumerLogin $tblConsumerLogin */
+        if ($tblConsumerLogin) {
+            $Manager->killEntity($tblConsumerLogin);
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $tblConsumerLogin);
+            return true;
+        }
+        return false;
     }
 }

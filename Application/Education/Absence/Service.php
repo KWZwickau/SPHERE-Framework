@@ -27,6 +27,7 @@ use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\Success;
+use SPHERE\Common\Frontend\Text\Repository\Warning;
 use SPHERE\System\Database\Binding\AbstractService;
 use SPHERE\System\Extension\Repository\Sorter;
 use SPHERE\System\Extension\Repository\Sorter\DateTimeSorter;
@@ -997,5 +998,32 @@ class Service extends AbstractService
         }
 
         return $tableData;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     * @param TblCompany|null $tblCompany
+     * @param TblType|null $tblSchoolType
+     * @param DateTime $fromDate
+     * @param DateTime $tillDate
+     *
+     * @return string[]
+     */
+    public function getAbsenceDataByStudent(TblPerson $tblPerson, TblYear $tblYear, ?TblCompany $tblCompany, ?TblType $tblSchoolType,
+        DateTime $fromDate, DateTime $tillDate): array
+    {
+        $unExcusedLessons = 0;
+        $excusedLessons = 0;
+        $excusedDays = Absence::useService()->getExcusedDaysByPerson($tblPerson, $tblYear, $tblCompany ?: null, $tblSchoolType ?: null,
+            $fromDate, $tillDate, $excusedLessons);
+        $unExcusedDays = Absence::useService()->getUnexcusedDaysByPerson($tblPerson, $tblYear, $tblCompany ?: null, $tblSchoolType ?: null,
+            $fromDate, $tillDate, $unExcusedLessons);
+        $absenceDays = ($excusedDays + $unExcusedDays) . ' (' . new Success($excusedDays) . ', '
+            . new Warning($unExcusedDays) . ')';
+        $absenceLessons = ($excusedLessons + $unExcusedLessons) . ' (' . new Success($excusedLessons) . ', '
+            . new Warning($unExcusedLessons) . ')';
+
+        return array($absenceDays, $absenceLessons);
     }
 }
