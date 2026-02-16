@@ -8,9 +8,11 @@ use SPHERE\Application\App\Authentication\Process\Service;
 use SPHERE\Application\App\Dispatcher;
 use SPHERE\Application\App\ModuleInterface;
 use SPHERE\Application\App\Response\Authentication\SignIn\EmptyBasicFields;
+use SPHERE\Application\App\Response\Authentication\SignIn\EmptyCredentialFields;
 use SPHERE\Application\App\Response\Authentication\SignIn\MissingBasicFields;
 use SPHERE\Application\App\Response\Authentication\SignIn\RetryProcess;
 use SPHERE\Application\App\Response\Authentication\SignIn\RequestMethod;
+use SPHERE\Application\App\Response\Authentication\SignIn\WrongCredentialFields;
 use SPHERE\Application\App\Response\Code\Response400;
 use SPHERE\Application\App\Response\Code\Response401;
 use SPHERE\Application\App\Response\ResponseInterface;
@@ -70,20 +72,14 @@ class Credentials implements ModuleInterface
         }
 
         // TODO: Execute 1. MFA-Step > Username & Password
-        if (empty($credentialIdentifier) || empty($credentialPassword)) {
-            return new Response400('Credentials not provided', [
-                'credentialIdentifier' => $credentialIdentifier,
-                'credentialPassword' => $credentialPassword
-            ]);
+        if (empty($credentialPassword)) {
+            return new EmptyCredentialFields($processToken);
         }
 
         $tblAccount = Account::useService()->getAccountByCredential($credentialIdentifier, $credentialPassword);
 
         if (!$tblAccount) {
-            return new Response401('Credentials not valid', [
-                'credentialIdentifier' => $credentialIdentifier,
-                'credentialPassword' => $credentialPassword
-            ]);
+            return new WrongCredentialFields($processToken);
         }
 
         // TODO:
