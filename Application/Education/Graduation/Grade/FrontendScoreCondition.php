@@ -312,37 +312,43 @@ abstract class FrontendScoreCondition extends FrontendMinimumGradeCount
                     );
                 }
 
+                $scoreConditionGroupList = [];
                 if ($tblScoreConditionGroupListByCondition) {
                     foreach ($tblScoreConditionGroupListByCondition as &$tblScoreConditionGroupList) {
-                        $tblScoreConditionGroupList->Name = $tblScoreConditionGroupList->getTblScoreGroup()->getName()
-                            . new Small(new Muted(' (' . 'Faktor: ' . $tblScoreConditionGroupList->getTblScoreGroup()->getDisplayMultiplier()
-                                . ($tblScoreConditionGroupList->getTblScoreGroup()->getIsEveryGradeASingleGroup()
-                                    ? ', Noten einzeln' : '') . ')'));
-                        $tblScoreConditionGroupList->Option =
-                            (new \SPHERE\Common\Frontend\Link\Repository\Primary(
-                                'Entfernen', '/Education/Graduation/Grade/ScoreRule/Condition/Group/Remove',
-                                new Minus(), array(
-                                'Id' => $tblScoreConditionGroupList->getId()
-                            )))->__toString();
+                        $scoreConditionGroupList[] = [
+                            'Name' => $tblScoreConditionGroupList->getTblScoreGroup()->getName()
+                                . new Small(new Muted(' (' . 'Faktor: ' . $tblScoreConditionGroupList->getTblScoreGroup()->getDisplayMultiplier()
+                                    . ($tblScoreConditionGroupList->getTblScoreGroup()->getIsEveryGradeASingleGroup()
+                                        ? ', Noten einzeln' : '') . ')')),
+                            'Option' =>
+                                (new \SPHERE\Common\Frontend\Link\Repository\Primary(
+                                    'Entfernen', '/Education/Graduation/Grade/ScoreRule/Condition/Group/Remove',
+                                    new Minus(), array(
+                                    'Id' => $tblScoreConditionGroupList->getId()
+                                )))->__toString()
+                        ];
                     }
                 }
 
+                $scoreGroupList = [];
                 if ($tblScoreGroupAll) {
                     foreach ($tblScoreGroupAll as $tblScoreGroup) {
-                        $tblScoreGroup->DisplayName = $tblScoreGroup->getName()
-                            . new Small(new Muted(' (' . 'Faktor: ' . $tblScoreGroup->getDisplayMultiplier()
-                                . ($tblScoreGroup->getIsEveryGradeASingleGroup()
-                                    ? ', Noten einzeln' : '') . ')'));
-                        $tblScoreGroup->Option =
-                            (new \SPHERE\Common\Frontend\Link\Repository\Primary(
-                                'Hinzufügen',
-                                '/Education/Graduation/Grade/ScoreRule/Condition/Group/Add',
-                                new Plus(),
-                                array(
-                                    'tblScoreGroupId' => $tblScoreGroup->getId(),
-                                    'tblScoreConditionId' => $tblScoreCondition->getId()
-                                )
-                            ))->__toString();
+                        $scoreGroupList[] = [
+                            'DisplayName' => $tblScoreGroup->getName()
+                                . new Small(new Muted(' (' . 'Faktor: ' . $tblScoreGroup->getDisplayMultiplier()
+                                    . ($tblScoreGroup->getIsEveryGradeASingleGroup()
+                                        ? ', Noten einzeln' : '') . ')')),
+                            'Option' =>
+                                (new \SPHERE\Common\Frontend\Link\Repository\Primary(
+                                    'Hinzufügen',
+                                    '/Education/Graduation/Grade/ScoreRule/Condition/Group/Add',
+                                    new Plus(),
+                                    array(
+                                        'tblScoreGroupId' => $tblScoreGroup->getId(),
+                                        'tblScoreConditionId' => $tblScoreCondition->getId()
+                                    )
+                                ))->__toString()
+                        ];
                     }
                 }
 
@@ -360,7 +366,7 @@ abstract class FrontendScoreCondition extends FrontendMinimumGradeCount
                             new LayoutRow(array(
                                 new LayoutColumn(array(
                                     new Title('Ausgewählte', 'Zensuren-Gruppen'),
-                                    new TableData($tblScoreConditionGroupListByCondition, null,
+                                    new TableData($scoreConditionGroupList, null,
                                         array(
                                             'Name' => 'Name',
                                             'Option' => ''
@@ -375,7 +381,7 @@ abstract class FrontendScoreCondition extends FrontendMinimumGradeCount
                                 ),
                                 new LayoutColumn(array(
                                     new Title('Verfügbare', 'Zensuren-Gruppen'),
-                                    new TableData($tblScoreGroupAll, null,
+                                    new TableData($scoreGroupList, null,
                                         array(
                                             'DisplayName' => 'Name ',
                                             'Option' => ' '

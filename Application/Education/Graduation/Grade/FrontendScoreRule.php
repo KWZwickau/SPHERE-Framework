@@ -372,31 +372,39 @@ abstract class FrontendScoreRule extends FrontendScoreGroup
                     );
                 }
 
+                $scoreRuleConditionList = [];
                 if ($tblScoreRuleConditionListByRule) {
                     foreach ($tblScoreRuleConditionListByRule as &$tblScoreRuleCondition) {
-                        $tblScoreRuleCondition->Name = $tblScoreRuleCondition->getTblScoreCondition()->getName();
-                        $tblScoreRuleCondition->Priority = $tblScoreRuleCondition->getTblScoreCondition()->getPriority();
-                        $tblScoreRuleCondition->Option =
-                            (new \SPHERE\Common\Frontend\Link\Repository\Primary(
-                                'Entfernen', '/Education/Graduation/Grade/ScoreRule/Condition/Remove',
-                                new Minus(), array(
-                                'Id' => $tblScoreRuleCondition->getId()
-                            )))->__toString();
+                        $scoreRuleConditionList[] = [
+                            'Name' => $tblScoreRuleCondition->getTblScoreCondition()->getName(),
+                            'Priority' => $tblScoreRuleCondition->getTblScoreCondition()->getPriority(),
+                            'Option' =>
+                                (new \SPHERE\Common\Frontend\Link\Repository\Primary(
+                                    'Entfernen', '/Education/Graduation/Grade/ScoreRule/Condition/Remove',
+                                    new Minus(), array(
+                                    'Id' => $tblScoreRuleCondition->getId()
+                                )))->__toString()
+                        ];
                     }
                 }
 
+                $scoreConditionList = [];
                 if ($tblScoreConditionAll) {
                     foreach ($tblScoreConditionAll as $tblScoreCondition) {
-                        $tblScoreCondition->Option =
-                            (new \SPHERE\Common\Frontend\Link\Repository\Primary(
-                                'Hinzufügen',
-                                '/Education/Graduation/Grade/ScoreRule/Condition/Add',
-                                new Plus(),
-                                array(
-                                    'tblScoreRuleId' => $tblScoreRule->getId(),
-                                    'tblScoreConditionId' => $tblScoreCondition->getId()
-                                )
-                            ))->__toString();
+                        $scoreConditionList[] = [
+                            'Name' => $tblScoreCondition->getName(),
+                            'Priority' => $tblScoreCondition->getPriority(),
+                            'Option' =>
+                                (new \SPHERE\Common\Frontend\Link\Repository\Primary(
+                                    'Hinzufügen',
+                                    '/Education/Graduation/Grade/ScoreRule/Condition/Add',
+                                    new Plus(),
+                                    array(
+                                        'tblScoreRuleId' => $tblScoreRule->getId(),
+                                        'tblScoreConditionId' => $tblScoreCondition->getId()
+                                    )
+                                ))->__toString()
+                        ];
                     }
                 }
 
@@ -415,7 +423,7 @@ abstract class FrontendScoreRule extends FrontendScoreGroup
                             new LayoutRow(array(
                                 new LayoutColumn(array(
                                     new Title('Ausgewählte', 'Berechnungsvarianten'),
-                                    new TableData($tblScoreRuleConditionListByRule, null,
+                                    new TableData($scoreRuleConditionList, null,
                                         array(
                                             'Name' => 'Name',
                                             'Priority' => 'Priorität',
@@ -432,7 +440,7 @@ abstract class FrontendScoreRule extends FrontendScoreGroup
                                 ),
                                 new LayoutColumn(array(
                                     new Title('Verfügbare', 'Berechnungsvarianten'),
-                                    new TableData($tblScoreConditionAll, null,
+                                    new TableData($scoreConditionList, null,
                                         array(
                                             'Name' => 'Name ',
                                             'Priority' => 'Priorität ',
