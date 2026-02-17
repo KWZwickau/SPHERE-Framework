@@ -935,7 +935,8 @@ class FrontendStudent extends FrontendMember
                             $division = '';
                             $coreGroup = '';
                             if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))) {
-                                $level = $tblStudentEducation->getLevel() ?: new WarningText('Keine Klassenstufe hinterlegt');
+                                $level = $tblStudentEducation->getLevel() !== null
+                                    ? $tblStudentEducation->getLevel() : new WarningText('Keine Klassenstufe hinterlegt');
                                 $schoolType = ($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())
                                     ? $tblSchoolType->getName() : new WarningText('Keine Schulart hinterlegt');
 
@@ -996,7 +997,8 @@ class FrontendStudent extends FrontendMember
                                 if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))) {
                                     $company = ($tblCompany = $tblStudentEducation->getServiceTblCompany())
                                         ? $tblCompany->getDisplayName() : new WarningText('Keine Schule hinterlegt');
-                                    $level = $tblStudentEducation->getLevel() ?: new WarningText('Keine Klassenstufe hinterlegt');
+                                    $level = $tblStudentEducation->getLevel() !== null
+                                        ? $tblStudentEducation->getLevel() : new WarningText('Keine Klassenstufe hinterlegt');
                                     $schoolType = ($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())
                                         ? $tblSchoolType->getName() : new WarningText('Keine Schulart hinterlegt');
 
