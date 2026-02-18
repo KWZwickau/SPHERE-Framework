@@ -954,10 +954,10 @@ class Data extends DataTeacher
         $Entity = $Manager->getEntityById('TblStudentEducation', $tblStudentEducation->getId());
         $Protocol = clone $Entity;
         if (null !== $Entity) {
-            $tblStudentEducation->setServiceTblSchoolType(Type::useService()->getTypeById($Data['SchoolType']) ?: null);
-            $tblStudentEducation->setServiceTblCompany(Company::useService()->getCompanyById($Data['Company']) ?: null);
-            $tblStudentEducation->setLevel($Data['Level']);
-            $tblStudentEducation->setServiceTblCourse(Course::useService()->getCourseById($Data['Course']) ?: null);
+            $Entity->setServiceTblSchoolType(Type::useService()->getTypeById($Data['SchoolType']) ?: null);
+            $Entity->setServiceTblCompany(Company::useService()->getCompanyById($Data['Company']) ?: null);
+            $Entity->setLevel($Data['Level']);
+            $Entity->setServiceTblCourse(Course::useService()->getCourseById($Data['Course']) ?: null);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
@@ -985,11 +985,11 @@ class Data extends DataTeacher
         $Protocol = clone $Entity;
         if (null !== $Entity) {
             if ($divisionTypeIdentifier == TblDivisionCourseType::TYPE_DIVISION) {
-                $tblStudentEducation->setTblDivision($tblDivisionCourse);
-                $tblStudentEducation->setDivisionSortOrder($sortOrder);
+                $Entity->setTblDivision($tblDivisionCourse);
+                $Entity->setDivisionSortOrder($sortOrder);
             } else {
-                $tblStudentEducation->setTblCoreGroup($tblDivisionCourse);
-                $tblStudentEducation->setCoreGroupSortOrder($sortOrder);
+                $Entity->setTblCoreGroup($tblDivisionCourse);
+                $Entity->setCoreGroupSortOrder($sortOrder);
             }
 
             $Manager->saveEntity($Entity);
