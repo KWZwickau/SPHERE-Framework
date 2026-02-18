@@ -152,7 +152,13 @@ abstract class Cacheable extends Extension
 
         $Parameter = (array)$Parameter;
         array_walk($Parameter, function (&$Value, $Key) {
-            $Value = $Key.':'.($Value===null ? 'NULL' : $Value);
+            if ($Value instanceof \DateTimeInterface) {
+                $Value = $Value->format(\DateTimeInterface::ATOM);
+            } elseif ($Value === null) {
+                $Value = 'NULL';
+            }
+            $Value = $Key . ':' . $Value;
+//            $Value = $Key.':'.($Value===null ? 'NULL' : $Value);
         });
 
         if ($this->useDebugger()) {
