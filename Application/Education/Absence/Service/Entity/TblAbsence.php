@@ -17,6 +17,9 @@ use SPHERE\Application\People\Meta\Teacher\Teacher;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Link\Repository\AbstractLink;
+use SPHERE\Common\Frontend\Text\Repository\Danger;
+use SPHERE\Common\Frontend\Text\Repository\Success;
+use SPHERE\Common\Frontend\Text\Repository\Warning;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -347,10 +350,23 @@ class TblAbsence extends Element
      */
     public function getStatusDisplayName(): string
     {
+        $isOnlineAbsence = $this->getIsOnlineAbsence();
         switch ($this->getStatus()) {
-            case self::VALUE_STATUS_EXCUSED: return 'entschuldigt';
-            case self::VALUE_STATUS_UNEXCUSED: return 'unentschuldigt';
-            case self::VALUE_STATUS_UNCLEAR: return 'unklar';
+            case self::VALUE_STATUS_EXCUSED:
+                $text = 'entschuldigt';
+                return $isOnlineAbsence
+                    ? '<span style="color:darkorange">' . $text . '</span>'
+                    : new Success($text);
+            case self::VALUE_STATUS_UNEXCUSED:
+                $text = 'unentschuldigt';
+                return $isOnlineAbsence
+                    ? '<span style="color:darkorange">' . $text . '</span>'
+                    : new Warning($text);
+            case self::VALUE_STATUS_UNCLEAR:
+                $text = 'unklar';
+                return $isOnlineAbsence
+                    ? '<span style="color:darkorange">' . $text . '</span>'
+                    : new Danger($text);
             default: return '';
         }
     }
@@ -563,8 +579,10 @@ class TblAbsence extends Element
             return AbstractLink::TYPE_ORANGE_LINK;
         } elseif ($this->getStatus() == self::VALUE_STATUS_UNCLEAR) {
             return AbstractLink::TYPE_RED_LINK;
-        } elseif (!$this->getIsCertificateRelevant()) {
-            return AbstractLink::TYPE_MUTED_LINK;
+        } elseif ($this->getStatus() == self::VALUE_STATUS_UNEXCUSED) {
+            return AbstractLink::TYPE_WARNING_LINK;
+        } elseif ($this->getStatus() == self::VALUE_STATUS_EXCUSED) {
+            return AbstractLink::TYPE_SUCCESS_LINK;
         } else {
             return AbstractLink::TYPE_LINK;
         }

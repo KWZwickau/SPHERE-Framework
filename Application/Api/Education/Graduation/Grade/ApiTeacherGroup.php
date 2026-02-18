@@ -195,7 +195,7 @@ class ApiTeacherGroup  extends Extension implements IApiInterface
         $tblMemberTypeDivisionTeacher = DivisionCourse::useService()->getDivisionCourseMemberTypeByIdentifier(TblDivisionCourseMemberType::TYPE_DIVISION_TEACHER);
         if ($tblDivisionCourse) {
             $Data['Subject'] = ($tblSubject = $tblDivisionCourse->getServiceTblSubject()) ? $tblSubject->getId() : 0;
-            DivisionCourse::useService()->updateDivisionCourse($tblDivisionCourse, $Data);
+            DivisionCourse::useService()->updateDivisionCourse($tblDivisionCourse, $Data, true);
 
             $tempList = array();
             $createList = array();

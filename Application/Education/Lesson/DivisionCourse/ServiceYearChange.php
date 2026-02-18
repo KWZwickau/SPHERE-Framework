@@ -484,7 +484,8 @@ abstract class ServiceYearChange extends ServiceTeacher
                 $tblDivisionCourse->getDescription(),
                 $tblDivisionCourse->getIsShownInPersonData(),
                 $tblDivisionCourse->getIsReporting(),
-                $tblDivisionCourse->getServiceTblSubject() ?: null
+                $tblDivisionCourse->getServiceTblSubject() ?: null,
+                $tblDivisionCourse->getIsDigital()
             );
 
             // Klassenlehrer/Tutoren übertragen

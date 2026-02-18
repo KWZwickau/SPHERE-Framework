@@ -34,6 +34,7 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer as Co
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer as GatekeeperConsumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumerLogin;
+use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Application\Setting\Consumer\School\School;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Icon\Repository\Calendar;
@@ -207,6 +208,17 @@ class Service extends ServiceYearChange
     public function getDivisionCourseListByIsShownInPersonData(TblYear $tblYear = null, ?string $TypeIdentifier = '')
     {
         return (new Data($this->getBinding()))->getDivisionCourseListByIsShownInPersonData($tblYear, $TypeIdentifier);
+    }
+
+    /**
+     * @param TblYear|null $tblYear
+     * @param string|null $TypeIdentifier
+     *
+     * @return false|TblDivisionCourse[]
+     */
+    public function getDivisionCourseListByIsDigital(TblYear $tblYear = null, ?string $TypeIdentifier = ''): bool|array
+    {
+        return (new Data($this->getBinding()))->getDivisionCourseListByIsDigital($tblYear, $TypeIdentifier);
     }
 
     /**
@@ -702,7 +714,7 @@ class Service extends ServiceYearChange
         ) {
             $tblSubject = isset($Data['Subject']) ? Subject::useService()->getSubjectById($Data['Subject']) : null;
             return (new Data($this->getBinding()))->createDivisionCourse($tblType, $tblYear, $Data['Name'], $Data['Description'],
-                isset($Data['IsShownInPersonData']), isset($Data['IsReporting']), $tblSubject);
+                isset($Data['IsShownInPersonData']), isset($Data['IsReporting']), $tblSubject, isset($Data['IsDigital']));
         } else {
             return false;
         }
@@ -729,20 +741,29 @@ class Service extends ServiceYearChange
         ?TblSubject $tblSubject = null): TblDivisionCourse
     {
 
-        return (new Data($this->getBinding()))->createDivisionCourse($tblType, $tblYear, $name, $description, $isShownInPersonData, $isReporting, $tblSubject);
+        return (new Data($this->getBinding()))->createDivisionCourse($tblType, $tblYear, $name, $description, $isShownInPersonData, $isReporting, $tblSubject, false);
     }
 
     /**
      * @param TblDivisionCourse $tblDivisionCourse
      * @param array $Data
+     * @param bool $isTeacher
      *
      * @return bool
      */
-    public function updateDivisionCourse(TblDivisionCourse $tblDivisionCourse, array $Data): bool
+    public function updateDivisionCourse(TblDivisionCourse $tblDivisionCourse, array $Data, bool $isTeacher = false): bool
     {
+        $isDigital = isset($Data['IsDigital']);
+        $hasTeacherRightToCreateCourseContentForTeacherGroup = ($tblSetting = Consumer::useService()->getSetting(
+                'Education', 'ClassRegister', 'CourseContent', 'HasTeacherRightToCreateCourseContentForTeacherGroup'
+            )) && $tblSetting->getValue();
+        if ($isTeacher && !$hasTeacherRightToCreateCourseContentForTeacherGroup) {
+            $isDigital = $tblDivisionCourse->getIsDigital();
+        }
+
         $tblSubject = isset($Data['Subject']) ? Subject::useService()->getSubjectById($Data['Subject']) : null;
         return (new Data($this->getBinding()))->updateDivisionCourse($tblDivisionCourse, $Data['Name'], $Data['Description'],
-            isset($Data['IsShownInPersonData']), isset($Data['IsReporting']), $tblSubject);
+            isset($Data['IsShownInPersonData']), isset($Data['IsReporting']), $tblSubject, $isDigital);
     }
 
     /**

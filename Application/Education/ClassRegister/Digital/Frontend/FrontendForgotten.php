@@ -107,7 +107,8 @@ class FrontendForgotten extends FrontendDownload
                 $homeworks[] = new SelectBoxItem($item['Id'], $text);
             }
 
-            $name = $tblDivisionCourse->getType()->getIsCourseSystem() ? 'Data[CourseContentId]' : 'Data[LessonContentId]';
+            $name = $tblDivisionCourse->getType()->getIsCourseSystem() || $tblDivisionCourse->getServiceTblSubject()
+                ? 'Data[CourseContentId]' : 'Data[LessonContentId]';
 
             return new SelectBox($name, 'Optional Hausaufgabe auswählen', array('{{ Name }}' => $homeworks), null, true, null);
         }
@@ -201,7 +202,7 @@ class FrontendForgotten extends FrontendDownload
             ->ajaxPipelineOnChange(ApiForgotten::pipelineLoadHomeworkSelectBox($tblDivisionCourse->getId(), $SubjectId, $Date, $LessonContentId, $CourseContentId));
 
         // Kursheft hat bereits ein Fach
-        if ($tblDivisionCourse->getType()->getIsCourseSystem()) {
+        if ($tblDivisionCourse->getServiceTblSubject()) {
             $formRow = new FormRow(new FormColumn($datePicker));
             $contentSelectBox = $this->loadHomeworkSelectBox($tblDivisionCourse, null, $Date ? new DateTime($Date) : null, $LessonContentId, $CourseContentId);
         } else {
@@ -318,7 +319,7 @@ class FrontendForgotten extends FrontendDownload
             ->ajaxPipelineOnChange(ApiForgotten::pipelineLoadForgottenContent($tblDivisionCourse->getId()));
 
         // Kursheft hat bereits ein Fach
-        if ($tblDivisionCourse->getType()->getIsCourseSystem()) {
+        if ($tblDivisionCourse->getServiceTblSubject()) {
             $formRow = new FormRow(array(
                 new FormColumn(
                     $selectBoxStudents
@@ -382,7 +383,7 @@ class FrontendForgotten extends FrontendDownload
                 'Option' => '&nbsp;'
             );
 
-            if ($tblDivisionCourse->getType()->getIsCourseSystem()) {
+            if ($tblDivisionCourse->getServiceTblSubject()) {
                 unset($columns['Subject']);
             }
 

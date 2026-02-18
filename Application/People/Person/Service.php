@@ -1231,7 +1231,7 @@ class Service extends AbstractService
                         'IsSibling' => isset($person['IsSibling'])
                     );
                 }
-            } else {
+            } elseif ($type == 'S') {
                 // Custody
 
                 $errorCustody = false;
@@ -1342,6 +1342,8 @@ class Service extends AbstractService
                     $custodyRelationships[] = $tblPerson;
                 }
             }
+            $tblPersonCustody1 = null;
+            $tblPersonCustody2 = null;
             foreach ($custodies as $key => $custody) {
                 if (($tblPerson = $this->insertPerson(($tblSalutation = $custody['tblSalutation']) ? $tblSalutation->getId() : null,
                     $custody['Title'], $custody['FirstName'], $custody['SecondName'], $custody['LastName'], $groups, $custody['BirthName'])
@@ -1372,9 +1374,26 @@ class Service extends AbstractService
                             $custody['IsSingleParent']
                         );
                     }
+
+                    if ($tblPersonCustody1 == null) {
+                        $tblPersonCustody1 = $tblPerson;
+                    } else {
+                        $tblPersonCustody2 = $tblPerson;
+                    }
                 }
             }
-
+            if ($tblPersonCustody1
+                && $tblPersonCustody2
+                && isset($Data['Relationship'])
+                && ($tblType = Relationship::useService()->getTypeById($Data['Relationship']))
+            ) {
+                Relationship::useService()->insertRelationshipToPerson(
+                    $tblPersonCustody1,
+                    $tblPersonCustody2,
+                    $tblType,
+                    ''
+                );
+            }
 
             // Geschwisterkinder
             while (count($siblingRelationships) > 0) {

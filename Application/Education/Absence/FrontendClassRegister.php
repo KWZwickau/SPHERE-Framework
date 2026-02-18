@@ -755,19 +755,24 @@ class FrontendClassRegister extends Extension implements IFrontendInterface
         if ($tblAbsence->getIsOnlineAbsence()) {
             $backgroundColor = 'orange';
             $isWhiteLink = true;
-        } elseif (($tblAbsenceType = $tblAbsence->getType())) {
-            if ($tblAbsenceType == TblAbsence::VALUE_TYPE_THEORY) {
-                $backgroundColor = '#E0F0FF';
-            } else {
-                $backgroundColor = '#337ab7';
-                $isWhiteLink = true;
-            }
+//        } elseif (($tblAbsenceType = $tblAbsence->getType())) {
+//            if ($tblAbsenceType == TblAbsence::VALUE_TYPE_THEORY) {
+//                $backgroundColor = '#E0F0FF';
+//            } else {
+//                $backgroundColor = '#337ab7';
+//                $isWhiteLink = true;
+//            }
+        } elseif ($tblAbsence->getStatus() == TblAbsence::VALUE_STATUS_UNCLEAR) {
+            $backgroundColor = '#d9534f';
+            $isWhiteLink = true;
+        } elseif ($tblAbsence->getStatus() == TblAbsence::VALUE_STATUS_UNEXCUSED) {
+            $backgroundColor = '#cda03d';
+            $isWhiteLink = true;
+        } elseif ($tblAbsence->getStatus() == TblAbsence::VALUE_STATUS_EXCUSED) {
+            $backgroundColor = '#5cb85c';
+            $isWhiteLink = true;
         } else {
-            if ($tblAbsence->getIsCertificateRelevant()) {
-                $backgroundColor = '#E0F0FF';
-            } else {
-                $backgroundColor = '#FFFFFF';
-            }
+            $backgroundColor = '#E0F0FF';
         }
 
         if ($hasToolTip) {

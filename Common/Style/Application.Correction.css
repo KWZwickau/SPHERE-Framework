@@ -613,6 +613,16 @@ a.type-red-link:focus {
     text-decoration: none;
 }
 
+a.type-success-link {
+    color: #3c763d;;
+    text-decoration: none;
+}
+a.type-success-link:hover,
+a.type-success-link:focus {
+    color: #2b542c;
+    text-decoration: none;
+}
+
 .wellReadOnly {
     min-height: 20px;
     padding: 5px;
