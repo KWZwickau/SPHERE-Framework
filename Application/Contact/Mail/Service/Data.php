@@ -9,6 +9,7 @@ use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Database\Binding\AbstractData;
+use SPHERE\System\Database\Fitting\Element;
 
 /**
  * Class Data
@@ -446,31 +447,21 @@ class Data extends AbstractData
 
     /**
      * @param TblPerson $tblPerson
-     * @param TblType $tblType
+     * @param TblType|null $tblType
      *
      * @return TblMail|null
      */
-    public function getLastMailAddressByPersonAndType(TblPerson $tblPerson, TblType $tblType): ?TblMail
+    public function getLastMailAddressByPersonAndType(TblPerson $tblPerson, ?TblType $tblType): ?TblMail
     {
-        $queryBuilder = $this->getEntityManager()->getQueryBuilder();
+        $parameters[TblToPerson::SERVICE_TBL_PERSON] = $tblPerson->getId();
+        if ($tblType) {
+            $parameters[TblToPerson::ATT_TBL_TYPE] = $tblType->getId();
+        }
+        if (($list = $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblToPerson', $parameters, [Element::ENTITY_CREATE => self::ORDER_DESC]))) {
+            /** @var TblToPerson $tblToPerson */
+            $tblToPerson = $list[0];
 
-        $builder = $queryBuilder->select('t')
-            ->from(TblToPerson::class, 't')
-            ->where(
-                $queryBuilder->expr()->andX(
-                    $queryBuilder->expr()->eq('t.serviceTblPerson', '?1'),
-                    $queryBuilder->expr()->eq('t.tblType', '?2')
-                )
-            )
-            ->orderBy('t.EntityCreate', 'DESC')
-            ->setMaxResults(1)
-            ->setParameter(1, $tblPerson->getId())
-            ->setParameter(2, $tblType->getId());
-
-        $result = $builder->getQuery()->getResult();
-
-        if ($result) {
-            return $result[0]->getTblMail();
+            return $tblToPerson->getTblMail();
         }
 
         return null;

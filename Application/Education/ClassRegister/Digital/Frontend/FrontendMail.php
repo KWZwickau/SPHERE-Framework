@@ -5,6 +5,7 @@ namespace SPHERE\Application\Education\ClassRegister\Digital\Frontend;
 use SPHERE\Application\Api\Education\ClassRegister\ApiMail;
 use SPHERE\Application\Contact\Mail\Mail;
 use SPHERE\Application\Education\ClassRegister\Digital\Digital;
+use SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount\SelectBoxItem;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\People\Relationship\Service\Entity\TblType;
@@ -64,12 +65,21 @@ class FrontendMail extends FrontendForgotten
      */
     private function getMailSelect($DivisionCourseId): string
     {
+        $typeList = [];
+        $typeList[] = new SelectBoxItem(0, 'Nicht ausgewählt');
+        if (($tblTypeList = Mail::useService()->getTypeAll())) {
+            foreach ($tblTypeList as $tblType) {
+                $typeList[] = new SelectBoxItem($tblType->getId(), $tblType->getName());
+            }
+        }
+        $typeList[] = new SelectBoxItem(-1, 'Geschäftlich und Privat');
+
         return new Panel(
             new Select() . ' Auswahl',
             new Form(new FormGroup([
                 new FormRow([
                     new FormColumn(
-                        (new SelectBox('Data[TypeId]', 'E-Mail Typ', ['{{ Name }}' => Mail::useService()->getTypeAll()]))
+                        (new SelectBox('Data[TypeId]', 'E-Mail Typ', ['{{ Name }}' => $typeList]))
                             ->setRequired()
                             ->ajaxPipelineOnChange(ApiMail::pipelineLoadMailContent($DivisionCourseId))
                     )
@@ -99,9 +109,14 @@ class FrontendMail extends FrontendForgotten
     {
         if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))
             && isset($Data['TypeId'])
-            && ($tblTypeMail = Mail::useService()->getTypeById($Data['TypeId']))
+            && (Mail::useService()->getTypeById($Data['TypeId']) || $Data['TypeId'] == -1)
             && (isset($Data['Custody']) || isset($Data['Student']))
         ) {
+            $tblTypeMail = null;
+            if ($Data['TypeId'] > 0) {
+                $tblTypeMail = Mail::useService()->getTypeById($Data['TypeId']);
+            }
+
             $missingCustodyList = [];
             $missingStudentList = [];
             $mailList = [];
@@ -110,7 +125,7 @@ class FrontendMail extends FrontendForgotten
             ) {
                 foreach ($tblPersonList as $tblPerson) {
                     if (isset($Data['Student'])) {
-                        if ($tblMail = Mail::useService()->getLastMailAddressByPersonAndType($tblPerson, $tblTypeMail)) {
+                        if ($tblMail = Mail::useService()->getLastMailAddressByPersonAndType($tblPerson, $tblTypeMail ?: null)) {
                             $mailList[] = $tblMail->getAddress();
                         } else {
                             $missingStudentList[] = $tblPerson->getFullName();
@@ -121,7 +136,7 @@ class FrontendMail extends FrontendForgotten
                         if (($tblRelationshipList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson, $tblTypeGuardian))) {
                             foreach ($tblRelationshipList as $tblRelationship) {
                                 if (($tblPersonFrom = $tblRelationship->getServiceTblPersonFrom())) {
-                                    if ($tblMail = Mail::useService()->getLastMailAddressByPersonAndType($tblPersonFrom, $tblTypeMail)) {
+                                    if ($tblMail = Mail::useService()->getLastMailAddressByPersonAndType($tblPersonFrom, $tblTypeMail ?: null)) {
                                         $mailList[] = $tblMail->getAddress();
                                     } else {
                                         $missingCustodyList[] = $tblPersonFrom->getFullName();
