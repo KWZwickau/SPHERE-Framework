@@ -91,23 +91,54 @@ class Frontend extends FrontendClassRegister
         $now = new DateTime('now');
 
         if (Consumer::useService()->getAccountSettingValue("AbsenceViewSekretariat") == 'Week') {
-            $view = $this->LoadOrganizerWeekly($now->format('W') , $now->format('Y'));
+            $content = $this->LoadOrganizerWeekly($now->format('W') , $now->format('Y'));
         } else {
-            $view = $this->LoadOrganizerDaily();
+            $content = $this->LoadOrganizerDaily();
         }
 
         $Stage->setContent(
-            (new PrimaryLink(
-                'Fehlzeit hinzufügen',
-                ApiAbsence::getEndpoint(),
-                new PlusSign()
-            ))->ajaxPipelineOnClick(ApiAbsence::pipelineOpenCreateAbsenceModal(null, null, $now->format('d.m.Y')))
-            . new Container('&nbsp;')
-            . ApiAbsence::receiverModal()
-            . ApiAbsence::receiverBlock($view, 'CalendarWeekContent')
+            ApiAbsence::receiverModal()
+            . ApiAbsence::receiverBlock($content, 'CalendarWeekContent')
         );
 
         return $Stage;
+    }
+
+    /**
+     * @param string $view
+     * @param string $Date
+     *
+     * @return string
+     */
+    private function getAddButtonAndDatepicker(string $view, string $Date = 'now'): string
+    {
+        $dateTime = new DateTime($Date);
+
+        $datePicker = (new DatePicker('Data[Date]', '', '', new Calendar()));
+        if ($view == 'Week') {
+            $datePicker->ajaxPipelineOnChange(ApiAbsence::pipelineChangeWeek('', ''));
+        } else {
+            $datePicker->ajaxPipelineOnChange(ApiAbsence::pipelineChangeDailyDate(''));
+        }
+
+        $form = (new Form(new FormGroup(new FormRow(new FormColumn(
+            $datePicker
+        )))))->disableSubmitAction();
+
+        return new Layout(new LayoutGroup(new LayoutRow([
+            new LayoutColumn(
+                (new PrimaryLink(
+                    'Fehlzeit hinzufügen',
+                    ApiAbsence::getEndpoint(),
+                    new PlusSign()
+                ))->ajaxPipelineOnClick(ApiAbsence::pipelineOpenCreateAbsenceModal(null, null, $dateTime->format('d.m.Y')))
+            , 9),
+            new LayoutColumn(
+                new PullRight(
+                    $form
+                )
+            , 3)
+        ])));
     }
 
     /**
@@ -370,11 +401,13 @@ class Frontend extends FrontendClassRegister
         $link = (new Link('Tagesansicht', ApiAbsence::getEndpoint(), null, array(), false, null, AbstractLink::TYPE_WHITE_LINK))
             ->ajaxPipelineOnClick(ApiAbsence::pipelineChangeDailyDate('today'));
 
-        return new Panel(
-            new Calendar() . ' Kalender' . new PullRight($link),
-            $Content,
-            Panel::PANEL_TYPE_PRIMARY
-        );
+        return $this->getAddButtonAndDatepicker('Week')
+            . new Container('&nbsp;')
+            . new Panel(
+                new Calendar() . ' Kalender' . new PullRight($link),
+                $Content,
+                Panel::PANEL_TYPE_PRIMARY
+            );
     }
 
     /**
@@ -581,11 +614,13 @@ class Frontend extends FrontendClassRegister
         $link = (new Link('Wochenansicht', ApiAbsence::getEndpoint(), null, array(), false, null, AbstractLink::TYPE_WHITE_LINK))
             ->ajaxPipelineOnClick(ApiAbsence::pipelineChangeWeek($currentDate->format('W'), $currentDate->format('Y')));
 
-        return new Panel(
-            new Calendar() . ' Kalender' . new PullRight($link),
-            $Content,
-            Panel::PANEL_TYPE_PRIMARY
-        );
+        return $this->getAddButtonAndDatepicker('Day', $Date)
+            . new Container('&nbsp;')
+            . new Panel(
+                new Calendar() . ' Kalender' . new PullRight($link),
+                $Content,
+                Panel::PANEL_TYPE_PRIMARY
+            );
     }
 
     /**
