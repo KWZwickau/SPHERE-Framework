@@ -13,6 +13,7 @@ use SPHERE\Application\Api\Education\ClassRegister\ApiDigital;
 use SPHERE\Application\Api\Education\ClassRegister\ApiForgotten;
 use SPHERE\Application\Api\Education\ClassRegister\ApiInstructionItem;
 use SPHERE\Application\Api\Education\ClassRegister\ApiInstructionSetting;
+use SPHERE\Application\Api\Education\ClassRegister\ApiMail;
 use SPHERE\Application\Api\Education\ClassRegister\ApiScheduleTime;
 use SPHERE\Application\Api\Education\ClassRegister\ApiSortDivision;
 use SPHERE\Application\Api\Education\ClassRegister\ApiTimetable;
@@ -93,5 +94,6 @@ class Education implements IApplicationInterface
         ApiPreviewCertificate::registerApi();
         ApiScheduleTime::registerApi();
         ApiGradeType::registerApi();
+        ApiMail::registerApi();
     }
 }

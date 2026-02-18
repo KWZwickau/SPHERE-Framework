@@ -31,7 +31,7 @@ use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Info;
 use SPHERE\Common\Window\Stage;
 
-class FrontendSelectDivisionCourse extends FrontendForgotten
+class FrontendSelectDivisionCourse extends FrontendMail
 {
     /**
      * @return Stage

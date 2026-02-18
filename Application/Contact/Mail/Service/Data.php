@@ -443,4 +443,36 @@ class Data extends AbstractData
             TblToPerson::ATT_TBL_MAIL => $tblMail->getId()
         ));
     }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblType $tblType
+     *
+     * @return TblMail|null
+     */
+    public function getLastMailAddressByPersonAndType(TblPerson $tblPerson, TblType $tblType): ?TblMail
+    {
+        $queryBuilder = $this->getEntityManager()->getQueryBuilder();
+
+        $builder = $queryBuilder->select('t')
+            ->from(TblToPerson::class, 't')
+            ->where(
+                $queryBuilder->expr()->andX(
+                    $queryBuilder->expr()->eq('t.serviceTblPerson', '?1'),
+                    $queryBuilder->expr()->eq('t.tblType', '?2')
+                )
+            )
+            ->orderBy('t.EntityCreate', 'DESC')
+            ->setMaxResults(1)
+            ->setParameter(1, $tblPerson->getId())
+            ->setParameter(2, $tblType->getId());
+
+        $result = $builder->getQuery()->getResult();
+
+        if ($result) {
+            return $result[0]->getTblMail();
+        }
+
+        return null;
+    }
 }

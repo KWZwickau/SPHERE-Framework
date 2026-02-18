@@ -29,6 +29,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Calendar;
 use SPHERE\Common\Frontend\Icon\Repository\CommodityItem;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
+use SPHERE\Common\Frontend\Icon\Repository\Envelope;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Extern;
 use SPHERE\Common\Frontend\Icon\Repository\History;
@@ -333,6 +334,9 @@ abstract class ServiceTabs extends ServiceForgotten
         $buttonList[] = $this->getButton('Schülerliste', '/Education/ClassRegister/Digital/Student', new PersonGroup(),
             $DivisionCourseId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/Student');
 
+        $buttonList[] = $this->getButton('E-Mail-Kontakt', '/Education/ClassRegister/Digital/Mail', new Envelope(),
+            $DivisionCourseId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/Mail');
+
         // Fehlzeiten (Kalenderansicht) nur bei Klassen anzeigen
         $buttonList[] = $this->getButton('Fehlzeiten', '/Education/ClassRegister/Digital/AbsenceMonth',
             new Calendar(), $DivisionCourseId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/AbsenceMonth');
@@ -430,6 +434,8 @@ abstract class ServiceTabs extends ServiceForgotten
 
         $buttonList[] = $this->getButtonCourseSystem('Schülerliste', '/Education/ClassRegister/Digital/Student', new PersonGroup(),
             $DivisionCourseId, $BackDivisionCourseId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/Student');
+        $buttonList[] = $this->getButtonCourseSystem('E-Mail-Kontakt', '/Education/ClassRegister/Digital/Mail', new Envelope(),
+            $DivisionCourseId, $BackDivisionCourseId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/Mail');
         $buttonList[] = $this->getButtonCourseSystem('Fehlzeiten (Kalenderansicht)', '/Education/ClassRegister/Digital/AbsenceMonth', new Calendar(),
             $DivisionCourseId, $BackDivisionCourseId, $BasicRoute, $Route == '/Education/ClassRegister/Digital/AbsenceMonth');
         $buttonList[] = $this->getButtonCourseSystem('Belehrungen', '/Education/ClassRegister/Digital/Instruction', new CommodityItem(),
