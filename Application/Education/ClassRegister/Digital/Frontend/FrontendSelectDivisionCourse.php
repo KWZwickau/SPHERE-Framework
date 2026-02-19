@@ -9,6 +9,8 @@ use SPHERE\Application\Education\ClassRegister\Digital\Digital;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\People\Group\Group;
+use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Setting\Consumer\Consumer;
@@ -226,13 +228,24 @@ class FrontendSelectDivisionCourse extends FrontendForgotten
     {
         $Stage = new Stage('Digitales Klassenbuch', 'Fehlende Klassentagebuch-Einträge');
 
+        $global = $this->getGlobal();
         $Filter = ['OnlyMissing' => 1];
+        $global->POST['Filter']['OnlyMissing'] = 1;
+        // Schulleitung und Support kann den Lehrer auswählen
+        $hasRightHeadmaster = Access::useService()->hasAuthorization('/Education/ClassRegister/Digital/Instruction/Setting');
+        // Person eintragen, falls Person ein Lehrer ist
+        if ($hasRightHeadmaster
+            && ($tblPerson = Account::useService()->getPersonByLogin())
+            && ($tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_TEACHER))
+            && Group::useService()->existsGroupPerson($tblGroup, $tblPerson)
+        ) {
+            $global->POST['Filter']['tblPerson'] = $tblPerson->getId();
+            $Filter['tblPerson'] = $tblPerson->getId();
+        }
+
+        $global->savePost();
         // save filter as json
         Consumer::useService()->createAccountSetting('DigitalTeacherViewFilter', json_encode($Filter));
-
-        $global = $this->getGlobal();
-        $global->POST['Filter']['OnlyMissing'] = 1;
-        $global->savePost();
 
         Digital::useService()->setHeaderButtonList($Stage, View::TEACHER, self::BASE_ROUTE);
         $yearFilterList = array();
