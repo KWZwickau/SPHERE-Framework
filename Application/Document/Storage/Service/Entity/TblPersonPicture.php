@@ -7,6 +7,7 @@ use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Common\Frontend\Text\Repository\Danger;
 use SPHERE\System\Database\Fitting\Element;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
@@ -53,10 +54,13 @@ class TblPersonPicture extends Element
     public function getPicture($Height = '25px', $borderRadius = '5px', $marginTop = '0px', $marginBottom = '0px')
     {
 
-        return '<img height='.$Height.' width=auto src="data:image/jpeg;base64,'
-            .base64_encode(stream_get_contents($this->Picture)).'" style="border-radius: '.$borderRadius.';
+        if(is_resource($this->Picture)){
+            return '<img height='.$Height.' width=auto src="data:image/jpeg;base64,'
+                .base64_encode(stream_get_contents($this->Picture)).'" style="border-radius: '.$borderRadius.';
              margin-top: '.$marginTop.'; margin-bottom: '.$marginBottom.';"/>';
-
+        } else {
+            return new Danger('load cached Entity use forced Entity!');
+        }
     }
 
     /**
