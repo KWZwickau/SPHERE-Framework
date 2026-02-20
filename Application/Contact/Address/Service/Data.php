@@ -11,7 +11,7 @@ use SPHERE\Application\Contact\Address\Service\Entity\TblType;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
-use SPHERE\System\Cache\Handler\MemcachedHandler;
+use SPHERE\System\Cache\Handler\RedisHandler;
 use SPHERE\System\Database\Binding\AbstractData;
 use SPHERE\System\Database\Fitting\ColumnHydrator;
 use SPHERE\System\Database\Fitting\IdHydrator;
@@ -946,7 +946,7 @@ class Data extends AbstractData
     public function fetchIdAddressAllByPerson(TblPerson $tblPerson)
     {
 
-        $Cache = $this->getCache(new MemcachedHandler());
+        $Cache = $this->getCache(new RedisHandler());
         if (null === ( $IdList = $Cache->getValue($tblPerson->getId(), __METHOD__) )) {
             $Manager = $this->getConnection()->getEntityManager();
 
@@ -974,7 +974,7 @@ class Data extends AbstractData
     {
 
         $Key = md5(json_encode($IdArray));
-        $Cache = $this->getCache(new MemcachedHandler());
+        $Cache = $this->getCache(new RedisHandler());
         if (null === ( $tblAddressAll = $Cache->getValue($Key, __METHOD__) )) {
 
             $Manager = $this->getConnection()->getEntityManager();

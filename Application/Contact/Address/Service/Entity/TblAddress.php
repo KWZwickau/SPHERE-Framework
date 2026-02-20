@@ -8,7 +8,7 @@ use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Layout\Repository\Address as LayoutAddress;
-use SPHERE\System\Cache\Handler\MemcachedHandler;
+use SPHERE\System\Cache\Handler\RedisHandler;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -238,7 +238,7 @@ class TblAddress extends Element
     public function getGuiLayout()
     {
 
-        $Cache = $this->getCache(new MemcachedHandler());
+        $Cache = $this->getCache(new RedisHandler());
         if (null === ($Return = $Cache->getValue($this->getId(), __METHOD__))) {
             $Return = new LayoutAddress($this);
             $Cache->setValue($this->getId(), (string)$Return, 0, __METHOD__);
@@ -254,7 +254,7 @@ class TblAddress extends Element
     public function getGuiString($Extended = true)
     {
 
-        $Cache = $this->getCache(new MemcachedHandler());
+        $Cache = $this->getCache(new RedisHandler());
         if (null === ($Return = $Cache->getValue($this->getId(), __METHOD__))) {
 
             // 0 as Default
@@ -320,7 +320,7 @@ class TblAddress extends Element
     public function getGuiTwoRowString($Extended = true, $withCommaSeparated = true)
     {
 
-        $Cache = $this->getCache(new MemcachedHandler());
+        $Cache = $this->getCache(new RedisHandler());
         if (null === ($Return = $Cache->getValue($this->getId(), __METHOD__))) {
 
             // 0 as Default
