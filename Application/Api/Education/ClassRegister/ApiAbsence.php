@@ -804,6 +804,7 @@ class ApiAbsence extends Extension implements IApiInterface
             'WeekNumber' => $WeekNumber,
             'Year' => $Year
         ));
+        $Emitter->setLoadingMessage('Daten werden geladen ...');
 
         $Pipeline->appendEmitter($Emitter);
         return $Pipeline;
@@ -812,11 +813,18 @@ class ApiAbsence extends Extension implements IApiInterface
     /**
      * @param string $WeekNumber
      * @param string $Year
+     * @param null $Data
      *
      * @return string
      */
-    public static function generateOrganizerWeekly(string $WeekNumber = '', string $Year = ''): string
+    public static function generateOrganizerWeekly(string $WeekNumber = '', string $Year = '', $Data = null): string
     {
+        if (isset($Data['Date'])) {
+            $dateTime = new DateTime($Data['Date']);
+            $WeekNumber = $dateTime->format('W');
+            $Year = $dateTime->format('o');
+        }
+
         // View speichern
         Consumer::useService()->createAccountSetting('AbsenceViewSekretariat', 'Week');
 
@@ -935,18 +943,24 @@ class ApiAbsence extends Extension implements IApiInterface
             self::API_TARGET => 'generateOrganizerDaily',
             'Date' => $Date,
         ));
+        $Emitter->setLoadingMessage('Daten werden geladen ...');
 
         $Pipeline->appendEmitter($Emitter);
         return $Pipeline;
     }
 
     /**
-     * @param string $Date
+     * @param string|null $Date
+     * @param null $Data
      *
      * @return string
      */
-    public static function generateOrganizerDaily(string $Date): string
+    public static function generateOrganizerDaily(?string $Date, $Data = null): string
     {
+        if (isset($Data['Date'])) {
+            $Date = $Data['Date'];
+        }
+
         // View speichern
         Consumer::useService()->createAccountSetting('AbsenceViewSekretariat', 'Day');
 
