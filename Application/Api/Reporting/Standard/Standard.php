@@ -116,6 +116,9 @@ class Standard implements IModuleInterface
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/Person/MovementReport/Download', __NAMESPACE__.'\Person\Person::downloadMovementReport'
         ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/TeacherLectureship/Download', __NAMESPACE__.'\Person\Person::downloadTeacherLectureship'
+        ));
     }
 
     /**

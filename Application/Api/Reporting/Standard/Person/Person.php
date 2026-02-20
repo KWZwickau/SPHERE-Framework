@@ -11,11 +11,13 @@ use SPHERE\Application\Education\ClassRegister\Digital\Digital;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
+use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Course\Course;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
+use SPHERE\Application\People\Meta\Teacher\Teacher;
 use SPHERE\Application\Reporting\Standard\Person\Person as ReportingPerson;
 use SPHERE\System\Extension\Extension;
 
@@ -667,5 +669,70 @@ class Person extends Extension
                 "Schülerliste Zugänger Abgänger ".(new DateTime())->format('d-m-Y').".xlsx")->__toString();
         }
         return false;
+    }
+
+    /**
+     * @param $Filter
+     *
+     * @return string
+     */
+    public function downloadTeacherLectureship($Filter = null): string
+    {
+        $headerList = [];
+        $bodyList = [];
+        $data = DivisionCourse::useService()->getTeacherLectureshipDataByFilter($Filter, false);
+        if (!is_array($data)) {
+            return $data;
+        }
+        $personList = $data['personList'];
+        $personListWithoutTeacherGroup = $data['personListWithoutTeacherGroup'];
+        $personList = array_replace($personList, $personListWithoutTeacherGroup);
+        foreach ($personList as $personId => $subjectList) {
+            if (($tblPerson = \SPHERE\Application\People\Person\Person::useService()->getPersonById($personId))) {
+                if (($tblTeacher = Teacher::useService()->getTeacherByPerson($tblPerson)) && $tblTeacher->getAcronym()) {
+                    $person = $tblTeacher->getAcronym();
+                } else {
+                    $person = $tblPerson->getLastName();
+                }
+
+                if ($subjectList) {
+                    foreach ($subjectList as $subjectId => $divisionCourseList) {
+                        if (($tblSubject = Subject::useService()->getSubjectById($subjectId))) {
+                            $headerList[$tblSubject->getAcronym()] = $tblSubject->getAcronym();
+
+                            foreach ($divisionCourseList as $name) {
+                                if (isset($bodyList[$name][$tblSubject->getAcronym()])) {
+                                    $bodyList[$name][$tblSubject->getAcronym()] .= ', ' . $person;
+                                } else {
+                                    $bodyList[$name][$tblSubject->getAcronym()] = $person;
+                                }
+
+                                if (!isset($bodyList[$name]['DivisionCourse'])) {
+                                    $bodyList[$name]['DivisionCourse'] = $name;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        ksort($headerList);
+        $headerList = ['DivisionCourse' => 'Kurs'] + $headerList;
+
+        uksort($bodyList, 'strnatcmp');
+
+        $preTextList[] = 'Lehraufträge';
+        $preTextList[] = 'Stand: ' . (new DateTime())->format('d.m.Y');
+
+        $headerWidthList['DivisionCourse'] = 22;
+
+        return ExcelBuilder::getDownloadFile(
+            'Lehrauftraege ' . (new DateTime())->format('d-m-Y'),
+            $headerList,
+            $bodyList,
+            $preTextList,
+            $headerWidthList,
+            true
+        );
     }
 }

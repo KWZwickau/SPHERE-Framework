@@ -9,11 +9,13 @@ use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
+use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Window\Redirect;
 
 abstract class ServiceTeacher extends ServiceSubjectTable
@@ -132,5 +134,148 @@ abstract class ServiceTeacher extends ServiceSubjectTable
         return $isString
             ? implode(", ", $tblPersonList)
             : $tblPersonList;
+    }
+
+    /**
+     * @param $Filter
+     * @param bool $isShowGroupName
+     *
+     * @return array|string
+     */
+    public function getTeacherLectureshipDataByFilter($Filter, bool $isShowGroupName = true): array|string
+    {
+        $hasFilter = false;
+        $tblYearList = false;
+        $tblSubjectFilter = Subject::useService()->getSubjectById($Filter['Subject'] ?? 0);
+        $tblTeacherFilter = Person::useService()->getPersonById($Filter['Teacher'] ?? 0);
+
+        $tblTeacherLectureshipList = array();
+        // Name like
+        if (isset($Filter['CourseName']) && $Filter['CourseName'] != '') {
+            $hasFilter = true;
+            if (isset($Filter['Year']) && $Filter['Year'] == -1) {
+                $tblYearList = Term::useService()->getYearByNow();
+                $tblDivisionCourseList = DivisionCourse::useService()->getDivisionCourseListByLikeName($Filter['CourseName'], $tblYearList ?: null);
+            } elseif (isset($Filter['Year']) && ($tblYear = Term::useService()->getYearById($Filter['Year']))) {
+                $tblDivisionCourseList = DivisionCourse::useService()->getDivisionCourseListByLikeName($Filter['CourseName'], array($tblYear));
+            } else {
+                return (new Warning('Bitte wählen Sie ein Schuljahr aus', new Exclamation()));
+            }
+
+            if ($tblDivisionCourseList) {
+                foreach ($tblDivisionCourseList as $tblDivisionCourse) {
+                    if (($tblTeacherLectureshipDivisionCourseList = DivisionCourse::useService()->getTeacherLectureshipListBy(
+                        null, $tblTeacherFilter ?: null, $tblDivisionCourse, $tblSubjectFilter ?: null
+                    ))) {
+                        $tblTeacherLectureshipList = array_merge($tblTeacherLectureshipDivisionCourseList, $tblTeacherLectureshipList);
+                    }
+                }
+            }
+        } elseif ($tblSubjectFilter || $tblTeacherFilter) {
+            $hasFilter = true;
+            if (isset($Filter['Year']) && $Filter['Year'] == -1) {
+                if (($tblYearList = Term::useService()->getYearByNow())) {
+                    foreach ($tblYearList as $tblYearItem) {
+                        if (($tblTeacherLectureshipYearList = DivisionCourse::useService()->getTeacherLectureshipListBy(
+                            $tblYearItem, $tblTeacherFilter ?: null, null, $tblSubjectFilter ?: null
+                        ))) {
+                            $tblTeacherLectureshipList = array_merge($tblTeacherLectureshipYearList, $tblTeacherLectureshipList);
+                        }
+                    }
+                }
+                // ausgewähltes Schuljahr
+            } elseif (isset($Filter['Year']) && ($tblYearFilter = Term::useService()->getYearById($Filter['Year']))) {
+                $tblTeacherLectureshipList = DivisionCourse::useService()->getTeacherLectureshipListBy(
+                    $tblYearFilter, $tblTeacherFilter ?: null, null, $tblSubjectFilter ?: null
+                );
+            } else {
+                return (new Warning('Bitte wählen Sie ein Schuljahr aus', new Exclamation()));
+            }
+        }
+
+        $personList = array();
+        $personListWithoutTeacherGroup = array();
+        // bei Filterung, nur Lehrer mit entsprechendem Lehrauftrag anzeigen
+        if ($hasFilter) {
+            if ($tblTeacherLectureshipList) {
+                $tblTeacherLectureshipList = $this->getSorter($tblTeacherLectureshipList)->sortObjectBy('Sort');
+                foreach ($tblTeacherLectureshipList as $tblTeacherLectureship) {
+                    if (($tblPerson = $tblTeacherLectureship->getServiceTblPerson())
+                        && ($tblSubject = $tblTeacherLectureship->getServiceTblSubject())
+                        && ($tblDivisionCourse = $tblTeacherLectureship->getTblDivisionCourse())
+                    ) {
+                        $personList[$tblPerson->getId()][$tblSubject->getId()][$tblDivisionCourse->getId()] = $tblDivisionCourse->getName()
+                            . ($isShowGroupName && ($groupName = $tblTeacherLectureship->getGroupName()) ? ' (' . $groupName . ')' : '');
+                    }
+                }
+            }
+
+            if ($tblTeacherFilter && !isset($personList[$tblTeacherFilter->getId()])) {
+                $personList[$tblTeacherFilter->getId()] = false;
+            }
+            // kein Filter, dann alle Lehrer anzeigen
+        } else {
+            if (isset($Filter['Year']) && $Filter['Year'] == -1) {
+                $tblYearList = Term::useService()->getYearByNow();
+            } elseif (isset($Filter['Year']) && ($tblYearFilter = Term::useService()->getYearById($Filter['Year']))) {
+                $tblYearList = array($tblYearFilter);
+            }
+
+            if (($tblPersonList = Group::useService()->getPersonAllByGroup(Group::useService()->getGroupByMetaTable('TEACHER')))) {
+                $tblPersonList = $this->getSorter($tblPersonList)->sortObjectBy('LastFirstName');
+                foreach ($tblPersonList as $tblPerson) {
+                    $tblTeacherLectureshipList = array();
+                    if ($tblYearList) {
+                        foreach ($tblYearList as $tblYear) {
+                            if (($tblTeacherLectureshipYearList = DivisionCourse::useService()->getTeacherLectureshipListBy($tblYear, $tblPerson))) {
+                                $tblTeacherLectureshipList = array_merge($tblTeacherLectureshipYearList, $tblTeacherLectureshipList);
+                            }
+                        }
+                    }
+                    if ($tblTeacherLectureshipList) {
+                        $tblTeacherLectureshipList = $this->getSorter($tblTeacherLectureshipList)->sortObjectBy('Sort');
+                        foreach ($tblTeacherLectureshipList as $tblTeacherLectureship) {
+                            if (($tblSubject = $tblTeacherLectureship->getServiceTblSubject())
+                                && ($tblDivisionCourse = $tblTeacherLectureship->getTblDivisionCourse())
+                            ) {
+                                $personList[$tblPerson->getId()][$tblSubject->getId()][$tblDivisionCourse->getId()] = $tblDivisionCourse->getName()
+                                    . ($isShowGroupName && ($groupName = $tblTeacherLectureship->getGroupName()) ? ' (' . $groupName . ')' : '');
+                            }
+                        }
+                    } else {
+                        $personList[$tblPerson->getId()] = false;
+                    }
+                }
+            }
+
+            // Personen mit einem Lehrauftrag, welche nicht mehr in der festen Gruppe Lehrer sind
+            if ($tblYearList) {
+                foreach ($tblYearList as $tblYear) {
+                    if (($tblTeacherLectureshipList = DivisionCourse::useService()->getTeacherLectureshipListBy(
+                        $tblYear
+                    ))) {
+                        $tblTeacherLectureshipList = $this->getSorter($tblTeacherLectureshipList)->sortObjectBy('Sort');
+                        /** @var TblTeacherLectureship $tblTeacherLectureship */
+                        foreach ($tblTeacherLectureshipList as $tblTeacherLectureship) {
+                            if (($tblPerson = $tblTeacherLectureship->getServiceTblPerson())
+                                && !isset($personList[$tblPerson->getId()])
+                                && ($tblSubject = $tblTeacherLectureship->getServiceTblSubject())
+                                && ($tblDivisionCourse = $tblTeacherLectureship->getTblDivisionCourse())
+                            ) {
+                                $personListWithoutTeacherGroup[$tblPerson->getId()][$tblSubject->getId()][$tblDivisionCourse->getId()] = $tblDivisionCourse->getName()
+                                    . ($isShowGroupName && ($groupName = $tblTeacherLectureship->getGroupName()) ? ' (' . $groupName . ')' : '');
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return [
+            'personListWithoutTeacherGroup' => $personListWithoutTeacherGroup,
+            'personList' => $personList,
+            'tblYearList' => $tblYearList,
+            'tblSubjectFilter' => $tblSubjectFilter
+        ];
     }
 }
