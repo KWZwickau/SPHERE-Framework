@@ -2780,7 +2780,7 @@ class Service extends Extension
                 }
 
                 if(($tblStudent = Student::useService()->getStudentByPerson($tblPerson))){
-                    $Item['StudentNumber'] = $tblStudent->getIdentifier();
+                    $Item['StudentNumber'] = $tblStudent->getIdentifierComplete();
                     if(($tblMedicalRecord = $tblStudent->getTblStudentMedicalRecord())){
                         $Item['Disease'] = $tblMedicalRecord->getDisease();
                         $Item['Medication'] = $tblMedicalRecord->getMedication();
@@ -2911,7 +2911,7 @@ class Service extends Extension
                 }
 
                 if (($tblStudent = Student::useService()->getStudentByPerson($tblPerson))) {
-                    $Item['StudentNumber'] = $tblStudent->getIdentifier();
+                    $Item['StudentNumber'] = $tblStudent->getIdentifierComplete();
                     // befüllen was Gesetzt ist
                     if(($tblAgreementList = Student::useService()->getStudentAgreementAllByStudent($tblStudent))){
                         foreach($tblAgreementList as $tblAgreement){
@@ -2976,7 +2976,7 @@ class Service extends Extension
                 }
 
                 if(($tblStudent = Student::useService()->getStudentByPerson($tblPerson))){
-                    $Item['StudentNumber'] = $tblStudent->getIdentifier();
+                    $Item['StudentNumber'] = $tblStudent->getIdentifierComplete();
                     // Bestätigung Setzen
                     if(($tblAgreementList = Student::useService()->getStudentAgreementAllByStudent($tblStudent))){
                         foreach($tblAgreementList as $tblAgreement){

@@ -299,7 +299,7 @@ class Service
                                 if(!$isTest && $StudentNumber && $StudentNumber != ''){
                                     if(($tblStudent = Student::useService()->getStudentByPerson($tblPerson))){
                                         Student::useService()->updateStudentIdentifier($tblStudent, $StudentNumber);
-                                        if($tblStudent->getIdentifier()){
+                                        if($tblStudent->getIdentifierComplete()){
                                             $countUpdateStudentNumber++;
                                         } else {
                                             $countAddStudentNumber++;

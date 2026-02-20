@@ -376,7 +376,7 @@ class Service extends AbstractService
             }
             if($Identifier){
                 if (($tblStudent = Student::useService()->getStudentByPerson($tblPerson))) {
-                    if ($Identifier != $tblStudent->getIdentifier()) {
+                    if ($Identifier != $tblStudent->getIdentifierComplete()) {
                         continue;
                     }
                 } else {
@@ -417,7 +417,7 @@ class Service extends AbstractService
                 if ($Birthday && $Birthday == $tblCommonBirthDates->getBirthday()) {
                     return $tblPerson;
                 }
-                if ($Identifier && $Identifier == $tblStudent->getIdentifier()) {
+                if ($Identifier && $Identifier == $tblStudent->getIdentifierComplete()) {
                     return $tblPerson;
                 }
             }

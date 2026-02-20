@@ -50,8 +50,8 @@ class Service
                         }
                     }
                 }
-                if (($tblStudent = $tblPerson->getStudent()) && $tblStudent->getIdentifier()) {
-                    $studentNumber = $tblStudent->getIdentifier();
+                if (($tblStudent = $tblPerson->getStudent()) && $tblStudent->getIdentifierComplete()) {
+                    $studentNumber = $tblStudent->getIdentifierComplete();
                 }
 
                 $DivisionName = $tblDivisionCourse->getName();

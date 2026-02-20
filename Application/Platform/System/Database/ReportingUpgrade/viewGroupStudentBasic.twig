@@ -3,11 +3,17 @@ SELECT
 -- PersonId to match with all View's // tblStudent
     tS.serviceTblPerson AS TblPerson_Id,
     tS.Id AS TblStudent_Id,
-    tS.Identifier AS TblStudent_Identifier,
+    CONCAT(tS.Prefix, tS.Identifier)AS TblStudent_Identifier,
     DATE_FORMAT( tS.SchoolAttendanceStartDate, '%d.%m.%Y' ) AS TblStudent_SchoolAttendanceStartDate,
-    IF (tS.HasMigrationBackground, 'Ja', 'Nein') AS TblStudent_HasMigrationBackground,
+    IF (tS.HasMigrationBackground,
+        'Ja',
+        'Nein')
+    AS TblStudent_HasMigrationBackground,
     tS.MigrationBackground AS TblStudent_MigrationBackground,
-    IF (tS.IsInPreparationDivisionForMigrants, 'Ja', 'Nein') AS TblStudent_IsInPreparationDivisionForMigrants
+    IF (tS.IsInPreparationDivisionForMigrants,
+        'Ja',
+        'Nein')
+    AS TblStudent_IsInPreparationDivisionForMigrants
 
 FROM {{ ConsumerAcronym }}_PeopleMeta.tblStudent tS
 

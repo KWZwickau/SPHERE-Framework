@@ -168,7 +168,7 @@ class Service extends Extension
             }
             $item['MigrationBackground'] = '';
             if($tblStudent = Student::useService()->getStudentByPerson($tblPerson)){
-                $item['StudentNumber'] = $tblStudent->getIdentifier();
+                $item['StudentNumber'] = $tblStudent->getIdentifierComplete();
             }
 
             // Allgemeine Daten Schüler
