@@ -9,6 +9,7 @@ use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Database\Binding\AbstractData;
+use SPHERE\System\Database\Fitting\Element;
 
 /**
  * Class Data
@@ -442,5 +443,27 @@ class Data extends AbstractData
             TblToPerson::SERVICE_TBL_PERSON => $tblPerson->getId(),
             TblToPerson::ATT_TBL_MAIL => $tblMail->getId()
         ));
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblType|null $tblType
+     *
+     * @return TblMail|null
+     */
+    public function getLastMailAddressByPersonAndType(TblPerson $tblPerson, ?TblType $tblType): ?TblMail
+    {
+        $parameters[TblToPerson::SERVICE_TBL_PERSON] = $tblPerson->getId();
+        if ($tblType) {
+            $parameters[TblToPerson::ATT_TBL_TYPE] = $tblType->getId();
+        }
+        if (($list = $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblToPerson', $parameters, [Element::ENTITY_CREATE => self::ORDER_DESC]))) {
+            /** @var TblToPerson $tblToPerson */
+            $tblToPerson = $list[0];
+
+            return $tblToPerson->getTblMail();
+        }
+
+        return null;
     }
 }
