@@ -109,8 +109,6 @@ class Frontend extends Extension implements IFrontendInterface
      */
     public function frontendWelcome()
     {
-
-        $Stage = new Stage('Willkommen', '', '');
         $contentMaintenance = $this->layoutMaintenance();
         $contentTeacherWelcome = false;
         $contentSecretariatWelcome = false;
@@ -119,6 +117,7 @@ class Frontend extends Extension implements IFrontendInterface
         $IsNavigationAssistance = false;
         $IsStudentAccount = false;
         $contentTimeTableReplacementErrorLog = false;
+        $accountPersonName = '';
 
         $tblAccount = Account::useService()->getAccountBySession();
         if ($tblAccount) {
@@ -149,6 +148,9 @@ class Frontend extends Extension implements IFrontendInterface
                 // Schüleraccounts herausfinden
                 if (($tblUserAccount = UserAccount::useService()->getUserAccountByAccount($tblAccount))) {
                     $IsStudentAccount = $tblUserAccount->getType() == TblUserAccount::VALUE_TYPE_STUDENT;
+                    if (($tblPersonUser = $tblUserAccount->getServiceTblPerson())) {
+                        $accountPersonName = $tblPersonUser->getFullName();
+                    }
 //                    $Password = $tblUserAccount->getAccountPassword();
 //                    if ($tblAccount->getPassword() == $Password) {
 //                        $IsChangePassword = true;
@@ -191,6 +193,8 @@ class Frontend extends Extension implements IFrontendInterface
         if (Access::useService()->hasAuthorization('/Transfer/Indiware/ErrorLog')) {
             $contentTimeTableReplacementErrorLog = ErrorLog::getWelcome();
         }
+
+        $Stage = new Stage('Willkommen ' . $accountPersonName);
 
         $Stage->setContent(
             ($contentMaintenance ?: '')
