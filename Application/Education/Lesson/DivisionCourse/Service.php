@@ -1807,50 +1807,51 @@ class Service extends ServiceYearChange
         } else {
             $form->setSuccess($DataName . '[SchoolType]');
         }
-        if (!isset($Data['Level']) || empty($Data['Level']) || !intval($Data['Level'])) {
+        if (!isset($Data['Level']) || filter_var($Data['Level'], FILTER_VALIDATE_INT) === false) {
             $form->setError($DataName . '[Level]', 'Bitte geben Sie eine Klassenstufe an');
             $error = true;
-        } elseif ($tblSchoolType) {
-            $level = $Data['Level'];
-            if ($level < 1) {
-                $form->setError($DataName . '[Level]', 'Bitte geben Sie eine gültige Klassenstufe an');
-                $error = true;
-            // in Berlin sind die Klassenstufen Zuordnungen zu den Schularten anders
-            } elseif (GatekeeperConsumer::useService()->getConsumerBySessionIsConsumerType(TblConsumer::TYPE_SACHSEN)) {
-                switch ($tblSchoolType->getShortName()) {
-                    case 'GS':
-                        if ($level > 4) {
-                            $form->setError($DataName . '[Level]', 'Bitte geben Sie eine gültige Klassenstufe an');
-                            $error = true;
-                        } else {
-                            $form->setSuccess($DataName . '[Level]');
-                        }
-                        break;
-                    case 'OS':
-                        if ($level < 5 || $level > 10) {
-                            $form->setError($DataName . '[Level]', 'Bitte geben Sie eine gültige Klassenstufe an');
-                            $error = true;
-                        } else {
-                            $form->setSuccess($DataName . '[Level]');
-                        }
-                        break;
-                    case 'Gy':
-                        if ($level < 5 || $level > 12) {
-                            $form->setError($DataName . '[Level]', 'Bitte geben Sie eine gültige Klassenstufe an');
-                            $error = true;
-                        } else {
-                            $form->setSuccess($DataName . '[Level]');
-                        }
-                        break;
-                    default:
-                        if ($level > 13) {
-                            $form->setError($DataName . '[Level]', 'Bitte geben Sie eine gültige Klassenstufe an');
-                            $error = true;
-                        } else {
-                            $form->setSuccess($DataName . '[Level]');
-                        }
-                }
-            }
+            // SSW-2942 erstmal keine Prüfung mehr für Klassenstufe nach Schulart
+//        } elseif ($tblSchoolType) {
+//            $level = $Data['Level'];
+//            if ($level < 1) {
+//                $form->setError($DataName . '[Level]', 'Bitte geben Sie eine gültige Klassenstufe an');
+//                $error = true;
+//            // in Berlin sind die Klassenstufen Zuordnungen zu den Schularten anders
+//            } elseif (GatekeeperConsumer::useService()->getConsumerBySessionIsConsumerType(TblConsumer::TYPE_SACHSEN)) {
+//                switch ($tblSchoolType->getShortName()) {
+//                    case 'GS':
+//                        if ($level > 4) {
+//                            $form->setError($DataName . '[Level]', 'Bitte geben Sie eine gültige Klassenstufe an');
+//                            $error = true;
+//                        } else {
+//                            $form->setSuccess($DataName . '[Level]');
+//                        }
+//                        break;
+//                    case 'OS':
+//                        if ($level < 5 || $level > 10) {
+//                            $form->setError($DataName . '[Level]', 'Bitte geben Sie eine gültige Klassenstufe an');
+//                            $error = true;
+//                        } else {
+//                            $form->setSuccess($DataName . '[Level]');
+//                        }
+//                        break;
+//                    case 'Gy':
+//                        if ($level < 5 || $level > 12) {
+//                            $form->setError($DataName . '[Level]', 'Bitte geben Sie eine gültige Klassenstufe an');
+//                            $error = true;
+//                        } else {
+//                            $form->setSuccess($DataName . '[Level]');
+//                        }
+//                        break;
+//                    default:
+//                        if ($level > 13) {
+//                            $form->setError($DataName . '[Level]', 'Bitte geben Sie eine gültige Klassenstufe an');
+//                            $error = true;
+//                        } else {
+//                            $form->setSuccess($DataName . '[Level]');
+//                        }
+//                }
+//            }
         } else {
             $form->setSuccess($DataName . '[Level]');
         }
