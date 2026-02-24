@@ -204,36 +204,6 @@ class DataProtectionOrdinance implements IClusterInterface, IApplicationInterfac
                     new LayoutRow(
                         new LayoutColumn(array(
                             new Container('
-                                Wir verwenden auf unserer Website das Webanalyseprogramm „Piwik“. Dieses Programm ermöglicht
-                                es uns, die Benutzung unserer Website zu erfassen und hierdurch gegebenenfalls Optimierungen
-                                unserer Website vorzunehmen. Hierzu verwendet das Programm „Piwik“ sogenannte Cookies.
-                                Die hierdurch gewonnenen Nutzungsinformationen werden zusammen mit Ihrer IP-Adresse an
-                                unseren Server weitergeleitet und zur Analyse des Nutzungsverhaltens gespeichert.
-                                Bei diesem Vorgang wird Ihre IP-Adresse umgehend anonymisiert, sodass wir keine Rückschlüsse
-                                auf Sie als Nutzer ziehen können. Die derart gewonnenen Informationen werden nicht an
-                                Dritte weitergebenen. Sie können die Einstellungen Ihrer Browser-Software ändern und so
-                                verhindern, dass Cookies verwendet werden. In diesem Fall kann es vorkommen, dass Sie
-                                nicht alle Funktionen unserer Website vollumfänglich nutzen können.
-                            '),
-                            new Container('&nbsp;'),
-                            new Container('Sie können der Speicherung und Verwertung dieser Daten während Ihres Besuchs 
-                            auf unserer Website jederzeit widersprechen. Hierfür müssen Sie lediglich das unten stehende 
-                            Kästchen anklicken, sodass das gesetzte Häkchen nicht mehr zu sehen ist (Opt-out-Verfahren). 
-                            In diesem Fall wird in Ihrem Browser ein sogenannter Opt-out-Cookie hinterlegt, so dass Piwik 
-                            keine Sitzungsdaten mehr erheben kann. Beachten Sie bitte, dass das Löschen Ihrer Cookies der 
-                            jeweiligen Sitzung zur Folge hat, dass auch das Opt-out-Cookie gelöscht wird und unter 
-                            Umständen von Ihnen beim nächsten Besuch unserer Website erneut aktiviert werden muss.'),
-                            new Container('&nbsp;'),
-                            '<iframe class="sphere-iframe-style" src="/Library/Piwik/index.php?module=CoreAdminHome&action=optOut&language=de"></iframe>'
-                        ))
-                    ), new Title(
-                        'NUTZUNG VON PIWIK'
-                    )
-                ),
-                new LayoutGroup(
-                    new LayoutRow(
-                        new LayoutColumn(array(
-                            new Container('
                                 Diese Seite nutzt aus Gründen der Sicherheit und zum Schutz der Übertragung vertraulicher
                                 Inhalte, wie zum Beispiel der Anfragen, die Sie an uns als Seitenbetreiber senden, 
                                 eine SSL-Verschlüsselung. Eine verschlüsselte Verbindung erkennen Sie daran, dass die
