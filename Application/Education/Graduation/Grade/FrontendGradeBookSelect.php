@@ -60,7 +60,7 @@ abstract class FrontendGradeBookSelect extends FrontendExamGrade
                 }
 
                 $form = (new Form(new FormGroup(new FormRow(new FormColumn(
-                    (new CheckBox('Data[ShowDivisionTeacherGradeBooks]', new Bold('Notenbücher über Kursleiter mit anzeigen'), 1))
+                    (new CheckBox('Data[ShowDivisionTeacherGradeBooks]', new Bold('Notenbücher inklusive Kursleiter anzeigen'), 1))
                         ->ajaxPipelineOnChange(array(ApiGradeBook::pipelineChangeShowDivisionTeacherGradeBooks()))
                 )))))->disableSubmitAction();
 
