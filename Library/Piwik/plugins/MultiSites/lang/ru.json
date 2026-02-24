@@ -1,8 +1,0 @@
-{
-    "MultiSites": {
-        "Evolution": "Эволюция",
-        "LoadingWebsites": "Загрузка сайтов",
-        "TopLinkTooltip": "Сравните веб-аналитику для всех ваших сайтов.",
-        "Pagination": "%1$s - %2$s из %3$s"
-    }
-}
