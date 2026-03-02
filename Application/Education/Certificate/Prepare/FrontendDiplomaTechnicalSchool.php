@@ -423,9 +423,9 @@ class FrontendDiplomaTechnicalSchool extends FrontendDiploma
                 if (($tblCertificateSubject = Generator::useService()->getCertificateSubjectByIndex($tblCertificate, $index, $offset + $ranking,
                         $tblTechnicalCourse))
                     && ($tblSubject = $tblCertificateSubject->getServiceTblSubject())
-                    && ($tblTestGradeList = Grade::useService()->getTestGradeListToDateTimeByPersonAndSubject($tblPerson, $tblSubject, $tblTask->getToDate()))
+                    && ($tblTestGradeListTemp = Grade::useService()->getTestGradeListToDateTimeByPersonAndSubject($tblPerson, $tblSubject, $tblTask->getToDate()))
                 ) {
-                    foreach ($tblTestGradeList as $tblTestGrade) {
+                    foreach ($tblTestGradeListTemp as $tblTestGrade) {
                         $tblTest = $tblTestGrade->getTblTest();
                         if (($tblTestGrade->getGrade() !== null)) {
                             $toolTip = new Container($tblTest->getDateString())
