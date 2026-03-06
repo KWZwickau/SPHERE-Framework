@@ -253,7 +253,7 @@ class Session extends Extension implements IModuleInterface
             array_walk($tblProtocolAll, function (TblProtocol $tblProtocol) use (&$History) {
 
                 array_push($History, array(
-                    'Consumer' => $tblProtocol->getConsumerAcronym() . '&nbsp;' . new Muted($tblProtocol->getConsumerName()),
+                    'Consumer' => $tblProtocol->getConsumerAcronym(),
                     'LoginTime' => $tblProtocol->getEntityCreate(),
                     'Account' => $tblProtocol->getAccountUsername(),
                     'AccountId' => ($tblProtocol->getServiceTblAccount() ? $tblProtocol->getServiceTblAccount()->getId() : '-NA-')

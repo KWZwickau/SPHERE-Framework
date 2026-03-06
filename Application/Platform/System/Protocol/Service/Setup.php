@@ -68,6 +68,12 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasIndex($Table, array('ProtocolTimestamp'))) {
             $Table->addIndex(array('ProtocolTimestamp'));
         }
+        if (!$this->getConnection()->hasColumn('tblProtocol', 'ProtocolDatabaseTable')) {
+            $Table->addColumn('ProtocolDatabaseTable', 'string', array('notnull' => false));
+        }
+        if (!$this->getConnection()->hasIndex($Table, array('ProtocolDatabaseTable'))) {
+            $Table->addIndex(array('ProtocolDatabaseTable'));
+        }
         // Editor
         if (!$this->getConnection()->hasColumn('tblProtocol', 'serviceTblAccount')) {
             $Table->addColumn('serviceTblAccount', 'bigint', array('notnull' => false));
@@ -82,12 +88,13 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblProtocol', 'serviceTblConsumer')) {
             $Table->addColumn('serviceTblConsumer', 'bigint', array('notnull' => false));
         }
-        if (!$this->getConnection()->hasColumn('tblProtocol', 'ConsumerName')) {
-            $Table->addColumn('ConsumerName', 'string', array('notnull' => false));
+
+        // TODO später wieder entfernen
+        if ($this->getConnection()->hasColumn('tblProtocol', 'ConsumerName')) {
+            $Table->dropColumn('ConsumerName');
         }
-        if (!$this->getConnection()->hasIndex($Table, array('ConsumerName'))) {
-            $Table->addIndex(array('ConsumerName'));
-        }
+        $this->getConnection()->removeIndex($Table, array('ConsumerName'));
+
         if (!$this->getConnection()->hasColumn('tblProtocol', 'ConsumerAcronym')) {
             $Table->addColumn('ConsumerAcronym', 'string', array('notnull' => false));
         }
@@ -103,6 +110,12 @@ class Setup extends AbstractSetup
         }
         if (!$this->getConnection()->hasIndex($Table, array(Element::ENTITY_CREATE))) {
             $Table->addIndex(array(Element::ENTITY_CREATE));
+        }
+        if (!$this->getConnection()->hasColumn('tblProtocol', 'serviceTblPersonName')) {
+            $Table->addColumn('serviceTblPersonName', 'string', array('notnull' => false));
+        }
+        if (!$this->getConnection()->hasIndex($Table, array('serviceTblPersonName'))) {
+            $Table->addIndex(array('serviceTblPersonName'));
         }
 
         return $Table;

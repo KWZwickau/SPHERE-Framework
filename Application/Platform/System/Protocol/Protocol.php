@@ -94,7 +94,10 @@ class Protocol implements IModuleInterface
 //                        )
 //                    ),
                     new AutoCompleter('Filter[ProtocolDatabase]', 'Datenbank', '',
-                                Protocol::useService()->getProtocolDatabaseNameList()
+                        Protocol::useService()->getProtocolDatabaseNameList()
+                    ),
+                    new AutoCompleter('Filter[ProtocolDatabaseTable]', 'Datenbank Tabelle', '',
+                        Protocol::useService()->getProtocolDatabaseTableList()
                     ),
                     new TextField('Filter[EntityCreate]', 'Timestamp', 'Timestamp'),
                 ), Panel::PANEL_TYPE_INFO)
@@ -102,7 +105,6 @@ class Protocol implements IModuleInterface
             new FormColumn(
                 new Panel('Metadaten', array(
                     new TextField('Filter[ConsumerAcronym]', 'Mandant-Kürzel', 'Mandant-Kürzel'),
-                    new TextField('Filter[ConsumerName]', 'Mandant-Name', 'Mandant-Name'),
                     new TextField('Filter[AccountUsername]', 'Benutzerkonto', 'Benutzerkonto'),
                 ), Panel::PANEL_TYPE_INFO)
                 , 4),
@@ -110,6 +112,7 @@ class Protocol implements IModuleInterface
                 new Panel('Payload', array(
                     new TextField('Filter[EntityFrom]', 'Daten-Original', 'Daten-Original'),
                     new TextField('Filter[EntityTo]', 'Daten-Ergebnis', 'Daten-Ergebnis'),
+                    new TextField('Filter[serviceTblPersonName]', '', 'serviceTblPersonName'),
 //                    new \SPHERE\Common\Frontend\Message\Repository\Info('Id suche ohne Leerzeichen begrenzt möglich (z.B. "Id=500")')
                 ), Panel::PANEL_TYPE_INFO)
                 , 4)
@@ -162,23 +165,24 @@ class Protocol implements IModuleInterface
             }
             foreach ($Result as $Index => $Payload) {
 
-                $tableName = '';
-                if($Result[$Index]['EntityFrom']){
-                    $startPosition = strpos($Result[$Index]['EntityFrom'], 'Entity\\') + 7;
-                    $endPosition = strpos($Result[$Index]['EntityFrom'], '"', $startPosition);
-                    $tableName = substr($Result[$Index]['EntityFrom'], $startPosition, $endPosition - $startPosition);
-                } elseif($Result[$Index]['EntityTo']){
-                    $startPosition = strpos($Result[$Index]['EntityTo'], 'Entity\\') + 7;
-                    $endPosition = strpos($Result[$Index]['EntityTo'], '"', $startPosition);
-                    $tableName = substr($Result[$Index]['EntityTo'], $startPosition, $endPosition - $startPosition);
-                }
+//                $tableName = '';
+//                if($Result[$Index]['EntityFrom']){
+//                    $startPosition = strpos($Result[$Index]['EntityFrom'], 'Entity\\') + 7;
+//                    $endPosition = strpos($Result[$Index]['EntityFrom'], '"', $startPosition);
+//                    $tableName = substr($Result[$Index]['EntityFrom'], $startPosition, $endPosition - $startPosition);
+//                } elseif($Result[$Index]['EntityTo']){
+//                    $startPosition = strpos($Result[$Index]['EntityTo'], 'Entity\\') + 7;
+//                    $endPosition = strpos($Result[$Index]['EntityTo'], '"', $startPosition);
+//                    $tableName = substr($Result[$Index]['EntityTo'], $startPosition, $endPosition - $startPosition);
+//                }
 
                 $Result[$Index]['Meta'] = new \SPHERE\Common\Frontend\Layout\Repository\Listing(array(
                     $this->markFilter($Payload, $Filter, 'AccountUsername'),
                     $this->markFilter($Payload, $Filter, 'ProtocolDatabase'),
-                    $tableName,
+                    $this->markFilter($Payload, $Filter, 'ProtocolDatabaseTable'),
+//                    $tableName,
                     $this->markFilter($Payload, $Filter, 'ConsumerAcronym'),
-                    $this->markFilter($Payload, $Filter, 'ConsumerName'),
+                    $this->markFilter($Payload, $Filter, 'serviceTblPersonName'),
                 ));
 
                 $Result[$Index]['EntityFrom'] = $this->convertObject($Payload['EntityFrom']);
