@@ -40,9 +40,11 @@ class Service extends AbstractService
 {
 
     /** @var TblAccount[] $AccountByIdCache */
-    private static $AccountByIdCache = array();
+    private static array $AccountByIdCache = [];
+    /** @var TblAccount[] $AccountBySessionCache */
+    private static array $AccountBySessionCache = [];
     /** @var TblIdentification[] $IdentificationByIdCache */
-    private static $IdentificationByIdCache = array();
+    private static array $IdentificationByIdCache = [];
 
     /**
      * @param bool $doSimulation
@@ -113,8 +115,12 @@ class Service extends AbstractService
      */
     public function getAccountBySession($Session = null)
     {
-
-        return (new Data($this->getBinding()))->getAccountBySession($Session);
+        if(isset(self::$AccountBySessionCache[$Session]) && !empty(self::$AccountBySessionCache[$Session])) {
+            return self::$AccountBySessionCache[$Session];
+        }
+        $tblAccount = (new Data($this->getBinding()))->getAccountBySession($Session);
+        self::$AccountBySessionCache[$Session] = $tblAccount;
+        return $tblAccount;
     }
 
     /**

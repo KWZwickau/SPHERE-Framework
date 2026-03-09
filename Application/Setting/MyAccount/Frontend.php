@@ -129,7 +129,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $item['Region'] = $tblConsumer->getType();
                 // Kamenz
                 $tblRole = Access::useService()->getRoleByName('Auswertung: Kamenz-Statistik');
-                if(Access::useService()->getRoleConsumerBy($tblRole, $tblConsumer)){
+                if($tblRole && Access::useService()->getRoleConsumerBy($tblRole, $tblConsumer)){
                     $item['Kamenz'] = 'Ja';
                 }
                 // DLLP

@@ -20,7 +20,6 @@ use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
-use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblIdentification;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
@@ -90,13 +89,23 @@ class FrontendTabs extends FrontendStudentList
         if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))
             && ($tblYear = $tblDivisionCourse->getServiceTblYear())
         ) {
-            $Filter = ['DivisionCourseId' => $DivisionCourseId];
-            // save filter as json
-            Consumer::useService()->createAccountSetting('DigitalTeacherViewFilter', json_encode($Filter));
-
             $global = $this->getGlobal();
             $global->POST['Filter']['DivisionCourseId'] = $DivisionCourseId;
+            $Filter = ['DivisionCourseId' => $DivisionCourseId];
+            // Schulleitung und Support kann den Lehrer auswählen
+            $hasRightHeadmaster = Access::useService()->hasAuthorization('/Education/ClassRegister/Digital/Instruction/Setting');
+            // Person eintragen, falls Person ein Lehrer ist
+            if ($hasRightHeadmaster
+                && ($tblPerson = Account::useService()->getPersonByLogin())
+                && ($tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_TEACHER))
+                && Group::useService()->existsGroupPerson($tblGroup, $tblPerson)
+            ) {
+                $global->POST['Filter']['tblPerson'] = $tblPerson->getId();
+                $Filter['tblPerson'] = $tblPerson->getId();
+            }
             $global->savePost();
+            // save filter as json
+            Consumer::useService()->createAccountSetting('DigitalTeacherViewFilter', json_encode($Filter));
 
             $content = ApiDigital::receiverModal()
                 . ApiAbsence::receiverModal()
@@ -126,18 +135,19 @@ class FrontendTabs extends FrontendStudentList
             }
         }
 
-        // Für Support-Fälle können System-Accounts den Lehrer auswählen
-        $isSystemAccount = ($tblAccount = Account::useService()->getAccountBySession())
-            && $tblAccount->getHasAuthentication(TblIdentification::NAME_SYSTEM);
+        // Schulleitung und Support kann den Lehrer auswählen
+        $hasRightHeadmaster = Access::useService()->hasAuthorization('/Education/ClassRegister/Digital/Instruction/Setting');
 
-        if ($isSystemAccount && isset($Filter['tblPerson'])) {
-            $tblPerson = Person::useService()->getPersonById($Filter['tblPerson']);
+        if ($hasRightHeadmaster) {
+            $tblPerson = Person::useService()->getPersonById($Filter['tblPerson'] ?? 0);
+            if (!$tblPerson) {
+                return new Warning('Bitte wählen Sie zunächst einen Lehrer aus.', new Exclamation());
+            }
         } else {
             $tblPerson = Account::useService()->getPersonByLogin();
-        }
-
-        if (!$tblPerson) {
-            return new Warning('Person zum eingeloggten Benutzerkonto nicht gefunden', new Exclamation());
+            if (!$tblPerson) {
+                return new Warning('Person zum eingeloggten Benutzerkonto nicht gefunden.', new Exclamation());
+            }
         }
 
         $tblSubjectFilter = null;
@@ -297,21 +307,17 @@ class FrontendTabs extends FrontendStudentList
 
         $tblDivisionCourseList = Digital::useService()->getDivisionCourseListForDigital($tblYearList);
 
-        $checkBox = (new CheckBox('Filter[OnlyMissing]', new Bold('Nur fehlende Einträge anzeigen'), 1))
-            ->ajaxPipelineOnChange(ApiDigital::pipelineLoadTeacherViewContent($YearId));
-
-        // Für Support-Fälle können System-Accounts den Lehrer auswählen
-        $isSystemAccount = ($tblAccount = Account::useService()->getAccountBySession())
-            && $tblAccount->getHasAuthentication(TblIdentification::NAME_SYSTEM);
-
+        // Schulleitung und Support kann den Lehrer auswählen
+        $hasRightHeadmaster = Access::useService()->hasAuthorization('/Education/ClassRegister/Digital/Instruction/Setting');
         $columns = [];
         $size = 6;
-        if ($isSystemAccount) {
+        if ($hasRightHeadmaster) {
             $size = 4;
             $tblTeacherList = Group::useService()->getPersonAllByGroup(Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_TEACHER));
             $columns[] = new FormColumn(
-                (new SelectBox('Filter[tblPerson]', 'Lehrer', array('{{ LastFirstName }}' => $tblTeacherList)))
+                (new SelectBox('Filter[tblPerson]', 'Auswahl des Lehrers nur für Schulleitung', array('{{ LastFirstName }}' => $tblTeacherList)))
                     ->ajaxPipelineOnChange(ApiDigital::pipelineLoadTeacherViewContent($YearId))
+                    ->setRequired()
                 , $size);
         }
 
@@ -324,6 +330,9 @@ class FrontendTabs extends FrontendStudentList
             (new SelectBox('Filter[SubjectId]', 'Fach', array('{{ DisplayName }}' => Subject::useService()->getSubjectAll())))
                 ->ajaxPipelineOnChange(ApiDigital::pipelineLoadTeacherViewContent($YearId))
         , $size);
+
+        $checkBox = (new CheckBox('Filter[OnlyMissing]', new Bold('Nur fehlende Einträge anzeigen'), 1))
+            ->ajaxPipelineOnChange(ApiDigital::pipelineLoadTeacherViewContent($YearId));
 
         return new Form(new FormGroup(array(
             new FormRow($columns),
