@@ -2,30 +2,30 @@
 
 namespace SPHERE\Application\App\Response\Authentication\SignIn;
 
-use SPHERE\Application\App\Response\Code\Response422;
+use SPHERE\Application\App\Response\Code\Response400;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
  *
  */
-class EmptyCredentialFields extends Response422
+class MissingSignInFields extends Response400
 {
-    public function __construct(?string $processToken = null)
+    public function __construct()
     {
         $content = [
-            'url' => '/app/authentication/factor/credentials' . ($processToken ? '?processToken=' . $processToken : ''),
+            'behaviour' => 'sign-in',
+            'url' => '/app/authentication/process/sign-in',
             'method' => Request::METHOD_POST,
             'provide' => [
                 'deviceIdentifier' => [
-                    'type' => 'string',
-                    'sensitive' => true
-                ],
-                'credentialIdentifier' => [
-                    'label' => 'Benutzername',
                     'type' => 'string'
                 ]
             ],
             'prompt' => [
+                'credentialIdentifier' => [
+                    'label' => 'Benutzername',
+                    'type' => 'string'
+                ],
                 'credentialPassword' => [
                     'label' => 'Passwort',
                     'type' => 'string',

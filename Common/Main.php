@@ -7,7 +7,9 @@ use Doctrine\DBAL\Exception\InvalidFieldNameException;
 use Doctrine\DBAL\Exception\TableNotFoundException;
 use SPHERE\Application\Api\Api;
 use SPHERE\Application\App\App;
+use SPHERE\Application\App\Authentication\Authentication;
 use SPHERE\Application\App\Response\AbstractResponse;
+use SPHERE\Application\App\Response\Authentication\SignIn\MissingRefreshFields;
 use SPHERE\Application\App\Response\Code\Response500;
 use SPHERE\Application\Billing\Billing;
 use SPHERE\Application\Contact\Contact;
@@ -209,16 +211,29 @@ class Main extends Extension
          */
         $pathInfo = self::getRequest()->getPathInfo();
         if (preg_match('!^/app!i', $pathInfo)) {
+            $pathParameter = self::getRequest()->getParameterArray();
             try {
                 // Replace "default" dispatcher with app dispatcher
                 self::$Dispatcher = new \SPHERE\Application\App\Dispatcher(new \SPHERE\Application\App\Router());
                 // Register app cluster with app dispatcher
                 App::registerCluster();
                 // Setup
-                if(false) {
+                if (false) {
                     $Protocol = (new System\Database\Database())->frontendSetup(false, true);
                     (new Response($Protocol))->send();
                     exit(0);
+                }
+                // Validate/Create/Reject Session
+                if (!preg_match('!^/app/authentication/!i', $pathInfo)) {
+                    $deviceIdentifier = $pathParameter['deviceIdentifier'] ?? null;
+                    $accessToken = $pathParameter['accessToken'] ?? null;
+                    if (!Authentication::hasSession($deviceIdentifier, $accessToken)
+                        && !Authentication::createSession($deviceIdentifier, $accessToken)
+                    ) {
+                        // Access token or authentication token invalid, first step: refresh access token
+                        (new MissingRefreshFields())->send();
+                        exit(0);
+                    }
                 }
                 // Run app
                 /** @var AbstractResponse $response */

@@ -1,3 +1,43 @@
+# Rewrite
+
+App: Feste "GUID" erzeugen (UNVERÄNDERLICH IN DER APP)
+App: Credentials
+-> Auth/User
+Server: Neues Device merken (GUID)
+
+Server: Login OK?
+<- Ja/Nein (aus Gründen)
+
+Server: User hat MFA, gib OTP von SSW
+
+User: Geht von APP auf SSW
+->  Auf einer Device Seite 
+    kopiert er den OTP bei dem entsprechenden Device
+
+App: OTP (ABC-FEK oder ähnlich) von SSW eingeben
+-> Auth/OTP an den Server senden
+
+Server: OTP vom User eingetragen ok?
+<- Ja/Nein
+
+Bei JA-> API KEYs erzeugen und der App geben (lange laufzeit und kurze)
+
+-- APP Ist angemeldet -- 
+
+App: Fragt Klassenbuch
+-> Access Key (Session) falsch (401)
+-> Refresh (GUID,Auth Key)
+<- Access Key (200) / 401 Auth Key
+-> Access Key ok (200)
+Access Key = Session
+
+
+sing-in: User/Password, Register Device, OTP
+sing-out: Remove all Token / Session
+refresh: Get new Access Token
+
+
+
 app:app
 a172cedcae47474b615c54d510a5d84a8dea3032e958587430b413538be3f333
 

@@ -5,6 +5,8 @@ namespace SPHERE\Application\App\Authentication\Process\Service\Entity;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -13,21 +15,66 @@ use SPHERE\System\Database\Fitting\Element;
  */
 class TblDevice extends Element
 {
+    public const SERVICE_TBL_ACCOUNT = 'serviceTblAccount';
     public const ATTR_DEVICE_IDENTIFIER = 'deviceIdentifier';
-    public const ATTR_PROCESS_TOKEN = 'processToken';
-    public const ATTR_PROCESS_TIMEOUT = 'processTimeout';
+    public const ATTR_AUTHENTICATION_TOKEN = 'authenticationToken';
+    public const ATTR_ACCESS_TOKEN = 'accessToken';
+
     /**
-     * @Column(type="string")
+     * @Column(type="string", nullable=false)
      */
     protected string $deviceIdentifier;
     /**
+     * @Column(type="bigint", nullable=true)
+     */
+    protected ?int $serviceTblAccount;
+    /**
+     * @Column(type="string", nullable=true)
+     */
+    protected ?string $deviceName;
+    /**
      * @Column(type="text", nullable=true)
      */
-    protected ?string $processToken;
+    protected ?string $authenticationToken;
     /**
      * @Column(type="integer", nullable=true)
      */
-    protected ?int $processTimeout;
+    protected ?int $authenticationTimeout;
+    /**
+     * @Column(type="text", nullable=true)
+     */
+    protected ?string $accessToken;
+    /**
+     * @Column(type="integer", nullable=true)
+     */
+    protected ?int $accessTimeout;
+    /**
+     * @Column(type="text", nullable=true)
+     */
+    protected ?string $otpToken;
+    /**
+     * @Column(type="integer", nullable=true)
+     */
+    protected ?int $otpTimeout;
+
+    public function getServiceTblAccount(): ?TblAccount
+    {
+
+        if (null === $this->serviceTblAccount) {
+            return null;
+        }
+
+        return Account::useService()->getAccountById($this->serviceTblAccount);
+    }
+
+    /**
+     * @param null|TblAccount $tblAccount
+     */
+    public function setServiceTblAccount(TblAccount $tblAccount = null)
+    {
+
+        $this->serviceTblAccount = (null === $tblAccount ? null : $tblAccount->getId());
+    }
 
     public function getDeviceIdentifier(): string
     {
@@ -39,23 +86,75 @@ class TblDevice extends Element
         $this->deviceIdentifier = $deviceIdentifier;
     }
 
-    public function getProcessToken(): ?string
+    public function getDeviceName(): string
     {
-        return $this->processToken;
+        return $this->deviceName;
     }
 
-    public function setProcessToken(?string $processToken): void
+    public function setDeviceName(string $deviceName): void
     {
-        $this->processToken = $processToken;
+        $this->deviceName = $deviceName;
     }
 
-    public function getProcessTimeout(): ?int
+    public function getAuthenticationToken(): ?string
     {
-        return $this->processTimeout;
+        return $this->authenticationToken;
     }
 
-    public function setProcessTimeout(?int $processTimeout): void
+    public function setAuthenticationToken(?string $authenticationToken): void
     {
-        $this->processTimeout = $processTimeout;
+        $this->authenticationToken = $authenticationToken;
     }
+
+    public function getAuthenticationTimeout(): ?int
+    {
+        return $this->authenticationTimeout;
+    }
+
+    public function setAuthenticationTimeout(?int $authenticationTimeout): void
+    {
+        $this->authenticationTimeout = $authenticationTimeout;
+    }
+
+    public function getAccessToken(): ?string
+    {
+        return $this->accessToken;
+    }
+
+    public function setAccessToken(?string $accessToken): void
+    {
+        $this->accessToken = $accessToken;
+    }
+
+    public function getAccessTimeout(): ?int
+    {
+        return $this->accessTimeout;
+    }
+
+    public function setAccessTimeout(?int $accessTimeout): void
+    {
+        $this->accessTimeout = $accessTimeout;
+    }
+
+
+    public function getOtpToken(): ?string
+    {
+        return $this->otpToken;
+    }
+
+    public function setOtpToken(?string $otpToken): void
+    {
+        $this->otpToken = $otpToken;
+    }
+
+    public function getOtpTimeout(): ?int
+    {
+        return $this->otpTimeout;
+    }
+
+    public function setOtpTimeout(?int $otpTimeout): void
+    {
+        $this->otpTimeout = $otpTimeout;
+    }
+
 }

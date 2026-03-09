@@ -8,22 +8,19 @@ use Symfony\Component\HttpFoundation\Request;
 /**
  *
  */
-class EmptyBasicFields extends Response422
+class EmptyRefreshFields extends Response422
 {
-    public function __construct(?string $processToken = null)
+    public function __construct()
     {
         $content = [
-            'url' => '/app/authentication/process/sign-in' . ($processToken ? '?processToken=' . $processToken : ''),
+            'behaviour' => 'refresh',
+            'url' => '/app/authentication/process/refresh',
             'method' => Request::METHOD_POST,
             'provide' => [
                 'deviceIdentifier' => [
-                    'type' => 'string',
-                    'sensitive' => true
-                ]
-            ],
-            'prompt' => [
-                'credentialIdentifier' => [
-                    'label' => 'Benutzername',
+                    'type' => 'string'
+                ],
+                'authenticationToken' => [
                     'type' => 'string'
                 ]
             ]

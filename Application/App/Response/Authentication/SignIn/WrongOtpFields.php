@@ -8,29 +8,30 @@ use Symfony\Component\HttpFoundation\Request;
 /**
  *
  */
-class WrongCredentialFields extends Response401
+class WrongOtpFields extends Response401
 {
-    public function __construct(?string $processToken = null)
+    public function __construct(int $timeout)
     {
         $content = [
-            'url' => '/app/authentication/factor/credentials' . ($processToken ? '?processToken=' . $processToken : ''),
+            'url' => '/app/authentication/process/sign-in',
             'method' => Request::METHOD_POST,
             'provide' => [
                 'deviceIdentifier' => [
-                    'type' => 'string',
-                    'sensitive' => true
+                    'type' => 'string'
                 ],
                 'credentialIdentifier' => [
-                    'label' => 'Benutzername',
+                    'type' => 'string'
+                ],
+                'credentialPassword' => [
                     'type' => 'string'
                 ]
             ],
             'prompt' => [
-                'credentialPassword' => [
-                    'label' => 'Passwort',
+                'deviceCode' => [
+                    'label' => 'Code',
                     'type' => 'string',
-                    'sensitive' => true
-                ]
+                    'timeout' => $timeout
+                ],
             ]
         ];
 

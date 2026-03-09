@@ -8,22 +8,19 @@ use Symfony\Component\HttpFoundation\Request;
 /**
  *
  */
-class MissingBasicFields extends Response400
+class MissingSignOutFields extends Response400
 {
-    public function __construct(?string $processToken = null)
+    public function __construct()
     {
         $content = [
-            'url' => '/app/authentication/process/sign-in' . ($processToken ? '?processToken=' . $processToken : ''),
+            'behaviour' => 'sign-out',
+            'url' => '/app/authentication/process/sign-out',
             'method' => Request::METHOD_POST,
             'provide' => [
                 'deviceIdentifier' => [
-                    'type' => 'string',
-                    'sensitive' => true
-                ]
-            ],
-            'prompt' => [
-                'credentialIdentifier' => [
-                    'label' => 'Benutzername',
+                    'type' => 'string'
+                ],
+                'authenticationToken' => [
                     'type' => 'string'
                 ]
             ]
