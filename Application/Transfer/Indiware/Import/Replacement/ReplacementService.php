@@ -529,7 +529,7 @@ class ReplacementService
                                 $hasFound = false;
                                 // Es kann nur ein Eintrag pro Fach & Klasse geben, bei Parallelunterricht erzeugte diese Stelle auch parallel gleiche Einträge
 //                                $DifferenceList[] = $Row;
-                                $DifferenceList[$Row['tblSubstituteSubject'].$Row['tblCourse']->getId()] = $Row;
+                                $DifferenceList[$Row['tblSubstituteSubject'] . '_' . $Row['tblCourse']->getId() . '_' . $HourCount] = $Row;
                             }
                         }
 
