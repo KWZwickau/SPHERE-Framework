@@ -318,7 +318,7 @@ class Data extends AbstractData
             /** @var Element $tblCourse */
             $Search[TblTimetableReplacement::ATTR_SERVICE_TBL_COURSE] = $tblCourse->getId();
         }
-        if($Hour){
+        if($Hour !== null){
             $Search[TblTimetableReplacement::ATTR_HOUR] = $Hour;
         }
         if($tblPerson){
