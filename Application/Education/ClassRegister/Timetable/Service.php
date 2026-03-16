@@ -172,10 +172,10 @@ class Service extends AbstractService
     /**
      * @return TblTimetableReplacementLog[]|null
      */
-    public function getTimetableReplacementLogAll()
+    public function getTimetableReplacementLogAll($isForced = false)
     {
 
-        return (new Data($this->getBinding()))->getTimetableReplacementLogAll();
+        return (new Data($this->getBinding()))->getTimetableReplacementLogAll($isForced);
     }
 
     /**

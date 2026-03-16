@@ -98,7 +98,7 @@ class ErrorLog extends Extension implements IModuleInterface
      */
     public static function getWelcome()
     {
-        if(($ErrorLogList = Timetable::useService()->getTimeTableReplacementLogAll())){
+        if(($ErrorLogList = Timetable::useService()->getTimeTableReplacementLogAll(true))){
             $ReplacementLog = current($ErrorLogList);
                 $Date = $ReplacementLog->getEntityCreate()->format('d.m.Y').' um '.$ReplacementLog->getEntityCreate()->format('H:i:s');
                 $Date = ' am '.new Bold($Date);
@@ -136,7 +136,7 @@ class ErrorLog extends Extension implements IModuleInterface
             // gibt es nur für Admin und auch nur, wenn kein Code vergeben ist
             $ButtonString .= new Standard('Übertragungscode (Freischaltung)', __NAMESPACE__.'/EditCode', new Plus());
         }
-        $tblReplacementLogAll = Timetable::useService()->getTimeTableReplacementLogAll();
+        $tblReplacementLogAll = Timetable::useService()->getTimeTableReplacementLogAll(true);
         $Date = false;
         $TableContent = array();
         $ErrorCountArray = array();

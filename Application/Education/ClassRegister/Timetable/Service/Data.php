@@ -371,11 +371,15 @@ class Data extends AbstractData
     /**
      * @return TblTimetableReplacementLog[]|null
      */
-    public function getTimetableReplacementLogAll()
+    public function getTimetableReplacementLogAll($isForced = false)
     {
 
         /* @var TblTimetableReplacementLog[] $EntityList */
-        $EntityList = $this->getCachedEntityList(__Method__, $this->getConnection()->getEntityManager(), 'TblTimetableReplacementLog');
+        if($isForced){
+            $EntityList = $this->getForceEntityList(__Method__, $this->getConnection()->getEntityManager(), 'TblTimetableReplacementLog');
+        } else {
+            $EntityList = $this->getCachedEntityList(__Method__, $this->getConnection()->getEntityManager(), 'TblTimetableReplacementLog');
+        }
         return (false === $EntityList ? null : $EntityList);
     }
 
