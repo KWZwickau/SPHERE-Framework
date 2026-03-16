@@ -24,6 +24,7 @@ use SPHERE\Application\Api\Document\Standard\Repository\Gradebook\Gradebook;
 use SPHERE\Application\Api\Document\Standard\Repository\GradebookOverview;
 use SPHERE\Application\Api\Document\Standard\Repository\MultiPassword\MultiPassword;
 use SPHERE\Application\Api\Document\Standard\Repository\PasswordChange\PasswordChange;
+use SPHERE\Application\Api\Document\Standard\Repository\SignInCertificate\SignInCertificate;
 use SPHERE\Application\Api\Document\Standard\Repository\SignOutCertificate\SignOutCertificate;
 use SPHERE\Application\Api\Document\Standard\Repository\StaffAccidentReport\StaffAccidentReportBE;
 use SPHERE\Application\Api\Document\Standard\Repository\StaffAccidentReport\StaffAccidentReportTH;
@@ -730,6 +731,9 @@ class Creator extends Extension
             }
             if ($DocumentName == 'SignOutCertificate') {
                 $Document = new SignOutCertificate($Data);
+            }
+            if ($DocumentName == 'SignInCertificate') {
+                $Document = new SignInCertificate($Data);
             }
             if ($DocumentName == 'AccidentReport') {
                 if (GatekeeperConsumer::useService()->getConsumerBySessionIsConsumerType(TblConsumer::TYPE_BERLIN)) {

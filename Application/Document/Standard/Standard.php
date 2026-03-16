@@ -2,6 +2,7 @@
 namespace SPHERE\Application\Document\Standard;
 
 use SPHERE\Application\Document\Standard\AccidentReport\AccidentReport;
+use SPHERE\Application\Document\Standard\SignInCertificate\SignInCertificate;
 use SPHERE\Application\Document\Standard\StaffAccidentReport\StaffAccidentReport;
 use SPHERE\Application\Document\Standard\EnrollmentDocument\EnrollmentDocument;
 use SPHERE\Application\Document\Standard\SignOutCertificate\SignOutCertificate;
@@ -29,6 +30,7 @@ class Standard implements IApplicationInterface
         StaffAccidentReport::registerModule();
         StudentTransfer::registerModule();
         SignOutCertificate::registerModule();
+        SignInCertificate::registerModule();
 
         Main::getDisplay()->addApplicationNavigation(
             new Link(new Link\Route(__NAMESPACE__), new Link\Name('Standard'))
