@@ -1,0 +1,68 @@
+<?php
+
+namespace SPHERE\Application\Education\Competence\Skill\Service\Entity;
+
+use Doctrine\ORM\Mapping\Cache;
+use Doctrine\ORM\Mapping\Column;
+use Doctrine\ORM\Mapping\Entity;
+use Doctrine\ORM\Mapping\Table;
+use SPHERE\Application\Education\Competence\Skill\Skill;
+use SPHERE\System\Database\Fitting\Element;
+
+/**
+ * @Entity
+ * @Table(name="tblCompetenceSkillArea")
+ * @Cache(usage="READ_ONLY")
+ */
+class TblSkillArea extends Element
+{
+    /**
+     * @Column(type="bigint")
+     */
+    protected int $tblSkillGrid;
+    /**
+     * @Column(type="string")
+     */
+    protected ?string $Name = null;
+    /**
+     * @Column(type="bigint")
+     */
+    protected int $SortOrder;
+
+    /**
+     * @return TblSkillGrid|false
+     */
+    public function getTblSkillGrid(): TblSkillGrid|false
+    {
+        return Skill::useService()->getSkillGridById($this->tblSkillGrid);
+    }
+
+    /**
+     * @param TblSkillGrid $tblSkillGrid
+     * @return void
+     */
+    public function setTblSkillGrid(TblSkillGrid $tblSkillGrid): void
+    {
+        $this->tblSkillGrid = $tblSkillGrid->getId();
+    }
+
+    public function getName(): ?string
+    {
+        return $this->Name;
+    }
+
+    public function setName(?string $Name): void
+    {
+        $this->Name = $Name;
+    }
+
+    public function getSortOrder(): int
+    {
+        return $this->SortOrder;
+    }
+
+    public function setSortOrder(int $SortOrder): void
+    {
+        $this->SortOrder = $SortOrder;
+    }
+}

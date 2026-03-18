@@ -18,6 +18,7 @@ use SPHERE\Application\Api\Education\ClassRegister\ApiScheduleTime;
 use SPHERE\Application\Api\Education\ClassRegister\ApiSortDivision;
 use SPHERE\Application\Api\Education\ClassRegister\ApiTimetable;
 use SPHERE\Application\Api\Education\ClassRegister\ClassRegister;
+use SPHERE\Application\Api\Education\Competence\ApiSkill;
 use SPHERE\Application\Api\Education\DivisionCourse\ApiDivisionCourse;
 use SPHERE\Application\Api\Education\DivisionCourse\ApiDivisionCourseMember;
 use SPHERE\Application\Api\Education\DivisionCourse\ApiDivisionCourseStudent;
@@ -95,5 +96,6 @@ class Education implements IApplicationInterface
         ApiScheduleTime::registerApi();
         ApiGradeType::registerApi();
         ApiMail::registerApi();
+        ApiSkill::registerApi();
     }
 }
