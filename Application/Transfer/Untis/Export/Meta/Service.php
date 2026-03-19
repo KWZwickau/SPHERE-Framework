@@ -12,6 +12,7 @@ use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
+use SPHERE\System\Extension\Extension;
 
 class Service
 {
@@ -49,8 +50,8 @@ class Service
                         }
                     }
                 }
-                if (($tblStudent = $tblPerson->getStudent()) && $tblStudent->getIdentifier()) {
-                    $studentNumber = $tblStudent->getIdentifier();
+                if (($tblStudent = $tblPerson->getStudent()) && $tblStudent->getIdentifierComplete()) {
+                    $studentNumber = $tblStudent->getIdentifierComplete();
                 }
 
                 $DivisionName = $tblDivisionCourse->getName();
@@ -87,16 +88,16 @@ class Service
 //                13 E-Mail Adresse (ab Version 2012)
 //                14 Fremdschlüssel (ab Version 2012)
 
-                $export->setValue($export->getCell("0", $Row), utf8_decode($displayName));
-                $export->setValue($export->getCell("1", $Row), utf8_decode($tblPerson->getLastName()));
+                $export->setValue($export->getCell("0", $Row), Extension::decodeUTF8($displayName));
+                $export->setValue($export->getCell("1", $Row), Extension::decodeUTF8($tblPerson->getLastName()));
                 $export->setValue($export->getCell("2", $Row), "");
                 $export->setValue($export->getCell("3", $Row), "");
                 $export->setValue($export->getCell("4", $Row), "");
                 $export->setValue($export->getCell("5", $Row), "");
                 $export->setValue($export->getCell("6", $Row), $mark);
-                $export->setValue($export->getCell("7", $Row), utf8_decode($tblPerson->getFirstSecondName()));
-                $export->setValue($export->getCell("8", $Row), utf8_decode($studentNumber));
-                $export->setValue($export->getCell("9", $Row), utf8_decode($DivisionName));
+                $export->setValue($export->getCell("7", $Row), Extension::decodeUTF8($tblPerson->getFirstSecondName()));
+                $export->setValue($export->getCell("8", $Row), Extension::decodeUTF8($studentNumber));
+                $export->setValue($export->getCell("9", $Row), Extension::decodeUTF8($DivisionName));
                 $export->setValue($export->getCell("10", $Row), $gender);
                 $export->setValue($export->getCell("11", $Row), "");
                 $export->setValue($export->getCell("12", $Row), $birthday ? (new DateTime($birthday))->format('Ymd') : "");

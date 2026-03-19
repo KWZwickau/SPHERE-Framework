@@ -137,7 +137,7 @@ class BgjAbs extends Style
                     ->styleMarginTop('-10px')
                 )
             )
-            ->addSlice($this->getCustomFosSignPart($personId, '270px'));
+            ->addSlice($this->getCustomFosSignPart($personId, '270px', 'Stempel'));
 
         $pageList[] = (new Page)
             ->addSlice((new Slice())

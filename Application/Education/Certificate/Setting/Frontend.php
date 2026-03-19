@@ -295,6 +295,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $chosenSubject = 16; // (2 * 2) = 4 Wahlfächer (3 Wahlfächer passen auf das Zeugnis)
                 $praktSubject = 17; // (1 * 2) = 2 Berufspraktische Ausbildung (1 Fach)
 //                $educationSubject = 18; // (1 * 2) = 2 Erwerb der Fachhochschulreife (1 Fach)
+                $examSubjectCount = 20; // (2 * 2) = 4 Prüfungsfächer
 
                 // Berufsübergreifende Pflichtfächer
                 $SubjectLaneAcrossLeft = array();
@@ -353,6 +354,22 @@ class Frontend extends Extension implements IFrontendInterface
 //                    );
 //                }
 
+                // Prüfungsfächer
+                $SubjectExamLeft = array();
+                $SubjectExamRight = array();
+                if ($tblCertificate->getName() == 'Fachschule Abschlusszeugnis') {
+                    for ($Run = ($examSubjectCount + 1); $Run <= $examSubjectCount + 2; $Run++) {
+                        array_push($SubjectExamLeft,
+                            $this->getSubject($tblCertificate, $tblSubjectAll, 1, $Run, '', 'Subject', '',
+                                $tblTechnicalCourse, $loadStandardFromNoConsumer)
+                        );
+                        array_push($SubjectExamRight,
+                            $this->getSubject($tblCertificate, $tblSubjectAll, 2, $Run, '', 'Subject', '',
+                                $tblTechnicalCourse, $loadStandardFromNoConsumer)
+                        );
+                    }
+                }
+
                 $Stage->setContent(
                     new Panel('Zeugnisvorlage', array($tblCertificate->getName(), $tblCertificate->getDescription()
                     , ($tblTechnicalCourse ? $tblTechnicalCourse->getName(): '')),
@@ -393,6 +410,14 @@ class Frontend extends Extension implements IFrontendInterface
 //                                    new FormColumn($SubjectEducation, 6)
 //                                )),
 //                            ), new FormTitle('Zusatzausbildung zum Erwerb der Fachhochschulreife')),
+                            count($SubjectExamRight) > 0
+                                ? new FormGroup(array(
+                                    new FormRow(array(
+                                        new FormColumn($SubjectExamLeft, 6),
+                                        new FormColumn($SubjectExamRight, 6),
+                                    )),
+                                ), new FormTitle('Komplexprüfungsfächer'))
+                                : null,
                         ), new Primary('Speichern')), $tblCertificate, $Grade, $Subject, $tblTechnicalCourse)
                 );
             } elseif (preg_match('!Berufliches Gymnasium!', $tblCertificate->getName())) {
@@ -997,7 +1022,7 @@ class Frontend extends Extension implements IFrontendInterface
             'Oberschule Abschlusszeugnis Hauptschulabschluss gleichgestellt Lernen' => 'MsAbsLernenEquatedHs',
             'Oberschule Abschlusszeugnis' => 'MsAbsLernen',
 
-            'Oberschule Abgangszeugnis' => 'MsAbg',
+            'Oberschule Abgangszeugnis (HS, qual. HS, Lernen, kein Schulabschluss)' => 'MsAbg',
             'Oberschule Abgangszeugnis Geistige Entwicklung' => 'MsAbgGeistigeEntwicklung'
         );
         // Gymnasium
@@ -1023,6 +1048,7 @@ class Frontend extends Extension implements IFrontendInterface
             'Berufsfachschule Halbjahreszeugnis' => 'BfsHj',
             'Berufsfachschule Jahreszeugnis' => 'BfsJ',
             'Berufsfachschule Abschlusszeugnis' => 'BfsAbs',
+            'Berufsfachschule Abschlusszeugnis Generalistik' => 'BfsAbsGeneralistik',
             'Berufsfachschule Abschlusszeugnis mit mittleren Schulabschluss' => 'BfsAbsMs',
             'Berufsfachschule Abgangszeugnis' => 'BfsAbg',
             'Berufsfachschule Abgangszeugnis Generalistik' => 'BfsAbgGeneralistik',
@@ -1108,8 +1134,12 @@ class Frontend extends Extension implements IFrontendInterface
                 $ContentArray[] = new Muted($Name);
                 continue;
             }
-            if(Generator::useService()->getCertificateByCertificateClassName($Class)){
-                $ContentArray[] = new Success(new SuccessIcon()." $Name installiert ");
+            if(($tblCertificate = Generator::useService()->getCertificateByCertificateClassName($Class))){
+                $ContentArray[] = new Success(new SuccessIcon()
+                    . " $Name"
+                    . (($number = $tblCertificate->getCertificateNumber()) ? ' ' . $number : '')
+                    . " installiert "
+                );
             } else {
                 $ContentArray[] = new DangerText(new Disable()." $Name nicht installiert ");
             }
@@ -1138,23 +1168,28 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    private static function setSettingMenue(Stage $Stage, $Route = 'Template')
+    public static function setSettingMenue(Stage $Stage, string $Route = 'Template'): Stage
     {
 
-        $text = 'Zeugnisvorlagen';
+        $text = 'Zeugnisvorlagen (Fächer)';
         $Stage->addButton(new Standard($Route == 'Template' ? new Edit() . ' ' . $text : $text,
             '/Education/Certificate/Setting/Template', null, null,
             'Den Zeugnisvorlagen Fächer zuordnen'));
-
-        $text = 'Automatische Freigabe';
-        $Stage->addButton(new Standard($Route == 'Approval' ? new Edit() . ' ' . $text : $text,
-            '/Education/Certificate/Setting/Approval', null, null,
-            'Automatische Freigaben setzen'));
 
         $text = 'Zeugnisvorlagen installieren';
         $Stage->addButton(new Standard($Route == 'Implement' ? new Edit() . ' ' . $text : $text,
             '/Education/Certificate/Setting/Implement', null, null,
             'Standardzeugnisse hinzufügen'));
+
+        $text = 'Zeugnisvorlagen Vorschau';
+        $Stage->addButton(new Standard($Route == 'Preview' ? new Edit() . ' ' . $text : $text,
+            '/Education/Certificate/Setting/Preview', null, null,
+            'Zeugnisvorlagen anschauen'));
+
+        $text = 'Automatische Freigabe';
+        $Stage->addButton(new Standard($Route == 'Approval' ? new Edit() . ' ' . $text : $text,
+            '/Education/Certificate/Setting/Approval', null, null,
+            'Automatische Freigaben setzen'));
 
         return $Stage;
     }

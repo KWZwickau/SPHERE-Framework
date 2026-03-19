@@ -15,7 +15,7 @@ use SPHERE\System\Database\Link\Identifier;
 
 class Grade  implements IModuleInterface
 {
-    public static function registerModule()
+    public static function registerModule(): void
     {
         /**
          * Navigation
@@ -25,7 +25,11 @@ class Grade  implements IModuleInterface
                 new Link\Icon(new Tag()))
         );
         Main::getDisplay()->addModuleNavigation(
-            new Link(new Link\Route(__NAMESPACE__.'\ScoreRule'), new Link\Name('Berechnungsvorschrift'),
+            new Link(new Link\Route(__NAMESPACE__.'\ScoreRule'), new Link\Name('Berechnungsvorschrift Fachnoten'),
+                new Link\Icon(new Pencil()))
+        );
+        Main::getDisplay()->addModuleNavigation(
+            new Link(new Link\Route(__NAMESPACE__.'\BehaviorScoreRule'), new Link\Name('Berechnungsvorschrift Kopfnoten'),
                 new Link\Icon(new Pencil()))
         );
         Main::getDisplay()->addModuleNavigation(
@@ -50,17 +54,13 @@ class Grade  implements IModuleInterface
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'\GradeType', __NAMESPACE__.'\Frontend::frontendGradeType')
         );
+
+        // Berechnungsvorschrift Kopfnoten
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__.'\GradeType\Edit', __NAMESPACE__.'\Frontend::frontendEditGradeType')
-        );
-        Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__.'\GradeType\Destroy', __NAMESPACE__.'\Frontend::frontendDestroyGradeType')
-        );
-        Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__.'\GradeType\Activate', __NAMESPACE__.'\Frontend::frontendActivateGradeType')
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'\BehaviorScoreRule', __NAMESPACE__.'\Frontend::frontendBehaviorScoreRule')
         );
 
-        // Berechnungsvorschrift
+        // Berechnungsvorschrift Fachnoten
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'\ScoreRule', __NAMESPACE__.'\Frontend::frontendScoreRule')
         );

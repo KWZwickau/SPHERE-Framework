@@ -5,11 +5,16 @@ use SPHERE\Application\Api\Education\Certificate\Certificate;
 use SPHERE\Application\Api\Education\Certificate\Generate\ApiGenerate;
 use SPHERE\Application\Api\Education\Certificate\PrintCertificate\ApiPrintCertificate;
 use SPHERE\Application\Api\Education\Certificate\Reporting\ApiReporting;
+use SPHERE\Application\Api\Education\Certificate\Setting\ApiPreviewCertificate;
 use SPHERE\Application\Api\Education\ClassRegister\ApiAbsence;
 use SPHERE\Application\Api\Education\ClassRegister\ApiDiary;
+use SPHERE\Application\Api\Education\ClassRegister\ApiDiaryRead;
 use SPHERE\Application\Api\Education\ClassRegister\ApiDigital;
+use SPHERE\Application\Api\Education\ClassRegister\ApiForgotten;
 use SPHERE\Application\Api\Education\ClassRegister\ApiInstructionItem;
 use SPHERE\Application\Api\Education\ClassRegister\ApiInstructionSetting;
+use SPHERE\Application\Api\Education\ClassRegister\ApiMail;
+use SPHERE\Application\Api\Education\ClassRegister\ApiScheduleTime;
 use SPHERE\Application\Api\Education\ClassRegister\ApiSortDivision;
 use SPHERE\Application\Api\Education\ClassRegister\ApiTimetable;
 use SPHERE\Application\Api\Education\ClassRegister\ClassRegister;
@@ -21,13 +26,16 @@ use SPHERE\Application\Api\Education\DivisionCourse\ApiSubjectTable;
 use SPHERE\Application\Api\Education\DivisionCourse\ApiTeacherLectureship;
 use SPHERE\Application\Api\Education\DivisionCourse\ApiYearChange;
 use SPHERE\Application\Api\Education\Graduation\Grade\ApiGradeBook;
+use SPHERE\Application\Api\Education\Graduation\Grade\ApiGradeType;
 use SPHERE\Application\Api\Education\Graduation\Grade\ApiScoreRule;
+use SPHERE\Application\Api\Education\Graduation\Grade\ApiScoreRuleBehavior;
 use SPHERE\Application\Api\Education\Graduation\Grade\ApiScoreType;
 use SPHERE\Application\Api\Education\Graduation\Grade\ApiStudentOverview;
 use SPHERE\Application\Api\Education\Graduation\Grade\ApiTask;
 use SPHERE\Application\Api\Education\Graduation\Grade\ApiTeacherGroup;
 use SPHERE\Application\Api\Education\Graduation\Grade\Gradebook;
 use SPHERE\Application\Api\Education\Graduation\Grade\Task;
+use SPHERE\Application\Api\Education\Lesson\ApiLeaveStudent;
 use SPHERE\Application\Api\Education\Prepare\ApiPrepare;
 use SPHERE\Application\Api\Education\Prepare\Prepare;
 use SPHERE\Application\Api\Education\School\ApiCourse;
@@ -44,12 +52,12 @@ use SPHERE\Application\IApplicationInterface;
 class Education implements IApplicationInterface
 {
 
-    public static function registerApplication()
+    public static function registerApplication(): void
     {
-
         Certificate::registerModule();
         ClassRegister::registerModule();
         ApiDiary::registerApi();
+        ApiDiaryRead::registerApi();
         ApiSortDivision::registerApi();
         Prepare::registerModule();
         ApiGenerate::registerApi();
@@ -77,8 +85,15 @@ class Education implements IApplicationInterface
         Task::registerModule();
         ApiScoreType::registerApi();
         ApiScoreRule::registerApi();
+        ApiScoreRuleBehavior::registerApi();
         Gradebook::registerModule();
         ApiYear::registerApi();
         ApiPrintCertificate::registerApi();
+        ApiForgotten::registerApi();
+        ApiLeaveStudent::registerApi();
+        ApiPreviewCertificate::registerApi();
+        ApiScheduleTime::registerApi();
+        ApiGradeType::registerApi();
+        ApiMail::registerApi();
     }
 }

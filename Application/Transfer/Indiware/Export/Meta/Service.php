@@ -6,6 +6,8 @@ use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel;
 use MOC\V\Component\Document\Component\Parameter\Repository\FileParameter;
 use MOC\V\Component\Document\Document;
 use SPHERE\Application\Contact\Address\Address;
+use SPHERE\Application\Contact\Mail\Mail;
+use SPHERE\Application\Contact\Mail\Service\Entity\TblType;
 use SPHERE\Application\Document\Storage\FilePointer;
 use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
@@ -13,6 +15,7 @@ use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\Transfer\Indiware\Export\AppointmentGrade\Service\Data;
 use SPHERE\Application\Transfer\Indiware\Export\AppointmentGrade\Service\Setup;
 use SPHERE\System\Database\Binding\AbstractService;
+use SPHERE\System\Extension\Extension;
 
 /**
  * Class Service
@@ -65,6 +68,7 @@ class Service extends AbstractService
             $export->setValue($export->getCell("6", "0"), "PLZ");
             $export->setValue($export->getCell("7", "0"), "Strasse");
             $export->setValue($export->getCell("8", "0"), "Klasse");
+            $export->setValue($export->getCell("9", "0"), "E-Mail");
 
             $Row = 1;
             foreach ($tblPersonList as $tblPerson) {
@@ -94,16 +98,27 @@ class Service extends AbstractService
                 }
                 //Division
                 $DivisionName = $tblDivisionCourse->getName();
+                // geschäftliche E-Mail-Adresse
+                $email = '';
+                if (($tblToPersons = Mail::useService()->getMailAllByPerson($tblPerson))) {
+                    foreach ($tblToPersons as $tblToPerson) {
+                        if ($tblToPerson->getTblType()->getName() == TblType::VALUE_BUSINESS) {
+                            $email = $tblToPerson->getTblMail()->getAddress();
+                            break;
+                        }
+                    }
+                }
 
-                $export->setValue($export->getCell("0", $Row), utf8_decode($tblPerson->getLastName()));
-                $export->setValue($export->getCell("1", $Row), utf8_decode($tblPerson->getFirstName()));
+                $export->setValue($export->getCell("0", $Row), Extension::decodeUTF8($tblPerson->getLastName()));
+                $export->setValue($export->getCell("1", $Row), Extension::decodeUTF8($tblPerson->getFirstName()));
                 $export->setValue($export->getCell("2", $Row), $Birthday);
                 $export->setValue($export->getCell("3", $Row), $Gender);
-                $export->setValue($export->getCell("4", $Row), utf8_decode($Birthplace));
-                $export->setValue($export->getCell("5", $Row), utf8_decode($City));
+                $export->setValue($export->getCell("4", $Row), Extension::decodeUTF8($Birthplace));
+                $export->setValue($export->getCell("5", $Row), Extension::decodeUTF8($City));
                 $export->setValue($export->getCell("6", $Row), $Code);
-                $export->setValue($export->getCell("7", $Row), utf8_decode($Street));
-                $export->setValue($export->getCell("8", $Row), utf8_decode($DivisionName));
+                $export->setValue($export->getCell("7", $Row), Extension::decodeUTF8($Street));
+                $export->setValue($export->getCell("8", $Row), Extension::decodeUTF8($DivisionName));
+                $export->setValue($export->getCell("9", $Row), Extension::decodeUTF8($email));
 
                 $Row++;
             }

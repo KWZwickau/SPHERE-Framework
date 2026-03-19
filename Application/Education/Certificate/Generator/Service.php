@@ -33,6 +33,7 @@ use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
+use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Service
@@ -122,6 +123,14 @@ class Service extends AbstractService
     }
 
     /**
+     * @return bool|TblCertificate[]
+     */
+    public function getCertificateAll()
+    {
+        return (new Data($this->getBinding()))->getCertificateAll();
+    }
+
+    /**
      * @param IFormInterface|null     $Form
      * @param TblCertificate          $tblCertificate
      * @param array $GradeList
@@ -165,6 +174,13 @@ class Service extends AbstractService
                         array_push($Error,
                             'Eine Notenangabe an der Position ' . $LaneIndex . ':' . $LaneRanking . ' konnte nicht gespeichert werden'
                         );
+                    } else {
+                        // Löschen
+                        if (($tblCertificateGrade = Generator::useService()->getCertificateGradeByIndex(
+                            $tblCertificate, $LaneIndex, $LaneRanking
+                        ))) {
+                            (new Data($this->getBinding()))->destroyCertificateGrade($tblCertificateGrade);
+                        }
                     }
                 }
             }
@@ -462,7 +478,10 @@ class Service extends AbstractService
             'Content.Input.YearGradeAverageLesson_Average' => 'TextField',
             'Content.Input.YearGradeAveragePractical_Average' => 'TextField',
             'Content.Input.WrittenExam_Grade'   => 'SelectCompleter',
+            'Content.Input.VerbalExam_Grade'    => 'SelectCompleter',
             'Content.Input.PracticalExam_Grade' => 'SelectCompleter',
+            'Content.Input.Sum_Grade'           => 'SelectCompleter',
+            'Content.Input.DateGradeConference'  => 'DatePicker',
             'Content.Input.Subarea1'            => 'TextField',
             'Content.Input.SubareaTimeH1'       => 'TextField',
             'Content.Input.SubareaTimeHDone1'   => 'TextField',
@@ -479,6 +498,7 @@ class Service extends AbstractService
             'Content.Input.AddEducation_Average_EXAM' => 'SelectCompleter',
             'Content.Input.DateExam'            => 'DatePicker',
             'Content.Input.ExamCenter'          => 'TextField',
+            'Content.Input.InDepthAssignment'   => 'SelectBox',
             // Fachschule
             'Content.Input.FsDestination'       => 'TextField',
             'Content.Input.SubjectArea'         => 'TextField',
@@ -588,7 +608,10 @@ class Service extends AbstractService
             'Content.Input.YearGradeAverageLesson_Average' => 'Jahresnote über die im Unterricht erbrachten Leistungen',
             'Content.Input.YearGradeAveragePractical_Average' => 'Jahresnote über die in der praktischen Ausbildung erbrachten Leistungen',
             'Content.Input.WrittenExam_Grade'   => 'Schriftlicher Prüfungsteil',
+            'Content.Input.VerbalExam_Grade'    => 'Mündlicher Prüfungsteil',
             'Content.Input.PracticalExam_Grade' => 'Praktischer Prüfungsteil',
+            'Content.Input.Sum_Grade'           => 'Gesamtnote der Prüfung',
+            'Content.Input.DateGradeConference'  => 'Datum der Notenkonferenz',
             'Content.Input.Subarea1'            => 'Teilbereich 1',
             'Content.Input.SubareaTimeH1'        => 'Teilbereich 1 Dauer der Ausbildung (h)',
             'Content.Input.SubareaTimeHDone1'   => 'Teilbereich 1 Davon anwesend (h)',
@@ -605,6 +628,7 @@ class Service extends AbstractService
             'Content.Input.AddEducation_Average_EXAM' => 'Prüfungszeugnis - Durchschnittsnote',
             'Content.Input.DateExam'            => 'Datum des Prüfungszeugnisses',
             'Content.Input.ExamCenter'          => 'Prüfungsstelle',
+            'Content.Input.InDepthAssignment'   => 'Vertiefungseinsatz',
             // Fachschule
             'Content.Input.FsDestination'       => 'Fachbereich',
             'Content.Input.SubjectArea'         => 'Fachrichtung',
@@ -850,97 +874,65 @@ class Service extends AbstractService
      * @param TblPerson $tblPerson
      * @param TblYear $tblYear
      * @param TblCertificate $tblCertificate
+     * @param $tblProfileSubject
+     * @param $tblOrientationSubject
+     * @param $tblStudentSubjectTypeProfile
+     * @param $tblStudentSubjectTypeOrientation
+     * @param $tblStudentSubjectTypeForeignLanguage
      *
      * @return array
      */
-    public function getCheckCertificateMissingSubjectsForPerson(TblPerson $tblPerson, TblYear $tblYear, TblCertificate $tblCertificate): array
-    {
+    public function getCheckCertificateMissingSubjectsForPerson(
+        TblPerson $tblPerson,
+        TblYear $tblYear,
+        TblCertificate $tblCertificate,
+        $tblProfileSubject,
+        $tblOrientationSubject,
+        $tblStudentSubjectTypeProfile,
+        $tblStudentSubjectTypeOrientation,
+        $tblStudentSubjectTypeForeignLanguage
+    ): array {
         $resultList = array();
 
         $tblTechnicalCourse = Student::useService()->getTechnicalCourseByPerson($tblPerson);
-
-        if (($tblSetting = ConsumerSetting::useService()->getSetting('Api', 'Education', 'Certificate', 'ProfileAcronym'))
-            && ($value = $tblSetting->getValue())
-        ) {
-            $tblProfileSubject = Subject::useService()->getSubjectByAcronym($value);
-        } else {
-            $tblProfileSubject  = false;
+        $subjectIgnoreList = array();
+        if ($tblProfileSubject) {
+            $subjectIgnoreList[$tblProfileSubject->getId()] = $tblProfileSubject;
         }
-        if (($tblSetting = ConsumerSetting::useService()->getSetting('Api', 'Education', 'Certificate', 'OrientationAcronym'))
-            && ($value = $tblSetting->getValue())
-        ) {
-            $tblOrientationSubject = Subject::useService()->getSubjectByAcronym($value);
-        } else {
-            $tblOrientationSubject  = false;
+        if ($tblOrientationSubject) {
+            $subjectIgnoreList[$tblOrientationSubject->getId()] = $tblOrientationSubject;
+        }
+        if (($tblStudent = $tblPerson->getStudent())) {
+            // Profile ignorieren
+            if (($tblProfile = Student::useService()->getFirstSubjectByStudentAndSubjectType($tblStudent, $tblStudentSubjectTypeProfile))) {
+                $subjectIgnoreList[$tblProfile->getId()] = $tblProfile;
+            }
+            // Neigungskurs ignorieren
+            // HOGA ist aktuell der einzige Mandant, welcher noch den Neigungskurs extra auf Zeugnissen ausweist
+            if (($tblOrientation = Student::useService()->getFirstSubjectByStudentAndSubjectType($tblStudent, $tblStudentSubjectTypeOrientation))) {
+                $subjectIgnoreList[$tblOrientation->getId()] = $tblOrientation;
+            }
+            // nicht für alle Zeugnisse sinnvoll, z.B. Kurshalbjahreszeugnis
+            if ($tblCertificate->getName() !== 'Gymnasium Kurshalbjahreszeugnis'
+                && ($tblForeignLanguageList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType($tblStudent, $tblStudentSubjectTypeForeignLanguage))
+            ) {
+                // 2. FS (Fremdsprache) ignorieren
+                foreach ($tblForeignLanguageList as $tblForeignLanguage) {
+                    if (($tblForeignLanguageSubject = $tblForeignLanguage->getServiceTblSubject())
+                        && $tblForeignLanguage->getTblStudentSubjectRanking()
+                        && $tblForeignLanguage->getTblStudentSubjectRanking()->getName() != '1'
+                    ) {
+                        $subjectIgnoreList[$tblForeignLanguageSubject->getId()] = $tblForeignLanguageSubject;
+                    }
+                }
+            }
         }
 
         if (($tblSubjectList = DivisionCourse::useService()->getSubjectListByPersonListAndYear(array($tblPerson), $tblYear))) {
             foreach ($tblSubjectList as $tblSubject) {
-                // Profile überspringen --> stehen extra im Wahlpflichtbereich
-                if ($tblProfileSubject) {
-                    if ($tblProfileSubject->getId() == $tblSubject->getId()) {
-                        continue;
-                    }
-                } elseif (($tblStudent = $tblPerson->getStudent())
-                    && ($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('PROFILE'))
-                    && ($tblProfileList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType($tblStudent,
-                        $tblStudentSubjectType))
-                ) {
-                    $isIgnore = false;
-                    foreach ($tblProfileList as $tblProfile) {
-                        if ($tblProfile->getServiceTblSubject() && $tblProfile->getServiceTblSubject()->getId() == $tblSubject->getId()) {
-                            $isIgnore = true;
-                        }
-                    }
-                    if ($isIgnore) {
-                        continue;
-                    }
+                if (isset($subjectIgnoreList[$tblSubject->getId()])) {
+                    continue;
                 }
-
-                // Neigungskurs überspringen --> stehen extra im Wahlpflichtbereich
-                if ($tblOrientationSubject) {
-                    if ($tblOrientationSubject->getId() == $tblSubject->getId()) {
-                        continue;
-                    }
-                } elseif (($tblStudent = $tblPerson->getStudent())
-                    && ($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('ORIENTATION'))
-                    && ($tblOrientationList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType($tblStudent,
-                        $tblStudentSubjectType))
-                ) {
-                    $isIgnore = false;
-                    foreach ($tblOrientationList as $tblOrientation) {
-                        if ($tblOrientation->getServiceTblSubject() && $tblOrientation->getServiceTblSubject()->getId() == $tblSubject->getId()) {
-                            $isIgnore = true;
-                        }
-                    }
-                    if ($isIgnore) {
-                        continue;
-                    }
-                }
-
-                // ab 2. Fremdsprache ignorieren
-                if (($tblStudent = $tblPerson->getStudent())
-                    // nicht für alle Zeugnisse sinnvoll, z.B. Kurshalbjahreszeugnis
-                    && $tblCertificate->getName() !== 'Gymnasium Kurshalbjahreszeugnis'
-                    && ($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('FOREIGN_LANGUAGE'))
-                    && ($tblForeignLanguageList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType($tblStudent,
-                        $tblStudentSubjectType))
-                ) {
-                    $isIgnore = false;
-                    foreach ($tblForeignLanguageList as $tblForeignLanguage) {
-                        if ($tblForeignLanguage->getServiceTblSubject()
-                            && $tblForeignLanguage->getTblStudentSubjectRanking()
-                            && $tblForeignLanguage->getTblStudentSubjectRanking()->getName() != '1'
-                            && $tblForeignLanguage->getServiceTblSubject()->getId() == $tblSubject->getId()
-                        ) {
-                            $isIgnore = true;
-                        }
-                    }
-                    if ($isIgnore) {
-                        continue;
-                    }
-                }
-
 
                 if (!$this->getCertificateSubjectBySubject($tblCertificate, $tblSubject, $tblTechnicalCourse ?: null)) {
                     $resultList[$tblSubject->getAcronym()] = $tblSubject->getAcronym();
@@ -952,13 +944,14 @@ class Service extends AbstractService
     }
 
     /**
+     * @deprecated
+     *
      * @param TblPrepareCertificate $tblPrepare
      * @param $certificateNameList
-     * @param $hasMissingLanguage
      *
      * @return array
      */
-    public function getCheckCertificateSubjectsForDivisionSubject(TblPrepareCertificate $tblPrepare, $certificateNameList, &$hasMissingLanguage): array
+    public function getCheckCertificateSubjectsForDivisionSubject(TblPrepareCertificate $tblPrepare, $certificateNameList): array
     {
         if (($tblSetting = ConsumerSetting::useService()->getSetting('Api', 'Education', 'Certificate', 'ProfileAcronym'))
             && ($value = $tblSetting->getValue())
@@ -1014,12 +1007,9 @@ class Service extends AbstractService
                         continue;
                     }
 
-                    // bei Fremdsprache I-Icon mit ToolTip
-                    if ($hasForeignLanguages && isset($tblForeignLanguagesAll[$tblSubject->getId()])) {
-//                        $isForeignLanguage = true;
-                        $hasMissingLanguage = true;
-                    } /** @noinspection PhpStatementHasEmptyBodyInspection */ else {
-//                        $isForeignLanguage = false;
+                    // Fremdsprache
+                    if ($hasForeignLanguages && isset($tblForeignLanguagesAll[$tblSubject->getId()]) && $tblSubject->getName() != 'Englisch') {
+                        continue;
                     }
 
                     foreach ($certificateNameList as $certificateId => $name) {

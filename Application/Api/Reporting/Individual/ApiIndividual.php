@@ -2378,13 +2378,14 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                 array_walk($ColumnDBNames, function ($Name) use (&$ColumnDTNames, &$i, &$DateOrder, &$GermanStringOrder) {
                     $ColumnDTNames[$Name] = $this->decodeField($Name);
 //                    $ColumnDTNames[$Name] = preg_replace('!\_!is', ' ', $Name);
-                    if(in_array($Name, $this->FieldNameSortByDate)) {
+                    $NameCorrection = str_replace('Doppelpunkt', ':', $Name);
+                    if(in_array($NameCorrection, $this->FieldNameSortByDate)) {
                         $DateOrder[] = array('type' => 'de_date', 'targets' => $i);
                     }
-                    if(in_array($Name, $this->FieldNameSortByGermanString)) {
+                    if(in_array($NameCorrection, $this->FieldNameSortByGermanString)) {
                         $GermanStringOrder[] = array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => $i);
                     }
-                    if(in_array($Name, $this->FieldNameSortByNumeric)) {
+                    if(in_array($NameCorrection, $this->FieldNameSortByNumeric)) {
                         $GermanStringOrder[] = array('type' => 'natural', 'targets' => $i);
                     }
                     $i++;

@@ -111,16 +111,16 @@ class UniventionWorkGroup
         $Json = $this->execute($this->curlhandle);
         // return Server error as an Error
         if($Json == 'Internal Server Error'){
-            return $group.' '.new Bold('UCS: Internal Server Error');
+            return $group.' '.new Bold('DLLP: Internal Server Error');
         }
         if(false !== strpos($Json, 'Bad Gateway')){
-            return $group.' '.new Bold('UCS: Bad Gateway');
+            return $group.' '.new Bold('DLLP: Bad Gateway');
         }
         if(false !== strpos($Json, 'Bad Request')){
-            return $group.' '.new Bold('UCS: Bad Request');
+            return $group.' '.new Bold('DLLP: Bad Request');
         }
         if(false !== strpos($Json, 'Forbidden')){
-            return $group.' '.new Bold('UCS: You don\'t have permission to access this resource.');
+            return $group.' '.new Bold('DLLP: You don\'t have permission to access this resource.');
         }
         if(false !== ( $msPos = strpos($Json, '"msg":"'))){
             return $group.' '.new Bold(substr($Json, $msPos - 17));
@@ -201,13 +201,13 @@ class UniventionWorkGroup
 //            return $Json;
 //        }
         if($Json == 'Internal Server Error'){
-            return $groupName.' '.new Bold('UCS: Internal Server Error');
+            return $groupName.' '.new Bold('DLLP: Internal Server Error');
         }
         if(false !== strpos($Json, 'Bad Gateway')){
-            return $groupName.' '.new Bold('UCS: Bad Gateway');
+            return $groupName.' '.new Bold('DLLP: Bad Gateway');
         }
         if(false !== strpos($Json, 'Bad Request')){
-            return $groupName.' '.new Bold('UCS: Bad Request');
+            return $groupName.' '.new Bold('DLLP: Bad Request');
         }
         if(false !== ( $msPos = strpos($Json, '"msg":"'))){
 //            return $Json;

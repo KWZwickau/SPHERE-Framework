@@ -43,9 +43,16 @@ class Data extends DataLeave
         $this->createPrepareAdditionalGradeType('Pz (Zusatz-Prüfung)', 'PZ');
 
         // Hauptschulabschluss
-        $this->createPrepareAdditionalGradeType('J (vorläufige Jahresleistung [Notendurchschnitt])', 'J');
-        $this->createPrepareAdditionalGradeType('Ls (Leistungsnachweisnote [schriftlich])', 'LS');
-        $this->createPrepareAdditionalGradeType('Lm (Leistungsnachweisnote [mündlich])', 'LM');
+//        $this->createPrepareAdditionalGradeType('J (vorläufige Jahresleistung [Notendurchschnitt])', 'J');
+//        $this->createPrepareAdditionalGradeType('Ls (Leistungsnachweisnote [schriftlich])', 'LS');
+//        $this->createPrepareAdditionalGradeType('Lm (Leistungsnachweisnote [mündlich])', 'LM');
+        // Hinweis bei Verwendung von PM und PS müssten auch alle entsprechenden Prüfungsnoten und weiterer Quellcode umgeschrieben werden
+        if (($tblPrepareAdditionalGradeType = $this->createPrepareAdditionalGradeType('Ps (schriftliche Prüfung)', 'LS'))) {
+            $this->updatePrepareAdditionalGradeType($tblPrepareAdditionalGradeType, 'Ps (schriftliche Prüfung)');
+        }
+        if (($tblPrepareAdditionalGradeType = $this->createPrepareAdditionalGradeType('Pm (mündliche Prüfung)', 'LM'))) {
+            $this->updatePrepareAdditionalGradeType($tblPrepareAdditionalGradeType, 'Pm (mündliche Prüfung)');
+        }
 
         // Real + Hauptschulabschluss
         $this->createPrepareAdditionalGradeType('En (Endnote)', 'EN');
@@ -217,6 +224,26 @@ class Data extends DataLeave
         return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPrepareInformation', array(
             TblPrepareInformation::ATTR_TBL_PREPARE_CERTIFICATE => $tblPrepare->getId()
         ));
+    }
+
+    /**
+     * @param TblPrepareInformation $tblPrepareInformation
+     *
+     * @return bool
+     */
+    public function destroyPrepareInformation(TblPrepareInformation $tblPrepareInformation): bool
+    {
+        $Manager = $this->getEntityManager();
+        /** @var TblPrepareInformation $Entity */
+        $Entity = $Manager->getEntityById('TblPrepareInformation', $tblPrepareInformation->getId());
+        if (null !== $Entity) {
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
+            $Manager->killEntity($Entity);
+
+            return true;
+        }
+
+        return false;
     }
 
     /**
@@ -1073,6 +1100,33 @@ class Data extends DataLeave
     }
 
     /**
+     * @param TblPrepareAdditionalGradeType $tblPrepareAdditionalGradeType
+     * @param string $name
+     *
+     * @return bool
+     */
+    public function updatePrepareAdditionalGradeType(
+        TblPrepareAdditionalGradeType $tblPrepareAdditionalGradeType,
+        string $name,
+    ): bool {
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblPrepareAdditionalGradeType $Entity */
+        $Entity = $Manager->getEntityById('TblPrepareAdditionalGradeType', $tblPrepareAdditionalGradeType->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setName($name);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
      * soft remove
      * @param TblPrepareCertificate $tblPrepareCertificate
      *
@@ -1222,28 +1276,6 @@ class Data extends DataLeave
             // nur Kopfnoten
             TblPrepareGrade::ATTR_SERVICE_TBL_SUBJECT => null
         ));
-    }
-
-    /**
-     * @param array $tblEntityList
-     *
-     * @return bool
-     */
-    public function updateEntityListBulk(array $tblEntityList): bool
-    {
-        $Manager = $this->getEntityManager();
-        /** @var Element $tblElement */
-        foreach ($tblEntityList as $tblElement) {
-            $Manager->bulkSaveEntity($tblElement);
-            /** @var Element $Entity */
-            $Entity = $Manager->getEntityById($tblElement->getEntityShortName(), $tblElement->getId());
-            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Entity, $tblElement, true);
-        }
-
-        $Manager->flushCache();
-        Protocol::useService()->flushBulkEntries();
-
-        return true;
     }
 
     /**

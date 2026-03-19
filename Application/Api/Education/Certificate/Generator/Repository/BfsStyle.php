@@ -2,6 +2,7 @@
 namespace SPHERE\Application\Api\Education\Certificate\Generator\Repository;
 
 use SPHERE\Application\Api\Education\Certificate\Generator\Certificate;
+use SPHERE\Application\Education\Certificate\Generate\Generate;
 use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Element;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Page;
@@ -1041,7 +1042,28 @@ abstract class BfsStyle extends Certificate
                         {{ Content.P'.$personId.'.Grade.Data["'.$Subject['SubjectAcronym'].'"] }}
                     {% else %}
                         &ndash;
-                    {% endif %}'
+                    {% endif %}',
+                    '{% if((Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $Subject['SubjectAcronym'] . '"] is not empty)
+                        and (Content.P' . $personId . '.Grade.Data["' . $Subject['SubjectAcronym'] . '"] is not empty)
+                    ) %}
+                         7.7px
+                     {% else %}
+                         4px
+                     {% endif %}',
+                    '{% if((Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $Subject['SubjectAcronym'] . '"] is not empty)
+                        and (Content.P' . $personId . '.Grade.Data["' . $Subject['SubjectAcronym'] . '"] is not empty)
+                    ) %}
+                         7.8px
+                     {% else %}
+                         4px
+                     {% endif %}',
+                    '{% if((Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $Subject['SubjectAcronym'] . '"] is not empty)
+                        and (Content.P' . $personId . '.Grade.Data["' . $Subject['SubjectAcronym'] . '"] is not empty)
+                    ) %}
+                         8px
+                     {% else %}
+                         14px
+                     {% endif %}'
                 );
             }
         }
@@ -1056,7 +1078,7 @@ abstract class BfsStyle extends Certificate
         return $Slice;
     }
 
-    private function getSubjectLineAbg(Slice $slice, $subjectName, $subjectGrade)
+    private function getSubjectLineAbg(Slice $slice, $subjectName, $subjectGrade, string $paddingTop = '4px', string $paddingBottom = '4px', string $gradeTextSize = '14px')
     {
         $TextSize = '14px';
         $SubjectSection = (new Section());
@@ -1089,9 +1111,9 @@ abstract class BfsStyle extends Certificate
             ->styleBackgroundColor(self::BACKGROUND_GRADE_FIELD)
 //                    ->styleMarginTop('9px')
             ->styleMarginTop($marginTopGrade)
-            ->stylePaddingTop('4px')
-            ->stylePaddingBottom('4px')
-            ->styleTextSize($TextSize)
+            ->stylePaddingTop($paddingTop)
+            ->stylePaddingBottom($paddingBottom)
+            ->styleTextSize($gradeTextSize)
             , '15%');
         $slice->addSection($SubjectSection);
     }
@@ -1827,15 +1849,32 @@ abstract class BfsStyle extends Certificate
         );
         if($isChairPerson){
             // Abgangszeugnis
+
+            $leaderName = '&nbsp;';
+            $leaderDescription = 'Vorsitzende/r';
+            if ($this->getTblPrepareCertificate()
+                && ($tblGenerateCertificate = $this->getTblPrepareCertificate()->getServiceTblGenerateCertificate())
+            ) {
+                if (($tblGenerateCertificateSettingLeader = Generate::useService()->getGenerateCertificateSettingBy($tblGenerateCertificate, 'Leader'))
+                    && ($tblPersonLeader = Person::useService()->getPersonById($tblGenerateCertificateSettingLeader->getValue()))
+                ) {
+                    $leaderName = $tblPersonLeader->getFullName();
+                    if (($tblCommon = $tblPersonLeader->getCommon())
+                        && ($tblCommonBirthDates = $tblCommon->getTblCommonBirthDates())
+                        && ($tblGender = $tblCommonBirthDates->getTblCommonGender())
+                    ) {
+                        if ($tblGender->getName() == 'Männlich') {
+                            $leaderDescription = 'Vorsitzender';
+                        } elseif ($tblGender->getName() == 'Weiblich') {
+                            $leaderDescription = 'Vorsitzende';
+                        }
+                    }
+                }
+            }
+
             $Slice->addSection((new Section())
                 ->addElementColumn((new Element())
-                    ->setContent(
-                        '{% if(Content.P' . $personId . '.Leader.Description is not empty) %}
-                            {{ Content.P' . $personId . '.Leader.Description }}
-                        {% else %}
-                            Vorsitzende/r des Prüfungsausschusses
-                        {% endif %}'
-                    )
+                    ->setContent($leaderDescription . ' des Prüfungsausschusses')
                     ->styleAlignCenter()
                     ->styleTextSize('11px')
                     , '35%')
@@ -1855,13 +1894,7 @@ abstract class BfsStyle extends Certificate
             );
             $Slice->addSection((new Section())
                 ->addElementColumn((new Element())
-                    ->setContent(
-                        '{% if(Content.P' . $personId . '.DivisionTeacher.Name is not empty) %}
-                            {{ Content.P' . $personId . '.DivisionTeacher.Name }}
-                        {% else %}
-                            &nbsp;
-                        {% endif %}'
-                    )
+                    ->setContent($leaderName)
                     ->styleTextSize('11px')
                     ->stylePaddingTop('2px')
                     ->styleAlignCenter()

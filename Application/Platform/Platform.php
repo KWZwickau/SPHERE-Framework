@@ -6,7 +6,6 @@ use SPHERE\Application\Platform\Assistance\Assistance;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblIdentification;
 use SPHERE\Application\Platform\Gatekeeper\Gatekeeper;
-use SPHERE\Application\Platform\Roadmap\Roadmap;
 use SPHERE\Application\Platform\System\DataMaintenance\DataMaintenance;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\Application\Platform\System\System;
@@ -73,7 +72,6 @@ class Platform implements IClusterInterface
         System::registerApplication();
         Gatekeeper::registerApplication();
         Assistance::registerApplication();
-        Roadmap::registerApplication();
         /**
          * Register Navigation
          */

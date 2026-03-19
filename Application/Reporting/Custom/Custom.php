@@ -5,9 +5,11 @@ use SPHERE\Application\IApplicationInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Reporting\Custom\Chemnitz\Person\Person as ChemnitzPerson;
+use SPHERE\Application\Reporting\Custom\Hoga\Person\Person as HogaPerson;
 use SPHERE\Application\Reporting\Custom\Hormersdorf\Person\Person as HormersdorfPerson;
 use SPHERE\Application\Reporting\Custom\Herrnhut\Person\Person as HerrnhutPerson;
 use SPHERE\Application\Reporting\Custom\Coswig\Person\Person as CoswigPerson;
+use SPHERE\Application\Reporting\Custom\Kreuzgymnasium\Person\Person as KreuzgymnasiumPerson;
 use SPHERE\Application\Reporting\Custom\Muldental\Person\Person as MuldentalPerson;
 use SPHERE\Application\Reporting\Custom\Schneeberg\Person\Person as SchneebergPerson;
 use SPHERE\Application\Reporting\Custom\Radebeul\Person\Person as RadebeulPerson;
@@ -43,7 +45,7 @@ class Custom implements IApplicationInterface
             if ($consumerAcronym === 'FESH') { // Hormersdorf
                 HormersdorfPerson::registerModule();
             }
-            if ($consumerAcronym === 'EVAMTL') { // Muldental
+            if ($consumerAcronym === 'EVAMTL') { // Muldental  || $consumerAcronym === 'REF'
                 MuldentalPerson::registerModule();
             }
             if ($consumerAcronym === 'EVSR') { // Radebeul
@@ -60,6 +62,12 @@ class Custom implements IApplicationInterface
             }
             if ($consumerAcronym === 'EVOSG') { // Gersdorf
                 GersdorfPerson::registerModule();
+            }
+            if ($consumerAcronym === 'HOGA') {
+                HogaPerson::registerModule();
+            }
+            if ($consumerAcronym === 'KG' || $consumerAcronym === 'REF') {
+                KreuzgymnasiumPerson::registerModule();
             }
         }
 

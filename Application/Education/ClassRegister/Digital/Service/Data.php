@@ -4,10 +4,13 @@ namespace SPHERE\Application\Education\ClassRegister\Digital\Service;
 
 use DateTime;
 use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblCourseContent;
+use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblForgotten;
+use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblForgottenStudent;
 use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblFullTimeContent;
 use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblLessonContent;
 use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblLessonContentLink;
 use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblLessonWeek;
+use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblStudentListColumn;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
@@ -72,6 +75,7 @@ class Data  extends AbstractData
      * @param $Lesson
      * @param $Content
      * @param $Homework
+     * @param $DueDateHomework
      * @param $Room
      * @param TblDivisionCourse $tblDivisionCourse
      * @param TblPerson|null $tblPerson
@@ -86,6 +90,7 @@ class Data  extends AbstractData
         $Lesson,
         $Content,
         $Homework,
+        $DueDateHomework,
         $Room,
         TblDivisionCourse $tblDivisionCourse,
         TblPerson $tblPerson = null,
@@ -101,6 +106,7 @@ class Data  extends AbstractData
         $Entity->setLesson($Lesson);
         $Entity->setContent($Content);
         $Entity->setHomework($Homework);
+        $Entity->setDueDateHomework($DueDateHomework ? new DateTime($DueDateHomework) : null);
         $Entity->setRoom($Room);
         $Entity->setServiceTblDivisionCourse($tblDivisionCourse);
         $Entity->setServiceTblPerson($tblPerson);
@@ -120,6 +126,7 @@ class Data  extends AbstractData
      * @param $Lesson
      * @param $Content
      * @param $Homework
+     * @param $DueDateHomework
      * @param $Room
      * @param TblPerson|null $tblPerson
      * @param TblSubject|null $tblSubject
@@ -134,6 +141,7 @@ class Data  extends AbstractData
         $Lesson,
         $Content,
         $Homework,
+        $DueDateHomework,
         $Room,
         TblPerson $tblPerson = null,
         TblSubject $tblSubject = null,
@@ -149,6 +157,7 @@ class Data  extends AbstractData
             $Entity->setLesson($Lesson);
             $Entity->setContent($Content);
             $Entity->setHomework($Homework);
+            $Entity->setDueDateHomework($DueDateHomework ? new DateTime($DueDateHomework) : null);
             $Entity->setRoom($Room);
             $Entity->setServiceTblPerson($tblPerson);
             $Entity->setServiceTblSubject($tblSubject);
@@ -232,6 +241,24 @@ class Data  extends AbstractData
     }
 
     /**
+     * @param DateTime $date
+     * @param int $lesson
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param TblSubject $tblSubject
+     *
+     * @return TblLessonContent|bool
+     */
+    public function getLessonContentBy(DateTime $date, int $lesson, TblDivisionCourse $tblDivisionCourse, TblSubject $tblSubject): TblLessonContent|bool
+    {
+        return $this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblLessonContent', [
+            TblLessonContent::ATTR_DATE => $date,
+            TblLessonContent::ATTR_LESSON => $lesson,
+            TblLessonContent::ATTR_SERVICE_TBL_DIVISION_COURSE => $tblDivisionCourse->getId(),
+            TblLessonContent::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId()
+        ]);
+    }
+
+    /**
      * @param DateTime $fromDate
      * @param DateTime $toDate
      * @param TblDivisionCourse $tblDivisionCourse
@@ -259,6 +286,106 @@ class Data  extends AbstractData
         $resultList = $query->getResult();
 
         return empty($resultList) ? false : $resultList;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     * @param TblSubject|null $tblSubject
+     *
+     * @return TblLessonContent[]
+     */
+    public function getLessonContentAllByTeacherAndYear(TblPerson $tblPerson, TblYear $tblYear, ?TblSubject $tblSubject = null): array
+    {
+        $queryBuilder = $this->getEntityManager()->getQueryBuilder();
+
+        $builder = $queryBuilder->select('t')
+            ->from(TblLessonContent::class, 't')
+            ->join(TblDivisionCourse::class, 'c')
+            ->where(
+                $queryBuilder->expr()->andX(
+                    $queryBuilder->expr()->eq('t.serviceTblDivision', 'c.Id'),
+                    $queryBuilder->expr()->eq('t.serviceTblPerson', '?1'),
+                    $queryBuilder->expr()->eq('c.serviceTblYear', '?2')
+                )
+            )
+            ->setParameter(1, $tblPerson->getId())
+            ->setParameter(2, $tblYear->getId());
+
+        if ($tblSubject) {
+            $builder->andWhere(
+                $queryBuilder->expr()->orX(
+                    $queryBuilder->expr()->eq('t.serviceTblSubject', '?3'),
+                    $queryBuilder->expr()->eq('t.serviceTblSubstituteSubject', '?3')
+                )
+            );
+            $builder->setParameter(3, $tblSubject->getId());
+        }
+
+        return $builder->getQuery()->getResult();
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param TblSubject|null $tblSubject
+     *
+     * @return TblLessonContent[]
+     */
+    public function getLessonContentAllByTeacherAndDivisionCourse(TblPerson $tblPerson, TblDivisionCourse $tblDivisionCourse, ?TblSubject $tblSubject = null): array
+    {
+        $queryBuilder = $this->getEntityManager()->getQueryBuilder();
+
+        $builder = $queryBuilder->select('t')
+            ->from(TblLessonContent::class, 't')
+            ->where(
+                $queryBuilder->expr()->andX(
+                    $queryBuilder->expr()->eq('t.serviceTblPerson', '?1'),
+                    $queryBuilder->expr()->eq('t.serviceTblDivision', '?2')
+                )
+            )
+            ->setParameter(1, $tblPerson->getId())
+            ->setParameter(2, $tblDivisionCourse->getId());
+
+        if ($tblSubject) {
+            $builder->andWhere(
+                $queryBuilder->expr()->orX(
+                    $queryBuilder->expr()->eq('t.serviceTblSubject', '?3'),
+                    $queryBuilder->expr()->eq('t.serviceTblSubstituteSubject', '?3')
+                )
+            );
+            $builder->setParameter(3, $tblSubject->getId());
+        }
+
+        return $builder->getQuery()->getResult();
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param DateTime $fromDate
+     * @param DateTime $toDate
+     *
+     * @return TblLessonContent[]
+     */
+    public function getLessonContentAllByTeacherAndBetween(TblPerson $tblPerson, DateTime $fromDate, DateTime $toDate): array
+    {
+        $Manager = $this->getEntityManager();
+        $queryBuilder = $Manager->getQueryBuilder();
+
+        $query = $queryBuilder->select('t')
+            ->from(TblLessonContent::class, 't')
+            ->where(
+                $queryBuilder->expr()->andX(
+                    $queryBuilder->expr()->between('t.Date', '?1', '?2'),
+                    $queryBuilder->expr()->eq('t.serviceTblPerson', '?3')
+                )
+            )
+            ->setParameter(1, $fromDate)
+            ->setParameter(2, $toDate)
+            ->setParameter(3, $tblPerson->getId())
+            ->getQuery();
+
+        return $query->getResult();
     }
 
     /**
@@ -338,6 +465,7 @@ class Data  extends AbstractData
      * @param $Lesson
      * @param $Content
      * @param $Homework
+     * @param $DueDateHomework
      * @param $Remark
      * @param $Room
      * @param $countLessons
@@ -351,6 +479,7 @@ class Data  extends AbstractData
         $Lesson,
         $Content,
         $Homework,
+        $DueDateHomework,
         $Remark,
         $Room,
         $countLessons,
@@ -365,6 +494,7 @@ class Data  extends AbstractData
         $Entity->setLesson($Lesson);
         $Entity->setContent($Content);
         $Entity->setHomework($Homework);
+        $Entity->setDueDateHomework($DueDateHomework ? new DateTime($DueDateHomework) : null);
         $Entity->setRemark($Remark);
         $Entity->setRoom($Room);
         $Entity->setCountLessons($countLessons);
@@ -381,6 +511,7 @@ class Data  extends AbstractData
      * @param $Lesson
      * @param $Content
      * @param $Homework
+     * @param $DueDateHomework
      * @param $Remark
      * @param $Room
      * @param $countLessons
@@ -394,6 +525,7 @@ class Data  extends AbstractData
         $Lesson,
         $Content,
         $Homework,
+        $DueDateHomework,
         $Remark,
         $Room,
         $countLessons,
@@ -408,6 +540,7 @@ class Data  extends AbstractData
             $Entity->setLesson($Lesson);
             $Entity->setContent($Content);
             $Entity->setHomework($Homework);
+            $Entity->setDueDateHomework($DueDateHomework ? new DateTime($DueDateHomework) : null);
             $Entity->setRemark($Remark);
             $Entity->setRoom($Room);
             $Entity->setCountLessons($countLessons);
@@ -634,6 +767,34 @@ class Data  extends AbstractData
     }
 
     /**
+     * @param TblCourseContent $tblCourseContent
+     * @param int $LinkId
+     *
+     * @return TblLessonContentLink
+     */
+    public function createCourseContentLink(TblCourseContent $tblCourseContent, int $LinkId): TblLessonContentLink
+    {
+        $Manager = $this->getEntityManager();
+        $Entity = $Manager->getEntity('TblLessonContentLink')
+            ->findOneBy(
+                array(
+                    TblLessonContentLink::ATTR_TBL_COURSE_CONTENT => $tblCourseContent->getId(),
+                    TblLessonContentLink::ATTR_TBL_LINK_ID => $LinkId
+                )
+            );
+        if (null === $Entity) {
+            $Entity = new TblLessonContentLink();
+            $Entity->setTblCourseContent($tblCourseContent);
+            $Entity->setLinkId($LinkId);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
+
+        return $Entity;
+    }
+
+    /**
      * @return int
      */
     public function getNextLinkId(): int
@@ -658,11 +819,10 @@ class Data  extends AbstractData
     /**
      * @param TblLessonContent $tblLessonContent
      *
-     * @return false | TblLessonContent[]
+     * @return false | TblLessonContentLink[]
      */
-    public function getLessonContentLinkAllByLessonContent(TblLessonContent $tblLessonContent)
+    public function getLessonContentLinkAllByLessonContent(TblLessonContent $tblLessonContent): array|bool
     {
-        $resultList = array();
         /** @var TblLessonContentLink $tblLessonContentLink */
         $tblLessonContentLink = $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblLessonContentLink',
             array(
@@ -672,56 +832,67 @@ class Data  extends AbstractData
         if ($tblLessonContentLink
             && ($LinkId = $tblLessonContentLink->getLinkId())
         ) {
-            $tblLessonContentLinkList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblLessonContentLink',
-                array(
-                    TblLessonContentLink::ATTR_TBL_LINK_ID => $LinkId
-                )
-            );
-            if ($tblLessonContentLinkList) {
-                /** @var TblLessonContentLink $item */
-                foreach ($tblLessonContentLinkList as $item) {
-                    if ($item->getTblLessonContent()
-                        && $item->getTblLessonContent()->getId() != $tblLessonContent->getId()
-                    ) {
-                        $resultList[] = $item->getTblLessonContent();
-                    }
-                }
-            }
+            return $this->getLessonContentLinkAllByLinkId($LinkId);
         }
 
-        return empty($resultList) ? false : $resultList;
+        return false;
     }
 
     /**
-     * @param TblLessonContent[] $tblLessonContentList
+     * @param TblCourseContent $tblCourseContent
+     *
+     * @return false | TblLessonContentLink[]
+     */
+    public function getLessonContentLinkAllByCourseContent(TblCourseContent $tblCourseContent): array|bool
+    {
+        /** @var TblLessonContentLink $tblLessonContentLink */
+        $tblLessonContentLink = $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblLessonContentLink',
+            array(
+                TblLessonContentLink::ATTR_TBL_COURSE_CONTENT => $tblCourseContent->getId()
+            )
+        );
+        if ($tblLessonContentLink
+            && ($LinkId = $tblLessonContentLink->getLinkId())
+        ) {
+            return $this->getLessonContentLinkAllByLinkId($LinkId);
+        }
+
+        return false;
+    }
+
+    /**
+     * @param int $linkId
+     *
+     * @return bool|TblLessonContentLink[]
+     */
+    public function getLessonContentLinkAllByLinkId(int $linkId): bool|array
+    {
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblLessonContentLink',
+            array(
+                TblLessonContentLink::ATTR_TBL_LINK_ID => $linkId
+            )
+        );
+    }
+
+    /**
+     * @param TblLessonContentLink $tblLessonContentLink
      *
      * @return bool
      */
-    public function destroyLessonContentLinkList(
-        array $tblLessonContentList
+    public function destroyLessonContentLink(
+        TblLessonContentLink $tblLessonContentLink
     ): bool {
-        $Manager = $this->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblLessonContentLink $Entity */
+        $Entity = $Manager->getEntityById('TblLessonContentLink', $tblLessonContentLink->getId());
+        if (null !== $Entity) {
+            $Manager->killEntity($Entity);
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
 
-        foreach ($tblLessonContentList as $tblLessonContent) {
-            /** @var TblLessonContent $Entity */
-            if (($tblLessonContentLinkList = $this->getForceEntityListBy(__METHOD__,
-                $Manager, 'TblLessonContentLink', array(TblLessonContentLink::ATTR_TBL_LESSON_CONTENT => $tblLessonContent->getId())))
-            ) {
-                foreach ($tblLessonContentLinkList as $tblLessonContentLink) {
-                    $Entity = $Manager->getEntityById('TblLessonContentLink', $tblLessonContentLink->getId());
-
-                    if (null !== $Entity) {
-                        $Manager->bulkKillEntity($Entity);
-                        Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity, true);
-                    }
-                }
-            }
+            return true;
         }
 
-        $Manager->flushCache();
-        Protocol::useService()->flushBulkEntries();
-
-        return true;
+        return false;
     }
 
     /**
@@ -871,5 +1042,515 @@ class Data  extends AbstractData
         }
 
         return false;
+    }
+
+    /**
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param TblSubject $tblSubject
+     * @param DateTime|null $dueDate
+     * @param int|null $limit
+     *
+     * @return TblLessonContent[]|false
+     */
+    public function getDueDateHomeworkListBySubject(
+        TblDivisionCourse $tblDivisionCourse,
+        TblSubject $tblSubject,
+        ?DateTime $dueDate = null,
+        ?int $limit = null
+    ): bool|array {
+        $Manager = $this->getEntityManager();
+        $queryBuilder = $Manager->getQueryBuilder();
+
+        $query = $queryBuilder
+            ->select('t')
+            ->from(TblLessonContent::class, 't')
+            ->where($queryBuilder->expr()->andX(
+                $queryBuilder->expr()->isNull('t.EntityRemove'),
+                $queryBuilder->expr()->eq('t.serviceTblDivision', '?1'),
+                $queryBuilder->expr()->orX(
+                    // nur Vertretungsfach leer
+                    $queryBuilder->expr()->andX(
+                        $queryBuilder->expr()->eq('t.serviceTblSubject', '?2'),
+                        $queryBuilder->expr()->isNull('t.serviceTblSubstituteSubject'),
+                    ),
+                    $queryBuilder->expr()->eq('t.serviceTblSubstituteSubject', '?2'),
+                )
+            ))
+            // Hausaufgaben nicht leer
+            ->andWhere('LENGTH(t.Homework) > 0');
+
+        if ($dueDate) {
+            $query->andWhere(
+                $queryBuilder->expr()->orX(
+                    $queryBuilder->expr()->lte('t.DueDateHomework', '?3'),
+                    // Hausaufgaben auch anzeigen, wenn kein Fälligkeit eingetragen ist
+                    $queryBuilder->expr()->isNull('t.DueDateHomework'),
+                )
+            );
+        }
+
+        $query
+            ->orderBy('CASE WHEN t.DueDateHomework IS NULL THEN t.Date ELSE t.DueDateHomework END', 'DESC')
+//            ->addOrderBy('t.Date', 'DESC')
+            ->setParameter(1, $tblDivisionCourse->getId())
+            ->setParameter(2, $tblSubject->getId());
+
+        if ($dueDate) {
+            $query->setParameter(3, $dueDate);
+        }
+        if ($limit) {
+            $query->setMaxResults($limit);
+        }
+
+        $resultList = $query
+            ->getQuery()
+            ->getResult();
+
+        return empty($resultList) ? false : $resultList;
+    }
+
+    /**
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param TblSubject $tblSubject
+     * @param DateTime $dueDate
+     *
+     * @return TblLessonContent[]|false
+     */
+    public function getDueDateHomeworkListBySubjectAndExactDueDate(
+        TblDivisionCourse $tblDivisionCourse,
+        TblSubject $tblSubject,
+        DateTime $dueDate,
+    ): bool|array {
+        $Manager = $this->getEntityManager();
+        $queryBuilder = $Manager->getQueryBuilder();
+
+        $query = $queryBuilder
+            ->select('t')
+            ->from(TblLessonContent::class, 't')
+            ->where($queryBuilder->expr()->andX(
+                $queryBuilder->expr()->isNull('t.EntityRemove'),
+                $queryBuilder->expr()->eq('t.serviceTblDivision', '?1'),
+                $queryBuilder->expr()->orX(
+                // nur Vertretungsfach leer
+                    $queryBuilder->expr()->andX(
+                        $queryBuilder->expr()->eq('t.serviceTblSubject', '?2'),
+                        $queryBuilder->expr()->isNull('t.serviceTblSubstituteSubject'),
+                    ),
+                    $queryBuilder->expr()->eq('t.serviceTblSubstituteSubject', '?2'),
+                ),
+                $queryBuilder->expr()->eq('t.DueDateHomework', '?3'),
+            ))
+            // Hausaufgaben nicht leer
+            ->andWhere('LENGTH(t.Homework) > 0')
+            ->setParameter(1, $tblDivisionCourse->getId())
+            ->setParameter(2, $tblSubject->getId())
+            ->setParameter(3, $dueDate);
+
+        $resultList = $query
+            ->getQuery()
+            ->getResult();
+
+        return empty($resultList) ? false : $resultList;
+    }
+
+    /**
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param DateTime|null $dueDate
+     * @param int|null $limit
+     *
+     * @return TblCourseContent[]|false
+     */
+    public function getDueDateHomeworkListByCourseSystem(
+        TblDivisionCourse $tblDivisionCourse,
+        ?DateTime $dueDate = null,
+        ?int $limit = null
+    ): bool|array {
+        $Manager = $this->getEntityManager();
+        $queryBuilder = $Manager->getQueryBuilder();
+
+        $query = $queryBuilder
+            ->select('t')
+            ->from(TblCourseContent::class, 't')
+                ->where($queryBuilder->expr()->andX(
+                    $queryBuilder->expr()->isNull('t.EntityRemove'),
+                    $queryBuilder->expr()->eq('t.serviceTblDivisionCourse', '?1'),
+                    $queryBuilder->expr()->orX(
+                ))
+            )
+            // Hausaufgaben nicht leer
+            ->andWhere('LENGTH(t.Homework) > 0');
+
+        if ($dueDate) {
+            $query->andWhere(
+                $queryBuilder->expr()->orX(
+                    $queryBuilder->expr()->lte('t.DueDateHomework', '?3'),
+                    // Hausaufgaben auch anzeigen, wenn kein Fälligkeit eingetragen ist
+                    $queryBuilder->expr()->isNull('t.DueDateHomework'),
+                )
+            );
+        }
+
+        $query
+            ->orderBy('CASE WHEN t.DueDateHomework IS NULL THEN t.Date ELSE t.DueDateHomework END', 'DESC')
+//            ->addOrderBy('t.Date', 'DESC')
+            ->setParameter(1, $tblDivisionCourse->getId());
+
+        if ($dueDate) {
+            $query->setParameter(3, $dueDate);
+        }
+        if ($limit) {
+            $query->setMaxResults($limit);
+        }
+
+        $resultList = $query
+            ->getQuery()
+            ->getResult();
+
+        return empty($resultList) ? false : $resultList;
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return false|TblForgotten
+     */
+    public function getForgottenById($Id): bool|TblForgotten
+    {
+        return $this->getCachedEntityById(__METHOD__, $this->getEntityManager(), 'TblForgotten', $Id);
+    }
+
+    /**
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param $Date
+     * @param TblSubject $tblSubject
+     * @param string $Remark
+     * @param TblLessonContent|null $tblLessonContent
+     * @param TblCourseContent|null $tblCourseContent
+     * @param bool $isHomework
+     *
+     * @return TblForgotten
+     */
+    public function createForgotten(
+        TblDivisionCourse $tblDivisionCourse,
+        $Date,
+        TblSubject $tblSubject,
+        string $Remark,
+        ?TblLessonContent $tblLessonContent,
+        ?TblCourseContent $tblCourseContent,
+        bool $isHomework
+    ): TblForgotten {
+
+        $Manager = $this->getEntityManager();
+
+        $Entity = new TblForgotten();
+        $Entity->setServiceTblDivisionCourse($tblDivisionCourse);
+        $Entity->setDate($Date ? new DateTime($Date) : null);
+        $Entity->setServiceTblSubject($tblSubject);
+        $Entity->setRemark($Remark);
+        $Entity->setTblLessonContent($tblLessonContent);
+        $Entity->setTblCourseContent($tblCourseContent);
+//        $Entity->setIsHomework($tblLessonContent || $tblCourseContent);
+        $Entity->setIsHomework($isHomework);
+
+        $Manager->saveEntity($Entity);
+        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+
+        return $Entity;
+    }
+
+    /**
+     * @param TblForgotten $tblForgotten
+     * @param $Date
+     * @param TblSubject $tblSubject
+     * @param string $Remark
+     * @param TblLessonContent|null $tblLessonContent
+     * @param TblCourseContent|null $tblCourseContent
+     * @param bool $isHomework
+     *
+     * @return bool
+     */
+    public function updateForgotten(
+        TblForgotten $tblForgotten,
+        $Date,
+        TblSubject $tblSubject,
+        string $Remark,
+        ?TblLessonContent $tblLessonContent,
+        ?TblCourseContent $tblCourseContent,
+        bool $isHomework
+    ): bool {
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblForgotten $Entity */
+        $Entity = $Manager->getEntityById('TblForgotten', $tblForgotten->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setDate($Date ? new DateTime($Date) : null);
+            $Entity->setServiceTblSubject($tblSubject);
+            $Entity->setRemark($Remark);
+            $Entity->setTblLessonContent($tblLessonContent);
+            $Entity->setTblCourseContent($tblCourseContent);
+//            $Entity->setIsHomework($tblLessonContent || $tblCourseContent);
+            $Entity->setIsHomework($isHomework);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param TblForgotten $tblForgotten
+     *
+     * @return bool
+     */
+    public function destroyForgotten(TblForgotten $tblForgotten): bool
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblForgotten $Entity */
+        $Entity = $Manager->getEntityById('TblForgotten', $tblForgotten->getId());
+        if (null !== $Entity) {
+            $Manager->killEntity($Entity);
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param TblForgotten $tblForgotten
+     * @param TblPerson $tblPerson
+     *
+     * @return TblForgottenStudent
+     */
+    public function addForgottenStudent(TblForgotten $tblForgotten, TblPerson $tblPerson): TblForgottenStudent
+    {
+        $Manager = $this->getEntityManager();
+        $Entity = $Manager->getEntity('TblForgottenStudent')
+            ->findOneBy(array(
+                TblForgottenStudent::ATTR_TBL_FORGOTTEN => $tblForgotten->getId(),
+                TblForgottenStudent::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
+            ));
+        if (null === $Entity) {
+            $Entity = new TblForgottenStudent();
+            $Entity->setTblForgotten($tblForgotten);
+            $Entity->setServiceTblPerson($tblPerson);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
+
+        return $Entity;
+    }
+
+    /**
+     * @param TblForgottenStudent $tblForgottenStudent
+     *
+     * @return bool
+     */
+    public function removeForgottenStudent(TblForgottenStudent $tblForgottenStudent): bool
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblForgottenStudent $Entity */
+        $Entity = $Manager->getEntityById('TblForgottenStudent', $tblForgottenStudent->getId());
+        if (null !== $Entity) {
+            $Manager->killEntity($Entity);
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param TblForgotten $tblForgotten
+     *
+     * @return false|TblForgottenStudent[]
+     */
+    public function getStudentsByForgotten(TblForgotten $tblForgotten): bool|array
+    {
+        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblForgottenStudent', array(
+            TblForgottenStudent::ATTR_TBL_FORGOTTEN => $tblForgotten->getId()
+        ));
+    }
+
+    /**
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param TblSubject|null $tblSubject
+     * @param TblPerson|null $tblPerson
+     *
+     * @return false|TblForgotten[]
+     */
+    public function getForgottenListBy(TblDivisionCourse $tblDivisionCourse, ?TblSubject $tblSubject = null, ?TblPerson $tblPerson = null): array|bool
+    {
+        $Manager = $this->getEntityManager();
+        $queryBuilder = $Manager->getQueryBuilder();
+
+        $query = $queryBuilder
+            ->select('t')
+            ->from(TblForgotten::class, 't')
+            ->where($queryBuilder->expr()->andX(
+                $queryBuilder->expr()->isNull('t.EntityRemove'),
+                $queryBuilder->expr()->eq('t.serviceTblDivisionCourse', '?1')
+            ))
+            ->orderBy('t.Date', 'DESC')
+            ->setParameter(1, $tblDivisionCourse->getId());
+
+        if ($tblSubject) {
+            $query
+                ->andWhere($queryBuilder->expr()->eq('t.serviceTblSubject', '?2'))
+                ->setParameter(2, $tblSubject->getId());
+        }
+
+        if ($tblPerson) {
+            $query
+                ->join(TblForgottenStudent::class, 'fs')
+                ->andWhere($queryBuilder->expr()->andX(
+                    $queryBuilder->expr()->eq('t.Id', 'fs.tblClassRegisterForgotten'),
+                    $queryBuilder->expr()->eq('fs.serviceTblPerson', '?3')
+                ))
+                ->setParameter(3, $tblPerson->getId());
+        }
+
+        $resultList = $query
+            ->getQuery()
+            ->getResult();
+
+        return empty($resultList) ? false : $resultList;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     * @param bool|null $isHomework
+     * @param TblSubject|null $tblSubject
+     *
+     * @return int
+     */
+    public function getForgottenSumByPersonAndYear(TblPerson $tblPerson, TblYear $tblYear, ?bool $isHomework, ?TblSubject $tblSubject = null): int
+    {
+        $Manager = $this->getEntityManager();
+        $queryBuilder = $Manager->getQueryBuilder();
+
+        $query = $queryBuilder
+            ->select('f')
+            ->from(TblForgotten::class, 'f')
+            ->join(TblDivisionCourse::class, 'c')
+            ->join(TblForgottenStudent::class, 'fs')
+            ->where($queryBuilder->expr()->andX(
+                $queryBuilder->expr()->isNull('f.EntityRemove'),
+                $queryBuilder->expr()->eq('f.serviceTblDivisionCourse', 'c.Id'),
+                $queryBuilder->expr()->eq('f.Id', 'fs.tblClassRegisterForgotten'),
+                $queryBuilder->expr()->eq('fs.serviceTblPerson', '?1'),
+                $queryBuilder->expr()->eq('c.serviceTblYear', '?2'),
+            ))
+            ->setParameter(1, $tblPerson->getId())
+            ->setParameter(2, $tblYear->getId());
+
+        if ($isHomework !== null) {
+            $query
+                ->andWhere($queryBuilder->expr()->andX(
+                    $queryBuilder->expr()->eq('f.IsHomework', '?3')
+                ))
+                ->setParameter(3, $isHomework);
+        }
+
+        if ($tblSubject !== null) {
+            $query
+                ->andWhere($queryBuilder->expr()->andX(
+                    $queryBuilder->expr()->eq('f.serviceTblSubject', '?4')
+                ))
+                ->setParameter(4, $tblSubject->getId());
+        }
+
+        $resultList = $query
+            ->getQuery()
+            ->getResult();
+
+        return count($resultList);
+    }
+
+    /**
+     * @param TblLessonContent $tblLessonContent
+     * @param DateTime $date
+     *
+     * @return bool|TblForgotten
+     */
+    public function getForgottenByHomeworkAndDate(
+        TblLessonContent $tblLessonContent,
+        DateTime $date,
+    ): bool|TblForgotten {
+        $Manager = $this->getEntityManager();
+        $queryBuilder = $Manager->getQueryBuilder();
+
+        $query = $queryBuilder
+            ->select('t')
+            ->from(TblForgotten::class, 't')
+            ->where($queryBuilder->expr()->andX(
+                $queryBuilder->expr()->isNull('t.EntityRemove'),
+                $queryBuilder->expr()->eq('t.tblClassRegisterLessonContent', '?1'),
+                $queryBuilder->expr()->eq('t.Date', '?2')
+            ))
+            // Hausaufgaben nicht leer
+            ->setParameter(1, $tblLessonContent->getId())
+            ->setParameter(2, $date);
+
+        $resultList = $query
+            ->getQuery()
+            ->getResult();
+
+        return empty($resultList) ? false : current($resultList);
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param string $columns
+     * @param string $freeTexts
+     *
+     * @return TblStudentListColumn
+     */
+    public function updateStudentListColumn(TblPerson $tblPerson, string $columns, string $freeTexts): TblStudentListColumn
+    {
+        $Manager = $this->getEntityManager();
+        $Entity = $Manager->getEntity('TblStudentListColumn')
+            ->findOneBy(
+                array(
+                    TblStudentListColumn::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
+                )
+            );
+        if (null === $Entity) {
+            $Entity = new TblStudentListColumn();
+            $Entity->setServiceTblPerson($tblPerson);
+            $Entity->setColumns($columns);
+            $Entity->setFreeTexts($freeTexts);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        } else {
+            $Protocol = clone $Entity;
+            $Entity->setServiceTblPerson($tblPerson);
+            $Entity->setColumns($columns);
+            $Entity->setFreeTexts($freeTexts);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+        }
+
+        return $Entity;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     *
+     * @return false|TblStudentListColumn
+     */
+    public function getStudentListColumn(TblPerson $tblPerson): false|TblStudentListColumn
+    {
+        return $this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblStudentListColumn',
+            [TblStudentListColumn::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()]);
     }
 }

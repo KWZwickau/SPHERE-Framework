@@ -1,9 +1,5 @@
 <?php
-
 namespace SPHERE\Application\Platform\Gatekeeper\Authentication\TwoFactorApp;
-
-require_once( __DIR__.'/../../../../../Library/TwoFactorAuth/demo/loader.php' );
-\Loader::register('../lib','RobThree\\Auth');
 
 use Endroid\QrCode\Color\Color;
 use Endroid\QrCode\Encoding\Encoding;
@@ -11,13 +7,9 @@ use Endroid\QrCode\ErrorCorrectionLevel;
 use Endroid\QrCode\QrCode;
 use Endroid\QrCode\RoundBlockSizeMode;
 use Endroid\QrCode\Writer\PngWriter;
+use MOC\V\Core\AutoLoader\AutoLoader;
 use RobThree\Auth\TwoFactorAuth;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
-
-require_once(__DIR__.DIRECTORY_SEPARATOR.'../../../../../Library/QrCode/endroid/vendor/autoload.php');
-//require_once(__DIR__.DIRECTORY_SEPARATOR.'../../../../../Library/QrCode/2.0.8/vendor/autoload.php');
-//require_once ( __DIR__.'/../../../../../Library/QrCode/autoload_function.php');
-//require_once ( __DIR__.'/../../../../../Library/QrCode/autoload_register.php');
 
 /**
  * Class TwoFactorApp
@@ -34,6 +26,9 @@ class TwoFactorApp
      */
     public function __construct()
     {
+
+        AutoLoader::getNamespaceAutoLoader('RobThree\\Auth', __DIR__.'/../../../../../Library/TwoFactorAuth/lib', 'RobThree\\Auth');
+        require_once(__DIR__.DIRECTORY_SEPARATOR.'../../../../../Library/QrCode/endroid/vendor/autoload.php');
         $this->tfa = new TwoFactorAuth(self::LABEL);
     }
 

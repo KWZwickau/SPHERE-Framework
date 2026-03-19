@@ -54,19 +54,19 @@ class FsHj extends FsStyle
 
         $pageList[] = (new Page())
             ->addSlice($this->getSecondPageHead($personId, 'Halbjahreszeugnis'))
-//            ->addSlice($this->getSubjectLineBase($personId, $this->getCertificateEntity(), 'Fachrichtungsbezogener Bereich (Fortsetzung)', 9, 11, '384px'))
-            ->addSlice($this->getSubjectLineBase($personId, $this->getCertificateEntity(), 'Fachrichtungsbezogener Bereich (Fortsetzung)', 9, 4, '170px'))
+            ->addSlice($this->getSubjectLineBase($personId, $this->getCertificateEntity(), 'Fachrichtungsbezogener Bereich (Fortsetzung)', 9, 9, '315px'))
+//            ->addSlice($this->getSubjectLineBase($personId, $this->getCertificateEntity(), 'Fachrichtungsbezogener Bereich (Fortsetzung)', 9, 4, '170px'))
             ->addSlice($this->getSubjectLineChosen($personId, $this->getCertificateEntity(), '110px'))
-            ->addSlice($this->getSubjectLineJobEducation($personId, $this->getCertificateEntity()))
+//            ->addSlice($this->getSubjectLineJobEducation($personId, $this->getCertificateEntity()))
             ->addSlice($this->getFachhochschulreife($personId))
             ->addSlice($this->getChosenArea($personId))
             ->addSlice($this->getDescriptionFsContent($personId))
             ->addSlice((new Slice())->addElement((new Element())
                 ->setContent('&nbsp;')
-                ->stylePaddingTop('150px')
+                ->stylePaddingTop('100px')
             ))
             ->addSlice($this->getIndividuallySignPart($personId))
-            ->addSlice($this->getFsInfo('25px',
+            ->addSlice($this->getFsInfo('15px',
                 'NOTENSTUFEN: sehr gut (1), gut (2), befriedigend (3), ausreichend (4), mangelhaft (5), ungenügend (6)'))
         ;
 

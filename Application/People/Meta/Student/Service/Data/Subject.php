@@ -304,4 +304,22 @@ abstract class Subject extends Transfer
             array(TblStudentSubject::ATTR_TBL_STUDENT_SUBJECT_RANKING => self::ORDER_ASC)
         );
     }
+
+    /**
+     * @param TblStudent $tblStudent
+     * @param TblStudentSubjectType $tblStudentSubjectType
+     *
+     * @return false|TblStudentSubject
+     */
+    public function getFirstStudentSubjectByStudentAndSubjectType(
+        TblStudent $tblStudent,
+        TblStudentSubjectType $tblStudentSubjectType
+    ): bool|TblStudentSubject {
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblStudentSubject',
+            array(
+                TblStudentSubject::ATTR_TBL_STUDENT => $tblStudent->getId(),
+                TblStudentSubject::ATTR_TBL_STUDENT_SUBJECT_TYPE => $tblStudentSubjectType->getId(),
+            )
+        );
+    }
 }

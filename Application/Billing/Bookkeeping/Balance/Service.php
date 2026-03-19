@@ -33,6 +33,8 @@ use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\People\Relationship\Relationship;
+use SPHERE\Application\People\Relationship\Service\Entity\TblType;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
 use SPHERE\Common\Frontend\Icon\Repository\Info;
@@ -41,6 +43,7 @@ use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Danger as DangerText;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\System\Database\Binding\AbstractService;
+use SPHERE\System\Extension\Extension;
 
 /**
  * Class Service
@@ -345,18 +348,21 @@ class Service extends AbstractService
     }
 
     /**
-     * @param array $PriceSum
-     * @param array TblItem[] $tblItemList
+     * @param string $PriceSum
+     * @param TblItem[] $tblItemList
+     * @param string $Year
+     * @param int $From
+     * @param int $To
+     * @param bool $isMonthly
      *
-     * @return bool|FilePointer
-     * @throws DocumentTypeException
-     * @throws TypeFileException
+     * @return false|FilePointer
      */
-    public function createBalanceListExcel($PriceSum, $tblItemList = array(), $From = 1, $To = 12, $isMonthly = false)
+    public function createBalanceListExcel($PriceSum, $tblItemList = array(), $Year = '', $From = 1, $To = 12, $isMonthly = false)
     {
 
         $PersonList = array();
         if(!empty($PriceSum)){
+            $tblRelationshipType = Relationship::useService()->getTypeByName(TblType::IDENTIFIER_GUARDIAN);
             foreach($PriceSum as $DebtorId => $CauserList) {
                 if(($tblPersonDebtor = Person::useService()->getPersonById($DebtorId))){
                     $MailListDebtor = array();
@@ -380,6 +386,48 @@ class Service extends AbstractService
                     foreach($CauserList as $CauserId => $ItemContent) {
                         if(($tblPersonCauser = Person::useService()->getPersonById($CauserId))){
                             $Item = array();
+                            $Item['Gender'] = $tblPersonCauser->getGenderString();
+                            $Item['FirstNameS1'] = '';
+                            $Item['LastNameS1'] = '';
+                            $Item['FirstNameS2'] = '';
+                            $Item['LastNameS2'] = '';
+                            $Item['FirstNameS3'] = '';
+                            $Item['LastNameS3'] = '';
+
+                            // Sorgeberechtigte S1, S2, S3
+                            $tblRelationToPersonList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPersonCauser, $tblRelationshipType);
+                            if($tblRelationToPersonList){
+                                foreach($tblRelationToPersonList as $tblRelationToPerson){
+                                    if(($tblPersonCustody = $tblRelationToPerson->getServiceTblPersonFrom())){
+                                        switch ($tblRelationToPerson->getRanking()) {
+                                            case 1:
+                                                $Item['FirstNameS1'] = $tblPersonCustody->getFirstName();
+                                                $Item['LastNameS1'] = $tblPersonCustody->getLastName();
+                                                break;
+                                            case 2:
+                                                $Item['FirstNameS2'] = $tblPersonCustody->getFirstName();
+                                                $Item['LastNameS2'] = $tblPersonCustody->getLastName();
+                                                break;
+                                            case 3:
+                                                $Item['FirstNameS3'] = $tblPersonCustody->getFirstName();
+                                                $Item['LastNameS3'] = $tblPersonCustody->getLastName();
+                                                break;
+                                        }
+                                    }
+                                }
+                            }
+
+                            $Item['DivisionCourse'] = '';
+                            // Aktuelle Klasse (Datum von To (Month) und year erstellen
+                            $TempTo = str_pad($To, 2, 0, STR_PAD_LEFT);
+                            $DateString = '01.'.$TempTo.'.'.$Year;
+                            if(($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndDate($tblPersonCauser, $DateString))){
+                                if(($tblDivision = $tblStudentEducation->getTblDivision())){
+                                    $Item['DivisionCourse'] =$tblDivision->getName();
+                                } elseif(($tblCourse = $tblStudentEducation->getServiceTblCourse())) {
+                                    $Item['DivisionCourse'] =$tblCourse->getName();
+                                }
+                            }
 
                             $MailListCauser = array();
                             if(($tblToPersonList = Mail::useService()->getMailAllByPerson($tblPersonCauser))){
@@ -412,6 +460,7 @@ class Service extends AbstractService
                             $Item['DebtorLastName'] = $tblPersonDebtor->getLastName();
                             // Causer
                             $Item['CauserFirstName'] = $tblPersonCauser->getFirstName();
+                            $Item['CauserSecondName'] = $tblPersonCauser->getSecondName();
                             $Item['CauserLastName'] = $tblPersonCauser->getLastName();
 
                             // Gesamt
@@ -475,8 +524,17 @@ class Service extends AbstractService
             $export->setValue($export->getCell($column++, $row), "Titel Beitragszahler");
             $export->setValue($export->getCell($column++, $row), "Vorname Beitragszahler");
             $export->setValue($export->getCell($column++, $row), "Nachname Beitragszahler");
+            $export->setValue($export->getCell($column++, $row), "Geschlecht");
             $export->setValue($export->getCell($column++, $row), "Vorname Beitragsverursacher");
+            $export->setValue($export->getCell($column++, $row), "Zweiter Vorname Beitragsverursacher");
             $export->setValue($export->getCell($column++, $row), "Nachname Beitragsverursacher");
+            $export->setValue($export->getCell($column++, $row), "Klasse / Stammgruppe");
+            $export->setValue($export->getCell($column++, $row), "Vorname S1");
+            $export->setValue($export->getCell($column++, $row), "Nachname S1");
+            $export->setValue($export->getCell($column++, $row), "Vorname S2");
+            $export->setValue($export->getCell($column++, $row), "Nachname S2");
+            $export->setValue($export->getCell($column++, $row), "Vorname S3");
+            $export->setValue($export->getCell($column++, $row), "Nachname S3");
             $export->setValue($export->getCell($column++, $row), "Straße");
             $export->setValue($export->getCell($column++, $row), "PLZ");
             $export->setValue($export->getCell($column++, $row), "Stadt");
@@ -502,9 +560,18 @@ class Service extends AbstractService
                 $export->setValue($export->getCell($column++, $row), $PersonData['DebtorTitle']);
                 $export->setValue($export->getCell($column++, $row), $PersonData['DebtorFirstName']);
                 $export->setValue($export->getCell($column++, $row), $PersonData['DebtorLastName']);
+                $export->setValue($export->getCell($column++, $row), $PersonData['Gender']);
 
                 $export->setValue($export->getCell($column++, $row), $PersonData['CauserFirstName']);
+                $export->setValue($export->getCell($column++, $row), $PersonData['CauserSecondName']);
                 $export->setValue($export->getCell($column++, $row), $PersonData['CauserLastName']);
+                $export->setValue($export->getCell($column++, $row), $PersonData['DivisionCourse']);
+                $export->setValue($export->getCell($column++, $row), $PersonData['FirstNameS1']);
+                $export->setValue($export->getCell($column++, $row), $PersonData['LastNameS1']);
+                $export->setValue($export->getCell($column++, $row), $PersonData['FirstNameS2']);
+                $export->setValue($export->getCell($column++, $row), $PersonData['LastNameS2']);
+                $export->setValue($export->getCell($column++, $row), $PersonData['FirstNameS3']);
+                $export->setValue($export->getCell($column++, $row), $PersonData['LastNameS3']);
 
                 $export->setValue($export->getCell($column++, $row), $PersonData['Street']);
                 $export->setValue($export->getCell($column++, $row), $PersonData['Code']);
@@ -836,8 +903,8 @@ class Service extends AbstractService
             $export->setValue($export->getCell("4", $row), "Basisumsatz");
             $export->setValue($export->getCell("5", $row), "WKZ Basisumsatz");
             $export->setValue($export->getCell("6", $row), "Konto");
-            $export->setValue($export->getCell("7", $row), utf8_decode("Gegenkonto (ohne BU-Schlüssel)"));
-            $export->setValue($export->getCell("8", $row), utf8_decode("BU-Schlüssel"));
+            $export->setValue($export->getCell("7", $row), Extension::decodeUTF8("Gegenkonto (ohne BU-Schlüssel)"));
+            $export->setValue($export->getCell("8", $row), Extension::decodeUTF8("BU-Schlüssel"));
             $export->setValue($export->getCell("9", $row), "Belegdatum");
             $export->setValue($export->getCell("10", $row), "Belegfeld 1");
             $export->setValue($export->getCell("11", $row), "Belegfeld 2");
@@ -845,7 +912,7 @@ class Service extends AbstractService
             $export->setValue($export->getCell("13", $row), "Buchungstext");
             $export->setValue($export->getCell("14", $row), "Postensperre");
             $export->setValue($export->getCell("15", $row), "Diverse Adressnummer");
-            $export->setValue($export->getCell("16", $row), utf8_decode("Geschäftspartnerbank"));
+            $export->setValue($export->getCell("16", $row), Extension::decodeUTF8("Geschäftspartnerbank"));
             $export->setValue($export->getCell("17", $row), "Sachverhalt");
             $export->setValue($export->getCell("18", $row), "Zinssperre");
             $export->setValue($export->getCell("19", $row), "Beleglink");
@@ -872,10 +939,10 @@ class Service extends AbstractService
             $export->setValue($export->getCell("40", $row), "EU-Steuersatz");
             $export->setValue($export->getCell("41", $row), "Abw. Versteuerungsart");
             $export->setValue($export->getCell("42", $row), "Sachverhalt L+L");
-            $export->setValue($export->getCell("43", $row), utf8_decode("Funktionsergänzung L+L"));
+            $export->setValue($export->getCell("43", $row), Extension::decodeUTF8("Funktionsergänzung L+L"));
             $export->setValue($export->getCell("44", $row), "BU 49 Hauptfunktionstyp");
             $export->setValue($export->getCell("45", $row), "BU 49 Hauptfunktionsnummer(");
-            $export->setValue($export->getCell("46", $row), utf8_decode("BU 49 Funktionsergänzung"));
+            $export->setValue($export->getCell("46", $row), Extension::decodeUTF8("BU 49 Funktionsergänzung"));
             $export->setValue($export->getCell("47", $row), "Zusatzinformation - Art 1");
             $export->setValue($export->getCell("48", $row), "Zusatzinformation - Inhalt 1");
             $export->setValue($export->getCell("49", $row), "Zusatzinformation - Art 2");
@@ -916,20 +983,20 @@ class Service extends AbstractService
             $export->setValue($export->getCell("84", $row), "Zusatzinformation - Inhalt 19");
             $export->setValue($export->getCell("85", $row), "Zusatzinformation - Art 20");
             $export->setValue($export->getCell("86", $row), "Zusatzinformation - Inhalt 20");
-            $export->setValue($export->getCell("87", $row), utf8_decode("Stück"));
+            $export->setValue($export->getCell("87", $row), Extension::decodeUTF8("Stück"));
             $export->setValue($export->getCell("88", $row), "Gewicht");
             $export->setValue($export->getCell("89", $row), "Zahlweise");
             $export->setValue($export->getCell("90", $row), "Forderungsart");
             $export->setValue($export->getCell("91", $row), "Veranlagungsjahr");
-            $export->setValue($export->getCell("92", $row), utf8_decode("Zugeordnete Fälligkeit"));
+            $export->setValue($export->getCell("92", $row), Extension::decodeUTF8("Zugeordnete Fälligkeit"));
             $export->setValue($export->getCell("93", $row), "Skontotyp");
             $export->setValue($export->getCell("94", $row), "Auftragsnummer");
             $export->setValue($export->getCell("95", $row), "Buchungstyp");
-            $export->setValue($export->getCell("96", $row), utf8_decode("USt-Schlüssel (Anzahlungen)"));
+            $export->setValue($export->getCell("96", $row), Extension::decodeUTF8("USt-Schlüssel (Anzahlungen)"));
             $export->setValue($export->getCell("97", $row), "EU-Mitgliedstaat (Anzahlungen)");
             $export->setValue($export->getCell("98", $row), "Sachverhalt L+L (Anzahlungen)");
             $export->setValue($export->getCell("99", $row), "EU-Steuersatz (Anzahlungen)");
-            $export->setValue($export->getCell("100", $row), utf8_decode("Erlöskonto (Anzahlungen)"));
+            $export->setValue($export->getCell("100", $row), Extension::decodeUTF8("Erlöskonto (Anzahlungen)"));
             $export->setValue($export->getCell("101", $row), "Herkunft-Kz");
             $export->setValue($export->getCell("102", $row), "Leerfeld");
             $export->setValue($export->getCell("103", $row), "KOST-Datum");
@@ -982,7 +1049,7 @@ class Service extends AbstractService
                         $export->setValue($export->getCell("0", $row), $Summary);// Umsatz
                         $export->setValue($export->getCell("1", $row), $direction);// Soll / Haben Kennzeichen
                         $export->setValue($export->getCell("2", $row), 'EUR');// Dreistelliger ISO-Code der Währung    // entfernt auf Anweisung ('!EUR')
-                        $export->setValue($export->getCell("3", $row), '');// Kurs (Test: utf8_decode($tblInvoice->getServiceTblPersonCauser()->getLastFirstName()))
+                        $export->setValue($export->getCell("3", $row), '');// Kurs (Test: Extension::decodeUTF8($tblInvoice->getServiceTblPersonCauser()->getLastFirstName()))
                         $export->setValue($export->getCell("4", $row), '');// Basisumsatz
                         $export->setValue($export->getCell("5", $row), '');// WKZ Basisumsatz
                         $export->setValue($export->getCell("6", $row), $FibuAccount);// Fibu-Konto
@@ -992,7 +1059,7 @@ class Service extends AbstractService
                         $export->setValue($export->getCell("10", $row), $tblInvoice->getInvoiceNumber());// Belegfeld 1
                         $export->setValue($export->getCell("11", $row), '');// Belegfeld 2
                         $export->setValue($export->getCell("12", $row), '');// Skonto
-                        $export->setValue($export->getCell("13", $row), utf8_decode($bookingText));// Buchungstext (60 Zeichen)
+                        $export->setValue($export->getCell("13", $row), Extension::decodeUTF8($bookingText));// Buchungstext (60 Zeichen)
                         $export->setValue($export->getCell("14", $row), '0');// Postensperre (0/1)
                         $export->setValue($export->getCell("15", $row), '');// Diverse Adressnummer (9 Zeichen)
                         $export->setValue($export->getCell("16", $row), '');// Geschäftspartnerbank

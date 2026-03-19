@@ -7,7 +7,7 @@ use SPHERE\Application\Corporation\Group\Service\Entity\TblMember;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Cache\CacheFactory;
 use SPHERE\System\Cache\Handler\DataCacheHandler;
-use SPHERE\System\Cache\Handler\MemcachedHandler;
+use SPHERE\System\Cache\Handler\RedisHandler;
 use SPHERE\System\Database\Binding\AbstractData;
 use SPHERE\System\Database\Fitting\ColumnHydrator;
 
@@ -228,7 +228,7 @@ class Data extends AbstractData
             array(
                 TblMember::SERVICE_TBL_COMPANY => $tblCompany->getId()
             ));
-        $Cache = (new CacheFactory())->createHandler(new MemcachedHandler());
+        $Cache = (new CacheFactory())->createHandler(new RedisHandler());
         if (null === ( $ResultList = $Cache->getValue($tblCompany->getId(), __METHOD__) )
             && !empty( $EntityList )
         ) {

@@ -5,6 +5,7 @@ namespace SPHERE\Application\Education\ClassRegister\Digital;
 use DateInterval;
 use DateTime;
 use SPHERE\Application\Api\Education\ClassRegister\ApiDigital;
+use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblCourseContent;
 use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblFullTimeContent;
 use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblLessonContent;
 use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblLessonContentLink;
@@ -15,6 +16,7 @@ use SPHERE\Application\Education\ClassRegister\Timetable\Timetable;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseMemberType;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
@@ -87,11 +89,13 @@ class Service extends ServiceTabs
             $lesson,
             $Data['Content'],
             $Data['Homework'],
+            $Data['DueDateHomework'],
             $Data['Room'],
             $tblDivisionCourse,
             $tblPerson ?: null,
             ($tblSubject = Subject::useService()->getSubjectById($Data['serviceTblSubject'])) ? $tblSubject : null,
-            ($tblSubstituteSubject = Subject::useService()->getSubjectById($Data['serviceTblSubstituteSubject'])) ? $tblSubstituteSubject : null,
+            isset($Data['serviceTblSubstituteSubject']) && ($tblSubstituteSubject = Subject::useService()->getSubjectById($Data['serviceTblSubstituteSubject']))
+                ? $tblSubstituteSubject : null,
             isset($Data['IsCanceled'])
         );
     }
@@ -119,6 +123,7 @@ class Service extends ServiceTabs
             $lesson,
             $Data['Content'],
             $Data['Homework'],
+            $Data['DueDateHomework'],
             $Data['Room'],
             $tblPerson ?: null,
             ($tblSubject = Subject::useService()->getSubjectById($Data['serviceTblSubject'])) ? $tblSubject : null,
@@ -136,12 +141,14 @@ class Service extends ServiceTabs
     {
         if (($tblLessonContentLinkList = $tblLessonContent->getLinkedLessonContentAll())) {
 
-            $tblLessonContentLinkList[] = $tblLessonContent;
             // Verknüpfungen löschen
-            $this->destroyLessonContentLinkList($tblLessonContentLinkList);
-
-            foreach ($tblLessonContentLinkList as $tblLessonContentItem) {
-                (new Data($this->getBinding()))->destroyLessonContent($tblLessonContentItem);
+            foreach ($tblLessonContentLinkList as $tblLessonContentLink) {
+                (new Data($this->getBinding()))->destroyLessonContentLink($tblLessonContentLink);
+                if (($tblLessonContentItem = $tblLessonContentLink->getTblLessonContent())) {
+                    (new Data($this->getBinding()))->destroyLessonContent($tblLessonContentItem);
+                } elseif (($tblCourseContentItem = $tblLessonContentLink->getTblCourseContent())) {
+                    (new Data($this->getBinding()))->destroyCourseContent($tblCourseContentItem);
+                }
             }
         } else {
             (new Data($this->getBinding()))->destroyLessonContent($tblLessonContent);
@@ -184,6 +191,55 @@ class Service extends ServiceTabs
     }
 
     /**
+     * @param DateTime $date
+     * @param int $lesson
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param TblSubject $tblSubject
+     *
+     * @return TblLessonContent|bool
+     */
+    public function getLessonContentBy(DateTime $date, int $lesson, TblDivisionCourse $tblDivisionCourse, TblSubject $tblSubject): TblLessonContent|bool
+    {
+        return (new Data($this->getBinding()))->getLessonContentBy($date, $lesson, $tblDivisionCourse, $tblSubject);
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     * @param TblSubject|null $tblSubject
+     *
+     * @return TblLessonContent[]
+     */
+    public function getLessonContentAllByTeacherAndYear(TblPerson $tblPerson, TblYear $tblYear, ?TblSubject $tblSubject = null): array
+    {
+        return (new Data($this->getBinding()))->getLessonContentAllByTeacherAndYear($tblPerson, $tblYear, $tblSubject);
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param TblSubject|null $tblSubject
+     *
+     * @return TblLessonContent[]
+     */
+    public function getLessonContentAllByTeacherAndDivisionCourse(TblPerson $tblPerson, TblDivisionCourse $tblDivisionCourse, ?TblSubject $tblSubject = null): array
+    {
+        return (new Data($this->getBinding()))->getLessonContentAllByTeacherAndDivisionCourse($tblPerson, $tblDivisionCourse, $tblSubject);
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param DateTime $fromDate
+     * @param DateTime $toDate
+     *
+     * @return TblLessonContent[]
+     */
+    public function getLessonContentAllByTeacherAndBetween(TblPerson $tblPerson, DateTime $fromDate, DateTime $toDate): array
+    {
+        return (new Data($this->getBinding()))->getLessonContentAllByTeacherAndBetween($tblPerson, $fromDate, $toDate);
+    }
+
+    /**
      * @param $Data
      * @param TblDivisionCourse $tblDivisionCourse
      * @param TblLessonContent|null $tblLessonContent
@@ -221,6 +277,12 @@ class Service extends ServiceTabs
             $form->setError('Data[Lesson]', 'Bitte geben Sie eine Unterrichtseinheit an');
             $error = true;
         }
+        // Prüfen, ob Thema gesetzt wenn nicht Ausfall
+        if (!isset($Data['IsCanceled']) && empty($Data['Content'])) {
+            $form->setError('Data[Content]', 'Bitte geben Sie ein Thema an');
+            $error = true;
+        }
+
 
         // nicht mehr verwenden da es als zusätzliches Fach benutzt werden soll
 //        // bei einem gesetzten Vertretungsfach muss auch ein Fach ausgewählt werden
@@ -327,20 +389,27 @@ class Service extends ServiceTabs
                 }
             }
 
-            return new Panel(
-                'Wochenübersicht',
-                (new TableData($dataList, null, $columns, false))->setHash('Week')
-                    . new Bold('Wochenbemerkung:')
-                    . new Container($remark)
-                    . ($hasEdit
-                        ? new Container((new Primary(
-                            new Edit() . ' Bearbeiten',
-                            ApiDigital::getEndpoint()
-                        ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenEditLessonWeekRemarkModal($tblDivisionCourse, $fromDate->format('d.m.Y'))))
-                        . new Container($checking)
-                        : ''),
-                Panel::PANEL_TYPE_INFO
-            );
+            $weekRemark = new Bold('Wochenbemerkung:')
+                . new Container($remark);
+
+            if ($hasEdit) {
+                return new Panel(
+                    'Wochenübersicht',
+                    (new TableData($dataList, null, $columns, false))->setHash('Week')
+                        . $weekRemark
+                        // bitte drin lassen, falls wir es doch wieder bei beiden varianten anzeigen wollen
+                        . ($hasEdit
+                            ? new Container((new Primary(
+                                new Edit() . ' Bearbeiten',
+                                ApiDigital::getEndpoint()
+                            ))->ajaxPipelineOnClick(ApiDigital::pipelineOpenEditLessonWeekRemarkModal($tblDivisionCourse, $fromDate->format('d.m.Y'))))
+                            . new Container($checking)
+                            : ''),
+                    Panel::PANEL_TYPE_INFO
+                );
+            } else {
+                return $weekRemark;
+            }
         }
 
         return '';
@@ -479,14 +548,12 @@ class Service extends ServiceTabs
     }
 
     /**
-     * @return string
+     * @return array
      */
-    public function getDigitalClassRegisterPanelForTeacher(): string
+    public function getDigitalClassRegisterDataForTeacher(): array
     {
         $resultList = array();
         if (($tblPerson = Account::useService()->getPersonByLogin())) {
-            $baseRoute = (Digital::useFrontend())::BASE_ROUTE;
-
             $tblDivisionCourseList = array();
             $checkedDivisionCourseList = array();
             // Lehraufträge -> dann alle Schüler des Lehrauftrags -> alle Klassen, Stammgruppen und SekII-Kurse der Schüler
@@ -525,52 +592,123 @@ class Service extends ServiceTabs
                 }
             }
 
-            /** @var TblDivisionCourse $tblDivisionCourse */
-            foreach ($tblDivisionCourseList as $tblDivisionCourse) {
-                // falsch vergebener Lehrauftrag direkt an der Klasse statt am SekII-Kurs im Falle der SekII
-                if ($tblDivisionCourse->getIsDivisionOrCoreGroup() && DivisionCourse::useService()->getIsCourseSystemByStudentsInDivisionCourse($tblDivisionCourse)) {
-                    continue;
-                // Klassentagebuch
-                } elseif ($tblDivisionCourse->getIsDivisionOrCoreGroup()) {
-                    $resultList[] = array(
-                        'DivisionCourse' => $tblDivisionCourse->getDisplayName(),
-                        'DivisionCourseType' => $tblDivisionCourse->getTypeName(),
-                        'SchoolTypes' => $tblDivisionCourse->getSchoolTypeListFromStudents(true),
-                        'Option' => new Standard(
-                            '',
-                            $baseRoute . '/LessonContent',
-                            new Extern(),
-                            array(
-                                'DivisionCourseId' => $tblDivisionCourse->getId(),
-                                'BasicRoute' => $baseRoute . '/Teacher'
-                            ),
-                            'Zum Klassenbuch wechseln'
-                        )
-                    );
-                // Kursheft (SekII-Kurs)
-                } elseif ($tblDivisionCourse->getType()->getIsCourseSystem()) {
-                    $resultList[] = array(
-                        'DivisionCourse' => $tblDivisionCourse->getDisplayName(),
-                        'DivisionCourseType' => $tblDivisionCourse->getTypeName(),
-                        'SchoolTypes' => $tblDivisionCourse->getSchoolTypeListFromStudents(true),
-                        'Option' => new Standard(
-                            '',
-                            $baseRoute . '/CourseContent',
-                            new Extern(),
-                            array(
-                                'DivisionCourseId' => $tblDivisionCourse->getId(),
-                                'BasicRoute' => $baseRoute . '/Teacher'
-                            ),
-                            'Zum Kursheft wechseln'
-                        )
-                    );
+            $resultList = $this->getResultListByDivisionCourseList($tblDivisionCourseList, false);
+        }
+
+        return $resultList;
+    }
+
+    /**
+     * @return array
+     */
+    public function getDigitalClassRegisterDataForAllDigital(): array
+    {
+        $tblDivisionCourseList = array();
+        if (($tblYearList = Term::useService()->getYearByNow())) {
+            foreach ($tblYearList as $tblYear) {
+                if (($tblDivisionCourseListDivision = DivisionCourse::useService()->getDivisionCourseListBy($tblYear, TblDivisionCourseType::TYPE_DIVISION))) {
+                    foreach($tblDivisionCourseListDivision as $tblDivisionCourse) {
+                        $tblDivisionCourseList[] = $tblDivisionCourse;
+                    }
+                }
+                if (($tblDivisionCourseListCoreGroup = DivisionCourse::useService()->getDivisionCourseListBy($tblYear,
+                    TblDivisionCourseType::TYPE_CORE_GROUP))) {
+                    foreach($tblDivisionCourseListCoreGroup as $tblDivisionGroup) {
+                        $tblDivisionCourseList[] = $tblDivisionGroup;
+                    }
                 }
             }
         }
 
+        return $this->getResultListByDivisionCourseList($tblDivisionCourseList, true);
+    }
+
+    /**
+     * @param array $tblDivisionCourseList
+     * @param bool $isAllDigital
+     *
+     * @return array
+     */
+    private function getResultListByDivisionCourseList(array $tblDivisionCourseList, bool $isAllDigital): array
+    {
+        $baseRoute = (Digital::useFrontend())::BASE_ROUTE;
+        $resultList = array();
+        /** @var TblDivisionCourse $tblDivisionCourse */
+        foreach ($tblDivisionCourseList as $tblDivisionCourse) {
+            $option = null;
+            // falsch vergebener Lehrauftrag direkt an der Klasse statt am SekII-Kurs im Falle der SekII
+            if ($tblDivisionCourse->getIsDivisionOrCoreGroup() && DivisionCourse::useService()->getIsCourseSystemByStudentsInDivisionCourse($tblDivisionCourse)) {
+                if (!$isAllDigital) {
+                    continue;
+                }
+
+                $option = new Standard(
+                    '',
+                    $baseRoute . '/SelectCourse',
+                    new Extern(),
+                    array(
+                        'DivisionCourseId' => $tblDivisionCourse->getId(),
+                        'BasicRoute' => $baseRoute . '/Headmaster'
+                    ),
+                    'Zur Kursheft-Auswahl wechseln'
+                );
+                // Klassentagebuch
+            } elseif ($tblDivisionCourse->getIsDivisionOrCoreGroup()) {
+                $option = new Standard(
+                    '',
+                    $baseRoute . '/LessonContent',
+                    new Extern(),
+                    array(
+                        'DivisionCourseId' => $tblDivisionCourse->getId(),
+                        'BasicRoute' => $baseRoute . ($isAllDigital ? '/Headmaster' : '/Teacher')
+                    ),
+                    'Zum Klassenbuch wechseln'
+                );
+                // Kursheft (SekII-Kurs)
+            } elseif ($tblDivisionCourse->getType()->getIsCourseSystem() || $tblDivisionCourse->getIsDigital()) {
+                $option = new Standard(
+                    '',
+                    $baseRoute . '/CourseContent',
+                    new Extern(),
+                    array(
+                        'DivisionCourseId' => $tblDivisionCourse->getId(),
+                        'BasicRoute' => $baseRoute . ($isAllDigital ? '/Headmaster' : '/Teacher')
+                    ),
+                    'Zum Kursheft wechseln'
+                );
+            }
+
+            if ($option) {
+                $resultList[] = array(
+                    'DivisionCourseId' => $tblDivisionCourse->getId(),
+                    'DivisionCourse' => $tblDivisionCourse->getDisplayName(),
+                    'DivisionCourseType' => $tblDivisionCourse->getTypeName(),
+                    'SchoolTypes' => $tblDivisionCourse->getSchoolTypeListFromStudents(true),
+                    'Option' => $option
+                );
+            }
+        }
+
+        return $resultList;
+    }
+
+    /**
+     * @param string $panelHeader
+     * @param bool $isAllDigital
+     *
+     * @return string
+     */
+    public function getDigitalClassRegisterPanelForTeacher(string $panelHeader, bool $isAllDigital = false): string
+    {
+        if ($isAllDigital) {
+            $resultList = $this->getDigitalClassRegisterDataForAllDigital();
+        } else {
+            $resultList = $this->getDigitalClassRegisterDataForTeacher();
+        }
+
         if ($resultList) {
             return new Panel(
-                'Digitales Klassenbuch (Fachlehrer)',
+                $panelHeader,
                 new TableData(
                     $resultList,
                     null,
@@ -746,6 +884,17 @@ class Service extends ServiceTabs
     }
 
     /**
+     * @param TblCourseContent $tblCourseContent
+     * @param int $LinkId
+     *
+     * @return TblLessonContentLink
+     */
+    public function createCourseContentLink(TblCourseContent $tblCourseContent, int $LinkId): TblLessonContentLink
+    {
+        return (new Data($this->getBinding()))->createCourseContentLink($tblCourseContent, $LinkId);
+    }
+
+    /**
      * @return int
      */
     public function getNextLinkId(): int
@@ -756,22 +905,21 @@ class Service extends ServiceTabs
     /**
      * @param TblLessonContent $tblLessonContent
      *
-     * @return false | TblLessonContent[]
+     * @return false | TblLessonContentLink[]
      */
-    public function getLessonContentLinkAllByLessonContent(TblLessonContent $tblLessonContent)
+    public function getLessonContentLinkAllByLessonContent(TblLessonContent $tblLessonContent): array|bool
     {
         return (new Data($this->getBinding()))->getLessonContentLinkAllByLessonContent($tblLessonContent);
     }
 
     /**
-     * @param TblLessonContent[] $tblLessonContentList
+     * @param TblCourseContent $tblCourseContent
      *
-     * @return bool
+     * @return false | TblLessonContentLink[]
      */
-    public function destroyLessonContentLinkList(
-        array $tblLessonContentList
-    ): bool {
-        return (new Data($this->getBinding()))->destroyLessonContentLinkList($tblLessonContentList);
+    public function getLessonContentLinkAllByCourseContent(TblCourseContent $tblCourseContent): array|bool
+    {
+        return (new Data($this->getBinding()))->getLessonContentLinkAllByCourseContent($tblCourseContent);
     }
 
     /**
@@ -779,31 +927,56 @@ class Service extends ServiceTabs
      *
      * @return string
      */
-    public function getLessonContentLinkedDisplayPanel($LessonContentId): string
+    public function getLessonContentLinkedDisplayPanelByLessonContentId($LessonContentId): string
     {
         if (($tblLessonContent = Digital::useService()->getLessonContentById($LessonContentId))
             && ($tblLessonContentLinkedList = $tblLessonContent->getLinkedLessonContentAll())
         ) {
-            $panelContent = array();
+            return $this->getLessonContentLinkedDisplayPanel($tblLessonContentLinkedList);
+        }
 
-            if (($tblDivisionCourse = $tblLessonContent->getServiceTblDivisionCourse())) {
-                $panelContent[] = $tblDivisionCourse->getTypeName() . ' ' . $tblDivisionCourse->getDisplayName();
-            }
+        return '';
+    }
 
-            foreach ($tblLessonContentLinkedList as $tblLessonContentItem) {
-                if (($tblDivisionCourseItem = $tblLessonContentItem->getServiceTblDivisionCourse())) {
-                    $panelContent[] = $tblDivisionCourseItem->getTypeName() . ' ' . $tblDivisionCourseItem->getDisplayName();
-                }
-            }
+    /**
+     * @param $CourseContentId
+     *
+     * @return string
+     */
+    public function getLessonContentLinkedDisplayPanelByCourseContentId($CourseContentId): string
+    {
+        if (($tblCourseContent = Digital::useService()->getCourseContentById($CourseContentId))
+            && ($tblLessonContentLinkedList = $tblCourseContent->getLinkedLessonContentAll())
+        ) {
+            return $this->getLessonContentLinkedDisplayPanel($tblLessonContentLinkedList);
+        }
 
-            if (!empty($panelContent)) {
-                sort($panelContent);
-                return new Panel(
-                    'Verknüpfte Thema/Hausaufgaben',
-                    $panelContent,
-                    Panel::PANEL_TYPE_INFO
-                );
+        return '';
+    }
+
+    private function getLessonContentLinkedDisplayPanel(array $tblLessonContentLinkedList): string
+    {
+        $panelContent = array();
+
+        foreach ($tblLessonContentLinkedList as $tblLessonContentLink) {
+            if (($tblLessonContentItem = $tblLessonContentLink->getTblLessonContent())
+                && ($tblDivisionCourseItem = $tblLessonContentItem->getServiceTblDivisionCourse())
+            ) {
+                $panelContent[$tblDivisionCourseItem->getId()] = $tblDivisionCourseItem->getTypeName() . ' ' . $tblDivisionCourseItem->getDisplayName();
+            } elseif (($tblCourseContentItem = $tblLessonContentLink->getTblCourseContent())
+                && ($tblDivisionCourseItem = $tblCourseContentItem->getServiceTblDivisionCourse())
+            ) {
+                $panelContent[$tblDivisionCourseItem->getId()] = 'Kursheft für ' . $tblDivisionCourseItem->getTypeName() . ' ' . $tblDivisionCourseItem->getDisplayName();
             }
+        }
+
+        if (!empty($panelContent)) {
+            sort($panelContent);
+            return new Panel(
+                'Verknüpfte Thema/Hausaufgaben',
+                $panelContent,
+                Panel::PANEL_TYPE_INFO
+            );
         }
 
         return '';
@@ -973,5 +1146,46 @@ class Service extends ServiceTabs
     public function getIsSubjectUsedInDigital(TblSubject $tblSubject): bool
     {
         return (new Data($this->getBinding()))->getIsSubjectUsedInDigital($tblSubject);
+    }
+
+    /**
+     * @param array $tblYearList
+     * @param bool $IsAllYears
+     * @param bool $AddIsDigital
+     *
+     * @return TblDivisionCourse[]
+     */
+    public function getDivisionCourseListForDigital(array $tblYearList, bool $IsAllYears = false, bool $AddIsDigital = false): array
+    {
+        $tblDivisionCourseList = [];
+        if ($IsAllYears) {
+            if (($tblDivisionCourseListDivision = DivisionCourse::useService()->getDivisionCourseListBy(null, TblDivisionCourseType::TYPE_DIVISION))) {
+                $tblDivisionCourseList = array_merge($tblDivisionCourseList, $tblDivisionCourseListDivision);
+            }
+            if (($tblDivisionCourseListCoreGroup = DivisionCourse::useService()->getDivisionCourseListBy(null, TblDivisionCourseType::TYPE_CORE_GROUP))) {
+                $tblDivisionCourseList = array_merge($tblDivisionCourseList, $tblDivisionCourseListCoreGroup);
+            }
+            if ($AddIsDigital
+                && ($tblDivisionCourseListTeacherGroup = DivisionCourse::useService()->getDivisionCourseListByIsDigital())
+            ) {
+                $tblDivisionCourseList = array_merge($tblDivisionCourseList, $tblDivisionCourseListTeacherGroup);
+            }
+        } else {
+            foreach ($tblYearList as $tblYear) {
+                if (($tblDivisionCourseListDivision = DivisionCourse::useService()->getDivisionCourseListBy($tblYear, TblDivisionCourseType::TYPE_DIVISION))) {
+                    $tblDivisionCourseList = array_merge($tblDivisionCourseList, $tblDivisionCourseListDivision);
+                }
+                if (($tblDivisionCourseListCoreGroup = DivisionCourse::useService()->getDivisionCourseListBy($tblYear, TblDivisionCourseType::TYPE_CORE_GROUP))) {
+                    $tblDivisionCourseList = array_merge($tblDivisionCourseList, $tblDivisionCourseListCoreGroup);
+                }
+                if ($AddIsDigital
+                    && ($tblDivisionCourseListTeacherGroup = DivisionCourse::useService()->getDivisionCourseListByIsDigital($tblYear))
+                ) {
+                    $tblDivisionCourseList = array_merge($tblDivisionCourseList, $tblDivisionCourseListTeacherGroup);
+                }
+            }
+        }
+
+        return $tblDivisionCourseList;
     }
 }

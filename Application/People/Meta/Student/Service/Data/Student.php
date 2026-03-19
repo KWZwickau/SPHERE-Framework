@@ -39,6 +39,7 @@ abstract class Student extends AbstractData
      * @param null $tblStudentTechnicalSchool
      * @param string $SchoolAttendanceStartDate
      * @param bool $HasMigrationBackground
+     * @param string $MigrationBackground
      * @param bool $IsInPreparationDivisionForMigrants
      *
      * @return TblStudent
@@ -56,6 +57,7 @@ abstract class Student extends AbstractData
         $tblStudentTechnicalSchool = null,
         $SchoolAttendanceStartDate = '',
         $HasMigrationBackground = false,
+        $MigrationBackground = '',
         $IsInPreparationDivisionForMigrants = false
     ) {
 
@@ -87,6 +89,7 @@ abstract class Student extends AbstractData
             $Entity->setTblStudentTechnicalSchool($tblStudentTechnicalSchool);
             $Entity->setSchoolAttendanceStartDate(( $SchoolAttendanceStartDate ? new DateTime($SchoolAttendanceStartDate) : null ));
             $Entity->setHasMigrationBackground($HasMigrationBackground);
+            $Entity->setMigrationBackground($MigrationBackground);
             $Entity->setIsInPreparationDivisionForMigrants($IsInPreparationDivisionForMigrants);
 
             $Manager->saveEntity($Entity);
@@ -263,6 +266,7 @@ abstract class Student extends AbstractData
      * @param null $tblStudentTechnicalSchool
      * @param string $SchoolAttendanceStartDate
      * @param bool $HasMigrationBackground
+     * @param string $MigrationBackground
      * @param bool $IsInPreparationDivisionForMigrants
      *
      * @return bool
@@ -280,6 +284,7 @@ abstract class Student extends AbstractData
         $tblStudentTechnicalSchool = null,
         $SchoolAttendanceStartDate = '',
         $HasMigrationBackground = false,
+        $MigrationBackground = '',
         $IsInPreparationDivisionForMigrants = false
     ) {
 
@@ -311,6 +316,7 @@ abstract class Student extends AbstractData
             $Entity->setTblStudentTechnicalSchool($tblStudentTechnicalSchool);
             $Entity->setSchoolAttendanceStartDate(( $SchoolAttendanceStartDate ? new DateTime($SchoolAttendanceStartDate) : null ));
             $Entity->setHasMigrationBackground($HasMigrationBackground);
+            $Entity->setMigrationBackground($MigrationBackground);
             $Entity->setIsInPreparationDivisionForMigrants($IsInPreparationDivisionForMigrants);
 
             $Manager->saveEntity($Entity);

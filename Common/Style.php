@@ -30,17 +30,7 @@ class Style extends Extension
     private function __construct()
     {
 
-        $tblAccount = Account::useService()->getAccountBySession();
-        if ($tblAccount) {
-            $SettingSurface = MyAccount::useService()->getSettingByAccount($tblAccount, 'Surface');
-            if ($SettingSurface) {
-                $SettingSurface = $SettingSurface->getValue();
-            } else {
-                $SettingSurface = 1;
-            }
-        } else {
-            $SettingSurface = 1;
-        }
+        $SettingSurface = $this->getSettingSurface();
 
         switch ($SettingSurface) {
             case 1:
@@ -48,6 +38,9 @@ class Style extends Extension
                 break;
             case 2:
                 $this->setSource('/Common/Style/Application.css');
+                break;
+            case 3:
+                $this->setSource('/Common/Style/BootstrapDark.css');
                 break;
             default:
                 $this->setSource('/Common/Style/Bootstrap.css');
@@ -116,6 +109,10 @@ class Style extends Extension
                 $this->setSource('/Common/Style/Application.Correction.css', false, true);
                 $this->setSource('/Common/Style/Application.DataTable.Correction.css', false, true);
                 break;
+            case 3:
+                $this->setSource('/Common/Style/CorrectionDark.css', false, true);
+                $this->setSource('/Common/Style/DataTable.CorrectionDark.css', false, true);
+                break;
             default:
                 $this->setSource('/Common/Style/Correction.css', false, true);
                 $this->setSource('/Common/Style/DataTable.Correction.css', false, true);
@@ -127,6 +124,27 @@ class Style extends Extension
         $this->setSource('/Common/Style/PhpInfo.css', false, true);
         $this->setSource('/Common/Style/Addition.css');
         $this->setSource('/Common/Style/Animate.css');
+    }
+
+    /**
+     * @return int
+     */
+    public static function getSettingSurface()
+    {
+
+        $SettingSurface = 1;
+        $tblAccount = Account::useService()->getAccountBySession();
+        if ($tblAccount) {
+            $SettingSurface = MyAccount::useService()->getSettingByAccount($tblAccount, 'Surface');
+            if ($SettingSurface) {
+                $SettingSurface = $SettingSurface->getValue();
+                if($SettingSurface == 2){
+                    // 2 (APP Ansicht) noch eingestellt, soll aber durch Web Ansicht ersetzt werden
+                    $SettingSurface = 1;
+                }
+            }
+        }
+        return $SettingSurface;
     }
 
     /**

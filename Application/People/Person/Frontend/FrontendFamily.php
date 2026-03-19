@@ -6,6 +6,7 @@ use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Address\Service\Entity\TblState;
 use SPHERE\Application\Contact\Mail\Mail;
 use SPHERE\Application\Contact\Phone\Phone;
+use SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount\SelectBoxItem;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Common\Service\Entity\TblCommonBirthDates;
@@ -14,6 +15,7 @@ use SPHERE\Application\People\Person\FrontendReadOnly;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblSalutation;
 use SPHERE\Application\People\Person\Service\Entity\ViewPerson;
+use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer as GatekeeperConsumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumerLogin;
 use SPHERE\Application\Setting\Consumer\Consumer;
@@ -220,6 +222,20 @@ class FrontendFamily extends FrontendReadOnly
                 $this->getPanelCustody(1, $tblSalutationList, $Errors)
             ),
         ));
+
+        $tblTypeList[] = new SelectBoxItem(0, '');
+        if (($tblType = Relationship::useService()->getTypeByName('Ehepartner'))) {
+            $tblTypeList[] = new SelectBoxItem($tblType->getId(), $tblType->getName());
+        }
+        if (($tblType = Relationship::useService()->getTypeByName('Lebenspartner'))) {
+            $tblTypeList[] = new SelectBoxItem($tblType->getId(), $tblType->getName());
+        }
+        $formRows[] = new FormRow(
+            new FormColumn(
+                new SelectBox('Data[Relationship]', 'Beziehung zwischen Sorgeberechtigte', ['{{ Name }}' => $tblTypeList])
+            )
+        );
+
         $formRows[] = new FormRow(array(
             new FormColumn(
                 $this->getPanelCustody(2, $tblSalutationList, $Errors)
@@ -247,7 +263,9 @@ class FrontendFamily extends FrontendReadOnly
 
         foreach($Data as $key => $item) {
             $type = substr($key, 0, 1);
-            $count[$type]++;
+            if ($type == 'C' || $type == 'S') {
+                $count[$type]++;
+            }
         }
 
         return $count;
@@ -673,7 +691,7 @@ class FrontendFamily extends FrontendReadOnly
     public function getAddressContent($Ranking, $PersonIdList, $Data, $Errors, $hasAddButton = true)
     {
         $tblType = Address::useService()->getTypeAll();
-        list($StreetNameList, $CountyList, $NationList, $CityList, $CodeList, $DistrictList) = Address::useService()->getAddressForAutoCompleter();
+        list($AddressExtraList, $StreetNameList, $CountyList, $NationList, $CityList, $CodeList, $DistrictList) = Address::useService()->getAddressForAutoCompleter();
         $tblState = Address::useService()->getStateAll();
         array_push($tblState, new TblState(''));
 
@@ -822,7 +840,7 @@ class FrontendFamily extends FrontendReadOnly
         $key = 'M' . $Ranking;
 
         if(($tblConsumer = GatekeeperConsumer::useService()->getConsumerBySession())
-            && GatekeeperConsumer::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_UCS)
+            && GatekeeperConsumer::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_DLLP)
         ){
             $hasAccountOptions = true;
         } else {
@@ -851,10 +869,10 @@ class FrontendFamily extends FrontendReadOnly
                 $hasAccountOptions
                     ? new LayoutRow(array(
                         new LayoutColumn(
-                            new CheckBox('Data[M' . $Ranking . '][IsAccountUserAlias]', 'E-Mail als späteren UCS Benutzernamen verwenden', 1)
+                            new CheckBox('Data[M' . $Ranking . '][IsAccountUserAlias]', 'E-Mail als späteren DLLP Benutzernamen verwenden', 1)
                             , 3),
                         new LayoutColumn(
-                            new CheckBox('Data[M' . $Ranking . '][IsAccountRecoveryMail]', 'E-Mail als späteres UCS "Passwort vergessen" verwenden', 1)
+                            new CheckBox('Data[M' . $Ranking . '][IsAccountRecoveryMail]', 'E-Mail als späteres DLLP "Passwort vergessen" verwenden', 1)
                             , 3)
                     ))
                     : null

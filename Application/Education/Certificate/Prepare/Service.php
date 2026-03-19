@@ -207,6 +207,16 @@ class Service extends ServiceTemplateInformation
     }
 
     /**
+     * @param TblPrepareInformation $tblPrepareInformation
+     *
+     * @return bool
+     */
+    public function destroyPrepareInformation(TblPrepareInformation $tblPrepareInformation): bool
+    {
+        return (new Data($this->getBinding()))->destroyPrepareInformation($tblPrepareInformation);
+    }
+
+    /**
      * @param IFormInterface $Stage
      * @param TblPrepareCertificate $tblPrepare
      * @param $Data
@@ -400,6 +410,10 @@ class Service extends ServiceTemplateInformation
 //                                && method_exists($Certificate, 'selectValuesFoesAbsText')
 //                            ) {
 //                                $value = $Certificate->selectValuesFoesAbsText()[$value];
+                            } elseif ($field == 'InDepthAssignment'
+                                && method_exists($Certificate, 'selectValuesInDepthAssignment')
+                            ) {
+                                $value = $Certificate->selectValuesInDepthAssignment()[$value];
                             }
 
                             // Zeugnistext umwandeln
@@ -554,6 +568,10 @@ class Service extends ServiceTemplateInformation
 //                    && method_exists($Certificate, 'selectValuesFoesAbsText')
 //                ) {
 //                    $value = $Certificate->selectValuesFoesAbsText()[$value];
+                } elseif ($field == 'InDepthAssignment'
+                    && method_exists($Certificate, 'selectValuesInDepthAssignment')
+                ) {
+                    $value = $Certificate->selectValuesInDepthAssignment()[$value];
                 }
 
                 if (($tblPrepareInformation = $this->getPrepareInformationBy($tblPrepare, $tblPerson, $field))) {
@@ -1115,6 +1133,8 @@ class Service extends ServiceTemplateInformation
                         }
                         if (Absence::useService()->getHasPersonAbsenceLessons($tblPerson, $startDateAbsence, $tillDateAbsence, TblAbsence::VALUE_STATUS_UNEXCUSED)) {
                             $StudentHasAbsenceLessonsList[$tblPerson->getId()][TblAbsence::VALUE_STATUS_UNEXCUSED] = true;
+                        } elseif (Absence::useService()->getHasPersonAbsenceLessons($tblPerson, $startDateAbsence, $tillDateAbsence, TblAbsence::VALUE_STATUS_UNCLEAR)) {
+                            $StudentHasAbsenceLessonsList[$tblPerson->getId()][TblAbsence::VALUE_STATUS_UNEXCUSED] = true;
                         }
                     }
                 }
@@ -1144,6 +1164,36 @@ class Service extends ServiceTemplateInformation
             if (($PlaceholderList = $Certificate->getCertificate()->getPlaceholder())) {
                 foreach ($PlaceholderList as $PlaceHolder) {
                     if (strpos($PlaceHolder, 'Input.Missing')) {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @param TblCertificate $tblCertificate
+     * @param TblPerson|null $tblPerson
+     *
+     * @return bool
+     */
+    public function hasCertificateBehaviorGrades(TblCertificate $tblCertificate, TblPerson $tblPerson = null): bool
+    {
+        $CertificateClass = '\SPHERE\Application\Api\Education\Certificate\Generator\Repository\\' . $tblCertificate->getCertificate();
+        if (class_exists($CertificateClass)) {
+            /** @var Certificate $Certificate */
+            $Certificate = new $CertificateClass();
+
+            // create Certificate with Placeholders
+            $pageList[$tblPerson ? $tblPerson->getId() : 0] = $Certificate->buildPages($tblPerson);
+            $Certificate->createCertificate(array(), $pageList);
+
+            if (($PlaceholderList = $Certificate->getCertificate()->getPlaceholder())) {
+                foreach ($PlaceholderList as $PlaceHolder) {
+                    // Content.P1116.Input["KBE"]
+                    if (str_contains($PlaceHolder, 'Input["')) {
                         return true;
                     }
                 }

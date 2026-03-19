@@ -390,7 +390,7 @@ class ApiPersonAgreementStructure extends Extension implements IApiInterface
                         ));
                     }
                 }
-                if(count($CategoryList[$tblPersonAgreementCategory->getName()]) < 9
+                if(count($CategoryList[$tblPersonAgreementCategory->getName()]) <= 10
                     || count($CategoryList[$tblPersonAgreementCategory->getName()]) == 0
                 ){
                     $CategoryList[$tblPersonAgreementCategory->getName()][] = (new Link(new Plus().'Eintrag hinzufügen', '#'))
@@ -403,13 +403,23 @@ class ApiPersonAgreementStructure extends Extension implements IApiInterface
         foreach($CategoryList as $Content){
             $LayoutColumnList[] = new LayoutColumn(new Listing($Content), 3);
         }
-        if(count($LayoutColumnList) < 4){
+        if(count($LayoutColumnList) < 8){
             $LayoutColumnList[] = new LayoutColumn(new Listing(array(
                 (new Link(new Plus().'Kategorie hinzufügen', '#'))->ajaxPipelineOnClick(ApiPersonAgreementStructure::pipelineOpenCreateCategoryModal($PersonId))
             )), 3);
         }
 
-        //ToDO neues Frontend
+        $LayoutRowCount = 0;
+        $LayoutRowList = array();
+        foreach($LayoutColumnList as $LayoutColumn){
+            if ($LayoutRowCount % 4 == 0) {
+                $LayoutRow = new LayoutRow(array());
+                $LayoutRowList[] = $LayoutRow;
+            }
+            $LayoutRow->addColumn($LayoutColumn);
+            $LayoutRowCount++;
+        }
+
         return (new FrontendPersonAgreement())->getEditPersonAgreementStructure($PersonId)
             .new Well(
                 ApiPersonAgreementStructure::receiverModal('Kategorie hinzufügen', 'ModalAgreementStructureCreateCategory')
@@ -418,7 +428,7 @@ class ApiPersonAgreementStructure extends Extension implements IApiInterface
                 .ApiPersonAgreementStructure::receiverModal('Eintrag hinzufügen', 'ModalAgreementStructureCreateType')
                 .ApiPersonAgreementStructure::receiverModal('Eintrag bearbeiten', 'ModalAgreementStructureEditType')
                 .ApiPersonAgreementStructure::receiverModal('Eintrag entfernen', 'ModalAgreementStructureDestroyType')
-                .new Layout(new LayoutGroup(new LayoutRow($LayoutColumnList)))
+                .new Layout(new LayoutGroup($LayoutRowList))
                 .(new Primary('Schließen', ApiPersonEdit::getEndpoint(), new ChevronLeft()))
                     ->ajaxPipelineOnClick(ApiPersonEdit::pipelineCancelPersonAgreementContent($PersonId))
             );

@@ -2,6 +2,7 @@
 namespace SPHERE\Common\Frontend\Table\Structure;
 
 use SPHERE\Common\Frontend\ITemplateInterface;
+use SPHERE\Common\Style;
 use SPHERE\System\Extension\Extension;
 
 /**
@@ -107,6 +108,13 @@ class TableColumn extends Extension implements ITemplateInterface
     public function setBackgroundColor($BackgroundColor)
     {
         $this->BackgroundColor = $BackgroundColor;
+        $SettingSurface = Style::getSettingSurface();
+        if($SettingSurface == 3){
+            if(strtolower($BackgroundColor) == '#e0f0ff') {
+                $this->BackgroundColor = '#2e2e2e';
+            }
+        }
+
         return $this;
     }
 

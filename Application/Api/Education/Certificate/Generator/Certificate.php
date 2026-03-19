@@ -130,8 +130,6 @@ abstract class Certificate extends Extension
             }
         }
 
-        $tblConsumer = \SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer::useService()->getConsumerBySession();
-
         $isWidth = false;
         $InjectStyle = '';
 
@@ -144,6 +142,16 @@ abstract class Certificate extends Extension
             $certificate = 'SPHERE\Application\Api\Education\Certificate\Generator\Repository\\'. key($certificateList);
         } else {
             $certificate = get_class($this);
+        }
+
+        $tblConsumer = \SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer::useService()->getConsumerBySession();
+        // für Zeugnisvorlage-Vorschau den Mandanten von der Zeugnisvorlage verwenden
+        if (($tblCertificateTemp = Generator::useService()->getCertificateByCertificateClassName(
+                str_replace('SPHERE\Application\Api\Education\Certificate\Generator\Repository\\', '', $certificate))
+            )
+            && ($tblConsumerTemp = $tblCertificateTemp->getServiceTblConsumer(true))
+        ) {
+            $tblConsumer = $tblConsumerTemp;
         }
 
         // für Lernentwicklungsbericht von Radebeul 2cm Rand (1,4 cm scheint Standard zu seien)
@@ -194,6 +202,13 @@ abstract class Certificate extends Extension
             $InjectStyle = 'body { margin-bottom: -1.5cm !important; margin-left: 0.75cm !important; margin-right: 0.75cm !important; }';
         } elseif ($tblConsumer && $tblConsumer->isConsumer(TblConsumer::TYPE_SACHSEN, 'MLS')) {
             $InjectStyle = 'body { margin-bottom: -1.5cm !important; margin-left: 0.75cm !important; margin-right: 0.75cm !important; }';
+        } elseif ($tblConsumer && $tblConsumer->isConsumer(TblConsumer::TYPE_SACHSEN, 'HGGT')) {
+            $InjectStyle = 'body { margin-bottom: -1.5cm !important; margin-left: 1.25cm !important; margin-right: 1.25cm !important; }';
+        } elseif ($tblConsumer && $tblConsumer->isConsumer(TblConsumer::TYPE_SACHSEN, 'FELS')) {
+            $InjectStyle = 'body { margin-bottom: -1.5cm !important; }';
+            // REF -> KG
+        } elseif ($tblConsumer && $tblConsumer->isConsumer(TblConsumer::TYPE_SACHSEN, 'KG')) {
+            $InjectStyle = 'body { margin-bottom: -1.5cm !important; margin-left: 0.8cm !important; margin-right: 0.8cm !important; }';
         }
 
         // Standardzeugnisse mit Breiteneinstellung
@@ -294,6 +309,14 @@ abstract class Certificate extends Extension
     public function getTblCompany()
     {
         return $this->getTblStudentEducation() ? $this->getTblStudentEducation()->getServiceTblCompany() : false;
+    }
+
+    /**
+     * @return bool|\SPHERE\Application\Education\School\Type\Service\Entity\TblType
+     */
+    public function getTblSchoolType(): bool|\SPHERE\Application\Education\School\Type\Service\Entity\TblType
+    {
+        return $this->getTblStudentEducation() ? $this->getTblStudentEducation()->getServiceTblSchoolType() : false;
     }
 
     /**
@@ -567,7 +590,6 @@ abstract class Certificate extends Extension
             $separator = false;
         }
         $isLargeCompanyName = false;
-        $name = '';
         $empty = '&nbsp;';
         // get company name
         if (($tblPerson = Person::useService()->getPersonById($personId))
@@ -584,6 +606,14 @@ abstract class Certificate extends Extension
                 $name = $tblCompany->getName() . new Container($tblCompany->getExtendedName());
                 $empty .= new Container('&nbsp;');
             }
+        // Für Zeugnisvorschau
+        } else {
+            $name = '
+                {% if(Content.P' . $personId . '.Company.Data.Name is not empty) %}
+                    {{ Content.P' . $personId . '.Company.Data.Name }}
+                {% else %}
+                    &nbsp;
+                {% endif %}';
         }
 
         $SchoolSlice = (new Slice());
@@ -639,10 +669,11 @@ abstract class Certificate extends Extension
 
     /**
      * @param $IsSample
+     * @param bool $IsIndividuallyLogoIgnored
      *
      * @return Section
      */
-    protected function getIndividuallyLogo($IsSample)
+    protected function getIndividuallyLogo($IsSample, bool $IsIndividuallyLogoIgnored = false)
     {
 
         $isOS = false;
@@ -672,7 +703,7 @@ abstract class Certificate extends Extension
         $Section->addElementColumn((new Element()), '51%');
 
         // Individually Logo
-        if ($picturePath != '') {
+        if (!$IsIndividuallyLogoIgnored && $picturePath != '') {
             $Section->addElementColumn((new Element\Image($picturePath, 'auto', $IndividuallyLogoHeight))
                 ->styleAlignCenter()
                 ->styleHeight('0px')
@@ -1312,9 +1343,6 @@ abstract class Certificate extends Extension
         $backgroundColor = self::BACKGROUND_GRADE_FIELD,
         &$subjectRowCount = 0
     ) {
-
-        $tblPerson = Person::useService()->getPersonById($personId);
-
         $SubjectSlice = (new Slice());
 
         $tblCertificateSubjectAll = Generator::useService()->getCertificateSubjectAll($this->getCertificateEntity());
@@ -1322,11 +1350,20 @@ abstract class Certificate extends Extension
 
         $SectionList = array();
 
+        $tblSubjectForeignLanguage = $this->getForeignLanguageSubject(2);
         if (!empty($tblCertificateSubjectAll)) {
             $SubjectStructure = array();
             foreach ($tblCertificateSubjectAll as $tblCertificateSubject) {
                 $tblSubject = $tblCertificateSubject->getServiceTblSubject();
                 if ($tblSubject) {
+                    // 2. Fremdsprache ignorieren, falls 2. FS extra auf der Zeugnisvorlage eingestellt ist
+                    if ($tblSubjectForeignLanguage
+                        && (!empty($languagesWithStartLevel) || $hasSecondLanguageDiploma || $hasSecondLanguageSecondarySchool)
+                        && $tblSubjectForeignLanguage->getId() == $tblSubject->getId()
+                    ) {
+                        continue;
+                    }
+
                     // Grade Exists? => Add Subject to Certificate
                     if (isset($tblGradeList['Data'][$tblSubject->getAcronym()])) {
                         $SubjectStructure[$tblCertificateSubject->getRanking()][$tblCertificateSubject->getLane()]['SubjectAcronym']
@@ -1356,7 +1393,7 @@ abstract class Certificate extends Extension
                     [$languagesWithStartLevel['Lane']]['SubjectAcronym'] = 'Empty';
                     $SubjectStructure[$languagesWithStartLevel['Rank']]
                     [$languagesWithStartLevel['Lane']]['SubjectName'] = '&nbsp;';
-                    if (($tblSubjectForeignLanguage = $this->getForeignLanguageSubject(2))) {
+                    if ($tblSubjectForeignLanguage) {
                         $tblSecondForeignLanguage = $tblSubjectForeignLanguage;
                         $SubjectStructure[$languagesWithStartLevel['Rank']]
                         [$languagesWithStartLevel['Lane']]['SubjectAcronym'] = $tblSubjectForeignLanguage->getAcronym();
@@ -1366,7 +1403,7 @@ abstract class Certificate extends Extension
                 }
             } else {
                 if (($hasSecondLanguageDiploma || $hasSecondLanguageSecondarySchool)
-                    && ($tblSubjectForeignLanguage = $this->getForeignLanguageSubject(2))
+                    && $tblSubjectForeignLanguage
                 ) {
                     if ($hasSecondLanguageDiploma) {
                         $tblSecondForeignLanguageDiploma = $tblSubjectForeignLanguage;

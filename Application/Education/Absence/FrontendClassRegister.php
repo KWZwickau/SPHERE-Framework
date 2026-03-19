@@ -18,15 +18,15 @@ use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronRight;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
-use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
+use SPHERE\Common\Frontend\Icon\Repository\ListingTable;
 use SPHERE\Common\Frontend\Icon\Repository\PersonGroup;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
+use SPHERE\Common\Frontend\Icon\Repository\Time;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
-use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
@@ -49,7 +49,6 @@ use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
-use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 
@@ -70,6 +69,7 @@ class FrontendClassRegister extends Extension implements IFrontendInterface
             $Stage->addButton(new Standard('Zurück', $ReturnRoute, new ChevronLeft(),
                 array(
                     'DivisionCourseId' => $DivisionCourseId,
+                    'PersonId' => $PersonId,
                     'BasicRoute' => $BasicRoute,
                 ))
             );
@@ -111,7 +111,7 @@ class FrontendClassRegister extends Extension implements IFrontendInterface
                                 new LayoutColumn(array(
                                     new Panel(
                                         'Schüler',
-                                        $tblPerson->getLastFirstNameWithCallNameUnderline(),
+                                        $tblPerson->getLastFirstNameWithCallNameUnderline(true),
                                         Panel::PANEL_TYPE_INFO
                                     )
                                 ), 6),
@@ -187,7 +187,9 @@ class FrontendClassRegister extends Extension implements IFrontendInterface
                 if ($tblAbsence->getStatus() == TblAbsence::VALUE_STATUS_EXCUSED) {
                     $status = new Success('entschuldigt');
                 } elseif ($tblAbsence->getStatus() == TblAbsence::VALUE_STATUS_UNEXCUSED) {
-                    $status = new \SPHERE\Common\Frontend\Text\Repository\Danger('unentschuldigt');
+                    $status = new \SPHERE\Common\Frontend\Text\Repository\Warning('unentschuldigt');
+                } elseif ($tblAbsence->getStatus() == TblAbsence::VALUE_STATUS_UNCLEAR) {
+                    $status = new \SPHERE\Common\Frontend\Text\Repository\Danger('unklar');
                 }
 
                 $isOnlineAbsence = $tblAbsence->getIsOnlineAbsence();
@@ -289,17 +291,19 @@ class FrontendClassRegister extends Extension implements IFrontendInterface
      * @param null $BackDivisionCourseId
      * @param string $BasicRoute
      *
-     * @return Stage|string
+     * @return string
      */
     public function frontendAbsenceMonth(
         $DivisionCourseId = null,
         $BackDivisionCourseId = null,
         string $BasicRoute = '/Education/ClassRegister/Digital/Teacher'
-    ) {
-        $stage = new Stage('Digitales Klassenbuch', 'Fehlzeiten (Kalenderansicht)');
-
+    ): string {
+        $icon = new Calendar();
+        $name = 'Fehlzeiten';
+        $Route = '/Education/ClassRegister/Digital/AbsenceMonth';
+        $content = '';
+        $link = '';
         if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
-            $stage->addButton(Digital::useFrontend()->getBackButton($tblDivisionCourse, $BackDivisionCourseId, $BasicRoute));
             $currentDate = new DateTime('now');
             // wenn der aktuelle Tag im Schuljahr ist dann diesen Anzeigen, ansonsten erster Tag des Schuljahres
             if (($tblYear = $tblDivisionCourse->getServiceTblYear())) {
@@ -311,32 +315,116 @@ class FrontendClassRegister extends Extension implements IFrontendInterface
                 }
             }
 
-            $stage->setContent(
-                new Layout(array(
-                    new LayoutGroup(array(
-                        Digital::useService()->getHeadLayoutRow($tblDivisionCourse),
-                        $tblDivisionCourse->getType()->getIsCourseSystem()
-                            ? Digital::useService()->getHeadButtonListLayoutRowForCourseSystem($tblDivisionCourse, '/Education/ClassRegister/Digital/AbsenceMonth',
-                                $BasicRoute, $BackDivisionCourseId)
-                            : Digital::useService()->getHeadButtonListLayoutRow($tblDivisionCourse, '/Education/ClassRegister/Digital/AbsenceMonth', $BasicRoute)
-                    )),
-                    new LayoutGroup(new LayoutRow(new LayoutColumn(
-                        ApiAbsence::receiverModal()
-                        . ApiAbsence::receiverBlock(
-                            Consumer::useService()->getAccountSettingValue('AbsenceView') == 'Month'
-                                ? ApiAbsence::generateOrganizerMonthly($tblDivisionCourse->getId(), $currentDate->format('m'), $currentDate->format('Y'))
-                                : ApiAbsence::generateOrganizerForDivisionWeekly($tblDivisionCourse->getId(), $currentDate->format('W'), $currentDate->format('Y')),
-                            'CalendarContent'
-                        )
-                    )), new Title(new Calendar() . ' Fehlzeiten (Kalenderansicht)'))
-                ))
-            );
-        } else {
-            return new Danger('Klasse nicht gefunden', new Exclamation())
-                . new Redirect($BasicRoute, Redirect::TIMEOUT_ERROR);
+            if (($isCalendar = Consumer::useService()->getAccountSettingValue('AbsenceViewContent') == 'Calendar')) {
+                $content = Consumer::useService()->getAccountSettingValue('AbsenceView') == 'Month'
+                    ? ApiAbsence::generateOrganizerMonthly($tblDivisionCourse->getId(), $currentDate->format('m'), $currentDate->format('Y'))
+                    : ApiAbsence::generateOrganizerForDivisionWeekly($tblDivisionCourse->getId(), $currentDate->format('W'), $currentDate->format('Y'));
+            } else {
+                $content = $this->loadStudentTableContent($tblDivisionCourse, $BasicRoute, $Route);
+            }
+
+            $link = ApiAbsence::receiverBlock($this->loadAbsenceButton($DivisionCourseId, $BasicRoute, $Route, $currentDate, $isCalendar), 'AbsenceButton');
+
+            $content = ApiAbsence::receiverModal()
+                . ApiAbsence::receiverBlock(
+                    $content,
+                    'CalendarContent'
+                );
         }
 
-        return $stage;
+        return Digital::useFrontend()->getStage($DivisionCourseId, $BasicRoute, $Route, $icon, $name, $content, $BackDivisionCourseId, $link);
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param string $BasicRoute
+     * @param string $ReturnRoute
+     * @param DateTime $currentDate
+     * @param bool $isCalendar
+     *
+     * @return string
+     */
+    public function loadAbsenceButton($DivisionCourseId,string $BasicRoute,string $ReturnRoute, DateTime $currentDate, bool $isCalendar): string
+    {
+        if ($isCalendar) {
+            return (new Standard('Schüleransicht', ApiAbsence::getEndpoint(), new ListingTable()))
+                ->ajaxPipelineOnClick(ApiAbsence::pipelineLoadAbsenceButton($DivisionCourseId, $BasicRoute, $ReturnRoute, $currentDate->format('d.m.Y')));
+        } else {
+           return (new Standard('Kalenderansicht', ApiAbsence::getEndpoint(), new Calendar()))
+                ->ajaxPipelineOnClick(ApiAbsence::pipelineLoadAbsenceButton($DivisionCourseId, $BasicRoute, $ReturnRoute, $currentDate->format('d.m.Y')));
+        }
+    }
+
+    /**
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param string $BasicRoute
+     * @param string $ReturnRoute
+     *
+     * @return string
+     */
+    public function loadStudentTableContent(TblDivisionCourse $tblDivisionCourse, string $BasicRoute, string $ReturnRoute): string
+    {
+        $studentTable = array();
+        if (($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses(false, true, new DateTime('today')))
+            && ($tblYear = $tblDivisionCourse->getServiceTblYear())
+            && (list($fromDate, $tillDate) = Term::useService()->getStartDateAndEndDateOfYear($tblYear))
+            && $fromDate
+            && $tillDate
+        ) {
+            $count = 0;
+            foreach ($tblPersonList as $tblPerson) {
+                $tblSchoolType = false;
+                $tblCompany = false;
+                if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))) {
+                    $tblSchoolType = $tblStudentEducation->getServiceTblSchoolType();
+                    $tblCompany = $tblStudentEducation->getServiceTblCompany();
+                }
+
+                // Fehlzeiten
+                list($absenceDays, $absenceLessons)
+                    = Absence::useService()->getAbsenceDataByStudent($tblPerson, $tblYear, $tblCompany ?: null, $tblSchoolType ?: null, $fromDate, $tillDate);
+
+                $name = new Bold($tblPerson->getLastFirstNameWithCallNameUnderline(true));
+                $studentTable[] = array(
+                    'Number' => ++$count,
+                    'Name' => $name,
+
+                    'AbsenceDays' => $absenceDays,
+                    'AbsenceLessons' => $absenceLessons,
+                    'Option' =>
+                        (new Standard(
+                            '', '/Education/ClassRegister/Digital/AbsenceStudent', new Time(),
+                            array(
+                                'DivisionCourseId' => $tblDivisionCourse->getId(),
+                                'PersonId' => $tblPerson->getId(),
+                                'BasicRoute' => $BasicRoute,
+                                'ReturnRoute' => $ReturnRoute
+                            ),
+                            'Fehlzeiten des Schülers verwalten'
+                        ))
+                );
+            }
+        }
+
+        $columns['Number'] = '#';
+        $columns['Name'] = 'Name';
+        $columns['AbsenceDays'] = 'Zeugnis&shy;relevante Fehlzeiten Tage (E, U)';
+        $columns['AbsenceLessons'] = 'Zeugnis&shy;relevante Fehlzeiten UE (E, U)';
+        $columns['Option'] = '';
+
+        return
+            (($inActivePanel = \SPHERE\Application\Reporting\Standard\Person\Person::useFrontend()
+                ->getInActiveStudentPanel($tblDivisionCourse, true, $BasicRoute, $ReturnRoute)) ? $inActivePanel : '')
+            . (new TableData($studentTable, null, $columns,
+                array(
+                    'paging' => false,
+                    'columnDefs' => array(
+                        array('type'  => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
+                        array('orderable' => false, 'width' => '30px', 'targets' => -1),
+                    ),
+                    'responsive' => false
+                )
+            ));
     }
 
     /**
@@ -437,7 +525,7 @@ class FrontendClassRegister extends Extension implements IFrontendInterface
         // Einträge für alle ausgewählten Personen anzeigen
         if ($tblDivisionCourse
             && ($tblYear = $tblDivisionCourse->getServiceTblYear())
-            && ($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses())
+            && ($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses(false, true, new DateTime('today')))
         ) {
             // Begrenzung auf den Zeitraum des aktuellen Schuljahres
             list($startDateSchoolYear, $endDateSchoolYear) = Term::useService()->getStartDateAndEndDateOfYear($tblYear);
@@ -667,19 +755,24 @@ class FrontendClassRegister extends Extension implements IFrontendInterface
         if ($tblAbsence->getIsOnlineAbsence()) {
             $backgroundColor = 'orange';
             $isWhiteLink = true;
-        } elseif (($tblAbsenceType = $tblAbsence->getType())) {
-            if ($tblAbsenceType == TblAbsence::VALUE_TYPE_THEORY) {
-                $backgroundColor = '#E0F0FF';
-            } else {
-                $backgroundColor = '#337ab7';
-                $isWhiteLink = true;
-            }
+//        } elseif (($tblAbsenceType = $tblAbsence->getType())) {
+//            if ($tblAbsenceType == TblAbsence::VALUE_TYPE_THEORY) {
+//                $backgroundColor = '#E0F0FF';
+//            } else {
+//                $backgroundColor = '#337ab7';
+//                $isWhiteLink = true;
+//            }
+        } elseif ($tblAbsence->getStatus() == TblAbsence::VALUE_STATUS_UNCLEAR) {
+            $backgroundColor = '#d9534f';
+            $isWhiteLink = true;
+        } elseif ($tblAbsence->getStatus() == TblAbsence::VALUE_STATUS_UNEXCUSED) {
+            $backgroundColor = '#cda03d';
+            $isWhiteLink = true;
+        } elseif ($tblAbsence->getStatus() == TblAbsence::VALUE_STATUS_EXCUSED) {
+            $backgroundColor = '#5cb85c';
+            $isWhiteLink = true;
         } else {
-            if ($tblAbsence->getIsCertificateRelevant()) {
-                $backgroundColor = '#E0F0FF';
-            } else {
-                $backgroundColor = '#FFFFFF';
-            }
+            $backgroundColor = '#E0F0FF';
         }
 
         if ($hasToolTip) {
@@ -806,7 +899,7 @@ class FrontendClassRegister extends Extension implements IFrontendInterface
         // Kalender-Inhalt erzeugen
         if ($tblDivisionCourse
             && ($tblYear = $tblDivisionCourse->getServiceTblYear())
-            && ($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses())
+            && ($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses(false, true, new DateTime('today')))
         ) {
             /** @var TblPerson $tblPerson */
             foreach ($tblPersonList as $tblPerson) {

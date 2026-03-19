@@ -164,7 +164,10 @@ class Service extends AbstractService
 //                    && $tblPrepareStudent->isApproved()
 //                    && $tblPrepareStudent->isPrinted()
                     && ($tblYear = $tblPrepare->getYear())
-                    && ($tblStudentEducationPrepare = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))
+                    // Klassenwechsel mit Schulartwechsel im Schuljahr möglich
+                    && ($tblStudentEducationPrepare = DivisionCourse::useService()->getStudentEducationByPersonAndYearAndDateWithLeaved(
+                        $tblPerson, $tblYear, $tblPrepare->getServiceTblGenerateCertificate()->getDate()
+                    ))
                     && ($level = $tblStudentEducationPrepare->getLevel())
                     && ($tblSchoolType = $tblStudentEducationPrepare->getServiceTblSchoolType())
                     && (!$tblType || $tblSchoolType->getId() == $tblType->getId())
@@ -194,7 +197,10 @@ class Service extends AbstractService
                 && ($tblPrepare->getServiceTblGenerateCertificate())
                 && ($tblCertificateType = $tblPrepare->getServiceTblGenerateCertificate()->getServiceTblCertificateType())
                 && ($tblYear = $tblPrepare->getYear())
-                && ($tblStudentEducationPrepare = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))
+                // Klassenwechsel mit Schulartwechsel im Schuljahr möglich
+                && ($tblStudentEducationPrepare = DivisionCourse::useService()->getStudentEducationByPersonAndYearAndDateWithLeaved(
+                    $tblPerson, $tblYear, $tblPrepare->getServiceTblGenerateCertificate()->getDate()
+                ))
                 && ($level = $tblStudentEducationPrepare->getLevel())
             ) {
                 if (strlen($tblYear->getName()) > 2) {
@@ -312,7 +318,10 @@ class Service extends AbstractService
             if (($tblPrepare = $item->getTblPrepareCertificate())
                 && ($tblYear = $tblPrepare->getYear())
                 && ($tblAppointedDateTask = $tblPrepare->getServiceTblAppointedDateTask())
-                && ($tblStudentEducationPrepare = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))
+                // Klassenwechsel mit Schulartwechsel im Schuljahr möglich
+                && ($tblStudentEducationPrepare = DivisionCourse::useService()->getStudentEducationByPersonAndYearAndDateWithLeaved(
+                    $tblPerson, $tblYear, $tblPrepare->getServiceTblGenerateCertificate()->getDate()
+                ))
                 && ($level = $tblStudentEducationPrepare->getLevel())
             ) {
                 if (strlen($tblYear->getName()) > 2) {
@@ -498,7 +507,10 @@ class Service extends AbstractService
 //                    && $tblPrepareStudent->isApproved()
 //                    && $tblPrepareStudent->isPrinted()
                     && ($tblYear = $tblPrepare->getYear())
-                    && ($tblStudentEducationPrepare = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))
+                    // Klassenwechsel mit Schulartwechsel im Schuljahr möglich
+                    && ($tblStudentEducationPrepare = DivisionCourse::useService()->getStudentEducationByPersonAndYearAndDateWithLeaved(
+                        $tblPerson, $tblYear, $tblPrepare->getServiceTblGenerateCertificate()->getDate()
+                    ))
                     && ($tblSchoolType = $tblStudentEducationPrepare->getServiceTblSchoolType())
                     && (!$tblType || $tblSchoolType->getId() == $tblType->getId())
                 ) {
@@ -645,6 +657,7 @@ class Service extends AbstractService
         $Data['SchoolAddressCity'] = '';
         $Data['Place'] = '';
         $Data['Division'] = '';
+        $Data['AddressExtra'] = '';
         $Data['AddressStreet'] = '';
         $Data['AddressPLZ'] = '';
         $Data['AddressCity'] = '';
@@ -727,6 +740,7 @@ class Service extends AbstractService
         // Hauptadresse Schüler
         $tblAddress = Address::useService()->getAddressByPerson($tblPerson);
         if ($tblAddress) {
+            $Data['AddressExtra'] = $tblAddress->getAddressExtra();
             $Data['AddressStreet'] = $tblAddress->getStreetName().' '.$tblAddress->getStreetNumber();
             $tblCity = $tblAddress->getTblCity();
             if ($tblCity) {

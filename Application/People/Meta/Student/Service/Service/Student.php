@@ -93,6 +93,7 @@ abstract class Student extends AbstractService
         $tblStudentSpecialNeeds = null,
         $SchoolAttendanceStartDate = '',
         $HasMigrationBackground = false,
+        $MigrationBackground = '',
         $IsInPreparationDivisionForMigrants = false,
         $tblStudentTechnicalSchool = null
     ) {
@@ -113,6 +114,7 @@ abstract class Student extends AbstractService
                 $tblStudentTechnicalSchool,
                 $SchoolAttendanceStartDate,
                 $HasMigrationBackground,
+                $MigrationBackground,
                 $IsInPreparationDivisionForMigrants
             );
         } else {
@@ -129,6 +131,7 @@ abstract class Student extends AbstractService
                 $tblStudentTechnicalSchool,
                 $SchoolAttendanceStartDate,
                 $HasMigrationBackground,
+                $MigrationBackground,
                 $IsInPreparationDivisionForMigrants
             );
         }

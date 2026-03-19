@@ -9,6 +9,7 @@ use SPHERE\Application\Contact\Mail\Service\Entity\TblType;
 use SPHERE\Application\Contact\Mail\Service\Setup;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
 use SPHERE\Common\Frontend\Form\Structure\Form;
@@ -169,8 +170,8 @@ class Service extends AbstractService
             $form->setError('Type[Type]', 'Bitte geben Sie einen Typ an');
             $error = true;
         } elseif ($IsAccountUserAlias && $tblType && $tblType->getName() != 'Geschäftlich' ) {
-            // UCS Benutzername muss als geschäftliche E-Mail Adresse angelegt werden
-            $form->setError('Type[Type]', 'Zur Verwendung der E-Mail Adresse als UCS Benutzername muss der E-Mail Typ: 
+            // DLLP Benutzername muss als geschäftliche E-Mail Adresse angelegt werden
+            $form->setError('Type[Type]', 'Zur Verwendung der E-Mail Adresse als DLLP Benutzername muss der E-Mail Typ: 
                 Geschäftlich ausgewählt werden.');
             $error = true;
         } else {
@@ -179,7 +180,7 @@ class Service extends AbstractService
 
         if(!$error && $IsAccountUserAlias){
             $errorMessage = '';
-            // Eindeutigkeit UCS Alias
+            // Eindeutigkeit DLLP Alias
             if (!Account::useService()->isUserAliasUnique($tblPerson, $Address, $errorMessage)) {
                 $error = true;
                 $form->setError('Address[Mail]', $errorMessage);
@@ -257,7 +258,6 @@ class Service extends AbstractService
 
         if ($IsAccountUserAlias || $IsAccountRecoveryMail) {
             $tblAccount = false;
-//            if(($tblAccountList = Account::useService()->getAccountAllByPersonForUCS($tblPerson))) {
             if(($tblAccountList = Account::useService()->getAccountAllByPerson($tblPerson))) {
                 if (count($tblAccountList) > 1) {
                     return false;
@@ -414,7 +414,6 @@ class Service extends AbstractService
 
             /** @var TblAccount $tblAccount */
             $tblAccount = false;
-//                if(($tblAccountList = Account::useService()->getAccountAllByPersonForUCS($tblPerson))) {
             if(($tblAccountList = Account::useService()->getAccountAllByPerson($tblPerson))) {
                 if (count($tblAccountList) > 1) {
                     return false;
@@ -756,5 +755,40 @@ class Service extends AbstractService
         $Address
     ): TblMail {
         return (new Data($this->getBinding()))->createMail($Address);
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param array $tblRelationshipTypes
+     *
+     * @return array
+     */
+    public function getMailListByStudent(TblPerson $tblPerson, array $tblRelationshipTypes): array
+    {
+        $personList = Relationship::useService()->getPersonRelationshipList($tblPerson, $tblRelationshipTypes);
+
+        $phoneList = [];
+        foreach ($personList as $person) {
+            if (($tblToPersonList = $this->getMailAllByPerson($person['tblPerson']))) {
+                $phoneList[$person['tblPerson']->getId()] = [
+                    'tblPerson' => $person['tblPerson'],
+                    'tblRelationshipType' => $person['tblRelationshipType'],
+                    'tblToPersonList' => $tblToPersonList,
+                ];
+            }
+        }
+
+        return $phoneList;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblType|null $tblType
+     *
+     * @return TblMail|null
+     */
+    public function getLastMailAddressByPersonAndType(TblPerson $tblPerson, ?TblType $tblType): ?TblMail
+    {
+        return (new Data($this->getBinding()))->getLastMailAddressByPersonAndType($tblPerson, $tblType);
     }
 }

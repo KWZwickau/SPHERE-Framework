@@ -3,15 +3,9 @@ namespace SPHERE\Application\Transfer\Import;
 
 use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel;
 use PhpOffice\PhpSpreadsheet\Shared\Date;
-use SPHERE\Application\Contact\Mail\Mail;
-use SPHERE\Application\Contact\Phone\Phone;
-use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
-use SPHERE\Application\Education\Lesson\Term\Term;
-use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudent;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentAgreementCategory;
 use SPHERE\Application\People\Meta\Student\Student;
-use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 
 /**
  * Class Service
@@ -123,16 +117,19 @@ class Service
                         $result = date('d.m.Y', Date::excelToTimestamp($date));
                         break;
                     case 6:
-                        $result = substr($date, 0, 2) . '.' . substr($date, 2, 2) . '.' . substr($date, 4, 2);
+                        $result = substr($date, 0, 2) . '.' . substr($date, 2, 2) . '.20' . substr($date, 4, 2);
                         break;
                     case 7:
                         $date = '0' . $date;
                     case 8:
                         $result = substr($date, 0, 2) . '.' . substr($date, 2, 2) . '.' . substr($date, 4, 4);
                         break;
+                    case 10:
+                        $result = $date;
+                        break;
                     default:
                         $error[] = 'Zeile: ' . ($RunY + 1) . $columnName . ':' . $date
-                            . ' konnte nicht in ein Datum umgewandelt werden.';
+                            . ' konnte nicht in ein Datum umgewandelt werden.('.strlen($date).' Zeichen )';
                         $result = '';
                 }
 

@@ -111,6 +111,45 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblPerson $tblPerson
+     * @param TblType|string|null $tblType
+     * @param bool $isForced
+     *
+     * @return null|TblPerson[]
+     */
+    public function getPersonChildByPerson(TblPerson $tblPerson, $tblType = null, $isForced = false)
+    {
+
+        if(null !== $tblType && !($tblType instanceof TblType)){
+            $tblType = Relationship::useService()->getTypeByName($tblType);
+        }
+        $resultList = array();
+        if (($list  = (new Data($this->getBinding()))->getPersonRelationshipAllByPerson($tblPerson, $tblType, $isForced))) {
+            foreach ($list as $tblToPerson) {
+                if (($tblTypeRelationship = $tblToPerson->getTblType())) {
+                    $tblPersonChild = false;
+                    if($tblToPerson->getServiceTblPersonTo()->getId() !== $tblPerson->getId()){
+                        $tblPersonChild = $tblToPerson->getServiceTblPersonTo();
+                    } elseif($tblToPerson->getServiceTblPersonFrom()->getId() !== $tblPerson->getId()){
+                        $tblPersonChild = $tblToPerson->getServiceTblPersonFrom();
+                    }
+                    if($tblPersonChild){
+                        switch ($tblTypeRelationship->getName()) {
+                            case 'Sorgeberechtigt':
+                            case 'Vormund':
+                            case 'Bevollmächtigt':
+                                $resultList[] = $tblPersonChild;
+                                break;
+                        }
+                    }
+                }
+            }
+        }
+
+        return empty($resultList) ? null : $resultList;
+    }
+
+    /**
      * @param TblType $tblType
      *
      * @return false|TblToPerson[]
@@ -827,5 +866,38 @@ class Service extends AbstractService
         $result.= $remarkContact ? new Container(new Small(new Muted($remarkContact))) : '';
 
         return $result;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param array $tblRelationshipTypes
+     *
+     * @return array
+     */
+    public function getPersonRelationshipList(TblPerson $tblPerson, array $tblRelationshipTypes): array
+    {
+        $personList = [];
+        $personList[$tblPerson->getId()] = ['tblPerson' => $tblPerson, 'tblRelationshipType' => null];
+
+        if (($tblRelationshipList = $this->getPersonRelationshipAllByPerson($tblPerson))) {
+            foreach ($tblRelationshipList as $tblRelationship) {
+                // Beziehungstypen ausfiltern
+                if (!isset($tblRelationshipTypes[$tblRelationship->getTblType()->getId()])) {
+                    continue;
+                }
+
+                if (($tblPersonTo = $tblRelationship->getServiceTblPersonTo())
+                    && $tblPersonTo->getId() != $tblPerson->getId()
+                ) {
+                    $personList[$tblPersonTo->getId()] = ['tblPerson' => $tblPersonTo, 'tblRelationshipType' => $tblRelationship->getTblType()];
+                } elseif (($tblPersonFrom = $tblRelationship->getServiceTblPersonFrom())
+                    && $tblPersonFrom->getId() != $tblPerson->getId()
+                ) {
+                    $personList[$tblPersonFrom->getId()] = ['tblPerson' => $tblPersonFrom, 'tblRelationshipType' => $tblRelationship->getTblType()];
+                }
+            }
+        }
+
+        return $personList;
     }
 }

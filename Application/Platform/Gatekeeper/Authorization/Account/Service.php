@@ -4,6 +4,7 @@ namespace SPHERE\Application\Platform\Gatekeeper\Authorization\Account;
 use SPHERE\Application\Contact\Mail\Mail;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\TblRole;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account as GatekeeperAccount;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Data;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccountInitial;
@@ -19,14 +20,14 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Service\Entity\TblToken;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Token;
-use SPHERE\Application\Setting\User\Account\Service\Entity\TblUserAccount;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
 use SPHERE\Common\Frontend\Ajax\Template\Notify;
 use SPHERE\Common\Frontend\Form\IFormInterface;
+use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Window\Redirect;
-use SPHERE\System\Cache\Handler\MemcachedHandler;
+use SPHERE\System\Cache\Handler\RedisHandler;
 use SPHERE\System\Database\Binding\AbstractService;
 use SPHERE\System\Token\YubiKey\ComponentException;
 
@@ -39,9 +40,11 @@ class Service extends AbstractService
 {
 
     /** @var TblAccount[] $AccountByIdCache */
-    private static $AccountByIdCache = array();
+    private static array $AccountByIdCache = [];
+    /** @var TblAccount[] $AccountBySessionCache */
+    private static array $AccountBySessionCache = [];
     /** @var TblIdentification[] $IdentificationByIdCache */
-    private static $IdentificationByIdCache = array();
+    private static array $IdentificationByIdCache = [];
 
     /**
      * @param bool $doSimulation
@@ -112,8 +115,12 @@ class Service extends AbstractService
      */
     public function getAccountBySession($Session = null)
     {
-
-        return (new Data($this->getBinding()))->getAccountBySession($Session);
+        if(isset(self::$AccountBySessionCache[$Session]) && !empty(self::$AccountBySessionCache[$Session])) {
+            return self::$AccountBySessionCache[$Session];
+        }
+        $tblAccount = (new Data($this->getBinding()))->getAccountBySession($Session);
+        self::$AccountBySessionCache[$Session] = $tblAccount;
+        return $tblAccount;
     }
 
     /**
@@ -223,7 +230,7 @@ class Service extends AbstractService
                 // Generate New Id
                 session_regenerate_id(true);
             }
-            $this->getCache(new MemcachedHandler())->clearSlot('PUBLIC');
+            $this->getCache(new RedisHandler())->clearSlot('PUBLIC');
             return $Redirect;
         } else {
             return (new Data($this->getBinding()))->destroySession($Session);
@@ -670,9 +677,27 @@ class Service extends AbstractService
         $tblAccount = (new Data($this->getBinding()))->createAccount($Username, $Password, $tblToken, $tblConsumer,
             $isAuthenticatorApp, $UserAlias, $RecoveryMail);
         if($SaveInitialPW){
-            (new Data($this->getBinding()))->createAccountInitial($tblAccount);
+            (new Data($this->getBinding()))->createAccountInitial($Password, $tblAccount);
         }
         return $tblAccount;
+    }
+
+    /**
+     * @param string $Username
+     * @param TblConsumer $tblConsumer
+     *
+     * @return null|TblAccount
+     * @throws \Random\RandomException
+     */
+    public function createServiceAccount(string $Username, TblConsumer $tblConsumer): ?TblAccount
+    {
+
+        if(($tblAccount = GatekeeperAccount::useService()->insertAccount($Username, random_bytes(20), null, $tblConsumer, false, false, null, null))) {
+            GatekeeperAccount::useService()->addAccountAuthentication($tblAccount, GatekeeperAccount::useService()
+                ->getIdentificationByName(TblIdentification::NAME_SERVICE));
+            return $tblAccount;
+        }
+        return null;
     }
 
     /**
@@ -686,6 +711,16 @@ class Service extends AbstractService
         return (new Data($this->getBinding()))->getAccountInitialByAccount($tblAccount);
     }
 
+    /**
+     * @param TblAccount $tblAccount
+     *
+     * @return null|string
+     */
+    public function getAccountInitialPasswordByAccountWithoutLogin(TblAccount $tblAccount)
+    {
+
+        return (new Data($this->getBinding()))->getAccountInitialPasswordByAccountWithoutLogin($tblAccount);
+    }
 
     public function isAccountPWInitial(TblAccount $tblAccount)
     {
@@ -795,63 +830,17 @@ class Service extends AbstractService
     }
 
     /**
-     * @deprecated (SSW-1540)
-     * Eltern-Accounts werden ignoriert, es kann sein das Mitarbeiter auch zusätzlich einen Elternaccount haben
-     *
-     * @param TblPerson $tblPerson
-     * @param false     $isForce
-     *
-     * @return false|TblAccount[]
-     */
-    public function getAccountAllByPersonForUCS(TblPerson $tblPerson, $isForce = false)
-    {
-        $result = array();
-        if (($list = $this->getAccountAllByPerson($tblPerson, $isForce))) {
-            foreach ($list as $tblAccount) {
-                if ((($tblUserAccount = \SPHERE\Application\Setting\User\Account\Account::useService()->getUserAccountByAccount($tblAccount)))
-                    && ($tblUserAccount->getType() == TblUserAccount::VALUE_TYPE_CUSTODY)
-                ) {
-                    // ignore Account
-                    continue;
-                } else {
-                    $result[] = $tblAccount;
-                }
-            }
-        }
-
-        return empty($result) ? false : $result;
-    }
-
-    /**
-     * @param TblPerson $tblPerson
-     *
-     * @return bool|TblAccount[]
-     */
-    public function getAccountListByActiveConsumer()
-    {
-
-        $tblConsumer = Consumer::useService()->getConsumerBySession();
-        return (new Data($this->getBinding()))->getAccountListByConsumer($tblConsumer);
-    }
-
-    /**
      * @param TblIdentification $tblIdentification
      *
      * @return TblAccount[]|bool
      */
-    public function getAccountListByIdentification(TblIdentification $tblIdentification)
+    public function getAccountListByIdentification(TblIdentification $tblIdentification): array|bool
     {
-
-        $returnList = array();
-        if(($tblAccountList = $this->getAccountListByActiveConsumer())){
-            foreach($tblAccountList as $tblAccount){
-                if ($tblAccount->getHasAuthentication($tblIdentification->getName())) {
-                    $returnList[] = $tblAccount;
-                }
-            }
+        if (!($tblConsumer = Consumer::useService()->getConsumerBySession())) {
+            return false;
         }
 
-        return (!empty($returnList) ? $returnList : false);
+        return (new Data($this->getBinding()))->getAccountListByIdentification($tblIdentification, $tblConsumer);
     }
 
     /**
@@ -913,6 +902,92 @@ class Service extends AbstractService
     }
 
     /**
+     * @param IFormInterface $Form
+     * @param int $AccountId
+     * @param string $newCredentialLock
+     * @param string $newCredentialLockSafety
+     * @return IFormInterface|string
+     */
+    public function updatePasswordInitial(
+        IFormInterface $Form, $AccountId, $newCredentialLock = null, $newCredentialLockSafety = null
+    ){
+        // Return on Input Error
+        if (!($tblAccount = Account::useService()->getAccountById($AccountId))) {
+            return new Redirect('/', Redirect::TIMEOUT_ERROR);
+        }
+        if('' == $newCredentialLock && '' == $newCredentialLockSafety
+        ) {
+            return $Form;
+        }
+
+        $Error = false;
+        if (empty( $newCredentialLock )) {
+            $Form->setError('newCredentialLock', 'Bitte geben Sie ein Passwort an');
+            $Error = true;
+        } else {
+            if (strlen($newCredentialLock) < 8) {
+                $Form->setError('newCredentialLock', 'Das Passwort muss mindestens 8 Zeichen lang sein');
+                $Form->setError('newCredentialLockSafety', '');
+                $Error = true;
+            }
+            if(($tblAccountInitial = $this->getAccountInitialByAccount($tblAccount))){
+                if($tblAccountInitial->getPassword() == hash('sha256', $newCredentialLock)){
+                    $Form->setError('newCredentialLock', 'Das Passwort darf nicht das Initialpasswort sein');
+                    $Error = true;
+                }
+            }
+        }
+
+        if (empty( $newCredentialLockSafety )) {
+            $Form->setError('newCredentialLockSafety', 'Bitte wiederholen Sie das Passwort');
+            $Error = true;
+        }
+        if ($newCredentialLock != $newCredentialLockSafety && !$Error) {
+            $Form->setError('newCredentialLock', '');
+            $Form->setError('newCredentialLockSafety', 'Die beiden Passwörter stimmen nicht überein');
+            $Error = true;
+        }
+
+        // are enough criteria matched?
+        $Step = 0;
+        if ($newCredentialLock && !$Error) {
+            if (preg_match('![a-z]!s', $newCredentialLock)) {
+                $Step++;
+            }
+            if (preg_match('![A-Z]!s', $newCredentialLock)) {
+                $Step++;
+            }
+            if (preg_match('![0-9]!s', $newCredentialLock)) {
+                $Step++;
+            }
+            if (preg_match('![^\w\d]!s', $newCredentialLock)) {
+                $Step++;
+            }
+            // min 3 criteria
+            if ($Step < 3) {
+                $Form->setError('newCredentialLock', 'Nicht genügend Sicherheitskriterien erfüllt');
+                $Form->setError('newCredentialLockSafety', '');
+                $Error = true;
+            }
+        }
+        if ($Error) {
+
+            return $Form;
+        } else {
+            $LoginTest = Account::useService()->getAccountBySession();
+            if(!$LoginTest){
+                // Password not stored as preset -> LOGIN
+                Account::useService()->createSession($tblAccount);
+            }
+            if (Account::useService()->changePassword($newCredentialLock, $tblAccount)) {
+                return new Success('Das Passwort wurde erfolgreich geändert').new Redirect('/', Redirect::TIMEOUT_SUCCESS);
+            } else {
+                return new Danger('Das Passwort konnte nicht geändert werden').new Redirect('/', Redirect::TIMEOUT_ERROR);
+            }
+        }
+    }
+
+    /**
      * @param string $Password
      * @param TblAccount $tblAccount
      *
@@ -921,6 +996,23 @@ class Service extends AbstractService
     public function changePassword($Password, TblAccount $tblAccount = null)
     {
 
+        return (new Data($this->getBinding()))->changePassword($Password, $tblAccount);
+    }
+
+    /**
+     * @param string $Password
+     * @param TblAccount $tblAccount
+     *
+     * @return bool
+     */
+    public function changePasswordWithInitial($Password, TblAccount $tblAccount = null)
+    {
+
+        if($this->getAccountInitialByAccount($tblAccount)){
+            (new Data($this->getBinding()))->updateAccountInitial($Password, $tblAccount);
+        } else {
+            (new Data($this->getBinding()))->createAccountInitial($Password, $tblAccount);
+        }
         return (new Data($this->getBinding()))->changePassword($Password, $tblAccount);
     }
 
@@ -970,6 +1062,17 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getSettingByAccount($tblAccount, $Identifier);
+    }
+
+    /**
+     * @param string $uniqueValue
+     *
+     * @return bool|TblSetting
+     */
+    public function getSettingByUniqueValue($uniqueValue)
+    {
+
+        return (new Data($this->getBinding()))->getSettingByUniqueValue($uniqueValue);
     }
 
     /**
@@ -1081,7 +1184,6 @@ class Service extends AbstractService
     public function isUserAliasUnique(TblPerson $tblPerson, string $mailAddress, string &$errorMessage) : bool {
         $error = false;
 
-//        if (($tblAccountListByPerson = Account::useService()->getAccountAllByPersonForUCS($tblPerson))) {
         if (($tblAccountListByPerson = Account::useService()->getAccountAllByPerson($tblPerson))) {
             if (count($tblAccountListByPerson) > 1) {
                 $errorMessage = 'Die Person besitzt mehrere Benutzerkonten.';
@@ -1114,10 +1216,10 @@ class Service extends AbstractService
                             /** @var TblPerson $foundPerson */
                             $PersonString = $foundPerson->getLastFirstName();
                         }
-                        $errorMessage = 'Diese E-Mail Adresse wird bereits als UCS Benutzername verwendet. ('
+                        $errorMessage = 'Diese E-Mail Adresse wird bereits als DLLP Benutzername verwendet. ('
                             . $item->getUsername() . ' - ' . $PersonString.')';
                     } else {
-                        $errorMessage = 'Diese E-Mail Adresse wird bereits als UCS Benutzername verwendet.';
+                        $errorMessage = 'Diese E-Mail Adresse wird bereits als DLLP Benutzername verwendet.';
                     }
                     $error = true;
                 }
@@ -1134,7 +1236,7 @@ class Service extends AbstractService
                     && $tblPersonMail->getId() != $tblPerson->getId()
                 ) {
                     $error = true;
-                    $errorMessage = 'Diese E-Mail Adresse wurde bereits als UCS Benutzername vorgemerkt. (' . $tblPersonMail->getLastFirstName() . ')';
+                    $errorMessage = 'Diese E-Mail Adresse wurde bereits als DLLP Benutzername vorgemerkt. (' . $tblPersonMail->getLastFirstName() . ')';
                     break;
                 }
             }

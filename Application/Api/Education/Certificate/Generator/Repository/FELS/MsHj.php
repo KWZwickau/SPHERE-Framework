@@ -50,8 +50,9 @@ class MsHj extends Certificate
                 false,
                 true
             )->styleHeight('220px'))
-            ->addSlice($this->getDescriptionHead($personId, true))
-            ->addSlice($this->getDescriptionContent($personId, '178px', '15px'))
+            ->addSlice(FelsStyle::getCustomDescription($personId, '180px', '15px', true, $this->getTblPrepareCertificate() ?: null))
+//            ->addSlice($this->getDescriptionHead($personId, true))
+//            ->addSlice($this->getDescriptionContent($personId, '178px', '15px'))
             ->addSlice($this->getDateLine($personId))
             ->addSlice($this->getSignPart($personId, true))
             ->addSlice($this->getParentSign())

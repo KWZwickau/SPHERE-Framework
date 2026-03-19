@@ -114,7 +114,7 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
         }
         if ($Password != $PasswordSafety) {
             $Form->setError('Account[Password]', '');
-            $Form->setError('Account[PasswordSafety]', 'Die beiden Passworte stimmen nicht überein');
+            $Form->setError('Account[PasswordSafety]', 'Die beiden Passwörter stimmen nicht überein');
             $Error = true;
         } else {
             if (!empty( $Password ) && !empty( $PasswordSafety )) {
@@ -249,7 +249,7 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
         }
         if (!empty( $Password ) && $Password != $PasswordSafety) {
             $Form->setError('Account[Password]', '');
-            $Form->setError('Account[PasswordSafety]', 'Die beiden Passworte stimmen nicht überein');
+            $Form->setError('Account[PasswordSafety]', 'Die beiden Passwörter stimmen nicht überein');
             $Error = true;
         }
 
@@ -339,7 +339,7 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
 
                 // Edit Password
                 if (!empty( $Password )) {
-                    GatekeeperAccount::useService()->changePassword($Password, $tblAccount);
+                    GatekeeperAccount::useService()->changePasswordWithInitial($Password, $tblAccount);
                 }
 
                 return new Success('Das Benutzerkonto wurde geändert')
@@ -443,7 +443,7 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
                 $toggles[] = 'Account[Role][' . $item->getId() . ']';
             }
 
-            $toggleButtons[] = new ToggleSelective('Alle Benutzerechte wählen/abwählen', $toggles);
+            $toggleButtons[] = new ToggleSelective('Alle Benutzerrechte wählen/abwählen', $toggles);
         }
 
         if (($tblGroupRoleList = GroupRole::useService()->getGroupRoleAll())) {
@@ -494,8 +494,22 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
                 $tblAccountConsumerTokenList = $tblAccountConsumerCredentialList;
             }
         }
-        if (!empty($tblAccountConsumerTokenList)) {
-            $tblAccountConsumerTokenList = array_unique($tblAccountConsumerTokenList);
+        // Systemaccounts wieder entfernen (kommen durch doppelte Identifikation (AUTHENTICATOR_APP) sonst mit
+        if (($tblIdentificationSystem = Account::useService()->getIdentificationByName(TblIdentification::NAME_SYSTEM))
+            && ($tblAccountSystemList = Account::useService()->getAccountListByIdentification($tblIdentificationSystem))
+        ) {
+            $RemoveAccountIdList = array();
+            if(!empty($tblAccountSystemList)) {
+                foreach ($tblAccountSystemList as $tblAccountSystem) {
+                    $RemoveAccountIdList[] = $tblAccountSystem->getId();
+                }
+            }
+            foreach($tblAccountConsumerTokenList as &$tblAccountConsumerToken){
+                if(in_array($tblAccountConsumerToken->getId(), $RemoveAccountIdList)){
+                    $tblAccountConsumerToken = false;
+                }
+            }
+            $tblAccountConsumerTokenList = array_filter($tblAccountConsumerTokenList);
         }
 
         return empty($tblAccountConsumerTokenList) ? false : $tblAccountConsumerTokenList;
@@ -508,6 +522,7 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
             case 'Auswertung: Kamenz-Statistik':return $this->setToolTip('Auswertungen für die Kamenz-Statistik (verfügbar für Schulträger, die die anteilige
                 Kostenübernahme für diese Auswertung über die Schulstiftung explizit zugesagt haben)');
             case 'Bildung: Fehlzeiten (Verwaltung)': return $this->setToolTip('Fehlzeitenverwaltung Kalenderansicht mit direkter Suche über alle Schüler');
+            case 'Bildung: Inklusion': return $this->setToolTip('Übersicht und Bearbeitung Förderverlauf, Entwicklungsbesonderheiten und Nachteilsausgleich');
             case 'Bildung: Klassenbuch (Lehrer mit Lehrauftrag)':  return $this->setToolTip('Digitales Klassenbuch für Lehrer mit Lehrauftrag und
                 Klassenlehrer');
             case 'Bildung: Klassenbuch (Alle Klassenbücher)': return $this->setToolTip('Digitales Klassenbuch aller Klassen');
@@ -515,6 +530,8 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
             case 'Bildung: Klassenbuch (Schulleitung)':return $this->setToolTip('Digitales Klassenbuch, Inklusion und inkl. Verwaltung und Auswertung von
                 Belehrungen aller Klassen');
             case 'Bildung: Notenbuch (Inklusionsbeauftragte)':return $this->setToolTip('Notenbuch aller Schüler');
+            case 'Bildung: pädagogisches Tagebuch (Inklusionsbeauftragte)':return $this->setToolTip('pädagogisches Tagebuch (alle Klassen einsehen
+                [wie Schulleitung], ohne erstellen/bearbeiten/löschen)');
             case 'Bildung: pädagogisches Tagebuch (Klassenlehrer)':return $this->setToolTip('pädagogisches Tagebuch (Klassenlehrer mit eigener Klasse)');
             case 'Bildung: pädagogisches Tagebuch (Lehrer mit Lehrauftrag)':return $this->setToolTip('pädagogisches Tagebuch (Fachlehrer können auf 
                 päd. Tagebücher zugreifen, wo diese einen Lehrauftrag besitzen. Die Fachlehrer können nur eigene Einträge bearbeiten)');

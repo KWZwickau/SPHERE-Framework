@@ -2,6 +2,7 @@
 
 namespace SPHERE\Application\Education\Lesson\DivisionCourse;
 
+use DateTime;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\Education\Diary\Diary;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Data;
@@ -14,6 +15,11 @@ use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblStudent
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblTeacherLectureship;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
+use SPHERE\Application\People\Group\Group;
+use SPHERE\Application\People\Group\Service\Entity\TblGroup;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransferType;
+use SPHERE\Application\People\Meta\Student\Student;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
@@ -44,6 +50,7 @@ abstract class ServiceYearChange extends ServiceTeacher
         $divisionCourseSekTransitionList = array();
 
         $tblMemberTypeStudent = DivisionCourse::useService()->getDivisionCourseMemberTypeByIdentifier(TblDivisionCourseMemberType::TYPE_STUDENT);
+        $tblGroupStudent = Group::useService()->getGroupByMetaTable('STUDENT');
         if (($tblStudentEducationList = DivisionCourse::useService()->getStudentEducationListBy($tblYearSource, $tblSchoolType))) {
             $tblStudentEducationList = $this->getSorter($tblStudentEducationList)->sortObjectBy('Sort');
             /** @var TblStudentEducation $tblStudentEducationSource */
@@ -54,8 +61,8 @@ abstract class ServiceYearChange extends ServiceTeacher
                 ) {
                     $dataSourceList[$level][$tblPerson->getId()] = $tblPerson->getLastFirstName();
 
-                    // Schüler mit Abgangszeugnis oder Abschlusszeugnis ignorieren
-                    if (Prepare::useService()->getIsLeaveOrDiplomaStudent($tblPerson, $tblYearSource)) {
+                    // folgende Schüler werden ignoriert beim Schuljahreswechsel
+                    if ($this->isIgnoreStudent($tblPerson, $tblYearSource, $tblYearTarget, $tblGroupStudent)) {
                         continue;
                     }
 
@@ -168,6 +175,41 @@ abstract class ServiceYearChange extends ServiceTeacher
     }
 
     /**
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYearSource
+     * @param TblYear $tblYearTarget
+     * @param TblGroup $tblGroupStudent
+     *
+     * @return bool
+     */
+    private function isIgnoreStudent(TblPerson $tblPerson, TblYear $tblYearSource, TblYear $tblYearTarget, TblGroup $tblGroupStudent): bool {
+        // Schüler mit Abgangszeugnis oder Abschlusszeugnis ignorieren
+        if (Prepare::useService()->getIsLeaveOrDiplomaStudent($tblPerson, $tblYearSource)) {
+            return true;
+        }
+
+        // SSWHD-3366 Schüler ignorieren welche nicht mehr in der Gruppe Schüler sind
+        if (!Group::useService()->existsGroupPerson($tblGroupStudent, $tblPerson))
+        {
+            return true;
+        }
+
+        // Abgangsdatum ist vor Beginn neues Schuljahr gesetzt
+        if (($tblStudent = $tblPerson->getStudent())
+            && ($tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier(TblStudentTransferType::LEAVE))
+            && ($tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent, $tblStudentTransferType))
+            && ($leaveDate = $tblStudentTransfer->getTransferDate())
+            && ($startDateTime = $tblYearTarget->getStartDateTime())
+            && ($leaveDateTime = new DateTime($leaveDate))
+            && $leaveDateTime < $startDateTime
+        ) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
      * @param TblType $tblSchoolType
      * @param TblYear $tblYearSource
      * @param TblYear $tblYearTarget
@@ -187,7 +229,7 @@ abstract class ServiceYearChange extends ServiceTeacher
         $createTeacherLectureshipList = array();
 
         $tblMemberTypeStudent = DivisionCourse::useService()->getDivisionCourseMemberTypeByIdentifier(TblDivisionCourseMemberType::TYPE_STUDENT);
-
+        $tblGroupStudent = Group::useService()->getGroupByMetaTable('STUDENT');
         if (($tblStudentEducationList = DivisionCourse::useService()->getStudentEducationListBy($tblYearSource, $tblSchoolType))) {
             $tblStudentEducationList = $this->getSorter($tblStudentEducationList)->sortObjectBy('Sort');
             /** @var TblStudentEducation $tblStudentEducationSource */
@@ -196,8 +238,8 @@ abstract class ServiceYearChange extends ServiceTeacher
                     && !$tblStudentEducationSource->isInActive()
                     && ($level = $tblStudentEducationSource->getLevel())
                 ) {
-                    // Schüler mit Abgangszeugnis oder Abschlusszeugnis ignorieren
-                    if (Prepare::useService()->getIsLeaveOrDiplomaStudent($tblPerson, $tblYearSource)) {
+                    // folgende Schüler werden ignoriert beim Schuljahreswechsel
+                    if ($this->isIgnoreStudent($tblPerson, $tblYearSource, $tblYearTarget, $tblGroupStudent)) {
                         continue;
                     }
 
@@ -392,7 +434,17 @@ abstract class ServiceYearChange extends ServiceTeacher
                 (new Data($this->getBinding()))->createEntityListBulk($createStudentEducationList);
             }
             if (!empty($updateStudentEducationList)) {
-                (new Data($this->getBinding()))->updateEntityListBulk($updateStudentEducationList);
+                foreach ($updateStudentEducationList as $tblStudentEducationUpdate) {
+                    (new Data($this->getBinding()))->updateStudentEducationByProperties(
+                        $tblStudentEducationUpdate,
+                        $tblStudentEducationUpdate->getTblDivision() ?: null,
+                        $tblStudentEducationUpdate->getDivisionSortOrder(),
+                        $tblStudentEducationUpdate->getTblCoreGroup() ?: null,
+                        $tblStudentEducationUpdate->getCoreGroupSortOrder(),
+                        $tblStudentEducationUpdate->getLeaveDateTime(),
+                        $tblStudentEducationUpdate->getLevel()
+                    );
+                }
             }
             if (!empty($createMemberList)) {
                 (new Data($this->getBinding()))->createEntityListBulk($createMemberList);
@@ -432,7 +484,8 @@ abstract class ServiceYearChange extends ServiceTeacher
                 $tblDivisionCourse->getDescription(),
                 $tblDivisionCourse->getIsShownInPersonData(),
                 $tblDivisionCourse->getIsReporting(),
-                $tblDivisionCourse->getServiceTblSubject() ?: null
+                $tblDivisionCourse->getServiceTblSubject() ?: null,
+                $tblDivisionCourse->getIsDigital()
             );
 
             // Klassenlehrer/Tutoren übertragen
@@ -503,8 +556,10 @@ abstract class ServiceYearChange extends ServiceTeacher
         if (preg_match_all('!\d+!', $tblDivisionCourse->getName(), $matches)) {
             $pos = strpos($tblDivisionCourse->getName(), $matches[0][0]);
             if ($pos === 0) {
-                $level = intval($matches[0][0]);
-                $newName = ($level + 1) . substr($newName, strlen($level));
+                $number = $matches[0][0];
+                $width = strlen($number);
+                $incremented  = str_pad(((int)$number) + 1, $width, "0", STR_PAD_LEFT);
+                $newName = $incremented . substr($newName, $width);
             }
         }
 
@@ -525,7 +580,7 @@ abstract class ServiceYearChange extends ServiceTeacher
         $divisionCourseTargetList = array();
         $divisionCourseStudentList = array();
         $createMemberList = array();
-        $updateStudentEducationList = array();
+        $updateStudentEducationListCoreGroup = array();
         if (($tblStudentEducationList = DivisionCourse::useService()->getStudentEducationListBy($tblYearSource))) {
             $tblStudentEducationList = $this->getSorter($tblStudentEducationList)->sortObjectBy('Sort');
             /** @var TblStudentEducation $tblStudentEducationSource */
@@ -549,8 +604,7 @@ abstract class ServiceYearChange extends ServiceTeacher
                     $divisionCourseStudentList[$tblCoreGroupSource->getId()][$tblPerson->getId()] = $tblPerson->getLastFirstName();
 
                     if ($isSave) {
-                        $tblStudentEducationTarget->setTblCoreGroup($divisionCourseTargetList[$tblCoreGroupSource->getId()] ?? null);
-                        $updateStudentEducationList[] = $tblStudentEducationTarget;
+                        $updateStudentEducationListCoreGroup[$tblStudentEducationTarget->getId()] = $divisionCourseTargetList[$tblCoreGroupSource->getId()] ?? null;
                     }
                 }
             }
@@ -570,8 +624,8 @@ abstract class ServiceYearChange extends ServiceTeacher
         }
 
         if ($isSave) {
-            if (!empty($updateStudentEducationList)) {
-                (new Data($this->getBinding()))->updateEntityListBulk($updateStudentEducationList);
+            if (!empty($updateStudentEducationListCoreGroup)) {
+                (new Data($this->getBinding()))->updateStudentEducationBulk($updateStudentEducationListCoreGroup, TblStudentEducation::ATTR_TBL_CORE_GROUP);
             }
             if (!empty($createMemberList)) {
                 (new Data($this->getBinding()))->createEntityListBulk($createMemberList);

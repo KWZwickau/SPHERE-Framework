@@ -85,6 +85,11 @@ class TblLessonContent extends Element
     protected string $Homework;
 
     /**
+     * @Column(type="datetime")
+     */
+    protected $DueDateHomework;
+
+    /**
      * @Column(type="string")
      */
     protected string $Room;
@@ -203,11 +208,14 @@ class TblLessonContent extends Element
     }
 
     /**
+     * @param bool $isShort
+     *
      * @return string
      */
-    public function getLessonDisplay(): string
+    public function getLessonDisplay(bool $isShort = false): string
     {
-        return $this->Lesson === null ? '' : $this->Lesson . '. Unterrichtseinheit';
+        $text = $isShort ? '. UE' : '. Unterrichtseinheit';
+        return $this->Lesson === null ? '' : $this->Lesson . $text;
     }
 
     /**
@@ -258,6 +266,31 @@ class TblLessonContent extends Element
     public function setHomework(string $Homework)
     {
         $this->Homework = $Homework;
+    }
+
+    /**
+     * @return string
+     */
+    public function getDueDateHomework()
+    {
+        if (null === $this->DueDateHomework) {
+            return false;
+        }
+        /** @var DateTime $Date */
+        $Date = $this->DueDateHomework;
+        if ($Date instanceof DateTime) {
+            return $Date->format('d.m.Y');
+        } else {
+            return (string)$Date;
+        }
+    }
+
+    /**
+     * @param null|DateTime $Date
+     */
+    public function setDueDateHomework(DateTime $Date = null)
+    {
+        $this->DueDateHomework = $Date;
     }
 
     /**
@@ -327,10 +360,21 @@ class TblLessonContent extends Element
     }
 
     /**
-     * @return false|TblLessonContent[]
+     * @return false|TblLessonContentLink[]
      */
-    public function getLinkedLessonContentAll()
+    public function getLinkedLessonContentAll(): array|bool
     {
         return Digital::useService()->getLessonContentLinkAllByLessonContent($this);
+    }
+
+    /**
+     * @param bool $withTeacher
+     *
+     * @return string
+     */
+    public function getIdentifier(bool $withTeacher = false): string
+    {
+        return $this->getDate() . '_' . $this->serviceTblDivision . '_' . ($this->serviceTblSubject ?: $this->serviceTblSubstituteSubject) . '_' . $this->Lesson
+            . ($withTeacher ?  '_' . $this->serviceTblPerson : '');
     }
 }

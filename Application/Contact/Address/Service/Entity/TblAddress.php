@@ -8,7 +8,7 @@ use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Layout\Repository\Address as LayoutAddress;
-use SPHERE\System\Cache\Handler\MemcachedHandler;
+use SPHERE\System\Cache\Handler\RedisHandler;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -27,10 +27,11 @@ class TblAddress extends Element
     const ATTR_STREET_NUMBER = 'StreetNumber';
     const ATTR_POST_OFFICE_BOX = 'PostOfficeBox';
     const ATTR_REGION = 'Region';
-    const ATTR_TBL_CITY = 'tblCity';
-    const ATTR_TBL_STATE = 'tblState';
     const ATTR_COUNTY = 'County';
     const ATTR_NATION = 'Nation';
+    const ATTR_ADDRESS_EXTRA = 'AddressExtra';
+    const ATTR_TBL_CITY = 'tblCity';
+    const ATTR_TBL_STATE = 'tblState';
 
     /**
      * @Column(type="string")
@@ -49,21 +50,61 @@ class TblAddress extends Element
      */
     protected $Region;
     /**
-     * @Column(type="bigint")
-     */
-    protected $tblCity;
-    /**
      * @Column(type="string")
      */
     protected $County;
     /**
-     * @Column(type="bigint")
-     */
-    protected $tblState;
-    /**
      * @Column(type="string")
      */
     protected $Nation;
+    /**
+     * @Column(type="string")
+     */
+    protected $AddressExtra;
+    /**
+     * @Column(type="bigint")
+     */
+    protected $tblCity;
+    /**
+     * @Column(type="bigint")
+     */
+    protected $tblState;
+
+    /**
+     * @return string
+     */
+    public function getStreetName()
+    {
+
+        return $this->StreetName;
+    }
+
+    /**
+     * @param string $StreetName
+     */
+    public function setStreetName($StreetName)
+    {
+
+        $this->StreetName = $StreetName;
+    }
+
+    /**
+     * @return string
+     */
+    public function getStreetNumber()
+    {
+
+        return $this->StreetNumber;
+    }
+
+    /**
+     * @param string $StreetNumber
+     */
+    public function setStreetNumber($StreetNumber)
+    {
+
+        $this->StreetNumber = $StreetNumber;
+    }
 
     /**
      * @return string
@@ -100,12 +141,104 @@ class TblAddress extends Element
     }
 
     /**
+     * @return mixed
+     */
+    public function getCounty()
+    {
+        return $this->County;
+    }
+
+    /**
+     * @param mixed $County
+     */
+    public function setCounty($County)
+    {
+        $this->County = trim($County);
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getNation()
+    {
+        return $this->Nation;
+    }
+
+    /**
+     * @param mixed $Nation
+     */
+    public function setNation($Nation)
+    {
+        $this->Nation = trim($Nation);
+    }
+
+    /**
+     * @return string
+     */
+    public function getAddressExtra()
+    {
+        return $this->AddressExtra;
+    }
+
+    /**
+     * @param string $AddressExtra
+     */
+    public function setAddressExtra(string $AddressExtra = ''): void
+    {
+        $this->AddressExtra = $AddressExtra;
+    }
+
+    /**
+     * @return bool|TblCity
+     */
+    public function getTblCity()
+    {
+
+        if (null === $this->tblCity) {
+            return false;
+        } else {
+            return Address::useService()->getCityById($this->tblCity);
+        }
+    }
+
+    /**
+     * @param null|TblCity $tblCity
+     */
+    public function setTblCity(TblCity $tblCity = null)
+    {
+
+        $this->tblCity = (null === $tblCity ? null : $tblCity->getId());
+    }
+
+    /**
+     * @return bool|TblState
+     */
+    public function getTblState()
+    {
+
+        if (null === $this->tblState) {
+            return false;
+        } else {
+            return Address::useService()->getStateById($this->tblState);
+        }
+    }
+
+    /**
+     * @param null|TblState $tblState
+     */
+    public function setTblState(TblState $tblState = null)
+    {
+
+        $this->tblState = (null === $tblState ? null : $tblState->getId());
+    }
+
+    /**
      * @return LayoutAddress
      */
     public function getGuiLayout()
     {
 
-        $Cache = $this->getCache(new MemcachedHandler());
+        $Cache = $this->getCache(new RedisHandler());
         if (null === ($Return = $Cache->getValue($this->getId(), __METHOD__))) {
             $Return = new LayoutAddress($this);
             $Cache->setValue($this->getId(), (string)$Return, 0, __METHOD__);
@@ -121,7 +254,7 @@ class TblAddress extends Element
     public function getGuiString($Extended = true)
     {
 
-        $Cache = $this->getCache(new MemcachedHandler());
+        $Cache = $this->getCache(new RedisHandler());
         if (null === ($Return = $Cache->getValue($this->getId(), __METHOD__))) {
 
             // 0 as Default
@@ -187,7 +320,7 @@ class TblAddress extends Element
     public function getGuiTwoRowString($Extended = true, $withCommaSeparated = true)
     {
 
-        $Cache = $this->getCache(new MemcachedHandler());
+        $Cache = $this->getCache(new RedisHandler());
         if (null === ($Return = $Cache->getValue($this->getId(), __METHOD__))) {
 
             // 0 as Default
@@ -234,118 +367,6 @@ class TblAddress extends Element
             $Cache->setValue($this->getId(), $Return, 0, __METHOD__);
         }
         return $Return;
-    }
-
-    /**
-     * @return string
-     */
-    public function getStreetName()
-    {
-
-        return $this->StreetName;
-    }
-
-    /**
-     * @param string $StreetName
-     */
-    public function setStreetName($StreetName)
-    {
-
-        $this->StreetName = $StreetName;
-    }
-
-    /**
-     * @return string
-     */
-    public function getStreetNumber()
-    {
-
-        return $this->StreetNumber;
-    }
-
-    /**
-     * @param string $StreetNumber
-     */
-    public function setStreetNumber($StreetNumber)
-    {
-
-        $this->StreetNumber = $StreetNumber;
-    }
-
-    /**
-     * @return bool|TblCity
-     */
-    public function getTblCity()
-    {
-
-        if (null === $this->tblCity) {
-            return false;
-        } else {
-            return Address::useService()->getCityById($this->tblCity);
-        }
-    }
-
-    /**
-     * @param null|TblCity $tblCity
-     */
-    public function setTblCity(TblCity $tblCity = null)
-    {
-
-        $this->tblCity = (null === $tblCity ? null : $tblCity->getId());
-    }
-
-    /**
-     * @return bool|TblState
-     */
-    public function getTblState()
-    {
-
-        if (null === $this->tblState) {
-            return false;
-        } else {
-            return Address::useService()->getStateById($this->tblState);
-        }
-    }
-
-    /**
-     * @param null|TblState $tblState
-     */
-    public function setTblState(TblState $tblState = null)
-    {
-
-        $this->tblState = (null === $tblState ? null : $tblState->getId());
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getCounty()
-    {
-        return $this->County;
-    }
-
-    /**
-     * @param mixed $County
-     */
-    public function setCounty($County)
-    {
-        $this->County = trim($County);
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getNation()
-    {
-        return $this->Nation;
-    }
-
-    /**
-     * @param mixed $Nation
-     */
-    public function setNation($Nation)
-    {
-        $this->Nation = trim($Nation);
     }
 
     /**

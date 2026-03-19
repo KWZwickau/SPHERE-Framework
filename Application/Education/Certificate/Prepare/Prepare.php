@@ -103,6 +103,9 @@ class Prepare implements IModuleInterface
             __NAMESPACE__ . '\Leave\Student', __NAMESPACE__ . '\Frontend::frontendLeaveStudentTemplate')
         );
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '\Leave\Student\Delete', __NAMESPACE__ . '\Frontend::frontendDestroyLeaveStudent')
+        );
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '\Leave\Student\Abitur\Points', __NAMESPACE__ . '\Frontend::frontendLeaveStudentAbiturPoints')
         );
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(

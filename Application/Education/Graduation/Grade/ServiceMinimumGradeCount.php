@@ -390,7 +390,7 @@ abstract class ServiceMinimumGradeCount extends ServiceGradeType
             return '';
         }
 
-        if (!($tblYear = Grade::useService()->getYear())) {
+        if (!($tblYearList = Grade::useService()->getSelectedYearList())) {
             return new Warning('Bitte wählen Sie ein Schuljahr aus!', new Exclamation());
         }
 
@@ -402,10 +402,10 @@ abstract class ServiceMinimumGradeCount extends ServiceGradeType
 
         $warning = '';
         $tblDivisionCourseList = $this->getDivisionCourseListForMinimumGradeCountReporting(
-            $tblYear,
+            $tblYearList,
             $tblType ?: null,
             $IsDivisionTeacher,
-            trim($Data['DivisionName']),
+            isset($Data['DivisionName']) ? trim($Data['DivisionName']) : '',
             $warning
         );
         if ($warning) {
@@ -424,6 +424,7 @@ abstract class ServiceMinimumGradeCount extends ServiceGradeType
                 $countArray = array();
                 if (($tblSubjectList = DivisionCourse::useService()->getSubjectListByDivisionCourse($tblDivisionCourse))
                     && ($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses())
+                    && ($tblYear = $tblDivisionCourse->getServiceTblYear())
                 ) {
                     foreach ($tblPersonList as $tblPerson) {
                         if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))
@@ -569,7 +570,7 @@ abstract class ServiceMinimumGradeCount extends ServiceGradeType
     }
 
     /**
-     * @param TblYear $tblYear
+     * @param array $tblYearList
      * @param TblType|null $tblType
      * @param bool $IsDivisionTeacher
      * @param string $divisionName
@@ -578,7 +579,7 @@ abstract class ServiceMinimumGradeCount extends ServiceGradeType
      * @return array
      */
     public function getDivisionCourseListForMinimumGradeCountReporting(
-        TblYear $tblYear,
+        array $tblYearList,
         ?TblType $tblType,
         bool $IsDivisionTeacher,
         string $divisionName,
@@ -587,30 +588,32 @@ abstract class ServiceMinimumGradeCount extends ServiceGradeType
     {
         $tblDivisionCourseList = array();
         if ($divisionName != '') {
-            $tblDivisionCourseList = DivisionCourse::useService()->getDivisionCourseListByLikeName($divisionName, array($tblYear), true);
+            $tblDivisionCourseList = DivisionCourse::useService()->getDivisionCourseListByLikeName($divisionName, $tblYearList, true);
             if (empty($tblDivisionCourseList)) {
                 $warning = new Warning('Klasse/Stammgruppe nicht gefunden', new Exclamation());
 
                 return array();
             }
         } else {
-            if (($tblDivisionCourseListDivision = DivisionCourse::useService()->getDivisionCourseListBy($tblYear, TblDivisionCourseType::TYPE_DIVISION))) {
-                $tblDivisionCourseList = array_merge($tblDivisionCourseList, $tblDivisionCourseListDivision);
-            }
-            if (($tblDivisionCourseListCoreGroup = DivisionCourse::useService()->getDivisionCourseListBy($tblYear, TblDivisionCourseType::TYPE_CORE_GROUP))) {
-                $tblDivisionCourseList = array_merge($tblDivisionCourseList, $tblDivisionCourseListCoreGroup);
-            }
-
-            if ($tblType && $tblDivisionCourseList) {
-                $tblDivisionCourseListForType = array();
-                foreach ($tblDivisionCourseList as $tblDivisionCourse) {
-                    if (($tblSchoolTypeList = $tblDivisionCourse->getSchoolTypeListFromStudents())
-                        && isset($tblSchoolTypeList[$tblType->getId()])
-                    ) {
-                        $tblDivisionCourseListForType[$tblDivisionCourse->getId()] = $tblDivisionCourse;
-                    }
+            foreach ($tblYearList as $tblYear) {
+                if (($tblDivisionCourseListDivision = DivisionCourse::useService()->getDivisionCourseListBy($tblYear, TblDivisionCourseType::TYPE_DIVISION))) {
+                    $tblDivisionCourseList = array_merge($tblDivisionCourseList, $tblDivisionCourseListDivision);
                 }
-                $tblDivisionCourseList = $tblDivisionCourseListForType;
+                if (($tblDivisionCourseListCoreGroup = DivisionCourse::useService()->getDivisionCourseListBy($tblYear, TblDivisionCourseType::TYPE_CORE_GROUP))) {
+                    $tblDivisionCourseList = array_merge($tblDivisionCourseList, $tblDivisionCourseListCoreGroup);
+                }
+
+                if ($tblType && $tblDivisionCourseList) {
+                    $tblDivisionCourseListForType = array();
+                    foreach ($tblDivisionCourseList as $tblDivisionCourse) {
+                        if (($tblSchoolTypeList = $tblDivisionCourse->getSchoolTypeListFromStudents())
+                            && isset($tblSchoolTypeList[$tblType->getId()])
+                        ) {
+                            $tblDivisionCourseListForType[$tblDivisionCourse->getId()] = $tblDivisionCourse;
+                        }
+                    }
+                    $tblDivisionCourseList = $tblDivisionCourseListForType;
+                }
             }
         }
 

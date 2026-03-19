@@ -20,6 +20,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\YubiKey;
 use SPHERE\Common\Frontend\IFrontendInterface;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\PullClear;
 use SPHERE\Common\Frontend\Layout\Repository\PullLeft;
@@ -60,6 +61,11 @@ class Frontend implements IFrontendInterface
         $Stage = new Stage('Hardware-Schlüssel', 'Übersicht');
 
         $Stage->setContent(
+            new Warning(
+                new Container('Für die Schulsoftware benötigen Sie YubiKey 5 NFC (GTIN: 5060408461426) oder YubiKey 5C NFC (GTIN: 5060408462331) mit dem
+                Authentifizierungsprotokoll Yubico OTP.').
+                new Container('Nicht unterstützt werden z.B. Yubico - Security Key C NFC (GTIN: 5060408465301) oder Yubico - Security Key NFC
+                (GTIN: 5060408465295).')).
             $this->frontendLayoutToken() .
             new Layout(array(
                 new LayoutGroup(

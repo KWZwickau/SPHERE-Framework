@@ -17,10 +17,13 @@ SELECT
     tA.PostOfficeBox AS TblAddress_PostOfficeBox,
     tA.County AS TblAddress_County,
     tA.Nation AS TblAddress_Nation,
+    tA.AddressExtra as TblAddress_AddressExtra,
 -- tblCity
     tC.Code AS TblCity_Code,
     tC.Name AS TblCity_Name,
     tC.District AS TblCity_District,
+-- whole Address
+    concat(tC.Code, " ", tC.Name, " ", tC.District, IF(tC.District != "", " ", ""), tA.StreetName, " ", tA.StreetNumber) AS whole_Address,
 -- tblState
     tS.Name AS TblState_Name,
     IF(tA.Region = '',

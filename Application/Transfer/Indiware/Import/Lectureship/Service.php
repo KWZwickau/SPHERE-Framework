@@ -69,8 +69,12 @@ class Service
          * Prepare
          */
         $File = $File->move($File->getPath(), $File->getFilename().'.'.$File->getClientOriginalExtension());
-        // Zeichenkodierung umwandeln
-        $File->convertCharSet();
+        // erkennung Zeichenkodierung
+        $encoding = mb_detect_encoding($File->getContent(), mb_detect_order(), true);
+        if ($encoding != 'UTF-8') {
+            // Zeichenkodierung umwandeln
+            $File->convertCharSet();
+        }
 
         /**
          * Read
@@ -84,7 +88,7 @@ class Service
         $Location['Gruppe'] = null;
         // Lehrer, Lehrer2, Lehrer3
         for ($i = 1; $i <= 3; $i++) {
-            $Location['Lehrer' . ($i == 1 ? '' : $i)] = null;
+            $Location['Lehrer' . $i] = null;
         }
         // Klasse1..20
         for ($j = 1; $j <= 20; $j++) {
@@ -95,6 +99,9 @@ class Service
             $Value = trim($Document->getValue($Document->getCell($RunX, 0)));
             if (array_key_exists($Value, $Location)) {
                 $Location[$Value] = $RunX;
+            // in alten Importen hieß die Spalte Lehrer und in neuen kann es sein das sie Lehrer1 heißt
+            } elseif ($Value == 'Lehrer') {
+                $Location['Lehrer1'] = $RunX;
             }
         }
 
@@ -121,7 +128,7 @@ class Service
                 $SubjectGroup = trim($Document->getValue($Document->getCell($Location['Gruppe'], $RunY)));
                 if ($SubjectAcronym) {
                     for ($i = 1; $i <= 3; $i++) {
-                        if (($TeacherAcronym = trim($Document->getValue($Document->getCell($Location['Lehrer' . ($i == 1 ? '' : $i)], $RunY))))) {
+                        if (($TeacherAcronym = trim($Document->getValue($Document->getCell($Location['Lehrer' . $i], $RunY))))) {
                             for ($j = 1; $j <= 20; $j++) {
                                 if (($DivisionName = trim($Document->getValue($Document->getCell($Location['Klasse' . $j], $RunY))))) {
                                     // doppelte Einträge ignorieren

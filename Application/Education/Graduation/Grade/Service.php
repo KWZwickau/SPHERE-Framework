@@ -111,9 +111,9 @@ class Service extends ServiceTask
     /**
      * @param TblTest $tblTest
      *
-     * @return false|TblDivisionCourse[]
+     * @return TblDivisionCourse[]
      */
-    public function getDivisionCourseListByTest(TblTest $tblTest)
+    public function getDivisionCourseListByTest(TblTest $tblTest): array
     {
         return (new Data($this->getBinding()))->getDivisionCourseListByTest($tblTest);
     }
@@ -130,21 +130,36 @@ class Service extends ServiceTask
     }
 
     /**
-     * @return false|TblYear
+     * @return false|TblYear[]
      */
-    public function getYear()
+    public function getSelectedYearList(): bool|array
     {
         if (($tblAccountSetting = Consumer::useService()->getAccountSettingValue("GradeBookSelectedYearId"))
             && ($tblYear = Term::useService()->getYearById($tblAccountSetting))
         ) {
-            return $tblYear;
+            return array($tblYear);
         }
 
         if (($tblYearList = Term::useService()->getYearByNow())) {
-            return current($tblYearList);
+            return $tblYearList;
         }
 
         return false;
+    }
+
+    /**
+     * @return int
+     */
+    public function getSelectYearId(): int
+    {
+        if (($tblAccountSetting = Consumer::useService()->getAccountSettingValue("GradeBookSelectedYearId"))
+            && ($tblYear = Term::useService()->getYearById($tblAccountSetting))
+        ) {
+            return $tblYear->getId();
+        }
+
+        // Aktuelles Schuljahr
+        return -1;
     }
 
     /**
@@ -179,17 +194,14 @@ class Service extends ServiceTask
             case "Headmaster": return true;
             case "Teacher":
                 // der Lehrer darf nur aktuelles Schuljahr bearbeiten und benötigt Lehrauftrag oder eigene Lerngruppe
-                if (($tblYearSelected = $this->getYear())
-                    && ($tblYearList = Term::useService()->getYearByNow())
+                if (($tblYearList = Term::useService()->getYearByNow())
                     && ($tblPerson = Account::useService()->getPersonByLogin())
                     && ($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))
+                    && ($tblDivisionCourseYear = $tblDivisionCourse->getServiceTblYear())
                     && ($tblSubject = Subject::useService()->getSubjectById($SubjectId))
                 ) {
                     foreach ($tblYearList as $tblYear) {
-                        if ($tblYear->getId() == $tblYearSelected->getId()
-                            && ($tblYearFromDivisionCourse = $tblDivisionCourse->getServiceTblYear())
-                            && $tblYear->getId() == $tblYearFromDivisionCourse->getId()
-                        ) {
+                        if ($tblYear->getId() == $tblDivisionCourseYear->getId()) {
                             return $this->getHasTeacherLectureshipForDivisionCourseAndSubject($tblPerson, $tblDivisionCourse, $tblSubject);
                         }
                     }
@@ -262,7 +274,17 @@ class Service extends ServiceTask
         $error = false;
         $form = Grade::useFrontend()->formTeacherGroup($tblDivisionCourse ? $tblDivisionCourse->getId() : null, false, $Data);
 
-        $tblYear = $tblDivisionCourse ? $tblDivisionCourse->getServiceTblYear() : $this->getYear();
+        if ($tblDivisionCourse) {
+            $tblYear = $tblDivisionCourse->getServiceTblYear();
+        } elseif (!isset($Data['Year'])) {
+            $Data['Year'] = false;
+            if (($tblYearList = Grade::useService()->getSelectedYearList()) && count($tblYearList) == 1) {
+                $Data['Year'] = (current($tblYearList))->getId();
+            }
+            $tblYear = Term::useService()->getYearById($Data['Year']);
+        } else {
+            $tblYear = Term::useService()->getYearById($Data['Year']);
+        }
 
         if (!$tblDivisionCourse) {
             if (!isset($Data['Subject']) || !(Subject::useService()->getSubjectById($Data['Subject']))) {
@@ -315,7 +337,25 @@ class Service extends ServiceTask
         if (isset($Data['Date']) && empty($Data['Date'])) {
             $form->setError('Data[Date]', 'Bitte geben Sie ein Datum an');
             $error = true;
+        } else {
+            // Prüfung, ob sich das Datum im Schuljahr befindet
+            if(isset($Data['FinishDate'])){
+                $date = new DateTime($Data['FinishDate']);
+            } else {
+                $date = new DateTime($Data['Date']);
+            }
+            if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))
+                && ($tblYear = $tblDivisionCourse->getServiceTblYear())
+                && (list($startDate, $endDate) = Term::useService()->getStartDateAndEndDateOfYear($tblYear))
+                && $startDate
+                && $endDate
+                && ($date < $startDate || $date > $endDate)
+            ) {
+                $form->setError('Data[Date]', 'Bitte geben Sie ein Datum innerhalb des Schuljahrs an');
+                $error = true;
+            }
         }
+
 
         return $error ? $form : false;
     }
@@ -331,15 +371,16 @@ class Service extends ServiceTask
      * @param bool $IsContinues
      * @param string $Description
      * @param TblPerson|null $tblTeacher
+     * @param DateTime|null $SecondPeriodDate
      *
      * @return TblTest
      */
     public function createTest(TblYear $tblYear, TblSubject $tblSubject, TblGradeType $tblGradeType,
         ?DateTime $Date, ?DateTime $FinishDate, ?DateTime $CorrectionDate, ?DateTime $ReturnDate, bool $IsContinues, string $Description,
-        ?TblPerson $tblTeacher): TblTest
+        ?TblPerson $tblTeacher, ?DateTime $SecondPeriodDate): TblTest
     {
         return (new Data($this->getBinding()))->createTest($tblYear, $tblSubject, $tblGradeType, $Date, $FinishDate, $CorrectionDate, $ReturnDate, $IsContinues,
-            $Description, $tblTeacher);
+            $Description, $tblTeacher, $SecondPeriodDate);
     }
 
     /**
@@ -351,13 +392,14 @@ class Service extends ServiceTask
      * @param DateTime|null $ReturnDate
      * @param bool $IsContinues
      * @param string $Description
+     * @param DateTime|null $SecondPeriodDate
      *
      * @return bool
      */
     public function updateTest(TblTest $tblTest, TblGradeType $tblGradeType,
-        ?DateTime $Date, ?DateTime $FinishDate, ?DateTime $CorrectionDate, ?DateTime $ReturnDate, bool $IsContinues, string $Description): bool
+        ?DateTime $Date, ?DateTime $FinishDate, ?DateTime $CorrectionDate, ?DateTime $ReturnDate, bool $IsContinues, string $Description, ?DateTime $SecondPeriodDate): bool
     {
-        return (new Data($this->getBinding()))->updateTest($tblTest, $tblGradeType, $Date, $FinishDate, $CorrectionDate, $ReturnDate, $IsContinues, $Description);
+        return (new Data($this->getBinding()))->updateTest($tblTest, $tblGradeType, $Date, $FinishDate, $CorrectionDate, $ReturnDate, $IsContinues, $Description, $SecondPeriodDate);
     }
 
     /**
@@ -388,13 +430,73 @@ class Service extends ServiceTask
     }
 
     /**
-     * @param array $tblEntityList
+     * @param array $list
      *
      * @return bool
      */
-    public function updateEntityListBulk(array $tblEntityList): bool
+    public function updateTestGradeListBulk(array $list): bool
     {
-        return (new Data($this->getBinding()))->updateEntityListBulk($tblEntityList);
+        return (new Data($this->getBinding()))->updateTestGradeListBulk($list);
+    }
+
+    /**
+     * @param array $list
+     *
+     * @return bool
+     */
+    public function updateTaskGradeListBulk(array $list): bool
+    {
+        return (new Data($this->getBinding()))->updateTaskGradeListBulk($list);
+    }
+
+    /**
+     * @param array $list
+     *
+     * @return bool
+     */
+    public function updateProposalBehaviorGradeListBulk(array $list): bool
+    {
+        return (new Data($this->getBinding()))->updateProposalBehaviorGradeListBulk($list);
+    }
+
+    /**
+     * @param array $list
+     *
+     * @return bool
+     */
+    public function updateScoreTypeSubjectListBulk(array $list): bool
+    {
+        return (new Data($this->getBinding()))->updateScoreTypeSubjectListBulk($list);
+    }
+
+    /**
+     * @param array $list
+     *
+     * @return bool
+     */
+    public function updateScoreRuleBehaviorSubjectListBulk(array $list): bool
+    {
+        return (new Data($this->getBinding()))->updateScoreRuleBehaviorSubjectListBulk($list);
+    }
+
+    /**
+     * @param array $list
+     *
+     * @return bool
+     */
+    public function updateScoreRuleSubjectListBulk(array $list): bool
+    {
+        return (new Data($this->getBinding()))->updateScoreRuleSubjectListBulk($list);
+    }
+
+    /**
+     * @param array $list
+     *
+     * @return bool
+     */
+    public function updateScoreRuleSubjectDivisionCourseListBulk(array $list): bool
+    {
+        return (new Data($this->getBinding()))->updateScoreRuleSubjectDivisionCourseListBulk($list);
     }
 
     /**
@@ -668,7 +770,7 @@ class Service extends ServiceTask
                 switch ($virtualTestTask->getType()) {
                     case VirtualTestTask::TYPE_TEST:
                         $tblTest = $virtualTestTask->getTblTest();
-                        $date = $tblTest->getFinishDate() ?: $tblTest->getDate();
+                        $date = $tblTest->getFinishDate() ?: ($tblTest->getSecondPeriodDate() ?: $tblTest->getDate());
                         $hasPeriodFound = false;
                         $count = 0;
                         if ($date && isset($averagePeriodList['Periods'])) {
@@ -952,5 +1054,54 @@ class Service extends ServiceTask
         }
 
         return $tblTestList;
+    }
+
+    /**
+     * @param DateTime $date
+     *
+     * @return TblTest[]
+     */
+    public function getTestListForDigitalByDate(DateTime $date): array
+    {
+        $resultList = [];
+        if (($tblTestList = (new Data($this->getBinding()))->getTestListByDate($date))) {
+            foreach ($tblTestList as $tblTest) {
+                if (($tblSubject = $tblTest->getServiceTblSubject())) {
+                    $resultList[$tblSubject->getId()][$tblTest->getId()] = $tblTest;
+                }
+            }
+        }
+
+        return $resultList;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param TblSubject $tblSubject
+     * @param bool $OnlyIsDigital
+     *
+     * @return TblDivisionCourse[]
+     */
+    public function getTeacherGroupsByTeacherAndDivisionCourseAndSubject(TblPerson $tblPerson, TblDivisionCourse $tblDivisionCourse, TblSubject $tblSubject,
+        bool $OnlyIsDigital = false): array
+    {
+        $resultList = [];
+        if (($tblYear = $tblDivisionCourse->getServiceTblYear())
+            && ($tblDivisionCourseList = DivisionCourse::useService()->getTeacherGroupListByTeacherAndYear($tblPerson, $tblYear, $tblSubject))
+        ) {
+            $checkDivisionCourseList = DivisionCourse::useService()->getDivisionCourseListByStudentsInDivisionCourse($tblDivisionCourse);
+            foreach ($tblDivisionCourseList as $tblDivisionCourseTemp) {
+                if (isset($checkDivisionCourseList[$tblDivisionCourseTemp->getId()])) {
+                    if ($OnlyIsDigital && !$tblDivisionCourseTemp->getIsDigital()) {
+                        continue;
+                    }
+
+                    $resultList[$tblDivisionCourseTemp->getId()] = $tblDivisionCourseTemp;
+                }
+            }
+        }
+
+        return $resultList;
     }
 }

@@ -33,6 +33,8 @@ class ViewPersonContact extends AbstractView
     // Sortierung beeinflusst die Gruppenreihenfolge im Frontend
     const TBL_PERSON_ID = 'TblPerson_Id';
 
+    const WHOLE_ADDRESS = 'whole_Address';
+    const TBL_ADDRESS_ADDRESS_EXTRA = 'TblAddress_AddressExtra';
     const TBL_ADDRESS_STREET_NAME = 'TblAddress_StreetName';
     const TBL_ADDRESS_STREET_NUMBER = 'TblAddress_StreetNumber';
     const TBL_CITY_CODE = 'TblCity_Code';
@@ -43,6 +45,7 @@ class ViewPersonContact extends AbstractView
     const TBL_ADDRESS_REGION = 'TblAddress_Region';
     const TBL_ADDRESS_NATION = 'TblAddress_Nation';
 
+    const TBL_ADDRESS_ADDRESS_EXTRA_2 = 'TblAddress_AddressExtra2';
     const TBL_ADDRESS_STREET_NAME_2 = 'TblAddress_StreetName2';
     const TBL_ADDRESS_STREET_NUMBER_2 = 'TblAddress_StreetNumber2';
     const TBL_CITY_CODE_2 = 'TblCity_Code2';
@@ -83,6 +86,14 @@ class ViewPersonContact extends AbstractView
     /**
      * @Column(type="string")
      */
+    protected $whole_Address;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblAddress_AddressExtra;
+    /**
+     * @Column(type="string")
+     */
     protected $TblAddress_StreetName;
     /**
      * @Column(type="string")
@@ -117,6 +128,10 @@ class ViewPersonContact extends AbstractView
      */
     protected $TblState_Name;
 
+    /**
+     * @Column(type="string")
+     */
+    protected $TblAddress_AddressExtra2;
     /**
      * @Column(type="string")
      */
@@ -214,6 +229,8 @@ class ViewPersonContact extends AbstractView
     {
 
         //NameDefinition
+        $this->setNameDefinition(self::WHOLE_ADDRESS, 'Hauptadresse: Zusammengefasst');
+        $this->setNameDefinition(self::TBL_ADDRESS_ADDRESS_EXTRA, 'Hauptadresse: Adresszusatz');
         $this->setNameDefinition(self::TBL_ADDRESS_STREET_NAME, 'Hauptadresse: Straße');
         $this->setNameDefinition(self::TBL_ADDRESS_STREET_NUMBER, 'Hauptadresse: Hausnummer');
         $this->setNameDefinition(self::TBL_CITY_CODE, 'Hauptadresse: Postleitzahl');
@@ -224,6 +241,7 @@ class ViewPersonContact extends AbstractView
         $this->setNameDefinition(self::TBL_ADDRESS_STATE, 'Hauptadresse: Bundesland');
         $this->setNameDefinition(self::TBL_ADDRESS_NATION, 'Hauptadresse: Land');
 
+        $this->setNameDefinition(self::TBL_ADDRESS_ADDRESS_EXTRA_2, 'Nebenadresse: Adresszusatz');
         $this->setNameDefinition(self::TBL_ADDRESS_STREET_NAME_2, 'Nebenadresse: Straße');
         $this->setNameDefinition(self::TBL_ADDRESS_STREET_NUMBER_2, 'Nebenadresse: Hausnummer');
         $this->setNameDefinition(self::TBL_CITY_CODE_2, 'Nebenadresse: Postleitzahl');
@@ -249,6 +267,8 @@ class ViewPersonContact extends AbstractView
         $this->setNameDefinition(self::TBL_MAIL_ADDRESS_COMPANY, 'Person: E-Mail Geschäftlich');
 
         $this->setGroupDefinition('Hauptadresse', array(
+            self::WHOLE_ADDRESS,
+            self::TBL_ADDRESS_ADDRESS_EXTRA,
             self::TBL_ADDRESS_STREET_NAME,
             self::TBL_ADDRESS_STREET_NUMBER,
             self::TBL_CITY_CODE,
@@ -261,6 +281,7 @@ class ViewPersonContact extends AbstractView
         ));
 
         $this->setGroupDefinition('Zweit-/Nebenadresse', array(
+            self::TBL_ADDRESS_ADDRESS_EXTRA_2,
             self::TBL_ADDRESS_STREET_NAME_2,
             self::TBL_ADDRESS_STREET_NUMBER_2,
             self::TBL_CITY_CODE_2,

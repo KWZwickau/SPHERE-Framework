@@ -576,7 +576,7 @@ class Data extends AbstractData
     {
 
         /** @var TblPersonPicture $Entity */
-        $Entity = $this->getCachedEntityBy(__Method__, $this->getConnection()->getEntityManager(), 'TblPersonPicture',
+        $Entity = $this->getForceEntityBy(__Method__, $this->getConnection()->getEntityManager(), 'TblPersonPicture',
             array(TblPersonPicture::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()));
         return (null === $Entity ? false : $Entity);
     }

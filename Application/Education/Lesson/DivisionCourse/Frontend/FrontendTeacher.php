@@ -7,7 +7,6 @@ use SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount\SelectBo
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
-use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblTeacherLectureship;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Group\Group;
@@ -22,6 +21,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
+use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Filter;
 use SPHERE\Common\Frontend\Icon\Repository\Pen;
@@ -77,133 +77,14 @@ class FrontendTeacher extends FrontendSubjectTable
      */
     public function loadTeacherLectureshipTable($Filter = null): string
     {
-        $hasFilter = false;
-        $tblYearList = false;
-        $tblSubjectFilter = Subject::useService()->getSubjectById($Filter['Subject']);
-        $tblTeacherFilter = Person::useService()->getPersonById($Filter['Teacher']);
-
-        $tblTeacherLectureshipList = array();
-        // Name like
-        if (isset($Filter['CourseName']) && $Filter['CourseName'] != '') {
-            $hasFilter = true;
-            if (isset($Filter['Year']) && $Filter['Year'] == -1) {
-                $tblYearList = Term::useService()->getYearByNow();
-                $tblDivisionCourseList = DivisionCourse::useService()->getDivisionCourseListByLikeName($Filter['CourseName'], $tblYearList ?: null);
-            } elseif (isset($Filter['Year']) && ($tblYear = Term::useService()->getYearById($Filter['Year']))) {
-                $tblDivisionCourseList = DivisionCourse::useService()->getDivisionCourseListByLikeName($Filter['CourseName'], array($tblYear));
-            } else {
-                return (new Warning('Bitte wählen Sie ein Schuljahr aus', new Exclamation()));
-            }
-
-            if ($tblDivisionCourseList) {
-                foreach ($tblDivisionCourseList as $tblDivisionCourse) {
-                    if (($tblTeacherLectureshipDivisionCourseList = DivisionCourse::useService()->getTeacherLectureshipListBy(
-                        null, $tblTeacherFilter ?: null, $tblDivisionCourse, $tblSubjectFilter ?: null
-                    ))) {
-                        $tblTeacherLectureshipList = array_merge($tblTeacherLectureshipDivisionCourseList, $tblTeacherLectureshipList);
-                    }
-                }
-            }
-        } elseif ($tblSubjectFilter || $tblTeacherFilter) {
-            $hasFilter = true;
-            if (isset($Filter['Year']) && $Filter['Year'] == -1) {
-                if (($tblYearList = Term::useService()->getYearByNow())) {
-                    foreach ($tblYearList as $tblYearItem) {
-                        if (($tblTeacherLectureshipYearList = DivisionCourse::useService()->getTeacherLectureshipListBy(
-                            $tblYearItem, $tblTeacherFilter ?: null, null, $tblSubjectFilter ?: null
-                        ))) {
-                            $tblTeacherLectureshipList = array_merge($tblTeacherLectureshipYearList, $tblTeacherLectureshipList);
-                        }
-                    }
-                }
-                // ausgewähltes Schuljahr
-            } elseif (isset($Filter['Year']) && ($tblYearFilter = Term::useService()->getYearById($Filter['Year']))) {
-                $tblTeacherLectureshipList = DivisionCourse::useService()->getTeacherLectureshipListBy(
-                    $tblYearFilter, $tblTeacherFilter ?: null, null, $tblSubjectFilter ?: null
-                );
-            } else {
-                return (new Warning('Bitte wählen Sie ein Schuljahr aus', new Exclamation()));
-            }
+        $data = DivisionCourse::useService()->getTeacherLectureshipDataByFilter($Filter);
+        if (!is_array($data)) {
+            return $data;
         }
-
-        $personList = array();
-        $personListWithoutTeacherGroup = array();
-        // bei Filterung, nur Lehrer mit entsprechendem Lehrauftrag anzeigen
-        if ($hasFilter) {
-            if ($tblTeacherLectureshipList) {
-                $tblTeacherLectureshipList = $this->getSorter($tblTeacherLectureshipList)->sortObjectBy('Sort');
-                foreach ($tblTeacherLectureshipList as $tblTeacherLectureship) {
-                    if (($tblPerson = $tblTeacherLectureship->getServiceTblPerson())
-                        && ($tblSubject = $tblTeacherLectureship->getServiceTblSubject())
-                        && ($tblDivisionCourse = $tblTeacherLectureship->getTblDivisionCourse())
-                    ) {
-                        $personList[$tblPerson->getId()][$tblSubject->getId()][$tblDivisionCourse->getId()] = $tblDivisionCourse->getName()
-                            . (($groupName = $tblTeacherLectureship->getGroupName()) ? ' (' . $groupName . ')' : '');
-                    }
-                }
-            }
-
-            if ($tblTeacherFilter && !isset($personList[$tblTeacherFilter->getId()])) {
-                $personList[$tblTeacherFilter->getId()] = false;
-            }
-        // kein Filter, dann alle Lehrer anzeigen
-        } else {
-            if (isset($Filter['Year']) && $Filter['Year'] == -1) {
-                $tblYearList = Term::useService()->getYearByNow();
-            } elseif (isset($Filter['Year']) && ($tblYearFilter = Term::useService()->getYearById($Filter['Year']))) {
-                $tblYearList = array($tblYearFilter);
-            }
-
-            if (($tblPersonList = Group::useService()->getPersonAllByGroup(Group::useService()->getGroupByMetaTable('TEACHER')))) {
-                $tblPersonList = $this->getSorter($tblPersonList)->sortObjectBy('LastFirstName');
-                foreach ($tblPersonList as $tblPerson) {
-                    $tblTeacherLectureshipList = array();
-                    if ($tblYearList) {
-                        foreach ($tblYearList as $tblYear) {
-                            if (($tblTeacherLectureshipYearList = DivisionCourse::useService()->getTeacherLectureshipListBy($tblYear, $tblPerson))) {
-                                $tblTeacherLectureshipList = array_merge($tblTeacherLectureshipYearList, $tblTeacherLectureshipList);
-                            }
-                        }
-                    }
-                    if ($tblTeacherLectureshipList) {
-                        $tblTeacherLectureshipList = $this->getSorter($tblTeacherLectureshipList)->sortObjectBy('Sort');
-                        foreach ($tblTeacherLectureshipList as $tblTeacherLectureship) {
-                            if (($tblSubject = $tblTeacherLectureship->getServiceTblSubject())
-                                && ($tblDivisionCourse = $tblTeacherLectureship->getTblDivisionCourse())
-                            ) {
-                                $personList[$tblPerson->getId()][$tblSubject->getId()][$tblDivisionCourse->getId()] = $tblDivisionCourse->getName()
-                                    . (($groupName = $tblTeacherLectureship->getGroupName()) ? ' (' . $groupName . ')' : '');
-                            }
-                        }
-                    } else {
-                        $personList[$tblPerson->getId()] = false;
-                    }
-                }
-            }
-
-            // Personen mit einem Lehrauftrag, welche nicht mehr in der festen Gruppe Lehrer sind
-            if ($tblYearList) {
-                foreach ($tblYearList as $tblYear) {
-                    if (($tblTeacherLectureshipList = DivisionCourse::useService()->getTeacherLectureshipListBy(
-                        $tblYear
-                    ))) {
-                        $tblTeacherLectureshipList = $this->getSorter($tblTeacherLectureshipList)->sortObjectBy('Sort');
-                        /** @var TblTeacherLectureship $tblTeacherLectureship */
-                        foreach ($tblTeacherLectureshipList as $tblTeacherLectureship) {
-                            if (($tblPerson = $tblTeacherLectureship->getServiceTblPerson())
-                                && !isset($personList[$tblPerson->getId()])
-                                && ($tblSubject = $tblTeacherLectureship->getServiceTblSubject())
-                                && ($tblDivisionCourse = $tblTeacherLectureship->getTblDivisionCourse())
-                            ) {
-
-                                $personListWithoutTeacherGroup[$tblPerson->getId()][$tblSubject->getId()][$tblDivisionCourse->getId()] = $tblDivisionCourse->getName()
-                                    . (($groupName = $tblTeacherLectureship->getGroupName()) ? ' (' . $groupName . ')' : '');
-                            }
-                        }
-                    }
-                }
-            }
-        }
+        $personListWithoutTeacherGroup = $data['personListWithoutTeacherGroup'];
+        $tblYearList = $data['tblYearList'];
+        $tblSubjectFilter = $data['tblSubjectFilter'];
+        $personList = $data['personList'];
 
         $layoutGroups = array();
         if ($personListWithoutTeacherGroup) {
@@ -212,8 +93,18 @@ class FrontendTeacher extends FrontendSubjectTable
 
         if ($personList) {
             $layoutGroups = $this->getTeacherGroupLayoutGroups($layoutGroups, $personList, $Filter, $tblYearList, $tblSubjectFilter, false);
+            $download = new Standard(
+                'Herunterladen',
+                'SPHERE\Application\Api\Reporting\Standard\TeacherLectureship\Download',
+                new Download(),
+                array(
+                    'Filter' => $Filter,
+                ),
+                'Lehraufträge als Excel herunterladen'
+            );
 
-            return new Layout($layoutGroups);
+            return $download
+                . new Layout($layoutGroups);
         }
 
         return (new Warning('Keine entsprechende Lehraufträge gefunden', new Exclamation()));

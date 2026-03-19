@@ -40,20 +40,25 @@ class Data extends AbstractData
     }
 
     /**
-     * @param array $tblEntityList
+     * @param array $list
      *
      * @return bool
      */
-    public function updateEntityListBulk(array $tblEntityList): bool
+    public function updateImportStudentListBulk(array $list): bool
     {
         $Manager = $this->getEntityManager();
 
-        /** @var Element $tblElement */
-        foreach ($tblEntityList as $tblElement) {
-            $Manager->bulkSaveEntity($tblElement);
-            /** @var Element $Entity */
-            $Entity = $Manager->getEntityById($tblElement->getEntityShortName(), $tblElement->getId());
-            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Entity, $tblElement, true);
+        foreach ($list as $importStudentId => $value) {
+            /** @var TblImportStudent $Entity */
+            $Entity = $Manager->getEntityById('TblImportStudent', $importStudentId);
+            $Protocol = clone $Entity;
+
+            if (null !== $Entity) {
+                $Entity->setServiceTblPerson($value);
+
+                $Manager->bulkSaveEntity($Entity);
+                Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity, true);
+            }
         }
 
         $Manager->flushCache();
@@ -204,6 +209,20 @@ class Data extends AbstractData
         return $this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblImportMapping', array(
             TblImportMapping::ATTR_TYPE => $Type,
             TblImportMapping::ATTR_ORIGINAL => $Original
+        ));
+    }
+
+    /**
+     * @param string $Type
+     * @param string $Mapping
+     *
+     * @return false|TblImportMapping
+     */
+    public function getImportMappingByMapping(string $Type, string $Mapping): TblImportMapping|bool
+    {
+        return $this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblImportMapping', array(
+            TblImportMapping::ATTR_TYPE => $Type,
+            TblImportMapping::ATTR_MAPPING => $Mapping
         ));
     }
 

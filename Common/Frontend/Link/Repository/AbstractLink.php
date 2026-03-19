@@ -28,6 +28,9 @@ abstract class AbstractLink extends Extension implements ILinkInterface
     const TYPE_WHITE_LINK = 'type-white-link';
     const TYPE_MUTED_LINK = 'type-muted-link';
     const TYPE_ORANGE_LINK = 'type-orange-link';
+    const TYPE_WARNING_LINK = 'type-warning-link';
+    const TYPE_SUCCESS_LINK = 'type-success-link';
+    const TYPE_RED_LINK = 'type-red-link';
     const TYPE_DEFAULT = 'btn btn-default';
     const TYPE_DANGER = 'btn btn-danger';
     const TYPE_WARNING = 'btn btn-warning';

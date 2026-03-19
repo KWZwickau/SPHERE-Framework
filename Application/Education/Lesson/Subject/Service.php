@@ -11,6 +11,8 @@ use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblGroupCategory;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Service\Setup;
 use SPHERE\Application\People\Meta\Student\Student;
+use SPHERE\Application\Transfer\Education\Education;
+use SPHERE\Application\Transfer\Education\Service\Entity\TblImportMapping;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
@@ -460,6 +462,23 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getSubjectByName($Name);
+    }
+
+    /**
+     * @param string $Acronym
+     *
+     * @return bool|TblSubject
+     */
+    public function getSubjectByMappingAccronym($Acronym)
+    {
+        // mapping
+        $tblSubject = Education::useService()->getImportMappingValueBy(TblImportMapping::TYPE_SUBJECT_ACRONYM_TO_SUBJECT_ID, $Acronym);
+        // no mapping found
+        if (!$tblSubject) {
+            // search subject with extended acronym
+            $tblSubject = $this->getSubjectByVariantAcronym($Acronym);
+        }
+        return $tblSubject;
     }
 
     /**
@@ -914,6 +933,11 @@ class Service extends AbstractService
      */
     public function getSubjectByVariantAcronym(string $acronym)
     {
+        // SSWHD-3628: Herausforderung SPO ist Sport und SP ist Spanisch
+        if (($tblSubject = $this->getSubjectByAcronym($acronym))) {
+            return $tblSubject;
+        }
+
         // abweichende Fächer
         if ($acronym == 'DE' || $acronym == 'D' || $acronym == 'DEU') {
             $tblSubject = $this->getSubjectByAcronym('DE');
@@ -933,7 +957,7 @@ class Service extends AbstractService
             if (!$tblSubject) {
                 $tblSubject = $this->getSubjectByAcronym('BI');
             }
-        } elseif ($acronym == 'RE' || $acronym == 'REV' || $acronym == 'RELI' || $acronym == 'REE' || $acronym == 'RE/e') {
+        } elseif ($acronym == 'RE' || $acronym == 'REV' || $acronym == 'RELI' || $acronym == 'REE' || $acronym == 'RE/e' || $acronym == 'REL') {
             $tblSubject = $this->getSubjectByAcronym('RE/e');
             if (!$tblSubject) {
                 $tblSubject = $this->getSubjectByAcronym('REV');
@@ -946,6 +970,9 @@ class Service extends AbstractService
             }
             if (!$tblSubject) {
                 $tblSubject = $this->getSubjectByAcronym('RE');
+            }
+            if (!$tblSubject) {
+                $tblSubject = $this->getSubjectByAcronym('REL');
             }
         } elseif ($acronym == 'REK' || $acronym == 'RE/k') {
             $tblSubject = $this->getSubjectByAcronym('RE/k');
@@ -970,7 +997,7 @@ class Service extends AbstractService
             if (!$tblSubject) {
                 $tblSubject = $this->getSubjectByAcronym('PHY');
             }
-        } elseif ($acronym == 'WTH' || $acronym == 'WTHD' || $acronym == 'WTHS' || $acronym == 'WTS') {
+        } elseif ($acronym == 'WTH' || $acronym == 'WTHD' || $acronym == 'WTHS' || $acronym == 'WTS' || $acronym == 'WTSd') {
             $tblSubject = $this->getSubjectByAcronym('WTH');
             if (!$tblSubject) {
                 $tblSubject = $this->getSubjectByAcronym('WTHD');
@@ -981,6 +1008,9 @@ class Service extends AbstractService
             if (!$tblSubject) {
                 $tblSubject = $this->getSubjectByAcronym('WTS');
             }
+            if (!$tblSubject) {
+                $tblSubject = $this->getSubjectByAcronym('WTSd');
+            }
         } elseif ($acronym == 'G/R/W' || $acronym == 'GRW') {
             $tblSubject = $this->getSubjectByAcronym('G/R/W');
             if (!$tblSubject) {
@@ -990,6 +1020,16 @@ class Service extends AbstractService
             $tblSubject = $this->getSubjectByAcronym('GK');
             if (!$tblSubject) {
                 $tblSubject = $this->getSubjectByAcronym('GKR');
+            }
+        } elseif ($acronym == 'CH' || $acronym == 'CHE') {
+            $tblSubject = $this->getSubjectByAcronym('CH');
+            if (!$tblSubject) {
+                $tblSubject = $this->getSubjectByAcronym('CHE');
+            }
+        } elseif ($acronym == 'SPO' || $acronym == 'SP') {
+            $tblSubject = $this->getSubjectByAcronym('SPO');
+            if (!$tblSubject) {
+                $tblSubject = $this->getSubjectByAcronym('SP');
             }
         } else {
             $tblSubject = $this->getSubjectByAcronym($acronym);

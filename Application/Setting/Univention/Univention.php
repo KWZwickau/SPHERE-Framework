@@ -25,16 +25,16 @@ class Univention implements IApplicationInterface, IModuleInterface
     {
 
         Main::getDisplay()->addApplicationNavigation(new Link(new Link\Route(__NAMESPACE__),
-            new Link\Name('UCS'), new Link\Icon(new Publicly())
+            new Link\Name('DLLP'), new Link\Icon(new Publicly())
         ));
         Main::getDisplay()->addModuleNavigation(new Link(new Link\Route(__NAMESPACE__.'/Csv'),
-            new Link\Name('UCS über CSV'), new Link\Icon(new Publicly())
+            new Link\Name('DLLP über CSV'), new Link\Icon(new Publicly())
         ));
         Main::getDisplay()->addModuleNavigation(new Link(new Link\Route(__NAMESPACE__.'/Api'),
-            new Link\Name('UCS über API'), new Link\Icon(new Publicly())
+            new Link\Name('DLLP über API'), new Link\Icon(new Publicly())
         ));
         Main::getDisplay()->addModuleNavigation(new Link(new Link\Route(__NAMESPACE__.'/WorkGroupApi'),
-            new Link\Name('UCS API Arbeitsgruppen'), new Link\Icon(new Publicly())
+            new Link\Name('DLLP API Arbeitsgruppen'), new Link\Icon(new Publicly())
         ));
 
 

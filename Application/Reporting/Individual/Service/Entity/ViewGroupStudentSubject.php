@@ -289,7 +289,7 @@ class ViewGroupStudentSubject extends AbstractView
                 if($tblSubjectCategory = Subject::useService()->getCategoryByIdentifier('FOREIGNLANGUAGE')){
                     if(($tblSubjectList = Subject::useService()->getSubjectAllByCategory($tblSubjectCategory))){
                         foreach($tblSubjectList as $tblSubject){
-                            $Data[] = $tblSubject->getName();
+                            $Data[] = $tblSubject->getName().' ('.$tblSubject->getAcronym().')';
                         }
                     }
                 }
@@ -300,7 +300,7 @@ class ViewGroupStudentSubject extends AbstractView
                 if($tblSubjectCategory = Subject::useService()->getCategoryByIdentifier('PROFILE')){
                     if(($tblSubjectList = Subject::useService()->getSubjectAllByCategory($tblSubjectCategory))){
                         foreach($tblSubjectList as $tblSubject){
-                            $Data[] = $tblSubject->getName();
+                            $Data[] = $tblSubject->getName().' ('.$tblSubject->getAcronym().')';
                         }
                     }
                 }
@@ -311,7 +311,7 @@ class ViewGroupStudentSubject extends AbstractView
                 if($tblSubjectCategory = Subject::useService()->getCategoryByIdentifier('RELIGION')){
                     if(($tblSubjectList = Subject::useService()->getSubjectAllByCategory($tblSubjectCategory))){
                         foreach($tblSubjectList as $tblSubject){
-                            $Data[] = $tblSubject->getName();
+                            $Data[] = $tblSubject->getName().' ('.$tblSubject->getAcronym().')';
                         }
                     }
                 }
@@ -321,7 +321,7 @@ class ViewGroupStudentSubject extends AbstractView
                 $Data = array();
                 if (($tblSubjectOrientationList = Subject::useService()->getSubjectOrientationAll())) {
                     foreach ($tblSubjectOrientationList as $tblSubject) {
-                        $Data[] = $tblSubject->getName();
+                        $Data[] = $tblSubject->getName().' ('.$tblSubject->getAcronym().')';
                     }
                 }
                 $Field = parent::getFormFieldAutoCompleter($Data, $PropertyName, $Label, $Icon, $doResetCount);
@@ -334,7 +334,7 @@ class ViewGroupStudentSubject extends AbstractView
                 $Data = array();
                 if (($tblSubjectElectiveList = Subject::useService()->getSubjectElectiveAll())) {
                     foreach ($tblSubjectElectiveList as $tblSubject) {
-                        $Data[] = $tblSubject->getName();
+                        $Data[] = $tblSubject->getName().' ('.$tblSubject->getAcronym().')';
                     }
                 }
                 $Field = parent::getFormFieldAutoCompleter($Data, $PropertyName, $Label, $Icon, $doResetCount);

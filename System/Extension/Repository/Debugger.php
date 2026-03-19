@@ -172,8 +172,8 @@ class Debugger
             foreach ((array)$Content as $Dump) {
                 $Dump = self::getDump($Dump);
 //                self::addProtocol('ScreenDump: '.$Dump);
-                print '<pre style="margin: 0; border-left: 0; border-right: 0; border-top:0;">'
-                    . '<span class="text-danger" style="border-bottom: 1px dotted silver;">' . new Flash() . self::getCallingFunctionName() . '</span><br/>'
+                print '<pre class="dump-color" style="margin: 0; border-left: 0; border-right: 0; border-top:0;">'
+                    . '<span class="text-danger dump-danger" style="border-bottom: 1px dotted silver;">' . new Flash() . self::getCallingFunctionName() . '</span><br/>'
                     .'<code>'
                     . $Dump
                     . '</code></pre>';

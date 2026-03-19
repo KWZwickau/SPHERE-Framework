@@ -2,7 +2,6 @@
 
 namespace SPHERE\Application\Education\Lesson\DivisionCourse;
 
-use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\System\Database\Binding\AbstractService;
@@ -11,10 +10,11 @@ abstract class ServiceCourseSystem extends AbstractService
 {
     /**
      * @param TblPerson $tblPerson
+     * @param int|null $studentLevel
      *
      * @return array[]
      */
-    public function getCoursesForStudent(TblPerson $tblPerson): array
+    public function getCoursesForStudent(TblPerson $tblPerson, ?int $studentLevel = null): array
     {
         $advancedCourses = array();
         $basicCourses = array();
@@ -26,6 +26,7 @@ abstract class ServiceCourseSystem extends AbstractService
                     && ($tblYear = $tblStudentEducation->getServiceTblYear())
                     && ($tblStudentSubjectList = DivisionCourse::useService()->getStudentSubjectListByPersonAndYear($tblPerson, $tblYear, true))
                     && ($level = $tblStudentEducation->getLevel())
+                    && (!$studentLevel || $level == $studentLevel)
                 ) {
                     // Schuljahreswiederholungen ignorieren
                     if (!isset($levelList[$level])) {

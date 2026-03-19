@@ -112,12 +112,12 @@ class Service extends AbstractService
     /**
      * @param IFormInterface    $Form
      * @param TblResponsibility $tblResponsibility
-     * @param                   $CompanyNumber
-     * @param array             $Responsibility
+     * @param array             $Data
+     * @param null|string       $Responsibility
      *
      * @return IFormInterface|string
      */
-    public function updateResponsibility(IFormInterface $Form, TblResponsibility $tblResponsibility, $CompanyNumber, $Responsibility)
+    public function updateResponsibility(IFormInterface $Form, TblResponsibility $tblResponsibility, array $Data, $Responsibility):string
     {
 
         /**
@@ -127,7 +127,7 @@ class Service extends AbstractService
             return $Form;
         }
 
-        if ((new Data($this->getBinding()))->updateResponsibility($tblResponsibility, $CompanyNumber)) {
+        if ((new Data($this->getBinding()))->updateResponsibility($tblResponsibility, $Data['CompanyNumber'], $Data['CompanyNumberStaff'])) {
             return new Success('Die Unternehmensnr. des Unfallversicherungsträgers wurde erfolgreich gespeichert')
                 .new Redirect('/Setting/Consumer/Responsibility', Redirect::TIMEOUT_SUCCESS);
         }

@@ -12,6 +12,7 @@ use SPHERE\Application\Document\Storage\Service\Entity\TblBinary;
 use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
+use SPHERE\Application\Education\Certificate\Setting\FrontendPreviewCertificate;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -22,7 +23,6 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Window\Display;
-use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\RedirectScript;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
@@ -195,6 +195,48 @@ class Creator extends Extension
     }
 
     /**
+     * @param null $Data
+     * @param string $Name
+     * @param bool $Redirect
+     *
+     * @return string
+     */
+    public function previewTemplatePdf($Data = null, $Name = 'Zeugnis Muster', $Redirect = true): string
+    {
+        if ($Redirect) {
+            return self::displayWaitingPage('/Api/Education/Certificate/Generator/PreviewTemplate', array(
+                'Data' => $Data,
+                'Name' => $Name,
+                'Redirect' => 0
+            ));
+        }
+
+        if (!isset($Data['tblCertificate'])
+            || !($tblCertificate = Generator::useService()->getCertificateById($Data['tblCertificate']))
+        ) {
+            return new Stage($Name, 'Nicht gefunden');
+        }
+
+        $CertificateClass = '\SPHERE\Application\Api\Education\Certificate\Generator\Repository\\' . $tblCertificate->getCertificate();
+        if (!class_exists($CertificateClass)) {
+            return new Stage($Name, 'Nicht gefunden');
+        }
+
+        /** @var Certificate $Template */
+        $Certificate = new $CertificateClass();
+
+        $tblPerson = new TblPerson();
+        $tblPerson->setId(0);
+        $Content = (new FrontendPreviewCertificate())->getCertificateContent($tblPerson->getId(), $Data);
+
+        $File = $this->buildDummyFile($Certificate, $tblPerson, $Content);
+
+        $FileName = $Name . " " . $tblCertificate->getName() . ' ' . $tblCertificate->getDescription() . ' ' . date("Y-m-d H:i:s") . ".pdf";
+
+        return $this->buildDownloadFile($File, $FileName);
+    }
+
+    /**
      * @param null $FileId
      *
      * @return Stage|string
@@ -250,7 +292,8 @@ class Creator extends Extension
                     if ($tblFileList) {
                         foreach ($tblFileList as $tblFile) {
                             $name = explode(' - ', $tblFile->getName());
-                            if (count($name) >= 4 && $name[3] == $tblPrepare->getId()) {
+                            // falls im Name des Zeugnisauftrags ein " - " ist steht die PrepareId nicht mehr an 4.Stelle -> jetzt letzte Stelle verwenden
+                            if (count($name) >= 4 && end($name) == $tblPrepare->getId()) {
                                 $personLastName = str_replace('ä', 'ae', $tblPerson->getLastName());
                                 $personLastName = str_replace('ü', 'ue', $personLastName);
                                 $personLastName = str_replace('ö', 'oe', $personLastName);
@@ -302,8 +345,7 @@ class Creator extends Extension
                     $Name . '-' . $tblDivisionCourse->getName() . '-' . date("Y-m-d H:i:s") . ".pdf"
                 )->__toString();
             } else {
-                return new Stage($Name, 'Keine weiteren Zeugnisse zum Druck bereit.')
-                    . new Redirect('/Education/Certificate/PrintCertificate');
+                return new Stage($Name, 'Keine weiteren Zeugnisse zum Druck bereit.');
             }
         }
 
@@ -554,9 +596,7 @@ class Creator extends Extension
                 return self::buildDownloadFile($File, $FileName);
 
             } else {
-
-                return new Stage($Name, 'Keine weiteren Zeugnisse zum Druck bereit.')
-                    . new Redirect('/Education/Certificate/PrintCertificate');
+                return new Stage($Name, 'Keine weiteren Zeugnisse zum Druck bereit.');
             }
         }
 
@@ -662,8 +702,7 @@ class Creator extends Extension
 
             } else {
 
-                return new Stage($Name, 'Keine weiteren Zeugnisse zum Druck bereit.')
-                    . new Redirect('/Education/Certificate/PrintCertificate');
+                return new Stage($Name, 'Keine weiteren Zeugnisse zum Druck bereit.');
             }
         }
 

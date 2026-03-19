@@ -6,6 +6,7 @@ use SPHERE\Application\Education\Certificate\Certificate;
 use SPHERE\Application\Education\ClassRegister\ClassRegister;
 use SPHERE\Application\Education\Diary\Diary;
 use SPHERE\Application\Education\Graduation\Graduation;
+use SPHERE\Application\Education\Integration\Integration;
 use SPHERE\Application\Education\Lesson\Lesson;
 use SPHERE\Application\Education\School\School;
 use SPHERE\Application\IClusterInterface;
@@ -32,6 +33,7 @@ class Education implements IClusterInterface
         ClassRegister::registerApplication();
         Diary::registerApplication();
         Absence::registerApplication();
+        Integration::registerApplication();
 
         Main::getDisplay()->addClusterNavigation(
             new Link(new Link\Route(__NAMESPACE__), new Link\Name('Bildung'), new Link\Icon(new EducationIcon()))

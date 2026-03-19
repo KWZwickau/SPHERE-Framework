@@ -1,4 +1,4 @@
-<?php
+<?php /** @noinspection PhpUnused */
 
 namespace SPHERE\Application\Api\Education\Graduation\Grade;
 
@@ -7,6 +7,7 @@ use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\Education\Graduation\Grade\Frontend;
+use SPHERE\Application\Education\Graduation\Grade\FrontendBasic;
 use SPHERE\Application\Education\Graduation\Grade\Grade;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblProposalBehaviorGrade;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTaskGrade;
@@ -14,7 +15,7 @@ use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTestCourseLi
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTestGrade;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
-use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblPeriod;
 use SPHERE\Application\IApiInterface;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
@@ -30,6 +31,7 @@ use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
+use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\System\Extension\Extension;
 
 class ApiGradeBook extends Extension implements IApiInterface
@@ -47,6 +49,7 @@ class ApiGradeBook extends Extension implements IApiInterface
         $Dispatcher->registerMethod('changeYear');
         $Dispatcher->registerMethod('changeRole');
         $Dispatcher->registerMethod('loadHeader');
+        $Dispatcher->registerMethod('changeShowDivisionTeacherGradeBooks');
 
         $Dispatcher->registerMethod('loadViewGradeBookSelect');
         $Dispatcher->registerMethod('loadGradeBookSelectFilterContent');
@@ -142,13 +145,14 @@ class ApiGradeBook extends Extension implements IApiInterface
      */
     public function changeYear($Data = null): string
     {
-        if (isset($Data["Year"]) && ($tblYear = Term::useService()->getYearById($Data["Year"]))) {
+        if (isset($Data['SelectedYear'])) {
+            $YearId = $Data['SelectedYear'];
             $gradeBookSelectedYearId = Consumer::useService()->getAccountSettingValue("GradeBookSelectedYearId");
-            if (!$gradeBookSelectedYearId || $gradeBookSelectedYearId != $tblYear->getId()) {
-                Consumer::useService()->createAccountSetting("GradeBookSelectedYearId", $tblYear->getId());
+            if (!$gradeBookSelectedYearId || $gradeBookSelectedYearId != $YearId) {
+                Consumer::useService()->createAccountSetting("GradeBookSelectedYearId", $YearId);
 
                 return ""
-                    . self::pipelineLoadHeader(Frontend::VIEW_GRADE_BOOK_SELECT)
+                    . self::pipelineLoadHeader(FrontendBasic::VIEW_GRADE_BOOK_SELECT)
                     . self::pipelineLoadViewGradeBookSelect();
             }
         }
@@ -191,7 +195,7 @@ class ApiGradeBook extends Extension implements IApiInterface
             Consumer::useService()->createAccountSetting("GradeBookRole", $role);
 
             return ""
-                . self::pipelineLoadHeader(Frontend::VIEW_GRADE_BOOK_SELECT)
+                . self::pipelineLoadHeader(FrontendBasic::VIEW_GRADE_BOOK_SELECT)
                 . self::pipelineLoadViewGradeBookSelect();
         }
 
@@ -229,11 +233,47 @@ class ApiGradeBook extends Extension implements IApiInterface
     }
 
     /**
+     * @return Pipeline
+     */
+    public static function pipelineChangeShowDivisionTeacherGradeBooks(): Pipeline
+    {
+        $Pipeline = new Pipeline(true);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'Content'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'changeShowDivisionTeacherGradeBooks',
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param null $Data
+     *
+     * @return string
+     */
+    public function changeShowDivisionTeacherGradeBooks($Data = null): string
+    {
+        $show = isset($Data['ShowDivisionTeacherGradeBooks']);
+
+        $value = Consumer::useService()->getAccountSettingValue("DontShowDivisionTeacherGradeBooks");
+        if ($value == $show) {
+            Consumer::useService()->createAccountSetting("DontShowDivisionTeacherGradeBooks", !$value);
+
+            return ""
+                . self::pipelineLoadViewGradeBookSelect(null, $value ? 'true' : 'false');
+        }
+
+        return "";
+    }
+
+    /**
      * @param null $Filter
+     * @param string $DontShowDivisionTeacherGradeBooks
      *
      * @return Pipeline
      */
-    public static function pipelineLoadViewGradeBookSelect($Filter = null): Pipeline
+    public static function pipelineLoadViewGradeBookSelect($Filter = null, string $DontShowDivisionTeacherGradeBooks = 'null'): Pipeline
     {
         $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'Content'), self::getEndpoint());
@@ -241,7 +281,8 @@ class ApiGradeBook extends Extension implements IApiInterface
             self::API_TARGET => 'loadViewGradeBookSelect',
         ));
         $ModalEmitter->setPostPayload(array(
-            'Filter' => $Filter
+            'Filter' => $Filter,
+            'DontShowDivisionTeacherGradeBooks' => $DontShowDivisionTeacherGradeBooks,
         ));
         $ModalEmitter->setLoadingMessage("Daten werden geladen");
         $Pipeline->appendEmitter($ModalEmitter);
@@ -251,12 +292,27 @@ class ApiGradeBook extends Extension implements IApiInterface
 
     /**
      * @param $Filter
+     * @param $DontShowDivisionTeacherGradeBooks
      *
      * @return string
      */
-    public function loadViewGradeBookSelect($Filter): string
+    public function loadViewGradeBookSelect($Filter, $DontShowDivisionTeacherGradeBooks): string
     {
-        return Grade::useFrontend()->loadViewGradeBookSelect($Filter);
+//        if (isset($Filter['SchoolType'])
+//            && ($tblConsumer = \SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer::useService()->getConsumerBySession())
+//        ) {
+//            Consumer::useService()->createAccountSetting('GradeBookHeadmasterSelectSchoolTypeByConsumerId_' . $tblConsumer->getId(), $Filter['SchoolType']);
+//        }
+
+        if ($DontShowDivisionTeacherGradeBooks == 'true') {
+            $boolean = false;
+        } elseif ($DontShowDivisionTeacherGradeBooks == 'false') {
+            $boolean = true;
+        } else {
+            $boolean = null;
+        }
+
+        return Grade::useFrontend()->loadViewGradeBookSelect($Filter, $boolean);
     }
 
     /**
@@ -369,7 +425,7 @@ class ApiGradeBook extends Extension implements IApiInterface
      * @param $TestId
      * @param $DivisionCourseId
      * @param $SubjectId
-     * @param null $Filter
+     * @param $Filter
      *
      * @return Pipeline
      */
@@ -446,8 +502,10 @@ class ApiGradeBook extends Extension implements IApiInterface
         if (!($tblSubject = Subject::useService()->getSubjectById($SubjectId))) {
             return (new Danger("Fach wurde nicht gefunden!", new Exclamation()));
         }
-        if (!($tblYear = Grade::useService()->getYear())) {
-            return (new Danger("Schuljahr wurde nicht gefunden!", new Exclamation()));
+        if (!($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))
+            || !($tblYear = $tblDivisionCourse->getServiceTblYear())
+        ) {
+            return new Warning('Schuljahr wurde nicht gefunden.', new Exclamation());
         }
 
         if (($form = Grade::useService()->checkFormTest($Data, $DivisionCourseId, $SubjectId, $Filter, $TestId))) {
@@ -463,9 +521,28 @@ class ApiGradeBook extends Extension implements IApiInterface
         $isContinues = isset($Data['IsContinues']);
         $description = $Data['Description'];
         $newTestId = null;
+        $secondPeriodDate = null;
+        if (isset($Data['IsSecondPeriod'])
+            && ($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses())
+        ) {
+            // Startdatum vom 2.HJ ermitteln
+            foreach ($tblPersonList as $tblPerson) {
+                if (($tblPeriodList = $tblYear->getPeriodListByPerson($tblPerson))
+                    && count($tblPeriodList) == 2
+                ) {
+                    // 2. HJ
+                    $tblPeriodList = array_values($tblPeriodList);
+                    /** @var TblPeriod $tblPeriod */
+                    $tblPeriod = $tblPeriodList[1];
+                    $secondPeriodDate = $tblPeriod->getFromDateTime();
+
+                    break;
+                }
+            }
+        }
 
         if (($tblTest = Grade::useService()->getTestById($TestId))) {
-            Grade::useService()->updateTest($tblTest, $tblGradeType, $date, $finishDate, $correctionDate, $returnDate, $isContinues, $description);
+            Grade::useService()->updateTest($tblTest, $tblGradeType, $date, $finishDate, $correctionDate, $returnDate, $isContinues, $description, $secondPeriodDate);
 
             $createList = array();
             $removeList = array();
@@ -500,7 +577,7 @@ class ApiGradeBook extends Extension implements IApiInterface
         } else {
             if (($tblTestNew = Grade::useService()->createTest(
                 $tblYear, $tblSubject, $tblGradeType, $date, $finishDate, $correctionDate, $returnDate, $isContinues, $description,
-                Account::useService()->getPersonByLogin() ?: null
+                Account::useService()->getPersonByLogin() ?: null, $secondPeriodDate
             ))) {
                 // Kurse hinzufügen
                 if (isset($Data['DivisionCourses'])) {
@@ -684,12 +761,13 @@ class ApiGradeBook extends Extension implements IApiInterface
                                 || $comment != $tblTestGrade->getComment()
                                 || $publicComment != $tblTestGrade->getPublicComment()
                             ) {
-                                $tblTestGrade->setGrade($gradeValue);
-                                $tblTestGrade->setDate($date);
-                                $tblTestGrade->setComment($comment);
-                                $tblTestGrade->setPublicComment($publicComment);
-                                $tblTestGrade->setServiceTblPersonTeacher($tblTeacher ?: null);
-                                $updateList[] = $tblTestGrade;
+                                $updateList[$tblTestGrade->getId()] = [
+                                    'Grade' => $gradeValue,
+                                    'Date' => $date,
+                                    'Comment' => $comment,
+                                    'PublicComment' => $publicComment,
+                                    'PersonTeacher' => $tblTeacher ?: null
+                                ];
                             }
                         } else {
                             $deleteList[] = $tblTestGrade;
@@ -707,7 +785,7 @@ class ApiGradeBook extends Extension implements IApiInterface
             Grade::useService()->createEntityListBulk($createList);
         }
         if (!empty($updateList)) {
-            Grade::useService()->updateEntityListBulk($updateList);
+            Grade::useService()->updateTestGradeListBulk($updateList);
         }
         if (!empty($deleteList)) {
             Grade::useService()->deleteEntityListBulk($deleteList);
@@ -921,10 +999,11 @@ class ApiGradeBook extends Extension implements IApiInterface
                                             if ($gradeValue != $tblTaskGrade->getGrade()
                                                 || $comment != $tblTaskGrade->getComment()
                                             ) {
-                                                $tblTaskGrade->setGrade($gradeValue);
-                                                $tblTaskGrade->setComment($comment);
-                                                $tblTaskGrade->setServiceTblPersonTeacher($tblTeacher ?: null);
-                                                $updateList[] = $tblTaskGrade;
+                                                $updateList[$tblTaskGrade->getId()] = [
+                                                    'Grade' => $gradeValue,
+                                                    'Comment' => $comment,
+                                                    'PersonTeacher' => $tblTeacher ?: null
+                                                ];
                                             }
                                         } else {
                                             $deleteList[] = $tblTaskGrade;
@@ -959,11 +1038,12 @@ class ApiGradeBook extends Extension implements IApiInterface
                                     || $gradeTextId != $gradeTextTempId
                                     || $comment != $tblTaskGrade->getComment()
                                 ) {
-                                    $tblTaskGrade->setGrade($gradeValue);
-                                    $tblTaskGrade->setTblGradeText($tblGradeText ?: null);
-                                    $tblTaskGrade->setComment($comment);
-                                    $tblTaskGrade->setServiceTblPersonTeacher($tblTeacher ?: null);
-                                    $updateList[] = $tblTaskGrade;
+                                    $updateList[$tblTaskGrade->getId()] = [
+                                        'Grade' => $gradeValue,
+                                        'GradeText' => $tblGradeText ?: null,
+                                        'Comment' => $comment,
+                                        'PersonTeacher' => $tblTeacher ?: null
+                                    ];
                                 }
                             } else {
                                 $deleteList[] = $tblTaskGrade;
@@ -983,7 +1063,7 @@ class ApiGradeBook extends Extension implements IApiInterface
             Grade::useService()->createEntityListBulk($createList);
         }
         if (!empty($updateList)) {
-            Grade::useService()->updateEntityListBulk($updateList);
+            Grade::useService()->updateTaskGradeListBulk($updateList);
         }
         if (!empty($deleteList)) {
             Grade::useService()->deleteEntityListBulk($deleteList);
@@ -1107,10 +1187,11 @@ class ApiGradeBook extends Extension implements IApiInterface
                                         if ($gradeValue != $tblProposalBehaviorGrade->getGrade()
                                             || $comment != $tblProposalBehaviorGrade->getComment()
                                         ) {
-                                            $tblProposalBehaviorGrade->setGrade($gradeValue);
-                                            $tblProposalBehaviorGrade->setComment($comment);
-                                            $tblProposalBehaviorGrade->setServiceTblPersonTeacher($tblTeacher ?: null);
-                                            $updateList[] = $tblProposalBehaviorGrade;
+                                            $updateList[$tblProposalBehaviorGrade->getId()] = [
+                                                'Grade' => $gradeValue,
+                                                'Comment' => $comment,
+                                                'PersonTeacher' => $tblTeacher ?: null
+                                            ];
                                         }
                                     } else {
                                         $deleteList[] = $tblProposalBehaviorGrade;
@@ -1133,7 +1214,7 @@ class ApiGradeBook extends Extension implements IApiInterface
             Grade::useService()->createEntityListBulk($createList);
         }
         if (!empty($updateList)) {
-            Grade::useService()->updateEntityListBulk($updateList);
+            Grade::useService()->updateProposalBehaviorGradeListBulk($updateList);
         }
         if (!empty($deleteList)) {
             Grade::useService()->deleteEntityListBulk($deleteList);
@@ -1197,9 +1278,9 @@ class ApiGradeBook extends Extension implements IApiInterface
     /**
      * @param $DivisionCourseId
      *
-     * @return Danger|string
+     * @return string
      */
-    public function setGradeText($DivisionCourseId)
+    public function setGradeText($DivisionCourseId): string
     {
         if (!($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
             return (new Danger('Kurs nicht gefunden', new Exclamation()));
@@ -1273,6 +1354,7 @@ class ApiGradeBook extends Extension implements IApiInterface
 
     /**
      * @param $TestId
+     * @param null $Data
      *
      * @return String
      */
@@ -1424,9 +1506,9 @@ class ApiGradeBook extends Extension implements IApiInterface
     /**
      * @param $TestId
      *
-     * @return Danger|string
+     * @return string
      */
-    public function setAttendance($TestId)
+    public function setAttendance($TestId): string
     {
         if (!($tblTest = Grade::useService()->getTestById($TestId))) {
             return (new Danger('Leistungsüberprüfung nicht gefunden', new Exclamation()));
@@ -1475,7 +1557,7 @@ class ApiGradeBook extends Extension implements IApiInterface
      * @param $isAttendance
      * @param $PersonId
      *
-     * @return SelectBox
+     * @return CheckBox
      */
     public function changeAttendance($isAttendance, $PersonId): CheckBox
     {

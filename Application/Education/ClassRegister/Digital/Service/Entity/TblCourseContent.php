@@ -79,6 +79,11 @@ class TblCourseContent extends Element
     protected string $Homework;
 
     /**
+     * @Column(type="datetime")
+     */
+    protected $DueDateHomework;
+
+    /**
      * @Column(type="string")
      */
     protected string $Remark;
@@ -181,6 +186,14 @@ class TblCourseContent extends Element
     }
 
     /**
+     * @return DateTime|null
+     */
+    public function getDateTime(): ?DateTime
+    {
+        return $this->Date;
+    }
+
+    /**
      * @param null|DateTime $Date
      */
     public function setDate(DateTime $Date = null)
@@ -242,6 +255,31 @@ class TblCourseContent extends Element
     public function setHomework(string $Homework)
     {
         $this->Homework = $Homework;
+    }
+
+    /**
+     * @return string
+     */
+    public function getDueDateHomework()
+    {
+        if (null === $this->DueDateHomework) {
+            return false;
+        }
+        /** @var DateTime $Date */
+        $Date = $this->DueDateHomework;
+        if ($Date instanceof DateTime) {
+            return $Date->format('d.m.Y');
+        } else {
+            return (string)$Date;
+        }
+    }
+
+    /**
+     * @param null|DateTime $Date
+     */
+    public function setDueDateHomework(DateTime $Date = null)
+    {
+        $this->DueDateHomework = $Date;
     }
 
     /**
@@ -373,5 +411,13 @@ class TblCourseContent extends Element
         } else {
             return new Warning(new Unchecked() . ' noch nicht bestätigt');
         }
+    }
+
+    /**
+     * @return false|TblLessonContentLink[]
+     */
+    public function getLinkedLessonContentAll(): array|bool
+    {
+        return Digital::useService()->getLessonContentLinkAllByCourseContent($this);
     }
 }

@@ -5,6 +5,8 @@ namespace SPHERE\Application\Education\ClassRegister\Diary;
 use DateInterval;
 use DateTime;
 use SPHERE\Application\Api\Education\ClassRegister\ApiDiary;
+use SPHERE\Application\Api\Education\ClassRegister\ApiDiaryRead;
+use SPHERE\Application\Api\Education\Graduation\Grade\ApiGradeBook;
 use SPHERE\Application\Education\Certificate\Prepare\View;
 use SPHERE\Application\Education\ClassRegister\Diary\Service\Entity\TblDiary;
 use SPHERE\Application\Education\ClassRegister\Digital\Digital;
@@ -17,6 +19,7 @@ use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
+use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextArea;
@@ -36,6 +39,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Select;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
@@ -363,11 +367,11 @@ class Frontend extends Extension implements IFrontendInterface
                         'BasicRoute' => $BasicRoute
                     )
                 ),
-                ApiDiary::receiverModal()
+                ApiDiaryRead::receiverModal()
                 . (new Standard(
                     new Edit() . new Info(new Bold('Schüleransicht')),
-                    ApiDiary::getEndpoint()
-                ))->ajaxPipelineOnClick(ApiDiary::pipelineOpenSelectStudentModal($DivisionCourseId, $BasicRoute))
+                    ApiDiaryRead::getEndpoint()
+                ))->ajaxPipelineOnClick(ApiDiaryRead::pipelineOpenSelectStudentModal($DivisionCourseId, $BasicRoute))
             );
         } else {
             $buttonList = array(
@@ -378,11 +382,11 @@ class Frontend extends Extension implements IFrontendInterface
                         'BasicRoute' => $BasicRoute
                     )
                 ),
-                ApiDiary::receiverModal()
+                ApiDiaryRead::receiverModal()
                 . (new Standard(
                     'Schüleransicht',
-                    ApiDiary::getEndpoint()
-                ))->ajaxPipelineOnClick(ApiDiary::pipelineOpenSelectStudentModal($DivisionCourseId, $BasicRoute))
+                    ApiDiaryRead::getEndpoint()
+                ))->ajaxPipelineOnClick(ApiDiaryRead::pipelineOpenSelectStudentModal($DivisionCourseId, $BasicRoute))
             );
         }
 
@@ -391,7 +395,18 @@ class Frontend extends Extension implements IFrontendInterface
 
         $tblYear = $tblDivisionCourse->getServiceTblYear();
 
-        $receiver = ApiDiary::receiverBlock($this->loadDiaryTable($tblDivisionCourse, $tblStudent ?: null, $BasicRoute), 'DiaryContent');
+        $receiver = ApiDiaryRead::receiverBlock($this->loadDiaryTable($tblDivisionCourse, $tblStudent ?: null, $BasicRoute), 'DiaryContent');
+
+        if (Consumer::useService()->getAccountSettingValue('DiaryShowAllYears')) {
+            $global = $this->getGlobal();
+            $global->POST['Data']['ShowAllYears'] = 1;
+            $global->savePost();
+        }
+
+        $option = (new Form(new FormGroup(new FormRow(new FormColumn(
+            (new CheckBox('Data[ShowAllYears]', new Bold('Anzeige inklusive vorherige Schuljahre'), 1))
+                ->ajaxPipelineOnChange(array(ApiDiaryRead::pipelineChangeShowAllYears($DivisionCourseId, $StudentId, $BasicRoute)))
+        )))))->disableSubmitAction();
 
         $stage->setContent(
             new Layout(array(
@@ -406,9 +421,10 @@ class Frontend extends Extension implements IFrontendInterface
                             ', new Exclamation())
                         ))
                     )),
-                    new LayoutRow(
-                        new LayoutColumn($buttonList)
-                    ),
+                    new LayoutRow(array(
+                        new LayoutColumn($buttonList, 9),
+                        new LayoutColumn(new PullRight($option), 3)
+                    )),
                     new LayoutRow(array(
                         new LayoutColumn(
                             new Panel(
@@ -558,22 +574,27 @@ class Frontend extends Extension implements IFrontendInterface
      * @param TblDivisionCourse $tblDivisionCourse
      * @param TblPerson|null $tblStudentPerson
      * @param string $BasicRoute
+     * @param bool|null $showAllYears
      *
      * @return TableData
      */
-    public function loadDiaryTable(TblDivisionCourse $tblDivisionCourse, ?TblPerson $tblStudentPerson, string $BasicRoute): TableData
+    public function loadDiaryTable(TblDivisionCourse $tblDivisionCourse, ?TblPerson $tblStudentPerson, string $BasicRoute, ?bool $showAllYears = null): TableData
     {
+        if ($showAllYears === null) {
+            $showAllYears = Consumer::useService()->getAccountSettingValue('DiaryShowAllYears');
+        }
+
         $dataList = array();
         $diaryList = array();
 
-        if (($tblDiaryList = Diary::useService()->getDiaryAllByDivisionCourse($tblDivisionCourse, true))) {
+        if (($tblDiaryList = Diary::useService()->getDiaryAllByDivisionCourse($tblDivisionCourse, $showAllYears))) {
             foreach ($tblDiaryList as $tblDiary) {
                 $diaryList[$tblDiary->getId()] = $tblDiary;
             }
         }
 
         // zusätzliche Schülereintrage (z.B. vom Klassenwechsel)
-        if (($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses())) {
+        if ($showAllYears && ($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses())) {
             foreach ($tblPersonList as $tblPerson) {
                 if (($tblDiaryListByStudent = Diary::useService()->getDiaryAllByStudent($tblPerson))) {
                     foreach ($tblDiaryListByStudent as $item) {
@@ -611,7 +632,8 @@ class Frontend extends Extension implements IFrontendInterface
             'Content' => 'Inhalt'
         );
 
-        if (!$tblStudentPerson) {
+        $hasRightApiDiary = Access::useService()->hasAuthorization('/Api/Education/ClassRegister/ApiDiary');
+        if (!$tblStudentPerson && $hasRightApiDiary) {
             $columns['Options'] = ' ';
         }
         return new TableData(

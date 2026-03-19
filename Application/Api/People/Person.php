@@ -4,11 +4,13 @@ namespace SPHERE\Application\Api\People;
 use SPHERE\Application\Api\People\Meta\Agreement\ApiAgreement;
 use SPHERE\Application\Api\People\Meta\Agreement\ApiPersonAgreementStructure;
 use SPHERE\Application\Api\People\Meta\Agreement\ApiStudentAgreementStructure;
+use SPHERE\Application\Api\People\Meta\Integration\ApiIntegration;
 use SPHERE\Application\Api\People\Meta\MedicalRecord\MedicalRecordReadOnly;
 use SPHERE\Application\Api\People\Meta\Student\ApiStudent;
 use SPHERE\Application\Api\People\Meta\Support\ApiSupport;
 use SPHERE\Application\Api\People\Meta\Support\ApiSupportReadOnly;
 use SPHERE\Application\Api\People\Person\ApiFamilyEdit;
+use SPHERE\Application\Api\People\Person\ApiPersonDelete;
 use SPHERE\Application\Api\People\Person\ApiPersonEdit;
 use SPHERE\Application\Api\People\Person\ApiPersonReadOnly;
 use SPHERE\Application\Api\People\Search\ApiPersonSearch;
@@ -32,8 +34,10 @@ class Person implements IApplicationInterface
         ApiStudentAgreementStructure::registerApi();
         ApiPersonAgreementStructure::registerApi();
         ApiPersonEdit::registerApi();
+        ApiPersonDelete::registerApi();
         ApiPersonReadOnly::registerApi();
         ApiFamilyEdit::registerApi();
         ApiPersonSearch::registerApi();
+        ApiIntegration::registerApi();
     }
 }

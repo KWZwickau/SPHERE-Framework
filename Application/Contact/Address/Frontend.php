@@ -112,6 +112,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $Global->POST['Region'] = $tblAddress->getRegion();
                 $Global->POST['County'] = $tblAddress->getCounty();
                 $Global->POST['Nation'] = $tblAddress->getNation();
+                $Global->POST['AddressExtra'] = $tblAddress->getAddressExtra();
 
                 $Global->savePost();
             }
@@ -130,7 +131,7 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
-        list($StreetNameList, $CountyList, $NationList, $CityList, $CodeList, $DistrictList) = Address::useService()->getAddressForAutoCompleter();
+        list($AddressExtraList, $StreetNameList, $CountyList, $NationList, $CityList, $CodeList, $DistrictList) = Address::useService()->getAddressForAutoCompleter();
         $tblState = Address::useService()->getStateAll();
         array_push($tblState, new TblState(''));
         $tblType = Address::useService()->getTypeAll();
@@ -149,6 +150,7 @@ class Frontend extends Extension implements IFrontendInterface
                 ->setRequired()
                 ->ajaxPipelineOnChange(ApiAddressToPerson::pipelineLoadRelationshipsContent($PersonId,
                     $isOnlineContactPosted && $tblOnlineContact ? $OnlineContactId : null)),
+            (new AutoCompleter('AddressExtra', 'Adresszusatz', 'Adresszusatz', $AddressExtraList, new MapMarker())),
             (new AutoCompleter('Street[Name]', 'Straße', 'Straße', $StreetNameList, new MapMarker()
             ))->setRequired(),
             (new TextField('Street[Number]', 'Hausnummer', 'Hausnummer', new MapMarker()))->setRequired()
@@ -416,8 +418,11 @@ class Frontend extends Extension implements IFrontendInterface
                                 $tblToPerson = false;
                                 $hasOnlineContactsOptions = false;
                             }
-
-                            $Address = $tblAddress->getStreetName().' '.$tblAddress->getStreetNumber().' '.$tblAddress->getPostOfficeBox();
+                            $Address = '';
+                            if($tblAddress->getAddressExtra()){
+                                $Address .= new Container($tblAddress->getAddressExtra());
+                            }
+                            $Address .= new Container($tblAddress->getStreetName().' '.$tblAddress->getStreetNumber().' '.$tblAddress->getPostOfficeBox());
                             if(($tblCity = $tblAddress->getTblCity())){
                                 $Address .= new Container($tblCity->getCode().' '.$tblCity->getDisplayName().' '.new Italic($tblAddress->getRegionString()));
                                 $Address .= new Container($tblAddress->getLocation());

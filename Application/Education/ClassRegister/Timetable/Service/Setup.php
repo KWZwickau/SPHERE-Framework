@@ -33,6 +33,7 @@ class Setup extends AbstractSetup
         $this->setTableTimetableNode($Schema, $tblTimeTable);
         $this->setTableTimetableWeek($Schema, $tblTimeTable);
         $this->setTableTimetableReplacement($Schema);
+        $this->setTableTimetableReplacementLog($Schema);
 
         /**
          * Migration & Protocol
@@ -141,6 +142,27 @@ class Setup extends AbstractSetup
         $this->createIndex($Table, array('Date', 'Hour', 'serviceTblCourse'), false);
         $this->createIndex($Table, array(TblTimetableReplacement::ATTR_DATE, TblTimetableReplacement::ATTR_SERVICE_TBL_PERSON), false);
 
+        return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
+     *
+     * @return Table
+     */
+    private function setTableTimetableReplacementLog(Schema &$Schema)
+    {
+
+        $Table = $this->createTable($Schema, 'tblClassRegisterTimetableReplacementLog');
+        $this->createColumn($Table, 'Date', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'Hour', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'Room', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'IsCanceled', self::FIELD_TYPE_BOOLEAN, false, false);
+        $this->createColumn($Table, 'Subject', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'SubjectSubstitute', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'Course', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'PersonAcronym', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'Error', self::FIELD_TYPE_STRING);
         return $Table;
     }
 

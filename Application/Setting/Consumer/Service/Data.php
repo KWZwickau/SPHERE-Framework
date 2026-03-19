@@ -58,6 +58,8 @@ class Data extends AbstractData
             'Allgemein', 'Notfallnummer in der Stammdatenverwaltung wird am Ende der Ansichten aufgelistet. [Standard: Nein]', true);
         $this->createSetting('People', 'Person', 'Student', 'DisplayCallNameAndLastName', TblSetting::TYPE_BOOLEAN, '0',
             'Allgemein', 'Anzeige des Schülernamens im Klassenbuch und Notenbuch als Rufname plus Nachname statt Nachname, Vorname [Standard: Nein]', true);
+        $this->createSetting('People', 'Person', 'Student', 'ShowUnderage', TblSetting::TYPE_BOOLEAN, '1',
+            'Allgemein', 'Anzeige Icon nach Schülernamen im Klassenbuch und Notenbuch ob minderjährig oder volljährig gesteuert nach Schulart [Standard: Ja]', true);
         // Allgemein non-public
         $this->createSetting('People', 'Meta', 'Student', 'Automatic_StudentNumber', TblSetting::TYPE_BOOLEAN, '0',
             'Allgemein', 'Die Schülernummern werden automatisch vom System erstellt. In diesem Fall können die
@@ -85,7 +87,7 @@ class Data extends AbstractData
              hinterlegt werden. Adresse des Bildes: [Standard: ]');
         $this->createSetting('Api', 'Document', 'Standard', 'PasswordChange_PictureHeight', TblSetting::TYPE_STRING, '',
             'Dokumente', 'Für die Eltern und Schülerzugänge sowie Passwortänderungsanschreiben kann ein Bild (Logo)
-             hinterlegt werden. Höhe des Bildes (Maximal 120px): [Standard: 120px]');
+             hinterlegt werden. Höhe des Bildes (Maximal 110px): [Standard: 90px]');
         $this->createSetting('Api', 'Document', 'Standard', 'SignOutCertificate_PictureAddress', TblSetting::TYPE_STRING,
             '', 'Dokumente', 'Für die Abmeldebescheinigung kann ein Bild (Logo) hinterlegt werden. Adresse des Bildes: [Standard: ]');
         $this->createSetting('Api', 'Document', 'Standard', 'SignOutCertificate_PictureHeight', TblSetting::TYPE_STRING,
@@ -134,6 +136,9 @@ class Data extends AbstractData
             'Zeugnisse', 'Sollen ' . $orientationName . 'e in das Bemerkungsfeld der Zeugnisse eingetragen werden. [Standard: Ja]', true);
         $this->createSetting('Education', 'Certificate', 'Diploma', 'DoNotShowSaxonyLogo', TblSetting::TYPE_BOOLEAN, '0',
             'Zeugnisse', 'Auf Abschlusszeugnissen und Abgangszeugnissen in A3 soll kein Sachsen-Logo aufgedruckt werden. [Standard: Nein]', true);
+        $this->createSetting('Education', 'Certificate', 'Diploma', 'CanDivisionTeacherPrepareDiploma', TblSetting::TYPE_STRING, '',
+            'Zeugnisse', 'Klassenlehrer/Tutoren können Abschlusszeugnisse vorbereiten. Festlegung mittels Kürzel der Schulart.
+            (Kürzel z.B. GS, OS, Gy, BS, BFS, BGJ, BVJ, BGy, FOS, FS, GMS, ISS) Mehrere Schularten sind mit Komma zu trennen. [Standard: ]', true);
 
         // Zeugnisse non-public
         $this->createSetting('Education', 'Certificate', 'Generate', 'PictureAddress', TblSetting::TYPE_STRING, '',
@@ -274,6 +279,11 @@ class Data extends AbstractData
         ) {
             $this->updateSettingSortOrder($tblSetting, 9);
         }
+        if (($tblSetting = $this->createSetting('ParentStudentAccess', 'Person', 'ContactDetails', 'PasswordRecoveryCost', TblSetting::TYPE_STRING, '5',
+            'Eltern/Schüler-Zugang', 'Kostenstellung für Vergabe eines neuen Passwortes. [Standard: 5]', true, 10))
+        ) {
+            $this->updateSettingSortOrder($tblSetting, 10);
+        }
 
         // Adresslisten für Serienbriefe public
         $this->createSetting('Reporting', 'SerialLetter', 'GenderSort', 'FirstFemale', TblSetting::TYPE_BOOLEAN, 1,
@@ -300,39 +310,75 @@ class Data extends AbstractData
         $this->createSetting('Education', 'ClassRegister', 'LessonContent', 'HasTeacherAccessToLastYearDigital', TblSetting::TYPE_BOOLEAN, '0',
             'Klassenbücher', 'Fachlehrer können auf die Klassenbücher des letzten vergangenen Schuljahres zugreifen [Standard: Nein]', true
         );
+        $this->createSetting('Education', 'ClassRegister', 'CourseContent', 'HasTeacherRightToCreateCourseContentForTeacherGroup', TblSetting::TYPE_BOOLEAN, '0',
+            'Klassenbücher', 'Fachlehrer können für Ihre eigenen Lerngruppen eigenständig ein Kursheft anlegen [Standard: Nein]', true
+        );
 
         // Leistungsüberprüfungen public
-        $this->createSetting('Education', 'Graduation', 'Evaluation', 'HasBehaviorGradesForSubjectsWithNoGrading',
-            TblSetting::TYPE_BOOLEAN, '0', 'Leistungsüberprüfungen', 'Bei Kopfnotenaufträgen können auch Kopfnoten für
-            Fächer vergeben werden, welche nicht benotet werden. [Standard: Nein]', true);
-        $this->createSetting('Education', 'Graduation', 'Evaluation', 'AutoPublicationOfTestsAfterXDays',
-            TblSetting::TYPE_INTEGER, '28', 'Leistungsüberprüfungen', 'Automatische Bekanntgabe von
-             Leistungsüberprüfungen für die Notenübersicht der Schüler/Eltern nach x Tagen: [Standard: 28]', true);
-        $this->createSetting('Education', 'Graduation', 'Evaluation', 'ShowProposalBehaviorGrade',
+        if (($tblSetting = $this->createSetting('Education', 'Graduation', 'Evaluation', 'ShowProposalBehaviorGrade',
             TblSetting::TYPE_BOOLEAN, '0', 'Leistungsüberprüfungen', 'Anzeige der Kopfnoten der Klassenlehrer als
-            Notenvorschlag [Standard: Nein]', true);
-
-        // Fehlzeiten public
-        $this->createSetting('Education', 'ClassRegister', 'Absence', 'DefaultStatusForNewOnlineAbsence', TblSetting::TYPE_INTEGER, TblAbsence::VALUE_STATUS_UNEXCUSED, 'Fehlzeiten',
-            'Voreingestellter Fehlzeiten-Status beim Erstellen einer neuen Online Fehlzeiten von Eltern/Schüler [Standard: unentschuldigt]', true, 2);
-        $this->createSetting('Education', 'ClassRegister', 'Absence', 'DefaultStatusForNewAbsence', TblSetting::TYPE_INTEGER, TblAbsence::VALUE_STATUS_UNEXCUSED, 'Fehlzeiten',
-            'Voreingestellter Fehlzeiten-Status beim Erstellen einer neuen Fehlzeit [Standard: unentschuldigt]', true, 3);
-        if (($tblSetting = $this->createSetting('Education', 'ClassRegister', 'Absence', 'UseClassRegisterForAbsence', TblSetting::TYPE_BOOLEAN,
-            '1', 'Fehlzeiten', 'Automatische Übernahme der Fehlzeiten aus dem Klassenbuch aufs Zeugnis [Standard: Ja]', true, 4))
-        ) {
-            $this->updateSettingDescription($tblSetting, $tblSetting->getCategory(),
-                'Automatische Übernahme der Fehlzeiten aus dem Klassenbuch aufs Zeugnis [Standard: Ja]', $tblSetting->isPublic());
+            Notenvorschlag [Standard: Nein]', true, 1)
+        )) {
+            $this->updateSettingSortOrder($tblSetting, 1);
+        }
+        if (($tblSetting = $this->createSetting('Education', 'Graduation', 'Evaluation', 'CalcProposalBehaviorGrade',
+            TblSetting::TYPE_BOOLEAN, '0', 'Leistungsüberprüfungen', 'Die Kopfnoten der Klassenlehrer, welche auch als
+            Notenvorschlag verwendet werden kann, wird in der Berechnung des Kopfnoten-Durchschnitts mit eingerechnet. [Standard: Nein]', true, 2)
+        )) {
+            $this->updateSettingSortOrder($tblSetting, 2);
+        }
+        if (($tblSetting = $this->createSetting('Education', 'Graduation', 'Evaluation', 'HasBehaviorGradesForSubjectsWithNoGrading',
+            TblSetting::TYPE_BOOLEAN, '0', 'Leistungsüberprüfungen', 'Bei Kopfnotenaufträgen können auch Kopfnoten für
+            Fächer vergeben werden, welche nicht benotet werden. [Standard: Nein]', true, 3)
+        )) {
+            $this->updateSettingSortOrder($tblSetting, 3);
+        }
+        if (($tblSetting = $this->createSetting('Education', 'Graduation', 'Evaluation', 'AutoPublicationOfTestsAfterXDays',
+            TblSetting::TYPE_INTEGER, '28', 'Leistungsüberprüfungen', 'Automatische Bekanntgabe von
+             Leistungsüberprüfungen für die Notenübersicht der Schüler/Eltern nach x Tagen: [Standard: 28]', true, 4)
+        )) {
             $this->updateSettingSortOrder($tblSetting, 4);
         }
 
-        // UCS
+        // Fehlzeiten public
+        if (($tblSetting = $this->createSetting('Education', 'ClassRegister', 'Absence', 'DefaultStatusForNewOnlineAbsence', TblSetting::TYPE_INTEGER, TblAbsence::VALUE_STATUS_UNEXCUSED, 'Fehlzeiten',
+            'Voreingestellter Fehlzeiten-Status beim Erstellen einer neuen Online Fehlzeiten von Eltern/Schüler [Standard: unentschuldigt]', true, 1))
+        ) {
+            $this->updateSettingSortOrder($tblSetting, 1);
+        }
+        $absenceStatus = TblAbsence::VALUE_STATUS_UNEXCUSED;
+        if (($tblSetting = $this->createSetting('Education', 'ClassRegister', 'Absence', 'DefaultStatusForNewAbsence', TblSetting::TYPE_INTEGER, TblAbsence::VALUE_STATUS_UNEXCUSED, 'Fehlzeiten',
+            'Voreingestellter Fehlzeiten-Status beim Erstellen einer neuen Fehlzeit im Bereich “Bildung Fehlzeiten” [Standard: unentschuldigt]', true, 2))
+        ) {
+            $absenceStatus = $tblSetting->getValue();
+            $this->updateSettingSortOrder($tblSetting, 2);
+            $this->updateSettingDescription($tblSetting, 'Fehlzeiten', 'Voreingestellter Fehlzeiten-Status beim Erstellen einer neuen Fehlzeit im Bereich “Bildung Fehlzeiten” [Standard: unentschuldigt]', true);
+        }
+        if (($tblSetting = $this->createSetting('Education', 'ClassRegister', 'Absence', 'DefaultStatusForNewAbsenceInDigital', TblSetting::TYPE_INTEGER, $absenceStatus, 'Fehlzeiten',
+            'Voreingestellter Fehlzeiten-Status beim Erstellen einer neuen Fehlzeit im Bereich “Bildung Digitales Klassenbuch” [Standard: unentschuldigt]', true, 3))
+        ) {
+            $this->updateSettingSortOrder($tblSetting, 3);
+        }
+        if (($tblSetting = $this->createSetting('Education', 'ClassRegister', 'Absence', 'HasStatusUnclear', TblSetting::TYPE_BOOLEAN, '0',
+            'Fehlzeiten', 'Bei Fehlzeiten kann neben “entschuldigt” und “unentschuldigt” zusätzlich der Status “unklar” ausgewählt werden [Standard: Nein]', true, 4
+        ))) {
+            $this->updateSettingSortOrder($tblSetting, 4);
+            $this->updateSettingDescription($tblSetting, 'Fehlzeiten', 'Bei Fehlzeiten kann neben “entschuldigt” und “unentschuldigt” zusätzlich der Status “unklar” ausgewählt werden [Standard: Nein]', true);
+        }
+        if (($tblSetting = $this->createSetting('Education', 'ClassRegister', 'Absence', 'UseClassRegisterForAbsence', TblSetting::TYPE_BOOLEAN,
+            '1', 'Fehlzeiten', 'Automatische Übernahme der Fehlzeiten aus dem Klassenbuch aufs Zeugnis [Standard: Ja]', true, 5))
+        ) {
+            $this->updateSettingSortOrder($tblSetting, 5);
+        }
+
+        // DLLP
         if (($tblSetting = $this->createSetting('Setting', 'Univention', 'Univention', 'API_Mail',
-            TblSetting::TYPE_STRING, '', 'Univention', 'E-Mail-Adresse für UCS Benutzername
+            TblSetting::TYPE_STRING, '', 'Univention', 'E-Mail-Adresse für DLLP Benutzername
              ist kein Pflichtfeld für Schüler folgender Schularten (Kürzel z.B. GS, OS, Gy, BS, BFS, BGJ, BVJ, BGy, FOS, FS, GMS, ISS). Mehrere Schularten sind mit
              Komma zu trennen. [Standard: ]'
         ))) {
             $this->updateSettingDescription($tblSetting, 'Univention',
-                'E-Mail-Adresse für UCS Benutzername
+                'E-Mail-Adresse für DLLP Benutzername
                 ist kein Pflichtfeld für Schüler folgender Schularten (Kürzel z.B. GS, OS, Gy, BS, BFS, BGJ, BVJ, BGy, FOS, FS, GMS, ISS). Mehrere Schularten sind mit
                 Komma zu trennen. [Standard: ]', $tblSetting->isPublic()
             );

@@ -76,23 +76,23 @@ class FuxSchool implements IModuleInterface
         return new Layout(new LayoutGroup(new LayoutRow(array(
             new LayoutColumn(new Thumbnail(
                 FileSystem::getFileLoader('/Common/Style/Resource/fuxschool.gif'),
-                'FuxSchool', 'Schülerdaten',
-                (new Standard('', '/Transfer/Import/FuxMedia/Student', new Upload(), array(), 'Upload'))->setDisabled()
-            ), 2),
-            new LayoutColumn(new Thumbnail(
-                FileSystem::getFileLoader('/Common/Style/Resource/fuxschool.gif'),
-                'FuxSchool', 'Klassendaten',
-                (new Standard('', '/Transfer/Import/FuxMedia/Division', new Upload(), array(), 'Upload'))->setDisabled()
+                'FuxSchool', 'Institutionendaten (Einrichtungsdaten)',
+                (new Standard('', '/Transfer/Import/FuxMedia/Company', new Upload(), array(), 'Upload')) // ->setDisabled()
             ), 2),
             new LayoutColumn(new Thumbnail(
                 FileSystem::getFileLoader('/Common/Style/Resource/fuxschool.gif'),
                 'FuxSchool', 'Lehrerdaten',
-                (new Standard('', '/Transfer/Import/FuxMedia/Teacher', new Upload(), array(), 'Upload'))->setDisabled()
+                (new Standard('', '/Transfer/Import/FuxMedia/Teacher', new Upload(), array(), 'Upload')) // ->setDisabled()
             ), 2),
             new LayoutColumn(new Thumbnail(
                 FileSystem::getFileLoader('/Common/Style/Resource/fuxschool.gif'),
-                'FuxSchool', 'Institutionendaten (Einrichtungsdaten)',
-                (new Standard('', '/Transfer/Import/FuxMedia/Company', new Upload(), array(), 'Upload'))->setDisabled()
+                'FuxSchool', 'Klassendaten',
+                (new Standard('', '/Transfer/Import/FuxMedia/Division', new Upload(), array(), 'Upload')) // ->setDisabled()
+            ), 2),
+            new LayoutColumn(new Thumbnail(
+                FileSystem::getFileLoader('/Common/Style/Resource/fuxschool.gif'),
+                'FuxSchool', 'Schülerdaten',
+                (new Standard('', '/Transfer/Import/FuxMedia/Student', new Upload(), array(), 'Upload')) // ->setDisabled()
             ), 2),
         ))));
     }

@@ -391,6 +391,27 @@ class TblStudent extends Element
     }
 
     /**
+     * @param $Ranking
+     *
+     * @return bool|TblStudentSubject
+     */
+    public function getTblStudentSubjectForeignLanguage($Ranking)
+    {
+        if (($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('FOREIGN_LANGUAGE'))
+            && ($tblStudentSubjectRanking = Student::useService()->getStudentSubjectRankingByIdentifier($Ranking))
+            && ($tblStudentSubject = Student::useService()->getStudentSubjectByStudentAndSubjectAndSubjectRanking(
+                $this,
+                $tblStudentSubjectType,
+                $tblStudentSubjectRanking
+            ))
+        ) {
+            return $tblStudentSubject;
+        }
+
+        return false;
+    }
+
+    /**
      * @return bool|\SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject
      */
     public function getTblSubjectProfile()

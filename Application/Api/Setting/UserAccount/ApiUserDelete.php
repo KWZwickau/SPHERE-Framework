@@ -186,14 +186,14 @@ class ApiUserDelete extends Extension implements IApiInterface
         if($Type == 'STUDENT'){
             $DangerText = 'Hiermit werden die ausgewählten Schüler-Accounts dauerhaft gelöscht';
             // nur bei Schülern
-            $IsUCSMandant = false;
+            $IsDLLPMandant = false;
             if(($tblConsumer = ConsumerGatekeeper::useService()->getConsumerBySession())){
-                if(ConsumerGatekeeper::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_UCS)){
-                    $IsUCSMandant = true;
+                if(ConsumerGatekeeper::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_DLLP)){
+                    $IsDLLPMandant = true;
                 }
             }
-            if($IsUCSMandant){
-                $DangerText .= new Container('Nach dem Löschen der Accounts in der Schulsoftware werden diese auch über die UCS Schnittstelle aus dem DLLP Projekt gelöscht.');
+            if($IsDLLPMandant){
+                $DangerText .= new Container('Nach dem Löschen der Accounts in der Schulsoftware werden diese auch über die DLLP Schnittstelle aus dem DLLP Projekt gelöscht.');
             }
         } elseif($Type == 'CUSTODY'){
             $DangerText = 'Hiermit werden die ausgewählten Sorgeberechtigten-Accounts dauerhaft gelöscht';

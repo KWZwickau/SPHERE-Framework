@@ -203,7 +203,6 @@ class Service
                                 if ($isAccountAlias || $isAccountRecoveryMail) {
                                     $addMail = false;
                                     // findAccounts
-//                                    if (($tblAccountList = Account::useService()->getAccountAllByPersonForUCS($tblPerson))) {
                                     if (($tblAccountList = Account::useService()->getAccountAllByPerson($tblPerson))) {
                                         if (count($tblAccountList) == 1) {
                                             $countAccounts++;
@@ -300,7 +299,7 @@ class Service
                                 if(!$isTest && $StudentNumber && $StudentNumber != ''){
                                     if(($tblStudent = Student::useService()->getStudentByPerson($tblPerson))){
                                         Student::useService()->updateStudentIdentifier($tblStudent, $StudentNumber);
-                                        if($tblStudent->getIdentifier()){
+                                        if($tblStudent->getIdentifierComplete()){
                                             $countUpdateStudentNumber++;
                                         } else {
                                             $countAddStudentNumber++;

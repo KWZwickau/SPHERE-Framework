@@ -59,10 +59,11 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param TblPerson $tblPerson
+     * @param int $Open // choose open item
      *
      * @return Stage
      */
-    public function frontendIntegration(TblPerson $tblPerson = null)
+    public function frontendIntegration(TblPerson $tblPerson = null, $Open = 1)
     {
 
         $Stage = new Stage();
@@ -72,9 +73,9 @@ class Frontend extends Extension implements IFrontendInterface
         $HandyCapContent = ApiSupport::receiverTableBlock(new SuccessMessage('Lädt'), 'HandyCapTable');
 
         $Accordion = new Accordion('');
-        $Accordion->addItem('Förderantrag/Förderbescheid '.ApiSupport::receiverInline('', 'SupportCount'), $SupportContent, true);
-        $Accordion->addItem('Entwicklungsbesonderheiten '.ApiSupport::receiverInline('', 'SpecialCount'), $SpecialContent, false);
-        $Accordion->addItem('Nachteilsausgleich '.ApiSupport::receiverInline('', 'HandyCapCount'), $HandyCapContent, false);
+        $Accordion->addItem('Förderantrag/Förderbescheid '.ApiSupport::receiverInline('', 'SupportCount'), $SupportContent, ($Open == 1? true : false));
+        $Accordion->addItem('Entwicklungsbesonderheiten '.ApiSupport::receiverInline('', 'SpecialCount'), $SpecialContent, ($Open == 2? true : false));
+        $Accordion->addItem('Nachteilsausgleich '.ApiSupport::receiverInline('', 'HandyCapCount'), $HandyCapContent, ($Open == 3? true : false));
 
         $Stage->setContent(
             ApiSupport::pipelineLoadTable($tblPerson->getId())
