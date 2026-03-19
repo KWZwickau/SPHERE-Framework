@@ -1,5 +1,4 @@
 <?php
-
 namespace SPHERE\Application\Platform\System\BasicData\Service;
 
 use Doctrine\DBAL\Schema\Schema;
@@ -26,6 +25,7 @@ class Setup extends AbstractSetup
         $tblHolidayType = $this->setTableHolidayType($Schema);
         $tblState = $this->setTableState($Schema);
         $this->setTableHoliday($Schema, $tblHolidayType, $tblState);
+        $this->setTableMaintenance($Schema);
 
         /**
          * Migration & Archive
@@ -82,6 +82,23 @@ class Setup extends AbstractSetup
 
         $this->getConnection()->addForeignKey($Table, $tblHolidayType, false);
         $this->getConnection()->addForeignKey($Table, $tblState, true);
+
+        return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
+     *
+     * @return Table
+     */
+    private function setTableMaintenance(Schema &$Schema)
+    {
+        $Table = $this->getConnection()->createTable($Schema, 'tblMaintenance');
+        $this->createColumn($Table, 'StartDate', self::FIELD_TYPE_DATETIME);
+        $this->createColumn($Table, 'MaintenanceDate', self::FIELD_TYPE_DATETIME);
+        $this->createColumn($Table, 'PreWarningTime', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'ActiveWarningTime', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'EndWarningTime', self::FIELD_TYPE_STRING);
 
         return $Table;
     }

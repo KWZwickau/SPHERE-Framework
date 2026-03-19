@@ -29,97 +29,6 @@ class Data extends AbstractData
         $this->createType('Geschäftlich', 'Mobil');
         $this->createType('Fax', 'Privat');
         $this->createType('Fax', 'Geschäftlich');
-
-        // todo kann nach der Migration (DB-Update) gelöscht werden
-
-        $deleteBulkList = array();
-        // Telefonnummern finden, welche bei einer Person mehrmals gespeichert sind und mindestens eine als Notfallnummer
-        if ($this->getTypeByNameAndDescription('Notfall', 'Festnetz')) {
-            if (($duplicateList = $this->getPhoneDuplicate())) {
-                foreach ($duplicateList as $item) {
-                    if (isset($item['serviceTblPerson'])
-                        && ($tblPerson = Person::useService()->getPersonById($item['serviceTblPerson']))
-                        && ($tblTempList = $this->getPhoneAllByPerson($tblPerson))
-                    ) {
-                        $list = array();
-                        foreach ($tblTempList as $tblTemp) {
-                            $list[$tblTemp->getTblPhone()->getId()]['List'][$tblTemp->getId()] = $tblTemp;
-                            if ($tblTemp->getTblType()->getName() == 'Notfall') {
-                                $list[$tblTemp->getTblPhone()->getId()]['hasEmergencyContact'] = true;
-                            }
-                        }
-
-                        foreach ($list as $array) {
-                            if (isset($array['hasEmergencyContact'])) {
-                                /** @var TblToPerson $tblToPersonTemp */
-                                foreach ($array['List'] as $tblToPersonTemp) {
-                                    if ($tblToPersonTemp->getTblType()->getName() != 'Notfall') {
-                                        $deleteBulkList[] = $tblToPersonTemp;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        $updateBulkList = array();
-        if (($tblType = $this->getTypeByNameAndDescription('Notfall', 'Festnetz'))) {
-            // Migration Notfall-Telefonnummern
-            if (($tblPhoneToPersonList = $this->getPhoneToPersonListByType($tblType))) {
-                $tblTypeNew = $this->getTypeByNameAndDescription('Privat', 'Festnetz');
-                foreach ($tblPhoneToPersonList as $tblToPerson) {
-                    $tblToPerson->setIsEmergencyContact(true);
-                    $tblToPerson->setTblType($tblTypeNew);
-
-                    $updateBulkList[] = $tblToPerson;
-                }
-            }
-            if (($tblPhoneToCompanyList = $this->getPhoneToCompanyListByType($tblType))) {
-                $tblTypeNew = $this->getTypeByNameAndDescription('Privat', 'Festnetz');
-                foreach ($tblPhoneToCompanyList as $tblToCompany) {
-                    $tblToCompany->setIsEmergencyContact(true);
-                    $tblToCompany->setTblType($tblTypeNew);
-
-                    $updateBulkList[] = $tblToCompany;
-                }
-            }
-
-            // Typ soft löschen
-            $this->removeType($tblType);
-        }
-        if (($tblType = $this->getTypeByNameAndDescription('Notfall', 'Mobil'))) {
-            // Migration Notfall-Telefonnummern
-            if (($tblPhoneToPersonList = $this->getPhoneToPersonListByType($tblType))) {
-                $tblTypeNew = $this->getTypeByNameAndDescription('Privat', 'Mobil');
-                foreach ($tblPhoneToPersonList as $tblToPerson) {
-                    $tblToPerson->setIsEmergencyContact(true);
-                    $tblToPerson->setTblType($tblTypeNew);
-
-                    $updateBulkList[] = $tblToPerson;
-                }
-            }
-            if (($tblPhoneToCompanyList = $this->getPhoneToCompanyListByType($tblType))) {
-                $tblTypeNew = $this->getTypeByNameAndDescription('Privat', 'Mobil');
-                foreach ($tblPhoneToCompanyList as $tblToCompany) {
-                    $tblToCompany->setIsEmergencyContact(true);
-                    $tblToCompany->setTblType($tblTypeNew);
-
-                    $updateBulkList[] = $tblToCompany;
-                }
-            }
-
-            // Typ soft löschen
-            $this->removeType($tblType);
-        }
-
-        if ($updateBulkList) {
-            $this->updateEntityListBulk($updateBulkList);
-        }
-        if ($deleteBulkList) {
-            $this->softRemoveEntityList($deleteBulkList);
-        }
     }
 
     /**
@@ -292,6 +201,7 @@ class Data extends AbstractData
                 TblToPerson::SERVICE_TBL_PERSON => $tblPerson->getId(),
                 TblToPerson::ATT_TBL_PHONE      => $tblPhone->getId(),
                 TblToPerson::ATT_TBL_TYPE       => $tblType->getId(),
+                Element::ENTITY_REMOVE          => null
             ));
         if (null === $Entity) {
             $Entity = new TblToPerson();
@@ -512,29 +422,6 @@ class Data extends AbstractData
         return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblToCompany', array(
             TblToPerson::ATT_TBL_TYPE => $tblType->getId()
         ));
-    }
-
-    /**
-     * @param array $tblEntityList
-     *
-     * @return bool
-     */
-    public function updateEntityListBulk(array $tblEntityList): bool
-    {
-        $Manager = $this->getEntityManager();
-
-        /** @var Element $tblElement */
-        foreach ($tblEntityList as $tblElement) {
-            $Manager->bulkSaveEntity($tblElement);
-            /** @var Element $Entity */
-            $Entity = $Manager->getEntityById($tblElement->getEntityShortName(), $tblElement->getId());
-            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Entity, $tblElement, true);
-        }
-
-        $Manager->flushCache();
-        Protocol::useService()->flushBulkEntries();
-
-        return true;
     }
 
     /**

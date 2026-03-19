@@ -122,9 +122,9 @@ class Frontend extends Extension implements IFrontendInterface
                 $CompanyNumberPanel = new Panel(new PullClear('Unternehmensnr. des Unfallversicherungsträgers'
                         .new PullRight(($CompanyNumber == '' ? '(leer)' : '')))
                     , ($CompanyNumber != ''
-                        ? $CompanyNumber
+                        ? 'Schüler: '.$CompanyNumber
                         : ($CompanyNumberStandard != ''
-                            ? 'Schulträger: '.$CompanyNumberStandard.' '.
+                            ? 'Schüler '.new Small(new Muted('aus Schulträger')).': '.$CompanyNumberStandard.' '.
                             new ToolTip(new Info(),
                                 'Es wird diese Unternehmensnr. des Schulträgers verwendet, wenn bei der Schule keine hinterlegt ist.')
                             : '')),

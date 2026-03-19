@@ -552,9 +552,9 @@ class FrontendStudentTransfer extends FrontendReadOnly
             .ApiMassReplace::receiverModal($Field, $NodeArrive)
             .new PullRight((new Link('Massen-Änderung',
                 ApiMassReplace::getEndpoint(), null, array(
-                    ApiMassReplace::SERVICE_CLASS                                   => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
-                    ApiMassReplace::SERVICE_METHOD                                  => MassReplaceTransfer::METHOD_REPLACE_ARRIVE_SCHOOL,
-                    'Id'                                                      => $tblPerson->getId(),
+                    ApiMassReplace::SERVICE_CLASS => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
+                    ApiMassReplace::SERVICE_METHOD => MassReplaceTransfer::METHOD_REPLACE_ARRIVE_SCHOOL,
+                    'Id' => $tblPerson->getId(),
                 )))->ajaxPipelineOnClick(
                 ApiMassReplace::pipelineOpen($Field, $NodeArrive)
             ));
@@ -568,9 +568,9 @@ class FrontendStudentTransfer extends FrontendReadOnly
             .ApiMassReplace::receiverModal($Field, $NodeArrive)
             .new PullRight((new Link('Massen-Änderung',
                 ApiMassReplace::getEndpoint(), null, array(
-                    ApiMassReplace::SERVICE_CLASS                                   => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
-                    ApiMassReplace::SERVICE_METHOD                                  => MassReplaceTransfer::METHOD_REPLACE_ARRIVE_STATE_SCHOOL,
-                    'Id'                                                      => $tblPerson->getId(),
+                    ApiMassReplace::SERVICE_CLASS => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
+                    ApiMassReplace::SERVICE_METHOD => MassReplaceTransfer::METHOD_REPLACE_ARRIVE_STATE_SCHOOL,
+                    'Id' => $tblPerson->getId(),
                 )))->ajaxPipelineOnClick(
                 ApiMassReplace::pipelineOpen($Field, $NodeArrive)
             ));
@@ -620,9 +620,9 @@ class FrontendStudentTransfer extends FrontendReadOnly
             .ApiMassReplace::receiverModal($Field, $NodeArrive)
             .new PullRight((new Link('Massen-Änderung',
                 ApiMassReplace::getEndpoint(), null, array(
-                    ApiMassReplace::SERVICE_CLASS                                   => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
-                    ApiMassReplace::SERVICE_METHOD                                  => MassReplaceTransfer::METHOD_REPLACE_ARRIVE_TRANSFER_DATE,
-                    'Id'                                                            => $tblPerson->getId(),
+                    ApiMassReplace::SERVICE_CLASS => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
+                    ApiMassReplace::SERVICE_METHOD => MassReplaceTransfer::METHOD_REPLACE_ARRIVE_TRANSFER_DATE,
+                    'Id' => $tblPerson->getId(),
                 )))->ajaxPipelineOnClick(
                 ApiMassReplace::pipelineOpen($Field, $NodeArrive)
             ));
@@ -645,9 +645,9 @@ class FrontendStudentTransfer extends FrontendReadOnly
                             .ApiMassReplace::receiverModal($Field, $NodeEnrollment)
                             .new PullRight((new Link('Massen-Änderung',
                                 ApiMassReplace::getEndpoint(), null, array(
-                                    ApiMassReplace::SERVICE_CLASS                                   => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
-                                    ApiMassReplace::SERVICE_METHOD                                  => MassReplaceTransfer::METHOD_REPLACE_ENROLLMENT_SCHOOL,
-                                    'Id'                                                            => $tblPerson->getId(),
+                                    ApiMassReplace::SERVICE_CLASS => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
+                                    ApiMassReplace::SERVICE_METHOD => MassReplaceTransfer::METHOD_REPLACE_ENROLLMENT_SCHOOL,
+                                    'Id' => $tblPerson->getId(),
                                 )))->ajaxPipelineOnClick(
                                 ApiMassReplace::pipelineOpen($Field, $NodeEnrollment)
                             )),
@@ -661,9 +661,9 @@ class FrontendStudentTransfer extends FrontendReadOnly
                             .ApiMassReplace::receiverModal($Field, $NodeEnrollment)
                             .new PullRight((new Link('Massen-Änderung',
                                 ApiMassReplace::getEndpoint(), null, array(
-                                    ApiMassReplace::SERVICE_CLASS                                   => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
-                                    ApiMassReplace::SERVICE_METHOD                                  => MassReplaceTransfer::METHOD_REPLACE_ENROLLMENT_SCHOOL_TYPE,
-                                    'Id'                                                            => $tblPerson->getId(),
+                                    ApiMassReplace::SERVICE_CLASS => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
+                                    ApiMassReplace::SERVICE_METHOD => MassReplaceTransfer::METHOD_REPLACE_ENROLLMENT_SCHOOL_TYPE,
+                                    'Id' => $tblPerson->getId(),
                                 )))->ajaxPipelineOnClick(
                                 ApiMassReplace::pipelineOpen($Field, $NodeEnrollment)
                             )),
@@ -677,9 +677,9 @@ class FrontendStudentTransfer extends FrontendReadOnly
                             .ApiMassReplace::receiverModal($Field, $NodeEnrollment)
                             .new PullRight((new Link('Massen-Änderung',
                                 ApiMassReplace::getEndpoint(), null, array(
-                                    ApiMassReplace::SERVICE_CLASS                                   => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
-                                    ApiMassReplace::SERVICE_METHOD                                  => MassReplaceTransfer::METHOD_REPLACE_ENROLLMENT_TYPE,
-                                    'Id'                                                            => $tblPerson->getId(),
+                                    ApiMassReplace::SERVICE_CLASS => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
+                                    ApiMassReplace::SERVICE_METHOD => MassReplaceTransfer::METHOD_REPLACE_ENROLLMENT_TYPE,
+                                    'Id' => $tblPerson->getId(),
                                 )))->ajaxPipelineOnClick(
                                 ApiMassReplace::pipelineOpen($Field, $NodeEnrollment)
                             )),
@@ -693,9 +693,9 @@ class FrontendStudentTransfer extends FrontendReadOnly
                             .ApiMassReplace::receiverModal($Field, $NodeEnrollment)
                             .new PullRight((new Link('Massen-Änderung',
                                 ApiMassReplace::getEndpoint(), null, array(
-                                    ApiMassReplace::SERVICE_CLASS                                   => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
-                                    ApiMassReplace::SERVICE_METHOD                                  => MassReplaceTransfer::METHOD_REPLACE_ENROLLMENT_COURSE,
-                                    'Id'                                                            => $tblPerson->getId(),
+                                    ApiMassReplace::SERVICE_CLASS => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
+                                    ApiMassReplace::SERVICE_METHOD => MassReplaceTransfer::METHOD_REPLACE_ENROLLMENT_COURSE,
+                                    'Id' => $tblPerson->getId(),
                                 )))->ajaxPipelineOnClick(
                                 ApiMassReplace::pipelineOpen($Field, $NodeEnrollment)
                             )),
@@ -706,9 +706,9 @@ class FrontendStudentTransfer extends FrontendReadOnly
                             .ApiMassReplace::receiverModal($Field, $NodeEnrollment)
                             .new PullRight((new Link('Massen-Änderung',
                                 ApiMassReplace::getEndpoint(), null, array(
-                                    ApiMassReplace::SERVICE_CLASS                                   => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
-                                    ApiMassReplace::SERVICE_METHOD                                  => MassReplaceTransfer::METHOD_REPLACE_ENROLLMENT_TRANSFER_DATE,
-                                    'Id'                                                            => $tblPerson->getId(),
+                                    ApiMassReplace::SERVICE_CLASS => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
+                                    ApiMassReplace::SERVICE_METHOD => MassReplaceTransfer::METHOD_REPLACE_ENROLLMENT_TRANSFER_DATE,
+                                    'Id' => $tblPerson->getId(),
                                 )))->ajaxPipelineOnClick(
                                 ApiMassReplace::pipelineOpen($Field, $NodeEnrollment)
                             )),
@@ -730,9 +730,9 @@ class FrontendStudentTransfer extends FrontendReadOnly
                             .ApiMassReplace::receiverModal($Field, $NodeLeave)
                             .new PullRight((new Link('Massen-Änderung',
                                 ApiMassReplace::getEndpoint(), null, array(
-                                    ApiMassReplace::SERVICE_CLASS                                   => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
-                                    ApiMassReplace::SERVICE_METHOD                                  => MassReplaceTransfer::METHOD_REPLACE_LEAVE_SCHOOL,
-                                    'Id'                                                            => $tblPerson->getId(),
+                                    ApiMassReplace::SERVICE_CLASS => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
+                                    ApiMassReplace::SERVICE_METHOD => MassReplaceTransfer::METHOD_REPLACE_LEAVE_SCHOOL,
+                                    'Id' => $tblPerson->getId(),
                                 )))->ajaxPipelineOnClick(
                                 ApiMassReplace::pipelineOpen($Field, $NodeLeave)
                             )),
@@ -746,9 +746,9 @@ class FrontendStudentTransfer extends FrontendReadOnly
                             .ApiMassReplace::receiverModal($Field, $NodeLeave)
                             .new PullRight((new Link('Massen-Änderung',
                                 ApiMassReplace::getEndpoint(), null, array(
-                                    ApiMassReplace::SERVICE_CLASS                                   => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
-                                    ApiMassReplace::SERVICE_METHOD                                  => MassReplaceTransfer::METHOD_REPLACE_LEAVE_SCHOOL_TYPE,
-                                    'Id'                                                            => $tblPerson->getId(),
+                                    ApiMassReplace::SERVICE_CLASS => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
+                                    ApiMassReplace::SERVICE_METHOD => MassReplaceTransfer::METHOD_REPLACE_LEAVE_SCHOOL_TYPE,
+                                    'Id' => $tblPerson->getId(),
                                 )))->ajaxPipelineOnClick(
                                 ApiMassReplace::pipelineOpen($Field, $NodeLeave)
                             )),
@@ -762,9 +762,9 @@ class FrontendStudentTransfer extends FrontendReadOnly
                             .ApiMassReplace::receiverModal($Field, $NodeLeave)
                             .new PullRight((new Link('Massen-Änderung',
                                 ApiMassReplace::getEndpoint(), null, array(
-                                    ApiMassReplace::SERVICE_CLASS                                   => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
-                                    ApiMassReplace::SERVICE_METHOD                                  => MassReplaceTransfer::METHOD_REPLACE_LEAVE_COURSE,
-                                    'Id'                                                            => $tblPerson->getId(),
+                                    ApiMassReplace::SERVICE_CLASS => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
+                                    ApiMassReplace::SERVICE_METHOD => MassReplaceTransfer::METHOD_REPLACE_LEAVE_COURSE,
+                                    'Id' => $tblPerson->getId(),
                                 )))->ajaxPipelineOnClick(
                                 ApiMassReplace::pipelineOpen($Field, $NodeLeave)
                             )),
@@ -776,9 +776,9 @@ class FrontendStudentTransfer extends FrontendReadOnly
                             .ApiMassReplace::receiverModal($Field, $NodeLeave)
                             .new PullRight((new Link('Massen-Änderung',
                                 ApiMassReplace::getEndpoint(), null, array(
-                                    ApiMassReplace::SERVICE_CLASS                                   => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
-                                    ApiMassReplace::SERVICE_METHOD                                  => MassReplaceTransfer::METHOD_REPLACE_LEAVE_TRANSFER_DATE,
-                                    'Id'                                                            => $tblPerson->getId(),
+                                    ApiMassReplace::SERVICE_CLASS => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
+                                    ApiMassReplace::SERVICE_METHOD => MassReplaceTransfer::METHOD_REPLACE_LEAVE_TRANSFER_DATE,
+                                    'Id' => $tblPerson->getId(),
                                 )))->ajaxPipelineOnClick(
                                 ApiMassReplace::pipelineOpen($Field, $NodeLeave)
                             )),

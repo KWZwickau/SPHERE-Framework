@@ -2254,7 +2254,7 @@ abstract class Style extends Certificate
      * @param int $personId
      * @param string $marginTop
      * @param bool $hasJobGrade
-     * @param bool $hasPretext
+     * @param string $period
      *
      * @return Slice
      */
@@ -2270,8 +2270,9 @@ abstract class Style extends Certificate
         $slice = (new Slice())
             ->styleMarginTop($marginTop);
 
-        $slice->addElement($this->getElement('hat im zurückliegenden ' . $period . ' folgende Leistungen erreicht:', self::TEXT_SIZE_LARGE));
-//        $slice->addElement($this->getElement('Pflichtbereich', self::TEXT_SIZE_LARGE)->styleTextBold());
+        if ($period) {
+            $slice->addElement($this->getElement('hat im zurückliegenden ' . $period . ' folgende Leistungen erreicht:', self::TEXT_SIZE_LARGE));
+        }
 
         $tblCertificateSubjectAll = Generator::useService()->getCertificateSubjectAll($this->getCertificateEntity());
         $tblGradeList = $this->getGrade();

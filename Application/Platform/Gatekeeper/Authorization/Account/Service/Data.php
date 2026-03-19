@@ -1,6 +1,8 @@
 <?php
 namespace SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service;
 
+use MOC\V\Component\Database\Component\IBridgeInterface;
+use MOC\V\Component\Database\Database as MocDatabase;
 use SPHERE\Application\Contact\Mail\Mail;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -19,11 +21,13 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Service\Entity\TblToken;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
-use SPHERE\System\Cache\Handler\MemcachedHandler;
+use SPHERE\System\Cache\Handler\RedisHandler;
 use SPHERE\System\Cache\Handler\MemoryHandler;
 use SPHERE\System\Database\Binding\AbstractData;
+use SPHERE\System\Database\Database;
 use SPHERE\System\Database\Fitting\ColumnHydrator;
 use SPHERE\System\Database\Fitting\Element;
+use SPHERE\System\Database\Type\MySql;
 use SPHERE\System\Debugger\DebuggerFactory;
 use SPHERE\System\Debugger\Logger\CacheLogger;
 
@@ -44,6 +48,7 @@ class Data extends AbstractData
         $this->createIdentification('Credential', 'Benutzername / Passwort', true);
         $this->createIdentification('UserCredential', 'Benutzername / Passwort', true);
         $this->createIdentification('AuthenticatorApp', 'Benutzername / Passwort & Authenticator App', true);
+        $this->createIdentification('Service', 'Service Accounts ohne Nutzerzugriff', true);
     }
 
     /**
@@ -236,17 +241,43 @@ class Data extends AbstractData
         return $Entity;
     }
 
-    public function createAccountInitial(TblAccount $tblAccount)
+    /**
+     * @param string $Password
+     * @param TblAccount $tblAccount
+     * @return object|TblAccountInitial|null
+     */
+    public function createAccountInitial(string $Password, TblAccount $tblAccount)
     {
 
         $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblAccountInitial')->findOneBy(array(TblAccountInitial::ATTR_TBL_ACCOUNT => $tblAccount->getId()));
         if (null === $Entity) {
             $Entity = new TblAccountInitial();
-            $Entity->setPassword($tblAccount->getPassword());
+            $Entity->setPassword(hash('sha256', $Password));
             $Entity->setTblAccount($tblAccount);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
+        return $Entity;
+    }
+
+    /**
+     * @param string $Password
+     * @param TblAccount $tblAccount
+     *
+     * @return object|TblAccountInitial|null
+     */
+    public function updateAccountInitial(string $Password, TblAccount $tblAccount)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $Entity = $Manager->getEntity('TblAccountInitial')->findOneBy(array(TblAccountInitial::ATTR_TBL_ACCOUNT => $tblAccount->getId()));
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setPassword(hash('sha256', $Password));
+            $Entity->setTblAccount($tblAccount);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
         }
         return $Entity;
     }
@@ -346,6 +377,19 @@ class Data extends AbstractData
         return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblSetting', array(
             TblSetting::ATTR_TBL_ACCOUNT => $tblAccount->getId(),
             TblSetting::ATTR_IDENTIFIER  => $Identifier
+        ));
+    }
+
+    /**
+     * @param string $uniqueValue
+     *
+     * @return bool|TblSetting
+     */
+    public function getSettingByUniqueValue($uniqueValue)
+    {
+
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblSetting', array(
+            TblSetting::ATTR_VALUE => $uniqueValue
         ));
     }
 
@@ -509,6 +553,68 @@ class Data extends AbstractData
         return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblAccountInitial', array(
             TblAccountInitial::ATTR_TBL_ACCOUNT => $tblAccount->getId()
         ));
+    }
+
+    /**
+     * @param TblAccount $tblAccount
+     * @return null|string
+     */
+    public function getAccountInitialPasswordByAccountWithoutLogin(TblAccount $tblAccount): ?string
+    {
+
+        $tblConsumer = $tblAccount->getServiceTblConsumer();
+        $container = Database::getDataBaseConfig($tblConsumer);
+        $UserPassword = null;
+        if ($container) {
+            try {
+                $connection = $this->getConnectionByAcronym(
+                    $container->getContainer('Host')->getValue(),
+                    $container->getContainer('Username')->getValue(),
+                    $container->getContainer('Password')->getValue(),
+                    $tblConsumer->getAcronym()
+                );
+                if ($connection) {
+                    $queryBuilder = $connection->getQueryBuilder();
+                    $query = $queryBuilder->select('tUA.UserPassword')
+                        ->from($tblConsumer->getAcronym().'_SettingConsumer.tblUserAccount', 'tUA')
+                        ->where('tUA.serviceTblAccount = :AccountId')
+                        ->setParameter('AccountId', $tblAccount->getId());
+                    $result = $query->execute();
+                    $array = $result->fetch();
+
+                    if (isset($array['UserPassword'])) {
+                        $UserPassword = $array['UserPassword'];
+                    }
+
+                    $connection->getConnection()->close();
+                }
+            } catch (\Exception $Exception) {
+                if ($connection) {
+                    $connection->getConnection()->close();
+                }
+                $connection = null;
+            }
+        }
+        return $UserPassword?hash('sha256', $UserPassword): null;
+    }
+
+    /**
+     * @param string $Host Server-Address (IP)
+     * @param string $User
+     * @param string $Password
+     * @param string $Acronym DatabaseName will get prefix '_SettingConsumer' e.g. {Acronym}_SettingConsumer
+     *
+     * @return bool|IBridgeInterface
+     */
+    private function getConnectionByAcronym($Host, $User, $Password, $Acronym)
+    {
+        $Connection = MocDatabase::getDatabase(
+            $User, $Password, strtoupper($Acronym).'_SettingConsumer', (new MySql())->getIdentifier(), $Host
+        );
+        if ($Connection->getConnection()->isConnected()) {
+            return $Connection;
+        }
+        return false;
     }
 
     /**
@@ -951,8 +1057,8 @@ class Data extends AbstractData
             $Query->useQueryCache(true);
             $Query->getResult();
 
-            /** @var MemcachedHandler $Public */
-            $Public = $this->getCache(new MemcachedHandler());
+            /** @var RedisHandler $Public */
+            $Public = $this->getCache(new RedisHandler());
             $Public->clearSlot('PUBLIC');
         }
     }
@@ -1167,22 +1273,6 @@ class Data extends AbstractData
     }
 
     /**
-     * @param TblConsumer       $tblConsumer
-     *
-     * @return bool|TblAccount[]
-     */
-    public function getAccountListByConsumer(TblConsumer $tblConsumer)
-    {
-
-        $EntityList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
-            'TblAccount',
-            array(
-                TblAccount::SERVICE_TBL_CONSUMER => $tblConsumer->getId(),
-            ));
-        return (!empty($EntityList) ? $EntityList : false);
-    }
-
-    /**
      * @param TblAccount $tblAccount
      *
      * @return bool|TblUser[]
@@ -1357,5 +1447,34 @@ class Data extends AbstractData
         }
 
         return false;
+    }
+
+    /**
+     * @param TblIdentification $tblIdentification
+     * @param TblConsumer $tblConsumer
+     *
+     * @return TblAccount[]|bool
+     */
+    public function getAccountListByIdentification(TblIdentification $tblIdentification, TblConsumer $tblConsumer): array|bool
+    {
+        $queryBuilder = $this->getEntityManager()->getQueryBuilder();
+
+        $query = $queryBuilder->select('a')
+            ->from(TblAccount::class, 'a')
+            ->leftJoin(TblAuthentication::class, 'au', 'WITH', 'a.Id = au.tblAccount')
+            ->where(
+                $queryBuilder->expr()->andX(
+                    $queryBuilder->expr()->isNull('a.EntityRemove'),
+                    $queryBuilder->expr()->eq('a.serviceTblConsumer', '?2'),
+                    $queryBuilder->expr()->eq('au.tblIdentification', '?1')
+                ),
+            )
+            ->setParameter(1, $tblIdentification->getId())
+            ->setParameter(2, $tblConsumer->getId())
+            ->getQuery();
+
+        $resultList = $query->getResult();
+
+        return empty($resultList) ? false : $resultList;
     }
 }

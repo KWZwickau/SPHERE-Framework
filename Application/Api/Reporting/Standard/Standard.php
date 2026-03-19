@@ -21,6 +21,9 @@ class Standard implements IModuleInterface
             __NAMESPACE__.'/Person/ClassList/Download', __NAMESPACE__.'\Person\Person::downloadClassList'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Person/ClassList/DownloadIndividual', __NAMESPACE__.'\Person\Person::downloadIndividualClassList'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/Person/ExtendedClassList/Download',
             __NAMESPACE__.'\Person\Person::downloadExtendedClassList'
         ));
@@ -109,6 +112,12 @@ class Standard implements IModuleInterface
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/Person/RepresentativeList/Download', __NAMESPACE__.'\Person\Person::downloadRepresentativeList'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Person/MovementReport/Download', __NAMESPACE__.'\Person\Person::downloadMovementReport'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/TeacherLectureship/Download', __NAMESPACE__.'\Person\Person::downloadTeacherLectureship'
         ));
     }
 

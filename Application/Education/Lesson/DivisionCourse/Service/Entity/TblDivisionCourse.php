@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity;
 
+use DateTime;
 use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
@@ -8,6 +9,7 @@ use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
+use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblPeriod;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Type;
@@ -26,6 +28,7 @@ class TblDivisionCourse extends Element
     const SERVICE_TBL_YEAR = 'serviceTblYear';
     const ATTR_IS_SHOWN_IN_PERSON_DATA = 'IsShownInPersonData';
     const ATTR_IS_REPORTING = 'IsReporting';
+    const ATTR_IS_DIGITAL = 'IsDigital';
 
     const ATTR_MIGRATE_GROUP_ID = 'MigrateGroupId';
     const ATTR_MIGRATE_SEK_COURSE = 'MigrateSekCourse';
@@ -68,6 +71,11 @@ class TblDivisionCourse extends Element
      * @Column(type="boolean")
      */
     protected bool $IsReporting = false;
+
+    /**
+     * @Column(type="boolean")
+     */
+    protected bool $IsDigital = false;
 
     /**
      * @Column(type="bigint")
@@ -249,6 +257,22 @@ class TblDivisionCourse extends Element
     }
 
     /**
+     * @return bool
+     */
+    public function getIsDigital(): bool
+    {
+        return $this->IsDigital;
+    }
+
+    /**
+     * @param bool $isDigital
+     */
+    public function setIsDigital(bool $isDigital): void
+    {
+        $this->IsDigital = $isDigital;
+    }
+
+    /**
      * @return string
      */
     public function getTypeIdentifier(): string
@@ -333,10 +357,11 @@ class TblDivisionCourse extends Element
     /**
      * @param bool $withInActive
      * @param bool $isResultPersonList
+     * @param DateTime|null $dateTime
      *
      * @return false|TblDivisionCourseMember[]|TblPerson[]
      */
-    public function getStudentsWithSubCourses(bool $withInActive = false, bool $isResultPersonList = true)
+    public function getStudentsWithSubCourses(bool $withInActive = false, bool $isResultPersonList = true, DateTime $dateTime = null)
     {
         if ($this->getTypeIdentifier() == TblDivisionCourseType::TYPE_ADVANCED_COURSE || $this->getTypeIdentifier() == TblDivisionCourseType::TYPE_BASIC_COURSE) {
             $tblPersonList = array();
@@ -345,6 +370,21 @@ class TblDivisionCourse extends Element
             ) {
                 $hasDivisionSort = false;
                 $divisionSortList = array();
+
+                // ermittele Halbjahre
+                if ($dateTime) {
+                    $isShortYear = false;
+                    $level = substr($this->getName(), 0, 2);
+                    $schoolTypeShort = substr($this->getName(), 2, 2);
+                    if (($tblSchoolType = Type::useService()->getTypeByShortName($schoolTypeShort))
+                        && DivisionCourse::useService()->getIsShortYearBySchoolTypeAndLevel($tblSchoolType, $level)
+                    ) {
+                        $isShortYear = true;
+                    }
+                    $tblPeriodList = $tblYear->getPeriodList($isShortYear);
+                    // keys zurück setzen
+                    $tblPeriodList = array_values($tblPeriodList);
+                }
 
                 foreach ($tblStudentSubjectList as $tblStudentSubject) {
                     if (($tblPersonTemp = $tblStudentSubject->getServiceTblPerson())) {
@@ -356,6 +396,18 @@ class TblDivisionCourse extends Element
                         } else {
                             // Schüler ohne Schüler-Bildung nicht mehr im Kurs anzeigen
                             continue;
+                        }
+
+                        // beachte nach Datum ob der Schüler noch im Halbjahr sitzt
+                        $period = $tblStudentSubject->getPeriodOnlyNumberOfPeriod() - 1;
+                        if ($dateTime
+                            && isset($tblPeriodList[$period])
+                        ) {
+                            /** @var TblPeriod $tblPeriod */
+                            $tblPeriod = $tblPeriodList[$period];
+                            if ($tblPeriod->getFromDateTime() > $dateTime || ($tblPeriod->getToDateTime() < $dateTime && $period == 0)) {
+                                continue;
+                            }
                         }
 
                         $tblPersonList[$tblPersonTemp->getId()] = $tblPersonTemp;

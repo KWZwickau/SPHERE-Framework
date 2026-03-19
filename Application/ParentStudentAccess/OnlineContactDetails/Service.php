@@ -2,6 +2,7 @@
 
 namespace SPHERE\Application\ParentStudentAccess\OnlineContactDetails;
 
+use DateInterval;
 use DateTime;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Mail\Mail;
@@ -72,7 +73,11 @@ class Service extends AbstractService
         if (($tblSetting = Consumer::useService()->getSetting('ParentStudentAccess', 'Person', 'ContactDetails', 'OnlineContactDetailsAllowedForSchoolTypes'))
             && ($tblSchoolTypeAllowedList = Consumer::useService()->getSchoolTypeBySettingString($tblSetting->getValue()))
         ) {
-            if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndDate($tblPerson))
+            // SSW-2780 neue Schüler vor Beginn des Schuljahrs freischalten
+            $date = new DateTime('now');
+            $date = $date->add(new DateInterval('P3M'));
+            if ((($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndDate($tblPerson))
+                    || ($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndDate($tblPerson, $date->format('d.m.Y'))))
                 && ($tblType = $tblStudentEducation->getServiceTblSchoolType())
                 && isset($tblSchoolTypeAllowedList[$tblType->getId()])
                 && ($birthday = $tblPerson->getBirthday())
@@ -141,8 +146,12 @@ class Service extends AbstractService
                             || $relationship->getTblType()->getName() == 'Bevollmächtigt'
                             || $relationship->getTblType()->getName() == 'Vormund')
                     ) {
+                        // SSW-2780 neue Schüler vor Beginn des Schuljahrs freischalten
+                        $date = new DateTime('now');
+                        $date = $date->add(new DateInterval('P3M'));
                         // prüfen: ob die Schulart freigeben ist
-                        if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndDate($tblPersonChild))
+                        if ((($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndDate($tblPersonChild))
+                             || ($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndDate($tblPersonChild, $date->format('d.m.Y'))))
                             && ($tblType = $tblStudentEducation->getServiceTblSchoolType())
                             && isset($tblSchoolTypeAllowedList[$tblType->getId()])
                         ) {

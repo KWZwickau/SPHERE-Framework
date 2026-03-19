@@ -155,8 +155,9 @@ class ApiScoreRule  extends Extension implements IApiInterface
                         } elseif (($tblScoreRuleSubject = Grade::useService()->getScoreRuleSubjectByYearAndSchoolTypeAndLevelAndSubject(
                             $tblYear, $tblSchoolType, $level, $tblSubject
                         ))) {
-                            $tblScoreRuleSubject->setTblScoreRule($tblScoreRule);
-                            $updateList[] = $tblScoreRuleSubject;
+                            $updateList[$tblScoreRuleSubject->getId()] = [
+                                'ScoreRule' => $tblScoreRule,
+                            ];
                             // neu
                         } else {
                             $createList[] = new TblScoreRuleSubject($tblYear, $tblSchoolType, $level, $tblSubject, $tblScoreRule);
@@ -170,7 +171,7 @@ class ApiScoreRule  extends Extension implements IApiInterface
             Grade::useService()->createEntityListBulk($createList);
         }
         if (!empty($updateList)) {
-            Grade::useService()->updateEntityListBulk($updateList);
+            Grade::useService()->updateScoreRuleSubjectListBulk($updateList);
         }
         if (!empty($removeList)) {
             Grade::useService()->deleteEntityListBulk($removeList);
@@ -286,8 +287,9 @@ class ApiScoreRule  extends Extension implements IApiInterface
                             } elseif (($tblTemp = Grade::useService()->getScoreRuleSubjectDivisionCourseByDivisionCourseAndSubject(
                                 $tblDivisionCourse, $tblSubject
                             ))) {
-                                $tblTemp->setTblScoreRule($tblScoreRule);
-                                $updateList[] = $tblTemp;
+                                $updateList[$tblTemp->getId()] = [
+                                    'ScoreRule' => $tblScoreRule
+                                ];
                                 // neu
                             } else {
                                 $createList[] = new TblScoreRuleSubjectDivisionCourse($tblDivisionCourse, $tblSubject, $tblScoreRule);
@@ -302,7 +304,7 @@ class ApiScoreRule  extends Extension implements IApiInterface
             Grade::useService()->createEntityListBulk($createList);
         }
         if (!empty($updateList)) {
-            Grade::useService()->updateEntityListBulk($updateList);
+            Grade::useService()->updateScoreRuleSubjectDivisionCourseListBulk($updateList);
         }
         if (!empty($removeList)) {
             Grade::useService()->deleteEntityListBulk($removeList);

@@ -554,6 +554,15 @@ abstract class Support extends Subject
     }
 
     /**
+     * @return false|TblSpecial[]
+     */
+    public function getSpecialByAll()
+    {
+
+        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblSpecial');
+    }
+
+    /**
      * @param $Id
      *
      * @return false|TblSpecial
@@ -567,12 +576,75 @@ abstract class Support extends Subject
     }
 
     /**
-     * @return false|TblSpecial[]
+     * @return false|TblHandyCap[]
      */
     public function getHandyCapAll()
     {
 
         return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblHandyCap');
+    }
+
+    /**
+     * @return false|TblSupport[]
+     */
+    public function getSupportListByDate(\DateTime $Date)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $queryBuilder = $Manager->getQueryBuilder();
+
+        $tblSupport = new TblSupport();
+        $query = $queryBuilder->select('tS')
+            ->from($tblSupport->getEntityFullName(), 'tS')
+            ->where($queryBuilder->expr()->gt('tS.Date', '?1'))
+            ->setParameter(1, $Date)
+            ->getQuery();
+
+        $resultList = $query->getResult();
+
+        return empty($resultList) ? false : $resultList;
+    }
+
+    /**
+     * @return false|TblSpecial[]
+     */
+    public function getSpecialListByDate(\DateTime $Date)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $queryBuilder = $Manager->getQueryBuilder();
+
+        $tblSupport = new TblSpecial();
+        $query = $queryBuilder->select('tS')
+            ->from($tblSupport->getEntityFullName(), 'tS')
+            ->where($queryBuilder->expr()->gt('tS.Date', '?1'))
+            ->setParameter(1, $Date)
+            ->getQuery();
+
+        $resultList = $query->getResult();
+
+        return empty($resultList) ? false : $resultList;
+    }
+
+    /**
+     * @return false|TblHandyCap[]
+     */
+    public function getHandyCapListByDate(\DateTime $Date)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $queryBuilder = $Manager->getQueryBuilder();
+
+        $tblHandyCap = new TblHandyCap();
+        $query = $queryBuilder->select('tHC')
+            ->from($tblHandyCap->getEntityFullName(), 'tHC')
+            ->where($queryBuilder->expr()->gt('tHC.Date', '?1'))
+            ->setParameter(1, $Date)
+            ->getQuery();
+
+        $resultList = $query->getResult();
+
+        return empty($resultList) ? false : $resultList;
     }
 
 
@@ -586,9 +658,10 @@ abstract class Support extends Subject
     {
 
         return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblSupport',
-        array(
-            TblSupport::SERVICE_TBL_PERSON => $tblPerson->getId()
-        ));
+        array(TblSupport::SERVICE_TBL_PERSON => $tblPerson->getId()),
+            // Sortierung
+            array('Date' => self::ORDER_DESC)
+        );
     }
 
     /**
@@ -606,9 +679,7 @@ abstract class Support extends Subject
                 TblSupport::ATTR_TBL_SUPPORT_TYPE => $tblSupportType->getId()
             ),
             // Sortierung wichtig für Kamenz-Statistik
-            array(
-                TblSupport::ATTR_DATE => self::ORDER_DESC
-            )
+            array(TblSupport::ATTR_DATE => self::ORDER_DESC)
         );
     }
 
@@ -621,9 +692,8 @@ abstract class Support extends Subject
     {
 
         return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblSpecial',
-            array(
-                TblSpecial::SERVICE_TBL_PERSON => $tblPerson->getId()
-            ),
+            array(TblSpecial::SERVICE_TBL_PERSON => $tblPerson->getId()),
+            // Sortierung
             array('Date' => self::ORDER_DESC)
         );
     }
@@ -682,6 +752,22 @@ abstract class Support extends Subject
             array(
                 TblSupportFocus::ATTR_TBL_SUPPORT => $tblSupport->getId(),
                 TblSupportFocus::ATTR_IS_PRIMARY => true
+            )
+        );
+    }
+
+    /**
+     * @param TblSupport $tblSupport
+     *
+     * @return false|TblSupportFocus
+     */
+    public function getSupportSecondaryFocusBySupport(TblSupport $tblSupport)
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblSupportFocus',
+            array(
+                TblSupportFocus::ATTR_TBL_SUPPORT => $tblSupport->getId(),
+                TblSupportFocus::ATTR_IS_PRIMARY => false
             )
         );
     }

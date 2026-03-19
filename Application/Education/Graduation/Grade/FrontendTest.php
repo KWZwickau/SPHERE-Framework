@@ -144,6 +144,7 @@ abstract class FrontendTest extends FrontendTeacherGroup
                 $Global->POST['Data']['IsContinues'] = $tblTest->getIsContinues();
                 $Global->POST['Data']['FinishDate'] = $tblTest->getFinishDateString();
                 $Global->POST['Data']['Date'] = $tblTest->getDateString();
+                $Global->POST['Data']['IsSecondPeriod'] = $tblTest->getSecondPeriodDate() !== null;
                 $Data['Date'] = $tblTest->getDateString();
                 $Global->POST['Data']['CorrectionDate'] = $tblTest->getCorrectionDateString();
                 $Global->POST['Data']['ReturnDate'] = $tblTest->getReturnDateString();
@@ -173,9 +174,16 @@ abstract class FrontendTest extends FrontendTeacherGroup
                 }
             }
         }
+
         // keine Zensuren-Typen bei diesen Berechnungsvorschriften verfügbar
         if (empty($tblGradeTypeList)) {
             $tblGradeTypeList = Grade::useService()->getGradeTypeList();
+        // es gibt nur einen Zensuren-Typ -> dann diesen automatisch vorauswählen bei neuer Leistungsüberprüfung
+        } elseif ($setPost && !$tblTest && count($tblGradeTypeList) == 1) {
+            $tblGradeTypeSelected = reset($tblGradeTypeList);
+            $Global = $this->getGlobal();
+            $Global->POST['Data']['GradeType'] = $tblGradeTypeSelected->getId();
+            $Global->savePost();
         }
 
         $size = 4;
@@ -200,10 +208,20 @@ abstract class FrontendTest extends FrontendTeacherGroup
                         array(
                             'Data[FinishDate]',
                             'Data[Date]',
-//                            'Data[CorrectionDate]',
                             'Data[ReturnDate]'
                         ))
-                ),
+                , $size),
+                new FormColumn(
+                    new CheckBox('Data[IsSecondPeriod]', new Bold('Leistungsüberprüfung zählt unabhängig vom Datum zum 2. Halbjahr ' .
+                        new ToolTip(
+                            new InfoIcon(),
+                            'Standardmäßig werden die Leistungsüberprüfungen nach ihrem Datum dem entsprechenden Halbjahr zugeordnet. Mit dieser Option kann 
+                                dies überschrieben werden, z.B. eine Leistungsüberprüfung wird im 1.Halbjahr nach dem Stichtag/Notenschluss geschrieben.'
+                        )
+                    ), 1)
+                , 12 - $size),
+            )),
+            new FormRow(array(
                 new FormColumn(
                     (new DatePicker('Data[FinishDate]', '', 'Enddatum (optional für Notendatum)', new Calendar()))->setDisabled(), $size
                 ),
@@ -212,9 +230,6 @@ abstract class FrontendTest extends FrontendTeacherGroup
                         ->ajaxPipelineOnChange(ApiGradeBook::pipelineLoadTestPlanning())
                     , $size
                 ),
-//                new FormColumn(
-//                    new DatePicker('Data[CorrectionDate]', '', 'Korrekturdatum', new Calendar()), $size
-//                ),
                 new FormColumn(
                     new DatePicker('Data[ReturnDate]', '', 'Bekanntgabedatum für Notenübersicht (Eltern, Schüler)',
                         new Calendar()), $size
@@ -222,7 +237,7 @@ abstract class FrontendTest extends FrontendTeacherGroup
             )),
             new FormRow(array(
                 new FormColumn(
-                    $this->getDivisionCoursesSelectContent($SubjectId, $Filter)
+                    $this->getDivisionCoursesSelectContent($DivisionCourseId, $SubjectId, $Filter, $tblTest ?: null)
                 )
             )),
             new FormRow(array(
@@ -245,17 +260,21 @@ abstract class FrontendTest extends FrontendTeacherGroup
     }
 
     /**
+     * @param $DivisionCourseId
      * @param $SubjectId
      * @param $Filter
+     * @param TblTest|null $tblTest
      *
      * @return Layout|Warning
      */
-    public function getDivisionCoursesSelectContent($SubjectId, $Filter)
+    public function getDivisionCoursesSelectContent($DivisionCourseId, $SubjectId, $Filter, ?TblTest $tblTest): Layout|Warning
     {
         if (!($tblSubject = Subject::useService()->getSubjectById($SubjectId))) {
             return new Warning('Fach wurde nicht gefunden.', new Exclamation());
         }
-        if (!($tblYear = Grade::useService()->getYear())) {
+        if (!(($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))
+            && ($tblYear = $tblDivisionCourse->getServiceTblYear()))
+        ) {
             return new Warning('Schuljahr wurde nicht gefunden.', new Exclamation());
         }
 
@@ -285,6 +304,17 @@ abstract class FrontendTest extends FrontendTeacherGroup
                         $contentPanelList[$tblDivisionCourse->getType()->getId()][$tblDivisionCourse->getId()]
                             = (new CheckBox("Data[DivisionCourses][{$tblDivisionCourse->getId()}]", $tblDivisionCourse->getDisplayName(), 1))
                                 ->ajaxPipelineOnChange(ApiGradeBook::pipelineLoadTestPlanning());
+                    }
+                }
+
+                // bereits ausgewählte Kurse mit hinzufügen (z.B. Lerngruppe) für Schulleitung
+                if ($tblTest) {
+                    foreach ($tblTest->getDivisionCourses() as $tblDivisionCourseTemp) {
+                        if (!isset($contentPanelList[$tblDivisionCourseTemp->getType()->getId()][$tblDivisionCourseTemp->getId()])) {
+                            $contentPanelList[$tblDivisionCourseTemp->getType()->getId()][$tblDivisionCourseTemp->getId()]
+                                = (new CheckBox("Data[DivisionCourses][{$tblDivisionCourseTemp->getId()}]", $tblDivisionCourseTemp->getDisplayName(), 1))
+                                ->ajaxPipelineOnChange(ApiGradeBook::pipelineLoadTestPlanning());
+                        }
                     }
                 }
             }
@@ -392,11 +422,11 @@ abstract class FrontendTest extends FrontendTeacherGroup
             if (!empty($panelContentList)) {
                 $columnList = array();
                 $size = 4;
-                foreach ($panelContentList as $data) {
+                foreach ($panelContentList as $week => $data) {
                     $columnList[] = new LayoutColumn(new Panel(
                         $data['Header'],
                         $data ['Content'],
-                        Panel::PANEL_TYPE_DEFAULT
+                        $week == $selectDate->format('W') ? Panel::PANEL_TYPE_INFO : Panel::PANEL_TYPE_DEFAULT
                     ), $size);
                 }
 
@@ -578,9 +608,10 @@ abstract class FrontendTest extends FrontendTeacherGroup
         $integrationList = array();
         $pictureList = array();
         $courseList = array();
+        $dateTime = $tblTest->getSortDate() ?: new DateTime('today');
         if (($tblDivisionCourseList = $tblTest->getDivisionCourses())) {
             foreach ($tblDivisionCourseList as $tblDivisionCourse) {
-                if (($tempPersons = $tblDivisionCourse->getStudentsWithSubCourses())) {
+                if (($tempPersons = $tblDivisionCourse->getStudentsWithSubCourses(false, true, $dateTime))) {
                     foreach ($tempPersons as $tblPersonTemp) {
                         if (($tblVirtualSubject = DivisionCourse::useService()->getVirtualSubjectFromRealAndVirtualByPersonAndYearAndSubject(
                                 $tblPersonTemp, $tblYear, $tblSubject

@@ -94,6 +94,11 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblGroupList[] = $tblSettingGroupPerson->getServiceTblGroupPerson();
             }
         }
+        $IsExtended = false;
+        if(($Setting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_CAUSER_EXTENDED_VIEW))){
+            $IsExtended = $Setting->getValue();
+        }
+
         $tblGroupList = array_filter($tblGroupList);
         $tblGroupLockedList = array();
         $tblGroupCustomList = array();
@@ -102,6 +107,11 @@ class Frontend extends Extension implements IFrontendInterface
             foreach ($tblGroupList as $Index => $tblGroup) {
 
                 $countContent = new Muted(new Small(Group::useService()->countMemberByGroup($tblGroup) . '&nbsp;Mitglieder'));
+                if($IsExtended){
+                    $DataArray = array('GroupId' => $tblGroup->getId(), 'Extended' => true);
+                } else {
+                    $DataArray = array('GroupId' => $tblGroup->getId());
+                }
                 $content =
                     new Layout(new LayoutGroup(new LayoutRow(array(
                             new LayoutColumn(
@@ -115,7 +125,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 new PullRight(
                                     new Standard('', __NAMESPACE__.'/View',
                                         new GroupIcon(),
-                                        array('GroupId' => $tblGroup->getId()))
+                                        $DataArray)
                                 ), 1)
                         )
                     )));
@@ -175,7 +185,7 @@ class Frontend extends Extension implements IFrontendInterface
         return $Stage;
     }
 
-    public function getCauserTable($GroupId, $Extended = '')
+    public function getCauserTable($GroupId, $Extended = false)
     {
 
         $TableContent = array();
@@ -305,7 +315,8 @@ class Frontend extends Extension implements IFrontendInterface
 
                         $Item['Option'] = new Standard('', __NAMESPACE__.'/Edit', new Edit(), array(
                             'GroupId'  => $tblGroup->getId(),
-                            'PersonId' => $tblPerson->getId()
+                            'PersonId' => $tblPerson->getId(),
+                            'Extended' => $Extended
                         ), 'Bearbeiten');
                         $Item['Option'] .= (new Standard('', ApiCauser::getEndpoint(), new Statistic(), array(), 'Historie'))
                             ->ajaxPipelineOnClick(ApiCauser::pipelineOpenCauserModal($tblPerson->getId()));
@@ -419,15 +430,22 @@ class Frontend extends Extension implements IFrontendInterface
     /**
      * @param string $GroupId
      * @param string $PersonId
+     * @param bool   $Extended
      *
      * @return Stage|string
      */
-    public function frontendCauserEdit($GroupId = '', $PersonId = '')
+    public function frontendCauserEdit($GroupId = '', $PersonId = '', $Extended = false)
     {
 
         $Stage = new Stage('Beitragsverursacher', 'bearbeiten');
         if($GroupId){
-            $Stage->addButton(new Standard('Zurück', __NAMESPACE__.'/View', new ChevronLeft(), array('GroupId' => $GroupId)));
+            if($Extended){
+                $DataArray = array('GroupId' => $GroupId, 'Extended' => true);
+            } else {
+                $DataArray = array('GroupId' => $GroupId);
+            }
+
+            $Stage->addButton(new Standard('Zurück', __NAMESPACE__.'/View', new ChevronLeft(), $DataArray));
         } else {
             $Stage->addButton(new Standard('Zurück', __NAMESPACE__, new ChevronLeft()));
         }
@@ -653,6 +671,7 @@ class Frontend extends Extension implements IFrontendInterface
                     $PeriodPayType = 'Zahlungszeitraum: ';
                     $FromDate = 'Beitragspflicht ab: ';
                     $ToDate = 'Beitragspflicht bis: ';
+                    $PriceDate = 'now';
 
                     if(($tblDebtorPeriodType = $tblDebtorSelection->getTblDebtorPeriodType())){
                         $PeriodPayType .= new Bold($tblDebtorPeriodType->getName());
@@ -663,7 +682,8 @@ class Frontend extends Extension implements IFrontendInterface
                         $FromDate .= new Bold('---');
                     }
                     if($tblDebtorSelection->getToDate()){
-                        $ToDate .= new Bold($tblDebtorSelection->getToDate());
+                        $PriceDate = $tblDebtorSelection->getToDate();
+                        $ToDate .= new Bold($PriceDate);
                     } else {
                         $ToDate .= new Bold('kein Enddatum');
                     }
@@ -687,7 +707,7 @@ class Frontend extends Extension implements IFrontendInterface
                     }
                     $PriceString = new WarningText(new WarningIcon().' kein aktueller Preis');
                     if(($tblItemVariant = $tblDebtorSelection->getServiceTblItemVariant())){
-                        if($tblItemCalculation = Item::useService()->getItemCalculationNowByItemVariant($tblItemVariant)){
+                        if($tblItemCalculation = Item::useService()->getItemCalculationNowByItemVariant($tblItemVariant, $PriceDate)){
                             $PriceString = $tblItemCalculation->getPriceString();
                         }
                         $ItemVariant = $tblItemVariant->getName().': '.new Bold($PriceString);

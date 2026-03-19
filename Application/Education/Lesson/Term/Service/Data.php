@@ -270,7 +270,7 @@ class Data extends AbstractData
             array(
                 TblYearPeriod::ATTR_TBL_YEAR => $tblYear->getId()
             ));
-//        $Cache = (new CacheFactory())->createHandler(new MemcachedHandler());
+//        $Cache = (new CacheFactory())->createHandler(new RedisHandler());
 //        if (null === ($ResultList = $Cache->getValue($tblYear->getId(), __METHOD__))
 //            && !empty($EntityList)
 //        ) {

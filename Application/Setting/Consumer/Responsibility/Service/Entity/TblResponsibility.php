@@ -19,6 +19,7 @@ class TblResponsibility extends Element
 
     const SERVICE_TBL_COMPANY = 'serviceTblCompany';
     const ATTR_COMPANY_NUMBER = 'CompanyNumber';
+    const ATTR_COMPANY_NUMBER_STAFF = 'CompanyNumberStaff';
 
     /**
      * @Column(type="bigint")
@@ -28,6 +29,10 @@ class TblResponsibility extends Element
      * @Column(type="string")
      */
     protected $CompanyNumber;
+    /**
+     * @Column(type="string")
+     */
+    protected $CompanyNumberStaff;
 
     /**
      * @return bool|TblCompany
@@ -65,5 +70,21 @@ class TblResponsibility extends Element
     public function setCompanyNumber($CompanyNumber)
     {
         $this->CompanyNumber = $CompanyNumber;
+    }
+
+    /**
+     * @return string
+     */
+    public function getCompanyNumberStaff()
+    {
+        return $this->CompanyNumberStaff;
+    }
+
+    /**
+     * @param string $CompanyNumberStaff
+     */
+    public function setCompanyNumberStaff($CompanyNumberStaff)
+    {
+        $this->CompanyNumberStaff = $CompanyNumberStaff;
     }
 }

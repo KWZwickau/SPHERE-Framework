@@ -84,9 +84,9 @@ abstract class ServiceCourseContent extends AbstractService
      * @param $Data
      * @param TblDivisionCourse $tblDivisionCourse
      *
-     * @return bool
+     * @return TblCourseContent
      */
-    public function createCourseContent($Data, TblDivisionCourse $tblDivisionCourse): bool
+    public function createCourseContent($Data, TblDivisionCourse $tblDivisionCourse): TblCourseContent
     {
         // key -1 bei 0. UE
         $lesson = $Data['Lesson'];
@@ -94,19 +94,18 @@ abstract class ServiceCourseContent extends AbstractService
             $lesson = 0;
         }
 
-        (new Data($this->getBinding()))->createCourseContent(
+        return (new Data($this->getBinding()))->createCourseContent(
             $tblDivisionCourse,
             $Data['Date'],
             $lesson,
             $Data['Content'],
             $Data['Homework'],
+            $Data['DueDateHomework'],
             $Data['Remark'],
             $Data['Room'],
             isset($Data['IsTrippleLesson']) ? 2 : (isset($Data['IsDoubleLesson']) ? 1 : 0),
             ($tblPerson = Account::useService()->getPersonByLogin()) ? $tblPerson : null
         );
-
-        return  true;
     }
 
     /**
@@ -129,6 +128,7 @@ abstract class ServiceCourseContent extends AbstractService
             $lesson,
             $Data['Content'],
             $Data['Homework'],
+            $Data['DueDateHomework'],
             $Data['Remark'],
             $Data['Room'],
             isset($Data['IsTrippleLesson']) ? 2 : (isset($Data['IsDoubleLesson']) ? 1 : 0),
@@ -162,6 +162,21 @@ abstract class ServiceCourseContent extends AbstractService
      */
     public function destroyCourseContent(TblCourseContent $tblCourseContent): bool
     {
-        return (new Data($this->getBinding()))->destroyCourseContent($tblCourseContent);
+        if (($tblLessonContentLinkList = $tblCourseContent->getLinkedLessonContentAll())) {
+
+            // Verknüpfungen löschen
+            foreach ($tblLessonContentLinkList as $tblLessonContentLink) {
+                (new Data($this->getBinding()))->destroyLessonContentLink($tblLessonContentLink);
+                if (($tblLessonContentItem = $tblLessonContentLink->getTblLessonContent())) {
+                    (new Data($this->getBinding()))->destroyLessonContent($tblLessonContentItem);
+                } elseif (($tblCourseContentItem = $tblLessonContentLink->getTblCourseContent())) {
+                    (new Data($this->getBinding()))->destroyCourseContent($tblCourseContentItem);
+                }
+            }
+        } else {
+            (new Data($this->getBinding()))->destroyCourseContent($tblCourseContent);
+        }
+
+        return true;
     }
 }

@@ -288,17 +288,17 @@ class PrimarySchool extends AbstractStudentCard
                         ->addSection((new Section())
                             ->addElementColumn((new Element())
                                 ->setContent('
-                                         {% if(Content.Person.Parent.Mother.Name.Last is not empty) %}
-                                            {% if(Content.Person.Parent.Father.Name.Last is not empty) %}
-                                                {{ Content.Person.Parent.Mother.Name.Last }}, {{ Content.Person.Parent.Mother.Name.First }}
+                                         {% if(Content.Person.Parent.S1.Name.Last is not empty) %}
+                                            {% if(Content.Person.Parent.S2.Name.Last is not empty) %}
+                                                {{ Content.Person.Parent.S1.Name.Last }}, {{ Content.Person.Parent.S1.Name.First }}
                                                 <br />
-                                                {{ Content.Person.Parent.Father.Name.Last }}, {{ Content.Person.Parent.Father.Name.First }}
+                                                {{ Content.Person.Parent.S2.Name.Last }}, {{ Content.Person.Parent.S2.Name.First }}
                                             {% else %}
-                                                {{ Content.Person.Parent.Mother.Name.Last }} {{ Content.Person.Parent.Mother.Name.First }}
+                                                {{ Content.Person.Parent.S1.Name.Last }} {{ Content.Person.Parent.S1.Name.First }}
                                             {% endif %}
                                         {% else %}
-                                            {% if(Content.Person.Parent.Father.Name.Last is not empty) %}
-                                                {{ Content.Person.Parent.Father.Name.Last }} {{ Content.Person.Parent.Father.Name.First }}
+                                            {% if(Content.Person.Parent.S2.Name.Last is not empty) %}
+                                                {{ Content.Person.Parent.S2.Name.Last }} {{ Content.Person.Parent.S2.Name.First }}
                                                 {% else %}
                                                 &nbsp;
                                             {% endif %}

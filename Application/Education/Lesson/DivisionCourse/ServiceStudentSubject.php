@@ -229,7 +229,7 @@ abstract class ServiceStudentSubject extends ServiceCourseSystem
     {
         $tblStudentSubjectList = array();
         if (($tblYear = $tblDivisionCourse->getServiceTblYear())
-            && ($tblStudentList = DivisionCourse::useService()->getStudentListBy($tblDivisionCourse))
+            && ($tblStudentList = $tblDivisionCourse->getStudents())
         ) {
             foreach ($tblStudentList as $tblPerson) {
                 if (($tblStudentSubject = $this->getStudentSubjectByPersonAndYearAndDivisionCourseAndPeriod($tblPerson, $tblYear, $tblSubjectDivisionCourse, $Period))) {
@@ -353,8 +353,7 @@ abstract class ServiceStudentSubject extends ServiceCourseSystem
                         $destroyList[] = $tblStudentSubject;
                     // update
                     } elseif ($tblStudentSubject->getHasGrading() != $hasGrading) {
-                        $tblStudentSubject->setHasGrading($hasGrading);
-                        $updateList[] = $tblStudentSubject;
+                        $updateList[$tblStudentSubject->getId()] = $hasGrading;
                     }
                 }
             }
@@ -385,7 +384,7 @@ abstract class ServiceStudentSubject extends ServiceCourseSystem
                 (new Data($this->getBinding()))->createStudentSubjectBulkList($createList);
             }
             if (!empty($updateList)) {
-                (new Data($this->getBinding()))->updateStudentSubjectBulkList($updateList);
+                (new Data($this->getBinding()))->updateStudentSubjectBulkSetHasGradingList($updateList);
             }
             if (!empty($destroyList)) {
                 (new Data($this->getBinding()))->destroyStudentSubjectBulkList($destroyList);
@@ -425,8 +424,7 @@ abstract class ServiceStudentSubject extends ServiceCourseSystem
                         $destroyList[] = $tblStudentSubject;
                         // update
                     } elseif ($tblStudentSubject->getHasGrading() != $hasGrading) {
-                        $tblStudentSubject->setHasGrading($hasGrading);
-                        $updateList[] = $tblStudentSubject;
+                        $updateList[$tblStudentSubject->getId()] = $hasGrading;
                     }
                 }
             }
@@ -452,7 +450,7 @@ abstract class ServiceStudentSubject extends ServiceCourseSystem
                 (new Data($this->getBinding()))->createStudentSubjectBulkList($createList);
             }
             if (!empty($updateList)) {
-                (new Data($this->getBinding()))->updateStudentSubjectBulkList($updateList);
+                (new Data($this->getBinding()))->updateStudentSubjectBulkSetHasGradingList($updateList);
             }
             if (!empty($destroyList)) {
                 (new Data($this->getBinding()))->destroyStudentSubjectBulkList($destroyList);

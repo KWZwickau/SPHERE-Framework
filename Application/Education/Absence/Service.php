@@ -2,6 +2,7 @@
 
 namespace SPHERE\Application\Education\Absence;
 
+use DateInterval;
 use DateTime;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Education\Absence\Service\Data;
@@ -26,6 +27,7 @@ use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\Success;
+use SPHERE\Common\Frontend\Text\Repository\Warning;
 use SPHERE\System\Database\Binding\AbstractService;
 use SPHERE\System\Extension\Repository\Sorter;
 use SPHERE\System\Extension\Repository\Sorter\DateTimeSorter;
@@ -149,6 +151,7 @@ class Service extends AbstractService
      * @param null $PersonId
      * @param null $DivisionCourseId
      * @param bool $hasSearch
+     * @param null $IsMassAbsence
      *
      * @return bool|Form
      */
@@ -158,8 +161,9 @@ class Service extends AbstractService
         TblAbsence $tblAbsence = null,
         $PersonId = null,
         $DivisionCourseId = null,
-        bool $hasSearch = false
-    ) {
+        bool $hasSearch = false,
+        $IsMassAbsence = null
+    ): Form|bool {
         $error = false;
         $messageSearch = null;
         $messageLesson = null;
@@ -169,6 +173,11 @@ class Service extends AbstractService
             $tblPerson = Person::useService()->getPersonById($PersonId);
         } elseif ($tblAbsence) {
             $tblPerson = $tblAbsence->getServiceTblPerson();
+        } elseif ($IsMassAbsence) {
+            if (!isset($Data['Students']) || count($Data['Students']) == 0) {
+                $messageSearch = new Danger('Bitte wählen Sie mindestens einen Schüler aus.', new Exclamation());
+                $error = true;
+            }
         } else {
             if(!isset($Data['PersonId']) || !($tblPerson = Person::useService()->getPersonById($Data['PersonId']))) {
                 $messageSearch = new Danger('Bitte wählen Sie einen Schüler aus.', new Exclamation());
@@ -187,10 +196,12 @@ class Service extends AbstractService
             $hasSearch,
             $Search,
             $Data,
-            $tblPerson ? $tblPerson->getId() : null,
+            $PersonId,
             $DivisionCourseId,
             $messageSearch,
-            $messageLesson
+            $messageLesson,
+            null,
+            $IsMassAbsence
         );
 
         if (isset($Data['FromDate']) && empty($Data['FromDate'])) {
@@ -238,7 +249,50 @@ class Service extends AbstractService
             }
         }
 
+        // Prüfung: ob "Datum von" ein freier Tag ist
+        if (!$error && $tblPerson && $fromDate && (!$toDate || $fromDate == $toDate)) {
+            if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndDate($tblPerson, $Data['FromDate']))
+                && ($tblYear = $tblStudentEducation->getServiceTblYear())
+            ) {
+                if ($this->isWeekendOrHoliday(
+                    $fromDate,
+                    $tblYear,
+                    $tblStudentEducation->getServiceTblSchoolType() ?: null,
+                    $tblStudentEducation->getServiceTblCompany() ?: null
+                )) {
+                    $error = true;
+                    $form->setError('Data[FromDate]', 'Bitte geben Sie ein Datum an, welches nicht an einem freien Tag ist');
+                }
+            }
+        }
+
         return $error ? $form : false;
+    }
+
+    /**
+     * @param DateTime $date
+     * @param TblYear $tblYear
+     * @param TblType|null $tblSchoolType
+     * @param TblCompany|null $tblCompany
+     *
+     * @return bool
+     */
+    public function isWeekendOrHoliday(DateTime $date, TblYear $tblYear, ?TblType $tblSchoolType, ?TblCompany $tblCompany): bool
+    {
+        $DayAtWeek = $date->format('w');
+        if ($tblSchoolType && Digital::useService()->getHasSaturdayLessonsBySchoolType($tblSchoolType)) {
+            $isWeekend = $DayAtWeek == 0;
+        } else {
+            $isWeekend = $DayAtWeek == 0 || $DayAtWeek == 6;
+        }
+
+        if (!$isWeekend
+            && !Term::useService()->getHolidayByDay($tblYear, $date, $tblCompany)
+        ) {
+            return false;
+        }
+
+        return true;
     }
 
     /**
@@ -255,6 +309,38 @@ class Service extends AbstractService
         $tblPersonStaff = Account::useService()->getPersonByLogin();
 
         if ($tblPerson) {
+            // Verlängerung einer bestehenden Fehlzeit
+//            $date = new DateTime($Data['FromDate']);
+//            $date = $date->sub(new DateInterval('P1D'));
+//            if (($tblAbsenceList = $this->getAbsenceAllBetweenByPerson($tblPerson, $date))) {
+//                foreach ($tblAbsenceList as $item) {
+//                    $fromDate = $item->getFromDateTime();
+//                    $toDate = $item->getToDateTime();
+//                    // beachte nur bei gleichen Status und Zeugnisrelevant
+//                    // nur bei ganztägig
+//                    if (isset($Data['IsCertificateRelevant']) == $item->getIsCertificateRelevant()
+//                        && $Data['Status'] == $item->getStatus()
+//                        && $item->getCountLessons()== 0 && !isset($Data['UE'])
+//                        && ((!$toDate && $fromDate == $date) || ($toDate && $toDate == $date))
+//                    ) {
+//                        // update
+//                        (new Data($this->getBinding()))->updateAbsence(
+//                            $item,
+//                            $item->getFromDate(),
+//                            $Data['ToDate'] ?: $Data['FromDate'],
+//                            $item->getStatus(),
+//                            // bemerkung anhängen
+//                            (($remark = $item->getRemark()) ? $remark . ' ' : '') . $Data['Remark'],
+//                            $item->getType(),
+//                            $tblPersonStaff ?: null,
+//                            $item->getIsCertificateRelevant()
+//                        );
+//
+//                        return true;
+//                    }
+//                }
+//            }
+
             if (($tblAbsence = (new Data($this->getBinding()))->createAbsence(
                 $tblPerson,
                 $Data['FromDate'],
@@ -306,6 +392,41 @@ class Service extends AbstractService
                     (new Data($this->getBinding()))->addAbsenceLesson($tblAbsence, $i);
                 } else {
                     (new Data($this->getBinding()))->removeAbsenceLesson($tblAbsence, $i);
+                }
+            }
+
+            return  true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param TblAbsence $tblAbsence
+     * @param $Data
+     *
+     * @return bool
+     */
+    public function updateAbsenceServiceForMassAbsence(TblAbsence $tblAbsence, $Data): bool
+    {
+        $tblPersonStaff = Account::useService()->getPersonByLogin();
+
+        if ((new Data($this->getBinding()))->updateAbsenceForMassAbsence(
+            $tblAbsence,
+            (($remark = $tblAbsence->getRemark()) ? $remark . ' ' : '') . $Data['Remark'],
+            $tblPersonStaff ?: null
+        )) {
+            if (isset($Data['UE'])) {
+                // nur neue ergänzen, keine vorhandenen löschen
+                foreach ($Data['UE'] as $lesson => $value) {
+                    (new Data($this->getBinding()))->addAbsenceLesson($tblAbsence, $lesson);
+                }
+            } else {
+                // wechsel von UE auf ganztägig
+                if (($tblAbsenceLessonList = Absence::useService()->getAbsenceLessonAllByAbsence($tblAbsence))) {
+                    foreach ($tblAbsenceLessonList as $tblAbsenceLesson) {
+                        (new Data($this->getBinding()))->removeAbsenceLesson($tblAbsence, $tblAbsenceLesson->getLesson());
+                    }
                 }
             }
 
@@ -379,7 +500,7 @@ class Service extends AbstractService
         if (!empty($tblDivisionCourseList)) {
             /** @var TblDivisionCourse $tblDivisionCourse */
             foreach ($tblDivisionCourseList as $tblDivisionCourse) {
-                if (($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses())) {
+                if (($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses(false, true, new DateTime('today')))) {
                     foreach ($tblPersonList as $tblPersonItem) {
                         if (($tblAbsencePersonList = $this->getAbsenceAllBetweenByPerson($tblPersonItem, $fromDate, $toDate))) {
                             $tblAbsenceList = array_merge($tblAbsenceList, $tblAbsencePersonList);
@@ -466,15 +587,15 @@ class Service extends AbstractService
             'Type' => $tblSchoolType ? $tblSchoolType->getName() : '',
             'TypeExcel' => $tblSchoolType ? $tblSchoolType->getShortName() : '',
             'Division' => $tblDivisionCourse ? $tblDivisionCourse->getName() : '',
-            'Person' => $tblPerson->getLastFirstNameWithCallNameUnderline(),
+            'Person' => $tblPerson->getLastFirstNameWithCallNameUnderline(true),
             'PersonExcel' => $tblPerson->getLastFirstName(),
             'DateSpan' => $tblAbsence->getDateSpan(),
             'DateSort' => $tblAbsence->getFromDate('Y.m.d'),
-            'DateFrom' => ($isOnlineAbsence ? '<span style="color:darkorange">' . $tblAbsence->getFromDate() . '</span>' : $tblAbsence->getFromDate()),
-            'DateTo' => ($isOnlineAbsence ? '<span style="color:darkorange">' . $tblAbsence->getToDate() . '</span>' : $tblAbsence->getToDate()),
+            'DateFrom' => $tblAbsence->getFromDate(),
+            'DateTo' => $tblAbsence->getToDate(),
             'PersonCreator' => $tblAbsence->getDisplayPersonCreator(false),
             'Status' => $tblAbsence->getStatusDisplayName(),
-            'StatusExcel' => $tblAbsence->getStatusDisplayShortName(),
+            'StatusExcel' => $tblAbsence->getStatus() == TblAbsence::VALUE_STATUS_UNCLEAR ? 'Unklar' : $tblAbsence->getStatusDisplayShortName(),
             'Remark' => $tblAbsence->getRemark(),
             'AbsenceType' => $tblAbsence->getTypeDisplayName(),
             'AbsenceTypeExcel' => $tblAbsence->getTypeDisplayShortName(),
@@ -552,7 +673,7 @@ class Service extends AbstractService
                     continue;
                 }
 
-                if ($tblAbsence->getStatus() == TblAbsence::VALUE_STATUS_UNEXCUSED) {
+                if ($tblAbsence->getStatus() == TblAbsence::VALUE_STATUS_UNEXCUSED || $tblAbsence->getStatus() == TblAbsence::VALUE_STATUS_UNCLEAR) {
                     $days += intval($tblAbsence->getDays($tblYear, $tillDate, $tblCompany, $tblSchoolType, $countLessons));
                 }
             }
@@ -578,28 +699,49 @@ class Service extends AbstractService
      * @param $Data
      * @param TblPerson $tblPerson
      * @param $Source
+     * @param bool $isForm
      *
-     * @return false|Form
+     * @return false|Form|array
      */
     public function checkFormOnlineAbsence(
         $Data,
         TblPerson $tblPerson,
-        $Source
+        $Source,
+        bool $isForm
     ) {
         $error = false;
+        $errorList = array();
         $messageLesson = null;
 
         // Prüfung ob Unterrichtseinheiten ausgewählt wurden
         if (!isset($Data['IsFullDay']) && !isset($Data['UE'])) {
-            $messageLesson = new Danger('Bitte wählen Sie mindestens eine Unterrichtseinheit aus.', new Exclamation());
             $error = true;
+            if ($isForm) {
+                $messageLesson = new Danger('Bitte wählen Sie mindestens eine Unterrichtseinheit aus', new Exclamation());
+            } else {
+                $errorList['UE'] = 'Bitte wählen Sie mindestens eine Unterrichtseinheit aus';
+            }
         }
+        $form = $isForm ? OnlineAbsence::useFrontend()->formOnlineAbsence($Data, $tblPerson->getId(), $Source, $messageLesson) : null;
 
-        $form = OnlineAbsence::useFrontend()->formOnlineAbsence($Data, $tblPerson->getId(), $Source, $messageLesson);
 
-        if (isset($Data['FromDate']) && empty($Data['FromDate'])) {
-            $form->setError('Data[FromDate]', 'Bitte geben Sie ein Datum an');
+        if (empty($Data['FromDate'])) {
             $error = true;
+            if ($isForm) {
+                $form->setError('Data[FromDate]', 'Bitte geben Sie ein Datum an');
+            } else {
+                $errorList['FromDate'] = 'Bitte geben Sie ein Datum an';
+            }
+        } else {
+            // bei berufsbildender Schule muss der Typ: Theorie oder Praxis angegeben werden
+            if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndDate($tblPerson, $Data['FromDate']))
+                && ($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())
+                && $tblSchoolType->isTechnical()
+                && empty($Data['Type'])
+            ) {
+                $error = true;
+                $errorList['Type'] = 'Bitte geben Sie Theorie oder Praxis an';
+            }
         }
 
         $fromDate = null;
@@ -613,26 +755,47 @@ class Service extends AbstractService
 
         if ($fromDate && $toDate) {
             if ($toDate->format('Y-m-d') < $fromDate->format('Y-m-d')){
-                $form->setError('Data[ToDate]', 'Das "Datum bis" darf nicht kleiner sein Datum als das "Datum von"');
                 $error = true;
+                if ($isForm) {
+                    $form->setError('Data[ToDate]', 'Das "Datum bis" darf nicht kleiner sein Datum als das "Datum von"');
+                } else {
+                    $errorList['ToDate'] = 'Das "Datum bis" darf nicht kleiner sein Datum als das "Datum von"';
+                }
             }
         }
 
         if (!$error && $fromDate) {
             // prüfen, ob das fromDate größer gleich heute ist
             if ($fromDate < (new DateTime('today'))) {
-                $form->setError('Data[FromDate]', 'Bitte wählen Sie heute oder ein zukünftiges Datum aus');
                 $error = true;
+                if ($isForm) {
+                    $form->setError('Data[FromDate]', 'Bitte wählen Sie heute oder ein zukünftiges Datum aus');
+                } else {
+                    $errorList['FromDate'] = 'Bitte wählen Sie heute oder ein zukünftiges Datum aus';
+                }
+
             }
 
-            // Prüfung ob in diesem Zeitraum bereits eine Fehlzeit existiert
+            // Prüfung ob, in diesem Zeitraum bereits eine Fehlzeit existiert
             if ((new Data($this->getBinding()))->getAbsenceAllBetweenByPerson($tblPerson, $fromDate, $toDate == $fromDate ? null : $toDate)) {
-                $form->setError('Data[FromDate]', 'Es existiert bereits eine Fehlzeit im Bereich dieses Zeitraums');
                 $error = true;
+                if ($isForm) {
+                    $form->setError('Data[FromDate]', 'Es existiert bereits eine Fehlzeit im Bereich dieses Zeitraums');
+                } else {
+                    $errorList['FromDate'] = 'Es existiert bereits eine Fehlzeit im Bereich dieses Zeitraums';
+                }
             }
         }
 
-        return $error ? $form : false;
+        if ($error) {
+            if ($isForm) {
+                return $form;
+            } else {
+                return $errorList;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -756,7 +919,8 @@ class Service extends AbstractService
         ?TblCompany $tblCompany
     ) {
         $DayAtWeek = $dateTime->format('w');
-        $month = intval($dateTime->format('m'));
+        $yearMonth = intval($dateTime->format('ym'));
+//        $month = intval($dateTime->format('m'));
 
         if ($hasSaturdayLessons) {
             $isWeekend = $DayAtWeek == 0;
@@ -765,11 +929,11 @@ class Service extends AbstractService
         }
         $isHoliday = Term::useService()->getHolidayByDay($tblYear, $dateTime, $tblCompany);
         if (!$isWeekend && !$isHoliday) {
-            $dataList[$month][$tblPerson->getId()][$dateTime->format('d')] = $countLessons > 0 ? $countLessons : $status;
-            if (isset($countList[$month][$tblPerson->getId()][$countLessons > 0 ? 'Lessons' : 'Days'][$status])) {
-                $countList[$month][$tblPerson->getId()][$countLessons > 0 ? 'Lessons' : 'Days'][$status] += $countLessons > 0 ? $countLessons : 1;
+            $dataList[$yearMonth][$tblPerson->getId()][$dateTime->format('d')] = $countLessons > 0 ? $countLessons : $status;
+            if (isset($countList[$yearMonth][$tblPerson->getId()][$countLessons > 0 ? 'Lessons' : 'Days'][$status])) {
+                $countList[$yearMonth][$tblPerson->getId()][$countLessons > 0 ? 'Lessons' : 'Days'][$status] += $countLessons > 0 ? $countLessons : 1;
             } else {
-                $countList[$month][$tblPerson->getId()][$countLessons > 0 ? 'Lessons' : 'Days'][$status] = $countLessons > 0 ? $countLessons : 1;
+                $countList[$yearMonth][$tblPerson->getId()][$countLessons > 0 ? 'Lessons' : 'Days'][$status] = $countLessons > 0 ? $countLessons : 1;
             }
         }
     }
@@ -797,10 +961,16 @@ class Service extends AbstractService
                 /** @var TblAbsence $tblAbsence */
                 foreach ($tblAbsenceList as $tblAbsence) {
                     $status = '';
+                    $statusShort = '';
                     if ($tblAbsence->getStatus() == TblAbsence::VALUE_STATUS_EXCUSED) {
                         $status = new Success('entschuldigt');
+                        $statusShort = 'E';
                     } elseif ($tblAbsence->getStatus() == TblAbsence::VALUE_STATUS_UNEXCUSED) {
-                        $status = new \SPHERE\Common\Frontend\Text\Repository\Danger('unentschuldigt');
+                        $status = new \SPHERE\Common\Frontend\Text\Repository\Warning('unentschuldigt');
+                        $statusShort = 'U';
+                    } elseif ($tblAbsence->getStatus() == TblAbsence::VALUE_STATUS_UNCLEAR) {
+                        $status = new \SPHERE\Common\Frontend\Text\Repository\Danger('unklar');
+                        $statusShort = 'U';
                     }
 
                     $item = array(
@@ -809,8 +979,11 @@ class Service extends AbstractService
                         'Days' => ($days = $tblAbsence->getDays($tblYear, null, $tblCompany ?: null, $tblSchoolType ?: null)) == 1
                             ? $days . ' ' . new Small(new Muted($tblAbsence->getWeekDay()))
                             : $days,
+                        'DaysCount' => $days === '' ? 0 : $days,
                         'Lessons' => $tblAbsence->getLessonStringByAbsence(),
+                        'LessonsCount' => $tblAbsence->getCountLessons(),
                         'Status' => $status,
+                        'StatusShort' => $statusShort,
                         'PersonCreator' => $tblAbsence->getDisplayPersonCreator(),
                         'IsCertificateRelevant' => $tblAbsence->getIsCertificateRelevant() ? 'ja' : 'nein'
                     );
@@ -825,5 +998,32 @@ class Service extends AbstractService
         }
 
         return $tableData;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     * @param TblCompany|null $tblCompany
+     * @param TblType|null $tblSchoolType
+     * @param DateTime $fromDate
+     * @param DateTime $tillDate
+     *
+     * @return string[]
+     */
+    public function getAbsenceDataByStudent(TblPerson $tblPerson, TblYear $tblYear, ?TblCompany $tblCompany, ?TblType $tblSchoolType,
+        DateTime $fromDate, DateTime $tillDate): array
+    {
+        $unExcusedLessons = 0;
+        $excusedLessons = 0;
+        $excusedDays = Absence::useService()->getExcusedDaysByPerson($tblPerson, $tblYear, $tblCompany ?: null, $tblSchoolType ?: null,
+            $fromDate, $tillDate, $excusedLessons);
+        $unExcusedDays = Absence::useService()->getUnexcusedDaysByPerson($tblPerson, $tblYear, $tblCompany ?: null, $tblSchoolType ?: null,
+            $fromDate, $tillDate, $unExcusedLessons);
+        $absenceDays = ($excusedDays + $unExcusedDays) . ' (' . new Success($excusedDays) . ', '
+            . new Warning($unExcusedDays) . ')';
+        $absenceLessons = ($excusedLessons + $unExcusedLessons) . ' (' . new Success($excusedLessons) . ', '
+            . new Warning($unExcusedLessons) . ')';
+
+        return array($absenceDays, $absenceLessons);
     }
 }

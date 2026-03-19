@@ -6,6 +6,7 @@ use SPHERE\Application\Api\MassReplace\ApiMassReplace;
 use SPHERE\Application\Corporation\Company\Company;
 use SPHERE\Application\Education\Lesson\Course\Course;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblStudentEducation;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Type;
@@ -74,12 +75,11 @@ class MassReplaceStudentEducation extends Extension
                 if (($tblPerson = Person::useService()->getPersonById($PersonId))
                     && ($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))
                 ) {
-                    $tblStudentEducation->setLevel($level);
-                    $tblStudentEducationBulkList[] = $tblStudentEducation;
+                    $tblStudentEducationBulkList[$tblStudentEducation->getId()] = $level;
                 }
             }
             if (!empty($tblStudentEducationBulkList)) {
-                return DivisionCourse::useService()->updateStudentEducationBulk($tblStudentEducationBulkList);
+                return DivisionCourse::useService()->updateStudentEducationBulk($tblStudentEducationBulkList, TblStudentEducation::ATTR_LEVEL);
             }
 
             return true;
@@ -142,12 +142,11 @@ class MassReplaceStudentEducation extends Extension
                 if (($tblPerson = Person::useService()->getPersonById($PersonId))
                     && ($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))
                 ) {
-                    $tblStudentEducation->setServiceTblSchoolType($tblSchoolType);
-                    $tblStudentEducationBulkList[] = $tblStudentEducation;
+                    $tblStudentEducationBulkList[$tblStudentEducation->getId()] = $tblSchoolType;
                 }
             }
             if (!empty($tblStudentEducationBulkList)) {
-                return DivisionCourse::useService()->updateStudentEducationBulk($tblStudentEducationBulkList);
+                return DivisionCourse::useService()->updateStudentEducationBulk($tblStudentEducationBulkList, TblStudentEducation::ATTR_SERVICE_TBL_SCHOOL_TYPE);
             }
 
             return true;
@@ -210,12 +209,11 @@ class MassReplaceStudentEducation extends Extension
                 if (($tblPerson = Person::useService()->getPersonById($PersonId))
                     && ($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))
                 ) {
-                    $tblStudentEducation->setServiceTblCompany($tblCompany);
-                    $tblStudentEducationBulkList[] = $tblStudentEducation;
+                    $tblStudentEducationBulkList[$tblStudentEducation->getId()] = $tblCompany;
                 }
             }
             if (!empty($tblStudentEducationBulkList)) {
-                return DivisionCourse::useService()->updateStudentEducationBulk($tblStudentEducationBulkList);
+                return DivisionCourse::useService()->updateStudentEducationBulk($tblStudentEducationBulkList, TblStudentEducation::ATTR_SERVICE_TBL_COMPANY);
             }
 
             return true;
@@ -278,12 +276,11 @@ class MassReplaceStudentEducation extends Extension
                 if (($tblPerson = Person::useService()->getPersonById($PersonId))
                     && ($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))
                 ) {
-                    $tblStudentEducation->setServiceTblCourse($tblCourse);
-                    $tblStudentEducationBulkList[] = $tblStudentEducation;
+                    $tblStudentEducationBulkList[$tblStudentEducation->getId()] = $tblCourse;
                 }
             }
             if (!empty($tblStudentEducationBulkList)) {
-                return DivisionCourse::useService()->updateStudentEducationBulk($tblStudentEducationBulkList);
+                return DivisionCourse::useService()->updateStudentEducationBulk($tblStudentEducationBulkList, TblStudentEducation::ATTR_SERVICE_TBL_COURSE);
             }
 
             return true;

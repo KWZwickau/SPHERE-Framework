@@ -128,6 +128,7 @@ class ApiMyAccount extends Extension implements IApiInterface
 
         return new Panel('Passwort Richtlinien',
             array(
+                new Bold('Das Passwort darf nicht das Initialpasswort sein'),
                 new Bold('Das Passwort muss mindestens 8 Zeichen lang sein '). // $countLength).
                 new Container((new ProgressBar($DL, $WL, 0, 10))),
                 new Bold('Das Passwort muss 3 von 4 Kriterien erfüllen '). // $countCriteria).

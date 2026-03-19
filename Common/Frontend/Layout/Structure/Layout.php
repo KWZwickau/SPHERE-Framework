@@ -62,4 +62,12 @@ class Layout extends Extension implements ILayoutInterface, ITemplateInterface
         $this->Template->setVariable('Layout', $this->LayoutGroup);
         return $this->Template->getContent();
     }
+
+    /**
+     * @return LayoutGroup[]
+     */
+    public function getLayoutGroups(): array
+    {
+        return $this->LayoutGroup;
+    }
 }

@@ -10,6 +10,8 @@ use SPHERE\Application\Document\Generator\Repository\Frame;
 use SPHERE\Application\Document\Generator\Repository\Page;
 use SPHERE\Application\Document\Generator\Repository\Section;
 use SPHERE\Application\Document\Generator\Repository\Slice;
+use SPHERE\Application\People\Group\Group;
+use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Meta\Common\Service\Entity\TblCommonGender;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Person\Service\Entity\TblSalutation;
@@ -95,9 +97,9 @@ class MultiPassword extends AbstractDocument
         $this->FieldValue['Place'] = (isset($DataPost['Place']) && $DataPost['Place'] != '' ? $DataPost['Place'].', den ' : '');
         $this->FieldValue['Date'] = (isset($DataPost['Date']) && $DataPost['Date'] != '' ? $DataPost['Date'] : '&nbsp;');
 
-        $tblPerson = false;
         if($this->FieldValue['GroupByTime'] && $this->FieldValue['GroupByCount']){
-            if(($tblUserAccountList = Account::useService()->getUserAccountByTimeAndCount(
+            if(($tblStudentGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_STUDENT))
+                && ($tblUserAccountList = Account::useService()->getUserAccountByTimeAndCount(
                 new DateTime($this->FieldValue['GroupByTime']), $this->FieldValue['GroupByCount']))){
                 foreach($tblUserAccountList as $tblUserAccount){
                     /** @var TblAccount $tblAccount */
@@ -144,12 +146,16 @@ class MultiPassword extends AbstractDocument
                             if(($tblToPersonList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson, $tblToPersonType))){
                                 $PersonNameList = array();
                                 foreach($tblToPersonList as $tblToPerson){
-                                    if(($tblPersonTo = $tblToPerson->getServiceTblPersonTo())){
+                                    if(($tblPersonTo = $tblToPerson->getServiceTblPersonTo())
+                                        && Group::useService()->existsGroupPerson($tblStudentGroup, $tblPersonTo)
+                                    ){
                                         $PersonNameList[] = $tblPersonTo->getFirstName().' '.$tblPersonTo->getLastName();
                                     }
                                 }
 
-                                $this->FieldValue['ChildList'][$tblAccount->getId()] = implode('<br/>', $PersonNameList);
+                                if ($PersonNameList) {
+                                    $this->FieldValue['ChildList'][$tblAccount->getId()] = implode('<br/>', $PersonNameList);
+                                }
                             }
 
                         }
@@ -486,7 +492,7 @@ class MultiPassword extends AbstractDocument
             ->addSection((new Section())
                 ->addSliceColumn(
                     $this->getAddressHead($AccountId)
-                        ->styleHeight('160px')
+                        ->styleHeight('200px')
                     , '57%')
                 ->addSliceColumn(
                     $this->getContactData()
@@ -496,7 +502,10 @@ class MultiPassword extends AbstractDocument
                 ->setContent('Zugangsdaten und Sicherheitsinformationen zur Anmeldung für die Schulsoftware')
                 ->styleTextBold()
             );
-        $Slice->addElement($this->getTextElement(''));
+        $Slice->addElement((new Element())
+            ->setContent('&nbsp;')
+            ->styleHeight('5px')
+        );
 
 //        $Slice->addElement($this->getTextElement($this->FieldValue['FirstLine']));
         $Slice->addElement($this->getTextElement($FirstLine));
@@ -522,7 +531,7 @@ class MultiPassword extends AbstractDocument
              Kleinbuchstaben, Ziffern und evtl. auch noch Sonderzeichen zu verwenden. <u>Bitte geben Sie Ihre
              Zugangsdaten nicht weiter, denn es erhält jeder Sorgeberechtigte und jeder Schüler einen eigenen
              personengebundenen Nutzerzugang.</u>'));
-            $Slice->addElement($this->getTextElement(''));
+//            $Slice->addElement($this->getTextElement(''));
             $Slice->addElement($this->getTextElement('Verwenden Sie bitte für den Zugriff folgende Zugangsdaten:'));
         } else {
             $Slice->addElement($this->getTextElement('ab sofort stellen wir dir einen Zugang zu unserer
@@ -556,7 +565,7 @@ class MultiPassword extends AbstractDocument
         }
         $Slice->addElement($this->getTextElement(''));
         $Slice->addSection($this->getInfoSection('Passwort:', $this->FieldValue['Password'][$AccountId]));
-        $Slice->addElement($this->getTextElement(''));
+//        $Slice->addElement($this->getTextElement(''));
 
         if ($this->FieldValue['IsParent']) {
             $Slice->addElement($this->getTextElement('Lesen Sie sich die Datenschutzbestimmungen und Nutzungsbedingungen genau durch. Wenn Sie
@@ -764,6 +773,6 @@ class MultiPassword extends AbstractDocument
             $value = (string)$tblSetting->getValue();
         }
 
-        return $value ? $value : '120px';
+        return $value ? $value : '90px';
     }
 }

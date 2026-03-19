@@ -188,6 +188,11 @@ abstract class ServiceTemplateInformation extends ServiceLeave
 //                                    $Global->POST['Data'][$tblPrepareStudent->getId()][$tblPrepareInformation->getField()] =
 //                                        array_search($tblPrepareInformation->getValue(),
 //                                            $Certificate->selectValuesFoesAbsText());
+                            } elseif ($tblPrepareInformation->getField() == 'InDepthAssignment'
+                                && method_exists($Certificate, 'selectValuesInDepthAssignment')
+                            ) {
+                                $Global->POST['Data'][$tblPrepareStudent->getId()][$tblPrepareInformation->getField()] =
+                                    array_search($tblPrepareInformation->getValue(), $Certificate->selectValuesInDepthAssignment());
                             } elseif (strpos($tblPrepareInformation->getField(), '_GradeText')
                                 && ($tblGradeText = Grade::useService()->getGradeTextByName($tblPrepareInformation->getValue()))
                             ) {
@@ -234,8 +239,28 @@ abstract class ServiceTemplateInformation extends ServiceLeave
                                 }
                             }
                             if (!empty($tempList)) {
-                                $Global->POST['Data'][$tblPrepareStudent->getId()]['Team'] = implode(', ', $tempList);
-                                $Global->POST['Data'][$tblPrepareStudent->getId()]['TeamExtra'] = implode(', ', $tempList);
+                                // Es wird für die AG Arbeitsgemeinschaften ein Satz gebildet.
+                                // REF -> KG
+                                if (Consumer::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'KG')) {
+                                    $countItem = 0;
+                                    $teamText = $tblPerson->getFirstSecondName() . ' hat an der ';
+                                    foreach ($tempList as $subjectName) {
+                                        $countItem++;
+                                        if ($countItem == 1) {
+                                            $teamText .= $subjectName;
+                                        } elseif ($countItem == count($tempList)) {
+                                            $teamText .= ' und ' . $subjectName;
+                                        } else {
+                                            $teamText .= ', ' . $subjectName;
+                                        }
+                                    }
+                                    $teamText .= ' teilgenommen.';
+                                } else {
+                                    $teamText = implode(', ', $tempList);
+                                }
+
+                                $Global->POST['Data'][$tblPrepareStudent->getId()]['Team'] = $teamText;
+                                $Global->POST['Data'][$tblPrepareStudent->getId()]['TeamExtra'] = $teamText;
                                 $markPostList['Team'] = true;
                                 $markPostList['TeamExtra'] = true;
                             }
@@ -423,6 +448,17 @@ abstract class ServiceTemplateInformation extends ServiceLeave
                         $markPostList['Remark'] = true;
                     }
 
+                    // Oberschule Abschlusszeugnisse
+                    if (strpos($Certificate->getCertificateEntity()->getCertificate(), 'MsAbs') !== null) {
+                        if (!$hasRemarkText
+                            && ($tblPrepareInformation = Prepare::useService()->getPrepareInformationBy($tblPrepareCertificate, $tblPerson, 'IsNativeLanguage'))
+                            && $tblPrepareInformation->getValue()
+                        ) {
+                            $Global->POST['Data'][$tblPrepareStudent->getId()]['Remark'] = '* Die Herkunftssprache wurden nach §36 Absatz 2 SOOSA im Fach: Englisch abgelegt. Die Note im Fach Englisch wurde zu gleichen teilen aus der Jahresnote in Englisch und der Prüfungsnote in der Herkunftssprache gebildet.';
+                            $markPostList['Remark'] = true;
+                        }
+                    }
+
                     // Fachschule
                     if ($Certificate->getCertificateEntity()->getCertificate() == 'FsAbs'
                             || $Certificate->getCertificateEntity()->getCertificate() == 'FsAbsFhr'
@@ -477,7 +513,8 @@ abstract class ServiceTemplateInformation extends ServiceLeave
 
                     // Berufsfachschule
                     if (!$hasRemarkText
-                        && $Certificate->getCertificateEntity()->getCertificate() == 'BfsAbs'
+                        && ($Certificate->getCertificateEntity()->getCertificate() == 'BfsAbs'
+                            || $Certificate->getCertificateEntity()->getCertificate() == 'BfsAbsGeneralistik')
                     ) {
                         $technicalCourseName = Student::useService()->getTechnicalCourseGenderNameByPerson($tblPerson);
                         $Global->POST['Data'][$tblPrepareStudent->getId()]['RemarkWithoutTeam'] = "Der Abschluss \""
@@ -704,6 +741,10 @@ abstract class ServiceTemplateInformation extends ServiceLeave
 //                                                    && method_exists($Certificate, 'selectValuesFoesAbsText')
 //                                                ) {
 //                                                    $selectBoxData = $Certificate->selectValuesFoesAbsText();
+                                            } elseif ($PlaceholderName == 'Content.Input.InDepthAssignment'
+                                                && method_exists($Certificate, 'selectValuesInDepthAssignment')
+                                            ) {
+                                                $selectBoxData = $Certificate->selectValuesInDepthAssignment();
                                             } elseif (strpos($PlaceholderName, '_GradeText') !== false) {
                                                 if (($tblGradeTextList = Grade::useService()->getGradeTextAll())) {
                                                     $selectBoxData = array(TblGradeText::ATTR_NAME => $tblGradeTextList);

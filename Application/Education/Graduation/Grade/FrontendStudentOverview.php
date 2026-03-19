@@ -52,14 +52,16 @@ abstract class FrontendStudentOverview extends FrontendScoreType
     {
         $role = Grade::useService()->getRole();
         $isTeacher = $role == "Teacher";
-        if (($tblYear = Grade::useService()->getYear())) {
+        if (($tblYearList = Grade::useService()->getSelectedYearList())) {
             $dataList = array();
             // Lehrer
             if ($isTeacher && ($tblPersonLogin = Account::useService()->getPersonByLogin())) {
-                // Klassenlehrer aus den Lehraufträgen der Lehrer
-                if (($tblDivisionCourseList = DivisionCourse::useService()->getDivisionCourseListByDivisionTeacher($tblPersonLogin, $tblYear))) {
-                    foreach ($tblDivisionCourseList as $tblDivisionCourse) {
-                        $dataList[] = $this->getDivisionCourseSelectData($tblDivisionCourse, $tblYear);
+                foreach ($tblYearList as $tblYear) {
+                    // Klassenlehrer aus den Lehraufträgen der Lehrer
+                    if (($tblDivisionCourseList = DivisionCourse::useService()->getDivisionCourseListByDivisionTeacher($tblPersonLogin, $tblYear))) {
+                        foreach ($tblDivisionCourseList as $tblDivisionCourse) {
+                            $dataList[] = $this->getDivisionCourseSelectData($tblDivisionCourse, $tblYear);
+                        }
                     }
                 }
 
@@ -122,13 +124,26 @@ abstract class FrontendStudentOverview extends FrontendScoreType
      */
     private function getSelectStudentOverviewHeadmaster($Filter): string
     {
+        // Filter bei mehr als einer Mandanten-Schulart anzeigen
+        $filter = '';
+        if (($tblSchoolTypeList = School::useService()->getConsumerSchoolTypeAll())) {
+            if (count($tblSchoolTypeList) == 1) {
+                if (empty($Filter)) {
+                    $Filter = array();
+                    $Filter['SchoolType'] = (current($tblSchoolTypeList))->getId();
+                }
+            } else {
+                $filter = new Panel(
+                    new Filter() . " Filter",
+                    $this->formFilter($Filter),
+                    Panel::PANEL_TYPE_INFO
+                );
+            }
+        }
+
         return
-            new Panel(
-                new Filter() . " Filter",
-                $this->formFilter($Filter),
-                Panel::PANEL_TYPE_INFO
-            )
-            . ApiGradeBook::receiverBlock($Filter == null ? $this->loadGradeBookSelectFilterContent($Filter) : "", "StudentOverviewSelectCourseFilterContent");
+            $filter
+            . ApiGradeBook::receiverBlock($this->loadStudentOverviewSelectCourseFilterContent($Filter), "StudentOverviewSelectCourseFilterContent");
     }
 
     /**
@@ -167,18 +182,20 @@ abstract class FrontendStudentOverview extends FrontendScoreType
     {
         $tblSchoolType = isset($Filter["SchoolType"]) ? Type::useService()->getTypeById($Filter["SchoolType"]) : false;
         if ($tblSchoolType
-            && ($tblYear = Grade::useService()->getYear())
+            && ($tblYearList = Grade::useService()->getSelectedYearList())
         ) {
             $dataList = array();
-            if (($tblDivisionCourseList = DivisionCourse::useService()->getDivisionCourseListBy($tblYear, '', true))) {
-                foreach ($tblDivisionCourseList as $tblDivisionCourse) {
-                    if (!($tblSchoolTypeList = $tblDivisionCourse->getSchoolTypeListFromStudents())
-                        || !isset($tblSchoolTypeList[$tblSchoolType->getId()])
-                    ) {
-                        continue;
-                    }
+            foreach ($tblYearList as $tblYear) {
+                if (($tblDivisionCourseList = DivisionCourse::useService()->getDivisionCourseListBy($tblYear, '', true))) {
+                    foreach ($tblDivisionCourseList as $tblDivisionCourse) {
+                        if (!($tblSchoolTypeList = $tblDivisionCourse->getSchoolTypeListFromStudents())
+                            || !isset($tblSchoolTypeList[$tblSchoolType->getId()])
+                        ) {
+                            continue;
+                        }
 
-                    $dataList[] = $this->getDivisionCourseSelectData($tblDivisionCourse, $tblYear, $Filter);
+                        $dataList[] = $this->getDivisionCourseSelectData($tblDivisionCourse, $tblYear, $Filter);
+                    }
                 }
             }
 

@@ -105,7 +105,7 @@ class LegalNotice implements IClusterInterface, IApplicationInterface, IModuleIn
                             new Center(
                                 '<h4>'.new Bold('Gesellschafter').'</h4>'
                                 .new Listing(array(
-                                    new Container('Schulstiftung der Ev.-Luth. Landeskirche Sachsens')
+                                    new Container('ESDiG eG.')
                                     .new Container('Franklinstr. 22')
                                     .new Container('01069 Dresden')
                                 ))
@@ -120,7 +120,7 @@ class LegalNotice implements IClusterInterface, IApplicationInterface, IModuleIn
                             new Center(
                                 '<h4>'.new Bold('Kontakt').'</h4>'
                                 .new Listing(array(
-                                    new Container('Tel.: +49 (0) 351 479330618')
+                                    new Container('Tel.: 0171 - 64 81 356')
                                     .new Container('Mail: info@esdigmbh.de')
                                 ))
                             )

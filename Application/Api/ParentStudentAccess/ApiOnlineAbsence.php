@@ -223,7 +223,7 @@ class ApiOnlineAbsence extends Extension implements IApiInterface
             return new Danger('Die Person wurde nicht gefunden', new Exclamation());
         }
 
-        if (($form = Absence::useService()->checkFormOnlineAbsence($Data, $tblPerson, $Source))) {
+        if (($form = Absence::useService()->checkFormOnlineAbsence($Data, $tblPerson, $Source, true))) {
             // display Errors on form
             return $this->getOnlineAbsenceModal($form, $tblPerson);
         }

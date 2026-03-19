@@ -370,15 +370,20 @@ class FrontendMinimumGradeCount extends FrontendGradeType
      */
     public function loadViewMinimumGradeCountReportingContent($Data = null): string
     {
+        $tblSchoolTypeList = School::useService()->getConsumerSchoolTypeAll();
         if ($Data == null) {
             $global = $this->getGlobal();
 
             $global->POST['Data']['Period'] = SelectBoxItem::PERIOD_FULL_YEAR;
+            if (count($tblSchoolTypeList) == 1) {
+                $tblSchoolType = current($tblSchoolTypeList);
+                $global->POST['Data']['Type'] = $tblSchoolType->getId();
+            }
 
             $global->savePost();
         }
 
-        $typeSelectBox = new SelectBox('Data[Type]', 'Schulart', array('Name' => Type::useService()->getTypeAll()));
+        $typeSelectBox = new SelectBox('Data[Type]', 'Schulart', array('Name' => $tblSchoolTypeList));
         if (Grade::useService()->getRole() !== 'Teacher') {
             $typeSelectBox->setRequired();
         }

@@ -100,6 +100,20 @@ class Custom implements IModuleInterface
             }
 
             /*
+             * Hoga
+             */
+            if ($consumerAcronym === 'HOGA' || $consumerAcronym === 'REF') {
+                Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+                    __NAMESPACE__ . '/Hoga/Common/CleverReach/Download',
+                    __NAMESPACE__ . '\Hoga\Common::downloadCleverReach'
+                ));
+                Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+                    __NAMESPACE__ . '/Hoga/Common/CleverReach/DownloadCSV',
+                    __NAMESPACE__ . '\Hoga\Common::downloadCSVCleverReach'
+                ));
+            }
+
+            /*
              * Coswig
              */
             if ($consumerAcronym === 'EVSC' || $consumerAcronym === 'REF') {
@@ -164,6 +178,10 @@ class Custom implements IModuleInterface
                     __NAMESPACE__ . '/Muldental/Common/ClassList/Download',
                     __NAMESPACE__ . '\Muldental\Common::downloadClassList'
                 ));
+                Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+                    __NAMESPACE__ . '/Muldental/Common/CoreList/Download',
+                    __NAMESPACE__ . '\Muldental\Common::downloadCoreList'
+                ));
             }
 
             // Bad Düben
@@ -207,6 +225,22 @@ class Custom implements IModuleInterface
                 Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
                     __NAMESPACE__ . '/Gersdorf/Common/TeacherList/Download',
                     __NAMESPACE__ . '\Gersdorf\Common::downloadTeacherList'
+                ));
+            }
+
+            /*
+             * Kreuzgymnasium
+             */
+            if ($consumerAcronym === 'KG' || $consumerAcronym === 'REF') {
+                Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+                    __NAMESPACE__ . '/Kreuzgymnasium/Common/SignList/Download',
+                    __NAMESPACE__ . '\Kreuzgymnasium\Common::downloadSignList'
+                ));
+            }
+            if ($consumerAcronym === 'KG' || $consumerAcronym === 'REF') {
+                Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+                    __NAMESPACE__ . '/Kreuzgymnasium/Common/StudentCount/Download',
+                    __NAMESPACE__ . '\Kreuzgymnasium\Common::downloadStudentCount'
                 ));
             }
         }

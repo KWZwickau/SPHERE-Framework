@@ -22,7 +22,9 @@ class TblSetting extends Element
 
     // Regular Options
     const IDENT_INVOICE_DELETE = 'InvoiceDelete';
-    const ATTR_INVOICE_DELETE = 'InvoiceDelete';
+    const IDENT_DEBTOR_EXTENDED_VIEW = 'DebtorExtendedView';
+    const IDENT_CAUSER_EXTENDED_VIEW = 'CauserExtendedView';
+
 
     // Sepa Options
     const IDENT_IS_SEPA = 'IsSepa';

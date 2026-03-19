@@ -730,7 +730,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     array(
                                         'order' => array(
                                             array(0, 'desc'),
-                                            array(1, 'asc')
+                                            array(1, 'desc')
                                         ),
                                         'columnDefs' => array(
                                             array('type' => 'de_date', 'targets' => 1)

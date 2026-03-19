@@ -86,7 +86,7 @@ class Service extends Extension
             try {
                 $mailAddress = $Ticket['Mail'];
 
-                $subject = utf8_decode($Ticket['Subject']);
+                $subject = Extension::decodeUTF8($Ticket['Subject']);
 
                 $body = '';
                 if (($tblAccount = Account::useService()->getAccountBySession())) {
@@ -175,7 +175,7 @@ class Service extends Extension
             try {
                 $mailAddress = $Request['Mail'];
 
-                $subject = utf8_decode('Source-Code Anfrage');
+                $subject = Extension::decodeUTF8('Source-Code Anfrage');
 
                 $body = '';
                 if (($tblAccount = Account::useService()->getAccountBySession())) {

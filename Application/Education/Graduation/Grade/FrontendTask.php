@@ -629,7 +629,7 @@ abstract class FrontendTask extends FrontendStudentOverview
         ) {
             foreach ($tblPersonList as $tblPerson) {
                 $bodyList[$tblPerson->getId()]['Number'] = $this->getTableColumnBody(++$count);
-                $bodyList[$tblPerson->getId()]['Person'] = $this->getTableColumnBody($tblPerson->getLastFirstNameWithCallNameUnderline());
+                $bodyList[$tblPerson->getId()]['Person'] = $this->getTableColumnBody($tblPerson->getLastFirstNameWithCallNameUnderline(true));
 
                 if (($tblSubjectList = DivisionCourse::useService()->getSubjectListByStudentAndYear($tblPerson, $tblYear, !$hasBehaviorTaskSetting))) {
                     $tblSubjectList = $this->getSorter($tblSubjectList)->sortObjectBy('Name');
@@ -766,7 +766,7 @@ abstract class FrontendTask extends FrontendStudentOverview
             $tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('EN');
             foreach ($tblPersonList as $tblPerson) {
                 $bodyList[$tblPerson->getId()]['Number'] = $this->getTableColumnBody(++$count);
-                $bodyList[$tblPerson->getId()]['Person'] = $this->getTableColumnBody($tblPerson->getLastFirstNameWithCallNameUnderline());
+                $bodyList[$tblPerson->getId()]['Person'] = $this->getTableColumnBody($tblPerson->getLastFirstNameWithCallNameUnderline(true));
 
                 $tblTaskGradeList = array();
                 $tblTaskGradeTextList = array();
@@ -798,6 +798,14 @@ abstract class FrontendTask extends FrontendStudentOverview
                                 $tblPrepareAdditionalGrade->getGrade(),
                                 DivisionCourse::useService()->getIsCourseSystemByPersonAndYear($tblPerson, $tblYear)
                             );
+
+                            if (($gradeValue = Grade::useService()->getGradeNumberValue($tblPrepareAdditionalGrade->getGrade())) !== null) {
+                                $sum += $gradeValue;
+                                $countGrades++;
+
+                                $subjectListSum[$tblSubject->getId()] += $gradeValue;
+                                $subjectListGradesCount[$tblSubject->getId()]++;
+                            }
                         // Stichtagsnote anzeigen
                         } else {
                             $gradeValue = null;

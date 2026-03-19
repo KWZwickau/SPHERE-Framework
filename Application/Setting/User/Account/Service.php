@@ -1195,8 +1195,8 @@ class Service extends AbstractService
         $UpdateArray[] = array('p' => 'Þ');
         $UpdateArray[] = array('p' => 'þ');
         $UpdateArray[] = array('s' => 'ß');
-        $UpdateArray[] = array('ŝ' => 'ß');
-        $UpdateArray[] = array('ş' => 'ß');
+        $UpdateArray[] = array('s' => 'ŝ');
+        $UpdateArray[] = array('s' => 'ş');
         $UpdateArray[] = array('u' => 'ù');
         $UpdateArray[] = array('u' => 'ú');
         $UpdateArray[] = array('u' => 'û');

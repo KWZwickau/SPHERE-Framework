@@ -200,7 +200,7 @@ class Billing extends AbstractDocument
         }
         $StudentIdentifier = '';
         if(($tblStudent = Student::useService()->getStudentByPerson($tblPersonCauser))){
-            $StudentIdentifier = $tblStudent->getIdentifier()?: '';
+            $StudentIdentifier = $tblStudent->getIdentifierComplete()?: '';
         }
 
         // Umgang mit nicht gefüllten Werten

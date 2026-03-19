@@ -24,12 +24,12 @@ class TblConsumer extends Element
     /**
      * @Column(type="string")
      */
-    protected string $Acronym;
+    protected string $Acronym = '';
 
     /**
      * @Column(type="string")
      */
-    protected string $Name;
+    protected string $Name = '';
 
     /**
      * @Column(type="string")

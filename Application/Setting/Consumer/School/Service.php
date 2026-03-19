@@ -170,13 +170,12 @@ class Service extends AbstractService
             return $Form;
         }
 
-        $CompanyNumber = '';
+        $CompanyNumber = $SchoolCode = '';
         if(isset($Data['CompanyNumber']) && !empty($Data['CompanyNumber'])){
-            $CompanyNumber = $Data['CompanyNumber'];;
+            $CompanyNumber = $Data['CompanyNumber'];
         }
-        $SchoolCode = '';
-        if(isset($Data['CompanyNumber']) && !empty($Data['SchoolCode'])){
-            $SchoolCode = $Data['SchoolCode'];;
+        if(isset($Data['SchoolCode']) && !empty($Data['SchoolCode'])){
+            $SchoolCode = $Data['SchoolCode'];
         }
 
 

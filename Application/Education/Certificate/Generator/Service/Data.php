@@ -18,6 +18,7 @@ use SPHERE\Application\Education\Certificate\Generator\Service\DataCertificate\I
 use SPHERE\Application\Education\Certificate\Generator\Service\DataCertificate\IDataFESH;
 use SPHERE\Application\Education\Certificate\Generator\Service\DataCertificate\IDataHGGT;
 use SPHERE\Application\Education\Certificate\Generator\Service\DataCertificate\IDataHOGA;
+use SPHERE\Application\Education\Certificate\Generator\Service\DataCertificate\IDataKG;
 use SPHERE\Application\Education\Certificate\Generator\Service\DataCertificate\IDataLWSZ;
 use SPHERE\Application\Education\Certificate\Generator\Service\DataCertificate\IDataMLS;
 use SPHERE\Application\Education\Certificate\Generator\Service\DataCertificate\SDataBerufsfachschule;
@@ -234,10 +235,11 @@ class Data extends AbstractData
     {
         $tblConsumer = $this->tblConsumer = Consumer::useService()->getConsumerBySession();
 
-        // Kann nach DB Update wieder entfernt werden
-        if(($tblCertificate = $this->getCertificateByCertificateClassName('MsAbsHs'))){
-            if(!$tblCertificate->isChosenDefault()){
-                $this->updateCertificateIsChosenDefault($tblCertificate, true);
+        // Live to Demo -> Demo correction
+        if(($tblCertificateList = $this->getCertificateAllByDoubleBackslash())) {
+            foreach($tblCertificateList as $tblCertificate){
+                $URL = str_replace('\\\\', '\\', $tblCertificate->getCertificate());
+                $this->updateCertificateURL($tblCertificate, $URL);
             }
         }
 
@@ -265,62 +267,65 @@ class Data extends AbstractData
 
             $this->setCertificateGradeInformation();
 
-            if ($tblConsumer->getAcronym() == 'ESZC') {
+            if ($tblConsumer->getAcronym() == 'ESZC' || $tblConsumer->getAcronym() == 'REF') {
                 IDataESZC::setCertificateIndividually($this);
             }
-            if ($tblConsumer->getAcronym() == 'EVSC') {
+            if ($tblConsumer->getAcronym() == 'EVSC' || $tblConsumer->getAcronym() == 'REF') {
                 IDataEVSC::setCertificateIndividually($this);
             }
-            if ($tblConsumer->getAcronym() == 'FESH') {
+            if ($tblConsumer->getAcronym() == 'FESH' || $tblConsumer->getAcronym() == 'REF') {
                 IDataFESH::setCertificateIndividually($this);
             }
-            if ($tblConsumer->getAcronym() == 'EVSR') {
+            if ($tblConsumer->getAcronym() == 'EVSR' || $tblConsumer->getAcronym() == 'REF') {
                 IDataEVSR::setCertificateIndividually($this);
             }
-            if ($tblConsumer->getAcronym() == 'ESS') {
+            if ($tblConsumer->getAcronym() == 'ESS' || $tblConsumer->getAcronym() == 'REF') {
                 IDataESS::setCertificateIndividually($this);
             }
-            if ($tblConsumer->getAcronym() == 'EVAMTL') {
+            if ($tblConsumer->getAcronym() == 'EVAMTL' || $tblConsumer->getAcronym() == 'REF') {
                 IDataEVAMTL::setCertificateIndividually($this);
             }
-            if ($tblConsumer->getAcronym() == 'ESRL') {
+            if ($tblConsumer->getAcronym() == 'ESRL' || $tblConsumer->getAcronym() == 'REF') {
                 IDataESRL::setCertificateIndividually($this);
             }
-            if ($tblConsumer->getAcronym() == 'CMS') {
+            if ($tblConsumer->getAcronym() == 'CMS' || $tblConsumer->getAcronym() == 'REF') {
                 IDataCMS::setCertificateIndividually($this);
             }
-            if ($tblConsumer->getAcronym() == 'EZSH') {
+            if ($tblConsumer->getAcronym() == 'EZSH' || $tblConsumer->getAcronym() == 'REF') {
                 IDataEZSH::setCertificateIndividually($this);
             }
-            if ($tblConsumer->getAcronym() == 'CSW') {
+            if ($tblConsumer->getAcronym() == 'CSW' || $tblConsumer->getAcronym() == 'REF') {
                 IDataCSW::setCertificateIndividually($this);
             }
-            if ($tblConsumer->getAcronym() == 'EVGSM') {
+            if ($tblConsumer->getAcronym() == 'EVGSM' || $tblConsumer->getAcronym() == 'REF') {
                 IDataEVGSM::setCertificateIndividually($this);
             }
-            if ($tblConsumer->getAcronym() == 'ESBD') { //  || $tblConsumer->getAcronym() == 'REF' // local Test
+            if ($tblConsumer->getAcronym() == 'ESBD' || $tblConsumer->getAcronym() == 'REF') {
                 IDataESBD::setCertificateIndividually($this);
             }
-            if ($tblConsumer->getAcronym() == 'FELS') {
+            if ($tblConsumer->getAcronym() == 'FELS' || $tblConsumer->getAcronym() == 'REF') {
                 IDataFELS::setCertificateIndividually($this);
             }
-            if ($tblConsumer->getAcronym() == 'LWSZ') {
+            if ($tblConsumer->getAcronym() == 'LWSZ' || $tblConsumer->getAcronym() == 'REF') {
                 IDataLWSZ::setCertificateIndividually($this);
             }
-            if ($tblConsumer->getAcronym() == 'EMSP') {
+            if ($tblConsumer->getAcronym() == 'EMSP' || $tblConsumer->getAcronym() == 'REF') {
                 IDataEMSP::setCertificateIndividually($this);
             }
-            if ($tblConsumer->getAcronym() == 'EVMO') {
+            if ($tblConsumer->getAcronym() == 'EVMO' || $tblConsumer->getAcronym() == 'REF') {
                 IDataEVMO::setCertificateIndividually($this);
             }
-            if ($tblConsumer->getAcronym() == 'HOGA') { // || $tblConsumer->getAcronym() == 'REF') {
+            if ($tblConsumer->getAcronym() == 'HOGA' || $tblConsumer->getAcronym() == 'REF') {
                 IDataHOGA::setCertificateIndividually($this);
             }
-            if ($tblConsumer->getAcronym() == 'MLS') {
+            if ($tblConsumer->getAcronym() == 'MLS' || $tblConsumer->getAcronym() == 'REF') {
                 IDataMLS::setCertificateIndividually($this);
             }
-            if ($tblConsumer->getAcronym() == 'HGGT') {
+            if ($tblConsumer->getAcronym() == 'HGGT' || $tblConsumer->getAcronym() == 'REF') {
                 IDataHGGT::setCertificateIndividually($this);
+            }
+            if ($tblConsumer->getAcronym() == 'KG' || $tblConsumer->getAcronym() == 'REF') {
+                IDataKG::setCertificateIndividually($this);
             }
         }
 
@@ -330,6 +335,11 @@ class Data extends AbstractData
         }
         if (($tblCertificate = $this->getCertificateByCertificateClassName('MsAbgLernenHs'))) {
             $this->destroyCertificate($tblCertificate);
+        }
+
+        // Zeugnisvorlagen Nummer ändern
+        if (($tblCertificate = $this->getCertificateByCertificateClassName('MsAbsLernen'))) {
+            $this->updateCertificateNumber($tblCertificate, '3.11');
         }
     }
 
@@ -735,6 +745,31 @@ class Data extends AbstractData
     }
 
     /**
+     *
+     * @return bool|TblCertificate[]
+     */
+    public function getCertificateAllByDoubleBackslash()
+    {
+
+        $queryBuilder = $this->getEntityManager()->getQueryBuilder();
+
+        $query = $queryBuilder->select('tC')
+            ->from(TblCertificate::class, 'tC')
+            ->where(
+                $queryBuilder->expr()->andX(
+                    $queryBuilder->expr()->isNull('tC.EntityRemove'),
+                    $queryBuilder->expr()->like('tC.Certificate', '?1'),
+                ),
+            )
+            ->setParameter(1, '%\\\\\\\\%')
+            ->getQuery();
+
+        $resultList = $query->getResult();
+
+        return empty($resultList) ? false : $resultList;
+    }
+
+    /**
      * @param $Id
      *
      * @return bool|TblCertificateSubject
@@ -1101,6 +1136,29 @@ class Data extends AbstractData
             return true;
         }
 
+        return false;
+    }
+
+    /**
+     * @param TblCertificate $tblCertificate
+     * @param $URL
+     *
+     * @return bool
+     */
+    public function updateCertificateURL(
+        TblCertificate $tblCertificate,
+        $URL
+    ) {
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblCertificate $Entity */
+        $Entity = $Manager->getEntityById('TblCertificate', $tblCertificate->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setCertificate($URL);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+            return true;
+        }
         return false;
     }
 
@@ -1653,28 +1711,5 @@ class Data extends AbstractData
         return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblCertificateLevel', array(
             TblCertificateLevel::ATTR_LEVEL => null
         ));
-    }
-
-    /**
-     * @param array $tblEntityList
-     *
-     * @return bool
-     */
-    public function updateEntityListBulk(array $tblEntityList): bool
-    {
-        $Manager = $this->getEntityManager();
-
-        /** @var Element $tblElement */
-        foreach ($tblEntityList as $tblElement) {
-            $Manager->bulkSaveEntity($tblElement);
-            /** @var Element $Entity */
-            $Entity = $Manager->getEntityById($tblElement->getEntityShortName(), $tblElement->getId());
-            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Entity, $tblElement, true);
-        }
-
-        $Manager->flushCache();
-        Protocol::useService()->flushBulkEntries();
-
-        return true;
     }
 }

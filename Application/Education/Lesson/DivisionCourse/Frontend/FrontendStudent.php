@@ -2,6 +2,8 @@
 
 namespace SPHERE\Application\Education\Lesson\DivisionCourse\Frontend;
 
+use DateInterval;
+use DateTime;
 use SPHERE\Application\Api\Education\DivisionCourse\ApiDivisionCourseStudent;
 use SPHERE\Application\Api\Education\DivisionCourse\MassReplaceStudentEducation;
 use SPHERE\Application\Api\MassReplace\ApiMassReplace;
@@ -382,32 +384,32 @@ class FrontendStudent extends FrontendMember
 
                         $option = (new Standard('', ApiDivisionCourseStudent::getEndpoint(), new MinusSign(), array(),  'Schüler entfernen'))
                             ->ajaxPipelineOnClick(ApiDivisionCourseStudent::pipelineRemoveStudent($tblDivisionCourse->getId(), $tblPerson->getId()));
-                        if ($tblDivisionCourse->getIsDivisionOrCoreGroup() && !$isInActive) {
-                            $option .= (new Standard('', ApiDivisionCourseStudent::getEndpoint(), new Transfer(), array(), $tblDivisionCourse->getTypeName()
-                                . 'nwechsel im Schuljahr / Schüler deaktivieren'))
-                                    ->ajaxPipelineOnClick(ApiDivisionCourseStudent::pipelineOpenChangeDivisionCourseModal($tblDivisionCourse->getId(), $tblPerson->getId()));
-                        }
-
-//                        // ist der Kurs eine Klasse oder Stammgruppe und im aktuellen Schuljahr und Schuljahr noch nicht älter als 1 Monat → Modal für Schülerwechsel öffnen
-//                        if (!$isInActive
-//                            && ($tblDivisionCourseType = $tblDivisionCourse->getType())
-//                            && ($tblDivisionCourseType->getIdentifier() == TblDivisionCourseType::TYPE_DIVISION
-//                                || $tblDivisionCourseType->getIdentifier() == TblDivisionCourseType::TYPE_CORE_GROUP)
-//                            && ($tblYear = $tblDivisionCourse->getServiceTblYear())
-//                        ) {
-//                            $today = new DateTime('today');
-//                            /** @var DateTime $startDate */
-//                            list($startDate, $endDate) = Term::useService()->getStartDateAndEndDateOfYear($tblYear);
-//                            if ($startDate && $endDate
-//                                && $today > $startDate
-//                                && $today < $endDate
-//                                && ($firstMonthDate = clone $startDate)
-//                                && $today > ($firstMonthDate->add(new DateInterval('P1M')))
-//                            ) {
-//                                $option = (new Standard('', ApiDivisionCourseStudent::getEndpoint(), new Transfer(), array(), $tblDivisionCourse->getTypeName() . 'nwechsel'))
+//                        if ($tblDivisionCourse->getIsDivisionOrCoreGroup() && !$isInActive) {
+//                            $option .= (new Standard('', ApiDivisionCourseStudent::getEndpoint(), new Transfer(), array(), $tblDivisionCourse->getTypeName()
+//                                . 'nwechsel im Schuljahr / Schüler deaktivieren'))
 //                                    ->ajaxPipelineOnClick(ApiDivisionCourseStudent::pipelineOpenChangeDivisionCourseModal($tblDivisionCourse->getId(), $tblPerson->getId()));
-//                            }
 //                        }
+
+                        // ist der Kurs eine Klasse oder Stammgruppe und im aktuellen Schuljahr und Schuljahr noch nicht älter als 1 Monat → Modal für Schülerwechsel öffnen
+                        if (!$isInActive
+                            && ($tblDivisionCourseType = $tblDivisionCourse->getType())
+                            && ($tblDivisionCourseType->getIdentifier() == TblDivisionCourseType::TYPE_DIVISION
+                                || $tblDivisionCourseType->getIdentifier() == TblDivisionCourseType::TYPE_CORE_GROUP)
+                            && ($tblYear = $tblDivisionCourse->getServiceTblYear())
+                        ) {
+                            $today = new DateTime('today');
+                            /** @var DateTime $startDate */
+                            list($startDate, $endDate) = Term::useService()->getStartDateAndEndDateOfYear($tblYear);
+                            if ($startDate && $endDate
+                                && $today > $startDate
+                                && $today < $endDate
+                                && ($firstMonthDate = clone $startDate)
+                                && $today > ($firstMonthDate->add(new DateInterval('P1M')))
+                            ) {
+                                $option = (new Standard('', ApiDivisionCourseStudent::getEndpoint(), new Transfer(), array(), $tblDivisionCourse->getTypeName() . 'nwechsel'))
+                                    ->ajaxPipelineOnClick(ApiDivisionCourseStudent::pipelineOpenChangeDivisionCourseModal($tblDivisionCourse->getId(), $tblPerson->getId()));
+                            }
+                        }
 
                         $selectedList[$tblPerson->getId()] = array(
                             'Number' => ++$count,
@@ -429,7 +431,7 @@ class FrontendStudent extends FrontendMember
                 $left = (new TableData($selectedList, null, $columns, array(
                     'columnDefs' => array(
                         array('type' => 'natural', 'targets' => 0),
-                        array('orderable' => false, 'width' => $tblDivisionCourse->getIsDivisionOrCoreGroup() ? '60px' : '1%', 'targets' => -1),
+                        array('orderable' => false, 'width' => '1%', 'targets' => -1),
                     ),
                     'paging' => false,
                     'responsive' => false
@@ -933,7 +935,8 @@ class FrontendStudent extends FrontendMember
                             $division = '';
                             $coreGroup = '';
                             if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))) {
-                                $level = $tblStudentEducation->getLevel() ?: new WarningText('Keine Klassenstufe hinterlegt');
+                                $level = $tblStudentEducation->getLevel() !== null
+                                    ? $tblStudentEducation->getLevel() : new WarningText('Keine Klassenstufe hinterlegt');
                                 $schoolType = ($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())
                                     ? $tblSchoolType->getName() : new WarningText('Keine Schulart hinterlegt');
 
@@ -991,10 +994,13 @@ class FrontendStudent extends FrontendMember
 
 //                              $address = ($tblAddress = $tblPerson->fetchMainAddress()) ? $tblAddress->getGuiString() : new WarningText('Keine Adresse hinterlegt');
 
+                                $division = '';
+                                $coreGroup = '';
                                 if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))) {
                                     $company = ($tblCompany = $tblStudentEducation->getServiceTblCompany())
                                         ? $tblCompany->getDisplayName() : new WarningText('Keine Schule hinterlegt');
-                                    $level = $tblStudentEducation->getLevel() ?: new WarningText('Keine Klassenstufe hinterlegt');
+                                    $level = $tblStudentEducation->getLevel() !== null
+                                        ? $tblStudentEducation->getLevel() : new WarningText('Keine Klassenstufe hinterlegt');
                                     $schoolType = ($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())
                                         ? $tblSchoolType->getName() : new WarningText('Keine Schulart hinterlegt');
 
@@ -1003,6 +1009,12 @@ class FrontendStudent extends FrontendMember
                                         $warningCourse = new WarningText('Keine Bildungsgang hinterlegt');
                                     }
                                     $course = ($tblCourse = $tblStudentEducation->getServiceTblCourse()) ? $tblCourse->getName() : $warningCourse;
+                                    if (($tblDivision = $tblStudentEducation->getTblDivision())) {
+                                        $division = $tblDivision->getName();
+                                    }
+                                    if (($tblCoreGroup = $tblStudentEducation->getTblCoreGroup())) {
+                                        $coreGroup = $tblCoreGroup->getName();
+                                    }
                                 } else {
                                     $company = new WarningText('Keine Schule hinterlegt');
                                     $level = new WarningText('Keine Klassenstufe hinterlegt');
@@ -1034,6 +1046,10 @@ class FrontendStudent extends FrontendMember
                                 $item['Company'] = $isInActive ? new Strikethrough($company) : $company;
                                 $item['Level'] = $isInActive ? new Strikethrough($level) : $level;
                                 $item['Course'] = $isInActive ? new Strikethrough($course) : $course;
+                                if ($tblDivisionCourse->getType()->getIdentifier() == TblDivisionCourseType::TYPE_TEACHING_GROUP) {
+                                    $item['Division'] = $division;
+                                    $item['CoreGroup'] = $coreGroup;
+                                }
 
                                 if ($isInActive) {
                                     $item['Option'] = '';
@@ -1049,7 +1065,6 @@ class FrontendStudent extends FrontendMember
 //                                            $tblPerson->getId()
 //                                        ));
                                 }
-
 
                                 $studentList[] = $item;
                             }
@@ -1100,6 +1115,10 @@ class FrontendStudent extends FrontendMember
                 $headerStudentColumnList[] = $this->getTableHeaderColumn('Schule', $backgroundColor);
                 $headerStudentColumnList[] = $this->getTableHeaderColumn('Klassen&shy;stufe', $backgroundColor);
                 $headerStudentColumnList[] = $this->getTableHeaderColumn('Bildungs&shy;gang', $backgroundColor);
+                if ($tblDivisionCourse->getType()->getIdentifier() == TblDivisionCourseType::TYPE_TEACHING_GROUP) {
+                    $headerStudentColumnList[] = $this->getTableHeaderColumn('Klasse', $backgroundColor);
+                    $headerStudentColumnList[] = $this->getTableHeaderColumn('Stammgruppe', $backgroundColor);
+                }
                 $headerStudentColumnList[] = $this->getTableHeaderColumn('&nbsp; ', $backgroundColor, '95px');
             }
 

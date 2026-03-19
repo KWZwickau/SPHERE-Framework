@@ -164,7 +164,7 @@ class SchoolContract extends AbstractDocument
                             ->addSection((new Section())
                                 ->addElementColumn((new Element())
                                     ->setContent('&nbsp;')
-                                    ->styleHeight('120px')
+                                    ->styleHeight('90px')
                                 )
                             )
                             ->addSection((new Section())
@@ -186,7 +186,7 @@ class SchoolContract extends AbstractDocument
                             ->addSection((new Section())
                                 ->addElementColumn((new Element())
                                     ->setContent('Evangelischer Schulverein Limbach-Oberfrohna e.V.<br/>
-                                                  Vertreten durch den Vorstand<br/>
+                                                  vertreten durch den Vorstand<br/>
                                                   Marktstraße 11<br/>
                                                   09212 Limbach-Oberfrohna')
                                     ->styleTextSize(self::TEXT_SIZE)
@@ -197,7 +197,7 @@ class SchoolContract extends AbstractDocument
                             )
                             ->addSection((new Section())
                                 ->addElementColumn((new Element())
-                                    ->setContent('- Nachfolgend Schulträger genannt -')
+                                    ->setContent('- nachfolgend Schulträger genannt -')
                                     ->styleTextSize(self::TEXT_SIZE)
                                     ->stylePaddingBottom('25px')
                                     ->stylePaddingLeft('90px')
@@ -205,7 +205,7 @@ class SchoolContract extends AbstractDocument
                             )
                             ->addSection((new Section())
                                 ->addElementColumn((new Element())
-                                    ->setContent('Und')
+                                    ->setContent('und')
                                     ->styleTextSize(self::TEXT_SIZE)
                                 )
                             )
@@ -224,7 +224,7 @@ class SchoolContract extends AbstractDocument
                         ->addSliceColumn((new Slice())
                             ->addSection((new Section())
                                 ->addElementColumn((new Element())
-                                    ->setContent('- Nachfolgend Eltern/Erziehungsberechtigte genannt –')
+                                    ->setContent('- nachfolgend Eltern/Erziehungsberechtigte genannt –')
                                     ->styleTextSize(self::TEXT_SIZE)
                                     ->stylePaddingBottom('15px')
                                     ->stylePaddingLeft('90px')
@@ -232,7 +232,7 @@ class SchoolContract extends AbstractDocument
                             )
                             ->addSection((new Section())
                                 ->addElementColumn((new Element())
-                                    ->setContent('Als gesetzlicher Vertreter 
+                                    ->setContent('als gesetzlicher Vertreter 
                                     {% if '.$this->FieldValue['Female'].' == "true" %}
                                         der Schülerin
                                     {% else %}
@@ -256,7 +256,7 @@ class SchoolContract extends AbstractDocument
                             )
                             ->addSection((new Section())
                                 ->addElementColumn((new Element())
-                                    ->setContent('Geboren am '.$this->FieldValue['Birthday'])
+                                    ->setContent('geboren am '.$this->FieldValue['Birthday'])
                                     ->styleTextSize(self::TEXT_SIZE)
                                     ->stylePaddingBottom('50px')
                                     ->stylePaddingLeft('90px')
@@ -265,7 +265,7 @@ class SchoolContract extends AbstractDocument
                             )
                             ->addSection((new Section())
                                 ->addElementColumn((new Element())
-                                    ->setContent('Wird nachfolgender Vertrag für '.$this->FieldValue['SchoolType'].' geschlossen:')
+                                    ->setContent('wird nachfolgender Vertrag für '.$this->FieldValue['SchoolType'].' geschlossen:')
                                     ->styleTextSize(self::TEXT_SIZE)
                                     ->stylePaddingBottom('30px')
                                 )
@@ -293,9 +293,8 @@ class SchoolContract extends AbstractDocument
                             )
                             ->addSection((new Section())
                                 ->addElementColumn((new Element())
-                                    ->setContent('Personensorgeberechtigte und Schüler/in verstehen sich, ebenso wie
-                                     alle angestellten und ehrenamtlichen Mitarbeiter, ausdrücklich als Teil dieser
-                                      Bekenntnisgemeinschaft.')
+                                    ->setContent('Alle angestellten und ehrenamtlichen Mitarbeiter verstehen sich ausdrücklich als Teil dieser
+                                     Bekenntnisgemeinschaft. Die Personensorgeberechtigten und Schüler/in erkennen das Bekenntnis an. ')
                                     ->styleLineHeight('130%')
                                     ->styleTextSize(self::TEXT_SIZE)
                                     ->stylePaddingBottom('25px')

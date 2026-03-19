@@ -98,9 +98,9 @@ class Service extends AbstractService
     /**
      * Sortierung erst feste Gruppen, dann individuelle Gruppen
      *
-     * @return bool|TblGroup[]
+     * @return TblGroup[]
      */
-    public function getGroupAllSorted()
+    public function getGroupAllSorted(bool $isOnlyCustom = false): array
     {
 
         $lockedList = array();
@@ -118,6 +118,10 @@ class Service extends AbstractService
 
         $lockedList = $this->getSorter($lockedList)->sortObjectBy('Name', new Sorter\StringNaturalOrderSorter());
         $customList = $this->getSorter($customList)->sortObjectBy('Name', new Sorter\StringNaturalOrderSorter());
+
+        if ($isOnlyCustom) {
+            return $customList;
+        }
 
         return array_merge($lockedList, $customList);
     }

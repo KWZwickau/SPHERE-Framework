@@ -316,6 +316,10 @@ abstract class ServiceCertificateContent extends ServiceAbitur
                         } elseif ($tblConsumer && $tblConsumer->isConsumer(TblConsumer::TYPE_SACHSEN, 'HGGT')) {
                             $Value = $tblPerson->getFirstSecondName() . ' ' . $tblPrepareInformation->getValue();
                             $Content['P' . $personId]['Input'][$tblPrepareInformation->getField()] = $this->useLetterFontReplacement($Value);
+                            // REF -> KG
+                        } elseif ($tblConsumer && $tblConsumer->isConsumer(TblConsumer::TYPE_SACHSEN, 'KG')) {
+                            $Value = $tblPerson->getFirstSecondName() . ' ' . $tblPrepareInformation->getValue();
+                            $Content['P' . $personId]['Input'][$tblPrepareInformation->getField()] = $this->useLetterFontReplacement($Value);
                         } else {
                             $Value = $tblPerson->getFirstSecondName(). ' ' . $tblPerson->getLastName() . ' ' . $tblPrepareInformation->getValue();
                             $Content['P' . $personId]['Input'][$tblPrepareInformation->getField()] = $this->useLetterFontReplacement($Value);
@@ -632,7 +636,15 @@ abstract class ServiceCertificateContent extends ServiceAbitur
                                 }
                             }
 
-                            $Content['P' . $personId]['Grade']['Data'][$tblSubject->getAcronym()] = $grade;
+                            // OS: Prüfung in Herkunftssprache statt Englisch
+                            $post = '';
+                            if ($tblSubject->getName() == 'Englisch'
+                                && ($tblPrepareInformation = Prepare::useService()->getPrepareInformationBy($tblPrepare, $tblPerson, 'IsNativeLanguage'))
+                                && $tblPrepareInformation->getValue()
+                            ) {
+                                $post = '*';
+                            }
+                            $Content['P' . $personId]['Grade']['Data'][$tblSubject->getAcronym()] = $grade . $post;
                         }
                     }
                 }
@@ -690,6 +702,7 @@ abstract class ServiceCertificateContent extends ServiceAbitur
                                 && $tblTaskGrade->getTblGradeText()->getName() != '&ndash;'
                             ) {
                                 $Content['P' . $personId]['Grade']['Data']['IsShrinkSize'][$tblSubjectTemp->getAcronym()] = true;
+                                $Content['P' . $personId]['Grade']['Data']['GradeTextShortName'][$tblSubjectTemp->getAcronym()] = $tblTaskGrade->getTblGradeText()->getShortName();
                             }
                         }
                     }
@@ -873,6 +886,13 @@ abstract class ServiceCertificateContent extends ServiceAbitur
                 $average = $this->calcSubjectGradesAverage($tblPrepareStudent);
                 if ($average) {
                     $Content['P' . $personId]['Grade']['Data']['Average'] = number_format($average, 1, ',', '.');
+                    //str_replace('.', ',', $average);
+                }
+
+                // Notendurchschnitt der angegebenen Fächer ohne Englisch für Bildungsempfehlung Förderschulen
+                $average = $this->calcSubjectGradesAverageWithoutEnglish($tblPrepareStudent);
+                if ($average) {
+                    $Content['P' . $personId]['Grade']['Data']['AverageWithoutEN'] = number_format($average, 1, ',', '.');
                     //str_replace('.', ',', $average);
                 }
 
@@ -1170,6 +1190,43 @@ abstract class ServiceCertificateContent extends ServiceAbitur
      *
      * @return bool|float
      */
+    private function calcSubjectGradesAverageWithoutEnglish(TblPrepareStudent $tblPrepareStudent): float|bool
+    {
+        if (($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())
+            && ($tblPrepare = $tblPrepareStudent->getTblPrepareCertificate())
+            && ($tblPerson = $tblPrepareStudent->getServiceTblPerson())
+            && ($tblAppointedDateTask = $tblPrepare->getServiceTblAppointedDateTask())
+        ) {
+            $tblCertificateSubjectAll = Generator::useService()->getCertificateSubjectAll($tblCertificate);
+
+            if ($tblCertificateSubjectAll) {
+                $gradeList = array();
+                foreach ($tblCertificateSubjectAll as $tblCertificateSubject) {
+                    if (($tblSubject = $tblCertificateSubject->getServiceTblSubject())
+                        && $tblSubject->getName() != 'Englisch'
+                    ) {
+                        if (($tblTaskGrade = Grade::useService()->getTaskGradeByPersonAndTaskAndSubject($tblPerson, $tblAppointedDateTask, $tblSubject))
+                            && $tblTaskGrade->getIsGradeNumeric()
+                        ) {
+                            $gradeList[] = $tblTaskGrade->getGradeNumberValue();
+                        }
+                    }
+                }
+
+                if (!empty($gradeList)) {
+                    return round(floatval(array_sum($gradeList) / count($gradeList)), 1);
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @param TblPrepareStudent $tblPrepareStudent
+     *
+     * @return bool|float
+     */
     private function calcSubjectGradesAverageOthers(TblPrepareStudent $tblPrepareStudent)
     {
         if (($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())
@@ -1213,7 +1270,7 @@ abstract class ServiceCertificateContent extends ServiceAbitur
             'Č', 'Ď', 'Ě', 'Ň', 'Ř', 'Ť', 'Ů',
             'č', 'ď', 'ě', 'ň', 'ř', 'ť', 'ů',
             'Ą', 'Ć', 'Ę', 'Ł', 'Ń', 'Ś', 'Ź', 'Ż',
-            'ą', 'ć', 'ę', 'ł', 'ń', 'ś', 'ź', 'ż'
+            'ą', 'ć', 'ę', 'ł', 'ń', 'ś', 'š', 'ź', 'ż'
         );
         foreach($LetterCorrectionList as $Letter){
             $String = str_replace($Letter, $FirstPart.$Letter.$LastPart, $String);

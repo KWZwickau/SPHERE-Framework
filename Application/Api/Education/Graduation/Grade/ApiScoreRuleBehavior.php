@@ -112,8 +112,9 @@ class ApiScoreRuleBehavior extends Extension implements IApiInterface
                     $tblScoreRuleBehaviourSubject = Grade::useService()->getScoreRuleBehaviorSubjectBySchoolTypeAndLevelAndSubject($tblSchoolType, $level, $tblSubject ?: null);
                     if ($value !== '' && $value != '1') {
                         if ($tblScoreRuleBehaviourSubject) {
-                            $tblScoreRuleBehaviourSubject->setMultiplier($value);
-                            $updateList[] = $tblScoreRuleBehaviourSubject;
+                            $updateList[$tblScoreRuleBehaviourSubject->getId()] = [
+                                'Multiplier' => $value
+                            ];
                         } else {
                             $createList[] = new TblScoreRuleBehaviorSubject($tblSchoolType, $level, $tblSubject ?: null, $value);
                         }
@@ -131,7 +132,7 @@ class ApiScoreRuleBehavior extends Extension implements IApiInterface
             Grade::useService()->createEntityListBulk($createList);
         }
         if (!empty($updateList)) {
-            Grade::useService()->updateEntityListBulk($updateList);
+            Grade::useService()->updateScoreRuleBehaviorSubjectListBulk($updateList);
         }
         if (!empty($removeList)) {
             Grade::useService()->deleteEntityListBulk($removeList);

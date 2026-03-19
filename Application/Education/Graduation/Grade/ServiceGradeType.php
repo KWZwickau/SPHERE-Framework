@@ -6,11 +6,7 @@ use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Graduation\Grade\Service\Data;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblGradeType;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
-use SPHERE\Common\Frontend\Form\IFormInterface;
-use SPHERE\Common\Frontend\Icon\Repository\Ban;
-use SPHERE\Common\Frontend\Message\Repository\Danger;
-use SPHERE\Common\Frontend\Message\Repository\Success;
-use SPHERE\Common\Window\Redirect;
+use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\System\Database\Binding\AbstractService;
 
 abstract class ServiceGradeType extends AbstractService
@@ -20,7 +16,7 @@ abstract class ServiceGradeType extends AbstractService
      *
      * @return false|TblGradeType
      */
-    public function getGradeTypeById($id)
+    public function getGradeTypeById($id): false|TblGradeType
     {
         return (new Data($this->getBinding()))->getGradeTypeById($id);
     }
@@ -30,7 +26,7 @@ abstract class ServiceGradeType extends AbstractService
      *
      * @return bool|TblGradeType
      */
-    public function getGradeTypeByCode(string $Code)
+    public function getGradeTypeByCode(string $Code): bool|TblGradeType
     {
         return (new Data($this->getBinding()))->getGradeTypeByCode($Code);
     }
@@ -40,7 +36,7 @@ abstract class ServiceGradeType extends AbstractService
      *
      * @return false|TblGradeType[]
      */
-    public function getGradeTypeAll(bool $withInActive = false)
+    public function getGradeTypeAll(bool $withInActive = false): false|array
     {
         return (new Data($this->getBinding()))->getGradeTypeAll($withInActive);
     }
@@ -50,7 +46,7 @@ abstract class ServiceGradeType extends AbstractService
      *
      * @return false|TblGradeType[]
      */
-    public function getGradeTypeList(bool $isTypeBehavior = false)
+    public function getGradeTypeList(bool $isTypeBehavior = false): false|array
     {
         return (new Data($this->getBinding()))->getGradeTypeList($isTypeBehavior);
     }
@@ -91,107 +87,69 @@ abstract class ServiceGradeType extends AbstractService
     }
 
     /**
-     * @param IFormInterface|null $form
-     * @param                     $GradeType
+     * @param $Data
+     * @param TblGradeType|null $tblGradeType
      *
-     * @return IFormInterface|string
+     * @return Form|false
      */
-    public function createGradeType(IFormInterface $form = null, $GradeType)
+    public function checkFormGradeType($Data, TblGradeType $tblGradeType = null): Form|false
     {
-        /**
-         * Skip to Frontend
-         */
-        if (null === $GradeType) {
-            return $form;
+        $error = false;
+        $form = Grade::useFrontend()->formGradeType($tblGradeType?->getId());
+        if (isset($Data['Name']) && empty($Data['Name'])) {
+            $form->setError('Data[Name]', 'Bitte geben Sie einen Namen an');
+            $error = true;
+        }
+        if (isset($Data['Code']) && empty($Data['Code'])) {
+            $form->setError('Data[Code]', 'Bitte geben Sie eine Abk&uuml;rzung an');
+            $error = true;
+        }
+        if (!isset($Data['Type'])) {
+            $form->setError('Data[Type]', 'Bitte wählen Sie eine Kategorie aus');
+            $error = true;
         }
 
-        $Error = false;
-        if (isset($GradeType['Name']) && empty($GradeType['Name'])) {
-            $form->setError('GradeType[Name]', 'Bitte geben Sie einen Namen an');
-            $Error = true;
-        }
-        if (isset($GradeType['Code']) && empty($GradeType['Code'])) {
-            $form->setError('GradeType[Code]', 'Bitte geben Sie eine Abk&uuml;rzung an');
-            $Error = true;
-        }
-        if (!isset($GradeType['Type'])) {
-            $form->setError('GradeType[Type]', 'Bitte wählen Sie eine Kategorie aus');
-            $Error = true;
-        }
-
-        if (!$Error) {
-            (new Data($this->getBinding()))->createGradeType(
-                $GradeType['Code'],
-                $GradeType['Name'],
-                $GradeType['Description'],
-                $GradeType['Type'] == 2,
-                isset($GradeType['IsHighlighted']),
-                isset($GradeType['IsPartGrade']),
-                isset($GradeType['IsIgnoredByScoreRule']),
-                true
-            );
-
-            return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Der Zensuren-Typ ist erfasst worden')
-                . new Redirect('/Education/Graduation/Grade/GradeType', Redirect::TIMEOUT_SUCCESS);
-        }
-
-        return $form;
+        return $error ? $form : false;
     }
 
     /**
-     * @param IFormInterface|null $form
-     * @param                     $Id
-     * @param                     $GradeType
+     * @param array $Data
      *
-     * @return IFormInterface|string
+     * @return TblGradeType
      */
-    public function updateGradeType(IFormInterface $form = null, $Id, $GradeType)
+    public function createGradeType(array $Data): TblGradeType
     {
+        return (new Data($this->getBinding()))->createGradeType(
+            $Data['Code'],
+            $Data['Name'],
+            $Data['Description'],
+            $Data['Type'] == 2,
+            isset($Data['IsHighlighted']),
+            isset($Data['IsPartGrade']),
+            isset($Data['IsIgnoredByScoreRule']),
+            true
+        );
+    }
 
-        /**
-         * Skip to Frontend
-         */
-        if (null === $GradeType || null === $Id) {
-            return $form;
-        }
-
-        $Error = false;
-        if (isset($GradeType['Name']) && empty($GradeType['Name'])) {
-            $form->setError('GradeType[Name]', 'Bitte geben sie einen Namen an');
-            $Error = true;
-        }
-        if (isset($GradeType['Code']) && empty($GradeType['Code'])) {
-            $form->setError('GradeType[Code]', 'Bitte geben sie eine Abkürzung an');
-            $Error = true;
-        }
-        if (!isset($GradeType['Type'])) {
-            $form->setError('GradeType[Type]', 'Bitte wählen Sie eine Kategorie aus');
-            $Error = true;
-        }
-
-        $tblGradeType = $this->getGradeTypeById($Id);
-        if (!$tblGradeType) {
-            return new Danger(new Ban() . ' Zensuren-Typ nicht gefunden')
-                . new Redirect('/Education/Graduation/Grade/GradeType', Redirect::TIMEOUT_ERROR);
-        }
-
-        if (!$Error) {
-            (new Data($this->getBinding()))->updateGradeType(
-                $tblGradeType,
-                $GradeType['Code'],
-                $GradeType['Name'],
-                $GradeType['Description'],
-                $GradeType['Type'] == 2,
-                isset($GradeType['IsHighlighted']),
-                isset($GradeType['IsPartGrade']),
-                isset($GradeType['IsIgnoredByScoreRule']),
-                $tblGradeType->getIsActive()
-            );
-            return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Der Zensuren-Typ ist erfolgreich gespeichert worden')
-                . new Redirect('/Education/Graduation/Grade/GradeType', Redirect::TIMEOUT_SUCCESS);
-        }
-
-        return $form;
+    /**
+     * @param TblGradeType $tblGradeType
+     * @param $Data
+     *
+     * @return bool
+     */
+    public function updateGradeType(TblGradeType $tblGradeType, $Data): bool
+    {
+        return (new Data($this->getBinding()))->updateGradeType(
+            $tblGradeType,
+            $Data['Code'],
+            $Data['Name'],
+            $Data['Description'],
+            $Data['Type'] == 2,
+            isset($Data['IsHighlighted']),
+            isset($Data['IsPartGrade']),
+            isset($Data['IsIgnoredByScoreRule']),
+            $tblGradeType->getIsActive()
+        );
     }
 
     /**

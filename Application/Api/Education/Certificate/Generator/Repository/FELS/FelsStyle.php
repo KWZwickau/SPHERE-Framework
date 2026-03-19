@@ -75,10 +75,12 @@ class FelsStyle
      * @param string $height
      * @param string $marginTop
      * @param bool $hasTeam
+     * @param TblPrepareCertificate|null $tblPrepareCertificate
      *
      * @return Slice
      */
-    public static function getCustomDescription($personId, string $height = '100px', string $marginTop = '10px', bool $hasTeam = true, ?TblPrepareCertificate $tblPrepareCertificate = null): Slice
+    public static function getCustomDescription($personId, string $height = '100px', string $marginTop = '10px', bool $hasTeam = true,
+        ?TblPrepareCertificate $tblPrepareCertificate = null): Slice
     {
         $tblSetting = Consumer::useService()->getSetting('Education', 'Certificate', 'Generator', 'IsDescriptionAsJustify');
 
@@ -116,6 +118,7 @@ class FelsStyle
 
         if ($hasTeam
             && ($tblPerson = Person::useService()->getPersonById($personId))
+            && $tblPrepareCertificate
             && ($tblPrepareInformation = Prepare::useService()->getPrepareInformationBy($tblPrepareCertificate, $tblPerson, 'Team'))
             && $tblPrepareInformation->getValue()
         ) {

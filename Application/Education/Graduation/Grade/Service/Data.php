@@ -6,8 +6,14 @@ use DateTime;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblGradeText;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblGradeType;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblMinimumGradeCount;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblProposalBehaviorGrade;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreConditionGradeTypeList;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreGroupGradeTypeList;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreRuleBehaviorSubject;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreRuleSubject;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreRuleSubjectDivisionCourse;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblScoreTypeSubject;
+use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTaskGrade;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTaskGradeTypeLink;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTest;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTestCourseLink;
@@ -132,9 +138,9 @@ class Data extends DataTask
     /**
      * @param TblTest $tblTest
      *
-     * @return false|TblDivisionCourse[]
+     * @return TblDivisionCourse[]
      */
-    public function getDivisionCourseListByTest(TblTest $tblTest)
+    public function getDivisionCourseListByTest(TblTest $tblTest): array
     {
         $resultList = array();
         if (($tempList = $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblTestCourseLink',
@@ -148,7 +154,7 @@ class Data extends DataTask
             }
         }
 
-        return empty($resultList) ? false : $resultList;
+        return $resultList;
     }
 
     /**
@@ -372,16 +378,18 @@ class Data extends DataTask
      * @param bool $IsContinues
      * @param string $Description
      * @param TblPerson|null $tblTeacher
+     * @param DateTime|null $SecondPeriodDate
      *
      * @return TblTest
      */
     public function createTest(TblYear $tblYear, TblSubject $tblSubject, TblGradeType $tblGradeType,
         ?DateTime $Date, ?DateTime $FinishDate, ?DateTime $CorrectionDate, ?DateTime $ReturnDate, bool $IsContinues, string $Description,
-        ?TblPerson $tblTeacher): TblTest
+        ?TblPerson $tblTeacher, ?DateTime $SecondPeriodDate): TblTest
     {
         $Manager = $this->getEntityManager();
 
         $Entity = new TblTest($tblYear, $tblSubject, $tblGradeType, $Date, $FinishDate, $CorrectionDate, $ReturnDate, $IsContinues, $Description, $tblTeacher);
+        $Entity->setSecondPeriodDate($SecondPeriodDate);
 
         $Manager->saveEntity($Entity);
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
@@ -398,11 +406,12 @@ class Data extends DataTask
      * @param DateTime|null $ReturnDate
      * @param bool $IsContinues
      * @param string $Description
+     * @param DateTime|null $SecondPeriodDate
      *
      * @return bool
      */
     public function updateTest(TblTest $tblTest, TblGradeType $tblGradeType,
-        ?DateTime $Date, ?DateTime $FinishDate, ?DateTime $CorrectionDate, ?DateTime $ReturnDate, bool $IsContinues, string $Description): bool
+        ?DateTime $Date, ?DateTime $FinishDate, ?DateTime $CorrectionDate, ?DateTime $ReturnDate, bool $IsContinues, string $Description, ?DateTime $SecondPeriodDate): bool
     {
         $Manager = $this->getEntityManager();
         /** @var TblTest $Entity */
@@ -411,6 +420,7 @@ class Data extends DataTask
         if (null !== $Entity) {
             $Entity->setTblGradeType($tblGradeType);
             $Entity->setDate($Date);
+            $Entity->setSecondPeriodDate($SecondPeriodDate);
             $Entity->setFinishDate($FinishDate);
             $Entity->setCorrectionDate($CorrectionDate);
             $Entity->setReturnDate($ReturnDate);
@@ -447,20 +457,207 @@ class Data extends DataTask
     }
 
     /**
-     * @param array $tblEntityList
+     * @param array $list
      *
      * @return bool
      */
-    public function updateEntityListBulk(array $tblEntityList): bool
+    public function updateTestGradeListBulk(array $list): bool
     {
-        $Manager = $this->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
 
-        /** @var Element $tblElement */
-        foreach ($tblEntityList as $tblElement) {
-            $Manager->bulkSaveEntity($tblElement);
-            /** @var Element $Entity */
-            $Entity = $Manager->getEntityById($tblElement->getEntityShortName(), $tblElement->getId());
-            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Entity, $tblElement, true);
+        foreach ($list as $id => $value) {
+            /** @var TblTestGrade $Entity */
+            $Entity = $Manager->getEntityById('TblTestGrade', $id);
+            $Protocol = clone $Entity;
+
+            if (null !== $Entity) {
+                $Entity->setGrade($value['Grade']);
+                $Entity->setDate($value['Date']);
+                $Entity->setComment($value['Comment']);
+                $Entity->setPublicComment($value['PublicComment']);
+                $Entity->setServiceTblPersonTeacher($value['PersonTeacher']);
+
+                $Manager->bulkSaveEntity($Entity);
+                Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity, true);
+            }
+        }
+
+        $Manager->flushCache();
+        Protocol::useService()->flushBulkEntries();
+
+        return true;
+    }
+
+    /**
+     * @param array $list
+     *
+     * @return bool
+     */
+    public function updateTaskGradeListBulk(array $list): bool
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+
+        foreach ($list as $id => $value) {
+            /** @var TblTaskGrade $Entity */
+            $Entity = $Manager->getEntityById('TblTaskGrade', $id);
+            $Protocol = clone $Entity;
+
+            if (null !== $Entity) {
+                $Entity->setGrade($value['Grade']);
+                $Entity->setTblGradeText($value['GradeText'] ?? null);
+                $Entity->setComment($value['Comment']);
+                $Entity->setServiceTblPersonTeacher($value['PersonTeacher']);
+
+                $Manager->bulkSaveEntity($Entity);
+                Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity, true);
+            }
+        }
+
+        $Manager->flushCache();
+        Protocol::useService()->flushBulkEntries();
+
+        return true;
+    }
+
+    /**
+     * @param array $list
+     *
+     * @return bool
+     */
+    public function updateProposalBehaviorGradeListBulk(array $list): bool
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+
+        foreach ($list as $id => $value) {
+            /** @var TblProposalBehaviorGrade $Entity */
+            $Entity = $Manager->getEntityById('TblProposalBehaviorGrade', $id);
+            $Protocol = clone $Entity;
+
+            if (null !== $Entity) {
+                $Entity->setGrade($value['Grade']);
+                $Entity->setComment($value['Comment']);
+                $Entity->setServiceTblPersonTeacher($value['PersonTeacher']);
+
+                $Manager->bulkSaveEntity($Entity);
+                Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity, true);
+            }
+        }
+
+        $Manager->flushCache();
+        Protocol::useService()->flushBulkEntries();
+
+        return true;
+    }
+
+    /**
+     * @param array $list
+     *
+     * @return bool
+     */
+    public function updateScoreTypeSubjectListBulk(array $list): bool
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+
+        foreach ($list as $id => $value) {
+            /** @var TblScoreTypeSubject $Entity */
+            $Entity = $Manager->getEntityById('TblScoreTypeSubject', $id);
+            $Protocol = clone $Entity;
+
+            if (null !== $Entity) {
+                if (isset($value['ScoreType'])) {
+                    $Entity->setTblScoreType($value['ScoreType']);
+                }
+                if (isset($value['IsOverrideScoreTypeException'])) {
+                    $Entity->setIsOverrideScoreTypeException($value['IsOverrideScoreTypeException']);
+                }
+
+                $Manager->bulkSaveEntity($Entity);
+                Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity, true);
+            }
+        }
+
+        $Manager->flushCache();
+        Protocol::useService()->flushBulkEntries();
+
+        return true;
+    }
+
+    /**
+     * @param array $list
+     *
+     * @return bool
+     */
+    public function updateScoreRuleBehaviorSubjectListBulk(array $list): bool
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+
+        foreach ($list as $id => $value) {
+            /** @var TblScoreRuleBehaviorSubject $Entity */
+            $Entity = $Manager->getEntityById('TblScoreRuleBehaviorSubject', $id);
+            $Protocol = clone $Entity;
+
+            if (null !== $Entity) {
+                $Entity->setMultiplier($value['Multiplier']);
+
+                $Manager->bulkSaveEntity($Entity);
+                Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity, true);
+            }
+        }
+
+        $Manager->flushCache();
+        Protocol::useService()->flushBulkEntries();
+
+        return true;
+    }
+
+    /**
+     * @param array $list
+     *
+     * @return bool
+     */
+    public function updateScoreRuleSubjectListBulk(array $list): bool
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+
+        foreach ($list as $id => $value) {
+            /** @var TblScoreRuleSubject $Entity */
+            $Entity = $Manager->getEntityById('TblScoreRuleSubject', $id);
+            $Protocol = clone $Entity;
+
+            if (null !== $Entity) {
+                $Entity->setTblScoreRule($value['ScoreRule']);
+
+                $Manager->bulkSaveEntity($Entity);
+                Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity, true);
+            }
+        }
+
+        $Manager->flushCache();
+        Protocol::useService()->flushBulkEntries();
+
+        return true;
+    }
+
+    /**
+     * @param array $list
+     *
+     * @return bool
+     */
+    public function updateScoreRuleSubjectDivisionCourseListBulk(array $list): bool
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+
+        foreach ($list as $id => $value) {
+            /** @var TblScoreRuleSubjectDivisionCourse $Entity */
+            $Entity = $Manager->getEntityById('TblScoreRuleSubjectDivisionCourse', $id);
+            $Protocol = clone $Entity;
+
+            if (null !== $Entity) {
+                $Entity->setTblScoreRule($value['ScoreRule']);
+
+                $Manager->bulkSaveEntity($Entity);
+                Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity, true);
+            }
         }
 
         $Manager->flushCache();
@@ -646,7 +843,13 @@ class Data extends DataTask
                     $queryBuilder->expr()->isNull('g.EntityRemove'),
                     $queryBuilder->expr()->orX(
                         $queryBuilder->expr()->andX(
+                            $queryBuilder->expr()->isNotNull('t.SecondPeriodDate'),
+                            $queryBuilder->expr()->gte('t.SecondPeriodDate', '?4'),
+                            $queryBuilder->expr()->lte('t.SecondPeriodDate', '?5'),
+                        ),
+                        $queryBuilder->expr()->andX(
                             $queryBuilder->expr()->isNotNull('t.Date'),
+                            $queryBuilder->expr()->isNull('t.SecondPeriodDate'),
                             $queryBuilder->expr()->gte('t.Date', '?4'),
                             $queryBuilder->expr()->lte('t.Date', '?5'),
                         ),
@@ -764,5 +967,48 @@ class Data extends DataTask
         }
 
         return 0;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     *
+     * @return TblTestGrade[]|false
+     */
+    public function getTestGradeListByPersonAndYear(TblPerson $tblPerson, TblYear $tblYear): bool|array
+    {
+        $Manager = $this->getEntityManager();
+        $queryBuilder = $Manager->getQueryBuilder();
+
+        $query = $queryBuilder->select('g')
+            ->from(TblTestGrade::class, 'g')
+            ->join(TblTest::class, 't')
+            ->where(
+                $queryBuilder->expr()->andX(
+                    $queryBuilder->expr()->eq('g.tblGraduationTest', 't.Id'),
+                    $queryBuilder->expr()->eq('g.serviceTblPerson', '?1'),
+                    $queryBuilder->expr()->eq('t.serviceTblYear', '?2'),
+                    $queryBuilder->expr()->isNull('g.EntityRemove'),
+                ),
+            )
+            ->setParameter(1, $tblPerson->getId())
+            ->setParameter(2, $tblYear->getId())
+            ->orderBy('g.EntityCreate', 'DESC')
+            ->getQuery();
+
+        $resultList = $query->getResult();
+
+        return empty($resultList) ? false : $resultList;
+    }
+
+    /**
+     * @param DateTime $date
+     *
+     * @return bool|TblTest[]
+     */
+    public function getTestListByDate(DateTime $date): bool|array
+    {
+        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblTest',
+            array(TblTest::ATTR_DATE => $date));
     }
 }

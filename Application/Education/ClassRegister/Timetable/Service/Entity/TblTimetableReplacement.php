@@ -12,6 +12,7 @@ use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\System\Database\Fitting\Element;
+use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * @Entity
@@ -63,7 +64,7 @@ class TblTimetableReplacement extends Element
     /**
      * @Column(type="bigint")
      */
-    protected int $serviceTblSubject;
+    protected ?int $serviceTblSubject = null;
     /**
      * @Column(type="bigint")
      */
@@ -249,7 +250,7 @@ class TblTimetableReplacement extends Element
      */
     public function setServiceTblSubstituteSubject(TblSubject $tblSubstituteSubject = null): void
     {
-        $this->serviceTblSubstituteSubject = ( !$tblSubstituteSubject ? false : $tblSubstituteSubject->getId() );
+        $this->serviceTblSubstituteSubject = ( !$tblSubstituteSubject ? null : $tblSubstituteSubject->getId() );
     }
 
     /**
@@ -273,5 +274,16 @@ class TblTimetableReplacement extends Element
     public function setServiceTblPerson(?TblPerson $tblPerson): void
     {
         $this->serviceTblPerson = $tblPerson ? $tblPerson->getId() : null;
+    }
+
+    /**
+     * @param bool $withTeacher
+     *
+     * @return string
+     */
+    public function getIdentifier(bool $withTeacher = false): string
+    {
+        return $this->getDate() . '_' . $this->serviceTblCourse . '_' . ($this->serviceTblSubject ?: $this->serviceTblSubstituteSubject) . '_' . $this->Hour
+            . ($withTeacher ?  '_' . $this->serviceTblPerson : '');
     }
 }

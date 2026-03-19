@@ -3651,6 +3651,10 @@ tbody.collapse.in {
 .bootstrap-datetimepicker-widget table td.active, .bootstrap-datetimepicker-widget table td.active:hover {
   background-color: #4d4e4d !important;
 }
+.bootstrap-datetimepicker-widget .today {
+  background-color: #8f8f8f;
+  border-radius: 15%;
+}
 .dropdown-menu.pull-right {
   right: 0;
   left: auto;

@@ -119,9 +119,13 @@ class TableData extends Table
                 // Convert to Array
                 if (is_object($Row)) {
                     /** @var Object $Row */
-                    $Row = array_filter($Row->__toArray());
+                    $Row = array_filter($Row->__toArray(), function($v) {
+                        return $v !== null && $v !== '';
+                    });
                 } else {
-                    $Row = array_filter($Row);
+                    $Row = array_filter($Row, function($v) {
+                        return $v !== null && $v !== '';
+                    });
                 }
 
                 $Index = array_flip(array_keys($ColumnDefinition));
@@ -171,9 +175,13 @@ class TableData extends Table
                 // Convert to Array
                 if (is_object($Row)) {
                     /** @var Object $Row */
-                    $Row = array_filter($Row->__toArray());
+                    $Row = array_filter($Row->__toArray(), function($v) {
+                        return $v !== null && $v !== '';
+                    });
                 } else {
-                    $Row = array_filter($Row);
+                    $Row = array_filter($Row, function($v) {
+                        return $v !== null && $v !== '';
+                    });
                 }
                 /** @var array $Row */
                 // Sort by ShowCol

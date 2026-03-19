@@ -7,6 +7,7 @@ use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\Education\ClassRegister\Digital\Digital;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\IApiInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
@@ -87,6 +88,13 @@ class ApiDigital extends Extension implements IApiInterface
         $Dispatcher->registerMethod('saveDeleteCourseContentModal');
 
         $Dispatcher->registerMethod('loadCourseMissingStudentContent');
+        $Dispatcher->registerMethod('loadWelcomeDigitalContent');
+        $Dispatcher->registerMethod('loadDirectJumpToGradebookContent');
+        $Dispatcher->registerMethod('loadAdditionalInformationContent');
+        $Dispatcher->registerMethod('loadTeacherViewContent');
+
+        $Dispatcher->registerMethod('loadIndividualDownloadContent');
+        $Dispatcher->registerMethod('saveDownloadFilter');
 
         return $Dispatcher->callMethod($Method);
     }
@@ -125,10 +133,11 @@ class ApiDigital extends Extension implements IApiInterface
      * @param string|null $DivisionCourseId
      * @param string $Date
      * @param string $View
+     * @param string $StudentCollapsed
      *
      * @return Pipeline
      */
-    public static function pipelineLoadLessonContentContent(string $DivisionCourseId = null, string $Date = 'today', string $View = 'Day'): Pipeline
+    public static function pipelineLoadLessonContentContent(string $DivisionCourseId = null, string $Date = 'today', string $View = 'Day', string $StudentCollapsed = ''): Pipeline
     {
         $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'LessonContentContent'), self::getEndpoint());
@@ -138,7 +147,8 @@ class ApiDigital extends Extension implements IApiInterface
         $ModalEmitter->setPostPayload(array(
             'DivisionCourseId' => $DivisionCourseId,
             'Date' => $Date,
-            'View' => $View
+            'View' => $View,
+            'StudentCollapsed' => $StudentCollapsed
         ));
         $Pipeline->appendEmitter($ModalEmitter);
 
@@ -149,13 +159,15 @@ class ApiDigital extends Extension implements IApiInterface
      * @param string|null $DivisionCourseId
      * @param string $Date
      * @param string $View
+     * @param string $StudentCollapsed
      * @param null $Data
      *
      * @return string
      */
-    public function loadLessonContentContent(string $DivisionCourseId = null, string $Date = 'today', string $View = 'Day', $Data = null) : string
+    public function loadLessonContentContent(string $DivisionCourseId = null, string $Date = 'today', string $View = 'Day',
+        string $StudentCollapsed = '', $Data = null) : string
     {
-        if (!($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
+        if (!DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId)) {
             return new Danger('Der Kurs wurde nicht gefunden', new Exclamation());
         }
 
@@ -166,7 +178,15 @@ class ApiDigital extends Extension implements IApiInterface
         // View speichern
         Consumer::useService()->createAccountSetting('LessonContentView', $View);
 
-        return Digital::useFrontend()->loadLessonContentTable($tblDivisionCourse, $Date, $View);
+        $isStudentCollapsed = null;
+        if (!empty($StudentCollapsed)) {
+            $isStudentCollapsed = $StudentCollapsed === 'true';
+            // IsStudentCollapsed speichern
+            Consumer::useService()->createAccountSetting('DigitalStudentCollapsed', $isStudentCollapsed);
+        }
+
+        return Digital::useFrontend()->loadLessonContentTable($DivisionCourseId, $Date, $View, $isStudentCollapsed)
+            . ($View === 'Day' ? self::pipelineLoadDirectJumpToGradebookContent($DivisionCourseId, $Date) : '');
     }
 
     /**
@@ -229,7 +249,7 @@ class ApiDigital extends Extension implements IApiInterface
         }
 
         return $title
-            . Digital::useService()->getLessonContentLinkedDisplayPanel($LessonContentId)
+            . Digital::useService()->getLessonContentLinkedDisplayPanelByLessonContentId($LessonContentId)
             . new Layout(array(
                     new LayoutGroup(
                         new LayoutRow(
@@ -290,6 +310,11 @@ class ApiDigital extends Extension implements IApiInterface
             // bei Doppelstunde die Daten auch für die nächste UE speichern
             if (isset($Data['IsDoubleLesson']) && isset($Data['Lesson'])) {
                 $lessonDouble = $lesson + 1;
+
+                // SSWHD-3832 Hausaufgabe nur im Original setzen, nicht doppelt
+                $Data['Homework'] = '';
+                $Data['DueDateHomework'] = '';
+
                 $tblLessonContentDouble = Digital::useService()->createLessonContent($Data, $lessonDouble, $tblDivisionCourse);
             } else {
                 $lessonDouble = false;
@@ -327,6 +352,7 @@ class ApiDigital extends Extension implements IApiInterface
             return new Success('Thema/Hausaufgaben wurde erfolgreich gespeichert.')
                 . self::pipelineLoadLessonContentContent($DivisionCourseId, $Data['Date'],
                     ($View = Consumer::useService()->getAccountSettingValue('LessonContentView')) ? $View : 'Day')
+                . self::pipelineLoadTeacherViewContent(($tblYear = $tblDivisionCourse->getServiceTblYear()) ? $tblYear->getId() : null, 'LoadFilter')
                 . self::pipelineClose();
         } else {
             return new Danger('Thema/Hausaufgaben konnte nicht gespeichert werden.') . self::pipelineClose();
@@ -412,14 +438,28 @@ class ApiDigital extends Extension implements IApiInterface
         }
 
         if (Digital::useService()->updateLessonContent($tblLessonContent, $Data)) {
+            // verknüpfte Klassentagebucheinträge und Kurshefteinträge updaten
             if (($tblLessonContentLinkedList = $tblLessonContent->getLinkedLessonContentAll())) {
-                foreach ($tblLessonContentLinkedList as $tblLessonContentItem) {
-                    Digital::useService()->updateLessonContent($tblLessonContentItem, $Data);
+                foreach ($tblLessonContentLinkedList as $tblLessonContentLink) {
+                    if (($tblLessonContentItem = $tblLessonContentLink->getTblLessonContent())
+                        && $tblLessonContentItem->getId() != $LessonContentId
+                    ) {
+                        Digital::useService()->updateLessonContent($tblLessonContentItem, $Data);
+                    } elseif (($tblCourseContentItem = $tblLessonContentLink->getTblCourseContent())) {
+                        $Data['Remark'] = $tblCourseContentItem->getRemark();
+                        if ($tblCourseContentItem->getCountLessons() == 2) {
+                            $Data['IsTrippleLesson'] = 1;
+                        } elseif ($tblCourseContentItem->getCountLessons() == 1) {
+                            $Data['IsDoubleLesson'] = 1;
+                        }
+                        Digital::useService()->updateCourseContent($tblCourseContentItem, $Data);
+                    }
                 }
             }
             return new Success('Thema/Hausaufgaben wurde erfolgreich gespeichert.')
                 . self::pipelineLoadLessonContentContent($tblDivisionCourse->getId(), $Data['Date'],
                     ($View = Consumer::useService()->getAccountSettingValue('LessonContentView')) ? $View : 'Day')
+                . self::pipelineLoadTeacherViewContent(($tblYear = $tblDivisionCourse->getServiceTblYear()) ? $tblYear->getId() : null, 'LoadFilter')
                 . self::pipelineClose();
         } else {
             return new Danger('Thema/Hausaufgaben konnte nicht gespeichert werden.') . self::pipelineClose();
@@ -458,7 +498,7 @@ class ApiDigital extends Extension implements IApiInterface
         }
 
         return new Title(new Remove() . ' Thema/Hausaufgaben löschen')
-            . (($linkedPanel = Digital::useService()->getLessonContentLinkedDisplayPanel($LessonContentId)) ? : '')
+            . (($linkedPanel = Digital::useService()->getLessonContentLinkedDisplayPanelByLessonContentId($LessonContentId)) ? : '')
             . new Layout(
                 new LayoutGroup(
                     new LayoutRow(
@@ -528,6 +568,7 @@ class ApiDigital extends Extension implements IApiInterface
             return new Success('Thema/Hausaufgaben wurde erfolgreich gelöscht.')
                 . self::pipelineLoadLessonContentContent($tblDivisionCourse->getId(), $date,
                     ($View = Consumer::useService()->getAccountSettingValue('LessonContentView')) ? $View : 'Day')
+                . self::pipelineLoadTeacherViewContent(($tblYear = $tblDivisionCourse->getServiceTblYear()) ? $tblYear->getId() : null, 'LoadFilter')
                 . self::pipelineClose();
         } else {
             return new Danger('Thema/Hausaufgaben konnte nicht gelöscht werden.') . self::pipelineClose();
@@ -887,17 +928,18 @@ class ApiDigital extends Extension implements IApiInterface
 
     /**
      * @param string $DivisionCourseId
+     * @param string|null $Date
      * @param string|null $hasDivisionTeacherRight
      * @param string|null $hasHeadmasterRight
-     * @param string|null $Date
+     * @param string|null $isOpen
      *
      * @return Pipeline
      */
-    public static function pipelineLoadLessonWeekContent(string $DivisionCourseId, string $hasDivisionTeacherRight = null,
-        string $hasHeadmasterRight = null, string $Date = null): Pipeline
+    public static function pipelineLoadLessonWeekContent(string $DivisionCourseId, string $Date = null,
+        string $hasDivisionTeacherRight = null, string $hasHeadmasterRight = null, string $isOpen = null): Pipeline
     {
         $Pipeline = new Pipeline(false);
-        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'LessonWeekContent'), self::getEndpoint());
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'LessonWeekContent_' . $Date), self::getEndpoint());
         $ModalEmitter->setGetPayload(array(
             self::API_TARGET => 'loadLessonWeekContent',
         ));
@@ -906,7 +948,9 @@ class ApiDigital extends Extension implements IApiInterface
             'Date' => $Date,
             'hasDivisionTeacherRight' => $hasDivisionTeacherRight,
             'hasHeadmasterRight' => $hasHeadmasterRight,
+            'isOpen' => $isOpen
         ));
+        $ModalEmitter->setLoadingMessage('Daten werden geladen');
         $Pipeline->appendEmitter($ModalEmitter);
 
         return $Pipeline;
@@ -914,36 +958,40 @@ class ApiDigital extends Extension implements IApiInterface
 
     /**
      * @param string $DivisionCourseId
+     * @param string|null $Date
      * @param string|null $hasDivisionTeacherRight
      * @param string|null $hasHeadmasterRight
-     * @param string|null $Date
+     * @param string|null $isOpen
      *
      * @return string
      */
-    public function loadLessonWeekContent(string $DivisionCourseId, string $hasDivisionTeacherRight = null,
-        string $hasHeadmasterRight = null, string $Date = null) : string
+    public function loadLessonWeekContent(string $DivisionCourseId, string $Date = null,
+        string $hasDivisionTeacherRight = null, string $hasHeadmasterRight = null, string $isOpen = null) : string
     {
         if (!($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
             return new Danger('Der Kurs wurde nicht gefunden', new Exclamation());
         }
 
-        return Digital::useFrontend()->loadLessonWeekTable($tblDivisionCourse, $hasDivisionTeacherRight == '1', $hasHeadmasterRight == '1', $Date);
+        return Digital::useFrontend()->loadLessonWeekContent($tblDivisionCourse, $Date,
+            $hasDivisionTeacherRight == '1', $hasHeadmasterRight == '1', $isOpen == '1');
     }
 
     /**
-     * @param string|null $DivisionCourseId
+     * @param string $DivisionCourseId
      * @param string $Date
      * @param string $Type
      * @param string $Direction
      * @param string|null $hasDivisionTeacherRight
      * @param string|null $hasHeadmasterRight
+     * @param string|null $isOpen
+     *
      * @return Pipeline
      */
     public static function pipelineSaveLessonWeekCheck(string $DivisionCourseId, string $Date = '', string $Type = '',
-        string $Direction = '', string $hasDivisionTeacherRight = null, string $hasHeadmasterRight = null): Pipeline
+        string $Direction = '', string $hasDivisionTeacherRight = null, string $hasHeadmasterRight = null, string $isOpen = null): Pipeline
     {
         $Pipeline = new Pipeline(false);
-        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'LessonWeekContent'), self::getEndpoint());
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'LessonWeekContent_' . $Date), self::getEndpoint());
         $ModalEmitter->setGetPayload(array(
             self::API_TARGET => 'saveLessonWeekCheck',
         ));
@@ -953,7 +1001,8 @@ class ApiDigital extends Extension implements IApiInterface
             'Type' => $Type,
             'Direction' => $Direction,
             'hasDivisionTeacherRight' => $hasDivisionTeacherRight,
-            'hasHeadmasterRight' => $hasHeadmasterRight
+            'hasHeadmasterRight' => $hasHeadmasterRight,
+            'isOpen' => $isOpen
         ));
         $Pipeline->appendEmitter($ModalEmitter);
 
@@ -967,11 +1016,12 @@ class ApiDigital extends Extension implements IApiInterface
      * @param string $Direction
      * @param string|null $hasDivisionTeacherRight
      * @param string|null $hasHeadmasterRight
+     * @param string|null $isOpen
      *
      * @return Pipeline
      */
     public function saveLessonWeekCheck(string $DivisionCourseId, string $Date = '', string $Type = '',
-        string $Direction = '', string $hasDivisionTeacherRight = null, string $hasHeadmasterRight = null): Pipeline
+        string $Direction = '', string $hasDivisionTeacherRight = null, string $hasHeadmasterRight = null, string $isOpen = null): Pipeline
     {
         $tblPerson = Account::useService()->getPersonByLogin();
         $Date = new DateTime($Date);
@@ -1028,7 +1078,8 @@ class ApiDigital extends Extension implements IApiInterface
             }
         }
 
-        return self::pipelineLoadLessonWeekContent($DivisionCourseId, $hasDivisionTeacherRight == '1', $hasHeadmasterRight == '1');
+        return self::pipelineLoadLessonWeekContent($DivisionCourseId, $Date->format('d.m.Y'),
+            $hasDivisionTeacherRight == '1', $hasHeadmasterRight == '1', $isOpen == '1');
     }
 
     /**
@@ -1120,10 +1171,11 @@ class ApiDigital extends Extension implements IApiInterface
     /**
      * @param string|null $DivisionCourseId
      * @param string $IsControl
+     * @param string $StudentCollapsed
      *
      * @return Pipeline
      */
-    public static function pipelineLoadCourseContentContent(string $DivisionCourseId = null, string $IsControl = 'false'): Pipeline
+    public static function pipelineLoadCourseContentContent(string $DivisionCourseId = null, string $IsControl = 'false', string $StudentCollapsed = ''): Pipeline
     {
         $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'CourseContentContent'), self::getEndpoint());
@@ -1132,7 +1184,8 @@ class ApiDigital extends Extension implements IApiInterface
         ));
         $ModalEmitter->setPostPayload(array(
             'DivisionCourseId' => $DivisionCourseId,
-            'IsControl' => $IsControl
+            'IsControl' => $IsControl,
+            'StudentCollapsed' => $StudentCollapsed
         ));
         $Pipeline->appendEmitter($ModalEmitter);
 
@@ -1142,16 +1195,24 @@ class ApiDigital extends Extension implements IApiInterface
     /**
      * @param string|null $DivisionCourseId
      * @param string $IsControl
+     * @param string $StudentCollapsed
      *
      * @return string
      */
-    public function loadCourseContentContent(string $DivisionCourseId = null, string $IsControl = 'false') : string
+    public function loadCourseContentContent(string $DivisionCourseId = null, string $IsControl = 'false', string $StudentCollapsed = '') : string
     {
         if (!($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
             return new Danger('Der SekII-Kurs wurde nicht gefunden', new Exclamation());
         }
 
-        return Digital::useFrontend()->loadCourseContentTable($tblDivisionCourse, $IsControl == 'true');
+        $isStudentCollapsed = null;
+        if (!empty($StudentCollapsed)) {
+            $isStudentCollapsed = $StudentCollapsed === 'true';
+            // IsStudentCollapsed speichern
+            Consumer::useService()->createAccountSetting('DigitalStudentCollapsed', $isStudentCollapsed);
+        }
+
+        return Digital::useFrontend()->loadCourseContentContent($tblDivisionCourse, $IsControl == 'true', $isStudentCollapsed);
     }
 
     /**
@@ -1203,6 +1264,7 @@ class ApiDigital extends Extension implements IApiInterface
         }
 
         return $title
+            . Digital::useService()->getLessonContentLinkedDisplayPanelByCourseContentId($CourseContentId)
             . new Layout(array(
                     new LayoutGroup(
                         new LayoutRow(
@@ -1254,7 +1316,48 @@ class ApiDigital extends Extension implements IApiInterface
             return $this->getCourseContentModal($form);
         }
 
-        if (Digital::useService()->createCourseContent($Data, $tblDivisionCourse)) {
+        if (($tblCourseContent = Digital::useService()->createCourseContent($Data, $tblDivisionCourse))) {
+            // bei nicht SekII-kurs parallel in Klasse und Stammgruppe speichern
+            if (!$tblDivisionCourse->getType()->getIsCourseSystem()
+                && ($tblDivisionCourseList = DivisionCourse::useService()->getDivisionCourseListByStudentsInDivisionCourse($tblDivisionCourse))
+            ) {
+                $LinkId = Digital::useService()->getNextLinkId();
+                Digital::useService()->createCourseContentLink($tblCourseContent, $LinkId);
+
+                // key -1 bei 0. UE
+                $lesson = $Data['Lesson'];
+                if ($lesson == -1) {
+                    $lesson = 0;
+                }
+                $Data['serviceTblSubject'] = $tblDivisionCourse->getServiceTblSubject() ? $tblDivisionCourse->getServiceTblSubject()->getId() : null;
+//                $DataWithoutHomework = $Data;
+//                // SSWHD-3832 Hausaufgabe nur im Original setzen, nicht doppelt
+//                $DataWithoutHomework['Homework'] = '';
+//                $DataWithoutHomework['DueDateHomework'] = '';
+
+                foreach ($tblDivisionCourseList as $tblDivisionCourseTemp) {
+                    if ($tblDivisionCourseTemp->getType()->getIdentifier() == TblDivisionCourseType::TYPE_DIVISION
+                        || $tblDivisionCourseTemp->getType()->getIdentifier() == TblDivisionCourseType::TYPE_CORE_GROUP
+                    ) {
+                        $tblLessonContent = Digital::useService()->createLessonContent($Data, $lesson, $tblDivisionCourseTemp);
+                        Digital::useService()->createLessonContentLink($tblLessonContent, $LinkId);
+
+                        // erstmal nicht setzen bzw. zur Auswahl setzen, ansonsten gibt es größere Herausforderungen zwecks HA und Lesson beim Bearbeiten des Eintrags
+//                        // Doppelstunde
+//                        if (isset($Data['IsDoubleLesson'])) {
+//                            $tblLessonContentDouble = Digital::useService()->createLessonContent($DataWithoutHomework, $lesson + 1, $tblDivisionCourseTemp);
+//                            Digital::useService()->createLessonContentLink($tblLessonContentDouble, $LinkId);
+//                        }
+//
+//                        // Dreifachstunde
+//                        if (isset($Data['IsTrippleLesson'])) {
+//                            $tblLessonContentTripple = Digital::useService()->createLessonContent($DataWithoutHomework, $lesson + 2, $tblDivisionCourseTemp);
+//                            Digital::useService()->createLessonContentLink($tblLessonContentTripple, $LinkId);
+//                        }
+                    }
+                }
+            }
+
             return new Success('Thema/Hausaufgaben wurde erfolgreich gespeichert.')
                 . self::pipelineLoadCourseContentContent($DivisionCourseId)
                 . self::pipelineClose();
@@ -1345,6 +1448,22 @@ class ApiDigital extends Extension implements IApiInterface
         }
 
         if (Digital::useService()->updateCourseContent($tblCourseContent, $Data)) {
+            // verknüpfte Klassentagebucheinträge und Kurshefteinträge updaten
+            if (($tblLessonContentLinkedList = $tblCourseContent->getLinkedLessonContentAll())) {
+                foreach ($tblLessonContentLinkedList as $tblLessonContentLink) {
+                    if (($tblLessonContentItem = $tblLessonContentLink->getTblLessonContent())) {
+                        $Data['serviceTblSubject'] = ($tblSubject = $tblDivisionCourse->getServiceTblSubject()) ? $tblSubject->getId() : null;
+                        $Data['serviceTblSubstituteSubject'] = ($tblSubstituteSubject = $tblLessonContentItem->getServiceTblSubstituteSubject())
+                            ? $tblSubstituteSubject->getId() : null;
+                        Digital::useService()->updateLessonContent($tblLessonContentItem, $Data);
+                    } elseif (($tblCourseContentItem = $tblLessonContentLink->getTblCourseContent())
+                        && $tblCourseContentItem->getId() != $CourseContentId
+                    ) {
+                        Digital::useService()->updateCourseContent($tblCourseContentItem, $Data);
+                    }
+                }
+            }
+
             return new Success('Thema/Hausaufgaben wurde erfolgreich gespeichert.')
                 . self::pipelineLoadCourseContentContent($tblDivisionCourse->getId())
                 . self::pipelineClose();
@@ -1385,6 +1504,7 @@ class ApiDigital extends Extension implements IApiInterface
         }
 
         return new Title(new Remove() . ' Thema/Hausaufgaben löschen')
+            . (($linkedPanel = Digital::useService()->getLessonContentLinkedDisplayPanelByCourseContentId($CourseContentId)) ? : '')
             . new Layout(
                 new LayoutGroup(
                     new LayoutRow(
@@ -1401,6 +1521,7 @@ class ApiDigital extends Extension implements IApiInterface
                                 ),
                                 Panel::PANEL_TYPE_DANGER
                             )
+                            . ($linkedPanel ? new Warning('Verknüpfte Thema/Hausaufgaben werden mit gelöscht.', new Exclamation()) : '')
                             . (new DangerLink('Ja', self::getEndpoint(), new Ok()))
                                 ->ajaxPipelineOnClick(self::pipelineDeleteCourseContentSave($CourseContentId))
                             . (new Standard('Nein', self::getEndpoint(), new Remove()))
@@ -1488,5 +1609,230 @@ class ApiDigital extends Extension implements IApiInterface
         }
 
         return Digital::useFrontend()->loadCourseMissingStudentContent($tblDivisionCourse);
+    }
+
+    /**
+     * @param $View
+     * @param null $Date
+     *
+     * @return Pipeline
+     */
+    public static function pipelineLoadWelcomeDigitalContent($View, $Date = null): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'WelcomeDigitalContent'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'loadWelcomeDigitalContent',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'View' => $View,
+            'Date' => $Date
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $View
+     * @param $Date
+     *
+     * @return string
+     */
+    public function loadWelcomeDigitalContent($View, $Date) : string
+    {
+        // View speichern
+        Consumer::useService()->createAccountSetting('WelcomeDigitalView', $View);
+
+        return Digital::useFrontend()->loadWelcomeDigitalContent($View, $Date);
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $Date
+     *
+     * @return Pipeline
+     */
+    public static function pipelineLoadDirectJumpToGradebookContent($DivisionCourseId, $Date): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'DirectJumpToGradebookContent'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'loadDirectJumpToGradebookContent',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'DivisionCourseId' => $DivisionCourseId,
+            'Date' => $Date
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param null $DivisionCourseId
+     * @param null $Date
+     *
+     * @return string
+     */
+    public function loadDirectJumpToGradebookContent($DivisionCourseId = null, $Date = null) : string
+    {
+        return Digital::useFrontend()->loadDirectJumpToGradebookContent($DivisionCourseId, $Date);
+    }
+
+    /**
+     * @param $DivisionCourseId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineLoadAdditionalInformationContent($DivisionCourseId): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'AdditionalInformationContent'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'loadAdditionalInformationContent',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'DivisionCourseId' => $DivisionCourseId
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param null $DivisionCourseId
+     * @param null $Data
+     *
+     * @return string
+     */
+    public function loadAdditionalInformationContent($DivisionCourseId = null, $Data = null) : string
+    {
+        $isShown = isset($Data['ShowExtraInfo']);
+        Consumer::useService()->createAccountSetting('DigitalShowExtraInfo', $isShown);
+
+        return Digital::useFrontend()->loadAdditionalInformationContent($DivisionCourseId, $isShown);
+    }
+
+    /**
+     * @param $YearId
+     * @param null $Filter
+     *
+     * @return Pipeline
+     */
+    public static function pipelineLoadTeacherViewContent($YearId, $Filter = null): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'TeacherViewContent'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'loadTeacherViewContent',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'YearId' => $YearId,
+            'Filter' => $Filter
+        ));
+        $ModalEmitter->setLoadingMessage('Daten werden geladen');
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param null $YearId
+     * @param null $Filter
+     *
+     * @return string
+     */
+    public function loadTeacherViewContent($YearId = null, $Filter = null): string
+    {
+        if ($Filter === 'LoadFilter') {
+            $Filter = null;
+            // load filter from json
+            if (($value = Consumer::useService()->getAccountSettingValue('DigitalTeacherViewFilter')))
+            {
+                $Filter = json_decode($value, true);
+            }
+        } elseif (is_array($Filter)) {
+            // save filter as json
+            Consumer::useService()->createAccountSetting('DigitalTeacherViewFilter', json_encode($Filter));
+        }
+
+        return Digital::useFrontend()->loadTeacherViewContent($YearId, $Filter);
+    }
+
+    /**
+     * @param $DivisionCourseId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineLoadIndividualDownloadContent($DivisionCourseId): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+
+        $Emitter = new ServerEmitter(self::receiverBlock('', 'DownloadContent'), self::getEndpoint());
+        $Emitter->setGetPayload(array(
+            self::API_TARGET => 'loadIndividualDownloadContent',
+            'DivisionCourseId' => $DivisionCourseId,
+        ));
+        $Emitter->setLoadingMessage('Daten werden geladen');
+        $Pipeline->appendEmitter($Emitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $DivisionCourseId
+     *
+     * @return string
+     */
+    public static function loadIndividualDownloadContent($DivisionCourseId): string
+    {
+        return Digital::useFrontend()->loadDownloadFilter($DivisionCourseId);
+    }
+
+    /**
+     * @param $DivisionCourseId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineSaveDownloadFilter($DivisionCourseId): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+
+        $Emitter = new ServerEmitter(self::receiverBlock('', 'DownloadContent'), self::getEndpoint());
+        $Emitter->setGetPayload(array(
+            self::API_TARGET => 'saveDownloadFilter',
+            'DivisionCourseId' => $DivisionCourseId,
+        ));
+        $Emitter->setLoadingMessage('Daten werden geladen');
+        $Pipeline->appendEmitter($Emitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $Data
+     *
+     * @return string
+     */
+    public static function saveDownloadFilter($DivisionCourseId, $Data = null): string
+    {
+        if (isset($Data['Columns'])) {
+            $columns = json_encode($Data['Columns']);
+        } else {
+            return new Warning('Bitte wählen Sie mindestens eine Spalte aus!', new Exclamation())
+                . Digital::useFrontend()->loadDownloadFilter($DivisionCourseId);
+        }
+        $freeTexts = '';
+        if (isset($Data['FreeTexts'])) {
+            $freeTexts = json_encode($Data['FreeTexts']);
+        }
+
+        if (($tblPerson = Account::useService()->getPersonByLogin())) {
+            Digital::useService()->updateStudentListColumn($tblPerson, $columns, $freeTexts);
+        }
+
+        return Digital::useFrontend()->loadIndividualDownloadContent($DivisionCourseId);
     }
 }

@@ -50,8 +50,10 @@ class Frontend extends Extension implements IFrontendInterface
         $tblYearAll = Term::useService()->getYearAll();
         $tblTypeAll = Type::useService()->getTypeAll();
         $mailTarget = array('1' => 'Schüler', '2' => 'Sorgeberechtigter 1', '3' => 'Sorgeberechtigter 2');
-        $_POST['Data']['mail1'] = 1;
-        $_POST['Data']['mail2'] = 1;
+        $_POST['Data']['YearId'] = 1;
+        $_POST['Data']['TypeId'] = 3;
+        $_POST['Data']['mail1'] = 2;
+        $_POST['Data']['mail2'] = 3;
 
         $View->setContent(
             new Layout(new LayoutGroup(new LayoutRow(
@@ -207,11 +209,11 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param null $Select
+     * @param null $Data
      *
      * @return Stage
      */
-    public function frontendDivision($Select = null)
+    public function frontendDivision($Data = null)
     {
 
         $View = new Stage();
@@ -219,8 +221,8 @@ class Frontend extends Extension implements IFrontendInterface
         $View->setDescription('Klassendaten');
 
         $tblYearAll = Term::useService()->getYearAll();
-        $tblTypeAll = Type::useService()->getTypeAll();
-
+//        $tblTypeAll = Type::useService()->getTypeAll();
+        $_POST['Data']['YearId'] = 1;
         $View->setContent(
             new Layout(new LayoutGroup(new LayoutRow(
                 new LayoutColumn(array(
@@ -230,19 +232,19 @@ class Frontend extends Extension implements IFrontendInterface
                                     new FormGroup(array(
                                         new FormRow(array(
                                             new FormColumn(
-                                                new SelectBox('Select[Year]', 'Schuljahr',
+                                                new SelectBox('Data[YearId]', 'Schuljahr',
                                                     array('{{Name}}' => $tblYearAll)),
                                                 6
                                             ),
-                                            new FormColumn(
-                                                new SelectBox('Select[Type]', 'Schulart',
-                                                    array('{{Name}}' => $tblTypeAll)),
-                                                6
-                                            )
+//                                            new FormColumn(
+//                                                new SelectBox('Data[Type]', 'Schulart',
+//                                                    array('{{Name}}' => $tblTypeAll)),
+//                                                6
+//                                            )
                                         )),
                                     ))
                                     , new Primary('Auswählen', new Select())
-                                ), $Select, '/Transfer/Import/FuxMedia/Division/Import'
+                                ), $Data, '/Transfer/Import/FuxMedia/Division/Import'
                             )
                         )
                     )
@@ -255,24 +257,25 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param UploadedFile|null $File
-     * @param null              $TypeId
+//     * @param null              $TypeId
      * @param null              $YearId
      *
      * @return Stage
      */
-    public function frontendDivisionImport(UploadedFile $File = null, $TypeId = null, $YearId = null)
+    public function frontendDivisionImport(UploadedFile $File = null, $Data = null) // , $TypeId = null
     {
 
         $View = new Stage();
         $View->setTitle('FuxSchool Import');
         $View->setDescription('Klassendaten');
 
-        $tblType = $tblYear = null;
-        if ($TypeId !== null) {
-            $tblType = Type::useService()->getTypeById($TypeId);
-        }
-        if ($YearId !== null) {
-            $tblYear = Term::useService()->getYearById($YearId);
+//        $tblType = $tblYear = null;
+//        if ($TypeId !== null) {
+//            $tblType = Type::useService()->getTypeById($TypeId);
+//        }
+        $tblYear = false;
+        if ($Data['YearId'] !== null) {
+            $tblYear = Term::useService()->getYearById($Data['YearId']);
         }
 
         $View->setContent(
@@ -280,9 +283,9 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutColumn(
                     new Panel('Schuljahr:', $tblYear ? $tblYear->getDisplayName() : '',
                         Panel::PANEL_TYPE_INFO), 6),
-                new LayoutColumn(
-                    new Panel('Schulart:', $tblType ? $tblType->getName() : '',
-                        Panel::PANEL_TYPE_INFO), 6),
+//                new LayoutColumn(
+//                    new Panel('Schulart:', $tblType ? $tblType->getName() : '',
+//                        Panel::PANEL_TYPE_INFO), 6),
                 new LayoutColumn(
                     new Well(
                         FuxSchool::useService()->createDivisionsFromFile(
@@ -296,7 +299,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     )
                                 )
                                 , new Primary('Hochladen')
-                            ), $File, $TypeId, $YearId
+                            ), $File, $Data // $TypeId,
                         )
                         . new Warning('Erlaubte Dateitypen: Excel (XLS,XLSX)')
                     )

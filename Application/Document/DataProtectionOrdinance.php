@@ -93,14 +93,16 @@ class DataProtectionOrdinance implements IClusterInterface, IApplicationInterfac
                             sich bitte per E-Mail an unseren Datenschutzbeauftragten.'),
                             new Container('&nbsp;'),
                             new Panel(
-                                'Herr Erik Kahnt (Vertreter im Amt) ',
+                                'Kontaktdaten des Datenschutzbeauftragten',
                                 array(
-                                    'Der Datenschutzbeauftragte für Kirche und Diakonie',
-                                    'Leiter der Aufsichtsbehörde',
-                                    'Dienstsitz: 09117 Chemnitz, Reichenbrander Str. 4',
-                                    'Telefon: 0351 4692-460',
+//                                    'Der Datenschutzbeauftragte für Kirche und Diakonie',
+//                                    'Leiter der Aufsichtsbehörde',
+//                                    'Dienstsitz: 09117 Chemnitz, Reichenbrander Str. 4',
+//                                    'Telefon: 0351 4692-460',
+                                    'Telefon: 0171 - 3485795 ',
 //                                    'Fax: 0351 4692-469',
-                                    'E-Mail: datenschutzbeauftragter@evlks.de',
+//                                    'E-Mail: datenschutzbeauftragter@evlks.de',
+                                    'E-Mail: datenschutz@esdigmbh.de',
                                 )
                             )
                         ))
@@ -196,36 +198,6 @@ class DataProtectionOrdinance implements IClusterInterface, IApplicationInterfac
                         ))
                     ), new Title(
                         'DATENSCHUTZHINWEISE BEI NUTZUNG VON KONTAKT- / INTERAKTIONSANGEBOTEN'
-                    )
-                ),
-                new LayoutGroup(
-                    new LayoutRow(
-                        new LayoutColumn(array(
-                            new Container('
-                                Wir verwenden auf unserer Website das Webanalyseprogramm „Piwik“. Dieses Programm ermöglicht
-                                es uns, die Benutzung unserer Website zu erfassen und hierdurch gegebenenfalls Optimierungen
-                                unserer Website vorzunehmen. Hierzu verwendet das Programm „Piwik“ sogenannte Cookies.
-                                Die hierdurch gewonnenen Nutzungsinformationen werden zusammen mit Ihrer IP-Adresse an
-                                unseren Server weitergeleitet und zur Analyse des Nutzungsverhaltens gespeichert.
-                                Bei diesem Vorgang wird Ihre IP-Adresse umgehend anonymisiert, sodass wir keine Rückschlüsse
-                                auf Sie als Nutzer ziehen können. Die derart gewonnenen Informationen werden nicht an
-                                Dritte weitergebenen. Sie können die Einstellungen Ihrer Browser-Software ändern und so
-                                verhindern, dass Cookies verwendet werden. In diesem Fall kann es vorkommen, dass Sie
-                                nicht alle Funktionen unserer Website vollumfänglich nutzen können.
-                            '),
-                            new Container('&nbsp;'),
-                            new Container('Sie können der Speicherung und Verwertung dieser Daten während Ihres Besuchs 
-                            auf unserer Website jederzeit widersprechen. Hierfür müssen Sie lediglich das unten stehende 
-                            Kästchen anklicken, sodass das gesetzte Häkchen nicht mehr zu sehen ist (Opt-out-Verfahren). 
-                            In diesem Fall wird in Ihrem Browser ein sogenannter Opt-out-Cookie hinterlegt, so dass Piwik 
-                            keine Sitzungsdaten mehr erheben kann. Beachten Sie bitte, dass das Löschen Ihrer Cookies der 
-                            jeweiligen Sitzung zur Folge hat, dass auch das Opt-out-Cookie gelöscht wird und unter 
-                            Umständen von Ihnen beim nächsten Besuch unserer Website erneut aktiviert werden muss.'),
-                            new Container('&nbsp;'),
-                            '<iframe class="sphere-iframe-style" src="/Library/Piwik/index.php?module=CoreAdminHome&action=optOut&language=de"></iframe>'
-                        ))
-                    ), new Title(
-                        'NUTZUNG VON PIWIK'
                     )
                 ),
                 new LayoutGroup(

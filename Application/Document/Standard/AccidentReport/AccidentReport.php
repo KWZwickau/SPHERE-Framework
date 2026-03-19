@@ -156,25 +156,13 @@ class AccidentReport extends Extension
                 $tblType = $tblStudentEducation->getServiceTblSchoolType();
 
                 // Unternehmensnummer wird sofern möglich und vorhanden aus den Mandantenschulen gezogen
-                // und überschreibt damit die Unternehmensnummer der Schulträger
-                if($tblType){
+                // und überschreibt damit die Unternehmensnummer Schüler Schulträger
+                if($tblType && $tblCompanySchool){
                     // Schule aus Mandanteneinstellung mit Schulart
-                    if(($tblSchoolList = School::useService()->getSchoolByType($tblType))){
-                        // bei einer Schule kann diese genommen werden. (Normalfall)
-                        if(count($tblSchoolList) == 1){
-                            $tblSchool = current($tblSchoolList);
-                            // Übernahme nur, wenn eine Unternehmensnummer hinterlegt ist
-                            if($tblSchool->getCompanyNumber() != ''){
-                                $Global->POST['Data']['CompanyNumber'] = $tblSchool->getCompanyNumber();
-                            }
-                        } else {
-                            // mehr als eine Schule mit gleicher Schulart
-                            if(($tblSchool = School::useService()->getSchoolByCompanyAndType($tblCompanySchool, $tblType))){
-                                // Übernahme nur, wenn eine Unternehmensnummer hinterlegt ist
-                                if($tblSchool->getCompanyNumber() != '') {
-                                    $Global->POST['Data']['CompanyNumber'] = $tblSchool->getCompanyNumber();
-                                }
-                            }
+                    if(($tblSchool = School::useService()->getSchoolByCompanyAndType($tblCompanySchool, $tblType))){
+                        // Übernahme nur, wenn eine Unternehmensnummer für Schüler hinterlegt ist
+                        if($tblSchool->getCompanyNumber() != '') {
+                            $Global->POST['Data']['CompanyNumber'] = $tblSchool->getCompanyNumber();
                         }
                     }
                 }

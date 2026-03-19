@@ -423,9 +423,9 @@ class FrontendDiplomaTechnicalSchool extends FrontendDiploma
                 if (($tblCertificateSubject = Generator::useService()->getCertificateSubjectByIndex($tblCertificate, $index, $offset + $ranking,
                         $tblTechnicalCourse))
                     && ($tblSubject = $tblCertificateSubject->getServiceTblSubject())
-                    && ($tblTestGradeList = Grade::useService()->getTestGradeListToDateTimeByPersonAndSubject($tblPerson, $tblSubject, $tblTask->getToDate()))
+                    && ($tblTestGradeListTemp = Grade::useService()->getTestGradeListToDateTimeByPersonAndSubject($tblPerson, $tblSubject, $tblTask->getToDate()))
                 ) {
-                    foreach ($tblTestGradeList as $tblTestGrade) {
+                    foreach ($tblTestGradeListTemp as $tblTestGrade) {
                         $tblTest = $tblTestGrade->getTblTest();
                         if (($tblTestGrade->getGrade() !== null)) {
                             $toolTip = new Container($tblTest->getDateString())
@@ -496,7 +496,9 @@ class FrontendDiplomaTechnicalSchool extends FrontendDiploma
             && $tblPrepareComplexExam->getGrade()
         ) {
             $global->POST['Data'][$tblPrepareStudent->getId()]['PS'] = $tblPrepareComplexExam->getGrade();
-            $gradeList['PS'] = $tblPrepareComplexExam->getGrade();
+            if (is_numeric($tblPrepareComplexExam->getGrade())) {
+                $gradeList['PS'] = $tblPrepareComplexExam->getGrade();
+            }
         }
         if (($tblPrepareComplexExam = Prepare::useService()->getPrepareComplexExamBy($tblPrepareStudent, 'EN', $ranking))
             && $tblPrepareComplexExam->getGrade()

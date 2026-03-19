@@ -9,8 +9,10 @@ use SPHERE\Application\Education\Absence\Absence;
 use SPHERE\Application\Education\Certificate\Setting\Setting;
 use SPHERE\Application\Education\Graduation\Grade\Grade;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
+use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Type;
+use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\Setting\Consumer\Consumer as ConsumerSetting;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
@@ -69,10 +71,31 @@ abstract class FrontendPreview extends FrontendLeaveTechnicalSchool
         $tblBehaviorTask = false;
         $studentTable = array();
         $isSekII = false;
-        $hasColumnCertificate = false;
+        $hasColumnAbsence = false;
+        $hasColumnBehaviorGrades = false;
+
+        $tblProfileSubject  = false;
+        if (($tblSetting = ConsumerSetting::useService()->getSetting('Api', 'Education', 'Certificate', 'ProfileAcronym'))
+            && ($value = $tblSetting->getValue())
+        ) {
+            $tblProfileSubject = Subject::useService()->getSubjectByAcronym($value);
+        }
+        $tblOrientationSubject  = false;
+        if (($tblSetting = ConsumerSetting::useService()->getSetting('Api', 'Education', 'Certificate', 'OrientationAcronym'))
+            && ($value = $tblSetting->getValue())
+        ) {
+            $tblOrientationSubject = Subject::useService()->getSubjectByAcronym($value);
+        }
+        $tblStudentSubjectTypeProfile = Student::useService()->getStudentSubjectTypeByIdentifier('PROFILE');
+        $tblStudentSubjectTypeOrientation = Student::useService()->getStudentSubjectTypeByIdentifier('ORIENTATION');
+        $tblStudentSubjectTypeForeignLanguage = Student::useService()->getStudentSubjectTypeByIdentifier('FOREIGN_LANGUAGE');
+
         if (($tblPrepare = Prepare::useService()->getPrepareById($PrepareId))
             && ($tblDivisionCourse = $tblPrepare->getServiceTblDivision())
             && ($tblYear = $tblDivisionCourse->getServiceTblYear())
+            && $tblStudentSubjectTypeProfile
+            && $tblStudentSubjectTypeOrientation
+            && $tblStudentSubjectTypeForeignLanguage
         ) {
             $Stage->addButton(new Standard(
                 'Zurück', '/Education/Certificate/Prepare/Prepare', new ChevronLeft(), array(
@@ -178,32 +201,30 @@ abstract class FrontendPreview extends FrontendLeaveTechnicalSchool
                         $subjectGradesText = 'Kein Stichtagsnotenauftrag ausgewählt';
                     }
 
-                    // Kopfnoten zählen
-                    $countBehaviorGrades = 0;
-                    if ($tblBehaviorTask) {
-                        if (($tblTaskGradeList = Prepare::useService()->getBehaviorGradeAllByPrepareCertificateAndPerson($tblPrepare, $tblPerson))) {
-                            $countBehaviorGrades = count($tblTaskGradeList);
-                        }
-                        $behaviorGradesText = $countBehaviorGrades . ' von ' . $countBehavior; // . ' Zensuren&nbsp;';
-                    } else {
-                        $behaviorGradesText = 'Kein Kopfnoten&shy;auftrag ausgewählt';
-                    }
-
                     $excusedDays = '&nbsp;';
                     $unexcusedDays = '&nbsp;';
+                    $behaviorGradesDisplayText = '&nbsp;';
                     $tblCertificate = false;
                     if ($tblPrepareStudent && ($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())) {
                         // Prüfen, ob die Zeugnisvorlage: Fehlzeiten besitzt
-                        if (isset($certificateList[$tblCertificate->getId()])) {
-                            $hasCertificateAbsence = $certificateList[$tblCertificate->getId()];
+                        if (isset($certificateList[$tblCertificate->getId()]['Absence'])) {
+                            $hasCertificateAbsence = $certificateList[$tblCertificate->getId()]['Absence'];
                         } else {
                             $hasCertificateAbsence = Prepare::useService()->hasCertificateAbsence($tblCertificate, $tblPerson);
-                            $certificateList[$tblCertificate->getId()] = $hasCertificateAbsence;
+                            $certificateList[$tblCertificate->getId()]['Absence'] = $hasCertificateAbsence;
+                        }
+
+                        // Prüfen, ob die Zeugnisvorlage: Kopfnoten besitzt
+                        if (isset($certificateList[$tblCertificate->getId()]['BehaviorGrades'])) {
+                            $hasBehaviorGrades = $certificateList[$tblCertificate->getId()]['BehaviorGrades'];
+                        } else {
+                            $hasBehaviorGrades = Prepare::useService()->hasCertificateBehaviorGrades($tblCertificate, $tblPerson);
+                            $certificateList[$tblCertificate->getId()]['BehaviorGrades'] = $hasBehaviorGrades;
                         }
 
                         if ($hasCertificateAbsence) {
                             // Fehlzeiten nur Anzeigen, wenn Fehltage auf der Zeugnisvorlage sind
-                            $hasColumnCertificate = true;
+                            $hasColumnAbsence = true;
                             $excusedDays = $tblPrepareStudent->getExcusedDays();
                             $unexcusedDays = $tblPrepareStudent->getUnexcusedDays();
                             if ($useClassRegisterForAbsence) {
@@ -243,14 +264,29 @@ abstract class FrontendPreview extends FrontendLeaveTechnicalSchool
                                 }
                             }
                         }
+
+                        if ($hasBehaviorGrades) {
+                            $hasColumnBehaviorGrades = true;
+                            // Kopfnoten zählen
+                            $countBehaviorGrades = 0;
+                            if ($tblBehaviorTask) {
+                                if (($tblTaskGradeList = Prepare::useService()->getBehaviorGradeAllByPrepareCertificateAndPerson($tblPrepare, $tblPerson))) {
+                                    $countBehaviorGrades = count($tblTaskGradeList);
+                                }
+                                $behaviorGradesText = $countBehaviorGrades . ' von ' . $countBehavior; // . ' Zensuren&nbsp;';
+                            } else {
+                                $behaviorGradesText = 'Kein Kopfnoten&shy;auftrag ausgewählt';
+                            }
+
+                            $behaviorGradesDisplayText = $countBehaviorGrades < $countBehavior || !$tblBehaviorTask
+                                ? new WarningText(new Exclamation() . ' ' . $behaviorGradesText)
+                                : new Success(new Enable() . ' ' . $behaviorGradesText);
+                        }
                     }
 
                     $subjectGradesDisplayText = $countSubjectGrades < $countSubjects || !$tblPrepare->getServiceTblAppointedDateTask()
                         ? new WarningText(new Exclamation() . ' ' . $subjectGradesText)
                         : new Success(new Enable() . ' ' . $subjectGradesText);
-                    $behaviorGradesDisplayText = $countBehaviorGrades < $countBehavior || !$tblBehaviorTask
-                        ? new WarningText(new Exclamation() . ' ' . $behaviorGradesText)
-                        : new Success(new Enable() . ' ' . $behaviorGradesText);
 
                     // Abitur Fächerprüfung ignorieren
                     if ($tblCertificate
@@ -263,7 +299,10 @@ abstract class FrontendPreview extends FrontendLeaveTechnicalSchool
                             new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Keine Fächerzuordnung erforderlich.'
                         );
                     } elseif ($tblCertificate
-                        && ($checkSubjectList = Setting::useService()->getCheckCertificateMissingSubjectsForPerson($tblPerson, $tblYear, $tblCertificate))
+                        && ($checkSubjectList = Setting::useService()->getCheckCertificateMissingSubjectsForPerson(
+                            $tblPerson, $tblYear, $tblCertificate, $tblProfileSubject, $tblOrientationSubject,
+                            $tblStudentSubjectTypeProfile, $tblStudentSubjectTypeOrientation, $tblStudentSubjectTypeForeignLanguage
+                        ))
                     ) {
                         $checkSubjectsString = new WarningText(new Ban() . ' '
                             . implode(', ', $checkSubjectList)
@@ -358,11 +397,11 @@ abstract class FrontendPreview extends FrontendLeaveTechnicalSchool
             }
 
             // Sekundarstufe II besitzt keine Kopfnoten und Fehlzeiten
-            if ($isSekII) {
+            if ($isSekII || !$hasColumnBehaviorGrades) {
                 unset($columnTable['BehaviorGrades']);
             }
 
-            if (!$hasColumnCertificate) {
+            if (!$hasColumnAbsence) {
                 unset($columnTable['ExcusedAbsence']);
                 unset($columnTable['UnexcusedAbsence']);
             }

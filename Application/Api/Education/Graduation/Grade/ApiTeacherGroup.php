@@ -195,7 +195,7 @@ class ApiTeacherGroup  extends Extension implements IApiInterface
         $tblMemberTypeDivisionTeacher = DivisionCourse::useService()->getDivisionCourseMemberTypeByIdentifier(TblDivisionCourseMemberType::TYPE_DIVISION_TEACHER);
         if ($tblDivisionCourse) {
             $Data['Subject'] = ($tblSubject = $tblDivisionCourse->getServiceTblSubject()) ? $tblSubject->getId() : 0;
-            DivisionCourse::useService()->updateDivisionCourse($tblDivisionCourse, $Data);
+            DivisionCourse::useService()->updateDivisionCourse($tblDivisionCourse, $Data, true);
 
             $tempList = array();
             $createList = array();
@@ -230,7 +230,12 @@ class ApiTeacherGroup  extends Extension implements IApiInterface
             }
         } else {
             $Data['Type'] = $tblType->getId();
-            $Data['Year'] = ($tblYear = Grade::useService()->getYear()) ? $tblYear->getId() : null;
+            if (!isset($Data['Year'])) {
+                $Data['Year'] = false;
+                if (($tblYearList = Grade::useService()->getSelectedYearList()) && count($tblYearList) == 1) {
+                    $Data['Year'] = (current($tblYearList))->getId();
+                }
+            }
             if (($tblDivisionCourseNew = DivisionCourse::useService()->createDivisionCourse($Data))) {
                 // Schüler
                 if (isset($Data['Students'])) {

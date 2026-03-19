@@ -14,6 +14,7 @@ use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Application\Setting\Consumer\School\School;
+use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
@@ -28,23 +29,42 @@ use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
+use SPHERE\Common\Frontend\Text\Repository\Bold;
 
 abstract class FrontendGradeBookSelect extends FrontendExamGrade
 {
     /**
      * @param null $Filter
+     * @param bool|null $DontShowDivisionTeacherGradeBooks
      *
      * @return string
      */
-    public function loadViewGradeBookSelect($Filter = null): string
+    public function loadViewGradeBookSelect($Filter = null, ?bool $DontShowDivisionTeacherGradeBooks = null): string
     {
         $role = Grade::useService()->getRole();
         $isTeacher = $role == "Teacher";
-        if (($tblYear = Grade::useService()->getYear())) {
+        $form = null;
+        if (($tblYearList = Grade::useService()->getSelectedYearList())) {
             // Lehrer
             if ($isTeacher) {
-                $content = $this->getSelectGradeBookTeacher($tblYear);
-                // Schulleitung, Integrationsbeauftragte
+                if ($DontShowDivisionTeacherGradeBooks === null) {
+                    $ShowDivisionTeacherGradeBooks = !Consumer::useService()->getAccountSettingValue("DontShowDivisionTeacherGradeBooks");
+                } else {
+                    $ShowDivisionTeacherGradeBooks = !$DontShowDivisionTeacherGradeBooks;
+                }
+                $content = $this->getSelectGradeBookTeacher($tblYearList, $ShowDivisionTeacherGradeBooks);
+                if ($ShowDivisionTeacherGradeBooks) {
+                    $global = $this->getGlobal();
+                    $global->POST['Data']['ShowDivisionTeacherGradeBooks'] = 1;
+                    $global->savePost();
+                }
+
+                $form = (new Form(new FormGroup(new FormRow(new FormColumn(
+                    (new CheckBox('Data[ShowDivisionTeacherGradeBooks]', new Bold('Notenbücher inklusive Kursleiter anzeigen'), 1))
+                        ->ajaxPipelineOnChange(array(ApiGradeBook::pipelineChangeShowDivisionTeacherGradeBooks()))
+                )))))->disableSubmitAction();
+
+            // Schulleitung, Integrationsbeauftragte
             } else {
                 $content = $this->getSelectGradeBookHeadmaster($Filter);
             }
@@ -52,7 +72,9 @@ abstract class FrontendGradeBookSelect extends FrontendExamGrade
             $content = new Danger("Schuljahr nicht gefunden", new Exclamation());
         }
 
-        return new Title("Notenbuch", "Auswählen") . $content;
+        return new Title("Notenbuch", "Auswählen")
+            . ($form ?: '')
+            . $content;
     }
 
     /**
@@ -62,13 +84,26 @@ abstract class FrontendGradeBookSelect extends FrontendExamGrade
      */
     private function getSelectGradeBookHeadmaster($Filter): string
     {
+        // Filter bei mehr als einer Mandanten-Schulart anzeigen
+        $filter = '';
+        if (($tblSchoolTypeList = School::useService()->getConsumerSchoolTypeAll())) {
+            if (count($tblSchoolTypeList) == 1) {
+                if (empty($Filter)) {
+                    $Filter = array();
+                    $Filter['SchoolType'] = (current($tblSchoolTypeList))->getId();
+                }
+            } else {
+                $filter = new Panel(
+                    new Filter() . " Filter",
+                    $this->formFilter($Filter),
+                    Panel::PANEL_TYPE_INFO
+                );
+            }
+        }
+
         return
-            new Panel(
-                new Filter() . " Filter",
-                $this->formFilter($Filter),
-                Panel::PANEL_TYPE_INFO
-            )
-            . ApiGradeBook::receiverBlock($Filter == null ? $this->loadGradeBookSelectFilterContent($Filter) : "", "GradeBookSelectFilterContent");
+            $filter
+            . ApiGradeBook::receiverBlock($this->loadGradeBookSelectFilterContent($Filter), "GradeBookSelectFilterContent");
     }
 
     /**
@@ -107,18 +142,20 @@ abstract class FrontendGradeBookSelect extends FrontendExamGrade
     {
         $tblSchoolType = isset($Filter["SchoolType"]) ? Type::useService()->getTypeById($Filter["SchoolType"]) : false;
         if ($tblSchoolType
-            && ($tblYear = Grade::useService()->getYear())
+            && ($tblYearList = Grade::useService()->getSelectedYearList())
         ) {
             $dataList = array();
-            if (($tblDivisionCourseList = DivisionCourse::useService()->getDivisionCourseListBy($tblYear))) {
-                foreach ($tblDivisionCourseList as $tblDivisionCourse) {
-                    if (!($tblSchoolTypeList = $tblDivisionCourse->getSchoolTypeListFromStudents())
-                        || !isset($tblSchoolTypeList[$tblSchoolType->getId()])
-                    ) {
-                        continue;
-                    }
+            foreach ($tblYearList as $tblYear) {
+                if (($tblDivisionCourseList = DivisionCourse::useService()->getDivisionCourseListBy($tblYear))) {
+                    foreach ($tblDivisionCourseList as $tblDivisionCourse) {
+                        if (!($tblSchoolTypeList = $tblDivisionCourse->getSchoolTypeListFromStudents())
+                            || !isset($tblSchoolTypeList[$tblSchoolType->getId()])
+                        ) {
+                            continue;
+                        }
 
-                    $this->setDivisionCourseSelectDataList($dataList, $tblDivisionCourse, $tblYear, null, null, $Filter);
+                        $this->setDivisionCourseSelectDataList($dataList, $tblDivisionCourse, $tblYear, null, null, $Filter);
+                    }
                 }
             }
 
@@ -167,43 +204,49 @@ abstract class FrontendGradeBookSelect extends FrontendExamGrade
     }
 
     /**
-     * @param TblYear $tblYear
+     * @param $tblYearList
+     * @param bool $showDivisionTeacherGradeBooks
      *
      * @return string
      */
-    private function getSelectGradeBookTeacher(TblYear $tblYear): string
+    private function getSelectGradeBookTeacher($tblYearList, bool $showDivisionTeacherGradeBooks): string
     {
-        if (($tblPersonLogin = Account::useService()->getPersonByLogin())
-            && ($tblTeacherLectureshipList = DivisionCourse::useService()->getTeacherLectureshipListBy($tblYear, $tblPersonLogin))
-        ) {
+        if (($tblPersonLogin = Account::useService()->getPersonByLogin())) {
             $divisionCourseSubjectList = array();
             $dataList = array();
-            // Lehraufträge
-            foreach ($tblTeacherLectureshipList as $tblTeacherLectureship) {
-                $this->setTeacherLectureshipSelectData($dataList, $tblTeacherLectureship, $divisionCourseSubjectList);
-            }
+            foreach ($tblYearList as $tblYear) {
+                if (($tblTeacherLectureshipList = DivisionCourse::useService()->getTeacherLectureshipListBy($tblYear, $tblPersonLogin))) {
+                    // Lehraufträge
+                    foreach ($tblTeacherLectureshipList as $tblTeacherLectureship) {
+                        $this->setTeacherLectureshipSelectData($dataList, $tblTeacherLectureship, $divisionCourseSubjectList);
+                    }
 
-            // Klassenlehrer aus den Lehraufträgen der Lehrer
-            if (($tblDivisionCourseList = DivisionCourse::useService()->getDivisionCourseListByDivisionTeacher($tblPersonLogin, $tblYear, true))) {
-                foreach ($tblDivisionCourseList as $tblDivisionCourse) {
-                    if (DivisionCourse::useService()->getIsCourseSystemByStudentsInDivisionCourse($tblDivisionCourse)) {
-                        // SekII
-                        if (($tblStudentSubjectList = DivisionCourse::useService()->getStudentSubjectListByStudentDivisionCourseAndPeriod($tblDivisionCourse, 1))) {
-                            foreach ($tblStudentSubjectList as $tblStudentSubject) {
-                                if (($tblDivisionCourseSubject = $tblStudentSubject->getTblDivisionCourse())
-                                    && !isset($divisionCourseSubjectList[$tblDivisionCourseSubject->getId()])
-                                ) {
-                                    $this->setDivisionCourseSelectDataList($dataList, $tblDivisionCourseSubject, $tblYear, $tblPersonLogin, $divisionCourseSubjectList);
+                    // Klassenlehrer aus den Lehraufträgen der Lehrer
+                    if ($showDivisionTeacherGradeBooks
+                        && ($tblDivisionCourseList = DivisionCourse::useService()->getDivisionCourseListByDivisionTeacher($tblPersonLogin, $tblYear, true))
+                    ) {
+                        foreach ($tblDivisionCourseList as $tblDivisionCourse) {
+                            if (DivisionCourse::useService()->getIsCourseSystemByStudentsInDivisionCourse($tblDivisionCourse)) {
+                                // SekII
+                                if (($tblStudentSubjectList = DivisionCourse::useService()->getStudentSubjectListByStudentDivisionCourseAndPeriod($tblDivisionCourse,
+                                    1))) {
+                                    foreach ($tblStudentSubjectList as $tblStudentSubject) {
+                                        if (($tblDivisionCourseSubject = $tblStudentSubject->getTblDivisionCourse())
+                                            && !isset($divisionCourseSubjectList[$tblDivisionCourseSubject->getId()])
+                                        ) {
+                                            $this->setDivisionCourseSelectDataList($dataList, $tblDivisionCourseSubject, $tblYear, $tblPersonLogin,
+                                                $divisionCourseSubjectList);
+                                        }
+                                    }
                                 }
+                            } else {
+                                // SekI
+                                $this->setDivisionCourseSelectDataList($dataList, $tblDivisionCourse, $tblYear, $tblPersonLogin, $divisionCourseSubjectList);
                             }
                         }
-                    } else {
-                        // SekI
-                        $this->setDivisionCourseSelectDataList($dataList, $tblDivisionCourse, $tblYear, $tblPersonLogin, $divisionCourseSubjectList);
                     }
                 }
             }
-
             // bei der DataTable dürfen als Key nur Zahlen verwenden
             $dataList = array_values($dataList);
             $content = $this->getTable($dataList);

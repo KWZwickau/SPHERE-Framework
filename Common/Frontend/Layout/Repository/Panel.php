@@ -33,6 +33,7 @@ class Panel extends Extension implements ITemplateInterface
     private $Filter = false;
     /** @var string $FormName */
     private $FormName = '';
+    private string $Type;
 
     /**
      * @param string       $Title
@@ -52,6 +53,7 @@ class Panel extends Extension implements ITemplateInterface
         $this->Footer = ( is_array($Footer) ? array_filter($Footer) : $Footer );
         $this->Template->setVariable('Filter', $Filter);
         $this->Template->setVariable('Type', $Type);
+        $this->Type = $Type;
         $this->Template->setVariable('MarginBottom', '15px');
         $this->FormName = $this->getName();
     }
@@ -165,5 +167,58 @@ class Panel extends Extension implements ITemplateInterface
 
         $this->Template->setVariable('MarginBottom', $MarginBottom.'px');
         return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getTitle(): string
+    {
+        return $this->Title;
+    }
+
+    /**
+     * @return string
+     */
+    public function getHeaderTextColor(): string
+    {
+        return match ($this->Type) {
+            self::PANEL_TYPE_PRIMARY => '#ffffff',
+            self::PANEL_TYPE_INFO => '#31708f',
+            self::PANEL_TYPE_SUCCESS => '#3c763d',
+            self::PANEL_TYPE_WARNING => '#8a6d3b',
+            self::PANEL_TYPE_DANGER => '#a94442',
+            default => '#333333',
+        };
+    }
+
+    /**
+     * @return string
+     */
+    public function getHeaderBackgroundColor(): string
+    {
+        return match ($this->Type) {
+            self::PANEL_TYPE_PRIMARY => '#337ab7',
+            self::PANEL_TYPE_INFO => '#d9edf7',
+            self::PANEL_TYPE_SUCCESS => '#dff0d8',
+            self::PANEL_TYPE_WARNING => '#fcf8e3',
+            self::PANEL_TYPE_DANGER => '#f2dede',
+            default => '#f5f5f5',
+        };
+    }
+
+    /**
+     * @return string
+     */
+    public function getBorderColor(): string
+    {
+        return match ($this->Type) {
+            self::PANEL_TYPE_PRIMARY => '#337ab7',
+            self::PANEL_TYPE_INFO => '#bce8f1',
+            self::PANEL_TYPE_SUCCESS => '#d6e9c6',
+            self::PANEL_TYPE_WARNING => '#faebcc',
+            self::PANEL_TYPE_DANGER => '#ebccd1',
+            default => '#dddddd',
+        };
     }
 }

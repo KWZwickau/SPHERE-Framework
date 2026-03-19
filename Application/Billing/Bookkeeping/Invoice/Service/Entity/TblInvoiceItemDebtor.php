@@ -506,7 +506,7 @@ class TblInvoiceItemDebtor extends Element
         } else {
             $result = $this->Value;
         }
-        return number_format($result, 2).' €';
+        return number_format($result, 2, ',', '').' €';
     }
 
     /**

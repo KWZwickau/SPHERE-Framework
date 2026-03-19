@@ -8,8 +8,7 @@ use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
-use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
-use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
+use SPHERE\Application\Setting\Consumer\Consumer as ConsumerSetting;
 use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
@@ -183,11 +182,13 @@ abstract class FrontendSelect extends FrontendPreview
         if (($tblPerson = Account::useService()->getPersonByLogin())
             && $tblYear
         ) {
-            $tblSchoolTypeOS = Type::useService()->getTypeByShortName('OS');
-            $tblSchoolTypeFOS = Type::useService()->getTypeByShortName('FOS');
             if (($tblDivisionCourseList = DivisionCourse::useService()->getDivisionCourseListByDivisionTeacher($tblPerson, $tblYear))) {
                 foreach ($tblDivisionCourseList as $tblDivisionCourse) {
-                    $tblSchoolTypeList = $tblDivisionCourse->getSchoolTypeListFromStudents();
+                    $tblSchoolType = false;
+                    if (($tblSchoolTypeList = $tblDivisionCourse->getSchoolTypeListFromStudents())) {
+                        $tblSchoolType = current($tblSchoolTypeList);
+                    }
+
                     // nur Kurse anzeigen, wo auch ein Zeugnisauftrag existiert
                     if (($tblPrepareList = Prepare::useService()->getPrepareAllByDivisionCourse($tblDivisionCourse))) {
                         foreach ($tblPrepareList as $tblPrepare) {
@@ -195,9 +196,11 @@ abstract class FrontendSelect extends FrontendPreview
                             if (!($tblCertificateType = $tblPrepare->getCertificateType())
                                 || $tblCertificateType->getIdentifier() == 'GRADE_INFORMATION'
                                 || ($tblCertificateType->getIdentifier() == 'DIPLOMA'
-                                    // Ausnahme bei HOGA sollen die Klassenlehrer die Abschlusszeugnisse bearbeiten können, todo später Mandanteneintstellung
-                                    && !(Consumer::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'HOGA')
-                                        && (isset($tblSchoolTypeList[$tblSchoolTypeOS->getId()]) || isset($tblSchoolTypeList[$tblSchoolTypeFOS->getId()]))
+                                    // Ausnahme bei gesetzter Mandanteneinstellung sollen die Klassenlehrer die Abschlusszeugnisse bearbeiten können
+                                    && !(($tblSetting = ConsumerSetting::useService()->getSetting('Education', 'Certificate', 'Diploma', 'CanDivisionTeacherPrepareDiploma'))
+                                        && $tblSchoolType
+                                        && ($tblSchoolTypeAllowedList = ConsumerSetting::useService()->getSchoolTypeBySettingString($tblSetting->getValue()))
+                                        && isset($tblSchoolTypeAllowedList[$tblSchoolType->getId()])
                                     )
                                 )
                             ) {
@@ -379,6 +382,7 @@ abstract class FrontendSelect extends FrontendPreview
             $tblSchoolTypeFOS = Type::useService()->getTypeByShortName('FOS');
             $tblSchoolTypeBFS = Type::useService()->getTypeByShortName('BFS');
             $tblSchoolTypeList = $tblDivisionCourse->getSchoolTypeListFromStudents();
+            $tblSchoolType = current($tblSchoolTypeList);
             if (($tblPrepareList = Prepare::useService()->getPrepareAllByDivisionCourse($tblDivisionCourse))) {
                 foreach ($tblPrepareList as $tblPrepare) {
                     if (($tblCertificateType = $tblPrepare->getCertificateType())) {
@@ -395,9 +399,10 @@ abstract class FrontendSelect extends FrontendPreview
                         } else {
                             // Abschlusszeugnisse überspringen
                             if ($tblCertificateType->getIdentifier() == 'DIPLOMA'
-                                // Ausnahme bei HOGA sollen die Klassenlehrer die Abschlusszeugnisse bearbeiten können, todo später Mandanteneintstellung
-                                && !(Consumer::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'HOGA') && $Route == 'Teacher'
-                                    && (isset($tblSchoolTypeList[$tblSchoolTypeOS->getId()]) || isset($tblSchoolTypeList[$tblSchoolTypeFOS->getId()]))
+                                // Ausnahme bei gesetzter Mandanteneinstellung sollen die Klassenlehrer die Abschlusszeugnisse bearbeiten können
+                                && !(($tblSetting = ConsumerSetting::useService()->getSetting('Education', 'Certificate', 'Diploma', 'CanDivisionTeacherPrepareDiploma'))
+                                    && ($tblSchoolTypeAllowedList = ConsumerSetting::useService()->getSchoolTypeBySettingString($tblSetting->getValue()))
+                                    && isset($tblSchoolTypeAllowedList[$tblSchoolType->getId()])
                                 )
                             ) {
                                 continue;
@@ -409,7 +414,7 @@ abstract class FrontendSelect extends FrontendPreview
                             'Route' => $Route
                         );
 
-                        if ($Route == 'Diploma'
+                        if (($Route == 'Diploma' || $tblCertificateType->getIdentifier() == 'DIPLOMA')
                             && (isset($tblSchoolTypeList[$tblSchoolTypeGy->getId()]) || isset($tblSchoolTypeList[$tblSchoolTypeBGy->getId()]))
                         ) {
                             // Gymnasium, Abitur

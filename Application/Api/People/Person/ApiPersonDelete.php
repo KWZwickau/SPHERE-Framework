@@ -341,7 +341,7 @@ class ApiPersonDelete extends Extension implements IApiInterface
      */
     private function getModalHeaderDeleteGuard()
     {
-        return new Title('Automatische Erkennung', 'löschbare Sorgeberechtigte')
+        return new Title('Automatische Erkennung', 'löschbare Sorgeberechtigte'.new PullRight('<div style="margin-top: -8px !important;">'.new Close()).'</div>')
         .new Layout(new LayoutGroup(new LayoutRow(array(
             new LayoutColumn(new Info(new Bold('Erkennungslogik')
                 .' - Sorgeberechtigte, mit Sorgerecht / Bevollmächtigt / Vollmacht von Personen ohne aktuellem Schulverlauf.'

@@ -42,6 +42,19 @@ abstract class Transfer extends Agreement
     }
 
     /**
+     * @param $DateFrom
+     * @param $DateTill
+     * @param $tblStudentTransferType
+     *
+     * @return false|TblStudentTransfer[]
+     */
+    public function getStudentTransferByTimespanAndType($DateFrom, $DateTill, $tblStudentTransferType)
+    {
+
+        return (new Data($this->getBinding()))->getStudentTransferByTimespanAndType($DateFrom, $DateTill, $tblStudentTransferType);
+    }
+
+    /**
      * @param TblCompany $tblCompany
      *
      * @return bool|TblStudentTransfer[]

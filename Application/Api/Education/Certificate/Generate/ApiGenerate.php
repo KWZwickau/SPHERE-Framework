@@ -224,15 +224,14 @@ class ApiGenerate extends Extension implements IApiInterface
         }
 
         $tblAppointedDateTaskListByYear = false;
+        $AppointedDateId = 0;
         if ($tblYear) {
-            $tblAppointedDateTaskListByYear = Grade::useService()->getAppointedDateTaskListByYear($tblYear);
+            if(($tblAppointedDateTaskListByYear = Grade::useService()->getAppointedDateTaskListByYear($tblYear))){
+                $AppointedDateId = reset($tblAppointedDateTaskListByYear)->getId();
+            }
         }
 
-        if ($tblAppointedDateTaskListByYear) {
-            $tblTask = reset($tblAppointedDateTaskListByYear);
-
-            $_POST['Data']['AppointedDateTask'] = $tblTask ? $tblTask->getId() : 0;
-        }
+        $_POST['Data']['AppointedDateTask'] = $AppointedDateId;
 
         return new SelectBox('Data[AppointedDateTask]', 'Stichtagsnotenauftrag', array('{{ DateString }} {{ Name }}' => $tblAppointedDateTaskListByYear));
     }

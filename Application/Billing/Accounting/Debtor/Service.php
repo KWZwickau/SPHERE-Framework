@@ -55,7 +55,7 @@ class Service extends AbstractService
      *
      * @return IFormInterface|string
      */
-    public function directRoute(IFormInterface &$Form, $GroupId = null, $Direction = '')
+    public function directRoute(IFormInterface &$Form, $GroupId = null, $Direction = '', $IsExtended = false)
     {
 
         /**
@@ -70,15 +70,21 @@ class Service extends AbstractService
         }
         // Optisch lädt nur die richtige Seite
         if(($tblGroup = Group::useService()->getGroupById($GroupId))){
+            if($IsExtended){
+                $DataArray = array('GroupId' => $tblGroup->getId(), 'Extended' => true);
+            } else {
+                $DataArray = array('GroupId' => $tblGroup->getId());
+            }
+
             if($tblGroup->getMetaTable() !== '' && $Direction == 'left'){
                 return 'Lädt...'
                     .(new ProgressBar(0, 100, 0, 12))->setColor(ProgressBar::BAR_COLOR_SUCCESS, ProgressBar::BAR_COLOR_SUCCESS)
-                    .new RedirectScript('/Billing/Accounting/Debtor/View', 0, array('GroupId' => $GroupId));
+                    .new RedirectScript('/Billing/Accounting/Debtor/View', 0, $DataArray);
             }
             if($tblGroup->getMetaTable() === '' && $Direction == 'right'){
                 return 'Lädt...'
                     .(new ProgressBar(0, 100, 0, 12))->setColor(ProgressBar::BAR_COLOR_SUCCESS, ProgressBar::BAR_COLOR_SUCCESS)
-                    .new RedirectScript('/Billing/Accounting/Debtor/View', 0, array('GroupId' => $GroupId));
+                    .new RedirectScript('/Billing/Accounting/Debtor/View', 0, $DataArray);
             }
         }
         return $Form;

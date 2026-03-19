@@ -126,10 +126,11 @@ class ViewGroupStudentBasic extends AbstractView
     {
 
         switch ($PropertyName) {
-            case self::TBL_STUDENT_IDENTIFIER:
-                $Data = Common::useService()->getPropertyList(new TblStudent(), TblStudent::ATTR_TBL_IDENTIFIER);
-                $Field = $this->getFormFieldAutoCompleter($Data, $PropertyName, $Label, $Icon, $doResetCount);
-                break;
+            // identifier besteht nun aus 2 feldern, deswegen entfernt
+//            case self::TBL_STUDENT_IDENTIFIER:
+//                $Data = Common::useService()->getPropertyList(new TblStudent(), TblStudent::ATTR_TBL_IDENTIFIER);
+//                $Field = $this->getFormFieldAutoCompleter($Data, $PropertyName, $Label, $Icon, $doResetCount);
+//                break;
             case self::TBL_STUDENT_HAS_MIGRATION_BACKGROUND:
                 $Data[1] = 'Ja';
                 $Data[2] = 'Nein';

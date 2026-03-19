@@ -130,8 +130,6 @@ abstract class Certificate extends Extension
             }
         }
 
-        $tblConsumer = \SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer::useService()->getConsumerBySession();
-
         $isWidth = false;
         $InjectStyle = '';
 
@@ -144,6 +142,16 @@ abstract class Certificate extends Extension
             $certificate = 'SPHERE\Application\Api\Education\Certificate\Generator\Repository\\'. key($certificateList);
         } else {
             $certificate = get_class($this);
+        }
+
+        $tblConsumer = \SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer::useService()->getConsumerBySession();
+        // für Zeugnisvorlage-Vorschau den Mandanten von der Zeugnisvorlage verwenden
+        if (($tblCertificateTemp = Generator::useService()->getCertificateByCertificateClassName(
+                str_replace('SPHERE\Application\Api\Education\Certificate\Generator\Repository\\', '', $certificate))
+            )
+            && ($tblConsumerTemp = $tblCertificateTemp->getServiceTblConsumer(true))
+        ) {
+            $tblConsumer = $tblConsumerTemp;
         }
 
         // für Lernentwicklungsbericht von Radebeul 2cm Rand (1,4 cm scheint Standard zu seien)
@@ -198,6 +206,9 @@ abstract class Certificate extends Extension
             $InjectStyle = 'body { margin-bottom: -1.5cm !important; margin-left: 1.25cm !important; margin-right: 1.25cm !important; }';
         } elseif ($tblConsumer && $tblConsumer->isConsumer(TblConsumer::TYPE_SACHSEN, 'FELS')) {
             $InjectStyle = 'body { margin-bottom: -1.5cm !important; }';
+            // REF -> KG
+        } elseif ($tblConsumer && $tblConsumer->isConsumer(TblConsumer::TYPE_SACHSEN, 'KG')) {
+            $InjectStyle = 'body { margin-bottom: -1.5cm !important; margin-left: 0.8cm !important; margin-right: 0.8cm !important; }';
         }
 
         // Standardzeugnisse mit Breiteneinstellung
@@ -298,6 +309,14 @@ abstract class Certificate extends Extension
     public function getTblCompany()
     {
         return $this->getTblStudentEducation() ? $this->getTblStudentEducation()->getServiceTblCompany() : false;
+    }
+
+    /**
+     * @return bool|\SPHERE\Application\Education\School\Type\Service\Entity\TblType
+     */
+    public function getTblSchoolType(): bool|\SPHERE\Application\Education\School\Type\Service\Entity\TblType
+    {
+        return $this->getTblStudentEducation() ? $this->getTblStudentEducation()->getServiceTblSchoolType() : false;
     }
 
     /**
@@ -571,7 +590,6 @@ abstract class Certificate extends Extension
             $separator = false;
         }
         $isLargeCompanyName = false;
-        $name = '';
         $empty = '&nbsp;';
         // get company name
         if (($tblPerson = Person::useService()->getPersonById($personId))
@@ -588,6 +606,14 @@ abstract class Certificate extends Extension
                 $name = $tblCompany->getName() . new Container($tblCompany->getExtendedName());
                 $empty .= new Container('&nbsp;');
             }
+        // Für Zeugnisvorschau
+        } else {
+            $name = '
+                {% if(Content.P' . $personId . '.Company.Data.Name is not empty) %}
+                    {{ Content.P' . $personId . '.Company.Data.Name }}
+                {% else %}
+                    &nbsp;
+                {% endif %}';
         }
 
         $SchoolSlice = (new Slice());

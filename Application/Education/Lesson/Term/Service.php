@@ -255,7 +255,7 @@ class Service extends AbstractService
     /**
      * @param TblPeriod $tblPeriod
      *
-     * @return array|bool
+     * @return false|TblYear[]
      */
     public function getYearByPeriod(TblPeriod $tblPeriod)
     {
@@ -1083,10 +1083,10 @@ class Service extends AbstractService
      *
      * @return array
      */
-    public function getStartDateAndEndDateOfYear(TblYear $tblYear)
+    public function getStartDateAndEndDateOfYear(TblYear $tblYear): array
     {
-        $startDate = false;
-        $endDate = false;
+        $startDate = null;
+        $endDate = null;
         if (($tblPeriodList = $tblYear->getPeriodList(false, true))) {
             foreach ($tblPeriodList as $tblPeriod) {
                 if ($startDate) {
@@ -1202,7 +1202,7 @@ class Service extends AbstractService
     {
         $date = new DateTime($date);
         $isHoliday = false;
-        for ($i = 0; $i < $hasSaturdayLessons ? 6 : 5; $i++) {
+        for ($i = 0; $i < ($hasSaturdayLessons ? 6 : 5); $i++) {
             if ($i > 0) {
                 $date->add(new DateInterval('P1D'));
             }
@@ -1329,7 +1329,10 @@ class Service extends AbstractService
 
         $Error = false;
 
-        if (isset($Data['YearName']) && empty($Data['YearName'])) {
+        if (!isset($Data['YearName'])) {
+            $Form->setError('Data[YearName]', 'Bitte geben sie ein Jahr an');
+            $Error = true;
+        } elseif (isset($Data['YearName']) && empty($Data['YearName'])) {
             var_dump($Data['YearName']);
             $Form->setError('Data[YearName]', 'Bitte geben sie ein Jahr an');
             $Error = true;

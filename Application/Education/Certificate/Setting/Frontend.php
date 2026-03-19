@@ -1022,7 +1022,7 @@ class Frontend extends Extension implements IFrontendInterface
             'Oberschule Abschlusszeugnis Hauptschulabschluss gleichgestellt Lernen' => 'MsAbsLernenEquatedHs',
             'Oberschule Abschlusszeugnis' => 'MsAbsLernen',
 
-            'Oberschule Abgangszeugnis' => 'MsAbg',
+            'Oberschule Abgangszeugnis (HS, qual. HS, Lernen, kein Schulabschluss)' => 'MsAbg',
             'Oberschule Abgangszeugnis Geistige Entwicklung' => 'MsAbgGeistigeEntwicklung'
         );
         // Gymnasium
@@ -1048,6 +1048,7 @@ class Frontend extends Extension implements IFrontendInterface
             'Berufsfachschule Halbjahreszeugnis' => 'BfsHj',
             'Berufsfachschule Jahreszeugnis' => 'BfsJ',
             'Berufsfachschule Abschlusszeugnis' => 'BfsAbs',
+            'Berufsfachschule Abschlusszeugnis Generalistik' => 'BfsAbsGeneralistik',
             'Berufsfachschule Abschlusszeugnis mit mittleren Schulabschluss' => 'BfsAbsMs',
             'Berufsfachschule Abgangszeugnis' => 'BfsAbg',
             'Berufsfachschule Abgangszeugnis Generalistik' => 'BfsAbgGeneralistik',
@@ -1133,8 +1134,12 @@ class Frontend extends Extension implements IFrontendInterface
                 $ContentArray[] = new Muted($Name);
                 continue;
             }
-            if(Generator::useService()->getCertificateByCertificateClassName($Class)){
-                $ContentArray[] = new Success(new SuccessIcon()." $Name installiert ");
+            if(($tblCertificate = Generator::useService()->getCertificateByCertificateClassName($Class))){
+                $ContentArray[] = new Success(new SuccessIcon()
+                    . " $Name"
+                    . (($number = $tblCertificate->getCertificateNumber()) ? ' ' . $number : '')
+                    . " installiert "
+                );
             } else {
                 $ContentArray[] = new DangerText(new Disable()." $Name nicht installiert ");
             }
@@ -1163,23 +1168,28 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    private static function setSettingMenue(Stage $Stage, $Route = 'Template')
+    public static function setSettingMenue(Stage $Stage, string $Route = 'Template'): Stage
     {
 
-        $text = 'Zeugnisvorlagen';
+        $text = 'Zeugnisvorlagen (Fächer)';
         $Stage->addButton(new Standard($Route == 'Template' ? new Edit() . ' ' . $text : $text,
             '/Education/Certificate/Setting/Template', null, null,
             'Den Zeugnisvorlagen Fächer zuordnen'));
-
-        $text = 'Automatische Freigabe';
-        $Stage->addButton(new Standard($Route == 'Approval' ? new Edit() . ' ' . $text : $text,
-            '/Education/Certificate/Setting/Approval', null, null,
-            'Automatische Freigaben setzen'));
 
         $text = 'Zeugnisvorlagen installieren';
         $Stage->addButton(new Standard($Route == 'Implement' ? new Edit() . ' ' . $text : $text,
             '/Education/Certificate/Setting/Implement', null, null,
             'Standardzeugnisse hinzufügen'));
+
+        $text = 'Zeugnisvorlagen Vorschau';
+        $Stage->addButton(new Standard($Route == 'Preview' ? new Edit() . ' ' . $text : $text,
+            '/Education/Certificate/Setting/Preview', null, null,
+            'Zeugnisvorlagen anschauen'));
+
+        $text = 'Automatische Freigabe';
+        $Stage->addButton(new Standard($Route == 'Approval' ? new Edit() . ' ' . $text : $text,
+            '/Education/Certificate/Setting/Approval', null, null,
+            'Automatische Freigaben setzen'));
 
         return $Stage;
     }

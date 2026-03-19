@@ -96,6 +96,10 @@ class Frontend extends Extension implements IFrontendInterface
         if(($tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_CUSTODY))){
             $tblGroupList[] = $tblGroup;
         }
+        $IsExtended = false;
+        if(($Setting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_DEBTOR_EXTENDED_VIEW))){
+            $IsExtended = $Setting->getValue();
+        }
 
         $leftBoxList = array();
         $rightBoxList = array();
@@ -123,6 +127,11 @@ class Frontend extends Extension implements IFrontendInterface
             foreach ($tblGroupList as $Index => $tblGroup) {
 
                 $countContent = new Muted(new Small(Group::useService()->countMemberByGroup($tblGroup) . '&nbsp;Mitglieder'));
+                if($IsExtended){
+                    $DataArray = array('GroupId' => $tblGroup->getId(), 'Extended' => true);
+                } else {
+                    $DataArray = array('GroupId' => $tblGroup->getId());
+                }
                 $content =
                     new Layout(new LayoutGroup(new LayoutRow(array(
                             new LayoutColumn(
@@ -136,7 +145,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 new PullRight(
                                     new Standard('', __NAMESPACE__.'/View',
                                         new GroupIcon(),
-                                        array('GroupId' => $tblGroup->getId()))
+                                        $DataArray)
                                 ), 1)
                         )
                     )));
@@ -153,13 +162,13 @@ class Frontend extends Extension implements IFrontendInterface
             new FormColumn(new SelectBox('GroupId[1]', '', array('{{ Name }}' => $leftBoxList)), 10),
             new FormColumn(new PullRight(new StandardForm('', new GroupIcon())), 2)
         ))));
-        $tblGroupLockedList[] = Debtor::useService()->directRoute($FormGroupLocked, $GroupId,'left');
+        $tblGroupLockedList[] = Debtor::useService()->directRoute($FormGroupLocked, $GroupId,'left', $IsExtended);
         // Individuelle Gruppen Auswahl über Selectbox
         $FormGroupCustom = new Form(new FormGroup(new FormRow(array(
             new FormColumn(new SelectBox('GroupId[2]', '', array('{{ Name }}' => $rightBoxList)), 10),
             new FormColumn(new PullRight(new StandardForm('', new GroupIcon())), 2)
         ))));
-        $tblGroupCustomList[] = Debtor::useService()->directRoute($FormGroupCustom, $GroupId, 'right');
+        $tblGroupCustomList[] = Debtor::useService()->directRoute($FormGroupCustom, $GroupId, 'right', $IsExtended);
 
         return new Layout(new LayoutGroup(new LayoutRow(array(
             new LayoutColumn(
@@ -233,6 +242,7 @@ class Frontend extends Extension implements IFrontendInterface
                             .new Disable().' keine Bankverbindung</div>';
                         $Item['Option'] = new Standard('', __NAMESPACE__.'/Edit', new Edit(), array(
                             'GroupId'  => $tblGroup->getId(),
+                            'Extended'  => $Extended,
                             'PersonId' => $tblPerson->getId(),
                         ), 'Bearbeiten');
                         // get Debtor edit / delete options
@@ -295,13 +305,24 @@ class Frontend extends Extension implements IFrontendInterface
         }
     }
 
-    public function frontendDebtorEdit($GroupId, $PersonId)
+    /**
+     * @param $GroupId
+     * @param $PersonId
+     * @param $Extended
+     * @return Stage
+     */
+    public function frontendDebtorEdit($GroupId, $PersonId, $Extended = false)
     {
 
         $Stage = new Stage('Beitragszahler', 'Informationen');
 
+        if($Extended){
+            $DataArray = array('GroupId' => $GroupId, 'Extended' => true);
+        } else {
+            $DataArray = array('GroupId' => $GroupId);
+        }
         $Stage->addButton(new Standard('Zurück', __NAMESPACE__.'/View', new ChevronLeft(),
-            array('GroupId' => $GroupId)));
+            $DataArray));
         $DebtorNumber = ApiDebtor::receiverPanelContent($this->getDebtorNumberContent($PersonId));
         $BankAccount = ApiBankAccount::receiverBankAccountPanel($this->getBankAccountPanel($PersonId));
         $PanelDebtorNumber = new Panel('Debitoren-Nr.', $DebtorNumber);

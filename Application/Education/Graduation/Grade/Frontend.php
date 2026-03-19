@@ -7,6 +7,7 @@ use SPHERE\Application\Api\Document\Storage\ApiPersonPicture;
 use SPHERE\Application\Api\Education\Graduation\Grade\ApiGradeBook;
 use SPHERE\Application\Api\People\Meta\Support\ApiSupportReadOnly;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
+use SPHERE\Application\Education\ClassRegister\Digital\Digital;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblGradeText;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblMinimumGradeCount;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblProposalBehaviorGrade;
@@ -77,11 +78,12 @@ class Frontend extends FrontendTestPlanning
      * @param null $DivisionCourseId
      * @param null $SubjectId
      * @param null $TaskId
+     * @param null $TestId
      * @param null $IsDirectJump
      *
      * @return Stage
      */
-    public function frontendGradeBook($DivisionCourseId = null, $SubjectId = null, $TaskId = null, $IsDirectJump = null): Stage
+    public function frontendGradeBook($DivisionCourseId = null, $SubjectId = null, $TaskId = null, $TestId = null, $IsDirectJump = null): Stage
     {
         $stage = new Stage();
 
@@ -124,21 +126,35 @@ class Frontend extends FrontendTestPlanning
                 )))))->disableSubmitAction();
         }
 
-        if (($tblYear =Grade::useService()->getYear())) {
-            $global = $this->getGlobal();
-            $global->POST["Data"]["Year"] = $tblYear->getId();
-            $global->savePost();
-        }
+        $global = $this->getGlobal();
+//        $tblSelectedYearList = Grade::useService()->getSelectedYearList();
+//        if (count($tblSelectedYearList) > 1) {
+//            $global->POST["Data"]["SelectedYear"] = -1;
+//        } elseif (count($tblSelectedYearList) == 1) {
+//            $tblYear = current($tblSelectedYearList);
+//            $global->POST["Data"]["SelectedYear"] = $tblYear->getId();
+//        }
+        $global->POST["Data"]["SelectedYear"] = Grade::useService()->getSelectYearId();
+        $global->savePost();
 
         if ($TaskId) {
             // von der Willkommensseite direkt zur Noteneingabe für Notenaufträge springen
             $content = $this->loadViewTaskGradeEditContent($DivisionCourseId, $SubjectId, array(), $TaskId);
+        } elseif ($TestId) {
+            // Direkt im Entsprechen Notenbuch zur Bearbeitung des Tests springen
+            $content = $this->loadViewTestEditContent($DivisionCourseId, $SubjectId, array(), $TestId);
         } elseif ($IsDirectJump) {
             // Direkt ins Notenbuch springen, von einer anderen Stelle in der Schulsoftware (Kursheft im digitalen Klassenbuch)
             $content = $this->loadViewGradeBookContent($DivisionCourseId, $SubjectId, array());
         } else {
             $content = $this->loadViewGradeBookSelect();
         }
+
+        $tblYearList = Term::useService()->getYearAll();
+        $tblCurrentYears = new TblYear();
+        $tblCurrentYears->setName('Aktuelles Schuljahr');
+        $tblCurrentYears->setId(-1);
+        $tblYearList[] = $tblCurrentYears;
 
         $stage->setContent(
             new Container("&nbsp;")
@@ -153,7 +169,7 @@ class Frontend extends FrontendTestPlanning
                     new LayoutColumn(array(
                         ApiGradeBook::receiverBlock("", "ChangeYear"),
                         (new Form(new FormGroup(new FormRow(new FormColumn(
-                            (new SelectBox('Data[Year]', '', array("{{ DisplayName }}" => Term::useService()->getYearAll())))
+                            (new SelectBox('Data[SelectedYear]', '', array("{{ DisplayName }}" => $tblYearList)))
                                 // SSWHD-3287 API kann bei TaskId (springen von Startseite) doppelt geladen werden -> bei alter Selectbox geht es -> es kann aber jetzt bei Tablets zu Problemen kommen
                                 ->configureLibrary(Selectbox::LIBRARY_SELECTER)
                                 ->ajaxPipelineOnChange(array(ApiGradeBook::pipelineChangeYear()))
@@ -202,7 +218,7 @@ class Frontend extends FrontendTestPlanning
 
             $inactiveStudentList = array();
             if ($ShowInActive) {
-                $tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses(true);
+                $tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses(true, true, new DateTime('today'));
                 if (($tblDivisionCourseMemberList = $tblDivisionCourse->getStudentsWithSubCourses(true, false))) {
                     /** @var TblDivisionCourseMember $tblDivisionCourseMember */
                     foreach ($tblDivisionCourseMemberList as $tblDivisionCourseMember) {
@@ -212,7 +228,7 @@ class Frontend extends FrontendTestPlanning
                     }
                 }
             } else {
-                $tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses();
+                $tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses(false, true, new DateTime('today'));
                 if (($countInActive = $tblDivisionCourse->getCountInActiveStudents())) {
                     $tempContent = $countInActive == 1 ? ' inaktiven' : ' inaktive';
                     $optionInActive = (new CheckBox('Data[OptionInActive]', $countInActive . $tempContent . ' Schüler mit anzeigen', 1))
@@ -654,9 +670,9 @@ class Frontend extends FrontendTestPlanning
                         && ($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())
                     ) {
                         // SEKII
-                        if (DivisionCourse::useService()->getIsCourseSystemBySchoolTypeAndLevel($tblSchoolType, $tblStudentEducation->getLevel())) {
+                        if (DivisionCourse::useService()->getIsCourseSystemBySchoolTypeAndLevel($tblSchoolType, $tblStudentEducation->getLevel() ?: 0)) {
                             $tempList = $periodList['Normal'] ?? array();
-                            if (DivisionCourse::useService()->getIsShortYearBySchoolTypeAndLevel($tblSchoolType, $tblStudentEducation->getLevel())
+                            if (DivisionCourse::useService()->getIsShortYearBySchoolTypeAndLevel($tblSchoolType, $tblStudentEducation->getLevel() ?: 0)
                                 && isset($periodList['Short'])
                             ) {
                                 $tempList = $periodList['Short'];
@@ -707,7 +723,7 @@ class Frontend extends FrontendTestPlanning
         $isRoleHeadmaster = Grade::useService()->getRole() == 'Headmaster';
         if ($tblTestList) {
             foreach ($tblTestList as $tblTest) {
-                $virtualTestTaskList[] = new VirtualTestTask($tblTest->getDate() ?: $tblTest->getFinishDate(), $tblTest);
+                $virtualTestTaskList[] = new VirtualTestTask($tblTest->getFinishDate() ?: ($tblTest->getSecondPeriodDate() ?: $tblTest->getDate()), $tblTest);
             }
         }
         if (($tblTaskList = Grade::useService()->getTaskListByStudentsInDivisionCourse($tblDivisionCourse))) {
@@ -1179,6 +1195,14 @@ class Frontend extends FrontendTestPlanning
                         }
                     }
 
+                    // Vergessene Arbeitsmittel/ Hausaufgaben
+                    if (!isset($headerList['Forgotten'])) {
+                        $headerList['Forgotten'] = $this->getTableColumnHead('Vergessene Arbeitsmittel/ Hausaufgaben');
+                    }
+                    $bodyList[$tblPerson->getId()]['Forgotten'] = $this->getTableColumnBody(
+                        Digital::useService()->getForgottenDisplayByPersonAndYear($tblPerson, $tblYear, $tblSubject)
+                    );
+
                     // Kommentar Notenänderung
                     if (!isset($headerList['Comment'])) {
                         $headerList['Comment'] = $this->getTableColumnHead('Vermerk Noten&shy;änderung');
@@ -1471,6 +1495,14 @@ class Frontend extends FrontendTestPlanning
                     }
                 }
 
+                // Vergessene Arbeitsmittel/ Hausaufgaben
+                if (!isset($headerList['Forgotten'])) {
+                    $headerList['Forgotten'] = $this->getTableColumnHead('Vergessene Arbeitsmittel/ Hausaufgaben');
+                }
+                $bodyList[$tblPerson->getId()]['Forgotten'] = $this->getTableColumnBody(
+                    Digital::useService()->getForgottenDisplayByPersonAndYear($tblPerson, $tblYear)
+                );
+
                 // Kommentar Notenänderung
                 if (!isset($headerList['Comment'])) {
                     $headerList['Comment'] = $this->getTableColumnHead('Vermerk Noten&shy;änderung');
@@ -1657,7 +1689,7 @@ class Frontend extends FrontendTestPlanning
         ) {
             $textKurs = new Bold($tblDivisionCourse->getDisplayName());
             $textSubject = new Bold($tblSubject->getDisplayName());
-            $tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses();
+            $tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses(false, true, new DateTime('today'));
 
             $bodyList = array();
             $integrationList = array();

@@ -9,6 +9,7 @@ use SPHERE\Application\Contact\Mail\Service\Entity\TblType;
 use SPHERE\Application\Contact\Mail\Service\Setup;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
 use SPHERE\Common\Frontend\Form\Structure\Form;
@@ -754,5 +755,40 @@ class Service extends AbstractService
         $Address
     ): TblMail {
         return (new Data($this->getBinding()))->createMail($Address);
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param array $tblRelationshipTypes
+     *
+     * @return array
+     */
+    public function getMailListByStudent(TblPerson $tblPerson, array $tblRelationshipTypes): array
+    {
+        $personList = Relationship::useService()->getPersonRelationshipList($tblPerson, $tblRelationshipTypes);
+
+        $phoneList = [];
+        foreach ($personList as $person) {
+            if (($tblToPersonList = $this->getMailAllByPerson($person['tblPerson']))) {
+                $phoneList[$person['tblPerson']->getId()] = [
+                    'tblPerson' => $person['tblPerson'],
+                    'tblRelationshipType' => $person['tblRelationshipType'],
+                    'tblToPersonList' => $tblToPersonList,
+                ];
+            }
+        }
+
+        return $phoneList;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblType|null $tblType
+     *
+     * @return TblMail|null
+     */
+    public function getLastMailAddressByPersonAndType(TblPerson $tblPerson, ?TblType $tblType): ?TblMail
+    {
+        return (new Data($this->getBinding()))->getLastMailAddressByPersonAndType($tblPerson, $tblType);
     }
 }

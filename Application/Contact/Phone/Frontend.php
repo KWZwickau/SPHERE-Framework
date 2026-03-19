@@ -254,6 +254,7 @@ class Frontend extends Extension implements IFrontendInterface
             $LayoutRowCount = 0;
             $LayoutRow = null;
 
+            $isFirstPhoneNumber = true;
             foreach ($phoneList as $phoneIdAndTypeId => $personArray) {
                 $PhoneAndTypeId = explode('#', $phoneIdAndTypeId);
                 $phoneId = $PhoneAndTypeId[0];
@@ -359,8 +360,12 @@ class Frontend extends Extension implements IFrontendInterface
                             . ' ' . $tblType->getName() . ' ' . $tblType->getDescription() . ($isEmergencyContact ? ' (Notfall)' : ''),
                             $content,
                             $options,
-                            $hasOnlineContacts ? Panel::PANEL_TYPE_WARNING : $panelType
+                            $hasOnlineContacts ? Panel::PANEL_TYPE_WARNING : $panelType,
+                            $isFirstPhoneNumber
                         );
+                        if ($isFirstPhoneNumber) {
+                            $isFirstPhoneNumber = false;
+                        }
 
                         if ($LayoutRowCount % 4 == 0) {
                             $LayoutRow = new LayoutRow(array());

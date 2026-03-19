@@ -122,29 +122,55 @@ abstract class Style extends Extension
 
     /**
      * @param string $Size
-     * @param string $Color
-     * @param string $Style
      *
      * @return $this
      */
-    public function styleBorderTop($Size = '1px', $Color = '#000', $Style = 'solid')
+    public function styleMarginLeft($Size)
     {
 
-        $this->Style[] = 'border-top: '.$Size.' '.$Style.' '.$Color.' !important;';
+        $this->Style[] = 'margin-left: '.$Size.' !important;';
         return $this;
     }
 
     /**
      * @param string $Size
-     * @param string $Color
-     * @param string $Style
      *
      * @return $this
      */
-    public function styleBorderBottom($Size = '1px', $Color = '#000', $Style = 'solid')
+    public function styleMarginRight($Size)
     {
 
-        $this->Style[] = 'border-bottom: '.$Size.' '.$Style.' '.$Color.' !important;';
+        $this->Style[] = 'margin-right: '.$Size.' !important;';
+        return $this;
+    }
+
+    /**
+     * @param $Size
+     * @param $Color
+     * @param $Style
+     * @param $BorderRadius
+     *
+     * @return $this
+     */
+    public function styleBorderTop($Size = '1px', $Color = '#000', $Style = 'solid', $BorderRadius = '0px')
+    {
+
+        $this->Style[] = 'border-top: '.$Size.' '.$Style.' '.$Color.'; border-radius:' . $BorderRadius . '; !important;';
+        return $this;
+    }
+
+    /**
+     * @param $Size
+     * @param $Color
+     * @param $Style
+     * @param $BorderRadius
+     *
+     * @return $this
+     */
+    public function styleBorderBottom($Size = '1px', $Color = '#000', $Style = 'solid', $BorderRadius = '0px')
+    {
+
+        $this->Style[] = 'border-bottom: '.$Size.' '.$Style.' '.$Color.'; border-radius:' . $BorderRadius . '; !important;';
         return $this;
     }
 

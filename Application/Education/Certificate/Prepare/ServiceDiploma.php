@@ -171,6 +171,10 @@ abstract class ServiceDiploma extends ServiceCertificateContent
 //                            && method_exists($Certificate, 'selectValuesFoesAbsText')
 //                        ) {
 //                            $value = $Certificate->selectValuesFoesAbsText()[$value];
+                        } elseif ($field == 'InDepthAssignment'
+                            && method_exists($Certificate, 'selectValuesInDepthAssignment')
+                        ) {
+                            $value = $Certificate->selectValuesInDepthAssignment()[$value];
                         } elseif ($field == 'AdditionalRemarkFhr') {
                             $value = 'hat erfolglos an der Prüfung zum Erwerb der Fachhochschulreife teilgenommen.';
                             $issetAdditionalRemarkFhr = true;
@@ -488,7 +492,18 @@ abstract class ServiceDiploma extends ServiceCertificateContent
                         $gradeText = $tblGradeText->getName();
                     }
 
+                    // delete IsNativeLanguage, da update nicht möglich da es in dem Fall nicht gesetzt ist, beachte nur bei Englisch
+                    if ($tblSubject->getName() == 'Englisch'
+                        && ($tblPrepareInformation = $this->getPrepareInformationBy($tblPrepareItem, $tblPerson, 'IsNativeLanguage'))
+                    ) {
+                        Prepare::useService()->destroyPrepareInformation($tblPrepareInformation);
+                    }
+
                     foreach ($personGrades as $identifier => $value) {
+                        if ($identifier == 'IsNativeLanguage') {
+                            (new Data($this->getBinding()))->createPrepareInformation($tblPrepareItem, $tblPerson, $identifier, $value);
+                        }
+
                         // GradeText als Endnote speichern
                         if ($identifier == 'EN' && $hasGradeText) {
                             $value = $gradeText;
@@ -521,7 +536,7 @@ abstract class ServiceDiploma extends ServiceCertificateContent
             foreach ($Data as $personGrades) {
                 if (is_array($personGrades)) {
                     foreach ($personGrades as $identifier => $value) {
-                        if (trim($value) !== '' && $identifier !== 'Text') {
+                        if (trim($value) !== '' && $identifier !== 'Text' && $identifier !== 'IsNativeLanguage') {
 //                            if (!preg_match('!^[1-6]{1}$!is', trim($value))) {
                             if (!preg_match('!^[1-6]$!i', trim($value))) {
                                 $error = true;

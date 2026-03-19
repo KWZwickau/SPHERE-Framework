@@ -110,11 +110,16 @@ class YubiKey implements ITypeInterface
                  * Case 1.
                  * OTP or Nonce values doesn't match - ignore response.
                  */
-                if (!preg_match("/otp=".$Key->getKeyOTP()."/", $Response) ||
-                    !preg_match("/nonce=".$Key->getKeyNOnce()."/", $Response)
+                $otp   = preg_quote($Key->getKeyOTP(), '/');
+                $nonce = preg_quote($Key->getKeyNOnce(), '/');
+
+                if (
+                    !preg_match("/otp={$otp}/", $Response) ||
+                    !preg_match("/nonce={$nonce}/", $Response)
                 ) {
                     continue;
-                } /**
+                }
+                /**
                  * Case 2.
                  * We have a HMAC key.  If signature is invalid - ignore response.
                  * Return if status=OK or status=REPLAYED_OTP.
@@ -305,9 +310,19 @@ class YubiKey implements ITypeInterface
         $Response = array();
         $ResultLineList = explode("\r\n", trim($Result));
         foreach ($ResultLineList as $ResultLine) {
+//            $ResultLine = preg_replace('/=/', '#', $ResultLine, 1);
+//            $PartList = explode("#", $ResultLine);
+
             $ResultLine = preg_replace('/=/', '#', $ResultLine, 1);
+            // kein Treffer → String bleibt unverändert
             $PartList = explode("#", $ResultLine);
-            $Response[$PartList[0]] = $PartList[1];
+            // Ergebnis: Array mit NUR EINEM Element
+
+            if (isset($PartList[1])) {
+                $Response[$PartList[0]] = $PartList[1];
+            }
+
+//            $Response[$PartList[0]] = $PartList[1];
         }
 
         $ApiParameterList = array(
@@ -323,7 +338,7 @@ class YubiKey implements ITypeInterface
         );
         sort($ApiParameterList);
 
-        $Query = null;
+        $Query = '';
         foreach ($ApiParameterList as $Parameter) {
             if (array_key_exists($Parameter, $Response)) {
                 if ($Query) {
@@ -332,9 +347,10 @@ class YubiKey implements ITypeInterface
                 $Query = $Query.$Parameter.'='.$Response[$Parameter];
             }
         }
-
-        $Signature = base64_encode(hash_hmac('sha1', utf8_encode($Query), $this->YubiApiKey, true));
-
+        if (!is_string($this->YubiApiKey) || $this->YubiApiKey === '') {
+            throw new ComponentException('YubiApiKey is missing or invalid');
+        }
+        $Signature = base64_encode(hash_hmac('sha1', $Query, $this->YubiApiKey, true));
         if ($Response['h'] == $Signature) {
             if ($Status == 'REPLAYED_OTP') {
                 return false;
