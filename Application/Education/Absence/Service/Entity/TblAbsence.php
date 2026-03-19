@@ -581,6 +581,8 @@ class TblAbsence extends Element
             return AbstractLink::TYPE_RED_LINK;
         } elseif ($this->getStatus() == self::VALUE_STATUS_UNEXCUSED) {
             return AbstractLink::TYPE_WARNING_LINK;
+        } elseif ($this->getStatus() == self::VALUE_STATUS_EXCUSED && !$this->getIsCertificateRelevant()) {
+            return AbstractLink::TYPE_MUTED_LINK;
         } elseif ($this->getStatus() == self::VALUE_STATUS_EXCUSED) {
             return AbstractLink::TYPE_SUCCESS_LINK;
         } else {
