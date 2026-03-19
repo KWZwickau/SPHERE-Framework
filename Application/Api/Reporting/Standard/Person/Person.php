@@ -473,14 +473,19 @@ class Person extends Extension
                 break;
             case View::FOS: $tblSchoolType = Type::useService()->getTypeByShortName('FOS');
                 break;
+            case View::BFS: $tblSchoolType = Type::useService()->getTypeByShortName('BFS');
+                break;
+            case View::FS: $tblSchoolType = Type::useService()->getTypeByShortName('FS');
+                break;
             default: $tblSchoolType = false;
         }
 
         $subjectList = array();
+        $complexExamList = array();
         if($tblSchoolType
             && ($tblYear = Term::useService()->getYearById($YearId))
-            && ($content = Reporting::useService()->getDiplomaSerialMailContent($tblSchoolType, $tblYear, $tblCourse ?: null, $subjectList))
-            && ($fileLocation = Reporting::useService()->createDiplomaSerialMailContentExcel($content, $subjectList))
+            && ($content = Reporting::useService()->getDiplomaSerialMailContent($tblSchoolType, $tblYear, $tblCourse ?: null, $subjectList, $complexExamList))
+            && ($fileLocation = Reporting::useService()->createDiplomaSerialMailContentExcel($content, $subjectList, $complexExamList))
         ){
             return FileSystem::getDownload($fileLocation->getRealPath(),
                 'Serien E-Mail für Prüfungsnoten ' . $tblSchoolType->getShortName()
