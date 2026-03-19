@@ -11,7 +11,6 @@ use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\School\Course\Course;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\People\Meta\Student\Student;
-use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
@@ -70,12 +69,8 @@ class Service extends AbstractService
         return (new Data($this->getBinding()))->getSkillAreaById($id);
     }
 
-    public function updateSkillGrid(IFormInterface $form, TblType $tblSchoolType, $Data, ?TblSkillGrid $tblSkillGrid = null)
+    public function updateSkillGrid(TblType $tblSchoolType, $Filter, $Data, ?TblSkillGrid $tblSkillGrid = null)
     {
-        if ($Data === null) {
-            return $form;
-        }
-
         // TOdo check pflicht imputs
 
         $tblSubject = Subject::useService()->getSubjectById($Data['SubjectId']);
@@ -85,7 +80,8 @@ class Service extends AbstractService
         $tblSkillGrid = (new Data($this->getBinding()))->createSkillGrid($tblSchoolType, $Data['Name'], isset($Data['IsAverage']),
             $Data['Level'], $tblSubject ?: null, $tblCourse ?: null, $tblSupportFocusType ?: null);
 
+        // ToDo geht so nicht mit redirekt und parameters
         return new Success('Die Daten wurden erfolgreich gespeichert', new \SPHERE\Common\Frontend\Icon\Repository\Success())
-            . new Redirect('/Education/Competence/Skill/', Redirect::TIMEOUT_SUCCESS);
+            . new Redirect('/Education/Competence/Skill/', Redirect::TIMEOUT_SUCCESS, ['SchoolTypeId' => $tblSchoolType->getId(), 'Filter' => $Filter]);
     }
 }
