@@ -125,7 +125,12 @@ class ErrorLog extends Extension implements IModuleInterface
         }
         // Lokaler Button wird nicht freigegeben
         $ButtonString = '';
-        $ButtonString = new Standard('Json "Lokaler Test"', __NAMESPACE__.'/LocalJson', new Download());
+        // Route für Adminansicht
+        $ButtonString .= new Standard('Json "Lokaler Test"', __NAMESPACE__.'/LocalJson', new Download());
+        // Route für Adminansicht verwendet
+        $ButtonString .= (new Standard('Letzte JSON anzeigen', __NAMESPACE__.'/LocalJson', new EyeOpen()))->ajaxPipelineOnClick(
+            ApiIndiware::pipelineShowLastJSONContent()
+        );
         $ButtonString .= new DangerLink('Logfile zurücksetzen', __NAMESPACE__.'/Clean', new Remove());
         if($Code){
             // anzeige nur bei vorhandenem Code
@@ -152,7 +157,7 @@ class ErrorLog extends Extension implements IModuleInterface
                 /** @var $tblReplacementLog TblTimetableReplacementLog */
                 $item = array();
                 if(!$Date){
-                    $Date = $tblReplacementLog->getEntityCreate()->format('d.m.Y H:i:s');
+                    $Date = $tblReplacementLog->getEntityCreate()->format('H:i:s d.m.Y');
                     $Date = new Bold($Date);
                 }
                 $item['Date'] = $tblReplacementLog->getDate();
@@ -222,6 +227,7 @@ class ErrorLog extends Extension implements IModuleInterface
         }
 
 
+        $ReceiverLastJSON = ApiIndiware::receiverContent('', 'ShowJSON');
         $ReceiverURL = ApiIndiware::receiverContent('', 'ShowURL');
         $Stage->setContent(
             new Layout(new LayoutGroup(array(
@@ -234,6 +240,7 @@ class ErrorLog extends Extension implements IModuleInterface
                             ? $ReceiverURL
                             .'<div style="height: 8px;"></div>'
                             .'Zeitpunkt Import: '.$Date
+                            .$ReceiverLastJSON
                             : '<div style="height: 8px;"></div>'
                             .new Warning('Schnittstelle: Freischaltung erforderlich!'))
                     ),
@@ -519,7 +526,7 @@ class ErrorLog extends Extension implements IModuleInterface
         $Stage = new Stage('Json einspielen');
         $Stage->addButton(new Standard('Zurück', __NAMESPACE__, new ChevronLeft()));
 
-        $Mandant = 'EVSR';
+        $Mandant = 'KG';
         if(!($tblMandant = Consumer::useService()->getConsumerByAcronym($Mandant))){
             return $Stage->setContent(new Danger('Mandant nicht gefunden'));
         }

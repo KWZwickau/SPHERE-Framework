@@ -636,22 +636,23 @@ class ReplacementService
             }
 
             if(($ReplacementList = $ArrayData['Gesamtexport']['Vertretungsplan']['Vertretungsplan'])){
-              // EVSR Händisch als Json erhalten
-//            if(isset($ArrayData['Vertretungsplan'])
-//                && ($ReplacementList = $ArrayData['Vertretungsplan'])){
                 $readList = $this->readReplacement($ReplacementList);
                 $importList = $this->getObjectList($readList);
                 $DateArray = $this->getDateArray($importList);
             }
         } else {
             // Manuel übertragene JSON sieht anders aus und muss deshalb anders ausgelesen werden
-            if(!isset($ArrayData['Vertretungsplan'])){
+            // EVSR Händisch als Json erhalten (Button mit geschweiften Klammern in Indiware)
+                // Ebenen ['Gesamtexport']['Vertretungsplan'] fehlen dann.
+//            if(isset($ArrayData['Vertretungsplan'])
+//                && ($ReplacementList = $ArrayData['Vertretungsplan'])){
+            // aktuell mit KG getestet und den Standardaufbau erzeugt (wie JSON über PUT kommt)
+            if(!isset($ArrayData['Gesamtexport']['Vertretungsplan']['Vertretungsplan'])){
                 TimetableTool::useService()->createTimetableReplacementLogEntity('Upload war kein Vertretungsplan oder ungültige/leere JSON');
                 return 'Kein Vertretungsplan';
             }
-                // EVSR Händisch als Json erhalten
-            if(isset($ArrayData['Vertretungsplan'])
-            && ($ReplacementList = $ArrayData['Vertretungsplan'])){
+            if(isset($ArrayData['Gesamtexport']['Vertretungsplan']['Vertretungsplan'])
+            && ($ReplacementList = $ArrayData['Gesamtexport']['Vertretungsplan']['Vertretungsplan'])){
                 $readList = $this->readReplacement($ReplacementList);
                 $importList = $this->getObjectList($readList);
                 $DateArray = $this->getDateArray($importList);
@@ -680,7 +681,7 @@ class ReplacementService
         }
 
         if(empty($errorList)){
-            TimetableTool::useService()->createTimetableReplacementLogEntity('Upload ohne enthaltene Konflikte!');
+            TimetableTool::useService()->createTimetableReplacementLogEntity('Upload mit '.count($importList).' Einträgen ohne Konflikte');
         }
         return '';
     }
@@ -785,7 +786,11 @@ class ReplacementService
             $tblPersonV = false;
             $RoomV = current($read['RoomVArray']);
 
+            // bei Ausfall und nicht vorhandener Vertretungsklasse
             if($IsCanceled && !$CourseV){
+                $CourseV = $read['OriginalCourse'];
+            } elseif(!$CourseV) {
+                // Fallback Vertretungsklasse ist leer (kommt bei Art "Verl." vor) [Verlegt]
                 $CourseV = $read['OriginalCourse'];
             }
 
