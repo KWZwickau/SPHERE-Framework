@@ -357,13 +357,20 @@ class Frontend extends Extension implements IFrontendInterface
             $skillRanking = 1;
             $content[] = ApiSkill::receiverBlock($this->getSkillContent($AreaRanking, $skillRanking), "SkillContent_$AreaRanking" . "_$skillRanking");
         } else {
-            $countSkills = count($Data['SkillAreas'][$AreaRanking]['Skills']);
+            $countSkills = count(array_filter(
+                array_keys($Data['Skills']),
+                fn($key) => str_starts_with((string) $key, "$AreaRanking-")
+            ));
             $count = 0;
-            foreach ($Data['SkillAreas'][$AreaRanking]['Skills'] as $skillRanking => $skillArray) {
-                $content[] = ApiSkill::receiverBlock(
-                    $this->getSkillContent($AreaRanking, $skillRanking, ++$count == $countSkills, $Data, $ErrorList),
-                    "SkillContent_$AreaRanking" . "_$skillRanking"
-                );
+            foreach ($Data['Skills'] as $key => $skillArray) {
+                $split = explode('-', $key);
+                if ($split[0] == $AreaRanking) {
+                    $skillRanking = $split[1];
+                    $content[] = ApiSkill::receiverBlock(
+                        $this->getSkillContent($AreaRanking, $skillRanking, ++$count == $countSkills, $ErrorList),
+                        "SkillContent_$AreaRanking" . "_$skillRanking"
+                    );
+                }
             }
         }
 
@@ -398,30 +405,25 @@ class Frontend extends Extension implements IFrontendInterface
      * @param $AreaRanking
      * @param $SkillRanking
      * @param bool $hasAddButton
-     * @param null $Data
      * @param null $ErrorList
      *
      * @return string
      */
-    public function getSkillContent($AreaRanking, $SkillRanking, bool $hasAddButton = true, $Data = null, $ErrorList = null): string
+    public function getSkillContent($AreaRanking, $SkillRanking, bool $hasAddButton = true, $ErrorList = null): string
     {
-        // eingetragene Daten bleiben hier nicht erhalten
-//        if ($Data !== null && isset($Data['SkillAreas'][$AreaRanking]['Skills'][$SkillRanking])) {
-//            $global = $this->getGlobal();
-//            $global->POST['Data']['Name'] = 'Hallo';
-            // todo array ist zu tief
-            // todo speichern Skills in Grund Data neben SkillAreas
-            //$global->POST['Data']['SkillAreas'][$AreaRanking]['Skills'][$SkillRanking]['Level'] = $Data['SkillAreas'][$AreaRanking]['Skills'][$SkillRanking]['Level'];
-            //$global->POST['Data']['SkillAreas'][$AreaRanking]['Skills'][$SkillRanking]['Skill'] = $Data['SkillAreas'][$AreaRanking]['Skills'][$SkillRanking]['Skill'];
-//            $global->savePost();
-//        }
+        // POST kann maximal auf der 3. Ebene sein, es gehen keine tieferen Arrays
+        $levelInput = new TextField("Data[Skills][$AreaRanking-$SkillRanking][Level]", 'Niveau', 'Niveau');
+        $skillInput = new TextField("Data[Skills][$AreaRanking-$SkillRanking][Skill]", 'Neue Kompetenz', 'Kompetenz ' . new Danger('*'));
+        if (isset($ErrorList["Data[Skills][$AreaRanking-$SkillRanking][Skill]"])) {
+            $skillInput->setError($ErrorList["Data[Skills][$AreaRanking-$SkillRanking][Skill]"]['Message']);
+        }
 
         $rows[] = new LayoutRow(array(
             new LayoutColumn(
-                new TextField("Data[SkillAreas][$AreaRanking][Skills][$SkillRanking][Level]", 'Niveau', 'Niveau')
+                    $levelInput
                 , 4),
             new LayoutColumn(
-                (new TextField("Data[SkillAreas][$AreaRanking][Skills][$SkillRanking][Skill]", 'Neue Kompetenz', 'Kompetenz ' . new Danger('*')))
+                    $skillInput
                 , 8),
         ));
         if ($hasAddButton) {
