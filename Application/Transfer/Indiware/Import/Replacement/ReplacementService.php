@@ -777,7 +777,7 @@ class ReplacementService
             $tblSubject = false;
             $SubjectV = $read['SubjectV'];
             $tblSubjectV = false;
-            $IsCanceled = ($SubjectV == ''? true : false);
+            $IsCanceled = ($SubjectV == ''? true : false); // ToDO eventuell "art" auslesen um spezifischer reagieren zu können
             $PersonV = current($read['PersonVArray']);
             // InitialLehrer für den Ausfall eintragen
             if(empty($PersonV) && $IsCanceled){
