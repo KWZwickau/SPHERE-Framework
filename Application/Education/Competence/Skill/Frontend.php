@@ -176,9 +176,14 @@ class Frontend extends Extension implements IFrontendInterface
 
         if (($tblSchoolType = Type::useService()->getTypeById($SchoolTypeId))) {
 //            $stage->setContent(ApiSkill::receiverBlock(
-            $stage->setContent(new Well($this->formSkillGrid($SchoolTypeId, $Filter, $SkillGridId, true)));
-//                ,'Content'
-//            ));
+            $stage->setContent(new Well(
+                Skill::useService()->updateSkillGrid(
+                    $this->formSkillGrid($SchoolTypeId, $Filter, $SkillGridId, true),
+                    $tblSchoolType,
+                    $Filter,
+                    $Data
+                )
+            ));
         }
 
         return $stage;
@@ -195,7 +200,17 @@ class Frontend extends Extension implements IFrontendInterface
         return (new Standard('Zurück', '/Education/Competence/Skill', new ChevronLeft(), ['SchoolTypeId' => $SchoolTypeId, 'Filter' => $Filter]));
     }
 
-    public function formSkillGrid($SchoolTypeId = null, $Filter = null, $SkillGridId = null, bool $setPost = false): Form
+    /**
+     * @param $SchoolTypeId
+     * @param $Filter
+     * @param $SkillGridId
+     * @param bool $setPost
+     * @param $Data
+     * @param $ErrorList
+     *
+     * @return Form
+     */
+    public function formSkillGrid($SchoolTypeId = null, $Filter = null, $SkillGridId = null, bool $setPost = false, $Data = null, $ErrorList = null): Form
     {
         // beim Checken der Input-Felder darf der Post nicht gesetzt werden
 //        $tblSkillGrid = DivisionCourse::useService()->getSubjectTableById($SkillGridId);
@@ -226,10 +241,6 @@ class Frontend extends Extension implements IFrontendInterface
 //                ;// ->ajaxPipelineOnClick(ApiSkill::pipelineCreateSubjectTableSave($SchoolTypeId));
 //        }
 
-        $Data = null;
-        $Errors = null;
-        $AreaRanking = 1;
-
         // Todo Bewertungssysteme
         $tblScoreTypeList = [];
         $tblScoreTypeList[] = new SelectBoxItem(-1, 'Prozent');
@@ -238,7 +249,25 @@ class Frontend extends Extension implements IFrontendInterface
         $tblCourseAll = Course::useService()->getCourseAll();
         $tblSupportFocusTypeAll = Student::useService()->getSupportFocusTypeAll();
 
-        return (new Form(array(
+        if ($Data === null) {
+            $areaRanking = 1;
+            $skillAreaRows[] = new FormRow(new FormColumn(
+                ApiSkill::receiverBlock($this->getSkillAreaContent($areaRanking), "SkillAreaContent_$areaRanking")
+            ));
+        } else {
+            $countSkillAreas = count($Data['SkillAreas']);
+            $count = 0;
+            foreach ($Data['SkillAreas'] as $areaRanking => $areaArray) {
+                $skillAreaRows[] = new FormRow(new FormColumn(
+                    ApiSkill::receiverBlock(
+                        $this->getSkillAreaContent($areaRanking, ++$count == $countSkillAreas, $Data, $ErrorList),
+                        "SkillAreaContent_$areaRanking"
+                    )
+                ));
+            }
+        }
+
+        $form = new Form(array(
             new FormGroup(array(
                 new FormRow(array(
                     new FormColumn(
@@ -269,7 +298,7 @@ class Frontend extends Extension implements IFrontendInterface
                             'Gültigkeitsbereich des Kompetenzrasters',
                             new Layout(new LayoutGroup(new LayoutRow(array(
                                 new LayoutColumn(
-                                    (new NumberField('Data[Level]', '', 'Klassenstufe'))//->setRequired()
+                                    (new NumberField('Data[Level]', '', 'Klassenstufe ' . new Danger('*')))//->setRequired()
                                     , 3 ),
                                 new LayoutColumn(
                                     (new SelectBox('Data[SubjectId]', 'Fach (ansonsten Fächerübergreifend)', array('{{ Acronym }} - {{ Name }}' => $tblSubjectList)))
@@ -286,63 +315,117 @@ class Frontend extends Extension implements IFrontendInterface
                     )
                 )
             )),
+            new FormGroup(
+                $skillAreaRows
+//                new FormRow(array(
+//                    new FormColumn(
+//                        ApiSkill::receiverBlock($this->getSkillAreaContent(1), "SkillAreaContent_$AreaRanking")
+//                    )
+//                )),
+            ),
             new FormGroup(array(
                 new FormRow(array(
                     new FormColumn(
-                        ApiSkill::receiverBlock($this->getSkillAreaContent(1), "SkillAreaContent_$AreaRanking")
-                    )
-                )),
-            )),
-            new FormGroup(array(
-                new FormRow(array(
-                    new FormColumn(
-                        ApiSkill::receiverBlock(
-                            (new Primary('Speichern', ApiSkill::getEndpoint(), new Save()))
-                                ->ajaxPipelineOnClick(ApiSkill::pipelineSaveSkillGridEdit($SchoolTypeId, $Filter, $SkillGridId)),
-                            'Content'
-                        )
+                        new \SPHERE\Common\Frontend\Form\Repository\Button\Primary('Speichern', new Save())
                     )
                 )),
             ))
-        )))->disableSubmitAction();
+        ));
+
+        if ($ErrorList) {
+            foreach ($ErrorList as $error) {
+                $form->setError($error['Name'], $error['Message']);
+            }
+        }
+
+        return $form;
     }
 
-    public function getSkillAreaContent($AreaRanking): string
+
+    /**
+     * @param $AreaRanking
+     * @param bool $hasAddButton
+     * @param null $Data
+     * @param null $ErrorList
+     *
+     * @return string
+     */
+    public function getSkillAreaContent($AreaRanking, bool $hasAddButton = true, $Data = null, $ErrorList = null): string
     {
+        $content = [];
+        if ($Data === null) {
+            $skillRanking = 1;
+            $content[] = ApiSkill::receiverBlock($this->getSkillContent($AreaRanking, $skillRanking), "SkillContent_$AreaRanking" . "_$skillRanking");
+        } else {
+            $countSkills = count($Data['SkillAreas'][$AreaRanking]['Skills']);
+            $count = 0;
+            foreach ($Data['SkillAreas'][$AreaRanking]['Skills'] as $skillRanking => $skillArray) {
+                $content[] = ApiSkill::receiverBlock(
+                    $this->getSkillContent($AreaRanking, $skillRanking, ++$count == $countSkills, $Data, $ErrorList),
+                    "SkillContent_$AreaRanking" . "_$skillRanking"
+                );
+            }
+        }
+
         $layout = new Layout(new LayoutGroup(array(
             new LayoutRow(array(
                 new LayoutColumn(
                     new TextField("Data[SkillAreas][$AreaRanking][Area]", 'Neuer Kompetenzbereich', 'Kompetenzbereich')
                 , 3),
                 new LayoutColumn(
-                    ApiSkill::receiverBlock($this->getSkillContent($AreaRanking, 1), "SkillContent_$AreaRanking" . "_1")
+                    $content
                 , 9)
             )),
         )));
+
+        $button = '';
+        if ($hasAddButton) {
+            $button = ApiSkill::receiverBlock(
+                (new Link(new Bold('Kompetenzbereich hinzufügen'), ApiSkill::getEndpoint(), new Plus()))
+                    ->ajaxPipelineOnClick(ApiSkill::pipelineLoadSkillAreaContent($AreaRanking + 1)),
+                'SkillAreaContent_' . ($AreaRanking + 1)
+            );
+        }
 
         return new Panel(
             "$AreaRanking. Kompetenzbereich",
             $layout,
             Panel::PANEL_TYPE_INFO
-        ) . ApiSkill::receiverBlock(
-                (new Link(new Bold('Kompetenzbereich hinzufügen'), ApiSkill::getEndpoint(), new Plus()))
-                    ->ajaxPipelineOnClick(ApiSkill::pipelineLoadSkillAreaContent($AreaRanking + 1)),
-                'SkillAreaContent_' . ($AreaRanking + 1)
-            );
+        ) . $button;
     }
 
-    public function getSkillContent($AreaRanking, $SkillRanking): string
+    /**
+     * @param $AreaRanking
+     * @param $SkillRanking
+     * @param bool $hasAddButton
+     * @param null $Data
+     * @param null $ErrorList
+     *
+     * @return string
+     */
+    public function getSkillContent($AreaRanking, $SkillRanking, bool $hasAddButton = true, $Data = null, $ErrorList = null): string
     {
-        return new Layout(new LayoutGroup(array(
-            new LayoutRow(array(
-                new LayoutColumn(
-                    new TextField("Data[SkillAreas][$AreaRanking][Skills][$SkillRanking][Niveau]", 'Niveau', 'Niveau')
+        // eingetragene Daten bleiben hier nicht erhalten
+//        if ($Data !== null && isset($Data['SkillAreas'][$AreaRanking]['Skills'][$SkillRanking])) {
+//            $global = $this->getGlobal();
+//            $global->POST['Data']['Name'] = 'Hallo';
+            // todo array ist zu tief
+            // todo speichern Skills in Grund Data neben SkillAreas
+            //$global->POST['Data']['SkillAreas'][$AreaRanking]['Skills'][$SkillRanking]['Level'] = $Data['SkillAreas'][$AreaRanking]['Skills'][$SkillRanking]['Level'];
+            //$global->POST['Data']['SkillAreas'][$AreaRanking]['Skills'][$SkillRanking]['Skill'] = $Data['SkillAreas'][$AreaRanking]['Skills'][$SkillRanking]['Skill'];
+//            $global->savePost();
+//        }
+
+        $rows[] = new LayoutRow(array(
+            new LayoutColumn(
+                new TextField("Data[SkillAreas][$AreaRanking][Skills][$SkillRanking][Level]", 'Niveau', 'Niveau')
                 , 4),
-                new LayoutColumn(
-                    (new TextField("Data[SkillAreas][$AreaRanking][Skills][$SkillRanking][Skill]", 'Neue Kompetenz', 'Kompetenz ' . new Danger('*')))
+            new LayoutColumn(
+                (new TextField("Data[SkillAreas][$AreaRanking][Skills][$SkillRanking][Skill]", 'Neue Kompetenz', 'Kompetenz ' . new Danger('*')))
                 , 8),
-            )),
-            new LayoutRow(array(
+        ));
+        if ($hasAddButton) {
+            $rows[] = new LayoutRow(array(
                 new LayoutColumn(
                     ApiSkill::receiverBlock(
                         (new Link(new Bold('Kompetenz hinzufügen'), ApiSkill::getEndpoint(), new Plus()))
@@ -350,7 +433,9 @@ class Frontend extends Extension implements IFrontendInterface
                         'SkillContent_' . $AreaRanking . '_' . ($SkillRanking + 1)
                     )
                 )
-            ))
-        )));
+            ));
+        }
+
+        return new Layout(new LayoutGroup($rows));
     }
 }

@@ -101,7 +101,7 @@ class Data extends AbstractData
      *
      * @return TblSkillArea
      */
-    public function createSkillArea(TblSkillGrid $tblSkillGrid, string $name, int $sortOrder): TblSkillArea
+    public function createSkillArea(TblSkillGrid $tblSkillGrid, ?string $name, int $sortOrder): TblSkillArea
     {
         $manager = $this->getEntityManager();
 

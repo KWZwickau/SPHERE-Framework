@@ -19,7 +19,7 @@ class TblSkillArea extends Element
     /**
      * @Column(type="bigint")
      */
-    protected int $tblSkillGrid;
+    protected int $tblCompetenceSkillGrid;
     /**
      * @Column(type="string")
      */
@@ -34,7 +34,7 @@ class TblSkillArea extends Element
      */
     public function getTblSkillGrid(): TblSkillGrid|false
     {
-        return Skill::useService()->getSkillGridById($this->tblSkillGrid);
+        return Skill::useService()->getSkillGridById($this->tblCompetenceSkillGrid);
     }
 
     /**
@@ -43,7 +43,7 @@ class TblSkillArea extends Element
      */
     public function setTblSkillGrid(TblSkillGrid $tblSkillGrid): void
     {
-        $this->tblSkillGrid = $tblSkillGrid->getId();
+        $this->tblCompetenceSkillGrid = $tblSkillGrid->getId();
     }
 
     public function getName(): ?string

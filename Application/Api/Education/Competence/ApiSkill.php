@@ -5,7 +5,6 @@ namespace SPHERE\Application\Api\Education\Competence;
 use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\Education\Competence\Skill\Skill;
-use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\IApiInterface;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
@@ -13,8 +12,6 @@ use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
 use SPHERE\Common\Frontend\Ajax\Receiver\ModalReceiver;
 use SPHERE\Common\Frontend\Ajax\Template\CloseModal;
 use SPHERE\Common\Frontend\Form\Repository\Button\Close;
-use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
-use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\System\Extension\Extension;
 
 class ApiSkill extends Extension implements IApiInterface
@@ -34,7 +31,6 @@ class ApiSkill extends Extension implements IApiInterface
         $Dispatcher->registerMethod('loadSkillGridTable');
         $Dispatcher->registerMethod('loadSkillAreaContent');
         $Dispatcher->registerMethod('loadSkillContent');
-        $Dispatcher->registerMethod('saveSkillGridEdit');
 
         return $Dispatcher->callMethod($Method);
     }
@@ -102,54 +98,6 @@ class ApiSkill extends Extension implements IApiInterface
     public function loadSkillGridTable($SchoolTypeId = null, $Filter = null): string
     {
         return Skill::useFrontend()->loadSkillGridTable($SchoolTypeId, $Filter);
-    }
-
-    /**
-     * @param $SchoolTypeId
-     * @param $Filter
-     * @param $SkillGridId
-     *
-     * @return Pipeline
-     */
-    public static function pipelineSaveSkillGridEdit($SchoolTypeId, $Filter, $SkillGridId = null): Pipeline
-    {
-        $Pipeline = new Pipeline(false);
-        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'Content'), self::getEndpoint());
-        $ModalEmitter->setGetPayload(array(
-            self::API_TARGET => 'saveSkillGridEdit',
-        ));
-        $ModalEmitter->setPostPayload(array(
-            'SchoolTypeId' => $SchoolTypeId,
-            'Filter' => $Filter,
-            'SkillGridId' => $SkillGridId
-        ));
-        $ModalEmitter->setLoadingMessage("Daten werden geladen");
-        $Pipeline->appendEmitter($ModalEmitter);
-
-        return $Pipeline;
-    }
-
-    /**
-     * @param $SchoolTypeId
-     * @param $Filter
-     * @param $SkillGridId
-     * @param null $Data
-     *
-     * @return string
-     * @noinspection PhpUnused
-     */
-    public function saveSkillGridEdit($SchoolTypeId, $Filter, $SkillGridId, $Data = null): string
-    {
-        // Todo Check input
-        if (!($tblSchoolType = Type::useService()->getTypeById($SchoolTypeId))) {
-            return (new Danger("Schulart wurde nicht gefunden!", new Exclamation()));
-        }
-        $tblSkillGrid = null;
-        if ($SkillGridId) {
-            $tblSkillGrid = Skill::useService()->getSkillGridById($SkillGridId);
-        }
-
-        return Skill::useService()->updateSkillGrid($tblSchoolType, $Filter, $Data, $tblSkillGrid ?: null);
     }
 
     /**

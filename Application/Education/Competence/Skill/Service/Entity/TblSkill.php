@@ -19,7 +19,7 @@ class TblSkill extends Element
     /**
      * @Column(type="bigint")
      */
-    protected int $tblSkillArea;
+    protected int $tblCompetenceSkillArea;
     /**
      * @Column(type="string")
      */
@@ -38,7 +38,7 @@ class TblSkill extends Element
      */
     public function getTblSkillArea(): TblSkillArea|false
     {
-        return Skill::useService()->getSkillAreaById($this->tblSkillArea);
+        return Skill::useService()->getSkillAreaById($this->tblCompetenceSkillArea);
     }
 
     /**
@@ -47,7 +47,7 @@ class TblSkill extends Element
      */
     public function setTblSkillArea(TblSkillArea $tblSkillArea): void
     {
-        $this->tblSkillArea = $tblSkillArea->getId();
+        $this->tblCompetenceSkillArea = $tblSkillArea->getId();
     }
 
     public function getLevel(): ?string
