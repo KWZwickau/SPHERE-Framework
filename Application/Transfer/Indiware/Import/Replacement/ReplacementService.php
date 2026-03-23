@@ -21,6 +21,7 @@ use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\System\Extension\Extension;
+use SPHERE\System\Extension\Repository\Debugger;
 use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
@@ -670,6 +671,7 @@ class ReplacementService
             }
             $errorList = array_filter($errorList);
             $importList = array_filter($importList);
+
             // save ErrorList
             if(!empty($errorList)) {
                 TimetableTool::useService()->createTimetableReplacementLog($errorList);
@@ -703,8 +705,13 @@ class ReplacementService
                 $ReplacementEntryList = $Replacement['Aktionen'];
                 foreach($ReplacementEntryList as $ReplacementEntry){
                     $item = array();
+                    $item['Art'] = $ReplacementEntry['Ak_Art']?:'';
                     $item['Date'] = $ReplacementEntry['Ak_DatumVon']?:'';
                     $Hour = $item['Hour'] = $ReplacementEntry['Ak_StundeVon']?:'';
+                    $HourTo = $item['HourTo'] = isset($ReplacementEntry['Ak_StundeNach'])?$ReplacementEntry['Ak_StundeNach']:'';
+                    if($HourTo){
+                        $HourTo = (int)$HourTo;
+                    }
                     $item['Subject'] = $ReplacementEntry['Ak_Fach']?:'';
                     $item['SubjectV'] = isset($ReplacementEntry['Ak_VFach'])?$ReplacementEntry['Ak_VFach']:'';
                     $item['PersonVArray'] = isset($ReplacementEntry['VLehrer'])?$ReplacementEntry['VLehrer']:array();
@@ -725,7 +732,11 @@ class ReplacementService
                             // mehrere Einträge
                             if(is_numeric($Hour)){
                                 for($i = $Hour; $i < ($Hour + $count); $i++){
-                                    $item['Hour'] = (string)$i;
+                                    $item['Hour'] = (string)$i;// Zählung nach jedem durchlauf auch für vertretungsstunden hochzählen
+                                    $item['HourTo'] = $HourTo;
+                                    if($HourTo){
+                                        $HourTo++;
+                                    }
                                     if(isset($OriginalCourseListV[$Key])){
                                         $item['OriginalCourse'] = $OriginalCourseListV[$Key];
                                     }
@@ -746,6 +757,10 @@ class ReplacementService
                         foreach($OriginalCourseListV as $Course){
                             for($j = $Hour; $j < ($Hour + $count); $j++){
                                 $item['Hour'] = (string)$j;
+                                $item['HourTo'] = $HourTo;
+                                if($HourTo){
+                                    $HourTo++;
+                                }
                                 $item['Course'] = '';
                                 $item['OriginalCourse'] = $Course;
                                 $resultList[] = $item;
@@ -768,16 +783,18 @@ class ReplacementService
         $resultList = array();
         foreach ($readList as $read) {
             $item = array();
+            $Art = $read['Art'];
             $Date = $read['Date'];
             $DateTime = new DateTime($Date);
             $Hour = $read['Hour'];
+            $HourTo = $read['HourTo'];
             $CourseV = $read['Course'];
             $tblCourse = false;
             $Subject = $read['Subject'];
             $tblSubject = false;
             $SubjectV = $read['SubjectV'];
             $tblSubjectV = false;
-            $IsCanceled = ($SubjectV == ''? true : false); // ToDO eventuell "art" auslesen um spezifischer reagieren zu können
+            $IsCanceled = ($Art == 'Verl.' || $Art == 'Ausf.');
             $PersonV = current($read['PersonVArray']);
             // InitialLehrer für den Ausfall eintragen
             if(empty($PersonV) && $IsCanceled){
@@ -827,6 +844,7 @@ class ReplacementService
 
 //            $item['SchoolName'] = $schoolName;
 //            $item['ReplacementId'] = '';
+            $item['Art'] = $Art;
             $item['Date'] = $DateTime;
             $item['DateString'] = $Date;
             $item['Hour'] = $Hour;
@@ -843,7 +861,35 @@ class ReplacementService
             $item['PersonAcronym'] = $PersonV;
             $item['tblPersonV'] = $tblPersonV;
 
-            $resultList[] = $item;
+            if($Art == 'Verl.'){
+                // Originalstunden müssen auf cancel gestellt werden.
+//                $item['IsCanceled'] = true;
+                // verschobene Vertretung gilt als Ausfall, SubstituteSubject muss also leer sein.
+                $item['tblSubstituteSubject'] = null;
+                $resultList[] = $item;
+                // neuer Eintrag an der Zielstunde
+                if($HourTo){
+                    // Vertretung gilt als neu, Substitute muss also hier rein
+                    $item['tblSubstituteSubject'] = $tblSubjectV;
+                    // Vertretung gilt als neu, Subject muss also leer sein
+                    $item['tblSubject'] = null;
+                    // neue Stunde darf nicht auf canceled stehen
+                    $item['IsCanceled'] = false;
+                    $item['Hour'] = $HourTo;
+                    $resultList[] = $item;
+                }
+            } elseif($Art == 'Ausf.'){
+                // Ausfall muss leeres Vertretungsfach mitgeben
+                $item['tblSubstituteSubject'] = null;
+                $resultList[] = $item;
+            } elseif($Art == 'Änd.'
+            && $Subject == $SubjectV){
+                // Bleibt das Fach gleich, muss es als Vertretung raus
+                $item['tblSubstituteSubject'] = null;
+                $resultList[] = $item;
+            } else {
+                $resultList[] = $item;
+            }
         }
         return $resultList;
     }
@@ -924,14 +970,47 @@ class ReplacementService
         // "Ak_Fach": "",
         // "Ak_VFach": "GEO",
         // Fach nicht gefunden, soll als Fehler aufgenommen werden, leerer String ist für ein "anlegen" aber ok
-        if (!$import['tblSubject'] && $import['Subject']) {
-            $errors[] = '[Fach] - '.$import['Subject'].' => Fach nicht gefunden';
-        } elseif(!$import['tblSubject'] && !$import['tblSubstituteSubject']){
-            $errors[] = '[Fach] - '.($import['Subject']?:'[leer]').' => Fach nicht gefunden';
+        if($import['Art'] == 'Verl.'){
+            if($import['IsCanceled']){
+                if (!$import['tblSubject'] && $import['Subject']) {
+                    $errors[] = '[Fach] - '.$import['Subject'].' => Fach nicht gefunden';
+                }
+            } else {
+                if (!$import['tblSubstituteSubject'] && $import['tblSubstituteSubject']) {
+                    $errors[] = '[Fach] - '.$import['SubjectSubstitute'].' => Fach nicht gefunden';
+                }
+            }
+        } elseif($import['Art'] == 'Ausf.'){
+            if (!$import['tblSubject'] && $import['Subject']) {
+                $errors[] = '[Fach] - '.$import['Subject'].' => Fach nicht gefunden';
+            }
+        } elseif($import['Art'] == 'Änd.'){
+            if ($import['Subject'] == $import['SubjectSubstitute']) {
+                // Fehler kann hier nur Subject auslösen
+                if(!$import['tblSubject']){
+                    $errors[] = '[Fach] - '.$import['Subject'].' => Fach nicht gefunden';
+                }
+            } else {
+                if (!$import['tblSubject'] && $import['Subject']) {
+                    $errors[] = '[Fach] - '.$import['Subject'].' => Fach nicht gefunden';
+                } elseif(!$import['tblSubject'] && !$import['tblSubstituteSubject']){
+                    $errors[] = '[Fach] - '.($import['Subject']?:'[leer]').' => Fach nicht gefunden';
+                }
+                if (!$import['tblSubstituteSubject']) {
+                    $errors[] = '[Vertretungsfach] - '.$import['SubjectSubstitute'].' => Fach nicht gefunden';
+                }
+            }
+        } else {
+            if (!$import['tblSubject'] && $import['Subject']) {
+                $errors[] = '[Fach] - '.$import['Subject'].' => Fach nicht gefunden';
+            } elseif(!$import['tblSubject'] && !$import['tblSubstituteSubject']){
+                $errors[] = '[Fach] - '.($import['Subject']?:'[leer]').' => Fach nicht gefunden';
+            }
+            if (!$import['tblSubstituteSubject'] && !$import['IsCanceled']) {
+                $errors[] = '[Vertretungsfach] - '.$import['SubjectSubstitute'].' => Fach nicht gefunden';
+            }
         }
-        if (!$import['tblSubstituteSubject'] && !$import['IsCanceled']) {
-            $errors[] = '[Vertretungsfach] - '.$import['SubjectSubstitute'].' => Fach nicht gefunden';
-        }
+
         if (empty($errors)) {
             return false;
         }

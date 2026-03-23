@@ -995,7 +995,7 @@ class JsonReplacementTest
             "Titel": "Freitag, 20. März 2026 ",
             "Schulname": "Evangelisches Kreuzgymnasium Dresden",
             "Datum": "20.03.2026",
-            "Erstellt": "19.03.2026, 10:07",
+            "Erstellt": "20.03.2026, 10:17",
             "Kopfinfo": {
               "AbwesendeLehrer": [
                 {
@@ -1455,33 +1455,6 @@ class JsonReplacementTest
               ]
             },
             {
-              "Ak_Id": 24670,
-              "Ak_UntNr": 175,
-              "Ak_Art": "Verl.",
-              "Ak_DatumVon": "20.03.2026",
-              "Ak_DatumNach": "20.03.2026",
-              "Ak_StundeVon": 8,
-              "Ak_StundeNach": 5,
-              "Ak_StundenAnz": 2,
-              "Ak_Fach": "DE",
-              "Ak_VFach": "DE",
-              "Klassen": [
-                "08/3"
-              ],
-              "Lehrer": [
-                "BIE"
-              ],
-              "VLehrer": [
-                "BIE"
-              ],
-              "Raeume": [
-                "331"
-              ],
-              "VRaeume": [
-                "331"
-              ]
-            },
-            {
               "Ak_Id": 24091,
               "Ak_UntNr": 1209,
               "Ak_Art": "Änd.",
@@ -1721,6 +1694,25 @@ class JsonReplacementTest
               ],
               "Raeume": [
                 "316"
+              ]
+            },
+            {
+              "Ak_Id": 24855,
+              "Ak_UntNr": 637,
+              "Ak_Art": "Ausf.",
+              "Ak_DatumVon": "20.03.2026",
+              "Ak_StundeVon": 1,
+              "Ak_StundenAnz": 2,
+              "Ak_Fach": "REk",
+              "Klassen": [
+                "10/1",
+                "10/3"
+              ],
+              "Lehrer": [
+                "HAU"
+              ],
+              "Raeume": [
+                "135"
               ]
             },
             {
@@ -2059,6 +2051,9 @@ class JsonReplacementTest
             }
           ],
           "Informationen": [
+            "Klassen 9.1 und 9.2 Konzertbesuch 3.-6.Stunde // Gk12DS Probentag Aula // Gk12ree2+3 Expertengespräch 5./6.Stunde in Raum 335 // Klasse 6.2 Unterrichtsgang TJG 2.-5.Stunde"
+          ],
+          "InformationenL": [
             "Klassen 9.1 und 9.2 Konzertbesuch 3.-6.Stunde // Gk12DS Probentag Aula // Gk12ree2+3 Expertengespräch 5./6.Stunde in Raum 335 // Klasse 6.2 Unterrichtsgang TJG 2.-5.Stunde"
           ]
         }
