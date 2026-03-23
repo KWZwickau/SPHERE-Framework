@@ -12,6 +12,21 @@ use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
 use SPHERE\Common\Frontend\Ajax\Receiver\ModalReceiver;
 use SPHERE\Common\Frontend\Ajax\Template\CloseModal;
 use SPHERE\Common\Frontend\Form\Repository\Button\Close;
+use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
+use SPHERE\Common\Frontend\Icon\Repository\Ok;
+use SPHERE\Common\Frontend\Icon\Repository\Question;
+use SPHERE\Common\Frontend\Icon\Repository\Remove;
+use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\Title;
+use SPHERE\Common\Frontend\Layout\Structure\Layout;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\Danger as DangerLink;
+use SPHERE\Common\Frontend\Link\Repository\Standard;
+use SPHERE\Common\Frontend\Message\Repository\Danger;
+use SPHERE\Common\Frontend\Message\Repository\Success;
+use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\System\Extension\Extension;
 
 class ApiSkill extends Extension implements IApiInterface
@@ -31,6 +46,9 @@ class ApiSkill extends Extension implements IApiInterface
         $Dispatcher->registerMethod('loadSkillGridTable');
         $Dispatcher->registerMethod('loadSkillAreaContent');
         $Dispatcher->registerMethod('loadSkillContent');
+
+        $Dispatcher->registerMethod('openDeleteSkillGridModal');
+        $Dispatcher->registerMethod('saveDeleteSkillGridModal');
 
         return $Dispatcher->callMethod($Method);
     }
@@ -165,5 +183,115 @@ class ApiSkill extends Extension implements IApiInterface
     public function loadSkillContent($AreaRanking, $SkillRanking): string
     {
         return Skill::useFrontend()->getSkillContent($AreaRanking, $SkillRanking);
+    }
+
+    /**
+     * @param $SkillGridId
+     * @param $SchoolTypeId
+     * @param null $Filter
+     *
+     * @return Pipeline
+     */
+    public static function pipelineOpenDeleteSkillGridModal($SkillGridId, $SchoolTypeId, $Filter = null): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'openDeleteSkillGridModal',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'SkillGridId' => $SkillGridId,
+            'SchoolTypeId' => $SchoolTypeId,
+            'Filter' => $Filter
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $SkillGridId
+     * @param $SchoolTypeId
+     * @param null $Filter
+     *
+     * @return string
+     */
+    public function openDeleteSkillGridModal($SkillGridId, $SchoolTypeId, $Filter = null): string
+    {
+        if (!($tblSkillGrid = Skill::useService()->getSkillGridById($SkillGridId))) {
+            return new Danger('Das Kompetenzraster wurde nicht gefunden', new Exclamation());
+        }
+
+        return new Title(new Remove() . ' Kompetenzraster löschen')
+            . new Layout(
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            new Panel(
+                                new Question() . ' Dieses Kompetenzraster wirklich löschen?',
+                                array(
+                                    'Name: ' . new Bold($tblSkillGrid->getName()),
+                                    'Klassenstufe: ' . new Bold($tblSkillGrid->getLevel()),
+                                    'Fach: ' . new Bold(($tblSubject = $tblSkillGrid->getServiceTblSubject()) ? $tblSubject->getDisplayName() : 'Fächerübergreifende'),
+                                    count($tblSkillGrid->getSkillAreas()) . ' Kompetenzbereiche',
+                                    count($tblSkillGrid->getSkills()) . ' Kompetenzen',
+                                ),
+                                Panel::PANEL_TYPE_DANGER
+                            )
+                            . (new DangerLink('Ja', self::getEndpoint(), new Ok()))
+                                ->ajaxPipelineOnClick(self::pipelineDeleteSkillGridSave($SkillGridId, $SchoolTypeId, $Filter))
+                            . (new Standard('Nein', self::getEndpoint(), new Remove()))
+                                ->ajaxPipelineOnClick(self::pipelineClose())
+                        )
+                    )
+                )
+            );
+    }
+
+    /**
+     * @param $SkillGridId
+     * @param $SchoolTypeId
+     * @param null $Filter
+     *
+     * @return Pipeline
+     */
+    public static function pipelineDeleteSkillGridSave($SkillGridId, $SchoolTypeId, $Filter = null): Pipeline
+    {
+        $Pipeline = new Pipeline();
+        $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'saveDeleteSkillGridModal'
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'SkillGridId' => $SkillGridId,
+            'SchoolTypeId' => $SchoolTypeId,
+            'Filter' => $Filter
+        ));
+        $ModalEmitter->setLoadingMessage('Wird bearbeitet');
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $SkillGridId
+     * @param $SchoolTypeId
+     * @param null $Filter
+     *
+     * @return string
+     */
+    public function saveDeleteSkillGridModal($SkillGridId, $SchoolTypeId, $Filter = null): string
+    {
+        if (!($tblSkillGrid = Skill::useService()->getSkillGridById($SkillGridId))) {
+            return new Danger('Der Kompetenzraster wurde nicht gefunden', new Exclamation());
+        }
+
+        if (Skill::useService()->destroySkillGrid($tblSkillGrid)) {
+            return new Success('Der Kompetenzraster wurde erfolgreich gelöscht.')
+                . self::pipelineLoadSkillGridTable($SchoolTypeId, $Filter)
+                . self::pipelineClose();
+        } else {
+            return new Danger('Der Kompetenzraster konnte nicht gelöscht werden.') . self::pipelineClose();
+        }
     }
 }

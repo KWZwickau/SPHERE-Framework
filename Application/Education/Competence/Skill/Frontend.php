@@ -21,6 +21,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Filter;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
+use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
@@ -40,7 +41,6 @@ use SPHERE\Common\Frontend\Text\Repository\Danger;
 use SPHERE\Common\Frontend\Text\Repository\Info;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
-use SPHERE\System\Extension\Repository\Debugger;
 
 class Frontend extends Extension implements IFrontendInterface
 {
@@ -69,6 +69,7 @@ class Frontend extends Extension implements IFrontendInterface
             . ($SchoolTypeId && Type::useService()->getTypeById($SchoolTypeId)
                 ? new Panel(new Filter() . ' Filter', $this->formFilter($SchoolTypeId, $Filter), Panel::PANEL_TYPE_INFO)
                 : '')
+            . ApiSkill::receiverModal()
             . ApiSkill::receiverBlock($this->loadSkillGridTable($SchoolTypeId, $Filter), 'SkillGridTable')
         );
 
@@ -102,8 +103,11 @@ class Frontend extends Extension implements IFrontendInterface
                         'Level' => $tblSkillGrid->getLevel(),
                         'Subject' => ($tblSubject = $tblSkillGrid->getServiceTblSubject()) ? $tblSubject->getDisplayName() : '',
                         'Name' => $tblSkillGrid->getName(),
+                        'SkillAreas' => $tblSkillGrid->getDisplaySkillAreas(),
                         'Option' => new Standard('', '/Education/Competence/Skill/Edit', new Edit(),
                             ['SchoolTypeId' => $SchoolTypeId, 'Filter' => $Filter, 'SkillGridId' => $tblSkillGrid->getId()])
+                            . (new Standard('', ApiSkill::getEndpoint(), new Remove(), array(), 'Kompetenzraster löschen'))
+                                ->ajaxPipelineOnClick(ApiSkill::pipelineOpenDeleteSkillGridModal($tblSkillGrid->getId(), $SchoolTypeId, $Filter))
                     ];
                 }
             }
@@ -115,13 +119,20 @@ class Frontend extends Extension implements IFrontendInterface
                     'Level' => 'Klassenstufe',
                     'Subject' => 'Fach',
                     'Name' => 'Name',
+                    'SkillAreas' => 'Kompentenzbereiche',
                     'Option' => ' '
                 ],
                 [
+                    'columnDefs' => array(
+                        array('orderable' => false, 'width' => '60px', 'targets' => -1),
+                        // array('searchable' => false, 'targets' => array(-1, -2)),
+                    ),
                     'order' => array(
                         array('0', 'asc'),
                         array('1', 'asc'),
                     ),
+                    'responsive' => false,
+                    'destroy' => true
                 ]
             );
 
@@ -213,7 +224,6 @@ class Frontend extends Extension implements IFrontendInterface
         // beim Checken der Input-Felder darf der Post nicht gesetzt werden
         $tblSkillGrid = Skill::useService()->getSkillGridById($SkillGridId);
         if ($setPost && $tblSkillGrid) {
-            Debugger::devDump(time());
             $Global = $this->getGlobal();
             $Global->POST['Data']['Name'] = $tblSkillGrid->getName();
             // Todo Bewertungssysteme
@@ -333,6 +343,7 @@ class Frontend extends Extension implements IFrontendInterface
             new FormGroup(array(
                 new FormRow(array(
                     new FormColumn(array(
+                        new Container('&nbsp;'),
                         new \SPHERE\Common\Frontend\Form\Repository\Button\Primary('Speichern', new Save()),
                         new Standard('Abbrechen', '/Education/Competence/Skill', new Disable(), ['SchoolTypeId' => $SchoolTypeId, 'Filter' => $Filter])
                     ))

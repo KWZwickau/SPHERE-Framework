@@ -195,4 +195,17 @@ class TblSkillGrid extends Element
     {
         return Skill::useService()->getSkillListBySkillGrid($this);
     }
+
+    /**
+     * @return string
+     */
+    public function getDisplaySkillAreas(): string
+    {
+        $skillAreas = [];
+        foreach ($this->getSkillAreas() as $tblSkillArea) {
+            $skillAreas[] = $tblSkillArea->getName() ?: 'Ohne Kompetenzbereich';
+        }
+
+        return implode(', ', $skillAreas);
+    }
 }

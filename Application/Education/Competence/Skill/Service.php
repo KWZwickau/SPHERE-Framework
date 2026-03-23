@@ -189,16 +189,30 @@ class Service extends AbstractService
     /**
      * @param TblSkillGrid $tblSkillGrid
      *
+     * @return bool
+     */
+    public function destroySkillGrid(TblSkillGrid $tblSkillGrid): bool
+    {
+        $this->destroySkillsBySkillGrid($tblSkillGrid);
+
+        return (new Data($this->getBinding()))->destroySkillGrid($tblSkillGrid);
+    }
+
+    /**
+     * @param TblSkillGrid $tblSkillGrid
+     *
      * @return void
      */
     public function destroySkillsBySkillGrid(TblSkillGrid $tblSkillGrid): void
     {
         $destroySkillAreaList = [];
         $destroySkillList = [];
+
+        foreach ($tblSkillGrid->getSkillAreas() as $tblSkillArea) {
+            $destroySkillAreaList[] = $tblSkillArea;
+        }
+
         foreach ($tblSkillGrid->getSkills() as $tblSkill) {
-            if (($tblSkillArea = $tblSkill->getTblSkillArea()) && !isset($destroySkillAreaList[$tblSkillArea->getId()])) {
-                $destroySkillAreaList[$tblSkillArea->getId()] = $tblSkillArea;
-            }
             $destroySkillList[] = $tblSkill;
         }
 
