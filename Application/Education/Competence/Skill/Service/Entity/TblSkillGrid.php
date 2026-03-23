@@ -6,6 +6,7 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
+use SPHERE\Application\Education\Competence\Skill\Skill;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\School\Course\Course;
@@ -23,9 +24,9 @@ use SPHERE\System\Database\Fitting\Element;
  */
 class TblSkillGrid extends Element
 {
-    const SERVICE_TBL_SCHOOL_TYPE = 'serviceTblSchoolType';
-    const SERVICE_TBL_SUBJECT = 'serviceTblSubject';
-    const LEVEL = 'Level';
+    const string SERVICE_TBL_SCHOOL_TYPE = 'serviceTblSchoolType';
+    const string SERVICE_TBL_SUBJECT = 'serviceTblSubject';
+    const string ATTR_LEVEL = 'Level';
 
     /**
      * @Column(type="bigint")
@@ -178,4 +179,20 @@ class TblSkillGrid extends Element
 //    {
 //        $this->serviceTblScoreType = $serviceTblScoreType;
 //    }
+
+    /**
+     * @return TblSkillArea[]
+     */
+    public function getSkillAreas(): array
+    {
+        return Skill::useService()->getSkillAreaListBySkillGrid($this);
+    }
+
+    /**
+     * @return TblSkill[]
+     */
+    public function getSkills(): array
+    {
+        return Skill::useService()->getSkillListBySkillGrid($this);
+    }
 }

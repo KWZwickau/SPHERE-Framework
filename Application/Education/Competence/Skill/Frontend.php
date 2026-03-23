@@ -17,7 +17,7 @@ use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
-use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
+use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Filter;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
@@ -40,6 +40,7 @@ use SPHERE\Common\Frontend\Text\Repository\Danger;
 use SPHERE\Common\Frontend\Text\Repository\Info;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
+use SPHERE\System\Extension\Repository\Debugger;
 
 class Frontend extends Extension implements IFrontendInterface
 {
@@ -100,7 +101,9 @@ class Frontend extends Extension implements IFrontendInterface
                     $dataList[] = [
                         'Level' => $tblSkillGrid->getLevel(),
                         'Subject' => ($tblSubject = $tblSkillGrid->getServiceTblSubject()) ? $tblSubject->getDisplayName() : '',
-                        'Name' => $tblSkillGrid->getName()
+                        'Name' => $tblSkillGrid->getName(),
+                        'Option' => new Standard('', '/Education/Competence/Skill/Edit', new Edit(),
+                            ['SchoolTypeId' => $SchoolTypeId, 'Filter' => $Filter, 'SkillGridId' => $tblSkillGrid->getId()])
                     ];
                 }
             }
@@ -111,7 +114,8 @@ class Frontend extends Extension implements IFrontendInterface
                 [
                     'Level' => 'Klassenstufe',
                     'Subject' => 'Fach',
-                    'Name' => 'Name'
+                    'Name' => 'Name',
+                    'Option' => ' '
                 ],
                 [
                     'order' => array(
@@ -168,20 +172,25 @@ class Frontend extends Extension implements IFrontendInterface
      * @param null $Data
      *
      * @return Stage
+     * @noinspection PhpUnused
      */
     public function frontendEditSkills($SchoolTypeId = null, $Filter = null, $SkillGridId = null, $Data = null): Stage
     {
         $stage = new Stage('Kompetenzraster', $SkillGridId ? 'Bearbeiten' : 'Hinzufügen');
-        $stage->addButton($this->getBackButton($SchoolTypeId, $Filter));
 
         if (($tblSchoolType = Type::useService()->getTypeById($SchoolTypeId))) {
-//            $stage->setContent(ApiSkill::receiverBlock(
+            $tblSkillGrid = null;
+            if ($SkillGridId) {
+                $tblSkillGrid = Skill::useService()->getSkillGridById($SkillGridId);
+            }
+
             $stage->setContent(new Well(
                 Skill::useService()->updateSkillGrid(
-                    $this->formSkillGrid($SchoolTypeId, $Filter, $SkillGridId, true),
+                    $this->formSkillGrid(true, $SchoolTypeId, $Filter, $SkillGridId),
                     $tblSchoolType,
                     $Filter,
-                    $Data
+                    $Data,
+                    $tblSkillGrid
                 )
             ));
         }
@@ -190,56 +199,58 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param $SchoolTypeId
-     * @param $Filter
-     *
-     * @return Standard
-     */
-    protected function getBackButton($SchoolTypeId, $Filter): Standard
-    {
-        return (new Standard('Zurück', '/Education/Competence/Skill', new ChevronLeft(), ['SchoolTypeId' => $SchoolTypeId, 'Filter' => $Filter]));
-    }
-
-    /**
-     * @param $SchoolTypeId
-     * @param $Filter
-     * @param $SkillGridId
      * @param bool $setPost
-     * @param $Data
-     * @param $ErrorList
+     * @param null $SchoolTypeId
+     * @param null $Filter
+     * @param null $SkillGridId
+     * @param null $Data
+     * @param null $ErrorList
      *
      * @return Form
      */
-    public function formSkillGrid($SchoolTypeId = null, $Filter = null, $SkillGridId = null, bool $setPost = false, $Data = null, $ErrorList = null): Form
+    public function formSkillGrid(bool $setPost, $SchoolTypeId = null, $Filter = null, $SkillGridId = null, $Data = null, $ErrorList = null): Form
     {
         // beim Checken der Input-Felder darf der Post nicht gesetzt werden
-//        $tblSkillGrid = DivisionCourse::useService()->getSubjectTableById($SkillGridId);
-//        if ($setPost && $tblSkillGrid) {
-//            $Global = $this->getGlobal();
-//            $Global->POST['Data']['Level'] = $tblSkillGrid->getLevel();
-//            $Global->POST['Data']['TypeName'] = $tblSkillGrid->getTypeName();
-//            $Global->POST['Data']['Subject'] = $tblSkillGrid->getSubjectId();
-//            $Global->POST['Data']['StudentMetaIdentifier'] = $tblSkillGrid->getStudentMetaIdentifier();
-//            $Global->POST['Data']['HoursPerWeek'] = $tblSkillGrid->getHoursPerWeek();
-//            $Global->POST['Data']['HasGrading'] = $tblSkillGrid->getHasGrading();
-//            $Global->POST['Data']['GradeText'] = ($tblGradeText = $tblSkillGrid->getServiceTblGradeText()) ? $tblGradeText->getId() : 0;
-//            $Global->savePost();
-//        } elseif (!$tblSkillGrid) {
-//            $Global = $this->getGlobal();
-//            $Global->POST['Data']['TypeName'] = 'Pflichtbereich';
-//            $Global->POST['Data']['HasGrading'] = 1;
-//            $Global->savePost();
-//        }
+        $tblSkillGrid = Skill::useService()->getSkillGridById($SkillGridId);
+        if ($setPost && $tblSkillGrid) {
+            Debugger::devDump(time());
+            $Global = $this->getGlobal();
+            $Global->POST['Data']['Name'] = $tblSkillGrid->getName();
+            // Todo Bewertungssysteme
+            $Global->POST['Data']['ScoreTypeId'] = -1;
+            $Global->POST['Data']['IsAverage'] = $tblSkillGrid->getIsAverage();
 
-//        if ($SkillGridId) {
-//            $buttonList[] = (new Primary('Speichern', ApiSkill::getEndpoint(), new Save()))
-//                ;// ->ajaxPipelineOnClick(ApiSkill::pipelineEditSubjectTableSave($SkillGridId, $SchoolTypeId));
-//            $buttonList[] = (new \SPHERE\Common\Frontend\Link\Repository\Danger('Löschen', ApiSkill::getEndpoint(), new Remove()))
-//                ;// ->ajaxPipelineOnClick(ApiSkill::pipelineOpenDeleteSubjectTableModal($SkillGridId, $SchoolTypeId));
-//        } else {
-//            $buttonList[] = (new Primary('Speichern', ApiSkill::getEndpoint(), new Save()))
-//                ;// ->ajaxPipelineOnClick(ApiSkill::pipelineCreateSubjectTableSave($SchoolTypeId));
-//        }
+            $Global->POST['Data']['Level'] = $tblSkillGrid->getLevel();
+            $Global->POST['Data']['SubjectId'] = ($tblSubject = $tblSkillGrid->getServiceTblSubject()) ? $tblSubject->getId() : 0;
+            $Global->POST['Data']['CourseId'] = ($tblCourse = $tblSkillGrid->getServiceTblCourse()) ? $tblCourse->getId() : 0;
+            $Global->POST['Data']['SupportFocusTypeId'] = ($tblSupportFocusType = $tblSkillGrid->getServiceTblSupportFocusType())
+                ? $tblSupportFocusType->getId() : 0;
+
+            $tblSkillAreaList = [];
+            foreach ($tblSkillGrid->getSkills() as $tblSkill) {
+                $skillRanking = $tblSkill->getSortOrder();
+                $tblSkillArea = $tblSkill->getTblSkillArea();
+                $areaRanking = $tblSkillArea->getSortOrder();
+
+                if (!isset($tblSkillAreaList[$tblSkillArea->getId()])) {
+                    $Global->POST['Data']['SkillAreas'][$areaRanking]['Area'] = $tblSkillArea->getName() ?: '';
+                    $Data['SkillAreas'][$areaRanking]['Area'] = $tblSkillArea->getName() ?: '';
+
+                    $tblSkillAreaList[$tblSkillArea->getId()] = $tblSkillArea;
+                }
+
+                $Global->POST['Data']['Skills'][$areaRanking . '-' . $skillRanking]['Skill'] = $tblSkill->getSkill();
+                $Data['Skills'][$areaRanking . '-' . $skillRanking]['Skill'] = $tblSkill->getSkill();
+                $Global->POST['Data']['Skills'][$areaRanking . '-' . $skillRanking]['Level'] = $tblSkill->getLevel() ?: '';
+                $Data['Skills'][$areaRanking . '-' . $skillRanking]['Level'] = $tblSkill->getLevel() ?: '';
+            }
+
+            $Global->savePost();
+        } elseif ($setPost && !$tblSkillGrid) {
+            $Global = $this->getGlobal();
+            $Global->POST['Data']['ScoreTypeId'] = -1;
+            $Global->savePost();
+        }
 
         // Todo Bewertungssysteme
         $tblScoreTypeList = [];
@@ -249,6 +260,7 @@ class Frontend extends Extension implements IFrontendInterface
         $tblCourseAll = Course::useService()->getCourseAll();
         $tblSupportFocusTypeAll = Student::useService()->getSupportFocusTypeAll();
 
+        $skillAreaRows = [];
         if ($Data === null) {
             $areaRanking = 1;
             $skillAreaRows[] = new FormRow(new FormColumn(
@@ -317,17 +329,13 @@ class Frontend extends Extension implements IFrontendInterface
             )),
             new FormGroup(
                 $skillAreaRows
-//                new FormRow(array(
-//                    new FormColumn(
-//                        ApiSkill::receiverBlock($this->getSkillAreaContent(1), "SkillAreaContent_$AreaRanking")
-//                    )
-//                )),
             ),
             new FormGroup(array(
                 new FormRow(array(
-                    new FormColumn(
-                        new \SPHERE\Common\Frontend\Form\Repository\Button\Primary('Speichern', new Save())
-                    )
+                    new FormColumn(array(
+                        new \SPHERE\Common\Frontend\Form\Repository\Button\Primary('Speichern', new Save()),
+                        new Standard('Abbrechen', '/Education/Competence/Skill', new Disable(), ['SchoolTypeId' => $SchoolTypeId, 'Filter' => $Filter])
+                    ))
                 )),
             ))
         ));

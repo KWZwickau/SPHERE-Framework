@@ -3,6 +3,7 @@
 namespace SPHERE\Application\Education\Competence\Skill;
 
 use SPHERE\Application\Education\Competence\Skill\Service\Data;
+use SPHERE\Application\Education\Competence\Skill\Service\Entity\TblSkill;
 use SPHERE\Application\Education\Competence\Skill\Service\Entity\TblSkillArea;
 use SPHERE\Application\Education\Competence\Skill\Service\Entity\TblSkillGrid;
 use SPHERE\Application\Education\Competence\Skill\Service\Setup;
@@ -71,6 +72,26 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblSkillGrid $tblSkillGrid
+     *
+     * @return TblSkillArea[]
+     */
+    public function getSkillAreaListBySkillGrid(TblSkillGrid $tblSkillGrid): array
+    {
+        return (new Data($this->getBinding()))->getSkillAreaListBySkillGrid($tblSkillGrid);
+    }
+
+    /**
+     * @param TblSkillGrid $tblSkillGrid
+     *
+     * @return TblSkill[]
+     */
+    public function getSkillListBySkillGrid(TblSkillGrid $tblSkillGrid): array
+    {
+        return (new Data($this->getBinding()))->getSkillListBySkillGrid($tblSkillGrid);
+    }
+
+    /**
      * @param IFormInterface $form
      * @param TblType $tblSchoolType
      * @param $Filter
@@ -127,15 +148,25 @@ class Service extends AbstractService
         }
 
         if ($hasErrors) {
-            return Skill::useFrontend()->formSkillGrid($tblSchoolType->getId(), $Filter, $tblSkillGrid?->getId(), false, $Data, $ErrorList);
+            return Skill::useFrontend()->formSkillGrid(false, $tblSchoolType->getId(), $Filter, $tblSkillGrid?->getId(), $Data, $ErrorList);
         }
 
         $tblSubject = Subject::useService()->getSubjectById($Data['SubjectId']);
         $tblCourse = Course::useService()->getCourseById($Data['CourseId']);
         $tblSupportFocusType = Student::useService()->getSupportFocusTypeById($Data['SupportFocusTypeId']);
 
-        $tblSkillGrid = (new Data($this->getBinding()))->createSkillGrid($tblSchoolType, $Data['Name'], isset($Data['IsAverage']),
-            $Data['Level'], $tblSubject ?: null, $tblCourse ?: null, $tblSupportFocusType ?: null);
+        if ($tblSkillGrid) {
+            (new Data($this->getBinding()))->updateSkillGrid($tblSkillGrid, $Data['Name'], isset($Data['IsAverage']),
+                $Data['Level'], $tblSubject ?: null, $tblCourse ?: null, $tblSupportFocusType ?: null);
+
+            // erstmal alle löschen, updaten würde sehr komplex
+            $this->destroySkillsBySkillGrid($tblSkillGrid);
+
+            $tblSkillGridNew = $tblSkillGrid;
+        } else {
+            $tblSkillGridNew = (new Data($this->getBinding()))->createSkillGrid($tblSchoolType, $Data['Name'], isset($Data['IsAverage']),
+                $Data['Level'], $tblSubject ?: null, $tblCourse ?: null, $tblSupportFocusType ?: null);
+        }
 
         $tblSkillAreaList = [];
         foreach ($Data['Skills'] as $key => $skillArray) {
@@ -145,13 +176,33 @@ class Service extends AbstractService
             if (!empty($skillArray['Skill'])) {
                 if (!isset($tblSkillAreaList[$areaRanking])) {
                     $tblSkillAreaList[$areaRanking] = (new Data($this->getBinding()))->createSkillArea(
-                        $tblSkillGrid, empty($Data['SkillAreas'][$areaRanking]['Area']) ? null : $Data['SkillAreas'][$areaRanking]['Area'], $areaRanking);
+                        $tblSkillGridNew, empty($Data['SkillAreas'][$areaRanking]['Area']) ? null : $Data['SkillAreas'][$areaRanking]['Area'], $areaRanking);
                 }
-                (new Data($this->getBinding()))->createSkill($tblSkillAreaList[$areaRanking], $skillArray['Level'], $skillArray['Skill'], $skillRanking);
+                (new Data($this->getBinding()))->createSkill($tblSkillAreaList[$areaRanking], $skillArray['Level'] ?: null, $skillArray['Skill'], $skillRanking);
             }
         }
 
         return new Success('Die Daten wurden erfolgreich gespeichert', new \SPHERE\Common\Frontend\Icon\Repository\Success())
             . new Redirect('/Education/Competence/Skill', Redirect::TIMEOUT_SUCCESS, ['SchoolTypeId' => $tblSchoolType->getId(), 'Filter' => $Filter]);
+    }
+
+    /**
+     * @param TblSkillGrid $tblSkillGrid
+     *
+     * @return void
+     */
+    public function destroySkillsBySkillGrid(TblSkillGrid $tblSkillGrid): void
+    {
+        $destroySkillAreaList = [];
+        $destroySkillList = [];
+        foreach ($tblSkillGrid->getSkills() as $tblSkill) {
+            if (($tblSkillArea = $tblSkill->getTblSkillArea()) && !isset($destroySkillAreaList[$tblSkillArea->getId()])) {
+                $destroySkillAreaList[$tblSkillArea->getId()] = $tblSkillArea;
+            }
+            $destroySkillList[] = $tblSkill;
+        }
+
+        (new Data($this->getBinding()))->destroySkillBulkList($destroySkillList);
+        (new Data($this->getBinding()))->destroySkillAreaBulkList($destroySkillAreaList);
     }
 }

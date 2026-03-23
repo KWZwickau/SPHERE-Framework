@@ -16,6 +16,9 @@ use SPHERE\System\Database\Fitting\Element;
  */
 class TblSkillArea extends Element
 {
+    const string ATTR_TBL_SKILL_GRID = 'tblCompetenceSkillGrid';
+    const string ATTR_SORT_ORDER = 'SortOrder';
+
     /**
      * @Column(type="bigint")
      */
