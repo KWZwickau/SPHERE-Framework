@@ -754,6 +754,7 @@ class Data extends AbstractData
     }
 
     /**
+     * @deprecated
      * @param TblList            $tblList
      * @param TblObjectType      $tblObjectType
      * @param TblListElementList $tblListElementList
@@ -763,11 +764,11 @@ class Data extends AbstractData
      * @return TblListObjectElementList
      */
     public function updateObjectElementToList(
-        TblList $tblList,
-        TblObjectType $tblObjectType,
+        TblList            $tblList,
+        TblObjectType      $tblObjectType,
         TblListElementList $tblListElementList,
-        Element $tblObject,
-        $Value
+        Element            $tblObject,
+                           $Value
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -796,6 +797,56 @@ class Data extends AbstractData
             return $Entity;
         }
     }
+
+    /**
+     * @param TblList       $tblList
+     * @param TblObjectType $tblObjectType
+     * @param Element       $tblObject
+     * @param array         $Value array (['tblListElementList' => ..., 'value' => ...],[...])
+     *
+     * @return TblListObjectElementList
+     */
+    public function bulkUpdateObjectElementToList(
+        TblList $tblList,
+        TblObjectType $tblObjectType,
+        $tblObject,
+        array $bulkUpdates
+    ): void {
+        $Manager = $this->getConnection()->getEntityManager();
+
+        foreach ($bulkUpdates as $update) {
+            $tblListElementList = $update['tblListElementList'];
+            $Value              = $update['value'];
+            /** @var TblListObjectElementList $Entity */
+            // Vorhandenen Eintrag suchen oder neuen anlegen
+            $Entity = $Manager->getEntity('TblListObjectElementList')->findOneBy(array(
+                TblListObjectElementList::ATTR_TBL_LIST              => $tblList->getId(),
+                TblListObjectElementList::ATTR_TBL_OBJECT_TYPE       => $tblObjectType->getId(),
+                TblListObjectElementList::ATTR_TBL_LIST_ELEMENT_LIST => $tblListElementList->getId(),
+                TblListObjectElementList::ATTR_SERVICE_TBL_OBJECT    => $tblObject->getId()
+            ));
+
+            if (null === $Entity) {
+                $Entity = new TblListObjectElementList();
+                $Entity->setTblList($tblList);
+                $Entity->setTblObjectType($tblObjectType);
+                $Entity->setTblListElementList($tblListElementList);
+                $Entity->setServiceTblObject($tblObject);
+                $Entity->setValue($Value);
+                $Manager->bulkSaveEntity($Entity);
+                Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity, true);
+            } else {
+                $Protocol = clone $Entity;
+                $Entity->setValue($Value);
+                $Manager->bulkSaveEntity($Entity);
+                Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity, true);
+            }
+        }
+        $Manager->flushCache();
+        Protocol::useService()->flushBulkEntries();
+    }
+
+
 
     /**
      * @param TblList $tblList
