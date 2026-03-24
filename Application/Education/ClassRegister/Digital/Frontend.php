@@ -1445,7 +1445,7 @@ class Frontend extends FrontendTabs
             if(null === $Date){
                 $Date = 'now';
             }
-            // befüllen bei neuen Einträge aus dem importierten Stundenplan
+            // befüllen bei neuen Einträgen aus dem importierten Stundenplan
             if ($Date && $Lesson
                 && ($tblLessonContentTempList = Timetable::useService()->getLessonContentListFromTimeTableNodeWithReplacementBy(
                     $tblDivisionCourse, new DateTime($Date), (int) $Lesson
@@ -1455,10 +1455,15 @@ class Frontend extends FrontendTabs
 
                 foreach ($tblLessonContentTempList as $tblLessonContentTemp) {
                     $tblSubjectTemp = $tblLessonContentTemp->getServiceTblSubject();
+                    // nur Vertretungsfach bzw. zusätzliches Fach im Vertretungsplan (bei z.B. Verschiebungen im Stundenplan)
+                    if (!$tblSubjectTemp) {
+                        $tblSubjectTemp = $tblLessonContentTemp->getServiceTblSubstituteSubject();
+                    }
                     if (!$SubjectId || ($tblSubjectTemp && $tblSubjectTemp->getId() == $SubjectId)) {
                         $tblSubject = $tblSubjectTemp;
-                        $Global->POST['Data']['serviceTblSubject'] = $tblSubjectTemp && $tblSubjectTemp->getIsActive()
-                            ? $tblSubjectTemp->getId() : 0;
+                        $Global->POST['Data']['serviceTblSubject'] =
+                            $tblLessonContentTemp->getServiceTblSubject() && $tblLessonContentTemp->getServiceTblSubject()->getIsActive()
+                                ? $tblLessonContentTemp->getServiceTblSubject()->getId() : 0;
                         $Global->POST['Data']['serviceTblSubstituteSubject'] =
                             $tblLessonContentTemp->getServiceTblSubstituteSubject() && $tblLessonContentTemp->getServiceTblSubstituteSubject()->getIsActive()
                                 ? $tblLessonContentTemp->getServiceTblSubstituteSubject()->getId() : 0;
