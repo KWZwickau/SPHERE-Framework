@@ -92,7 +92,6 @@ class Service extends AbstractService
     }
 
     /**
-     * @param IFormInterface $form
      * @param TblType $tblSchoolType
      * @param $Filter
      * @param $Data
@@ -100,12 +99,8 @@ class Service extends AbstractService
      *
      * @return IFormInterface|string
      */
-    public function updateSkillGrid(IFormInterface $form, TblType $tblSchoolType, $Filter, $Data, ?TblSkillGrid $tblSkillGrid = null): IFormInterface|string
+    public function updateSkillGrid(TblType $tblSchoolType, $Filter, $Data, ?TblSkillGrid $tblSkillGrid = null): IFormInterface|string
     {
-        if ($Data === null) {
-            return $form;
-        }
-
         $hasErrors = false;
         $ErrorList = [];
         if (empty($Data['Name'])) {

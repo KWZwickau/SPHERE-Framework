@@ -5,6 +5,7 @@ namespace SPHERE\Application\Api\Education\Competence;
 use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\Education\Competence\Skill\Skill;
+use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\IApiInterface;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
@@ -46,6 +47,9 @@ class ApiSkill extends Extension implements IApiInterface
         $Dispatcher->registerMethod('loadSkillGridTable');
         $Dispatcher->registerMethod('loadSkillAreaContent');
         $Dispatcher->registerMethod('loadSkillContent');
+
+        $Dispatcher->registerMethod('loadEditSkillGridContent');
+        $Dispatcher->registerMethod('saveEditSkillGrid');
 
         $Dispatcher->registerMethod('openDeleteSkillGridModal');
         $Dispatcher->registerMethod('saveDeleteSkillGridModal');
@@ -119,11 +123,14 @@ class ApiSkill extends Extension implements IApiInterface
     }
 
     /**
+     * @param $SchoolTypeId
+     * @param $Filter
+     * @param $SkillGridId
      * @param $AreaRanking
      *
      * @return Pipeline
      */
-    public static function pipelineLoadSkillAreaContent($AreaRanking): Pipeline
+    public static function pipelineLoadSkillAreaContent($SchoolTypeId, $Filter, $SkillGridId, $AreaRanking): Pipeline
     {
         $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'SkillAreaContent_' . $AreaRanking), self::getEndpoint());
@@ -132,31 +139,41 @@ class ApiSkill extends Extension implements IApiInterface
         ));
 
         $ModalEmitter->setPostPayload(array(
+            'SchoolTypeId' => $SchoolTypeId,
+            'Filter' => $Filter,
+            'SkillGridId' => $SkillGridId,
             'AreaRanking' => $AreaRanking,
         ));
+        $ModalEmitter->setLoadingMessage('Daten werden geladen');
         $Pipeline->appendEmitter($ModalEmitter);
 
         return $Pipeline;
     }
 
     /**
+     * @param $SchoolTypeId
+     * @param $Filter
+     * @param $SkillGridId
      * @param $AreaRanking
      *
      * @return string
      * @noinspection PhpUnused
      */
-    public function loadSkillAreaContent($AreaRanking): string
+    public function loadSkillAreaContent($SchoolTypeId, $Filter, $SkillGridId, $AreaRanking): string
     {
-        return Skill::useFrontend()->getSkillAreaContent($AreaRanking);
+        return Skill::useFrontend()->getSkillAreaContent($SchoolTypeId, $Filter, $SkillGridId, $AreaRanking);
     }
 
     /**
+     * @param $SchoolTypeId
+     * @param $Filter
+     * @param $SkillGridId
      * @param $AreaRanking
      * @param $SkillRanking
      *
      * @return Pipeline
      */
-    public static function pipelineLoadSkillContent($AreaRanking, $SkillRanking): Pipeline
+    public static function pipelineLoadSkillContent($SchoolTypeId, $Filter, $SkillGridId, $AreaRanking, $SkillRanking): Pipeline
     {
         $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'SkillContent_' . $AreaRanking . '_' . $SkillRanking), self::getEndpoint());
@@ -165,24 +182,124 @@ class ApiSkill extends Extension implements IApiInterface
         ));
 
         $ModalEmitter->setPostPayload(array(
+            'SchoolTypeId' => $SchoolTypeId,
+            'Filter' => $Filter,
+            'SkillGridId' => $SkillGridId,
             'AreaRanking' => $AreaRanking,
             'SkillRanking' => $SkillRanking,
         ));
+        $ModalEmitter->setLoadingMessage('Daten werden geladen');
         $Pipeline->appendEmitter($ModalEmitter);
 
         return $Pipeline;
     }
 
     /**
+     * @param $SchoolTypeId
+     * @param $Filter
+     * @param $SkillGridId
      * @param $AreaRanking
      * @param $SkillRanking
      *
      * @return string
      * @noinspection PhpUnused
      */
-    public function loadSkillContent($AreaRanking, $SkillRanking): string
+    public function loadSkillContent($SchoolTypeId, $Filter, $SkillGridId, $AreaRanking, $SkillRanking): string
     {
-        return Skill::useFrontend()->getSkillContent($AreaRanking, $SkillRanking);
+        return Skill::useFrontend()->getSkillContent($SchoolTypeId, $Filter, $SkillGridId,$AreaRanking, $SkillRanking);
+    }
+
+    /**
+     * @param null $SchoolTypeId
+     * @param null $Filter
+     * @param null $SkillGridId
+     * @param null $Action
+     * @param null $ActionId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineLoadEditSkillGridContent($SchoolTypeId = null, $Filter = null, $SkillGridId = null, $Action = null, $ActionId = null): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'EditSkillGridContent'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'loadEditSkillGridContent',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'SchoolTypeId' => $SchoolTypeId,
+            'Filter' => $Filter,
+            'SkillGridId' => $SkillGridId,
+            'Action' => $Action,
+            'ActionId' => $ActionId
+        ));
+        $ModalEmitter->setLoadingMessage('Daten werden geladen');
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param null $SchoolTypeId
+     * @param null $Filter
+     * @param null $SkillGridId
+     * @param null $Action
+     * @param null $ActionId
+     * @param null $Data
+     *
+     * @return string
+     * @noinspection PhpUnused
+     */
+    public function loadEditSkillGridContent($SchoolTypeId = null, $Filter = null, $SkillGridId = null, $Action = null, $ActionId = null, $Data = null): string
+    {
+        return Skill::useFrontend()->loadEditSkillGridContent(false, $SchoolTypeId, $Filter, $SkillGridId, $Action, $ActionId, $Data);
+    }
+
+    /**
+     * @param $SchoolTypeId
+     * @param $Filter
+     * @param $SkillGridId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineSaveEditSkillGrid($SchoolTypeId = null, $Filter = null, $SkillGridId = null): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'EditSkillGridContent'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'saveEditSkillGrid',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'SchoolTypeId' => $SchoolTypeId,
+            'Filter' => $Filter,
+            'SkillGridId' => $SkillGridId
+        ));
+        $ModalEmitter->setLoadingMessage('Daten werden geladen');
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param null $SchoolTypeId
+     * @param null $Filter
+     * @param null $SkillGridId
+     * @param null $Data
+     *
+     * @return string
+     * @noinspection PhpUnused
+     */
+    public function saveEditSkillGrid($SchoolTypeId = null, $Filter = null, $SkillGridId = null, $Data = null): string
+    {
+        if (!($tblSchoolType = Type::useService()->getTypeById($SchoolTypeId))) {
+            return new Danger('Schulart wurde nicht gefunden!', new Exclamation());
+        }
+
+        $tblSkillGrid = null;
+        if ($SkillGridId) {
+            $tblSkillGrid = Skill::useService()->getSkillGridById($SkillGridId);
+        }
+
+        return Skill::useService()->updateSkillGrid($tblSchoolType, $Filter, $Data, $tblSkillGrid);
     }
 
     /**
@@ -215,6 +332,7 @@ class ApiSkill extends Extension implements IApiInterface
      * @param null $Filter
      *
      * @return string
+     * @noinspection PhpUnused
      */
     public function openDeleteSkillGridModal($SkillGridId, $SchoolTypeId, $Filter = null): string
     {
@@ -279,6 +397,7 @@ class ApiSkill extends Extension implements IApiInterface
      * @param null $Filter
      *
      * @return string
+     * @noinspection PhpUnused
      */
     public function saveDeleteSkillGridModal($SkillGridId, $SchoolTypeId, $Filter = null): string
     {
