@@ -97,5 +97,6 @@ class Education implements IApplicationInterface
         ApiGradeType::registerApi();
         ApiMail::registerApi();
         ApiSkill::registerApi();
+        \SPHERE\Application\Api\Education\Competence\ApiScoreType::registerApi();
     }
 }

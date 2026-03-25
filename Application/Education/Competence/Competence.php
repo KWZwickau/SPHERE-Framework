@@ -2,6 +2,7 @@
 
 namespace SPHERE\Application\Education\Competence;
 
+use SPHERE\Application\Education\Competence\ScoreType\ScoreType;
 use SPHERE\Application\Education\Competence\Skill\Skill;
 use SPHERE\Application\IApplicationInterface;
 use SPHERE\Common\Main;
@@ -13,6 +14,7 @@ class Competence implements IApplicationInterface
 
     public static function registerApplication(): void
     {
+        ScoreType::registerModule();
         Skill::registerModule();
 
         Main::getDisplay()->addApplicationNavigation(
