@@ -13,13 +13,13 @@ use SPHERE\Application\Education\School\Course\Course;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Common\Frontend\Form\IFormInterface;
+use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
 
 class Service extends AbstractService
 {
-
     /**
      * @param $doSimulation
      * @param $withData
@@ -143,7 +143,7 @@ class Service extends AbstractService
         }
 
         if ($hasErrors) {
-            return Skill::useFrontend()->formSkillGrid(false, $tblSchoolType->getId(), $Filter, $tblSkillGrid?->getId(), $Data, $ErrorList);
+            return new Well(Skill::useFrontend()->formSkillGrid(false, $tblSchoolType->getId(), $Filter, $tblSkillGrid?->getId(), $Data, $ErrorList));
         }
 
         $tblSubject = Subject::useService()->getSubjectById($Data['SubjectId']);

@@ -4,6 +4,7 @@ namespace SPHERE\Application\Education\Competence\Skill;
 
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
+use SPHERE\Common\Frontend\Icon\Repository\CommodityItem;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\System\Database\Link\Identifier;
@@ -20,7 +21,7 @@ class Skill implements IModuleInterface
          * Navigation
          */
         Main::getDisplay()->addModuleNavigation(
-            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Kompetenzraster'))
+            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Kompetenzraster'), new Link\Icon(new CommodityItem()))
         );
 
         /**

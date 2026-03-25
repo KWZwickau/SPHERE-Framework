@@ -21,6 +21,7 @@ use SPHERE\Common\Frontend\Icon\Repository\ChevronUp;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Filter;
+use SPHERE\Common\Frontend\Icon\Repository\Minus;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
@@ -242,6 +243,50 @@ class Frontend extends Extension implements IFrontendInterface
                 }
                 $up--;
             }
+        } elseif ($Action == 'RemoveSkillArea' && isset($Data['SkillAreas'][$ActionId])) {
+            unset($Data['SkillAreas'][$ActionId]);
+        } elseif ($Action == 'MoveSkillAreaUp' && isset($Data['SkillAreas'][$ActionId])) {
+            // wenn der Skill davor gelöscht wurde → nicht nur minus 1
+            $up = $ActionId - 1;
+            while ($up > 0) {
+                if (isset($Data['SkillAreas'][$up])) {
+                    $temp = $Data['SkillAreas'][$ActionId];
+                    $Data['SkillAreas'][$ActionId] = $Data['SkillAreas'][$up];
+                    $Data['SkillAreas'][$up] = $temp;
+                    ksort($Data['SkillAreas']);
+
+                    //  auch zugehörige Skills tauschen
+                    $skillsCopy = $Data['Skills'];
+                    $Data['Skills'] = [];
+                    foreach ($skillsCopy as $key => $value) {
+                        $split = explode('-', $key);
+                        $areaRanking = $split[0];
+                        $skillRanking = $split[1];
+                        if ($areaRanking == $up) {
+                            $Data['Skills']["$ActionId-$skillRanking"] = $value;
+                        } elseif ($areaRanking == $ActionId) {
+                            $Data['Skills']["$up-$skillRanking"] = $value;
+                        } else {
+                            $Data['Skills'][$key] = $value;
+                        }
+                    }
+                    ksort($Data['Skills']);
+
+                    // muss zusätzlich gepostet werden, damit die werte korrekt im Frontend angezeigt werden
+                    $global = $this->getGlobal();
+
+                    $global->POST['Data']['SkillAreas'][$ActionId] = $Data['SkillAreas'][$ActionId];
+                    $global->POST['Data']['SkillAreas'][$up] = $Data['SkillAreas'][$up];
+                    // auch die Skills posten
+                    foreach ($Data['Skills'] as $key => $array) {
+                        $global->POST['Data']['Skills'][$key] = $array;
+                    }
+                    $global->savePost();
+
+                    break;
+                }
+                $up--;
+            }
         }
 
         return new Well($this->formSkillGrid($setPost, $SchoolTypeId, $Filter, $SkillGridId, $Data));
@@ -455,8 +500,18 @@ class Frontend extends Extension implements IFrontendInterface
             );
         }
 
+        $headerButtons =
+            '&nbsp;&nbsp;'
+            . (new Link('', ApiSkill::getEndpoint(), new Minus(), [], 'Kompetenzbereich löschen', null))
+                ->ajaxPipelineOnClick(ApiSkill::pipelineLoadEditSkillGridContent(
+                    $SchoolTypeId, $Filter, $SkillGridId, 'RemoveSkillArea', $AreaRanking))
+            . '&nbsp;&nbsp;'
+            . (new Link('', ApiSkill::getEndpoint(), new ChevronUp(), [], 'Kompetenzbereich nach oben verschieben'))
+                ->ajaxPipelineOnClick(ApiSkill::pipelineLoadEditSkillGridContent(
+                    $SchoolTypeId, $Filter, $SkillGridId, 'MoveSkillAreaUp', $AreaRanking));
+
         return new Panel(
-            "$AreaRanking. Kompetenzbereich",
+            "$AreaRanking. Kompetenzbereich " . $headerButtons,
             $layout,
             Panel::PANEL_TYPE_INFO
         ) . $button;
@@ -492,7 +547,7 @@ class Frontend extends Extension implements IFrontendInterface
             new LayoutColumn(array(
                 // TODO with flex ?
                 (new Container('&nbsp;'))->setStyle(['height: 22px;']),
-                (new Standard('', ApiSkill::getEndpoint(), new Remove(), [], 'Kompetenz löschen'))
+                (new Standard('', ApiSkill::getEndpoint(), new Minus(), [], 'Kompetenz löschen'))
                     ->ajaxPipelineOnClick(ApiSkill::pipelineLoadEditSkillGridContent(
                         $SchoolTypeId, $Filter, $SkillGridId, 'RemoveSkill', "$AreaRanking-$SkillRanking")),
                 (new Standard('', ApiSkill::getEndpoint(), new ChevronUp(), [], 'Kompetenz nach oben verschieben'))
