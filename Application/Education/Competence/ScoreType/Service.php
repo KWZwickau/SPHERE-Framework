@@ -44,9 +44,9 @@ class Service extends AbstractService
     }
 
     /**
-     * @return TblScoreType[]|false
+     * @return TblScoreType[]
      */
-    public function getScoreTypeAll(): array|false
+    public function getScoreTypeAll(): array
     {
         return (new Data($this->getBinding()))->getScoreTypeAll();
     }
@@ -72,12 +72,24 @@ class Service extends AbstractService
             foreach ($Data['ScoreTypeItems'] as $ranking => $itemArray) {
                 if (!empty($itemArray['Value']) || !empty($itemArray['Name']) || !empty($itemArray['Description'])) {
                     if (empty($itemArray['Value'])) {
-                        // ToDo prüfung muss eine Zahl sein (es geht auch komma)
                         $name = "Data[ScoreTypeItems][$ranking][Value]";
                         $ErrorList[$name] = [
                             'Name' => $name,
                             'Message' => 'Bitte geben Sie einen Wert an'
                         ];
+                        $hasErrors = true;
+                    // Prüfung ob Zahl
+                    } else {
+                        // Tausenderpunkte entfernen, Komma → Punkt
+                        $normalized = str_replace(['.', ','], ['', '.'], $itemArray['Value']);
+                        if (!is_numeric($normalized)) {
+                            $name = "Data[ScoreTypeItems][$ranking][Value]";
+                            $ErrorList[$name] = [
+                                'Name' => $name,
+                                'Message' => 'Bitte geben Sie eine Zahl an'
+                            ];
+                            $hasErrors = true;
+                        }
                     }
                     if (empty($itemArray['Name'])) {
                         $name = "Data[ScoreTypeItems][$ranking][Name]";
@@ -85,6 +97,7 @@ class Service extends AbstractService
                             'Name' => $name,
                             'Message' => 'Bitte geben Sie einen Kurztext an'
                         ];
+                        $hasErrors = true;
                     }
                 }
             }
@@ -105,9 +118,11 @@ class Service extends AbstractService
             $tblScoreTypeNew = (new Data($this->getBinding()))->createScoreType($Data['Name'], $Data['Description']);
         }
 
-        foreach ($Data['ScoreTypeItems'] as $array) {
-            if (!empty($array['Value'])) {
-                (new Data($this->getBinding()))->createScoreTypeItem($tblScoreTypeNew, $array['Value'], $array['Name'], $array['Description'] ?: null);
+        if (isset($Data['ScoreTypeItems'])) {
+            foreach ($Data['ScoreTypeItems'] as $array) {
+                if (!empty($array['Value'])) {
+                    (new Data($this->getBinding()))->createScoreTypeItem($tblScoreTypeNew, $array['Value'], $array['Name'], $array['Description'] ?: null);
+                }
             }
         }
 
@@ -125,6 +140,18 @@ class Service extends AbstractService
         return (new Data($this->getBinding()))->getScoreTypeItemListByScoreType($tblScoreType);
     }
 
+    /**
+     * @param TblScoreType $tblScoreType
+     *
+     * @return bool
+     */
+    public function destroyScoreType(TblScoreType $tblScoreType): bool
+    {
+        $this->destroyScoreTypeItemsByScoreType($tblScoreType);
+
+        return (new Data($this->getBinding()))->destroyScoreType($tblScoreType);
+    }
+    
     /**
      * @param TblScoreType $tblScoreType
      *

@@ -6,7 +6,6 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
-use SPHERE\Application\Education\Competence\ScoreType\ScoreType;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -32,14 +31,6 @@ class TblScoreTypeItem extends Element
      * @Column(type="string")
      */
     protected ?string $Description = null;
-
-    /**
-     * @return TblScoreType|false
-     */
-    public function getTblScoreType(): TblScoreType|false
-    {
-        return ScoreType::useService()->getScoreTypeById($this->tblCompetenceScoreType);
-    }
 
     /**
      * @param TblScoreType $tblScoreType

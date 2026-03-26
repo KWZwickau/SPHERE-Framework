@@ -2,6 +2,8 @@
 
 namespace SPHERE\Application\Education\Competence\Skill;
 
+use SPHERE\Application\Education\Competence\ScoreType\ScoreType;
+use SPHERE\Application\Education\Competence\ScoreType\Service\Entity\TblScoreType;
 use SPHERE\Application\Education\Competence\Skill\Service\Data;
 use SPHERE\Application\Education\Competence\Skill\Service\Entity\TblSkill;
 use SPHERE\Application\Education\Competence\Skill\Service\Entity\TblSkillArea;
@@ -59,6 +61,16 @@ class Service extends AbstractService
     public function getSkillGridListBy(TblType $tblSchoolType, ?int $level = null, ?TblSubject $tblSubject = null): array|false
     {
         return (new Data($this->getBinding()))->getSkillGridListBy($tblSchoolType, $level, $tblSubject);
+    }
+
+    /**
+     * @param TblScoreType $tblScoreType
+     *
+     * @return bool
+     */
+    public function getIsScoreTypeUsedInAnySkillGrid(TblScoreType $tblScoreType): bool
+    {
+        return (new Data($this->getBinding()))->getIsScoreTypeUsedInAnySkillGrid($tblScoreType);
     }
 
     /**
@@ -149,10 +161,11 @@ class Service extends AbstractService
         $tblSubject = Subject::useService()->getSubjectById($Data['SubjectId']);
         $tblCourse = Course::useService()->getCourseById($Data['CourseId']);
         $tblSupportFocusType = Student::useService()->getSupportFocusTypeById($Data['SupportFocusTypeId']);
+        $tblScoreType = $Data['ScoreTypeId'] > 0 ? ScoreType::useService()->getScoreTypeById($Data['ScoreTypeId']) : null;
 
         if ($tblSkillGrid) {
             (new Data($this->getBinding()))->updateSkillGrid($tblSkillGrid, $Data['Name'], isset($Data['IsAverage']),
-                $Data['Level'], $tblSubject ?: null, $tblCourse ?: null, $tblSupportFocusType ?: null);
+                $Data['Level'], $tblSubject ?: null, $tblCourse ?: null, $tblSupportFocusType ?: null, $tblScoreType ?: null);
 
             // erstmal alle löschen, updaten würde sehr komplex
             $this->destroySkillsBySkillGrid($tblSkillGrid);
@@ -160,7 +173,7 @@ class Service extends AbstractService
             $tblSkillGridNew = $tblSkillGrid;
         } else {
             $tblSkillGridNew = (new Data($this->getBinding()))->createSkillGrid($tblSchoolType, $Data['Name'], isset($Data['IsAverage']),
-                $Data['Level'], $tblSubject ?: null, $tblCourse ?: null, $tblSupportFocusType ?: null);
+                $Data['Level'], $tblSubject ?: null, $tblCourse ?: null, $tblSupportFocusType ?: null, $tblScoreType ?: null);
         }
 
         $tblSkillAreaList = [];

@@ -3,6 +3,7 @@
 namespace SPHERE\Application\Education\Competence\Skill;
 
 use SPHERE\Application\Api\Education\Competence\ApiSkill;
+use SPHERE\Application\Education\Competence\ScoreType\ScoreType;
 use SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount\SelectBoxItem;
 use SPHERE\Application\Education\Lesson\Course\Course;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
@@ -309,8 +310,7 @@ class Frontend extends Extension implements IFrontendInterface
         if ($setPost && $tblSkillGrid) {
             $Global = $this->getGlobal();
             $Global->POST['Data']['Name'] = $tblSkillGrid->getName();
-            // Todo Bewertungssysteme
-            $Global->POST['Data']['ScoreTypeId'] = -1;
+            $Global->POST['Data']['ScoreTypeId'] = ($tblScoreType = $tblSkillGrid->getServiceTblScoreType()) ? $tblScoreType->getId() : -1;
             $Global->POST['Data']['IsAverage'] = $tblSkillGrid->getIsAverage();
 
             $Global->POST['Data']['Level'] = $tblSkillGrid->getLevel();
@@ -345,9 +345,10 @@ class Frontend extends Extension implements IFrontendInterface
             $Global->savePost();
         }
 
-        // Todo Bewertungssysteme
+        // Bewertungssysteme
         $tblScoreTypeList = [];
         $tblScoreTypeList[] = new SelectBoxItem(-1, 'Prozent');
+        $tblScoreTypeList = array_merge($tblScoreTypeList, ScoreType::useService()->getScoreTypeAll());
 
         $tblSubjectList = Subject::useService()->getSubjectAll();
         $tblCourseAll = Course::useService()->getCourseAll();
@@ -384,7 +385,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         (new TextField('Data[Name]', '', 'Name ' . new Danger('*')))
                                     , 6),
                                     new LayoutColumn(
-                                        (new SelectBox('Data[ScoreTypeId]', 'Bewertungssystem', array('{{ Name }}' => $tblScoreTypeList)))
+                                        (new SelectBox('Data[ScoreTypeId]', 'Bewertungssystem', array('{{ Name }} {{ Description }}' => $tblScoreTypeList)))
                                     , 6),
                                 )),
                                 new LayoutRow(array(

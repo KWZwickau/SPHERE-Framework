@@ -12,6 +12,21 @@ use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
 use SPHERE\Common\Frontend\Ajax\Receiver\ModalReceiver;
 use SPHERE\Common\Frontend\Ajax\Template\CloseModal;
 use SPHERE\Common\Frontend\Form\Repository\Button\Close;
+use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
+use SPHERE\Common\Frontend\Icon\Repository\Ok;
+use SPHERE\Common\Frontend\Icon\Repository\Question;
+use SPHERE\Common\Frontend\Icon\Repository\Remove;
+use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\Title;
+use SPHERE\Common\Frontend\Layout\Structure\Layout;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\Danger as DangerLink;
+use SPHERE\Common\Frontend\Link\Repository\Standard;
+use SPHERE\Common\Frontend\Message\Repository\Danger;
+use SPHERE\Common\Frontend\Message\Repository\Success;
+use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\System\Extension\Extension;
 
 class ApiScoreType extends Extension implements IApiInterface
@@ -29,8 +44,13 @@ class ApiScoreType extends Extension implements IApiInterface
         $Dispatcher = new Dispatcher(__CLASS__);
 
         $Dispatcher->registerMethod('loadScoreTypeTable');
+        $Dispatcher->registerMethod('loadScoreTypeItemContent');
+
         $Dispatcher->registerMethod('loadEditScoreTypeContent');
         $Dispatcher->registerMethod('saveEditScoreType');
+
+        $Dispatcher->registerMethod('openDeleteScoreTypeModal');
+        $Dispatcher->registerMethod('saveDeleteScoreTypeModal');
 
         return $Dispatcher->callMethod($Method);
     }
@@ -131,6 +151,42 @@ class ApiScoreType extends Extension implements IApiInterface
 
     /**
      * @param $ScoreTypeId
+     * @param $Ranking
+     *
+     * @return Pipeline
+     */
+    public static function pipelineLoadScoreTypeItemContent($ScoreTypeId, $Ranking): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'ScoreTypeItem_' . $Ranking), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'loadScoreTypeItemContent',
+        ));
+
+        $ModalEmitter->setPostPayload(array(
+            'ScoreTypeId' => $ScoreTypeId,
+            'Ranking' => $Ranking,
+        ));
+        $ModalEmitter->setLoadingMessage('Daten werden geladen');
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $ScoreTypeId
+     * @param $Ranking
+     *
+     * @return string
+     * @noinspection PhpUnused
+     */
+    public function loadScoreTypeItemContent($ScoreTypeId, $Ranking): string
+    {
+        return ScoreType::useFrontend()->loadScoreTypeItemContent($ScoreTypeId, $Ranking);
+    }
+
+    /**
+     * @param $ScoreTypeId
      *
      * @return Pipeline
      */
@@ -165,5 +221,103 @@ class ApiScoreType extends Extension implements IApiInterface
         }
 
         return ScoreType::useService()->updateScoreType($Data, $tblScoreType);
+    }
+
+    /**
+     * @param $ScoreTypeId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineOpenDeleteScoreTypeModal($ScoreTypeId): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'openDeleteScoreTypeModal',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'ScoreTypeId' => $ScoreTypeId
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $ScoreTypeId
+     *
+     * @return string
+     * @noinspection PhpUnused
+     */
+    public function openDeleteScoreTypeModal($ScoreTypeId): string
+    {
+        if (!($tblScoreType = ScoreType::useService()->getScoreTypeById($ScoreTypeId))) {
+            return new Danger('Das Bewertungssystem wurde nicht gefunden', new Exclamation());
+        }
+
+        return new Title(new Remove() . ' Bewertungssystem löschen')
+            . new Layout(
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            new Panel(
+                                new Question() . ' Dieses Bewertungssystem wirklich löschen?',
+                                array(
+                                    'Name: ' . new Bold($tblScoreType->getName()),
+                                    'Beschreibung: ' . $tblScoreType->getDescription(),
+                                    'Bewertungen: ' . $tblScoreType->getDisplayNames()
+                                ),
+                                Panel::PANEL_TYPE_DANGER
+                            )
+                            . (new DangerLink('Ja', self::getEndpoint(), new Ok()))
+                                ->ajaxPipelineOnClick(self::pipelineDeleteScoreTypeSave($ScoreTypeId))
+                            . (new Standard('Nein', self::getEndpoint(), new Remove()))
+                                ->ajaxPipelineOnClick(self::pipelineClose())
+                        )
+                    )
+                )
+            );
+    }
+
+    /**
+     * @param $ScoreTypeId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineDeleteScoreTypeSave($ScoreTypeId): Pipeline
+    {
+        $Pipeline = new Pipeline();
+        $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'saveDeleteScoreTypeModal'
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'ScoreTypeId' => $ScoreTypeId
+        ));
+        $ModalEmitter->setLoadingMessage('Wird bearbeitet');
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $ScoreTypeId
+     *
+     * @return string
+     * @noinspection PhpUnused
+     */
+    public function saveDeleteScoreTypeModal($ScoreTypeId): string
+    {
+        if (!($tblScoreType = ScoreType::useService()->getScoreTypeById($ScoreTypeId))) {
+            return new Danger('Der Bewertungssystem wurde nicht gefunden', new Exclamation());
+        }
+
+        if (ScoreType::useService()->destroyScoreType($tblScoreType)) {
+            return new Success('Der Bewertungssystem wurde erfolgreich gelöscht.')
+                . self::pipelineLoadScoreTypeTable()
+                . self::pipelineClose();
+        } else {
+            return new Danger('Der Bewertungssystem konnte nicht gelöscht werden.') . self::pipelineClose();
+        }
     }
 }

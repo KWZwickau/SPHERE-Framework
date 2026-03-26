@@ -67,4 +67,17 @@ class TblScoreType extends Element
     {
         return ScoreType::useService()->getScoreTypeItemsByScoreType($this);
     }
+
+    /**
+     * @return string
+     */
+    public function getDisplayNames(): string
+    {
+        $names = [];
+        foreach ($this->getScoreTypeItems() as $tblScoreTypeItem) {
+            $names[] = $tblScoreTypeItem->getName();
+        }
+
+        return implode(', ', $names);
+    }
 }

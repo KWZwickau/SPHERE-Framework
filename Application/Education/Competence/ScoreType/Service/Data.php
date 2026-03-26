@@ -29,11 +29,11 @@ class Data extends AbstractData
     }
 
     /**
-     * @return TblScoreType[]|false
+     * @return TblScoreType[]
      */
-    public function getScoreTypeAll(): array|false
+    public function getScoreTypeAll(): array
     {
-        return $this->getCachedEntityList(__METHOD__, $this->getEntityManager(), 'TblScoreType');
+        return $this->getCachedEntityList(__METHOD__, $this->getEntityManager(), 'TblScoreType') ?: [];
     }
 
     /**

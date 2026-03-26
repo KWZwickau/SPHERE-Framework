@@ -2,6 +2,7 @@
 
 namespace SPHERE\Application\Education\Competence\Skill\Service;
 
+use SPHERE\Application\Education\Competence\ScoreType\Service\Entity\TblScoreType;
 use SPHERE\Application\Education\Competence\Skill\Service\Entity\TblSkill;
 use SPHERE\Application\Education\Competence\Skill\Service\Entity\TblSkillArea;
 use SPHERE\Application\Education\Competence\Skill\Service\Entity\TblSkillGrid;
@@ -54,6 +55,17 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblScoreType $tblScoreType
+     *
+     * @return bool
+     */
+    public function getIsScoreTypeUsedInAnySkillGrid(TblScoreType $tblScoreType): bool
+    {
+        return (bool) $this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblSkillGrid',
+            [TblSkillGrid::SERVICE_TBL_SCORE_TYPE => $tblScoreType->getId()]);
+    }
+
+    /**
      * @param TblType $tblSchoolType
      * @param string $name
      * @param bool $isAverage
@@ -61,11 +73,12 @@ class Data extends AbstractData
      * @param TblSubject|null $tblSubject
      * @param TblCourse|null $tblCourse
      * @param TblSupportFocusType|null $tblSupportFocusType
+     * @param TblScoreType|null $tblScoreType
      *
      * @return TblSkillGrid
      */
     public function createSkillGrid(TblType $tblSchoolType, string $name, bool $isAverage,
-        int $level, ?TblSubject $tblSubject, ?TblCourse $tblCourse, ?TblSupportFocusType $tblSupportFocusType
+        int $level, ?TblSubject $tblSubject, ?TblCourse $tblCourse, ?TblSupportFocusType $tblSupportFocusType, ?TblScoreType $tblScoreType
     ): TblSkillGrid {
         $manager = $this->getEntityManager();
 
@@ -77,7 +90,7 @@ class Data extends AbstractData
         $entity->setIsAverage($isAverage);
         $entity->setServiceTblCourse($tblCourse);
         $entity->setServiceTblSupportFocusType($tblSupportFocusType);
-        // TODO: setServiceTblScoreType
+        $entity->setServiceTblScoreType($tblScoreType);
 
         $manager->saveEntity($entity);
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $entity);
@@ -93,11 +106,12 @@ class Data extends AbstractData
      * @param TblSubject|null $tblSubject
      * @param TblCourse|null $tblCourse
      * @param TblSupportFocusType|null $tblSupportFocusType
+     * @param TblScoreType|null $tblScoreType
      *
      * @return bool
      */
     public function updateSkillGrid(TblSkillGrid $tblSkillGrid, string $name, bool $isAverage,
-        int $level, ?TblSubject $tblSubject, ?TblCourse $tblCourse, ?TblSupportFocusType $tblSupportFocusType
+        int $level, ?TblSubject $tblSubject, ?TblCourse $tblCourse, ?TblSupportFocusType $tblSupportFocusType, ?TblScoreType $tblScoreType
     ): bool {
         $manager = $this->getEntityManager();
         /** @var TblSkillGrid $entity */
@@ -110,7 +124,7 @@ class Data extends AbstractData
             $entity->setIsAverage($isAverage);
             $entity->setServiceTblCourse($tblCourse);
             $entity->setServiceTblSupportFocusType($tblSupportFocusType);
-            // TODO: setServiceTblScoreType
+            $entity->setServiceTblScoreType($tblScoreType);
 
             $manager->saveEntity($entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $protocol, $entity);
@@ -182,26 +196,6 @@ class Data extends AbstractData
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $entity);
 
         return $entity;
-    }
-
-    /**
-     * @param TblSkillArea $tblSkillArea
-     *
-     * @return bool
-     */
-    public function destroySkillArea(TblSkillArea $tblSkillArea): bool
-    {
-        $manager = $this->getConnection()->getEntityManager();
-        /** @var Element $entity */
-        $entity = $manager->getEntityById('TblSkillArea', $tblSkillArea->getId());
-        if (null !== $entity) {
-            $manager->killEntity($entity);
-            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $entity);
-
-            return true;
-        }
-
-        return false;
     }
 
     /**
@@ -281,26 +275,6 @@ class Data extends AbstractData
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $entity);
 
         return $entity;
-    }
-
-    /**
-     * @param TblSkill $tblSkill
-     *
-     * @return bool
-     */
-    public function destroySkill(TblSkill $tblSkill): bool
-    {
-        $manager = $this->getConnection()->getEntityManager();
-        /** @var Element $entity */
-        $entity = $manager->getEntityById('TblSkill', $tblSkill->getId());
-        if (null !== $entity) {
-            $manager->killEntity($entity);
-            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $entity);
-
-            return true;
-        }
-
-        return false;
     }
 
     /**

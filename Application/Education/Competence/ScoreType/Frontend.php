@@ -3,6 +3,7 @@
 namespace SPHERE\Application\Education\Competence\ScoreType;
 
 use SPHERE\Application\Api\Education\Competence\ApiScoreType;
+use SPHERE\Application\Education\Competence\Skill\Skill;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
@@ -56,12 +57,18 @@ class Frontend extends Extension implements IFrontendInterface
         $dataList = [];
         if (($tblScoreTypeList = ScoreType::useService()->getScoreTypeAll())) {
             foreach ($tblScoreTypeList as $tblScoreType) {
+                $delete = '';
+                if (!Skill::useService()->getIsScoreTypeUsedInAnySkillGrid($tblScoreType)) {
+                    $delete = (new Standard('', ApiScoreType::getEndpoint(), new Remove(), array(), 'Bewertungssystem löschen'))
+                        ->ajaxPipelineOnClick(ApiScoreType::pipelineOpenDeleteScoreTypeModal($tblScoreType->getId()));
+                }
+
                 $dataList[] = [
                     'Name' => $tblScoreType->getName(),
                     'Description' => $tblScoreType->getDescription(),
+                    'Names' => $tblScoreType->getDisplayNames(),
                     'Option' => new Standard('', '/Education/Competence/ScoreType/Edit', new Edit(), ['ScoreTypeId' => $tblScoreType->getId()])
-                        . (new Standard('', ApiScoreType::getEndpoint(), new Remove(), array(), 'Bewertungssystem löschen'))
-//                            ->ajaxPipelineOnClick(ApiScoreType::pipelineOpenDeleteSkillGridModal($tblScoreType->getId(), $SchoolTypeId, $Filter))
+                        . $delete
                 ];
             }
         }
@@ -72,6 +79,7 @@ class Frontend extends Extension implements IFrontendInterface
             [
                 'Name' => 'Name',
                 'Description' => 'Beschreibung',
+                'Names' => 'Bewertungen',
                 'Option' => ' '
             ],
             [
@@ -93,6 +101,7 @@ class Frontend extends Extension implements IFrontendInterface
      * @param $ScoreTypeId
      *
      * @return Stage
+     * @noinspection PhpUnused
      */
     public function frontendEditScoreTypes($ScoreTypeId = null): Stage
     {
@@ -117,33 +126,9 @@ class Frontend extends Extension implements IFrontendInterface
     public function loadEditScoreTypeContent(bool $setPost = false, $ScoreTypeId = null,
         $Action = null, $ActionId = null, $Data = null): string
     {
-//        if ($Action == 'RemoveSkill' && isset($Data['Skills'][$ActionId])) {
-//            unset($Data['Skills'][$ActionId]);
-//        } elseif ($Action == 'MoveSkillUp' && isset($Data['Skills'][$ActionId])) {
-//            $split = explode('-', $ActionId);
-//            $areaRanking = $split[0];
-//            $skillRanking = $split[1];
-//            // wenn der Skill davor gelöscht wurde → nicht nur minus 1
-//            $up = $skillRanking - 1;
-//            while ($up > 0) {
-//                if (isset($Data['Skills'][$areaRanking . '-' . $up])) {
-//                    $temp = $Data['Skills'][$ActionId];
-//                    $Data['Skills'][$ActionId] = $Data['Skills'][$areaRanking . '-' . $up];
-//                    $Data['Skills'][$areaRanking . '-' . $up] = $temp;
-//
-//                    ksort($Data['Skills']);
-//
-//                    // muss zusätzlich gepostet werden, damit die werte korrekt im Frontend angezeigt werden
-//                    $global = $this->getGlobal();
-//                    $global->POST['Data']['Skills'][$ActionId] = $Data['Skills'][$ActionId];
-//                    $global->POST['Data']['Skills'][$areaRanking . '-' . $up] = $Data['Skills'][$areaRanking . '-' . $up];
-//                    $global->savePost();
-//
-//                    break;
-//                }
-//                $up--;
-//            }
-//        }
+        if ($Action == 'RemoveScoreTypeItem' && isset($Data['ScoreTypeItems'][$ActionId])) {
+            unset($Data['ScoreTypeItems'][$ActionId]);
+        }
 
         return new Well($this->formScoreType($setPost, $ScoreTypeId, $Data));
     }
@@ -181,21 +166,21 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $items = [];
-        if ($Data === null) {
-            $countItems = 3;
-            $count = 0;
-            for ($ranking = 1; $ranking < 4; $ranking++) {
-                $items[] = ApiScoreType::receiverBlock($this->getScoreTypeItemContent($ScoreTypeId, $ranking, ++$count == $countItems), "ScoreTypeItem_$ranking");
-            }
-        } else {
+        if (isset($Data['ScoreTypeItems'])) {
             $countItems = count($Data['ScoreTypeItems']);
             $count = 0;
             foreach ($Data['ScoreTypeItems'] as $ranking => $areaArray) {
                 $items[] =
                     ApiScoreType::receiverBlock(
-                        $this->getScoreTypeItemContent($ScoreTypeId, $ranking, ++$count == $countItems, $ErrorList),
+                        $this->loadScoreTypeItemContent($ScoreTypeId, $ranking, ++$count == $countItems, $ErrorList),
                         "ScoreTypeItem_$ranking"
                     );
+            }
+        } else {
+            $countItems = 3;
+            $count = 0;
+            for ($ranking = 1; $ranking < 4; $ranking++) {
+                $items[] = ApiScoreType::receiverBlock($this->loadScoreTypeItemContent($ScoreTypeId, $ranking, ++$count == $countItems), "ScoreTypeItem_$ranking");
             }
         }
 
@@ -260,13 +245,17 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return string
      */
-    public function getScoreTypeItemContent($ScoreTypeId, $ranking, bool $hasAddButton = true, $ErrorList = null): string
+    public function loadScoreTypeItemContent($ScoreTypeId, $ranking, bool $hasAddButton = true, $ErrorList = null): string
     {
-        $valueInput = new TextField("Data[ScoreTypeItems][$ranking][Value]", '1', 'Wert (Zahl) ' . new Danger('*'));
+        $valuePlaceholder = $ranking == 1 ? '1' : '';
+        $namePlaceholder = $ranking == 1 ? 'übertrifft die Anforderung' : '';
+        $descriptionPlaceholder = $ranking == 1 ? 'liegt deutlich über den Regelanforderungen und jahrgangsgemäßen Erwartungen' : '';
+
+        $valueInput = new TextField("Data[ScoreTypeItems][$ranking][Value]", $valuePlaceholder, 'Wert (Zahl) ' . new Danger('*'));
         if (isset($ErrorList["Data[ScoreTypeItems][$ranking][Value]"])) {
             $valueInput->setError($ErrorList["Data[ScoreTypeItems][$ranking][Value]"]['Message']);
         }
-        $nameInput = new TextField("Data[ScoreTypeItems][$ranking][Name]", 'übertrifft die Anforderung', 'Kurztext ' . new Danger('*'));
+        $nameInput = new TextField("Data[ScoreTypeItems][$ranking][Name]", $namePlaceholder, 'Kurztext ' . new Danger('*'));
         if (isset($ErrorList["Data[ScoreTypeItems][$ranking][Name]"])) {
             $nameInput->setError($ErrorList["Data[ScoreTypeItems][$ranking][Name]"]['Message']);
         }
@@ -280,8 +269,7 @@ class Frontend extends Extension implements IFrontendInterface
                     $nameInput
                 , 3),
                 new LayoutColumn(
-                    new TextField("Data[ScoreTypeItems][$ranking][Description]", 'liegt deutlich über den Regelanforderungen und jahrgangsgemäßen Erwartungen',
-                        'Beschreibung')
+                    new TextField("Data[ScoreTypeItems][$ranking][Description]", $descriptionPlaceholder, 'Beschreibung')
                 , 6),
                 new LayoutColumn(array(
                     (new Container('&nbsp;'))->setStyle(['height: 22px;']),
@@ -295,7 +283,7 @@ class Frontend extends Extension implements IFrontendInterface
         if ($hasAddButton) {
             $button = ApiScoreType::receiverBlock(
                 (new Link(new Bold('Bewertung hinzufügen'), ApiScoreType::getEndpoint(), new Plus()))
-                    , //->ajaxPipelineOnClick(ApiSkill::pipelineLoadSkillAreaContent($SchoolTypeId, $Filter, $ScoreTypeId,$ranking + 1)),
+                    ->ajaxPipelineOnClick(ApiScoreType::pipelineLoadScoreTypeItemContent($ScoreTypeId, $ranking + 1)),
                 'ScoreTypeItem_' . ($ranking + 1)
             );
         }

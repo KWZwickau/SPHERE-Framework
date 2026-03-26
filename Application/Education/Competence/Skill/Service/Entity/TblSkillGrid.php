@@ -6,6 +6,8 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
+use SPHERE\Application\Education\Competence\ScoreType\ScoreType;
+use SPHERE\Application\Education\Competence\ScoreType\Service\Entity\TblScoreType;
 use SPHERE\Application\Education\Competence\Skill\Skill;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
@@ -26,6 +28,7 @@ class TblSkillGrid extends Element
 {
     const string SERVICE_TBL_SCHOOL_TYPE = 'serviceTblSchoolType';
     const string SERVICE_TBL_SUBJECT = 'serviceTblSubject';
+    const string SERVICE_TBL_SCORE_TYPE = 'serviceTblScoreType';
     const string ATTR_LEVEL = 'Level';
 
     /**
@@ -169,16 +172,23 @@ class TblSkillGrid extends Element
         $this->IsAverage = $IsAverage;
     }
 
-    public function getServiceTblScoreType()
+    /**
+     * @return TblScoreType|false
+     */
+    public function getServiceTblScoreType(): TblScoreType|false
     {
-        // Todo
-        return false;
+        return ScoreType::useService()->getScoreTypeById($this->serviceTblScoreType);
     }
 
-//    public function setServiceTblScoreType(?int $serviceTblScoreType): void
-//    {
-//        $this->serviceTblScoreType = $serviceTblScoreType;
-//    }
+    /**
+     * @param TblScoreType|null $tblScoreType
+     *
+     * @return void
+     */
+    public function setServiceTblScoreType(?TblScoreType $tblScoreType): void
+    {
+        $this->serviceTblScoreType = $tblScoreType?->getId();
+    }
 
     /**
      * @return TblSkillArea[]
