@@ -156,8 +156,8 @@ class Service extends AbstractService
         if ($tblPersonList) {
             /** @var TblPerson $tblPerson */
             foreach ($tblPersonList as $tblPerson) {
-                $PeopleGradeList[$tblPerson->getId()]['FirstName'] = Extension::decodeUTF8($tblPerson->getFirstSecondName());
-                $PeopleGradeList[$tblPerson->getId()]['LastName'] = Extension::decodeUTF8($tblPerson->getLastName());
+                $PeopleGradeList[$tblPerson->getId()]['FirstName'] = $tblPerson->getFirstSecondName();
+                $PeopleGradeList[$tblPerson->getId()]['LastName'] = $tblPerson->getLastName();
                 $PeopleGradeList[$tblPerson->getId()]['Birthday'] = $tblPerson->getBirthday();
 
                 if (($tblTaskGradeList = Grade::useService()->getTaskGradeListByTaskAndPerson($tblTask, $tblPerson))
