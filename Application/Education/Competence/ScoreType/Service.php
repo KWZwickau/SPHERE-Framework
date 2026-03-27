@@ -4,9 +4,11 @@ namespace SPHERE\Application\Education\Competence\ScoreType;
 
 use SPHERE\Application\Education\Competence\ScoreType\Service\Data;
 use SPHERE\Application\Education\Competence\ScoreType\Service\Entity\TblScoreType;
+use SPHERE\Application\Education\Competence\ScoreType\Service\Entity\TblScoreTypeConversion;
 use SPHERE\Application\Education\Competence\ScoreType\Service\Entity\TblScoreTypeItem;
 use SPHERE\Application\Education\Competence\ScoreType\Service\Setup;
 use SPHERE\Common\Frontend\Form\IFormInterface;
+use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Window\Redirect;
@@ -40,15 +42,37 @@ class Service extends AbstractService
      */
     public function getScoreTypeById($id): TblScoreType|false
     {
+        if ($id == -1) {
+            return $this->getVirtuellScoreTypePercent();
+        }
+
         return (new Data($this->getBinding()))->getScoreTypeById($id);
+    }
+
+    /**
+     * @return TblScoreType
+     */
+    public function getVirtuellScoreTypePercent(): TblScoreType
+    {
+        $tblScoreType = new TblScoreType();
+        $tblScoreType->setId(-1);
+        $tblScoreType->setName('Prozent');
+        $tblScoreType->setDescription('0% - 100%');
+
+        return $tblScoreType;
     }
 
     /**
      * @return TblScoreType[]
      */
-    public function getScoreTypeAll(): array
+    public function getScoreTypeAll(bool $withVirtuellPercent = true): array
     {
-        return (new Data($this->getBinding()))->getScoreTypeAll();
+        $list = (new Data($this->getBinding()))->getScoreTypeAll();
+        if ($withVirtuellPercent) {
+            array_unshift($list, $this->getVirtuellScoreTypePercent());
+        }
+
+        return $list;
     }
 
     /**
@@ -160,5 +184,57 @@ class Service extends AbstractService
     public function destroyScoreTypeItemsByScoreType(TblScoreType $tblScoreType): bool
     {
         return (new Data($this->getBinding()))->destroyScoreTypeItemBulkList($tblScoreType->getScoreTypeItems());
+    }
+
+    /**
+     * @param TblScoreType|null $tblScoreType
+     *
+     * @return TblScoreTypeConversion[]
+     */
+    public function getScoreTypeConversionListByScoreType(?TblScoreType $tblScoreType): array
+    {
+        return (new Data($this->getBinding()))->getScoreTypeConversionListByScoreType($tblScoreType);
+    }
+
+    /**
+     * @param $Data
+     * @param TblScoreType $tblScoreType
+     *
+     * @return Form|false
+     */
+    public function checkFormConversionScoreType($Data, TblScoreType $tblScoreType): Form|false
+    {
+        $error = false;
+        $form = ScoreType::useFrontend()->formScoreTypeConversion(false, $tblScoreType);
+
+        for ($i = 1; $i < 6; $i++) {
+            $normalized = str_replace(['.', ','], ['', '.'], $Data[$i]);
+            // Prüfung ob alle gefüllt und is_numeric
+            if ($Data[$i] === '' || !is_numeric($normalized)) {
+                $form->setError("Data[$i]", 'Bitte geben Sie eine Zahl an');
+                $error = true;
+            }
+        }
+
+        return $error ? $form : false;
+    }
+
+    /**
+     * @param TblScoreType $tblScoreType
+     * @param $Data
+     *
+     * @return bool
+     */
+    public function updateScoreTypeConversions(TblScoreType $tblScoreType, $Data): bool
+    {
+        // Spezialfall Prozente
+        if ($tblScoreType->getId() < 1) {
+            $tblScoreType = null;
+        }
+        foreach ($Data as $grade => $value) {
+            (new Data($this->getBinding()))->updateScoreTypeConversion($tblScoreType, $grade, $value);
+        }
+
+        return true;
     }
 }

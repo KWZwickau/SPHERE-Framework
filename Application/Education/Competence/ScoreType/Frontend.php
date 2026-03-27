@@ -3,18 +3,22 @@
 namespace SPHERE\Application\Education\Competence\ScoreType;
 
 use SPHERE\Application\Api\Education\Competence\ApiScoreType;
+use SPHERE\Application\Education\Competence\ScoreType\Service\Entity\TblScoreType;
 use SPHERE\Application\Education\Competence\Skill\Skill;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
+use SPHERE\Common\Frontend\Form\Repository\Title;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
+use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Minus;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
+use SPHERE\Common\Frontend\Icon\Repository\Transfer;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
@@ -28,6 +32,7 @@ use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
+use SPHERE\Common\Frontend\Text\Repository\Center;
 use SPHERE\Common\Frontend\Text\Repository\Danger;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
@@ -58,16 +63,25 @@ class Frontend extends Extension implements IFrontendInterface
         if (($tblScoreTypeList = ScoreType::useService()->getScoreTypeAll())) {
             foreach ($tblScoreTypeList as $tblScoreType) {
                 $delete = '';
-                if (!Skill::useService()->getIsScoreTypeUsedInAnySkillGrid($tblScoreType)) {
+                // nur löschen möglich, wenn Bewertungssystem nicht verwendet wird
+                if ($tblScoreType->getId() > 0 && !Skill::useService()->getIsScoreTypeUsedInAnySkillGrid($tblScoreType)) {
                     $delete = (new Standard('', ApiScoreType::getEndpoint(), new Remove(), array(), 'Bewertungssystem löschen'))
                         ->ajaxPipelineOnClick(ApiScoreType::pipelineOpenDeleteScoreTypeModal($tblScoreType->getId()));
+                }
+                $edit = '';
+                if ($tblScoreType->getId() > 0) {
+                    $edit = new Standard('', '/Education/Competence/ScoreType/Edit', new Edit(), ['ScoreTypeId' => $tblScoreType->getId()],
+                        'Bewertungssystem bearbeiten');
                 }
 
                 $dataList[] = [
                     'Name' => $tblScoreType->getName(),
                     'Description' => $tblScoreType->getDescription(),
                     'Names' => $tblScoreType->getDisplayNames(),
-                    'Option' => new Standard('', '/Education/Competence/ScoreType/Edit', new Edit(), ['ScoreTypeId' => $tblScoreType->getId()])
+                    'Option' => $edit
+                        . (new Standard('', ApiScoreType::getEndpoint(), new Transfer(), array(),
+                            'Umrechnung Bewertungssystem in Zensuren für Notenzeugnisse'))
+                                ->ajaxPipelineOnClick(ApiScoreType::pipelineOpenConversionScoreTypeModal($tblScoreType->getId()))
                         . $delete
                 ];
             }
@@ -84,7 +98,7 @@ class Frontend extends Extension implements IFrontendInterface
             ],
             [
                 'columnDefs' => array(
-                    array('orderable' => false, 'width' => '60px', 'targets' => -1),
+                    array('orderable' => false, 'width' => '100px', 'targets' => -1),
                     // array('searchable' => false, 'targets' => array(-1, -2)),
                 ),
                 'order' => array(
@@ -289,5 +303,88 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         return $layout . $button;
+    }
+
+    /**
+     * @param bool $setPost
+     * @param TblScoreType $tblScoreType
+     *
+     * @return Form
+     */
+    public function formScoreTypeConversion(bool $setPost, TblScoreType $tblScoreType): Form
+    {
+        if ($setPost) {
+            $global = $this->getGlobal();
+            foreach ($tblScoreType->getScoreTypeConversions() as $tblScoreTypeConversion) {
+                $global->POST['Data'][$tblScoreTypeConversion->getGrade()] = $tblScoreTypeConversion->getValue();
+            }
+
+            $global->savePost();
+        }
+
+        $isPercent = $tblScoreType->getId() < 1;
+        $rows = [];
+        for ($i = 1; $i < 7; $i++) {
+            $placeholder = $isPercent
+                ? $this->getPercentPlaceholder($i)
+                : "$i,5";
+
+            $rows[] = new FormRow(array(
+                new FormColumn(
+                    new Center(new Bold($i . ' - ' . $this->getVerbalGrade($i)))
+                , 6),
+                new FormColumn(
+                    $i == 6
+                        ? new Container($isPercent ? 'Alle weiteren Prozente' : 'Alle weiteren Bewertungsdurchschnitte')
+                        : new TextField("Data[$i]", $placeholder, "", new ChevronLeft())
+                , 6),
+            ));
+        }
+
+        $rows[] = new FormRow(array(
+            new FormColumn(array(
+                new Container('&nbsp;'),
+                (new Primary('Speichern', ApiScoreType::getEndpoint(), new Save()))
+                    ->ajaxPipelineOnClick(ApiScoreType::pipelineConversionScoreTypeSave($tblScoreType->getId())),
+            ))
+        ));
+
+        $title = new Title(
+            new Layout(new LayoutGroup(new LayoutRow(array(
+                new LayoutColumn(
+                    new Center(new Bold('Zensuren für Notenzeugnis'))
+                    , 6),
+                new LayoutColumn(
+                    new Bold('Bis Kompetenz-Bewertung-Durchschnitt')
+                    , 6)
+            ))))
+        );
+
+        return (new Form(new FormGroup($rows, $title)))->disableSubmitAction();
+    }
+
+    private function getVerbalGrade($grade): string
+    {
+        return match ($grade) {
+            1 => 'Sehr gut',
+            2 => 'Gut',
+            3 => 'Befriedigend',
+            4 => 'Ausreichend',
+            5 => 'Mangelhaft',
+            6 => 'Ungenügend',
+            default => $grade,
+        };
+    }
+
+    private function getPercentPlaceholder($grade): string
+    {
+        return match ($grade) {
+            1 => '92',
+            2 => '81',
+            3 => '67',
+            4 => '50',
+            5 => '30',
+            default => $grade,
+        };
     }
 }

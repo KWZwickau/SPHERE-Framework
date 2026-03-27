@@ -22,6 +22,7 @@ class Setup extends AbstractSetup
         $schema = clone $this->getConnection()->getSchema();
         $tblScoreType = $this->setTableScoreType($schema);
         $this->setTableScoreTypeItem($schema, $tblScoreType);
+        $this->setTableScoreTypeConversion($schema, $tblScoreType);
 
         /**
          * Migration & Protocol
@@ -63,5 +64,20 @@ class Setup extends AbstractSetup
         $this->createColumn($table, 'Description', self::FIELD_TYPE_TEXT, true);
 
         $this->createForeignKey($table, $tblScoreType);
+    }
+
+    /**
+     * @param Schema $schema
+     * @param Table $tblScoreType
+     *
+     * @return void
+     */
+    private function setTableScoreTypeConversion(Schema &$schema, Table $tblScoreType): void
+    {
+        $table = $this->createTable($schema, 'tblCompetenceScoreTypeConversion');
+        $this->createColumn($table, 'Grade');
+        $this->createColumn($table, 'Value');
+
+        $this->createForeignKey($table, $tblScoreType, true);
     }
 }

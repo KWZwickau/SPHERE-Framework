@@ -5,6 +5,7 @@ namespace SPHERE\Application\Api\Education\Competence;
 use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\Education\Competence\ScoreType\ScoreType;
+use SPHERE\Application\Education\Competence\ScoreType\Service\Entity\TblScoreType;
 use SPHERE\Application\IApiInterface;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
@@ -18,6 +19,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Question;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
+use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
@@ -51,6 +53,9 @@ class ApiScoreType extends Extension implements IApiInterface
 
         $Dispatcher->registerMethod('openDeleteScoreTypeModal');
         $Dispatcher->registerMethod('saveDeleteScoreTypeModal');
+
+        $Dispatcher->registerMethod('openConversionScoreTypeModal');
+        $Dispatcher->registerMethod('saveConversionScoreTypeModal');
 
         return $Dispatcher->callMethod($Method);
     }
@@ -318,6 +323,109 @@ class ApiScoreType extends Extension implements IApiInterface
                 . self::pipelineClose();
         } else {
             return new Danger('Der Bewertungssystem konnte nicht gelöscht werden.') . self::pipelineClose();
+        }
+    }
+
+    /**
+     * @param $ScoreTypeId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineOpenConversionScoreTypeModal($ScoreTypeId): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'openConversionScoreTypeModal',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'ScoreTypeId' => $ScoreTypeId
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $ScoreTypeId
+     *
+     * @return string
+     * @noinspection PhpUnused
+     */
+    public function openConversionScoreTypeModal($ScoreTypeId): string
+    {
+        if (!($tblScoreType = ScoreType::useService()->getScoreTypeById($ScoreTypeId))) {
+            return new Danger('Das Bewertungssystem wurde nicht gefunden', new Exclamation());
+        }
+
+        return $this->getConversionScoreTypeModal(ScoreType::useFrontend()->formScoreTypeConversion(true, $tblScoreType), $tblScoreType);
+    }
+
+    /**
+     * @param $form
+     * @param TblScoreType $tblScoreType
+     *
+     * @return string
+     */
+    private function getConversionScoreTypeModal($form, TblScoreType $tblScoreType): string
+    {
+        return new Title('Umrechnung Bewertungssystem in Zensuren für Notenzeugnisse')
+            . new Layout(new LayoutGroup(new LayoutRow(array(
+                new LayoutColumn(
+                    new Panel('Name', $tblScoreType->getName(), Panel::PANEL_TYPE_INFO)
+                    , 6),
+                new LayoutColumn(
+                    new Panel('Beschreibung', $tblScoreType->getDescription() ?: '&nbsp;', Panel::PANEL_TYPE_INFO)
+                    , 6)
+            ))))
+            . new Well($form);
+    }
+
+    /**
+     * @param $ScoreTypeId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineConversionScoreTypeSave($ScoreTypeId): Pipeline
+    {
+        $Pipeline = new Pipeline();
+        $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'saveConversionScoreTypeModal'
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'ScoreTypeId' => $ScoreTypeId
+        ));
+        $ModalEmitter->setLoadingMessage('Wird bearbeitet');
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $ScoreTypeId
+     * @param null $Data
+     *
+     * @return string
+     * @noinspection PhpUnused
+     */
+    public function saveConversionScoreTypeModal($ScoreTypeId, $Data = null): string
+    {
+        if (!($tblScoreType = ScoreType::useService()->getScoreTypeById($ScoreTypeId))) {
+            return new Danger('Das Bewertungssystem wurde nicht gefunden', new Exclamation());
+        }
+
+        if (($form = ScoreType::useService()->checkFormConversionScoreType($Data, $tblScoreType))) {
+            // display Errors on form
+            return $this->getConversionScoreTypeModal($form, $tblScoreType);
+        }
+
+        if (ScoreType::useService()->updateScoreTypeConversions($tblScoreType, $Data)) {
+            return new Success('Die Daten wurde erfolgreich gespeichert.')
+                . self::pipelineLoadScoreTypeTable()
+                . self::pipelineClose();
+        } else {
+            return new Danger('Die Daten konnte nicht gespeichert werden.') . self::pipelineClose();
         }
     }
 }

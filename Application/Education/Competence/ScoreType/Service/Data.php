@@ -3,6 +3,7 @@
 namespace SPHERE\Application\Education\Competence\ScoreType\Service;
 
 use SPHERE\Application\Education\Competence\ScoreType\Service\Entity\TblScoreType;
+use SPHERE\Application\Education\Competence\ScoreType\Service\Entity\TblScoreTypeConversion;
 use SPHERE\Application\Education\Competence\ScoreType\Service\Entity\TblScoreTypeItem;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Database\Binding\AbstractData;
@@ -157,24 +158,55 @@ class Data extends AbstractData
      */
     public function getScoreTypeItemListByScoreType(TblScoreType $tblScoreType): array
     {
-        $Manager = $this->getEntityManager();
-        $queryBuilder = $Manager->getQueryBuilder();
+        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblScoreTypeItem',
+            [TblScoreTypeItem::TBL_SCORE_TYPE => $tblScoreType->getId()], [TblScoreTypeItem::ATTR_VALUE => self::ORDER_ASC]) ?: [];
+    }
 
-        $query = $queryBuilder->select('i')
-            ->from(TblScoreTypeItem::class, 'i')
-            ->join(TblScoreType::class, 's')
-            ->where(
-                $queryBuilder->expr()->andX(
-                    $queryBuilder->expr()->eq('i.tblCompetenceScoreType', 's.Id'),
-                    $queryBuilder->expr()->eq('s.Id', '?1'),
-                ),
-            )
-            ->setParameter(1, $tblScoreType->getId())
-            ->orderBy('i.Value', 'ASC')
-            ->getQuery();
+    /**
+     * @param TblScoreType|null $tblScoreType
+     *
+     * @return TblScoreTypeConversion[]
+     */
+    public function getScoreTypeConversionListByScoreType(?TblScoreType $tblScoreType): array
+    {
+        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblScoreTypeConversion', [
+            TblScoreTypeConversion::TBL_SCORE_TYPE => $tblScoreType?->getId()
+        ]) ?: [];
+    }
 
-        $resultList = $query->getResult();
+    /**
+     * @param TblScoreType|null $tblScoreType
+     * @param string $grade
+     * @param string $value
+     *
+     * @return TblScoreTypeConversion
+     */
+    public function updateScoreTypeConversion(?TblScoreType $tblScoreType, string $grade, string $value): TblScoreTypeConversion
+    {
+        $manager = $this->getEntityManager();
 
-        return $resultList ?: [];
+        $entity = $manager->getEntity('TblScoreTypeConversion')->findOneBy([
+            TblScoreTypeConversion::TBL_SCORE_TYPE => $tblScoreType?->getId(),
+            TblScoreTypeConversion::ATTR_GRADE => $grade
+        ]);
+
+        if (null === $entity) {
+            $entity = new TblScoreTypeConversion();
+            $entity->setTblScoreType($tblScoreType);
+            $entity->setValue($value);
+            $entity->setGrade($grade);
+
+            $manager->saveEntity($entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $entity);
+        } else {
+            $protocol = clone $entity;
+            $entity->setValue($value);
+            $entity->setGrade($grade);
+
+            $manager->saveEntity($entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $protocol, $entity);
+        }
+
+        return $entity;
     }
 }

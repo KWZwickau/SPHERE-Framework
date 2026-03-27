@@ -15,6 +15,9 @@ use SPHERE\System\Database\Fitting\Element;
  */
 class TblScoreTypeItem extends Element
 {
+    CONST string TBL_SCORE_TYPE = "tblCompetenceScoreType";
+    CONST string ATTR_VALUE = "Value";
+
     /**
      * @Column(type="bigint")
      */

@@ -4,7 +4,6 @@ namespace SPHERE\Application\Education\Competence\Skill;
 
 use SPHERE\Application\Api\Education\Competence\ApiSkill;
 use SPHERE\Application\Education\Competence\ScoreType\ScoreType;
-use SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount\SelectBoxItem;
 use SPHERE\Application\Education\Lesson\Course\Course;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\School\Type\Type;
@@ -108,7 +107,8 @@ class Frontend extends Extension implements IFrontendInterface
                         'Name' => $tblSkillGrid->getName(),
                         'SkillAreas' => $tblSkillGrid->getDisplaySkillAreas(),
                         'Option' => new Standard('', '/Education/Competence/Skill/Edit', new Edit(),
-                            ['SchoolTypeId' => $SchoolTypeId, 'Filter' => $Filter, 'SkillGridId' => $tblSkillGrid->getId()])
+                            ['SchoolTypeId' => $SchoolTypeId, 'Filter' => $Filter, 'SkillGridId' => $tblSkillGrid->getId()],
+                            'Kompetenzraster bearbeiten')
                             . (new Standard('', ApiSkill::getEndpoint(), new Remove(), array(), 'Kompetenzraster löschen'))
                                 ->ajaxPipelineOnClick(ApiSkill::pipelineOpenDeleteSkillGridModal($tblSkillGrid->getId(), $SchoolTypeId, $Filter))
                     ];
@@ -346,9 +346,7 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         // Bewertungssysteme
-        $tblScoreTypeList = [];
-        $tblScoreTypeList[] = new SelectBoxItem(-1, 'Prozent');
-        $tblScoreTypeList = array_merge($tblScoreTypeList, ScoreType::useService()->getScoreTypeAll());
+        $tblScoreTypeList = ScoreType::useService()->getScoreTypeAll();
 
         $tblSubjectList = Subject::useService()->getSubjectAll();
         $tblCourseAll = Course::useService()->getCourseAll();

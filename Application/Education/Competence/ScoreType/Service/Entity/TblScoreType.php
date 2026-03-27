@@ -19,7 +19,7 @@ class TblScoreType extends Element
     /**
      * @Column(type="string")
      */
-    protected string $Name;
+    protected string $Name = '';
     /**
      * @Column(type="string")
      */
@@ -66,6 +66,14 @@ class TblScoreType extends Element
     public function getScoreTypeItems(): array
     {
         return ScoreType::useService()->getScoreTypeItemsByScoreType($this);
+    }
+
+    /**
+     * @return TblScoreTypeConversion[]
+     */
+    public function getScoreTypeConversions(): array
+    {
+        return ScoreType::useService()->getScoreTypeConversionListByScoreType($this->getId() < 0 ? null : $this);
     }
 
     /**
