@@ -11,7 +11,9 @@ use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
+use SPHERE\Common\Frontend\Icon\Repository\Check;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
+use SPHERE\Common\Frontend\Icon\Repository\ChevronRight;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Minus;
@@ -19,6 +21,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Transfer;
+use SPHERE\Common\Frontend\Icon\Repository\Unchecked;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
@@ -34,6 +37,8 @@ use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Center;
 use SPHERE\Common\Frontend\Text\Repository\Danger;
+use SPHERE\Common\Frontend\Text\Repository\Success;
+use SPHERE\Common\Frontend\Text\Repository\Warning;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 
@@ -43,6 +48,8 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendScoreTypes(): Stage
     {
         $stage = new Stage('Bewertungssystem', 'Übersicht');
+        $stage->setMessage('Neben dem bereits hinterlegten Bewertungssystem: Prozent können hier eigene Bewertungssysteme für die Bewertung 
+            von Kompetenzen hinterlegt werden.');
 
         $stage->setContent(
             ApiScoreType::receiverModal()
@@ -74,10 +81,17 @@ class Frontend extends Extension implements IFrontendInterface
                         'Bewertungssystem bearbeiten');
                 }
 
+                if ($tblScoreType->getScoreTypeConversions()) {
+                    $conversion = new Success(new Check() . ' Umrechnung in Zensuren hinterlegt');
+                } else {
+                    $conversion = new Warning(new Unchecked() . ' Umrechnung in Zensuren hinterlegt');
+                }
+
                 $dataList[] = [
                     'Name' => $tblScoreType->getName(),
                     'Description' => $tblScoreType->getDescription(),
                     'Names' => $tblScoreType->getDisplayNames(),
+                    'Conversion' => $conversion,
                     'Option' => $edit
                         . (new Standard('', ApiScoreType::getEndpoint(), new Transfer(), array(),
                             'Umrechnung Bewertungssystem in Zensuren für Notenzeugnisse'))
@@ -94,6 +108,7 @@ class Frontend extends Extension implements IFrontendInterface
                 'Name' => 'Name',
                 'Description' => 'Beschreibung',
                 'Names' => 'Bewertungen',
+                'Conversion' => 'Umrechnung in Zensuren',
                 'Option' => ' '
             ],
             [
@@ -120,6 +135,10 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendEditScoreTypes($ScoreTypeId = null): Stage
     {
         $stage = new Stage('Bewertungssystem', $ScoreTypeId ? 'Bearbeiten' : 'Hinzufügen');
+        $stage->setMessage(new Warning('Der Wert (Zahl) wird für die Durchschnittsberechnung von Kompetenzbewertungen und für eine mögliche 
+            Umrechnung in Zensuren für Notenzeugnisse benötigt.'
+            . new Container('Beispiel für eine Bewertung: Wert: 1, Kurztext: übertrifft die Anforderung, 
+                Beschreibung: liegt deutlich über den Regelanforderungen und jahrgangsgemäßen Erwartungen')));
 
         $stage->setContent(
             ApiScoreType::receiverBlock($this->loadEditScoreTypeContent(true, $ScoreTypeId), 'EditScoreTypeContent')
@@ -336,7 +355,7 @@ class Frontend extends Extension implements IFrontendInterface
                 new FormColumn(
                     $i == 6
                         ? new Container($isPercent ? 'Alle weiteren Prozente' : 'Alle weiteren Bewertungsdurchschnitte')
-                        : new TextField("Data[$i]", $placeholder, "", new ChevronLeft())
+                        : new TextField("Data[$i]", $placeholder, "", $isPercent ? new ChevronRight() : new ChevronLeft())
                 , 6),
             ));
         }
