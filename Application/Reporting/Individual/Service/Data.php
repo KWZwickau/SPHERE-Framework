@@ -174,12 +174,51 @@ class Data extends DataView
             $Entity->setViewType($ViewType);
             $Entity->setPosition($Position);
             $Entity->setFieldCount($FieldCount);
-            // TODO: Expanded Parameter
             $Entity->setExpanded(false);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         }
         return $Entity;
+    }
+
+    /**
+     * @param TblAccount $tblAccount
+     * @param array      $FieldList
+     *
+     * @return bool
+     */
+    public function createWorkSpaceBulk(TblAccount $tblAccount, array $FieldList)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        if(!empty($FieldList)){
+            foreach($FieldList as $Field){
+                $Entity = $this->getForceEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblWorkSpace',
+                    array(
+                        TblWorkSpace::ATTR_SERVICE_TBL_ACCOUNT => $tblAccount->getId(),
+                        TblWorkSpace::ATTR_FIELD => $Field['Field'],
+                        TblWorkSpace::ATTR_VIEW => $Field['View'],
+                        TblWorkSpace::ATTR_VIEW_TYPE => $Field['ViewType'],
+                    ));
+                if(!$Entity){
+                    $Entity = new TblWorkSpace();
+                    $Entity->setTblPreset($Field['tblPreset']);
+                    $Entity->setServiceTblAccount($tblAccount);
+                    $Entity->setField($Field['Field']);
+                    $Entity->setView($Field['View']);
+                    $Entity->setViewType($Field['ViewType']);
+                    $Entity->setPosition($Field['Position']);
+                    $Entity->setFieldCount($Field['FieldCount']);
+                    $Entity->setExpanded(false);
+                    $Manager->bulkSaveEntity($Entity);
+                    Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity, true);
+                }
+            }
+            $Manager->flushCache();
+            Protocol::useService()->flushBulkEntries();
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -454,6 +493,30 @@ class Data extends DataView
             return true;
         }
         return false;
+    }
+
+    /**
+     * @param TblWorkSpace[] $tblWorkSpace
+     *
+     * @return bool
+     */
+    public function removeWorkSpaceBulk(array $tblWorkSpaceList)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        foreach($tblWorkSpaceList as $tblWorkSpace){
+            /** @var TblWorkSpace $Entity */
+            $Entity = $Manager->getEntityById('TblWorkSpace', $tblWorkSpace->getId());
+            if (null !== $Entity) {
+                Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity, true);
+                $Manager->bulkKillEntity($Entity);
+
+            }
+        }
+        $Manager->flushCache();
+        Protocol::useService()->flushBulkEntries();
+
+        return true;
     }
 
     /**
