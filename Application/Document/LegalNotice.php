@@ -13,6 +13,7 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Center;
@@ -75,6 +76,9 @@ class LegalNotice implements IClusterInterface, IApplicationInterface, IModuleIn
                                  new Container('ESDi – Evangelische Schulen DienstleistungsGmbH')
                                 .new Container('Franklinstr. 22')
                                 .new Container('01069 Dresden')
+                                .new Container(
+                                     (new Link('www.esdigmbh.de', 'https://www.esdigmbh.de/'))->setExternal()
+                                 )
                                 ))
                             )
                         , 6)
@@ -87,12 +91,13 @@ class LegalNotice implements IClusterInterface, IApplicationInterface, IModuleIn
                             new Center('<h4>'.new Bold('Geschäftsführung').'</h4>')
                             .new Listing(array(
                                 new Layout(new LayoutGroup(new LayoutRow(array(
-                                    new LayoutColumn('', 5),
+                                    new LayoutColumn('', 3),
                                     new LayoutColumn(
+                                        new Center(
                                         new Container('Monika Hochmuth-Alvarez')
                                         .new Container('Sitz: Dresden')
-                                        .new Container('HRB: 39730')
-                                    , 7)
+                                        .new Container('HRB: 39730'))
+                                    )
                                 ))))
                             ))
                         , 6)
@@ -137,6 +142,9 @@ class LegalNotice implements IClusterInterface, IApplicationInterface, IModuleIn
                                     new Container('K&W Informatik GmbH')
                                     .new Container('Feldstraße 2')
                                     .new Container('09366 Niederdorf / Erz.')
+                                    .new Container(
+                                        (new Link('www.haus-der-edv.de', 'https://www.haus-der-edv.de/'))->setExternal()
+                                    )
                                 ))
                             )
                         , 6)
