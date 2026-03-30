@@ -158,18 +158,27 @@ class Data extends DataView
     )
     {
         $Manager = $this->getConnection()->getEntityManager();
-        $Entity = new TblWorkSpace();
-        $Entity->setTblPreset($tblPreset);
-        $Entity->setServiceTblAccount($tblAccount);
-        $Entity->setField($Field);
-        $Entity->setView($View);
-        $Entity->setViewType($ViewType);
-        $Entity->setPosition($Position);
-        $Entity->setFieldCount($FieldCount);
-        // TODO: Expanded Parameter
-        $Entity->setExpanded(false);
-        $Manager->saveEntity($Entity);
-        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        $Entity = $this->getForceEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblWorkSpace',
+        array(
+            TblWorkSpace::ATTR_SERVICE_TBL_ACCOUNT => $tblAccount->getId(),
+            TblWorkSpace::ATTR_FIELD => $Field,
+            TblWorkSpace::ATTR_VIEW => $View,
+            TblWorkSpace::ATTR_VIEW_TYPE => $ViewType,
+        ));
+        if(!$Entity){
+            $Entity = new TblWorkSpace();
+            $Entity->setTblPreset($tblPreset);
+            $Entity->setServiceTblAccount($tblAccount);
+            $Entity->setField($Field);
+            $Entity->setView($View);
+            $Entity->setViewType($ViewType);
+            $Entity->setPosition($Position);
+            $Entity->setFieldCount($FieldCount);
+            // TODO: Expanded Parameter
+            $Entity->setExpanded(false);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
         return $Entity;
     }
 
