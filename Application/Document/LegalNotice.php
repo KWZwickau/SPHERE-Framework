@@ -77,7 +77,7 @@ class LegalNotice implements IClusterInterface, IApplicationInterface, IModuleIn
                                 .new Container('Franklinstr. 22')
                                 .new Container('01069 Dresden')
                                 .new Container(
-                                     (new Link('www.esdigmbh.de', 'https://www.esdigmbh.de/'))->setExternal()
+                                     (new Link('esdigmbh.de', 'https://www.esdigmbh.de/'))->setExternal()
                                  )
                                 ))
                             )
@@ -143,7 +143,7 @@ class LegalNotice implements IClusterInterface, IApplicationInterface, IModuleIn
                                     .new Container('Feldstraße 2')
                                     .new Container('09366 Niederdorf / Erz.')
                                     .new Container(
-                                        (new Link('www.haus-der-edv.de', 'https://www.haus-der-edv.de/'))->setExternal()
+                                        (new Link('haus-der-edv.de', 'https://www.haus-der-edv.de/'))->setExternal()
                                     )
                                 ))
                             )
