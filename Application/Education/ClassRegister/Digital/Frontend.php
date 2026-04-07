@@ -600,7 +600,7 @@ class Frontend extends FrontendTabs
 
                             $this->setDayViewNewLinkBodyList($bodyList, $absenceContent, $i, $index, $DivisionCourseId, $date,
                                 $tblLessonContentTemp->getDisplaySubject(true), $tblLessonContentTemp->getRoom(), $tblLessonContentTemp->getTeacherString(false),
-                                $SubjectId, $tblTestList, $tblDivisionCourseListByStudentsInDivisionCourse, $isMissing);
+                                $SubjectId, $tblTestList, $tblDivisionCourseListByStudentsInDivisionCourse, $isMissing, $tblLessonContentTemp);
                         }
                     }
                 }
@@ -628,7 +628,7 @@ class Frontend extends FrontendTabs
 
                         $this->setDayViewNewLinkBodyList($bodyList, $absenceContent, $i, $index, $DivisionCourseId, $date,
                             $tblLessonContentTemp->getDisplaySubject(true), $tblLessonContentTemp->getRoom(), $tblLessonContentTemp->getTeacherString(false),
-                            $SubjectId, $tblTestList, $tblDivisionCourseListByStudentsInDivisionCourse, $isMissing);
+                            $SubjectId, $tblTestList, $tblDivisionCourseListByStudentsInDivisionCourse, $isMissing, $tblLessonContentTemp);
                     }
                 }
             //  alternativ zum importierten Stundenplan wird nach vorherige Einträge gesucht
@@ -723,7 +723,7 @@ class Frontend extends FrontendTabs
     }
 
     private function setDayViewEditBodyList(array &$bodyList, array &$bodyBackgroundList, array $absenceContent, TblLessonContent $tblLessonContent,
-        int $lesson, int $index, array $tblTestList, array $tblDivisionCourseListByStudentsInDivisionCourse)
+        int $lesson, int $index, array $tblTestList, array $tblDivisionCourseListByStudentsInDivisionCourse): void
     {
         $isEditAllowed = Digital::useService()->getIsLessonContentEditAllowed($tblLessonContent);
         $lessonContentId = $tblLessonContent->getId();
@@ -765,9 +765,8 @@ class Frontend extends FrontendTabs
                         : (($tblSubject = $tblLessonContent->getServiceTblSubject()) ? $tblSubject->getId() : null),
                     new DateTime($tblLessonContent->getDate())
                 ), $lessonContentId, $lesson) : $contentHomework,
-            'Test' => $tblLessonContent->getIsCanceled() && !$tblLessonContent->getServiceTblSubstituteSubject()
-                    ? ''
-                    : $this->getTestColumnContent($tblTestList, $DivisionCourseId, $SubjectId, $tblDivisionCourseListByStudentsInDivisionCourse),
+            'Test' => $this->getTestColumnContent($tblTestList, $DivisionCourseId, $SubjectId, $tblDivisionCourseListByStudentsInDivisionCourse, true,
+                $tblLessonContent),
             'Absence' => $absence
         );
 
@@ -776,7 +775,7 @@ class Frontend extends FrontendTabs
 
     private function setDayViewNewLinkBodyList(array &$bodyList, array $absenceContent, int $lesson, int $index, int $DivisionCourseId, DateTime $date,
         string $subject, string $room, string $teacher, int $SubjectId = null, array $tblTestList = array(),
-        array $tblDivisionCourseListByStudentsInDivisionCourse = array(), bool $isMissing = false)
+        array $tblDivisionCourseListByStudentsInDivisionCourse = array(), bool $isMissing = false, ?TblLessonContent $tblLessonContent = null): void
     {
         $linkLesson = (new Link(
             new Center($lesson),
@@ -828,7 +827,8 @@ class Frontend extends FrontendTabs
             'Teacher' => $this->getLessonsNewLink($teacher, $date, $lesson, $DivisionCourseId, $isMissing, $SubjectId),
             'Content' => $this->getLessonsNewLink('', $date, $lesson, $DivisionCourseId, $isMissing, $SubjectId),
             'Homework' => $homework,
-            'Test' => $this->getTestColumnContent($tblTestList, $DivisionCourseId, $SubjectId, $tblDivisionCourseListByStudentsInDivisionCourse),
+            'Test' => $this->getTestColumnContent($tblTestList, $DivisionCourseId, $SubjectId,
+                $tblDivisionCourseListByStudentsInDivisionCourse, true, $tblLessonContent),
             'Absence' => $absence,
         );
     }
@@ -839,18 +839,27 @@ class Frontend extends FrontendTabs
      * @param int|null $SubjectId
      * @param array $tblDivisionCourseListByStudentsInDivisionCourse
      * @param bool $isLinkOnly
+     * @param TblLessonContent|null $tblLessonContent
      *
      * @return string|array
      */
     public function getTestColumnContent(array $tblTestList, int $DivisionCourseId, ?int $SubjectId,
-        array $tblDivisionCourseListByStudentsInDivisionCourse, bool $isLinkOnly = true)
+        array $tblDivisionCourseListByStudentsInDivisionCourse, bool $isLinkOnly = true, ?TblLessonContent $tblLessonContent = null)
     : string|array
     {
+        // Fach für Leistungsüberprüfung ermitteln
+        if ($tblLessonContent) {
+            $tblSubject = $tblLessonContent->getServiceTblSubstituteSubject() ?:
+                ($tblLessonContent->getIsCanceled() ? null : $tblLessonContent->getServiceTblSubject());
+        } else {
+            $tblSubject = Subject::useService()->getSubjectById($SubjectId);
+        }
+
         $result = '';
         $resultList = [];
         $tblPersonLogin = Account::useService()->getPersonByLogin();
         if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))
-            && ($tblSubject = Subject::useService()->getSubjectById($SubjectId))
+            && $tblSubject
             && isset($tblTestList[$tblSubject->getId()])
         ) {
             /** @var TblTest $tblTest */
@@ -1202,7 +1211,7 @@ class Frontend extends FrontendTabs
                         ))
                     ) {
                         $cellContent = $tblLessonContentTemp->getDisplaySubject(true)
-                            . (($teacher = $tblLessonContentTemp->getTeacherString(false)) ? ' (' . $teacher . ')' : '');;
+                            . (($teacher = $tblLessonContentTemp->getTeacherString(false)) ? ' (' . $teacher . ')' : '');
                         $cell = (new Link(
                             $cellContent,
                             ApiDigital::getEndpoint(),
