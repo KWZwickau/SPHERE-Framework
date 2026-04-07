@@ -99,20 +99,18 @@ class Frontend extends Extension implements IFrontendInterface
                 }
             }
             $dataList = [];
-            if (($tblSkillGridList = Skill::useService()->getSkillGridListBy($tblSchoolType, $level, $tblSubjectFilter))) {
-                foreach ($tblSkillGridList as $tblSkillGrid) {
-                    $dataList[] = [
-                        'Level' => $tblSkillGrid->getLevel(),
-                        'Subject' => ($tblSubject = $tblSkillGrid->getServiceTblSubject()) ? $tblSubject->getDisplayName() : '',
-                        'Name' => $tblSkillGrid->getName(),
-                        'SkillAreas' => $tblSkillGrid->getDisplaySkillAreas(),
-                        'Option' => new Standard('', '/Education/Competence/Skill/Edit', new Edit(),
-                            ['SchoolTypeId' => $SchoolTypeId, 'Filter' => $Filter, 'SkillGridId' => $tblSkillGrid->getId()],
-                            'Kompetenzraster bearbeiten')
-                            . (new Standard('', ApiSkill::getEndpoint(), new Remove(), array(), 'Kompetenzraster löschen'))
-                                ->ajaxPipelineOnClick(ApiSkill::pipelineOpenDeleteSkillGridModal($tblSkillGrid->getId(), $SchoolTypeId, $Filter))
-                    ];
-                }
+            foreach (Skill::useService()->getAvailableSkillGridList($tblSchoolType, $level, $tblSubjectFilter ?: null) as $tblSkillGrid) {
+                $dataList[] = [
+                    'Level' => $tblSkillGrid->getLevel(),
+                    'Subject' => ($tblSubject = $tblSkillGrid->getServiceTblSubject()) ? $tblSubject->getDisplayName() : '',
+                    'Name' => $tblSkillGrid->getName(),
+                    'SkillAreas' => $tblSkillGrid->getDisplaySkillAreas(),
+                    'Option' => new Standard('', '/Education/Competence/Skill/Edit', new Edit(),
+                        ['SchoolTypeId' => $SchoolTypeId, 'Filter' => $Filter, 'SkillGridId' => $tblSkillGrid->getId()],
+                        'Kompetenzraster bearbeiten')
+                        . (new Standard('', ApiSkill::getEndpoint(), new Remove(), array(), 'Kompetenzraster löschen'))
+                            ->ajaxPipelineOnClick(ApiSkill::pipelineOpenDeleteSkillGridModal($tblSkillGrid->getId(), $SchoolTypeId, $Filter))
+                ];
             }
 
             $table = new TableData(
@@ -169,8 +167,6 @@ class Frontend extends Extension implements IFrontendInterface
             $global->savePost();
         }
 
-        $tblSubjectList = Subject::useService()->getSubjectAll();
-
         return new Form(new FormGroup(array(
             new FormRow(array(
                 new FormColumn(
@@ -178,7 +174,7 @@ class Frontend extends Extension implements IFrontendInterface
                         ->ajaxPipelineOnKeyUp(ApiSkill::pipelineLoadSkillGridTable($SchoolTypeId))
                 , 6),
                 new FormColumn(
-                    (new SelectBox('Filter[SubjectId]', 'Fach', array('{{ Acronym }} {{ Name }}' => $tblSubjectList)))
+                    (new SelectBox('Filter[SubjectId]', 'Fach', array('{{ Acronym }} - {{ Name }}' => Skill::useService()->getAvailableSubjectList())))
                         ->ajaxPipelineOnChange(ApiSkill::pipelineLoadSkillGridTable($SchoolTypeId))
                 , 6)
             )),
@@ -348,7 +344,7 @@ class Frontend extends Extension implements IFrontendInterface
         // Bewertungssysteme
         $tblScoreTypeList = ScoreType::useService()->getScoreTypeAll();
 
-        $tblSubjectList = Subject::useService()->getSubjectAll();
+        $tblSubjectList = Skill::useService()->getAvailableSubjectList();
         $tblCourseAll = Course::useService()->getCourseAll();
         $tblSupportFocusTypeAll = Student::useService()->getSupportFocusTypeAll();
 
@@ -369,6 +365,12 @@ class Frontend extends Extension implements IFrontendInterface
                     )
                 ));
             }
+        }
+
+        if (Skill::useService()->getIsHeadmaster()) {
+            $labelSubject = 'Fach (ansonsten Fächerübergreifend)';
+        } else {
+            $labelSubject = 'Fach ' . new Danger('*');
         }
 
         $form = (new Form(array(
@@ -405,7 +407,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     (new NumberField('Data[Level]', '', 'Klassenstufe ' . new Danger('*')))//->setRequired()
                                     , 3 ),
                                 new LayoutColumn(
-                                    (new SelectBox('Data[SubjectId]', 'Fach (ansonsten Fächerübergreifend)', array('{{ Acronym }} - {{ Name }}' => $tblSubjectList)))
+                                    (new SelectBox('Data[SubjectId]', $labelSubject, array('{{ Acronym }} - {{ Name }}' => $tblSubjectList)))
                                     , 3 ),
                                 new LayoutColumn(
                                     (new SelectBox('Data[CourseId]', 'Bildungsgang', array('{{ Name }}' => $tblCourseAll)))
@@ -482,7 +484,7 @@ class Frontend extends Extension implements IFrontendInterface
         $layout = new Layout(new LayoutGroup(array(
             new LayoutRow(array(
                 new LayoutColumn(
-                    new TextField("Data[SkillAreas][$AreaRanking][Area]", 'Neuer Kompetenzbereich', 'Kompetenzbereich')
+                    new TextField("Data[SkillAreas][$AreaRanking][Area]", $AreaRanking == 1 ? 'Lesen / Mit Medien umgehen' : 'Neuer Kompetenzbereich', 'Kompetenzbereich')
                 , 3),
                 new LayoutColumn(
                     $content
@@ -530,8 +532,10 @@ class Frontend extends Extension implements IFrontendInterface
     public function getSkillContent($SchoolTypeId, $Filter, $SkillGridId, $AreaRanking, $SkillRanking, bool $hasAddButton = true, $ErrorList = null): string
     {
         // POST kann maximal auf der 3. Ebene sein, es gehen keine tieferen Arrays
-        $levelInput = new TextField("Data[Skills][$AreaRanking-$SkillRanking][Level]", 'Niveau', 'Niveau');
-        $skillInput = new TextField("Data[Skills][$AreaRanking-$SkillRanking][Skill]", 'Neue Kompetenz', 'Kompetenz ' . new Danger('*'));
+        $levelInput = new TextField("Data[Skills][$AreaRanking-$SkillRanking][Level]",
+            $AreaRanking == 1 && $SkillRanking == 1 ? 'Grundwissen' : '', 'Niveau');
+        $skillInput = new TextField("Data[Skills][$AreaRanking-$SkillRanking][Skill]",
+            $AreaRanking == 1 && $SkillRanking == 1 ? 'Ich entnehme Texten gezielt Informationen.' : 'Neue Kompetenz', 'Kompetenz ' . new Danger('*'));
         if (isset($ErrorList["Data[Skills][$AreaRanking-$SkillRanking][Skill]"])) {
             $skillInput->setError($ErrorList["Data[Skills][$AreaRanking-$SkillRanking][Skill]"]['Message']);
         }

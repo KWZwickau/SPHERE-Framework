@@ -9,11 +9,14 @@ use SPHERE\Application\Education\Competence\Skill\Service\Entity\TblSkill;
 use SPHERE\Application\Education\Competence\Skill\Service\Entity\TblSkillArea;
 use SPHERE\Application\Education\Competence\Skill\Service\Entity\TblSkillGrid;
 use SPHERE\Application\Education\Competence\Skill\Service\Setup;
+use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\School\Course\Course;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\People\Meta\Student\Student;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Message\Repository\Success;
@@ -61,6 +64,29 @@ class Service extends AbstractService
     public function getSkillGridListBy(TblType $tblSchoolType, ?int $level = null, ?TblSubject $tblSubject = null): array|false
     {
         return (new Data($this->getBinding()))->getSkillGridListBy($tblSchoolType, $level, $tblSubject);
+    }
+
+    /**
+     * @param TblType $tblSchoolType
+     * @param int|null $level
+     * @param TblSubject|null $tblSubjectFilter
+     *
+     * @return array|TblSkillGrid[]
+     */
+    public function getAvailableSkillGridList(TblType $tblSchoolType, ?int $level = null, ?TblSubject $tblSubjectFilter = null): array
+    {
+        $tblSkillGridList = [];
+        if ($tblSubjectFilter || $this->getIsHeadmaster()) {
+            $tblSkillGridList = $this->getSkillGridListBy($tblSchoolType, $level, $tblSubjectFilter) ?: [];
+        } else {
+            foreach ($this->getAvailableSubjectList() as $tblSubject) {
+                if (($tblTempList = $this->getSkillGridListBy($tblSchoolType, $level, $tblSubject))) {
+                    $tblSkillGridList = array_merge($tblSkillGridList, $tblTempList);
+                }
+            }
+        }
+
+        return $tblSkillGridList;
     }
 
     /**
@@ -126,6 +152,16 @@ class Service extends AbstractService
             $ErrorList[] = [
                 'Name' => 'Data[Level]',
                 'Message' => 'Bitte geben Sie eine Klassenstufe an'
+            ];
+            $hasErrors = true;
+        }
+        // Fachlehrer müssen ein Fach auswählen
+        if (!$this->getIsHeadmaster()
+            && (empty($Data['SubjectId']) || !Subject::useService()->getSubjectById($Data['SubjectId']))
+        ) {
+            $ErrorList[] = [
+                'Name' => 'Data[SubjectId]',
+                'Message' => 'Bitte geben Sie ein Fach an'
             ];
             $hasErrors = true;
         }
@@ -226,5 +262,29 @@ class Service extends AbstractService
 
         (new Data($this->getBinding()))->destroySkillBulkList($destroySkillList);
         (new Data($this->getBinding()))->destroySkillAreaBulkList($destroySkillAreaList);
+    }
+
+    /**
+     * @return bool
+     */
+    public function getIsHeadmaster(): bool
+    {
+        return Access::useService()->hasAuthorization('/Education/Competence/ScoreType');
+    }
+
+    /**
+     * @return array
+     */
+    public function getAvailableSubjectList(): array
+    {
+        $hasRightHeadmaster = $this->getIsHeadmaster();
+        $tblSubjectList = [];
+        if ($hasRightHeadmaster) {
+            $tblSubjectList = Subject::useService()->getSubjectAll() ?: [];
+        } elseif (($tblPerson = Account::useService()->getPersonByLogin())) {
+            $tblSubjectList = DivisionCourse::useService()->getSubjectListByTeacherAndDate($tblPerson);
+        }
+
+        return $tblSubjectList;
     }
 }
