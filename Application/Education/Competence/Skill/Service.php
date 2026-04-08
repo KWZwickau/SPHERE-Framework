@@ -231,6 +231,28 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblType $tblSchoolType
+     * @param $data
+     *
+     * @return void
+     */
+    public function insertSkillGrid(TblType $tblSchoolType, $data): void
+    {
+        foreach ($data as $skillGrid) {
+            $tblSkillGrid = (new Data($this->getBinding()))->createSkillGrid($tblSchoolType, $skillGrid['name'], $skillGrid['isAverage'],
+                $skillGrid['level'], $skillGrid['tblSubject'], $skillGrid['tblCourse'], $skillGrid['tblSupportFocusType'], $skillGrid['tblScoreType']);
+
+            foreach ($skillGrid['SkillAreas'] as $skillAreas) {
+                $tblSkillArea = (new Data($this->getBinding()))->createSkillArea($tblSkillGrid, $skillAreas['name'], $skillAreas['sortOrder']);
+
+                foreach ($skillAreas['Skills'] as $skill) {
+                    (new Data($this->getBinding()))->createSkill($tblSkillArea, $skill['level'], $skill['skill'], $skill['sortOrder']);
+                }
+            }
+        }
+    }
+
+    /**
      * @param TblSkillGrid $tblSkillGrid
      *
      * @return bool

@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\Transfer\Import;
 use SPHERE\Application\IApplicationInterface;
+use SPHERE\Application\Transfer\Import\Competence\Competence;
 use SPHERE\Application\Transfer\Import\FuxMedia\FuxSchool;
 use SPHERE\Application\Transfer\Import\Standard\ImportStandard;
 use SPHERE\Application\Transfer\Import\Standard\Mail\Mail;
@@ -22,12 +23,13 @@ use SPHERE\Common\Window\Stage;
 class Import implements IApplicationInterface
 {
 
-    public static function registerApplication()
+    public static function registerApplication(): void
     {
 
         FuxSchool::registerModule();
         ImportStandard::registerModule();
         Mail::registerModule();
+        Competence::registerModule();
 
         Main::getDisplay()->addApplicationNavigation(
             new Link(new Link\Route(__NAMESPACE__), new Link\Name('Daten importieren'))
@@ -40,7 +42,7 @@ class Import implements IApplicationInterface
     /**
      * @return Stage
      */
-    public function frontendDashboard()
+    public function frontendDashboard(): Stage
     {
 
         $Stage = new Stage('Dashboard', 'Import');
@@ -51,6 +53,10 @@ class Import implements IApplicationInterface
                 new LayoutRow(new LayoutColumn(
                     new Ruler()
                     .FuxSchool::getDownloadLayout()
+                )),
+                new LayoutRow(new LayoutColumn(
+                    new Ruler()
+                    . Competence::getDownloadLayout()
                 ))
             )))
         );
