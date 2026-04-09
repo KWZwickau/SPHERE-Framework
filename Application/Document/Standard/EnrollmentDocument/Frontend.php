@@ -9,11 +9,13 @@ use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisio
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Group\Group;
+use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer as ConsumerGatekeeper;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
+use SPHERE\Common\Frontend\Form\Repository\Field\HiddenField;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
@@ -46,6 +48,7 @@ use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Info;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
+use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
@@ -457,36 +460,45 @@ class Frontend extends Extension implements IFrontendInterface
 
         if(ConsumerGatekeeper::useService()->getConsumerBySessionIsConsumerType(TblConsumer::TYPE_BERLIN)) {
             // Berlin
-            $form = $this->formStudentDocumentEKBO($Data['Gender'] ?? false);
+            $form = $this->formStudentDocumentBerlin($Data['Gender'] ?? false);
         } else {
             // Sachsen
-            $form = $this->formStudentDocument($Data['Gender'] ?? false);
+            if($Data['IsStudent'] == 'true') {
+                $form = $this->formStudentDocument($Data['Gender'] ?? false);
+            } else {
+                $form = $this->formStudentArchiveDocument($Data['Gender'] ?? false);
+            }
         }
 
-        $HeadPanel = new Panel('Schüler', $tblPerson->getLastFirstName());
+//        $HeadPanel = new Panel('Schüler', $tblPerson->getLastFirstName());
 
         $Stage->addButton(new External(
             'Blanko Schulbescheinigung herunterladen',
             'SPHERE\Application\Api\Document\Standard\EnrollmentDocument\Create',
             new Download(),
-            array('Data' => array('empty')),
+            array('Data' => array('IsStudent' => $Data['IsStudent'])),
             'Schulbescheinigung herunterladen'
         ));
+
         // Standard (Sachsen)
         $Thumbnail = new Thumbnail(FileSystem::getFileLoader('/Common/Style/Resource/Document/Schulbescheinigung.PNG'), '');
+        if($Data['IsStudent'] == 'false') {
+            // Ehemalige
+            $Thumbnail = new Thumbnail(FileSystem::getFileLoader('/Common/Style/Resource/Document/Schulbescheinigung_Archive.PNG'), '');
+        }
         if(ConsumerGatekeeper::useService()->getConsumerBySessionIsConsumerType(TblConsumer::TYPE_BERLIN)){
-            // EKBO
+            // Berlin
             $Thumbnail = new Thumbnail(FileSystem::getFileLoader('/Common/Style/Resource/Document/Schulbescheinigung_EKBO.PNG'), '');
         }
 
         $Stage->setContent(
             new Layout(
                 new LayoutGroup(array(
-                    new LayoutRow(
-                        new LayoutColumn(
-                            $HeadPanel
-                        , 7)
-                    ),
+//                    new LayoutRow(
+//                        new LayoutColumn(
+//                            $HeadPanel
+//                        , 7)
+//                    ),
                     new LayoutRow(array(
                         new LayoutColumn(
                             $form
@@ -508,153 +520,89 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Form
      */
-    private function formStudentDocumentEKBO($Gender): Form
+    private function formStudentDocumentBerlin($Gender): Form
     {
 
         // Berlin
         return new Form(
-            new FormGroup(array(
-                new FormRow(array(
-//                        new FormColumn(array(
+            new FormGroup(array(new FormRow(array(
+                new FormColumn(
+                    new HiddenField('Data[IsStudent]')
 //                            new HiddenField('Data[PersonId]'),
 //                            new HiddenField('Data[SchoolId]'),
-//                        )),
-                    new FormColumn(
-                        new Layout(
-                            new LayoutGroup(
-                                new LayoutRow(array(
-                                    new LayoutColumn(
-                                        new Title('Einrichtung')
-                                    ),
-                                    new LayoutColumn(new Well(
-                                        new Layout(
-                                            new LayoutGroup(array(
-                                                new LayoutRow(array(
-                                                    new LayoutColumn(
-                                                        new TextField('Data[School]', 'Schule', 'Schule')
-                                                    , 6),
-                                                    new LayoutColumn(
-                                                        new TextField('Data[SchoolExtended]', 'Zusatz', 'Zusatz')
-                                                    , 6)
-                                                )),
-                                                new LayoutRow(array(
-                                                    new LayoutColumn(
-                                                        new TextField('Data[SchoolAddressDistrict]', 'Ortsteil', 'Ortsteil')
-                                                    , 4),
-                                                    new LayoutColumn(
-                                                        new TextField('Data[SchoolAddressStreet]', 'Straße Nr.', 'Straße Hausnummer')
-                                                    , 4),
-                                                    new LayoutColumn(
-                                                        new TextField('Data[SchoolAddressCity]', 'PLZ Ort', 'PLZ Ort')
-                                                    , 4)
-                                                )),
-                                                new LayoutRow(array(
-                                                    new LayoutColumn(
-                                                        new TextField('Data[CompanySchoolLeader]', 'Schulleiter(in)', 'Schulleiter(in)')
-                                                    , 4),
-                                                    new LayoutColumn(
-                                                        new TextField('Data[CompanySecretary]', 'Sekretariat', 'Sekretariat')
-                                                    , 4),
-                                                    new LayoutColumn(
-                                                        new TextField('Data[CompanyMail]', 'E-Mail', 'E-Mail')
-                                                    , 4),
-                                                )),
-                                                new LayoutRow(array(
-                                                    new LayoutColumn(
-                                                        new TextField('Data[CompanyPhone]', 'Telefon', 'Telefon')
-                                                    , 4),
-                                                    new LayoutColumn(
-                                                        new TextField('Data[CompanyFax]', 'Fax', 'Fax')
-                                                    , 4),
-                                                    new LayoutColumn(
-                                                        new TextField('Data[CompanyWeb]', 'Internet', 'Internet')
-                                                    , 4),
-                                                )),
-                                            ))
-                                        )
-                                    )),
-                                    new LayoutColumn(
-                                        new Title('Informationen Schüler')
-                                    ),
-                                    new LayoutColumn(new Well(
-                                        new Layout(
-                                            new LayoutGroup(array(
-                                                new LayoutRow(array(
-                                                    new LayoutColumn(
-                                                        new TextField('Data[FirstLastName]', 'Vorname, Name',
-                                                            'Vorname, Name '.
-                                                            ($Gender == 'Männlich'
-                                                                ? 'des Schülers'
-                                                                : ($Gender == 'Weiblich'
-                                                                    ? 'der Schülerin'
-                                                                    : 'des Schülers/der Schülerin')
-                                                            ))
-                                                    , 8),
-                                                    new LayoutColumn(
-                                                        new TextField('Data[Gender]', 'Geschlecht', 'Geschlecht')
-                                                    , 4)
-                                                )),
-                                                new LayoutRow(array(
-                                                    new LayoutColumn(
-                                                        new TextField('Data[Birthday]', 'Geboren am', 'Geburtstag')
-                                                    , 6),
-                                                    new LayoutColumn(
-                                                        new TextField('Data[Birthplace]', 'Geboren in', 'Geburtsort')
-                                                    , 6),
-                                                )),
-                                                new LayoutRow(
-                                                    new LayoutColumn(
-                                                        new TextField('Data[AddressExtra]', 'Adresszusatz', 'Adresszusatz')
-                                                    , 12)
-                                                ),
-                                                new LayoutRow(array(
-                                                    new LayoutColumn(
-                                                        new TextField('Data[AddressDistrict]', 'Ortsteil', 'Ortsteil')
-                                                    , 3),
-                                                    new LayoutColumn(
-                                                        new TextField('Data[AddressStreet]', 'Straße, Hausnummer', 'Straße, Hausnummer')
-                                                    , 4),
-                                                    new LayoutColumn(
-                                                        new TextField('Data[AddressPLZ]', 'Postleitzahl', 'Postleitzahl')
-                                                    , 2),
-                                                    new LayoutColumn(
-                                                        new TextField('Data[AddressCity]', 'Ort', 'Ort')
-                                                    , 3),
-                                                )),
-                                                new LayoutRow(array(
-                                                    new LayoutColumn(
-                                                        new TextField('Data[Division]', 'Besucht zur Zeit die Klasse', 'Besucht zur Zeit die Klasse')
-                                                    , 6),
-                                                    new LayoutColumn(
-                                                        new TextField('Data[LeaveDate]', 'Voraussichtlich bis', 'Voraussichtlich bis')
-                                                    , 6)
-                                                )),
-                                            ))
-                                        )
-                                    )),
-                                    new LayoutColumn(
-                                        new Title('Dokument')
-                                    ),
-                                    new LayoutColumn(new Well(
-                                        new Layout(
-                                            new LayoutGroup(
-                                                new LayoutRow(array(
-                                                    new LayoutColumn(
-                                                        new TextField('Data[Place]', 'PLZ Ort', 'PLZ Ort')
-                                                    , 6),
-                                                    new LayoutColumn(
-                                                        new DatePicker('Data[Date]', 'Datum', 'Datum')
-                                                    , 6)
-                                                ))
-                                            )
-                                        )
-                                    )),
-                                ))
-                            )
-                        )
-                    )
-                )),
-            ))
+                ),
+                new FormColumn(
+                new Layout(new LayoutGroup(new LayoutRow(array(
+                    new LayoutColumn(
+                        new Title('Einrichtung')
+                    ),
+                    new LayoutColumn(new Well(new Layout(new LayoutGroup(array(
+                        new LayoutRow(array(
+                            $this->getFormLayoutColumnField('Data[School]', 'Schule', 'Schule', 6),
+                            $this->getFormLayoutColumnField('Data[SchoolExtended]', 'Zusatz', 'Zusatz', 6)
+                        )),
+                        new LayoutRow(array(
+                            $this->getFormLayoutColumnField('Data[SchoolAddressDistrict]', 'Ortsteil', 'Ortsteil'),
+                            $this->getFormLayoutColumnField('Data[SchoolAddressStreet]', 'Straße Nr.', 'Straße Hausnummer'),
+                            $this->getFormLayoutColumnField('Data[SchoolAddressCity]', 'PLZ Ort', 'PLZ Ort')
+                        )),
+                        new LayoutRow(array(
+                            $this->getFormLayoutColumnField('Data[CompanySchoolLeader]', 'Schulleiter(in)', 'Schulleiter(in)'),
+                            $this->getFormLayoutColumnField('Data[CompanySecretary]', 'Sekretariat', 'Sekretariat'),
+                            $this->getFormLayoutColumnField('Data[CompanyMail]', 'E-Mail', 'E-Mail')
+                        )),
+                        new LayoutRow(array(
+                            $this->getFormLayoutColumnField('Data[CompanyPhone]', 'Telefon', 'Telefon'),
+                            $this->getFormLayoutColumnField('Data[CompanyFax]', 'Fax', 'Fax'),
+                            $this->getFormLayoutColumnField('Data[CompanyWeb]', 'Internet', 'Internet')
+                        )),
+                    ))))),
+                    new LayoutColumn(
+                        new Title('Informationen Schüler')
+                    ),
+                    new LayoutColumn(new Well(new Layout(new LayoutGroup(array(
+                        new LayoutRow(array(
+                            $this->getFormLayoutColumnField('Data[FirstLastName]', 'Vorname, Name',
+                                'Vorname, Name '.
+                                ($Gender == 'Männlich'
+                                    ? 'des Schülers'
+                                    : ($Gender == 'Weiblich'
+                                        ? 'der Schülerin'
+                                        : 'des Schülers/der Schülerin')
+                                ), 8),
+                            $this->getFormLayoutColumnField('Data[Gender]', 'Geschlecht', 'Geschlecht')
+                        )),
+                        new LayoutRow(array(
+                            $this->getFormLayoutColumnField('Data[Birthday]', 'Geboren am', 'Geburtstag', 6),
+                            $this->getFormLayoutColumnField('Data[Birthplace]', 'Geboren in', 'Geburtsort', 6)
+                        )),
+                        new LayoutRow(
+                            $this->getFormLayoutColumnField('Data[AddressExtra]', 'Adresszusatz', 'Adresszusatz', 12)
+                        ),
+                        new LayoutRow(array(
+                            $this->getFormLayoutColumnField('Data[AddressDistrict]', 'Ortsteil', 'Ortsteil', 3),
+                            $this->getFormLayoutColumnField('Data[AddressStreet]', 'Straße, Hausnummer', 'Straße, Hausnummer'),
+                            $this->getFormLayoutColumnField('Data[AddressPLZ]', 'Postleitzahl', 'Postleitzahl', 2),
+                            $this->getFormLayoutColumnField('Data[AddressCity]', 'Ort', 'Ort', 3)
+                        )),
+                        new LayoutRow(array(
+                            $this->getFormLayoutColumnField('Data[Division]', 'Besucht zur Zeit die Klasse', 'Besucht zur Zeit die Klasse', 6),
+                            $this->getFormLayoutColumnField('Data[LeaveDate]', 'Voraussichtlich bis', 'Voraussichtlich bis', 6)
+                        )),
+                    ))))),
+                    new LayoutColumn(
+                        new Title('Dokument')
+                    ),
+                    new LayoutColumn(new Well(
+                        new Layout(new LayoutGroup(new LayoutRow(array(
+                            $this->getFormLayoutColumnField('Data[Place]', 'PLZ Ort', 'PLZ Ort', 6),
+                            new LayoutColumn(
+                                new DatePicker('Data[Date]', 'Datum', 'Datum')
+                            , 6)
+                        ))))
+                    )),
+                ))))
+            ))),))
             , new Primary('Download', new Download(), true),
             '\Api\Document\Standard\EnrollmentDocument\Create'
         );
@@ -670,128 +618,193 @@ class Frontend extends Extension implements IFrontendInterface
 
         // Sachsen
         return new Form(
-            new FormGroup(array(
-                new FormRow(array(
-//                        new FormColumn(array(
-//                            new HiddenField('Data[PersonId]'),
-//                            new HiddenField('Data[SchoolId]'),
-//                        )),
-                    new FormColumn(
-                        new Layout(
-                            new LayoutGroup(
+            new FormGroup(array(new FormRow(array(
+                new FormColumn(
+                    new HiddenField('Data[IsStudent]')
+////                 new HiddenField('Data[PersonId]'),
+////                 new HiddenField('Data[SchoolId]'),
+                ),
+                new FormColumn(
+                    new Layout(new LayoutGroup(new LayoutRow(array(
+                        new LayoutColumn(
+                            new Title('Einrichtung')
+                        ),
+                        new LayoutColumn(new Well(
+                            new Layout(new LayoutGroup(array(
                                 new LayoutRow(array(
-                                    new LayoutColumn(
-                                        new Title('Einrichtung')
-                                    ),
-                                    new LayoutColumn(new Well(
-                                        new Layout(
-                                            new LayoutGroup(array(
-                                                new LayoutRow(array(
-                                                    new LayoutColumn(
-                                                        new TextField('Data[School]', 'Schule', 'Schule')
-                                                        , 6),
-                                                    new LayoutColumn(
-                                                        new TextField('Data[SchoolExtended]', 'Zusatz', 'Zusatz')
-                                                        , 6)
-                                                )),
-                                                new LayoutRow(array(
-                                                    new LayoutColumn(
-                                                        new TextField('Data[SchoolAddressDistrict]', 'Ortsteil', 'Ortsteil')
-                                                        , 4),
-                                                    new LayoutColumn(
-                                                        new TextField('Data[SchoolAddressStreet]', 'Straße Nr.', 'Straße Hausnummer')
-                                                        , 4),
-                                                    new LayoutColumn(
-                                                        new TextField('Data[SchoolAddressCity]', 'PLZ Ort', 'PLZ Ort')
-                                                        , 4)
-                                                ))
-                                            ))
-                                        )
-                                    )),
-                                    new LayoutColumn(
-                                        new Title('Informationen Schüler')
-                                    ),
-                                    new LayoutColumn(new Well(
-                                        new Layout(
-                                            new LayoutGroup(array(
-                                                new LayoutRow(array(
-                                                    new LayoutColumn(
-                                                        new TextField('Data[FirstLastName]', 'Vorname, Name',
-                                                            'Vorname, Name '.
-                                                            ($Gender == 'Männlich'
-                                                                ? 'des Schülers'
-                                                                : ($Gender == 'Weiblich'
-                                                                    ? 'der Schülerin'
-                                                                    : 'des Schülers/der Schülerin')
-                                                            ))
-                                                        , 8),
-                                                    new LayoutColumn(
-                                                        new TextField('Data[Gender]', 'Geschlecht', 'Geschlecht')
-                                                        , 4)
-                                                )),
-                                                new LayoutRow(array(
-                                                    new LayoutColumn(
-                                                        new TextField('Data[Birthday]', 'Geboren am', 'Geburtstag')
-                                                        , 6),
-                                                    new LayoutColumn(
-                                                        new TextField('Data[Birthplace]', 'Geboren in', 'Geburtsort')
-                                                        , 6),
-                                                )),
-                                                new LayoutRow(
-                                                    new LayoutColumn(
-                                                        new TextField('Data[AddressExtra]', 'Adresszusatz', 'Adresszusatz')
-                                                        , 12)
-                                                ),
-                                                new LayoutRow(array(
-                                                    new LayoutColumn(
-                                                        new TextField('Data[AddressDistrict]', 'Ortsteil', 'Ortsteil')
-                                                        , 3),
-                                                    new LayoutColumn(
-                                                        new TextField('Data[AddressStreet]', 'Straße, Hausnummer', 'Straße, Hausnummer')
-                                                        , 4),
-                                                    new LayoutColumn(
-                                                        new TextField('Data[AddressPLZ]', 'Postleitzahl', 'Postleitzahl')
-                                                        , 2),
-                                                    new LayoutColumn(
-                                                        new TextField('Data[AddressCity]', 'Ort', 'Ort')
-                                                        , 3),
-                                                )),
-                                                new LayoutRow(array(
-                                                    new LayoutColumn(
-                                                        new TextField('Data[Division]', 'Besucht zur Zeit die Klasse', 'Besucht zur Zeit die Klasse')
-                                                        , 6),
-                                                    new LayoutColumn(
-                                                        new TextField('Data[LeaveDate]', 'Voraussichtlich bis', 'Voraussichtlich bis')
-                                                        , 6)
-                                                )),
-                                            ))
-                                        )
-                                    )),
-                                    new LayoutColumn(
-                                        new Title('Dokument')
-                                    ),
-                                    new LayoutColumn(new Well(
-                                        new Layout(
-                                            new LayoutGroup(
-                                                new LayoutRow(array(
-                                                    new LayoutColumn(
-                                                        new TextField('Data[Place]', 'Ort', 'Ort')
-                                                        , 6),
-                                                    new LayoutColumn(
-                                                        new DatePicker('Data[Date]', 'Datum', 'Datum')
-                                                        , 6)
-                                                ))
-                                            )
-                                        )
-                                    )),
+                                    $this->getFormLayoutColumnField('Data[School]', 'Schule', 'Schule', 6),
+                                    $this->getFormLayoutColumnField('Data[SchoolExtended]', 'Zusatz', 'Zusatz', 6)
+                                )),
+                                new LayoutRow(array(
+                                    $this->getFormLayoutColumnField('Data[SchoolAddressDistrict]', 'Ortsteil', 'Ortsteil'),
+                                    $this->getFormLayoutColumnField('Data[SchoolAddressStreet]', 'Straße Nr.', 'Straße Hausnummer'),
+                                    $this->getFormLayoutColumnField('Data[SchoolAddressCity]', 'PLZ Ort', 'PLZ Ort')
                                 ))
+                            )))
+                        )),
+                        new LayoutColumn(
+                            new Title('Informationen Schüler')
+                        ),
+                        new LayoutColumn(new Well(
+                            new Layout(new LayoutGroup(array(
+                                new LayoutRow(array(
+                                    $this->getFormLayoutColumnField('Data[FirstLastName]', 'Vorname, Name',
+                                        'Vorname, Name '.
+                                        ($Gender == 'Männlich'
+                                            ? 'des Schülers'
+                                            : ($Gender == 'Weiblich'
+                                                ? 'der Schülerin'
+                                                : 'des Schülers/der Schülerin')
+                                        ), 8),
+                                    $this->getFormLayoutColumnField('Data[Gender]', 'Geschlecht', 'Geschlecht')
+                                )),
+                                new LayoutRow(array(
+                                    $this->getFormLayoutColumnField('Data[Birthday]', 'Geboren am', 'Geburtstag', 6),
+                                    $this->getFormLayoutColumnField('Data[Birthplace]', 'Geboren in', 'Geburtsort', 6)
+                                )),
+                                new LayoutRow(
+                                    $this->getFormLayoutColumnField('Data[AddressExtra]', 'Adresszusatz', 'Adresszusatz', 12)
+                                ),
+                                new LayoutRow(array(
+                                    $this->getFormLayoutColumnField('Data[AddressDistrict]', 'Ortsteil', 'Ortsteil', 3),
+                                    $this->getFormLayoutColumnField('Data[AddressStreet]', 'Straße, Hausnummer', 'Straße, Hausnummer'),
+                                    $this->getFormLayoutColumnField('Data[AddressPLZ]', 'Postleitzahl', 'Postleitzahl', 2),
+                                    $this->getFormLayoutColumnField('Data[AddressCity]', 'Ort', 'Ort', 3)
+                                )),
+                                new LayoutRow(array(
+                                    $this->getFormLayoutColumnField('Data[Division]', 'Besucht zur Zeit die Klasse', 'Besucht zur Zeit die Klasse', 6),
+                                    $this->getFormLayoutColumnField('Data[ArriveDate]', 'Schüler der Schule seit Datum', 'War vom', 3),
+                                    $this->getFormLayoutColumnField('Data[LeaveDate]', 'Voraussichtlich bis', 'Voraussichtlich bis', 3)
+                                )),
+                            )))
+                        )),
+                        new LayoutColumn(
+                            new Title('Dokument')
+                        ),
+                        new LayoutColumn(new Well(
+                            new Layout(
+                                new LayoutGroup(
+                                    new LayoutRow(array(
+                                        $this->getFormLayoutColumnField('Data[Place]', 'Ort', 'Ort', 6),
+                                        new LayoutColumn(
+                                            new DatePicker('Data[Date]', 'Datum', 'Datum')
+                                        , 6)
+                                    ))
+                                )
                             )
-                        )
-                    )
-                )),
-            ))
+                        )),
+                    ))))
+                )
+            ,)),))
             , new Primary('Download', new Download(), true),
             '\Api\Document\Standard\EnrollmentDocument\Create'
         );
+    }
+
+    /**
+     * @param $Gender
+     *
+     * @return Form
+     */
+    private function formStudentArchiveDocument($Gender): Form
+    {
+
+        // Sachsen
+        return new Form(
+            new FormGroup(array(new FormRow(array(
+                new FormColumn(
+                    new HiddenField('Data[IsStudent]')
+//                            new HiddenField('Data[PersonId]'),
+//                            new HiddenField('Data[SchoolId]'),
+                ),
+                new FormColumn(
+                new Layout(new LayoutGroup(new LayoutRow(array(
+                    new LayoutColumn(
+                        new Title('Einrichtung')
+                    ),
+                    new LayoutColumn(new Well(
+                        new Layout(new LayoutGroup(array(
+                            new LayoutRow(array(
+                                $this->getFormLayoutColumnField('Data[School]', 'Schule', 'Schule', 6),
+                                $this->getFormLayoutColumnField('Data[SchoolExtended]', 'Zusatz', 'Zusatz', 6)
+                            )),
+                            new LayoutRow(array(
+                                $this->getFormLayoutColumnField('Data[SchoolAddressDistrict]', 'Ortsteil', 'Ortsteil'),
+                                $this->getFormLayoutColumnField('Data[SchoolAddressStreet]', 'Straße Nr.', 'Straße Hausnummer'),
+                                $this->getFormLayoutColumnField('Data[SchoolAddressCity]', 'PLZ Ort', 'PLZ Ort')
+                            ))
+                        )))
+                    )),
+                    new LayoutColumn(
+                        new Title('Informationen Schüler')
+                    ),
+                    new LayoutColumn(new Well(
+                        new Layout(new LayoutGroup(array(
+                            new LayoutRow(array(
+                                $this->getFormLayoutColumnField('Data[FirstLastName]', 'Vorname, Name',
+                                    'Vorname, Name '.
+                                    ($Gender == 'Männlich'
+                                        ? 'des Schülers'
+                                        : ($Gender == 'Weiblich'
+                                            ? 'der Schülerin'
+                                            : 'des Schülers/der Schülerin')
+                                    ), 8),
+                                $this->getFormLayoutColumnField('Data[Gender]', 'Geschlecht', 'Geschlecht')
+                            )),
+                            new LayoutRow(array(
+                                $this->getFormLayoutColumnField('Data[Birthday]', 'Geboren am', 'Geburtstag', 6),
+                                $this->getFormLayoutColumnField('Data[Birthplace]', 'Geboren in', 'Geburtsort', 6)
+                            )),
+                            new LayoutRow(
+                                $this->getFormLayoutColumnField('Data[AddressExtra]', 'Adresszusatz', 'Adresszusatz', 12)
+                            ),
+                            new LayoutRow(array(
+                                $this->getFormLayoutColumnField('Data[AddressDistrict]', 'Ortsteil', 'Ortsteil', 3),
+                                $this->getFormLayoutColumnField('Data[AddressStreet]', 'Straße, Hausnummer', 'Straße, Hausnummer'),
+                                $this->getFormLayoutColumnField('Data[AddressPLZ]', 'Postleitzahl', 'Postleitzahl', 2),
+                                $this->getFormLayoutColumnField('Data[AddressCity]', 'Ort', 'Ort', 3)
+                            )),
+                            new LayoutRow(array(
+                                $this->getFormLayoutColumnField('Data[ArriveDate]', 'Schüler der Schule seit Datum', 'War vom', 6),
+                                $this->getFormLayoutColumnField('Data[LeaveDate]', 'Schüler der Schule bis Datum', 'Bis zum', 6)
+                            )),
+                        )))
+                    )),
+                    new LayoutColumn(
+                        new Title('Dokument')
+                    ),
+                    new LayoutColumn(new Well(
+                        new Layout(
+                            new LayoutGroup(
+                                new LayoutRow(array(
+                                    $this->getFormLayoutColumnField('Data[Place]', 'Ort', 'Ort', 6),
+                                    new LayoutColumn(
+                                        new DatePicker('Data[Date]', 'Datum', 'Datum')
+                                    , 6)
+                                ))
+                            )
+                        )
+                    )),
+                ))))
+            ))),))
+            , new Primary('Download', new Download(), true),
+            '\Api\Document\Standard\EnrollmentDocument\Create'
+        );
+    }
+
+    /**
+     * get TextField
+     * @param string $Name
+     * @param string $Placeholder
+     * @param string $Lable
+     * @param int $Size
+     * @return LayoutColumn
+     */
+    private function getFormLayoutColumnField( string $Name,string $Placeholder,string $Lable, int $Size = 4):LayoutColumn
+    {
+
+        return new LayoutColumn(
+            new TextField($Name, $Placeholder, $Lable)
+        , $Size);
     }
 }

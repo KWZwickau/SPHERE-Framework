@@ -21,6 +21,10 @@ class TblCommonGender extends Element
     const VALUE_FEMALE = 2;
     const VALUE_DIVERS = 3;
     const VALUE_OTHER = 4;
+    const VALUE_MALE_STRING = 'Männlich';
+    const VALUE_FEMALE_STRING = 'Weiblich';
+    const VALUE_DIVERS_STRING = 'Divers';
+    const VALUE_OTHER_STRING = 'Ohne Angabe';
 
     /**
      * @Column(type="string")
