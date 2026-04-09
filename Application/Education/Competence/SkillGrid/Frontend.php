@@ -1,8 +1,8 @@
 <?php
 
-namespace SPHERE\Application\Education\Competence\Skill;
+namespace SPHERE\Application\Education\Competence\SkillGrid;
 
-use SPHERE\Application\Api\Education\Competence\ApiSkill;
+use SPHERE\Application\Api\Education\Competence\ApiSkillGrid;
 use SPHERE\Application\Education\Competence\ScoreType\ScoreType;
 use SPHERE\Application\Education\Lesson\Course\Course;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
@@ -52,7 +52,7 @@ class Frontend extends Extension implements IFrontendInterface
         $stage = new Stage('Kompetenzraster', 'Übersicht');
 
         $buttonList = '';
-        $route = '/Education/Competence/Skill';
+        $route = '/Education/Competence/SkillGrid';
         if (($tblSchoolTypeList = School::useService()->getConsumerSchoolTypeAll())) {
             foreach ($tblSchoolTypeList as $tblSchoolType) {
                 if ($tblSchoolType->getId() == $SchoolTypeId) {
@@ -71,8 +71,8 @@ class Frontend extends Extension implements IFrontendInterface
             . ($SchoolTypeId && Type::useService()->getTypeById($SchoolTypeId)
                 ? new Panel(new Filter() . ' Filter', $this->formFilter($SchoolTypeId, $Filter), Panel::PANEL_TYPE_INFO)
                 : '')
-            . ApiSkill::receiverModal()
-            . ApiSkill::receiverBlock($this->loadSkillGridTable($SchoolTypeId, $Filter), 'SkillGridTable')
+            . ApiSkillGrid::receiverModal()
+            . ApiSkillGrid::receiverBlock($this->loadSkillGridTable($SchoolTypeId, $Filter), 'SkillGridTable')
         );
 
         return $stage;
@@ -99,17 +99,17 @@ class Frontend extends Extension implements IFrontendInterface
                 }
             }
             $dataList = [];
-            foreach (Skill::useService()->getAvailableSkillGridList($tblSchoolType, $level, $tblSubjectFilter ?: null) as $tblSkillGrid) {
+            foreach (SkillGrid::useService()->getAvailableSkillGridList($tblSchoolType, $level, $tblSubjectFilter ?: null) as $tblSkillGrid) {
                 $dataList[] = [
                     'Level' => $tblSkillGrid->getLevel(),
                     'Subject' => ($tblSubject = $tblSkillGrid->getServiceTblSubject()) ? $tblSubject->getDisplayName() : '',
                     'Name' => $tblSkillGrid->getName(),
                     'SkillAreas' => $tblSkillGrid->getDisplaySkillAreas(),
-                    'Option' => new Standard('', '/Education/Competence/Skill/Edit', new Edit(),
+                    'Option' => new Standard('', '/Education/Competence/SkillGrid/Edit', new Edit(),
                         ['SchoolTypeId' => $SchoolTypeId, 'Filter' => $Filter, 'SkillGridId' => $tblSkillGrid->getId()],
                         'Kompetenzraster bearbeiten')
-                        . (new Standard('', ApiSkill::getEndpoint(), new Remove(), array(), 'Kompetenzraster löschen'))
-                            ->ajaxPipelineOnClick(ApiSkill::pipelineOpenDeleteSkillGridModal($tblSkillGrid->getId(), $SchoolTypeId, $Filter))
+                        . (new Standard('', ApiSkillGrid::getEndpoint(), new Remove(), array(), 'Kompetenzraster löschen'))
+                            ->ajaxPipelineOnClick(ApiSkillGrid::pipelineOpenDeleteSkillGridModal($tblSkillGrid->getId(), $SchoolTypeId, $Filter))
                 ];
             }
 
@@ -137,7 +137,7 @@ class Frontend extends Extension implements IFrontendInterface
                 ]
             );
 
-            return new Primary('Kompetenzraster hinzufügen', '/Education/Competence/Skill/Edit', new Plus(),
+            return new Primary('Kompetenzraster hinzufügen', '/Education/Competence/SkillGrid/Edit', new Plus(),
                     ['SchoolTypeId' => $SchoolTypeId, 'Filter' => $Filter])
                 . new Container('&nbsp;')
                 . $table;
@@ -171,11 +171,11 @@ class Frontend extends Extension implements IFrontendInterface
             new FormRow(array(
                 new FormColumn(
                     (new TextField('Filter[Level]', '', 'Klassenstufe'))
-                        ->ajaxPipelineOnKeyUp(ApiSkill::pipelineLoadSkillGridTable($SchoolTypeId))
+                        ->ajaxPipelineOnKeyUp(ApiSkillGrid::pipelineLoadSkillGridTable($SchoolTypeId))
                 , 6),
                 new FormColumn(
-                    (new SelectBox('Filter[SubjectId]', 'Fach', array('{{ Acronym }} - {{ Name }}' => Skill::useService()->getAvailableSubjectList())))
-                        ->ajaxPipelineOnChange(ApiSkill::pipelineLoadSkillGridTable($SchoolTypeId))
+                    (new SelectBox('Filter[SubjectId]', 'Fach', array('{{ Acronym }} - {{ Name }}' => SkillGrid::useService()->getAvailableSubjectList())))
+                        ->ajaxPipelineOnChange(ApiSkillGrid::pipelineLoadSkillGridTable($SchoolTypeId))
                 , 6)
             )),
         )));
@@ -194,7 +194,7 @@ class Frontend extends Extension implements IFrontendInterface
         $stage = new Stage('Kompetenzraster', $SkillGridId ? 'Bearbeiten' : 'Hinzufügen');
 
         $stage->setContent(
-            ApiSkill::receiverBlock($this->loadEditSkillGridContent(true, $SchoolTypeId, $Filter, $SkillGridId), 'EditSkillGridContent')
+            ApiSkillGrid::receiverBlock($this->loadEditSkillGridContent(true, $SchoolTypeId, $Filter, $SkillGridId), 'EditSkillGridContent')
         );
 
         return $stage;
@@ -220,7 +220,7 @@ class Frontend extends Extension implements IFrontendInterface
             $split = explode('-', $ActionId);
             $areaRanking = $split[0];
             $skillRanking = $split[1];
-            // wenn der Skill davor gelöscht wurde → nicht nur minus 1
+            // wenn der SkillGrid davor gelöscht wurde → nicht nur minus 1
             $up = $skillRanking - 1;
             while ($up > 0) {
                 if (isset($Data['Skills'][$areaRanking . '-' . $up])) {
@@ -243,7 +243,7 @@ class Frontend extends Extension implements IFrontendInterface
         } elseif ($Action == 'RemoveSkillArea' && isset($Data['SkillAreas'][$ActionId])) {
             unset($Data['SkillAreas'][$ActionId]);
         } elseif ($Action == 'MoveSkillAreaUp' && isset($Data['SkillAreas'][$ActionId])) {
-            // wenn der Skill davor gelöscht wurde → nicht nur minus 1
+            // wenn der SkillGrid davor gelöscht wurde → nicht nur minus 1
             $up = $ActionId - 1;
             while ($up > 0) {
                 if (isset($Data['SkillAreas'][$up])) {
@@ -302,7 +302,7 @@ class Frontend extends Extension implements IFrontendInterface
     public function formSkillGrid(bool $setPost, $SchoolTypeId = null, $Filter = null, $SkillGridId = null, $Data = null, $ErrorList = null): Form
     {
         // beim Checken der Input-Felder darf der Post nicht gesetzt werden
-        $tblSkillGrid = Skill::useService()->getSkillGridById($SkillGridId);
+        $tblSkillGrid = SkillGrid::useService()->getSkillGridById($SkillGridId);
         if ($setPost && $tblSkillGrid) {
             $Global = $this->getGlobal();
             $Global->POST['Data']['Name'] = $tblSkillGrid->getName();
@@ -328,8 +328,8 @@ class Frontend extends Extension implements IFrontendInterface
                     $tblSkillAreaList[$tblSkillArea->getId()] = $tblSkillArea;
                 }
 
-                $Global->POST['Data']['Skills'][$areaRanking . '-' . $skillRanking]['Skill'] = $tblSkill->getSkill();
-                $Data['Skills'][$areaRanking . '-' . $skillRanking]['Skill'] = $tblSkill->getSkill();
+                $Global->POST['Data']['Skills'][$areaRanking . '-' . $skillRanking]['SkillGrid'] = $tblSkill->getSkill();
+                $Data['Skills'][$areaRanking . '-' . $skillRanking]['SkillGrid'] = $tblSkill->getSkill();
                 $Global->POST['Data']['Skills'][$areaRanking . '-' . $skillRanking]['Level'] = $tblSkill->getLevel() ?: '';
                 $Data['Skills'][$areaRanking . '-' . $skillRanking]['Level'] = $tblSkill->getLevel() ?: '';
             }
@@ -344,7 +344,7 @@ class Frontend extends Extension implements IFrontendInterface
         // Bewertungssysteme
         $tblScoreTypeList = ScoreType::useService()->getScoreTypeAll();
 
-        $tblSubjectList = Skill::useService()->getAvailableSubjectList();
+        $tblSubjectList = SkillGrid::useService()->getAvailableSubjectList();
         $tblCourseAll = Course::useService()->getCourseAll();
         $tblSupportFocusTypeAll = Student::useService()->getSupportFocusTypeAll();
 
@@ -352,14 +352,14 @@ class Frontend extends Extension implements IFrontendInterface
         if ($Data === null) {
             $areaRanking = 1;
             $skillAreaRows[] = new FormRow(new FormColumn(
-                ApiSkill::receiverBlock($this->getSkillAreaContent($SchoolTypeId, $Filter, $SkillGridId, $areaRanking), "SkillAreaContent_$areaRanking")
+                ApiSkillGrid::receiverBlock($this->getSkillAreaContent($SchoolTypeId, $Filter, $SkillGridId, $areaRanking), "SkillAreaContent_$areaRanking")
             ));
         } else {
             $countSkillAreas = count($Data['SkillAreas']);
             $count = 0;
             foreach ($Data['SkillAreas'] as $areaRanking => $areaArray) {
                 $skillAreaRows[] = new FormRow(new FormColumn(
-                    ApiSkill::receiverBlock(
+                    ApiSkillGrid::receiverBlock(
                         $this->getSkillAreaContent($SchoolTypeId, $Filter, $SkillGridId, $areaRanking, ++$count == $countSkillAreas, $Data, $ErrorList),
                         "SkillAreaContent_$areaRanking"
                     )
@@ -367,7 +367,7 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
-        if (Skill::useService()->getIsHeadmaster()) {
+        if (SkillGrid::useService()->getIsHeadmaster()) {
             $labelSubject = 'Fach (ansonsten Fächerübergreifend)';
         } else {
             $labelSubject = 'Fach ' . new Danger('*');
@@ -428,9 +428,9 @@ class Frontend extends Extension implements IFrontendInterface
                 new FormRow(array(
                     new FormColumn(array(
                         new Container('&nbsp;'),
-                        (new Primary('Speichern', ApiSkill::getEndpoint(), new Save()))
-                            ->ajaxPipelineOnClick(ApiSkill::pipelineSaveEditSkillGrid($SchoolTypeId, $Filter, $SkillGridId)),
-                        new Standard('Abbrechen', '/Education/Competence/Skill', new Disable(), ['SchoolTypeId' => $SchoolTypeId, 'Filter' => $Filter])
+                        (new Primary('Speichern', ApiSkillGrid::getEndpoint(), new Save()))
+                            ->ajaxPipelineOnClick(ApiSkillGrid::pipelineSaveEditSkillGrid($SchoolTypeId, $Filter, $SkillGridId)),
+                        new Standard('Abbrechen', '/Education/Competence/SkillGrid', new Disable(), ['SchoolTypeId' => $SchoolTypeId, 'Filter' => $Filter])
                     ))
                 )),
             ))
@@ -462,7 +462,7 @@ class Frontend extends Extension implements IFrontendInterface
         $content = [];
         if ($Data === null) {
             $skillRanking = 1;
-            $content[] = ApiSkill::receiverBlock($this->getSkillContent($SchoolTypeId, $Filter, $SkillGridId, $AreaRanking, $skillRanking), "SkillContent_$AreaRanking" . "_$skillRanking");
+            $content[] = ApiSkillGrid::receiverBlock($this->getSkillContent($SchoolTypeId, $Filter, $SkillGridId, $AreaRanking, $skillRanking), "SkillContent_$AreaRanking" . "_$skillRanking");
         } else {
             $countSkills = count(array_filter(
                 array_keys($Data['Skills']),
@@ -473,7 +473,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $split = explode('-', $key);
                 if ($split[0] == $AreaRanking) {
                     $skillRanking = $split[1];
-                    $content[] = ApiSkill::receiverBlock(
+                    $content[] = ApiSkillGrid::receiverBlock(
                         $this->getSkillContent($SchoolTypeId, $Filter, $SkillGridId, $AreaRanking, $skillRanking, ++$count == $countSkills, $ErrorList),
                         "SkillContent_$AreaRanking" . "_$skillRanking"
                     );
@@ -494,21 +494,21 @@ class Frontend extends Extension implements IFrontendInterface
 
         $button = '';
         if ($hasAddButton) {
-            $button = ApiSkill::receiverBlock(
-                (new Link(new Bold('Kompetenzbereich hinzufügen'), ApiSkill::getEndpoint(), new Plus()))
-                    ->ajaxPipelineOnClick(ApiSkill::pipelineLoadSkillAreaContent($SchoolTypeId, $Filter, $SkillGridId,$AreaRanking + 1)),
+            $button = ApiSkillGrid::receiverBlock(
+                (new Link(new Bold('Kompetenzbereich hinzufügen'), ApiSkillGrid::getEndpoint(), new Plus()))
+                    ->ajaxPipelineOnClick(ApiSkillGrid::pipelineLoadSkillAreaContent($SchoolTypeId, $Filter, $SkillGridId,$AreaRanking + 1)),
                 'SkillAreaContent_' . ($AreaRanking + 1)
             );
         }
 
         $headerButtons =
             '&nbsp;&nbsp;'
-            . (new Link('', ApiSkill::getEndpoint(), new Minus(), [], 'Kompetenzbereich löschen', null))
-                ->ajaxPipelineOnClick(ApiSkill::pipelineLoadEditSkillGridContent(
+            . (new Link('', ApiSkillGrid::getEndpoint(), new Minus(), [], 'Kompetenzbereich löschen', null))
+                ->ajaxPipelineOnClick(ApiSkillGrid::pipelineLoadEditSkillGridContent(
                     $SchoolTypeId, $Filter, $SkillGridId, 'RemoveSkillArea', $AreaRanking))
             . '&nbsp;&nbsp;'
-            . (new Link('', ApiSkill::getEndpoint(), new ChevronUp(), [], 'Kompetenzbereich nach oben verschieben'))
-                ->ajaxPipelineOnClick(ApiSkill::pipelineLoadEditSkillGridContent(
+            . (new Link('', ApiSkillGrid::getEndpoint(), new ChevronUp(), [], 'Kompetenzbereich nach oben verschieben'))
+                ->ajaxPipelineOnClick(ApiSkillGrid::pipelineLoadEditSkillGridContent(
                     $SchoolTypeId, $Filter, $SkillGridId, 'MoveSkillAreaUp', $AreaRanking));
 
         return new Panel(
@@ -534,10 +534,10 @@ class Frontend extends Extension implements IFrontendInterface
         // POST kann maximal auf der 3. Ebene sein, es gehen keine tieferen Arrays
         $levelInput = new TextField("Data[Skills][$AreaRanking-$SkillRanking][Level]",
             $AreaRanking == 1 && $SkillRanking == 1 ? 'Grundwissen' : '', 'Niveau');
-        $skillInput = new TextField("Data[Skills][$AreaRanking-$SkillRanking][Skill]",
+        $skillInput = new TextField("Data[Skills][$AreaRanking-$SkillRanking][SkillGrid]",
             $AreaRanking == 1 && $SkillRanking == 1 ? 'Ich entnehme Texten gezielt Informationen.' : 'Neue Kompetenz', 'Kompetenz ' . new Danger('*'));
-        if (isset($ErrorList["Data[Skills][$AreaRanking-$SkillRanking][Skill]"])) {
-            $skillInput->setError($ErrorList["Data[Skills][$AreaRanking-$SkillRanking][Skill]"]['Message']);
+        if (isset($ErrorList["Data[Skills][$AreaRanking-$SkillRanking][SkillGrid]"])) {
+            $skillInput->setError($ErrorList["Data[Skills][$AreaRanking-$SkillRanking][SkillGrid]"]['Message']);
         }
 
         $rows[] = new LayoutRow(array(
@@ -550,20 +550,20 @@ class Frontend extends Extension implements IFrontendInterface
             new LayoutColumn(array(
                 // TODO with flex ?
                 (new Container('&nbsp;'))->setStyle(['height: 22px;']),
-                (new Standard('', ApiSkill::getEndpoint(), new Minus(), [], 'Kompetenz löschen'))
-                    ->ajaxPipelineOnClick(ApiSkill::pipelineLoadEditSkillGridContent(
+                (new Standard('', ApiSkillGrid::getEndpoint(), new Minus(), [], 'Kompetenz löschen'))
+                    ->ajaxPipelineOnClick(ApiSkillGrid::pipelineLoadEditSkillGridContent(
                         $SchoolTypeId, $Filter, $SkillGridId, 'RemoveSkill', "$AreaRanking-$SkillRanking")),
-                (new Standard('', ApiSkill::getEndpoint(), new ChevronUp(), [], 'Kompetenz nach oben verschieben'))
-                    ->ajaxPipelineOnClick(ApiSkill::pipelineLoadEditSkillGridContent(
+                (new Standard('', ApiSkillGrid::getEndpoint(), new ChevronUp(), [], 'Kompetenz nach oben verschieben'))
+                    ->ajaxPipelineOnClick(ApiSkillGrid::pipelineLoadEditSkillGridContent(
                         $SchoolTypeId, $Filter, $SkillGridId, 'MoveSkillUp', "$AreaRanking-$SkillRanking"))
             ), 2),
         ));
         if ($hasAddButton) {
             $rows[] = new LayoutRow(array(
                 new LayoutColumn(
-                    ApiSkill::receiverBlock(
-                        (new Link(new Bold('Kompetenz hinzufügen'), ApiSkill::getEndpoint(), new Plus()))
-                            ->ajaxPipelineOnClick(ApiSkill::pipelineLoadSkillContent($SchoolTypeId, $Filter, $SkillGridId, $AreaRanking, $SkillRanking + 1)),
+                    ApiSkillGrid::receiverBlock(
+                        (new Link(new Bold('Kompetenz hinzufügen'), ApiSkillGrid::getEndpoint(), new Plus()))
+                            ->ajaxPipelineOnClick(ApiSkillGrid::pipelineLoadSkillContent($SchoolTypeId, $Filter, $SkillGridId, $AreaRanking, $SkillRanking + 1)),
                         'SkillContent_' . $AreaRanking . '_' . ($SkillRanking + 1)
                     )
                 )

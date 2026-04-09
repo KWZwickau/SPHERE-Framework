@@ -4,7 +4,7 @@ namespace SPHERE\Application\Api\Education\Competence;
 
 use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
-use SPHERE\Application\Education\Competence\Skill\Skill;
+use SPHERE\Application\Education\Competence\SkillGrid\SkillGrid;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\IApiInterface;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
@@ -30,7 +30,7 @@ use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\System\Extension\Extension;
 
-class ApiSkill extends Extension implements IApiInterface
+class ApiSkillGrid extends Extension implements IApiInterface
 {
     use ApiTrait;
 
@@ -119,7 +119,7 @@ class ApiSkill extends Extension implements IApiInterface
      */
     public function loadSkillGridTable($SchoolTypeId = null, $Filter = null): string
     {
-        return Skill::useFrontend()->loadSkillGridTable($SchoolTypeId, $Filter);
+        return SkillGrid::useFrontend()->loadSkillGridTable($SchoolTypeId, $Filter);
     }
 
     /**
@@ -161,7 +161,7 @@ class ApiSkill extends Extension implements IApiInterface
      */
     public function loadSkillAreaContent($SchoolTypeId, $Filter, $SkillGridId, $AreaRanking): string
     {
-        return Skill::useFrontend()->getSkillAreaContent($SchoolTypeId, $Filter, $SkillGridId, $AreaRanking);
+        return SkillGrid::useFrontend()->getSkillAreaContent($SchoolTypeId, $Filter, $SkillGridId, $AreaRanking);
     }
 
     /**
@@ -206,7 +206,7 @@ class ApiSkill extends Extension implements IApiInterface
      */
     public function loadSkillContent($SchoolTypeId, $Filter, $SkillGridId, $AreaRanking, $SkillRanking): string
     {
-        return Skill::useFrontend()->getSkillContent($SchoolTypeId, $Filter, $SkillGridId,$AreaRanking, $SkillRanking);
+        return SkillGrid::useFrontend()->getSkillContent($SchoolTypeId, $Filter, $SkillGridId,$AreaRanking, $SkillRanking);
     }
 
     /**
@@ -251,7 +251,7 @@ class ApiSkill extends Extension implements IApiInterface
      */
     public function loadEditSkillGridContent($SchoolTypeId = null, $Filter = null, $SkillGridId = null, $Action = null, $ActionId = null, $Data = null): string
     {
-        return Skill::useFrontend()->loadEditSkillGridContent(false, $SchoolTypeId, $Filter, $SkillGridId, $Action, $ActionId, $Data);
+        return SkillGrid::useFrontend()->loadEditSkillGridContent(false, $SchoolTypeId, $Filter, $SkillGridId, $Action, $ActionId, $Data);
     }
 
     /**
@@ -296,10 +296,10 @@ class ApiSkill extends Extension implements IApiInterface
 
         $tblSkillGrid = null;
         if ($SkillGridId) {
-            $tblSkillGrid = Skill::useService()->getSkillGridById($SkillGridId);
+            $tblSkillGrid = SkillGrid::useService()->getSkillGridById($SkillGridId);
         }
 
-        return Skill::useService()->updateSkillGrid($tblSchoolType, $Filter, $Data, $tblSkillGrid);
+        return SkillGrid::useService()->updateSkillGrid($tblSchoolType, $Filter, $Data, $tblSkillGrid);
     }
 
     /**
@@ -336,7 +336,7 @@ class ApiSkill extends Extension implements IApiInterface
      */
     public function openDeleteSkillGridModal($SkillGridId, $SchoolTypeId, $Filter = null): string
     {
-        if (!($tblSkillGrid = Skill::useService()->getSkillGridById($SkillGridId))) {
+        if (!($tblSkillGrid = SkillGrid::useService()->getSkillGridById($SkillGridId))) {
             return new Danger('Das Kompetenzraster wurde nicht gefunden', new Exclamation());
         }
 
@@ -401,11 +401,11 @@ class ApiSkill extends Extension implements IApiInterface
      */
     public function saveDeleteSkillGridModal($SkillGridId, $SchoolTypeId, $Filter = null): string
     {
-        if (!($tblSkillGrid = Skill::useService()->getSkillGridById($SkillGridId))) {
+        if (!($tblSkillGrid = SkillGrid::useService()->getSkillGridById($SkillGridId))) {
             return new Danger('Der Kompetenzraster wurde nicht gefunden', new Exclamation());
         }
 
-        if (Skill::useService()->destroySkillGrid($tblSkillGrid)) {
+        if (SkillGrid::useService()->destroySkillGrid($tblSkillGrid)) {
             return new Success('Der Kompetenzraster wurde erfolgreich gelöscht.')
                 . self::pipelineLoadSkillGridTable($SchoolTypeId, $Filter)
                 . self::pipelineClose();

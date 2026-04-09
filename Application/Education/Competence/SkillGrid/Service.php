@@ -1,14 +1,14 @@
 <?php
 
-namespace SPHERE\Application\Education\Competence\Skill;
+namespace SPHERE\Application\Education\Competence\SkillGrid;
 
 use SPHERE\Application\Education\Competence\ScoreType\ScoreType;
 use SPHERE\Application\Education\Competence\ScoreType\Service\Entity\TblScoreType;
-use SPHERE\Application\Education\Competence\Skill\Service\Data;
-use SPHERE\Application\Education\Competence\Skill\Service\Entity\TblSkill;
-use SPHERE\Application\Education\Competence\Skill\Service\Entity\TblSkillArea;
-use SPHERE\Application\Education\Competence\Skill\Service\Entity\TblSkillGrid;
-use SPHERE\Application\Education\Competence\Skill\Service\Setup;
+use SPHERE\Application\Education\Competence\SkillGrid\Service\Data;
+use SPHERE\Application\Education\Competence\SkillGrid\Service\Entity\TblSkill;
+use SPHERE\Application\Education\Competence\SkillGrid\Service\Entity\TblSkillArea;
+use SPHERE\Application\Education\Competence\SkillGrid\Service\Entity\TblSkillGrid;
+use SPHERE\Application\Education\Competence\SkillGrid\Service\Setup;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
@@ -165,14 +165,14 @@ class Service extends AbstractService
             ];
             $hasErrors = true;
         }
-        // Data[Skills][$AreaRanking-$SkillRanking][Skill]
+        // Data[Skills][$AreaRanking-$SkillRanking][SkillGrid]
         foreach ($Data['Skills'] as $key => $skillArray) {
             $split = explode('-', $key);
             $areaRanking = $split[0];
             $skillRanking = $split[1];
             // Niveau ohne Kompetenz
-            if (empty($skillArray['Skill']) && !empty($skillArray['Level'])) {
-                $name = "Data[Skills][$areaRanking-$skillRanking][Skill]";
+            if (empty($skillArray['SkillGrid']) && !empty($skillArray['Level'])) {
+                $name = "Data[Skills][$areaRanking-$skillRanking][SkillGrid]";
                 $ErrorList[$name] = [
                     'Name' => $name,
                     'Message' => 'Bitte geben Sie eine Kompetenz an'
@@ -180,8 +180,8 @@ class Service extends AbstractService
                 $hasErrors = true;
             }
             // Kompetenzbereich ohne Kompetenz
-            if ($skillRanking == 1 && !empty($Data['SkillAreas'][$areaRanking]['Area']) && empty($skillArray['Skill'])) {
-                $name = "Data[Skills][$areaRanking-$skillRanking][Skill]";
+            if ($skillRanking == 1 && !empty($Data['SkillAreas'][$areaRanking]['Area']) && empty($skillArray['SkillGrid'])) {
+                $name = "Data[Skills][$areaRanking-$skillRanking][SkillGrid]";
                 $ErrorList[$name] = [
                     'Name' => $name,
                     'Message' => 'Bitte geben Sie eine Kompetenz an'
@@ -191,7 +191,7 @@ class Service extends AbstractService
         }
 
         if ($hasErrors) {
-            return new Well(Skill::useFrontend()->formSkillGrid(false, $tblSchoolType->getId(), $Filter, $tblSkillGrid?->getId(), $Data, $ErrorList));
+            return new Well(SkillGrid::useFrontend()->formSkillGrid(false, $tblSchoolType->getId(), $Filter, $tblSkillGrid?->getId(), $Data, $ErrorList));
         }
 
         $tblSubject = Subject::useService()->getSubjectById($Data['SubjectId']);
@@ -217,17 +217,17 @@ class Service extends AbstractService
             $split = explode('-', $key);
             $areaRanking = $split[0];
             $skillRanking = $split[1];
-            if (!empty($skillArray['Skill'])) {
+            if (!empty($skillArray['SkillGrid'])) {
                 if (!isset($tblSkillAreaList[$areaRanking])) {
                     $tblSkillAreaList[$areaRanking] = (new Data($this->getBinding()))->createSkillArea(
                         $tblSkillGridNew, empty($Data['SkillAreas'][$areaRanking]['Area']) ? null : $Data['SkillAreas'][$areaRanking]['Area'], $areaRanking);
                 }
-                (new Data($this->getBinding()))->createSkill($tblSkillAreaList[$areaRanking], $skillArray['Level'] ?: null, $skillArray['Skill'], $skillRanking);
+                (new Data($this->getBinding()))->createSkill($tblSkillAreaList[$areaRanking], $skillArray['Level'] ?: null, $skillArray['SkillGrid'], $skillRanking);
             }
         }
 
         return new Success('Die Daten wurden erfolgreich gespeichert', new \SPHERE\Common\Frontend\Icon\Repository\Success())
-            . new Redirect('/Education/Competence/Skill', Redirect::TIMEOUT_SUCCESS, ['SchoolTypeId' => $tblSchoolType->getId(), 'Filter' => $Filter]);
+            . new Redirect('/Education/Competence/SkillGrid', Redirect::TIMEOUT_SUCCESS, ['SchoolTypeId' => $tblSchoolType->getId(), 'Filter' => $Filter]);
     }
 
     /**

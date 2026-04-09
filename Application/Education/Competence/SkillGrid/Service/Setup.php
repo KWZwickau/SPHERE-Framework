@@ -1,6 +1,6 @@
 <?php
 
-namespace SPHERE\Application\Education\Competence\Skill\Service;
+namespace SPHERE\Application\Education\Competence\SkillGrid\Service;
 
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
@@ -86,7 +86,7 @@ class Setup extends AbstractSetup
     {
         $table = $this->createTable($schema, 'tblCompetenceSkill');
         $this->createColumn($table, 'Level', self::FIELD_TYPE_STRING, true);
-        $this->createColumn($table, 'Skill');
+        $this->createColumn($table, 'SkillGrid');
         $this->createColumn($table, 'SortOrder', self::FIELD_TYPE_INTEGER);
 
         $this->createForeignKey($table, $tblSkillArea);

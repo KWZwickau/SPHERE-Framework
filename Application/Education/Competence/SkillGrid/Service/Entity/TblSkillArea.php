@@ -1,12 +1,12 @@
 <?php
 
-namespace SPHERE\Application\Education\Competence\Skill\Service\Entity;
+namespace SPHERE\Application\Education\Competence\SkillGrid\Service\Entity;
 
 use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
-use SPHERE\Application\Education\Competence\Skill\Skill;
+use SPHERE\Application\Education\Competence\SkillGrid\SkillGrid;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -37,7 +37,7 @@ class TblSkillArea extends Element
      */
     public function getTblSkillGrid(): TblSkillGrid|false
     {
-        return Skill::useService()->getSkillGridById($this->tblCompetenceSkillGrid);
+        return SkillGrid::useService()->getSkillGridById($this->tblCompetenceSkillGrid);
     }
 
     /**

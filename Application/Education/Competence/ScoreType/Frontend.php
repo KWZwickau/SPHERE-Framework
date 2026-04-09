@@ -4,7 +4,7 @@ namespace SPHERE\Application\Education\Competence\ScoreType;
 
 use SPHERE\Application\Api\Education\Competence\ApiScoreType;
 use SPHERE\Application\Education\Competence\ScoreType\Service\Entity\TblScoreType;
-use SPHERE\Application\Education\Competence\Skill\Skill;
+use SPHERE\Application\Education\Competence\SkillGrid\SkillGrid;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Repository\Title;
 use SPHERE\Common\Frontend\Form\Structure\Form;
@@ -71,7 +71,7 @@ class Frontend extends Extension implements IFrontendInterface
             foreach ($tblScoreTypeList as $tblScoreType) {
                 $delete = '';
                 // nur löschen möglich, wenn Bewertungssystem nicht verwendet wird
-                if ($tblScoreType->getId() > 0 && !Skill::useService()->getIsScoreTypeUsedInAnySkillGrid($tblScoreType)) {
+                if ($tblScoreType->getId() > 0 && !SkillGrid::useService()->getIsScoreTypeUsedInAnySkillGrid($tblScoreType)) {
                     $delete = (new Standard('', ApiScoreType::getEndpoint(), new Remove(), array(), 'Bewertungssystem löschen'))
                         ->ajaxPipelineOnClick(ApiScoreType::pipelineOpenDeleteScoreTypeModal($tblScoreType->getId()));
                 }

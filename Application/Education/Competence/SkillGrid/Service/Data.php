@@ -1,11 +1,11 @@
 <?php
 
-namespace SPHERE\Application\Education\Competence\Skill\Service;
+namespace SPHERE\Application\Education\Competence\SkillGrid\Service;
 
 use SPHERE\Application\Education\Competence\ScoreType\Service\Entity\TblScoreType;
-use SPHERE\Application\Education\Competence\Skill\Service\Entity\TblSkill;
-use SPHERE\Application\Education\Competence\Skill\Service\Entity\TblSkillArea;
-use SPHERE\Application\Education\Competence\Skill\Service\Entity\TblSkillGrid;
+use SPHERE\Application\Education\Competence\SkillGrid\Service\Entity\TblSkill;
+use SPHERE\Application\Education\Competence\SkillGrid\Service\Entity\TblSkillArea;
+use SPHERE\Application\Education\Competence\SkillGrid\Service\Entity\TblSkillGrid;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\School\Course\Service\Entity\TblCourse;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;

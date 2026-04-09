@@ -4,7 +4,7 @@ namespace SPHERE\Application\Transfer\Import\Competence;
 
 use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel;
 use MOC\V\Component\Document\Document;
-use SPHERE\Application\Education\Competence\Skill\Skill;
+use SPHERE\Application\Education\Competence\SkillGrid\SkillGrid;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\School\Course\Course;
 use SPHERE\Application\Education\School\Type\Type;
@@ -158,7 +158,7 @@ class Service
                 return new Panel('Fehler (Kompetenzraster wurden nicht importiert)', $errors, Panel::PANEL_TYPE_DANGER);
             }
 
-            Skill::useService()->insertSkillGrid($tblSchoolType, $data);
+            SkillGrid::useService()->insertSkillGrid($tblSchoolType, $data);
 
             return new Success("$countSkillGrid Kompetenzraster wurden erfolgreich importiert", new \SPHERE\Common\Frontend\Icon\Repository\Success());
         }

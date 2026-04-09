@@ -1,6 +1,6 @@
 <?php
 
-namespace SPHERE\Application\Education\Competence\Skill\Service\Entity;
+namespace SPHERE\Application\Education\Competence\SkillGrid\Service\Entity;
 
 use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
@@ -8,7 +8,7 @@ use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Education\Competence\ScoreType\ScoreType;
 use SPHERE\Application\Education\Competence\ScoreType\Service\Entity\TblScoreType;
-use SPHERE\Application\Education\Competence\Skill\Skill;
+use SPHERE\Application\Education\Competence\SkillGrid\SkillGrid;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\School\Course\Course;
@@ -195,7 +195,7 @@ class TblSkillGrid extends Element
      */
     public function getSkillAreas(): array
     {
-        return Skill::useService()->getSkillAreaListBySkillGrid($this);
+        return SkillGrid::useService()->getSkillAreaListBySkillGrid($this);
     }
 
     /**
@@ -203,7 +203,7 @@ class TblSkillGrid extends Element
      */
     public function getSkills(): array
     {
-        return Skill::useService()->getSkillListBySkillGrid($this);
+        return SkillGrid::useService()->getSkillListBySkillGrid($this);
     }
 
     /**

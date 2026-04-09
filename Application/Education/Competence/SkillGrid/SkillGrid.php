@@ -1,6 +1,6 @@
 <?php
 
-namespace SPHERE\Application\Education\Competence\Skill;
+namespace SPHERE\Application\Education\Competence\SkillGrid;
 
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
@@ -9,7 +9,7 @@ use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\System\Database\Link\Identifier;
 
-class Skill implements IModuleInterface
+class SkillGrid implements IModuleInterface
 {
 
     /**
