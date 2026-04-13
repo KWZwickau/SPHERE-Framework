@@ -254,6 +254,16 @@ class Data extends AbstractData
     }
 
     /**
+     * @param $id
+     *
+     * @return false|TblSkill
+     */
+    public function getSkillById($id): false|TblSkill
+    {
+        return $this->getCachedEntityById(__METHOD__, $this->getEntityManager(), 'TblSkill', $id);
+    }
+
+    /**
      * @param TblSkillArea $tblSkillArea
      * @param string|null $level
      * @param string $skill

@@ -131,6 +131,35 @@ class Service extends AbstractService
 
     /**
      * @param TblType $tblSchoolType
+     * @param int|null $level
+     * @param TblSubject|null $tblSubject
+     *
+     * @return TblSkill[]
+     */
+    public function getSkillListBy(TblType $tblSchoolType, ?int $level = null, ?TblSubject $tblSubject = null): array
+    {
+        $tblSkillList = [];
+        if (($tblSkillGridList = $this->getSkillGridListBy($tblSchoolType, $level, $tblSubject))) {
+            foreach ($tblSkillGridList as $tblSkillGrid) {
+                $tblSkillList = array_merge($tblSkillList, $tblSkillGrid->getSkills());
+            }
+        }
+
+        return $tblSkillList;
+    }
+
+    /**
+     * @param $id
+     *
+     * @return false|TblSkill
+     */
+    public function getSkillById($id): false|TblSkill
+    {
+        return (new Data($this->getBinding()))->getSkillById($id);
+    }
+
+    /**
+     * @param TblType $tblSchoolType
      * @param $Filter
      * @param $Data
      * @param TblSkillGrid|null $tblSkillGrid

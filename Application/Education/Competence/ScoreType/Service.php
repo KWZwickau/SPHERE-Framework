@@ -155,6 +155,16 @@ class Service extends AbstractService
     }
 
     /**
+     * @param $id
+     *
+     * @return false|TblScoreTypeItem
+     */
+    public function getScoreTypeItemById($id): false|TblScoreTypeItem
+    {
+        return (new Data($this->getBinding()))->getScoreTypeItemById($id);
+    }
+
+    /**
      * @param TblScoreType $tblScoreType
      *
      * @return TblScoreTypeItem[]

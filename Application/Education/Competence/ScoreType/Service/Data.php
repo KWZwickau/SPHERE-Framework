@@ -152,6 +152,16 @@ class Data extends AbstractData
     }
 
     /**
+     * @param $id
+     *
+     * @return false|TblScoreTypeItem
+     */
+    public function getScoreTypeItemById($id): false|TblScoreTypeItem
+    {
+        return $this->getCachedEntityById(__METHOD__, $this->getEntityManager(), 'TblScoreTypeItem', $id);
+    }
+
+    /**
      * @param TblScoreType $tblScoreType
      *
      * @return TblScoreTypeItem[]
