@@ -158,7 +158,9 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
         'Termin:_Eingangsdatum',
         'Termin:_Aufnahmegespr_aE_che',
         'Termin:_Schnuppertag',
-        'Masern:_Datum'
+        'Masern:_Datum',
+        'Allgemeines:_Sportbefreiung_von',
+        'Allgemeines:_Sportbefreiung_bis',
     );
 
     // sortieren der Spalten nach GermanString

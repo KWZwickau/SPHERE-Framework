@@ -813,13 +813,13 @@ class Service extends Support
                 }
             }
             if (isset( $Meta['Liberation'] )) {
-                foreach ($Meta['Liberation'] as $Category => $Type) {
+                foreach ($Meta['Liberation'] as $Category => $Data) {
                     $tblStudentLiberationCategory = $this->getStudentLiberationTypeById($Category);
                     if ($tblStudentLiberationCategory) {
-                        $tblStudentLiberationType = $this->getStudentLiberationTypeById($Type);
+                        $tblStudentLiberationType = $this->getStudentLiberationTypeById($Data['TypeId']);
                         if ($tblStudentLiberationType) {
                             (new Data($this->getBinding()))->addStudentLiberation($tblStudent,
-                                $tblStudentLiberationType);
+                                $tblStudentLiberationType, ($Data['DateFrom'] ?? null), $Data['DateTo'] ?? null , $Data['Description']);
                         }
                     }
                 }
@@ -1445,9 +1445,12 @@ class Service extends Support
      */
     public function addStudentLiberation(
         TblStudent $tblStudent,
-        TblStudentLiberationType $tblStudentLiberationType
+        TblStudentLiberationType $tblStudentLiberationType,
+        string $DateFrom,
+        string $DateTo,
+        string $Description
     ) {
-        return (new Data($this->getBinding()))->addStudentLiberation($tblStudent, $tblStudentLiberationType);
+        return (new Data($this->getBinding()))->addStudentLiberation($tblStudent, $tblStudentLiberationType, $DateFrom, $DateTo, $Description);
     }
 
     /**

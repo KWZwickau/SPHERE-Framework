@@ -39,7 +39,10 @@ SELECT DISTINCT
     vGS.TblStudentTransport_StationEntrance,
     vGS.TblStudentTransport_StationExit,
     vGS.TblStudentTransport_Remark,
-    vGS.TblStudentLiberationSportType_Name
+    vGS.TblStudentLiberationSportType_Name,
+    vGS.TblStudentLiberationSport_DateFrom,
+    vGS.TblStudentLiberationSport_DateTo,
+    vGS.TblStudentLiberationSport_Description
 
     from {{ ConsumerAcronym }}_SettingConsumer.viewGroupStudent vGS
         JOIN {{ ConsumerAcronym }}_SettingConsumer.viewGroup vG ON vG.TblPerson_Id = vGS.TblPerson_Id

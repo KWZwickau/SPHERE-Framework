@@ -5,6 +5,7 @@ use SPHERE\Application\Api\People\Meta\Agreement\ApiAgreement;
 use SPHERE\Application\Api\People\Meta\Agreement\ApiPersonAgreementStructure;
 use SPHERE\Application\Api\People\Meta\Agreement\ApiStudentAgreementStructure;
 use SPHERE\Application\Api\People\Meta\Integration\ApiIntegration;
+use SPHERE\Application\Api\People\Meta\Liberation\ApiLiberation;
 use SPHERE\Application\Api\People\Meta\MedicalRecord\MedicalRecordReadOnly;
 use SPHERE\Application\Api\People\Meta\Student\ApiStudent;
 use SPHERE\Application\Api\People\Meta\Support\ApiSupport;
@@ -39,5 +40,6 @@ class Person implements IApplicationInterface
         ApiFamilyEdit::registerApi();
         ApiPersonSearch::registerApi();
         ApiIntegration::registerApi();
+        ApiLiberation::registerApi();
     }
 }

@@ -984,7 +984,7 @@ class Service
                                     }
 
                                     if ($tblStudentLiberationType) {
-                                        Student::useService()->addStudentLiberation($tblStudent, $tblStudentLiberationType);
+                                        Student::useService()->addStudentLiberation($tblStudent, $tblStudentLiberationType, '', '', '');
                                     }
                                 }
                             }

@@ -6,6 +6,7 @@ use DateTime;
 use MOC\V\Core\FileSystem\FileSystem;
 use SPHERE\Application\Api\Document\Storage\ApiPersonPicture;
 use SPHERE\Application\Api\People\Meta\Agreement\ApiAgreement;
+use SPHERE\Application\Api\People\Meta\Liberation\ApiLiberation;
 use SPHERE\Application\Api\People\Meta\MedicalRecord\MedicalRecordReadOnly;
 use SPHERE\Application\Api\People\Meta\Support\ApiSupportReadOnly;
 use SPHERE\Application\Contact\Mail\Mail;
@@ -107,6 +108,7 @@ class FrontendStudentList extends FrontendSelectDivisionCourse
             $hasSupport = false;
             $hasMedicalRecord = false;
             $hasAgreement = false;
+            $hasLiberation = false;
             $hasColumnCourse = false;
             $hasDivision = false;
             $hasCoreGroup = false;
@@ -177,6 +179,7 @@ class FrontendStudentList extends FrontendSelectDivisionCourse
 
                 $medicalRecord = '';
                 $agreement = '';
+                $liberation = '';
                 $support = '';
                 if ($tblStudent) {
                     if (($tblMedicalRecord = $tblStudent->getTblStudentMedicalRecord())
@@ -194,6 +197,11 @@ class FrontendStudentList extends FrontendSelectDivisionCourse
                         $agreement = (new Standard('', ApiAgreement::getEndpoint(), new Check(), array(), 'Einverständniserklärung'))
                             ->ajaxPipelineOnClick(ApiAgreement::pipelineOpenOverViewModal($tblPerson->getId()));
                     }
+                    if(Student::useService()->getStudentLiberationAllByStudent($tblStudent)) {
+                        $hasLiberation = true;
+                        $liberation = (new Standard('', ApiLiberation::getEndpoint(), new EyeOpen(), array(), 'Unterrichtsbefreiung'))
+                            ->ajaxPipelineOnClick(ApiLiberation::pipelineOpenOverViewModal($tblPerson->getId()));
+                    }
                 }
                 if (Student::useService()->getIsSupportByPerson($tblPerson)) {
                     $hasSupport = true;
@@ -208,6 +216,7 @@ class FrontendStudentList extends FrontendSelectDivisionCourse
                     'Support'       => $support,
                     'MedicalRecord' => $medicalRecord,
                     'Agreement'     => $agreement,
+                    'Liberation'    => $liberation,
                     'Gender'        => $Gender,
                     'Birthday'      => $birthday,
                     'Address'       => ($tblAddress = $tblPerson->fetchMainAddress()) ? $tblAddress->getGuiTwoRowString(false) : '',
@@ -251,6 +260,10 @@ class FrontendStudentList extends FrontendSelectDivisionCourse
                 $countDateColumn++;
                 $columns['Agreement'] = 'Einver&shy;ständnis&shy;erklärung';
             }
+            if ($hasLiberation) {
+                $countDateColumn++;
+                $columns['Liberation'] = 'Befreiung';
+            }
             $columns['Gender'] = 'Ge&shy;schlecht';
             $columns['Birthday'] = 'Geburts&shy;datum';
             $columns['Address'] = 'Adresse';
@@ -277,6 +290,7 @@ class FrontendStudentList extends FrontendSelectDivisionCourse
                 ApiSupportReadOnly::receiverOverViewModal()
                 . MedicalRecordReadOnly::receiverOverViewModal()
                 . ApiAgreement::receiverOverViewModal()
+                . ApiLiberation::receiverOverViewModal()
                 . ApiPersonPicture::receiverModal()
                 . (($inActivePanel = \SPHERE\Application\Reporting\Standard\Person\Person::useFrontend()
                     ->getInActiveStudentPanel($tblDivisionCourse, false, $BasicRoute, $Route)) ? $inActivePanel : '')
