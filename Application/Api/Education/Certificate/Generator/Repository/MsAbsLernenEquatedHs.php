@@ -183,11 +183,8 @@ class MsAbsLernenEquatedHs extends Certificate
                 den Hauptschulbildungsgang der Oberschule unterrichtet. <br>'
             ))
             ->addSlice($this->getDateLine($personId))
-            ->addSlice((new MsAbsRs(
-                $this->getTblStudentEducation() ?: null,
-                $this->getTblPrepareCertificate() ?: null
-            ))->getExaminationsBoard('10px','11px'))
-            ->addSlice($this->getInfo('170px',
+            ->addSlice($this->getExaminationsBoard('10px','11px', $personId, 'Hauptschulabschluss gleichgestellten Abschluss'))
+            ->addSlice($this->getInfo($this->CopyCertificateData ? '45px' : '170px',
                 'Notenerläuterung:',
                 '1 = sehr gut; 2 = gut; 3 = befriedigend; 4 = ausreichend; 5 = mangelhaft; 6 = ungenügend')
             );

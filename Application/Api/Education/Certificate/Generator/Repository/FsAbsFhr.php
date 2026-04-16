@@ -2,6 +2,7 @@
 namespace SPHERE\Application\Api\Education\Certificate\Generator\Repository;
 
 use SPHERE\Application\Education\Certificate\Generator\Repository\Page;
+use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblLeaveComplexExam;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
@@ -41,15 +42,30 @@ class FsAbsFhr extends FsStyle
     {
 
         $personId = $tblPerson ? $tblPerson->getId() : 0;
+        $isCopy = (bool) $this->CopyCertificateData;
+        $documentName = 'Abschlusszeugnis der Fachschule und Zeugnis der Fachhochschulreife';
 
+        // Beglaubigungsvermerk passt nicht mit auf die Unterschriftseite → auf die Rückseite drucken
+        if ($isCopy) {
+            $slice = new Slice();
+            $this->setTechnicalCertifiedCopyStatement($slice, $personId, $documentName);
+
+            $pageList[] = (new Page())
+                ->addSlice($this->getSecondPageHead($personId, 'Abschlusszeugnis', 4))
+                ->addSlice($slice);
         // leere Seite
-        $pageList[] = new Page();
+        } else {
+            $pageList[] = new Page();
+        }
 
         $Page = (new Page());
         $Page->addSlice($this->getSchoolHeadAbs($personId, true));
         $Page->addSlice($this->getStudentHeadAbs($personId, true));
         $Page->addSlice($this->getSpace('20px'));
-        $Page->addSlice($this->getIndividuallySignPart($personId, true));
+        $Page->addSlice($isCopy
+            ? $this->getFsSignPartCopy($personId, $documentName, '25px', false)
+            : $this->getIndividuallySignPart($personId, true)
+        );
 
         $pageList[] = $Page;
 

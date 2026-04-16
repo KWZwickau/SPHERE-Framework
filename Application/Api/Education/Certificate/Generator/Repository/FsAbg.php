@@ -2,6 +2,7 @@
 namespace SPHERE\Application\Api\Education\Certificate\Generator\Repository;
 
 use SPHERE\Application\Education\Certificate\Generator\Repository\Page;
+use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblLeaveComplexExam;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
@@ -23,9 +24,22 @@ class FsAbg extends FsStyle
     {
 
         $personId = $tblPerson ? $tblPerson->getId() : 0;
+        $isCopy = (bool) $this->CopyCertificateData;
+        $documentName = 'Abgangszeugnis der Fachschule';
 
         // leere Seite
-        $pageList[] = new Page();
+        // Beglaubigungsvermerk passt nicht mit auf die Unterschriftseite → auf die Rückseite drucken
+        if ($isCopy) {
+            $slice = new Slice();
+            $this->setTechnicalCertifiedCopyStatement($slice, $personId, $documentName);
+
+            $pageList[] = (new Page())
+                ->addSlice($this->getSecondPageHead($personId, 'Abgangszeugnis', 4))
+                ->addSlice($slice);
+            // leere Seite
+        } else {
+            $pageList[] = new Page();
+        }
 
         $Page = (new Page());
         $Page->addSlice($this->getSchoolHeadAbg($personId));
@@ -52,7 +66,10 @@ class FsAbg extends FsStyle
             ->addSlice($this->getChosenArea($personId))
             ->addSlice($this->getDescriptionFsContent($personId, '40px'))
             ->addSlice($this->getSpace('30px'))
-            ->addSlice($this->getIndividuallySignPart($personId, true))
+            ->addSlice($isCopy
+                ? $this->getFsSignPartCopy($personId, $documentName, '25px', false)
+                : $this->getIndividuallySignPart($personId, true)
+            )
             ->addSlice($this->getSpace('20px'))
             ->addSlice($this->getFsInfoExtended('5px', '1)', new Container('Das Fach war Gegenstand des Erwerbs der
              Fachhochschulreife.')))

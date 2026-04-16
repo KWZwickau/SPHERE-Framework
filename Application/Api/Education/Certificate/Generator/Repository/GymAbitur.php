@@ -55,8 +55,9 @@ class GymAbitur extends Certificate
     public function buildPages(TblPerson $tblPerson = null): array
     {
         $personId = $tblPerson ? $tblPerson->getId() : 0;
+        $isCopy = (bool) $this->CopyCertificateData;
 
-        $Header = $this->getHead($this->isSample());
+        $Header = $this->getHeadForDiploma($this->isSample());
 
         $this->setCourses($tblPerson);
 
@@ -152,7 +153,7 @@ class GymAbitur extends Certificate
                     ->styleMarginTop('30px')
                 )
             )
-            ->addSlice($this->getDescriptionContent($personId, '160px'))
+            ->addSlice($this->getDescriptionContent($personId, $isCopy ? '100px' : '160px'))
             ->addSlice((new Slice())
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
@@ -171,7 +172,7 @@ class GymAbitur extends Certificate
                         ->setContent('
                                 {{ Content.P' . $personId . '.Company.Address.City.Name }}, {{ Content.P' . $personId . '.Input.Date }}
                             ')
-                        ->styleMarginTop('65px')
+                        ->styleMarginTop($isCopy ? '20px' : '65px')
                         ->styleBorderBottom()
                         , '35%')
                     ->addElementColumn((new Element()))
@@ -187,8 +188,13 @@ class GymAbitur extends Certificate
                     ->addElementColumn((new Element()))
                 )
             )
-            ->addSlice($this->getExaminationsBoard('10px','11px'))
-            ->addSlice($this->getInfoForPageFour('5px'))
+            ->addSlice($isCopy
+                // Aus Platzgründen wird bei Zweitschrift der platzsparende Prüfungsausschuss von der Oberschule verwendet
+                // (weniger vertikaler Abstand zwischen den Unterschriftenfeldern)
+                ? $this->getExaminationsBoard('10px','11px', $personId, 'Abitur')
+                : $this->getCustomExaminationsBoard('10px','11px')
+            )
+            ->addSlice($this->getInfoForPageFour($isCopy ? '20px' : '5px'))
         ;
 
         $pageList[] = (new Page())
@@ -1731,7 +1737,7 @@ class GymAbitur extends Certificate
      * @return Slice
      * @throws \Exception
      */
-    private function getExaminationsBoard($marginTop, $textSize)
+    private function getCustomExaminationsBoard($marginTop, $textSize)
     {
 
         $leaderName = '&nbsp;';

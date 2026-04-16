@@ -41,6 +41,18 @@ class GymAbgSekI extends Certificate
     public function buildPages(TblPerson $tblPerson = null)
     {
         $personId = $tblPerson ? $tblPerson->getId() : 0;
+        $diploma = '';
+        $isCopy = (bool) $this->CopyCertificateData;
+        if ($isCopy
+            && $this->tblLeaveStudent
+            && ($tblLeaveInformationEqualGraduation = Prepare::useService()->getLeaveInformationBy($this->tblLeaveStudent, 'EqualGraduation'))
+        ) {
+            if ($tblLeaveInformationEqualGraduation->getValue() == self::COURSE_RS) {
+                $diploma = 'Realschulabschluss gleichgestellten mittleren Schulabschluss';
+            } elseif ($tblLeaveInformationEqualGraduation->getValue() == self::COURSE_HS) {
+                $diploma = 'Hauptschulabschluss gleichgestellten Schulabschluss';
+            }
+        }
 
         // leere Seite
         $pageList[] = new Page();
@@ -176,11 +188,14 @@ class GymAbgSekI extends Certificate
             ->addSlice($this->getSubjectLanes($personId, true, array('Lane' => 1, 'Rank' => 3))->styleHeight('300px'))
             ->addSlice($this->getProfileStandardNew($personId)->styleHeight('80px'))
             ->addSlice($this->getDescriptionHead($personId))
-            ->addSlice($this->getDescriptionContent($personId, '155px', '15px'))
+            ->addSlice($this->getDescriptionContent($personId, $isCopy ? '90px' : '155px', '15px'))
             ->addSlice($this->getDateLine($personId))
-            ->addSlice($this->getSignPart($personId))
+            ->addSlice($isCopy
+                ? $this->getSignPartCopy($personId, $diploma, '20px')
+                : $this->getSignPart($personId)
+            )
             ->addSlice($this->getParentSign())
-            ->addSlice($this->getInfo('100px',
+            ->addSlice($this->getInfo($isCopy ? '10px' : '100px',
                 'Notenerläuterung:',
                 '1 = sehr gut; 2 = gut; 3 = befriedigend; 4 = ausreichend; 5 = mangelhaft; 6 = ungenügend',
                 '¹ &nbsp;&nbsp;&nbsp; Die Bezeichnung des besuchten schulspezifischen Profils ist anzugeben. Beim Erlernen einer dritten

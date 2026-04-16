@@ -2,12 +2,14 @@
 
 namespace SPHERE\Application\Api\Education\Certificate\Generator\Repository;
 
+use SPHERE\Application\Education\Certificate\Generate\Generate;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Element;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Section;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblLeaveStudent;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
+use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 
 abstract class BGymDiplomaStyle extends BGymStyle
@@ -193,5 +195,224 @@ abstract class BGymDiplomaStyle extends BGymStyle
             ->stylePaddingTop(self::PADDING_TOP_GRADE)
             ->stylePaddingBottom(self::PADDING_BOTTOM_GRADE)
             ->styleMarginTop(self::MARGIN_TOP_GRADE_LINE);
+    }
+
+    /**
+     * @param $personId
+     * @param string $marginTop
+     *
+     * @return Slice
+     */
+    protected function getSignPartBGymDiploma($personId, string $marginTop = '450px'): Slice
+    {
+        $leaderName = '&nbsp;';
+        $leaderDescription = 'Vorsitzende/r';
+
+        if ($this->getTblPrepareCertificate()
+            && ($tblGenerateCertificate = $this->getTblPrepareCertificate()->getServiceTblGenerateCertificate())
+        ) {
+
+            if (($tblGenerateCertificateSettingLeader = Generate::useService()->getGenerateCertificateSettingBy($tblGenerateCertificate, 'Leader'))
+                && ($tblPersonLeader = Person::useService()->getPersonById($tblGenerateCertificateSettingLeader->getValue()))
+            ) {
+                $leaderName = $tblPersonLeader->getFullName();
+                if (($tblCommon = $tblPersonLeader->getCommon())
+                    && ($tblCommonBirthDates = $tblCommon->getTblCommonBirthDates())
+                    && ($tblGender = $tblCommonBirthDates->getTblCommonGender())
+                ) {
+                    if ($tblGender->getName() == 'Männlich') {
+                        $leaderDescription = 'Vorsitzender';
+                    } elseif ($tblGender->getName() == 'Weiblich') {
+                        $leaderDescription = 'Vorsitzende';
+                    }
+                }
+            }
+        }
+
+        return (new Slice())
+            ->styleMarginTop($marginTop)
+            ->addSection((new Section())
+                ->addElementColumn(
+                    $this->getElementDiploma('{% if( Content.P' . $personId . '.Company.Address.City.Name is not empty) %}
+                            {{ Content.P' . $personId . '.Company.Address.City.Name }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}')
+                    , '35%')
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                )
+                ->addElementColumn(
+                    $this->getElementDiploma('
+                        {% if( Content.P' . $personId . '.Input.Date is not empty) %}
+                            {{ Content.P' . $personId . '.Input.Date }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}
+                    ')
+                    , '35%')
+            )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('Ort')
+                    ->styleAlignCenter()
+                    ->styleTextSize('11px')
+                    , '35%')
+                ->addElementColumn((new Element())
+                    , '5%')
+                ->addElementColumn((new Element())
+                    ->setContent('Siegel')
+                    ->styleTextColor('gray')
+                    ->styleAlignCenter()
+                    ->styleTextSize('11px')
+                    , '20%')
+                ->addElementColumn((new Element())
+                    , '5%')
+                ->addElementColumn((new Element())
+                    ->setContent('Datum')
+                    ->styleAlignCenter()
+                    ->styleTextSize('11px')
+                    , '35%')
+            )
+            ->addSection((new Section())
+                ->addElementColumn(
+                    $this->getElementDiploma('&nbsp;')->styleMarginTop('30px')
+                    , '35%')
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                )
+                ->addElementColumn(
+                    $this->getElementDiploma('&nbsp;')->styleMarginTop('30px')
+                    , '35%')
+            )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent($leaderDescription . ' des Prüfungsausschusses')
+                    ->styleAlignCenter()
+                    ->styleTextSize('11px')
+                    , '35%')
+                ->addElementColumn((new Element())
+                    , '30%')
+                ->addElementColumn((new Element())
+                    ->setContent('
+                        {% if(Content.P' . $personId . '.Headmaster.Description is not empty) %}
+                            {{ Content.P' . $personId . '.Headmaster.Description }}
+                        {% else %}
+                            Schulleiter/in
+                        {% endif %}'
+                    )
+                    ->styleAlignCenter()
+                    ->styleTextSize('11px')
+                    , '35%')
+            )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent($leaderName)
+                    ->styleTextSize('11px')
+                    ->stylePaddingTop()
+                    ->styleAlignCenter()
+                    , '35%')
+                ->addElementColumn((new Element())
+                    , '30%')
+                ->addElementColumn((new Element())
+                    ->setContent(
+                        '{% if(Content.P' . $personId . '.Headmaster.Name is not empty) %}
+                            {{ Content.P' . $personId . '.Headmaster.Name }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}'
+                    )
+                    ->styleTextSize('11px')
+                    ->stylePaddingTop()
+                    ->styleAlignCenter()
+                    , '35%')
+            );
+    }
+
+    /**
+     * @param $personId
+     * @param $diplomaName
+     * @param $marginTop
+     *
+     * @return Slice
+     */
+    protected function getBGySignPartCopy($personId, $diplomaName, $marginTop = '25px'): Slice
+    {
+        $slice = (new Slice())
+            ->styleMarginTop($marginTop)
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('{% if( Content.P' . $personId . '.Company.Address.City.Name is not empty) %}
+                            {{ Content.P' . $personId . '.Company.Address.City.Name }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}')
+                    ->styleAlignCenter()
+                    ->styleBorderBottom('0.5px')
+                    , '35%')
+                ->addElementColumn((new Element())
+                    , '30%')
+                ->addElementColumn((new Element())
+                    ->setContent('{{ Content.P' . $personId . '.Input.Date }}')
+                    ->styleAlignCenter()
+                    ->styleBorderBottom('0.5px')
+                    , '35%')
+            )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('Ort')
+                    ->styleAlignCenter()
+                    ->styleTextSize('11px')
+                    , '35%')
+                ->addElementColumn((new Element())
+                    , '5%')
+                ->addElementColumn((new Element())
+                    ->setContent('Siegel')
+                    ->styleTextColor('gray')
+                    ->styleAlignCenter()
+                    ->styleTextSize('11px')
+                    , '20%')
+                ->addElementColumn((new Element())
+                    , '5%')
+                ->addElementColumn((new Element())
+                    ->setContent('Datum')
+                    ->styleAlignCenter()
+                    ->styleTextSize('11px')
+                    , '35%')
+            )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('gez. ' . ($this->CopyCertificateData['Leader'] ?? ''))
+                    ->styleAlignCenter()
+                    ->styleMarginTop('40px')
+                    ->styleBorderBottom('0.5px')
+                    , '35%')
+                ->addElementColumn((new Element())
+                    , '30%')
+                ->addElementColumn((new Element())
+                    ->setContent('gez. ' . ($this->CopyCertificateData['HeadmasterOriginalName'] ?? ''))
+                    ->styleAlignCenter()
+                    ->styleMarginTop('40px')
+                    ->styleBorderBottom('0.5px')
+                    , '35%')
+            )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('Vorsitzende/r des Prüfungsausschusses')
+                    ->styleAlignCenter()
+                    ->styleTextSize('11px')
+                    , '35%')
+                ->addElementColumn((new Element())
+                    , '30%')
+                ->addElementColumn((new Element())
+                    ->setContent('Schulleiter/in')
+                    ->styleAlignCenter()
+                    ->styleTextSize('11px')
+                    , '35%')
+            );
+
+        $this->setTechnicalCertifiedCopyStatement($slice, $personId, $diplomaName);
+
+        return $slice;
     }
 }
