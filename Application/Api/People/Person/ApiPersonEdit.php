@@ -185,7 +185,7 @@ class ApiPersonEdit extends Extension implements IApiInterface
      */
     public static function pipelineSaveCreatePersonContent()
     {
-        $Pipeline = new Pipeline(false);
+        $Pipeline = new Pipeline(true);
         $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'PersonContent'), self::getEndpoint());
         $ModalEmitter->setGetPayload(array(
             self::API_TARGET => 'saveCreatePersonContent',

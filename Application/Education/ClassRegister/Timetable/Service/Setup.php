@@ -34,6 +34,7 @@ class Setup extends AbstractSetup
         $this->setTableTimetableWeek($Schema, $tblTimeTable);
         $this->setTableTimetableReplacement($Schema);
         $this->setTableTimetableReplacementLog($Schema);
+        $this->setTableTimetableReplacementPut($Schema);
 
         /**
          * Migration & Protocol
@@ -136,7 +137,7 @@ class Setup extends AbstractSetup
         $this->createColumn($Table, 'serviceTblCourse', self::FIELD_TYPE_BIGINT);
         $this->createColumn($Table, 'serviceTblSubject', self::FIELD_TYPE_BIGINT, true);
         $this->createColumn($Table, 'serviceTblSubstituteSubject', self::FIELD_TYPE_BIGINT, true);
-        $this->createColumn($Table, 'serviceTblPerson', self::FIELD_TYPE_BIGINT);
+        $this->createColumn($Table, 'serviceTblPerson', self::FIELD_TYPE_BIGINT, true);
 
         $this->createIndex($Table, array('Date', 'Hour', 'serviceTblCourse', TblTimetableReplacement::ATTR_SERVICE_TBL_PERSON), false);
         $this->createIndex($Table, array('Date', 'Hour', 'serviceTblCourse'), false);
@@ -163,6 +164,19 @@ class Setup extends AbstractSetup
         $this->createColumn($Table, 'Course', self::FIELD_TYPE_STRING);
         $this->createColumn($Table, 'PersonAcronym', self::FIELD_TYPE_STRING);
         $this->createColumn($Table, 'Error', self::FIELD_TYPE_STRING);
+        return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
+     *
+     * @return Table
+     */
+    private function setTableTimetableReplacementPut(Schema &$Schema)
+    {
+
+        $Table = $this->createTable($Schema, 'tblClassRegisterTimetableReplacementPut');
+        $this->createColumn($Table, 'Value', self::FIELD_TYPE_TEXT);
         return $Table;
     }
 

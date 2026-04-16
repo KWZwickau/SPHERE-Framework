@@ -931,6 +931,7 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
             $tblPresetSettingList = Individual::useService()->getPresetSettingAllByPreset($tblPreset, $ViewType);
             $ViewType = TblWorkSpace::VIEW_TYPE_ALL;
             if ($tblPresetSettingList) {
+                $FieldList = array();
                 foreach ($tblPresetSettingList as $tblPresetSetting) {
                     $FiledCount = 1;
                     $PostValue = $tblPreset->getPostValue();
@@ -941,13 +942,25 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                     }
 
                     $ViewType = $tblPresetSetting->getViewType();
-                    Individual::useService()->addWorkSpaceField(
-                        $tblPresetSetting->getField(),
-                        $tblPresetSetting->getView(),
-                        $tblPresetSetting->getPosition(),
-                        $tblPresetSetting->getViewType(),
-                        $tblPreset,
-                        ($FiledCount >= 1? $FiledCount : 1));
+                    $FieldList[] = array(
+                        'Field' => $tblPresetSetting->getField(),
+                        'View' => $tblPresetSetting->getView(),
+                        'Position' => $tblPresetSetting->getPosition(),
+                        'ViewType' => $tblPresetSetting->getViewType(),
+                        'tblPreset' => $tblPreset,
+                        'FieldCount' => ($FiledCount >= 1? $FiledCount : 1)
+                    );
+                    // einzeln ist auf der Live langsam umbau zu Bulk
+//                    Individual::useService()->addWorkSpaceField(
+//                        $tblPresetSetting->getField(),
+//                        $tblPresetSetting->getView(),
+//                        $tblPresetSetting->getPosition(),
+//                        $tblPresetSetting->getViewType(),
+//                        $tblPreset,
+//                        ($FiledCount >= 1? $FiledCount : 1));
+                }
+                if(!empty($FieldList)){
+                    Individual::useService()->addWorkSpaceFieldBulk($FieldList);
                 }
             }
 

@@ -185,7 +185,11 @@ class FrontendClassRegister extends Extension implements IFrontendInterface
             foreach ($tblAbsenceList as $tblAbsence) {
                 $status = '';
                 if ($tblAbsence->getStatus() == TblAbsence::VALUE_STATUS_EXCUSED) {
-                    $status = new Success('entschuldigt');
+                    if (!$tblAbsence->getIsCertificateRelevant()) {
+                        $status = new Muted('entschuldigt');
+                    } else {
+                        $status = new Success('entschuldigt');
+                    }
                 } elseif ($tblAbsence->getStatus() == TblAbsence::VALUE_STATUS_UNEXCUSED) {
                     $status = new \SPHERE\Common\Frontend\Text\Repository\Warning('unentschuldigt');
                 } elseif ($tblAbsence->getStatus() == TblAbsence::VALUE_STATUS_UNCLEAR) {

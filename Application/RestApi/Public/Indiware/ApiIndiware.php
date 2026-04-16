@@ -99,6 +99,8 @@ class ApiIndiware implements IApiInterface
         Timetable::useService()->destroyTimetableReplacementLogBulk();
         // JSON content laden
         $json = file_get_contents('php://input');
+        // save JSON as it comes
+        Timetable::useService()->createTimetableReplacementPut($json);
         // import -> return value ignored
         Replacement::useService()->importJsonReplacement($json);
         // Logout Service-Account

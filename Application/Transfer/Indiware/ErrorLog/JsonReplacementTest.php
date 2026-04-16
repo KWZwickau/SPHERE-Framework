@@ -14,6 +14,8 @@ class JsonReplacementTest
             return $this->EVSRJson;
         } elseif($Mandant == 'EVSRManual') {
             return $this->EVSRJsonManual;
+        } elseif($Mandant == 'KG') {
+            return $this->KGJson;
         }
         return '';
     }
@@ -978,5 +980,1085 @@ class JsonReplacementTest
       ]
     }
   ]
+}';
+
+    private $KGJson = '{
+  "Gesamtexport": {
+    "Informationen": {
+      "Version": "1.1"
+    },
+    "Vertretungsplan": {
+      "Vertretungsplan": [
+        {
+          "Kopf": {
+            "Datei": "Vertretungsplan Schüler2026-03-20.json",
+            "Titel": "Freitag, 20. März 2026 ",
+            "Schulname": "Evangelisches Kreuzgymnasium Dresden",
+            "Datum": "20.03.2026",
+            "Erstellt": "20.03.2026, 10:17",
+            "Kopfinfo": {
+              "AbwesendeLehrer": [
+                {
+                  "Kurz": "GAN",
+                  "Grund": "UntLe",
+                  "Stunden": "3-6"
+                },
+                {
+                  "Kurz": "GRA",
+                  "Grund": "Kr"
+                },
+                {
+                  "Kurz": "GRO",
+                  "Grund": "Kr"
+                },
+                {
+                  "Kurz": "LÜT",
+                  "Grund": "So"
+                },
+                {
+                  "Kurz": "MOE",
+                  "Grund": "Kr"
+                },
+                {
+                  "Kurz": "NIK",
+                  "Grund": "UntLe",
+                  "Stunden": "2-5"
+                },
+                {
+                  "Kurz": "REU",
+                  "Grund": "UntLe",
+                  "Stunden": "2-5"
+                },
+                {
+                  "Kurz": "RÖS",
+                  "Grund": "UntLe",
+                  "Stunden": "3-5"
+                },
+                {
+                  "Kurz": "SMD",
+                  "Grund": "Kr"
+                },
+                {
+                  "Kurz": "VLK",
+                  "Grund": "Kr"
+                },
+                {
+                  "Kurz": "WER",
+                  "Grund": "Kr"
+                },
+                {
+                  "Kurz": "WIN",
+                  "Grund": "So"
+                }
+              ],
+              "AbwesendeKlassen": [
+                {
+                  "Kurz": "06/2",
+                  "Stunden": "2-5"
+                },
+                {
+                  "Kurz": "09/1",
+                  "Stunden": "3-5"
+                },
+                {
+                  "Kurz": "09/2",
+                  "Stunden": "3-5"
+                }
+              ]
+            }
+          },
+          "Aktionen": [
+            {
+              "Ak_Id": 24085,
+              "Ak_UntNr": 558,
+              "Ak_Art": "Änd.",
+              "Ak_DatumVon": "20.03.2026",
+              "Ak_StundeVon": 1,
+              "Ak_StundenAnz": 2,
+              "Ak_Fach": "SPO",
+              "Ak_VFach": "SPO",
+              "Klassen": [
+                "05/2"
+              ],
+              "VKlassen": [
+                "05/2"
+              ],
+              "Lehrer": [
+                "GRA"
+              ],
+              "VLehrer": [
+                "HÄG"
+              ],
+              "Raeume": [
+                "TH 2"
+              ],
+              "VRaeume": [
+                "TH 2"
+              ]
+            },
+            {
+              "Ak_Id": 24035,
+              "Ak_UntNr": 545,
+              "Ak_Art": "Ausf.",
+              "Ak_DatumVon": "20.03.2026",
+              "Ak_StundeVon": 5,
+              "Ak_StundenAnz": 2,
+              "Ak_Fach": "BIO",
+              "Klassen": [
+                "05/2"
+              ],
+              "Lehrer": [
+                "RÖS"
+              ],
+              "Raeume": [
+                "210"
+              ]
+            },
+            {
+              "Ak_Id": 24095,
+              "Ak_UntNr": 581,
+              "Ak_Art": "Ausf.",
+              "Ak_DatumVon": "20.03.2026",
+              "Ak_StundeVon": 3,
+              "Ak_StundenAnz": 2,
+              "Ak_Fach": "MU",
+              "Klassen": [
+                "05/4"
+              ],
+              "Lehrer": [
+                "RÖS"
+              ],
+              "Raeume": [
+                "235"
+              ],
+              "InfoK": "zugunsten von Englisch",
+              "InfoL": "zugunsten von Englisch"
+            },
+            {
+              "Ak_Id": 24093,
+              "Ak_UntNr": 574,
+              "Ak_Art": "Verl.",
+              "Ak_DatumVon": "20.03.2026",
+              "Ak_DatumNach": "20.03.2026",
+              "Ak_StundeVon": 7,
+              "Ak_StundeNach": 3,
+              "Ak_StundenAnz": 2,
+              "Ak_Fach": "EN",
+              "Ak_VFach": "EN",
+              "Klassen": [
+                "05/4"
+              ],
+              "Lehrer": [
+                "PRO"
+              ],
+              "VLehrer": [
+                "PRO"
+              ],
+              "Raeume": [
+                "130"
+              ],
+              "VRaeume": [
+                "130"
+              ]
+            },
+            {
+              "Ak_Id": 24093,
+              "Ak_UntNr": 574,
+              "Ak_Art": "Verl.",
+              "Ak_DatumVon": "20.03.2026",
+              "Ak_DatumNach": "20.03.2026",
+              "Ak_StundeVon": 7,
+              "Ak_StundeNach": 3,
+              "Ak_StundenAnz": 2,
+              "Ak_Fach": "EN",
+              "Ak_VFach": "EN",
+              "Klassen": [
+                "05/4"
+              ],
+              "Lehrer": [
+                "PRO"
+              ],
+              "VLehrer": [
+                "PRO"
+              ],
+              "Raeume": [
+                "130"
+              ],
+              "VRaeume": [
+                "130"
+              ]
+            },
+            {
+              "Ak_Id": 24261,
+              "Ak_UntNr": 4,
+              "Ak_Art": "Ausf.",
+              "Ak_DatumVon": "20.03.2026",
+              "Ak_StundeVon": 1,
+              "Ak_StundenAnz": 2,
+              "Ak_Fach": "DE",
+              "Klassen": [
+                "06/1"
+              ],
+              "Lehrer": [
+                "WIN"
+              ],
+              "Raeume": [
+                "140"
+              ]
+            },
+            {
+              "Ak_Id": 24200,
+              "Ak_UntNr": 28,
+              "Ak_Art": "Ausf.",
+              "Ak_DatumVon": "20.03.2026",
+              "Ak_StundeVon": 2,
+              "Ak_Fach": "MU",
+              "Klassen": [
+                "06/2"
+              ],
+              "Lehrer": [
+                "VET"
+              ],
+              "Raeume": [
+                "335"
+              ]
+            },
+            {
+              "Ak_Id": 24201,
+              "Ak_UntNr": 24,
+              "Ak_Art": "Ausf.",
+              "Ak_DatumVon": "20.03.2026",
+              "Ak_StundeVon": 3,
+              "Ak_Fach": "KLA",
+              "Klassen": [
+                "06/2"
+              ],
+              "Lehrer": [
+                "REU",
+                "WGN"
+              ],
+              "Raeume": [
+                "133"
+              ]
+            },
+            {
+              "Ak_Id": 24202,
+              "Ak_UntNr": 18,
+              "Ak_Art": "Ausf.",
+              "Ak_DatumVon": "20.03.2026",
+              "Ak_StundeVon": 4,
+              "Ak_StundenAnz": 2,
+              "Ak_Fach": "DE",
+              "Klassen": [
+                "06/2"
+              ],
+              "Lehrer": [
+                "REU"
+              ],
+              "Raeume": [
+                "133"
+              ]
+            },
+            {
+              "Ak_Id": 24135,
+              "Ak_UntNr": 36,
+              "Ak_Art": "Verl.",
+              "Ak_DatumVon": "20.03.2026",
+              "Ak_DatumNach": "16.03.2026",
+              "Ak_StundeVon": 7,
+              "Ak_StundeNach": 5,
+              "Ak_Fach": "GE",
+              "Ak_VFach": "GE",
+              "Klassen": [
+                "06/3"
+              ],
+              "Lehrer": [
+                "SMI"
+              ],
+              "VLehrer": [
+                "SMI"
+              ],
+              "Raeume": [
+                "137"
+              ],
+              "VRaeume": [
+                "137"
+              ]
+            },
+            {
+              "Ak_Id": 24287,
+              "Ak_UntNr": 70,
+              "Ak_Art": "Änd.",
+              "Ak_DatumVon": "20.03.2026",
+              "Ak_StundeVon": 3,
+              "Ak_StundenAnz": 2,
+              "Ak_Fach": "LA",
+              "Ak_VFach": "LA",
+              "Klassen": [
+                "07/1"
+              ],
+              "VKlassen": [
+                "07/1"
+              ],
+              "Lehrer": [
+                "NIK"
+              ],
+              "VLehrer": [
+                "SÜT"
+              ],
+              "Raeume": [
+                "340"
+              ],
+              "VRaeume": [
+                "340"
+              ]
+            },
+            {
+              "Ak_Id": 24666,
+              "Ak_UntNr": 1094,
+              "Ak_Art": "Ausf.",
+              "Ak_DatumVon": "20.03.2026",
+              "Ak_StundeVon": 1,
+              "Ak_StundenAnz": 2,
+              "Ak_Fach": "KU",
+              "Klassen": [
+                "07/2"
+              ],
+              "Lehrer": [
+                "VLK"
+              ],
+              "Raeume": [
+                "416"
+              ]
+            },
+            {
+              "Ak_Id": 24108,
+              "Ak_UntNr": 87,
+              "Ak_Art": "Änd.",
+              "Ak_DatumVon": "20.03.2026",
+              "Ak_StundeVon": 5,
+              "Ak_StundenAnz": 2,
+              "Ak_Fach": "MA",
+              "Ak_VFach": "MA",
+              "Klassen": [
+                "07/2"
+              ],
+              "VKlassen": [
+                "07/2"
+              ],
+              "Lehrer": [
+                "MOE"
+              ],
+              "VLehrer": [
+                "KAI"
+              ],
+              "Raeume": [
+                "339"
+              ],
+              "VRaeume": [
+                "339"
+              ]
+            },
+            {
+              "Ak_Id": 24800,
+              "Ak_UntNr": 99,
+              "Ak_Art": "Ausf.",
+              "Ak_DatumVon": "20.03.2026",
+              "Ak_StundeVon": 1,
+              "Ak_StundenAnz": 2,
+              "Ak_Fach": "GE",
+              "Klassen": [
+                "07/3"
+              ],
+              "Lehrer": [
+                "WER"
+              ],
+              "Raeume": [
+                "338"
+              ]
+            },
+            {
+              "Ak_Id": 24087,
+              "Ak_UntNr": 1216,
+              "Ak_Art": "Änd.",
+              "Ak_DatumVon": "20.03.2026",
+              "Ak_StundeVon": 3,
+              "Ak_StundenAnz": 2,
+              "Ak_Fach": "SPM",
+              "Ak_VFach": "SPM",
+              "Klassen": [
+                "08/3"
+              ],
+              "VKlassen": [
+                "08/3"
+              ],
+              "Lehrer": [
+                "GRA"
+              ],
+              "VLehrer": [
+                "GRA"
+              ],
+              "Raeume": [
+                "TH 2"
+              ],
+              "VRaeume": [
+                "TH 2"
+              ],
+              "InfoK": "Gemeinsam mit Mädchen Klasse 8.4 bei Frau Scheuermann",
+              "InfoL": "Gemeinsam mit Mädchen Klasse 8.4 bei Frau Scheuermann"
+            },
+            {
+              "Ak_Id": 24672,
+              "Ak_UntNr": 1099,
+              "Ak_Art": "Ausf.",
+              "Ak_DatumVon": "20.03.2026",
+              "Ak_StundeVon": 5,
+              "Ak_StundenAnz": 2,
+              "Ak_Fach": "KU",
+              "Klassen": [
+                "08/3"
+              ],
+              "Lehrer": [
+                "VLK"
+              ],
+              "Raeume": [
+                "316"
+              ],
+              "InfoK": "zugunsten von Deutsch",
+              "InfoL": "zugunsten von Deutsch"
+            },
+            {
+              "Ak_Id": 24670,
+              "Ak_UntNr": 175,
+              "Ak_Art": "Verl.",
+              "Ak_DatumVon": "20.03.2026",
+              "Ak_DatumNach": "20.03.2026",
+              "Ak_StundeVon": 8,
+              "Ak_StundeNach": 5,
+              "Ak_StundenAnz": 2,
+              "Ak_Fach": "DE",
+              "Ak_VFach": "DE",
+              "Klassen": [
+                "08/3"
+              ],
+              "Lehrer": [
+                "BIE"
+              ],
+              "VLehrer": [
+                "BIE"
+              ],
+              "Raeume": [
+                "331"
+              ],
+              "VRaeume": [
+                "331"
+              ]
+            },
+            {
+              "Ak_Id": 24091,
+              "Ak_UntNr": 1209,
+              "Ak_Art": "Änd.",
+              "Ak_DatumVon": "20.03.2026",
+              "Ak_StundeVon": 3,
+              "Ak_StundenAnz": 2,
+              "Ak_Fach": "SPM",
+              "Ak_VFach": "SPM",
+              "Klassen": [
+                "08/4"
+              ],
+              "VKlassen": [
+                "08/4"
+              ],
+              "Lehrer": [
+                "SEU"
+              ],
+              "VLehrer": [
+                "SEU"
+              ],
+              "Raeume": [
+                "TH 3"
+              ],
+              "VRaeume": [
+                "TH 3"
+              ],
+              "InfoK": "Gemeinsam mit Mädchen Klasse 8.3",
+              "InfoL": "Gemeinsam mit Mädchen Klasse 8.3"
+            },
+            {
+              "Ak_Id": 24027,
+              "Ak_UntNr": 1230,
+              "Ak_Art": "Ausf.",
+              "Ak_DatumVon": "20.03.2026",
+              "Ak_StundeVon": 3,
+              "Ak_StundenAnz": 2,
+              "Ak_Fach": "GE",
+              "Klassen": [
+                "09/1"
+              ],
+              "Lehrer": [
+                "GRO"
+              ],
+              "Raeume": [
+                "238"
+              ]
+            },
+            {
+              "Ak_Id": 24037,
+              "Ak_UntNr": 0,
+              "Ak_Art": "Neu",
+              "Ak_DatumVon": "20.03.2026",
+              "Ak_DatumNach": "20.03.2026",
+              "Ak_StundeVon": 6,
+              "Ak_StundeNach": 6,
+              "Ak_Fach": "MU",
+              "Ak_VFach": "MU",
+              "Klassen": [
+                "09/1",
+                "09/2"
+              ],
+              "VKlassen": [
+                "09/1",
+                "09/2"
+              ],
+              "Lehrer": [],
+              "VLehrer": [
+                "RÖS"
+              ],
+              "Raeume": [
+                "235"
+              ],
+              "VRaeume": [
+                "235"
+              ],
+              "InfoK": "Auswertung Konzertbesuch",
+              "InfoL": "Auswertung Konzertbesuch"
+            },
+            {
+              "Ak_Id": 24032,
+              "Ak_UntNr": 219,
+              "Ak_Art": "Ausf.",
+              "Ak_DatumVon": "20.03.2026",
+              "Ak_StundeVon": 6,
+              "Ak_Fach": "MA",
+              "Klassen": [
+                "09/1"
+              ],
+              "Lehrer": [
+                "HEI"
+              ],
+              "Raeume": [
+                "238"
+              ]
+            },
+            {
+              "Ak_Id": 24033,
+              "Ak_UntNr": 219,
+              "Ak_Art": "Ausf.",
+              "Ak_DatumVon": "20.03.2026",
+              "Ak_StundeVon": 7,
+              "Ak_Fach": "MA",
+              "Klassen": [
+                "09/1"
+              ],
+              "Lehrer": [
+                "HEI"
+              ],
+              "Raeume": [
+                "238"
+              ]
+            },
+            {
+              "Ak_Id": 24029,
+              "Ak_UntNr": 232,
+              "Ak_Art": "Ausf.",
+              "Ak_DatumVon": "20.03.2026",
+              "Ak_StundeVon": 3,
+              "Ak_StundenAnz": 2,
+              "Ak_Fach": "DE",
+              "Klassen": [
+                "09/2"
+              ],
+              "Lehrer": [
+                "TSC"
+              ],
+              "Raeume": [
+                "237"
+              ]
+            },
+            {
+              "Ak_Id": 24031,
+              "Ak_UntNr": 235,
+              "Ak_Art": "Ausf.",
+              "Ak_DatumVon": "20.03.2026",
+              "Ak_StundeVon": 5,
+              "Ak_Fach": "GE",
+              "Klassen": [
+                "09/2"
+              ],
+              "Lehrer": [
+                "GRO"
+              ],
+              "Raeume": [
+                "237"
+              ]
+            },
+            {
+              "Ak_Id": 24037,
+              "Ak_UntNr": 0,
+              "Ak_Art": "Neu",
+              "Ak_DatumVon": "20.03.2026",
+              "Ak_DatumNach": "20.03.2026",
+              "Ak_StundeVon": 6,
+              "Ak_StundeNach": 6,
+              "Ak_Fach": "MU",
+              "Ak_VFach": "MU",
+              "Klassen": [
+                "09/2",
+                "09/1"
+              ],
+              "VKlassen": [
+                "09/2",
+                "09/1"
+              ],
+              "Lehrer": [],
+              "VLehrer": [
+                "RÖS"
+              ],
+              "Raeume": [
+                "235"
+              ],
+              "VRaeume": [
+                "235"
+              ],
+              "InfoK": "Auswertung Konzertbesuch",
+              "InfoL": "Auswertung Konzertbesuch"
+            },
+            {
+              "Ak_Id": 24034,
+              "Ak_UntNr": 235,
+              "Ak_Art": "Ausf.",
+              "Ak_DatumVon": "20.03.2026",
+              "Ak_StundeVon": 6,
+              "Ak_Fach": "GE",
+              "Klassen": [
+                "09/2"
+              ],
+              "Lehrer": [
+                "GRO"
+              ],
+              "Raeume": [
+                "237"
+              ]
+            },
+            {
+              "Ak_Id": 24116,
+              "Ak_UntNr": 274,
+              "Ak_Art": "Änd.",
+              "Ak_DatumVon": "20.03.2026",
+              "Ak_StundeVon": 3,
+              "Ak_StundenAnz": 2,
+              "Ak_Fach": "MA",
+              "Ak_VFach": "REe",
+              "Klassen": [
+                "09/4"
+              ],
+              "VKlassen": [
+                "09/4"
+              ],
+              "Lehrer": [
+                "MOE"
+              ],
+              "VLehrer": [
+                "TSC"
+              ],
+              "Raeume": [
+                "232"
+              ],
+              "VRaeume": [
+                "232"
+              ]
+            },
+            {
+              "Ak_Id": 24668,
+              "Ak_UntNr": 273,
+              "Ak_Art": "Ausf.",
+              "Ak_DatumVon": "20.03.2026",
+              "Ak_StundeVon": 7,
+              "Ak_StundenAnz": 2,
+              "Ak_Fach": "KU",
+              "Klassen": [
+                "09/4"
+              ],
+              "Lehrer": [
+                "VLK"
+              ],
+              "Raeume": [
+                "316"
+              ]
+            },
+            {
+              "Ak_Id": 24855,
+              "Ak_UntNr": 637,
+              "Ak_Art": "Ausf.",
+              "Ak_DatumVon": "20.03.2026",
+              "Ak_StundeVon": 1,
+              "Ak_StundenAnz": 2,
+              "Ak_Fach": "REk",
+              "Klassen": [
+                "10/1",
+                "10/3"
+              ],
+              "Lehrer": [
+                "HAU"
+              ],
+              "Raeume": [
+                "135"
+              ]
+            },
+            {
+              "Ak_Id": 24263,
+              "Ak_UntNr": 290,
+              "Ak_Art": "Änd.",
+              "Ak_DatumVon": "20.03.2026",
+              "Ak_StundeVon": 4,
+              "Ak_Fach": "KU",
+              "Ak_VFach": "MU",
+              "Klassen": [
+                "10/1"
+              ],
+              "VKlassen": [
+                "10/1"
+              ],
+              "Lehrer": [
+                "WIN"
+              ],
+              "VLehrer": [
+                "VET"
+              ],
+              "Raeume": [
+                "316"
+              ],
+              "VRaeume": [
+                "335"
+              ]
+            },
+            {
+              "Ak_Id": 24166,
+              "Ak_UntNr": 851,
+              "Ak_Art": "Änd.",
+              "Ak_DatumVon": "20.03.2026",
+              "Ak_StundeVon": 1,
+              "Ak_StundenAnz": 2,
+              "Ak_Fach": "REe",
+              "Ak_VFach": "REe",
+              "Klassen": [
+                "10/3"
+              ],
+              "VKlassen": [
+                "10/3"
+              ],
+              "Lehrer": [
+                "LOR"
+              ],
+              "VLehrer": [
+                "LOR"
+              ],
+              "Raeume": [
+                "431"
+              ],
+              "VRaeume": [
+                "235"
+              ]
+            },
+            {
+              "Ak_Id": 24038,
+              "Ak_UntNr": 337,
+              "Ak_Art": "Verl.",
+              "Ak_DatumVon": "20.03.2026",
+              "Ak_DatumNach": "20.03.2026",
+              "Ak_StundeVon": 6,
+              "Ak_StundeNach": 5,
+              "Ak_Fach": "MU",
+              "Ak_VFach": "MU",
+              "Klassen": [
+                "10/3"
+              ],
+              "Lehrer": [
+                "VET"
+              ],
+              "VLehrer": [
+                "VET"
+              ],
+              "Raeume": [
+                "335"
+              ],
+              "VRaeume": [
+                "235"
+              ]
+            },
+            {
+              "Ak_Id": 24038,
+              "Ak_UntNr": 337,
+              "Ak_Art": "Verl.",
+              "Ak_DatumVon": "20.03.2026",
+              "Ak_DatumNach": "20.03.2026",
+              "Ak_StundeVon": 6,
+              "Ak_StundeNach": 5,
+              "Ak_Fach": "MU",
+              "Ak_VFach": "MU",
+              "Klassen": [
+                "10/3"
+              ],
+              "Lehrer": [
+                "VET"
+              ],
+              "VLehrer": [
+                "VET"
+              ],
+              "Raeume": [
+                "335"
+              ],
+              "VRaeume": [
+                "235"
+              ]
+            },
+            {
+              "Ak_Id": 24260,
+              "Ak_UntNr": 0,
+              "Ak_Art": "Neu",
+              "Ak_DatumVon": "20.03.2026",
+              "Ak_DatumNach": "20.03.2026",
+              "Ak_StundeVon": 1,
+              "Ak_StundeNach": 1,
+              "Ak_StundenAnz": 2,
+              "Ak_Fach": "MA",
+              "Ak_VFach": "MA",
+              "Klassen": [
+                "10/4"
+              ],
+              "VKlassen": [
+                "10/4"
+              ],
+              "Lehrer": [],
+              "VLehrer": [
+                "NOA"
+              ],
+              "Raeume": [
+                "431"
+              ],
+              "VRaeume": [
+                "430"
+              ],
+              "InfoK": "BLF-Nachtermin",
+              "InfoL": "BLF-Nachtermin"
+            },
+            {
+              "Ak_Id": 24289,
+              "Ak_UntNr": 352,
+              "Ak_Art": "Ausf.",
+              "Ak_DatumVon": "20.03.2026",
+              "Ak_StundeVon": 1,
+              "Ak_StundenAnz": 2,
+              "Ak_Fach": "MA",
+              "Klassen": [
+                "10/4"
+              ],
+              "Lehrer": [
+                "NOA"
+              ],
+              "Raeume": [
+                "430"
+              ],
+              "InfoK": "Aufgaben zur selbstständigen Bearbeitung werden erteilt",
+              "InfoL": "Aufgaben zur selbstständigen Bearbeitung werden erteilt"
+            },
+            {
+              "Ak_Id": 24316,
+              "Ak_UntNr": 343,
+              "Ak_Art": "Änd.",
+              "Ak_DatumVon": "20.03.2026",
+              "Ak_StundeVon": 3,
+              "Ak_StundenAnz": 2,
+              "Ak_Fach": "CH",
+              "Ak_VFach": "CH",
+              "Klassen": [
+                "10/4"
+              ],
+              "VKlassen": [
+                "10/4"
+              ],
+              "Lehrer": [
+                "GAN"
+              ],
+              "VLehrer": [
+                "KOB"
+              ],
+              "Raeume": [
+                "214"
+              ],
+              "VRaeume": [
+                "237"
+              ],
+              "InfoK": "Der Chemie-Test findet statt.",
+              "InfoL": "Der Chemie-Test findet statt."
+            },
+            {
+              "Ak_Id": 24798,
+              "Ak_UntNr": 1135,
+              "Ak_Art": "Ausf.",
+              "Ak_DatumVon": "20.03.2026",
+              "Ak_StundeVon": 3,
+              "Ak_StundenAnz": 2,
+              "Ak_Fach": "DE",
+              "Ak_Kurs": "de3",
+              "Ak_VKurs": "de3",
+              "Klassen": [
+                "11"
+              ],
+              "Lehrer": [
+                "WER"
+              ],
+              "Raeume": [
+                "438"
+              ]
+            },
+            {
+              "Ak_Id": 24100,
+              "Ak_UntNr": 968,
+              "Ak_Art": "Ausf.",
+              "Ak_DatumVon": "20.03.2026",
+              "Ak_StundeVon": 1,
+              "Ak_StundenAnz": 2,
+              "Ak_Fach": "MA",
+              "Ak_Kurs": "MA3",
+              "Ak_VKurs": "MA3",
+              "Klassen": [
+                "12"
+              ],
+              "Lehrer": [
+                "MOE"
+              ],
+              "Raeume": [
+                "213"
+              ],
+              "InfoK": "Kursaufteilung auf LK12Ma1 und Lk12Ma2 wie im Vorabitur",
+              "InfoL": "Kursaufteilung auf LK12Ma1 und Lk12Ma2 wie im Vorabitur"
+            },
+            {
+              "Ak_Id": 24039,
+              "Ak_UntNr": 1007,
+              "Ak_Art": "Änd.",
+              "Ak_DatumVon": "20.03.2026",
+              "Ak_StundeVon": 5,
+              "Ak_StundenAnz": 2,
+              "Ak_Fach": "REe",
+              "Ak_VFach": "REe",
+              "Ak_Kurs": "ree3",
+              "Ak_VKurs": "ree3",
+              "Klassen": [
+                "12"
+              ],
+              "VKlassen": [
+                "12"
+              ],
+              "Lehrer": [
+                "WGN"
+              ],
+              "VLehrer": [
+                "WGN"
+              ],
+              "Raeume": [
+                "135"
+              ],
+              "VRaeume": [
+                "335"
+              ],
+              "InfoK": "Expertengespräch, gemeinsam mit Gk12ree2",
+              "InfoL": "Expertengespräch, gemeinsam mit Gk12ree2"
+            },
+            {
+              "Ak_Id": 24314,
+              "Ak_UntNr": 1045,
+              "Ak_Art": "Ausf.",
+              "Ak_DatumVon": "20.03.2026",
+              "Ak_StundeVon": 5,
+              "Ak_Fach": "PH",
+              "Klassen": [
+                "DaZ Pri"
+              ],
+              "Lehrer": [
+                "GAN"
+              ],
+              "Raeume": [
+                "214"
+              ]
+            },
+            {
+              "Ak_Id": 24315,
+              "Ak_UntNr": 1219,
+              "Ak_Art": "Verl.",
+              "Ak_DatumVon": "20.03.2026",
+              "Ak_DatumNach": "20.03.2026",
+              "Ak_StundeVon": 6,
+              "Ak_StundeNach": 5,
+              "Ak_Fach": "DAZ",
+              "Ak_VFach": "DAZ",
+              "Ak_Kurs": "daz alle",
+              "Ak_VKurs": "daz alle",
+              "Klassen": [
+                "DaZ Pri"
+              ],
+              "Lehrer": [
+                "PRI"
+              ],
+              "VLehrer": [
+                "PRI"
+              ],
+              "Raeume": [
+                "239"
+              ],
+              "VRaeume": [
+                "239"
+              ]
+            },
+            {
+              "Ak_Id": 24315,
+              "Ak_UntNr": 1219,
+              "Ak_Art": "Verl.",
+              "Ak_DatumVon": "20.03.2026",
+              "Ak_DatumNach": "20.03.2026",
+              "Ak_StundeVon": 6,
+              "Ak_StundeNach": 5,
+              "Ak_Fach": "DAZ",
+              "Ak_VFach": "DAZ",
+              "Ak_Kurs": "daz alle",
+              "Ak_VKurs": "daz alle",
+              "Klassen": [
+                "DaZ Pri"
+              ],
+              "Lehrer": [
+                "PRI"
+              ],
+              "VLehrer": [
+                "PRI"
+              ],
+              "Raeume": [
+                "239"
+              ],
+              "VRaeume": [
+                "239"
+              ]
+            }
+          ],
+          "Informationen": [
+            "Klassen 9.1 und 9.2 Konzertbesuch 3.-6.Stunde // Gk12DS Probentag Aula // Gk12ree2+3 Expertengespräch 5./6.Stunde in Raum 335 // Klasse 6.2 Unterrichtsgang TJG 2.-5.Stunde"
+          ],
+          "InformationenL": [
+            "Klassen 9.1 und 9.2 Konzertbesuch 3.-6.Stunde // Gk12DS Probentag Aula // Gk12ree2+3 Expertengespräch 5./6.Stunde in Raum 335 // Klasse 6.2 Unterrichtsgang TJG 2.-5.Stunde"
+          ]
+        }
+      ]
+    }
+  }
 }';
 }

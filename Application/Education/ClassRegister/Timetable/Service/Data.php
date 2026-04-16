@@ -6,6 +6,7 @@ use SPHERE\Application\Education\ClassRegister\Timetable\Service\Entity\TblTimet
 use SPHERE\Application\Education\ClassRegister\Timetable\Service\Entity\TblTimetable;
 use SPHERE\Application\Education\ClassRegister\Timetable\Service\Entity\TblTimetableReplacement;
 use SPHERE\Application\Education\ClassRegister\Timetable\Service\Entity\TblTimetableReplacementLog;
+use SPHERE\Application\Education\ClassRegister\Timetable\Service\Entity\TblTimetableReplacementPut;
 use SPHERE\Application\Education\ClassRegister\Timetable\Service\Entity\TblTimetableWeek;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
@@ -318,7 +319,7 @@ class Data extends AbstractData
             /** @var Element $tblCourse */
             $Search[TblTimetableReplacement::ATTR_SERVICE_TBL_COURSE] = $tblCourse->getId();
         }
-        if($Hour){
+        if($Hour !== null){
             $Search[TblTimetableReplacement::ATTR_HOUR] = $Hour;
         }
         if($tblPerson){
@@ -371,12 +372,52 @@ class Data extends AbstractData
     /**
      * @return TblTimetableReplacementLog[]|null
      */
-    public function getTimetableReplacementLogAll()
+    public function getTimetableReplacementLogAll($isForced = false)
     {
 
         /* @var TblTimetableReplacementLog[] $EntityList */
-        $EntityList = $this->getCachedEntityList(__Method__, $this->getConnection()->getEntityManager(), 'TblTimetableReplacementLog');
+        if($isForced){
+            $EntityList = $this->getForceEntityList(__Method__, $this->getConnection()->getEntityManager(), 'TblTimetableReplacementLog');
+        } else {
+            $EntityList = $this->getCachedEntityList(__Method__, $this->getConnection()->getEntityManager(), 'TblTimetableReplacementLog');
+        }
         return (false === $EntityList ? null : $EntityList);
+    }
+
+    /**
+     * @return TblTimetableReplacementPut[]|null
+     */
+    public function getTimetableReplacementPutAll($isForced = false)
+    {
+
+        /* @var TblTimetableReplacementPut[] $EntityList */
+        if($isForced){
+            $EntityList = $this->getForceEntityList(__Method__, $this->getConnection()->getEntityManager(), 'TblTimetableReplacementPut');
+        } else {
+            $EntityList = $this->getCachedEntityList(__Method__, $this->getConnection()->getEntityManager(), 'TblTimetableReplacementPut');
+        }
+        return (false === $EntityList ? null : $EntityList);
+    }
+
+    /**
+     * @return TblTimetableReplacementPut|null
+     */
+    public function getTimetableReplacementPutLast()
+    {
+
+        /* @var TblTimetableReplacementPut $EntityList */
+        $Manager = $this->getEntityManager();
+        $queryBuilder = $Manager->getQueryBuilder();
+
+        $query = $queryBuilder->select('t')
+            ->from(__NAMESPACE__ . '\Entity\TblTimetableReplacementPut', 't')
+            ->orderBy('t.EntityCreate', 'DESC')
+            ->setMaxResults(1)
+            ->getQuery();
+
+        $resultList = $query->getResult();
+
+        return empty($resultList) ? false : current($resultList);
     }
 
     /**
@@ -688,6 +729,21 @@ class Data extends AbstractData
     }
 
     /**
+     * @param string $json
+     * @return void
+     */
+    public function createTimetableReplacementPut(string $json): void
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $Entity = new TblTimetableReplacementPut();
+        $Entity->setValue($json);
+        $Manager->saveEntity($Entity);
+//        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+//        return true;
+    }
+
+    /**
      * @param array $ErrorList
      * @return bool
      */
@@ -925,5 +981,18 @@ class Data extends AbstractData
             return true;
         }
         return false;
+    }
+
+    /**
+     * @param TblTimetableReplacementPut $tblTimetableReplacementPut
+     * @return bool
+     */
+    public function removeTimetableReplacementPut(TblTimetableReplacementPut $tblTimetableReplacementPut)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $Manager->killEntity($tblTimetableReplacementPut);
+//        Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
+//        return true;
     }
 }

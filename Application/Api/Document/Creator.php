@@ -24,6 +24,7 @@ use SPHERE\Application\Api\Document\Standard\Repository\Gradebook\Gradebook;
 use SPHERE\Application\Api\Document\Standard\Repository\GradebookOverview;
 use SPHERE\Application\Api\Document\Standard\Repository\MultiPassword\MultiPassword;
 use SPHERE\Application\Api\Document\Standard\Repository\PasswordChange\PasswordChange;
+use SPHERE\Application\Api\Document\Standard\Repository\SignInCertificate\SignInCertificate;
 use SPHERE\Application\Api\Document\Standard\Repository\SignOutCertificate\SignOutCertificate;
 use SPHERE\Application\Api\Document\Standard\Repository\StaffAccidentReport\StaffAccidentReportBE;
 use SPHERE\Application\Api\Document\Standard\Repository\StaffAccidentReport\StaffAccidentReportTH;
@@ -731,6 +732,9 @@ class Creator extends Extension
             if ($DocumentName == 'SignOutCertificate') {
                 $Document = new SignOutCertificate($Data);
             }
+            if ($DocumentName == 'SignInCertificate') {
+                $Document = new SignInCertificate($Data);
+            }
             if ($DocumentName == 'AccidentReport') {
                 if (GatekeeperConsumer::useService()->getConsumerBySessionIsConsumerType(TblConsumer::TYPE_BERLIN)) {
                     $Document = new AccidentReportBE($Data);
@@ -1242,7 +1246,7 @@ class Creator extends Extension
         } elseif($Select == 'UserRole') {
             $file = "Common/Style/Resource/Document/Manual/SSWUserRole.pdf";
             header("Content-Type: application/pdf");
-            header("Content-Disposition: attachment; filename=Benutzerrechte_Schulsoftware_08.10.2025.pdf");
+            header("Content-Disposition: attachment; filename=Benutzerrechte_Schulsoftware_31.03.2026.pdf");
             header("Content-Length: ".filesize($file));
         } elseif($Select == 'DigitalClassBook') {
             $file = "Common/Style/Resource/Document/Manual/SSWDigitalClassBook.pdf";

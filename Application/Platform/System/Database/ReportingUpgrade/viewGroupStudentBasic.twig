@@ -3,7 +3,7 @@ SELECT
 -- PersonId to match with all View's // tblStudent
     tS.serviceTblPerson AS TblPerson_Id,
     tS.Id AS TblStudent_Id,
-    CONCAT(tS.Prefix, tS.Identifier)AS TblStudent_Identifier,
+    CONCAT(IFNULL(tS.Prefix, ''), tS.Identifier)AS TblStudent_Identifier,
     DATE_FORMAT( tS.SchoolAttendanceStartDate, '%d.%m.%Y' ) AS TblStudent_SchoolAttendanceStartDate,
     IF (tS.HasMigrationBackground,
         'Ja',

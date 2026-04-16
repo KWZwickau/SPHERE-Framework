@@ -11,6 +11,8 @@ use SPHERE\Application\Education\Graduation\Grade\Grade;
 use SPHERE\Application\Education\Graduation\Grade\Service\Entity\TblTask;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Transfer\Education\Education;
 use SPHERE\Application\Transfer\Education\Service\Entity\TblImportMapping;
 use SPHERE\Application\Transfer\Indiware\Export\AppointmentGrade\Service\Data;
@@ -156,8 +158,9 @@ class Service extends AbstractService
         if ($tblPersonList) {
             /** @var TblPerson $tblPerson */
             foreach ($tblPersonList as $tblPerson) {
-                $PeopleGradeList[$tblPerson->getId()]['FirstName'] = Extension::decodeUTF8($tblPerson->getFirstSecondName());
-                $PeopleGradeList[$tblPerson->getId()]['LastName'] = Extension::decodeUTF8($tblPerson->getLastName());
+                $PeopleGradeList[$tblPerson->getId()]['FirstName'] = $tblPerson->getFirstSecondName();
+                // Decoding ist in createGradeListCsv
+                $PeopleGradeList[$tblPerson->getId()]['LastName'] = $tblPerson->getLastName();
                 $PeopleGradeList[$tblPerson->getId()]['Birthday'] = $tblPerson->getBirthday();
 
                 if (($tblTaskGradeList = Grade::useService()->getTaskGradeListByTaskAndPerson($tblTask, $tblPerson))
@@ -226,8 +229,14 @@ class Service extends AbstractService
             $Row = 1;
             foreach ($PeopleGradeList as $Data) {
                 $export->setValue($export->getCell("0", $Row), $Data['Birthday']);
-                $export->setValue($export->getCell("1", $Row), $Data['LastName']);
-                $export->setValue($export->getCell("2", $Row), $Data['FirstName']);
+                // SSWHD-4008 Test bei Chemnitz, Problem Umlaute → Schüler werden dann in Indiware neu angelegt
+                if (Consumer::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'ESZC')) {
+                    $export->setValue($export->getCell("1", $Row), Extension::decodeUTF8($Data['LastName'], 'Windows-1252'));
+                    $export->setValue($export->getCell("2", $Row), Extension::decodeUTF8($Data['FirstName'], 'Windows-1252'));
+                } else {
+                    $export->setValue($export->getCell("1", $Row), Extension::decodeUTF8($Data['LastName']));
+                    $export->setValue($export->getCell("2", $Row), Extension::decodeUTF8($Data['FirstName']));
+                }
                 for ($j = 1; $j <= 17; $j++) {
                     if (isset($Data[$j])) {
                         $export->setValue($export->getCell(($j + 2), $Row), $Data[$j]);

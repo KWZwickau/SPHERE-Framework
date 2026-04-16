@@ -530,12 +530,14 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
             case 'Bildung: Klassenbuch (Schulleitung)':return $this->setToolTip('Digitales Klassenbuch, Inklusion und inkl. Verwaltung und Auswertung von
                 Belehrungen aller Klassen');
             case 'Bildung: Notenbuch (Inklusionsbeauftragte)':return $this->setToolTip('Notenbuch aller Schüler');
-            case 'Bildung: pädagogisches Tagebuch (Inklusionsbeauftragte)':return $this->setToolTip('pädagogisches Tagebuch (alle Klassen einsehen
-                [wie Schulleitung], ohne erstellen/bearbeiten/löschen)');
-            case 'Bildung: pädagogisches Tagebuch (Klassenlehrer)':return $this->setToolTip('pädagogisches Tagebuch (Klassenlehrer mit eigener Klasse)');
-            case 'Bildung: pädagogisches Tagebuch (Lehrer mit Lehrauftrag)':return $this->setToolTip('pädagogisches Tagebuch (Fachlehrer können auf 
-                päd. Tagebücher zugreifen, wo diese einen Lehrauftrag besitzen. Die Fachlehrer können nur eigene Einträge bearbeiten)');
-            case 'Bildung: pädagogisches Tagebuch (Schulleitung)':return $this->setToolTip('pädagogisches Tagebuch (alle Klassen)');
+            case 'Bildung: pädagogisches Tagebuch (Inklusionsbeauftragte)':return $this->setToolTip('Zugriff auf päd. Tagebücher aller SJ und allen Klassen,
+             nur lesend.');
+            case 'Bildung: pädagogisches Tagebuch (Klassenlehrer)':return $this->setToolTip('Zugriff auf päd. Tagebücher im aktuellen SJ, wo diese Klassenlehrer
+             sind. Können neue Einträge erstellen und nur eigene Einträge bearbeiten (3 Monate) und löschen.');
+            case 'Bildung: pädagogisches Tagebuch (Lehrer mit Lehrauftrag)':return $this->setToolTip('Zugriff auf päd. Tagebücher im aktuellen SJ, wo diese
+             einen Lehrauftrag besitzen. Können neue Einträge erstellen und nur eigene Einträge bearbeiten (3 Monate) und löschen.');
+            case 'Bildung: pädagogisches Tagebuch (Schulleitung)':return $this->setToolTip('Zugriff auf päd. Tagebücher aller SJ und allen Klassen. Können neue
+             Einträge erstellen und alle Einträge bearbeiten (3 Monate) und löschen.');
             case 'Bildung: Unterrichtsverwaltung':return $this->setToolTip('Fächer-, Schuljahr- und Klassenverwaltung, Sortierung aller Klassen');
             case 'Schüler und Eltern Zugang':return $this->setToolTip('Zensurenübersicht, Online Krankmeldung und Online Kontakten Änderungswünsche für
                 Eltern/Schüler (wird bei Generierung der Schüler/Eltern - Zugänge automatisch gesetzt), auch notwendig für Mitarbeiter, welche gleichzeitig

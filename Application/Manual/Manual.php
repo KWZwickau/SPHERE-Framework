@@ -7,6 +7,7 @@ use SPHERE\Application\Manual\Help\Help;
 use SPHERE\Application\Manual\Kreda\Kreda;
 use SPHERE\Application\Manual\StyleBook\StyleBook;
 use SPHERE\Application\Manual\Support\Support;
+use SPHERE\Application\Manual\Training\Training;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Setting\MyAccount\MyAccount;
 use SPHERE\Common\Frontend\Icon\Repository\Question;
@@ -37,6 +38,7 @@ class Manual implements IClusterInterface
         StyleBook::registerApplication();
         Help::registerApplication();
         Support::registerApplication();
+        Training::registerApplication();
 
         Main::getDisplay()->addServiceNavigation(
             new Link(new Link\Route(__NAMESPACE__), new Link\Name('Hilfe & Support'), new Link\Icon(new Question()))
