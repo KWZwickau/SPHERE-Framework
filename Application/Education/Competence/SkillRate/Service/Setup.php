@@ -46,6 +46,7 @@ class Setup extends AbstractSetup
         $table = $this->createTable($schema, 'tblCompetenceStudentSkill');
         $this->createColumn($table, 'serviceTblPerson', self::FIELD_TYPE_BIGINT);
         $this->createColumn($table, 'serviceTblYear', self::FIELD_TYPE_BIGINT);
+        $this->createColumn($table, 'serviceTblSubject', self::FIELD_TYPE_BIGINT, true);
         $this->createColumn($table, 'serviceTblPersonTeacher', self::FIELD_TYPE_BIGINT, true);
         $this->createColumn($table, 'serviceTblSkill', self::FIELD_TYPE_BIGINT, true);
         $this->createColumn($table, 'SkillArea', self::FIELD_TYPE_STRING, true);
@@ -74,7 +75,7 @@ class Setup extends AbstractSetup
         $this->createColumn($table, 'Date', self::FIELD_TYPE_DATETIME);
         $this->createColumn($table, 'Comment', self::FIELD_TYPE_STRING, true);
         $this->createColumn($table, 'Rate', self::FIELD_TYPE_STRING, true);
-        $this->createColumn($table, 'serviceTblScoreTypeItemId', self::FIELD_TYPE_BIGINT, true);
+        $this->createColumn($table, 'serviceTblScoreTypeItem', self::FIELD_TYPE_BIGINT, true);
 
         // Todo Indexe
     }

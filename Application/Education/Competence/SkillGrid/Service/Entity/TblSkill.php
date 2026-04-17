@@ -79,4 +79,16 @@ class TblSkill extends Element
     {
         $this->SortOrder = $SortOrder;
     }
+
+    /**
+     * @return false|TblSkillGrid
+     */
+    public function getTblSkillGrid(): false|TblSkillGrid
+    {
+        if (($tblSkillArea = $this->getTblSkillArea())) {
+            return $tblSkillArea->getTblSkillGrid();
+        }
+
+        return false;
+    }
 }

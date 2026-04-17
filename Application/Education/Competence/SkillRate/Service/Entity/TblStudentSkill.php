@@ -23,6 +23,10 @@ use SPHERE\System\Database\Fitting\Element;
  */
 class TblStudentSkill extends Element
 {
+    const SERVICE_TBL_PERSON = 'serviceTblPerson';
+    const SERVICE_TBL_YEAR = 'serviceTblYear';
+    const SERVICE_TBL_SKILL = 'serviceTblSkill';
+
     /**
      * @Column(type="bigint")
      */
@@ -131,13 +135,13 @@ class TblStudentSkill extends Element
     }
 
     /**
-     * @param int|null $serviceTblSkill
+     * @param TblSkill|null $tblSkill
      *
      * @return void
      */
-    public function setServiceTblSkill(?int $serviceTblSkill): void
+    public function setServiceTblSkill(?TblSkill $tblSkill): void
     {
-        $this->serviceTblSkill = $serviceTblSkill;
+        $this->serviceTblSkill = $tblSkill?->getId();
     }
 
     /**

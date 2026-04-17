@@ -19,6 +19,7 @@ use SPHERE\Application\Api\Education\ClassRegister\ApiSortDivision;
 use SPHERE\Application\Api\Education\ClassRegister\ApiTimetable;
 use SPHERE\Application\Api\Education\ClassRegister\ClassRegister;
 use SPHERE\Application\Api\Education\Competence\ApiSkillGrid;
+use SPHERE\Application\Api\Education\Competence\ApiSkillRate;
 use SPHERE\Application\Api\Education\DivisionCourse\ApiDivisionCourse;
 use SPHERE\Application\Api\Education\DivisionCourse\ApiDivisionCourseMember;
 use SPHERE\Application\Api\Education\DivisionCourse\ApiDivisionCourseStudent;
@@ -98,5 +99,6 @@ class Education implements IApplicationInterface
         ApiMail::registerApi();
         ApiSkillGrid::registerApi();
         \SPHERE\Application\Api\Education\Competence\ApiScoreType::registerApi();
+        ApiSkillRate::registerApi();
     }
 }

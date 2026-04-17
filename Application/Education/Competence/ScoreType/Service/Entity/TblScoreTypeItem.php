@@ -29,7 +29,7 @@ class TblScoreTypeItem extends Element
     /**
      * @Column(type="string")
      */
-    protected string $Name;
+    protected string $Name = '';
     /**
      * @Column(type="string")
      */

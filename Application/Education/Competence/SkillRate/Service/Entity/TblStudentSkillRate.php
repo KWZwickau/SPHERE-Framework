@@ -44,7 +44,7 @@ class TblStudentSkillRate extends Element
     /**
      * @Column(type="bigint")
      */
-    protected int $tblStudentSkill;
+    protected int $tblCompetenceStudentSkill;
     /**
      * @Column(type="datetime")
      */
@@ -60,7 +60,7 @@ class TblStudentSkillRate extends Element
     /**
      * @Column(type="bigint")
      */
-    protected ?int $serviceTblScoreTypeItemId = null;
+    protected ?int $serviceTblScoreTypeItem = null;
 
     /**
      * @return false|TblPerson
@@ -132,7 +132,7 @@ class TblStudentSkillRate extends Element
      */
     public function getTblStudentSkill(): false|TblStudentSkill
     {
-        return SkillRate::useService()->getStudentSkillById($this->tblStudentSkill);
+        return SkillRate::useService()->getStudentSkillById($this->tblCompetenceStudentSkill);
     }
 
     /**
@@ -142,7 +142,7 @@ class TblStudentSkillRate extends Element
      */
     public function setTblStudentSkill(TblStudentSkill $tblStudentSkill): void
     {
-        $this->tblStudentSkill = $tblStudentSkill->getId();
+        $this->tblCompetenceStudentSkill = $tblStudentSkill->getId();
     }
 
     /**
@@ -208,9 +208,9 @@ class TblStudentSkillRate extends Element
     /**
      * @return false|TblScoreTypeItem|null
      */
-    public function getServiceTblScoreTypeItemId(): false|TblScoreTypeItem|null
+    public function getServiceTblScoreTypeItem(): false|TblScoreTypeItem|null
     {
-        return $this->serviceTblScoreTypeItemId ? ScoreType::useService()->getScoreTypeItemById($this->serviceTblScoreTypeItemId) : null;
+        return $this->serviceTblScoreTypeItem ? ScoreType::useService()->getScoreTypeItemById($this->serviceTblScoreTypeItem) : null;
     }
 
     /**
@@ -218,8 +218,8 @@ class TblStudentSkillRate extends Element
      *
      * @return void
      */
-    public function setServiceTblScoreTypeItemId(?TblScoreTypeItem $tblScoreTypeItem): void
+    public function setServiceTblScoreTypeItem(?TblScoreTypeItem $tblScoreTypeItem): void
     {
-        $this->serviceTblScoreTypeItemId = $tblScoreTypeItem?->getId();
+        $this->serviceTblScoreTypeItem = $tblScoreTypeItem?->getId();
     }
 }
