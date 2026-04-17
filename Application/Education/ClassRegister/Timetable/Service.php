@@ -42,6 +42,7 @@ use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Center;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
+use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Service
@@ -780,6 +781,16 @@ class Service extends AbstractService
                     $item = new TblTimetableNode();
                     $item->setServiceTblCourse($tblTimetableReplacement->getServiceTblCourse() ?: null);
                     $item->setServiceTblSubject($tblTimetableReplacement->getServiceTblSubstituteSubject() ?: null);
+                    $item->setRoom($tblTimetableReplacement->getRoom());
+                    $item->setHour($tblTimetableReplacement->getHour());
+
+                    $resultList[] = $item;
+                    // Änderung aus Indiware kommt ohne vertretungsfach, muss aber auch mit angezeigt werden
+                } elseif(!$tblTimetableReplacement->getIsCanceled() && $tblTimetableReplacement->getServiceTblSubject()) {
+
+                    $item = new TblTimetableNode();
+                    $item->setServiceTblCourse($tblTimetableReplacement->getServiceTblCourse() ?: null);
+                    $item->setServiceTblSubject($tblTimetableReplacement->getServiceTblSubject());
                     $item->setRoom($tblTimetableReplacement->getRoom());
                     $item->setHour($tblTimetableReplacement->getHour());
 
