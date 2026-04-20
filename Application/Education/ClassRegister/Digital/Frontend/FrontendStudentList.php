@@ -36,6 +36,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Commodity;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Education;
 use SPHERE\Common\Frontend\Icon\Repository\Envelope;
+use SPHERE\Common\Frontend\Icon\Repository\Extern;
 use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
 use SPHERE\Common\Frontend\Icon\Repository\History;
 use SPHERE\Common\Frontend\Icon\Repository\Hospital;
@@ -199,7 +200,7 @@ class FrontendStudentList extends FrontendSelectDivisionCourse
                     }
                     if(Student::useService()->getStudentLiberationAllByStudent($tblStudent)) {
                         $hasLiberation = true;
-                        $liberation = (new Standard('', ApiLiberation::getEndpoint(), new EyeOpen(), array(), 'Unterrichtsbefreiung'))
+                        $liberation = (new Standard('', ApiLiberation::getEndpoint(), new Extern(), array(), 'Unterrichtsbefreiung'))
                             ->ajaxPipelineOnClick(ApiLiberation::pipelineOpenOverViewModal($tblPerson->getId()));
                     }
                 }
@@ -216,12 +217,12 @@ class FrontendStudentList extends FrontendSelectDivisionCourse
                     'Support'       => $support,
                     'MedicalRecord' => $medicalRecord,
                     'Agreement'     => $agreement,
-                    'Liberation'    => $liberation,
                     'Gender'        => $Gender,
                     'Birthday'      => $birthday,
                     'Address'       => ($tblAddress = $tblPerson->fetchMainAddress()) ? $tblAddress->getGuiTwoRowString(false) : '',
                     'SchoolType'    => $schoolType,
                     'Level'         => $level,
+                    'Liberation'    => $liberation,
                     'Course'        => $courseName,
                     'DivisionName'  => $divisionName,
 //                    'DivisionTeacher' => $divisionTeacher,
@@ -260,15 +261,15 @@ class FrontendStudentList extends FrontendSelectDivisionCourse
                 $countDateColumn++;
                 $columns['Agreement'] = 'Einver&shy;ständnis&shy;erklärung';
             }
-            if ($hasLiberation) {
-                $countDateColumn++;
-                $columns['Liberation'] = 'Befreiung';
-            }
             $columns['Gender'] = 'Ge&shy;schlecht';
             $columns['Birthday'] = 'Geburts&shy;datum';
             $columns['Address'] = 'Adresse';
             $columns['SchoolType'] = 'Schul&shy;art';
             $columns['Level'] = 'Klassen&shy;stufe';
+            if ($hasLiberation) {
+                $countDateColumn++;
+                $columns['Liberation'] = 'Befreiung';
+            }
             if ($hasColumnCourse) {
                 $columns['Course'] = 'Bildungs&shy;gang';
             }
