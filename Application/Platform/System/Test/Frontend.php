@@ -33,6 +33,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Check;
+use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
 use SPHERE\Common\Frontend\Icon\Repository\Lock;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
@@ -43,10 +44,12 @@ use SPHERE\Common\Frontend\Icon\Repository\Unchecked;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Badge;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
+use SPHERE\Common\Frontend\Layout\Repository\CustomPanel;
 use SPHERE\Common\Frontend\Layout\Repository\Label;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Paragraph;
 use SPHERE\Common\Frontend\Layout\Repository\ProgressBar;
+use SPHERE\Common\Frontend\Layout\Repository\PullClear;
 use SPHERE\Common\Frontend\Layout\Repository\PullLeft;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Thumbnail;
@@ -62,6 +65,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutTab;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutTabs;
 use SPHERE\Common\Frontend\Link\Repository\Danger as DangerLink;
 use SPHERE\Common\Frontend\Link\Repository\External;
+use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Link\Repository\Primary as PrimaryLink;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Link\Repository\Success as SuccessLink;
@@ -119,6 +123,7 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->addButton(new SuccessLink('', '#', new EyeOpen()));
         $Stage->addButton(new WarningLink('', '#', new EyeOpen()));
         $Stage->addButton(new DangerLink('', '#', new EyeOpen()));
+        $Stage->addButton(new Link(new Edit() . ' Bearbeiten', '#'));
 
         $D1 = new TblDivisionCourse();$D1->setName('A');$D1->setId(1);
         $D2 = new TblDivisionCourse();$D2->setName('B');$D2->setId(2);
@@ -247,23 +252,38 @@ class Frontend extends Extension implements IFrontendInterface
                 )),
                 new LayoutRow(array(
                     new LayoutColumn(
-                        new Well('Well'.new PullRight(new Badge('Badge Default', Badge::BADGE_TYPE_DEFAULT)))
-                    , 2),
-                    new LayoutColumn(
-                        new Info('Info'.new PullRight(new Badge('Badge Info', Badge::BADGE_TYPE_INFO)))
+                        (new CustomPanel('CustomPanel', array(
+                            'Inhalt nach dem Aufklappen',
+                            'Farben sind gleich der normalen Panel Vorlage möglich'
+                        ), CustomPanel::PANEL_TYPE_DEFAULT, 'Footer'))->setAccordeon()
                     , 2),
                     new LayoutColumn(
                         new WellReadOnly('WellReadOnly'.new PullRight(new Badge('Badge Normal', Badge::BADGE_TYPE_NORMAL)))
+                            .'<div style="height: 5px"></div>'
+                            .(new Well('Well'.new PullRight(new Badge('Badge Default', Badge::BADGE_TYPE_DEFAULT))
+                            .'<br/>- individuell Padding 5px'
+                            .'<br/>- individuellMargin Bottom 4px'))->setMarginBottom('4px')->setPadding('5px')
+
                     , 2),
                     new LayoutColumn(
-                        new SuccessMessage('Success'.new PullRight(new Badge('Badge Success', Badge::BADGE_TYPE_SUCCESS)))
+                        new Well('Well '.new PullRight('(Standard)'))
                     , 2),
                     new LayoutColumn(
-                        new Warning('Warning'.new PullRight(new Badge('Badge Warning', Badge::BADGE_TYPE_WARNING)))
-                    , 2),
-                    new LayoutColumn(
-                        new DangerMessage('Danger'.new PullRight(new Badge('Badge Danger', Badge::BADGE_TYPE_DANGER)))
-                    , 2),
+                        new Layout(new LayoutGroup(new LayoutRow(array(
+                            new LayoutColumn(
+                                new Info('Info'.new PullRight(new Badge('Badge Info', Badge::BADGE_TYPE_INFO)))
+                                , 3),
+                            new LayoutColumn(
+                                new SuccessMessage('Success'.new PullRight(new Badge('Badge Success', Badge::BADGE_TYPE_SUCCESS)))
+                                , 3),
+                            new LayoutColumn(
+                                new Warning('Warning'.new PullRight(new Badge('Badge Warning', Badge::BADGE_TYPE_WARNING)))
+                                , 3),
+                            new LayoutColumn(
+                                new DangerMessage('Danger'.new PullRight(new Badge('Badge Danger', Badge::BADGE_TYPE_DANGER)))
+                                , 3),
+                        ))))
+                    , 6)
                 )),
                 new LayoutRow(array(
                     new LayoutColumn(
