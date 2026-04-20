@@ -252,22 +252,26 @@ class Frontend extends Extension implements IFrontendInterface
                 )),
                 new LayoutRow(array(
                     new LayoutColumn(
-                        (new CustomPanel('CustomPanel', array(
-                            'Inhalt nach dem Aufklappen',
-                            'Farben sind gleich der normalen Panel Vorlage möglich'
-                        ), CustomPanel::PANEL_TYPE_DEFAULT, 'Footer'))->setAccordeon()
-                    , 2),
-                    new LayoutColumn(
-                        new WellReadOnly('WellReadOnly'.new PullRight(new Badge('Badge Normal', Badge::BADGE_TYPE_NORMAL)))
-                            .'<div style="height: 5px"></div>'
-                            .(new Well('Well'.new PullRight(new Badge('Badge Default', Badge::BADGE_TYPE_DEFAULT))
-                            .'<br/>- individuell Padding 5px'
-                            .'<br/>- individuellMargin Bottom 4px'))->setMarginBottom('4px')->setPadding('5px')
-
-                    , 2),
-                    new LayoutColumn(
-                        new Well('Well '.new PullRight('(Standard)'))
-                    , 2),
+                        new Layout(new LayoutGroup(new LayoutRow(array(
+                            new LayoutColumn(
+                                (new CustomPanel('CustomPanel', array(
+                                    'Inhalt nach dem Aufklappen',
+                                    'Farben sind gleich der normalen Panel Vorlage möglich'
+                                ), CustomPanel::PANEL_TYPE_DEFAULT, 'Footer'))->setAccordeon()
+                            , 4),
+                            new LayoutColumn(
+                                new WellReadOnly('WellReadOnly'.new PullRight(new Badge('Badge Normal', Badge::BADGE_TYPE_NORMAL)))
+                                .'<div style="height: 5px"></div>'
+                                // höhe von badge kollidierte mit Text darunter -> style height händisch gesetzt.
+                                .(new Well('Well'.new PullRight('<div style="height: 5px">'.new Badge('Badge Default', Badge::BADGE_TYPE_DEFAULT).'</div>')
+                                    .new Container('- individuell Padding 5px')
+                                    .new Container('- individuellMargin Bottom 4px')))->setMarginBottom('4px')->setPadding('5px')
+                            , 4),
+                            new LayoutColumn(
+                                new Well('Well '.new PullRight('(Standard)'))
+                            , 4),
+                        ))))
+                    , 5),
                     new LayoutColumn(
                         new Layout(new LayoutGroup(new LayoutRow(array(
                             new LayoutColumn(
@@ -283,7 +287,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 new DangerMessage('Danger'.new PullRight(new Badge('Badge Danger', Badge::BADGE_TYPE_DANGER)))
                                 , 3),
                         ))))
-                    , 6)
+                    , 7)
                 )),
                 new LayoutRow(array(
                     new LayoutColumn(
