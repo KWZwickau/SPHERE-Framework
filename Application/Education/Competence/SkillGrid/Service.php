@@ -200,8 +200,8 @@ class Service extends AbstractService
             $areaRanking = $split[0];
             $skillRanking = $split[1];
             // Niveau ohne Kompetenz
-            if (empty($skillArray['SkillGrid']) && !empty($skillArray['Level'])) {
-                $name = "Data[Skills][$areaRanking-$skillRanking][SkillGrid]";
+            if (empty($skillArray['Skill']) && !empty($skillArray['Level'])) {
+                $name = "Data[Skills][$areaRanking-$skillRanking][Skill]";
                 $ErrorList[$name] = [
                     'Name' => $name,
                     'Message' => 'Bitte geben Sie eine Kompetenz an'
@@ -209,8 +209,8 @@ class Service extends AbstractService
                 $hasErrors = true;
             }
             // Kompetenzbereich ohne Kompetenz
-            if ($skillRanking == 1 && !empty($Data['SkillAreas'][$areaRanking]['Area']) && empty($skillArray['SkillGrid'])) {
-                $name = "Data[Skills][$areaRanking-$skillRanking][SkillGrid]";
+            if ($skillRanking == 1 && !empty($Data['SkillAreas'][$areaRanking]['Area']) && empty($skillArray['Skill'])) {
+                $name = "Data[Skills][$areaRanking-$skillRanking][Skill]";
                 $ErrorList[$name] = [
                     'Name' => $name,
                     'Message' => 'Bitte geben Sie eine Kompetenz an'
@@ -246,12 +246,12 @@ class Service extends AbstractService
             $split = explode('-', $key);
             $areaRanking = $split[0];
             $skillRanking = $split[1];
-            if (!empty($skillArray['SkillGrid'])) {
+            if (!empty($skillArray['Skill'])) {
                 if (!isset($tblSkillAreaList[$areaRanking])) {
                     $tblSkillAreaList[$areaRanking] = (new Data($this->getBinding()))->createSkillArea(
                         $tblSkillGridNew, empty($Data['SkillAreas'][$areaRanking]['Area']) ? null : $Data['SkillAreas'][$areaRanking]['Area'], $areaRanking);
                 }
-                (new Data($this->getBinding()))->createSkill($tblSkillAreaList[$areaRanking], $skillArray['Level'] ?: null, $skillArray['SkillGrid'], $skillRanking);
+                (new Data($this->getBinding()))->createSkill($tblSkillAreaList[$areaRanking], $skillArray['Level'] ?: null, $skillArray['Skill'], $skillRanking);
             }
         }
 

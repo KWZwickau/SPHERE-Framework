@@ -23,9 +23,9 @@ use SPHERE\System\Database\Fitting\Element;
  */
 class TblStudentSkill extends Element
 {
-    const SERVICE_TBL_PERSON = 'serviceTblPerson';
-    const SERVICE_TBL_YEAR = 'serviceTblYear';
-    const SERVICE_TBL_SKILL = 'serviceTblSkill';
+    const string SERVICE_TBL_PERSON = 'serviceTblPerson';
+    const string SERVICE_TBL_YEAR = 'serviceTblYear';
+    const string SERVICE_TBL_SKILL = 'serviceTblSkill';
 
     /**
      * @Column(type="bigint")

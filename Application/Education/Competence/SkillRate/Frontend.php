@@ -25,6 +25,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
@@ -33,6 +34,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
+use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
@@ -121,13 +123,14 @@ class Frontend extends Extension implements IFrontendInterface
             && ($level = $tblStudentEducation->getLevel()) !== null
         ) {
             $scoreTypeListBySkillGrid = [];
+            $tblStudentSkillList = SkillRate::useService()->getStudentSkillListByPersonAndYear($tblPerson, $tblYear);
             $tblSkillList = SkillGrid::useService()->getSkillListBy($tblSchoolType, $level, $tblSubject);
             foreach ($tblSkillList as $tblSkill) {
                 if (($tblSkillArea = $tblSkill->getTblSkillArea())) {
-                    // todo fett falls schon bewertet
                     if (!isset($dataList[$tblSkillArea->getId()])) {
                         $dataList[$tblSkillArea->getId()] = [
                             'name' => $tblSkillArea->getName() ?: 'Ohne Kompetenzbereich',
+                            'isBold' => false,
                             'skills' => []
                         ];
                     }
@@ -161,11 +164,23 @@ class Frontend extends Extension implements IFrontendInterface
                         $input->setError($ErrorList[$identifier]['Message']);
                     }
 
-                    // Todo anzeige Durchschnitt oder letzte Bewertung
+                    $isBold = false;
+                    $displayLast = '';
+                    if (isset($tblStudentSkillList[$tblSkill->getId()])
+                        && ($displayLast = SkillRate::useService()->getDisplayStudentSkillRateLastOrAverage($tblPerson, $tblStudentSkillList[$tblSkill->getId()]))
+                    ) {
+                        $dataList[$tblSkillArea->getId()]['isBold'] = true;
+                        $isBold = true;
+                    }
+
+                    $displaySkill = ($tblSkill->getLevel() ? new Muted($tblSkill->getLevel() . ' ') : '')
+                        . ($isBold ? new Bold($tblSkill->getSkill()) : $tblSkill->getSkill())
+                        . ($displayLast ? new PullRight($displayLast) : '');
+
                     $dataList[$tblSkillArea->getId()]['skills'][] = new Layout(new LayoutGroup(new LayoutRow(array(
-                        new LayoutColumn(($tblSkill->getLevel() ? new Muted($tblSkill->getLevel() . ' ') : '')
-                            . $tblSkill->getSkill(), 9),
-                        new LayoutColumn($input, 3)
+                        new LayoutColumn((new Container($displaySkill))->setStyle(['padding-top: 5px;']), 10),
+//                        new LayoutColumn(((new Container($displayLast)))->setStyle(['padding-top: 5px;']), 1),
+                        new LayoutColumn($input, 2)
                     ))));
                 }
             }
@@ -179,8 +194,11 @@ class Frontend extends Extension implements IFrontendInterface
                 'Öffentlicher Kommentar zur Kompetenzfeststellung')), 9)
         ));
         foreach ($dataList as $item) {
-            // bei alten Schuljahren grau statt blau
-            $rows[] = new FormRow(new FormColumn(new Panel($item['name'], $item['skills'], Panel::PANEL_TYPE_INFO)));
+            $rows[] = new FormRow(new FormColumn(new Panel(
+                $item['isBold'] ? new Bold($item['name']) : $item['name'],
+                $item['skills'],
+                Panel::PANEL_TYPE_INFO
+            )));
         }
 
         $rows[] = new FormRow(array(

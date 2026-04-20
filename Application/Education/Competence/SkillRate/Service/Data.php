@@ -52,6 +52,20 @@ class Data extends AbstractData
     /**
      * @param TblPerson $tblPerson
      * @param TblYear $tblYear
+     *
+     * @return TblStudentSkill[]
+     */
+    public function getStudentSkillListByPersonAndYear(TblPerson $tblPerson, TblYear $tblYear): array
+    {
+        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblStudentSkill', [
+            TblStudentSkill::SERVICE_TBL_PERSON => $tblPerson->getId(),
+            TblStudentSkill::SERVICE_TBL_YEAR => $tblYear->getId()
+        ] ?: []);
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
      * @param TblSubject|null $tblSubject
      * @param TblPerson|null $tblPersonTeacher
      * @param TblSkill|null $tblSkill
@@ -80,6 +94,19 @@ class Data extends AbstractData
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $entity);
 
         return $entity;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblStudentSkill $tblStudentSkill
+     *
+     * @return TblStudentSkillRate[]
+     */
+    public function getStudentSkillRateListBy(TblPerson $tblPerson, TblStudentSkill $tblStudentSkill): array
+    {
+        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblStudentSkillRate',
+            [TblStudentSkillRate::SERVICE_TBL_PERSON => $tblPerson->getId(), TblStudentSkillRate::TBL_STUDENT_SKILL => $tblStudentSkill->getId()],
+            [TblStudentSkillRate::ATTR_DATE => self::ORDER_ASC]) ?: [];
     }
 
     /**

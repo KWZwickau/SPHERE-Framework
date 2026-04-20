@@ -328,8 +328,8 @@ class Frontend extends Extension implements IFrontendInterface
                     $tblSkillAreaList[$tblSkillArea->getId()] = $tblSkillArea;
                 }
 
-                $Global->POST['Data']['Skills'][$areaRanking . '-' . $skillRanking]['SkillGrid'] = $tblSkill->getSkill();
-                $Data['Skills'][$areaRanking . '-' . $skillRanking]['SkillGrid'] = $tblSkill->getSkill();
+                $Global->POST['Data']['Skills'][$areaRanking . '-' . $skillRanking]['Skill'] = $tblSkill->getSkill();
+                $Data['Skills'][$areaRanking . '-' . $skillRanking]['Skill'] = $tblSkill->getSkill();
                 $Global->POST['Data']['Skills'][$areaRanking . '-' . $skillRanking]['Level'] = $tblSkill->getLevel() ?: '';
                 $Data['Skills'][$areaRanking . '-' . $skillRanking]['Level'] = $tblSkill->getLevel() ?: '';
             }
@@ -534,10 +534,10 @@ class Frontend extends Extension implements IFrontendInterface
         // POST kann maximal auf der 3. Ebene sein, es gehen keine tieferen Arrays
         $levelInput = new TextField("Data[Skills][$AreaRanking-$SkillRanking][Level]",
             $AreaRanking == 1 && $SkillRanking == 1 ? 'Grundwissen' : '', 'Niveau');
-        $skillInput = new TextField("Data[Skills][$AreaRanking-$SkillRanking][SkillGrid]",
+        $skillInput = new TextField("Data[Skills][$AreaRanking-$SkillRanking][Skill]",
             $AreaRanking == 1 && $SkillRanking == 1 ? 'Ich entnehme Texten gezielt Informationen.' : 'Neue Kompetenz', 'Kompetenz ' . new Danger('*'));
-        if (isset($ErrorList["Data[Skills][$AreaRanking-$SkillRanking][SkillGrid]"])) {
-            $skillInput->setError($ErrorList["Data[Skills][$AreaRanking-$SkillRanking][SkillGrid]"]['Message']);
+        if (isset($ErrorList["Data[Skills][$AreaRanking-$SkillRanking][Skill]"])) {
+            $skillInput->setError($ErrorList["Data[Skills][$AreaRanking-$SkillRanking][Skill]"]['Message']);
         }
 
         $rows[] = new LayoutRow(array(

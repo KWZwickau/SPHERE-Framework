@@ -7,6 +7,7 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
+use NumberFormatter;
 use SPHERE\Application\Education\Competence\ScoreType\ScoreType;
 use SPHERE\Application\Education\Competence\ScoreType\Service\Entity\TblScoreTypeItem;
 use SPHERE\Application\Education\Competence\SkillRate\SkillRate;
@@ -14,6 +15,7 @@ use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\People\Meta\Teacher\Teacher;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\System\Database\Fitting\Element;
@@ -25,6 +27,10 @@ use SPHERE\System\Database\Fitting\Element;
  */
 class TblStudentSkillRate extends Element
 {
+    const string SERVICE_TBL_PERSON = 'serviceTblPerson';
+    const string TBL_STUDENT_SKILL = 'tblCompetenceStudentSkill';
+    const string ATTR_DATE = 'Date';
+
     /**
      * @Column(type="bigint")
      */
@@ -196,6 +202,20 @@ class TblStudentSkillRate extends Element
     }
 
     /**
+     * @return float|null
+     */
+    public function getRateFloatValue(): ?float
+    {
+        if ($this->getRate() !== null) {
+            $formatter = new NumberFormatter('de_DE', NumberFormatter::DECIMAL);
+
+            return $formatter->parse($this->getRate());
+        }
+
+        return null;
+    }
+
+    /**
      * @param string|null $Rate
      *
      * @return void
@@ -221,5 +241,23 @@ class TblStudentSkillRate extends Element
     public function setServiceTblScoreTypeItem(?TblScoreTypeItem $tblScoreTypeItem): void
     {
         $this->serviceTblScoreTypeItem = $tblScoreTypeItem?->getId();
+    }
+
+    /**
+     * @return string
+     */
+    public function getDisplayTeacher(): string
+    {
+        if (($tblPerson = $this->getServiceTblPersonTeacher())){
+            if (($tblTeacher = Teacher::useService()->getTeacherByPerson($tblPerson))){
+                if ($tblTeacher->getAcronym()) {
+                    return $tblTeacher->getAcronym();
+                }
+            }
+
+            return $tblPerson->getLastName();
+        }
+
+        return '';
     }
 }
