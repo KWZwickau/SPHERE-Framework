@@ -66,8 +66,8 @@ class ApiSystemTest extends Extension implements IApiInterface
         $Dispatcher->registerMethod('openThirdResult');
         //////////////////////////////////////// Fourth Modal
         $Dispatcher->registerMethod('openFourthModal');
-//        $Dispatcher->registerMethod('firstTab');
-//        $Dispatcher->registerMethod('secondTab');
+        $Dispatcher->registerMethod('firstTab');
+        $Dispatcher->registerMethod('secondTab');
 
         return $Dispatcher->callMethod($Method);
     }
