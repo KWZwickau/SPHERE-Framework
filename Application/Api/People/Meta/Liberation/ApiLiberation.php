@@ -94,14 +94,10 @@ class ApiLiberation extends Extension implements IApiInterface
                 }
                 $Content .= new Headline($Category.' - '.new Bold($Type));
                 $Content .= '<div style="height: 8px"></div>';
-                $Content .= new Container(new Layout(new LayoutGroup(new LayoutRow(array(
-                    new LayoutColumn('Befreiung von: '.($DateFrom ? new Bold($DateFrom) :'---'), 3),
-                    new LayoutColumn('bis: '.($DateTo ? new Bold($DateTo) : '---'), 3)
-                )))));
-                $Content .= new Container(new Layout(new LayoutGroup(new LayoutRow(array(
-                    new LayoutColumn('Beschreibung:', 2),
-                    new LayoutColumn(($Description ? new Container(nl2br($Description)) : '---'), 10)
-                )))));
+                $Content .= new Container('Befreiung von: '.($DateFrom ? new Bold($DateFrom) :'---').'&nbsp;&nbsp;'
+                    .'bis: '.($DateTo ? new Bold($DateTo) : '---'));
+                $Content .= new Container('Beschreibung:');
+                $Content .= new Container(($Description ? new Container(nl2br($Description)) : '---'));
             }
 
             return new Title('Befreiung vom Unterricht')

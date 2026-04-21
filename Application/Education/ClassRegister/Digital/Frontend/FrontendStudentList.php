@@ -198,10 +198,20 @@ class FrontendStudentList extends FrontendSelectDivisionCourse
                         $agreement = (new Standard('', ApiAgreement::getEndpoint(), new Check(), array(), 'Einverständniserklärung'))
                             ->ajaxPipelineOnClick(ApiAgreement::pipelineOpenOverViewModal($tblPerson->getId()));
                     }
-                    if(Student::useService()->getStudentLiberationAllByStudent($tblStudent)) {
-                        $hasLiberation = true;
-                        $liberation = (new Standard('', ApiLiberation::getEndpoint(), new Extern(), array(), 'Unterrichtsbefreiung'))
-                            ->ajaxPipelineOnClick(ApiLiberation::pipelineOpenOverViewModal($tblPerson->getId()));
+                    if($tblStudentLiberationList = Student::useService()->getStudentLiberationAllByStudent($tblStudent)) {
+                        foreach($tblStudentLiberationList as $tblStudentLiberation){
+                            // Weitere voraussetzungen Bis Datum und liegt in der Zukunft oder ist leer, Kategorie ist Sportbefreiung.
+                            if(($tblStudentLiberationType = $tblStudentLiberation->getTblStudentLiberationType())
+                            && ($tblStudentLiberationCategory = $tblStudentLiberationType->getTblStudentLiberationCategory())
+                            && $tblStudentLiberationCategory->getName() == 'Sportbefreiung'
+                            && (!$tblStudentLiberation->getDateTo()
+                                || $tblStudentLiberation->getDateTo(true) >= new DateTime('now'))
+                            ){
+                                $hasLiberation = true;
+                                $liberation = (new Standard('', ApiLiberation::getEndpoint(), new Extern(), array(), 'Unterrichtsbefreiung'))
+                                    ->ajaxPipelineOnClick(ApiLiberation::pipelineOpenOverViewModal($tblPerson->getId()));
+                            }
+                        }
                     }
                 }
                 if (Student::useService()->getIsSupportByPerson($tblPerson)) {
@@ -261,15 +271,15 @@ class FrontendStudentList extends FrontendSelectDivisionCourse
                 $countDateColumn++;
                 $columns['Agreement'] = 'Einver&shy;ständnis&shy;erklärung';
             }
+            if ($hasLiberation) {
+                $countDateColumn++;
+                $columns['Liberation'] = 'Befreiung';
+            }
             $columns['Gender'] = 'Ge&shy;schlecht';
             $columns['Birthday'] = 'Geburts&shy;datum';
             $columns['Address'] = 'Adresse';
             $columns['SchoolType'] = 'Schul&shy;art';
             $columns['Level'] = 'Klassen&shy;stufe';
-            if ($hasLiberation) {
-                $countDateColumn++;
-                $columns['Liberation'] = 'Befreiung';
-            }
             if ($hasColumnCourse) {
                 $columns['Course'] = 'Bildungs&shy;gang';
             }
