@@ -27,10 +27,22 @@ class SkillRate implements IModuleInterface
          * Route
          */
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__, __NAMESPACE__ . '\Frontend::frontendSkills')
+            Main::getDispatcher()->createRoute(__NAMESPACE__, __NAMESPACE__ . '\Frontend::frontendSkillRateSelect')
+        );
+        // nur für Route
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__ . '\Teacher', __NAMESPACE__.'\Frontend::frontendSkillRateSelect')
+        );
+        // nur für Route
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__ . '\Headmaster', __NAMESPACE__.'\Frontend::frontendSkillRateSelect')
+        );
+        // nur für Route
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__ . '\AllReadOnly', __NAMESPACE__.'\Frontend::frontendSkillRateSelect')
         );
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__ . '\Edit', __NAMESPACE__ . '\Frontend::frontendEditSkills')
+            Main::getDispatcher()->createRoute(__NAMESPACE__ . '\DivisionCourse', __NAMESPACE__ . '\Frontend::frontendDivisionCourse')
         );
     }
 

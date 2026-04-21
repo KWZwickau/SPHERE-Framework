@@ -14,7 +14,9 @@ use SPHERE\Application\Education\Competence\SkillRate\Service\Setup;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
+use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
@@ -246,5 +248,24 @@ class Service extends AbstractService
         }
 
         return new Success('Die Daten wurde erfolgreich gespeichert.');
+    }
+
+    /**
+     * @return string
+     */
+    public function getRole(): string
+    {
+        if (($role = Consumer::useService()->getAccountSettingValue("SkillRateRole"))) {
+            // zur Sicherheit prüfen, ob das erforderliche Recht noch vorhanden ist
+            if ($role == "Headmaster" && Access::useService()->hasAuthorization('/Education/Competence/SkillRate/Headmaster')) {
+                return $role;
+            }
+            // zur Sicherheit prüfen, ob das erforderliche Recht noch vorhanden ist
+            if ($role == "AllReadonly" && Access::useService()->hasAuthorization('/Education/Competence/SkillRate/AllReadOnly')) {
+                return $role;
+            }
+        }
+
+        return "Teacher";
     }
 }

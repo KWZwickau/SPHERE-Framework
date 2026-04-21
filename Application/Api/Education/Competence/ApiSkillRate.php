@@ -9,6 +9,7 @@ use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\IApiInterface;
 use SPHERE\Application\People\Person\Person;
+use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
 use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
@@ -33,6 +34,9 @@ class ApiSkillRate extends Extension implements IApiInterface
     {
         $Dispatcher = new Dispatcher(__CLASS__);
 
+        $Dispatcher->registerMethod('changeYearOrRole');
+        $Dispatcher->registerMethod('loadViewSelect');
+        $Dispatcher->registerMethod('changeShowDivisionTeacher');
         $Dispatcher->registerMethod('saveEditStudentSkillRate');
 
         return $Dispatcher->callMethod($Method);
@@ -66,6 +70,143 @@ class ApiSkillRate extends Extension implements IApiInterface
         $Pipeline->appendEmitter((new CloseModal(self::receiverModal()))->getEmitter());
 
         return $Pipeline;
+    }
+
+    /**
+     * @param $SchoolTypeId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineChangeYearOrRole($SchoolTypeId): Pipeline
+    {
+        $Pipeline = new Pipeline(true);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'Content'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'changeYearOrRole',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'SchoolTypeId' => $SchoolTypeId
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param null $SchoolTypeId
+     * @param null $Data
+     *
+     * @return string
+     * @noinspection PhpUnused
+     */
+    public function changeYearOrRole($SchoolTypeId = null, $Data = null): string
+    {
+        if (isset($Data["IsHeadmaster"])) {
+            $role = "Headmaster";
+        } elseif (isset($Data["IsAllReadonly"])) {
+            $role = "AllReadonly";
+        } else {
+            $role = "Teacher";
+        }
+        $skillRateRole = Consumer::useService()->getAccountSettingValue("SkillRateRole");
+        if (!$skillRateRole || $skillRateRole != $role) {
+            Consumer::useService()->createAccountSetting("SkillRateRole", $role);
+        }
+
+        $tblYear = null;
+        if (isset($Data['SelectedYearId']) && $Data['SelectedYearId'] > 0) {
+            $tblYear = Term::useService()->getYearById($Data['SelectedYearId']) ?: null;
+        }
+
+        return self::pipelineLoadViewSelect($tblYear ? $tblYear->getId() : null, $SchoolTypeId);
+    }
+
+    /**
+     * @param null $YearId
+     * @param null $SchoolTypeId
+     * @param string $DontShowDivisionTeacher
+     *
+     * @return Pipeline
+     */
+    public static function pipelineLoadViewSelect($YearId = null, $SchoolTypeId = null, string $DontShowDivisionTeacher = 'null'): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'Content'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'loadViewSelect',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'YearId' => $YearId,
+            'SchoolTypeId' => $SchoolTypeId,
+            'DontShowDivisionTeacher' => $DontShowDivisionTeacher,
+        ));
+        $ModalEmitter->setLoadingMessage("Daten werden geladen");
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $YearId
+     * @param $SchoolTypeId
+     * @param $DontShowDivisionTeacherGradeBooks
+     *
+     * @return string
+     * @noinspection PhpUnused
+     */
+    public function loadViewSelect($YearId, $SchoolTypeId, $DontShowDivisionTeacherGradeBooks): string
+    {
+        if ($DontShowDivisionTeacherGradeBooks == 'true') {
+            $boolean = false;
+        } elseif ($DontShowDivisionTeacherGradeBooks == 'false') {
+            $boolean = true;
+        } else {
+            $boolean = null;
+        }
+
+        return SkillRate::useFrontend()->loadViewSelect($YearId, $SchoolTypeId, $boolean);
+    }
+
+    /**
+     * @param $SelectedYearId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineChangeShowDivisionTeacher($SelectedYearId): Pipeline
+    {
+        $Pipeline = new Pipeline(true);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'Content'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'changeShowDivisionTeacher',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'SelectedYearId' => $SelectedYearId,
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param null $SelectedYearId
+     * @param null $Data
+     *
+     * @return string
+     * @noinspection PhpUnused
+     */
+    public function changeShowDivisionTeacher($SelectedYearId = null, $Data = null): string
+    {
+        $show = isset($Data['ShowDivisionTeacher']);
+
+        $value = Consumer::useService()->getAccountSettingValue("DontShowDivisionTeacherSkillRates");
+        if ($value == $show) {
+            Consumer::useService()->createAccountSetting("DontShowDivisionTeacherSkillRates", !$value);
+
+            return ""
+                . self::pipelineLoadViewSelect($SelectedYearId, null, $value ? 'true' : 'false');
+        }
+
+        return "";
     }
 
     /**

@@ -55,12 +55,11 @@ class Frontend extends Extension implements IFrontendInterface
         $route = '/Education/Competence/SkillGrid';
         if (($tblSchoolTypeList = School::useService()->getConsumerSchoolTypeAll())) {
             foreach ($tblSchoolTypeList as $tblSchoolType) {
+                $name = $tblSchoolType->getName() . ($tblSchoolType->getShortName() == 'Gy' ||  $tblSchoolType->getShortName() == 'BGy' ? ' (SekI)' : '');
                 if ($tblSchoolType->getId() == $SchoolTypeId) {
-                    $buttonList .= new Standard(new Info(new Bold($tblSchoolType->getName())), $route, new Edit(), array('SchoolTypeId' => $tblSchoolType->getId()));
+                    $buttonList .= new Standard(new Info(new Bold($name)), $route, new Edit(), array('SchoolTypeId' => $tblSchoolType->getId()));
                 } else {
-                    $buttonList .= new Standard(
-                        $tblSchoolType->getName() . ($tblSchoolType->getShortName() == 'Gy' ||  $tblSchoolType->getShortName() == 'BGy' ? ' (SekI)' : '')
-                        , $route, null, array('SchoolTypeId' => $tblSchoolType->getId()));
+                    $buttonList .= new Standard($name, $route, null, array('SchoolTypeId' => $tblSchoolType->getId()));
                 }
             }
         }
