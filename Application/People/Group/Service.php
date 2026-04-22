@@ -10,8 +10,6 @@ use SPHERE\Application\People\Group\Service\Setup;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
-use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer as ConsumerGatekeeper;
-use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumerLogin;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Icon\Repository\Ban;
@@ -209,27 +207,9 @@ class Service extends AbstractService
                 $Form->setError('Group[Name]', 'Bitte geben Sie einen eineindeutigen Namen für die Gruppe an');
                 $Error = true;
             }
-            // ist ein DLLP Mandant?
-            $IsDLLPMandant = false;
-            if(($tblConsumer = ConsumerGatekeeper::useService()->getConsumerBySession())){
-                if(ConsumerGatekeeper::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_DLLP)){
-                    $IsDLLPMandant = true;
-                }
-            }
-            // Gruppen Zeicheneingrenzung nur für DLLP Mandanten
-            if (isset($Group['Name']) && $Group['Name'] != '' && $IsDLLPMandant) {
-                if(!preg_match('!^[\w]+[\w -_]*[\w]+$!', $Group['Name'])){ // muss mit Buchstaben/Zahl anfangen und Aufhören + mindestens 2 Zeichen
-                    $Form->setError('Group[Name]', 'Erlaubte Zeichen [a-zA-Z0-9 -_]');
-                    $Error = true;
-                }
-            }
         }
 
         if (!$Error) {
-//            $isCoreGroup = false;
-//            if(isset($Group['IsCoreGroup'])){
-//                $isCoreGroup = true;
-//            }
             if ((new Data($this->getBinding()))
                 ->createGroup($Group['Name'], $Group['Description'], $Group['Remark'], false, '')) {
                 return new Success(new SuccessIcon().' Die Gruppe wurde erfolgreich erstellt').new Redirect('/People/Group',
@@ -354,31 +334,6 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getPersonAllHavingNoGroup();
-    }
-
-    /**
-     * @deprecated countPersonAllByGroup -> countMemberAllByGroup
-     *
-     * @param TblGroup $tblGroup
-     *
-     * @return int
-     */
-    public function countPersonAllByGroup(TblGroup $tblGroup)
-    {
-
-        return $this->countMemberAllByGroup($tblGroup);
-    }
-
-    /**
-     * @deprecated use countMemberByGroup
-     * @param TblGroup $tblGroup
-     *
-     * @return int
-     */
-    public function countMemberAllByGroup(TblGroup $tblGroup)
-    {
-
-        return $this->countEntityList((new Data($this->getBinding()))->getMemberAllByGroup($tblGroup));
     }
 
     /**
