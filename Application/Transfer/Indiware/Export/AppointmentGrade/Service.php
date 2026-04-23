@@ -231,8 +231,9 @@ class Service extends AbstractService
                 $export->setValue($export->getCell("0", $Row), $Data['Birthday']);
                 // SSWHD-4008 Test bei Chemnitz, Problem Umlaute → Schüler werden dann in Indiware neu angelegt
                 if (Consumer::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'ESZC')) {
-                    $export->setValue($export->getCell("1", $Row), Extension::decodeUTF8($Data['LastName'], 'Windows-1252'));
-                    $export->setValue($export->getCell("2", $Row), Extension::decodeUTF8($Data['FirstName'], 'Windows-1252'));
+                    // Indiware erwartet Ansi -> aktuell nur über Notepad++ lösbar (Encoding -> Convert to Ansi)
+                    $export->setValue($export->getCell("1", $Row), $Data['LastName']);
+                    $export->setValue($export->getCell("2", $Row), $Data['FirstName']);
                 } else {
                     $export->setValue($export->getCell("1", $Row), Extension::decodeUTF8($Data['LastName']));
                     $export->setValue($export->getCell("2", $Row), Extension::decodeUTF8($Data['FirstName']));
