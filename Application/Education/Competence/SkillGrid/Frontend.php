@@ -8,7 +8,6 @@ use SPHERE\Application\Education\Lesson\Course\Course;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Meta\Student\Student;
-use SPHERE\Application\Setting\Consumer\School\School;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\NumberField;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
@@ -53,7 +52,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         $buttonList = '';
         $route = '/Education/Competence/SkillGrid';
-        if (($tblSchoolTypeList = School::useService()->getConsumerSchoolTypeAll())) {
+        if (($tblSchoolTypeList = SkillGrid::useService()->getAvailableSchoolTypeList())) {
             foreach ($tblSchoolTypeList as $tblSchoolType) {
                 $name = $tblSchoolType->getName() . ($tblSchoolType->getShortName() == 'Gy' ||  $tblSchoolType->getShortName() == 'BGy' ? ' (SekI)' : '');
                 if ($tblSchoolType->getId() == $SchoolTypeId) {

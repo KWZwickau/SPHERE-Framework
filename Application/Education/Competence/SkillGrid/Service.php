@@ -17,6 +17,7 @@ use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
+use SPHERE\Application\Setting\Consumer\School\School;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Message\Repository\Success;
@@ -337,5 +338,16 @@ class Service extends AbstractService
         }
 
         return $tblSubjectList;
+    }
+
+    /**
+     * aktuell sind erstmal nur allgemeinbildende Schulen vorgesehen
+     *
+     * @return array
+     */
+    public function getAvailableSchoolTypeList(): array
+    {
+        // aktuell sind erstmal nur allgemeinbildende Schulen vorgesehen
+        return School::useService()->getConsumerSchoolTypeCommonAll() ?: [];
     }
 }

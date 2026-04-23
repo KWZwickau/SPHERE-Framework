@@ -2,7 +2,7 @@
 
 namespace SPHERE\Application\Transfer\Import\Competence;
 
-use SPHERE\Application\Setting\Consumer\School\School;
+use SPHERE\Application\Education\Competence\SkillGrid\SkillGrid;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\FileUpload;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
@@ -61,7 +61,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         new FormRow(array(
                                             new FormColumn(
                                                 (new SelectBox('Data[TypeId]', 'Schulart',
-                                                    array('{{ Name }}' => School::useService()->getConsumerSchoolTypeAll())
+                                                    array('{{ Name }}' => SkillGrid::useService()->getAvailableSchoolTypeList())
                                                 ))->setRequired()
                                             ),
                                         )),

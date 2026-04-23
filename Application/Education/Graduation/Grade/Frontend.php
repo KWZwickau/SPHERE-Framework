@@ -197,8 +197,9 @@ class Frontend extends FrontendTestPlanning
      */
     public function loadViewGradeBookContent($DivisionCourseId, $SubjectId, $Filter, bool $ShowInActive = false): string
     {
-        $isEdit = Grade::useService()->getIsEdit($DivisionCourseId, $SubjectId);
-        $isCheckTeacherLectureship = $isEdit && (Grade::useService()->getRole() == 'Teacher');
+        $role = Grade::useService()->getRole();
+        $isEdit = Grade::useService()->getIsEdit($DivisionCourseId, $SubjectId, $role);
+        $isCheckTeacherLectureship = $isEdit && ($role == 'Teacher');
 
         $optionInActive = '';
         $textCourse = "";

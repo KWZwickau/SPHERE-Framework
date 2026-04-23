@@ -184,12 +184,12 @@ class Service extends ServiceTask
     /**
      * @param $DivisionCourseId
      * @param $SubjectId
+     * @param string $role
      *
      * @return bool
      */
-    public function getIsEdit($DivisionCourseId, $SubjectId): bool
+    public function getIsEdit($DivisionCourseId, $SubjectId, string $role): bool
     {
-        $role = $this->getRole();
         switch ($role) {
             case "Headmaster": return true;
             case "Teacher":

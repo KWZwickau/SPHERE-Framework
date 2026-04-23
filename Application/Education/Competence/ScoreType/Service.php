@@ -94,8 +94,9 @@ class Service extends AbstractService
         }
         if (isset($Data['ScoreTypeItems'])) {
             foreach ($Data['ScoreTypeItems'] as $ranking => $itemArray) {
-                if (!empty($itemArray['Value']) || !empty($itemArray['Name']) || !empty($itemArray['Description'])) {
-                    if (empty($itemArray['Value'])) {
+                // empty geht nicht da sonst Wert 0 nicht zulässig
+                if ($itemArray['Value'] !== '' || !empty($itemArray['Name']) || !empty($itemArray['Description'])) {
+                    if ($itemArray['Value'] === '') {
                         $name = "Data[ScoreTypeItems][$ranking][Value]";
                         $ErrorList[$name] = [
                             'Name' => $name,
@@ -144,7 +145,8 @@ class Service extends AbstractService
 
         if (isset($Data['ScoreTypeItems'])) {
             foreach ($Data['ScoreTypeItems'] as $array) {
-                if (!empty($array['Value'])) {
+                // empty geht nicht da sonst Wert 0 nicht zulässig
+                if ($array['Value'] !== '') {
                     (new Data($this->getBinding()))->createScoreTypeItem($tblScoreTypeNew, $array['Value'], $array['Name'], $array['Description'] ?: null);
                 }
             }
