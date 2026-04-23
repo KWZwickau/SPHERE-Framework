@@ -41,17 +41,17 @@ class Setup extends AbstractSetup
      *
      * @return Table
      */
-    private function setTableStudentSkill(Schema &$schema): Table
+    private function setTableStudentSkill(Schema $schema): Table
     {
         $table = $this->createTable($schema, 'tblCompetenceStudentSkill');
         $this->createColumn($table, 'serviceTblPerson', self::FIELD_TYPE_BIGINT);
         $this->createColumn($table, 'serviceTblYear', self::FIELD_TYPE_BIGINT);
         $this->createColumn($table, 'serviceTblSubject', self::FIELD_TYPE_BIGINT, true);
-        $this->createColumn($table, 'serviceTblPersonTeacher', self::FIELD_TYPE_BIGINT, true);
         $this->createColumn($table, 'serviceTblSkill', self::FIELD_TYPE_BIGINT, true);
         $this->createColumn($table, 'SkillArea', self::FIELD_TYPE_STRING, true);
         $this->createColumn($table, 'SkillLevel', self::FIELD_TYPE_STRING, true);
         $this->createColumn($table, 'Skill');
+        $this->createColumn($table, 'serviceTblPersonTeacher', self::FIELD_TYPE_BIGINT, true);
 
         // Todo Indexe
 
@@ -64,18 +64,18 @@ class Setup extends AbstractSetup
      *
      * @return void
      */
-    private function setTableStudentSkillRate(Schema &$schema, Table $tblStudentSkill): void
+    private function setTableStudentSkillRate(Schema $schema, Table $tblStudentSkill): void
     {
         $table = $this->createTable($schema, 'tblCompetenceStudentSkillRate');
-        $this->createColumn($table, 'serviceTblPerson', self::FIELD_TYPE_BIGINT);
-        $this->createColumn($table, 'serviceTblYear', self::FIELD_TYPE_BIGINT);
-        $this->createColumn($table, 'serviceTblSubject', self::FIELD_TYPE_BIGINT, true);
-        $this->createColumn($table, 'serviceTblPersonTeacher', self::FIELD_TYPE_BIGINT, true);
+//        $this->createColumn($table, 'serviceTblPerson', self::FIELD_TYPE_BIGINT);
+//        $this->createColumn($table, 'serviceTblYear', self::FIELD_TYPE_BIGINT);
+//        $this->createColumn($table, 'serviceTblSubject', self::FIELD_TYPE_BIGINT, true);
         $this->createForeignKey($table, $tblStudentSkill);
         $this->createColumn($table, 'Date', self::FIELD_TYPE_DATETIME);
         $this->createColumn($table, 'Comment', self::FIELD_TYPE_STRING, true);
         $this->createColumn($table, 'Rate', self::FIELD_TYPE_STRING, true);
         $this->createColumn($table, 'serviceTblScoreTypeItem', self::FIELD_TYPE_BIGINT, true);
+        $this->createColumn($table, 'serviceTblPersonTeacher', self::FIELD_TYPE_BIGINT, true);
 
         // Todo Indexe
     }

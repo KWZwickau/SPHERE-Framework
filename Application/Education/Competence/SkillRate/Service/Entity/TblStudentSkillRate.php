@@ -11,10 +11,6 @@ use NumberFormatter;
 use SPHERE\Application\Education\Competence\ScoreType\ScoreType;
 use SPHERE\Application\Education\Competence\ScoreType\Service\Entity\TblScoreTypeItem;
 use SPHERE\Application\Education\Competence\SkillRate\SkillRate;
-use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
-use SPHERE\Application\Education\Lesson\Subject\Subject;
-use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
-use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Meta\Teacher\Teacher;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -27,26 +23,9 @@ use SPHERE\System\Database\Fitting\Element;
  */
 class TblStudentSkillRate extends Element
 {
-    const string SERVICE_TBL_PERSON = 'serviceTblPerson';
     const string TBL_STUDENT_SKILL = 'tblCompetenceStudentSkill';
     const string ATTR_DATE = 'Date';
 
-    /**
-     * @Column(type="bigint")
-     */
-    protected int $serviceTblPerson;
-    /**
-     * @Column(type="bigint")
-     */
-    protected int $serviceTblYear;
-    /**
-     * @Column(type="bigint")
-     */
-    protected ?int $serviceTblSubject;
-    /**
-     * @Column(type="bigint")
-     */
-    protected ?int $serviceTblPersonTeacher = null;
     /**
      * @Column(type="bigint")
      */
@@ -67,71 +46,10 @@ class TblStudentSkillRate extends Element
      * @Column(type="bigint")
      */
     protected ?int $serviceTblScoreTypeItem = null;
-
     /**
-     * @return false|TblPerson
+     * @Column(type="bigint")
      */
-    public function getServiceTblPerson(): false|TblPerson
-    {
-        return Person::useService()->getPersonById($this->serviceTblPerson);
-    }
-
-    /**
-     * @param TblPerson $tblPerson
-     */
-    public function setServiceTblPerson(TblPerson $tblPerson): void
-    {
-        $this->serviceTblPerson = $tblPerson->getId();
-    }
-
-    /**
-     * @return false|TblYear
-     */
-    public function getServiceTblYear(): false|TblYear
-    {
-        return Term::useService()->getYearById($this->serviceTblYear);
-    }
-
-    /**
-     * @param TblYear $tblYear
-     */
-    public function setServiceTblYear(TblYear $tblYear): void
-    {
-        $this->serviceTblYear = $tblYear->getId();
-    }
-
-    /**
-     * @return false|TblSubject|null
-     */
-    public function getServiceTblSubject(): false|TblSubject|null
-    {
-        return $this->serviceTblSubject ? Subject::useService()->getSubjectById($this->serviceTblSubject) : null;
-    }
-
-    /**
-     * @param TblSubject|null $tblSubject
-     */
-    public function setServiceTblSubject(?TblSubject $tblSubject): void
-    {
-        $this->serviceTblSubject = $tblSubject?->getId();
-    }
-
-
-    /**
-     * @return false|TblPerson|null
-     */
-    public function getServiceTblPersonTeacher(): false|TblPerson|null
-    {
-        return $this->serviceTblPersonTeacher ? Person::useService()->getPersonById($this->serviceTblPersonTeacher) : null;
-    }
-
-    /**
-     * @param TblPerson|null $tblPerson
-     */
-    public function setServiceTblPersonTeacher(?TblPerson $tblPerson): void
-    {
-        $this->serviceTblPersonTeacher = $tblPerson?->getId();
-    }
+    protected ?int $serviceTblPersonTeacher = null;
 
     /**
      * @return false|TblStudentSkill
@@ -241,6 +159,22 @@ class TblStudentSkillRate extends Element
     public function setServiceTblScoreTypeItem(?TblScoreTypeItem $tblScoreTypeItem): void
     {
         $this->serviceTblScoreTypeItem = $tblScoreTypeItem?->getId();
+    }
+
+    /**
+     * @return false|TblPerson|null
+     */
+    public function getServiceTblPersonTeacher(): false|TblPerson|null
+    {
+        return $this->serviceTblPersonTeacher ? Person::useService()->getPersonById($this->serviceTblPersonTeacher) : null;
+    }
+
+    /**
+     * @param TblPerson|null $tblPerson
+     */
+    public function setServiceTblPersonTeacher(?TblPerson $tblPerson): void
+    {
+        $this->serviceTblPersonTeacher = $tblPerson?->getId();
     }
 
     /**

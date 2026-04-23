@@ -97,22 +97,18 @@ class Data extends AbstractData
     }
 
     /**
-     * @param TblPerson $tblPerson
      * @param TblStudentSkill $tblStudentSkill
      *
      * @return TblStudentSkillRate[]
      */
-    public function getStudentSkillRateListBy(TblPerson $tblPerson, TblStudentSkill $tblStudentSkill): array
+    public function getStudentSkillRateListBy(TblStudentSkill $tblStudentSkill): array
     {
         return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblStudentSkillRate',
-            [TblStudentSkillRate::SERVICE_TBL_PERSON => $tblPerson->getId(), TblStudentSkillRate::TBL_STUDENT_SKILL => $tblStudentSkill->getId()],
+            [TblStudentSkillRate::TBL_STUDENT_SKILL => $tblStudentSkill->getId()],
             [TblStudentSkillRate::ATTR_DATE => self::ORDER_ASC]) ?: [];
     }
 
     /**
-     * @param TblPerson $tblPerson
-     * @param TblYear $tblYear
-     * @param TblSubject|null $tblSubject
      * @param TblStudentSkill $tblStudentSkill
      * @param TblPerson|null $tblPersonTeacher
      * @param DateTime $dateTime
@@ -122,21 +118,18 @@ class Data extends AbstractData
      *
      * @return TblStudentSkillRate
      */
-    public function createStudentSkillRate(TblPerson $tblPerson, TblYear $tblYear, ?TblSubject $tblSubject, TblStudentSkill $tblStudentSkill,
+    public function createStudentSkillRate(TblStudentSkill $tblStudentSkill,
         ?TblPerson $tblPersonTeacher, DateTime $dateTime, ?string $comment, string $rate, ?TblScoreTypeItem $tblScoreTypeItem): TblStudentSkillRate
     {
         $manager = $this->getEntityManager();
 
         $entity = new TblStudentSkillRate();
-        $entity->setServiceTblPerson($tblPerson);
-        $entity->setServiceTblYear($tblYear);
-        $entity->setServiceTblSubject($tblSubject);
-        $entity->setServiceTblPersonTeacher($tblPersonTeacher);
         $entity->setTblStudentSkill($tblStudentSkill);
         $entity->setDate($dateTime);
         $entity->setComment($comment);
         $entity->setRate($rate);
         $entity->setServiceTblScoreTypeItem($tblScoreTypeItem);
+        $entity->setServiceTblPersonTeacher($tblPersonTeacher);
 
         $manager->saveEntity($entity);
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $entity);
