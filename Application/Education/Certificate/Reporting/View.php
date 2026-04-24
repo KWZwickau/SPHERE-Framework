@@ -13,4 +13,6 @@ abstract class View
     const RS = 1;
     const ABI = 2;
     const FOS = 3;
+    const BFS = 4;
+    const FS = 5;
 }
