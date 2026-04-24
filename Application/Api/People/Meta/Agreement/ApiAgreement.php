@@ -61,7 +61,7 @@ class ApiAgreement extends Extension implements IApiInterface
     public static function receiverOverViewModal()
     {
 
-        return (new ModalReceiver(null, new Close()))->setIdentifier('ModalAgreementOverViewReciever');
+        return (new ModalReceiver(null, new Close()))->setIdentifier('ModalAgreementOverViewReceiver');
     }
 
     /**

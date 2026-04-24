@@ -164,7 +164,10 @@ abstract class Liberation extends Student
      */
     public function addStudentLiberation(
         TblStudent $tblStudent,
-        TblStudentLiberationType $tblStudentLiberationType
+        TblStudentLiberationType $tblStudentLiberationType,
+        ?string $DateFrom,
+        ?string $DateTo,
+        string $Description
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -179,6 +182,13 @@ abstract class Liberation extends Student
             $Entity = new TblStudentLiberation();
             $Entity->setTblStudent($tblStudent);
             $Entity->setTblStudentLiberationType($tblStudentLiberationType);
+            if($DateFrom){
+                $Entity->setDateFrom(new \DateTime($DateFrom));
+            }
+            if($DateTo) {
+                $Entity->setDateTo(new \DateTime($DateTo));
+            }
+            $Entity->setDescription($Description);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
