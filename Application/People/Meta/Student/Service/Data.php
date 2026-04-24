@@ -231,6 +231,7 @@ class Data extends Support
 
         // TblSupportType
         $this->createSupportType('Beratung', '');
+        $this->createSupportType('Bescheid Einzelfallhelfer', '');
         $this->createSupportType('Förderantrag', '');
         $this->createSupportType('Förderbescheid', '');
         if(($tblSupportType = $this->getSupportTypeByName('Änderung'))){
