@@ -83,9 +83,7 @@ class FrontendStudent extends FrontendDivisionCourse
         } else {
             $stage->setContent(
                 $title
-                . (new Primary('Kompetenzen bewerten', ApiSkillRate::getEndpoint(), new Edit()))
-                    ->ajaxPipelineOnClick(ApiSkillRate::pipelineLoadEditStudentContent($DivisionCourseId, $PersonId, $SubjectId))
-                . new Container('&nbsp;')
+//                . new Container('&nbsp;')
                 . $this->getStudentHead($tblPerson, $tblDivisionCourse, $tblSubject ?: null)
                 . ApiSkillRate::receiverBlock($this->loadViewStudentContent($DivisionCourseId, $PersonId, $SubjectId), 'Content')
             );
@@ -136,7 +134,9 @@ class FrontendStudent extends FrontendDivisionCourse
             new LayoutColumn(new Center($PersonPicture), 2),
         ));
 
-        return ApiPersonPicture::receiverModal() . new Layout(new LayoutGroup($rows));
+        return ApiPersonPicture::receiverModal()
+            . ApiSkillRate::receiverModal()
+            . new Layout(new LayoutGroup($rows));
     }
 
     /**
@@ -159,26 +159,40 @@ class FrontendStudent extends FrontendDivisionCourse
         }
 
         // Todo individuelle Kompetenzen hinzufügen
+        // Todo anzeige geänderter Skillname
         $dataList = [];
         if (($tblYear = $tblDivisionCourse->getServiceTblYear())
             && ($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))
             && ($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())
             && ($level = $tblStudentEducation->getLevel()) !== null
         ) {
+            $tblStudentSkillList = SkillRate::useService()->getStudentSkillListByPersonAndYear($tblPerson, $tblYear);
             $tblSkillList = SkillGrid::useService()->getSkillListBy($tblSchoolType, $level, $tblSubject);
             foreach ($tblSkillList as $tblSkill) {
                 if (($tblSkillArea = $tblSkill->getTblSkillArea())) {
-                    // todo fett falls schon bewertet
                     if (!isset($dataList[$tblSkillArea->getId()])) {
                         $dataList[$tblSkillArea->getId()] = [
                             'name' => $tblSkillArea->getName() ?: 'Ohne Kompetenzbereich',
+                            'isBold' => false,
                             'skills' => []
                         ];
                     }
 
-                    $dataList[$tblSkillArea->getId()]['skills'][] =
-                        ($tblSkill->getLevel() ? new Muted($tblSkill->getLevel() . ' ') : '')
-                        . $tblSkill->getSkill();
+                    $isBold = false;
+                    $displayLast = '';
+                    if (($tblStudentSkill = $tblStudentSkillList[$tblSkill->getId()] ?? null)
+                        && ($displayLast = SkillRate::useService()->getDisplayStudentSkillRateLastOrAverage($tblStudentSkill, "Verlauf anzeigen"))
+                    ) {
+                        $dataList[$tblSkillArea->getId()]['isBold'] = true;
+                        $isBold = true;
+                        $displayLast = (new Link(new Bold($displayLast), ApiSkillRate::getEndpoint(), null, []))
+                            ->ajaxPipelineOnClick(ApiSkillRate::pipelineOpenStudentSkillRateHistoryModal($tblStudentSkill->getId()));
+                    }
+                    $displaySkill = ($tblSkill->getLevel() ? new Muted($tblSkill->getLevel() . ' ') : '')
+                        . ($isBold ? new Bold($tblSkill->getSkill()) : $tblSkill->getSkill())
+                        . ($displayLast ? new PullRight($displayLast) : '');
+
+                    $dataList[$tblSkillArea->getId()]['skills'][] = $displaySkill;
                 }
             }
         }
@@ -186,10 +200,13 @@ class FrontendStudent extends FrontendDivisionCourse
         $content = '';
         foreach ($dataList as $item) {
             // bei alten Schuljahren grau statt blau
-            $content .= new Panel($item['name'], $item['skills'], Panel::PANEL_TYPE_INFO);
+            $content .= new Panel($item['isBold'] ? new Bold($item['name']) : $item['name'], $item['skills'], Panel::PANEL_TYPE_INFO);
         }
 
-        return $content;
+        return (new Primary('Kompetenzen bewerten', ApiSkillRate::getEndpoint(), new Edit()))
+                ->ajaxPipelineOnClick(ApiSkillRate::pipelineLoadEditStudentContent($DivisionCourseId, $PersonId, $SubjectId))
+            . new Container('&nbsp;')
+            . $content;
     }
 
     /**
@@ -333,5 +350,48 @@ class FrontendStudent extends FrontendDivisionCourse
         }
 
         return $form;
+    }
+
+    /**
+     * @param $StudentSkillId
+     *
+     * @return string
+     */
+    public function openStudentSkillRateHistoryModal($StudentSkillId): string
+    {
+        if (!($tblStudentSkill = SkillRate::useService()->getStudentSkillById($StudentSkillId))) {
+            return new Danger('Kompetenz wurde nicht gefunden.', new Exclamation());
+        }
+
+        $dataList = [];
+        if ($tblStudentSkill->getSkillArea()) {
+            $dataList[] = "Kompetenzbereich: {$tblStudentSkill->getSkillArea()}";
+        }
+        if ($tblStudentSkill->getSkillLevel()) {
+            $dataList[] = "Niveau: {$tblStudentSkill->getSkillLevel()}";
+        }
+        $dataList[] = new Bold("Kompetenz: {$tblStudentSkill->getSkill()}"
+            . new PullRight(SkillRate::useService()->getDisplayStudentSkillRateLastOrAverage($tblStudentSkill)));
+
+        $tblStudentSkillRateList = SkillRate::useService()->getStudentSkillRateListBy($tblStudentSkill);
+        $rows = [];
+        foreach ($tblStudentSkillRateList as $tblStudentSkillRate) {
+            $rows[] = new LayoutRow([
+                new LayoutColumn($tblStudentSkillRate->getDateString(), 1),
+                new LayoutColumn(new Center($tblStudentSkillRate->getDisplayRate()), 2),
+                new LayoutColumn($tblStudentSkillRate->getDisplayTeacher(), 2),
+                new LayoutColumn($tblStudentSkillRate->getComment(), 7),
+            ]);
+        }
+
+        return new Title(new Bold('Verlauf der Kompetenzbewertung'))
+            . new Panel('Kompetenz', $dataList, Panel::PANEL_TYPE_INFO)
+            . new Title(new Layout(new LayoutGroup(new LayoutRow([
+                new LayoutColumn("Datum", 1),
+                new LayoutColumn(new Center("Bewertung"), 2),
+                new LayoutColumn("Lehrer", 2),
+                new LayoutColumn("Öffentlicher Kommentar zur Kompetenzfeststellung", 6),
+            ]))))
+            . new Layout(new LayoutGroup($rows));
     }
 }

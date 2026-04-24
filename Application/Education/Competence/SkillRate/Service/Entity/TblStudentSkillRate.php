@@ -53,6 +53,7 @@ class TblStudentSkillRate extends Element
 
     /**
      * @return false|TblStudentSkill
+     * @noinspection PhpUnused
      */
     public function getTblStudentSkill(): false|TblStudentSkill
     {
@@ -131,6 +132,18 @@ class TblStudentSkillRate extends Element
         }
 
         return null;
+    }
+
+    /**
+     * @return string
+     */
+    public function getDisplayRate(): string
+    {
+        if (($tblScoreTypeItem = $this->getServiceTblScoreTypeItem())) {
+            return $tblScoreTypeItem->getName();
+        } else {
+            return $this->getRate() ? $this->getRate() . '%' : '';
+        }
     }
 
     /**

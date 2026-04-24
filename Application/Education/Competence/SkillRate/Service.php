@@ -112,10 +112,11 @@ class Service extends AbstractService
 
     /**
      * @param TblStudentSkill $tblStudentSkill
+     * @param string $extraToolTip
      *
      * @return string
      */
-    public function getDisplayStudentSkillRateLastOrAverage(TblStudentSkill $tblStudentSkill): string
+    public function getDisplayStudentSkillRateLastOrAverage(TblStudentSkill $tblStudentSkill, string $extraToolTip = ""): string
     {
         $display = '';
         if (($tblSkill = $tblStudentSkill->getServiceTblSkill())
@@ -127,16 +128,23 @@ class Service extends AbstractService
                 $formatter = new NumberFormatter('de_DE', NumberFormatter::DECIMAL);
                 $formatter->setAttribute(NumberFormatter::FRACTION_DIGITS, 2);
 
-                return '&#216; ' . $formatter->format($average) . (!$tblSkillGrid->getServiceTblScoreType() ? '%' : '');
+                $display = '&#216; ' . $formatter->format($average) . (!$tblSkillGrid->getServiceTblScoreType() ? '%' : '');
+                if ($extraToolTip) {
+                    $display = new ToolTip($display, $extraToolTip);
+                }
             }
         } else {
             if (($tblStudentSkillRate = $this->getLastStudentSkillRateBy($tblStudentSkill))) {
+                $toolTip = "";
+                if ($extraToolTip) {
+                    $toolTip .= $extraToolTip . "<br /><br />";
+                }
+                $toolTip .= "Letzte Bewertung am {$tblStudentSkillRate->getDateString()} durch {$tblStudentSkillRate->getDisplayTeacher()}";
+
                 if (($tblScoreTypeItem = $tblStudentSkillRate->getServiceTblScoreTypeItem())) {
-                    $display = new ToolTip($tblScoreTypeItem->getName(),
-                        "Letzte Bewertung am {$tblStudentSkillRate->getDateString()} durch {$tblStudentSkillRate->getDisplayTeacher()}");
+                    $display = (new ToolTip($tblScoreTypeItem->getName(), $toolTip))->enableHtml();
                 } else {
-                    $display = new ToolTip($tblStudentSkillRate->getRate() . '%',
-                        "Letzte Bewertung am {$tblStudentSkillRate->getDateString()} durch {$tblStudentSkillRate->getDisplayTeacher()}");
+                    $display = (new ToolTip($tblStudentSkillRate->getRate() . '%', $toolTip))->enableHtml();
                 }
             }
         }

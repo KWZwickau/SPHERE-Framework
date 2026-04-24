@@ -60,7 +60,7 @@ class Data extends AbstractData
         return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblStudentSkill', [
             TblStudentSkill::SERVICE_TBL_PERSON => $tblPerson->getId(),
             TblStudentSkill::SERVICE_TBL_YEAR => $tblYear->getId()
-        ] ?: []);
+        ]) ?: [];
     }
 
     /**

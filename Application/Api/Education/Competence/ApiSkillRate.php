@@ -42,6 +42,7 @@ class ApiSkillRate extends Extension implements IApiInterface
         $Dispatcher->registerMethod('loadViewStudentContent');
         $Dispatcher->registerMethod('loadEditStudentContent');
         $Dispatcher->registerMethod('saveEditStudentSkillRate');
+        $Dispatcher->registerMethod('openStudentSkillRateHistoryModal');
 
         return $Dispatcher->callMethod($Method);
     }
@@ -334,5 +335,36 @@ class ApiSkillRate extends Extension implements IApiInterface
         $tblSubject = $SubjectId ? Subject::useService()->getSubjectById($SubjectId) : null;
 
         return SkillRate::useService()->createStudentSkillRateList($tblDivisionCourse, $tblPerson, $tblSubject ?: null, $Data);
+    }
+
+    /**
+     * @param $StudentSkillId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineOpenStudentSkillRateHistoryModal($StudentSkillId): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'openStudentSkillRateHistoryModal',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'StudentSkillId' => $StudentSkillId
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $StudentSkillId
+     *
+     * @return string
+     * @noinspection PhpUnused
+     */
+    public function openStudentSkillRateHistoryModal($StudentSkillId): string
+    {
+        return SkillRate::useFrontend()->openStudentSkillRateHistoryModal($StudentSkillId);
     }
 }
