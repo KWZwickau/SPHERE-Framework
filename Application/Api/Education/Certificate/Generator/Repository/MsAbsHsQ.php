@@ -172,11 +172,8 @@ class MsAbsHsQ extends Certificate
             ->addSlice($this->getDescriptionHead($personId))
             ->addSlice($this->getDescriptionContent($personId, '200px', '15px'))
             ->addSlice($this->getDateLine($personId))
-            ->addSlice((new MsAbsRs(
-                $this->getTblStudentEducation() ?: null,
-                $this->getTblPrepareCertificate() ?: null
-            ))->getExaminationsBoard('10px','11px'))
-            ->addSlice($this->getInfo('165px',
+            ->addSlice($this->getExaminationsBoard('10px','11px', $personId, 'qualifizierenden HAUPTSCHULABSCHLUSS'))
+            ->addSlice($this->getInfo($this->CopyCertificateData ? '30px' : '155px',
                 'Notenerläuterung:',
                 '1 = sehr gut; 2 = gut; 3 = befriedigend; 4 = ausreichend; 5 = mangelhaft; 6 = ungenügend')
         );

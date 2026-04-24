@@ -2143,6 +2143,96 @@ abstract class FsStyle extends Certificate
     }
 
     /**
+     * @param $personId
+     * @param $diplomaName
+     * @param string $marginTop
+     * @param bool $hasCertifiedCopyStatement
+     *
+     * @return Slice
+     */
+    protected function getFsSignPartCopy($personId, $diplomaName, string $marginTop = '25px', bool $hasCertifiedCopyStatement = true): Slice
+    {
+        $slice = (new Slice())
+            ->styleMarginTop($marginTop)
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('{% if( Content.P' . $personId . '.Company.Address.City.Name is not empty) %}
+                            {{ Content.P' . $personId . '.Company.Address.City.Name }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}')
+                    ->styleAlignCenter()
+                    ->styleBorderBottom('0.5px')
+                    , '35%')
+                ->addElementColumn((new Element())
+                    , '30%')
+                ->addElementColumn((new Element())
+                    ->setContent('{{ Content.P' . $personId . '.Input.Date }}')
+                    ->styleAlignCenter()
+                    ->styleBorderBottom('0.5px')
+                    , '35%')
+            )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('Ort')
+                    ->styleAlignCenter()
+                    ->styleTextSize('11px')
+                    , '35%')
+                ->addElementColumn((new Element())
+                    , '5%')
+                ->addElementColumn((new Element())
+                    ->setContent('Siegel')
+                    ->styleTextColor('gray')
+                    ->styleAlignCenter()
+                    ->styleTextSize('11px')
+                    , '20%')
+                ->addElementColumn((new Element())
+                    , '5%')
+                ->addElementColumn((new Element())
+                    ->setContent('Datum')
+                    ->styleAlignCenter()
+                    ->styleTextSize('11px')
+                    , '35%')
+            )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('gez. ' . ($this->CopyCertificateData['Leader'] ?? ''))
+                    ->styleAlignCenter()
+                    ->styleMarginTop('40px')
+                    ->styleBorderBottom('0.5px')
+                    , '35%')
+                ->addElementColumn((new Element())
+                    , '30%')
+                ->addElementColumn((new Element())
+                    ->setContent('gez. ' . ($this->CopyCertificateData['HeadmasterOriginalName'] ?? ''))
+                    ->styleAlignCenter()
+                    ->styleMarginTop('40px')
+                    ->styleBorderBottom('0.5px')
+                    , '35%')
+            )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('Vorsitzende/r des Prüfungsausschusses')
+                    ->styleAlignCenter()
+                    ->styleTextSize('11px')
+                    , '35%')
+                ->addElementColumn((new Element())
+                    , '30%')
+                ->addElementColumn((new Element())
+                    ->setContent('Schulleiter/in')
+                    ->styleAlignCenter()
+                    ->styleTextSize('11px')
+                    , '35%')
+            );
+
+        if ($hasCertifiedCopyStatement) {
+            $this->setTechnicalCertifiedCopyStatement($slice, $personId, $diplomaName);
+        }
+
+        return $slice;
+    }
+
+    /**
      * @param int $personId
      *
      * @return Slice

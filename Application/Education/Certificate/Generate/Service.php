@@ -706,4 +706,21 @@ class Service extends AbstractService
             return $resultList;
         }
     }
+
+    /**
+     * @param TblGenerateCertificate $tblGenerateCertificate
+     * @param string $signer
+     *
+     * @return string
+     */
+    public function getDiplomaSignerLastName(TblGenerateCertificate $tblGenerateCertificate, string $signer): string
+    {
+        if (($tblGenerateCertificateSettingLeader = $this->getGenerateCertificateSettingBy($tblGenerateCertificate, $signer))
+            && ($tblPerson = Person::useService()->getPersonById($tblGenerateCertificateSettingLeader->getValue()))
+        ) {
+            return $tblPerson->getLastName();
+        }
+
+        return '';
+    }
 }

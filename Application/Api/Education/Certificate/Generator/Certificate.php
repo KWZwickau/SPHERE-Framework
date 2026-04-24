@@ -5,6 +5,7 @@ namespace SPHERE\Application\Api\Education\Certificate\Generator;
 use DateTime;
 use MOC\V\Component\Template\Component\IBridgeInterface;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
+use SPHERE\Application\Education\Certificate\Generate\Generate;
 use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Document;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Element;
@@ -21,9 +22,11 @@ use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblStudent
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\School\Course\Service\Entity\TblCourse;
+use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer as ConsumerGatekeeper;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
@@ -61,14 +64,20 @@ abstract class Certificate extends Extension
      */
     private ?TblPrepareCertificate $tblPrepareCertificate;
 
+    protected ?TblLeaveStudent $tblLeaveStudent;
+
+    protected ?array $CopyCertificateData;
+
     /**
      * @param TblStudentEducation|null $tblStudentEducation
      * @param TblPrepareCertificate|null $tblPrepareCertificate
      * @param bool $IsSample
      * @param array $pageList
+     * @param null $CopyCertificateData
+     * @param TblLeaveStudent|null $tblLeaveStudent
      */
     public function __construct(TblStudentEducation $tblStudentEducation = null, TblPrepareCertificate $tblPrepareCertificate = null, bool $IsSample = true,
-        array $pageList = array())
+        array $pageList = array(), $CopyCertificateData = null, TblLeaveStudent $tblLeaveStudent = null)
     {
 
         // todo find usage
@@ -77,6 +86,8 @@ abstract class Certificate extends Extension
         $this->tblStudentEducation = $tblStudentEducation;
         $this->tblPrepareCertificate = $tblPrepareCertificate;
         $this->IsSample = $IsSample;
+        $this->CopyCertificateData = $CopyCertificateData;
+        $this->tblLeaveStudent = $tblLeaveStudent;
 
         // need for Preview frontend (getTemplateInformationForPreview)
         $this->Certificate = $this->buildCertificate($pageList);
@@ -691,10 +702,16 @@ abstract class Certificate extends Extension
         $Section = new Section();
 
         // Sample
-        if($IsSample){
+        if($IsSample) {
             $Section->addElementColumn((new Element\Sample())
                 ->styleTextSize('30px')
                 ->styleHeight('0px')
+                , '27%');
+        } elseif ($this->CopyCertificateData) {
+            $Section->addElementColumn((new Element())
+                    ->setContent('Zweitschrift')
+                    ->styleTextSize('30px')
+                    ->styleHeight('0px')
                 , '27%');
         } else {
             $Section->addElementColumn((new Element()), '27%');
@@ -828,6 +845,16 @@ abstract class Certificate extends Extension
                     ->styleHeight('0px')
                 )
             );
+        } elseif ($this->CopyCertificateData) {
+            $Header->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('Zweitschrift')
+                    ->styleMarginTop('80px')
+                    ->styleTextSize('30px')
+                    ->styleAlignCenter()
+                    ->styleHeight('0px')
+                )
+            );
         }
 
         $Header->stylePaddingTop('24px');
@@ -878,9 +905,20 @@ abstract class Certificate extends Extension
                 ->addElementColumn($elementSchoolLogo, '61%')
                 ->addElementColumn($elementSaxonyLogo, '39%')
             );
+
         if ($IsSample) {
             $Header->addSection((new Section())
                 ->addElementColumn((new Element\Sample())
+                    ->styleMarginTop('80px')
+                    ->styleTextSize('30px')
+                    ->styleAlignCenter()
+                    ->styleHeight('0px')
+                )
+            );
+        } elseif ($this->CopyCertificateData) {
+            $Header->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('Zweitschrift')
                     ->styleMarginTop('80px')
                     ->styleTextSize('30px')
                     ->styleAlignCenter()
@@ -893,6 +931,424 @@ abstract class Certificate extends Extension
         $Header->styleHeight('100px');
 
         return $Header;
+    }
+
+    /**
+     * @param $marginTop
+     * @param $textSize
+     * @param $personId
+     * @param string $diploma
+     *
+     * @return Slice
+     */
+    protected function getExaminationsBoard($marginTop, $textSize, $personId, string $diploma): Slice
+    {
+        $leaderDescription = 'Vorsitzende(r)';
+
+        // bei Zweischrift anders
+        if ($this->CopyCertificateData) {
+            $slice = (new Slice())
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->styleMarginTop($marginTop)
+                        , '30%')
+                    ->addElementColumn((new Element())
+                        ->setContent('Der Prüfungsausschuss')
+                        ->styleAlignCenter()
+                        ->styleMarginTop($marginTop)
+                    )
+                    ->addElementColumn((new Element())
+                        ->styleMarginTop($marginTop)
+                        , '30%')
+                )
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('gez. ' . ($this->CopyCertificateData['Leader'] ?? ''))
+                        ->styleAlignCenter()
+                        ->styleBorderBottom()
+                        ->styleMarginTop('15px')
+                        , '30%')
+                    ->addElementColumn((new Element())
+                    )
+                    ->addElementColumn((new Element())
+                        ->setContent('gez. ' . ($this->CopyCertificateData['FirstMember'] ?? ''))
+                        ->styleAlignCenter()
+                        ->styleBorderBottom()
+                        ->styleMarginTop('15px')
+                        , '30%')
+                )
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent($leaderDescription)
+                        ->styleAlignCenter()
+                        ->styleTextSize($textSize)
+                        ->styleMarginTop('0px')
+                        , '30%')
+                    ->addElementColumn((new Element())
+                        ->setContent('Dienstsiegel der Schule' )
+                        ->styleTextSize($textSize)
+                        ->styleAlignCenter()
+                        ->styleMarginTop('0px')
+                    )
+                    ->addElementColumn((new Element())
+                        ->setContent('Mitglied')
+                        ->styleAlignCenter()
+                        ->styleTextSize($textSize)
+                        ->styleMarginTop('0px')
+                        , '30%')
+                )
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        , '30%')
+                    ->addElementColumn((new Element())
+                    )
+                    ->addElementColumn((new Element())
+                        ->setContent('gez. ' . ($this->CopyCertificateData['SecondMember'] ?? ''))
+                        ->styleAlignCenter()
+                        ->styleBorderBottom()
+                        ->styleMarginTop('15px')
+                        , '30%')
+                )
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        , '30%')
+                    ->addElementColumn((new Element())
+                    )
+                    ->addElementColumn((new Element())
+                        ->setContent('Mitglied')
+                        ->styleAlignCenter()
+                        ->styleTextSize($textSize)
+                        ->styleMarginTop('0px')
+                        , '30%')
+                );
+
+            $this->setCommonCertifiedCopyStatement($slice, $personId, $diploma);
+
+            return $slice;
+        }
+
+        $leaderName = '&nbsp;';
+        $firstMemberName = '&nbsp;';
+        $secondMemberName = '&nbsp;';
+
+        if ($this->getTblPrepareCertificate()
+            && ($tblGenerateCertificate = $this->getTblPrepareCertificate()->getServiceTblGenerateCertificate())
+        ) {
+
+            if (($tblGenerateCertificateSettingLeader = Generate::useService()->getGenerateCertificateSettingBy($tblGenerateCertificate, 'Leader'))
+                && ($tblPersonLeader = Person::useService()->getPersonById($tblGenerateCertificateSettingLeader->getValue()))
+            ) {
+                $leaderName = $this->getPersonDisplayName($tblPersonLeader);
+                if (($tblCommon = $tblPersonLeader->getCommon())
+                    && ($tblCommonBirthDates = $tblCommon->getTblCommonBirthDates())
+                    && ($tblGender = $tblCommonBirthDates->getTblCommonGender())
+                ) {
+                    if ($tblGender->getName() == 'Männlich') {
+                        $leaderDescription = 'Vorsitzender';
+                    } elseif ($tblGender->getName() == 'Weiblich') {
+                        $leaderDescription = 'Vorsitzende';
+                    }
+                }
+            }
+            if (($tblGenerateCertificateSettingFirstMember = Generate::useService()->getGenerateCertificateSettingBy($tblGenerateCertificate, 'FirstMember'))
+                && ($tblPersonFirstMember = Person::useService()->getPersonById($tblGenerateCertificateSettingFirstMember->getValue()))
+            ) {
+                $firstMemberName = $this->getPersonDisplayName($tblPersonFirstMember);
+            }
+
+            if (($tblGenerateCertificateSettingSecondMember = Generate::useService()->getGenerateCertificateSettingBy($tblGenerateCertificate, 'SecondMember'))
+                && ($tblPersonSecondMember = Person::useService()->getPersonById($tblGenerateCertificateSettingSecondMember->getValue()))
+            ) {
+                $secondMemberName = $this->getPersonDisplayName($tblPersonSecondMember);
+            }
+        }
+
+        $slice = (new Slice())
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->styleMarginTop($marginTop)
+                    , '30%')
+                ->addElementColumn((new Element())
+                    ->setContent('Der Prüfungsausschuss')
+                    ->styleAlignCenter()
+                    ->styleMarginTop($marginTop)
+                )
+                ->addElementColumn((new Element())
+                    ->styleMarginTop($marginTop)
+                    , '30%')
+            )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    ->styleBorderBottom()
+                    ->styleMarginTop('15px')
+                    , '30%')
+                ->addElementColumn((new Element())
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    ->styleBorderBottom()
+                    ->styleMarginTop('15px')
+                    , '30%')
+            )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent($leaderDescription)
+                    ->styleAlignCenter()
+                    ->styleTextSize($textSize)
+                    ->styleMarginTop('0px')
+                    , '30%')
+                ->addElementColumn((new Element())
+                    ->setContent('Dienstsiegel der Schule' )
+                    ->styleTextSize($textSize)
+                    ->styleAlignCenter()
+                    ->styleMarginTop('0px')
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('Mitglied')
+                    ->styleAlignCenter()
+                    ->styleTextSize($textSize)
+                    ->styleMarginTop('0px')
+                    , '30%')
+            )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent($leaderName)
+                    ->styleAlignCenter()
+                    ->styleTextSize($textSize)
+                    ->styleMarginTop('0px')
+                    , '30%')
+                ->addElementColumn((new Element())
+                )
+                ->addElementColumn((new Element())
+                    ->setContent($firstMemberName)
+                    ->styleAlignCenter()
+                    ->styleTextSize($textSize)
+                    ->styleMarginTop('0px')
+                    , '30%')
+            )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    , '30%')
+                ->addElementColumn((new Element())
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    ->styleBorderBottom()
+                    ->styleMarginTop('15px')
+                    , '30%')
+            )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    , '30%')
+                ->addElementColumn((new Element())
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('Mitglied')
+                    ->styleAlignCenter()
+                    ->styleTextSize($textSize)
+                    ->styleMarginTop('0px')
+                    , '30%')
+            )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    , '30%')
+                ->addElementColumn((new Element())
+                )
+                ->addElementColumn((new Element())
+                    ->setContent($secondMemberName)
+                    ->styleAlignCenter()
+                    ->styleTextSize($textSize)
+                    ->styleMarginTop('0px')
+                    , '30%')
+            );
+
+        return $slice;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     *
+     * @return string
+     */
+    private function getPersonDisplayName(TblPerson $tblPerson): string
+    {
+        if (ConsumerGatekeeper::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'CSW')) {
+            return $tblPerson->getFirstSecondName() . ' ' . $tblPerson->getLastName();
+        } else {
+            return $tblPerson->getFullName();
+        }
+    }
+
+    /**
+     * @param Slice $slice
+     * @param $personId
+     * @param string $diploma
+     * @param string $marginTop
+     *
+     * @return void
+     */
+    protected function setCommonCertifiedCopyStatement(Slice &$slice, $personId, string $diploma, string $marginTop = '15px'): void
+    {
+        $marginTopSignLines = '25px';
+        $left = '30%';
+        $right = '30%';
+        $textSize = '11px';
+
+        $headmasterDescription = 'Unterschrift Schulleiterin / Schulleiter';
+        if (($tblGender = Common::useService()->getCommonGenderById($this->CopyCertificateData['HeadmasterGender'] ?? null))) {
+            if ($tblGender->getName() == 'Männlich') {
+                $headmasterDescription = 'Unterschrift Schulleiter';
+            } elseif ($tblGender->getName() == 'Weiblich') {
+                $headmasterDescription = 'Unterschrift Schulleiterin';
+            }
+        }
+        $headmasterName = $this->CopyCertificateData['HeadmasterName'] ?? '&nbsp;';
+
+        $slice
+            ->addElement((new Element())
+                ->setContent('Beglaubigungsvermerk')
+                ->styleTextBold()
+                ->styleMarginTop($marginTop)
+            )
+            ->addElement((new Element())
+                ->styleMarginTop('10px')
+                ->setContent('Hiermit wird amtlich beglaubigt, dass diese Zweitschrift mit dem Original des Zeugnisses zum Erwerb des '
+                    . $diploma . ' vom {{ Content.P' . $personId . '.Input.Date }} übereinstimmt.')
+            )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent(($this->CopyCertificateData['City'] ?? '&nbsp;') . ' ' . ($this->CopyCertificateData['Date'] ?? '&nbsp;'))
+                    ->styleBorderBottom()
+                    ->styleMarginTop($marginTopSignLines)
+                    , $left)
+                ->addElementColumn((new Element())
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    ->styleBorderBottom()
+                    ->styleMarginTop($marginTopSignLines)
+                    , $right)
+            )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('Ort / Datum')
+                    ->styleTextSize($textSize)
+                    ->styleMarginTop()
+                    , $left)
+                ->addElementColumn((new Element())
+                    ->setContent('Dienstsiegel')
+                    ->styleTextSize($textSize)
+                    ->styleAlignCenter()
+                    ->styleMarginTop()
+                )
+                ->addElementColumn((new Element())
+                    ->setContent($headmasterDescription)
+                    ->styleTextSize($textSize)
+                    ->styleMarginTop()
+                    , $right)
+            )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    , $left)
+                ->addElementColumn((new Element())
+                    ->setContent('der Schule')
+                    ->styleTextSize($textSize)
+                    ->styleAlignCenter()
+                    ->styleMarginTop()
+                )
+                ->addElementColumn((new Element())
+                    ->setContent($headmasterName)
+                    ->styleTextSize($textSize)
+                    ->styleMarginTop()
+                    , $right)
+            );
+    }
+
+    /**
+     * @param Slice $slice
+     * @param $personId
+     * @param string $diplomaName
+     * @param string $marginTop
+     *
+     * @return void
+     */
+    protected function setTechnicalCertifiedCopyStatement(Slice &$slice, $personId, string $diplomaName, string $marginTop = '30px'): void
+    {
+        $marginTopSignLines = '25px';
+        $left = '30%';
+        $right = '30%';
+        $textSize = '11px';
+
+        $headmasterDescription = 'Schulleiterin/Schulleiter';
+        if (($tblGender = Common::useService()->getCommonGenderById($this->CopyCertificateData['HeadmasterGender'] ?? null))) {
+            if ($tblGender->getName() == 'Männlich') {
+                $headmasterDescription = 'Schulleiter';
+            } elseif ($tblGender->getName() == 'Weiblich') {
+                $headmasterDescription = 'Schulleiterin';
+            }
+        }
+        $headmasterName = $this->CopyCertificateData['HeadmasterName'] ?? '&nbsp;';
+
+        $slice
+            ->addElement((new Element())
+                ->setContent('Beglaubigungsvermerk')
+                ->styleAlignCenter()
+                ->styleTextBold()
+                ->styleMarginTop($marginTop)
+            )
+            ->addElement((new Element())
+                ->styleMarginTop('10px')
+                ->setContent('Hiermit wird amtlich beglaubigt, dass diese Zweitschrift mit dem Original '
+                    . $diplomaName . ' vom {{ Content.P' . $personId . '.Input.Date }} übereinstimmt.')
+            )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent(($this->CopyCertificateData['City'] ?? '&nbsp;') . ' ' . ($this->CopyCertificateData['Date'] ?? '&nbsp;'))
+                    ->styleBorderBottom()
+                    ->styleMarginTop($marginTopSignLines)
+                    , $left)
+                ->addElementColumn((new Element())
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    ->styleBorderBottom()
+                    ->styleMarginTop($marginTopSignLines)
+                    , $right)
+            )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('Ort/Datum')
+                    ->styleTextSize($textSize)
+                    ->styleMarginTop()
+                    , $left)
+                ->addElementColumn((new Element())
+                    ->setContent('Dienstsiegel')
+                    ->styleTextSize($textSize)
+                    ->styleAlignCenter()
+                    ->styleMarginTop()
+                )
+                ->addElementColumn((new Element())
+                    ->setContent($headmasterDescription)
+                    ->styleTextSize($textSize)
+                    ->styleMarginTop()
+                    , $right)
+            )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    , $left)
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    ->styleTextSize($textSize)
+                    ->styleAlignCenter()
+                    ->styleMarginTop()
+                )
+                ->addElementColumn((new Element())
+                    ->setContent($headmasterName)
+                    ->styleTextSize($textSize)
+                    ->styleMarginTop()
+                    , $right)
+            );
     }
 
     /**
@@ -2233,6 +2689,58 @@ abstract class Certificate extends Extension
         )
             ->styleMarginTop($MarginTop);
         return $DateSlice;
+    }
+
+    /**
+     * @param $personId
+     * @param string $diploma
+     * @param string $MarginTop
+     *
+     * @return Slice
+     */
+    public function getSignPartCopy($personId, string $diploma, string $MarginTop = '30px'): Slice
+    {
+        $slice = (new Slice())
+            ->styleMarginTop($MarginTop)
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('gez. ' . ($this->CopyCertificateData['HeadmasterOriginalName'] ?? ''))
+                    ->styleAlignCenter()
+                    ->styleBorderBottom('1px', '#000')
+                    , '30%')
+                ->addElementColumn((new Element())
+                    , '40%')
+                ->addElementColumn((new Element())
+                    ->setContent('gez. ' . ($this->CopyCertificateData['DivisionTeacherOriginalName'] ?? ''))
+                    ->styleAlignCenter()
+                    ->styleBorderBottom('1px', '#000')
+                    , '30%')
+            )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('Schulleiter(in)')
+                    ->styleAlignCenter()
+                    ->styleTextSize('11px')
+                    , '30%')
+                ->addElementColumn((new Element())
+                    , '5%')
+                ->addElementColumn((new Element())
+                    ->setContent('Dienstsiegel der Schule')
+                    ->styleAlignCenter()
+                    ->styleTextSize('11px')
+                    , '30%')
+                ->addElementColumn((new Element())
+                    , '5%')
+                ->addElementColumn((new Element())
+                    ->setContent('Klassenlehrer(in)')
+                    ->styleAlignCenter()
+                    ->styleTextSize('11px')
+                    , '30%')
+            );
+
+        $this->setCommonCertifiedCopyStatement($slice, $personId, $diploma, '35px');
+
+        return $slice;
     }
 
     /**

@@ -149,7 +149,10 @@ class FoesAbsGeistigeEntwicklung extends Certificate
             ->addSlice(MsAbsRs::getPictureForDiploma($showPictureOnSecondPage))
             ->addSlice($this->getDescriptionWithoutTeamContent($personId, '150', '15px'))
             ->addSlice($this->getDateLine($personId))
-            ->addSlice($this->getSignPart($personId, true, '30px'));
+            ->addSlice($this->CopyCertificateData
+                ? $this->getSignPartCopy($personId, 'Förderschwerpunkt geistige Entwicklung')
+                : $this->getSignPart($personId, true, '30px')
+            );
 
         return $pageList;
     }

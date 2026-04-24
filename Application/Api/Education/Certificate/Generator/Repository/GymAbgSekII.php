@@ -68,8 +68,29 @@ class GymAbgSekII extends Certificate
     public function buildPages(TblPerson $tblPerson = null): array
     {
         $personId = $tblPerson ? $tblPerson->getId() : 0;
+        $isCopy = (bool) $this->CopyCertificateData;
+        // Beglaubigungsvermerk passt nicht mit auf die Unterschriftseite → auf die Rückseite drucken
+        if ($isCopy) {
+            $slice = (new Slice())
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('Vor- und Zuname')
+                        , '18%')
+                    ->addElementColumn((new Element())
+                        ->setContent('{{ Content.P' . $personId . '.Person.Data.Name.First }}
+                                          {{ Content.P' . $personId . '.Person.Data.Name.Last }}')
+                        ->styleAlignCenter()
+                        ->styleBorderBottom()
+                    )
+                )->styleMarginTop('60px');
 
-        $pageList[] = (new Page());
+            $this->setCommonCertifiedCopyStatement($slice, $personId, 'Realschulabschluss gleichgestellten mittleren Schulabschluss', '35px');
+
+            $pageList[] = (new Page())
+                ->addSlice($slice);
+        } else {
+            $pageList[] = (new Page());
+        }
 
         $pageList[] = (new Page())
             ->addSlice($this->getHeadForLeave($this->isSample()))
@@ -545,54 +566,9 @@ class GymAbgSekII extends Certificate
                     ->addElementColumn((new Element()))
                 )
             )
-            ->addSlice((new Slice())
-                ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        ->styleTextSize($textSize)
-                        ->styleAlignCenter()
-                        ->styleBorderBottom('1px', '#000')
-                        , '35%')
-                    ->addElementColumn((new Element())
-                        ->setContent('Dienstsiegel')
-                        ->styleTextSize($textSize)
-                        ->styleAlignCenter()
-                        )
-                    ->addElementColumn((new Element())
-                        , '35%')
-                )
-                ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        ->setContent('
-                            {% if(Content.P' . $personId . '.Headmaster.Description is not empty) %}
-                                {{ Content.P' . $personId . '.Headmaster.Description }}
-                            {% else %}
-                                Schulleiter(in)
-                            {% endif %}'
-                        )
-                        ->styleTextSize($textSize)
-                        , '35%')
-                    ->addElementColumn((new Element())
-                        ->setContent('der Schule')
-                        ->styleTextSize($textSize)
-                        ->styleAlignCenter()
-                    )
-                    ->addElementColumn((new Element())
-                        , '35%')
-                )
-                ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        ->setContent(
-                            '{% if(Content.P' . $personId . '.Headmaster.Name is not empty) %}
-                                {{ Content.P' . $personId . '.Headmaster.Name }}
-                            {% else %}
-                                &nbsp;
-                            {% endif %}'
-                        )
-                        ->styleTextSize($textSize)
-                    , '35%')
-                )
-                ->styleMarginTop('20px')
+            ->addSlice($isCopy
+                ? $this->getCustomSignCopy($personId, $textSize)
+                : $this->getCustomSign($personId, $textSize)
             )
             ->addSlice((new Slice())
                 ->addSection((new Section())
@@ -1019,5 +995,102 @@ class GymAbgSekII extends Certificate
         ;
 
         return $schoolSlice;
+    }
+
+    /**
+     * @param $personId
+     * @param $textSize
+     *
+     * @return Slice
+     */
+    private function getCustomSign($personId, $textSize): Slice
+    {
+        return (new Slice())
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    ->styleTextSize($textSize)
+                    ->styleAlignCenter()
+                    ->styleBorderBottom('1px', '#000')
+                    , '35%')
+                ->addElementColumn((new Element())
+                    ->setContent('Dienstsiegel')
+                    ->styleTextSize($textSize)
+                    ->styleAlignCenter()
+                )
+                ->addElementColumn((new Element())
+                    , '35%')
+            )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('
+                            {% if(Content.P' . $personId . '.Headmaster.Description is not empty) %}
+                                {{ Content.P' . $personId . '.Headmaster.Description }}
+                            {% else %}
+                                Schulleiter(in)
+                            {% endif %}'
+                    )
+                    ->styleTextSize($textSize)
+                    , '35%')
+                ->addElementColumn((new Element())
+                    ->setContent('der Schule')
+                    ->styleTextSize($textSize)
+                    ->styleAlignCenter()
+                )
+                ->addElementColumn((new Element())
+                    , '35%')
+            )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent(
+                        '{% if(Content.P' . $personId . '.Headmaster.Name is not empty) %}
+                                {{ Content.P' . $personId . '.Headmaster.Name }}
+                            {% else %}
+                                &nbsp;
+                            {% endif %}'
+                    )
+                    ->styleTextSize($textSize)
+                    , '35%')
+            )
+            ->styleMarginTop('20px');
+    }
+
+    /**
+     * @param $personId
+     * @param $textSize
+     *
+     * @return Slice
+     */
+    private function getCustomSignCopy($personId, $textSize): Slice
+    {
+        return (new Slice())
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('gez. ' . ($this->CopyCertificateData['HeadmasterOriginalName'] ?? ''))
+                    ->styleAlignCenter()
+                    ->styleBorderBottom('1px', '#000')
+                    , '35%')
+                ->addElementColumn((new Element())
+                    ->setContent('Dienstsiegel')
+                    ->styleTextSize($textSize)
+                    ->styleAlignCenter()
+                )
+                ->addElementColumn((new Element())
+                    , '35%')
+            )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('Schulleiter(in)')
+                    ->styleTextSize($textSize)
+                    , '35%')
+                ->addElementColumn((new Element())
+                    ->setContent('der Schule')
+                    ->styleTextSize($textSize)
+                    ->styleAlignCenter()
+                )
+                ->addElementColumn((new Element())
+                    , '35%')
+            )
+            ->styleMarginTop('20px');
     }
 }

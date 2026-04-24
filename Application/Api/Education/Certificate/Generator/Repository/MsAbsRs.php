@@ -2,16 +2,12 @@
 namespace SPHERE\Application\Api\Education\Certificate\Generator\Repository;
 
 use SPHERE\Application\Api\Education\Certificate\Generator\Certificate;
-use SPHERE\Application\Education\Certificate\Generate\Generate;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Element;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Page;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Section;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
-use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
-use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer as ConsumerGatekeeper;
-use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Setting\Consumer\Consumer;
 
 /**
@@ -32,6 +28,7 @@ class MsAbsRs extends Certificate
     {
 
         $personId = $tblPerson ? $tblPerson->getId() : 0;
+        $isCopy = (bool) $this->CopyCertificateData;
 
         $showPictureOnSecondPage = true;
         if (($tblSetting = \SPHERE\Application\Setting\Consumer\Consumer::useService()->getSetting(
@@ -144,8 +141,7 @@ class MsAbsRs extends Certificate
                 ->styleAlignCenter()
                 ->styleMarginTop('22%')
             )
-            ->addSlice(self::getPictureForDiploma($showPictureOnSecondPage))
-        ;
+            ->addSlice(self::getPictureForDiploma($showPictureOnSecondPage));
 
         $pageList[] = (new Page())
             ->addSlice((new Slice())
@@ -190,11 +186,11 @@ class MsAbsRs extends Certificate
 //            ->addSlice((new Slice())->styleHeight('15px'))
             /////////////////////////
             ->addSlice($this->getDescriptionHead($personId))
-            ->addSlice($this->getDescriptionContent($personId, '200px', '15px'))
-            ->addSlice($this->getDateLine($personId))
+            ->addSlice($this->getDescriptionContent($personId, $isCopy ? '110px' : '200px', '15px'))
+            ->addSlice($this->getDateLine($personId, $isCopy ? '10px' : '25px'))
             ///////
-            ->addSlice($this->getExaminationsBoard('10px','11px'))
-            ->addSlice($this->getInfo('40px',
+            ->addSlice($this->getExaminationsBoard('10px','11px', $personId, 'REALSCHULABSCHLUSS'))
+            ->addSlice($this->getInfo($isCopy ? '20px' : '40px',
                 'Notenerläuterung:',
                 '1 = sehr gut; 2 = gut; 3 = befriedigend; 4 = ausreichend; 5 = mangelhaft; 6 = ungenügend')
             );
@@ -448,171 +444,6 @@ class MsAbsRs extends Certificate
         }
 
         return $slice;
-    }
-
-     /**
-     * @param string $marginTop
-     * @param string $textSize
-     *
-     * @return Slice
-     * @throws \Exception
-     */
-    public function getExaminationsBoard($marginTop, $textSize)
-    {
-
-        $leaderName = '&nbsp;';
-        $leaderDescription = 'Vorsitzende(r)';
-        $firstMemberName = '&nbsp;';
-        $secondMemberName = '&nbsp;';
-
-        if ($this->getTblPrepareCertificate()
-            && ($tblGenerateCertificate = $this->getTblPrepareCertificate()->getServiceTblGenerateCertificate())
-        ) {
-
-            if (($tblGenerateCertificateSettingLeader = Generate::useService()->getGenerateCertificateSettingBy($tblGenerateCertificate, 'Leader'))
-                && ($tblPersonLeader = Person::useService()->getPersonById($tblGenerateCertificateSettingLeader->getValue()))
-            ) {
-                $leaderName = $this->getPersonDisplayName($tblPersonLeader);
-                if (($tblCommon = $tblPersonLeader->getCommon())
-                    && ($tblCommonBirthDates = $tblCommon->getTblCommonBirthDates())
-                    && ($tblGender = $tblCommonBirthDates->getTblCommonGender())
-                ) {
-                    if ($tblGender->getName() == 'Männlich') {
-                        $leaderDescription = 'Vorsitzender';
-                    } elseif ($tblGender->getName() == 'Weiblich') {
-                        $leaderDescription = 'Vorsitzende';
-                    }
-                }
-            }
-            if (($tblGenerateCertificateSettingFirstMember = Generate::useService()->getGenerateCertificateSettingBy($tblGenerateCertificate, 'FirstMember'))
-                && ($tblPersonFirstMember = Person::useService()->getPersonById($tblGenerateCertificateSettingFirstMember->getValue()))
-            ) {
-                $firstMemberName = $this->getPersonDisplayName($tblPersonFirstMember);
-            }
-
-            if (($tblGenerateCertificateSettingSecondMember = Generate::useService()->getGenerateCertificateSettingBy($tblGenerateCertificate, 'SecondMember'))
-                && ($tblPersonSecondMember = Person::useService()->getPersonById($tblGenerateCertificateSettingSecondMember->getValue()))
-            ) {
-                $secondMemberName = $this->getPersonDisplayName($tblPersonSecondMember);
-            }
-        }
-
-        $slice = (new Slice())
-            ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->styleMarginTop($marginTop)
-                    , '30%')
-                ->addElementColumn((new Element())
-                    ->setContent('Der Prüfungsausschuss')
-                    ->styleAlignCenter()
-                    ->styleMarginTop($marginTop)
-                )
-                ->addElementColumn((new Element())
-                    ->styleMarginTop($marginTop)
-                    , '30%')
-            )
-            ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleBorderBottom()
-                    ->styleMarginTop('15px')
-                    , '30%')
-                ->addElementColumn((new Element())
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleBorderBottom()
-                    ->styleMarginTop('15px')
-                    , '30%')
-            )
-            ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent($leaderDescription)
-                    ->styleAlignCenter()
-                    ->styleTextSize($textSize)
-                    ->styleMarginTop('0px')
-                    , '30%')
-                ->addElementColumn((new Element())
-                    ->setContent('Dienstsiegel der Schule' )
-                    ->styleTextSize($textSize)
-                    ->styleAlignCenter()
-                    ->styleMarginTop('0px')
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('Mitglied')
-                    ->styleAlignCenter()
-                    ->styleTextSize($textSize)
-                    ->styleMarginTop('0px')
-                    , '30%')
-            )
-            ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent($leaderName)
-                    ->styleAlignCenter()
-                    ->styleTextSize($textSize)
-                    ->styleMarginTop('0px')
-                    , '30%')
-                ->addElementColumn((new Element())
-                )
-                ->addElementColumn((new Element())
-                    ->setContent($firstMemberName)
-                    ->styleAlignCenter()
-                    ->styleTextSize($textSize)
-                    ->styleMarginTop('0px')
-                    , '30%')
-            )
-            ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    , '30%')
-                ->addElementColumn((new Element())
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleBorderBottom()
-                    ->styleMarginTop('15px')
-                    , '30%')
-            )
-            ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    , '30%')
-                ->addElementColumn((new Element())
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('Mitglied')
-                    ->styleAlignCenter()
-                    ->styleTextSize($textSize)
-                    ->styleMarginTop('0px')
-                    , '30%')
-            )
-            ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    , '30%')
-                ->addElementColumn((new Element())
-                )
-                ->addElementColumn((new Element())
-                    ->setContent($secondMemberName)
-                    ->styleAlignCenter()
-                    ->styleTextSize($textSize)
-                    ->styleMarginTop('0px')
-                    , '30%')
-            )
-        ;
-
-        return $slice;
-    }
-
-    /**
-     * @param TblPerson $tblPerson
-     *
-     * @return string
-     */
-    private function getPersonDisplayName(TblPerson $tblPerson): string
-    {
-        if (ConsumerGatekeeper::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'CSW')) {
-            return $tblPerson->getFirstSecondName() . ' ' . $tblPerson->getLastName();
-        } else {
-            return $tblPerson->getFullName();
-        }
     }
 
     /**

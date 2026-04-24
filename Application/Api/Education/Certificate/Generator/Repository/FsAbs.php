@@ -4,7 +4,6 @@ namespace SPHERE\Application\Api\Education\Certificate\Generator\Repository;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Element;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Page;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
-use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblLeaveComplexExam;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 
@@ -46,6 +45,7 @@ class FsAbs extends FsStyle
 
         // leere Seite
         $pageList[] = new Page();
+        $isCopy = (bool) $this->CopyCertificateData;
 
         $Page = (new Page());
         $Page->addSlice($this->getSchoolHeadAbs($personId));
@@ -53,9 +53,12 @@ class FsAbs extends FsStyle
 
         $Page->addSlice((new Slice())->addElement((new Element())
             ->setContent('&nbsp;')
-            ->stylePaddingTop('220px')
+            ->stylePaddingTop($isCopy ? '60px' : '220px')
         ));
-        $Page->addSlice($this->getIndividuallySignPart($personId, true));
+        $Page->addSlice($isCopy
+            ? $this->getFsSignPartCopy($personId, 'Abschlusszeugnis der Fachschule')
+            : $this->getIndividuallySignPart($personId, true)
+        );
 
         $pageList[] = $Page;
 

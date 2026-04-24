@@ -14,8 +14,6 @@ use SPHERE\Application\Education\Certificate\Generator\Repository\Page;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Section;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
-use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer as ConsumerGatekeeper;
-use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 
 /**
@@ -129,8 +127,11 @@ class MsAbgGeistigeEntwicklung extends Certificate
             )
             ->addSlice($this->getSupportContent($personId, '200px', '55px', 'Inklusive Unterrichtung¹: '))
             ->addSlice($this->getDateLine($personId))
-            ->addSlice($this->getSignPart($personId, true, '30px'))
-            ->addSlice($this->getInfo('187px',
+            ->addSlice($this->CopyCertificateData
+                ? $this->getSignPartCopy($personId, 'ohne Schulabschluss')
+                : $this->getSignPart($personId, true, '30px')
+            )
+            ->addSlice($this->getInfo($this->CopyCertificateData ? '40px' : '187px',
                 '¹ &nbsp;&nbsp;&nbsp; gemäß § 27 Absatz 6 der Schulordnung Ober- und Abendoberschulen'
             ));
 

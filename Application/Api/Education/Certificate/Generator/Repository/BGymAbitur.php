@@ -3,7 +3,6 @@
 namespace SPHERE\Application\Api\Education\Certificate\Generator\Repository;
 
 use DateTime;
-use SPHERE\Application\Education\Certificate\Generate\Generate;
 use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Element;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Page;
@@ -38,6 +37,7 @@ class BGymAbitur extends BGymDiplomaStyle
     public function buildPages(TblPerson $tblPerson = null): array
     {
         $personId = $tblPerson ? $tblPerson->getId() : 0;
+        $isCopy = (bool) $this->CopyCertificateData;
 
         $isBellUsed = false;
         if ($tblPerson) {
@@ -114,7 +114,10 @@ class BGymAbitur extends BGymDiplomaStyle
                     ->styleAlignCenter()
                 )
             )
-            ->addSlice($this->getSignPartBGymDiploma($personId, '270px'));
+            ->addSlice($isCopy
+                ? $this->getBGySignPartCopy($personId, 'Zeugnis der allgemeinen Hochschulreife', '50px')
+                : $this->getSignPartBGymDiploma($personId, '270px')
+            );
 
         $pageList[] = (new Page())
             ->addSlice($this->getPageHeader($personId, 2))
@@ -176,154 +179,30 @@ class BGymAbitur extends BGymDiplomaStyle
             $elementSchoolLogo = (new Element())->setContent('&nbsp;');
         }
 
+        if ($this->isSample()) {
+            $elementSample = (new Element\Sample())
+                ->styleTextSize('30px')
+                ->styleAlignCenter()
+                ->styleHeight('0px');
+        } elseif ($this->CopyCertificateData) {
+            $elementSample = (new Element())
+                ->setContent('Zweitschrift')
+                ->styleTextSize('30px')
+                ->styleHeight('0px');
+        } else {
+            $elementSample = (new Element())->setContent('&nbsp;');
+        }
+
         $Header = (new Slice())
             ->styleMarginTop($marginTop)
             ->addSection((new Section())
                 ->addElementColumn($elementSchoolLogo, '39%')
-                ->addElementColumn($this->isSample()
-                    ? (new Element\Sample())
-                        ->styleTextSize('30px')
-                        ->styleAlignCenter()
-                        ->styleHeight('0px')
-                    : (new Element())->setContent('&nbsp;')
-                )
+                ->addElementColumn($elementSample)
                 ->addElementColumn($elementSaxonyLogo, '39%')
             );
         $Header->styleHeight('100px');
 
         return $Header;
-    }
-
-    /**
-     * @param $personId
-     * @param string $marginTop
-     *
-     * @return Slice
-     */
-    protected function getSignPartBGymDiploma($personId, string $marginTop = '450px'): Slice
-    {
-        $leaderName = '&nbsp;';
-        $leaderDescription = 'Vorsitzende/r';
-
-        if ($this->getTblPrepareCertificate()
-            && ($tblGenerateCertificate = $this->getTblPrepareCertificate()->getServiceTblGenerateCertificate())
-        ) {
-
-            if (($tblGenerateCertificateSettingLeader = Generate::useService()->getGenerateCertificateSettingBy($tblGenerateCertificate, 'Leader'))
-                && ($tblPersonLeader = Person::useService()->getPersonById($tblGenerateCertificateSettingLeader->getValue()))
-            ) {
-                $leaderName = $tblPersonLeader->getFullName();
-                if (($tblCommon = $tblPersonLeader->getCommon())
-                    && ($tblCommonBirthDates = $tblCommon->getTblCommonBirthDates())
-                    && ($tblGender = $tblCommonBirthDates->getTblCommonGender())
-                ) {
-                    if ($tblGender->getName() == 'Männlich') {
-                        $leaderDescription = 'Vorsitzender';
-                    } elseif ($tblGender->getName() == 'Weiblich') {
-                        $leaderDescription = 'Vorsitzende';
-                    }
-                }
-            }
-        }
-
-        return (new Slice())
-            ->styleMarginTop($marginTop)
-            ->addSection((new Section())
-                ->addElementColumn(
-                    $this->getElementDiploma('{% if( Content.P' . $personId . '.Company.Address.City.Name is not empty) %}
-                            {{ Content.P' . $personId . '.Company.Address.City.Name }}
-                        {% else %}
-                            &nbsp;
-                        {% endif %}')
-                    , '35%')
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                )
-                ->addElementColumn(
-                    $this->getElementDiploma('
-                        {% if( Content.P' . $personId . '.Input.Date is not empty) %}
-                            {{ Content.P' . $personId . '.Input.Date }}
-                        {% else %}
-                            &nbsp;
-                        {% endif %}
-                    ')
-                    , '35%')
-            )
-            ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('Ort')
-                    ->styleAlignCenter()
-                    ->styleTextSize('11px')
-                    , '35%')
-                ->addElementColumn((new Element())
-                    , '5%')
-                ->addElementColumn((new Element())
-                    ->setContent('Siegel')
-                    ->styleTextColor('gray')
-                    ->styleAlignCenter()
-                    ->styleTextSize('11px')
-                    , '20%')
-                ->addElementColumn((new Element())
-                    , '5%')
-                ->addElementColumn((new Element())
-                    ->setContent('Datum')
-                    ->styleAlignCenter()
-                    ->styleTextSize('11px')
-                    , '35%')
-            )
-            ->addSection((new Section())
-                ->addElementColumn(
-                    $this->getElementDiploma('&nbsp;')->styleMarginTop('30px')
-                    , '35%')
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                )
-                ->addElementColumn(
-                    $this->getElementDiploma('&nbsp;')->styleMarginTop('30px')
-                    , '35%')
-            )
-            ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent($leaderDescription . ' des Prüfungsausschusses')
-                    ->styleAlignCenter()
-                    ->styleTextSize('11px')
-                    , '35%')
-                ->addElementColumn((new Element())
-                    , '30%')
-                ->addElementColumn((new Element())
-                    ->setContent('
-                        {% if(Content.P' . $personId . '.Headmaster.Description is not empty) %}
-                            {{ Content.P' . $personId . '.Headmaster.Description }}
-                        {% else %}
-                            Schulleiter/in
-                        {% endif %}'
-                    )
-                    ->styleAlignCenter()
-                    ->styleTextSize('11px')
-                    , '35%')
-            )
-            ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent($leaderName)
-                    ->styleTextSize('11px')
-                    ->stylePaddingTop()
-                    ->styleAlignCenter()
-                    , '35%')
-                ->addElementColumn((new Element())
-                    , '30%')
-                ->addElementColumn((new Element())
-                    ->setContent(
-                        '{% if(Content.P' . $personId . '.Headmaster.Name is not empty) %}
-                            {{ Content.P' . $personId . '.Headmaster.Name }}
-                        {% else %}
-                            &nbsp;
-                        {% endif %}'
-                    )
-                    ->styleTextSize('11px')
-                    ->stylePaddingTop()
-                    ->styleAlignCenter()
-                    , '35%')
-            );
     }
 
     /**

@@ -37,6 +37,9 @@ class Certificate extends Extension implements IModuleInterface
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '/Generator/DownLoadMultiLeavePdf', __NAMESPACE__ . '\Generator\Creator::downloadMultiLeavePdf'
         ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '/Generator/History/CopyCertificate/DownloadPdf', __NAMESPACE__ . '\Generator\Creator::downloadCopyPdf'
+        ));
     }
 
     public static function useService()
