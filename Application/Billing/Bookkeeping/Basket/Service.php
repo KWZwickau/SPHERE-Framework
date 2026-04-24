@@ -897,8 +897,8 @@ class Service extends AbstractService
 
     /**
      * @param TblBasketVerification $tblBasketVerification
-     * @param TblPerson             $tblPersonDebtor
-     * @param TblPaymentType        $tblPaymentType
+     * @param TblPerson|null        $tblPersonDebtor
+     * @param TblPaymentType|null   $tblPaymentType
      * @param string                $Value
      * @param TblItemVariant|null   $tblItemVariant
      * @param TblBankAccount|null   $tblBankAccount
@@ -908,8 +908,8 @@ class Service extends AbstractService
      */
     public function changeBasketVerificationDebtor(
         TblBasketVerification $tblBasketVerification,
-        TblPerson $tblPersonDebtor,
-        TblPaymentType $tblPaymentType,
+        TblPerson $tblPersonDebtor = null,
+        TblPaymentType $tblPaymentType = null,
         $Value = '0',
         TblItemVariant $tblItemVariant = null,
         TblBankAccount $tblBankAccount = null,
@@ -917,6 +917,10 @@ class Service extends AbstractService
 
     ){
 
+        // Wird die Zahlart nicht mitgegeben, verwende die bereits hinterlegte
+        if($tblPaymentType == null){
+            $tblPaymentType = $tblBasketVerification->getServiceTblPaymentType();
+        }
         // nicht benötigte Informationen entfernen
         switch($tblPaymentType->getName()){
             case 'Bar':
