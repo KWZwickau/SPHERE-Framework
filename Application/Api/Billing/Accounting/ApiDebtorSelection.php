@@ -38,6 +38,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
+use SPHERE\Common\Frontend\Icon\Repository\Info;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
@@ -55,6 +56,7 @@ use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Danger as DangerText;
+use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\System\Extension\Extension;
 
 /**
@@ -463,7 +465,9 @@ class ApiDebtorSelection extends Extension implements IApiInterface
 //                        ->ajaxPipelineOnChange()
                         , 6),
                     new FormColumn(
-                        (new SelectBox('DebtorSelection[Debtor]', 'Beitragszahler',
+                        (new SelectBox('DebtorSelection[Debtor]', 'Beitragszahler '.(new ToolTip(new Info(),  htmlspecialchars('Beitragszahler über Personenbeziehung.
+                        Personenbeziehungen: '.new Bold('Sorgeberechtigt').', '.new Bold('Vormund').' oder '.new Bold('Bevollmächtigt').' alternativ '.new Bold('"Beitragszahler"').'
+                          verknüpfen')))->enableHtml(),
                             $SelectBoxDebtorList, null, true, null))->setRequired()
                         //ToDO Change follow Content
 //                        ->ajaxPipelineOnChange()
