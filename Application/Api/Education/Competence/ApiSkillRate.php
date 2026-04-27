@@ -48,6 +48,8 @@ class ApiSkillRate extends Extension implements IApiInterface
         $Dispatcher->registerMethod('loadViewStudentSkillRateHistoryContent');
         $Dispatcher->registerMethod('loadEditStudentSkillRateHistoryContent');
         $Dispatcher->registerMethod('saveEditStudentSkillRateHistoryContent');
+        $Dispatcher->registerMethod('loadDeleteStudentSkillRateHistoryContent');
+        $Dispatcher->registerMethod('saveDeleteStudentSkillRateHistoryContent');
 
         $Dispatcher->registerMethod('openRenameStudentSkillModal');
         $Dispatcher->registerMethod('loadRenameSkillContent');
@@ -485,6 +487,78 @@ class ApiSkillRate extends Extension implements IApiInterface
         }
 
         return SkillRate::useService()->updateStudentSkillRate($DivisionCourseId, $tblStudentSkillRate, $Data);
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $StudentSkillRateId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineLoadDeleteStudentSkillRateHistoryContent($DivisionCourseId, $StudentSkillRateId): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'SkillRateHistoryContent'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'loadDeleteStudentSkillRateHistoryContent',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'DivisionCourseId' => $DivisionCourseId,
+            'StudentSkillRateId' => $StudentSkillRateId
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $StudentSkillRateId
+     *
+     * @return string
+     * @noinspection PhpUnused
+     */
+    public function loadDeleteStudentSkillRateHistoryContent($DivisionCourseId, $StudentSkillRateId): string
+    {
+        return SkillRate::useFrontend()->loadDeleteStudentSkillRateHistoryContent($DivisionCourseId, $StudentSkillRateId);
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $StudentSkillRateId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineSaveDeleteStudentSkillRateHistoryContent($DivisionCourseId, $StudentSkillRateId): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'SkillRateHistoryContent'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'saveDeleteStudentSkillRateHistoryContent',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'DivisionCourseId' => $DivisionCourseId,
+            'StudentSkillRateId' => $StudentSkillRateId
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $StudentSkillRateId
+     *
+     * @return string
+     * @noinspection PhpUnused
+     */
+    public function saveDeleteStudentSkillRateHistoryContent($DivisionCourseId, $StudentSkillRateId): string
+    {
+        if (!($tblStudentSkillRate = SkillRate::useService()->getStudentSkillRateById($StudentSkillRateId))) {
+            return new Danger('Kompetenzbewertung wurde nicht gefunden.', new Exclamation());
+        }
+
+        return SkillRate::useService()->deleteStudentSkillRate($DivisionCourseId, $tblStudentSkillRate);
     }
 
     /**

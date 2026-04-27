@@ -407,4 +407,25 @@ class Service extends AbstractService
 
         return false;
     }
+
+    /**
+     * @param $DivisionCourseId
+     * @param TblStudentSkillRate $tblStudentSkillRate
+     *
+     * @return string
+     */
+    public function deleteStudentSkillRate($DivisionCourseId, TblStudentSkillRate $tblStudentSkillRate): string
+    {
+        $tblStudentSkill = $tblStudentSkillRate->getTblStudentSkill();
+        $tblPerson = $tblStudentSkill->getServiceTblPerson() ?: null;
+        $tblSubject = $tblStudentSkill->getServiceTblSubject() ?: null;
+
+        (new Data($this->getBinding()))->deleteStudentSkillRate($tblStudentSkillRate);
+
+        return new Success('Die Daten wurde erfolgreich gespeichert.')
+            // Schülerübersicht muss neu geladen werden
+            // . ApiSkillRate::pipelineLoadViewStudentSkillRateHistoryContent($DivisionCourseId, $tblStudentSkill->getId());
+            . ApiSkillRate::pipelineClose()
+            . ApiSkillRate::pipelineLoadViewStudentContent($DivisionCourseId, $tblPerson?->getId(), $tblSubject?->getId());
+    }
 }

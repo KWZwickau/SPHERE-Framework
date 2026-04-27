@@ -212,4 +212,25 @@ class Data extends AbstractData
 
         return false;
     }
+
+    /**
+     * @param TblStudentSkillRate $tblStudentSkillRate
+     *
+     * @return bool
+     */
+    public function deleteStudentSkillRate(TblStudentSkillRate $tblStudentSkillRate): bool
+    {
+        $Manager = $this->getEntityManager();
+
+        /** @var TblStudentSkillRate $Entity */
+        $Entity = $Manager->getEntityById('TblStudentSkillRate', $tblStudentSkillRate->getId());
+        if (null !== $Entity) {
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
+            $Manager->killEntity($Entity);
+
+            return true;
+        }
+
+        return false;
+    }
 }

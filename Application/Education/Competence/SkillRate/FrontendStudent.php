@@ -32,6 +32,8 @@ use SPHERE\Common\Frontend\Icon\Repository\ClipBoard;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
+use SPHERE\Common\Frontend\Icon\Repository\Ok;
+use SPHERE\Common\Frontend\Icon\Repository\Question;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
@@ -43,6 +45,7 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\Danger as DangerLink;
 use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
@@ -491,7 +494,8 @@ class FrontendStudent extends FrontendDivisionCourse
             $bodyList[$tblStudentSkillRate->getId()]['Option'] = $gradeFrontend->getTableColumnBody(
                 (new Standard('', ApiSkillRate::getEndpoint(), new Edit(), [], 'Kompetenzbewertung bearbeiten'))
                     ->ajaxPipelineOnClick(ApiSkillRate::pipelineLoadEditStudentSkillRateHistoryContent($DivisionCourseId, $tblStudentSkillRate->getId()))
-                . new Standard('', ApiSkillRate::getEndpoint(), new Remove(), [], 'Kompetenzbewertung löschen')
+                . (new Standard('', ApiSkillRate::getEndpoint(), new Remove(), [], 'Kompetenzbewertung löschen'))
+                    ->ajaxPipelineOnClick(ApiSkillRate::pipelineLoadDeleteStudentSkillRateHistoryContent($DivisionCourseId, $tblStudentSkillRate->getId()))
             );
         }
 
@@ -558,6 +562,39 @@ class FrontendStudent extends FrontendDivisionCourse
 
         return new Title(new Edit() . ' Kompetenzbewertung bearbeiten')
             . new Well($form);
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $StudentSkillRateId
+     *
+     * @return string
+     */
+    public function loadDeleteStudentSkillRateHistoryContent($DivisionCourseId, $StudentSkillRateId): string
+    {
+        if (!($tblStudentSkillRate = SkillRate::useService()->getStudentSkillRateById($StudentSkillRateId))) {
+            return new Danger('Kompetenzbewertung wurde nicht gefunden.', new Exclamation());
+        }
+
+        $tblStudentSkill = $tblStudentSkillRate->getTblStudentSkill();
+
+        return new Title(new Remove() . ' Kompetenzbewertung löschen')
+            . new Layout(new LayoutGroup(new LayoutRow(
+                    new LayoutColumn(
+                        new Panel(
+                            new Question() . ' Diese Kompetenzbewertung wirklich löschen?',
+                            array(
+                                'Datum: ' . new Bold($tblStudentSkillRate->getDateString()),
+                                'Bewertung: ' . new Bold($tblStudentSkillRate->getDisplayRate()),
+                            ),
+                            Panel::PANEL_TYPE_DANGER
+                        )
+                        . (new DangerLink('Ja', ApiSkillRate::getEndpoint(), new Ok()))
+                            ->ajaxPipelineOnClick(ApiSkillRate::pipelineSaveDeleteStudentSkillRateHistoryContent($DivisionCourseId, $tblStudentSkillRate->getId()))
+                        . (new Standard('Nein', ApiSkillRate::getEndpoint(), new Remove()))
+                            ->ajaxPipelineOnClick(ApiSkillRate::pipelineLoadViewStudentSkillRateHistoryContent($DivisionCourseId, $tblStudentSkill->getId()))
+                    )
+            )));
     }
 
     /**
