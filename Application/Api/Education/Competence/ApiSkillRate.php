@@ -19,6 +19,7 @@ use SPHERE\Common\Frontend\Ajax\Template\CloseModal;
 use SPHERE\Common\Frontend\Form\Repository\Button\Close;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
+use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\System\Extension\Extension;
 
 class ApiSkillRate extends Extension implements IApiInterface
@@ -43,6 +44,9 @@ class ApiSkillRate extends Extension implements IApiInterface
         $Dispatcher->registerMethod('loadEditStudentContent');
         $Dispatcher->registerMethod('saveEditStudentSkillRate');
         $Dispatcher->registerMethod('openStudentSkillRateHistoryModal');
+        $Dispatcher->registerMethod('openRenameStudentSkillModal');
+        $Dispatcher->registerMethod('loadRenameSkillContent');
+        $Dispatcher->registerMethod('saveRenameSkill');
 
         return $Dispatcher->callMethod($Method);
     }
@@ -366,5 +370,122 @@ class ApiSkillRate extends Extension implements IApiInterface
     public function openStudentSkillRateHistoryModal($StudentSkillId): string
     {
         return SkillRate::useFrontend()->openStudentSkillRateHistoryModal($StudentSkillId);
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $PersonId
+     * @param $SubjectId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineOpenRenameStudentSkillModal($DivisionCourseId, $PersonId, $SubjectId): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'openRenameStudentSkillModal',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'DivisionCourseId' => $DivisionCourseId,
+            'PersonId' => $PersonId,
+            'SubjectId' => $SubjectId
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $PersonId
+     * @param $SubjectId
+     *
+     * @return String
+     * @noinspection PhpUnused
+     */
+    public function openRenameStudentSkillModal($DivisionCourseId, $PersonId, $SubjectId): string
+    {
+        return SkillRate::useFrontend()->openRenameStudentSkillModal($DivisionCourseId, $PersonId, $SubjectId);
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $PersonId
+     * @param $SubjectId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineLoadRenameSkillContent($DivisionCourseId, $PersonId, $SubjectId): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'RenameSkillContent'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'loadRenameSkillContent',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'DivisionCourseId' => $DivisionCourseId,
+            'PersonId' => $PersonId,
+            'SubjectId' => $SubjectId
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $PersonId
+     * @param $SubjectId
+     * @param null $Data
+     *
+     * @return string
+     * @noinspection PhpUnused
+     */
+    public function loadRenameSkillContent($DivisionCourseId, $PersonId, $SubjectId, $Data = null): string
+    {
+        return SkillRate::useFrontend()->loadRenameSkillContent($DivisionCourseId, $PersonId, $SubjectId, $Data);
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $PersonId
+     * @param $SubjectId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineSaveRenameSkill($DivisionCourseId, $PersonId, $SubjectId): Pipeline
+    {
+        $Pipeline = new Pipeline();
+        $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'saveRenameSkill'
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'DivisionCourseId' => $DivisionCourseId,
+            'PersonId' => $PersonId,
+            'SubjectId' => $SubjectId
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $PersonId
+     * @param $SubjectId
+     * @param $Data
+     *
+     * @return string
+     * @noinspection PhpUnused
+     */
+    public function saveRenameSkill($DivisionCourseId, $PersonId, $SubjectId, $Data = null): string
+    {
+        SkillRate::useService()->updateStudentSkill($DivisionCourseId, $PersonId, $SubjectId, $Data);
+
+        return new Success('Kompetenz wurde erfolgreich umbenannt.')
+            . self::pipelineClose()
+            . self::pipelineLoadViewStudentContent($DivisionCourseId, $PersonId, $SubjectId);
     }
 }

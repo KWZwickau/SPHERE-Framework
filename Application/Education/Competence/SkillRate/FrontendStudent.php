@@ -2,11 +2,15 @@
 
 namespace SPHERE\Application\Education\Competence\SkillRate;
 
+use DateTime;
 use MOC\V\Core\FileSystem\FileSystem;
 use SPHERE\Application\Api\Document\Storage\ApiPersonPicture;
 use SPHERE\Application\Api\Education\Competence\ApiSkillRate;
 use SPHERE\Application\Document\Storage\Storage;
+use SPHERE\Application\Education\Competence\SkillGrid\Service\Entity\TblSkill;
 use SPHERE\Application\Education\Competence\SkillGrid\SkillGrid;
+use SPHERE\Application\Education\Competence\SkillRate\Service\Entity\TblStudentSkill;
+use SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount\SelectBoxItem;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
@@ -22,6 +26,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Calendar;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
+use SPHERE\Common\Frontend\Icon\Repository\ClipBoard;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
@@ -39,6 +44,7 @@ use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
+use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Center;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
@@ -67,27 +73,10 @@ class FrontendStudent extends FrontendDivisionCourse
             . new Muted(new Small(" Schüleransicht "))
         );
 
-        $error = '';
-        if (!($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
-            $error = new Danger('Kurs wurde nicht gefunden!', new Exclamation());
-        }
-        if (!($tblPerson = Person::useService()->getPersonById($PersonId))) {
-            $error = new Danger('Schüler wurde nicht gefunden!', new Exclamation());
-        }
-        if (!($tblSubject = Subject::useService()->getSubjectById($SubjectId))) {
-            $error = new Danger('Fach wurde nicht gefunden!', new Exclamation());
-        }
-
-        if ($error) {
-            $stage->setContent($title . $error);
-        } else {
-            $stage->setContent(
-                $title
-//                . new Container('&nbsp;')
-                . $this->getStudentHead($tblPerson, $tblDivisionCourse, $tblSubject ?: null)
-                . ApiSkillRate::receiverBlock($this->loadViewStudentContent($DivisionCourseId, $PersonId, $SubjectId), 'Content')
-            );
-        }
+        $stage->setContent(
+            $title
+            . ApiSkillRate::receiverBlock($this->loadViewStudentContent($DivisionCourseId, $PersonId, $SubjectId), 'Content')
+        );
 
         return $stage;
     }
@@ -99,7 +88,7 @@ class FrontendStudent extends FrontendDivisionCourse
      *
      * @return string
      */
-    private function getStudentHead(TblPerson $tblPerson, TblDivisionCourse $tblDivisionCourse, ?TblSubject $tblSubject): string
+    public function getStudentHead(TblPerson $tblPerson, TblDivisionCourse $tblDivisionCourse, ?TblSubject $tblSubject): string
     {
         $pictureHeight = '138px';
         $panelStudent = new Panel(
@@ -154,12 +143,8 @@ class FrontendStudent extends FrontendDivisionCourse
         if (!($tblPerson = Person::useService()->getPersonById($PersonId))) {
             return new Danger('Schüler wurde nicht gefunden!', new Exclamation());
         }
-        if (!($tblSubject = Subject::useService()->getSubjectById($SubjectId))) {
-            return new Danger('Fach wurde nicht gefunden!', new Exclamation());
-        }
+        $tblSubject = Subject::useService()->getSubjectById($SubjectId) ?: null;
 
-        // Todo individuelle Kompetenzen hinzufügen
-        // Todo anzeige geänderter Skillname
         $dataList = [];
         if (($tblYear = $tblDivisionCourse->getServiceTblYear())
             && ($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))
@@ -169,30 +154,13 @@ class FrontendStudent extends FrontendDivisionCourse
             $tblStudentSkillList = SkillRate::useService()->getStudentSkillListByPersonAndYear($tblPerson, $tblYear);
             $tblSkillList = SkillGrid::useService()->getSkillListBy($tblSchoolType, $level, $tblSubject);
             foreach ($tblSkillList as $tblSkill) {
-                if (($tblSkillArea = $tblSkill->getTblSkillArea())) {
-                    if (!isset($dataList[$tblSkillArea->getId()])) {
-                        $dataList[$tblSkillArea->getId()] = [
-                            'name' => $tblSkillArea->getName() ?: 'Ohne Kompetenzbereich',
-                            'isBold' => false,
-                            'skills' => []
-                        ];
-                    }
-
-                    $isBold = false;
-                    $displayLast = '';
-                    if (($tblStudentSkill = $tblStudentSkillList[$tblSkill->getId()] ?? null)
-                        && ($displayLast = SkillRate::useService()->getDisplayStudentSkillRateLastOrAverage($tblStudentSkill, "Verlauf anzeigen"))
-                    ) {
-                        $dataList[$tblSkillArea->getId()]['isBold'] = true;
-                        $isBold = true;
-                        $displayLast = (new Link(new Bold($displayLast), ApiSkillRate::getEndpoint(), null, []))
-                            ->ajaxPipelineOnClick(ApiSkillRate::pipelineOpenStudentSkillRateHistoryModal($tblStudentSkill->getId()));
-                    }
-                    $displaySkill = ($tblSkill->getLevel() ? new Muted($tblSkill->getLevel() . ' ') : '')
-                        . ($isBold ? new Bold($tblSkill->getSkill()) : $tblSkill->getSkill())
-                        . ($displayLast ? new PullRight($displayLast) : '');
-
-                    $dataList[$tblSkillArea->getId()]['skills'][] = $displaySkill;
+                $tblStudentSkill = $tblStudentSkillList['SkillId_' . $tblSkill->getId()] ?? null;
+                $this->setViewSkillData($dataList, $tblSkill, $tblStudentSkill);
+            }
+            // individuelle Kompetenzen ohne Kompetenzraster
+            foreach ($tblStudentSkillList as $tblStudentSkill) {
+                if (!$tblStudentSkill->getServiceTblSkill()) {
+                    $this->setViewSkillData($dataList, null, $tblStudentSkill);
                 }
             }
         }
@@ -203,10 +171,66 @@ class FrontendStudent extends FrontendDivisionCourse
             $content .= new Panel($item['isBold'] ? new Bold($item['name']) : $item['name'], $item['skills'], Panel::PANEL_TYPE_INFO);
         }
 
-        return (new Primary('Kompetenzen bewerten', ApiSkillRate::getEndpoint(), new Edit()))
+        return (new Primary('Kompetenzen bewerten', ApiSkillRate::getEndpoint(), new ClipBoard()))
                 ->ajaxPipelineOnClick(ApiSkillRate::pipelineLoadEditStudentContent($DivisionCourseId, $PersonId, $SubjectId))
+            . (new Primary('Kompetenz umbenennen', ApiSkillRate::getEndpoint(), new Edit()))
+                ->ajaxPipelineOnClick(ApiSkillRate::pipelineOpenRenameStudentSkillModal($DivisionCourseId, $PersonId, $SubjectId))
             . new Container('&nbsp;')
+            . $this->getStudentHead($tblPerson, $tblDivisionCourse, $tblSubject)
             . $content;
+    }
+
+    /**
+     * @param array $dataList
+     * @param TblSkill|null $tblSkill
+     * @param TblStudentSkill|null $tblStudentSkill
+     *
+     * @return void
+     */
+    private function setViewSkillData(array &$dataList, ?TblSkill $tblSkill, ?TblStudentSkill $tblStudentSkill): void
+    {
+        $skillAreaName = '';
+        if ($tblSkill
+            && ($tblSkillArea = $tblSkill->getTblSkillArea())
+        ) {
+            $skillAreaName = $tblSkillArea->getName() ?: 'Ohne Kompetenzbereich';
+
+        } elseif ($tblStudentSkill) {
+            $skillAreaName = $tblStudentSkill->getSkillArea() ?: 'Ohne Kompetenzbereich';
+        }
+
+        if ($skillAreaName) {
+            $skillAreaIdentifier = preg_replace('/[^a-zA-Z0-9]/', '', $skillAreaName);
+            if (!isset($dataList[$skillAreaIdentifier])) {
+                $dataList[$skillAreaIdentifier] = [
+                    'name' => $skillAreaName,
+                    'isBold' => false,
+                    'skills' => []
+                ];
+            }
+
+            $isBold = false;
+            $displayLast = '';
+            if ($tblStudentSkill) {
+                if (($displayLast = SkillRate::useService()->getDisplayStudentSkillRateLastOrAverage($tblStudentSkill, "Verlauf anzeigen"))) {
+                    $dataList[$skillAreaIdentifier]['isBold'] = true;
+                    $isBold = true;
+                    $displayLast = (new Link(new Bold($displayLast), ApiSkillRate::getEndpoint(), null, []))
+                        ->ajaxPipelineOnClick(ApiSkillRate::pipelineOpenStudentSkillRateHistoryModal($tblStudentSkill->getId()));
+                }
+                $skillLevel = $tblStudentSkill->getSkillLevel();
+                $skill = $tblStudentSkill->getSkill();
+            } else {
+                $skillLevel = $tblSkill->getLevel();
+                $skill = $tblSkill->getSkill();
+            }
+
+            $displaySkill = ($skillLevel ? new Muted($skillLevel . ' ') : '')
+                . ($isBold ? new Bold($skill) : $skill)
+                . ($displayLast ? new PullRight($displayLast) : '');
+
+            $dataList[$skillAreaIdentifier]['skills'][] = $displaySkill;
+        }
     }
 
     /**
@@ -225,9 +249,10 @@ class FrontendStudent extends FrontendDivisionCourse
             return new Danger('Schüler wurde nicht gefunden!', new Exclamation());
         }
 
-        $tblSubject = $SubjectId ? Subject::useService()->getSubjectById($SubjectId) : null;
+        $tblSubject = Subject::useService()->getSubjectById($SubjectId) ?: null;
 
-        return new Well($this->formStudentSkillRateList($tblDivisionCourse, $tblPerson, $tblSubject ?: null));
+        return $this->getStudentHead($tblPerson, $tblDivisionCourse, $tblSubject)
+            . new Well($this->formStudentSkillRateList($tblDivisionCourse, $tblPerson, $tblSubject));
     }
 
     /**
@@ -240,8 +265,13 @@ class FrontendStudent extends FrontendDivisionCourse
      */
     public function formStudentSkillRateList(TblDivisionCourse $tblDivisionCourse, TblPerson $tblPerson, ?TblSubject $tblSubject, $ErrorList = null): Form
     {
-        // Todo individuelle Kompetenzen hinzufügen
-        // Todo anzeige geänderter Skillname
+        // aktuelles Datum vorsetzen
+        if (!$ErrorList) {
+            $global = $this->getGlobal();
+            $global->POST['Data']['Date'] = (new DateTime('today'))->format('d.m.Y');
+            $global->savePost();
+        }
+
         $dataList = [];
         if (($tblYear = $tblDivisionCourse->getServiceTblYear())
             && ($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))
@@ -252,62 +282,13 @@ class FrontendStudent extends FrontendDivisionCourse
             $tblStudentSkillList = SkillRate::useService()->getStudentSkillListByPersonAndYear($tblPerson, $tblYear);
             $tblSkillList = SkillGrid::useService()->getSkillListBy($tblSchoolType, $level, $tblSubject);
             foreach ($tblSkillList as $tblSkill) {
-                if (($tblSkillArea = $tblSkill->getTblSkillArea())) {
-                    if (!isset($dataList[$tblSkillArea->getId()])) {
-                        $dataList[$tblSkillArea->getId()] = [
-                            'name' => $tblSkillArea->getName() ?: 'Ohne Kompetenzbereich',
-                            'isBold' => false,
-                            'skills' => []
-                        ];
-                    }
-
-                    // Eingabe entsprechend dem Bewertungssystem
-                    $tblSkillGrid = $tblSkill->getTblSkillGrid();
-                    if ($tblSkillGrid && !isset($scoreTypeListBySkillGrid[$tblSkillGrid->getId()])) {
-                        if (($tblScoreType = $tblSkillGrid->getServiceTblScoreType())) {
-                            $scoreTypeListBySkillGrid[$tblSkillGrid->getId()] = [
-                                'tblScoreTypeId' => $tblScoreType->getId(),
-                                'Items' => $tblScoreType->getScoreTypeItems()
-                            ];
-                        } else {
-                            $scoreTypeListBySkillGrid[$tblSkillGrid->getId()] = null;
-                        }
-                    }
-                    if ($tblSkillGrid && isset($scoreTypeListBySkillGrid[$tblSkillGrid->getId()])
-                        && ($scoreType = $scoreTypeListBySkillGrid[$tblSkillGrid->getId()])
-                    ) {
-                        // individuelles Bewertungssystem
-                        $identifier = "Data[ScoreTypeSkills][{$scoreType['tblScoreTypeId']}][{$tblSkill->getId()}]";
-                        $input = new SelectBox($identifier, '', ['{{ Name }}' => $scoreType['Items']], null, true, null);
-                    } else {
-                        // Prozent
-                        $identifier = "Data[PercentSkills][{$tblSkill->getId()}]";
-                        $input = new TextField($identifier);
-                    }
-
-                    // Anzeige Fehlermeldung
-                    if (isset($ErrorList[$identifier])) {
-                        $input->setError($ErrorList[$identifier]['Message']);
-                    }
-
-                    $isBold = false;
-                    $displayLast = '';
-                    if (isset($tblStudentSkillList[$tblSkill->getId()])
-                        && ($displayLast = SkillRate::useService()->getDisplayStudentSkillRateLastOrAverage($tblStudentSkillList[$tblSkill->getId()]))
-                    ) {
-                        $dataList[$tblSkillArea->getId()]['isBold'] = true;
-                        $isBold = true;
-                    }
-
-                    $displaySkill = ($tblSkill->getLevel() ? new Muted($tblSkill->getLevel() . ' ') : '')
-                        . ($isBold ? new Bold($tblSkill->getSkill()) : $tblSkill->getSkill())
-                        . ($displayLast ? new PullRight($displayLast) : '');
-
-                    $dataList[$tblSkillArea->getId()]['skills'][] = new Layout(new LayoutGroup(new LayoutRow(array(
-                        new LayoutColumn((new Container($displaySkill))->setStyle(['padding-top: 5px;']), 10),
-//                        new LayoutColumn(((new Container($displayLast)))->setStyle(['padding-top: 5px;']), 1),
-                        new LayoutColumn($input, 2)
-                    ))));
+                $tblStudentSkill = $tblStudentSkillList['SkillId_' . $tblSkill->getId()] ?? null;
+                $this->setEditSkillData($dataList, $scoreTypeListBySkillGrid, $ErrorList, $tblSkill, $tblStudentSkill);
+            }
+            // individuelle Kompetenzen ohne Kompetenzraster
+            foreach ($tblStudentSkillList as $tblStudentSkill) {
+                if (!$tblStudentSkill->getServiceTblSkill()) {
+                    $this->setEditSkillData($dataList, $scoreTypeListBySkillGrid, $ErrorList, null, $tblStudentSkill);
                 }
             }
         }
@@ -353,6 +334,95 @@ class FrontendStudent extends FrontendDivisionCourse
     }
 
     /**
+     * @param array $dataList
+     * @param array $scoreTypeListBySkillGrid
+     * @param $ErrorList
+     * @param TblSkill|null $tblSkill
+     * @param TblStudentSkill|null $tblStudentSkill
+     *
+     * @return void
+     */
+    private function setEditSkillData(array &$dataList, array &$scoreTypeListBySkillGrid, $ErrorList, ?TblSkill $tblSkill, ?TblStudentSkill $tblStudentSkill): void
+    {
+        $skillAreaName = '';
+        $inputKey = '';
+        if ($tblSkill
+            && ($tblSkillArea = $tblSkill->getTblSkillArea())
+        ) {
+            $skillAreaName = $tblSkillArea->getName() ?: 'Ohne Kompetenzbereich';
+            $inputKey = 'SkillId_' . $tblSkill->getId();
+        } elseif ($tblStudentSkill) {
+            $skillAreaName = $tblStudentSkill->getSkillArea() ?: 'Ohne Kompetenzbereich';
+            $inputKey = 'StudentSkillId_' . $tblStudentSkill->getId();
+        }
+
+        if ($skillAreaName) {
+            $skillAreaIdentifier = preg_replace('/[^a-zA-Z0-9]/', '', $skillAreaName);
+            if (!isset($dataList[$skillAreaIdentifier])) {
+                $dataList[$skillAreaIdentifier] = [
+                    'name' => $skillAreaName,
+                    'isBold' => false,
+                    'skills' => []
+                ];
+            }
+
+            // Eingabe entsprechend dem Bewertungssystem
+            // Todo Eingabe bei individuellen Bewertungssystem
+            $tblSkillGrid = $tblSkill?->getTblSkillGrid();
+            if ($tblSkillGrid && !isset($scoreTypeListBySkillGrid[$tblSkillGrid->getId()])) {
+                if (($tblScoreType = $tblSkillGrid->getServiceTblScoreType())) {
+                    $scoreTypeListBySkillGrid[$tblSkillGrid->getId()] = [
+                        'tblScoreTypeId' => $tblScoreType->getId(),
+                        'Items' => $tblScoreType->getScoreTypeItems()
+                    ];
+                } else {
+                    $scoreTypeListBySkillGrid[$tblSkillGrid->getId()] = null;
+                }
+            }
+            if ($tblSkillGrid && isset($scoreTypeListBySkillGrid[$tblSkillGrid->getId()])
+                && ($scoreType = $scoreTypeListBySkillGrid[$tblSkillGrid->getId()])
+            ) {
+                // individuelles Bewertungssystem
+                $identifier = "Data[ScoreTypeSkills][{$scoreType['tblScoreTypeId']}][$inputKey]";
+                $input = new SelectBox($identifier, '', ['{{ Name }}' => $scoreType['Items']], null, true, null);
+            } else {
+                // Prozent
+                $identifier = "Data[PercentSkills][$inputKey]";
+                $input = new TextField($identifier);
+            }
+
+            // Anzeige Fehlermeldung
+            if (isset($ErrorList[$identifier])) {
+                $input->setError($ErrorList[$identifier]['Message']);
+            }
+
+            $isBold = false;
+            $displayLast = '';
+            if ($tblStudentSkill) {
+                if (($displayLast = SkillRate::useService()->getDisplayStudentSkillRateLastOrAverage($tblStudentSkill, "Verlauf anzeigen"))) {
+                    $dataList[$skillAreaIdentifier]['isBold'] = true;
+                    $isBold = true;
+                }
+                $skillLevel = $tblStudentSkill->getSkillLevel();
+                $skill = $tblStudentSkill->getSkill();
+            } else {
+                $skillLevel = $tblSkill->getLevel();
+                $skill = $tblSkill->getSkill();
+            }
+
+            $displaySkill = ($skillLevel ? new Muted($skillLevel . ' ') : '')
+                . ($isBold ? new Bold($skill) : $skill)
+                . ($displayLast ? new PullRight($displayLast) : '');
+
+            $dataList[$skillAreaIdentifier]['skills'][] = new Layout(new LayoutGroup(new LayoutRow(array(
+                new LayoutColumn((new Container($displaySkill))->setStyle(['padding-top: 5px;']), 10),
+//                        new LayoutColumn(((new Container($displayLast)))->setStyle(['padding-top: 5px;']), 1),
+                new LayoutColumn($input, 2)
+            ))));
+        }
+    }
+
+    /**
      * @param $StudentSkillId
      *
      * @return string
@@ -384,7 +454,7 @@ class FrontendStudent extends FrontendDivisionCourse
             ]);
         }
 
-        return new Title(new Bold('Verlauf der Kompetenzbewertung'))
+        return new Title(new ClipBoard() . ' Verlauf der Kompetenzbewertung')
             . new Panel('Kompetenz', $dataList, Panel::PANEL_TYPE_INFO)
             . new Title(new Layout(new LayoutGroup(new LayoutRow([
                 new LayoutColumn("Datum", 1),
@@ -393,5 +463,130 @@ class FrontendStudent extends FrontendDivisionCourse
                 new LayoutColumn("Öffentlicher Kommentar zur Kompetenzfeststellung", 6),
             ]))))
             . new Layout(new LayoutGroup($rows));
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $PersonId
+     * @param $SubjectId
+     *
+     * @return string
+     */
+    public function openRenameStudentSkillModal($DivisionCourseId, $PersonId, $SubjectId): string
+    {
+        if (!($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
+            return new Danger('Kurs nicht gefunden.', new Exclamation());
+        }
+        if (!($tblPerson = Person::useService()->getPersonById($PersonId))) {
+            return new Danger('Schüler wurde nicht gefunden!', new Exclamation());
+        }
+
+        $tblSubject = Subject::useService()->getSubjectById($SubjectId) ?: null;
+        $list = [];
+        if (($tblYear = $tblDivisionCourse->getServiceTblYear())
+            && ($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))
+            && ($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())
+            && ($level = $tblStudentEducation->getLevel()) !== null
+        ) {
+            $tblStudentSkillList = SkillRate::useService()->getStudentSkillListByPersonAndYear($tblPerson, $tblYear);
+            $tblSkillList = SkillGrid::useService()->getSkillListBy($tblSchoolType, $level, $tblSubject);
+            foreach ($tblSkillList as $tblSkill) {
+                $tblStudentSkill = $tblStudentSkillList['SkillId_' . $tblSkill->getId()] ?? null;
+                if ($tblStudentSkill) {
+                    $skillLevel = $tblStudentSkill->getSkillLevel();
+                    $skill = $tblStudentSkill->getSkill();
+                } else {
+                    $skillLevel = $tblSkill->getLevel();
+                    $skill = $tblSkill->getSkill();
+                }
+                $list[] = new SelectBoxItem('SkillId_' . $tblSkill->getId(), ($skillLevel ? $skillLevel . ' - ' : '') . $skill);
+            }
+            // individuelle Kompetenzen ohne Kompetenzraster
+            foreach ($tblStudentSkillList as $tblStudentSkill) {
+                if (!$tblStudentSkill->getServiceTblSkill()) {
+                    $skillLevel = $tblStudentSkill->getSkillLevel();
+                    $skill = $tblStudentSkill->getSkill();
+                    $list[] = new SelectBoxItem('StudentSkillId_' . $tblStudentSkill->getId(), ($skillLevel ? $skillLevel . ' - ' : '') . $skill);
+                }
+            }
+        }
+
+        return new Title(new Edit() . ' Kompetenz umbenennen')
+//            . implode('<br />', $list)
+            . new Well((new Form(new FormGroup([
+                new FormRow(
+                    new FormColumn(
+                        (new SelectBox("Data[Id]", "Kompetenz wählen", ['{{ Name }}' => $list], null, false, null))
+                            ->ajaxPipelineOnChange(ApiSkillRate::pipelineLoadRenameSkillContent($DivisionCourseId, $PersonId, $SubjectId))
+                    )
+                ),
+                new FormRow(
+                    new FormColumn(
+                        ApiSkillRate::receiverBlock('', 'RenameSkillContent')
+                    )
+                )
+            ])))->disableSubmitAction());
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $PersonId
+     * @param $SubjectId
+     * @param null $Data
+     *
+     * @return string
+     */
+    public function loadRenameSkillContent($DivisionCourseId, $PersonId, $SubjectId, $Data = null): string
+    {
+        if ($Data === null || empty($Data['Id'])) {
+            return new Warning("Bitte wählen Sie zunächst eine Kompetenz aus.", new Exclamation());
+        }
+
+        $split = explode('_', $Data['Id']);
+        $tblSkill = null;
+        if ($split[0] == 'SkillId'
+            && ($tblSkill = SkillGrid::useService()->getSkillById($split[1]))
+            && ($tblPerson = Person::useService()->getPersonById($PersonId))
+            && ($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))
+            && ($tblYear = $tblDivisionCourse->getServiceTblYear())
+        ) {
+            $tblStudentSkill = SkillRate::useService()->getStudentSkillBy($tblPerson, $tblYear, $tblSkill);
+        } else {
+            $tblStudentSkill = SkillRate::useService()->getStudentSkillById($split[1]);
+        }
+
+        $rows = [];
+        $global = $this->getGlobal();
+        if ($tblStudentSkill) {
+            if (!$tblSkill) {
+                $global->POST['Data']['SkillArea'] = $tblStudentSkill->getSkillArea();
+                $rows[] = new LayoutRow(new LayoutColumn(
+                    new TextField('Data[SkillArea]', '', 'Kompetenzbereich')
+                ));
+            }
+            $global->POST['Data']['SkillLevel'] = $tblStudentSkill->getSkillLevel();
+            $global->POST['Data']['Skill'] = $tblStudentSkill->getSkill();
+        } elseif ($tblSkill) {
+            $global->POST['Data']['SkillLevel'] = $tblSkill->getLevel();
+            $global->POST['Data']['Skill'] = $tblSkill->getSkill();
+        }
+        $global->savePost();
+
+        $rows[] = new LayoutRow([
+            new LayoutColumn(
+                new TextField('Data[SkillLevel]', '', 'Niveau')
+                , 3),
+            new LayoutColumn(
+                (new TextField('Data[Skill]', '', 'Kompetenz'))->setRequired()
+                , 9),
+        ]);
+        $rows[] = new LayoutRow([
+            new LayoutColumn(
+                (new Primary('Speichern', ApiSkillRate::getEndpoint(), new Save()))
+                    ->ajaxPipelineOnClick(ApiSkillRate::pipelineSaveRenameSkill($DivisionCourseId, $PersonId, $SubjectId))
+            )
+        ]);
+
+        return new Layout(new LayoutGroup($rows));
     }
 }

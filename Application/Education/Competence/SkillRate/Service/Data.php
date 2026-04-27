@@ -98,6 +98,39 @@ class Data extends AbstractData
 
     /**
      * @param TblStudentSkill $tblStudentSkill
+     * @param TblPerson|null $tblPersonTeacher
+     * @param string|null $skillArea
+     * @param string|null $skillLevel
+     * @param string $skill
+     *
+     * @return bool
+     */
+    public function updateStudentSkill(TblStudentSkill $tblStudentSkill, ?TblPerson $tblPersonTeacher,
+        ?string $skillArea, ?string $skillLevel, string $skill): bool
+    {
+        $Manager = $this->getEntityManager();
+        /** @var TblStudentSkill $Entity */
+        $Entity = $Manager->getEntityById('TblStudentSkill', $tblStudentSkill->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            if ($skillArea !== null) {
+                $Entity->setSkillArea($skillArea);
+            }
+            $Entity->setSkillLevel($skillLevel ?: null);
+            $Entity->setSkill($skill);
+            $Entity->setServiceTblPersonTeacher($tblPersonTeacher);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param TblStudentSkill $tblStudentSkill
      *
      * @return TblStudentSkillRate[]
      */
