@@ -4,6 +4,7 @@ namespace SPHERE\Application\People\Person\Frontend;
 use SPHERE\Application\Api\People\Person\ApiPersonReadOnly;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
+use SPHERE\Application\People\Meta\Teacher\Teacher;
 use SPHERE\Application\People\Person\FrontendReadOnly;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\TemplateReadOnly;
@@ -40,19 +41,24 @@ class FrontendStaffGroup  extends FrontendReadOnly
         $AuthorizedToCollectGroups[] = TblGroup::META_TABLE_STAFF;
         $AuthorizedToCollectGroups[] = TblGroup::META_TABLE_TEACHER;
         $hasBlock = false;
-        foreach ($AuthorizedToCollectGroups as $group) {
-            if (($tblGroup = Group::useService()->getGroupByMetaTable($group))
-                && Group::useService()->existsGroupPerson($tblGroup, $tblPerson)
-            ) {
-                $hasBlock = true;
-                break;
+
+        if(Teacher::useService()->getTeacherByPerson($tblPerson)){
+            $hasBlock = true;
+        } else {
+            foreach ($AuthorizedToCollectGroups as $group) {
+                if (($tblGroup = Group::useService()->getGroupByMetaTable($group))
+                    && Group::useService()->existsGroupPerson($tblGroup, $tblPerson)
+                ) {
+                    $hasBlock = true;
+                    break;
+                }
             }
         }
+
         if(!$hasBlock){
             return '';
         }
 
-//        $AllowEdit = 1;
         $showLink = (new Link(new EyeOpen() . ' Anzeigen', ApiPersonReadOnly::getEndpoint()))
             ->ajaxPipelineOnClick(ApiPersonReadOnly::pipelineLoadStaffGroupContent($PersonId)); // $AllowEdit
         $DivisionString = FrontendReadOnly::getDivisionString($tblPerson);

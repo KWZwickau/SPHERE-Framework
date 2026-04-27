@@ -28,6 +28,8 @@ class ViewGroupTeacher extends AbstractView
     const TBL_PERSON_ID = 'TblPerson_Id';
 
     const TBL_TEACHER_ACRONYM = 'TblTeacher_Acronym';
+    const TBL_TEACHER_EMPLOYMENT_START = 'TblTeacher_EmploymentStart';
+    const TBL_TEACHER_EMPLOYMENT_END = 'TblTeacher_EmploymentEnd';
 
     const TBL_PERSON_MASERN_MASERN_DATE = 'TblPersonMasern_MasernDate';
     const TBL_STUDENT_MEDICAL_RECORD_MASERN_DOCUMENT_TYPE = 'TblStudentMedicalRecord_MasernDocumentType';
@@ -53,6 +55,14 @@ class ViewGroupTeacher extends AbstractView
     /**
      * @Column(type="string")
      */
+    protected $TblTeacher_EmploymentStart;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblTeacher_EmploymentEnd;
+    /**
+     * @Column(type="string")
+     */
     protected $TblPersonMasern_MasernDate;
     /**
      * @Column(type="string")
@@ -73,13 +83,17 @@ class ViewGroupTeacher extends AbstractView
 
 //        //NameDefinition
         $this->setNameDefinition(self::TBL_TEACHER_ACRONYM, 'Mitarbeiter: Kürzel');
+        $this->setNameDefinition(self::TBL_TEACHER_EMPLOYMENT_START, 'Mitarbeiter: Eintritt Datum');
+        $this->setNameDefinition(self::TBL_TEACHER_EMPLOYMENT_END, 'Mitarbeiter: Austritt Datum');
         $this->setNameDefinition(self::TBL_PERSON_MASERN_MASERN_DATE, 'Masern: Datum');
         $this->setNameDefinition(self::TBL_STUDENT_MEDICAL_RECORD_MASERN_DOCUMENT_TYPE, 'Masern: Art der Bescheinigung');
         $this->setNameDefinition(self::TBL_STUDENT_MEDICAL_RECORD_MASERN_CREATOR_TYPE, 'Masern: Bescheinigung durch');
 
-//        //GroupDefinition
+        //GroupDefinition
         $this->setGroupDefinition('Zusatz', array(
             self::TBL_TEACHER_ACRONYM,
+            self::TBL_TEACHER_EMPLOYMENT_START,
+            self::TBL_TEACHER_EMPLOYMENT_END,
         ));
         //GroupDefinition
         $this->setGroupDefinition('Masern', array(
@@ -87,6 +101,9 @@ class ViewGroupTeacher extends AbstractView
             self::TBL_STUDENT_MEDICAL_RECORD_MASERN_DOCUMENT_TYPE,
             self::TBL_STUDENT_MEDICAL_RECORD_MASERN_CREATOR_TYPE,
         ));
+        // Flag um Filter zu deaktivieren (nur Anzeige von Informationen)
+        $this->setDisableDefinition(self::TBL_TEACHER_EMPLOYMENT_START);
+        $this->setDisableDefinition(self::TBL_TEACHER_EMPLOYMENT_END);
     }
 
     /**
