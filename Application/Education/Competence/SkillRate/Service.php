@@ -92,6 +92,16 @@ class Service extends AbstractService
     }
 
     /**
+     * @param $id
+     *
+     * @return TblStudentSkillRate|false
+     */
+    public function getStudentSkillRateById($id): false|TblStudentSkillRate
+    {
+        return (new Data($this->getBinding()))->getStudentSkillRateById($id);
+    }
+
+    /**
      * @param TblStudentSkill $tblStudentSkill
      *
      * @return TblStudentSkillRate[]
@@ -182,32 +192,7 @@ class Service extends AbstractService
      */
     public function createStudentSkillRateList(TblDivisionCourse $tblDivisionCourse, TblPerson $tblPerson, ?TblSubject $tblSubject, $Data): string
     {
-        $hasErrors = false;
-        $ErrorList = [];
-        if (empty($Data['Date'])) {
-            $ErrorList[] = [
-                'Name' => 'Data[Date]',
-                'Message' => 'Bitte geben Sie ein Datum an'
-            ];
-            $hasErrors = true;
-        }
-        // Prüfung bei Prozent
-        if (isset($Data['PercentSkills'])) {
-            foreach ($Data['PercentSkills'] as $key => $value) {
-                if ($value !== '') {
-                    // Prozent prüfen
-                    $value = trim(str_replace('%', '', $value));
-                    if (!ctype_digit($value) || $value < 0 || $value > 100) {
-                        $name = "Data[PercentSkills][$key]";
-                        $ErrorList[$name] = [
-                            'Name' => $name,
-                            'Message' => 'Bitte geben eine Zahl zwischen 0 und 100 ein.'
-                        ];
-                        $hasErrors = true;
-                    }
-                }
-            }
-        }
+        list($hasErrors,$ErrorList) = $this->checkStudentSkillRateInput($Data);
 
         if ($hasErrors) {
             return SkillRate::useFrontend()->getStudentHead($tblPerson, $tblDivisionCourse, $tblSubject)
@@ -275,6 +260,97 @@ class Service extends AbstractService
 
         return new Success('Die Daten wurde erfolgreich gespeichert.')
             . ApiSkillRate::pipelineLoadViewStudentContent($tblDivisionCourse->getId(), $tblPerson->getId(), $tblSubject?->getId());
+    }
+
+    /**
+     * @param $Data
+     *
+     * @return array
+     */
+    public function checkStudentSkillRateInput($Data): array
+    {
+        $hasErrors = false;
+        $ErrorList = [];
+        if (empty($Data['Date'])) {
+            $ErrorList[] = [
+                'Name' => 'Data[Date]',
+                'Message' => 'Bitte geben Sie ein Datum an'
+            ];
+            $hasErrors = true;
+        }
+        // Prüfung bei Prozent
+        if (isset($Data['PercentSkills'])) {
+            foreach ($Data['PercentSkills'] as $key => $value) {
+                if ($value !== '') {
+                    // Prozent prüfen
+                    $value = trim(str_replace('%', '', $value));
+                    if (!ctype_digit($value) || $value < 0 || $value > 100) {
+                        $name = "Data[PercentSkills][$key]";
+                        $ErrorList[$name] = [
+                            'Name' => $name,
+                            'Message' => 'Bitte geben eine Zahl zwischen 0 und 100 ein.'
+                        ];
+                        $hasErrors = true;
+                    }
+                }
+            }
+        }
+
+        return [$hasErrors, $ErrorList];
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param TblStudentSkillRate $tblStudentSkillRate
+     * @param $Data
+     *
+     * @return string
+     */
+    public function updateStudentSkillRate($DivisionCourseId, TblStudentSkillRate $tblStudentSkillRate, $Data): string
+    {
+        list($hasErrors,$ErrorList) = $this->checkStudentSkillRateInput($Data);
+
+        if ($hasErrors) {
+            return SkillRate::useFrontend()->loadEditStudentSkillRateHistoryContent($tblStudentSkillRate->getId(), $ErrorList);
+        }
+
+        $tblStudentSkill = $tblStudentSkillRate->getTblStudentSkill();
+        $tblPerson = $tblStudentSkill->getServiceTblPerson() ?: null;
+        $tblSubject = $tblStudentSkill->getServiceTblSubject() ?: null;
+        $tblPersonTeacher = Account::useService()->getPersonByLogin() ?: null;
+        $datetime = new DateTime($Data['Date']);
+        $comment = $Data['Comment'] ?: null;
+        if (isset($Data['PercentSkills'])) {
+            foreach ($Data['PercentSkills'] as $value) {
+                if ($value !== '') {
+
+                    $value = trim(str_replace('%', '', $value));
+                    (new Data($this->getBinding()))->updateStudentSkillRate($tblStudentSkillRate, $tblPersonTeacher,
+                        $datetime, $comment, $value, null);
+                }
+            }
+        }
+        // beim Speichern erstmal den Wert mit Speichern, falls das Bewertungssystem nachträglich noch angepasst wird
+        if (isset($Data['ScoreTypeSkills'])) {
+            foreach ($Data['ScoreTypeSkills'] as $scoreTypeId => $array) {
+                if (ScoreType::useService()->getScoreTypeById($scoreTypeId)) {
+                    foreach ($array as $scoreTypeItemId) {
+                        if ($scoreTypeItemId > 0
+                            && ($tblScoreTypeItem = ScoreType::useService()->getScoreTypeItemById($scoreTypeItemId))
+                        ) {
+                            (new Data($this->getBinding()))->updateStudentSkillRate($tblStudentSkillRate, $tblPersonTeacher,
+                                $datetime, $comment, $tblScoreTypeItem->getValue(), $tblScoreTypeItem);
+                        }
+                    }
+                }
+            }
+        }
+
+        return new Success('Die Daten wurde erfolgreich gespeichert.')
+            // Schülerübersicht muss neu geladen werden
+            // . ApiSkillRate::pipelineLoadViewStudentSkillRateHistoryContent($DivisionCourseId, $tblStudentSkill->getId());
+            . ApiSkillRate::pipelineClose()
+            . ApiSkillRate::pipelineLoadViewStudentContent($DivisionCourseId, $tblPerson?->getId(), $tblSubject?->getId());
     }
 
     /**

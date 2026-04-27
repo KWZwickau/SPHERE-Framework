@@ -130,6 +130,16 @@ class Data extends AbstractData
     }
 
     /**
+     * @param $id
+     *
+     * @return TblStudentSkillRate|false
+     */
+    public function getStudentSkillRateById($id): false|TblStudentSkillRate
+    {
+        return $this->getCachedEntityById(__METHOD__, $this->getEntityManager(), 'TblStudentSkillRate', $id);
+    }
+
+    /**
      * @param TblStudentSkill $tblStudentSkill
      *
      * @return TblStudentSkillRate[]
@@ -168,5 +178,38 @@ class Data extends AbstractData
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $entity);
 
         return $entity;
+    }
+
+    /**
+     * @param TblStudentSkillRate $tblStudentSkillRate
+     * @param TblPerson|null $tblPersonTeacher
+     * @param DateTime $dateTime
+     * @param string|null $comment
+     * @param string $rate
+     * @param TblScoreTypeItem|null $tblScoreTypeItem
+     *
+     * @return bool
+     */
+    public function updateStudentSkillRate(TblStudentSkillRate $tblStudentSkillRate,
+        ?TblPerson $tblPersonTeacher, DateTime $dateTime, ?string $comment, string $rate, ?TblScoreTypeItem $tblScoreTypeItem): bool
+    {
+        $manager = $this->getEntityManager();
+        /** @var TblStudentSkillRate $entity */
+        $entity = $manager->getEntityById('TblStudentSkillRate', $tblStudentSkillRate->getId());
+        $protocol = clone $entity;
+        if (null !== $entity) {
+            $entity->setDate($dateTime);
+            $entity->setComment($comment);
+            $entity->setRate($rate);
+            $entity->setServiceTblScoreTypeItem($tblScoreTypeItem);
+            $entity->setServiceTblPersonTeacher($tblPersonTeacher);
+
+            $manager->saveEntity($entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $protocol, $entity);
+
+            return true;
+        }
+
+        return false;
     }
 }

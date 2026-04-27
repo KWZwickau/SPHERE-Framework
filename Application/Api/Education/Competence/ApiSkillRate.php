@@ -43,7 +43,12 @@ class ApiSkillRate extends Extension implements IApiInterface
         $Dispatcher->registerMethod('loadViewStudentContent');
         $Dispatcher->registerMethod('loadEditStudentContent');
         $Dispatcher->registerMethod('saveEditStudentSkillRate');
+        
         $Dispatcher->registerMethod('openStudentSkillRateHistoryModal');
+        $Dispatcher->registerMethod('loadViewStudentSkillRateHistoryContent');
+        $Dispatcher->registerMethod('loadEditStudentSkillRateHistoryContent');
+        $Dispatcher->registerMethod('saveEditStudentSkillRateHistoryContent');
+
         $Dispatcher->registerMethod('openRenameStudentSkillModal');
         $Dispatcher->registerMethod('loadRenameSkillContent');
         $Dispatcher->registerMethod('saveRenameSkill');
@@ -342,11 +347,12 @@ class ApiSkillRate extends Extension implements IApiInterface
     }
 
     /**
+     * @param $DivisionCourseId
      * @param $StudentSkillId
      *
      * @return Pipeline
      */
-    public static function pipelineOpenStudentSkillRateHistoryModal($StudentSkillId): Pipeline
+    public static function pipelineOpenStudentSkillRateHistoryModal($DivisionCourseId, $StudentSkillId): Pipeline
     {
         $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
@@ -354,6 +360,7 @@ class ApiSkillRate extends Extension implements IApiInterface
             self::API_TARGET => 'openStudentSkillRateHistoryModal',
         ));
         $ModalEmitter->setPostPayload(array(
+            'DivisionCourseId' => $DivisionCourseId,
             'StudentSkillId' => $StudentSkillId
         ));
         $Pipeline->appendEmitter($ModalEmitter);
@@ -362,14 +369,122 @@ class ApiSkillRate extends Extension implements IApiInterface
     }
 
     /**
+     * @param $DivisionCourseId
      * @param $StudentSkillId
      *
      * @return string
      * @noinspection PhpUnused
      */
-    public function openStudentSkillRateHistoryModal($StudentSkillId): string
+    public function openStudentSkillRateHistoryModal($DivisionCourseId, $StudentSkillId): string
     {
-        return SkillRate::useFrontend()->openStudentSkillRateHistoryModal($StudentSkillId);
+        return SkillRate::useFrontend()->openStudentSkillRateHistoryModal($DivisionCourseId, $StudentSkillId);
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $StudentSkillId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineLoadViewStudentSkillRateHistoryContent($DivisionCourseId, $StudentSkillId): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'SkillRateHistoryContent'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'loadViewStudentSkillRateHistoryContent',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'DivisionCourseId' => $DivisionCourseId,
+            'StudentSkillId' => $StudentSkillId
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $StudentSkillId
+     *
+     * @return string
+     * @noinspection PhpUnused
+     */
+    public function loadViewStudentSkillRateHistoryContent($DivisionCourseId, $StudentSkillId): string
+    {
+        return SkillRate::useFrontend()->loadViewStudentSkillRateHistoryContent($DivisionCourseId, $StudentSkillId);
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $StudentSkillRateId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineLoadEditStudentSkillRateHistoryContent($DivisionCourseId, $StudentSkillRateId): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'SkillRateHistoryContent'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'loadEditStudentSkillRateHistoryContent',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'DivisionCourseId' => $DivisionCourseId,
+            'StudentSkillRateId' => $StudentSkillRateId
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $StudentSkillRateId
+     *
+     * @return string
+     * @noinspection PhpUnused
+     */
+    public function loadEditStudentSkillRateHistoryContent($DivisionCourseId, $StudentSkillRateId): string
+    {
+        return SkillRate::useFrontend()->loadEditStudentSkillRateHistoryContent($DivisionCourseId, $StudentSkillRateId);
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $StudentSkillRateId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineSaveEditStudentSkillRateHistoryContent($DivisionCourseId, $StudentSkillRateId): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'SkillRateHistoryContent'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'saveEditStudentSkillRateHistoryContent',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'DivisionCourseId' => $DivisionCourseId,
+            'StudentSkillRateId' => $StudentSkillRateId
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $StudentSkillRateId
+     * @param null $Data
+     *
+     * @return string
+     * @noinspection PhpUnused
+     */
+    public function saveEditStudentSkillRateHistoryContent($DivisionCourseId, $StudentSkillRateId, $Data = null): string
+    {
+        if (!($tblStudentSkillRate = SkillRate::useService()->getStudentSkillRateById($StudentSkillRateId))) {
+            return new Danger('Kompetenzbewertung wurde nicht gefunden.', new Exclamation());
+        }
+
+        return SkillRate::useService()->updateStudentSkillRate($DivisionCourseId, $tblStudentSkillRate, $Data);
     }
 
     /**
