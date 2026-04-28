@@ -687,6 +687,36 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblRole $tblRole
+     * @param TblConsumer $tblConsumer
+     *
+     * @return bool|TblAuthorization[]
+     */
+    public function getAccountListByAuthorizationAndConsumer(TblRole $tblRole, TblConsumer $tblConsumer)
+    {
+
+
+        $queryBuilder = $this->getEntityManager()->getQueryBuilder();
+
+        $query = $queryBuilder->select('TA')
+            ->from(TblAuthorization::class, 'TAu')
+            ->leftJoin(TblAccount::class, 'TA', 'WITH', 'TAu.tblAccount = TA.Id')
+            ->where(
+                $queryBuilder->expr()->andX(
+                    $queryBuilder->expr()->isNull('TA.EntityRemove'),
+                    $queryBuilder->expr()->eq('TA.serviceTblConsumer', '?1'),
+                    $queryBuilder->expr()->eq('TAu.serviceTblRole', '?2')
+                ),
+            )
+            ->setParameter(1, $tblConsumer->getId())
+            ->setParameter(2, $tblRole->getId())
+            ->getQuery();
+
+        $tblAccountList = $query->getResult();
+        return empty($tblAccountList) ? false : $tblAccountList;
+    }
+
+    /**
      * @param TblConsumer $tblConsumer
      *
      * @return bool|TblAccount[]

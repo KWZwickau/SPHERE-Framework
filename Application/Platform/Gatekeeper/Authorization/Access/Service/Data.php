@@ -248,6 +248,27 @@ class Data extends AbstractData
         return $Entity;
     }
 
+    /**
+     * @param TblRole $tblRole
+     * @param bool $IsIndividual
+     *
+     * @return TblRole
+     */
+    public function updateRoleIndividual(TblRole $tblRole, bool $IsIndividual = false): TblRole
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $Entity = $Manager->getEntity('TblRole')->find($tblRole->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setIndividual($IsIndividual);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+        }
+        return $Entity;
+    }
+
    /**
     * @param TblRole $tblRole
     * @param TblConsumer $tblConsumer

@@ -337,6 +337,18 @@ class Service extends AbstractService
 
     /**
      * @param TblRole $tblRole
+     * @param bool $IsIndividual
+     *
+     * @return TblRole
+     */
+    public function updateRoleIndividual(TblRole $tblRole, bool $IsIndividual = false): TblRole
+    {
+
+        return (new Data($this->getBinding()))->updateRoleIndividual($tblRole, $IsIndividual);
+    }
+
+    /**
+     * @param TblRole $tblRole
      * @param TblConsumer $tblConsumer
      * @return bool
      */

@@ -6,6 +6,7 @@ use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\IApiInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumerLogin;
 use SPHERE\Application\Platform\System\DataMaintenance\Frontend;
@@ -22,7 +23,9 @@ use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Layout\Repository\Headline;
+use SPHERE\Common\Frontend\Layout\Repository\Listing;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
+use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
@@ -223,22 +226,43 @@ class ApiConsumerLogin extends Extension implements IApiInterface
             $SelectBoxActive = array(1 => 'Aktivieren', 2 => 'nicht Aktiv');
         }
 
-        $FormRow = new FormRow(array(
-            new FormColumn(new SelectBox('Data[Active]', $tblRole->getName().' Status', $SelectBoxActive), 4)
-        ));
+        $EffectUserList = '';
+        if($tblRoleConsumer){
+            $UserList = array();
+            if(($tblAccountList = Account::useService()->getAccountListByAuthorizationAndConsumer($tblRole, $tblConsumer))){
+                foreach($tblAccountList as $tblAccount){
+                    $UserList[] = $tblAccount->getUsername();
+                }
+            }
+            $EffectUserList = new Listing($UserList);
+            if(empty($UserList)){
+                $EffectUserList = 'keine Benutzer betroffen';
+            }
+        }
 
         return
             new Layout(new LayoutGroup(new LayoutRow(array(
                 new LayoutColumn(
                     new Headline($tblRole->getName())
-                    , 3),
+                    , 4),
                 new LayoutColumn(
                     new PullRight(new Headline($tblConsumer->getName(), $tblConsumer->getAcronym()))
-                    , 9),
+                    , 8),
             ))))
-            .new Well(new Form(new FormGroup(array($FormRow))
-                , (new Primary('Speichern','#'))->ajaxPipelineOnClick(ApiConsumerLogin::pipelineSaveRoleModal($ConsumerId, $RoleId))
-            ));
+            .new Well(
+                new Layout(new LayoutGroup(new LayoutRow(array(
+                    new LayoutColumn(new Form(new FormGroup(new FormRow(
+                        new FormColumn(
+                            new SelectBox('Data[Active]', $tblRole->getName().' Status', $SelectBoxActive)
+                        , 12)))
+                        , (new Primary('Speichern','#'))->ajaxPipelineOnClick(ApiConsumerLogin::pipelineSaveRoleModal($ConsumerId, $RoleId))
+                    ), 6),
+                    new LayoutColumn(
+                        ($EffectUserList?new Title('Betroffene Benutzer ', 'die das Recht verlieren').$EffectUserList: '')
+                    , 6),
+                ))))
+
+            );
     }
 
     /**
@@ -320,6 +344,11 @@ class ApiConsumerLogin extends Extension implements IApiInterface
         } else {
             if(($tblRoleConsumer = Access::useService()->getRoleConsumerBy($tblRole, $tblConsumer))){
                 Access::useService()->removeRoleConsumer($tblRoleConsumer);
+                if(($tblAccountList = Account::useService()->getAccountListByAuthorizationAndConsumer($tblRole, $tblConsumer))){
+                    foreach ($tblAccountList as $tblAccount) {
+                        Account::useService()->removeAccountAuthorization($tblAccount, $tblRole);
+                    }
+                }
             }
         }
         return new Success('Einstellung wurde gespeichert')

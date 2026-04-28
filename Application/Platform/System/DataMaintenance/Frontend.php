@@ -29,16 +29,17 @@ use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\Check;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
-use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
 use SPHERE\Common\Frontend\Icon\Repository\Info as InfoIcon;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
+use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\Question;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Server;
 use SPHERE\Common\Frontend\Icon\Repository\Success as SuccessIcon;
+use SPHERE\Common\Frontend\Icon\Repository\Unchecked;
 use SPHERE\Common\Frontend\Icon\Repository\Upload;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
@@ -64,6 +65,8 @@ use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Center;
 use SPHERE\Common\Frontend\Text\Repository\Code;
+use SPHERE\Common\Frontend\Text\Repository\Danger as DangerText;
+use SPHERE\Common\Frontend\Text\Repository\Success as SuccessText;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\RedirectScript;
@@ -623,15 +626,17 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendConsumerLogin()
     {
 
-        $Stage = new Stage('Mandanten', 'Consumerlogin');
+        $Stage = new Stage('Mandanten', 'Verwaltung Module');
         $Stage->addButton(new Standard('Zurück', __NAMESPACE__, new ChevronLeft()));
+        // Fakturierung individualisieren kann nach durchführung wieder entfernt werden
+        if(($tblRole = Access::useService()->getRoleByName('Fakturierung'))
+        && !$tblRole->isIndividual()){
+            $Stage->addButton(new Standard('Fakturierung Individualisieren', __NAMESPACE__.'/ConsumerLogin/Billing', new Plus()));
+        }
 
         $Stage->setContent(
             ApiConsumerLogin::receiverModal('Modal')
             .new Layout(new LayoutGroup(array(new LayoutRow(array(
-                new LayoutColumn(
-                    new Info(new InfoIcon().' Das deaktivieren eines Rechtes entfernt die vergebenen Rechte am Benutzer nicht. Nachkontrolle bei Deaktivierung wenn erforderlich.')
-                ),
                 new LayoutColumn(
                     ApiConsumerLogin::receiverBlock($this->getConsumerLoginTable(), 'ConsumerLoginTable') // ApiConsumerLogin::pipelineReload()
                 )
@@ -649,6 +654,7 @@ class Frontend extends Extension implements IFrontendInterface
         $tblConsumerAll = GatekeeperConsumer::useService()->getConsumerAll();
         $TableContent = array();
         $tblRoleList = Access::useService()->getRoleByIsIndividual();
+//        $tblRoleList = (new Sorter($tblRoleList))->sortObjectBy('Name');
         foreach ($tblConsumerAll as $tblConsumer) {
             $item = array();
             $item['Acronym'] = $tblConsumer->getAcronym();
@@ -656,26 +662,27 @@ class Frontend extends Extension implements IFrontendInterface
             $item['Type'] = $tblConsumer->getType();
             if($tblRoleList){
                 foreach($tblRoleList as $tblRole){
-                    $item[$tblRole->getId().'Id'] = (new Link(new Edit(), ''))
+                    $item[$tblRole->getId().'Id'] = '<span hidden>1'.$tblConsumer->getAcronym().'</span>'.(new Link(new Unchecked(), ''))
                         ->ajaxPipelineOnClick(ApiConsumerLogin::pipelineOpenRoleModal($tblConsumer->getId(), $tblRole->getId()));
                     if(Access::useService()->getRoleConsumerBy($tblRole, $tblConsumer)) {
-                        $item[$tblRole->getId().'Id'] = (new Link(new Edit().' Aktiv', ''))
+                        $item[$tblRole->getId().'Id'] = '<span hidden>0'.$tblConsumer->getAcronym().'</span>'.(new Link(new Check().'', ''))
                             ->ajaxPipelineOnClick(ApiConsumerLogin::pipelineOpenRoleModal($tblConsumer->getId(), $tblRole->getId()));
                     }
                 }
             }
 
-            $item['DLLP'] = (new Link(new Edit(), ''))
+            $item['DLLP'] = '<span hidden>1'.$tblConsumer->getAcronym().'</span>'.(new Link(new Unchecked(), ApiConsumerLogin::getEndpoint()))
                 ->ajaxPipelineOnClick(ApiConsumerLogin::pipelineOpenDllpModal($tblConsumer->getId(), TblConsumerLogin::VALUE_SYSTEM_DLLP));
-            $item['SSWStop'] = (new Link(new Edit(), ''))
+            $item['SSWStop'] = '<span hidden>1'.$tblConsumer->getAcronym().'</span>'.(new Link(new Unchecked(), ApiConsumerLogin::getEndpoint()))
                 ->ajaxPipelineOnClick(ApiConsumerLogin::pipelineOpenSswStopModal($tblConsumer->getId(), TblConsumerLogin::VALUE_SYSTEM_SSW_STOP));
 
             if(($tblConsumerLogin = GatekeeperConsumer::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_DLLP))){
-                $item['DLLP'] = (new Link(new Edit().' Aktiv'.($tblConsumerLogin->getIsActiveAPI()? ' + '.new Check(): ''), ''))
+                $item['DLLP'] = '<span hidden>0'.$tblConsumer->getAcronym().'</span>'.(new Link(new Check().' + '.($tblConsumerLogin->getIsActiveAPI()?
+                    new SuccessText(new Check()): new DangerText(new Unchecked())), ApiConsumerLogin::getEndpoint()))
                     ->ajaxPipelineOnClick(ApiConsumerLogin::pipelineOpenDllpModal($tblConsumer->getId(), TblConsumerLogin::VALUE_SYSTEM_DLLP));
             }
             if(GatekeeperConsumer::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_SSW_STOP)){
-                $item['SSWStop'] = (new Link(new Edit().' SSW Deaktiviert', ''))
+                $item['SSWStop'] = '<span hidden>0'.$tblConsumer->getAcronym().'</span>'.(new Link(new Check().'', ApiConsumerLogin::getEndpoint()))
                     ->ajaxPipelineOnClick(ApiConsumerLogin::pipelineOpenSswStopModal($tblConsumer->getId(), TblConsumerLogin::VALUE_SYSTEM_SSW_STOP));
             }
             $TableContent[] = $item;
@@ -717,6 +724,27 @@ class Frontend extends Extension implements IFrontendInterface
 //                'responsive' => false
             )
         );
+    }
+
+    public function frontendConsumerLoginBilling()
+    {
+
+        $Stage = new Stage('Mandanten', 'Consumerlogin');
+        $Stage->addButton(new Standard('Zurück', __NAMESPACE__.'/ConsumerLogin', new ChevronLeft()));
+        $tblRole = Access::useService()->getRoleByName('Fakturierung');
+        if($tblConsumerAll = GatekeeperConsumer::useService()->getConsumerAll()){
+            foreach($tblConsumerAll as $tblConsumer){
+                Access::useService()->createRoleConsumer($tblRole, $tblConsumer);
+            }
+        }
+        Access::useService()->updateRoleIndividual($tblRole, true);
+
+        $Stage->setContent(
+            new Success('Benutzerrecht Fakturierung für alle Mandanten individualisiert')
+            .new Redirect('/Platform/System/DataMaintenance/ConsumerLogin', Redirect::TIMEOUT_SUCCESS)
+        );
+
+        return $Stage;
     }
 
     /**

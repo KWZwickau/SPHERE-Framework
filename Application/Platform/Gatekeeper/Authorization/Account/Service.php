@@ -478,6 +478,18 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblRole $tblRole
+     * @param TblConsumer $tblConsumer
+     *
+     * @return bool|TblAccount[]
+     */
+    public function getAccountListByAuthorizationAndConsumer(TblRole $tblRole, TblConsumer $tblConsumer)
+    {
+
+        return (new Data($this->getBinding()))->getAccountListByAuthorizationAndConsumer($tblRole, $tblConsumer);
+    }
+
+    /**
      * @param TblAccount $tblAccount
      *
      * @return bool|TblAuthentication[]
