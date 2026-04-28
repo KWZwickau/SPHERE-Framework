@@ -666,17 +666,17 @@ class Frontend extends Extension implements IFrontendInterface
             }
 
             $item['DLLP'] = (new Link(new Edit(), ''))
-                ->ajaxPipelineOnClick(ApiConsumerLogin::pipelineOpenModal($tblConsumer->getId(), TblConsumerLogin::VALUE_SYSTEM_DLLP)); // ApiConsumerLogin::API_TARGET;
+                ->ajaxPipelineOnClick(ApiConsumerLogin::pipelineOpenDllpModal($tblConsumer->getId(), TblConsumerLogin::VALUE_SYSTEM_DLLP));
             $item['SSWStop'] = (new Link(new Edit(), ''))
-                ->ajaxPipelineOnClick(ApiConsumerLogin::pipelineOpenModal($tblConsumer->getId(), TblConsumerLogin::VALUE_SYSTEM_SSW_STOP)); // ApiConsumerLogin::API_TARGET;
+                ->ajaxPipelineOnClick(ApiConsumerLogin::pipelineOpenSswStopModal($tblConsumer->getId(), TblConsumerLogin::VALUE_SYSTEM_SSW_STOP));
 
             if(($tblConsumerLogin = GatekeeperConsumer::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_DLLP))){
                 $item['DLLP'] = (new Link(new Edit().' Aktiv'.($tblConsumerLogin->getIsActiveAPI()? ' + '.new Check(): ''), ''))
-                    ->ajaxPipelineOnClick(ApiConsumerLogin::pipelineOpenModal($tblConsumer->getId(), TblConsumerLogin::VALUE_SYSTEM_DLLP));
+                    ->ajaxPipelineOnClick(ApiConsumerLogin::pipelineOpenDllpModal($tblConsumer->getId(), TblConsumerLogin::VALUE_SYSTEM_DLLP));
             }
             if(GatekeeperConsumer::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_SSW_STOP)){
                 $item['SSWStop'] = (new Link(new Edit().' SSW Deaktiviert', ''))
-                    ->ajaxPipelineOnClick(ApiConsumerLogin::pipelineOpenModal($tblConsumer->getId(), 'SSWStop'));
+                    ->ajaxPipelineOnClick(ApiConsumerLogin::pipelineOpenSswStopModal($tblConsumer->getId(), TblConsumerLogin::VALUE_SYSTEM_SSW_STOP));
             }
             $TableContent[] = $item;
         }

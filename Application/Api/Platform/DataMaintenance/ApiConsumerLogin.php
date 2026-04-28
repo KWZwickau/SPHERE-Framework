@@ -45,10 +45,12 @@ class ApiConsumerLogin extends Extension implements IApiInterface
     {
         $Dispatcher = new Dispatcher(__CLASS__);
 
-        $Dispatcher->registerMethod('openModal');
-        $Dispatcher->registerMethod('saveModal');
         $Dispatcher->registerMethod('openRoleModal');
+        $Dispatcher->registerMethod('openDllpModal');
+        $Dispatcher->registerMethod('openSswStopModal');
         $Dispatcher->registerMethod('saveRoleModal');
+        $Dispatcher->registerMethod('saveDllpModal');
+        $Dispatcher->registerMethod('saveSswStopModal');
         $Dispatcher->registerMethod('reloadTable');
 
         return $Dispatcher->callMethod($Method);
@@ -97,12 +99,12 @@ class ApiConsumerLogin extends Extension implements IApiInterface
     /**
      * @return Pipeline
      */
-    public static function pipelineOpenModal($ConsumerId, $SystemName): Pipeline
+    public static function pipelineOpenDllpModal($ConsumerId, $SystemName): Pipeline
     {
         $Pipeline = new Pipeline(true);
         $ModalEmitter = new ServerEmitter(self::receiverModal('Modal'), self::getEndpoint());
         $ModalEmitter->setGetPayload(array(
-            self::API_TARGET => 'openModal',
+            self::API_TARGET => 'openDllpModal',
         ));
         $ModalEmitter->setPostPayload(array(
             'ConsumerId' => $ConsumerId,
@@ -116,12 +118,12 @@ class ApiConsumerLogin extends Extension implements IApiInterface
     /**
      * @return Pipeline
      */
-    public static function pipelineSaveModal($ConsumerId, $SystemName): Pipeline
+    public static function pipelineOpenSswStopModal($ConsumerId, $SystemName): Pipeline
     {
         $Pipeline = new Pipeline(true);
         $ModalEmitter = new ServerEmitter(self::receiverModal('Modal'), self::getEndpoint());
         $ModalEmitter->setGetPayload(array(
-            self::API_TARGET => 'saveModal',
+            self::API_TARGET => 'openSswStopModal',
         ));
         $ModalEmitter->setPostPayload(array(
             'ConsumerId' => $ConsumerId,
@@ -154,6 +156,42 @@ class ApiConsumerLogin extends Extension implements IApiInterface
     /**
      * @return Pipeline
      */
+    public static function pipelineSaveDllpModal($ConsumerId): Pipeline
+    {
+        $Pipeline = new Pipeline(true);
+        $ModalEmitter = new ServerEmitter(self::receiverModal('Modal'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'saveDllpModal',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'ConsumerId' => $ConsumerId,
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @return Pipeline
+     */
+    public static function pipelineSaveSswStopModal($ConsumerId): Pipeline
+    {
+        $Pipeline = new Pipeline(true);
+        $ModalEmitter = new ServerEmitter(self::receiverModal('Modal'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'saveSswStopModal',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'ConsumerId' => $ConsumerId,
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @return Pipeline
+     */
     public static function pipelineReload(): Pipeline
     {
         $Pipeline = new Pipeline(true);
@@ -165,98 +203,6 @@ class ApiConsumerLogin extends Extension implements IApiInterface
         $Pipeline->appendEmitter((new CloseModal(self::receiverModal('Modal')))->getEmitter());
 
         return $Pipeline;
-    }
-
-    /**
-     * @return string
-     */
-    public function openModal($ConsumerId, $SystemName): string
-    {
-
-        $tblConsumer = Consumer::useService()->getConsumerById($ConsumerId);
-        $tblConsumerLogin = Consumer::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, $SystemName);
-        if($tblConsumerLogin){
-            $_POST['Data']['Active'] = 1;
-            $_POST['Data']['ActiveButton'] = $tblConsumerLogin->getIsActiveAPI();
-            $SelectBoxActive = array(1 => 'Aktiv', 2 => 'Deaktivieren');
-        } else {
-            $_POST['Data']['Active'] = 2;
-            $SelectBoxActive = array(1 => 'Aktivieren', 2 => 'Inaktiv');
-        }
-
-
-        if($SystemName == TblConsumerLogin::VALUE_SYSTEM_DLLP) {
-            $FormRow = new FormRow(array(
-                new FormColumn(new SelectBox('Data[Active]', $SystemName.' Status', $SelectBoxActive), 4),
-                new FormColumn((new CheckBox('Data[ActiveButton]', 'Buttons KelvinAPI', 1))->setPaddingTop(), 4),
-            ));
-        }
-        // Sonderfall gedrehte Logik
-        if($SystemName == TblConsumerLogin::VALUE_SYSTEM_SSW_STOP){
-            $SelectBoxActive = array(1 => 'SSW Zugriff stoppen', 2 => 'SSW ist Aktiv');
-            if($tblConsumerLogin){
-                $SelectBoxActive = array(1 => 'SSW Zugriff gestoppt', 2 => 'SSW Reaktivieren');
-            }
-            $FormRow = new FormRow(array(
-                new FormColumn(new SelectBox('Data[Active]', $SystemName.' Status', $SelectBoxActive), 4),
-            ));
-        }
-        if(!$FormRow){
-            $FormRow = new FormRow(array(
-                new FormColumn(new SelectBox('Data[Active]', $SystemName.' Status', $SelectBoxActive), 4),
-                new FormColumn((new CheckBox('Data[ActiveButton]', 'Buttons', 1))->setPaddingTop(), 2),
-            ));
-        }
-
-        return
-            new Layout(new LayoutGroup(new LayoutRow(array(
-                new LayoutColumn(
-                    new Headline($SystemName)
-                    , 3),
-                new LayoutColumn(
-                    new PullRight(new Headline($tblConsumer->getName(), $tblConsumer->getAcronym()))
-                , 9),
-            ))))
-            .new Well(new Form(new FormGroup(array($FormRow))
-        , (new Primary('Speichern','#'))->ajaxPipelineOnClick(ApiConsumerLogin::pipelineSaveModal($ConsumerId, $SystemName))
-        ));
-    }
-
-    /**
-     * @param $Status
-     * @return string
-     */
-    public function saveModal($ConsumerId, $SystemName, $Data): string
-    {
-        $tblConsumer = Consumer::useService()->getConsumerById($ConsumerId);
-        $IsActive = false;
-        if($Data['Active'] == 1){
-            $IsActive = true;
-        }
-        $isButtonActive = false;
-        if(isset($Data['ActiveButton'])){
-            $isButtonActive = true;
-        }
-        $tblConsumerLogin = Consumer::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, $SystemName);
-        if(!$tblConsumerLogin) {
-            if ($IsActive) {
-                Consumer::useService()->createConsumerLogin($tblConsumer, $SystemName, $isButtonActive);
-            }
-        } else {
-            if ($IsActive) {
-                Consumer::useService()->updateConsumerLogin($tblConsumerLogin, $isButtonActive);
-            } else {
-                Consumer::useService()->removeConsumerLogin($tblConsumerLogin);
-            }
-        }
-        return new Success('Einstellung wurde gespeichert')
-            .ApiConsumerLogin::pipelinereload();
-    }
-
-    public function reloadTable()
-    {
-
-        return Frontend::getConsumerLoginTable();
     }
 
     /**
@@ -288,10 +234,75 @@ class ApiConsumerLogin extends Extension implements IApiInterface
                     , 3),
                 new LayoutColumn(
                     new PullRight(new Headline($tblConsumer->getName(), $tblConsumer->getAcronym()))
-                , 9),
+                    , 9),
             ))))
             .new Well(new Form(new FormGroup(array($FormRow))
-        , (new Primary('Speichern','#'))->ajaxPipelineOnClick(ApiConsumerLogin::pipelineSaveRoleModal($ConsumerId, $RoleId))
+                , (new Primary('Speichern','#'))->ajaxPipelineOnClick(ApiConsumerLogin::pipelineSaveRoleModal($ConsumerId, $RoleId))
+            ));
+    }
+
+    /**
+     * @return string
+     */
+    public function openDllpModal($ConsumerId, $SystemName): string
+    {
+        $tblConsumer = Consumer::useService()->getConsumerById($ConsumerId);
+        $tblConsumerLogin = Consumer::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, $SystemName);
+        if($tblConsumerLogin){
+            $_POST['Data']['Active'] = 1;
+            $_POST['Data']['ActiveButton'] = $tblConsumerLogin->getIsActiveAPI();
+            $SelectBoxActive = array(1 => 'Aktiv', 2 => 'Deaktivieren');
+        } else {
+            $_POST['Data']['Active'] = 2;
+            $SelectBoxActive = array(1 => 'Aktivieren', 2 => 'Inaktiv');
+        }
+
+        return
+            new Layout(new LayoutGroup(new LayoutRow(array(
+                new LayoutColumn(
+                    new Headline($SystemName)
+                    , 3),
+                new LayoutColumn(
+                    new PullRight(new Headline($tblConsumer->getName(), $tblConsumer->getAcronym()))
+                    , 9),
+            ))))
+            .new Well(new Form(new FormGroup(array(new FormRow(array(
+                new FormColumn(new SelectBox('Data[Active]', $SystemName.' Status', $SelectBoxActive), 4),
+                new FormColumn((new CheckBox('Data[ActiveButton]', 'Buttons KelvinAPI', 1))->setPaddingTop(), 4),
+            ))))
+                , (new Primary('Speichern','#'))->ajaxPipelineOnClick(ApiConsumerLogin::pipelineSaveDllpModal($ConsumerId))
+        ));
+    }
+
+    /**
+     * @return string
+     */
+    public function openSswStopModal($ConsumerId, $SystemName): string
+    {
+        $tblConsumer = Consumer::useService()->getConsumerById($ConsumerId);
+        $tblConsumerLogin = Consumer::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, $SystemName);
+
+        // gedrehte Logik
+        $_POST['Data']['Active'] = 2;
+        $SelectBoxActive = array(1 => 'SSW Zugriff stoppen', 2 => 'SSW ist Aktiv');
+        if($tblConsumerLogin){
+            $_POST['Data']['Active'] = 1;
+            $SelectBoxActive = array(1 => 'SSW Zugriff gestoppt', 2 => 'SSW Reaktivieren');
+        }
+
+        return new Layout(new LayoutGroup(new LayoutRow(array(
+            new LayoutColumn(
+                new Headline($SystemName)
+                , 3),
+            new LayoutColumn(
+                new PullRight(new Headline($tblConsumer->getName(), $tblConsumer->getAcronym()))
+                , 9),
+        ))))
+        .new Well(new Form(
+            new FormGroup(array(new FormRow(array(
+                new FormColumn(new SelectBox('Data[Active]', $SystemName.' Status', $SelectBoxActive), 4),
+            ))))
+            , (new Primary('Speichern','#'))->ajaxPipelineOnClick(ApiConsumerLogin::pipelineSaveSswStopModal($ConsumerId))
         ));
     }
 
@@ -299,7 +310,7 @@ class ApiConsumerLogin extends Extension implements IApiInterface
      * @param $Status
      * @return string
      */
-    public function saveRoleModal($ConsumerId, $SystemName, $RoleId, $Data): string
+    public function saveRoleModal($ConsumerId, $RoleId, $Data): string
     {
         $tblConsumer = Consumer::useService()->getConsumerById($ConsumerId);
         $tblRole = Access::useService()->getRoleById($RoleId);
@@ -313,5 +324,52 @@ class ApiConsumerLogin extends Extension implements IApiInterface
         }
         return new Success('Einstellung wurde gespeichert')
             .ApiConsumerLogin::pipelinereload();
+    }
+
+    /**
+     * @return string
+     */
+    public function saveDllpModal($ConsumerId, $Data): string
+    {
+
+        $tblConsumer = Consumer::useService()->getConsumerById($ConsumerId);
+        $IsActive = $Data['Active'] == 1;
+        $isButtonActive = isset($Data['ActiveButton']);
+        $tblConsumerLogin = Consumer::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_DLLP);
+        if (!$tblConsumerLogin) {
+            if ($IsActive) {
+                Consumer::useService()->createConsumerLogin($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_DLLP, $isButtonActive);
+            }
+        } else {
+            if ($IsActive) {
+                Consumer::useService()->updateConsumerLogin($tblConsumerLogin, $isButtonActive);
+            } else {
+                Consumer::useService()->removeConsumerLogin($tblConsumerLogin);
+            }
+        }
+        return new Success('Einstellung wurde gespeichert')
+            .ApiConsumerLogin::pipelinereload();
+    }
+
+    /**
+     * @return string
+     */
+    public function saveSswStopModal($ConsumerId, $Data): string
+    {
+        $tblConsumer = Consumer::useService()->getConsumerById($ConsumerId);
+        $tblConsumerLogin = Consumer::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_SSW_STOP);
+        if (!$tblConsumerLogin) {
+            Consumer::useService()->createConsumerLogin($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_SSW_STOP, false);
+        } else {
+            Consumer::useService()->removeConsumerLogin($tblConsumerLogin);
+        }
+        return new Success('Einstellung wurde gespeichert')
+            .ApiConsumerLogin::pipelinereload();
+    }
+
+    public function reloadTable()
+    {
+
+        return Frontend::getConsumerLoginTable();
     }
 }
