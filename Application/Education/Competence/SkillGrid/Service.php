@@ -13,7 +13,9 @@ use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\School\Course\Course;
+use SPHERE\Application\Education\School\Course\Service\Entity\TblCourse;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblSupportFocusType;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
@@ -134,15 +136,25 @@ class Service extends AbstractService
      * @param TblType $tblSchoolType
      * @param int|null $level
      * @param TblSubject|null $tblSubject
+     * @param TblCourse|null $tblCourse
+     * @param TblSupportFocusType|null $tblSupportFocusType
      *
      * @return TblSkill[]
      */
-    public function getSkillListBy(TblType $tblSchoolType, ?int $level = null, ?TblSubject $tblSubject = null): array
+    public function getSkillListBy(TblType $tblSchoolType, ?int $level = null,
+        ?TblSubject $tblSubject = null, ?TblCourse $tblCourse = null, ?TblSupportFocusType $tblSupportFocusType = null): array
     {
         $tblSkillList = [];
         if (($tblSkillGridList = $this->getSkillGridListBy($tblSchoolType, $level, $tblSubject))) {
             foreach ($tblSkillGridList as $tblSkillGrid) {
-                $tblSkillList = array_merge($tblSkillList, $tblSkillGrid->getSkills());
+                $tblCourseSkillGrid = $tblSkillGrid->getServiceTblCourse();
+                $tblSupportFocusTypeSkillGrid = $tblSkillGrid->getServiceTblSupportFocusType();
+                // Anzeige alle Kompetenzraster, die den Bildungsgang haben und alle ohne Bildungsgang
+                if ((!$tblCourseSkillGrid || $tblCourseSkillGrid->getId() == $tblCourse?->getId())
+                    && (!$tblSupportFocusTypeSkillGrid || $tblSupportFocusTypeSkillGrid->getId() == $tblSupportFocusType?->getId())
+                ) {
+                    $tblSkillList = array_merge($tblSkillList, $tblSkillGrid->getSkills());
+                }
             }
         }
 

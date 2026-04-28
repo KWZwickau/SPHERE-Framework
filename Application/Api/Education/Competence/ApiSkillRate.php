@@ -55,6 +55,9 @@ class ApiSkillRate extends Extension implements IApiInterface
         $Dispatcher->registerMethod('loadRenameSkillContent');
         $Dispatcher->registerMethod('saveRenameSkill');
 
+        $Dispatcher->registerMethod('openAddStudentSkillModal');
+        $Dispatcher->registerMethod('saveAddStudentSkill');
+
         return $Dispatcher->callMethod($Method);
     }
 
@@ -676,5 +679,80 @@ class ApiSkillRate extends Extension implements IApiInterface
         return new Success('Kompetenz wurde erfolgreich umbenannt.')
             . self::pipelineClose()
             . self::pipelineLoadViewStudentContent($DivisionCourseId, $PersonId, $SubjectId);
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $PersonId
+     * @param $SubjectId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineOpenAddStudentSkillModal($DivisionCourseId, $PersonId, $SubjectId): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'openAddStudentSkillModal',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'DivisionCourseId' => $DivisionCourseId,
+            'PersonId' => $PersonId,
+            'SubjectId' => $SubjectId
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $PersonId
+     * @param $SubjectId
+     *
+     * @return String
+     * @noinspection PhpUnused
+     */
+    public function openAddStudentSkillModal($DivisionCourseId, $PersonId, $SubjectId): string
+    {
+        return SkillRate::useFrontend()->openAddStudentSkillModal($DivisionCourseId, $PersonId, $SubjectId);
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $PersonId
+     * @param $SubjectId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineSaveAddStudentSkill($DivisionCourseId, $PersonId, $SubjectId): Pipeline
+    {
+        $Pipeline = new Pipeline();
+        $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'saveAddStudentSkill'
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'DivisionCourseId' => $DivisionCourseId,
+            'PersonId' => $PersonId,
+            'SubjectId' => $SubjectId
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $PersonId
+     * @param $SubjectId
+     * @param $Data
+     *
+     * @return string
+     * @noinspection PhpUnused
+     */
+    public function saveAddStudentSkill($DivisionCourseId, $PersonId, $SubjectId, $Data = null): string
+    {
+        return SkillRate::useService()->createStudentSkill($DivisionCourseId, $PersonId, $SubjectId, $Data);
     }
 }

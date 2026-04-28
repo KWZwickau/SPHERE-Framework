@@ -30,7 +30,7 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\Structure\Form;
-use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
+use SPHERE\Common\Frontend\Icon\Repository\Tag;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
@@ -621,11 +621,11 @@ class Service extends ServiceTask
      * @param array $pictureList
      * @param array $courseList
      */
-    public function setStudentInfo(TblPerson $tblPerson, TblYear $tblYear, array &$integrationList, array &$pictureList, array &$courseList)
+    public function setStudentInfo(TblPerson $tblPerson, TblYear $tblYear, array &$integrationList, array &$pictureList, array &$courseList): void
     {
         // Integration
         if(Student::useService()->getIsSupportByPerson($tblPerson)) {
-            $integrationList[$tblPerson->getId()] = (new Standard('', ApiSupportReadOnly::getEndpoint(), new EyeOpen()))
+            $integrationList[$tblPerson->getId()] = (new Standard('', ApiSupportReadOnly::getEndpoint(), new Tag(), [], 'Inklusion des Schülers anzeigen'))
                 ->ajaxPipelineOnClick(ApiSupportReadOnly::pipelineOpenOverViewModal($tblPerson->getId()));
         }
 
