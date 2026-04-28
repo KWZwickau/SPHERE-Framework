@@ -10,6 +10,7 @@ use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account as AccountAuthorization;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblSetting;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblUser;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer as GatekeeperConsumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumerLogin;
@@ -104,7 +105,7 @@ class Frontend extends Extension implements IFrontendInterface
                     new Standard('Einstellen', __NAMESPACE__.'/Maintenance'), Panel::PANEL_TYPE_PRIMARY)
             ), 4),
             new LayoutColumn(array(
-                new Panel(new Bold('Verwaltung Module & SSW Sperrung'), // new Center('Einstellung API & Sperrung'), new Center(new Standard('Einstellung', __NAMESPACE__.'/ConsumerLogin'))
+                new Panel(new Bold('Verwaltung Module & SSW Zugang'),
                     new Standard('Einstellung', __NAMESPACE__.'/ConsumerLogin'), Panel::PANEL_TYPE_PRIMARY)
             ), 4),
             new LayoutColumn('<br/>'),
@@ -670,20 +671,25 @@ class Frontend extends Extension implements IFrontendInterface
                     }
                 }
             }
-
+            $item['Indiware'] = '<span hidden>1'.$tblConsumer->getAcronym().'</span>'.(new Link(new Unchecked(), ApiConsumerLogin::getEndpoint()))
+                ->ajaxPipelineOnClick(ApiConsumerLogin::pipelineOpenIndiwareModal($tblConsumer->getId()));
             $item['DLLP'] = '<span hidden>1'.$tblConsumer->getAcronym().'</span>'.(new Link(new Unchecked(), ApiConsumerLogin::getEndpoint()))
-                ->ajaxPipelineOnClick(ApiConsumerLogin::pipelineOpenDllpModal($tblConsumer->getId(), TblConsumerLogin::VALUE_SYSTEM_DLLP));
-            $item['SSWStop'] = '<span hidden>1'.$tblConsumer->getAcronym().'</span>'.(new Link(new Unchecked(), ApiConsumerLogin::getEndpoint()))
-                ->ajaxPipelineOnClick(ApiConsumerLogin::pipelineOpenSswStopModal($tblConsumer->getId(), TblConsumerLogin::VALUE_SYSTEM_SSW_STOP));
-
+                ->ajaxPipelineOnClick(ApiConsumerLogin::pipelineOpenDllpModal($tblConsumer->getId()));
+            $item['SSWStop'] = '<span hidden>1'.$tblConsumer->getAcronym().'</span>'.(new Link(new SuccessText(new Check()), ApiConsumerLogin::getEndpoint()))
+                ->ajaxPipelineOnClick(ApiConsumerLogin::pipelineOpenSswStopModal($tblConsumer->getId()));
+            if(($tblAccount = AccountAuthorization::useService()->getAccountByUsername($tblConsumer->getAcronym().'-Indiware'))
+            && AccountAuthorization::useService()->getSettingByAccount($tblAccount, TblSetting::ATTR_INDIWARE_CODE)){
+                $item['Indiware'] = '<span hidden>0'.$tblConsumer->getAcronym().'</span>'.(new Link(new Check(), ApiConsumerLogin::getEndpoint()))
+                    ->ajaxPipelineOnClick(ApiConsumerLogin::pipelineOpenIndiwareModal($tblConsumer->getId()));
+            }
             if(($tblConsumerLogin = GatekeeperConsumer::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_DLLP))){
                 $item['DLLP'] = '<span hidden>0'.$tblConsumer->getAcronym().'</span>'.(new Link(new Check().' + '.($tblConsumerLogin->getIsActiveAPI()?
                     new SuccessText(new Check()): new DangerText(new Unchecked())), ApiConsumerLogin::getEndpoint()))
-                    ->ajaxPipelineOnClick(ApiConsumerLogin::pipelineOpenDllpModal($tblConsumer->getId(), TblConsumerLogin::VALUE_SYSTEM_DLLP));
+                    ->ajaxPipelineOnClick(ApiConsumerLogin::pipelineOpenDllpModal($tblConsumer->getId()));
             }
             if(GatekeeperConsumer::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_SSW_STOP)){
-                $item['SSWStop'] = '<span hidden>0'.$tblConsumer->getAcronym().'</span>'.(new Link(new Check().'', ApiConsumerLogin::getEndpoint()))
-                    ->ajaxPipelineOnClick(ApiConsumerLogin::pipelineOpenSswStopModal($tblConsumer->getId(), TblConsumerLogin::VALUE_SYSTEM_SSW_STOP));
+                $item['SSWStop'] = '<span hidden>0'.$tblConsumer->getAcronym().'</span>'.(new Link(new DangerText(new Disable()).'', ApiConsumerLogin::getEndpoint()))
+                    ->ajaxPipelineOnClick(ApiConsumerLogin::pipelineOpenSswStopModal($tblConsumer->getId()));
             }
             $TableContent[] = $item;
         }
@@ -704,11 +710,12 @@ class Frontend extends Extension implements IFrontendInterface
                 $HeadList[$tblRole->getId().'Id'] = $Titel;
             }
         }
+        $HeadList['Indiware'] = 'Indiware API';
         $HeadList['DLLP'] = 'DLLP';
-        $HeadList['SSWStop'] = 'Sperrung SSW';
+        $HeadList['SSWStop'] = 'Zugang SSW';
 
         return
-            new TableData($TableContent, new Title('Einstellung DLLP KelvinAPI & SSW Sperrung'),
+            new TableData($TableContent, new Title('Einstellung DLLP KelvinAPI & SSW Zugang'),
             $HeadList,
             array(
                 'columnDefs' => array(

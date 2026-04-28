@@ -505,7 +505,7 @@ class ErrorLog extends Extension implements IModuleInterface
             '<span style="font-size: 20px">'.'https://'.$this->getRequest()->getHost().'/RestApi/Public/Indiware/TimeTable?Savety='.$Code.'</span>';
     }
 
-    private function createGUID()
+    public static function createGUID()
     {
         if (function_exists('com_create_guid') === true)
         {
