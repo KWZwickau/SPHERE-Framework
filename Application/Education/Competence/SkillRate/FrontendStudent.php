@@ -42,6 +42,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Tag;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\PullClear;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
@@ -143,46 +144,58 @@ class FrontendStudent extends FrontendDivisionCourse
      * @param $DivisionCourseId
      * @param $PersonId
      * @param $SubjectId
+     * @param bool $IsOldYears
      *
      * @return string
      */
-    public function loadViewStudentContent($DivisionCourseId, $PersonId, $SubjectId): string
+    public function loadViewStudentContent($DivisionCourseId, $PersonId, $SubjectId, bool $IsOldYears = false): string
     {
         if (!($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
             return new Danger('Kurs wurde nicht gefunden!', new Exclamation());
+        }
+        if (!($tblYear = $tblDivisionCourse->getServiceTblYear())) {
+            return new Danger('Schuljahr wurde nicht gefunden!', new Exclamation());
         }
         if (!($tblPerson = Person::useService()->getPersonById($PersonId))) {
             return new Danger('Schüler wurde nicht gefunden!', new Exclamation());
         }
         $tblSubject = Subject::useService()->getSubjectById($SubjectId) ?: null;
 
-        $dataList = [];
-        if (($tblYear = $tblDivisionCourse->getServiceTblYear())
-            && ($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))
-            && ($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())
-            && ($level = $tblStudentEducation->getLevel()) !== null
-        ) {
-            $skills = [];
-            $tblStudentSkillList = SkillRate::useService()->getStudentSkillListByPersonAndYear($tblPerson, $tblYear);
-            $tblSkillList = SkillGrid::useService()->getSkillListBy($tblSchoolType, $level, $tblSubject,
-                $tblStudentEducation->getServiceTblCourse() ?: null, Student::useService()->getPrimarySupportFocusTypeByPerson($tblPerson));
-            foreach ($tblSkillList as $tblSkill) {
-                $tblStudentSkill = $tblStudentSkillList['SkillId_' . $tblSkill->getId()] ?? null;
-                $this->setViewSkillData($dataList, $tblSkill, $tblStudentSkill, $DivisionCourseId);
-                $skills[$tblSkill->getId()] = 1;
-            }
-            // individuelle Kompetenzen ohne Kompetenzraster oder von einer anderen Klassenstufe
-            foreach ($tblStudentSkillList as $tblStudentSkill) {
-                if (!$tblStudentSkill->getServiceTblSkill() || !isset($skills[$tblStudentSkill->getServiceTblSkill()->getId()])) {
-                    $this->setViewSkillData($dataList, null, $tblStudentSkill, $DivisionCourseId);
-                }
-            }
-        }
+        $role = SkillRate::useService()->getRole();
+        $isEdit = Grade::useService()->getIsEdit($DivisionCourseId, $SubjectId, $role);
 
         $content = '';
-        foreach ($dataList as $item) {
-            // bei alten Schuljahren grau statt blau
-            $content .= new Panel($item['isBold'] ? new Bold($item['name']) : $item['name'], $item['skills'], Panel::PANEL_TYPE_INFO);
+        foreach (SkillRate::useService()->getStudentEducationList($tblPerson, $tblYear, $IsOldYears) as $tblStudentEducationTemp) {
+            if (($tblYearTemp = $tblStudentEducationTemp->getServiceTblYear())
+                && ($tblSchoolType = $tblStudentEducationTemp->getServiceTblSchoolType())
+                && ($level = $tblStudentEducationTemp->getLevel()) !== null
+            ) {
+                $skills = [];
+                $dataList = [];
+                $tblStudentSkillList = SkillRate::useService()->getStudentSkillListByPersonAndYear($tblPerson, $tblYearTemp);
+                $tblSkillList = SkillGrid::useService()->getSkillListBy($tblSchoolType, $level, $tblSubject,
+                    $tblStudentEducationTemp->getServiceTblCourse() ?: null, Student::useService()->getPrimarySupportFocusTypeByPerson($tblPerson));
+                foreach ($tblSkillList as $tblSkill) {
+                    $tblStudentSkill = $tblStudentSkillList['SkillId_' . $tblSkill->getId()] ?? null;
+                    $this->setViewSkillData($dataList, $tblSkill, $tblStudentSkill, $DivisionCourseId);
+                    $skills[$tblSkill->getId()] = 1;
+                }
+                // individuelle Kompetenzen ohne Kompetenzraster oder von einer anderen Klassenstufe
+                foreach ($tblStudentSkillList as $tblStudentSkill) {
+                    if (!$tblStudentSkill->getServiceTblSkill() || !isset($skills[$tblStudentSkill->getServiceTblSkill()->getId()])) {
+                        $this->setViewSkillData($dataList, null, $tblStudentSkill, $DivisionCourseId);
+                    }
+                }
+
+                if ($IsOldYears) {
+                    $content .= new Title('Schuljahr: ' . $tblYearTemp->getName(), 'Klassenstufe: ' . $level);
+                }
+                foreach ($dataList as $item) {
+                    // alten Schuljahren grau statt blau
+                    $content .= new Panel($item['isBold'] ? new Bold($item['name']) : $item['name'], $item['skills'],
+                        $tblYear->getId() == $tblYearTemp->getId() ? Panel::PANEL_TYPE_INFO : Panel::PANEL_TYPE_DEFAULT);
+                }
+            }
         }
 
         // Inklusion
@@ -192,13 +205,23 @@ class FrontendStudent extends FrontendDivisionCourse
                 ->ajaxPipelineOnClick(ApiSupportReadOnly::pipelineOpenOverViewModal($tblPerson->getId()));
         }
 
-        return (new Primary('Kompetenzen bewerten', ApiSkillRate::getEndpoint(), new ClipBoard()))
+        $buttons = '';
+        if ($isEdit) {
+            $buttons = (new Primary('Kompetenzen bewerten', ApiSkillRate::getEndpoint(), new ClipBoard()))
                 ->ajaxPipelineOnClick(ApiSkillRate::pipelineLoadEditStudentContent($DivisionCourseId, $PersonId, $SubjectId))
             . (new Primary('Kompetenz umbenennen', ApiSkillRate::getEndpoint(), new Edit()))
                 ->ajaxPipelineOnClick(ApiSkillRate::pipelineOpenRenameStudentSkillModal($DivisionCourseId, $PersonId, $SubjectId))
             . (new Primary('Kompetenz hinzufügen', ApiSkillRate::getEndpoint(), new Plus()))
-                ->ajaxPipelineOnClick(ApiSkillRate::pipelineOpenAddStudentSkillModal($DivisionCourseId, $PersonId, $SubjectId))
-            . new PullRight($support)
+                ->ajaxPipelineOnClick(ApiSkillRate::pipelineOpenAddStudentSkillModal($DivisionCourseId, $PersonId, $SubjectId));
+        }
+
+        return new PullClear($buttons
+            . new PullRight(
+                $support
+                    . (new Standard('Alte Schuljahre ' . ($IsOldYears ? 'ausblenden' : 'anzeigen'), ApiSkillRate::getEndpoint()))
+                        ->ajaxPipelineOnClick(ApiSkillRate::pipelineLoadViewStudentContent(
+                            $DivisionCourseId, $PersonId, $SubjectId, $IsOldYears ? 'false' : 'true'))
+            ))
             . new Container('&nbsp;')
             . $this->getStudentHead($tblPerson, $tblDivisionCourse, $tblSubject)
             . $content;
@@ -498,6 +521,23 @@ class FrontendStudent extends FrontendDivisionCourse
         if (!($tblStudentSkill = SkillRate::useService()->getStudentSkillById($StudentSkillId))) {
             return new Danger('Kompetenz wurde nicht gefunden.', new Exclamation());
         }
+        $tblSubject = $tblStudentSkill->getServiceTblSubject() ?: null;
+
+        $role = SkillRate::useService()->getRole();
+        $isEdit = Grade::useService()->getIsEdit($DivisionCourseId, $tblSubject?->getId(), $role);
+        // Fachlehrer dürfen Kompetenzbewertungen aus alten Schuljahren nicht bearbeiten
+        if ($isEdit
+            && $role == 'Teacher'
+        ) {
+            $isEdit = false;
+            if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))
+                && ($tblDivisionCourseYear = $tblDivisionCourse->getServiceTblYear())
+                && ($tblYear = $tblStudentSkill->getServiceTblYear())
+                && $tblYear->getId() == $tblDivisionCourseYear->getId()
+            ) {
+                $isEdit = true;
+            }
+        }
 
         $gradeFrontend = Grade::useFrontend();
         $headerList['Date'] = $gradeFrontend->getTableColumnHead('Datum');
@@ -513,10 +553,12 @@ class FrontendStudent extends FrontendDivisionCourse
             $bodyList[$tblStudentSkillRate->getId()]['Teacher'] = $gradeFrontend->getTableColumnBody($tblStudentSkillRate->getDisplayTeacher());
             $bodyList[$tblStudentSkillRate->getId()]['Comment'] = $gradeFrontend->getTableColumnBody($tblStudentSkillRate->getComment() ?: '&nbsp;');
             $bodyList[$tblStudentSkillRate->getId()]['Option'] = $gradeFrontend->getTableColumnBody(
-                (new Standard('', ApiSkillRate::getEndpoint(), new Edit(), [], 'Kompetenzbewertung bearbeiten'))
-                    ->ajaxPipelineOnClick(ApiSkillRate::pipelineLoadEditStudentSkillRateHistoryContent($DivisionCourseId, $tblStudentSkillRate->getId()))
-                . (new Standard('', ApiSkillRate::getEndpoint(), new Remove(), [], 'Kompetenzbewertung löschen'))
-                    ->ajaxPipelineOnClick(ApiSkillRate::pipelineLoadDeleteStudentSkillRateHistoryContent($DivisionCourseId, $tblStudentSkillRate->getId()))
+                $isEdit
+                    ? (new Standard('', ApiSkillRate::getEndpoint(), new Edit(), [], 'Kompetenzbewertung bearbeiten'))
+                            ->ajaxPipelineOnClick(ApiSkillRate::pipelineLoadEditStudentSkillRateHistoryContent($DivisionCourseId, $tblStudentSkillRate->getId()))
+                        . (new Standard('', ApiSkillRate::getEndpoint(), new Remove(), [], 'Kompetenzbewertung löschen'))
+                            ->ajaxPipelineOnClick(ApiSkillRate::pipelineLoadDeleteStudentSkillRateHistoryContent($DivisionCourseId, $tblStudentSkillRate->getId()))
+                    : '&nbsp;'
             );
         }
 

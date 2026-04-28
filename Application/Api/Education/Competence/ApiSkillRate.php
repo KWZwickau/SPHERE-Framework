@@ -232,10 +232,11 @@ class ApiSkillRate extends Extension implements IApiInterface
      * @param $DivisionCourseId
      * @param $PersonId
      * @param $SubjectId
+     * @param string $OldYears
      *
      * @return Pipeline
      */
-    public static function pipelineLoadViewStudentContent($DivisionCourseId, $PersonId, $SubjectId): Pipeline
+    public static function pipelineLoadViewStudentContent($DivisionCourseId, $PersonId, $SubjectId, string $OldYears = 'false'): Pipeline
     {
         $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'Content'), self::getEndpoint());
@@ -245,7 +246,8 @@ class ApiSkillRate extends Extension implements IApiInterface
         $ModalEmitter->setPostPayload(array(
             'DivisionCourseId' => $DivisionCourseId,
             'PersonId' => $PersonId,
-            'SubjectId' => $SubjectId
+            'SubjectId' => $SubjectId,
+            'OldYears' => $OldYears
         ));
         $ModalEmitter->setLoadingMessage("Daten werden geladen");
         $Pipeline->appendEmitter($ModalEmitter);
@@ -257,13 +259,14 @@ class ApiSkillRate extends Extension implements IApiInterface
      * @param $DivisionCourseId
      * @param $PersonId
      * @param $SubjectId
+     * @param $OldYears
      *
      * @return string
      * @noinspection PhpUnused
      */
-    public function loadViewStudentContent($DivisionCourseId, $PersonId, $SubjectId): string
+    public function loadViewStudentContent($DivisionCourseId, $PersonId, $SubjectId, $OldYears): string
     {
-        return SkillRate::useFrontend()->loadViewStudentContent($DivisionCourseId, $PersonId, $SubjectId);
+        return SkillRate::useFrontend()->loadViewStudentContent($DivisionCourseId, $PersonId, $SubjectId, $OldYears === 'true');
     }
 
     /**

@@ -14,9 +14,11 @@ use SPHERE\Application\Education\Competence\SkillRate\Service\Entity\TblStudentS
 use SPHERE\Application\Education\Competence\SkillRate\Service\Setup;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblStudentEducation;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
+use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
@@ -26,6 +28,7 @@ use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\System\Database\Binding\AbstractService;
+use SPHERE\System\Extension\Repository\Sorter;
 
 class Service extends AbstractService
 {
@@ -467,5 +470,43 @@ class Service extends AbstractService
         return new Success('Kompetenz wurde erfolgreich hinzugefügt.')
             . ApiSkillRate::pipelineClose()
             . ApiSkillRate::pipelineLoadViewStudentContent($DivisionCourseId, $PersonId, $SubjectId);
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     * @param bool $isOldYears
+     *
+     * @return TblStudentEducation[]
+     */
+    public function getStudentEducationList(TblPerson $tblPerson, TblYear $tblYear, bool $isOldYears): array
+    {
+        $tblStudentEducationList = [];
+        if ($isOldYears) {
+            list($startDate) = Term::useService()->getStartDateAndEndDateOfYear($tblYear);
+            // neuere Schuljahre ausblenden und sortierung nach Datum absteigend
+            if (($tempList = DivisionCourse::useService()->getStudentEducationListByPerson($tblPerson))) {
+                $tempList = $this->getSorter($tempList)->sortObjectBy('YearNameForSorter', null, Sorter::ORDER_DESC);
+                /** @var TblStudentEducation $temp */
+                foreach ($tempList as $temp) {
+                    if ($temp->getLeaveDate()) {
+                        continue;
+                    }
+
+                    if (($tblYearTemp = $temp->getServiceTblYear())) {
+                        list($startDateYearTemp) = Term::useService()->getStartDateAndEndDateOfYear($tblYearTemp);
+                        if ($startDateYearTemp && $startDateYearTemp > $startDate) {
+                            continue;
+                        }
+                    }
+
+                    $tblStudentEducationList[] = $temp;
+                }
+            }
+        } elseif (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))) {
+            $tblStudentEducationList[] = $tblStudentEducation;
+        }
+
+        return $tblStudentEducationList;
     }
 }
