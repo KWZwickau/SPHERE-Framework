@@ -322,6 +322,7 @@ class Frontend extends Extension implements IFrontendInterface
                 if (!isset($tblSkillAreaList[$tblSkillArea->getId()])) {
                     $Global->POST['Data']['SkillAreas'][$areaRanking]['Area'] = $tblSkillArea->getName() ?: '';
                     $Data['SkillAreas'][$areaRanking]['Area'] = $tblSkillArea->getName() ?: '';
+                    $Data['SkillAreas'][$areaRanking]['SkillAreaId'] = $tblSkillArea->getId();
 
                     $tblSkillAreaList[$tblSkillArea->getId()] = $tblSkillArea;
                 }
@@ -330,6 +331,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $Data['Skills'][$areaRanking . '-' . $skillRanking]['Skill'] = $tblSkill->getSkill();
                 $Global->POST['Data']['Skills'][$areaRanking . '-' . $skillRanking]['Level'] = $tblSkill->getLevel() ?: '';
                 $Data['Skills'][$areaRanking . '-' . $skillRanking]['Level'] = $tblSkill->getLevel() ?: '';
+                $Data['Skills'][$areaRanking . '-' . $skillRanking]['SkillId'] = $tblSkill->getId();
             }
 
             $Global->savePost();
@@ -427,7 +429,7 @@ class Frontend extends Extension implements IFrontendInterface
                     new FormColumn(array(
                         new Container('&nbsp;'),
                         (new Primary('Speichern', ApiSkillGrid::getEndpoint(), new Save()))
-                            ->ajaxPipelineOnClick(ApiSkillGrid::pipelineSaveEditSkillGrid($SchoolTypeId, $Filter, $SkillGridId)),
+                            ->ajaxPipelineOnClick(ApiSkillGrid::pipelineSaveEditSkillGrid($SchoolTypeId, $Filter, $SkillGridId, $Data)),
                         new Standard('Abbrechen', '/Education/Competence/SkillGrid', new Disable(), ['SchoolTypeId' => $SchoolTypeId, 'Filter' => $Filter])
                     ))
                 )),
@@ -472,7 +474,7 @@ class Frontend extends Extension implements IFrontendInterface
                 if ($split[0] == $AreaRanking) {
                     $skillRanking = $split[1];
                     $content[] = ApiSkillGrid::receiverBlock(
-                        $this->getSkillContent($SchoolTypeId, $Filter, $SkillGridId, $AreaRanking, $skillRanking, ++$count == $countSkills, $ErrorList),
+                        $this->getSkillContent($SchoolTypeId, $Filter, $SkillGridId, $AreaRanking, $skillRanking, ++$count == $countSkills, $ErrorList, $Data),
                         "SkillContent_$AreaRanking" . "_$skillRanking"
                     );
                 }
@@ -503,11 +505,11 @@ class Frontend extends Extension implements IFrontendInterface
             '&nbsp;&nbsp;'
             . (new Link('', ApiSkillGrid::getEndpoint(), new Minus(), [], 'Kompetenzbereich löschen', null))
                 ->ajaxPipelineOnClick(ApiSkillGrid::pipelineLoadEditSkillGridContent(
-                    $SchoolTypeId, $Filter, $SkillGridId, 'RemoveSkillArea', $AreaRanking))
+                    $SchoolTypeId, $Filter, $SkillGridId, 'RemoveSkillArea', $AreaRanking, $Data))
             . '&nbsp;&nbsp;'
             . (new Link('', ApiSkillGrid::getEndpoint(), new ChevronUp(), [], 'Kompetenzbereich nach oben verschieben'))
                 ->ajaxPipelineOnClick(ApiSkillGrid::pipelineLoadEditSkillGridContent(
-                    $SchoolTypeId, $Filter, $SkillGridId, 'MoveSkillAreaUp', $AreaRanking));
+                    $SchoolTypeId, $Filter, $SkillGridId, 'MoveSkillAreaUp', $AreaRanking, $Data));
 
         return new Panel(
             "$AreaRanking. Kompetenzbereich " . $headerButtons,
@@ -524,10 +526,12 @@ class Frontend extends Extension implements IFrontendInterface
      * @param $SkillRanking
      * @param bool $hasAddButton
      * @param null $ErrorList
+     * @param null $Data
      *
      * @return string
      */
-    public function getSkillContent($SchoolTypeId, $Filter, $SkillGridId, $AreaRanking, $SkillRanking, bool $hasAddButton = true, $ErrorList = null): string
+    public function getSkillContent($SchoolTypeId, $Filter, $SkillGridId, $AreaRanking, $SkillRanking, bool $hasAddButton = true, $ErrorList = null,
+        $Data = null): string
     {
         // POST kann maximal auf der 3. Ebene sein, es gehen keine tieferen Arrays
         $levelInput = new TextField("Data[Skills][$AreaRanking-$SkillRanking][Level]",
@@ -550,10 +554,10 @@ class Frontend extends Extension implements IFrontendInterface
                 (new Container('&nbsp;'))->setStyle(['height: 22px;']),
                 (new Standard('', ApiSkillGrid::getEndpoint(), new Minus(), [], 'Kompetenz löschen'))
                     ->ajaxPipelineOnClick(ApiSkillGrid::pipelineLoadEditSkillGridContent(
-                        $SchoolTypeId, $Filter, $SkillGridId, 'RemoveSkill', "$AreaRanking-$SkillRanking")),
+                        $SchoolTypeId, $Filter, $SkillGridId, 'RemoveSkill', "$AreaRanking-$SkillRanking", $Data)),
                 (new Standard('', ApiSkillGrid::getEndpoint(), new ChevronUp(), [], 'Kompetenz nach oben verschieben'))
                     ->ajaxPipelineOnClick(ApiSkillGrid::pipelineLoadEditSkillGridContent(
-                        $SchoolTypeId, $Filter, $SkillGridId, 'MoveSkillUp', "$AreaRanking-$SkillRanking"))
+                        $SchoolTypeId, $Filter, $SkillGridId, 'MoveSkillUp', "$AreaRanking-$SkillRanking", $Data))
             ), 2),
         ));
         if ($hasAddButton) {
@@ -561,7 +565,8 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutColumn(
                     ApiSkillGrid::receiverBlock(
                         (new Link(new Bold('Kompetenz hinzufügen'), ApiSkillGrid::getEndpoint(), new Plus()))
-                            ->ajaxPipelineOnClick(ApiSkillGrid::pipelineLoadSkillContent($SchoolTypeId, $Filter, $SkillGridId, $AreaRanking, $SkillRanking + 1)),
+                            ->ajaxPipelineOnClick(ApiSkillGrid::pipelineLoadSkillContent(
+                                $SchoolTypeId, $Filter, $SkillGridId, $AreaRanking, $SkillRanking + 1, $Data)),
                         'SkillContent_' . $AreaRanking . '_' . ($SkillRanking + 1)
                     )
                 )

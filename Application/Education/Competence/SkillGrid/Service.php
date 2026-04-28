@@ -133,6 +133,16 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblSkillArea $tblSkillArea
+     *
+     * @return TblSkill[]
+     */
+    public function getSkillListBySkillArea(TblSkillArea $tblSkillArea): array
+    {
+        return (new Data($this->getBinding()))->getSkillListBySkillArea($tblSkillArea);
+    }
+
+    /**
      * @param TblType $tblSchoolType
      * @param int|null $level
      * @param TblSubject|null $tblSubject
@@ -245,8 +255,9 @@ class Service extends AbstractService
             (new Data($this->getBinding()))->updateSkillGrid($tblSkillGrid, $Data['Name'], isset($Data['IsAverage']),
                 $Data['Level'], $tblSubject ?: null, $tblCourse ?: null, $tblSupportFocusType ?: null, $tblScoreType ?: null);
 
-            // erstmal alle löschen, updaten würde sehr komplex
-            $this->destroySkillsBySkillGrid($tblSkillGrid);
+//            Debugger::devDump($Data);
+//            return '';
+//            $this->destroySkillsBySkillGrid($tblSkillGrid);
 
             $tblSkillGridNew = $tblSkillGrid;
         } else {
@@ -254,18 +265,66 @@ class Service extends AbstractService
                 $Data['Level'], $tblSubject ?: null, $tblCourse ?: null, $tblSupportFocusType ?: null, $tblScoreType ?: null);
         }
 
-        $tblSkillAreaList = [];
+        $tblSkillAreaListExists = $tblSkillGrid->getSkillAreas();
+        $tblSkillListExists = $tblSkillGrid->getSkills();
+        $tblSkillAreaListByAreaRanking = [];
+        $skillAreaIdList = [];
+        $skillIdList = [];
         foreach ($Data['Skills'] as $key => $skillArray) {
             $split = explode('-', $key);
             $areaRanking = $split[0];
             $skillRanking = $split[1];
             if (!empty($skillArray['Skill'])) {
-                if (!isset($tblSkillAreaList[$areaRanking])) {
-                    $tblSkillAreaList[$areaRanking] = (new Data($this->getBinding()))->createSkillArea(
-                        $tblSkillGridNew, empty($Data['SkillAreas'][$areaRanking]['Area']) ? null : $Data['SkillAreas'][$areaRanking]['Area'], $areaRanking);
+                if (!isset($tblSkillAreaListByAreaRanking[$areaRanking])) {
+                    if (isset($Data['SkillAreas'][$areaRanking]['SkillAreaId'])
+                        && ($tblSkillArea = $this->getSkillAreaById($Data['SkillAreas'][$areaRanking]['SkillAreaId']))
+                    ) {
+                        (new Data($this->getBinding()))->updateSkillArea(
+                            $tblSkillArea, empty($Data['SkillAreas'][$areaRanking]['Area']) ? null : $Data['SkillAreas'][$areaRanking]['Area'], $areaRanking);
+
+                        $skillAreaIdList[$tblSkillArea->getId()] = 1;
+                    } else {
+                        $tblSkillArea = (new Data($this->getBinding()))->createSkillArea(
+                            $tblSkillGridNew, empty($Data['SkillAreas'][$areaRanking]['Area']) ? null : $Data['SkillAreas'][$areaRanking]['Area'], $areaRanking);
+                    }
+
+                    $tblSkillAreaListByAreaRanking[$areaRanking] = $tblSkillArea;
                 }
-                (new Data($this->getBinding()))->createSkill($tblSkillAreaList[$areaRanking], $skillArray['Level'] ?: null, $skillArray['Skill'], $skillRanking);
+
+                if (isset($skillArray['SkillId']) && ($tblSkill = $this->getSkillById($skillArray['SkillId']))) {
+                    (new Data($this->getBinding()))->updateSkill($tblSkill, $skillArray['Level'] ?: null, $skillArray['Skill'], $skillRanking);
+
+                    $skillIdList[$tblSkill->getId()] = 1;
+                } else {
+                    (new Data($this->getBinding()))->createSkill($tblSkillAreaListByAreaRanking[$areaRanking], $skillArray['Level'] ?: null, $skillArray['Skill'], $skillRanking);
+                }
             }
+        }
+
+        // löschen Kompetenzen
+        $destroySkillList = [];
+        foreach ($tblSkillListExists as $tblSkillTemp) {
+            if (!isset($skillIdList[$tblSkillTemp->getId()])) {
+                $destroySkillList[$tblSkillTemp->getId()] = $tblSkillTemp;
+            }
+        }
+        // löschen Kompetenzbereiche
+        $destroySkillAreaList = [];
+        foreach ($tblSkillAreaListExists as $tblSkillAreaTemp) {
+            if (!isset($skillAreaIdList[$tblSkillAreaTemp->getId()])) {
+                $destroySkillAreaList[] = $tblSkillAreaTemp;
+               if ($tblSkillListTemp = $tblSkillAreaTemp->getSkills()) {
+                   foreach ($tblSkillListTemp as $tblSkillTemp) {
+                       $destroySkillList[$tblSkillTemp->getId()] = $tblSkillTemp;
+                   }
+               }
+            }
+        }
+        if ($destroySkillList) {
+            (new Data($this->getBinding()))->destroySkillBulkList($destroySkillList);
+        }
+        if ($destroySkillAreaList) {
+            (new Data($this->getBinding()))->destroySkillAreaBulkList($destroySkillAreaList);
         }
 
         return new Success('Die Daten wurden erfolgreich gespeichert', new \SPHERE\Common\Frontend\Icon\Repository\Success())

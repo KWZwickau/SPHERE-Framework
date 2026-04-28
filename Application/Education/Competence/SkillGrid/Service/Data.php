@@ -199,6 +199,31 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblSkillArea $tblSkillArea
+     * @param string|null $name
+     * @param int $sortOrder
+     *
+     * @return bool
+     */
+    public function updateSkillArea(TblSkillArea $tblSkillArea, ?string $name, int $sortOrder): bool {
+        $manager = $this->getEntityManager();
+        /** @var TblSkillArea $entity */
+        $entity = $manager->getEntityById('TblSkillArea', $tblSkillArea->getId());
+        $protocol = clone $entity;
+        if (null !== $entity) {
+            $entity->setName($name);
+            $entity->setSortOrder($sortOrder);
+
+            $manager->saveEntity($entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $protocol, $entity);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
      * @param array $tblSkillAreaList
      *
      * @return bool
@@ -254,6 +279,18 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblSkillArea $tblSkillArea
+     *
+     * @return TblSkill[]
+     */
+    public function getSkillListBySkillArea(TblSkillArea $tblSkillArea): array
+    {
+        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblSkill', [
+           TblSkill::ATTR_TBL_SKILL_AREA => $tblSkillArea->getId()
+        ]) ?: [];
+    }
+
+    /**
      * @param $id
      *
      * @return false|TblSkill
@@ -285,6 +322,33 @@ class Data extends AbstractData
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $entity);
 
         return $entity;
+    }
+
+    /**
+     * @param TblSkill $tblSkill
+     * @param string|null $level
+     * @param string $skill
+     * @param int $sortOrder
+     *
+     * @return bool
+     */
+    public function updateSkill(TblSkill $tblSkill, ?string $level, string $skill, int $sortOrder): bool {
+        $manager = $this->getEntityManager();
+        /** @var TblSkill $entity */
+        $entity = $manager->getEntityById('TblSkill', $tblSkill->getId());
+        $protocol = clone $entity;
+        if (null !== $entity) {
+            $entity->setLevel($level);
+            $entity->setSkill($skill);
+            $entity->setSortOrder($sortOrder);
+
+            $manager->saveEntity($entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $protocol, $entity);
+
+            return true;
+        }
+
+        return false;
     }
 
     /**

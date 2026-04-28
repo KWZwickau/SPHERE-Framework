@@ -170,10 +170,11 @@ class ApiSkillGrid extends Extension implements IApiInterface
      * @param $SkillGridId
      * @param $AreaRanking
      * @param $SkillRanking
+     * @param $Data
      *
      * @return Pipeline
      */
-    public static function pipelineLoadSkillContent($SchoolTypeId, $Filter, $SkillGridId, $AreaRanking, $SkillRanking): Pipeline
+    public static function pipelineLoadSkillContent($SchoolTypeId, $Filter, $SkillGridId, $AreaRanking, $SkillRanking, $Data): Pipeline
     {
         $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'SkillContent_' . $AreaRanking . '_' . $SkillRanking), self::getEndpoint());
@@ -187,6 +188,7 @@ class ApiSkillGrid extends Extension implements IApiInterface
             'SkillGridId' => $SkillGridId,
             'AreaRanking' => $AreaRanking,
             'SkillRanking' => $SkillRanking,
+            'Data' => $Data
         ));
         $ModalEmitter->setLoadingMessage('Daten werden geladen');
         $Pipeline->appendEmitter($ModalEmitter);
@@ -200,13 +202,14 @@ class ApiSkillGrid extends Extension implements IApiInterface
      * @param $SkillGridId
      * @param $AreaRanking
      * @param $SkillRanking
+     * @param $Data
      *
      * @return string
      * @noinspection PhpUnused
      */
-    public function loadSkillContent($SchoolTypeId, $Filter, $SkillGridId, $AreaRanking, $SkillRanking): string
+    public function loadSkillContent($SchoolTypeId, $Filter, $SkillGridId, $AreaRanking, $SkillRanking, $Data): string
     {
-        return SkillGrid::useFrontend()->getSkillContent($SchoolTypeId, $Filter, $SkillGridId,$AreaRanking, $SkillRanking);
+        return SkillGrid::useFrontend()->getSkillContent($SchoolTypeId, $Filter, $SkillGridId,$AreaRanking, $SkillRanking, true, null, $Data);
     }
 
     /**
@@ -215,10 +218,12 @@ class ApiSkillGrid extends Extension implements IApiInterface
      * @param null $SkillGridId
      * @param null $Action
      * @param null $ActionId
+     * @param null $Data
      *
      * @return Pipeline
      */
-    public static function pipelineLoadEditSkillGridContent($SchoolTypeId = null, $Filter = null, $SkillGridId = null, $Action = null, $ActionId = null): Pipeline
+    public static function pipelineLoadEditSkillGridContent($SchoolTypeId = null, $Filter = null, $SkillGridId = null, $Action = null, $ActionId = null,
+        $Data = null): Pipeline
     {
         $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'EditSkillGridContent'), self::getEndpoint());
@@ -230,7 +235,8 @@ class ApiSkillGrid extends Extension implements IApiInterface
             'Filter' => $Filter,
             'SkillGridId' => $SkillGridId,
             'Action' => $Action,
-            'ActionId' => $ActionId
+            'ActionId' => $ActionId,
+            'Data' => $Data
         ));
         $ModalEmitter->setLoadingMessage('Daten werden geladen');
         $Pipeline->appendEmitter($ModalEmitter);
@@ -255,13 +261,14 @@ class ApiSkillGrid extends Extension implements IApiInterface
     }
 
     /**
-     * @param $SchoolTypeId
-     * @param $Filter
-     * @param $SkillGridId
+     * @param null $SchoolTypeId
+     * @param null $Filter
+     * @param null $SkillGridId
+     * @param null $Data
      *
      * @return Pipeline
      */
-    public static function pipelineSaveEditSkillGrid($SchoolTypeId = null, $Filter = null, $SkillGridId = null): Pipeline
+    public static function pipelineSaveEditSkillGrid($SchoolTypeId = null, $Filter = null, $SkillGridId = null, $Data = null): Pipeline
     {
         $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'EditSkillGridContent'), self::getEndpoint());
@@ -271,7 +278,8 @@ class ApiSkillGrid extends Extension implements IApiInterface
         $ModalEmitter->setPostPayload(array(
             'SchoolTypeId' => $SchoolTypeId,
             'Filter' => $Filter,
-            'SkillGridId' => $SkillGridId
+            'SkillGridId' => $SkillGridId,
+            'Data' => $Data
         ));
         $ModalEmitter->setLoadingMessage('Daten werden geladen');
         $Pipeline->appendEmitter($ModalEmitter);

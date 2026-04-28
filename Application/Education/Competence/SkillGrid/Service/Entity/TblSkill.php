@@ -16,6 +16,8 @@ use SPHERE\System\Database\Fitting\Element;
  */
 class TblSkill extends Element
 {
+    const string ATTR_TBL_SKILL_AREA = 'tblCompetenceSkillArea';
+
     /**
      * @Column(type="bigint")
      */

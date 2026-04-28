@@ -68,4 +68,12 @@ class TblSkillArea extends Element
     {
         $this->SortOrder = $SortOrder;
     }
+
+    /**
+     * @return TblSkill[]
+     */
+    public function getSkills(): array
+    {
+        return SkillGrid::useService()->getSkillListBySkillArea($this);
+    }
 }
