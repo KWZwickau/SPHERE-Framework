@@ -17,6 +17,7 @@ class TblRole extends Element
 {
 
     const ATTR_NAME = 'Name';
+    const ATTR_IS_INDIVIDUAL = 'IsIndividual';
 
     /**
      * @Column(type="string")

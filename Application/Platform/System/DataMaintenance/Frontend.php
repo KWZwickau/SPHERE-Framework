@@ -8,6 +8,7 @@ use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Person\Person;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account as AccountAuthorization;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblUser;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer as GatekeeperConsumer;
@@ -25,11 +26,13 @@ use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Ban;
+use SPHERE\Common\Frontend\Icon\Repository\Check;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
+use SPHERE\Common\Frontend\Icon\Repository\Info as InfoIcon;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Question;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
@@ -92,6 +95,16 @@ class Frontend extends Extension implements IFrontendInterface
         $CustodyAccountCount = ($tblUserAccountList ? count($tblUserAccountList) : 0);
 
         $Stage->setContent(new Layout(new LayoutGroup(new LayoutRow(array(
+
+            new LayoutColumn(array(
+                new Panel(new Bold('Wartung'), // new Center('Wartung'),
+                    new Standard('Einstellen', __NAMESPACE__.'/Maintenance'), Panel::PANEL_TYPE_PRIMARY)
+            ), 4),
+            new LayoutColumn(array(
+                new Panel(new Bold('Verwaltung Module & SSW Sperrung'), // new Center('Einstellung API & Sperrung'), new Center(new Standard('Einstellung', __NAMESPACE__.'/ConsumerLogin'))
+                    new Standard('Einstellung', __NAMESPACE__.'/ConsumerLogin'), Panel::PANEL_TYPE_PRIMARY)
+            ), 4),
+            new LayoutColumn('<br/>'),
             new LayoutColumn(array(
                 new Panel(new Bold('Gelöschte Personen'), // new Center('Gelöschte Personen'),
                     ($CountSoftRemovePerson >= 1
@@ -110,32 +123,23 @@ class Frontend extends Extension implements IFrontendInterface
                     , Panel::PANEL_TYPE_INFO)
             ), 4),
             new LayoutColumn(array(
-                new Panel(new Bold('Wartung'), // new Center('Wartung'),
-                    new Standard('Einstellen', __NAMESPACE__.'/Maintenance'), Panel::PANEL_TYPE_INFO)
-            ), 4),
-            new LayoutColumn('<br/>'),
-            new LayoutColumn(array(
-                new Panel(new Bold('Einstellung DLLP KelvinAPI & SSW Sperrung'), // new Center('Einstellung API & Sperrung'), new Center(new Standard('Einstellung', __NAMESPACE__.'/ConsumerLogin'))
-                    new Standard('Einstellung', __NAMESPACE__.'/ConsumerLogin'), Panel::PANEL_TYPE_INFO)
-            ), 4),
-            new LayoutColumn(array(
                 new Panel(new Bold('Protokoll älter als: '.$DateTime->format('d.m.Y')), //new Center('Protokoll älter als: '.$DateTime->format('d.m.Y')),
                     new Standard('Protokolleinträge', __NAMESPACE__.'/Protocol'), Panel::PANEL_TYPE_INFO)
             ), 4),
+            new LayoutColumn('<br/>'),
             // niedrige Prio, wird einmal im Jahr benötigt
             new LayoutColumn(array(
                 new Panel(new Bold('Jährliches DEV Update (Datum) wird um 1 Jahr erhöht'), // new Center('Jährliches DEV Update (Datum) wird um 1 Jahr erhöht'),
                     new Standard('Jährliches Update', __NAMESPACE__.'/Yearly', null, array(), 'Anzeige eines SQL Script\'s')
                     , Panel::PANEL_TYPE_INFO)
             ), 4),
-            new LayoutColumn('<br/>'),
-//          // niedrige Prio, wird nur als Information behalten
+            // niedrige Prio, wird nur als Information behalten
             new LayoutColumn(array(
                 new Panel(new Bold('Document Storage'), // new Center('Document Storage'),
                     // Dateien (Zeugnisse) nachträglich initial einstellen
 //                        new Standard('Datei-Größe setzen für alte Dateien', __NAMESPACE__.'/DocumentStorage/FileSize').
-                            new Standard('Datei-Größe aller Mandanten einsehen', __NAMESPACE__.'/DocumentStorage/AllConsumers'), Panel::PANEL_TYPE_INFO)
-                ), 4),
+                    new Standard('Datei-Größe aller Mandanten einsehen', __NAMESPACE__.'/DocumentStorage/AllConsumers'), Panel::PANEL_TYPE_INFO)
+            ), 4),
 //            new LayoutColumn(array(
 //                new TitleLayout('Zensuren/Noten'),
 //                (new Standard('Verschieben', __NAMESPACE__.'/Grade'))
@@ -624,11 +628,14 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage->setContent(
             ApiConsumerLogin::receiverModal('Modal')
-            .new Layout(new LayoutGroup(array(new LayoutRow(
-            new LayoutColumn(
-                ApiConsumerLogin::receiverBlock($this->getConsumerLoginTable(), 'ConsumerLoginTable') // ApiConsumerLogin::pipelineReload()
-            )
-        )))));
+            .new Layout(new LayoutGroup(array(new LayoutRow(array(
+                new LayoutColumn(
+                    new Info(new InfoIcon().' Das deaktivieren eines Rechtes entfernt die vergebenen Rechte am Benutzer nicht. Nachkontrolle bei Deaktivierung wenn erforderlich.')
+                ),
+                new LayoutColumn(
+                    ApiConsumerLogin::receiverBlock($this->getConsumerLoginTable(), 'ConsumerLoginTable') // ApiConsumerLogin::pipelineReload()
+                )
+            ))))));
 
         return $Stage;
     }
@@ -641,32 +648,62 @@ class Frontend extends Extension implements IFrontendInterface
 
         $tblConsumerAll = GatekeeperConsumer::useService()->getConsumerAll();
         $TableContent = array();
+        $tblRoleList = Access::useService()->getRoleByIsIndividual();
         foreach ($tblConsumerAll as $tblConsumer) {
             $item = array();
             $item['Acronym'] = $tblConsumer->getAcronym();
             $item['Name'] = $tblConsumer->getName();
             $item['Type'] = $tblConsumer->getType();
-            $item['DLLP'] = (new Link(new Edit(), ''))->ajaxPipelineOnClick(ApiConsumerLogin::pipelineOpenModal($tblConsumer->getId(), TblConsumerLogin::VALUE_SYSTEM_DLLP)); // ApiConsumerLogin::API_TARGET;
-            $item['SSWStop'] = (new Link(new Edit(), ''))->ajaxPipelineOnClick(ApiConsumerLogin::pipelineOpenModal($tblConsumer->getId(), TblConsumerLogin::VALUE_SYSTEM_SSW_STOP)); // ApiConsumerLogin::API_TARGET;
+            if($tblRoleList){
+                foreach($tblRoleList as $tblRole){
+                    $item[$tblRole->getId().'Id'] = (new Link(new Edit(), ''))
+                        ->ajaxPipelineOnClick(ApiConsumerLogin::pipelineOpenRoleModal($tblConsumer->getId(), $tblRole->getId()));
+                    if(Access::useService()->getRoleConsumerBy($tblRole, $tblConsumer)) {
+                        $item[$tblRole->getId().'Id'] = (new Link(new Edit().' Aktiv', ''))
+                            ->ajaxPipelineOnClick(ApiConsumerLogin::pipelineOpenRoleModal($tblConsumer->getId(), $tblRole->getId()));
+                    }
+                }
+            }
+
+            $item['DLLP'] = (new Link(new Edit(), ''))
+                ->ajaxPipelineOnClick(ApiConsumerLogin::pipelineOpenModal($tblConsumer->getId(), TblConsumerLogin::VALUE_SYSTEM_DLLP)); // ApiConsumerLogin::API_TARGET;
+            $item['SSWStop'] = (new Link(new Edit(), ''))
+                ->ajaxPipelineOnClick(ApiConsumerLogin::pipelineOpenModal($tblConsumer->getId(), TblConsumerLogin::VALUE_SYSTEM_SSW_STOP)); // ApiConsumerLogin::API_TARGET;
+
             if(($tblConsumerLogin = GatekeeperConsumer::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_DLLP))){
-                $item['DLLP'] = (new Link(new Edit().' KelvinAPI Aktiv'.($tblConsumerLogin->getIsActiveAPI()? ' + Buttons Aktiv': ''), ''))
+                $item['DLLP'] = (new Link(new Edit().' Aktiv'.($tblConsumerLogin->getIsActiveAPI()? ' + '.new Check(): ''), ''))
                     ->ajaxPipelineOnClick(ApiConsumerLogin::pipelineOpenModal($tblConsumer->getId(), TblConsumerLogin::VALUE_SYSTEM_DLLP));
             }
-            if(($tblConsumerLogin = GatekeeperConsumer::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_SSW_STOP))){
+            if(GatekeeperConsumer::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_SSW_STOP)){
                 $item['SSWStop'] = (new Link(new Edit().' SSW Deaktiviert', ''))
                     ->ajaxPipelineOnClick(ApiConsumerLogin::pipelineOpenModal($tblConsumer->getId(), 'SSWStop'));
             }
             $TableContent[] = $item;
         }
 
-        return new TableData($TableContent, new Title('Einstellung DLLP KelvinAPI & SSW Sperrung'),
+        $HeadList = array();
+        $HeadList['Acronym'] = 'Kürzel';
+        $HeadList['Name'] = 'Name';
+        $HeadList['Type'] = 'Bundesland';
+        if($tblRoleList) {
+            foreach ($tblRoleList as $tblRole) {
+                if ($tblRole->getName() == 'Auswertung: Kamenz-Statistik') {
+                    $Titel = 'Recht Kamenz '.new ToolTip(new InfoIcon(), 'Auswertung: Kamenz-Statistik', false);
+                } elseif ($tblRole->getName() == 'Bildung: Berechnungsvorschrift Kopfnoten') {
+                    $Titel = 'Recht Kopfnoten '.new ToolTip(new InfoIcon(), 'Bildung: Berechnungsvorschrift Kopfnoten', false);
+                } else {
+                    $Titel = 'Recht '.$tblRole->getName();
+                }
+                $HeadList[$tblRole->getId().'Id'] = $Titel;
+            }
+        }
+        $HeadList['DLLP'] = 'DLLP';
+        $HeadList['SSWStop'] = 'Sperrung SSW';
+
+        return
+            new TableData($TableContent, new Title('Einstellung DLLP KelvinAPI & SSW Sperrung'),
+            $HeadList,
             array(
-                'Acronym' => 'Kürzel',
-                'Name' => 'Name',
-                'Type' => 'Bundesland',
-                'DLLP' => 'DLLP',
-                'SSWStop' => 'Sperrung SSW',
-            ), array(
                 'columnDefs' => array(
                     array('width' => '80px', 'targets' => 0),
                     array('width' => '400px', 'targets' => 1),
@@ -675,9 +712,9 @@ class Frontend extends Extension implements IFrontendInterface
                 'order'      => array(array(0, 'asc')),
                 'pageLength' => -1,
                 'paging'     => false,
-//                        'info'       => false,
-//                        'searching'  => false,
-//                        'responsive' => false
+//                'info'       => false,
+//                'searching'  => false,
+//                'responsive' => false
             )
         );
     }
