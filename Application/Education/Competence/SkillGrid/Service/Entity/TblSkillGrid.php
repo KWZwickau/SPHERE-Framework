@@ -162,11 +162,19 @@ class TblSkillGrid extends Element
         $this->serviceTblSupportFocusType = $tblSupportFocusType?->getId();
     }
 
+    /**
+     * @return bool
+     */
     public function getIsAverage(): bool
     {
         return $this->IsAverage;
     }
 
+    /**
+     * @param bool $IsAverage
+     *
+     * @return void
+     */
     public function setIsAverage(bool $IsAverage): void
     {
         $this->IsAverage = $IsAverage;

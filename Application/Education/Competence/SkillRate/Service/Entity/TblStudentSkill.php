@@ -6,6 +6,8 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
+use SPHERE\Application\Education\Competence\ScoreType\ScoreType;
+use SPHERE\Application\Education\Competence\ScoreType\Service\Entity\TblScoreType;
 use SPHERE\Application\Education\Competence\SkillGrid\Service\Entity\TblSkill;
 use SPHERE\Application\Education\Competence\SkillGrid\SkillGrid;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
@@ -25,6 +27,7 @@ class TblStudentSkill extends Element
 {
     const string SERVICE_TBL_PERSON = 'serviceTblPerson';
     const string SERVICE_TBL_YEAR = 'serviceTblYear';
+    const string SERVICE_TBL_SUBJECT = 'serviceTblSubject';
     const string SERVICE_TBL_SKILL = 'serviceTblSkill';
 
     /**
@@ -59,7 +62,14 @@ class TblStudentSkill extends Element
      * @Column(type="string")
      */
     protected string $Skill;
-
+    /**
+     * @Column(type="boolean")
+     */
+    protected ?bool $IsAverage = null;
+    /**
+     * @Column(type="bigint")
+     */
+    protected ?int $serviceTblScoreType = null;
 
     /**
      * @return false|TblPerson
@@ -196,5 +206,54 @@ class TblStudentSkill extends Element
     public function setSkill(string $Skill): void
     {
         $this->Skill = $Skill;
+    }
+
+    /**
+     * @return bool|null
+     */
+    public function getIsAverage(): ?bool
+    {
+        if (($tblSkill = $this->getServiceTblSkill())
+            && ($tblSkillGrid = $tblSkill->getTblSkillGrid())
+        ) {
+            return $tblSkillGrid->getIsAverage();
+        }
+
+        return $this->IsAverage;
+    }
+
+    /**
+     * @param bool|null $IsAverage
+     * @return void
+     */
+    public function setIsAverage(?bool $IsAverage): void
+    {
+        $this->IsAverage = $IsAverage;
+    }
+
+    /**
+     * @return TblScoreType|null
+     */
+    public function getServiceTblScoreType(): TblScoreType|null
+    {
+        if (($tblSkill = $this->getServiceTblSkill())
+            && ($tblSkillGrid = $tblSkill->getTblSkillGrid())
+        ) {
+            return $tblSkillGrid->getServiceTblScoreType() ?: null;
+        }
+
+        return $this->serviceTblScoreType
+            ? (ScoreType::useService()->getScoreTypeById($this->serviceTblScoreType) ?: null)
+            : null;
+    }
+
+    /**
+     * @param TblScoreType|null $tblScoreType
+     *
+     * @return void
+     */
+    public function setServiceTblScoreType(?TblScoreType $tblScoreType): void
+    {
+        $this->serviceTblScoreType = $tblScoreType?->getId();
     }
 }

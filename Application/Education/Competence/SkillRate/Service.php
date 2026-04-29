@@ -76,13 +76,14 @@ class Service extends AbstractService
     /**
      * @param TblPerson $tblPerson
      * @param TblYear $tblYear
+     * @param TblSubject|null $tblSubject
      *
      * @return TblStudentSkill[]
      */
-    public function getStudentSkillListByPersonAndYear(TblPerson $tblPerson, TblYear $tblYear): array
+    public function getStudentSkillListByPersonAndYear(TblPerson $tblPerson, TblYear $tblYear, ?TblSubject $tblSubject): array
     {
         $resultList = [];
-        $list = (new Data($this->getBinding()))->getStudentSkillListByPersonAndYear($tblPerson, $tblYear);
+        $list = (new Data($this->getBinding()))->getStudentSkillListByPersonAndYear($tblPerson, $tblYear, $tblSubject);
         foreach ($list as $tblStudentSkill) {
             if (($tblSkill = $tblStudentSkill->getServiceTblSkill())) {
                 $resultList['SkillId_' . $tblSkill->getId()] = $tblStudentSkill;
@@ -137,16 +138,13 @@ class Service extends AbstractService
     public function getDisplayStudentSkillRateLastOrAverage(TblStudentSkill $tblStudentSkill, string $extraToolTip = ""): string
     {
         $display = '';
-        if (($tblSkill = $tblStudentSkill->getServiceTblSkill())
-            && ($tblSkillGrid = $tblSkill->getTblSkillGrid())
-            && $tblSkillGrid->getIsAverage()
-        ) {
+        if ($tblStudentSkill->getIsAverage()) {
             if (($average = $this->getCalcAverageStudentSkillRate($tblStudentSkill)) !== null) {
                 // in deutsches Zahlformat umwandeln
                 $formatter = new NumberFormatter('de_DE', NumberFormatter::DECIMAL);
                 $formatter->setAttribute(NumberFormatter::FRACTION_DIGITS, 2);
 
-                $display = '&#216; ' . $formatter->format($average) . (!$tblSkillGrid->getServiceTblScoreType() ? '%' : '');
+                $display = '&#216; ' . $formatter->format($average) . (!$tblStudentSkill->getServiceTblScoreType() ? '%' : '');
                 if ($extraToolTip) {
                     $display = new ToolTip($display, $extraToolTip);
                 }
@@ -396,16 +394,26 @@ class Service extends AbstractService
             $tblStudentSkill = SkillRate::useService()->getStudentSkillBy($tblPerson, $tblYear, $tblSkill);
             if (!$tblStudentSkill) {
                 $tblSubject = Subject::useService()->getSubjectById($SubjectId) ?: null;
-                return (new Data($this->getBinding()))->createStudentSkill($tblPerson, $tblYear, $tblSubject, null, $tblPersonTeacher,
-                    $Data['SkillArea'] ?? ($tblSkill->getTblSkillArea()->getName() ?: null), $Data['SkillLevel'] ?: null, $Data['Skill']);
+
+                return (new Data($this->getBinding()))->createStudentSkill($tblPerson, $tblYear, $tblSubject, $tblSkill, $tblPersonTeacher,
+                    $tblSkill->getTblSkillArea()->getName() ?: null, $Data['SkillLevel'] ?: null, $Data['Skill']);
             }
         } else {
             $tblStudentSkill = SkillRate::useService()->getStudentSkillById($split[1]);
         }
 
         if ($tblStudentSkill) {
+            $skillArea = null;
+            $isAverage = null;
+            $tblScoreType = null;
+            if (!$tblStudentSkill->getServiceTblSkill()) {
+                $skillArea = $Data['SkillArea'] ?? null;
+                $tblScoreType = $Data['ScoreTypeId'] > 0 ? ScoreType::useService()->getScoreTypeById($Data['ScoreTypeId']) : null;
+                $isAverage = isset($Data['IsAverage']);
+            }
+
             return (new Data($this->getBinding()))->updateStudentSkill($tblStudentSkill, $tblPersonTeacher,
-                $Data['SkillArea'] ?? null, $Data['SkillLevel'] ?: null, $Data['Skill']);
+                $skillArea, $Data['SkillLevel'] ?: null, $Data['Skill'], $isAverage, $tblScoreType ?: null);
         }
 
         return false;
@@ -440,7 +448,7 @@ class Service extends AbstractService
      *
      * @return string
      */
-    public function createStudentSkill($DivisionCourseId, $PersonId, $SubjectId, $Data): string {
+    public function addStudentSkill($DivisionCourseId, $PersonId, $SubjectId, $Data): string {
 
         if (!isset($Data['Id']) || !($tblSkill = SkillGrid::useService()->getSkillById($Data['Id']))) {
             $ErrorList[] = [
@@ -465,6 +473,44 @@ class Service extends AbstractService
                     $tblSkill->getTblSkillArea()->getName() ?: null, $tblSkill->getLevel() ?: null, $tblSkill->getSkill()
                 );
             }
+        }
+
+        return new Success('Kompetenz wurde erfolgreich hinzugefügt.')
+            . ApiSkillRate::pipelineClose()
+            . ApiSkillRate::pipelineLoadViewStudentContent($DivisionCourseId, $PersonId, $SubjectId);
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $PersonId
+     * @param $SubjectId
+     * @param $Data
+     *
+     * @return string
+     */
+    public function createStudentSkill($DivisionCourseId, $PersonId, $SubjectId, $Data): string {
+
+        if (empty($Data['Skill'])) {
+            $ErrorList[] = [
+                'Name' => 'Data[Skill]',
+                'Message' => 'Bitte geben Sie eine Kompetenz an.'
+            ];
+
+            return SkillRate::useFrontend()->openCreateStudentSkillModal($DivisionCourseId, $PersonId, $SubjectId, $ErrorList);
+        }
+
+        if (($tblPerson = Person::useService()->getPersonById($PersonId))
+            && ($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))
+            && ($tblYear = $tblDivisionCourse->getServiceTblYear())
+        ) {
+            $tblPersonTeacher = Account::useService()->getPersonByLogin() ?: null;
+            $tblSubject = Subject::useService()->getSubjectById($SubjectId) ?: null;
+            $tblScoreType = $Data['ScoreTypeId'] > 0 ? ScoreType::useService()->getScoreTypeById($Data['ScoreTypeId']) : null;
+
+            (new Data($this->getBinding()))->createStudentSkill(
+                $tblPerson, $tblYear, $tblSubject, null, $tblPersonTeacher,
+                $Data['SkillArea'] ?: null, $Data['SkillLevel'] ?: null, $Data['Skill'], isset($Data['IsAverage']), $tblScoreType ?: null
+            );
         }
 
         return new Success('Kompetenz wurde erfolgreich hinzugefügt.')

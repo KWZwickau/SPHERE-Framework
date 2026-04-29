@@ -51,7 +51,7 @@ class Data extends AbstractData
             $parameters[TblSkillGrid::SERVICE_TBL_SUBJECT] = $tblSubject->getId();
         }
 
-        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblSkillGrid', $parameters);
+        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblSkillGrid', $parameters, [Element::ENTITY_CREATE => self::ORDER_ASC]);
     }
 
     /**
@@ -285,9 +285,8 @@ class Data extends AbstractData
      */
     public function getSkillListBySkillArea(TblSkillArea $tblSkillArea): array
     {
-        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblSkill', [
-           TblSkill::ATTR_TBL_SKILL_AREA => $tblSkillArea->getId()
-        ]) ?: [];
+        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblSkill',
+            [TblSkill::ATTR_TBL_SKILL_AREA => $tblSkillArea->getId()], [TblSkill::ATTR_SORT_ORDER => self::ORDER_ASC]) ?: [];
     }
 
     /**

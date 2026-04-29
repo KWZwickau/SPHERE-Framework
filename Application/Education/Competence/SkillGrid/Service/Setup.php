@@ -54,7 +54,9 @@ class Setup extends AbstractSetup
         $this->createColumn($table, 'IsAverage', self::FIELD_TYPE_BOOLEAN);
         $this->createColumn($table, 'serviceTblScoreType', self::FIELD_TYPE_INTEGER, true);
 
-        // Todo Indexe
+        $this->createIndex($table, ['serviceTblSchoolType'], false);
+        $this->createIndex($table, ['serviceTblSchoolType', 'Level'], false);
+        $this->createIndex($table, ['serviceTblSchoolType', 'Level', 'serviceTblSubject'], false);
 
         return $table;
     }

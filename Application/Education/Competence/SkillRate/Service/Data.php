@@ -3,6 +3,7 @@
 namespace SPHERE\Application\Education\Competence\SkillRate\Service;
 
 use DateTime;
+use SPHERE\Application\Education\Competence\ScoreType\Service\Entity\TblScoreType;
 use SPHERE\Application\Education\Competence\ScoreType\Service\Entity\TblScoreTypeItem;
 use SPHERE\Application\Education\Competence\SkillGrid\Service\Entity\TblSkill;
 use SPHERE\Application\Education\Competence\SkillRate\Service\Entity\TblStudentSkill;
@@ -12,6 +13,7 @@ use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Database\Binding\AbstractData;
+use SPHERE\System\Database\Fitting\Element;
 
 class Data extends AbstractData
 {
@@ -52,31 +54,36 @@ class Data extends AbstractData
     /**
      * @param TblPerson $tblPerson
      * @param TblYear $tblYear
+     * @param TblSubject|null $tblSubject
      *
      * @return TblStudentSkill[]
      */
-    public function getStudentSkillListByPersonAndYear(TblPerson $tblPerson, TblYear $tblYear): array
+    public function getStudentSkillListByPersonAndYear(TblPerson $tblPerson, TblYear $tblYear, ?TblSubject $tblSubject): array
     {
         return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblStudentSkill', [
             TblStudentSkill::SERVICE_TBL_PERSON => $tblPerson->getId(),
-            TblStudentSkill::SERVICE_TBL_YEAR => $tblYear->getId()
-        ]) ?: [];
+            TblStudentSkill::SERVICE_TBL_YEAR => $tblYear->getId(),
+            TblStudentSkill::SERVICE_TBL_SUBJECT => $tblSubject?->getId()
+        ], [Element::ENTITY_CREATE => self::ORDER_ASC]) ?: [];
     }
 
     /**
      * @param TblPerson $tblPerson
      * @param TblYear $tblYear
      * @param TblSubject|null $tblSubject
-     * @param TblPerson|null $tblPersonTeacher
      * @param TblSkill|null $tblSkill
+     * @param TblPerson|null $tblPersonTeacher
      * @param string|null $skillArea
      * @param string|null $skillLevel
      * @param string $skill
+     * @param bool|null $isAverage
+     * @param TblScoreType|null $tblScoreType
      *
      * @return TblStudentSkill
      */
     public function createStudentSkill(TblPerson $tblPerson, TblYear $tblYear, ?TblSubject $tblSubject, ?TblSkill $tblSkill,
-        ?TblPerson $tblPersonTeacher, ?string $skillArea, ?string $skillLevel, string $skill): TblStudentSkill
+        ?TblPerson $tblPersonTeacher, ?string $skillArea, ?string $skillLevel, string $skill,
+        ?bool $isAverage = null, ?TblScoreType $tblScoreType = null): TblStudentSkill
     {
         $manager = $this->getEntityManager();
 
@@ -89,6 +96,8 @@ class Data extends AbstractData
         $entity->setSkillArea($skillArea);
         $entity->setSkillLevel($skillLevel);
         $entity->setSkill($skill);
+        $entity->setIsAverage($isAverage);
+        $entity->setServiceTblScoreType($tblScoreType);
 
         $manager->saveEntity($entity);
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $entity);
@@ -102,11 +111,14 @@ class Data extends AbstractData
      * @param string|null $skillArea
      * @param string|null $skillLevel
      * @param string $skill
+     * @param bool|null $isAverage
+     * @param TblScoreType|null $tblScoreType
      *
      * @return bool
      */
     public function updateStudentSkill(TblStudentSkill $tblStudentSkill, ?TblPerson $tblPersonTeacher,
-        ?string $skillArea, ?string $skillLevel, string $skill): bool
+        ?string $skillArea, ?string $skillLevel, string $skill,
+        ?bool $isAverage = null, ?TblScoreType $tblScoreType = null): bool
     {
         $Manager = $this->getEntityManager();
         /** @var TblStudentSkill $Entity */
@@ -119,6 +131,8 @@ class Data extends AbstractData
             $Entity->setSkillLevel($skillLevel ?: null);
             $Entity->setSkill($skill);
             $Entity->setServiceTblPersonTeacher($tblPersonTeacher);
+            $Entity->setIsAverage($isAverage);
+            $Entity->setServiceTblScoreType($tblScoreType);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);

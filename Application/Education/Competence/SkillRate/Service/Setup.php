@@ -53,7 +53,12 @@ class Setup extends AbstractSetup
         $this->createColumn($table, 'Skill');
         $this->createColumn($table, 'serviceTblPersonTeacher', self::FIELD_TYPE_BIGINT, true);
 
-        // Todo Indexe
+        $this->createColumn($table, 'IsAverage', self::FIELD_TYPE_BOOLEAN, true);
+        $this->createColumn($table, 'serviceTblScoreType', self::FIELD_TYPE_INTEGER, true);
+
+        $this->createIndex($table, ['serviceTblPerson', 'serviceTblYear'], false);
+        $this->createIndex($table, ['serviceTblPerson', 'serviceTblYear', 'serviceTblSkill'], false);
+        $this->createIndex($table, ['serviceTblPerson', 'serviceTblYear', 'serviceTblSubject'], false);
 
         return $table;
     }
@@ -76,7 +81,5 @@ class Setup extends AbstractSetup
         $this->createColumn($table, 'Rate', self::FIELD_TYPE_STRING, true);
         $this->createColumn($table, 'serviceTblScoreTypeItem', self::FIELD_TYPE_BIGINT, true);
         $this->createColumn($table, 'serviceTblPersonTeacher', self::FIELD_TYPE_BIGINT, true);
-
-        // Todo Indexe
     }
 }
