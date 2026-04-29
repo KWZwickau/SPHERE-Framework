@@ -1507,4 +1507,33 @@ class Data extends AbstractData
 
         return empty($resultList) ? false : $resultList;
     }
+
+    /**
+     * @param TblConsumer $tblConsumer
+     *
+     * @return array<int, array{Name: string, countAccount: int}>
+     * Name = tblIdentification->Name
+     */
+    public function getAccountCountByConsumer(TblConsumer $tblConsumer): array
+    {
+        $queryBuilder = $this->getEntityManager()->getQueryBuilder();
+
+        $query = $queryBuilder->select(' tI.Name, count(tA.Id) as countAccount')
+            ->from(TblAccount::class, 'tA')
+            ->leftJoin(TblAuthentication::class, 'tAu', 'WITH', 'tA.Id = tAu.tblAccount')
+            ->leftJoin(TblIdentification::class, 'tI', 'WITH', 'tI.Id = tAu.tblIdentification')
+            ->where(
+                $queryBuilder->expr()->andX(
+                    $queryBuilder->expr()->isNull('tA.EntityRemove'),
+                    $queryBuilder->expr()->eq('tA.serviceTblConsumer', '?1'),
+                ),
+            )
+            ->setParameter(1, $tblConsumer->getId())
+            ->groupBy('tI.Name')
+            ->getQuery();
+
+        $resultList = $query->getResult();
+
+        return empty($resultList) ? false : $resultList;
+    }
 }

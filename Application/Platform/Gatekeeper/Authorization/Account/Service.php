@@ -868,6 +868,18 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblConsumer $tblConsumer
+     *
+     * @return array
+     */
+    public function getAccountCountByConsumer(TblConsumer $tblConsumer): array
+    {
+
+        return (new Data($this->getBinding()))->getAccountCountByConsumer($tblConsumer);
+
+    }
+
+    /**
      * @param TblAccount $tblAccount
      *
      * @return bool|TblSession[]

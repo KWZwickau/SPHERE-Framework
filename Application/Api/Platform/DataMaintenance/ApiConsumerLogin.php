@@ -7,6 +7,7 @@ use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\IApiInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account as AccountAuthorization;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblSetting;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumerLogin;
@@ -24,6 +25,9 @@ use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
+use SPHERE\Common\Frontend\Icon\Repository\Disable;
+use SPHERE\Common\Frontend\Icon\Repository\Edit;
+use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Headline;
 use SPHERE\Common\Frontend\Layout\Repository\Listing;
@@ -34,6 +38,7 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\Danger as DangerLink;
 use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Info;
@@ -302,19 +307,22 @@ class ApiConsumerLogin extends Extension implements IApiInterface
                     new Headline($tblRole->getName())
                     , 4),
                 new LayoutColumn(
-                    new PullRight(new Headline($tblConsumer->getName(), $tblConsumer->getAcronym()))
+                    new PullRight(new Headline(new Bold(new DangerText($tblConsumer->getAcronym())), $tblConsumer->getName()))
                     , 8),
             ))))
             .new Well(
                 new Layout(new LayoutGroup(new LayoutRow(array(
-                    new LayoutColumn(new Form(new FormGroup(new FormRow(
-                        new FormColumn(
-                            new SelectBox('Data[Active]', $tblRole->getName().' Status', $SelectBoxActive)
-                        , 12)))
-                        , (new Primary('Speichern','#'))->ajaxPipelineOnClick(ApiConsumerLogin::pipelineSaveRoleModal($ConsumerId, $RoleId))
+                    new LayoutColumn(array(
+                        new Muted('<div style="height: 13px"></div>'),
+                        new Form(new FormGroup(new FormRow(
+                            new FormColumn(
+                                new SelectBox('Data[Active]', $tblRole->getName().' Status', $SelectBoxActive)
+                                , 12)))
+                        , (new Primary('Speichern','#'))->ajaxPipelineOnClick(ApiConsumerLogin::pipelineSaveRoleModal($ConsumerId, $RoleId)))
                     ), 6),
                     new LayoutColumn(
                         ($EffectUserList?new Title('Betroffene Benutzer ', 'die das Recht verlieren').$EffectUserList: '')
+                        .(new Well('Benutzerrecht gesteuerter Zugang'))->setPadding('5px')
                     , 6),
                 ))))
 
@@ -344,15 +352,30 @@ class ApiConsumerLogin extends Extension implements IApiInterface
                     new Headline(TblConsumerLogin::VALUE_SYSTEM_DLLP)
                     , 4),
                 new LayoutColumn(
-                    new PullRight(new Headline($tblConsumer->getName(), $tblConsumer->getAcronym()))
+                    new PullRight(new Headline(new Bold(new DangerText($tblConsumer->getAcronym())), $tblConsumer->getName()))
                     , 8),
             ))))
-            .new Well(new Form(new FormGroup(array(new FormRow(array(
-                new FormColumn(new SelectBox('Data[Active]', TblConsumerLogin::VALUE_SYSTEM_DLLP.' Status', $SelectBoxActive), 4),
-                new FormColumn((new CheckBox('Data[ActiveButton]', 'Buttons KelvinAPI', 1))->setPaddingTop(), 4),
-            ))))
-                , (new Primary('Speichern','#'))->ajaxPipelineOnClick(ApiConsumerLogin::pipelineSaveDllpModal($ConsumerId))
-        ));
+            .new Well(
+                new Layout(new LayoutGroup(new LayoutRow(array(
+                    new LayoutColumn(new Form(new FormGroup(new FormRow(array(
+                            new FormColumn(array(
+                                new Muted('<div style="height: 2px"></div>'),
+                                new SelectBox('Data[Active]', TblConsumerLogin::VALUE_SYSTEM_DLLP.' Status', $SelectBoxActive)
+                            ), 6),
+                            new FormColumn(
+                                (new CheckBox('Data[ActiveButton]', 'Buttons KelvinAPI', 1))->setPaddingTop()
+                            , 6),
+                        )))
+                        , (new Primary('Speichern','#'))->ajaxPipelineOnClick(ApiConsumerLogin::pipelineSaveDllpModal($ConsumerId))
+                    ), 5),
+                    new LayoutColumn((new Well('setzt tblConsumerLogin mit Zusatzoption -> API Transferbuttons'
+                    .new Container('&nbsp;')
+                    .new Container(
+                        (new Primary('Benutzer anlegen', '', new Plus()))->setDisabled()
+                        .(new Primary('Benutzer anpassen', '', new Edit()))->setDisabled()
+                        .(new DangerLink('Benutzer löschen', '', new Disable()))->setDisabled()
+                        )))->setPadding('10px'), 7),
+                )))));
     }
 
     /**
@@ -371,21 +394,54 @@ class ApiConsumerLogin extends Extension implements IApiInterface
             $_POST['Data']['Active'] = 1;
             $SelectBoxActive = array(1 => 'SSW Zugriff gestoppt', 2 => 'SSW Reaktivieren');
         }
+        $CountAccountList = AccountAuthorization::useService()->getAccountCountByConsumer($tblConsumer);
+        $CountArray = array();
+        $isSystem = false;
+        foreach($CountAccountList as $CountAccount){
+            $Name = $CountAccount['Name'];
+            $Anzahl = $CountAccount['countAccount'];
+            if($Name == 'System'){
+                $isSystem = true;
+//                continue;
+            }
+            $CountArray[] = new Layout(new LayoutGroup(new LayoutRow(array(
+                new LayoutColumn($Name.': ', 3),
+                new LayoutColumn($Anzahl, 9),
+            ))));
+        }
 
         return new Layout(new LayoutGroup(new LayoutRow(array(
             new LayoutColumn(
                 new Headline('Zugang Schulsoftware')
                 , 4),
             new LayoutColumn(
-                new PullRight(new Headline($tblConsumer->getName(), $tblConsumer->getAcronym()))
+                new PullRight(new Headline(new Bold(new DangerText($tblConsumer->getAcronym())), $tblConsumer->getName()))
                 , 8),
         ))))
-        .new Well(new Form(
-            new FormGroup(array(new FormRow(array(
-                new FormColumn(new SelectBox('Data[Active]', TblConsumerLogin::VALUE_SYSTEM_SSW_STOP.' Status', $SelectBoxActive), 4),
+        .new Well(
+            new Layout(new LayoutGroup(new LayoutRow(array(
+                new LayoutColumn(
+                    new Form(
+                        new FormGroup(array(new FormRow(array(
+                            new FormColumn(array(
+                                new Muted('<div style="height: 13px"></div>'),
+                                new SelectBox('Data[Active]', TblConsumerLogin::VALUE_SYSTEM_SSW_STOP.' Status', $SelectBoxActive)
+                            ), 12),
+                        ))))
+                        , (new Primary('Speichern','#'))->ajaxPipelineOnClick(ApiConsumerLogin::pipelineSaveSswStopModal($ConsumerId))
+                    )
+                , 4),
+                new LayoutColumn(($CountArray
+                    ? new Title('Benutzer nach Identification:')
+                    .($isSystem
+                        ? (new Well('System-Accounts können sich auch auf gesperrten Mandanten anmelden'))->setPadding('10px')->setMarginBottom('5px')
+                        : '')
+                     .new Listing($CountArray)
+                    : ''
+                )
+                , 8),
             ))))
-            , (new Primary('Speichern','#'))->ajaxPipelineOnClick(ApiConsumerLogin::pipelineSaveSswStopModal($ConsumerId))
-        ));
+            );
     }
 
     /**
@@ -415,7 +471,7 @@ class ApiConsumerLogin extends Extension implements IApiInterface
                 new Headline('Indiware API - Vertretungsplan')
                 , 4),
             new LayoutColumn(
-                new PullRight(new Headline($tblConsumer->getName(), $tblConsumer->getAcronym()))
+                new PullRight(new Headline(new Bold(new DangerText($tblConsumer->getAcronym())), $tblConsumer->getName()))
                 , 8),
         ))))
         .new Well(new Layout(new LayoutGroup(new LayoutRow(array(

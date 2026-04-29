@@ -655,6 +655,7 @@ class Frontend extends Extension implements IFrontendInterface
         $tblConsumerAll = GatekeeperConsumer::useService()->getConsumerAll();
         $TableContent = array();
         $tblRoleList = Access::useService()->getRoleByIsIndividual();
+        // Namenssortierung durch Rollennamen nicht so hilfreich
 //        $tblRoleList = (new Sorter($tblRoleList))->sortObjectBy('Name');
         foreach ($tblConsumerAll as $tblConsumer) {
             $item = array();
@@ -671,6 +672,7 @@ class Frontend extends Extension implements IFrontendInterface
                     }
                 }
             }
+            // hidden span für sinnvolle Sortierung der Inhalte
             $item['Indiware'] = '<span hidden>1'.$tblConsumer->getAcronym().'</span>'.(new Link(new Unchecked(), ApiConsumerLogin::getEndpoint()))
                 ->ajaxPipelineOnClick(ApiConsumerLogin::pipelineOpenIndiwareModal($tblConsumer->getId()));
             $item['DLLP'] = '<span hidden>1'.$tblConsumer->getAcronym().'</span>'.(new Link(new Unchecked(), ApiConsumerLogin::getEndpoint()))
@@ -683,8 +685,12 @@ class Frontend extends Extension implements IFrontendInterface
                     ->ajaxPipelineOnClick(ApiConsumerLogin::pipelineOpenIndiwareModal($tblConsumer->getId()));
             }
             if(($tblConsumerLogin = GatekeeperConsumer::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_DLLP))){
-                $item['DLLP'] = '<span hidden>0'.$tblConsumer->getAcronym().'</span>'.(new Link(new Check().' + '.($tblConsumerLogin->getIsActiveAPI()?
-                    new SuccessText(new Check()): new DangerText(new Unchecked())), ApiConsumerLogin::getEndpoint()))
+                $item['DLLP'] = '<span hidden>0'.($tblConsumerLogin->getIsActiveAPI()? '2': '1') // Sortierung -> noch gesperrte API-Buttons haben vorrang
+                    .$tblConsumer->getAcronym().'</span>'.(new Link(new Check().' + '
+                        .($tblConsumerLogin->getIsActiveAPI()
+                            ? new SuccessText(new Check())
+                            : new DangerText(new Unchecked()))
+                        , ApiConsumerLogin::getEndpoint()))
                     ->ajaxPipelineOnClick(ApiConsumerLogin::pipelineOpenDllpModal($tblConsumer->getId()));
             }
             if(GatekeeperConsumer::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_SSW_STOP)){
@@ -715,8 +721,7 @@ class Frontend extends Extension implements IFrontendInterface
         $HeadList['SSWStop'] = 'Zugang SSW';
 
         return
-            new TableData($TableContent, new Title('Einstellung DLLP KelvinAPI & SSW Zugang'),
-            $HeadList,
+            new TableData($TableContent, null, $HeadList,
             array(
                 'columnDefs' => array(
                     array('width' => '80px', 'targets' => 0),
