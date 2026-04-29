@@ -226,11 +226,12 @@ class Service extends AbstractService
                 }
             }
 
+            $isESZC = Consumer::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'ESZC');
             $Row = 1;
             foreach ($PeopleGradeList as $Data) {
                 $export->setValue($export->getCell("0", $Row), $Data['Birthday']);
                 // SSWHD-4008 Test bei Chemnitz, Problem Umlaute → Schüler werden dann in Indiware neu angelegt
-                if (Consumer::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'ESZC')) {
+                if ($isESZC) {
                     // Indiware erwartet Ansi -> aktuell nur über Notepad++ lösbar (Encoding -> Convert to Ansi)
                     $export->setValue($export->getCell("1", $Row), $Data['LastName']);
                     $export->setValue($export->getCell("2", $Row), $Data['FirstName']);
@@ -246,6 +247,11 @@ class Service extends AbstractService
                 $Row++;
             }
             $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
+            if ($isESZC) {
+                $filePath = $fileLocation->getFileLocation();
+                $content = file_get_contents($filePath);
+                file_put_contents($filePath, mb_convert_encoding($content, 'Windows-1252', 'UTF-8'));
+            }
             return $fileLocation;
         }
 
