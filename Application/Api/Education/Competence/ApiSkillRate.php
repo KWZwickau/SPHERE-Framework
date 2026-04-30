@@ -61,6 +61,8 @@ class ApiSkillRate extends Extension implements IApiInterface
         $Dispatcher->registerMethod('openCreateStudentSkillModal');
         $Dispatcher->registerMethod('saveCreateStudentSkill');
 
+        $Dispatcher->registerMethod('checkInActive');
+
         return $Dispatcher->callMethod($Method);
     }
 
@@ -835,5 +837,44 @@ class ApiSkillRate extends Extension implements IApiInterface
     public function saveCreateStudentSkill($DivisionCourseId, $PersonId, $SubjectId, $Data = null): string
     {
         return SkillRate::useService()->createStudentSkill($DivisionCourseId, $PersonId, $SubjectId, $Data);
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $SubjectId
+     * @param $SelectedYearId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineCheckInActive($DivisionCourseId, $SubjectId, $SelectedYearId): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'Content'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'checkInActive',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'DivisionCourseId' => $DivisionCourseId,
+            'SubjectId' => $SubjectId,
+            'SelectedYearId' => $SelectedYearId,
+        ));
+        $ModalEmitter->setLoadingMessage("Daten werden geladen");
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $SubjectId
+     * @param $SelectedYearId
+     * @param $Data
+     *
+     * @return string
+     * @noinspection PhpUnused
+     */
+    public function checkInActive($DivisionCourseId, $SubjectId, $SelectedYearId, $Data): string
+    {
+        return SkillRate::useFrontend()->loadDivisionCourseContent($DivisionCourseId, $SubjectId, $SelectedYearId, isset($Data['OptionInActive']));
     }
 }
