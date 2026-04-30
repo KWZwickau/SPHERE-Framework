@@ -75,7 +75,7 @@ class Service
                 }
 
                 // Gültigkeitsbereich
-                if (str_starts_with($column1, 'Fach')) {
+                if (str_starts_with($column1, 'Fach ') || str_starts_with($column1, 'Fach: ')) {
                     $countSkillGrid++;
                     $countSkillArea = 0;
                     $tblSubject = null;
@@ -109,7 +109,10 @@ class Service
                     }
 
                     $data[$countSkillGrid] = [
-                        'name' => "Importiert Klassenstufe $level " . ($tblSubject ? " im Fach " . $tblSubject->getName() : 'Fächerübergreifend'),
+                        'name' => "Importiert Klassenstufe $level "
+                            . ($tblSubject ? " im Fach " . $tblSubject->getName() : 'Fächerübergreifend')
+                            . ($tblCourse ? " " . $tblCourse->getName() : '')
+                            . ($tblSupportFocusType ? " " . $tblSupportFocusType->getName() : ''),
                         'isAverage' => false,
                         'tblSubject' => $tblSubject,
                         'level' => $level,
@@ -120,7 +123,7 @@ class Service
                     ];
 
                 // Kompetenzbereich
-                } elseif (str_starts_with($column1, 'Kompetenzbereich')) {
+                } elseif ($column1) {
                     // fehlender Gültigkeitsbereich
                     if (!isset($data[1])) {
                         $errors[] = $this->getError($RunY, "Fehlender Gültigkeitsbereich.");
@@ -139,8 +142,8 @@ class Service
                 // Kompetenz
                 } else {
                     $countSkill++;
-                    $skillLevel = trim(str_replace(['•'], '', $column1));
                     $skill = trim(str_replace(['•'], '', $column2));
+                    $skillLevel = trim(str_replace(['•'], '', $column3));
                     if ($skillLevel && $skill === '') {
                         $skill = $skillLevel;
                         $skillLevel = '';
