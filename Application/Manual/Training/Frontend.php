@@ -47,14 +47,14 @@ class Frontend extends Extension implements IFrontendInterface
                     wenden Sie sich bitte an die ESDi GmbH unter ' . new Mailto(new Envelope() . ' info@esdigmbh.de', 'info@esdigmbh.de'),
             ]
         ];
-        $contentList[] = [
-            'Title' => 'DLLP - Nutzertreffen',
-            'Content' => [
-                '23.04.2026 | 15 Uhr |Online',
-                'Vor fast 2 Jahren ist das DLLP aus einem Projekt in den Regelbetrieb übergegangen. Damit wird es Zeit sich auszutauschen über Erreichtes, 
-                    Wünsche und Anregungen und mögliche Stolpersteine oder Herausforderungen.'
-            ]
-        ];
+//        $contentList[] = [
+//            'Title' => 'DLLP - Nutzertreffen',
+//            'Content' => [
+//                '23.04.2026 | 15 Uhr |Online',
+//                'Vor fast 2 Jahren ist das DLLP aus einem Projekt in den Regelbetrieb übergegangen. Damit wird es Zeit sich auszutauschen über Erreichtes,
+//                    Wünsche und Anregungen und mögliche Stolpersteine oder Herausforderungen.'
+//            ]
+//        ];
         $contentList[] = [
             'Title' => 'Best-Practice Schulsoftware | Verwaltung',
             'Content' => [

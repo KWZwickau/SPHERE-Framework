@@ -2,6 +2,7 @@
 
 namespace SPHERE\Application\Education\Certificate\Setting;
 
+use DateTime;
 use SPHERE\Application\Api\Education\Certificate\Generator\Certificate;
 use SPHERE\Application\Api\Education\Certificate\Setting\ApiPreviewCertificate;
 use SPHERE\Application\Education\Certificate\Generator\Generator;
@@ -11,6 +12,7 @@ use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
+use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
@@ -198,6 +200,12 @@ class FrontendPreviewCertificate extends Extension implements IFrontendInterface
                         ->ajaxPipelineOnKeyUp([ApiPreviewCertificate::pipelineLoadCertificatePreview(), ApiPreviewCertificate::pipelineLoadDownloadButton()])
                 )
             ]),
+            new FormRow([
+                new FormColumn(
+                    (new CheckBox('Data[IsCopy]', 'Zweitschrift anzeigen (Abschluss- und Abgangszeugnisse)', 1))
+                        ->ajaxPipelineOnChange([ApiPreviewCertificate::pipelineLoadCertificatePreview(), ApiPreviewCertificate::pipelineLoadDownloadButton()])
+                )
+            ]),
         ])))->disableSubmitAction();
 
         $container = (new Container(
@@ -258,8 +266,24 @@ class FrontendPreviewCertificate extends Extension implements IFrontendInterface
             return '';
         }
 
-        /** @var Certificate $Template */
-        $Template = new $CertificateClass();
+        // Zweitschrift anzeigen (Abschluss- und Abgangszeugnisse)
+        if (isset($Data['IsCopy'])) {
+            $CopyCertificateData = [
+                'Leader' => 'Schmitt',
+                'HeadmasterOriginalName' => 'Meyer',
+                'FirstMember' => 'Schulze',
+                'SecondMember' => 'Fleischer',
+                'DivisionTeacherOriginalName' => 'Weber',
+                'Date' => (new DateTime('today'))->format('d.m.Y'),
+                'City' => 'Zwickau',
+            ];
+
+            /** @var Certificate $Template */
+            $Template = new $CertificateClass(null, null, false, [], $CopyCertificateData);
+        } else {
+            /** @var Certificate $Template */
+            $Template = new $CertificateClass();
+        }
 
         $tblPerson = new TblPerson();
         $tblPerson->setId(0);

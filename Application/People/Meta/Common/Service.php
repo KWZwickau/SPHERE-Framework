@@ -211,13 +211,13 @@ class Service extends AbstractService
             $tblCommonGenderAll = (new Data($this->getBinding()))->getCommonGenderAll();
             $returnList = array();
             foreach($tblCommonGenderAll as $tblCommonGender){
-                if($tblCommonGender->getName() == 'Weiblich'){
+                if($tblCommonGender->getName() == TblCommonGender::VALUE_FEMALE_STRING){
                     $returnList[0] = $tblCommonGender;
-                } elseif($tblCommonGender->getName() == 'Männlich'){
+                } elseif($tblCommonGender->getName() == TblCommonGender::VALUE_MALE_STRING){
                     $returnList[1] = $tblCommonGender;
-                } elseif($tblCommonGender->getName() == 'Divers'){
+                } elseif($tblCommonGender->getName() == TblCommonGender::VALUE_DIVERS_STRING){
                     $returnList[2] = $tblCommonGender;
-                } elseif($tblCommonGender->getName() == 'Ohne Angabe'){
+                } elseif($tblCommonGender->getName() == TblCommonGender::VALUE_OTHER_STRING){
                     $returnList[3] = $tblCommonGender;
                 } else {
                     $returnList[$tblCommonGender->getId()] = $tblCommonGender;

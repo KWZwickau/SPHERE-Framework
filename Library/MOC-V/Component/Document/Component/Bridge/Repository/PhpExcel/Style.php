@@ -494,4 +494,13 @@ class Style
         $this->Worksheet->setAutoFilter($this->getRangeName());
         return $this;
     }
+
+    /**
+     * @return $this
+     */
+    public function setStrikethrough()
+    {
+        $this->Worksheet->getStyle($this->getRangeName())->getFont()->setStrikethrough(true);
+        return $this;
+    }
 }

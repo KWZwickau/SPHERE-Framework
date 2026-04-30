@@ -849,7 +849,7 @@ class Service extends AbstractService
         $countList = array();
 
         if (($tblYear = $tblDivisionCourse->getServiceTblYear())
-            && ($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses())
+            && ($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses(true))
         ) {
             list($startDate, $endDate) = Term::useService()->getStartDateAndEndDateOfYear($tblYear);
             if ($startDate && $endDate) {

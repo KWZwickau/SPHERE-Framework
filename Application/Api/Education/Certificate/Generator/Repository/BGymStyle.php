@@ -35,7 +35,14 @@ abstract class BGymStyle extends Certificate
 
         // Sample
         if ($this->isSample()) {
-            $slice->addElement((new Element\Sample())->styleTextSize($textSizeSample));
+            $slice->addElement((new Element\Sample())
+                ->styleTextSize($textSizeSample))
+                ->styleAlignCenter();
+        } elseif ($this->CopyCertificateData) {
+            $slice->addElement((new Element())
+                ->setContent('Zweitschrift')
+                ->styleTextSize($textSizeSample))
+                ->styleAlignCenter();
         } else {
             $slice->addElement((new Element())->setContent('&nbsp;')->styleTextSize($textSizeSample));
         }
@@ -786,6 +793,88 @@ abstract class BGymStyle extends Certificate
                     )
                 );
         }
+
+        return $slice;
+    }
+
+    /**
+     * @param $personId
+     * @param string $marginTop
+     *
+     * @return Slice
+     */
+    protected function getSignPartBGymCopy($personId, string $marginTop = '30px'): Slice
+    {
+        $slice = (new Slice())
+            ->styleMarginTop($marginTop)
+            ->addSection((new Section())
+                ->addElementColumn(
+                    $this->getElement('{% if( Content.P' . $personId . '.Company.Address.City.Name is not empty) %}
+                            {{ Content.P' . $personId . '.Company.Address.City.Name }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}')
+                    , '35%')
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                )
+                ->addElementColumn(
+                    $this->getElement('
+                        {% if( Content.P' . $personId . '.Input.Date is not empty) %}
+                            {{ Content.P' . $personId . '.Input.Date }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}
+                    ')
+                    , '35%')
+            )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('Ort')
+                    ->styleAlignCenter()
+                    ->styleTextSize('11px')
+                    , '35%')
+                ->addElementColumn((new Element())
+                    , '5%')
+                ->addElementColumn((new Element())
+                    ->setContent('Siegel')
+                    ->styleTextColor('gray')
+                    ->styleAlignCenter()
+                    ->styleTextSize('11px')
+                    , '20%')
+                ->addElementColumn((new Element())
+                    , '5%')
+                ->addElementColumn((new Element())
+                    ->setContent('Datum')
+                    ->styleAlignCenter()
+                    ->styleTextSize('11px')
+                    , '35%')
+            )
+            ->addSection((new Section())
+                ->addElementColumn(
+                    $this->getElement('gez. ' . ($this->CopyCertificateData['HeadmasterOriginalName'] ?? ''))->styleMarginTop('30px')
+                    , '35%')
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                )
+                ->addElementColumn(
+                    $this->getElement('gez. ' . ($this->CopyCertificateData['DivisionTeacherOriginalName'] ?? ''))->styleMarginTop('30px')
+                    , '35%')
+            )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('Schulleiter(in)')
+                    ->styleAlignCenter()
+                    ->styleTextSize('11px')
+                    , '35%')
+                ->addElementColumn((new Element())
+                    , '30%')
+                ->addElementColumn((new Element())
+                    ->setContent('Tutor/in')
+                    ->styleAlignCenter()
+                    ->styleTextSize('11px')
+                    , '35%')
+            );
 
         return $slice;
     }

@@ -31,6 +31,7 @@ class BGymAbgSekII extends BGymDiplomaStyle
     public function buildPages(TblPerson $tblPerson = null): array
     {
         $personId = $tblPerson ? $tblPerson->getId() : 0;
+        $isCopy = (bool) $this->CopyCertificateData;
 
         if ($tblPerson) {
             list($this->advancedCourses, $this->basicCourses) = DivisionCourse::useService()->getCoursesForStudent($tblPerson);
@@ -92,10 +93,39 @@ class BGymAbgSekII extends BGymDiplomaStyle
             ->addSlice($this->getWorkFieldDiploma('Mathematisch-naturwissenschaftlich-technisches Aufgabenfeld', '125px', 1, 3));
 
         $pageList[] = (new Page())
-            ->addSlice((new Slice())
-                ->styleMarginTop('30px')
-                ->addElement((new Element())
-                    ->setContent('
+            ->addSlice($this->getPageHeadSlice($personId, 2))
+            ->addSlice($this->getGradeHeader())
+            ->addSlice($this->getWorkFieldDiploma('Mathematisch-naturwissenschaftlich-technisches Aufgabenfeld (Fortsetzung)', '125px', 4))
+            ->addSlice($this->getWorkFieldDiploma('', '90px'))
+            ->addSlice($this->getChosenSubjectsDiploma())
+            ->addSlice($this->getBell($personId))
+            ->addSlice($this->getLevelElven())
+            ->addSlice($this->getRemarkBGym($personId, false, '100px', '10px'))
+            ->addSlice($isCopy
+                ? $this->getSignPartBGymCopy($personId, '40px')
+                : $this->getSignPartBGym($personId, true, '40px', false)
+            )
+            ->addSlice($this->getFootNotesSekII()->styleMarginTop($isCopy ? '45px' : '25px'));
+
+        // Beglaubigungsvermerk passt nicht mit auf die Unterschriftseite → auf die Rückseite drucken
+        if ($isCopy) {
+            $slice = new Slice();
+            $this->setTechnicalCertifiedCopyStatement($slice, $personId, 'Abgangszeugnis des Beruflichen Gymnasiums');
+
+            $pageList[] = (new Page())
+                ->addSlice($this->getPageHeadSlice($personId, 3))
+                ->addSlice($slice);
+        }
+
+        return $pageList;
+    }
+
+    private function getPageHeadSlice($personId, $page): Slice
+    {
+        return (new Slice())
+            ->styleMarginTop('30px')
+            ->addElement((new Element())
+                ->setContent('
                         Abgangszeugnis für 
                         {{ Content.P' . $personId . '.Person.Data.Name.Salutation }} {{ Content.P' . $personId . '.Person.Data.Name.First }} 
                         {{ Content.P' . $personId . '.Person.Data.Name.Last }}, geboren am
@@ -104,24 +134,12 @@ class BGymAbgSekII extends BGymDiplomaStyle
                         {% else %}
                             &nbsp;
                         {% endif %}
-                        &ndash; 2. Seite
+                        &ndash; ' . $page . '. Seite
                     ')
-                    ->styleAlignCenter()
-                    ->styleTextUnderline()
-                    ->styleTextSize('11px')
-                )
-            )
-            ->addSlice($this->getGradeHeader())
-            ->addSlice($this->getWorkFieldDiploma('Mathematisch-naturwissenschaftlich-technisches Aufgabenfeld (Fortsetzung)', '125px', 4))
-            ->addSlice($this->getWorkFieldDiploma('', '90px'))
-            ->addSlice($this->getChosenSubjectsDiploma())
-            ->addSlice($this->getBell($personId))
-            ->addSlice($this->getLevelElven())
-            ->addSlice($this->getRemarkBGym($personId, false, '100px', '10px'))
-            ->addSlice($this->getSignPartBGym($personId, true, '40px', false))
-            ->addSlice($this->getFootNotesSekII()->styleMarginTop('25px'));
-
-        return $pageList;
+                ->styleAlignCenter()
+                ->styleTextUnderline()
+                ->styleTextSize('11px')
+            );
     }
 
     private function getGradeHeader(): Slice

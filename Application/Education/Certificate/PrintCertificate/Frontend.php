@@ -8,6 +8,7 @@
 
 namespace SPHERE\Application\Education\Certificate\PrintCertificate;
 
+use DateTime;
 use SPHERE\Application\Api\Education\Certificate\PrintCertificate\ApiPrintCertificate;
 use SPHERE\Application\Api\People\Search\ApiPersonSearch;
 use SPHERE\Application\Document\Storage\Storage;
@@ -18,26 +19,34 @@ use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblLeaveStud
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCertificate;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
+use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
+use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Ban;
+use SPHERE\Common\Frontend\Icon\Repository\Calendar;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
+use SPHERE\Common\Frontend\Icon\Repository\MapMarker;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
+use SPHERE\Common\Frontend\Icon\Repository\Pencil;
+use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\Question;
 use SPHERE\Common\Frontend\Icon\Repository\Search;
 use SPHERE\Common\Frontend\Icon\Repository\Select;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
+use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
@@ -649,10 +658,11 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param null $PersonId
+     * @param null $Search
      *
-     * @return Stage|string
+     * @return string
      */
-    public function frontendPrintCertificateHistoryPerson($PersonId = null, $Search = null)
+    public function frontendPrintCertificateHistoryPerson($PersonId = null, $Search = null): string
     {
         $Stage = new Stage('Zeugnis', 'Auswahl');
         $Stage->addButton(new Standard('Zurück', '/Education/Certificate/PrintCertificate/History', new ChevronLeft(), array(
@@ -687,7 +697,54 @@ class Frontend extends Extension implements IFrontendInterface
                             'Zeugnis herunterladen')
                         : '';
 
-                    if (count($name) >= 3) {
+                    if (count($name) >= 4) {
+                        // Zweitschrift ist nur bei staatlichen Abschuss- und Abgangszeugnisse möglich
+                        $optionCopy = '';
+                        $params = [];
+                        // bei Abgangszeugnis steht in $name[3] die DivisionCourseId
+                        // und bei Abschlusszeugnissen steht in $name[3] die PrepareCertificateId
+                        if (str_contains($name[2], 'Abgangszeugnis')
+                            && ($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($name[3]))
+                            && ($tblYear = $tblDivisionCourse->getServiceTblYear())
+                            && ($tblLeaveStudent = Prepare::useService()->getLeaveStudentBy($tblPerson, $tblYear))
+                            && ($tblCertificate = $tblLeaveStudent->getServiceTblCertificate())
+                            && !$tblCertificate->getServiceTblConsumer()
+                            && ($tblCertificateType = $tblCertificate->getTblCertificateType())
+                            && $tblCertificateType->getIdentifier() == 'LEAVE'
+                        ) {
+                            $params = [
+                                'PersonId' => $tblPerson->getId(),
+                                'Search' => $Search,
+                                'LeaveStudentId' => $tblLeaveStudent->getId(),
+                                'DivisionCourseId' => $tblDivisionCourse->getId()
+                            ];
+                        } elseif (($tblPrepareCertificate = Prepare::useService()->getPrepareById($name[3]))
+                            && ($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepareCertificate, $tblPerson))
+                            && ($tblDivisionCourse = $tblPrepareCertificate->getServiceTblDivision())
+                            && ($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())
+                            && !$tblCertificate->getServiceTblConsumer()
+                            && ($tblCertificateType = $tblCertificate->getTblCertificateType())
+                            && $tblCertificateType->getIdentifier() == 'DIPLOMA'
+                            // Ausnahme für BfsAbsGeneralistik
+                            && $tblCertificate->getCertificate() != 'BfsAbsGeneralistik'
+                        ) {
+                            $params = [
+                                'PersonId' => $tblPerson->getId(),
+                                'Search' => $Search,
+                                'PrepareStudentId' => $tblPrepareStudent->getId(),
+                                'DivisionCourseId' => $tblDivisionCourse->getId()
+                            ];
+                        }
+                        if ($params) {
+                            $optionCopy = new Standard(
+                                'Zweitschrift erstellen',
+                                '/Education/Certificate/PrintCertificate/History/Person/CertificateCopy',
+                                new Plus(),
+                                $params,
+                                'Zeugnis Zweitschrift für Personenstandsänderung oder bei Originalzeugnisverlust'
+                            );
+                        }
+
                         $dataList[] = array(
                             'Year' => $name[0],
                             'Date' => $date,
@@ -701,6 +758,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     'FileId' => $tblFile->getId(),
                                 ),
                                 'Zeugnis herunterladen')
+                                . $optionCopy
                                 . $optionRevision
                         );
                     }
@@ -1093,5 +1151,152 @@ class Frontend extends Extension implements IFrontendInterface
 
         return new Title('Verfügbare Personen ' . new Small(new Muted('der Personen-Suche: ')) . new Bold($Search))
             . $result;
+    }
+
+    /**
+     * @param null $PersonId
+     * @param null $Search
+     * @param null $LeaveStudentId
+     * @param null $PrepareStudentId
+     * @param null $DivisionCourseId
+     *
+     * @return string
+     */
+    public function frontendPrintCertificateHistoryPersonCertificateCopy($PersonId = null, $Search = null,
+        $LeaveStudentId = null, $PrepareStudentId = null, $DivisionCourseId = null): string
+    {
+        $Stage = new Stage('Zeugnis', 'Zweitschrift erstellen');
+        $Stage->addButton(new Standard('Zurück', '/Education/Certificate/PrintCertificate/History/Person', new ChevronLeft(), array(
+            'PersonId' => $PersonId,
+            'Search' => $Search
+        )));
+
+        $tblGenerateCertificate = false;
+        $tblCertificate = false;
+        $tblYear = false;
+        if (($tblPrepareStudent = Prepare::useService()->getPrepareStudentById($PrepareStudentId))
+            && ($tblPrepareCertificate = $tblPrepareStudent->getTblPrepareCertificate())
+        ) {
+            $tblGenerateCertificate = $tblPrepareCertificate->getServiceTblGenerateCertificate();
+            $tblCertificate = $tblPrepareStudent->getServiceTblCertificate();
+            $tblYear = $tblGenerateCertificate->getServiceTblYear();
+        }
+        if (($tblLeaveStudent = Prepare::useService()->getLeaveStudentById($LeaveStudentId))) {
+            $tblCertificate = $tblLeaveStudent->getServiceTblCertificate();
+            $tblYear = $tblLeaveStudent->getServiceTblYear();
+        }
+        if (($tblPerson = Person::useService()->getPersonById($PersonId))
+            && ($tblPrepareStudent || $tblLeaveStudent)
+            && $tblCertificate
+        ) {
+            $global = $this->getGlobal();
+            $global->POST['Data']['Date'] = (new DateTime('now'))->format('d.m.Y');
+            // Ort ermitteln
+            if ($tblYear
+                && ($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))
+                && ($tblCompany = $tblStudentEducation->getServiceTblCompany())
+                && ($tblAddress = $tblCompany->fetchMainAddress())
+            ) {
+                $global->POST['Data']['City'] = $tblAddress->getCityString();
+            }
+            if ($tblPrepareStudent && $tblGenerateCertificate) {
+                $global->POST['Data']['Leader'] = Generate::useService()->getDiplomaSignerLastName($tblGenerateCertificate, 'Leader');
+                $global->POST['Data']['FirstMember'] = Generate::useService()->getDiplomaSignerLastName($tblGenerateCertificate, 'FirstMember');
+                $global->POST['Data']['SecondMember'] = Generate::useService()->getDiplomaSignerLastName($tblGenerateCertificate, 'SecondMember');
+                if ($tblGenerateCertificate->getHeadmasterName()) {
+                    $global->POST['Data']['HeadmasterOriginalName'] = $tblGenerateCertificate->getHeadmasterName();
+                }
+                if (($tblPersonSigner = $tblPrepareStudent->getServiceTblPersonSigner())) {
+                    $global->POST['Data']['DivisionTeacherOriginalName'] = $tblPersonSigner->getLastName();
+                }
+            } elseif ($tblLeaveStudent) {
+                if (($tblLeaveInformation = Prepare::useService()->getLeaveInformationBy($tblLeaveStudent, 'HeadmasterName'))) {
+                    $global->POST['Data']['HeadmasterOriginalName'] = $tblLeaveInformation->getValue();
+                }
+                if (($tblLeaveInformation = Prepare::useService()->getLeaveInformationBy($tblLeaveStudent, 'DivisionTeacher'))
+                    && ($tblPersonDivisionTeacher = Person::useService()->getPersonById($tblLeaveInformation->getValue()))
+                ) {
+                    $global->POST['Data']['DivisionTeacherOriginalName'] = $tblPersonDivisionTeacher->getLastName();
+                }
+            }
+            $global->savePost();
+
+            // Unterzeichner Input
+            // berufsbildende Schulen
+            if (($tblSchoolType = $tblCertificate->getServiceTblSchoolType())
+                && $tblSchoolType->isTechnical()
+                // Ausnahme BGymAbgSekII
+                && $tblCertificate->getCertificate() != 'BGymAbgSekII'
+            ) {
+                $formGroupList[] = new FormGroup(array(
+                    new FormRow(array(
+                        new FormColumn((new TextField('Data[Leader]', '', 'Vorsitzende/r des Prüfungsausschusses'))->setRequired(), 6),
+                        new FormColumn((new TextField('Data[HeadmasterOriginalName]', '', 'Schulleiter/in'))->setRequired(), 6),
+                    ))
+                ), new \SPHERE\Common\Frontend\Form\Repository\Title('Originalzeugnis', 'Unterzeichner'));
+            // allgemeinbildende Abschlusszeugnisse, außer Förderschule
+            } elseif ($tblPrepareStudent && $tblCertificate->getCertificate() != 'FoesAbsGeistigeEntwicklung') {
+                $formGroupList[] = new FormGroup(array(
+                    new FormRow(array(
+                        new FormColumn((new TextField('Data[Leader]', '', 'Vorsitzende/r'))->setRequired(), 4),
+                        new FormColumn((new TextField('Data[FirstMember]', '', '1. Mitglied'))->setRequired(), 4),
+                        new FormColumn((new TextField('Data[SecondMember]', '', '2. Mitglied'))->setRequired(), 4),
+                    ))
+                ), new \SPHERE\Common\Frontend\Form\Repository\Title('Originalzeugnis', 'Unterzeichner'));
+            // allgemeinbildende Abgangszeugnisse und Abschlusszeugnis Förderschule, BGymAbgSekII
+            } else {
+                $formGroupList[] = new FormGroup(array(
+                    new FormRow(array(
+                        new FormColumn((new TextField('Data[HeadmasterOriginalName]', '', 'Name des/der Schulleiters/in'))->setRequired(), 6),
+                        new FormColumn((new TextField('Data[DivisionTeacherOriginalName]', '', 'Name des/der Klassenlehrer/in'))->setRequired(), 6),
+                    ))
+                ), new \SPHERE\Common\Frontend\Form\Repository\Title('Originalzeugnis', 'Unterzeichner'));
+            }
+
+            $formGroupList[] = new FormGroup(array(
+                new FormRow(array(
+                    new FormColumn((new TextField('Data[Date]', '', 'Datum', new Calendar()))->setRequired(), 3),
+                    new FormColumn((new TextField('Data[City]', '', 'Ort', new MapMarker()))->setRequired(), 3),
+                    new FormColumn(new SelectBox('Data[HeadmasterGender]', 'Geschlecht des/der Schulleiters/in',
+                        ['{{ Name }}' => Common::useService()->getCommonGenderAll()]), 3),
+                    new FormColumn(new TextField('Data[HeadmasterName]', '', 'Name des/der Schulleiters/in', new Pencil()), 3),
+                ))
+            ), new \SPHERE\Common\Frontend\Form\Repository\Title('Beglaubigungsvermerk', 'Aktuelle Daten'));
+
+            $Stage->setContent(
+                new Layout(new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn(new Panel(
+                            'Person',
+                            $tblPerson->getLastFirstName(),
+                            Panel::PANEL_TYPE_INFO
+                        ), 6),
+                        new LayoutColumn(new Panel(
+                            'Zeugnis',
+                            $tblCertificate->getName()
+                                . ($tblCertificate->getDescription() ? ' (' . $tblCertificate->getDescription() . ')' : ''),
+                            Panel::PANEL_TYPE_INFO
+                        ), 6)
+                    ))
+                )))
+                . new Well(new Form(
+                    $formGroupList,
+                    new Primary('Zweitschrift herunterladen und revisionssicher speichern', new Download(), true),
+                    '/Api/Education/Certificate/Generator/History/CopyCertificate/DownloadPdf',
+                    [
+                        'PrepareStudentId' => $PrepareStudentId,
+                        'LeaveStudentId' => $LeaveStudentId,
+                        'DivisionCourseId' => $DivisionCourseId
+                    ]
+                ))
+            );
+
+            return $Stage;
+        } else {
+
+            return $Stage
+                . new Danger('Person oder Zeugnis nicht gefunden', new Ban())
+                . new Redirect('/Education/Certificate/PrintCertificate/History', Redirect::TIMEOUT_ERROR);
+        }
     }
 }

@@ -8,6 +8,7 @@ use SPHERE\Application\Document\Generator\Repository\Frame;
 use SPHERE\Application\Document\Generator\Repository\Page;
 use SPHERE\Application\Document\Generator\Repository\Section;
 use SPHERE\Application\Document\Generator\Repository\Slice;
+use SPHERE\Application\People\Meta\Common\Service\Entity\TblCommonGender;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 
@@ -43,12 +44,13 @@ class EnrollmentDocument extends AbstractDocument
     private function setFieldValue($DataPost)
     {
 
-        $isEKBO = false;
+        $isBerlin = false;
+        // Berlin
         if(Consumer::useService()->getConsumerBySessionIsConsumerType(TblConsumer::TYPE_BERLIN)){
-            // Berlin
-            $isEKBO = true;
+            $isBerlin = true;
         }
 //        //getPerson
+        $this->FieldValue['IsNoStudent'] = (isset($DataPost['IsStudent']) && $DataPost['IsStudent'] == 'false' ? true : false);
 //        $this->FieldValue['PersonId'] = $PersonId = (isset($DataPost['PersonId']) && $DataPost['PersonId'] != '' ? $DataPost['PersonId'] : false);
 //        $this->FieldValue['SchoolId'] = $CompanyId = (isset($DataPost['SchoolId']) && $DataPost['SchoolId'] != '' ? $DataPost['SchoolId'] : false);
         // school
@@ -57,8 +59,8 @@ class EnrollmentDocument extends AbstractDocument
         $this->FieldValue['SchoolAddressDistrict'] = (isset($DataPost['SchoolAddressDistrict']) && $DataPost['SchoolAddressDistrict'] != '' ? $DataPost['SchoolAddressDistrict'] : '&nbsp;');
         $this->FieldValue['SchoolAddressStreet'] = (isset($DataPost['SchoolAddressStreet']) && $DataPost['SchoolAddressStreet'] != '' ? $DataPost['SchoolAddressStreet'] : '&nbsp;');
         $this->FieldValue['SchoolAddressCity'] = (isset($DataPost['SchoolAddressCity']) && $DataPost['SchoolAddressCity'] != '' ? $DataPost['SchoolAddressCity'] : '&nbsp;');
-        // school EKBO extended
-        if($isEKBO){
+        // school Berlin extended
+        if($isBerlin){
             $this->FieldValue['CompanySchoolLeader'] = (isset($DataPost['CompanySchoolLeader']) && $DataPost['CompanySchoolLeader'] != '' ? $DataPost['CompanySchoolLeader'] : '&nbsp;');
             $this->FieldValue['CompanySecretary'] = (isset($DataPost['CompanySecretary']) && $DataPost['CompanySecretary'] != '' ? $DataPost['CompanySecretary'] : '&nbsp;');
             $this->FieldValue['CompanyPhone'] = (isset($DataPost['CompanyPhone']) && $DataPost['CompanyPhone'] != '' ? $DataPost['CompanyPhone'] : '&nbsp;');
@@ -101,14 +103,15 @@ class EnrollmentDocument extends AbstractDocument
         }
 
         $this->FieldValue['Division'] = (isset($DataPost['Division']) && $DataPost['Division'] != '' ? $DataPost['Division'] : '&nbsp;');
+        $this->FieldValue['ArriveDate'] = (isset($DataPost['ArriveDate']) && $DataPost['ArriveDate'] != '' ? $DataPost['ArriveDate'] : '&nbsp;');
         $this->FieldValue['LeaveDate'] = (isset($DataPost['LeaveDate']) && $DataPost['LeaveDate'] != '' ? $DataPost['LeaveDate'] : '&nbsp;');
         // common
 
         $this->FieldValue['Male'] = 'false';
         $this->FieldValue['Female'] = 'false';
-        if (isset($this->FieldValue['Gender']) && $this->FieldValue['Gender'] == 'Männlich') {
+        if (isset($this->FieldValue['Gender']) && $this->FieldValue['Gender'] == TblCommonGender::VALUE_MALE_STRING) {
             $this->FieldValue['Male'] = 'true';
-        } elseif (isset($this->FieldValue['Gender']) && $this->FieldValue['Gender'] == 'Weiblich') {
+        } elseif (isset($this->FieldValue['Gender']) && $this->FieldValue['Gender'] == TblCommonGender::VALUE_FEMALE_STRING) {
             $this->FieldValue['Female'] = 'true';
         }
         // last line
@@ -129,23 +132,29 @@ class EnrollmentDocument extends AbstractDocument
 
     /**
      * @param array $pageList
-     * @param string $Part
+     * @param string $part
      *
      * @return Frame
      */
-    public function buildDocument(array $pageList = array(), string $Part = '0'): Frame
+    public function buildDocument(array $pageList = array(), string $part = '0'): Frame
     {
 
         if(Consumer::useService()->getConsumerBySessionIsConsumerType(TblConsumer::TYPE_BERLIN)){
             // Berlin
-            return $this->getDefaultEKBOPage();
+            return $this->getDefaultBerlinPage();
         } else {
             // Sachsen
-            return $this->getDefaultPage();
+            if($this->FieldValue['IsNoStudent']){
+                // Ehemalige
+                return $this->getDefaultArchivPage();
+            } else {
+                // Aktuell Schüler
+                return $this->getDefaultPage();
+            }
         }
     }
 
-    private function getDefaultEKBOPage()
+    private function getDefaultBerlinPage()
     {
         return (new Frame())->addDocument((new Document())
             ->addPage((new Page())
@@ -239,14 +248,9 @@ class EnrollmentDocument extends AbstractDocument
                             )
                             ->addElement((new Element())
                                 ->setContent('
-                                    {% if '.$this->FieldValue['Female'].' == "true" %}
-                                        Die Schülerin
-                                    {% else %}
-                                        {% if '.$this->FieldValue['Male'].' == "true" %}
-                                            Der Schüler
-                                        {% else %}
-                                            Der Schüler/die Schülerin
-                                        {% endif %}
+                                    {% if '.$this->FieldValue['Female'].' == "true" %} Die Schülerin
+                                    {% elseif '.$this->FieldValue['Male'].' == "true" %} Der Schüler
+                                    {% else %} Der Schüler/Die Schülerin
                                     {% endif %}')
                                 ->stylePaddingTop('78px')
                                 ->styleTextSize('17px')
@@ -266,12 +270,9 @@ class EnrollmentDocument extends AbstractDocument
                             ->addElement((new Element())
                                 ->setContent('noch bis zum '.$this->FieldValue['LeaveDate'].' diese Schule besuchen')
                                 ->stylePaddingTop('12px')
-                                ->styleTextSize('19px')
+                                ->styleTextSize('17px')
                             )
                         )
-//                        ->addElementColumn((new Element())
-//                            ->setContent('&nbsp;'),'3%'
-//                        )
                     )
                 )
                 ->addSlice((new Slice())
@@ -377,143 +378,32 @@ class EnrollmentDocument extends AbstractDocument
                                     ->styleTextItalic()
                                 )
                             )
-                            ->addSection((new Section())
-                                ->addElementColumn((new Element())
-                                    ->setContent('
-                                {% if '.$this->FieldValue['Female'].' == "true" %}
-                                    Die Schülerin
-                                {% else %}
-                                    {% if '.$this->FieldValue['Male'].' == "true" %}
-                                        Der Schüler
-                                    {% else %}
-                                        Die Schülerin/Der Schüler
-                                    {% endif %}
+                            ->addSection($this->getSection('
+                                {% if '.$this->FieldValue['Female'].' == "true" %} Die Schülerin
+                                {% elseif '.$this->FieldValue['Male'].' == "true" %} Der Schüler
+                                {% else %} Der Schüler/Die Schülerin
+                                {% endif %}', $this->FieldValue['FirstLastName'], '50px'))
+                            ->addSection($this->getSection('geboren am', $this->FieldValue['Birthday']))
+                            ->addSection($this->getSection('geboren in', $this->FieldValue['Birthplace']))
+                            ->addSection($this->getSection('wohnhaft', $this->FieldValue['AddressFirstLine']))
+                            ->addSection($this->getSection('&nbsp;', $this->FieldValue['AddressSecondLine']))
+                            ->addSection($this->getSection('&nbsp;', $this->FieldValue['AddressThirdLine']))
+                            ->addSection($this->getSection('&nbsp;', $this->FieldValue['AddressFourthLine']))
+                            ->addSection($this->getSection('besucht zurzeit die Klasse', $this->FieldValue['Division']))
+                            ->addSection($this->getSection('
+                                {% if '.$this->FieldValue['Female'].' == "true" %} Sie
+                                {% elseif '.$this->FieldValue['Male'].' == "true" %} Er
+                                {% else %} Er/Sie
                                 {% endif %}
-                            ')
-                                    ->stylePaddingTop('50px')
-                                    , '35%')
-                                ->addElementColumn((new Element())
-                                    ->setContent($this->FieldValue['FirstLastName'])
-                                    ->stylePaddingTop('50px')
-                                    ->styleBorderBottom()
-                                    , '65%')
-                            )
-                            ->addSection((new Section())
-                                ->addElementColumn((new Element())
-                                    ->setContent('geboren am')
-                                    ->stylePaddingTop('30px')
-                                    , '35%')
-                                ->addElementColumn((new Element())
-                                    ->setContent($this->FieldValue['Birthday'])
-                                    ->stylePaddingTop('30px')
-                                    ->styleBorderBottom()
-                                    , '65%')
-                            )
-                            ->addSection((new Section())
-                                ->addElementColumn((new Element())
-                                    ->setContent('geboren in')
-                                    ->stylePaddingTop('30px')
-                                    , '35%')
-                                ->addElementColumn((new Element())
-                                    ->setContent($this->FieldValue['Birthplace'])
-                                    ->stylePaddingTop('30px')
-                                    ->styleBorderBottom()
-                                    , '65%')
-                            )
-                            ->addSection((new Section())
-                                ->addElementColumn((new Element())
-                                    ->setContent('wohnhaft')
-                                    ->stylePaddingTop('30px')
-                                    , '35%')
-                                ->addElementColumn((new Element())
-                                    ->setContent($this->FieldValue['AddressFirstLine'])
-                                    ->stylePaddingTop('30px')
-                                    ->styleBorderBottom()
-                                    , '65%')
-                            )
-                            ->addSection((new Section())
-                                ->addElementColumn((new Element())
-                                    ->setContent('&nbsp;')
-                                    ->stylePaddingTop('30px')
-                                    , '35%')
-                                ->addElementColumn((new Element())
-                                    ->setContent($this->FieldValue['AddressSecondLine'])
-                                    ->stylePaddingTop('30px')
-                                    ->styleBorderBottom()
-                                    , '65%')
-                            )
-                            ->addSection((new Section())
-                                ->addElementColumn((new Element())
-                                    ->setContent('&nbsp;')
-                                    ->stylePaddingTop('30px')
-                                    , '35%')
-                                ->addElementColumn((new Element())
-                                    ->setContent($this->FieldValue['AddressThirdLine'])
-                                    ->stylePaddingTop('30px')
-                                    ->styleBorderBottom()
-                                    , '65%')
-                            )
-                            ->addSection((new Section())
-                                ->addElementColumn((new Element())
-                                    ->setContent('&nbsp;')
-                                    ->stylePaddingTop('30px')
-                                    , '35%')
-                                ->addElementColumn((new Element())
-                                    ->setContent($this->FieldValue['AddressFourthLine'])
-                                    ->stylePaddingTop('30px')
-                                    ->styleBorderBottom()
-                                    , '65%')
-                            )
-                            ->addSection((new Section())
-                                ->addElementColumn((new Element())
-                                    ->setContent('besucht zur Zeit die Klasse')
-                                    ->stylePaddingTop('30px')
-                                    , '35%')
-                                ->addElementColumn((new Element())
-                                    ->setContent($this->FieldValue['Division'])
-                                    ->stylePaddingTop('30px')
-                                    ->styleBorderBottom()
-                                    , '65%')
-                            )
-                            ->addSection((new Section())
-                                ->addElementColumn((new Element())
-                                    ->setContent('
-                                {% if '.$this->FieldValue['Female'].' == "true" %}
-                                    Sie
-                                {% else %}
-                                    {% if '.$this->FieldValue['Male'].' == "true" %}
-                                        Er
-                                    {% else %}
-                                        Sie/Er
-                                    {% endif %}
-                                {% endif %}
-                                wird voraussichtlich bis zum
-                            ')
-                                    ->stylePaddingTop('100px')
-                                    , '35%')
-                                ->addElementColumn((new Element())
-                                    ->setContent($this->FieldValue['LeaveDate'])
-                                    ->stylePaddingTop('100px')
-                                    ->styleBorderBottom()
-                                    , '65%')
-                            )
-                            ->addSection((new Section())
-                                ->addElementColumn((new Element())
-                                    ->setContent($this->FieldValue['Male'])
-                                    ->setContent('
-                                {% if '.$this->FieldValue['Female'].' == "true" %}
-                                    Schülerin
-                                {% else %}
-                                    {% if '.$this->FieldValue['Male'].' == "true" %}
-                                        Schüler
-                                    {% else %}
-                                        Schülerin/Schüler
-                                    {% endif %}
-                                {% endif %}
-                                unserer Schule sein.
-                            ')
-                                    ->stylePaddingTop('30px')
-                                )
+                                besucht unsere Schule seit', $this->FieldValue['ArriveDate']))
+                            ->addSection($this->getSection('und wird voraussichtlich bis zum', $this->FieldValue['LeaveDate']))
+                            ->addElement((new Element())
+                                ->setContent('
+                                    {% if '.$this->FieldValue['Female'].' == "true" %} Schülerin
+                                    {% elseif '.$this->FieldValue['Male'].' == "true" %} Schüler
+                                    {% else %} Schüler/Schülerin
+                                    {% endif %} unserer Schule sein.')
+                                ->stylePaddingTop('30px')
                             )
                             ->addSection((new Section())
                                 ->addElementColumn((new Element())
@@ -594,5 +484,170 @@ class EnrollmentDocument extends AbstractDocument
                 )
             )
         );
+    }
+
+    private function getDefaultArchivPage()
+    {
+        return (new Frame())->addDocument((new Document())
+            ->addPage((new Page())
+                ->addSlice((new Slice())
+                    ->addSection((new Section())
+                        ->addElementColumn((new Element())
+                            ->setContent('&nbsp;'),'5%'
+                        )
+                        ->addSliceColumn((new Slice())
+                            ->addSection((new Section())
+                                ->addSliceColumn((new Slice())
+                                    ->addSection((new Section())
+                                        ->addElementColumn((new Element())
+                                            ->setContent('&nbsp;')
+                                            ->styleHeight('25px')
+                                        )
+                                    )
+                                    ->addSection((new Section())
+                                        ->addElementColumn((new Element())
+                                            ->setContent('Schule')
+                                            ->styleHeight('15px')
+                                            ->styleTextSize('9pt')
+                                        )
+                                    )
+                                    ->addSection((new Section())
+                                        ->addElementColumn((new Element())
+                                            ->setContent($this->FieldValue['School']
+                                                .($this->FieldValue['SchoolExtended'] != '&nbsp;' ? '<br/>'.$this->FieldValue['SchoolExtended'] : '')
+                                                .($this->FieldValue['SchoolAddressDistrict'] != '&nbsp;' ? '<br/>'.$this->FieldValue['SchoolAddressDistrict'] : '')
+                                                .($this->FieldValue['SchoolAddressStreet'] != '&nbsp;' ? '<br/>'.$this->FieldValue['SchoolAddressStreet'] : '')
+                                                .($this->FieldValue['SchoolAddressCity'] != '&nbsp;' ? '<br/>'.$this->FieldValue['SchoolAddressCity'] : '')
+                                            )
+                                            ->styleHeight('140px')
+                                        )
+                                    ), '60%'
+                                )
+                                ->addElementColumn($this->getPictureEnrollmentDocument()
+                                    ->styleAlignRight()
+                                    ,'40%'
+                                )
+                            )
+                            ->addSection((new Section())
+                                ->addElementColumn((new Element())
+                                    ->setContent('Schulbescheinigung')
+                                    ->styleTextSize('25px')
+                                    ->styleTextBold()
+                                    ->styleTextItalic()
+                                )
+                            )
+                            ->addSection($this->getSection('
+                                {% if '.$this->FieldValue['Female'].' == "true" %} Die Schülerin
+                                {% elseif '.$this->FieldValue['Male'].' == "true" %} Der Schüler
+                                {% else %} Der Schüler/Die Schülerin
+                                {% endif %}', $this->FieldValue['FirstLastName'], '50px'))
+                            ->addSection($this->getSection('geboren am', $this->FieldValue['Birthday']))
+                            ->addSection($this->getSection('geboren in', $this->FieldValue['Birthplace']))
+                            ->addSection($this->getSection('wohnhaft', $this->FieldValue['AddressFirstLine']))
+                            ->addSection($this->getSection('&nbsp;', $this->FieldValue['AddressSecondLine']))
+                            ->addSection($this->getSection('&nbsp;', $this->FieldValue['AddressThirdLine']))
+                            ->addSection($this->getSection('&nbsp;', $this->FieldValue['AddressFourthLine']))
+                            ->addSection($this->getSection('war vom', $this->FieldValue['ArriveDate']))
+                            ->addSection($this->getSection('bis zum', $this->FieldValue['LeaveDate']))
+                            ->addElement((new Element())
+                                ->setContent('
+                                    {% if '.$this->FieldValue['Female'].' == "true" %} Schülerin
+                                    {% elseif '.$this->FieldValue['Male'].' == "true" %} Schüler
+                                    {% else %} Schüler/Schülerin
+                                    {% endif %} unserer Schule.')
+                                ->stylePaddingTop('30px')
+                            )
+                            ->addSection((new Section())
+                                ->addElementColumn((new Element())
+                                    ->setContent($this->FieldValue['Place'].$this->FieldValue['Date'])
+                                    ->stylePaddingTop('100px')
+                                    ->styleBorderBottom()
+                                    , '45%')
+                                ->addElementColumn((new Element())
+                                    ->setContent('&nbsp;')
+                                    ->stylePaddingTop('100px')
+                                    , '20%')
+                                ->addElementColumn((new Element())
+                                    ->setContent('&nbsp;')
+                                    ->stylePaddingTop('100px')
+                                    ->styleBorderBottom()
+                                    , '35%')
+                            )
+                            ->addSection((new Section())
+                                ->addElementColumn((new Element())
+                                    ->setContent('Ort, Datum')
+                                    ->styleTextSize('12px')
+                                    , '45%')
+                                ->addElementColumn((new Element())
+                                    ->setContent('&nbsp;')
+                                    , '20%')
+                                ->addElementColumn((new Element())
+                                    ->setContent('
+                                      Schulstempel
+                             ')
+                                    ->stylePaddingTop('0px')
+                                    ->styleMarginTop('0px')
+                                    ->styleTextSize('12px')
+                                    , '35%')
+                            )
+                            ->addSection((new Section())
+                                ->addElementColumn((new Element())
+                                    ->setContent('
+                                &nbsp;
+                            ')
+                                    ->stylePaddingTop('30px')
+                                    , '65%')
+                                ->addElementColumn((new Element())
+                                    ->setContent('
+                                      &nbsp;
+                             ')
+                                    ->stylePaddingTop('30px')
+                                    ->styleBorderBottom()
+                                    , '35%')
+                            )
+                            ->addSection((new Section())
+                                ->addElementColumn((new Element())
+                                    ->setContent('
+                                      &nbsp;
+                             ')
+                                    , '65%')
+                                ->addElementColumn((new Element())
+                                    ->setContent('
+                                      Schulleiter/in
+                             ')
+                                    ->stylePaddingTop('0px')
+                                    ->styleMarginTop('0px')
+                                    ->styleTextSize('12px')
+                                    , '35%')
+                            ),'90%'
+                        )
+                        ->addElementColumn((new Element())
+                            ->setContent('&nbsp;'),'5%'
+                        )
+                    )
+                )
+            )
+        );
+    }
+
+    /**
+     * @param string $Title
+     * @param string $Value
+     * @param string $PaddingTop
+     * @return Section
+     */
+    private function getSection(string $Title, string $Value, string $PaddingTop = '30px'):Section
+    {
+
+        return (new Section())
+            ->addElementColumn((new Element())
+                ->setContent($Title)
+                ->stylePaddingTop($PaddingTop)
+                , '35%')
+            ->addElementColumn((new Element())
+                ->setContent($Value)
+                ->stylePaddingTop($PaddingTop)
+                ->styleBorderBottom()
+                , '65%');
     }
 }

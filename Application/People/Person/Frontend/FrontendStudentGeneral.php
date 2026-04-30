@@ -124,19 +124,33 @@ class FrontendStudentGeneral extends FrontendReadOnly
                 array_walk($tblLiberationCategoryAll,
                     function (TblStudentLiberationCategory $tblStudentLiberationCategory) use (&$LiberationPanel, $tblStudent) {
                         if ($tblStudent && ($tblStudentLiberationList = Student::useService()->getStudentLiberationAllByStudent($tblStudent))) {
-                            $text = reset($tblStudentLiberationList)->getTblStudentLiberationType()->getName();
+
+                            $tblStudentLiberation = current($tblStudentLiberationList);
+                            $text = $tblStudentLiberation->getTblStudentLiberationType()->getName();
+                            $DateFrom = $tblStudentLiberation->getDateFrom();
+                            $DateTo = $tblStudentLiberation->getDateTo();
+                            $Description = '';
+                            if($tblStudentLiberation->getDescription()){
+                                $Description = nl2br($tblStudentLiberation->getDescription());
+                            }
                         } else {
-                            $text = '';
+                            $text = $DateTo = $DateFrom = $Description = '';
                         }
 
-                        array_push($LiberationPanel,
-                            new Layout(new LayoutGroup(array(
-                                new LayoutRow(array(
-                                    self::getLayoutColumnLabel($tblStudentLiberationCategory->getName(), 6),
-                                    self::getLayoutColumnValue($text, 6),
-                                )),
-                            )))
-                        );
+//                        array_push($LiberationPanel,
+                        $LiberationPanel[] = new Layout(new LayoutGroup(array(
+                            new LayoutRow(array(
+                                self::getLayoutColumnLabel($tblStudentLiberationCategory->getName(), 6),
+                                self::getLayoutColumnValue($text, 6),
+                                self::getLayoutColumnLabel('Befreiung ab', 6),
+                                self::getLayoutColumnValue($DateFrom, 6),
+                                self::getLayoutColumnLabel('Befreiung ab', 6),
+                                self::getLayoutColumnValue($DateTo, 6),
+                                self::getLayoutColumnLabel('Beschreibung', 12),
+                                self::getLayoutColumnValue($Description, 12),
+                            )),
+                        )));
+//                        );
                     }
                 );
             }
@@ -281,9 +295,13 @@ class FrontendStudentGeneral extends FrontendReadOnly
 
                 if (($tblStudentLiberationAll = Student::useService()->getStudentLiberationAllByStudent($tblStudent))) {
                     foreach ($tblStudentLiberationAll as $tblStudentLiberation) {
-                        $Global->POST['Meta']['Liberation']
-                        [$tblStudentLiberation->getTblStudentLiberationType()->getTblStudentLiberationCategory()->getId()]
-                            = $tblStudentLiberation->getTblStudentLiberationType()->getId();
+                        if(($tblStudentLiberationType = $tblStudentLiberation->getTblStudentLiberationType())
+                        && ($tblStudentLiberationCategory = $tblStudentLiberationType->getTblStudentLiberationCategory())){
+                            $Global->POST['Meta']['Liberation'][$tblStudentLiberationCategory->getId()]['TypeId'] = $tblStudentLiberationType->getId();
+                            $Global->POST['Meta']['Liberation'][$tblStudentLiberationCategory->getId()]['DateFrom'] = $tblStudentLiberation->getDateFrom();
+                            $Global->POST['Meta']['Liberation'][$tblStudentLiberationCategory->getId()]['DateTo'] = $tblStudentLiberation->getDateTo();
+                            $Global->POST['Meta']['Liberation'][$tblStudentLiberationCategory->getId()]['Description'] = $tblStudentLiberation->getDescription();
+                        }
                     }
                 }
 
@@ -324,10 +342,16 @@ class FrontendStudentGeneral extends FrontendReadOnly
 
                 $tblLiberationTypeAll = Student::useService()->getStudentLiberationTypeAllByCategory($tblStudentLiberationCategory);
                 array_push($LiberationPanel,
-                    new SelectBox('Meta[Liberation]['.$tblStudentLiberationCategory->getId().']',
-                        $tblStudentLiberationCategory->getName(), array(
-                            '{{ Name }}' => $tblLiberationTypeAll
-                        ))
+                    new SelectBox('Meta[Liberation]['.$tblStudentLiberationCategory->getId().'][TypeId]',
+                        $tblStudentLiberationCategory->getName(), array('{{ Name }}' => $tblLiberationTypeAll)
+                    ),
+                    new Layout(new LayoutGroup(new LayoutRow(array(
+                        new LayoutColumn(new DatePicker('Meta[Liberation]['.$tblStudentLiberationCategory->getId().'][DateFrom]',
+                            (new \DateTime())->format('d.m.Y'), 'Befreiung ab' ), 6),
+                        new LayoutColumn(new DatePicker('Meta[Liberation]['.$tblStudentLiberationCategory->getId().'][DateTo]',
+                            (new \DateTime())->format('d.m.Y'), 'Befreiung bis' ), 6),
+                    )))),
+                    new TextArea('Meta[Liberation]['.$tblStudentLiberationCategory->getId().'][Description]', '', 'Beschreibung')
                 );
             }
         );

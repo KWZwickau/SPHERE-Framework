@@ -3,6 +3,7 @@ namespace SPHERE\Application\Reporting\Standard\Person;
 
 use DateTime;
 use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel;
+use MOC\V\Component\Document\Component\Exception\ComponentException;
 use MOC\V\Component\Document\Component\Parameter\Repository\FileParameter;
 use MOC\V\Component\Document\Component\Parameter\Repository\PaperOrientationParameter;
 use MOC\V\Component\Document\Component\Parameter\Repository\PaperSizeParameter;
@@ -4111,17 +4112,19 @@ class Service extends Extension
     }
 
     /**
-     * @param array $tblPersonList
+     * @param array $tblMemberList
      * @param array $dataList
      * @param array $countList
      * @param TblYear $tblYear
+     * @param TblDivisionCourse $tblDivisionCourse
      *
      * @return bool|FilePointer
      */
-    public function createAbsenceContentExcelMonthly(array $tblPersonList, array $dataList, array $countList, TblYear $tblYear): ?FilePointer
+    public function createAbsenceContentExcelMonthly(array $tblMemberList, array $dataList, array $countList, TblYear $tblYear,
+        TblDivisionCourse $tblDivisionCourse): ?FilePointer
     {
         $totalCountList = array();
-        if (!empty($tblPersonList)) {
+        if (!empty($tblMemberList)) {
             $fileLocation = Storage::createFilePointer('xlsx');
             /** @var PhpExcel $export */
             $export = Document::getDocument($fileLocation->getFileLocation());
@@ -4142,10 +4145,9 @@ class Service extends Extension
             $IsFirstTab = true;
             /** @var DateTime $startDate */
             list($startDate, $endDate) = Term::useService()->getStartDateAndEndDateOfYear($tblYear);
-            $tblPerson = current($tblPersonList);
             $tblCompany = false;
-            if(($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))){
-                $tblCompany = $tblStudentEducation->getServiceTblCompany();
+            if (($tblCompanyList = DivisionCourse::useService()->getCompanyListByDivisionCourse($tblDivisionCourse))) {
+                $tblCompany = reset($tblCompanyList);
             }
 
             if ($startDate && $endDate) {
@@ -4194,13 +4196,20 @@ class Service extends Extension
                     // Content
                     $columnStudents = 0;
                     $rowStudents = 3;
-                    /** @var TblPerson $tblPerson */
+                    /** @var TblDivisionCourseMember $tblMember */
                     $ColumnAbsenceCount = $maxDay + 1;
-                    foreach ($tblPersonList as $tblPerson) {
+                    foreach ($tblMemberList as $tblMember) {
+                        if (!($tblPerson = $tblMember->getServiceTblPerson())) {
+                            continue;
+                        }
+
                         $lastName = $tblPerson->getLastName();
                         $firstName = $tblPerson->getFirstSecondName();
                         $export->setValue($export->getCell($columnStudents, $rowStudents), $lastName . ', ' . $firstName);
                         $export->setStyle($export->getCell($columnStudents, $rowStudents))->setBorderAll();
+                        if ($tblMember->isInActive()) {
+                            $export->setStyle($export->getCell($columnStudents, $rowStudents))->setStrikethrough();
+                        }
 
                         if (isset($dataList[$yearMonth][$tblPerson->getId()])) {
                             foreach ($dataList[$yearMonth][$tblPerson->getId()] as $day => $status) {
@@ -4284,11 +4293,11 @@ class Service extends Extension
                             }
                         }
                         if($isHoliday){
-                            $export->setStyle($export->getCell($k, 0), $export->getCell($k, count($tblPersonList)+2))->setBackgroundColor('D6F0FF');
+                            $export->setStyle($export->getCell($k, 0), $export->getCell($k, count($tblMemberList)+2))->setBackgroundColor('D6F0FF');
                         }
                         // weekend
                         if($this->isWeekend($MonthDayDateTime)){
-                            $export->setStyle($export->getCell($k, 0), $export->getCell($k, count($tblPersonList)+2))->setBackgroundColor('E4E4E4');
+                            $export->setStyle($export->getCell($k, 0), $export->getCell($k, count($tblMemberList)+2))->setBackgroundColor('E4E4E4');
                         }
                     }
                     // set cursor position default to first column on every page

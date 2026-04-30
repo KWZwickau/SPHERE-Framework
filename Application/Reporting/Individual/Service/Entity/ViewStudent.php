@@ -51,6 +51,9 @@ class ViewStudent extends AbstractView
     // entfernt #SSW-2277
     // Sportbefreiung hinzugefügt #SSW-207
     const TBL_STUDENT_LIBERATION_SPORT_TYPE_NAME = 'TblStudentLiberationSportType_Name';
+    const TBL_STUDENT_LIBERATION_SPORT_DATE_FROM = 'TblStudentLiberationSport_DateFrom';
+    const TBL_STUDENT_LIBERATION_SPORT_DATE_TO = 'TblStudentLiberationSport_DateTo';
+    const TBL_STUDENT_LIBERATION_SPORT_DESCRIPTION = 'TblStudentLiberationSport_Description';
 
     const SPORT_LIBERATION = 'SportLiberation';
     // Schließfach
@@ -91,6 +94,18 @@ class ViewStudent extends AbstractView
      * @Column(type="string")
      */
     protected $TblStudentLiberationSportType_Name;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblStudentLiberationSport_DateFrom;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblStudentLiberationSport_DateTo;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblStudentLiberationSport_Description;
     /**
      * @Column(type="string")
      */
@@ -210,6 +225,9 @@ class ViewStudent extends AbstractView
         $this->setNameDefinition(self::TBL_STUDENT_TRANSPORT_REMARK, 'Allgemeines: Schulbeförderung Bemerkung');
 
         $this->setNameDefinition(self::TBL_STUDENT_LIBERATION_SPORT_TYPE_NAME, 'Allgemeines: Sportbefreiung');
+        $this->setNameDefinition(self::TBL_STUDENT_LIBERATION_SPORT_DATE_FROM, 'Allgemeines: Sportbefreiung von');
+        $this->setNameDefinition(self::TBL_STUDENT_LIBERATION_SPORT_DATE_TO, 'Allgemeines: Sportbefreiung bis');
+        $this->setNameDefinition(self::TBL_STUDENT_LIBERATION_SPORT_DESCRIPTION, 'Allgemeines: Sportbefreiung Beschreibung');
 
         $this->setNameDefinition(self::SIBLINGS_COUNT, 'Allgemeines: Anzahl Geschwister');
 
@@ -240,9 +258,17 @@ class ViewStudent extends AbstractView
             self::TBL_STUDENT_TRANSPORT_STATION_EXIT,
             self::TBL_STUDENT_TRANSPORT_REMARK,
             self::TBL_STUDENT_LIBERATION_SPORT_TYPE_NAME,
+            self::TBL_STUDENT_LIBERATION_SPORT_DATE_FROM,
+            self::TBL_STUDENT_LIBERATION_SPORT_DATE_TO,
+            self::TBL_STUDENT_LIBERATION_SPORT_DESCRIPTION,
 //            self::TBL_STUDENT_STUDENT_NAME_AGREEMENT,
 //            self::TBL_STUDENT_STUDENT_PICTURE_AGREEMENT,
         ));
+
+        // Flag um Filter zu deaktivieren (nur Anzeige von Informationen)
+        $this->setDisableDefinition(self::TBL_STUDENT_LIBERATION_SPORT_DATE_FROM);
+        $this->setDisableDefinition(self::TBL_STUDENT_LIBERATION_SPORT_DATE_TO);
+        $this->setDisableDefinition(self::TBL_STUDENT_LIBERATION_SPORT_DESCRIPTION);
     }
 
     /**

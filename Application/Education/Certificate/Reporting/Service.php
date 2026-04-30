@@ -34,10 +34,11 @@ class Service extends Extension
      * @param TblYear $tblYear
      * @param TblCourse|null $tblCourse
      * @param array $subjectList
+     * @param array $complexExamList
      *
      * @return array
      */
-    public function getDiplomaSerialMailContent(TblType $tblSchoolType, TblYear $tblYear, ?TblCourse $tblCourse, array &$subjectList): array
+    public function getDiplomaSerialMailContent(TblType $tblSchoolType, TblYear $tblYear, ?TblCourse $tblCourse, array &$subjectList, array &$complexExamList): array
     {
         $level = false;
         $isMainCourse = $tblCourse && $tblCourse->getName() == 'Hauptschule';
@@ -49,6 +50,10 @@ class Service extends Extension
             }
         } elseif ($tblSchoolType->getShortName() == 'FOS') {
             $level = 12;
+        } elseif ($tblSchoolType->getShortName() == 'BFS') {
+            $level = 2;
+        } elseif ($tblSchoolType->getShortName() == 'FS') {
+            $level = 3;
         }
 
         $content = array();
@@ -103,7 +108,7 @@ class Service extends Extension
 
                             $tblPrepareHalfYear = $tblPrepareHalfYear? :null;
                             $tblPrepareDiploma = $tblPrepareDiploma? :null;
-                            $this->getGradesForSerialMail($item, $subjectList, $tblPerson, $tblPrepareHalfYear, $tblPrepareDiploma);
+                            $this->getGradesForSerialMail($item, $subjectList, $complexExamList, $tblPerson, $tblPrepareHalfYear, $tblPrepareDiploma);
 
                             $content[$tblPerson->getId()] = $item;
                         }
@@ -118,10 +123,11 @@ class Service extends Extension
     /**
      * @param array $content
      * @param array $subjectList
+     * @param array $complexExamList
      *
      * @return bool|FilePointer
      */
-    public function createDiplomaSerialMailContentExcel(array $content, array $subjectList): ?FilePointer
+    public function createDiplomaSerialMailContentExcel(array $content, array $subjectList, array $complexExamList): ?FilePointer
     {
         if (!empty($content)) {
             $fileLocation = Storage::createFilePointer('xlsx');
@@ -136,6 +142,51 @@ class Service extends Extension
             $export->setValue($export->getCell($column++, $row), 'E-Mail des Schülers');
             $export->setValue($export->getCell($column++, $row), 'E-Mail des S1');
             $export->setValue($export->getCell($column++, $row), 'E-Mail des S2');
+
+            // Komplex-Prüfungen für FS
+            if ($complexExamList) {
+                if (isset($complexExamList['K1 JN'])) {
+                    $export->setValue($export->getCell($column, $row), 'K1 JN');
+                    $complexExamList['K1 JN'] = $column++;
+                }
+                if (isset($complexExamList['K1 PS'])) {
+                    $export->setValue($export->getCell($column, $row), 'K1 PS');
+                    $complexExamList['K1 PS'] = $column++;
+                }
+                if (isset($complexExamList['K1 EN'])) {
+                    $export->setValue($export->getCell($column, $row), 'K1 EN');
+                    $complexExamList['K1 EN'] = $column++;
+                }
+                if (isset($complexExamList['K2 JN'])) {
+                    $export->setValue($export->getCell($column, $row), 'K2 JN');
+                    $complexExamList['K2 JN'] = $column++;
+                }
+                if (isset($complexExamList['K2 PS'])) {
+                    $export->setValue($export->getCell($column, $row), 'K2 PS');
+                    $complexExamList['K2 PS'] = $column++;
+                }
+                if (isset($complexExamList['K2 EN'])) {
+                    $export->setValue($export->getCell($column, $row), 'K2 EN');
+                    $complexExamList['K2 EN'] = $column++;
+                }
+                if (isset($complexExamList['K3 JN'])) {
+                    $export->setValue($export->getCell($column, $row), 'PA JN');
+                    $complexExamList['K3 JN'] = $column++;
+                }
+                if (isset($complexExamList['K3 PS'])) {
+                    $export->setValue($export->getCell($column, $row), 'PA PS');
+                    $complexExamList['K3 PS'] = $column++;
+                }
+                if (isset($complexExamList['K3 EN'])) {
+                    $export->setValue($export->getCell($column, $row), 'PA EN');
+                    $complexExamList['K3 EN'] = $column++;
+                }
+//                foreach ($complexExamList as $key => &$value) {
+//                    $export->setValue($export->getCell($column, $row), $key);
+//                    $value = $column++;
+//                }
+            }
+
             // Fächer
             ksort($subjectList);
             foreach($subjectList as $acronym => &$array) {
@@ -200,6 +251,15 @@ class Service extends Extension
                     }
                 }
 
+                // Komplex-Prüfungen für FS
+                if (isset($item['ComplexExamGrades'])) {
+                    foreach ($item['ComplexExamGrades'] as $key => $complexGrade) {
+                        if (isset($complexExamList[$key])) {
+                            $export->setValue($export->getCell($complexExamList[$key], $row), $complexGrade);
+                        }
+                    }
+                }
+
                 $row++;
             }
 
@@ -234,11 +294,13 @@ class Service extends Extension
     /**
      * @param array $item
      * @param array $subjectList
+     * @param array $complexExamList
      * @param TblPerson $tblPerson
      * @param TblPrepareCertificate|null $tblPrepareHalfYear
      * @param TblPrepareCertificate|null $tblPrepareDiploma
      */
-    private function getGradesForSerialMail(array &$item, array &$subjectList, TblPerson $tblPerson, ?TblPrepareCertificate $tblPrepareHalfYear, ?TblPrepareCertificate $tblPrepareDiploma)
+    private function getGradesForSerialMail(array &$item, array &$subjectList, array &$complexExamList, TblPerson $tblPerson,
+        ?TblPrepareCertificate $tblPrepareHalfYear, ?TblPrepareCertificate $tblPrepareDiploma): void
     {
         if ($tblPrepareHalfYear
             && ($tblTask = $tblPrepareHalfYear->getServiceTblAppointedDateTask())
@@ -281,6 +343,20 @@ class Service extends Extension
                         }
                         $item['Grades'][$tblSubjectYear->getAcronym()]['JN'] = $tblTaskGrade->getGrade();
                     }
+                }
+            }
+
+            // FS Komplex-Prüfungen (Vornoten [Jahresnoten] werden aus 2 Fächern gebildet
+            if (($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepareDiploma, $tblPerson))
+                && ($tblPrepareComplexExamList = Prepare::useService()->getPrepareComplexExamAllByPrepareStudent($tblPrepareStudent))
+            ) {
+                foreach ($tblPrepareComplexExamList as $tblPrepareComplexExam) {
+                    $key = 'K' . $tblPrepareComplexExam->getRanking() . ' ' . $tblPrepareComplexExam->getIdentifier();
+                    if (!isset($complexExamList[$key])) {
+                        $complexExamList[$key] = 1;
+                    }
+
+                    $item['ComplexExamGrades'][$key] = $tblPrepareComplexExam->getGrade();
                 }
             }
         }

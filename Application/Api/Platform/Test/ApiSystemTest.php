@@ -66,8 +66,8 @@ class ApiSystemTest extends Extension implements IApiInterface
         $Dispatcher->registerMethod('openThirdResult');
         //////////////////////////////////////// Fourth Modal
         $Dispatcher->registerMethod('openFourthModal');
-//        $Dispatcher->registerMethod('firstTab');
-//        $Dispatcher->registerMethod('secondTab');
+        $Dispatcher->registerMethod('firstTab');
+        $Dispatcher->registerMethod('secondTab');
 
         return $Dispatcher->callMethod($Method);
     }
@@ -378,7 +378,7 @@ class ApiSystemTest extends Extension implements IApiInterface
     public static function receiverFourthModal()
     {
 
-        return (new ModalReceiver())
+        return (new ModalReceiver(null, '(Footer) '.new Close()))
             ->setIdentifier('FourthModal');
     }
 
@@ -400,7 +400,7 @@ class ApiSystemTest extends Extension implements IApiInterface
     public static function pipelineOpenFourthModal()
     {
         $Pipeline = new Pipeline();
-        $Emitter = new ServerEmitter(self::receiverThirdModal(), self::getEndpoint());
+        $Emitter = new ServerEmitter(self::receiverFourthModal(), self::getEndpoint());
         $Emitter->setGetPayload(array(
             self::API_TARGET => 'openFourthModal'
         ));

@@ -35,6 +35,20 @@ class MsAbg extends Certificate
     {
 
         $personId = $tblPerson ? $tblPerson->getId() : 0;
+        $diploma = '';
+        $isCopy = (bool) $this->CopyCertificateData;
+        if ($isCopy
+            && $this->tblLeaveStudent
+            && ($tblLeaveInformationEqualGraduation = Prepare::useService()->getLeaveInformationBy($this->tblLeaveStudent, 'EqualGraduation'))
+        ) {
+            if ($tblLeaveInformationEqualGraduation->getValue() == GymAbgSekI::COURSE_HS) {
+                $diploma = 'Hauptschulabschluss gleichgestellten Abschluss';
+            } elseif ($tblLeaveInformationEqualGraduation->getValue() == GymAbgSekI::COURSE_HSQ) {
+                $diploma = 'qualifizierenden Hauptschulabschluss';
+            } elseif ($tblLeaveInformationEqualGraduation->getValue() == GymAbgSekI::COURSE_LERNEN) {
+                $diploma = 'Abschluss im Förderschwerpunkt Lernen';
+            }
+        }
 
         // leere Seite
         $pageList[] = new Page();
@@ -174,8 +188,11 @@ class MsAbg extends Certificate
             ->addSlice($this->getDescriptionHead($personId))
             ->addSlice($this->getDescriptionContent($personId, '200px', '15px'))
             ->addSlice($this->getDateLine($personId))
-            ->addSlice($this->getSignPart($personId, true, '30px'))
-            ->addSlice($this->getInfo('180px',
+            ->addSlice($isCopy
+                ? $this->getSignPartCopy($personId, $diploma)
+                : $this->getSignPart($personId, true, '30px')
+            )
+            ->addSlice($this->getInfo($isCopy ? '35px' : '180px',
                 'Notenerläuterung:',
                 '1 = sehr gut; 2 = gut; 3 = befriedigend; 4 = ausreichend; 5 = mangelhaft; 6 = ungenügend',
                 '¹ Gilt nicht für Schülerinnen und Schüler mit sonderpädagogischem Förderbedarf im Förderschwerpunkt Lernen.'

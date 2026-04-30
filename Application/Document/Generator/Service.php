@@ -23,8 +23,11 @@ use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\Education\School\Type\Type;
+use SPHERE\Application\People\Group\Group;
+use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubject;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransferType;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Relationship;
@@ -647,6 +650,8 @@ class Service extends AbstractService
 //        $Data['PersonId'] = $tblPerson->getId();
         $Data['FirstLastName'] = $tblPerson->getFirstSecondName().' '.$tblPerson->getLastName();
         $Data['Date'] = isset($Data['Date']) ? $Data['Date'] : (new DateTime())->format('d.m.Y');
+        $Data['ArriveDate'] = '';
+        $Data['LeaveDate'] = '';
         $Data['Birthday'] = '';
         $Data['Birthplace'] = '';
         $Data['Gender'] = '';
@@ -662,6 +667,11 @@ class Service extends AbstractService
         $Data['AddressPLZ'] = '';
         $Data['AddressCity'] = '';
         $Data['AddressDistrict'] = '';
+        $Data['IsStudent'] = 'false';
+        $tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_STUDENT);
+        if(Group::useService()->getMemberByPersonAndGroup($tblPerson, $tblGroup)) {
+            $Data['IsStudent'] = 'true';
+        }
 
         if (($tblCommon = Common::useService()->getCommonByPerson($tblPerson))) {
             if (($tblCommonBirthDates = $tblCommon->getTblCommonBirthDates())) {
@@ -724,16 +734,20 @@ class Service extends AbstractService
             }
         }
 
-        if (($tblStudent = Student::useService()->getStudentByPerson($tblPerson))
-            && ($tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('LEAVE'))
-            && ($tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent, $tblStudentTransferType))
-        ) {
-            $transferDate = $tblStudentTransfer->getTransferDate();
-            if ($transferDate) {
-                if ($MaxDate > new DateTime($transferDate)) {
-                    $DateString = $transferDate;
-                    // correct leaveDate if necessary
-                    $Data['LeaveDate'] = $DateString;
+        if (($tblStudent = Student::useService()->getStudentByPerson($tblPerson)))
+        {
+            if(($tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier(TblStudentTransferType::LEAVE))
+                && ($tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent, $tblStudentTransferType))) {
+                if(($transferDate = $tblStudentTransfer->getTransferDate())){
+                    if ($MaxDate > new DateTime($transferDate)) {
+                        $Data['LeaveDate'] = $transferDate;
+                    }
+                }
+            }
+            if(($tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier(TblStudentTransferType::ARRIVE))
+                && ($tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent, $tblStudentTransferType))){
+                if(($transferDate = $tblStudentTransfer->getTransferDate())){
+                    $Data['ArriveDate'] = $transferDate;
                 }
             }
         }
