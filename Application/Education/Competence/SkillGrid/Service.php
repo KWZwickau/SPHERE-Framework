@@ -251,6 +251,8 @@ class Service extends AbstractService
         $tblSupportFocusType = Student::useService()->getSupportFocusTypeById($Data['SupportFocusTypeId']);
         $tblScoreType = $Data['ScoreTypeId'] > 0 ? ScoreType::useService()->getScoreTypeById($Data['ScoreTypeId']) : null;
 
+        $tblSkillAreaListExists = [];
+        $tblSkillListExists = [];
         if ($tblSkillGrid) {
             (new Data($this->getBinding()))->updateSkillGrid($tblSkillGrid, $Data['Name'], isset($Data['IsAverage']),
                 $Data['Level'], $tblSubject ?: null, $tblCourse ?: null, $tblSupportFocusType ?: null, $tblScoreType ?: null);
@@ -259,14 +261,15 @@ class Service extends AbstractService
 //            return '';
 //            $this->destroySkillsBySkillGrid($tblSkillGrid);
 
+            $tblSkillAreaListExists = $tblSkillGrid->getSkillAreas();
+            $tblSkillListExists = $tblSkillGrid->getSkills();
+
             $tblSkillGridNew = $tblSkillGrid;
         } else {
             $tblSkillGridNew = (new Data($this->getBinding()))->createSkillGrid($tblSchoolType, $Data['Name'], isset($Data['IsAverage']),
                 $Data['Level'], $tblSubject ?: null, $tblCourse ?: null, $tblSupportFocusType ?: null, $tblScoreType ?: null);
         }
 
-        $tblSkillAreaListExists = $tblSkillGrid->getSkillAreas();
-        $tblSkillListExists = $tblSkillGrid->getSkills();
         $tblSkillAreaListByAreaRanking = [];
         $skillAreaIdList = [];
         $skillIdList = [];

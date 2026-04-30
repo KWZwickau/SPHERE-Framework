@@ -132,24 +132,47 @@ class Service extends AbstractService
             return new Well(ScoreType::useFrontend()->formScoreType(false, $tblScoreType?->getId(), $Data, $ErrorList));
         }
 
+        $tblScoreTypeItemListExists = [];
         if ($tblScoreType) {
             (new Data($this->getBinding()))->updateScoreType($tblScoreType, $Data['Name'], $Data['Description']);
 
-            // erstmal alle löschen
-            $this->destroyScoreTypeItemsByScoreType($tblScoreType);
+//            Debugger::devDump($Data);
+//            return '';
+//            $this->destroyScoreTypeItemsByScoreType($tblScoreType);
+
+            $tblScoreTypeItemListExists = $tblScoreType->getScoreTypeItems();
 
             $tblScoreTypeNew = $tblScoreType;
         } else {
             $tblScoreTypeNew = (new Data($this->getBinding()))->createScoreType($Data['Name'], $Data['Description']);
         }
 
+        $scoreTypeItemIdList = [];
         if (isset($Data['ScoreTypeItems'])) {
             foreach ($Data['ScoreTypeItems'] as $array) {
                 // empty geht nicht da sonst Wert 0 nicht zulässig
                 if ($array['Value'] !== '') {
-                    (new Data($this->getBinding()))->createScoreTypeItem($tblScoreTypeNew, $array['Value'], $array['Name'], $array['Description'] ?: null);
+                    if (isset($array['ScoreTypeItemId'])
+                        && ($tblScoreTypeItem = $this->getScoreTypeItemById($array['ScoreTypeItemId']))
+                    ) {
+                        (new Data($this->getBinding()))->updateScoreTypeItem($tblScoreTypeItem, $array['Value'], $array['Name'], $array['Description'] ?: null);
+
+                        $scoreTypeItemIdList[$tblScoreTypeItem->getId()] = 1;
+                    } else {
+                        (new Data($this->getBinding()))->createScoreTypeItem($tblScoreTypeNew, $array['Value'], $array['Name'], $array['Description'] ?: null);
+                    }
                 }
             }
+        }
+        // löschen items
+        $destroyScoreTypeItemList = [];
+        foreach ($tblScoreTypeItemListExists as $tblScoreTypeItemTemp) {
+            if (!isset($scoreTypeItemIdList[$tblScoreTypeItemTemp->getId()])) {
+                $destroyScoreTypeItemList[] = $tblScoreTypeItemTemp;
+            }
+        }
+        if ($destroyScoreTypeItemList) {
+            (new Data($this->getBinding()))->destroyScoreTypeItemBulkList($destroyScoreTypeItemList);
         }
 
         return new Success('Die Daten wurden erfolgreich gespeichert', new \SPHERE\Common\Frontend\Icon\Repository\Success())
@@ -184,6 +207,7 @@ class Service extends AbstractService
     public function destroyScoreType(TblScoreType $tblScoreType): bool
     {
         $this->destroyScoreTypeItemsByScoreType($tblScoreType);
+        (new Data($this->getBinding()))->destroyScoreTypeConversionBulkList($tblScoreType->getScoreTypeConversions());
 
         return (new Data($this->getBinding()))->destroyScoreType($tblScoreType);
     }

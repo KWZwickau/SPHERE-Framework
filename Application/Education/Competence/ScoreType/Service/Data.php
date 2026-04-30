@@ -128,6 +128,34 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblScoreTypeItem $tblScoreTypeItem
+     * @param string $value
+     * @param string $name
+     * @param string|null $description
+     *
+     * @return bool
+     */
+    public function updateScoreTypeItem(TblScoreTypeItem $tblScoreTypeItem, string $value, string $name, ?string $description): bool
+    {
+        $manager = $this->getEntityManager();
+        /** @var TblScoreTypeItem $entity */
+        $entity = $manager->getEntityById('TblScoreTypeItem', $tblScoreTypeItem->getId());
+        $protocol = clone $entity;
+        if (null !== $entity) {
+            $entity->setValue($value);
+            $entity->setName($name);
+            $entity->setDescription($description);
+
+            $manager->saveEntity($entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $protocol, $entity);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
      * @param array $tblScoreTypeItemList
      *
      * @return bool
@@ -218,5 +246,29 @@ class Data extends AbstractData
         }
 
         return $entity;
+    }
+
+    /**
+     * @param array $tblScoreTypeConversionList
+     *
+     * @return bool
+     */
+    public function destroyScoreTypeConversionBulkList(array $tblScoreTypeConversionList): bool
+    {
+        $manager = $this->getEntityManager();
+
+        foreach ($tblScoreTypeConversionList as $tblScoreTypeConversion) {
+            /** @var Element $entity */
+            $entity = $manager->getEntityById('TblScoreTypeConversion', $tblScoreTypeConversion->getId());
+            if (null !== $entity) {
+                $manager->bulkKillEntity($entity);
+                Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $entity, true);
+            }
+        }
+
+        $manager->flushCache();
+        Protocol::useService()->flushBulkEntries();
+
+        return true;
     }
 }

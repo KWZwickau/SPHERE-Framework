@@ -191,6 +191,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $Data['ScoreTypeItems'][$ranking]['Name'] = $tblScoreTypeItem->getName();
                 $Global->POST['Data']['ScoreTypeItems'][$ranking]['Description'] = $tblScoreTypeItem->getDescription();
                 $Data['ScoreTypeItems'][$ranking]['Description'] = $tblScoreTypeItem->getDescription();
+                $Data['ScoreTypeItems'][$ranking]['ScoreTypeItemId'] = $tblScoreTypeItem->getId();
 
                 $ranking++;
             }
@@ -205,7 +206,7 @@ class Frontend extends Extension implements IFrontendInterface
             foreach ($Data['ScoreTypeItems'] as $ranking => $areaArray) {
                 $items[] =
                     ApiScoreType::receiverBlock(
-                        $this->loadScoreTypeItemContent($ScoreTypeId, $ranking, ++$count == $countItems, $ErrorList),
+                        $this->loadScoreTypeItemContent($ScoreTypeId, $ranking, ++$count == $countItems, $Data, $ErrorList),
                         "ScoreTypeItem_$ranking"
                     );
             }
@@ -213,7 +214,8 @@ class Frontend extends Extension implements IFrontendInterface
             $countItems = 3;
             $count = 0;
             for ($ranking = 1; $ranking < 4; $ranking++) {
-                $items[] = ApiScoreType::receiverBlock($this->loadScoreTypeItemContent($ScoreTypeId, $ranking, ++$count == $countItems), "ScoreTypeItem_$ranking");
+                $items[] = ApiScoreType::receiverBlock(
+                    $this->loadScoreTypeItemContent($ScoreTypeId, $ranking, ++$count == $countItems, $Data), "ScoreTypeItem_$ranking");
             }
         }
 
@@ -254,7 +256,7 @@ class Frontend extends Extension implements IFrontendInterface
                     new FormColumn(array(
                         new Container('&nbsp;'),
                         (new Primary('Speichern', ApiScoreType::getEndpoint(), new Save()))
-                            ->ajaxPipelineOnClick(ApiScoreType::pipelineSaveEditScoreType($ScoreTypeId)),
+                            ->ajaxPipelineOnClick(ApiScoreType::pipelineSaveEditScoreType($ScoreTypeId, $Data)),
                         new Standard('Abbrechen', '/Education/Competence/ScoreType', new Disable())
                     ))
                 )),
@@ -274,11 +276,12 @@ class Frontend extends Extension implements IFrontendInterface
      * @param $ScoreTypeId
      * @param $ranking
      * @param bool $hasAddButton
-     * @param $ErrorList
+     * @param null $Data
+     * @param null $ErrorList
      *
      * @return string
      */
-    public function loadScoreTypeItemContent($ScoreTypeId, $ranking, bool $hasAddButton = true, $ErrorList = null): string
+    public function loadScoreTypeItemContent($ScoreTypeId, $ranking, bool $hasAddButton = true, $Data = null, $ErrorList = null): string
     {
         $valuePlaceholder = $ranking == 1 ? '1' : '';
         $namePlaceholder = $ranking == 1 ? 'übertrifft die Anforderung' : '';
@@ -307,7 +310,7 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutColumn(array(
                     (new Container('&nbsp;'))->setStyle(['height: 22px;']),
                     (new Standard('', ApiScoreType::getEndpoint(), new Minus(), [], 'Bewertung löschen', null))
-                        ->ajaxPipelineOnClick(ApiScoreType::pipelineLoadEditScoreTypeContent($ScoreTypeId, 'RemoveScoreTypeItem', $ranking))
+                        ->ajaxPipelineOnClick(ApiScoreType::pipelineLoadEditScoreTypeContent($ScoreTypeId, 'RemoveScoreTypeItem', $ranking, $Data))
                 ), 1),
             )),
         )));
@@ -316,7 +319,7 @@ class Frontend extends Extension implements IFrontendInterface
         if ($hasAddButton) {
             $button = ApiScoreType::receiverBlock(
                 (new Link(new Bold('Bewertung hinzufügen'), ApiScoreType::getEndpoint(), new Plus()))
-                    ->ajaxPipelineOnClick(ApiScoreType::pipelineLoadScoreTypeItemContent($ScoreTypeId, $ranking + 1)),
+                    ->ajaxPipelineOnClick(ApiScoreType::pipelineLoadScoreTypeItemContent($ScoreTypeId, $ranking + 1, $Data)),
                 'ScoreTypeItem_' . ($ranking + 1)
             );
         }

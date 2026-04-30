@@ -119,10 +119,11 @@ class ApiScoreType extends Extension implements IApiInterface
      * @param null $ScoreTypeId
      * @param null $Action
      * @param null $ActionId
+     * @param null $Data
      *
      * @return Pipeline
      */
-    public static function pipelineLoadEditScoreTypeContent($ScoreTypeId = null, $Action = null, $ActionId = null): Pipeline
+    public static function pipelineLoadEditScoreTypeContent($ScoreTypeId = null, $Action = null, $ActionId = null, $Data = null): Pipeline
     {
         $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'EditScoreTypeContent'), self::getEndpoint());
@@ -132,7 +133,8 @@ class ApiScoreType extends Extension implements IApiInterface
         $ModalEmitter->setPostPayload(array(
             'ScoreTypeId' => $ScoreTypeId,
             'Action' => $Action,
-            'ActionId' => $ActionId
+            'ActionId' => $ActionId,
+            'Data' => $Data
         ));
         $ModalEmitter->setLoadingMessage('Daten werden geladen');
         $Pipeline->appendEmitter($ModalEmitter);
@@ -157,10 +159,11 @@ class ApiScoreType extends Extension implements IApiInterface
     /**
      * @param $ScoreTypeId
      * @param $Ranking
+     * @param $Data
      *
      * @return Pipeline
      */
-    public static function pipelineLoadScoreTypeItemContent($ScoreTypeId, $Ranking): Pipeline
+    public static function pipelineLoadScoreTypeItemContent($ScoreTypeId, $Ranking, $Data): Pipeline
     {
         $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'ScoreTypeItem_' . $Ranking), self::getEndpoint());
@@ -171,6 +174,7 @@ class ApiScoreType extends Extension implements IApiInterface
         $ModalEmitter->setPostPayload(array(
             'ScoreTypeId' => $ScoreTypeId,
             'Ranking' => $Ranking,
+            'Data' => $Data
         ));
         $ModalEmitter->setLoadingMessage('Daten werden geladen');
         $Pipeline->appendEmitter($ModalEmitter);
@@ -181,21 +185,23 @@ class ApiScoreType extends Extension implements IApiInterface
     /**
      * @param $ScoreTypeId
      * @param $Ranking
+     * @param $Data
      *
      * @return string
      * @noinspection PhpUnused
      */
-    public function loadScoreTypeItemContent($ScoreTypeId, $Ranking): string
+    public function loadScoreTypeItemContent($ScoreTypeId, $Ranking, $Data): string
     {
-        return ScoreType::useFrontend()->loadScoreTypeItemContent($ScoreTypeId, $Ranking);
+        return ScoreType::useFrontend()->loadScoreTypeItemContent($ScoreTypeId, $Ranking, true, $Data);
     }
 
     /**
-     * @param $ScoreTypeId
+     * @param null $ScoreTypeId
+     * @param null $Data
      *
      * @return Pipeline
      */
-    public static function pipelineSaveEditScoreType($ScoreTypeId = null): Pipeline
+    public static function pipelineSaveEditScoreType($ScoreTypeId = null, $Data = null): Pipeline
     {
         $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'EditScoreTypeContent'), self::getEndpoint());
@@ -203,7 +209,8 @@ class ApiScoreType extends Extension implements IApiInterface
             self::API_TARGET => 'saveEditScoreType',
         ));
         $ModalEmitter->setPostPayload(array(
-            'ScoreTypeId' => $ScoreTypeId
+            'ScoreTypeId' => $ScoreTypeId,
+            'Data' => $Data
         ));
         $ModalEmitter->setLoadingMessage('Daten werden geladen');
         $Pipeline->appendEmitter($ModalEmitter);
