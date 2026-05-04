@@ -89,6 +89,9 @@ class FrontendStudent extends FrontendDivisionCourse
 
         $stage->setContent(
             $title
+            . ApiPersonPicture::receiverModal()
+            . ApiSupportReadOnly::receiverOverViewModal()
+            . ApiSkillRate::receiverModal()
             . ApiSkillRate::receiverBlock($this->loadViewStudentContent($DivisionCourseId, $PersonId, $SubjectId), 'Content')
         );
 
@@ -137,10 +140,7 @@ class FrontendStudent extends FrontendDivisionCourse
             new LayoutColumn(new Center($PersonPicture), 2),
         ));
 
-        return ApiPersonPicture::receiverModal()
-            . ApiSupportReadOnly::receiverOverViewModal()
-            . ApiSkillRate::receiverModal()
-            . new Layout(new LayoutGroup($rows));
+        return new Layout(new LayoutGroup($rows));
     }
 
     /**

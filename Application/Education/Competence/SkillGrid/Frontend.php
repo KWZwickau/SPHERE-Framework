@@ -53,6 +53,11 @@ class Frontend extends Extension implements IFrontendInterface
         $buttonList = '';
         $route = '/Education/Competence/SkillGrid';
         if (($tblSchoolTypeList = SkillGrid::useService()->getAvailableSchoolTypeList())) {
+            // bei nur einer Schulart, diese vorauswählen
+            if (count($tblSchoolTypeList) == 1) {
+                $SchoolTypeId = $SchoolTypeId ?: current($tblSchoolTypeList)->getId();
+            }
+
             foreach ($tblSchoolTypeList as $tblSchoolType) {
                 $name = $tblSchoolType->getName() . ($tblSchoolType->getShortName() == 'Gy' ||  $tblSchoolType->getShortName() == 'BGy' ? ' (SekI)' : '');
                 if ($tblSchoolType->getId() == $SchoolTypeId) {
@@ -89,7 +94,7 @@ class Frontend extends Extension implements IFrontendInterface
             $level = null;
             $tblSubjectFilter = null;
             if ($Filter) {
-                if ($Filter['Level'] !== '') {
+                if ($Filter['Level'] !== '' && ctype_digit($Filter['Level'])) {
                     $level = $Filter['Level'];
                 }
                 if ($Filter['SubjectId']) {

@@ -196,8 +196,13 @@ class Frontend extends FrontendStudent
     private function getSelectHeadmaster($SelectedYearId = null, $SchoolTypeId = null): string
     {
         $content = '';
+        $route = "/Education/Competence/SkillRate";
         if (($tblSchoolTypeList = SkillGrid::useService()->getAvailableSchoolTypeList())) {
-            $route = "/Education/Competence/SkillRate";
+            // bei nur einer Schulart, diese vorauswählen
+            if (count($tblSchoolTypeList) == 1) {
+                $SchoolTypeId = $SchoolTypeId ?: current($tblSchoolTypeList)->getId();
+            }
+
             foreach ($tblSchoolTypeList as $tblSchoolType) {
                 $params = [
                     'SelectedYearId' => $SelectedYearId,
