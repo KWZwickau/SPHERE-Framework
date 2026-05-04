@@ -15,7 +15,6 @@ use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\Transfer\Indiware\Export\AppointmentGrade\Service\Data;
 use SPHERE\Application\Transfer\Indiware\Export\AppointmentGrade\Service\Setup;
 use SPHERE\System\Database\Binding\AbstractService;
-use SPHERE\System\Extension\Extension;
 
 /**
  * Class Service
@@ -49,7 +48,7 @@ class Service extends AbstractService
      *
      * @return bool|FilePointer
      */
-    public function createCsv(string $DivisionCourseId = '')
+    public function createCsv(string $DivisionCourseId = ''): bool|FilePointer
     {
         if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))
             && ($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses())
@@ -109,21 +108,24 @@ class Service extends AbstractService
                     }
                 }
 
-                $export->setValue($export->getCell("0", $Row), Extension::decodeUTF8($tblPerson->getLastName()));
-                $export->setValue($export->getCell("1", $Row), Extension::decodeUTF8($tblPerson->getFirstName()));
+                $export->setValue($export->getCell("0", $Row), $tblPerson->getLastName());
+                $export->setValue($export->getCell("1", $Row), $tblPerson->getFirstName());
                 $export->setValue($export->getCell("2", $Row), $Birthday);
                 $export->setValue($export->getCell("3", $Row), $Gender);
-                $export->setValue($export->getCell("4", $Row), Extension::decodeUTF8($Birthplace));
-                $export->setValue($export->getCell("5", $Row), Extension::decodeUTF8($City));
+                $export->setValue($export->getCell("4", $Row), $Birthplace);
+                $export->setValue($export->getCell("5", $Row), $City);
                 $export->setValue($export->getCell("6", $Row), $Code);
-                $export->setValue($export->getCell("7", $Row), Extension::decodeUTF8($Street));
-                $export->setValue($export->getCell("8", $Row), Extension::decodeUTF8($DivisionName));
-                $export->setValue($export->getCell("9", $Row), Extension::decodeUTF8($email));
+                $export->setValue($export->getCell("7", $Row), $Street);
+                $export->setValue($export->getCell("8", $Row), $DivisionName);
+                $export->setValue($export->getCell("9", $Row), $email);
 
                 $Row++;
             }
 
             $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
+
+            // Indiware erwartet die Zeichenkodierung ANSI für Umlaute -> alternativ über Notepad++ lösbar (Encoding -> Convert to ANSI)
+            $fileLocation->setFileContentWithEncodingForExport();
 
             return $fileLocation;
         }

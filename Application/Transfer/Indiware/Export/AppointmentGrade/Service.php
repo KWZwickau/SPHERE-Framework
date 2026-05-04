@@ -230,14 +230,10 @@ class Service extends AbstractService
             foreach ($PeopleGradeList as $Data) {
                 $export->setValue($export->getCell("0", $Row), $Data['Birthday']);
                 // SSWHD-4008 Test bei Chemnitz, Problem Umlaute → Schüler werden dann in Indiware neu angelegt
-                if (Consumer::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'ESZC')) {
-                    // Indiware erwartet Ansi -> aktuell nur über Notepad++ lösbar (Encoding -> Convert to Ansi)
-                    $export->setValue($export->getCell("1", $Row), $Data['LastName']);
-                    $export->setValue($export->getCell("2", $Row), $Data['FirstName']);
-                } else {
-                    $export->setValue($export->getCell("1", $Row), Extension::decodeUTF8($Data['LastName']));
-                    $export->setValue($export->getCell("2", $Row), Extension::decodeUTF8($Data['FirstName']));
-                }
+
+                $export->setValue($export->getCell("1", $Row), $Data['LastName']);
+                $export->setValue($export->getCell("2", $Row), $Data['FirstName']);
+
                 for ($j = 1; $j <= 17; $j++) {
                     if (isset($Data[$j])) {
                         $export->setValue($export->getCell(($j + 2), $Row), $Data[$j]);
@@ -246,6 +242,10 @@ class Service extends AbstractService
                 $Row++;
             }
             $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
+
+            // Indiware erwartet die Zeichenkodierung ANSI für Umlaute -> alternativ über Notepad++ lösbar (Encoding -> Convert to ANSI)
+            $fileLocation->setFileContentWithEncodingForExport();
+
             return $fileLocation;
         }
 
