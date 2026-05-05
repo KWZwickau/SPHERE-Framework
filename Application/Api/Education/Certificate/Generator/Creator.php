@@ -2,7 +2,6 @@
 
 namespace SPHERE\Application\Api\Education\Certificate\Generator;
 
-use DateTime;
 use MOC\V\Component\Document\Component\Bridge\Repository\DomPdf;
 use MOC\V\Component\Document\Component\Parameter\Repository\FileParameter;
 use MOC\V\Component\Document\Document;
@@ -223,28 +222,13 @@ class Creator extends Extension
             return new Stage($Name, 'Nicht gefunden');
         }
 
-        // Zweitschrift anzeigen (Abschluss- und Abgangszeugnisse)
-        if (isset($Data['IsCopy'])) {
-            $CopyCertificateData = [
-                'Leader' => 'Schmitt',
-                'HeadmasterOriginalName' => 'Meyer',
-                'FirstMember' => 'Schulze',
-                'SecondMember' => 'Fleischer',
-                'DivisionTeacherOriginalName' => 'Weber',
-                'Date' => (new DateTime('today'))->format('d.m.Y'),
-                'City' => 'Zwickau',
-            ];
+        $frontendPreviewCertificate = (new FrontendPreviewCertificate);
 
-            /** @var Certificate $Template */
-            $Certificate = new $CertificateClass(null, null, false, [], $CopyCertificateData);
-        } else {
-            /** @var Certificate $Template */
-            $Certificate = new $CertificateClass();
-        }
+        $Certificate = $frontendPreviewCertificate->getCertificateTemplateForPreview($CertificateClass, $Data);
 
         $tblPerson = new TblPerson();
         $tblPerson->setId(0);
-        $Content = (new FrontendPreviewCertificate())->getCertificateContent($tblPerson->getId(), $Data);
+        $Content = $frontendPreviewCertificate->getCertificateContent($tblPerson->getId(), $Data);
 
         $File = $this->buildDummyFile($Certificate, $tblPerson, $Content);
 

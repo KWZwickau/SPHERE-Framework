@@ -56,7 +56,7 @@ class FsAbs extends FsStyle
             ->stylePaddingTop($isCopy ? '60px' : '220px')
         ));
         $Page->addSlice($isCopy
-            ? $this->getFsSignPartCopy($personId, 'Abschlusszeugnis der Fachschule')
+            ? $this->getFsSignPartCopy($personId, 'Abschlusszeugnis der Fachschule', '25px', true)
             : $this->getIndividuallySignPart($personId, true)
         );
 
