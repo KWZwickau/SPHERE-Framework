@@ -23,6 +23,7 @@ use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
+use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
@@ -44,6 +45,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Question;
 use SPHERE\Common\Frontend\Icon\Repository\Search;
 use SPHERE\Common\Frontend\Icon\Repository\Select;
 use SPHERE\Common\Frontend\IFrontendInterface;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
@@ -1198,6 +1200,7 @@ class Frontend extends Extension implements IFrontendInterface
                 && ($tblAddress = $tblCompany->fetchMainAddress())
             ) {
                 $global->POST['Data']['City'] = $tblAddress->getCityString();
+                $global->POST['Data']['SealText'] = $tblCompany->getDisplayName();
             }
             if ($tblPrepareStudent && $tblGenerateCertificate) {
                 $global->POST['Data']['Leader'] = Generate::useService()->getDiplomaSignerLastName($tblGenerateCertificate, 'Leader');
@@ -1232,7 +1235,10 @@ class Frontend extends Extension implements IFrontendInterface
                     new FormRow(array(
                         new FormColumn((new TextField('Data[Leader]', '', 'Vorsitzende/r des Prüfungsausschusses'))->setRequired(), 6),
                         new FormColumn((new TextField('Data[HeadmasterOriginalName]', '', 'Schulleiter/in'))->setRequired(), 6),
-                    ))
+                    )),
+                    new FormRow(array(
+                        new FormColumn((new TextField('Data[SealText]', '', 'Text auf dem Original Siegel'))->setRequired()),
+                    )),
                 ), new \SPHERE\Common\Frontend\Form\Repository\Title('Originalzeugnis', 'Unterzeichner'));
             // allgemeinbildende Abschlusszeugnisse, außer Förderschule
             } elseif ($tblPrepareStudent && $tblCertificate->getCertificate() != 'FoesAbsGeistigeEntwicklung') {
@@ -1253,6 +1259,9 @@ class Frontend extends Extension implements IFrontendInterface
                 ), new \SPHERE\Common\Frontend\Form\Repository\Title('Originalzeugnis', 'Unterzeichner'));
             }
 
+            // Abstand
+            $formGroupList[] = new FormGroup(new FormRow(new FormColumn(new Container('&nbsp;'))));
+
             $formGroupList[] = new FormGroup(array(
                 new FormRow(array(
                     new FormColumn((new TextField('Data[Date]', '', 'Datum', new Calendar()))->setRequired(), 3),
@@ -1262,6 +1271,14 @@ class Frontend extends Extension implements IFrontendInterface
                     new FormColumn(new TextField('Data[HeadmasterName]', '', 'Name des/der Schulleiters/in', new Pencil()), 3),
                 ))
             ), new \SPHERE\Common\Frontend\Form\Repository\Title('Beglaubigungsvermerk', 'Aktuelle Daten'));
+
+            if ($tblSchoolType && $tblSchoolType->isTechnical()) {
+                $formGroupList[] = new FormGroup(array(
+                    new FormRow(array(
+                        new FormColumn((new CheckBox('Data[IsCopyStatement]', 'Zweitschrift ohne Namensänderung (Beglaubigungsvermerk)', 1))->setRequired(), 12),
+                    ))
+                ));
+            }
 
             $Stage->setContent(
                 new Layout(new LayoutGroup(array(
