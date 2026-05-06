@@ -39,6 +39,8 @@ class Frontend extends Extension implements IFrontendInterface
 
         $stage = new Stage('Veranstaltungen', 'der ESDI GmbH');
 
+        $today = new DateTime('today');
+
         $contentList[] = [
             'Title' => 'Individuelle Schulungen',
             'Content' => [
@@ -47,56 +49,79 @@ class Frontend extends Extension implements IFrontendInterface
                     wenden Sie sich bitte an die ESDi GmbH unter ' . new Mailto(new Envelope() . ' info@esdigmbh.de', 'info@esdigmbh.de'),
             ]
         ];
-//        $contentList[] = [
-//            'Title' => 'DLLP - Nutzertreffen',
-//            'Content' => [
-//                '23.04.2026 | 15 Uhr |Online',
-//                'Vor fast 2 Jahren ist das DLLP aus einem Projekt in den Regelbetrieb übergegangen. Damit wird es Zeit sich auszutauschen über Erreichtes,
-//                    Wünsche und Anregungen und mögliche Stolpersteine oder Herausforderungen.'
-//            ]
-//        ];
-        $contentList[] = [
-            'Title' => 'Best-Practice Schulsoftware | Verwaltung',
-            'Content' => [
-                '06.05.2026 | 10 Uhr | Hybrides Seminar für Verwaltung/Sekretärinnen',
-                new Container('Austausch vor Ort oder als Online - Teilnehmerin')
-                . new Container('Im Seminar werden die Neuentwicklungen in der Schulsoftware vorgestellt und an praktischen Beispielen Anwendungsfälle erläutert.')
-                . new Container('Es ist gedacht für Sekretärinnen und andere Mitarbeitende in der Verwaltung, die neue Funktionen der Schulsoftware kennenlernen und 
+        if ($today <= new DateTime('23.04.2026')) {
+            $contentList[] = [
+                'Title' => 'DLLP - Nutzertreffen',
+                'Content' => [
+                    '23.04.2026 | 15 Uhr |Online',
+                    'Vor fast 2 Jahren ist das DLLP aus einem Projekt in den Regelbetrieb übergegangen. Damit wird es Zeit sich auszutauschen über Erreichtes,
+                    Wünsche und Anregungen und mögliche Stolpersteine oder Herausforderungen.'
+                ]
+            ];
+        }
+        if ($today <= new DateTime('06.05.2026')) {
+            $contentList[] = [
+                'Title' => 'Best-Practice Schulsoftware | Verwaltung',
+                'Content' => [
+                    '06.05.2026 | 10 Uhr | Hybrides Seminar für Verwaltung/Sekretärinnen',
+                    new Container('Austausch vor Ort oder als Online - Teilnehmerin')
+                    . new Container('Im Seminar werden die Neuentwicklungen in der Schulsoftware vorgestellt und an praktischen Beispielen Anwendungsfälle erläutert.')
+                    . new Container('Es ist gedacht für Sekretärinnen und andere Mitarbeitende in der Verwaltung, die neue Funktionen der Schulsoftware kennenlernen und 
                     die Möglichkeiten optimal nutzen möchten.')
-            ]
-        ];
-        $contentList[] = [
-            'Title' => 'Zeugniserstellung in der Schulsoftware',
-            'Content' => [
-                '03.06.2026 | 10 Uhr | Webinar für Schulleitungen',
-                'Im Webinar soll der Ablauf der Zeugniserstellung erläutert werden, sodass Sie als Schulleitung den Prozess gut vorbereiten und 
+                ]
+            ];
+        }
+        if ($today <= new DateTime('21.05.2026')) {
+            $contentList[] = [
+                'Title' => 'Best-Practice Schulsoftware | Verwaltung',
+                'Content' => [
+                    '21.05.2026 | 10 Uhr | Zusatztermin - Online',
+                    new Container('Im Seminar werden die Neuentwicklungen in der Schulsoftware vorgestellt und an praktischen Beispielen Anwendungsfälle erläutert.')
+                    . new Container('Es ist gedacht für Sekretärinnen und andere Mitarbeitende in der Verwaltung, die neue Funktionen der Schulsoftware kennenlernen und 
+                    die Möglichkeiten optimal nutzen möchten.')
+                ]
+            ];
+        }
+        if ($today <= new DateTime('03.06.2026')) {
+            $contentList[] = [
+                'Title' => 'Zeugniserstellung in der Schulsoftware',
+                'Content' => [
+                    '03.06.2026 | 10 Uhr | Webinar für Schulleitungen',
+                    'Im Webinar soll der Ablauf der Zeugniserstellung erläutert werden, sodass Sie als Schulleitung den Prozess gut vorbereiten und 
                     Ihre Lehrkräfte sicher begleiten können',
-            ]
-        ];
-        $contentList[] = [
-            'Title' => 'Schuljahreswechsel in der Schulsoftware',
-            'Content' => [
-                '07.07.2026 | 10 Uhr | Webinar für Verwaltung/Schulleitung',
-                'Im Webinar werden die einzelnen Schritte zum Schuljahreswechsel vorgestellt und an praktischen Beispielen erläutert. Außerdem gibt 
+                ]
+            ];
+        }
+        if ($today <= new DateTime('07.07.2026')) {
+            $contentList[] = [
+                'Title' => 'Schuljahreswechsel in der Schulsoftware',
+                'Content' => [
+                    '07.07.2026 | 10 Uhr | Webinar für Verwaltung/Schulleitung',
+                    'Im Webinar werden die einzelnen Schritte zum Schuljahreswechsel vorgestellt und an praktischen Beispielen erläutert. Außerdem gibt 
                     es die Möglichkeit, Fragen zu stellen und sich über Best-Practice-Erfahrungen auszutauschen.',
-            ]
-        ];
-        $contentList[] = [
-            'Title' => 'Schuljahreswechsel im DLLP',
-            'Content' => [
-                '08.07.2026 | 10 Uhr | Webinar für Schul-Admins',
-                'Im Webinar werden wiederkehrende Aufgaben im DLLP vorgestellt und über neue Entwicklungen berichtet. Außerdem wird es Raum für Fragen 
+                ]
+            ];
+        }
+        if ($today <= new DateTime('08.07.2026')) {
+            $contentList[] = [
+                'Title' => 'Schuljahreswechsel im DLLP',
+                'Content' => [
+                    '08.07.2026 | 10 Uhr | Webinar für Schul-Admins',
+                    'Im Webinar werden wiederkehrende Aufgaben im DLLP vorgestellt und über neue Entwicklungen berichtet. Außerdem wird es Raum für Fragen 
                     und Austausch geben.',
-            ]
-        ];
-        $contentList[] = [
-            'Title' => 'Pädagogische Arbeit in der Schulsoftware',
-            'Content' => [
-                '11.08.2026 und 13.08.2026 | 11 Uhr | 2-teiliges Webinar für Pädagoginnen und Pädagogen',
-                'An den beiden Webinartagen werden die Prozesse des Schulalltags in der Schulsoftware vorgestellt und an praktischen Beispielen erläutert. 
+                ]
+            ];
+        }
+        if ($today <= new DateTime('13.08.2026')) {
+            $contentList[] = [
+                'Title' => 'Pädagogische Arbeit in der Schulsoftware',
+                'Content' => [
+                    '11.08.2026 und 13.08.2026 | 11 Uhr | 2-teiliges Webinar für Pädagoginnen und Pädagogen',
+                    'An den beiden Webinartagen werden die Prozesse des Schulalltags in der Schulsoftware vorgestellt und an praktischen Beispielen erläutert. 
                     Außerdem werden Weiterentwicklungen in den Blick genommen und Fragen zum Umgang geklärt.',
-            ]
-        ];
+                ]
+            ];
+        }
 
         $layoutGroups = [];
         foreach ($contentList as $content) {
