@@ -75,7 +75,7 @@ class Service
                 }
 
                 // Gültigkeitsbereich
-                if (str_starts_with($column1, 'Fach ') || str_starts_with($column1, 'Fach: ')) {
+                if (str_starts_with($column1, 'Fach ') || str_starts_with($column1, 'Fach:')) {
                     $countSkillGrid++;
                     $countSkillArea = 0;
                     $tblSubject = null;
