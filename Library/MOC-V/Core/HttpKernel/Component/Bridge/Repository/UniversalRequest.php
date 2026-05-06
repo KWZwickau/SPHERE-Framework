@@ -194,4 +194,8 @@ class UniversalRequest extends Bridge implements IBridgeInterface
 
         return (array)self::$Instance->getSymfonyRequest()->attributes->all();
     }
+    public function getHeaderArray(): array
+    {
+        return (array)self::$Instance->getSymfonyRequest()->headers->all();
+    }
 }

@@ -49,13 +49,9 @@ class TblDevice extends Element
      */
     protected ?int $accessTimeout;
     /**
-     * @Column(type="text", nullable=true)
+     * @Column(type="boolean", nullable=true)
      */
-    protected ?string $otpToken;
-    /**
-     * @Column(type="integer", nullable=true)
-     */
-    protected ?int $otpTimeout;
+    protected ?bool $isActive;
 
     public function getServiceTblAccount(): ?TblAccount
     {
@@ -70,7 +66,7 @@ class TblDevice extends Element
     /**
      * @param null|TblAccount $tblAccount
      */
-    public function setServiceTblAccount(TblAccount $tblAccount = null)
+    public function setServiceTblAccount(TblAccount $tblAccount = null): void
     {
 
         $this->serviceTblAccount = (null === $tblAccount ? null : $tblAccount->getId());
@@ -136,25 +132,13 @@ class TblDevice extends Element
         $this->accessTimeout = $accessTimeout;
     }
 
-
-    public function getOtpToken(): ?string
+    public function getIsActive(): ?bool
     {
-        return $this->otpToken;
+        return $this->isActive;
     }
 
-    public function setOtpToken(?string $otpToken): void
+    public function setIsActive(?bool $isActive): void
     {
-        $this->otpToken = $otpToken;
+        $this->isActive = $isActive;
     }
-
-    public function getOtpTimeout(): ?int
-    {
-        return $this->otpTimeout;
-    }
-
-    public function setOtpTimeout(?int $otpTimeout): void
-    {
-        $this->otpTimeout = $otpTimeout;
-    }
-
 }

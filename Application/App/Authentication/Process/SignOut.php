@@ -7,13 +7,13 @@ use SPHERE\Application\App\AppException;
 use SPHERE\Application\App\Authentication\Authentication;
 use SPHERE\Application\App\Dispatcher;
 use SPHERE\Application\App\ModuleInterface;
-use SPHERE\Application\App\Response\Authentication\SignIn\EmptySignOutFields;
-use SPHERE\Application\App\Response\Authentication\SignIn\MissingSignOutFields;
-use SPHERE\Application\App\Response\Authentication\SignIn\RequestMethod;
-use SPHERE\Application\App\Response\Authentication\SignIn\WrongSignOutFields;
-use SPHERE\Application\App\Response\Code\Response200;
+use SPHERE\Application\App\Response\Code\Response204;
+use SPHERE\Application\App\Response\Code\Response400;
+use SPHERE\Application\App\Response\Code\Response401;
+use SPHERE\Application\App\Response\Code\Response403;
+use SPHERE\Application\App\Response\Code\Response422;
 use SPHERE\Application\App\Response\Code\Response500;
-use SPHERE\Application\App\Response\Code\Response501;
+use SPHERE\Application\App\Response\RequestMethod;
 use SPHERE\Application\App\Response\ResponseInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Common\Main;
@@ -23,7 +23,6 @@ use SPHERE\Common\Main;
  */
 class SignOut implements ModuleInterface
 {
-
     /**
      * @throws AppException
      */
@@ -53,22 +52,22 @@ class SignOut implements ModuleInterface
             null === $deviceIdentifier
             || null === $authenticationToken
         ) {
-            return new MissingSignOutFields();
+            return new Response400('Missing mandatory parameters');
         }
         // Test compatibility (content)
         if (
             empty(trim($deviceIdentifier))
             || empty(trim($authenticationToken))
         ) {
-            return new EmptySignOutFields();
+            return new Response422('Missing mandatory parameters');
         }
 
         $tblDevice = Authentication::useService()->getDeviceByAuthentication($authenticationToken);
         if (!$tblDevice) {
-            return new WrongSignOutFields();
+            return new Response401('Invalid credentials');
         }
-        if ($tblDevice->getAuthenticationToken() !== $authenticationToken) {
-            return new WrongSignOutFields();
+        if ($tblDevice->getDeviceIdentifier() !== $deviceIdentifier) {
+            return new Response403('Invalid credentials');
         }
 
         // Remove Session
@@ -79,7 +78,7 @@ class SignOut implements ModuleInterface
 
         // Timeout Session
         $accessToken = $tblDevice->getAccessToken();
-        if($accessToken) {
+        if ($accessToken) {
             Account::useService()->destroySession(null, $accessToken);
         }
 
@@ -87,7 +86,7 @@ class SignOut implements ModuleInterface
         Authentication::useService()->modifyAuthenticationToken($tblDevice, $tblDevice->getAuthenticationToken(), 0);
         Authentication::useService()->modifyAccessToken($tblDevice, $tblDevice->getAccessToken(), 0);
 
-        return new Response200(null);
+        return new Response204();
     }
 
     public static function useService(): Service

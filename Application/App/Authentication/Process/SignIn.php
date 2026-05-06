@@ -4,28 +4,31 @@ namespace SPHERE\Application\App\Authentication\Process;
 
 use SPHERE\Application\App\AppException;
 use SPHERE\Application\App\Authentication\Authentication;
+use SPHERE\Application\App\Authentication\Process\Service\Entity\TblDevice;
 use SPHERE\Application\App\Dispatcher;
 use SPHERE\Application\App\ModuleInterface;
-use SPHERE\Application\App\Response\Authentication\SignIn\EmptySignInFields;
-use SPHERE\Application\App\Response\Authentication\SignIn\EmptyOtpFields;
-use SPHERE\Application\App\Response\Authentication\SignIn\MissingSignInFields;
-use SPHERE\Application\App\Response\Authentication\SignIn\MissingOtpFields;
-use SPHERE\Application\App\Response\Authentication\SignIn\RequestMethod;
-use SPHERE\Application\App\Response\Authentication\SignIn\WrongSignInFields;
-use SPHERE\Application\App\Response\Authentication\SignIn\WrongOtpFields;
 use SPHERE\Application\App\Response\Code\Response201;
-use SPHERE\Application\App\Response\Code\Response500;
+use SPHERE\Application\App\Response\Code\Response400;
+use SPHERE\Application\App\Response\Code\Response401;
+use SPHERE\Application\App\Response\Code\Response409;
+use SPHERE\Application\App\Response\Code\Response422;
 use SPHERE\Application\App\Response\Code\Response502;
+use SPHERE\Application\App\Response\RequestMethod;
 use SPHERE\Application\App\Response\ResponseInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Common\Main;
-use Throwable;
 
 /**
  *
  */
 class SignIn implements ModuleInterface
 {
+    // Identifications without activation
+    public const SKIP_ACTIVATION = [
+        'Credential',
+        'UserCredential'
+    ];
+
     /**
      * @throws AppException
      */
@@ -39,7 +42,7 @@ class SignIn implements ModuleInterface
 
     public static function handleRequest(
         ?string $deviceIdentifier = null,
-        ?string $deviceCode = null,
+        ?string $deviceName = null,
         ?string $credentialIdentifier = null,
         ?string $credentialPassword = null
     ): ResponseInterface {
@@ -58,7 +61,7 @@ class SignIn implements ModuleInterface
             || null === $credentialIdentifier
             || null === $credentialPassword
         ) {
-            return new MissingSignInFields();
+            return new Response400('Missing mandatory parameters');
         }
         // Test compatibility (content)
         if (
@@ -66,7 +69,14 @@ class SignIn implements ModuleInterface
             || empty(trim($credentialIdentifier))
             || empty(trim($credentialPassword))
         ) {
-            return new EmptySignInFields();
+            return new Response422('Missing mandatory parameters');
+        }
+
+        if (
+            null === $deviceName
+            || empty(trim($deviceName))
+        ) {
+            $deviceName = 'New device';
         }
 
         // -----
@@ -75,70 +85,57 @@ class SignIn implements ModuleInterface
         // Find Account
         $tblAccount = Account::useService()->getAccountByCredential($credentialIdentifier, $credentialPassword);
         if (!$tblAccount) {
-            return new WrongSignInFields();
+            return new Response401('Invalid credentials');
         }
-
         // Find device or create new device
         $tblDevice = Authentication::useService()->getDeviceByIdentifier($tblAccount, $deviceIdentifier);
         if (!$tblDevice) {
-            $tblDevice = Authentication::useService()->createDevice($tblAccount, $deviceIdentifier);
+            $tblDevice = Authentication::useService()->createDevice($tblAccount, $deviceIdentifier, $deviceName);
             if (!$tblDevice) {
                 return new Response502('Device creation failed');
             }
         }
 
-        // Determine if OTP is necessary (No Authentication-Token or Timed-Out)
-        if (!$tblDevice->getAuthenticationToken()) {
+        // Device disabled by user?
+        if ($tblDevice->getIsActive() === false) {
+            return new Response401('Device is disabled');
+        }
 
-            $tblAuthentications = Account::useService()->getAuthenticationListByAccount($tblAccount);
-            foreach ($tblAuthentications as $tblAuthentication) {
-                // Those Identifications don't do MFA
-                if (!in_array($tblAuthentication->getTblIdentification()->getName(), [
-                    'Credential',
-                    'UserCredential'
-                ])) {
-
-                    if (!$tblDevice->getOtpToken()) {
-                        // Create OTP
-                        try {
-                            $otpToken = Authentication::produceOtpToken();
-                            Authentication::useService()->modifyOtpToken(
-                                $tblDevice, $otpToken, Authentication::OTP_TOKEN_TIMEOUT
-                            );
-                            return new MissingOtpFields($tblDevice->getOtpTimeout());
-                        } catch (Throwable $exception) {
-                            return new Response500('Code creation failed', $exception->getMessage());
-                        }
-                    }
-
-                    // -----
-                    // Validate user input
-                    // -----
-                    // Test availability (structure)
-                    if (null === $deviceCode) {
-                        return new MissingOtpFields($tblDevice->getOtpTimeout());
-                    }
-                    // Test compatibility (content)
-                    if (empty($deviceCode)
-                    ) {
-                        return new EmptyOtpFields($tblDevice->getOtpTimeout());
-                    }
-                    // Test validity
-                    if ($deviceCode !== $tblDevice->getOtpToken()) {
-                        return new WrongOtpFields($tblDevice->getOtpTimeout());
-                    }
-
-                    // All tests passed, timeout token and connect device :-)
-                    Authentication::useService()->modifyOtpToken($tblDevice, $tblDevice->getOtpToken(), 0);
-                    break;
-                }
+        // Determine if activation is necessary for this account
+        $useActivation = false;
+        $tblAuthentications = Account::useService()->getAuthenticationListByAccount($tblAccount);
+        foreach ($tblAuthentications as $tblAuthentication) {
+            // Account has identifications with MFA?
+            if (!in_array($tblAuthentication->getTblIdentification()->getName(), self::SKIP_ACTIVATION)) {
+                $useActivation = true;
+                break;
             }
         }
 
-        // -----
-        // All steps are solved
-        // - Give token :-)
-        // -----
+        // Check if activation should be skipped
+        if (!$useActivation) {
+            // All tests passed, connect device and give tokens :-)
+            $return = self::createTokens($tblDevice);
+            Authentication::useService()->modifyIsActive($tblDevice, true);
+            return $return;
+        }
+
+        // Await device activation by user
+        if (!$tblDevice->getIsActive()) {
+            return new Response409('Activation needed');
+        }
+
+        // All tests passed, connect device and give tokens :-)
+        return self::createTokens($tblDevice);
+    }
+
+    public static function useService(): Service
+    {
+        return Authentication::useService();
+    }
+
+    private static function createTokens(TblDevice $tblDevice): ResponseInterface
+    {
         Authentication::useService()->modifyAuthenticationToken(
             $tblDevice, Authentication::produceAuthenticationToken(), Authentication::AUTHENTICATION_TOKEN_TIMEOUT
         );
@@ -149,10 +146,5 @@ class SignIn implements ModuleInterface
             'authenticationToken' => $tblDevice->getAuthenticationToken(),
             'accessToken' => $tblDevice->getAccessToken()
         ]);
-    }
-
-    public static function useService(): Service
-    {
-        return Authentication::useService();
     }
 }

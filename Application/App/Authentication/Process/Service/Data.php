@@ -17,7 +17,7 @@ class Data extends AbstractData
         // TODO: Implement setupDatabaseContent() method.
     }
 
-    public function createDevice(TblAccount $tblAccount, string $deviceIdentifier): ?TblDevice
+    public function createDevice(TblAccount $tblAccount, string $deviceIdentifier, string $deviceName): ?TblDevice
     {
         $entity = $this->getDeviceByIdentifier($tblAccount, $deviceIdentifier);
         if (null === $entity) {
@@ -27,7 +27,9 @@ class Data extends AbstractData
             }
             $manager = $connection->getEntityManager();
             $entity = new TblDevice();
+            $entity->setServiceTblAccount($tblAccount);
             $entity->setDeviceIdentifier($deviceIdentifier);
+            $entity->setDeviceName($deviceName);
             $manager->saveEntity($entity);
             Protocol::useService()->createInsertEntry($connection->getDatabase(), $entity);
         }
@@ -187,10 +189,10 @@ class Data extends AbstractData
         $tblDevice->setAuthenticationTimeout($entity->getAuthenticationTimeout());
         return true;
     }
-    public function modifyOtpToken(
+
+    public function modifyIsActive(
         TblDevice $tblDevice,
-        string $otpToken,
-        int $tokenTimeout = 120
+        ?bool $isActive
     ): ?bool {
         $connection = $this->getConnection();
         if (null === $connection) {
@@ -205,13 +207,11 @@ class Data extends AbstractData
         // Persist
         /** @var TblDevice $protocol */
         $protocol = clone $entity;
-        $entity->setOtpToken($otpToken);
-        $entity->setOtpTimeout(time() + $tokenTimeout);
+        $entity->setIsActive($isActive);
         $manager->updateEntity($entity);
         Protocol::useService()->createUpdateEntry($connection->getDatabase(), $protocol, $entity);
         // Writeback
-        $tblDevice->setOtpToken($otpToken);
-        $tblDevice->setOtpTimeout($entity->getOtpTimeout());
+        $tblDevice->setIsActive($isActive);
         return true;
     }
 }

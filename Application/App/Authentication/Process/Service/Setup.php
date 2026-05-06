@@ -56,7 +56,6 @@ class Setup extends AbstractSetup
         $this->createColumn($table, 'authenticationTimeout', self::FIELD_TYPE_INTEGER, true);
         $this->createColumn($table, 'accessToken', self::FIELD_TYPE_STRING, true);
         $this->createColumn($table, 'accessTimeout', self::FIELD_TYPE_INTEGER, true);
-        $this->createColumn($table, 'otpToken', self::FIELD_TYPE_STRING, true);
-        $this->createColumn($table, 'otpTimeout', self::FIELD_TYPE_INTEGER, true);
+        $this->createColumn($table, 'isActive', self::FIELD_TYPE_BOOLEAN, true);
     }
 }

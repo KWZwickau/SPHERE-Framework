@@ -1,4 +1,27 @@
-# Rewrite
+# Rewrite 2
+
+App: Feste "GUID" erzeugen
+    - EIN-EINDEUTIG !!!
+    - UNVERÄNDERLICH
+App: Credentials
+    - Benutzername/Passwort (Prompt)
+    - Gerätename (Frei wählbar/ Default: Modellname?)
+
+Server: Neues Device merken (GUID,...)
+Server: Prüfung ob MFA
+    - Ja -> 409 -> Muss erst in SSW freigegeben werden 
+    - Nein (oder Freigegeben) -> 201 + Tokens
+
+App: Beide token merken
+App: Bei Anfragen im Header setzen
+    - x-device-key -> GUID
+    - x-api-key -> accessToken
+
+Bei Anfragen:
+    - 401 -> Refresh -> neuer accessToken -> Retry
+        - immer noch 401 -> vermutlich ausgeloggt oder Token abgelaufen -> Neuer Login
+
+# Rewrite 1
 
 App: Feste "GUID" erzeugen (UNVERÄNDERLICH IN DER APP)
 App: Credentials

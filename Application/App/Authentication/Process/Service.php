@@ -44,9 +44,9 @@ class Service extends AbstractService
         return (new Data($this->getBinding()))->getDeviceByIdentifier($tblAccount, $deviceIdentifier);
     }
 
-    public function createDevice(TblAccount $tblAccount, string $deviceIdentifier): ?TblDevice
+    public function createDevice(TblAccount $tblAccount, string $deviceIdentifier, string $deviceName): ?TblDevice
     {
-        return (new Data($this->getBinding()))->createDevice($tblAccount, $deviceIdentifier);
+        return (new Data($this->getBinding()))->createDevice($tblAccount, $deviceIdentifier, $deviceName);
     }
 
     public function getDeviceByAuthentication(string $authenticationToken): ?TblDevice
@@ -78,13 +78,13 @@ class Service extends AbstractService
             $tblDevice, $authenticationToken, $tokenTimeout
         );
     }
-    public function modifyOtpToken(
+
+    public function modifyIsActive(
         TblDevice $tblDevice,
-        string $otpToken,
-        int $tokenTimeout = 120
+        ?bool $isActive
     ): ?bool {
-        return (new Data($this->getBinding()))->modifyOtpToken(
-            $tblDevice, $otpToken, $tokenTimeout
+        return (new Data($this->getBinding()))->modifyIsActive(
+            $tblDevice, $isActive
         );
     }
 }

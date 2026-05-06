@@ -1,6 +1,6 @@
 <?php
 
-namespace SPHERE\Application\App\Response\Authentication\SignIn;
+namespace SPHERE\Application\App\Response;
 
 use SPHERE\Application\App\Response\Code\Response405;
 

@@ -3,28 +3,30 @@
 namespace SPHERE\Application\App\Authentication;
 
 use SPHERE\Application\App\ApplicationInterface;
+use SPHERE\Application\App\Authentication\Process\Refresh;
 use SPHERE\Application\App\Authentication\Process\Service;
+use SPHERE\Application\App\Authentication\Process\Service\Entity\TblDevice;
 use SPHERE\Application\App\Authentication\Process\SignIn;
 use SPHERE\Application\App\Authentication\Process\SignOut;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\System\Database\Link\Identifier;
-use Throwable;
 
 /**
  *
  */
 class Authentication implements ApplicationInterface
 {
-    // 60 * 60 * 24 * 120 => 120 Days
-    public const AUTHENTICATION_TOKEN_TIMEOUT = 60 * 60 * 24 * 120;
-    // 60 * 60 / 2 => 1/2 Hour
-    public const ACCESS_TOKEN_TIMEOUT = 60 * 60 / 2;
-    // 60 * 2 => 2 Minutes
-    public const OTP_TOKEN_TIMEOUT = 60 * 2;
+    // 60 * 60 * 24 * 30 => 30 Days
+    public const AUTHENTICATION_TOKEN_REFRESH = 60 * 60 * 24 * 30;
+    // 60 * 60 * 24 * 60 => 60 Days
+    public const AUTHENTICATION_TOKEN_TIMEOUT = 60 * 60 * 24 * 60;
+    // 60 * 5 => 5 Minutes
+    public const ACCESS_TOKEN_TIMEOUT = 60 * 5;
 
     public static function registerApplication(): void
     {
         SignIn::registerModule();
+        Refresh::registerModule();
         SignOut::registerModule();
     }
 
@@ -33,49 +35,53 @@ class Authentication implements ApplicationInterface
         return hash('sha512', uniqid(__METHOD__, true));
     }
 
-    public static function produceOtpToken(): ?string
+    public static function createSession(?string $deviceIdentifier, ?string $accessToken): ?bool
     {
-        try {
-            return str_pad((string)random_int(10, 900), 3, "0", STR_PAD_LEFT)
-                . '-'
-                . str_pad((string)random_int(10, 900), 3, "0", STR_PAD_LEFT);
-        } catch (Throwable $exception) {
-            return null;
+        // Check parameter, token and device
+        $tblDevice = self::validateDevice($deviceIdentifier, $accessToken);
+        if (null === $tblDevice) {
+            return false;
         }
+        // Timeout in seconds from now
+        Account::useService()->createSession(
+            $tblDevice->getServiceTblAccount(), $accessToken, $tblDevice->getAccessTimeout() - time()
+        );
+        // Connect app session to ssw session
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_destroy();
+        }
+        session_id($accessToken);
+        session_start();
+        session_write_close();
+        // Re-/Check session
+        return self::hasSession($deviceIdentifier, $accessToken);
     }
 
-    /**
-     * @param string $deviceIdentifier
-     * @param string $accessToken
-     *
-     * @return bool|null null if access token or authentication token invalid
-     */
-    public static function hasSession(string $deviceIdentifier, string $accessToken): ?bool
+    private static function validateDevice(?string $deviceIdentifier, ?string $accessToken): ?TblDevice
     {
-        // Token valid / not timed out?
+        // Check parameter
+        if (null === $deviceIdentifier) {
+            return null;
+        }
+        if (null === $accessToken) {
+            return null;
+        }
+        // Check valid access token (handles token timeout internally)
         $tblDevice = self::useService()->getDeviceByAccess($accessToken);
         if (!$tblDevice) {
             return null;
         }
-        // Device valid?
+        // Check valid authentication token (handles token timeout internally)
+        $tblDevice = self::useService()->getDeviceByAuthentication($tblDevice->getAuthenticationToken());
+        if (!$tblDevice) {
+            return null;
+        }
+        // Check valid device
         if ($tblDevice->getDeviceIdentifier() !== $deviceIdentifier) {
             return null;
         }
-        // Authentication token not timed out?
-        if(!$tblDevice->getAuthenticationToken()) {
-            return null;
-        }
-        // Account Service handles session timeout internally
-        $tblAccount = Account::useService()->getAccountBySession($accessToken);
-        if (!$tblAccount) {
-            return false;
-        }
-        // Connect app session to ssw session
-        session_destroy();
-        session_id($accessToken);
-        session_start();
-        session_write_close();
-        return true;
+        // Parameter, token and device are valid
+        return $tblDevice;
     }
 
     public static function useService(): Service
@@ -85,29 +91,23 @@ class Authentication implements ApplicationInterface
         );
     }
 
-    public static function createSession(string $deviceIdentifier, string $accessToken): ?bool
+    public static function hasSession(?string $deviceIdentifier, ?string $accessToken): ?bool
     {
-        // Token valid / not timed out?
-        $tblDevice = self::useService()->getDeviceByAccess($accessToken);
-        if (!$tblDevice) {
-            return null;
+        // Check parameter, token and device
+        $tblDevice = self::validateDevice($deviceIdentifier, $accessToken);
+        if (null === $tblDevice) {
+            return false;
         }
-        // Device valid?
-        if ($tblDevice->getDeviceIdentifier() !== $deviceIdentifier) {
-            return null;
+        // Check valid database session (handles session timeout internally)
+        $tblAccount = Account::useService()->getAccountBySession($accessToken);
+        if (!$tblAccount) {
+            return false;
         }
-        // Authentication token not timed out?
-        if(!$tblDevice->getAuthenticationToken()) {
-            return null;
+        // Check valid php session
+        if (session_id() !== $accessToken) {
+            return false;
         }
-
-        // Timeout in seconds from now
-        Account::useService()->createSession(
-            $tblDevice->getServiceTblAccount(), $accessToken, $tblDevice->getAccessTimeout() - time()
-        );
-
-        // Re-/Check session
-        return self::hasSession($deviceIdentifier, $accessToken);
+        return true;
     }
 
     public static function produceAccessToken(): string

@@ -1,4 +1,4 @@
-openapi: 3.1.0
+openapi: 3.0.0
 info:
     title: SSW - APP - Api Specification
     description: SSW - APP - Api Specification
@@ -22,8 +22,165 @@ components:
             name: accessToken
             in: header
 
+    responses:
+        Error.401:
+            description: |
+                The authorization header is missing
+
+                The authorization token used is not valid
+            content:
+                application/json:
+                    schema:
+                        type: object
+                        required:
+                            - code
+                            - message
+                        properties:
+                            code:
+                                type: number
+                                example: '401'
+                            message:
+                                type: string
+                                example: 'Unauthorized'
+                            content:
+                                type: string
+                                example: 'The reason for the refusal'
+        Error.403:
+            description: |
+                The client does not have access rights to the content
+            content:
+                application/json:
+                    schema:
+                        type: object
+                        required:
+                            - code
+                            - message
+                        properties:
+                            code:
+                                type: number
+                                example: '403'
+                            message:
+                                type: string
+                                example: 'Forbidden'
+                            content:
+                                type: string
+                                example: 'The reason for the refusal'
+        Error.404:
+            description: |
+                No data was determined for the requested parameters
+            content:
+                application/json:
+                    schema:
+                        type: object
+                        required:
+                            - code
+                            - message
+                        properties:
+                            code:
+                                type: number
+                                example: '404'
+                            message:
+                                type: string
+                                example: 'Not Found'
+        Error.405:
+            description: |
+                The method used for the request was not allowed
+            content:
+                application/json:
+                    schema:
+                        type: object
+                        required:
+                            - code
+                            - message
+                        properties:
+                            code:
+                                type: number
+                                example: '405'
+                            message:
+                                type: string
+                                example: 'Method Not Allowed'
+        Error.409:
+            description: |
+                No data could be created for the requested parameters
+            content:
+                application/json:
+                    schema:
+                        type: object
+                        required:
+                            - code
+                            - message
+                        properties:
+                            code:
+                                type: number
+                                example: '409'
+                            message:
+                                type: string
+                                example: 'Conflict'
+                            content:
+                                type: string
+                                example: 'The reason for the conflict'
+        Error.422:
+            description: |
+                The validation of the parameters has detected an error
+            content:
+                application/json:
+                    schema:
+                        type: object
+                        required:
+                            - code
+                            - message
+                        properties:
+                            code:
+                                type: number
+                                example: '422'
+                            message:
+                                type: string
+                                example: 'Unprocessable Entity'
+                            content:
+                                type: array
+                                example:
+                                    - 'Validation error messages'
+        Error.500:
+            description: |
+                A technical error has occurred in current systems
+
+                Retry the operation if possible and reasonable
+            content:
+                application/json:
+                    schema:
+                        type: object
+                        required:
+                            - code
+                            - message
+                        properties:
+                            code:
+                                type: number
+                                example: '500'
+                            message:
+                                type: string
+                                example: 'Internal Server Error'
+        Error.502:
+            description: |
+                A technical error has occurred in downstream systems
+
+                Retry the operation if possible and reasonable
+            content:
+                application/json:
+                    schema:
+                        type: object
+                        required:
+                            - code
+                            - message
+                        properties:
+                            code:
+                                type: number
+                                example: '502'
+                            message:
+                                type: string
+                                example: 'Bad Gateway'
+
     schemas:
-        Response.Success.200:
+        Response.200:
             type: object
             required:
                 - code
@@ -35,7 +192,7 @@ components:
                 message:
                     type: string
                     example: 'Success'
-        Response.Success.201:
+        Response.201:
             type: object
             required:
                 - code
@@ -47,155 +204,61 @@ components:
                 message:
                     type: string
                     example: 'Created'
+        Response.204:
+            type: object
+            required:
+                - code
+                - message
+            properties:
+                code:
+                    type: number
+                    example: 204
+                message:
+                    type: string
+                    example: 'No Content'
 
-        Response.Error.401:
-            description: |
-                The authorization header is missing
-
-                The authorization token used is not valid
-            type: object
-            required:
-                - code
-                - message
-            properties:
-                code:
-                    type: number
-                    example: 401
-                message:
-                    type: string
-                    example: 'Unauthorized'
-                content:
-                    type: string
-                    example: 'The reason for the refusal'
-        Response.Error.403:
-            description: |
-                The client does not have access rights to the content
-            type: object
-            required:
-                - code
-                - message
-            properties:
-                code:
-                    type: number
-                    example: 403
-                message:
-                    type: string
-                    example: 'Forbidden'
-                content:
-                    type: string
-                    example: 'The reason for the refusal'
-        Response.Error.404:
-            description: |
-                No data was determined for the requested parameters
-            type: object
-            required:
-                - code
-                - message
-            properties:
-                code:
-                    type: number
-                    example: 404
-                message:
-                    type: string
-                    example: 'Not Found'
-        Response.Error.405:
-            description: |
-                The method used for the request was not allowed
-            type: object
-            required:
-                - code
-                - message
-            properties:
-                code:
-                    type: number
-                    example: 405
-                message:
-                    type: string
-                    example: 'Method Not Allowed'
-        Response.Error.409:
-            description: |
-                No data could be created for the requested parameters
-            type: object
-            required:
-                - code
-                - message
-            properties:
-                code:
-                    type: number
-                    example: 409
-                message:
-                    type: string
-                    example: 'Conflict'
-                content:
-                    type: string
-                    example: 'The reason for the conflict'
-        Response.Error.422:
-            description: |
-                The validation of the parameters has detected an error
-            type: object
-            required:
-                - code
-                - message
-            properties:
-                code:
-                    type: number
-                    example: 422
-                message:
-                    type: string
-                    example: 'Unprocessable Entity'
-                content:
-                    type: array
-                    items: { }
-                    example:
-                        - 'Validation error messages'
-        Response.Error.500:
-            description: |
-                A technical error has occurred in current systems
-
-                Retry the operation if possible and reasonable
-            type: object
-            required:
-                - code
-                - message
-            properties:
-                code:
-                    type: number
-                    example: 500
-                message:
-                    type: string
-                    example: 'Internal Server Error'
-        Response.Error.502:
-            description: |
-                A technical error has occurred in downstream systems
-
-                Retry the operation if possible and reasonable
-            type: object
-            required:
-                - code
-                - message
-            properties:
-                code:
-                    type: number
-                    example: 502
-                message:
-                    type: string
-                    example: 'Bad Gateway'
+        SignIn:
+            description: ''
+            allOf:
+                -   $ref: '#/components/schemas/Response.200'
+                -   type: object
+                    required:
+                        - content
+                    properties:
+                        content:
+                            type: object
+                            properties:
+                                authenticationToken:
+                                    description: ''
+                                    type: string
+                                accessToken:
+                                    description: ''
+                                    type: string
+        Refresh:
+            description: ''
+            allOf:
+                -   $ref: '#/components/schemas/Response.200'
+                -   type: object
+                    required:
+                        - content
+                    properties:
+                        content:
+                            type: object
+                            properties:
+                                accessToken:
+                                    description: ''
+                                    type: string
 
 security:
     -   accessToken: [ ]
 
 paths:
-    /authentication/process/sign-in?processToken={processToken}:
+    /authentication/process/sign-in:
         post:
-            description: 'Create a stateful token'
+            description: 'Create a new authentication token pair'
             tags:
                 - Authentication
             security: [ ]
-            parameters:
-                -   name: processToken
-                    in: query
-                    schema:
-                        type: string
             requestBody:
                 required: true
                 content:
@@ -205,14 +268,41 @@ paths:
                             properties:
                                 deviceIdentifier:
                                     type: string
+                                deviceName:
+                                    type: string
                                 credentialIdentifier:
+                                    type: string
+                                credentialPassword:
                                     type: string
                             required:
                                 - deviceIdentifier
                                 - credentialIdentifier
+                                - credentialPassword
+            responses:
+                '201':
+                    description: 'New pair of tokens'
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/SignIn'
+                '401':
+                    $ref: '#/components/responses/Error.401'
+                '403':
+                    $ref: '#/components/responses/Error.403'
+                '404':
+                    $ref: '#/components/responses/Error.404'
+                '405':
+                    $ref: '#/components/responses/Error.405'
+                '422':
+                    $ref: '#/components/responses/Error.422'
+                '500':
+                    $ref: '#/components/responses/Error.500'
+                '502':
+                    $ref: '#/components/responses/Error.502'
+
     /authentication/process/sign-out:
         post:
-            description: 'Invalidate current state'
+            description: 'Invalidate current login (but keep activation)'
             tags:
                 - Authentication
             security: [ ]
@@ -225,12 +315,32 @@ paths:
                             properties:
                                 deviceIdentifier:
                                     type: string
+                                authenticationToken:
+                                    type: string
                             required:
                                 - deviceIdentifier
+                                - authenticationToken
+            responses:
+                '204':
+                    description: 'Tokens got invalidated'
+                '401':
+                    $ref: '#/components/responses/Error.401'
+                '403':
+                    $ref: '#/components/responses/Error.403'
+                '404':
+                    $ref: '#/components/responses/Error.404'
+                '405':
+                    $ref: '#/components/responses/Error.405'
+                '422':
+                    $ref: '#/components/responses/Error.422'
+                '500':
+                    $ref: '#/components/responses/Error.500'
+                '502':
+                    $ref: '#/components/responses/Error.502'
 
-    /authentication/factor/credentials:
+    /authentication/process/refresh:
         post:
-            description: 'Invalidate current state'
+            description: 'Create a new access token'
             tags:
                 - Authentication
             security: [ ]
@@ -243,39 +353,29 @@ paths:
                             properties:
                                 deviceIdentifier:
                                     type: string
-                            required:
-                                - deviceIdentifier
-    /authentication/factor/token:
-        post:
-            description: 'Invalidate current state'
-            tags:
-                - Authentication
-            security: [ ]
-            requestBody:
-                required: true
-                content:
-                    application/x-www-form-urlencoded:
-                        schema:
-                            type: object
-                            properties:
-                                deviceIdentifier:
+                                authenticationToken:
                                     type: string
                             required:
                                 - deviceIdentifier
-    /authentication/factor/yubikey:
-        post:
-            description: 'Invalidate current state'
-            tags:
-                - Authentication
-            security: [ ]
-            requestBody:
-                required: true
-                content:
-                    application/x-www-form-urlencoded:
-                        schema:
-                            type: object
-                            properties:
-                                deviceIdentifier:
-                                    type: string
-                            required:
-                                - deviceIdentifier
+                                - authenticationToken
+            responses:
+                '201':
+                    description: 'New access token'
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Refresh'
+                '401':
+                    $ref: '#/components/responses/Error.401'
+                '403':
+                    $ref: '#/components/responses/Error.403'
+                '404':
+                    $ref: '#/components/responses/Error.404'
+                '405':
+                    $ref: '#/components/responses/Error.405'
+                '422':
+                    $ref: '#/components/responses/Error.422'
+                '500':
+                    $ref: '#/components/responses/Error.500'
+                '502':
+                    $ref: '#/components/responses/Error.502'

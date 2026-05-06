@@ -9,7 +9,7 @@ use SPHERE\Application\Api\Api;
 use SPHERE\Application\App\App;
 use SPHERE\Application\App\Authentication\Authentication;
 use SPHERE\Application\App\Response\AbstractResponse;
-use SPHERE\Application\App\Response\Authentication\SignIn\MissingRefreshFields;
+use SPHERE\Application\App\Response\Code\Response401;
 use SPHERE\Application\App\Response\Code\Response500;
 use SPHERE\Application\Billing\Billing;
 use SPHERE\Application\Contact\Contact;
@@ -211,7 +211,7 @@ class Main extends Extension
          */
         $pathInfo = self::getRequest()->getPathInfo();
         if (preg_match('!^/app!i', $pathInfo)) {
-            $pathParameter = self::getRequest()->getParameterArray();
+            $headerArray = self::getRequest()->getHeaderArray();
             try {
                 // Replace "default" dispatcher with app dispatcher
                 self::$Dispatcher = new \SPHERE\Application\App\Dispatcher(new \SPHERE\Application\App\Router());
@@ -224,14 +224,18 @@ class Main extends Extension
                     exit(0);
                 }
                 // Validate/Create/Reject Session
-                if (!preg_match('!^/app/authentication/!i', $pathInfo)) {
-                    $deviceIdentifier = $pathParameter['deviceIdentifier'] ?? null;
-                    $accessToken = $pathParameter['accessToken'] ?? null;
-                    if (!Authentication::hasSession($deviceIdentifier, $accessToken)
-                        && !Authentication::createSession($deviceIdentifier, $accessToken)
-                    ) {
+                if (!preg_match('!^/app/authentication/process!i', $pathInfo)) {
+                    // Get Authentication
+                    $deviceIdentifier = $headerArray['x-device-key'][0] ?? null;
+                    $accessToken = $headerArray['x-api-key'][0] ?? null;
+                    // Check if access is valid & create session (db & php)
+                    $hasSession = Authentication::hasSession($deviceIdentifier, $accessToken);
+                    if (!$hasSession) {
+                        $hasSession = Authentication::createSession($deviceIdentifier, $accessToken);
+                    }
+                    if(!$hasSession) {
                         // Access token or authentication token invalid, first step: refresh access token
-                        (new MissingRefreshFields())->send();
+                        (new Response401('Token invalid'))->send();
                         exit(0);
                     }
                 }
