@@ -1275,7 +1275,7 @@ class Frontend extends Extension implements IFrontendInterface
             if ($tblSchoolType && $tblSchoolType->isTechnical()) {
                 $formGroupList[] = new FormGroup(array(
                     new FormRow(array(
-                        new FormColumn((new CheckBox('Data[IsCopyStatement]', 'Zweitschrift ohne Namensänderung (Beglaubigungsvermerk)', 1))->setRequired(), 12),
+                        new FormColumn((new CheckBox('Data[IsCopyStatement]', 'Zweitschrift mit Namensänderung (mit Beglaubigungsvermerk)', 1))->setRequired(), 12),
                     ))
                 ));
             }

@@ -1309,7 +1309,7 @@ abstract class Certificate extends Extension
                 ->addElement((new Element())
                     ->styleMarginTop('40px')
                     ->setContent('Diese Ausfertigung tritt im Rechtsverkehr an die Stelle der Erstausfertigung vom
-                        {{ Content.P' . $personId . '.Input.Date }} übereinstimmt.')
+                        {{ Content.P' . $personId . '.Input.Date }}.')
                 );
         }
 
