@@ -17,7 +17,8 @@ use Throwable;
  */
 class Dispatcher extends Extension implements DispatcherInterface
 {
-    public static array $publicRoutes = [];
+    private static array $publicRoutes = [];
+    private static array $missingAccessRight = [];
     private static ?IBridgeInterface $router = null;
 
     public function __construct(?IBridgeInterface $router)
@@ -67,6 +68,12 @@ class Dispatcher extends Extension implements DispatcherInterface
             } else {
                 throw new AppException(__CLASS__ . ' > Route has no authorization! (' . $path . ')');
             }
+        } else {
+            if (!Access::useService()->existsRightByName($path)) {
+                if (!in_array($path, self::$publicRoutes, true)) {
+                    self::$missingAccessRight[] = $path;
+                }
+            }
         }
     }
 
@@ -105,5 +112,10 @@ class Dispatcher extends Extension implements DispatcherInterface
             }
         }
         return new Response404('Route not found', $path);
+    }
+
+    public static function getMissingAccessRight(): array
+    {
+        return self::$missingAccessRight;
     }
 }

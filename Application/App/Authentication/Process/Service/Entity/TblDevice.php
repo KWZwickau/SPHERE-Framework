@@ -51,7 +51,7 @@ class TblDevice extends Element
     /**
      * @Column(type="boolean", nullable=true)
      */
-    protected ?bool $isActive;
+    protected ?bool $isActive = null;
 
     public function getServiceTblAccount(): ?TblAccount
     {

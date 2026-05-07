@@ -97,7 +97,7 @@ class SignIn implements ModuleInterface
         }
 
         // Device disabled by user?
-        if ($tblDevice->getIsActive() === false) {
+        if (false === $tblDevice->getIsActive()) {
             return new Response401('Device is disabled');
         }
 
@@ -121,7 +121,7 @@ class SignIn implements ModuleInterface
         }
 
         // Await device activation by user
-        if (!$tblDevice->getIsActive()) {
+        if (null === $tblDevice->getIsActive()) {
             return new Response409('Activation needed');
         }
 

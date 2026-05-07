@@ -7,6 +7,7 @@ use Doctrine\DBAL\Exception\InvalidFieldNameException;
 use Doctrine\DBAL\Exception\TableNotFoundException;
 use SPHERE\Application\Api\Api;
 use SPHERE\Application\App\App;
+use SPHERE\Application\App\AppException;
 use SPHERE\Application\App\Authentication\Authentication;
 use SPHERE\Application\App\Response\AbstractResponse;
 use SPHERE\Application\App\Response\Code\Response401;
@@ -136,6 +137,10 @@ class Main extends Extension
     public static function getDispatcher(): ?DispatcherInterface
     {
         return self::$Dispatcher;
+    }
+    public static function setDispatcher(DispatcherInterface $Dispatcher): void
+    {
+        self::$Dispatcher = $Dispatcher;
     }
 
     /**

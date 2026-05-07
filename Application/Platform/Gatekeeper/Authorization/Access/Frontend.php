@@ -1,6 +1,9 @@
 <?php
 namespace SPHERE\Application\Platform\Gatekeeper\Authorization\Access;
 
+use SPHERE\Application\App\App;
+use SPHERE\Application\App\Dispatcher;
+use SPHERE\Application\App\Router;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Frontend\Summary;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\TblLevel;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\TblPrivilege;
@@ -259,6 +262,16 @@ class Frontend
         $tblRightAll = Access::useService()->getRightAll();
 
         $PublicRouteAll = Main::getDispatcher()->getPublicRoutes();
+
+        // Analyze app routes
+        $currentDispatcher = Main::getDispatcher();
+        Main::setDispatcher(new Dispatcher(new Router()));
+        App::registerCluster();
+        $missingRightRoutes = Main::getDispatcher()->getMissingAccessRight();
+        Main::setDispatcher($currentDispatcher);
+
+        $PublicRouteAll = array_merge($PublicRouteAll, $missingRightRoutes);
+
 //        $PublicRouteAll = array_merge(Main::getRestApiDispatcher()->getPublicRoutes(), $PublicRouteAll);
         $publicRightList = array();
         $publicRouteList = array(
