@@ -31,6 +31,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\Calendar;
+use SPHERE\Common\Frontend\Icon\Repository\Check;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
@@ -51,6 +52,7 @@ use SPHERE\Common\Frontend\Link\Repository\ToggleCheckbox;
 use SPHERE\Common\Frontend\Message\IMessageInterface;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
+use SPHERE\Common\Frontend\Text\Repository\Center;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 
@@ -225,14 +227,7 @@ class Frontend extends Extension implements IFrontendInterface
             return $a['Name'] <=> $b['Name'];
         });
 
-        $content .= new Form(new FormGroup([
-            new FormRow(new FormColumn(
-                (new Primary('Schulabgänger hinzufügen', ApiLeaveStudent::getEndpoint(), new Plus()))
-                    ->ajaxPipelineOnClick(ApiLeaveStudent::pipelineOpenAddStudentModal($tblSchoolType->getId(), $tblYear->getId()))
-            )),
-            new FormRow(new FormColumn(
-                new Container('&nbsp;')
-            )),
+        $form = new Form(new FormGroup([
             new FormRow(new FormColumn(
                 empty($dataList)
                     ? new Warning('Keine weiteren Schulabgänger gefunden.', new Ban())
@@ -243,12 +238,19 @@ class Frontend extends Extension implements IFrontendInterface
                     ? []
                     : [
                         (new Danger('Unwiderruflich Speichern', ApiLeaveStudent::getEndpoint(), new Save()))
-                            ->ajaxPipelineOnClick(ApiLeaveStudent::pipelineSaveLeaveStudent($tblSchoolType->getId(), $tblYear->getId())),
+                            ->ajaxPipelineOnClick(ApiLeaveStudent::pipelineOpenConfirmModal($tblSchoolType->getId(), $tblYear->getId())),
                         (new Standard('Abbrechen', ApiLeaveStudent::getEndpoint(), new Remove()))
                             ->ajaxPipelineOnClick(ApiLeaveStudent::pipelineCancelLeaveStudent($tblSchoolType->getId(), $tblYear->getId()))
                     ]
             )),
         ]));
+
+        $content .= (new Primary('Schulabgänger hinzufügen', ApiLeaveStudent::getEndpoint(), new Plus()))
+                ->ajaxPipelineOnClick(ApiLeaveStudent::pipelineOpenAddStudentModal($tblSchoolType->getId(), $tblYear->getId()))
+            . new Container('&nbsp;')
+            . new ToggleCheckbox('Alle auswählen/abwählen', $form)
+            . new Container('&nbsp;')
+            . $form;
 
         return $content;
     }
@@ -331,10 +333,11 @@ class Frontend extends Extension implements IFrontendInterface
             return [
                 'Select' => new CheckBox(@"Data[{$tblPerson->getId()}][Select]", ' ', 1),
                 'Name' => $tblPerson->getLastFirstNameWithCallNameUnderline(true) . (isset($data['Added']) ? new HiddenField(@"Data[{$tblPerson->getId()}][Added]") : ''),
-                'DivisionCourse' => $this->getDivisionCourseName($tblStudentEducation ?: null),
+                'DivisionCourse' => new Center($this->getDivisionCourseName($tblStudentEducation ?: null)),
                 'LeaveDate' => new DatePicker(@"Data[{$tblPerson->getId()}][LeaveDate]", '', '', new Calendar()),
                 'Company' => new SelectBox(@"Data[{$tblPerson->getId()}][Company]", '', ['{{ Name }}' => $tblCompanies]),
-                'GroupArchive' => (new CheckBox(@"Data[{$tblPerson->getId()}][GroupArchive]", ' ', 1))->setChecked()->setDisabled(),
+//                'GroupArchive' => (new CheckBox(@"Data[{$tblPerson->getId()}][GroupArchive]", ' ', 1))->setChecked()->setDisabled(),
+                'GroupArchive' => new Center(new Check()),
                 'GroupIndividual' => new SelectBox(@"Data[{$tblPerson->getId()}][GroupIndividual]", '', ['{{ Name }}' => $tblGroupsCustom]),
             ];
         }
@@ -671,7 +674,7 @@ class Frontend extends Extension implements IFrontendInterface
                     )
                 ))
             )))
-            . (new Standard('Abbrechen', ApiLeaveStudent::getEndpoint(), new Remove()))
+            . (new Standard('Abmeldebescheinigung verlassen (Zurück zur Schulabgänger-Auswahl)', ApiLeaveStudent::getEndpoint(), new Remove()))
                 ->ajaxPipelineOnClick(ApiLeaveStudent::pipelineCancelLeaveStudent($tblSchoolType->getId(), $tblYear->getId()));
     }
 }
