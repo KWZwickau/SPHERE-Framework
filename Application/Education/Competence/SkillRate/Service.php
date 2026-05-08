@@ -27,6 +27,7 @@ use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
+use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
 use SPHERE\System\Extension\Repository\Sorter;
 
@@ -72,6 +73,60 @@ class Service extends AbstractService
     {
         return (new Data($this->getBinding()))->getStudentSkillBy($tblPerson, $tblYear, $tblSkill);
     }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     * @param TblSubject|null $tblSubject
+     * @param string $skillName
+     *
+     * @return false|TblStudentSkill
+     */
+    public function getStudentSkillBySkillName(TblPerson $tblPerson, TblYear $tblYear, ?TblSubject $tblSubject, string $skillName): false|TblStudentSkill
+    {
+        return (new Data($this->getBinding()))->getStudentSkillBySkillName($tblPerson, $tblYear, $tblSubject, $skillName);
+    }
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     * @param TblSkill $tblSkill
+     *
+     * @return TblStudentSkill|TblSkill|false
+     */
+    public function getVirtualStudentSkillBySkillName(TblPerson $tblPerson, TblYear $tblYear, TblSkill $tblSkill)
+    : TblStudentSkill | TblSkill | false
+    {
+        $tblSubject = $tblSkill->getServiceTblSubject();
+
+        // 1. Fall Schüler hat für Kompetenz bereits ein TblStudentSkill (wurde schon einmal bewertet)
+        if (($tblStudentSkill = $this->getStudentSkillBy($tblPerson, $tblYear, $tblSkill))
+            || ($tblStudentSkill = $this->getStudentSkillBySkillName(
+                $tblPerson, $tblYear, $tblSubject, $tblSkill->getSkill()))
+        ) {
+            return $tblStudentSkill;
+        }
+
+        // 2. Fall Schüler hat Kompetenz über Kompetenzraster
+        if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))
+            && ($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())
+            && ($level = $tblStudentEducation->getLevel()) !== null
+        ) {
+            // todo check performance optimize
+            if (($tblSkillList = SkillGrid::useService()->getSkillListBy($tblSchoolType, $level, $tblSubject))) {
+                foreach ($tblSkillList as $tblSkillTemp) {
+                    if ($tblSkill->getId() === $tblSkillTemp->getId()) {
+                        return $tblSkillTemp;
+                    }
+                    if ($tblSkill->getSkill() === $tblSkillTemp->getSkill()) {
+                        return $tblSkillTemp;
+                    }
+                }
+            }
+        }
+
+        return false;
+    }
+
 
     /**
      * @param TblPerson $tblPerson
@@ -555,4 +610,76 @@ class Service extends AbstractService
 
         return $tblStudentEducationList;
     }
+
+    /**
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param TblSubject|null $tblSubject
+     * @param $SelectedYearId
+     *
+     * @param $Data
+     *
+     * @return string
+     */
+    public function createDivisionCourseSkillRateList(TblDivisionCourse $tblDivisionCourse, ?TblSubject $tblSubject, $SelectedYearId, $Data): string
+    {
+        list($hasErrors, $ErrorList) = $this->checkDivisionCourseRateInput($Data);
+
+        if ($hasErrors) {
+            return SkillRate::useFrontend()->loadEditDivisionCourseSkillRateContent(
+                $tblDivisionCourse->getId(), $tblSubject?->getId(), $SelectedYearId, $Data, $ErrorList);
+        }
+
+        // Todo speichern
+
+        return new Success('Die Daten wurde erfolgreich gespeichert.')
+            . new Redirect('/Education/Competence/SkillRate/DivisionCourse', Redirect::TIMEOUT_SUCCESS,
+                ['DivisionCourseId' => $tblDivisionCourse->getId(), 'SubjectId' => $tblSubject?->getId(), 'SelectedYearId' => $SelectedYearId]);
+    }
+
+    /**
+     * @param $Data
+     *
+     * @return array
+     */
+    public function checkDivisionCourseRateInput($Data): array
+    {
+        $hasErrors = false;
+        $ErrorList = [];
+        if (empty($Data['Id'])) {
+            $ErrorList['Data[Id]'] = [
+                'Name' => 'Data[Id]',
+                'Message' => 'Bitte wählen Sie eine Kompetenz aus.'
+            ];
+            $hasErrors = true;
+        }
+        if (empty($Data['Date'])) {
+            $ErrorList['Data[Date]'] = [
+                'Name' => 'Data[Date]',
+                'Message' => 'Bitte geben Sie ein Datum an.'
+            ];
+            $hasErrors = true;
+        }
+        // Prüfung bei Prozent
+        if (isset($Data['PercentSkills'])) {
+            foreach ($Data['PercentSkills'] as $personId => $personArray) {
+                foreach ($personArray as $key => $value) {
+                    if ($value !== '') {
+                        // Prozent prüfen
+                        $value = trim(str_replace('%', '', $value));
+                        if (!ctype_digit($value) || $value < 0 || $value > 100) {
+                            $name = "Data[PercentSkills][$personId][$key]";
+                            $ErrorList[$name] = [
+                                'Name' => $name,
+                                'Message' => 'Bitte geben eine Zahl zwischen 0 und 100 ein.'
+                            ];
+                            $hasErrors = true;
+                        }
+                    }
+                }
+            }
+        }
+
+        return [$hasErrors, $ErrorList];
+    }
+
 }

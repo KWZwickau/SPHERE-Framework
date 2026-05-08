@@ -61,7 +61,12 @@ class ApiSkillRate extends Extension implements IApiInterface
         $Dispatcher->registerMethod('openCreateStudentSkillModal');
         $Dispatcher->registerMethod('saveCreateStudentSkill');
 
+        // DivisionCourse
         $Dispatcher->registerMethod('checkInActive');
+        $Dispatcher->registerMethod('loadViewDivisionCourseContent');
+        $Dispatcher->registerMethod('loadEditDivisionCourseContent');
+        $Dispatcher->registerMethod('loadEditDivisionCourseSkillRateContent');
+        $Dispatcher->registerMethod('saveEditDivisionCourseSkillRate');
 
         return $Dispatcher->callMethod($Method);
     }
@@ -875,6 +880,165 @@ class ApiSkillRate extends Extension implements IApiInterface
      */
     public function checkInActive($DivisionCourseId, $SubjectId, $SelectedYearId, $Data): string
     {
-        return SkillRate::useFrontend()->loadDivisionCourseContent($DivisionCourseId, $SubjectId, $SelectedYearId, isset($Data['OptionInActive']));
+        return SkillRate::useFrontend()->loadViewDivisionCourseContent($DivisionCourseId, $SubjectId, $SelectedYearId, isset($Data['OptionInActive']));
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $SubjectId
+     * @param $SelectedYearId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineLoadViewDivisionCourseContent($DivisionCourseId, $SubjectId, $SelectedYearId): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'Content'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'loadViewDivisionCourseContent',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'DivisionCourseId' => $DivisionCourseId,
+            'SubjectId' => $SubjectId,
+            'SelectedYearId' => $SelectedYearId,
+        ));
+        $ModalEmitter->setLoadingMessage("Daten werden geladen");
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $SubjectId
+     * @param $SelectedYearId
+     *
+     * @return string
+     * @noinspection PhpUnused
+     */
+    public function loadViewDivisionCourseContent($DivisionCourseId, $SubjectId, $SelectedYearId): string
+    {
+        return SkillRate::useFrontend()->loadViewDivisionCourseContent($DivisionCourseId, $SubjectId, $SelectedYearId);
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $SubjectId
+     * @param $SelectedYearId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineLoadEditDivisionCourseContent($DivisionCourseId, $SubjectId, $SelectedYearId): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'Content'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'loadEditDivisionCourseContent',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'DivisionCourseId' => $DivisionCourseId,
+            'SubjectId' => $SubjectId,
+            'SelectedYearId' => $SelectedYearId,
+        ));
+        $ModalEmitter->setLoadingMessage("Daten werden geladen");
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $SubjectId
+     * @param $SelectedYearId
+     *
+     * @return string
+     * @noinspection PhpUnused
+     */
+    public function loadEditDivisionCourseContent($DivisionCourseId, $SubjectId, $SelectedYearId): string
+    {
+        return SkillRate::useFrontend()->loadEditDivisionCourseContent($DivisionCourseId, $SubjectId, $SelectedYearId);
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $SubjectId
+     * @param $SelectedYearId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineLoadEditDivisionCourseSkillRateContent($DivisionCourseId, $SubjectId, $SelectedYearId): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'SkillRateContent'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'loadEditDivisionCourseSkillRateContent',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'DivisionCourseId' => $DivisionCourseId,
+            'SubjectId' => $SubjectId,
+            'SelectedYearId' => $SelectedYearId,
+        ));
+        $ModalEmitter->setLoadingMessage("Daten werden geladen");
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $SubjectId
+     * @param $SelectedYearId
+     * @param null $Data
+     *
+     * @return string
+     * @noinspection PhpUnused
+     */
+    public function loadEditDivisionCourseSkillRateContent($DivisionCourseId, $SubjectId, $SelectedYearId, $Data = null): string
+    {
+        return SkillRate::useFrontend()->loadEditDivisionCourseSkillRateContent($DivisionCourseId, $SubjectId, $SelectedYearId, $Data);
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $SubjectId
+     * @param $SelectedYearId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineSaveEditDivisionCourseSkillRate($DivisionCourseId, $SubjectId, $SelectedYearId): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'SkillRateContent'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'saveEditDivisionCourseSkillRate',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'DivisionCourseId' => $DivisionCourseId,
+            'SubjectId' => $SubjectId,
+            'SelectedYearId' => $SelectedYearId,
+        ));
+        $ModalEmitter->setLoadingMessage("Daten werden geladen");
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $SubjectId
+     * @param $SelectedYearId
+     * @param null $Data
+     *
+     * @return string
+     * @noinspection PhpUnused
+     */
+    public function saveEditDivisionCourseSkillRate($DivisionCourseId, $SubjectId, $SelectedYearId, $Data = null): string
+    {
+        if (!($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
+            return new Danger('Kurs nicht gefunden.', new Exclamation());
+        }
+        $tblSubject = $SubjectId ? Subject::useService()->getSubjectById($SubjectId) : null;
+
+        return SkillRate::useService()->createDivisionCourseSkillRateList($tblDivisionCourse, $tblSubject ?: null, $SelectedYearId, $Data);
     }
 }

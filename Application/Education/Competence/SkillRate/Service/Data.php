@@ -55,6 +55,24 @@ class Data extends AbstractData
      * @param TblPerson $tblPerson
      * @param TblYear $tblYear
      * @param TblSubject|null $tblSubject
+     * @param string $skillName
+     *
+     * @return false|TblStudentSkill
+     */
+    public function getStudentSkillBySkillName(TblPerson $tblPerson, TblYear $tblYear, ?TblSubject $tblSubject, string $skillName): false|TblStudentSkill
+    {
+        return $this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblStudentSkill', [
+            TblStudentSkill::SERVICE_TBL_PERSON => $tblPerson->getId(),
+            TblStudentSkill::SERVICE_TBL_YEAR => $tblYear->getId(),
+            TblStudentSkill::SERVICE_TBL_SUBJECT => $tblSubject?->getId(),
+            TblStudentSkill::ATTR_SKILL => $skillName,
+        ]);
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     * @param TblSubject|null $tblSubject
      *
      * @return TblStudentSkill[]
      */
