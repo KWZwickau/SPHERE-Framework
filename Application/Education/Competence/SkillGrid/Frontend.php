@@ -163,7 +163,7 @@ class Frontend extends Extension implements IFrontendInterface
             if (!empty($Filter['Level'])) {
                 $global->POST['Filter']['Level'] = $Filter['Level'];
             }
-            if ($Filter['SubjectId'] && ($tblSubjectFilter = Subject::useService()->getSubjectById($Filter['SubjectId']))) {
+            if (isset($Filter['SubjectId']) && $Filter['SubjectId'] && ($tblSubjectFilter = Subject::useService()->getSubjectById($Filter['SubjectId']))) {
                 $global->POST['Filter']['SubjectId'] = $tblSubjectFilter->getId();
             }
 
