@@ -279,7 +279,8 @@ class RedisHandler extends AbstractHandler
     public function removeKeys($List)
     {
 
-        $Code = $this->Connection->del($List);
+//        $Code = $this->Connection->del($List);
+        $Code = $this->Connection->unlink($List);
 
         if (false !== $Code) {
             (new DebuggerFactory())->createLogger(new CacheLogger())->addLog('Remove Keys: ' . implode(', ',$List));
