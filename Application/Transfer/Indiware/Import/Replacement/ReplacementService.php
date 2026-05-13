@@ -712,6 +712,8 @@ class ReplacementService
                     if($HourTo){
                         $HourTo = (int)$HourTo;
                     }
+
+                    $item['SekIICourse'] = isset($ReplacementEntry['Ak_Kurs'])?$ReplacementEntry['Ak_Kurs']:'';
                     $item['Subject'] = $ReplacementEntry['Ak_Fach']?:'';
                     $item['SubjectV'] = isset($ReplacementEntry['Ak_VFach'])?$ReplacementEntry['Ak_VFach']:'';
                     $item['PersonVArray'] = isset($ReplacementEntry['VLehrer'])?$ReplacementEntry['VLehrer']:array();
@@ -788,6 +790,7 @@ class ReplacementService
             $DateTime = new DateTime($Date);
             $Hour = $read['Hour'];
             $HourTo = $read['HourTo'];
+            $SekIICourse = $read['SekIICourse'];
             $CourseV = $read['Course'];
             $tblCourse = false;
             $Subject = $read['Subject'];
@@ -813,9 +816,28 @@ class ReplacementService
 
             if($CourseV && ($YearList = Term::useService()->getYearAllByDate($DateTime))){ // Mapping
                 foreach($YearList as $Year){
-                    if (!($tblCourse = Education::useService()->getDivisionCourseByDivisionNameAndYear($CourseV, $Year))){
-                        if (!($tblCourse = Education::useService()->getImportMappingValueBy(TblImportMapping::TYPE_DIVISION_NAME_TO_DIVISION_COURSE_NAME, $CourseV, $Year))) {
-                            $tblCourse = Education::useService()->getImportMappingValueBy(TblImportMapping::TYPE_COURSE_NAME_TO_DIVISION_COURSE_NAME, $CourseV, $Year);
+                    // SekII Kurse müssen anders gesucht werden, da sie dennoch eindeutig sind, wird nach beiden möglichkeiten gesucht (G & L)
+                    // (Grund: Aussage über G oder L ist über die API nicht gegeben)
+                    if($SekIICourse !== ''){
+                        $CourseVTemp = $CourseV.'Gy G-'.$SekIICourse;
+                        if (!($tblCourse = Education::useService()->getDivisionCourseCourseSystemByCourseNameAndYear($CourseVTemp, $Year))){
+                            if (!($tblCourse = Education::useService()->getImportMappingValueBy(TblImportMapping::TYPE_DIVISION_NAME_TO_DIVISION_COURSE_NAME, $CourseVTemp, $Year))) {
+                                $tblCourse = Education::useService()->getImportMappingValueBy(TblImportMapping::TYPE_COURSE_NAME_TO_DIVISION_COURSE_NAME, $CourseVTemp, $Year);
+                            }
+                            if(!$tblCourse){
+                                $CourseVTemp = $CourseV.'Gy L-'.$SekIICourse;
+                                if (!($tblCourse = Education::useService()->getDivisionCourseCourseSystemByCourseNameAndYear($CourseVTemp, $Year))){
+                                    if (!($tblCourse = Education::useService()->getImportMappingValueBy(TblImportMapping::TYPE_DIVISION_NAME_TO_DIVISION_COURSE_NAME, $CourseVTemp, $Year))) {
+                                        $tblCourse = Education::useService()->getImportMappingValueBy(TblImportMapping::TYPE_COURSE_NAME_TO_DIVISION_COURSE_NAME, $CourseVTemp, $Year);
+                                    }
+                                }
+                            }
+                        }
+                    } else {
+                        if (!($tblCourse = Education::useService()->getDivisionCourseByDivisionNameAndYear($CourseV, $Year))){
+                            if (!($tblCourse = Education::useService()->getImportMappingValueBy(TblImportMapping::TYPE_DIVISION_NAME_TO_DIVISION_COURSE_NAME, $CourseV, $Year))) {
+                                $tblCourse = Education::useService()->getImportMappingValueBy(TblImportMapping::TYPE_COURSE_NAME_TO_DIVISION_COURSE_NAME, $CourseV, $Year);
+                            }
                         }
                     }
                     if($tblCourse){
@@ -850,6 +872,7 @@ class ReplacementService
             $item['Hour'] = $Hour;
             $item['Room'] = $RoomV;
             $item['RoomString'] = $RoomV;
+            $item['SekIICourse'] = $SekIICourse;
             $item['Course'] = $CourseV;
             $item['tblCourse'] = $tblCourse;
             $item['IsCanceled'] = $IsCanceled;
@@ -961,7 +984,13 @@ class ReplacementService
             $errors[] = '[Stunde] => Wert ist kein Zahl';
         }
         if (!$import['tblCourse']) {
-            $errors[] = '[Klasse] - '.$import['Course'].' => keine passende Klasse gefunden';
+            if(!$import['SekIICourse']){
+                $errors[] = '[Klasse] - '.$import['Course'].' => keine passende Klasse gefunden';
+            } else {
+                // SekII Kurse im Fehler benennen
+                $errors[] = '[Klasse] - '.$import['Course'].'Gy G-'.$import['SekIICourse'].' / '.$import['Course'].'Gy L-'.$import['SekIICourse']
+                    .' => kein passenden Kurs gefunden';
+            }
         }
         if (!$import['tblPersonV'] && !$import['IsCanceled']) {
             $errors[] = '[Person] - '.$import['PersonAcronym'].' => Vertretung nicht gefunden';
