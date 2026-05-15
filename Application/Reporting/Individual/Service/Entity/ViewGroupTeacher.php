@@ -83,8 +83,8 @@ class ViewGroupTeacher extends AbstractView
 
 //        //NameDefinition
         $this->setNameDefinition(self::TBL_TEACHER_ACRONYM, 'Mitarbeiter: Kürzel');
-        $this->setNameDefinition(self::TBL_TEACHER_EMPLOYMENT_START, 'Mitarbeiter: Eintritt Datum');
-        $this->setNameDefinition(self::TBL_TEACHER_EMPLOYMENT_END, 'Mitarbeiter: Austritt Datum');
+        $this->setNameDefinition(self::TBL_TEACHER_EMPLOYMENT_START, 'Mitarbeiter: Eintrittsdatum');
+        $this->setNameDefinition(self::TBL_TEACHER_EMPLOYMENT_END, 'Mitarbeiter: Austrittsdatum');
         $this->setNameDefinition(self::TBL_PERSON_MASERN_MASERN_DATE, 'Masern: Datum');
         $this->setNameDefinition(self::TBL_STUDENT_MEDICAL_RECORD_MASERN_DOCUMENT_TYPE, 'Masern: Art der Bescheinigung');
         $this->setNameDefinition(self::TBL_STUDENT_MEDICAL_RECORD_MASERN_CREATOR_TYPE, 'Masern: Bescheinigung durch');

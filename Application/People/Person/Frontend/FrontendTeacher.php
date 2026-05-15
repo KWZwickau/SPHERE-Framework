@@ -70,9 +70,9 @@ class FrontendTeacher extends FrontendReadOnly
             new LayoutRow(array(
                 self::getLayoutColumnLabel('Kürzel'),
                 self::getLayoutColumnValue($acronym),
-                self::getLayoutColumnLabel('Eintritt Datum'),
+                self::getLayoutColumnLabel('Eintrittsdatum'),
                 self::getLayoutColumnValue($employmentStart),
-                self::getLayoutColumnLabel('Austritts Datum'),
+                self::getLayoutColumnLabel('Austrittsdatum'),
                 self::getLayoutColumnValue($employmentEnd),
 //                self::getLayoutColumnEmpty(8),
             )),
@@ -143,10 +143,10 @@ class FrontendTeacher extends FrontendReadOnly
                         ), Panel::PANEL_TYPE_INFO)
                     , 4),
                     new FormColumn(
-                        new Panel('', new DatePicker('Meta[EmploymentStart]', 'Eintritt Datum', 'Eintritt Datum', new Calendar()), Panel::PANEL_TYPE_INFO)
+                        new Panel('', new DatePicker('Meta[EmploymentStart]', 'Eintrittsdatum', 'Eintrittsdatum', new Calendar()), Panel::PANEL_TYPE_INFO)
                     , 4),
                     new FormColumn(
-                        new Panel('', new DatePicker('Meta[EmploymentEnd]', 'Austritts Datum', 'Austritts Datum', new Calendar()), Panel::PANEL_TYPE_INFO)
+                        new Panel('', new DatePicker('Meta[EmploymentEnd]', 'Austrittsdatum', 'Austrittsdatum', new Calendar()), Panel::PANEL_TYPE_INFO)
                     , 4),
                 )),
                 new FormRow(array(
