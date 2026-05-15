@@ -159,6 +159,8 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
         'Termin:_Aufnahmegespr_aE_che',
         'Termin:_Schnuppertag',
         'Masern:_Datum',
+        'Mitarbeiter:_Eintritt_Datum',
+        'Mitarbeiter:_Austritts_Datum',
         'Allgemeines:_Sportbefreiung_von',
         'Allgemeines:_Sportbefreiung_bis',
     );
