@@ -14,11 +14,13 @@ use SPHERE\Application\People\Person\FrontendReadOnly;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Person\TemplateReadOnly;
+use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
+use SPHERE\Common\Frontend\Icon\Repository\Calendar;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
@@ -55,16 +57,24 @@ class FrontendTeacher extends FrontendReadOnly
             return '';
         }
         if (($tblTeacher = Teacher::useService()->getTeacherByPerson($tblPerson))) {
-            $acronym = $tblTeacher->getAcronym();
+            $acronym         = $tblTeacher->getAcronym();
+            $employmentStart = $tblTeacher->getEmploymentStart() ?: '';
+            $employmentEnd   = $tblTeacher->getEmploymentEnd() ?: '';
         } else {
-            $acronym = '';
+            $acronym         = '';
+            $employmentStart = '';
+            $employmentEnd   = '';
         }
 
         $content = new Layout(new LayoutGroup(array(
             new LayoutRow(array(
                 self::getLayoutColumnLabel('Kürzel'),
                 self::getLayoutColumnValue($acronym),
-                self::getLayoutColumnEmpty(8),
+                self::getLayoutColumnLabel('Eintritt Datum'),
+                self::getLayoutColumnValue($employmentStart),
+                self::getLayoutColumnLabel('Austritts Datum'),
+                self::getLayoutColumnValue($employmentEnd),
+//                self::getLayoutColumnEmpty(8),
             )),
         )));
 
@@ -94,7 +104,9 @@ class FrontendTeacher extends FrontendReadOnly
             $Global = $this->getGlobal();
 
             if (($tblTeacher = Teacher::useService()->getTeacherByPerson($tblPerson))) {
-                $Global->POST['Meta']['Acronym'] = $tblTeacher->getAcronym();
+                $Global->POST['Meta']['Acronym']          = $tblTeacher->getAcronym();
+                $Global->POST['Meta']['EmploymentStart']  = $tblTeacher->getEmploymentStart() ?: '';
+                $Global->POST['Meta']['EmploymentEnd']    = $tblTeacher->getEmploymentEnd() ?: '';
                 $Global->savePost();
             }
         }
@@ -127,11 +139,15 @@ class FrontendTeacher extends FrontendReadOnly
                 new FormRow(array(
                     new FormColumn(
                         new Panel('Mitarbeiter', array(
-                            new TextField(
-                                'Meta[Acronym]', 'Kürzel', 'Kürzel'
-                            ),
-                        ), Panel::PANEL_TYPE_INFO
-                        ), 12),
+                            new TextField('Meta[Acronym]', 'Kürzel', 'Kürzel')
+                        ), Panel::PANEL_TYPE_INFO)
+                    , 4),
+                    new FormColumn(
+                        new Panel('', new DatePicker('Meta[EmploymentStart]', 'Eintritt Datum', 'Eintritt Datum', new Calendar()), Panel::PANEL_TYPE_INFO)
+                    , 4),
+                    new FormColumn(
+                        new Panel('', new DatePicker('Meta[EmploymentEnd]', 'Austritts Datum', 'Austritts Datum', new Calendar()), Panel::PANEL_TYPE_INFO)
+                    , 4),
                 )),
                 new FormRow(array(
                     new FormColumn(array(
