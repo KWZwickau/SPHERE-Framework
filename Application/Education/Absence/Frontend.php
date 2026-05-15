@@ -13,7 +13,6 @@ use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
 use SPHERE\Application\Education\Lesson\Term\Term;
-use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -33,6 +32,7 @@ use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronRight;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
+use SPHERE\Common\Frontend\Icon\Repository\Info;
 use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
@@ -378,15 +378,20 @@ class Frontend extends FrontendClassRegister
                                     )
                                     , 1),
                                 new LayoutColumn(
-                                    new PullRight((new Link(
-                                        ' Herunterladen',
-                                        '/Api/Reporting/Standard/Person/AbsenceBetweenList/Download',
-                                        new Download(),
-                                        array(
-                                            'StartDate' => $startDate->format('d.m.Y'),
-                                            'EndDate' => $endDate->format('d.m.Y'),
-                                        )
-                                    )))
+                                    new PullRight(
+                                        (new Link('Legende', ApiAbsence::getEndpoint(), new Info()))
+                                            ->ajaxPipelineOnClick(ApiAbsence::pipelineOpenAbsenceLegendModal())
+                                        . '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'
+                                        . (new Link(
+                                            ' Herunterladen',
+                                            '/Api/Reporting/Standard/Person/AbsenceBetweenList/Download',
+                                            new Download(),
+                                            array(
+                                                'StartDate' => $startDate->format('d.m.Y'),
+                                                'EndDate' => $endDate->format('d.m.Y'),
+                                            )
+                                        ))
+                                    )
                                     , 3)
                             )))
                         )
@@ -427,6 +432,9 @@ class Frontend extends FrontendClassRegister
         $headerList = array();
         $bodyList = array();
 
+        $organizerBaseData = $this->convertOrganizerBaseData();
+        $MonthName = $organizerBaseData['monthNameShort'];
+        $DayShortName = $organizerBaseData['dayName'];
         $DayName = self::getDayName();
 
         $absenceList = array();
@@ -514,10 +522,24 @@ class Frontend extends FrontendClassRegister
                     $isHoliday = Term::useService()->getHolidayByDayAndCompanyList($tblYear, $currentDate, $tblCompanyList ?: array());
 
                     if (!isset($headerList['Day' . $Day])) {
-                        $columnHeader = (new TableColumn(new Center('&nbsp;' . new Container('Fehlende Schüler') . new Container('&nbsp;'))))
-                            ->setBackgroundColor($backgroundColor)
+                        $columnHeader = (new TableColumn(new Center($DayShortName[$DayAtWeek] . new Container($Day)
+                            . new Container($MonthName[(int) $currentDate->format('m')]))))
                             ->setMinHeight($minHeightHeader)
                             ->setPadding($padding);
+
+                        if ($nowDate == $currentDate) {
+                            $columnHeader->setColor('darkorange');
+                        }
+                        if ($isWeekend || $isHoliday) {
+                            $columnHeader->setBackgroundColor('lightgray')->setOpacity(0.5);
+                        } else {
+                            $columnHeader->setBackgroundColor($backgroundColor);
+                        }
+
+//                        $columnHeader = (new TableColumn(new Center('&nbsp;' . new Container('Fehlende Schüler') . new Container('&nbsp;'))))
+//                            ->setBackgroundColor($backgroundColor)
+//                            ->setMinHeight($minHeightHeader)
+//                            ->setPadding($padding);
 
                         $headerList['Day' . $Day] = $columnHeader;
                     }
@@ -591,15 +613,20 @@ class Frontend extends FrontendClassRegister
                                     )
                                     , 1),
                                 new LayoutColumn(
-                                    new PullRight((new Link(
-                                        ' Herunterladen',
-                                        '/Api/Reporting/Standard/Person/AbsenceBetweenList/Download',
-                                        new Download(),
-                                        array(
-                                            'StartDate' => $currentDateString,
-                                            'EndDate' => $currentDateString,
-                                        )
-                                    )))
+                                    new PullRight(
+                                        (new Link('Legende', ApiAbsence::getEndpoint(), new Info()))
+                                            ->ajaxPipelineOnClick(ApiAbsence::pipelineOpenAbsenceLegendModal())
+                                        . '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'
+                                        . (new Link(
+                                            ' Herunterladen',
+                                            '/Api/Reporting/Standard/Person/AbsenceBetweenList/Download',
+                                            new Download(),
+                                            array(
+                                                'StartDate' => $currentDateString,
+                                                'EndDate' => $currentDateString,
+                                            )
+                                        ))
+                                    )
                                     , 3)
                             )))
                         )
