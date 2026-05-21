@@ -220,7 +220,7 @@ class Main extends Extension
             try {
                 // Replace "default" dispatcher with app dispatcher
                 self::$Dispatcher = new \SPHERE\Application\App\Dispatcher(new \SPHERE\Application\App\Router());
-                // Register app cluster with app dispatcher
+                // Register app cluster with app dispatcher (to use public authentication routes)
                 App::registerCluster();
                 // Setup
                 if (false) {
@@ -243,6 +243,10 @@ class Main extends Extension
                         (new Response401('Token invalid'))->send();
                         exit(0);
                     }
+                    // Replace dispatcher with new instance of app dispatcher
+                    self::$Dispatcher = new \SPHERE\Application\App\Dispatcher(new \SPHERE\Application\App\Router());
+                    // Register app cluster with app dispatcher (to use all routes guarded by session access)
+                    App::registerCluster();
                 }
                 // Run app
                 /** @var AbstractResponse $response */
