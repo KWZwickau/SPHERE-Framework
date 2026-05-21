@@ -3,15 +3,15 @@ namespace SPHERE\Application\Api\Transfer\Indiware;
 
 use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
+use SPHERE\Application\Education\ClassRegister\Timetable\Timetable;
 use SPHERE\Application\IApiInterface;
-use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
-use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblSetting;
 use SPHERE\Application\Transfer\Indiware\ErrorLog\ErrorLog;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
-use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
 use SPHERE\Common\Frontend\Ajax\Receiver\InlineReceiver;
-use SPHERE\Common\Frontend\Layout\Repository\Headline;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
+use SPHERE\Common\Frontend\Layout\Repository\Well;
+use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\System\Extension\Extension;
 
 class ApiIndiware extends Extension implements IApiInterface
@@ -29,6 +29,7 @@ class ApiIndiware extends Extension implements IApiInterface
         $Dispatcher = new Dispatcher(__CLASS__);
         $Dispatcher->registerMethod('showUrl');
         $Dispatcher->registerMethod('hideButton');
+        $Dispatcher->registerMethod('showlastJSONContent');
 
         return $Dispatcher->callMethod($Method);
     }
@@ -71,5 +72,42 @@ class ApiIndiware extends Extension implements IApiInterface
     {
 
         return '';
+    }
+
+    /**
+     * @param string $fileName
+     *
+     * @return Pipeline
+     */
+    public static function pipelineShowLastJSONContent(): Pipeline
+    {
+
+        $Receiver = Self::receiverContent('', 'ShowJSON');
+        $FieldPipeline = new Pipeline();
+        $FieldEmitter = new ServerEmitter($Receiver, ApiIndiware::getEndpoint());
+        $FieldEmitter->setGetPayload(array(
+            ApiIndiware::API_TARGET => 'showlastJSONContent'
+        ));
+        $FieldPipeline->appendEmitter($FieldEmitter);
+        $FieldPipeline->setLoadingMessage('Lädt...');
+
+        return $FieldPipeline;
+    }
+
+    /**
+     * @return string
+     */
+    public function showlastJSONContent()
+    {
+
+        $Time = 'Kein Upload vorhanden';
+        $Json = '';
+        if(($tblReplacementPut = Timetable::useService()->getTimetableReplacementPutLast())){
+            $CreateTime = $tblReplacementPut->getEntityCreate();
+            $Time = $CreateTime->format('H:i:s d.m.Y');
+            $Json = '<pre>'.$tblReplacementPut->getValue().'</pre>';
+        }
+
+        return new Container('JSON Zeitpunkt: &nbsp;'.new Bold($Time)). new Well(new Container($Json));
     }
 }

@@ -98,7 +98,7 @@ class ErrorLog extends Extension implements IModuleInterface
      */
     public static function getWelcome()
     {
-        if(($ErrorLogList = Timetable::useService()->getTimeTableReplacementLogAll())){
+        if(($ErrorLogList = Timetable::useService()->getTimeTableReplacementLogAll(true))){
             $ReplacementLog = current($ErrorLogList);
                 $Date = $ReplacementLog->getEntityCreate()->format('d.m.Y').' um '.$ReplacementLog->getEntityCreate()->format('H:i:s');
                 $Date = ' am '.new Bold($Date);
@@ -125,7 +125,12 @@ class ErrorLog extends Extension implements IModuleInterface
         }
         // Lokaler Button wird nicht freigegeben
         $ButtonString = '';
-        $ButtonString = new Standard('Json "Lokaler Test"', __NAMESPACE__.'/LocalJson', new Download());
+        // Route für Adminansicht
+        $ButtonString .= new Standard('Json "Lokaler Test"', __NAMESPACE__.'/LocalJson', new Download());
+        // Route für Adminansicht verwendet
+        $ButtonString .= (new Standard('Letzte JSON anzeigen', __NAMESPACE__.'/LocalJson', new EyeOpen()))->ajaxPipelineOnClick(
+            ApiIndiware::pipelineShowLastJSONContent()
+        );
         $ButtonString .= new DangerLink('Logfile zurücksetzen', __NAMESPACE__.'/Clean', new Remove());
         if($Code){
             // anzeige nur bei vorhandenem Code
@@ -136,7 +141,7 @@ class ErrorLog extends Extension implements IModuleInterface
             // gibt es nur für Admin und auch nur, wenn kein Code vergeben ist
             $ButtonString .= new Standard('Übertragungscode (Freischaltung)', __NAMESPACE__.'/EditCode', new Plus());
         }
-        $tblReplacementLogAll = Timetable::useService()->getTimeTableReplacementLogAll();
+        $tblReplacementLogAll = Timetable::useService()->getTimeTableReplacementLogAll(true);
         $Date = false;
         $TableContent = array();
         $ErrorCountArray = array();
@@ -152,7 +157,7 @@ class ErrorLog extends Extension implements IModuleInterface
                 /** @var $tblReplacementLog TblTimetableReplacementLog */
                 $item = array();
                 if(!$Date){
-                    $Date = $tblReplacementLog->getEntityCreate()->format('d.m.Y H:i:s');
+                    $Date = $tblReplacementLog->getEntityCreate()->format('H:i:s d.m.Y');
                     $Date = new Bold($Date);
                 }
                 $item['Date'] = $tblReplacementLog->getDate();
@@ -222,6 +227,7 @@ class ErrorLog extends Extension implements IModuleInterface
         }
 
 
+        $ReceiverLastJSON = ApiIndiware::receiverContent('', 'ShowJSON');
         $ReceiverURL = ApiIndiware::receiverContent('', 'ShowURL');
         $Stage->setContent(
             new Layout(new LayoutGroup(array(
@@ -234,6 +240,7 @@ class ErrorLog extends Extension implements IModuleInterface
                             ? $ReceiverURL
                             .'<div style="height: 8px;"></div>'
                             .'Zeitpunkt Import: '.$Date
+                            .$ReceiverLastJSON
                             : '<div style="height: 8px;"></div>'
                             .new Warning('Schnittstelle: Freischaltung erforderlich!'))
                     ),
@@ -519,15 +526,15 @@ class ErrorLog extends Extension implements IModuleInterface
         $Stage = new Stage('Json einspielen');
         $Stage->addButton(new Standard('Zurück', __NAMESPACE__, new ChevronLeft()));
 
-        $Mandant = 'EVSR';
+        $Mandant = 'REF'; // REF save Einstellung, schickt nichts mit
         if(!($tblMandant = Consumer::useService()->getConsumerByAcronym($Mandant))){
-            return $Stage->setContent(new Danger('Mandant nicht gefunden'));
+            return $Stage->setContent(new Danger('Mandant '.$Mandant.' nicht gefunden'));
         }
 
 //        // entfernen alter Log Daten
         Timetable::useService()->destroyTimetableReplacementLogBulk();
         // Test mit Lokalen Daten
-        $Json = (new JsonReplacementTest())->getJson($Mandant.'Manual');
+        $Json = (new JsonReplacementTest())->getJson($Mandant); // .'Manual'
         Replacement::useService()->importJsonReplacement($Json, true);
 
 //        Account::useService()->destroySession(null, session_id());

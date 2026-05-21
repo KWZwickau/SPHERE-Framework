@@ -18,6 +18,7 @@ use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronRight;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
+use SPHERE\Common\Frontend\Icon\Repository\Info;
 use SPHERE\Common\Frontend\Icon\Repository\ListingTable;
 use SPHERE\Common\Frontend\Icon\Repository\PersonGroup;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
@@ -185,7 +186,11 @@ class FrontendClassRegister extends Extension implements IFrontendInterface
             foreach ($tblAbsenceList as $tblAbsence) {
                 $status = '';
                 if ($tblAbsence->getStatus() == TblAbsence::VALUE_STATUS_EXCUSED) {
-                    $status = new Success('entschuldigt');
+                    if (!$tblAbsence->getIsCertificateRelevant()) {
+                        $status = new Muted('entschuldigt');
+                    } else {
+                        $status = new Success('entschuldigt');
+                    }
                 } elseif ($tblAbsence->getStatus() == TblAbsence::VALUE_STATUS_UNEXCUSED) {
                     $status = new \SPHERE\Common\Frontend\Text\Repository\Warning('unentschuldigt');
                 } elseif ($tblAbsence->getStatus() == TblAbsence::VALUE_STATUS_UNCLEAR) {
@@ -690,10 +695,10 @@ class FrontendClassRegister extends Extension implements IFrontendInterface
                                     : ''
                                 , 1),
                             new LayoutColumn(
-                                '&nbsp;'
-//                                    new PullRight((new Link(' Download', self::getEndpoint(), new Download(), array(), 'Download der Daten vorbereiten'))
-//                                        ->ajaxPipelineOnClick(self::pipelineOpenDownloadEdit($DivisionId))
-//                                    )
+                                new PullRight(
+                                    (new Link('Legende', ApiAbsence::getEndpoint(), new Info()))
+                                        ->ajaxPipelineOnClick(ApiAbsence::pipelineOpenAbsenceLegendModal())
+                                )
                                 , 3)
                         ))))
                         . '<div style="height: 5px;"></div>'
@@ -755,19 +760,18 @@ class FrontendClassRegister extends Extension implements IFrontendInterface
         if ($tblAbsence->getIsOnlineAbsence()) {
             $backgroundColor = 'orange';
             $isWhiteLink = true;
-        } elseif (($tblAbsenceType = $tblAbsence->getType())) {
-            if ($tblAbsenceType == TblAbsence::VALUE_TYPE_THEORY) {
-                $backgroundColor = '#E0F0FF';
-            } else {
-                $backgroundColor = '#337ab7';
-                $isWhiteLink = true;
-            }
+        } elseif ($tblAbsence->getStatus() == TblAbsence::VALUE_STATUS_UNCLEAR) {
+            $backgroundColor = '#d9534f';
+            $isWhiteLink = true;
+        } elseif ($tblAbsence->getStatus() == TblAbsence::VALUE_STATUS_UNEXCUSED) {
+            $backgroundColor = '#cda03d';
+            $isWhiteLink = true;
+        } elseif ($tblAbsence->getStatus() == TblAbsence::VALUE_STATUS_EXCUSED) {
+            $backgroundColor = $tblAbsence->getIsCertificateRelevant() ? '#5cb85c' : '#777777';
+
+            $isWhiteLink = true;
         } else {
-            if ($tblAbsence->getIsCertificateRelevant()) {
-                $backgroundColor = '#E0F0FF';
-            } else {
-                $backgroundColor = '#FFFFFF';
-            }
+            $backgroundColor = '#E0F0FF';
         }
 
         if ($hasToolTip) {
@@ -791,8 +795,8 @@ class FrontendClassRegister extends Extension implements IFrontendInterface
             null,
             $isWhiteLink
                 ? AbstractLink::TYPE_WHITE_LINK
-                : ($tblAbsence->getIsCertificateRelevant() ? AbstractLink::TYPE_LINK : AbstractLink::TYPE_MUTED_LINK)
-        ))->ajaxPipelineOnClick(ApiAbsence::pipelineOpenEditAbsenceModal($tblAbsence->getId(), $tblDivisionCourse ? $tblDivisionCourse->getId() : null));
+                : AbstractLink::TYPE_LINK
+        ))->ajaxPipelineOnClick(ApiAbsence::pipelineOpenEditAbsenceModal($tblAbsence->getId(), $tblDivisionCourse?->getId()));
 
         $dataList[$tblPerson->getId()][$date]['BackgroundColor'] = $backgroundColor;
     }
@@ -1024,7 +1028,10 @@ class FrontendClassRegister extends Extension implements IFrontendInterface
                                     )
                                     , 1),
                                 new LayoutColumn(
-                                    ''
+                                    new PullRight(
+                                        (new Link('Legende', ApiAbsence::getEndpoint(), new Info()))
+                                            ->ajaxPipelineOnClick(ApiAbsence::pipelineOpenAbsenceLegendModal())
+                                    )
                                     , 3)
                             )))
                         )

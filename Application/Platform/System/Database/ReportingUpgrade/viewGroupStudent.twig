@@ -64,7 +64,34 @@ SELECT
 		AND tSL.tblStudent = tS.Id
         AND tSL.EntityRemove IS NULL
 		LIMIT 1
-	) TblStudentLiberationSportType_Name
+	) TblStudentLiberationSportType_Name,
+	(SELECT DATE_FORMAT( tSL.DateFrom, '%d.%m.%Y' )
+	FROM {{ ConsumerAcronym }}_PeopleMeta.tblStudentLiberation tSL
+		LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentLiberationType tSLT ON tSLT.Id = tSL.tblStudentLiberationType
+		LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentLiberationCategory tSLC ON tSLC.Id = tSLT.tblStudentLiberationCategory
+	WHERE tSLC.Name LIKE 'Sportbefreiung'
+		AND tSL.tblStudent = tS.Id
+        AND tSL.EntityRemove IS NULL
+		LIMIT 1
+	) TblStudentLiberationSport_DateFrom,
+	(SELECT DATE_FORMAT( tSL.DateTo, '%d.%m.%Y' )
+	FROM {{ ConsumerAcronym }}_PeopleMeta.tblStudentLiberation tSL
+		LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentLiberationType tSLT ON tSLT.Id = tSL.tblStudentLiberationType
+		LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentLiberationCategory tSLC ON tSLC.Id = tSLT.tblStudentLiberationCategory
+	WHERE tSLC.Name LIKE 'Sportbefreiung'
+		AND tSL.tblStudent = tS.Id
+		AND tSL.EntityRemove IS NULL
+		LIMIT 1
+	)TblStudentLiberationSport_DateTo,
+	(SELECT tSL.Description
+	FROM {{ ConsumerAcronym }}_PeopleMeta.tblStudentLiberation tSL
+	LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentLiberationType tSLT ON tSLT.Id = tSL.tblStudentLiberationType
+	LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentLiberationCategory tSLC ON tSLC.Id = tSLT.tblStudentLiberationCategory
+	WHERE tSLC.Name LIKE 'Sportbefreiung'
+	AND tSL.tblStudent = tS.Id
+	AND tSL.EntityRemove IS NULL
+	LIMIT 1
+	)TblStudentLiberationSport_Description
 
 FROM {{ ConsumerAcronym }}_PeopleMeta.tblStudent tS
 	LEFT JOIN {{ ConsumerAcronym }}_PeopleMeta.tblStudentBaptism tSB ON tSB.Id = tS.tblStudentBaptism

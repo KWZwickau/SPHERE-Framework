@@ -181,11 +181,8 @@ class MsAbsLernen extends Certificate
                 'Thema der lebenspraktisch orientierten Komplexen Leistung:'
             ))
             ->addSlice($this->getDateLine($personId))
-            ->addSlice((new MsAbsRs(
-                $this->getTblStudentEducation() ?: null,
-                $this->getTblPrepareCertificate() ?: null
-            ))->getExaminationsBoard('10px','11px'))
-            ->addSlice($this->getInfo('60px',
+            ->addSlice($this->getExaminationsBoard('10px','11px', $personId, 'Abschluss im Förderschwerpunkt Lernen gemäß § 34b Absatz 1 der Schulordnung Förderschulen'))
+            ->addSlice($this->getInfo($this->CopyCertificateData ? '20px' : '60px',
                 'Notenerläuterung:',
                 '1 = sehr gut; 2 = gut; 3 = befriedigend; 4 = ausreichend; 5 = mangelhaft; 6 = ungenügend',
                 '&nbsp;',

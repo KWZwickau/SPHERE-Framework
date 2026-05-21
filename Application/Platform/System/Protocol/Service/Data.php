@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\Platform\System\Protocol\Service;
 
+use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Platform\System\Protocol\Service\Entity\TblProtocol;
@@ -67,6 +68,26 @@ class Data extends AbstractData
 
         $Query = $Builder
             ->select('P.ProtocolDatabase')
+            ->from(__NAMESPACE__ . '\Entity\TblProtocol', 'P')
+            ->distinct()
+            ->getQuery();
+
+        return $Query->getResult("COLUMN_HYDRATOR");
+    }
+
+    /**
+     * Get available Database-Name-List
+     *
+     * (Distinct)
+     *
+     * @return array
+     */
+    public function getProtocolDatabaseTableList()
+    {
+        $Builder = $this->getConnection()->getEntityManager()->getQueryBuilder();
+
+        $Query = $Builder
+            ->select('P.ProtocolDatabaseTable')
             ->from(__NAMESPACE__ . '\Entity\TblProtocol', 'P')
             ->distinct()
             ->getQuery();
@@ -160,11 +181,26 @@ class Data extends AbstractData
         }
         if ($tblConsumer) {
             $Entity->setServiceTblConsumer($tblConsumer);
-            $Entity->setConsumerName($tblConsumer->getName());
             $Entity->setConsumerAcronym($tblConsumer->getAcronym());
         }
         $Entity->setEntityFrom(( $FromEntity ? serialize($FromEntity) : null ));
         $Entity->setEntityTo(( $ToEntity ? serialize($ToEntity) : null ));
+
+        if ($FromEntity) {
+            $Entity->setProtocolDatabaseTable($FromEntity->getEntityShortName());
+        } elseif ($ToEntity) {
+            $Entity->setProtocolDatabaseTable($ToEntity->getEntityShortName());
+        }
+
+        $serviceTblPerson = null;
+        if ($FromEntity && method_exists($FromEntity, 'getServiceTblPerson')) {
+            $serviceTblPerson = $FromEntity->getServiceTblPerson();
+        } elseif ($ToEntity && method_exists($ToEntity, 'getServiceTblPerson')) {
+            $serviceTblPerson = $ToEntity->getServiceTblPerson();
+        }
+        if ($serviceTblPerson) {
+            $Entity->setServiceTblPersonName($serviceTblPerson->getFirstSecondName() . ' ' . $serviceTblPerson->getLastName());
+        }
 
         if( $useBulkSave ) {
             $Manager->bulkSaveEntity($Entity);

@@ -7,7 +7,6 @@ use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\Education\Absence\Absence;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
-use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseType;
 use SPHERE\Application\IApiInterface;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\Setting\Consumer\Consumer;
@@ -19,6 +18,7 @@ use SPHERE\Common\Frontend\Ajax\Template\CloseModal;
 use SPHERE\Common\Frontend\Form\Repository\Button\Close;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
+use SPHERE\Common\Frontend\Icon\Repository\Info;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\Question;
@@ -36,6 +36,7 @@ use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
+use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\System\Extension\Extension;
@@ -80,6 +81,8 @@ class ApiAbsence extends Extension implements IApiInterface
         $Dispatcher->registerMethod('generateOrganizerDaily');
         $Dispatcher->registerMethod('loadStudentTable');
         $Dispatcher->registerMethod('loadAbsenceButton');
+
+        $Dispatcher->registerMethod('openAbsenceLegendModal');
 
         return $Dispatcher->callMethod($Method);
     }
@@ -430,8 +433,8 @@ class ApiAbsence extends Extension implements IApiInterface
             && ($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))
         ) {
             // Kursheft
-            if ($tblDivisionCourse->getTypeIdentifier() == TblDivisionCourseType::TYPE_ADVANCED_COURSE
-                || $tblDivisionCourse->getTypeIdentifier() == TblDivisionCourseType::TYPE_BASIC_COURSE
+            if ($tblDivisionCourse->getType()->getIsCourseSystem()
+                || $tblDivisionCourse->getServiceTblSubject()
             ) {
                 $reloadDigital = ApiDigital::pipelineLoadCourseContentContent($tblDivisionCourse->getId(), ($tblSubject = $tblDivisionCourse->getServiceTblSubject()) ? $tblSubject->getId() : null)
                     . ApiDigital::pipelineLoadCourseMissingStudentContent($tblDivisionCourse->getId());
@@ -741,27 +744,41 @@ class ApiAbsence extends Extension implements IApiInterface
     }
 
     /**
+     * @param null $PersonId
+     * @param null $DivisionCourseId
+     *
      * @return Pipeline
      */
-    public static function pipelineLoadLesson(): Pipeline
+    public static function pipelineLoadLesson($PersonId = null, $DivisionCourseId = null): Pipeline
     {
         $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'loadLesson'), self::getEndpoint());
         $ModalEmitter->setGetPayload(array(
             self::API_TARGET => 'loadLesson',
         ));
-
+        $ModalEmitter->setPostPayload(array(
+            'PersonId' => $PersonId,
+            'DivisionCourseId' => $DivisionCourseId
+        ));
         $Pipeline->appendEmitter($ModalEmitter);
 
         return $Pipeline;
     }
 
     /**
+     * @param null $PersonId
+     * @param null $DivisionCourseId
+     * @param null $Data
+     *
      * @return string
      */
-    public function loadLesson(): string
+    public function loadLesson($PersonId = null, $DivisionCourseId = null, $Data = null): string
     {
-        return Absence::useFrontend()->loadLesson(isset($_POST['Data']['IsFullDay']));
+        if ($PersonId == null && isset($Data['PersonId'])) {
+            $PersonId = $Data['PersonId'];
+        }
+
+        return Absence::useFrontend()->loadLesson(isset($Data['IsFullDay']), null, $PersonId, $DivisionCourseId);
     }
 
     /**
@@ -1060,5 +1077,39 @@ class ApiAbsence extends Extension implements IApiInterface
 
         return $pipeline
             . Absence::useFrontend()->loadAbsenceButton($DivisionCourseId, $BasicRoute, $ReturnRoute, new DateTime($Date), $isCalendar);
+    }
+
+    /**
+     * @return Pipeline
+     */
+    public static function pipelineOpenAbsenceLegendModal(): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'openAbsenceLegendModal',
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @return string
+     * @noinspection PhpUnused
+     */
+    public function openAbsenceLegendModal(): string
+    {
+        return new Panel(
+            new Info() . ' Fehlzeiten-Farben-Legende',
+            [
+                new Bold('<span style="color: darkorange">Orange</span>') . ' - Online-Fehlzeit (Unbearbeitete Fehlzeiten von Eltern)',
+                new Bold(new \SPHERE\Common\Frontend\Text\Repository\Danger('Rot')) . ' - Unklar',
+                new Bold(new \SPHERE\Common\Frontend\Text\Repository\Warning('Gelb')) . ' - Unentschuldigt',
+                new Bold(new \SPHERE\Common\Frontend\Text\Repository\Success('Grün')) . ' - Entschuldigt zeugnisrelevant',
+                new Bold(new Muted('Grau')) . ' - Entschuldigt nicht zeugnisrelevant',
+            ],
+            Panel::PANEL_TYPE_INFO
+        );
     }
 }

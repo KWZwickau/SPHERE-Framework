@@ -21,7 +21,7 @@ class Service
      *
      * @return bool|FilePointer
      */
-    public function createCsv(string $DivisionCourseId = '')
+    public function createCsv(string $DivisionCourseId = ''): bool|FilePointer
     {
         if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))
             && ($tblYear = $tblDivisionCourse->getServiceTblYear())
@@ -88,16 +88,16 @@ class Service
 //                13 E-Mail Adresse (ab Version 2012)
 //                14 Fremdschlüssel (ab Version 2012)
 
-                $export->setValue($export->getCell("0", $Row), Extension::decodeUTF8($displayName));
-                $export->setValue($export->getCell("1", $Row), Extension::decodeUTF8($tblPerson->getLastName()));
+                $export->setValue($export->getCell("0", $Row), $displayName);
+                $export->setValue($export->getCell("1", $Row), $tblPerson->getLastName());
                 $export->setValue($export->getCell("2", $Row), "");
                 $export->setValue($export->getCell("3", $Row), "");
                 $export->setValue($export->getCell("4", $Row), "");
                 $export->setValue($export->getCell("5", $Row), "");
                 $export->setValue($export->getCell("6", $Row), $mark);
-                $export->setValue($export->getCell("7", $Row), Extension::decodeUTF8($tblPerson->getFirstSecondName()));
-                $export->setValue($export->getCell("8", $Row), Extension::decodeUTF8($studentNumber));
-                $export->setValue($export->getCell("9", $Row), Extension::decodeUTF8($DivisionName));
+                $export->setValue($export->getCell("7", $Row), $tblPerson->getFirstSecondName());
+                $export->setValue($export->getCell("8", $Row), $studentNumber);
+                $export->setValue($export->getCell("9", $Row), $DivisionName);
                 $export->setValue($export->getCell("10", $Row), $gender);
                 $export->setValue($export->getCell("11", $Row), "");
                 $export->setValue($export->getCell("12", $Row), $birthday ? (new DateTime($birthday))->format('Ymd') : "");
@@ -108,6 +108,8 @@ class Service
             }
 
             $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
+
+            $fileLocation->setFileContentWithEncodingForExport();
 
             return $fileLocation;
         }

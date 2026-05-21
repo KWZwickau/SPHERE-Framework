@@ -585,47 +585,58 @@ class Service extends AbstractService
         } elseif ($tblObjectType->getIdentifier() === 'COMPANY') {   // COMPANY
             $tblObject = Company::useService()->getCompanyById($ObjectId);
         }
-        $tblListObjectElementList = false;
-        if ($tblList != null && $tblObjectType != null && $tblObject) {
-            $tblListObjectElementList = CheckList::useService()->getListObjectElementListByListAndObjectTypeAndListElementListAndObject($tblList, $tblObjectType, $tblObject);
-        }
-        if ($tblListObjectElementList) {
-            foreach ($tblListObjectElementList as $tblListObjectElement) {
-                $ElementTypeIdentifier = '';
-                if (( $tblElementList = $tblListObjectElement->getTblListElementList() )) {
-                    if (( $tblElementType = $tblElementList->getTblElementType() )) {
-                        $ElementTypeIdentifier = $tblElementType->getIdentifier();
-                    }
-                }
-                if (( $tblObjectElement = $tblListObjectElement->getTblListElementList() )) {
-                    $ElementId = $tblObjectElement->getId();
-                    if ($ElementTypeIdentifier == 'CHECKBOX') {
-                        if (!isset( $Data[$ElementId] )) {
-                            $tblListElementList = $this->getListElementListById($ElementId);
-                            ( new Data($this->getBinding()) )->updateObjectElementToList(
-                                $tblList,
-                                $tblObjectType,
-                                $tblListElementList,
-                                $tblObject,
-                                null
-                            );
-                        }
-                    }
-                }
-            }
-        }
-        if (!empty( $Data ) && $tblObjectType) {
-            foreach ($Data as $ElementId => $Element) {
-                $tblListElementList = $this->getListElementListById($ElementId);
 
-                ( new Data($this->getBinding()) )->updateObjectElementToList(
-                    $tblList,
-                    $tblObjectType,
-                    $tblListElementList,
-                    $tblObject,
-                    $Element
+        // Sammelliste für alle Updates: [ [TblListElementList, value], ... ]
+        $bulkUpdates = [];
+
+        // --- Checkboxen: nicht übermittelte = unchecked → null ---
+        if ($tblList && $tblObjectType && $tblObject) {
+            $tblListObjectElementList = CheckList::useService()
+                ->getListObjectElementListByListAndObjectTypeAndListElementListAndObject(
+                    $tblList, $tblObjectType, $tblObject
                 );
+
+            if ($tblListObjectElementList) {
+                foreach ($tblListObjectElementList as $tblListObjectElement) {
+                    $tblElementList = $tblListObjectElement->getTblListElementList();
+                    if (!$tblElementList) {
+                        continue;
+                    }
+
+                    $tblElementType = $tblElementList->getTblElementType();
+                    if (!$tblElementType || $tblElementType->getIdentifier() !== 'CHECKBOX') {
+                        continue;
+                    }
+
+                    $ElementId = $tblElementList->getId();
+                    if (!isset($Data[$ElementId])) {
+                        $bulkUpdates[] = [
+                            'tblListElementList' => $this->getListElementListById($ElementId),
+                            'value'              => null,
+                        ];
+                    }
+                }
             }
+        }
+
+        // --- Alle übermittelten Felder ---
+        if (!empty($Data) && $tblObjectType) {
+            foreach ($Data as $ElementId => $Element) {
+                $bulkUpdates[] = [
+                    'tblListElementList' => $this->getListElementListById($ElementId),
+                    'value'              => $Element,
+                ];
+            }
+        }
+
+        // --- Einmaliger Bulk-Call ---
+        if (!empty($bulkUpdates)) {
+            (new Data($this->getBinding()))->bulkUpdateObjectElementToList(
+                $tblList,
+                $tblObjectType,
+                $tblObject,
+                $bulkUpdates
+            );
         }
 
         return new Success('Die Informationen wurden gespeichert')
@@ -638,6 +649,7 @@ class Service extends AbstractService
     }
 
     /**
+     * @deprecated
      * @param IFormInterface|null $Stage
      * @param null $Id
      * @param null $Data

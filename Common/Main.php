@@ -62,6 +62,7 @@ use SPHERE\System\Cache\Handler\APCuHandler;
 use SPHERE\System\Cache\Handler\MemcachedHandler;
 use SPHERE\System\Cache\Handler\MemoryHandler;
 use SPHERE\System\Cache\Handler\OpCacheHandler;
+use SPHERE\System\Cache\Handler\RedisHandler;
 use SPHERE\System\Cache\Handler\SmartyHandler;
 use SPHERE\System\Cache\Handler\TwigHandler;
 use SPHERE\System\Extension\Extension;
@@ -346,6 +347,7 @@ class Main extends Extension
             $this->runSelfHeal($Exception);
         } catch (InvalidFieldNameException $Exception) {
             $this->getCache(new APCuHandler())->clearCache();
+            $this->getCache(new RedisHandler())->clearCache();
             $this->getCache(new MemcachedHandler())->clearCache();
             $this->getCache(new MemoryHandler())->clearCache();
             $this->getCache(new OpCacheHandler())->clearCache();

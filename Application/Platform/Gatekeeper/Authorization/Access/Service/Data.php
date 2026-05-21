@@ -11,7 +11,7 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\T
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\TblRoleLevel;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
-use SPHERE\System\Cache\Handler\MemcachedHandler;
+use SPHERE\System\Cache\Handler\RedisHandler;
 use SPHERE\System\Cache\Handler\MemoryHandler;
 use SPHERE\System\Database\Binding\AbstractData;
 
@@ -202,22 +202,6 @@ class Data extends AbstractData
          * Schulstiftung (Setup Role)
          */
         $tblRole = $this->createRole('Schulstiftung', true, true);
-
-        // Level: Cloud - Roadmap
-        $tblLevel = $this->createLevel('Cloud - Roadmap');
-        $this->addRoleLevel($tblRole, $tblLevel);
-        // !!! Add To CLOUD Administrator
-        $this->addRoleLevel($tblRoleCloud, $tblLevel);
-
-        // Privilege: Cloud - Roadmap
-        $tblPrivilege = $this->createPrivilege('Cloud - Roadmap');
-        $this->addLevelPrivilege($tblLevel, $tblPrivilege);
-        $tblRight = $this->createRight('/Roadmap');
-        $this->addPrivilegeRight($tblPrivilege, $tblRight);
-        $tblRight = $this->createRight('/Roadmap/Current');
-        $this->addPrivilegeRight($tblPrivilege, $tblRight);
-        $tblRight = $this->createRight('/Roadmap/Download');
-        $this->addPrivilegeRight($tblPrivilege, $tblRight);
 
         /**
          * Role: Einstellungen: Administrator
@@ -526,7 +510,7 @@ class Data extends AbstractData
         $Memory = $this->getCache(new MemoryHandler());
         if (null === ( $RouteList = $Memory->getValue(__METHOD__, __METHOD__) )) {
             // 2. Level Cache
-            $Cache = $this->getCache(new MemcachedHandler());
+            $Cache = $this->getCache(new RedisHandler());
             if (null === ( $RouteList = $Cache->getValue(__METHOD__, __METHOD__) )) {
                 $RouteList = $this->getConnection()->getEntityManager()->getQueryBuilder()
                     ->select('R.Route')

@@ -142,6 +142,21 @@ class Service extends ServiceView
     }
 
     /**
+     * @param array $FieldList
+     *
+     * @return bool
+     */
+    public function addWorkSpaceFieldBulk(array $FieldList)
+    {
+
+        $tblAccount = Account::useService()->getAccountBySession();
+        if ($tblAccount) {
+            return (new Data($this->getBinding()))->createWorkSpaceBulk($tblAccount, $FieldList);
+        }
+        return false;
+    }
+
+    /**
      * @param string $Name
      * @param bool   $IsPublic
      * @param array  $Post
@@ -246,9 +261,7 @@ class Service extends ServiceView
 
         $tblWorkspaceList = Individual::useService()->getWorkSpaceAll($ViewType);
         if ($tblWorkspaceList) {
-            foreach ($tblWorkspaceList as $tblWorkspace) {
-                (new Data($this->getBinding()))->removeWorkSpace($tblWorkspace);
-            }
+            (new Data($this->getBinding()))->removeWorkSpaceBulk($tblWorkspaceList);
             return true;
         }
         return false;

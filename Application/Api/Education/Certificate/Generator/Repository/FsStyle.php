@@ -147,12 +147,22 @@ abstract class FsStyle extends Certificate
             $secondLine = $tblCompany->getExtendedName();
         }
 
+        if ($this->CopyCertificateData) {
+            $element = (new Element())
+                ->stylePaddingTop('20px')
+                ->setContent('Zweitschrift')
+                ->styleTextSize('30px')
+                ->styleHeight('0px');
+        } else {
+            $element = (new Element())
+                ->setContent('&nbsp;');
+        }
+
         $Slice = (new Slice());
         if($IsLogo){
             $Slice->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    , '61%')
+                ->addElementColumn(
+                    $element, '61%')
                 ->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/ClaimFreistaatSachsen.jpg',
                     '214px', '66px'))
                     ->styleAlignRight()
@@ -237,19 +247,29 @@ abstract class FsStyle extends Certificate
         }
 
         $Slice = (new Slice());
+        if ($this->CopyCertificateData) {
+            $paddingTop = '0px';
+            $Slice->addElement((new Element())
+                ->setContent('Zweitschrift')
+                ->styleAlignCenter()
+                ->styleTextSize('30px')
+                ->styleHeight('0px'));
+        } else {
+            $paddingTop = '25px';
+        }
+
         $Slice->addElement((new Element())
             ->setContent($name ? $name : '&nbsp;')
             ->styleAlignCenter()
             ->styleTextSize('22px')
             ->styleHeight('28px')
-            ->stylePaddingTop('25px')
+            ->stylePaddingTop($paddingTop)
         );
         $Slice->addElement((new Element())
             ->setContent($secondLine ? $secondLine : '&nbsp;')
             ->styleAlignCenter()
             ->styleTextSize('18px')
             ->styleHeight('42px')
-//            ->stylePaddingTop('20px')
         );
         $Slice->addSection($this->getIndividuallyLogo($this->isSample()));
         if($isChangeableCertificateName){
@@ -2140,6 +2160,19 @@ abstract class FsStyle extends Certificate
         }
 
         return $Slice;
+    }
+
+    /**
+     * @param $personId
+     * @param $diplomaName
+     * @param string $marginTop
+     * @param bool $hasCertifiedCopyStatement
+     *
+     * @return Slice
+     */
+    protected function getFsSignPartCopy($personId, $diplomaName, string $marginTop, bool $hasCertifiedCopyStatement): Slice
+    {
+        return $this->getTechnicalSignPartCopy($personId, $diplomaName, $marginTop, $hasCertifiedCopyStatement);
     }
 
     /**

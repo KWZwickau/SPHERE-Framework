@@ -5,6 +5,7 @@ use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\Billing\Accounting\Account\Account;
 use SPHERE\Application\Billing\Accounting\Debtor\Debtor;
+use SPHERE\Application\Billing\Bookkeeping\Basket\Basket;
 use SPHERE\Application\IApiInterface;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
@@ -525,12 +526,63 @@ class ApiBankAccount extends Extension implements IApiInterface
                 new LayoutColumn(new Bold($tblBankAccount->getBICFrontend()), 10),
             ))));
 
+            $ShowDebtorSelection = '';
+            if(($tblDebtorSelectionList = Debtor::useService()->getDebtorSelectionAllByBankAccount($tblBankAccount))){
+                $RowContent = array();
+                foreach($tblDebtorSelectionList as $tblDebtorSelection) {
+                    $ItemString = '';
+                    if(($tblItem = $tblDebtorSelection->getServiceTblItem())){
+//                        $period = '';
+//                        if(($tblDebtorPeriodType = $tblDebtorSelection->getTblDebtorPeriodType())){
+//                            $period = $tblDebtorPeriodType->getName();
+//                        }
+                        $ItemString = $tblItem->getName();
+                    }
+                    $CauserString = '';
+                    if(($tblPersonCauser = $tblDebtorSelection->getServiceTblPersonCauser())){
+                        $CauserString = $tblPersonCauser->getLastFirstName();
+                    }
+                    $OpenBillingList = array();
+                    if(($tblBasketVerificationList = Basket::useService()->getBasketVerificationAllByDebtorSelection($tblDebtorSelection))){
+                        foreach($tblBasketVerificationList as $tblBasketVerification) {
+                            if($tblBasket = $tblBasketVerification->getTblBasket()){
+                                if(!$tblBasket->getIsDone()){
+                                    $OpenBillingList[] = $tblBasket->getName();
+                                    // soll alle Fälle finden
+//                                    break;
+                                }
+                            }
+                        }
+                    }
+                    $BillingString = '';
+                    if(!empty($OpenBillingList)){
+                        $BillingString = '<br/> Offene Abrechnungen: '.implode(', ', $OpenBillingList);
+                    }
+
+                    $RowContent[] = new Layout(
+                        new LayoutGroup(
+                            new LayoutRow(array(
+                                new LayoutColumn('Beitragsv.: '.new Bold($CauserString), 4),
+                                new LayoutColumn('Beitrag: '.new Bold($ItemString.$BillingString), 8),
+                            ))
+                        )
+                    );
+                }
+                $ShowDebtorSelection = new Danger(
+                    new Container('Diese Zahlungszuweisungen werden dabei gelöscht!')
+                    .new Container('Vorhandene Abrechnungen die noch nicht gestartet sind, verlieren die Zahlungszuweisung.')
+                    .new Container(implode('', $RowContent)));
+            }
+
             return new Layout(
                 new LayoutGroup(
                     new LayoutRow(array(
                         new LayoutColumn(
                             new Panel('Soll die Bankverbindung wirklich entfernt werden?'
                                 , $Content, Panel::PANEL_TYPE_DANGER)
+                        ),
+                        new LayoutColumn(
+                            $ShowDebtorSelection
                         ),
                         new LayoutColumn(
                             (new DangerLink('Ja', self::getEndpoint(), new Ok()))
@@ -559,32 +611,29 @@ class ApiBankAccount extends Extension implements IApiInterface
 
         if(($tblBankAccount = Debtor::useService()->getBankAccountById($BankAccountId))){
             if(($tblDebtorSelectionList = Debtor::useService()->getDebtorSelectionAllByBankAccount($tblBankAccount))){
-                $RowContent = array();
                 foreach($tblDebtorSelectionList as $tblDebtorSelection) {
-                    $ItemString = '';
-                    if(($tblItem = $tblDebtorSelection->getServiceTblItem())){
-                        $ItemString = $tblItem->getName();
+                    // Aktive Abrechnungen ebenfalls entfernen
+                    $BasketVerificationList = array();
+                    if(($tblBasketVerificationList = Basket::useService()->getBasketVerificationAllByDebtorSelection($tblDebtorSelection))){
+                        foreach($tblBasketVerificationList as $tblBasketVerification) {
+                            if($tblBasket = $tblBasketVerification->getTblBasket()){
+                                if(!$tblBasket->getIsDone()){
+                                    $BasketVerificationList[] = $tblBasketVerification;
+                                }
+                            }
+                        }
                     }
-                    $CauserString = '';
-                    if(($tblPersonCauser = $tblDebtorSelection->getServiceTblPersonCauser())){
-                        $CauserString = $tblPersonCauser->getLastFirstName();
+                    if(!empty($BasketVerificationList)){
+                        foreach($BasketVerificationList as $BasketVerification){
+                            // reset Entry to default
+                            Basket::useService()->changeBasketVerificationDebtor($BasketVerification);
+                        }
                     }
-                    $RowContent[] = new Layout(
-                        new LayoutGroup(
-                            new LayoutRow(array(
-                                new LayoutColumn('Beitragsart:', 2),
-                                new LayoutColumn(new Bold($ItemString), 4),
-                                new LayoutColumn('Beitragsverursacher:', 2),
-                                new LayoutColumn(new Bold($CauserString), 4),
-                            ))
-                        )
-                    );
+
+                    Debtor::useService()->removeDebtorSelection($tblDebtorSelection);
                 }
-                return new Danger('Die Bankverbindung ist in einer Zahlungszuweisung hinterlegt, löschen nicht möglich!'
-                    .new Container(implode('<br/>', $RowContent)));
             }
             Debtor::useService()->removeBankAccount($tblBankAccount);
-
             return new Success('Bankverbindung wurde erfolgreich entfernt').self::pipelineCloseModal($Identifier, $PersonId);
         }
         return new Danger('Bankverbindung konnte nicht entfernt werden');

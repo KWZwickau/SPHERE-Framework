@@ -23,9 +23,17 @@ use SPHERE\Common\Frontend\Ajax\Receiver\ModalReceiver;
 use SPHERE\Common\Frontend\Ajax\Template\CloseModal;
 use SPHERE\Common\Frontend\Form\Repository\Button\Close;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
+use SPHERE\Common\Frontend\Icon\Repository\Ok;
+use SPHERE\Common\Frontend\Icon\Repository\Question;
+use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Success as SuccessIcon;
+use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\Title;
+use SPHERE\Common\Frontend\Link\Repository\Danger as DangerLink;
+use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
+use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\System\Extension\Extension;
 
 class ApiLeaveStudent extends Extension implements IApiInterface
@@ -50,6 +58,7 @@ class ApiLeaveStudent extends Extension implements IApiInterface
         $Dispatcher->registerMethod('saveEditModal');
 
         $Dispatcher->registerMethod('cancelLeaveStudent');
+        $Dispatcher->registerMethod('openConfirmModal');
         $Dispatcher->registerMethod('saveLeaveStudent');
 
         $Dispatcher->registerMethod('saveDocumentDate');
@@ -394,6 +403,66 @@ class ApiLeaveStudent extends Extension implements IApiInterface
      *
      * @return Pipeline
      */
+    public static function pipelineOpenConfirmModal($SchoolTypeId, $YearId): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'openConfirmModal',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'SchoolTypeId' => $SchoolTypeId,
+            'YearId' => $YearId,
+        ));
+
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $SchoolTypeId
+     * @param $YearId
+     * @param null|array $Data
+     *
+     * @return string
+     * @noinspection PhpUnused
+     */
+    public function openConfirmModal($SchoolTypeId, $YearId, ?array $Data = null): string
+    {
+        $dataList = [];
+        $count = 0;
+        if ($Data) {
+            foreach ($Data as $personId => $item) {
+                if (isset($item['Select'])
+                    && ($tblPerson = Person::useService()->getPersonById($personId))
+                ) {
+                    $count++;
+                    $dataList[] = $tblPerson->getLastFirstNameWithCallNameUnderline(true);
+                }
+            }
+        }
+
+        return new Title("Bestätigung Unwiderruflich Speichern")
+            . new Warning("Sie sind dabei eine Massenänderung vorzunehmen, welche nicht rückgängig gemacht werden kann. Bitte Speichern Sie die Schulabgänger 
+                erst wenn das ausgewählte Schuljahr beendet ist.", new Exclamation())
+            . new Panel(
+                new Question() . " $count ausgewählte Schulabgänger wirklich speichern?",
+                $dataList,
+                Panel::PANEL_TYPE_DANGER
+            )
+            . (new DangerLink('Ja', self::getEndpoint(), new Ok()))
+                ->ajaxPipelineOnClick(self::pipelineSaveLeaveStudent($SchoolTypeId, $YearId, $Data))
+            . (new Standard('Nein', self::getEndpoint(), new Remove()))
+                ->ajaxPipelineOnClick(self::pipelineClose());
+    }
+
+    /**
+     * @param $SchoolTypeId
+     * @param $YearId
+     *
+     * @return Pipeline
+     */
     public static function pipelineCancelLeaveStudent($SchoolTypeId, $YearId): Pipeline
     {
         $Pipeline = new Pipeline();
@@ -435,10 +504,11 @@ class ApiLeaveStudent extends Extension implements IApiInterface
     /**
      * @param $SchoolTypeId
      * @param $YearId
+     * @param $Data
      *
      * @return Pipeline
      */
-    public static function pipelineSaveLeaveStudent($SchoolTypeId, $YearId): Pipeline
+    public static function pipelineSaveLeaveStudent($SchoolTypeId, $YearId, $Data): Pipeline
     {
         $Pipeline = new Pipeline();
         $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'Content'), self::getEndpoint());
@@ -448,6 +518,7 @@ class ApiLeaveStudent extends Extension implements IApiInterface
         $ModalEmitter->setPostPayload(array(
             'SchoolTypeId' => $SchoolTypeId,
             'YearId' => $YearId,
+            'Data' => $Data
         ));
         $Pipeline->appendEmitter($ModalEmitter);
 
@@ -551,7 +622,8 @@ class ApiLeaveStudent extends Extension implements IApiInterface
         }
 
         return new Success(@"$count Schüler wurden zu Schulabgänger gemacht", new SuccessIcon())
-            . LeaveStudent::useFrontend()->loadPrintView($tblLeaveStudent);
+            . LeaveStudent::useFrontend()->loadPrintView($tblLeaveStudent)
+            . self::pipelineClose();
     }
 
     /**

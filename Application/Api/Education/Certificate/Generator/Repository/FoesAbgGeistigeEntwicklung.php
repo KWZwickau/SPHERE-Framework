@@ -129,7 +129,10 @@ class FoesAbgGeistigeEntwicklung extends Certificate
             )
             ->addSlice($this->getDescriptionWithoutTeamContent($personId, '200px', '55px'))
             ->addSlice($this->getDateLine($personId))
-            ->addSlice($this->getSignPart($personId, true, '30px'))
+            ->addSlice($this->CopyCertificateData
+                ? $this->getSignPartCopy($personId, 'ohne Schulabschluss')
+                : $this->getSignPart($personId, true, '30px')
+            )
 //            ->addSlice($this->getInfo('187px',
 //                '¹ &nbsp;&nbsp;&nbsp; gemäß § 27 Absatz 6 der Schulordnung Ober- und Abendoberschulen'
 //            ))

@@ -13,6 +13,7 @@ use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisio
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Group as PersonGroup;
+use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup as PersonGroupEntity;
 use SPHERE\Application\People\Meta\Prospect\Prospect;
 use SPHERE\Application\People\Person\Person;
@@ -1305,22 +1306,6 @@ class Frontend extends Extension implements IFrontendInterface
                 }
             }
 
-            if(($tblListObjectElementListArray = CheckList::useService()->getListObjectElementListByList($tblList))){
-                foreach($tblListObjectElementListArray as $ListObjectElementList){
-                    $ObjectId = false;
-                    $ListElementListId = false;
-                    if($ListObjectElementList->getServiceTblObject()){
-                        $ObjectId = $ListObjectElementList->getServiceTblObject()->getId();
-                    }
-                    if($ListObjectElementList->getTblListElementList()){
-                        $ListElementListId = $ListObjectElementList->getTblListElementList()->getId();
-                    }
-                    if($ObjectId && $ListElementListId)
-                        $ListContent[$ObjectId][$ListElementListId] = $ListObjectElementList->getValue();
-                }
-            }
-
-
             // set Header
             $tblListElementListByList = CheckList::useService()->getListElementListByList($tblList);
             if ($tblListElementListByList) {
@@ -1358,15 +1343,25 @@ class Frontend extends Extension implements IFrontendInterface
                     $filterSchoolOption1, $filterSchoolOption2);
             }
 
-            // sort $objectList
-//            $objectList = CheckList::useService()->sortObjectList($objectList);
+            $isProspectList = false;
+            /** @var TblListObjectList[] $tblListObjectListByList */
+            if($tblListObjectListByList && count($tblListObjectListByList) == 1){
+                $tblListObjectList = current($tblListObjectListByList);
+                $tblPersonGroup = $tblListObjectList->getServiceTblObject();
+                if($tblPersonGroup instanceof TblGroup
+                && $tblPersonGroup->getName() == 'Interessent'){
+                    $isProspectList = true;
+                }
+            }
 
+            // abfrage abkürzen wenn die Interessentengruppe direkt ausgewählt wurde ($isProspectList kommt schon als true)
             if (!empty( $objectList )) {
 
-                // prospectList
-                $isProspectList = true;
-                if (!$hasFilter) {
+                if (!$hasFilter && !$isProspectList) {
+                    // prospectList
+                    $isProspectList = true;
                     $prospectGroup = Group::useService()->getGroupByMetaTable('PROSPECT');
+
                     foreach ($objectList as $objectTypeId => $objects) {
                         $tblObjectType = CheckList::useService()->getObjectTypeById($objectTypeId);
                         if ($tblObjectType->getIdentifier() == 'PERSON') {
@@ -1393,8 +1388,9 @@ class Frontend extends Extension implements IFrontendInterface
                         'Level'           => 'Kl. - Stufe',
                         'SchoolOption'    => 'Schulart',
                         'ReservationDate' => 'Eingangs&shy;datum',
-                        'Phone'           => 'Telefon Interessent',
-                        'PhoneGuardian'   => 'Telefon Sorgeberechtigte',
+                        // SSWHD-3996 lange Reaktionszeit kommt hauptsächlich von der Telefonnummer
+//                        'Phone'           => 'Telefon Interessent',
+//                        'PhoneGuardian'   => 'Telefon Sorgeberechtigte',
                         'Address'         => 'Adresse'
                     );
                     // set Header for prospectList
@@ -1434,8 +1430,8 @@ class Frontend extends Extension implements IFrontendInterface
                                         $level = false;
                                         $year = false;
                                         $option = false;
-                                        $Phone = false;
-                                        $PhoneGuardian = false;
+//                                        $Phone = false;
+//                                        $PhoneGuardian = false;
                                         $Address = false;
                                         $tblProspect = Prospect::useService()->getProspectByPerson($tblPerson);
                                         if ($tblProspect) {
@@ -1466,47 +1462,48 @@ class Frontend extends Extension implements IFrontendInterface
                                         if (( $tblAddress = Address::useService()->getAddressByPerson($tblPerson) )) {
                                             $Address = $tblAddress->getGuiTwoRowString(false);
                                         }
-                                        // display PhoneNumber
-                                        if(($tblToPhoneList = Phone::useService()->getPhoneAllByPerson($tblPerson))) {
-                                            $ProspectPhoneList = array();
-                                            foreach ($tblToPhoneList as $tblToPhone) {
-                                                if (($tblPhone = $tblToPhone->getTblPhone())) {
-                                                    $ProspectPhoneList[] = $tblPhone->getNumber()
-                                                        .' '.Phone::useService()->getPhoneTypeShort($tblToPhone);
-                                                }
-                                            }
-                                            $Phone = $tblPerson->getFirstName().' '.$tblPerson->getLastName()
-                                                .' ('.implode( ', ', $ProspectPhoneList ).')';
-                                        }
-                                        // fill phoneGuardian
-                                        $TblTypeGuardian = Relationship::useService()->getTypeByName(TblType::IDENTIFIER_GUARDIAN);
-                                        if(($guardianList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson, $TblTypeGuardian))) {
-                                            foreach ($guardianList as $guardian) {
-                                                $tblPersonGuardian = $guardian->getServiceTblPersonFrom();
-                                                // get PhoneNumber by Guardian
-                                                if(($tblToPhoneList = Phone::useService()->getPhoneAllByPerson($tblPersonGuardian))) {
-                                                    $GuardianPhoneList = array();
-                                                    foreach ($tblToPhoneList as $tblToPhone) {
-                                                        if(($tblPhone = $tblToPhone->getTblPhone())) {
-                                                            $GuardianPhoneList[] = $tblPhone->getNumber().' '.Phone::useService()->getPhoneTypeShort($tblToPhone);
-                                                        }
-                                                    }
-                                                    $Item[$tblPersonGuardian->getId()] = $tblPersonGuardian->getFirstName().' '.$tblPersonGuardian->getLastName()
-                                                        .' ('.implode(', ', $GuardianPhoneList).')';
-                                                }
-                                                if(!$PhoneGuardian && isset($Item[$tblPersonGuardian->getId()])) {
-                                                    $PhoneGuardian = $Item[$tblPersonGuardian->getId()];
-                                                } elseif($PhoneGuardian && isset($Item[$tblPersonGuardian->getId()])) {
-                                                    $PhoneGuardian .= ', <br/>'.$Item[$tblPersonGuardian->getId()];
-                                                }
-                                            }
-                                        }
+                                        // SSWHD-3996 lange Reaktionszeit kommt hauptsächlich von der Telefonnummer
+//                                        // display PhoneNumber
+//                                        if(($tblToPhoneList = Phone::useService()->getPhoneAllByPerson($tblPerson))) {
+//                                            $ProspectPhoneList = array();
+//                                            foreach ($tblToPhoneList as $tblToPhone) {
+//                                                if (($tblPhone = $tblToPhone->getTblPhone())) {
+//                                                    $ProspectPhoneList[] = $tblPhone->getNumber()
+//                                                        .' '.Phone::useService()->getPhoneTypeShort($tblToPhone);
+//                                                }
+//                                            }
+//                                            $Phone = $tblPerson->getFirstName().' '.$tblPerson->getLastName()
+//                                                .' ('.implode( ', ', $ProspectPhoneList ).')';
+//                                        }
+//                                        // fill phoneGuardian
+//                                        $TblTypeGuardian = Relationship::useService()->getTypeByName(TblType::IDENTIFIER_GUARDIAN);
+//                                        if(($guardianList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson, $TblTypeGuardian))) {
+//                                            foreach ($guardianList as $guardian) {
+//                                                $tblPersonGuardian = $guardian->getServiceTblPersonFrom();
+//                                                // get PhoneNumber by Guardian
+//                                                if(($tblToPhoneList = Phone::useService()->getPhoneAllByPerson($tblPersonGuardian))) {
+//                                                    $GuardianPhoneList = array();
+//                                                    foreach ($tblToPhoneList as $tblToPhone) {
+//                                                        if(($tblPhone = $tblToPhone->getTblPhone())) {
+//                                                            $GuardianPhoneList[] = $tblPhone->getNumber().' '.Phone::useService()->getPhoneTypeShort($tblToPhone);
+//                                                        }
+//                                                    }
+//                                                    $Item[$tblPersonGuardian->getId()] = $tblPersonGuardian->getFirstName().' '.$tblPersonGuardian->getLastName()
+//                                                        .' ('.implode(', ', $GuardianPhoneList).')';
+//                                                }
+//                                                if(!$PhoneGuardian && isset($Item[$tblPersonGuardian->getId()])) {
+//                                                    $PhoneGuardian = $Item[$tblPersonGuardian->getId()];
+//                                                } elseif($PhoneGuardian && isset($Item[$tblPersonGuardian->getId()])) {
+//                                                    $PhoneGuardian .= ', <br/>'.$Item[$tblPersonGuardian->getId()];
+//                                                }
+//                                            }
+//                                        }
 
                                         $list[$count]['Year'] = $year;
                                         $list[$count]['Level'] = $level;
                                         $list[$count]['SchoolOption'] = $option;
-                                        $list[$count]['Phone'] = $Phone;
-                                        $list[$count]['PhoneGuardian'] = $PhoneGuardian;
+//                                        $list[$count]['Phone'] = $Phone;
+//                                        $list[$count]['PhoneGuardian'] = $PhoneGuardian;
                                         $list[$count]['Address'] = $Address;
                                     }
                                 }
@@ -1795,7 +1792,6 @@ class Frontend extends Extension implements IFrontendInterface
             }
             $Global->savePost();
         }
-
         $count = 0;
         if ($ListElementList) {
             foreach ($ListElementList as $tblListElement) {
@@ -1830,11 +1826,9 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
-
         $Form = new Form(new FormGroup($formRowArray));
         $Form->appendFormButton(new Primary('Speichern', new Save()))
             ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
-
 
         $Stage->setContent(
             new Layout(

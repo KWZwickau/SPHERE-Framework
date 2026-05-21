@@ -222,12 +222,13 @@ class Creator extends Extension
             return new Stage($Name, 'Nicht gefunden');
         }
 
-        /** @var Certificate $Template */
-        $Certificate = new $CertificateClass();
+        $frontendPreviewCertificate = (new FrontendPreviewCertificate);
+
+        $Certificate = $frontendPreviewCertificate->getCertificateTemplateForPreview($CertificateClass, $Data);
 
         $tblPerson = new TblPerson();
         $tblPerson->setId(0);
-        $Content = (new FrontendPreviewCertificate())->getCertificateContent($tblPerson->getId(), $Data);
+        $Content = $frontendPreviewCertificate->getCertificateContent($tblPerson->getId(), $Data);
 
         $File = $this->buildDummyFile($Certificate, $tblPerson, $Content);
 
@@ -738,5 +739,112 @@ class Creator extends Extension
         $Display->setContent($Stage);
 
         return $Display;
+    }
+
+    /**
+     * @param null $PrepareStudentId
+     * @param null $LeaveStudentId
+     * @param null $DivisionCourseId
+     * @param string $Name
+     * @param null $Data
+     * @param bool $Redirect
+     *
+     * @return Display|Stage|string
+     */
+    public static function downloadCopyPdf($PrepareStudentId = null, $LeaveStudentId = null, $DivisionCourseId = null,
+        $Name = 'Zweitschrift', $Data = null, $Redirect = true)
+    {
+        if ($Redirect) {
+            return self::displayWaitingPage('/Api/Education/Certificate/Generator/History/CopyCertificate/DownloadPdf', array(
+                'PrepareStudentId' => $PrepareStudentId,
+                'LeaveStudentId' => $LeaveStudentId,
+                'DivisionCourseId' => $DivisionCourseId,
+                'Name' => $Name,
+                'Data' => $Data,
+                'Redirect' => 0
+            ));
+        }
+
+        $tblCertificate = false;
+        $tblYear = false;
+        $tblPerson = false;
+        $tblPrepareCertificate = false;
+        // ist ein Abschlusszeugnis
+        if (($tblPrepareStudent = Prepare::useService()->getPrepareStudentById($PrepareStudentId))
+            && ($tblPrepareCertificate = $tblPrepareStudent->getTblPrepareCertificate())
+        ) {
+            $tblGenerateCertificate = $tblPrepareCertificate->getServiceTblGenerateCertificate();
+            $tblCertificate = $tblPrepareStudent->getServiceTblCertificate();
+            $tblYear = $tblGenerateCertificate->getServiceTblYear();
+            $tblPerson = $tblPrepareStudent->getServiceTblPerson();
+        }
+        // ist ein Abgangszeugnis
+        if (($tblLeaveStudent = Prepare::useService()->getLeaveStudentById($LeaveStudentId))) {
+            $tblCertificate = $tblLeaveStudent->getServiceTblCertificate();
+            $tblYear = $tblLeaveStudent->getServiceTblYear();
+            $tblPerson = $tblLeaveStudent->getServiceTblPerson();
+        }
+
+        $DataContent = array();
+        if (($tblPrepareStudent || $tblLeaveStudent)
+            && ($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))
+            && $tblPerson
+            && $tblYear
+            && $tblCertificate
+        ) {
+            ini_set('memory_limit', '1G');
+            $CertificateClass = '\SPHERE\Application\Api\Education\Certificate\Generator\Repository\\' . $tblCertificate->getCertificate();
+            if (class_exists($CertificateClass)) {
+                $tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear);
+                /** @var Certificate $Certificate */
+                $Certificate = new $CertificateClass($tblStudentEducation ?: null, $tblPrepareCertificate ?: null, false, [], $Data, $tblLeaveStudent ?: null);
+
+                // get Content
+                Prepare::useService()->createCertificateContent($tblPerson, $tblPrepareStudent ?: null, $tblLeaveStudent ?: null, $DataContent);
+                $personId = $tblPerson->getId();
+                if (isset($DataContent['P' . $personId]['Grade'])) {
+                    $Certificate->setGrade($DataContent['P' . $personId]['Grade']);
+                }
+                if (isset($DataContent['P' . $personId]['AdditionalGrade'])) {
+                    $Certificate->setAdditionalGrade($DataContent['P' . $personId]['AdditionalGrade']);
+                }
+
+                $pageList = $Certificate->buildPages($tblPerson);
+
+                $personLastName = str_replace('ä', 'ae', $tblPerson->getLastName());
+                $personLastName = str_replace('ü', 'ue', $personLastName);
+                $personLastName = str_replace('ö', 'oe', $personLastName);
+                $personLastName = str_replace('ß', 'ss', $personLastName);
+                $File = Storage::createFilePointer('pdf', $Name . '-' . $personLastName
+                    . '-' . date('Y-m-d') . '--');
+                /** @var DomPdf $Document */
+                $Document = Document::getPdfDocument($File->getFileLocation());
+                $Content = $Certificate->createCertificate($DataContent, array(0 => $pageList));
+                $Document->setContent($Content);
+                // hier den hash erzeugen
+                $hash = TblBinary::getHashByContent($Document->getSource());
+                $Document->saveFile(new FileParameter($File->getFileLocation()));
+
+                try {
+                    $fileSizeKiloByte = intdiv(filesize($File->getFileLocation()), 1024);
+                } catch (\Exception $exception) {
+                    $fileSizeKiloByte = 0;
+                }
+
+                if (Storage::useService()->saveCertificateRevision($tblPerson, $tblDivisionCourse,
+                    $Certificate, $File, $fileSizeKiloByte, $hash, $tblPrepareCertificate ?: null
+                )) {
+                    if ($tblPrepareStudent) {
+                        Prepare::useService()->updatePrepareStudentSetPrinted($tblPrepareStudent);
+                    } elseif ($tblLeaveStudent) {
+                        Prepare::useService()->updateLeaveStudent($tblLeaveStudent, true, true);
+                    }
+                }
+
+                return self::buildDownloadFile($File, $Name . ' ' . $personLastName . ' ' . date("Y-m-d H:i:s") . '.pdf');
+            }
+        }
+
+        return new Stage($Name, 'Keine Zweitschrift zum Druck bereit.');
     }
 }

@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\People\Meta\Teacher\Service;
 
+use DateTime;
 use SPHERE\Application\People\Meta\Teacher\Service\Entity\TblTeacher;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
@@ -84,20 +85,26 @@ class Data  extends AbstractData
 
     /**
      * @param TblPerson $tblPerson
-     * @param $Acronym
+     * @param string $Acronym
+     * @param ?string $EmploymentStart
+     * @param ?string $EmploymentEnd
      *
      * @return TblTeacher
      */
     public function createTeacher(
         TblPerson $tblPerson,
-        $Acronym
-    ) {
+        string $Acronym = '',
+        ?string $EmploymentStart = null,
+        ?string $EmploymentEnd = null
+    ): TblTeacher {
 
         $Manager = $this->getConnection()->getEntityManager();
 
         $Entity = new TblTeacher();
         $Entity->setServiceTblPerson($tblPerson);
-        $Entity->setAcronym($Acronym);
+        $Entity->setAcronym($Acronym ? : '');
+        $Entity->setEmploymentStart($EmploymentStart ? new DateTime($EmploymentStart) : null);
+        $Entity->setEmploymentEnd($EmploymentEnd ? new DateTime($EmploymentEnd) : null);
 
         $Manager->saveEntity($Entity);
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
@@ -107,14 +114,18 @@ class Data  extends AbstractData
 
     /**
      * @param TblTeacher $tblTeacher
-     * @param $Acronym
+     * @param string $Acronym
+     * @param ?string $EmploymentStart
+     * @param ?string $EmploymentEnd
      *
      * @return bool
      */
     public function updateTeacher(
         TblTeacher $tblTeacher,
-        $Acronym
-    ) {
+        string$Acronym,
+        ?string$EmploymentStart = null,
+        ?string$EmploymentEnd = null
+    ):bool {
 
         $Manager = $this->getConnection()->getEntityManager();
         /** @var null|TblTeacher $Entity */
@@ -122,6 +133,8 @@ class Data  extends AbstractData
         if (null !== $Entity) {
             $Protocol = clone $Entity;
             $Entity->setAcronym($Acronym);
+            $Entity->setEmploymentStart($EmploymentStart ? new DateTime($EmploymentStart) : null);
+            $Entity->setEmploymentEnd($EmploymentEnd ? new DateTime($EmploymentEnd) : null);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);

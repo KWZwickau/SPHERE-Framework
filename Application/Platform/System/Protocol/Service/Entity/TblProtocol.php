@@ -42,10 +42,6 @@ class TblProtocol extends Element
     /**
      * @Column(type="string")
      */
-    protected $ConsumerName;
-    /**
-     * @Column(type="string")
-     */
     protected $ConsumerAcronym;
     /**
      * @Column(type="text")
@@ -55,6 +51,15 @@ class TblProtocol extends Element
      * @Column(type="text")
      */
     protected $EntityTo;
+
+    /**
+     * @Column(type="string")
+     */
+    protected $ProtocolDatabaseTable;
+    /**
+     * @Column(type="string")
+     */
+    protected $serviceTblPersonName;
 
     /**
      * @return string
@@ -158,24 +163,6 @@ class TblProtocol extends Element
     /**
      * @return string
      */
-    public function getConsumerName()
-    {
-
-        return $this->ConsumerName;
-    }
-
-    /**
-     * @param string $ConsumerName
-     */
-    public function setConsumerName($ConsumerName)
-    {
-
-        $this->ConsumerName = $ConsumerName;
-    }
-
-    /**
-     * @return string
-     */
     public function getConsumerAcronym()
     {
 
@@ -225,5 +212,37 @@ class TblProtocol extends Element
     {
 
         $this->EntityTo = $EntityTo;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getProtocolDatabaseTable()
+    {
+        return $this->ProtocolDatabaseTable;
+    }
+
+    /**
+     * @param mixed $ProtocolDatabaseTable
+     */
+    public function setProtocolDatabaseTable($ProtocolDatabaseTable): void
+    {
+        $this->ProtocolDatabaseTable = $ProtocolDatabaseTable;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getServiceTblPersonName()
+    {
+        return $this->serviceTblPersonName;
+    }
+
+    /**
+     * @param mixed $serviceTblPersonName
+     */
+    public function setServiceTblPersonName($serviceTblPersonName): void
+    {
+        $this->serviceTblPersonName = $serviceTblPersonName;
     }
 }

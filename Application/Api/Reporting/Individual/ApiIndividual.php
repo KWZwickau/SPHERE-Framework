@@ -158,7 +158,11 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
         'Termin:_Eingangsdatum',
         'Termin:_Aufnahmegespr_aE_che',
         'Termin:_Schnuppertag',
-        'Masern:_Datum'
+        'Masern:_Datum',
+        'Mitarbeiter:_Eintritt_Datum',
+        'Mitarbeiter:_Austritts_Datum',
+        'Allgemeines:_Sportbefreiung_von',
+        'Allgemeines:_Sportbefreiung_bis',
     );
 
     // sortieren der Spalten nach GermanString
@@ -931,6 +935,7 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
             $tblPresetSettingList = Individual::useService()->getPresetSettingAllByPreset($tblPreset, $ViewType);
             $ViewType = TblWorkSpace::VIEW_TYPE_ALL;
             if ($tblPresetSettingList) {
+                $FieldList = array();
                 foreach ($tblPresetSettingList as $tblPresetSetting) {
                     $FiledCount = 1;
                     $PostValue = $tblPreset->getPostValue();
@@ -941,13 +946,25 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                     }
 
                     $ViewType = $tblPresetSetting->getViewType();
-                    Individual::useService()->addWorkSpaceField(
-                        $tblPresetSetting->getField(),
-                        $tblPresetSetting->getView(),
-                        $tblPresetSetting->getPosition(),
-                        $tblPresetSetting->getViewType(),
-                        $tblPreset,
-                        ($FiledCount >= 1? $FiledCount : 1));
+                    $FieldList[] = array(
+                        'Field' => $tblPresetSetting->getField(),
+                        'View' => $tblPresetSetting->getView(),
+                        'Position' => $tblPresetSetting->getPosition(),
+                        'ViewType' => $tblPresetSetting->getViewType(),
+                        'tblPreset' => $tblPreset,
+                        'FieldCount' => ($FiledCount >= 1? $FiledCount : 1)
+                    );
+                    // einzeln ist auf der Live langsam umbau zu Bulk
+//                    Individual::useService()->addWorkSpaceField(
+//                        $tblPresetSetting->getField(),
+//                        $tblPresetSetting->getView(),
+//                        $tblPresetSetting->getPosition(),
+//                        $tblPresetSetting->getViewType(),
+//                        $tblPreset,
+//                        ($FiledCount >= 1? $FiledCount : 1));
+                }
+                if(!empty($FieldList)){
+                    Individual::useService()->addWorkSpaceFieldBulk($FieldList);
                 }
             }
 

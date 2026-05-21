@@ -3,8 +3,8 @@ namespace SPHERE\System\Database\Fitting;
 
 use SPHERE\System\Cache\CacheFactory;
 use SPHERE\System\Cache\Handler\HandlerInterface;
-use SPHERE\System\Cache\Handler\MemcachedHandler;
 use SPHERE\System\Cache\Handler\MemoryHandler;
+use SPHERE\System\Cache\Handler\RedisHandler;
 use SPHERE\System\Debugger\Logger\CacheLogger;
 use SPHERE\System\Debugger\Logger\QueryLogger;
 use SPHERE\System\Extension\Extension;
@@ -47,7 +47,7 @@ abstract class Cacheable extends Extension
         $Memory = $this->getMemoryCacheHandler();
         if (!$this->Enabled || null === ( $Entity = $Memory->getValue($Key, $__METHOD__) )) {
 
-            $Cache = self::getCacheSystem();
+            $Cache = $this->getCacheSystem();
             $Entity = null;
             if (!$this->Enabled || null === ( $Entity = $Cache->getValue($Key, $__METHOD__) )) {
                 $Entity = $EntityManager->getEntity($EntityName)->findOneBy($Parameter);
@@ -95,8 +95,8 @@ abstract class Cacheable extends Extension
     private function getCacheSystem()
     {
 
-        if (null === self::$CacheSystem || !self::$CacheSystem instanceof MemcachedHandler) {
-            self::$CacheSystem = $this->getCache(new MemcachedHandler());
+        if (null === self::$CacheSystem || !self::$CacheSystem instanceof RedisHandler) {
+            self::$CacheSystem = $this->getCache(new RedisHandler());
         }
         return self::$CacheSystem;
     }
@@ -110,9 +110,20 @@ abstract class Cacheable extends Extension
     {
 
         if ($this->useDebugger()) {
+            if(is_array($Parameter)) {
+                array_walk($Parameter, function ($value, $key) use (&$logParameters) {
+                    if (is_object($value) && is_a($value, \DateTime::class)) {
+                        $logParameters[$key] = $value->format('Y-m-d H:i:s');
+                    } else {
+                        $logParameters[$key] = $value;
+                    }
+                });
+            } else {
+                $logParameters = $Parameter;
+            }
             $this->getLogger(new QueryLogger())->addLog(
-                $__METHOD__.' ['.implode('], [', (array)$Parameter).'] Result: '.(
-                $EntityList ? 'Ok' : ( null === $EntityList ? 'None' : 'Error' ) )
+                $__METHOD__.' ['.implode('], [', (array)$logParameters).'] Result: '.(
+                $EntityList ? 'Ok' : ( empty($EntityList) ? 'None' : 'Error' ) )
             );
         }
     }
@@ -139,10 +150,21 @@ abstract class Cacheable extends Extension
     private function debugCache($__METHOD__, $EntityList, $Parameter)
     {
 
+        $Parameter = (array)$Parameter;
+        array_walk($Parameter, function (&$Value, $Key) {
+            if ($Value instanceof \DateTimeInterface) {
+                $Value = $Value->format(\DateTimeInterface::ATOM);
+            } elseif ($Value === null) {
+                $Value = 'NULL';
+            }
+            $Value = $Key . ':' . $Value;
+//            $Value = $Key.':'.($Value===null ? 'NULL' : $Value);
+        });
+
         if ($this->useDebugger()) {
             $this->getLogger(new CacheLogger())->addLog(
                 $__METHOD__.' ['.implode('], [', (array)$Parameter).'] Result: '.(
-                $EntityList ? 'Ok' : ( null === $EntityList ? 'None' : 'Error' ) )
+                $EntityList ? 'Ok' : ( empty($EntityList) ? 'None' : 'Error' ) ).' ('.basename(str_replace('\\', '/',get_class($this->getCacheSystem()))).')'
             );
         }
     }
@@ -166,7 +188,7 @@ abstract class Cacheable extends Extension
         $Memory = $this->getMemoryCacheHandler();
         if (!$this->Enabled || null === ( $Entity = $Memory->getValue($Key, $__METHOD__) )) {
 
-            $Cache = self::getCacheSystem();
+            $Cache = $this->getCacheSystem();
             $Entity = null;
             if (!$this->Enabled || null === ( $Entity = $Cache->getValue($Key, $__METHOD__) )) {
                 $Entity = $EntityManager->getEntity($EntityName)->findOneBy($Parameter);
@@ -203,7 +225,7 @@ abstract class Cacheable extends Extension
         $Memory = $this->getMemoryCacheHandler();
         if (!$this->Enabled || null === ( $EntityList = $Memory->getValue($Key, $__METHOD__) )) {
 
-            $Cache = self::getCacheSystem();
+            $Cache = $this->getCacheSystem();
             $EntityList = null;
             if (!$this->Enabled || null === ( $EntityList = $Cache->getValue($Key, $__METHOD__) )) {
                 $EntityList = $EntityManager->getEntity($EntityName)->findBy($Parameter, $OrderBy);
@@ -234,7 +256,7 @@ abstract class Cacheable extends Extension
         $Memory = $this->getMemoryCacheHandler();
         if (!$this->Enabled || null === ( $EntityList = $Memory->getValue($Key, $__METHOD__) )) {
 
-            $Cache = self::getCacheSystem();
+            $Cache = $this->getCacheSystem();
             $EntityList = null;
             if (!$this->Enabled || null === ( $EntityList = $Cache->getValue($Key, $__METHOD__) )) {
                 // Only if NOT REMOVED
@@ -270,7 +292,7 @@ abstract class Cacheable extends Extension
         $Memory = $this->getMemoryCacheHandler();
         if (!$this->Enabled || null === ( $Entity = $Memory->getValue($Key, $__METHOD__) )) {
 
-            $Cache = self::getCacheSystem();
+            $Cache = $this->getCacheSystem();
             $Entity = null;
             if (!$this->Enabled || null === ( $Entity = $Cache->getValue($Key, $__METHOD__) )) {
                 $Entity = $EntityManager->getEntity($EntityName)->countBy($Parameter);

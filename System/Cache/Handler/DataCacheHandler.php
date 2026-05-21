@@ -22,7 +22,7 @@ class DataCacheHandler extends AbstractHandler
     private $Identifier = 'Default';
     /** @var Element[] $Dependency */
     private $Dependency = array();
-    /** @var null|MemcachedHandler $Handler */
+    /** @var null|HandlerInterface $Handler */
     private $Handler = null;
 
     /**
@@ -35,7 +35,7 @@ class DataCacheHandler extends AbstractHandler
     {
 
         $this->Identifier = $Identifier;
-        $this->Handler = (new CacheFactory())->createHandler((new MemcachedHandler())->setHashKey(false));
+        $this->Handler = (new CacheFactory())->createHandler(new RedisHandler());
         if (!empty( $Dependencies )) {
             foreach ($Dependencies as $Element) {
                 $this->addDependency($Element);
@@ -69,7 +69,7 @@ class DataCacheHandler extends AbstractHandler
     {
 
         if ($this->Handler->isEnabled()) {
-            (new DebuggerFactory())->createLogger(new QueryLogger())->addLog('Save DataCache: '.md5($this->Identifier));
+            (new DebuggerFactory())->createLogger(new CacheLogger())->addLog('Save DataCache: '.md5($this->Identifier));
             $this->Handler->setValue($this->createKey(), $Value, $Timeout, 'DataCache');
         }
         return $this;
@@ -115,7 +115,10 @@ class DataCacheHandler extends AbstractHandler
     {
 
         if ($this->Handler->isEnabled()) {
-            (new DebuggerFactory())->createLogger(new CacheLogger())->addLog('Load DataCache: '.md5($this->Identifier));
+            (new DebuggerFactory())->createLogger(new CacheLogger())->addLog(
+                'Load DataCache: '.md5($this->Identifier)
+                .' '.implode('',(array)debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2)[1]['function'])
+            );
             return $this->Handler->getValue($this->createKey(), 'DataCache');
         }
         return null;
@@ -183,7 +186,7 @@ class DataCacheHandler extends AbstractHandler
         if ($this->Handler->isEnabled()) {
             $Pattern = $this->createPattern();
             if (!( $CacheList = $this->Handler->fetchKeys() )) {
-                $CacheList = array();
+                $CacheList = [];
             }
             $KeyList = preg_grep($Pattern, $CacheList);
             if (!empty( $KeyList )) {

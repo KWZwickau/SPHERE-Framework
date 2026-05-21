@@ -615,8 +615,9 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Benutzerkonto', 'Löschen');
-        if ($Id) {
-            $tblAccount = Account::useService()->getAccountById($Id);
+        if ($Id
+            && ($tblAccount = Account::useService()->getAccountById($Id))
+        ) {
             if (!$Confirm) {
                 $Content[] = $tblAccount->getUsername();
                 if (($tblAuthenticationList = Account::useService()->getAuthenticationListByAccount($tblAccount))) {

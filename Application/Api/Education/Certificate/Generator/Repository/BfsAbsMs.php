@@ -51,6 +51,7 @@ class BfsAbsMs extends BfsStyle
     {
 
         $personId = $tblPerson ? $tblPerson->getId() : 0;
+        $isCopy = (bool) $this->CopyCertificateData;
 
         $pageList[] = (new Page())
             ->addSlice($this->getSchoolHead($personId, 'Abschlusszeugnis', false, true))
@@ -88,9 +89,12 @@ class BfsAbsMs extends BfsStyle
             )
             ->addSlice((new Slice())->addElement((new Element())
                 ->setContent('&nbsp;')
-                ->stylePaddingTop('170px')
+                ->stylePaddingTop($isCopy ? '30px' : '170px')
             ))
-            ->addSlice($this->getIndividuallySignPart($personId, true))
+            ->addSlice($isCopy
+                ? $this->getBfsSignPartCopy($personId, 'Abschlusszeugnis der Berufsfachschule')
+                : $this->getIndividuallySignPart($personId, true)
+            )
         ;
 
         $pageList[] = $this->getDiplomaSecondPage($personId);
@@ -238,8 +242,9 @@ class BfsAbsMs extends BfsStyle
                     ->stylePaddingTop('10px')
                 )
             )
-            ->addSlice($this->getIndividuallySignPart($personId, false, false, false)
-                ->styleMarginTop('150px')
+            ->addSlice($isCopy
+                ? $this->getBfsSignPartCopy($personId, 'Abschlusszeugnis der Berufsfachschule')
+                : $this->getIndividuallySignPart($personId, false, false, false)->styleMarginTop('150px')
             );
 
         $pageList[] = (new Page())

@@ -725,7 +725,7 @@ class Data extends AbstractData
 
     /**
      * @param TblBasketVerification $tblBasketVerification
-     * @param TblPerson             $tblPersonDebtor
+     * @param TblPerson|null        $tblPersonDebtor
      * @param TblPaymentType        $tblPaymentType
      * @param string                $Value
      * @param TblItemVariant|null   $tblItemVariant
@@ -736,9 +736,9 @@ class Data extends AbstractData
      */
     public function updateBasketVerificationDebtor(
         TblBasketVerification $tblBasketVerification,
-        TblPerson $tblPersonDebtor,
+        ?TblPerson $tblPersonDebtor,
         TblPaymentType $tblPaymentType,
-        $Value = '0',
+        string $Value = '0',
         TblItemVariant $tblItemVariant = null,
         TblBankAccount $tblBankAccount = null,
         TblBankReference $tblBankReference = null

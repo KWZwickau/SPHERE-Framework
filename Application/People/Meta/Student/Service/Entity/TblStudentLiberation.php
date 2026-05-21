@@ -27,6 +27,18 @@ class TblStudentLiberation extends Element
      * @Column(type="bigint")
      */
     protected $tblStudentLiberationType;
+    /**
+     * @Column(type="datetime")
+     */
+    protected $DateFrom = null;
+    /**
+     * @Column(type="datetime")
+     */
+    protected $DateTo = null;
+    /**
+     * @Column(type="text")
+     */
+    protected $Description;
 
     /**
      * @return bool|TblStudent
@@ -70,5 +82,96 @@ class TblStudentLiberation extends Element
     {
 
         $this->tblStudentLiberationType = ( null === $tblStudentLiberationType ? null : $tblStudentLiberationType->getId() );
+    }
+
+    /**
+     * @param $getDateTimeObjekt
+     *
+     * @return string|\DateTime
+     */
+    public function getDateFrom($getDateTimeObjekt = false): string|\DateTime
+    {
+
+        if(null === $this->DateFrom){
+            return '';
+        }
+        /** @var \DateTime $Date */
+        $Date = $this->DateFrom;
+        if($Date instanceof \DateTime){
+            if($getDateTimeObjekt){
+                return $Date;
+            } else {
+                return $Date->format('d.m.Y');
+            }
+        } else {
+            if($getDateTimeObjekt){
+                return new \DateTime($Date);
+            } else {
+                return (string)$Date;
+            }
+        }
+    }
+
+    /**
+     * @param \DateTime|null $DateFrom
+     *
+     * @return void
+     */
+    public function setDateFrom(?\DateTime $DateFrom): void
+    {
+        $this->DateFrom = $DateFrom;
+    }
+
+    /**
+     * @param $getDateTimeObjekt
+     *
+     * @return string|\DateTime
+     */
+    public function getDateTo($getDateTimeObjekt = false): string|\DateTime
+    {
+        if(null === $this->DateTo){
+            return '';
+        }
+        /** @var \DateTime $Date */
+        $Date = $this->DateTo;
+        if($Date instanceof \DateTime){
+            if($getDateTimeObjekt){
+                return $Date;
+            } else {
+                return $Date->format('d.m.Y');
+            }
+        } else {
+            if($getDateTimeObjekt){
+                return new \DateTime($Date);
+            } else {
+                return (string)$Date;
+            }
+        }
+    }
+
+    /**
+     * @param \DateTime|null $DateTo
+     *
+     * @return void
+     */
+    public function setDateTo(?\DateTime $DateTo): void
+    {
+        $this->DateTo = $DateTo;
+    }
+
+    /**
+     * @return string
+     */
+    public function getDescription()
+    {
+        return $this->Description;
+    }
+
+    /**
+     * @param string $Description
+     */
+    public function setDescription(string $Description = ''): void
+    {
+        $this->Description = $Description;
     }
 }

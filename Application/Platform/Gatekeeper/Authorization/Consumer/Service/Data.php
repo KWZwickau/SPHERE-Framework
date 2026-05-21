@@ -252,20 +252,19 @@ class Data extends AbstractData
      *
      * @return TblConsumerLogin
      */
-    public function updateConsumerLogin(TblConsumerLogin $tblConsumerLogin, $isButtonActive)
+    public function updateConsumerLogin(TblConsumerLogin $tblConsumerLogin, bool $isButtonActive)
     {
 
         $Manager = $this->getConnection()->getEntityManager();
-//        $ConsumerId = $tblConsumerLogin->getId();
-//        $Entity = $Manager->getEntity('TblConsumer')->find($ConsumerId);
-        /** @var TblConsumerLogin $tblConsumerLogin */
-        if (null !== $tblConsumerLogin) {
-            $tblConsumerLogin->setEntityUpdate();
-            $tblConsumerLogin->setIsActiveAPI($isButtonActive);
-            $Manager->saveEntity($tblConsumerLogin);
-            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $tblConsumerLogin);
+        $Entity = $Manager->getEntity('TblConsumerLogin')->find($tblConsumerLogin->getId());
+        /** @var TblConsumerLogin $Entity */
+        if (null !== $Entity) {
+            $Entity->setEntityUpdate();
+            $Entity->setIsActiveAPI($isButtonActive);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         }
-        return $tblConsumerLogin;
+        return $Entity;
     }
 
     /**

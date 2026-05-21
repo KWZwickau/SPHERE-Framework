@@ -767,6 +767,34 @@ class Data  extends AbstractData
     }
 
     /**
+     * @param TblCourseContent $tblCourseContent
+     * @param int $LinkId
+     *
+     * @return TblLessonContentLink
+     */
+    public function createCourseContentLink(TblCourseContent $tblCourseContent, int $LinkId): TblLessonContentLink
+    {
+        $Manager = $this->getEntityManager();
+        $Entity = $Manager->getEntity('TblLessonContentLink')
+            ->findOneBy(
+                array(
+                    TblLessonContentLink::ATTR_TBL_COURSE_CONTENT => $tblCourseContent->getId(),
+                    TblLessonContentLink::ATTR_TBL_LINK_ID => $LinkId
+                )
+            );
+        if (null === $Entity) {
+            $Entity = new TblLessonContentLink();
+            $Entity->setTblCourseContent($tblCourseContent);
+            $Entity->setLinkId($LinkId);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
+
+        return $Entity;
+    }
+
+    /**
      * @return int
      */
     public function getNextLinkId(): int
@@ -791,11 +819,10 @@ class Data  extends AbstractData
     /**
      * @param TblLessonContent $tblLessonContent
      *
-     * @return false | TblLessonContent[]
+     * @return false | TblLessonContentLink[]
      */
-    public function getLessonContentLinkAllByLessonContent(TblLessonContent $tblLessonContent)
+    public function getLessonContentLinkAllByLessonContent(TblLessonContent $tblLessonContent): array|bool
     {
-        $resultList = array();
         /** @var TblLessonContentLink $tblLessonContentLink */
         $tblLessonContentLink = $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblLessonContentLink',
             array(
@@ -805,56 +832,67 @@ class Data  extends AbstractData
         if ($tblLessonContentLink
             && ($LinkId = $tblLessonContentLink->getLinkId())
         ) {
-            $tblLessonContentLinkList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblLessonContentLink',
-                array(
-                    TblLessonContentLink::ATTR_TBL_LINK_ID => $LinkId
-                )
-            );
-            if ($tblLessonContentLinkList) {
-                /** @var TblLessonContentLink $item */
-                foreach ($tblLessonContentLinkList as $item) {
-                    if ($item->getTblLessonContent()
-                        && $item->getTblLessonContent()->getId() != $tblLessonContent->getId()
-                    ) {
-                        $resultList[] = $item->getTblLessonContent();
-                    }
-                }
-            }
+            return $this->getLessonContentLinkAllByLinkId($LinkId);
         }
 
-        return empty($resultList) ? false : $resultList;
+        return false;
     }
 
     /**
-     * @param TblLessonContent[] $tblLessonContentList
+     * @param TblCourseContent $tblCourseContent
+     *
+     * @return false | TblLessonContentLink[]
+     */
+    public function getLessonContentLinkAllByCourseContent(TblCourseContent $tblCourseContent): array|bool
+    {
+        /** @var TblLessonContentLink $tblLessonContentLink */
+        $tblLessonContentLink = $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblLessonContentLink',
+            array(
+                TblLessonContentLink::ATTR_TBL_COURSE_CONTENT => $tblCourseContent->getId()
+            )
+        );
+        if ($tblLessonContentLink
+            && ($LinkId = $tblLessonContentLink->getLinkId())
+        ) {
+            return $this->getLessonContentLinkAllByLinkId($LinkId);
+        }
+
+        return false;
+    }
+
+    /**
+     * @param int $linkId
+     *
+     * @return bool|TblLessonContentLink[]
+     */
+    public function getLessonContentLinkAllByLinkId(int $linkId): bool|array
+    {
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblLessonContentLink',
+            array(
+                TblLessonContentLink::ATTR_TBL_LINK_ID => $linkId
+            )
+        );
+    }
+
+    /**
+     * @param TblLessonContentLink $tblLessonContentLink
      *
      * @return bool
      */
-    public function destroyLessonContentLinkList(
-        array $tblLessonContentList
+    public function destroyLessonContentLink(
+        TblLessonContentLink $tblLessonContentLink
     ): bool {
-        $Manager = $this->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblLessonContentLink $Entity */
+        $Entity = $Manager->getEntityById('TblLessonContentLink', $tblLessonContentLink->getId());
+        if (null !== $Entity) {
+            $Manager->killEntity($Entity);
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
 
-        foreach ($tblLessonContentList as $tblLessonContent) {
-            /** @var TblLessonContent $Entity */
-            if (($tblLessonContentLinkList = $this->getForceEntityListBy(__METHOD__,
-                $Manager, 'TblLessonContentLink', array(TblLessonContentLink::ATTR_TBL_LESSON_CONTENT => $tblLessonContent->getId())))
-            ) {
-                foreach ($tblLessonContentLinkList as $tblLessonContentLink) {
-                    $Entity = $Manager->getEntityById('TblLessonContentLink', $tblLessonContentLink->getId());
-
-                    if (null !== $Entity) {
-                        $Manager->bulkKillEntity($Entity);
-                        Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity, true);
-                    }
-                }
-            }
+            return true;
         }
 
-        $Manager->flushCache();
-        Protocol::useService()->flushBulkEntries();
-
-        return true;
+        return false;
     }
 
     /**

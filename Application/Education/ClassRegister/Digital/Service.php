@@ -5,6 +5,7 @@ namespace SPHERE\Application\Education\ClassRegister\Digital;
 use DateInterval;
 use DateTime;
 use SPHERE\Application\Api\Education\ClassRegister\ApiDigital;
+use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblCourseContent;
 use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblFullTimeContent;
 use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblLessonContent;
 use SPHERE\Application\Education\ClassRegister\Digital\Service\Entity\TblLessonContentLink;
@@ -93,7 +94,8 @@ class Service extends ServiceTabs
             $tblDivisionCourse,
             $tblPerson ?: null,
             ($tblSubject = Subject::useService()->getSubjectById($Data['serviceTblSubject'])) ? $tblSubject : null,
-            ($tblSubstituteSubject = Subject::useService()->getSubjectById($Data['serviceTblSubstituteSubject'])) ? $tblSubstituteSubject : null,
+            isset($Data['serviceTblSubstituteSubject']) && ($tblSubstituteSubject = Subject::useService()->getSubjectById($Data['serviceTblSubstituteSubject']))
+                ? $tblSubstituteSubject : null,
             isset($Data['IsCanceled'])
         );
     }
@@ -139,12 +141,14 @@ class Service extends ServiceTabs
     {
         if (($tblLessonContentLinkList = $tblLessonContent->getLinkedLessonContentAll())) {
 
-            $tblLessonContentLinkList[] = $tblLessonContent;
             // Verknüpfungen löschen
-            $this->destroyLessonContentLinkList($tblLessonContentLinkList);
-
-            foreach ($tblLessonContentLinkList as $tblLessonContentItem) {
-                (new Data($this->getBinding()))->destroyLessonContent($tblLessonContentItem);
+            foreach ($tblLessonContentLinkList as $tblLessonContentLink) {
+                (new Data($this->getBinding()))->destroyLessonContentLink($tblLessonContentLink);
+                if (($tblLessonContentItem = $tblLessonContentLink->getTblLessonContent())) {
+                    (new Data($this->getBinding()))->destroyLessonContent($tblLessonContentItem);
+                } elseif (($tblCourseContentItem = $tblLessonContentLink->getTblCourseContent())) {
+                    (new Data($this->getBinding()))->destroyCourseContent($tblCourseContentItem);
+                }
             }
         } else {
             (new Data($this->getBinding()))->destroyLessonContent($tblLessonContent);
@@ -661,7 +665,7 @@ class Service extends ServiceTabs
                     'Zum Klassenbuch wechseln'
                 );
                 // Kursheft (SekII-Kurs)
-            } elseif ($tblDivisionCourse->getType()->getIsCourseSystem()) {
+            } elseif ($tblDivisionCourse->getType()->getIsCourseSystem() || $tblDivisionCourse->getIsDigital()) {
                 $option = new Standard(
                     '',
                     $baseRoute . '/CourseContent',
@@ -880,6 +884,17 @@ class Service extends ServiceTabs
     }
 
     /**
+     * @param TblCourseContent $tblCourseContent
+     * @param int $LinkId
+     *
+     * @return TblLessonContentLink
+     */
+    public function createCourseContentLink(TblCourseContent $tblCourseContent, int $LinkId): TblLessonContentLink
+    {
+        return (new Data($this->getBinding()))->createCourseContentLink($tblCourseContent, $LinkId);
+    }
+
+    /**
      * @return int
      */
     public function getNextLinkId(): int
@@ -890,22 +905,21 @@ class Service extends ServiceTabs
     /**
      * @param TblLessonContent $tblLessonContent
      *
-     * @return false | TblLessonContent[]
+     * @return false | TblLessonContentLink[]
      */
-    public function getLessonContentLinkAllByLessonContent(TblLessonContent $tblLessonContent)
+    public function getLessonContentLinkAllByLessonContent(TblLessonContent $tblLessonContent): array|bool
     {
         return (new Data($this->getBinding()))->getLessonContentLinkAllByLessonContent($tblLessonContent);
     }
 
     /**
-     * @param TblLessonContent[] $tblLessonContentList
+     * @param TblCourseContent $tblCourseContent
      *
-     * @return bool
+     * @return false | TblLessonContentLink[]
      */
-    public function destroyLessonContentLinkList(
-        array $tblLessonContentList
-    ): bool {
-        return (new Data($this->getBinding()))->destroyLessonContentLinkList($tblLessonContentList);
+    public function getLessonContentLinkAllByCourseContent(TblCourseContent $tblCourseContent): array|bool
+    {
+        return (new Data($this->getBinding()))->getLessonContentLinkAllByCourseContent($tblCourseContent);
     }
 
     /**
@@ -913,31 +927,56 @@ class Service extends ServiceTabs
      *
      * @return string
      */
-    public function getLessonContentLinkedDisplayPanel($LessonContentId): string
+    public function getLessonContentLinkedDisplayPanelByLessonContentId($LessonContentId): string
     {
         if (($tblLessonContent = Digital::useService()->getLessonContentById($LessonContentId))
             && ($tblLessonContentLinkedList = $tblLessonContent->getLinkedLessonContentAll())
         ) {
-            $panelContent = array();
+            return $this->getLessonContentLinkedDisplayPanel($tblLessonContentLinkedList);
+        }
 
-            if (($tblDivisionCourse = $tblLessonContent->getServiceTblDivisionCourse())) {
-                $panelContent[] = $tblDivisionCourse->getTypeName() . ' ' . $tblDivisionCourse->getDisplayName();
-            }
+        return '';
+    }
 
-            foreach ($tblLessonContentLinkedList as $tblLessonContentItem) {
-                if (($tblDivisionCourseItem = $tblLessonContentItem->getServiceTblDivisionCourse())) {
-                    $panelContent[] = $tblDivisionCourseItem->getTypeName() . ' ' . $tblDivisionCourseItem->getDisplayName();
-                }
-            }
+    /**
+     * @param $CourseContentId
+     *
+     * @return string
+     */
+    public function getLessonContentLinkedDisplayPanelByCourseContentId($CourseContentId): string
+    {
+        if (($tblCourseContent = Digital::useService()->getCourseContentById($CourseContentId))
+            && ($tblLessonContentLinkedList = $tblCourseContent->getLinkedLessonContentAll())
+        ) {
+            return $this->getLessonContentLinkedDisplayPanel($tblLessonContentLinkedList);
+        }
 
-            if (!empty($panelContent)) {
-                sort($panelContent);
-                return new Panel(
-                    'Verknüpfte Thema/Hausaufgaben',
-                    $panelContent,
-                    Panel::PANEL_TYPE_INFO
-                );
+        return '';
+    }
+
+    private function getLessonContentLinkedDisplayPanel(array $tblLessonContentLinkedList): string
+    {
+        $panelContent = array();
+
+        foreach ($tblLessonContentLinkedList as $tblLessonContentLink) {
+            if (($tblLessonContentItem = $tblLessonContentLink->getTblLessonContent())
+                && ($tblDivisionCourseItem = $tblLessonContentItem->getServiceTblDivisionCourse())
+            ) {
+                $panelContent[$tblDivisionCourseItem->getId()] = $tblDivisionCourseItem->getTypeName() . ' ' . $tblDivisionCourseItem->getDisplayName();
+            } elseif (($tblCourseContentItem = $tblLessonContentLink->getTblCourseContent())
+                && ($tblDivisionCourseItem = $tblCourseContentItem->getServiceTblDivisionCourse())
+            ) {
+                $panelContent[$tblDivisionCourseItem->getId()] = 'Kursheft für ' . $tblDivisionCourseItem->getTypeName() . ' ' . $tblDivisionCourseItem->getDisplayName();
             }
+        }
+
+        if (!empty($panelContent)) {
+            sort($panelContent);
+            return new Panel(
+                'Verknüpfte Thema/Hausaufgaben',
+                $panelContent,
+                Panel::PANEL_TYPE_INFO
+            );
         }
 
         return '';
@@ -1112,10 +1151,11 @@ class Service extends ServiceTabs
     /**
      * @param array $tblYearList
      * @param bool $IsAllYears
+     * @param bool $AddIsDigital
      *
      * @return TblDivisionCourse[]
      */
-    public function getDivisionCourseListForDigital(array $tblYearList, bool $IsAllYears = false): array
+    public function getDivisionCourseListForDigital(array $tblYearList, bool $IsAllYears = false, bool $AddIsDigital = false): array
     {
         $tblDivisionCourseList = [];
         if ($IsAllYears) {
@@ -1125,6 +1165,11 @@ class Service extends ServiceTabs
             if (($tblDivisionCourseListCoreGroup = DivisionCourse::useService()->getDivisionCourseListBy(null, TblDivisionCourseType::TYPE_CORE_GROUP))) {
                 $tblDivisionCourseList = array_merge($tblDivisionCourseList, $tblDivisionCourseListCoreGroup);
             }
+            if ($AddIsDigital
+                && ($tblDivisionCourseListTeacherGroup = DivisionCourse::useService()->getDivisionCourseListByIsDigital())
+            ) {
+                $tblDivisionCourseList = array_merge($tblDivisionCourseList, $tblDivisionCourseListTeacherGroup);
+            }
         } else {
             foreach ($tblYearList as $tblYear) {
                 if (($tblDivisionCourseListDivision = DivisionCourse::useService()->getDivisionCourseListBy($tblYear, TblDivisionCourseType::TYPE_DIVISION))) {
@@ -1132,6 +1177,11 @@ class Service extends ServiceTabs
                 }
                 if (($tblDivisionCourseListCoreGroup = DivisionCourse::useService()->getDivisionCourseListBy($tblYear, TblDivisionCourseType::TYPE_CORE_GROUP))) {
                     $tblDivisionCourseList = array_merge($tblDivisionCourseList, $tblDivisionCourseListCoreGroup);
+                }
+                if ($AddIsDigital
+                    && ($tblDivisionCourseListTeacherGroup = DivisionCourse::useService()->getDivisionCourseListByIsDigital($tblYear))
+                ) {
+                    $tblDivisionCourseList = array_merge($tblDivisionCourseList, $tblDivisionCourseListTeacherGroup);
                 }
             }
         }

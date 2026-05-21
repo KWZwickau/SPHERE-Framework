@@ -441,12 +441,12 @@ class Person extends Extension
     {
         if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))
             && ($tblYear = $tblDivisionCourse->getServiceTblYear())
-            && ($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses())
+            && ($tblMemberList = $tblDivisionCourse->getStudentsWithSubCourses(true, false))
         ) {
             $name = 'Fehlzeiten der ' . $tblDivisionCourse->getTypeName() . $tblDivisionCourse->getName();
 
             list($dataList, $countList) = Absence::useService()->getMonthAbsencesForExcelDownload($tblDivisionCourse);
-            $fileLocation = ReportingPerson::useService()->createAbsenceContentExcelMonthly($tblPersonList, $dataList, $countList, $tblYear);
+            $fileLocation = ReportingPerson::useService()->createAbsenceContentExcelMonthly($tblMemberList, $dataList, $countList, $tblYear, $tblDivisionCourse);
 
             return FileSystem::getDownload($fileLocation->getRealPath(), $name . ' ' . date("Y-m-d H:i:s").".xlsx")->__toString();
         }
@@ -473,14 +473,19 @@ class Person extends Extension
                 break;
             case View::FOS: $tblSchoolType = Type::useService()->getTypeByShortName('FOS');
                 break;
+            case View::BFS: $tblSchoolType = Type::useService()->getTypeByShortName('BFS');
+                break;
+            case View::FS: $tblSchoolType = Type::useService()->getTypeByShortName('FS');
+                break;
             default: $tblSchoolType = false;
         }
 
         $subjectList = array();
+        $complexExamList = array();
         if($tblSchoolType
             && ($tblYear = Term::useService()->getYearById($YearId))
-            && ($content = Reporting::useService()->getDiplomaSerialMailContent($tblSchoolType, $tblYear, $tblCourse ?: null, $subjectList))
-            && ($fileLocation = Reporting::useService()->createDiplomaSerialMailContentExcel($content, $subjectList))
+            && ($content = Reporting::useService()->getDiplomaSerialMailContent($tblSchoolType, $tblYear, $tblCourse ?: null, $subjectList, $complexExamList))
+            && ($fileLocation = Reporting::useService()->createDiplomaSerialMailContentExcel($content, $subjectList, $complexExamList))
         ){
             return FileSystem::getDownload($fileLocation->getRealPath(),
                 'Serien E-Mail für Prüfungsnoten ' . $tblSchoolType->getShortName()

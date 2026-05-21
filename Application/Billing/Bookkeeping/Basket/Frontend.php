@@ -107,6 +107,7 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $Stage = new Stage('Abrechnung', 'Übersicht');
+        ini_set('memory_limit', '1G');
         $Stage->setMessage('Zeigt alle aktiven Abrechnungen an');
 
         $Stage->addButton((new Primary('Abrechnung hinzufügen', ApiBasket::getEndpoint(), new Plus()))

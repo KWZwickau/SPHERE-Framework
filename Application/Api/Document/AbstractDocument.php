@@ -21,6 +21,8 @@ use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Relationship;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer as GatekeeperConsumer;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Application\Setting\Consumer\Responsibility\Responsibility;
 use SPHERE\Application\Setting\Consumer\School\School;
@@ -298,7 +300,12 @@ abstract class AbstractDocument
                 }
 
                 // Bildungsempfehlung für Oberschule/Gymnasium
-                if (($tblCertificate = Generator::useService()->getCertificateByCertificateClassName('BeGs'))
+                if (GatekeeperConsumer::useService()->getConsumerBySessionIsConsumer(TblConsumer::TYPE_SACHSEN, 'MLS')){
+                    $certificateClassName = 'MLS\BeGs';
+                } else {
+                    $certificateClassName = 'BeGs';
+                }
+                if (($tblCertificate = Generator::useService()->getCertificateByCertificateClassName($certificateClassName))
                     && ($tblPrepareStudentList = Prepare::useService()->getPrepareStudentAllByPerson($tblPerson, $tblCertificate ))
                 ) {
                     foreach ($tblPrepareStudentList as $tblPrepareStudent) {

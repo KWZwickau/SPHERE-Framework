@@ -11,8 +11,10 @@ use SPHERE\Application\Education\ClassRegister\Timetable\Service\Entity\TblTimet
 use SPHERE\Application\Education\ClassRegister\Timetable\Service\Entity\TblTimetableReplacement;
 use SPHERE\Application\Education\ClassRegister\Timetable\Service\Entity\TblTimetableNode;
 use SPHERE\Application\Education\ClassRegister\Timetable\Service\Entity\TblTimetableReplacementLog;
+use SPHERE\Application\Education\ClassRegister\Timetable\Service\Entity\TblTimetableReplacementPut;
 use SPHERE\Application\Education\ClassRegister\Timetable\Service\Entity\TblTimetableWeek;
 use SPHERE\Application\Education\ClassRegister\Timetable\Service\Setup;
+use SPHERE\Application\Education\Graduation\Grade\Grade;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
@@ -21,6 +23,7 @@ use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
+use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
@@ -39,6 +42,7 @@ use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Center;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
+use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Service
@@ -169,10 +173,28 @@ class Service extends AbstractService
     /**
      * @return TblTimetableReplacementLog[]|null
      */
-    public function getTimetableReplacementLogAll()
+    public function getTimetableReplacementLogAll($isForced = false)
     {
 
-        return (new Data($this->getBinding()))->getTimetableReplacementLogAll();
+        return (new Data($this->getBinding()))->getTimetableReplacementLogAll($isForced);
+    }
+
+    /**
+     * @return TblTimetableReplacementPut[]|null
+     */
+    public function getTimetableReplacementPutAll($isForced = false)
+    {
+
+        return (new Data($this->getBinding()))->getTimetableReplacementPutAll($isForced);
+    }
+
+    /**
+     * @return TblTimetableReplacementPut|null
+     */
+    public function getTimetableReplacementPutLast()
+    {
+
+        return (new Data($this->getBinding()))->getTimetableReplacementPutLast();
     }
 
     /**
@@ -341,6 +363,26 @@ class Service extends AbstractService
 
         (new Data($this->getBinding()))->destroyTimetableReplacementLogAllBulk();
         return (new Data($this->getBinding()))->createTimetableReplacementLogEntity($Message);
+    }
+
+    /**
+     * @param string $json
+     * @return void
+     */
+    public function createTimetableReplacementPut($json): void
+    {
+
+        // limitieren auf 10
+        if(($tblTimetableReplacementPutAll = $this->getTimetableReplacementPutAll())
+            && $tblTimetableReplacementPutAll
+            && count($tblTimetableReplacementPutAll) >= 10){
+            $tblTimetableReplacementPut =  end($tblTimetableReplacementPutAll);
+            if($tblTimetableReplacementPut){
+                $this->removeTimetableReplacementPut($tblTimetableReplacementPut);
+            }
+        }
+
+        (new Data($this->getBinding()))->createTimetableReplacementPut($json);
     }
 
     /**
@@ -743,6 +785,16 @@ class Service extends AbstractService
                     $item->setHour($tblTimetableReplacement->getHour());
 
                     $resultList[] = $item;
+                    // Änderung aus Indiware kommt ohne vertretungsfach, muss aber auch mit angezeigt werden
+                } elseif(!$tblTimetableReplacement->getIsCanceled() && $tblTimetableReplacement->getServiceTblSubject()) {
+
+                    $item = new TblTimetableNode();
+                    $item->setServiceTblCourse($tblTimetableReplacement->getServiceTblCourse() ?: null);
+                    $item->setServiceTblSubject($tblTimetableReplacement->getServiceTblSubject());
+                    $item->setRoom($tblTimetableReplacement->getRoom());
+                    $item->setHour($tblTimetableReplacement->getHour());
+
+                    $resultList[] = $item;
                 }
             }
         }
@@ -766,7 +818,24 @@ class Service extends AbstractService
         foreach ($resultList as $item) {
             /** @var TblDivisionCourse $tblDivisionCourse */
             if (($tblDivisionCourse = $item->getServiceTblCourse()) && ($tblSubject = $item->getServiceTblSubject())) {
-                if ($tblDivisionCourse->getType()->getIsCourseSystem()) {
+                // Lerngruppe statt Klassentagebuch anzeigen, wenn Lehrer eine Lerngruppe mit Kursheft in dem Fach hat
+                if (($tblPerson = Account::useService()->getPersonByLogin())
+                    && ($teacherGroups = Grade::useService()->getTeacherGroupsByTeacherAndDivisionCourseAndSubject(
+                        $tblPerson, $tblDivisionCourse, $tblSubject, true
+                    ))
+                ) {
+                    $tblDivisionCourseTeacherGroup = reset($teacherGroups);
+                    $option = new Standard(
+                        '',
+                        $baseRoute . '/CourseContent',
+                        new Extern(),
+                        array(
+                            'DivisionCourseId' => $tblDivisionCourseTeacherGroup->getId(),
+                            'BasicRoute' => $baseRoute . '/Teacher'
+                        ),
+                        'Zum Kursheft wechseln'
+                    );
+                } elseif ($tblDivisionCourse->getType()->getIsCourseSystem()) {
                     $option = new Standard(
                         '',
                         $baseRoute . '/CourseContent',
@@ -911,6 +980,15 @@ class Service extends AbstractService
     public function destroyTimetableReplacementLogBulk(): bool
     {
         return (new Data($this->getBinding()))->destroyTimetableReplacementLogBulk();
+    }
+
+    /**
+     * @param TblTimetableReplacementPut $tblTimetableReplacementPut
+     * @return void
+     */
+    public function removeTimetableReplacementPut(TblTimetableReplacementPut $tblTimetableReplacementPut): void
+    {
+        (new Data($this->getBinding()))->removeTimetableReplacementPut($tblTimetableReplacementPut);
     }
 
     /**
@@ -1302,5 +1380,64 @@ class Service extends AbstractService
         }
 
         return '';
+    }
+
+    /**
+     * @param TblTimetable $tblTimetable
+     * @param TblDivisionCourse $tblDivisionCourse
+     *
+     * @return array
+     */
+    public function getTimetableDivisionData(TblTimetable $tblTimetable, TblDivisionCourse $tblDivisionCourse): array
+    {
+        $headerList = [];
+        $bodyList = [];
+        $headerList['UE'] = 'UE';
+
+        if ($tblDivisionCourse->getHasSaturdayLessons()) {
+            $daysInWeek = 6;
+        } else {
+            $daysInWeek = 5;
+        }
+
+        $maxLesson = 12;
+        if (($tblSetting = Consumer::useService()->getSetting('Education', 'ClassRegister', 'LessonContent', 'StartsLessonContentWithZeroLesson'))
+            && $tblSetting->getValue()
+        ) {
+            $minLesson = 0;
+        } else {
+            $minLesson = 1;
+        }
+
+        $dayNames = array(
+            '0' => 'Sonntag',
+            '1' => 'Montag',
+            '2' => 'Dienstag',
+            '3' => 'Mittwoch',
+            '4' => 'Donnerstag',
+            '5' => 'Freitag',
+            '6' => 'Samstag',
+        );
+
+        for ($day = 1; $day <= $daysInWeek; $day++) {
+            $headerList[$dayNames[$day]] = $dayNames[$day];
+            for ($lesson = $minLesson; $lesson <= $maxLesson; $lesson++) {
+                $bodyList[$lesson]['UE'] = $lesson . '.';
+            }
+            if (($tblTimetableNodeList = Timetable::useService()->getTimetableNodeListByTimetableAndDivisionCourseAndDay($tblTimetable, $tblDivisionCourse, $day))) {
+                foreach ($tblTimetableNodeList as $tblTimetableNode) {
+                    $bodyList[$tblTimetableNode->getHour()][$dayNames[$day]]
+                        = (isset($bodyList[$tblTimetableNode->getHour()][$day]) ? $bodyList[$tblTimetableNode->getHour()][$day] . ', ' : '')
+                        . (($tblSubject = $tblTimetableNode->getServiceTblSubject()) ? $tblSubject->getAcronym() : '')
+                        . ($tblTimetableNode->getWeek() ? ' (' . $tblTimetableNode->getWeek() . ')' : '')
+                        . (($room = $tblTimetableNode->getRoom()) ? ' [' . $room . ']' : '');
+                }
+            }
+        }
+
+        return [
+            $headerList,
+            $bodyList
+        ];
     }
 }

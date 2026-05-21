@@ -591,8 +591,8 @@ class Service extends AbstractService
             'PersonExcel' => $tblPerson->getLastFirstName(),
             'DateSpan' => $tblAbsence->getDateSpan(),
             'DateSort' => $tblAbsence->getFromDate('Y.m.d'),
-            'DateFrom' => ($isOnlineAbsence ? '<span style="color:darkorange">' . $tblAbsence->getFromDate() . '</span>' : $tblAbsence->getFromDate()),
-            'DateTo' => ($isOnlineAbsence ? '<span style="color:darkorange">' . $tblAbsence->getToDate() . '</span>' : $tblAbsence->getToDate()),
+            'DateFrom' => $tblAbsence->getFromDate(),
+            'DateTo' => $tblAbsence->getToDate(),
             'PersonCreator' => $tblAbsence->getDisplayPersonCreator(false),
             'Status' => $tblAbsence->getStatusDisplayName(),
             'StatusExcel' => $tblAbsence->getStatus() == TblAbsence::VALUE_STATUS_UNCLEAR ? 'Unklar' : $tblAbsence->getStatusDisplayShortName(),
@@ -849,7 +849,7 @@ class Service extends AbstractService
         $countList = array();
 
         if (($tblYear = $tblDivisionCourse->getServiceTblYear())
-            && ($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses())
+            && ($tblPersonList = $tblDivisionCourse->getStudentsWithSubCourses(true))
         ) {
             list($startDate, $endDate) = Term::useService()->getStartDateAndEndDateOfYear($tblYear);
             if ($startDate && $endDate) {

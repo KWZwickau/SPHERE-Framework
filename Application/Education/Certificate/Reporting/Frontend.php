@@ -199,6 +199,30 @@ class Frontend extends Extension implements IFrontendInterface
                     'Auswertung der Prüfungsnoten für die LaSuB für Fachoberschulabschlusszeugnisse herunterladen'
                 )));
         }
+        if (!$typeList || isset($typeList['BFS'])) {
+            $serialMailItemList[] = 'Berufsfachschule ' . new PullRight((new Standard(
+                    '',
+                    '/Api/Reporting/Standard/Person/Certificate/Diploma/SerialMail/Download',
+                    new Download(),
+                    array(
+                        'View' => View::BFS,
+                        'YearId' => $YearId
+                    ),
+                    'Serien E-Mail mit Prüfungsnoten für Berufsfachschulabschlusszeugnisse herunterladen'
+                )));
+        }
+        if (!$typeList || isset($typeList['FS'])) {
+            $serialMailItemList[] = 'Fachschule ' . new PullRight((new Standard(
+                    '',
+                    '/Api/Reporting/Standard/Person/Certificate/Diploma/SerialMail/Download',
+                    new Download(),
+                    array(
+                        'View' => View::FS,
+                        'YearId' => $YearId
+                    ),
+                    'Serien E-Mail mit Prüfungsnoten für Fachschulabschlusszeugnisse herunterladen'
+                )));
+        }
 
         if (!$typeList || isset($typeList['Gy']) || isset($typeList['BGy'])) {
             $tblSchoolTypeGy = Type::useService()->getTypeByShortName('Gy');

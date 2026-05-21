@@ -33,7 +33,7 @@ use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Info;
 use SPHERE\Common\Window\Stage;
 
-class FrontendSelectDivisionCourse extends FrontendForgotten
+class FrontendSelectDivisionCourse extends FrontendMail
 {
     /**
      * @return Stage
@@ -117,12 +117,23 @@ class FrontendSelectDivisionCourse extends FrontendForgotten
                             }
                         }
                     }
+
+                    // Eigene Lerngruppen mit Kursheft
+                    if (($tblDivisionCourseListTeacherGroup = DivisionCourse::useService()->getTeacherGroupListByTeacherAndYear($tblPerson, $tblYear))) {
+                        foreach ($tblDivisionCourseListTeacherGroup as $teacherGroup) {
+                            if ($teacherGroup->getIsDigital()) {
+                                $tblDivisionCourseList[$teacherGroup->getId()] = $teacherGroup;
+                            }
+                        }
+                    }
                 }
             }
 
             /** @var TblDivisionCourse $tblDivisionCourse */
             foreach ($tblDivisionCourseList as $tblDivisionCourse) {
-                if ($tblDivisionCourse->getType()->getIsCourseSystem()) {
+                if ($tblDivisionCourse->getType()->getIsCourseSystem()
+                    || $tblDivisionCourse->getIsDigital()
+                ) {
                     $route = self::BASE_ROUTE . '/CourseContent';
                     // SSW-2850 Ausnahme für KG DKC
                 } elseif ($tblDivisionCourse->getName() != '2526 DKC' && DivisionCourse::useService()->getIsCourseSystemByStudentsInDivisionCourse($tblDivisionCourse)) {
@@ -291,10 +302,21 @@ class FrontendSelectDivisionCourse extends FrontendForgotten
             $IsAllYears, $YearId, Access::useService()->hasAuthorization('/Education/ClassRegister/Digital/Instruction/Setting'), true, $yearFilterList, $hasLastYearsTemp, true);
 
         $dataList = array();
-        $tblDivisionCourseList = Digital::useService()->getDivisionCourseListForDigital($yearFilterList, $IsAllYears);
+        $tblDivisionCourseList = Digital::useService()->getDivisionCourseListForDigital($yearFilterList, $IsAllYears, true);
 
-        /** @var TblDivisionCourse $tblDivisionCourse */
         foreach ($tblDivisionCourseList as $tblDivisionCourse) {
+            if ($tblDivisionCourse->getIsDigital()) {
+                $route = self::BASE_ROUTE . '/CourseContent';
+            } elseif (
+                // SSW-2850 Ausnahme für KG DKC
+                $tblDivisionCourse->getName() != '2526 DKC'
+                && DivisionCourse::useService()->getIsCourseSystemByStudentsInDivisionCourse($tblDivisionCourse)
+            ) {
+                $route = self::BASE_ROUTE . '/SelectCourse';
+            } else {
+                $route = self::BASE_ROUTE . '/LessonContent';
+            }
+
             $dataList[] = array(
                 'Year' => $tblDivisionCourse->getYearName(),
                 'DivisionCourse' => $tblDivisionCourse->getDisplayName(),
@@ -303,11 +325,7 @@ class FrontendSelectDivisionCourse extends FrontendForgotten
                 'Teachers' => $tblDivisionCourse->getDivisionTeacherNameListString(),
                 'Option' => new Standard(
                     '',
-                    // SSW-2850 Ausnahme für KG DKC
-                    $tblDivisionCourse->getName() != '2526 DKC'
-                    && DivisionCourse::useService()->getIsCourseSystemByStudentsInDivisionCourse($tblDivisionCourse)
-                        ? self::BASE_ROUTE . '/SelectCourse'
-                        : self::BASE_ROUTE . '/LessonContent',
+                    $route,
                     new Select(),
                     array(
                         'DivisionCourseId' => $tblDivisionCourse->getId(),

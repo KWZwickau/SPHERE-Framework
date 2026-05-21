@@ -994,6 +994,8 @@ class FrontendStudent extends FrontendMember
 
 //                              $address = ($tblAddress = $tblPerson->fetchMainAddress()) ? $tblAddress->getGuiString() : new WarningText('Keine Adresse hinterlegt');
 
+                                $division = '';
+                                $coreGroup = '';
                                 if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))) {
                                     $company = ($tblCompany = $tblStudentEducation->getServiceTblCompany())
                                         ? $tblCompany->getDisplayName() : new WarningText('Keine Schule hinterlegt');
@@ -1007,6 +1009,12 @@ class FrontendStudent extends FrontendMember
                                         $warningCourse = new WarningText('Keine Bildungsgang hinterlegt');
                                     }
                                     $course = ($tblCourse = $tblStudentEducation->getServiceTblCourse()) ? $tblCourse->getName() : $warningCourse;
+                                    if (($tblDivision = $tblStudentEducation->getTblDivision())) {
+                                        $division = $tblDivision->getName();
+                                    }
+                                    if (($tblCoreGroup = $tblStudentEducation->getTblCoreGroup())) {
+                                        $coreGroup = $tblCoreGroup->getName();
+                                    }
                                 } else {
                                     $company = new WarningText('Keine Schule hinterlegt');
                                     $level = new WarningText('Keine Klassenstufe hinterlegt');
@@ -1038,6 +1046,10 @@ class FrontendStudent extends FrontendMember
                                 $item['Company'] = $isInActive ? new Strikethrough($company) : $company;
                                 $item['Level'] = $isInActive ? new Strikethrough($level) : $level;
                                 $item['Course'] = $isInActive ? new Strikethrough($course) : $course;
+                                if ($tblDivisionCourse->getType()->getIdentifier() == TblDivisionCourseType::TYPE_TEACHING_GROUP) {
+                                    $item['Division'] = $division;
+                                    $item['CoreGroup'] = $coreGroup;
+                                }
 
                                 if ($isInActive) {
                                     $item['Option'] = '';
@@ -1053,7 +1065,6 @@ class FrontendStudent extends FrontendMember
 //                                            $tblPerson->getId()
 //                                        ));
                                 }
-
 
                                 $studentList[] = $item;
                             }
@@ -1104,6 +1115,10 @@ class FrontendStudent extends FrontendMember
                 $headerStudentColumnList[] = $this->getTableHeaderColumn('Schule', $backgroundColor);
                 $headerStudentColumnList[] = $this->getTableHeaderColumn('Klassen&shy;stufe', $backgroundColor);
                 $headerStudentColumnList[] = $this->getTableHeaderColumn('Bildungs&shy;gang', $backgroundColor);
+                if ($tblDivisionCourse->getType()->getIdentifier() == TblDivisionCourseType::TYPE_TEACHING_GROUP) {
+                    $headerStudentColumnList[] = $this->getTableHeaderColumn('Klasse', $backgroundColor);
+                    $headerStudentColumnList[] = $this->getTableHeaderColumn('Stammgruppe', $backgroundColor);
+                }
                 $headerStudentColumnList[] = $this->getTableHeaderColumn('&nbsp; ', $backgroundColor, '95px');
             }
 

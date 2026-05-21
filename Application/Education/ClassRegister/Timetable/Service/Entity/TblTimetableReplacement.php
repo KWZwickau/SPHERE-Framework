@@ -72,7 +72,7 @@ class TblTimetableReplacement extends Element
     /**
      * @Column(type="bigint")
      */
-    protected int $serviceTblPerson;
+    protected ?int $serviceTblPerson = null;
 
     /**
      * @param bool $getDateTimeObjekt

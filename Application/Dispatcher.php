@@ -38,15 +38,6 @@ class Dispatcher extends Extension implements DispatcherInterface
 
         if (null !== $Router) {
             self::$Router = $Router;
-
-            // Roadmap
-            try {
-                $this->registerRoute($this->createRoute('Roadmap/Current',
-                    'SPHERE\Application\Platform\Roadmap\Roadmap::frontendDashboard')
-                );
-            } catch (\Exception $Exception) {
-                $this->getLogger(new ErrorLogger())->addLog('Unable to register Roadmap');
-            }
         }
     }
 

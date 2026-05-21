@@ -38,15 +38,22 @@ class Service extends AbstractService
      */
     public function updateMetaService(TblPerson $tblPerson, $Meta)
     {
+        $employmentStart = isset($Meta['EmploymentStart']) && $Meta['EmploymentStart'] !== '' ? $Meta['EmploymentStart'] : null;
+        $employmentEnd   = isset($Meta['EmploymentEnd'])   && $Meta['EmploymentEnd']   !== '' ? $Meta['EmploymentEnd']   : null;
+
         if ($tblTeacher = $this->getTeacherByPerson($tblPerson)) {
             return (new Data($this->getBinding()))->updateTeacher(
                 $tblTeacher,
-                $Meta['Acronym']
+                $Meta['Acronym'],
+                $employmentStart,
+                $employmentEnd
             );
         } else {
             return (new Data($this->getBinding()))->createTeacher(
                 $tblPerson,
-                $Meta['Acronym']
+                $Meta['Acronym'],
+                $employmentStart,
+                $employmentEnd
             );
         }
     }
@@ -112,15 +119,19 @@ class Service extends AbstractService
     /**
      * @param TblPerson $tblPerson
      * @param $Acronym
+     * @param $EmploymentStart
+     * @param $EmploymentEnd
      *
      * @return TblTeacher
      */
     public function insertTeacher(
         TblPerson $tblPerson,
-        $Acronym
+        $Acronym,
+        $EmploymentStart = null,
+        $EmploymentEnd = null
     ) {
 
-        return (new Data($this->getBinding()))->createTeacher($tblPerson, $Acronym);
+        return (new Data($this->getBinding()))->createTeacher($tblPerson, $Acronym, $EmploymentStart, $EmploymentEnd);
     }
 
     /**

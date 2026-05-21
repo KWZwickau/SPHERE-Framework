@@ -14,7 +14,7 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Window\Redirect;
-use SPHERE\System\Cache\Handler\MemcachedHandler;
+use SPHERE\System\Cache\Handler\RedisHandler;
 use SPHERE\System\Database\Binding\AbstractService;
 
 /**
@@ -97,7 +97,7 @@ class Service extends AbstractService
 
         if (empty( self::$AuthorizationCache )) {
             if (false !== ( $tblAccount = Account::useService()->getAccountBySession() )) {
-                $Cache = $this->getCache(new MemcachedHandler());
+                $Cache = $this->getCache(new RedisHandler());
                 if (!( $AuthorizationCache = $Cache->getValue($tblAccount->getId(), __METHOD__) )) {
                     if (false !== ( $tblAuthorizationAll = Account::useService()->getAuthorizationAllByAccount($tblAccount) )) {
                         /** @var \SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAuthorization $tblAuthorization */

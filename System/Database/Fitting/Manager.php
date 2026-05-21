@@ -7,9 +7,12 @@ use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\OptimisticLockException;
 use Doctrine\ORM\ORMException;
 use Doctrine\ORM\TransactionRequiredException;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblSession;
 use SPHERE\System\Cache\Handler\DataCacheHandler;
+use SPHERE\System\Cache\Handler\DefaultHandler;
 use SPHERE\System\Cache\Handler\MemcachedHandler;
 use SPHERE\System\Cache\Handler\MemoryHandler;
+use SPHERE\System\Cache\Handler\RedisHandler;
 use SPHERE\System\Database\Link\Identifier;
 use SPHERE\System\Database\Link\Register;
 use SPHERE\System\Debugger\Logger\CacheLogger;
@@ -122,72 +125,51 @@ class Manager extends Extension
     final public function flushCache($Region = null)
     {
 
-        /** @var MemcachedHandler $Cache */
-        $Cache = $this->getCache(new MemcachedHandler());
-        if ($Cache instanceof MemcachedHandler && preg_match('!Gatekeeper!', $this->Namespace)) {
-            $this->getLogger(new CacheLogger())->addLog(
-                'Manager Full-Slot-Flush '.$Cache->getSlot().' Trigger: '.$this->Namespace
-            );
-            if (!( $KeyList = $Cache->getCache()->getAllKeys() )) {
-                $KeyList = array();
-            }
-            $ClearList = preg_grep("/^".preg_quote($Cache->getSlot(), '/').".*/is", $KeyList);
-            // Exclude Roadmap
-            $ExcludeList = preg_grep("/^".preg_quote($Cache->getSlot(), '/').".*".preg_quote('Roadmap', '/').".*/is",
-                $KeyList);
-            if ($ExcludeList) {
-                foreach ((array)$ExcludeList as $Index => $Item) {
-                    unset( $ClearList[$Index] );
-                }
-            }
-            // Clear
-            $Cache->getCache()->deleteMulti($ClearList);
-            $ClearList = preg_grep("/^".preg_quote('PUBLIC', '/').".*/is", $KeyList);
-            $Cache->getCache()->deleteMulti($ClearList);
+        /** @var DefaultHandler|MemcachedHandler|RedisHandler $Cache */
+        $Cache = $this->getCache(new RedisHandler());
+
+        if( is_a($Cache, RedisHandler::class) || is_a($Cache,MemcachedHandler::class) ){
+            $cacheIsActive = true;
         } else {
-            if ($Cache instanceof MemcachedHandler) {
-                if (!preg_match('!'.preg_quote('Platform\\System\\', '!').'(Archive|Protocol)!', $this->Namespace)) {
-                    // Clear distributed Cache-System (if possible)
-                    if (null === $Region) {
-                        /** @var MemcachedHandler $Cache */
-                        if (!( $KeyList = $Cache->getCache()->getAllKeys() )) {
-                            $KeyList = array();
+            $cacheIsActive = false;
+        }
+
+        // TblSession MUST USE Forced Entity, or todo: special case TblSession
+        if ($cacheIsActive && $Region !== TblSession::class) {
+            if (!preg_match('!'.preg_quote('Platform\\System\\', '!').'(Archive|Protocol)!', $this->Namespace)) {
+                // Clear distributed Cache-System (if possible)
+                $KeyList = $Cache->fetchKeys();
+                if (null === $Region) {
+                    $ClearList = preg_grep("/^".preg_quote($Cache->getSlot(), '/').".*/is", $KeyList);
+                    $this->getLogger(new CacheLogger())->addLog(
+                        'Manager Slot-Flush '.$Cache->getSlot().' Trigger: '.$this->Namespace
+                    );
+                    $Cache->removeKeys($ClearList);
+                } else {
+                    $RegionList = explode('\\', $this->Namespace);
+                    $RegionList = array_filter($RegionList);
+                    $RegionList[0] = $Cache->getSlotRegion($RegionList[0]);
+                    $RegionList = array_slice($RegionList, 0, count($RegionList) - 2);
+                    foreach ($RegionList as $Index => $Region) {
+                        if ($Index > 0 && !empty( $Region ) && $Index < 4) {
+                            $RegionList[$Index] = $RegionList[$Index - 1].'\\'.$Region;
                         }
-                        $ClearList = preg_grep("/^".preg_quote($Cache->getSlot(), '/').".*/is", $KeyList);
-                        $this->getLogger(new CacheLogger())->addLog(
-                            'Manager Slot-Flush '.$Cache->getSlot().' Trigger: '.$this->Namespace
-                        );
-                        $Cache->getCache()->deleteMulti($ClearList);
-                        $ClearList = preg_grep("/^".preg_quote('PUBLIC', '/').".*/is", $KeyList);
-                        $Cache->getCache()->deleteMulti($ClearList);
-                    } else {
-                        /** @var MemcachedHandler $Cache */
-                        if (!( $KeyList = $Cache->getCache()->getAllKeys() )) {
-                            $KeyList = array();
-                        }
-                        $RegionList = explode('\\', $this->Namespace);
-                        $RegionList = array_filter($RegionList);
-                        $RegionList[0] = $Cache->getSlotRegion($RegionList[0]);
-                        $RegionList = array_slice($RegionList, 0, count($RegionList) - 2);
-                        foreach ($RegionList as $Index => $Region) {
-                            if ($Index > 0 && !empty( $Region ) && $Index < 4) {
-                                $RegionList[$Index] = $RegionList[$Index - 1].'\\'.$Region;
-                            }
-                        }
-                        $RegionList = array_filter($RegionList);
-                        krsort($RegionList);
-                        foreach ($RegionList as $Region) {
-                            $ClearList = preg_grep("/^".preg_quote($Region, '/').".*/is", $KeyList);
-                            if (!empty( $ClearList ) && substr_count($Region, '\\') > 1) {
-                                $this->getLogger(new CacheLogger())->addLog(
-                                    'Manager Region-Flush '.$Cache->getSlot().' '.$Region.' Trigger: '.$this->Namespace
-                                );
-                                $Cache->getCache()->deleteMulti($ClearList);
-                                break;
-                            }
+                    }
+                    $RegionList = array_filter($RegionList);
+                    krsort($RegionList);
+                    foreach ($RegionList as $Region) {
+                        $ClearList = preg_grep("/^".preg_quote($Region, '/').".*/is", $KeyList);
+                        if (!empty( $ClearList ) && substr_count($Region, '\\') > 1) {
+                            $this->getLogger(new CacheLogger())->addLog(
+                                'Manager Region-Flush '.$Cache->getSlot().' '.$Region.' Trigger: '.$this->Namespace
+                            );
+                            $Cache->removeKeys($ClearList);
+                            break;
                         }
                     }
                 }
+                $ClearList = preg_grep("/^".preg_quote('PUBLIC', '/').".*/is", $KeyList);
+                $Cache->removeKeys($ClearList);
             }
         }
         $this->getCache(new MemoryHandler())->clearCache();

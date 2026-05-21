@@ -495,6 +495,9 @@ class Setup extends AbstractSetup
         $Table = $this->getConnection()->createTable($Schema, 'tblStudentLiberation');
         $this->getConnection()->addForeignKey($Table, $tblStudent);
         $this->getConnection()->addForeignKey($Table, $tblStudentLiberationType);
+        $this->createColumn($Table, 'DateFrom', self::FIELD_TYPE_DATETIME, true);
+        $this->createColumn($Table, 'DateTo', self::FIELD_TYPE_DATETIME, true);
+        $this->createColumn($Table, 'Description', self::FIELD_TYPE_TEXT, true);
         return $Table;
     }
 

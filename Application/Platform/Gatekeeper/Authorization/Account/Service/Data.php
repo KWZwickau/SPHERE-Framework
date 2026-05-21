@@ -21,7 +21,7 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Service\Entity\TblToken;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
-use SPHERE\System\Cache\Handler\MemcachedHandler;
+use SPHERE\System\Cache\Handler\RedisHandler;
 use SPHERE\System\Cache\Handler\MemoryHandler;
 use SPHERE\System\Database\Binding\AbstractData;
 use SPHERE\System\Database\Database;
@@ -1057,8 +1057,8 @@ class Data extends AbstractData
             $Query->useQueryCache(true);
             $Query->getResult();
 
-            /** @var MemcachedHandler $Public */
-            $Public = $this->getCache(new MemcachedHandler());
+            /** @var RedisHandler $Public */
+            $Public = $this->getCache(new RedisHandler());
             $Public->clearSlot('PUBLIC');
         }
     }
@@ -1117,8 +1117,6 @@ class Data extends AbstractData
                 $Entity->setTimeout(time() + $Timeout);
                 $Manager->saveEntity($Entity);
             } else {
-                // todo erforderlich für externe API -> session
-                $Manager->flushCache(get_class($Entity));
                 (new DebuggerFactory())->createLogger(new CacheLogger())->addLog('Session Update in '.( $Gap - $Entity->getTimeout() ));
             }
             return true;

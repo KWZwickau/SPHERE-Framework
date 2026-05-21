@@ -204,7 +204,8 @@ class Frontend extends Extension implements IFrontendInterface
 //            )
             . ($IsNavigationAssistance
                 ? $this->layoutNavigationAssistance($IsStudentAccount)
-                : ''
+                // Schulungen für nicht Schüler- und Eltern-Accounts anzeigen
+                : $this->contentTraining()
             )
             . ($contentTeacherWelcome ?: '')
             . ($contentSecretariatWelcome ?: '')
@@ -342,6 +343,22 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         return empty($columns) ? '' : new Layout(new LayoutGroup(new LayoutRow($columns)));
+    }
+
+    /**
+     * @return string
+     */
+    private function contentTraining(): string
+    {
+        if (!\SPHERE\Application\Setting\Consumer\Consumer::useService()->getAccountSettingValue('DoNotShowTraining2026OnWelcomePage')
+            && new DateTime('today') < new DateTime('13.08.2026')
+        ) {
+            return new \SPHERE\Common\Frontend\Message\Repository\Success(
+                'Veranstaltungen zur Schulung der Schulsoftware für Verwaltung, Lehrer und Schulleitung. Jetzt anmelden. &nbsp;&nbsp;'
+                . new Standard('Anzeigen', '/Manual/Training'));
+        }
+
+        return '';
     }
 
     /**

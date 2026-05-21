@@ -22,6 +22,7 @@ class BfsAbg extends BfsStyle
     {
 
         $personId = $tblPerson ? $tblPerson->getId() : 0;
+        $isCopy = (bool) $this->CopyCertificateData;
 
         $pageList[] = (new Page())
             ->addSlice($this->getSchoolHeadAbg($personId))
@@ -37,9 +38,12 @@ class BfsAbg extends BfsStyle
             ->addSlice($this->getSubjectLineBaseAbg($personId, $this->getCertificateEntity(), 'Wahlpflichtbereich', 1, 2, 'auto', 13, 14))
             ->addSlice($this->getPraktikaAbg($personId, $this->getCertificateEntity()))
             ->addSlice($this->getDescriptionBsContent($personId, '85px'))
-            ->addSlice($this->getSpace('120px'))
-            ->addSlice($this->getIndividuallySignPart($personId, true))
-            ->addSlice($this->getBsInfo('85px',
+            ->addSlice($this->getSpace($isCopy ? '40px' : '120px'))
+            ->addSlice($isCopy
+                ? $this->getBfsSignPartCopy($personId, 'Abgangszeugnis der Berufsfachschule')
+                : $this->getIndividuallySignPart($personId, true)
+            )
+            ->addSlice($this->getBsInfo($isCopy ? '40px' : '85px',
                 'NOTENSTUFEN: sehr gut (1), gut (2), befriedigend (3), ausreichend (4), mangelhaft (5), ungenügend (6)'))
         ;
 
