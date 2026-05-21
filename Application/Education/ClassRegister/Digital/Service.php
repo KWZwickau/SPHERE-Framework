@@ -706,7 +706,7 @@ class Service extends ServiceTabs
             $resultList = $this->getDigitalClassRegisterDataForTeacher();
         }
 
-        if ($resultList) {
+//        if ($resultList) {
             return new Panel(
                 $panelHeader,
                 new TableData(
@@ -736,9 +736,9 @@ class Service extends ServiceTabs
                 ),
                 Panel::PANEL_TYPE_PRIMARY
             );
-        }
-
-        return '';
+//        }
+//
+//        return '';
     }
 
     /**
