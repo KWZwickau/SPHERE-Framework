@@ -16,6 +16,8 @@ class JsonReplacementTest
             return $this->EVSRJsonManual;
         } elseif($Mandant == 'KG') {
             return $this->KGJson;
+        } elseif($Mandant == 'HGGT') {
+            return $this->HGGTJson;
         }
         return '';
     }
@@ -2049,13 +2051,1719 @@ class JsonReplacementTest
                 "239"
               ]
             }
-          ],
-          "Informationen": [
-            "Klassen 9.1 und 9.2 Konzertbesuch 3.-6.Stunde // Gk12DS Probentag Aula // Gk12ree2+3 Expertengespräch 5./6.Stunde in Raum 335 // Klasse 6.2 Unterrichtsgang TJG 2.-5.Stunde"
-          ],
-          "InformationenL": [
-            "Klassen 9.1 und 9.2 Konzertbesuch 3.-6.Stunde // Gk12DS Probentag Aula // Gk12ree2+3 Expertengespräch 5./6.Stunde in Raum 335 // Klasse 6.2 Unterrichtsgang TJG 2.-5.Stunde"
           ]
+        }
+      ]
+    }
+  }
+}';
+
+    private $HGGTJson = '{
+  "Gesamtexport": {
+    "Informationen": {
+      "Version": "1.1"
+    },
+    "Vertretungsplan": {
+      "Vertretungsplan": [
+        {
+          "Kopf": {
+            "Datei": "Vertretungsplan Schüler2026-05-05.json",
+            "Titel": "Dienstag, 5. Mai 2026 (A-Woche) ",
+            "Schulname": "Humanistisches Greifenstein Gymnasium",
+            "Datum": "05.05.2026",
+            "Erstellt": "05.05.2026, 07:04",
+            "Kopfinfo": {
+              "AbwesendeLehrer": [
+                {
+                  "Kurz": "EXN",
+                  "Grund": "Ko",
+                  "Stunden": "1-2"
+                },
+                {
+                  "Kurz": "REU",
+                  "Grund": "Kr"
+                }
+              ],
+              "AbwesendeRaeume": [
+                {
+                  "Kurz": "102",
+                  "Stunden": "1-2"
+                }
+              ],
+              "LehrerMitAenderung": [
+                {
+                  "Kurz": "ASSM"
+                },
+                {
+                  "Kurz": "BRA"
+                },
+                {
+                  "Kurz": "FIED"
+                },
+                {
+                  "Kurz": "FREI"
+                },
+                {
+                  "Kurz": "FRIE"
+                },
+                {
+                  "Kurz": "KLEM"
+                },
+                {
+                  "Kurz": "KOLD"
+                },
+                {
+                  "Kurz": "LIST"
+                },
+                {
+                  "Kurz": "MEI"
+                },
+                {
+                  "Kurz": "SCHM"
+                },
+                {
+                  "Kurz": "SCHUB"
+                },
+                {
+                  "Kurz": "STÜLP"
+                },
+                {
+                  "Kurz": "VIET"
+                }
+              ],
+              "KlassenMitAenderung": [
+                {
+                  "Kurz": "6a"
+                },
+                {
+                  "Kurz": "6b"
+                },
+                {
+                  "Kurz": "9c"
+                },
+                {
+                  "Kurz": "12"
+                }
+              ]
+            }
+          },
+          "Aktionen": [
+            {
+              "Ak_Id": 18853,
+              "Ak_UntNr": 184,
+              "Ak_Art": "Änd.",
+              "Ak_DatumVon": "05.05.2026",
+              "Ak_StundeVon": 1,
+              "Ak_Fach": "DE",
+              "Ak_VFach": "DE",
+              "Klassen": [
+                "9c"
+              ],
+              "VKlassen": [
+                "9c"
+              ],
+              "Lehrer": [
+                "STÜLP"
+              ],
+              "VLehrer": [
+                "STÜLP",
+                "FREI"
+              ],
+              "Raeume": [
+                "117"
+              ],
+              "VRaeume": [
+                "117"
+              ]
+            },
+            {
+              "Ak_Id": 19227,
+              "Ak_UntNr": 306,
+              "Ak_Art": "Ausf.",
+              "Ak_DatumVon": "05.05.2026",
+              "Ak_StundeVon": 1,
+              "Ak_StundenAnz": 2,
+              "Ak_Fach": "BIO",
+              "Ak_Kurs": "BioLK",
+              "Klassen": [
+                "12"
+              ],
+              "Lehrer": [
+                "BRA"
+              ],
+              "Raeume": [
+                "108"
+              ]
+            },
+            {
+              "Ak_Id": 19228,
+              "Ak_UntNr": 307,
+              "Ak_Art": "Ausf.",
+              "Ak_DatumVon": "05.05.2026",
+              "Ak_StundeVon": 1,
+              "Ak_StundenAnz": 2,
+              "Ak_Fach": "CH",
+              "Ak_Kurs": "ChLK",
+              "Klassen": [
+                "12"
+              ],
+              "Lehrer": [
+                "FIED"
+              ],
+              "Raeume": [
+                "111"
+              ]
+            },
+            {
+              "Ak_Id": 19229,
+              "Ak_UntNr": 308,
+              "Ak_Art": "Ausf.",
+              "Ak_DatumVon": "05.05.2026",
+              "Ak_StundeVon": 1,
+              "Ak_StundenAnz": 2,
+              "Ak_Fach": "EN",
+              "Ak_Kurs": "EnLK",
+              "Klassen": [
+                "12"
+              ],
+              "Lehrer": [
+                "ASSM"
+              ],
+              "Raeume": [
+                "102"
+              ]
+            },
+            {
+              "Ak_Id": 21098,
+              "Ak_UntNr": 36,
+              "Ak_Art": "Änd.",
+              "Ak_DatumVon": "05.05.2026",
+              "Ak_StundeVon": 2,
+              "Ak_Fach": "MA",
+              "Ak_VFach": "MA",
+              "Klassen": [
+                "6a"
+              ],
+              "VKlassen": [
+                "6a"
+              ],
+              "Lehrer": [
+                "REU"
+              ],
+              "VLehrer": [
+                "FRIE"
+              ],
+              "Raeume": [
+                "209"
+              ],
+              "VRaeume": [
+                "209"
+              ],
+              "InfoK": "Aufsicht Aufgaben Mathematik (Frau Reuther)"
+            },
+            {
+              "Ak_Id": 18852,
+              "Ak_UntNr": 188,
+              "Ak_Art": "Änd.",
+              "Ak_DatumVon": "05.05.2026",
+              "Ak_StundeVon": 2,
+              "Ak_Fach": "GE",
+              "Ak_VFach": "DE",
+              "Klassen": [
+                "9c"
+              ],
+              "VKlassen": [
+                "9c"
+              ],
+              "Lehrer": [
+                "SCHUB"
+              ],
+              "VLehrer": [
+                "STÜLP",
+                "FREI"
+              ],
+              "Raeume": [
+                "117"
+              ],
+              "VRaeume": [
+                "117"
+              ],
+              "InfoK": "verlegt von Mo.(4.5.) 3.St. nach Di.(5.5.) 2.St."
+            },
+            {
+              "Ak_Id": 19234,
+              "Ak_UntNr": 325,
+              "Ak_Art": "Ausf.",
+              "Ak_DatumVon": "05.05.2026",
+              "Ak_StundeVon": 3,
+              "Ak_StundenAnz": 2,
+              "Ak_Fach": "EN2",
+              "Ak_Kurs": "En2",
+              "Klassen": [
+                "12"
+              ],
+              "Lehrer": [
+                "KLEM"
+              ],
+              "Raeume": [
+                "205"
+              ]
+            },
+            {
+              "Ak_Id": 19235,
+              "Ak_UntNr": 326,
+              "Ak_Art": "Ausf.",
+              "Ak_DatumVon": "05.05.2026",
+              "Ak_StundeVon": 3,
+              "Ak_StundenAnz": 2,
+              "Ak_Fach": "GRW",
+              "Ak_Kurs": "Gk2",
+              "Klassen": [
+                "12"
+              ],
+              "Lehrer": [
+                "FREI"
+              ],
+              "Raeume": [
+                "303"
+              ]
+            },
+            {
+              "Ak_Id": 19233,
+              "Ak_UntNr": 324,
+              "Ak_Art": "Ausf.",
+              "Ak_DatumVon": "05.05.2026",
+              "Ak_StundeVon": 3,
+              "Ak_StundenAnz": 2,
+              "Ak_Fach": "CH",
+              "Ak_Kurs": "Ch1",
+              "Klassen": [
+                "12"
+              ],
+              "Lehrer": [
+                "FIED"
+              ],
+              "Raeume": [
+                "111"
+              ]
+            },
+            {
+              "Ak_Id": 20144,
+              "Ak_UntNr": 40,
+              "Ak_Art": "Änd.",
+              "Ak_DatumVon": "05.05.2026",
+              "Ak_StundeVon": 5,
+              "Ak_StundenAnz": 2,
+              "Ak_Fach": "DE",
+              "Ak_VFach": "DE",
+              "Klassen": [
+                "6b"
+              ],
+              "VKlassen": [
+                "6b"
+              ],
+              "Lehrer": [
+                "MEI"
+              ],
+              "VLehrer": [
+                "MEI"
+              ],
+              "Raeume": [
+                "303"
+              ],
+              "VRaeume": [
+                "203"
+              ]
+            },
+            {
+              "Ak_Id": 19241,
+              "Ak_UntNr": 321,
+              "Ak_Art": "Ausf.",
+              "Ak_DatumVon": "05.05.2026",
+              "Ak_StundeVon": 5,
+              "Ak_StundenAnz": 2,
+              "Ak_Fach": "INF",
+              "Ak_Kurs": "Inf1",
+              "Klassen": [
+                "12"
+              ],
+              "Lehrer": [
+                "KOLD"
+              ],
+              "Raeume": [
+                "007"
+              ]
+            },
+            {
+              "Ak_Id": 19239,
+              "Ak_UntNr": 319,
+              "Ak_Art": "Ausf.",
+              "Ak_DatumVon": "05.05.2026",
+              "Ak_StundeVon": 5,
+              "Ak_StundenAnz": 2,
+              "Ak_Fach": "GE",
+              "Ak_Kurs": "Ge2",
+              "Klassen": [
+                "12"
+              ],
+              "Lehrer": [
+                "VIET"
+              ],
+              "Raeume": [
+                "102"
+              ]
+            },
+            {
+              "Ak_Id": 19240,
+              "Ak_UntNr": 320,
+              "Ak_Art": "Ausf.",
+              "Ak_DatumVon": "05.05.2026",
+              "Ak_StundeVon": 5,
+              "Ak_StundenAnz": 2,
+              "Ak_Fach": "GE",
+              "Ak_Kurs": "Ge3",
+              "Klassen": [
+                "12"
+              ],
+              "Lehrer": [
+                "LIST"
+              ],
+              "Raeume": [
+                "203"
+              ]
+            },
+            {
+              "Ak_Id": 19247,
+              "Ak_UntNr": 305,
+              "Ak_Art": "Ausf.",
+              "Ak_DatumVon": "05.05.2026",
+              "Ak_StundeVon": 7,
+              "Ak_Fach": "MA",
+              "Ak_Kurs": "MaLK1",
+              "Klassen": [
+                "12"
+              ],
+              "Lehrer": [
+                "FRIE"
+              ],
+              "Raeume": [
+                "313"
+              ]
+            },
+            {
+              "Ak_Id": 19245,
+              "Ak_UntNr": 303,
+              "Ak_Art": "Ausf.",
+              "Ak_DatumVon": "05.05.2026",
+              "Ak_StundeVon": 7,
+              "Ak_Fach": "DE",
+              "Ak_Kurs": "DLK1",
+              "Klassen": [
+                "12"
+              ],
+              "Lehrer": [
+                "STÜLP"
+              ],
+              "Raeume": [
+                "103"
+              ]
+            },
+            {
+              "Ak_Id": 19246,
+              "Ak_UntNr": 304,
+              "Ak_Art": "Ausf.",
+              "Ak_DatumVon": "05.05.2026",
+              "Ak_StundeVon": 7,
+              "Ak_Fach": "DE",
+              "Ak_Kurs": "DLK2",
+              "Klassen": [
+                "12"
+              ],
+              "Lehrer": [
+                "SCHM"
+              ],
+              "Raeume": [
+                "108"
+              ]
+            }
+          ]
+        },
+        {
+          "Kopf": {
+            "Datei": "Vertretungsplan Schüler2026-05-06.json",
+            "Titel": "Mittwoch, 6. Mai 2026 (A-Woche) ",
+            "Schulname": "Humanistisches Greifenstein Gymnasium",
+            "Datum": "06.05.2026",
+            "Erstellt": "05.05.2026, 07:04",
+            "Kopfinfo": {
+              "AbwesendeLehrer": [
+                {
+                  "Kurz": "ASSM",
+                  "Grund": "Pr"
+                },
+                {
+                  "Kurz": "KOLD",
+                  "Grund": "Fo",
+                  "Stunden": "3-5"
+                },
+                {
+                  "Kurz": "REU",
+                  "Grund": "Kr"
+                }
+              ],
+              "AbwesendeRaeume": [
+                {
+                  "Kurz": "006",
+                  "Stunden": "6"
+                }
+              ],
+              "LehrerMitAenderung": [
+                {
+                  "Kurz": "?w"
+                },
+                {
+                  "Kurz": "ADAM"
+                },
+                {
+                  "Kurz": "BRA"
+                },
+                {
+                  "Kurz": "BUSS"
+                },
+                {
+                  "Kurz": "EXN"
+                },
+                {
+                  "Kurz": "FIED"
+                },
+                {
+                  "Kurz": "FREI"
+                },
+                {
+                  "Kurz": "GRUN"
+                },
+                {
+                  "Kurz": "GÜTT"
+                },
+                {
+                  "Kurz": "HAMM"
+                },
+                {
+                  "Kurz": "HARM"
+                },
+                {
+                  "Kurz": "KEHR"
+                },
+                {
+                  "Kurz": "KOLD"
+                },
+                {
+                  "Kurz": "KREN"
+                },
+                {
+                  "Kurz": "KREY"
+                },
+                {
+                  "Kurz": "LÖSC"
+                },
+                {
+                  "Kurz": "MEHL"
+                },
+                {
+                  "Kurz": "SCHA"
+                },
+                {
+                  "Kurz": "SCHM"
+                },
+                {
+                  "Kurz": "SCHÖ"
+                },
+                {
+                  "Kurz": "STÜLP"
+                },
+                {
+                  "Kurz": "UHG"
+                }
+              ],
+              "KlassenMitAenderung": [
+                {
+                  "Kurz": "5b"
+                },
+                {
+                  "Kurz": "6a"
+                },
+                {
+                  "Kurz": "6b"
+                },
+                {
+                  "Kurz": "6c"
+                },
+                {
+                  "Kurz": "7a"
+                },
+                {
+                  "Kurz": "8a"
+                },
+                {
+                  "Kurz": "8b"
+                },
+                {
+                  "Kurz": "9a"
+                },
+                {
+                  "Kurz": "9b"
+                },
+                {
+                  "Kurz": "9c"
+                },
+                {
+                  "Kurz": "10a"
+                },
+                {
+                  "Kurz": "10b"
+                },
+                {
+                  "Kurz": "12"
+                }
+              ]
+            }
+          },
+          "Aktionen": [
+            {
+              "Ak_Id": 21101,
+              "Ak_UntNr": 27,
+              "Ak_Art": "Änd.",
+              "Ak_DatumVon": "06.05.2026",
+              "Ak_StundeVon": 1,
+              "Ak_Fach": "ETH",
+              "Ak_VFach": "ETH",
+              "Klassen": [
+                "6a"
+              ],
+              "VKlassen": [
+                "6a"
+              ],
+              "Lehrer": [
+                "GÜTT"
+              ],
+              "VLehrer": [
+                "GÜTT"
+              ],
+              "Raeume": [
+                "209"
+              ],
+              "VRaeume": [
+                "006"
+              ]
+            },
+            {
+              "Ak_Id": 21102,
+              "Ak_UntNr": 26,
+              "Ak_Art": "Änd.",
+              "Ak_DatumVon": "06.05.2026",
+              "Ak_StundeVon": 1,
+              "Ak_Fach": "REe",
+              "Ak_VFach": "REe",
+              "Klassen": [
+                "6a"
+              ],
+              "VKlassen": [
+                "6a"
+              ],
+              "Lehrer": [
+                "HARM"
+              ],
+              "VLehrer": [
+                "HARM"
+              ],
+              "Raeume": [
+                "119"
+              ],
+              "VRaeume": [
+                "006"
+              ]
+            },
+            {
+              "Ak_Id": 21110,
+              "Ak_UntNr": 55,
+              "Ak_Art": "Änd.",
+              "Ak_DatumVon": "06.05.2026",
+              "Ak_StundeVon": 1,
+              "Ak_Fach": "DE",
+              "Ak_VFach": "DE",
+              "Klassen": [
+                "6c"
+              ],
+              "VKlassen": [
+                "6c"
+              ],
+              "Lehrer": [
+                "UHG"
+              ],
+              "VLehrer": [
+                "UHG"
+              ],
+              "Raeume": [
+                "006"
+              ],
+              "VRaeume": [
+                "209"
+              ]
+            },
+            {
+              "Ak_Id": 21165,
+              "Ak_UntNr": 164,
+              "Ak_Art": "Ausf.",
+              "Ak_DatumVon": "06.05.2026",
+              "Ak_StundeVon": 1,
+              "Ak_Fach": "DE",
+              "Klassen": [
+                "9b"
+              ],
+              "Lehrer": [
+                "SCHM"
+              ],
+              "Raeume": [
+                "203"
+              ]
+            },
+            {
+              "Ak_Id": 21164,
+              "Ak_UntNr": 182,
+              "Ak_Art": "Verl.",
+              "Ak_DatumVon": "06.05.2026",
+              "Ak_DatumNach": "06.05.2026",
+              "Ak_StundeVon": 6,
+              "Ak_StundeNach": 1,
+              "Ak_Fach": "INF",
+              "Ak_VFach": "INF",
+              "Klassen": [
+                "9b"
+              ],
+              "Lehrer": [
+                "KOLD"
+              ],
+              "VLehrer": [
+                "KOLD"
+              ],
+              "Raeume": [
+                "007"
+              ],
+              "VRaeume": [
+                "007"
+              ]
+            },
+            {
+              "Ak_Id": 21116,
+              "Ak_UntNr": 225,
+              "Ak_Art": "Änd.",
+              "Ak_DatumVon": "06.05.2026",
+              "Ak_StundeVon": 1,
+              "Ak_StundenAnz": 2,
+              "Ak_Fach": "REe",
+              "Ak_VFach": "REe",
+              "Klassen": [
+                "10b"
+              ],
+              "VKlassen": [
+                "10b"
+              ],
+              "Lehrer": [
+                "ADAM"
+              ],
+              "VLehrer": [
+                "ADAM"
+              ],
+              "Raeume": [
+                "117"
+              ],
+              "VRaeume": [
+                "118"
+              ]
+            },
+            {
+              "Ak_Id": 19250,
+              "Ak_UntNr": 308,
+              "Ak_Art": "Ausf.",
+              "Ak_DatumVon": "06.05.2026",
+              "Ak_StundeVon": 1,
+              "Ak_StundenAnz": 2,
+              "Ak_Fach": "EN",
+              "Ak_Kurs": "EnLK",
+              "Klassen": [
+                "12"
+              ],
+              "Lehrer": [
+                "ASSM"
+              ],
+              "Raeume": [
+                "118"
+              ]
+            },
+            {
+              "Ak_Id": 19248,
+              "Ak_UntNr": 306,
+              "Ak_Art": "Ausf.",
+              "Ak_DatumVon": "06.05.2026",
+              "Ak_StundeVon": 1,
+              "Ak_StundenAnz": 2,
+              "Ak_Fach": "BIO",
+              "Ak_Kurs": "BioLK",
+              "Klassen": [
+                "12"
+              ],
+              "Lehrer": [
+                "BRA"
+              ],
+              "Raeume": [
+                "108"
+              ]
+            },
+            {
+              "Ak_Id": 19249,
+              "Ak_UntNr": 307,
+              "Ak_Art": "Ausf.",
+              "Ak_DatumVon": "06.05.2026",
+              "Ak_StundeVon": 1,
+              "Ak_StundenAnz": 2,
+              "Ak_Fach": "CH",
+              "Ak_Kurs": "ChLK",
+              "Klassen": [
+                "12"
+              ],
+              "Lehrer": [
+                "FIED"
+              ],
+              "Raeume": [
+                "111"
+              ]
+            },
+            {
+              "Ak_Id": 21104,
+              "Ak_UntNr": 42,
+              "Ak_Art": "Änd.",
+              "Ak_DatumVon": "06.05.2026",
+              "Ak_StundeVon": 2,
+              "Ak_Fach": "ETH",
+              "Ak_VFach": "ETH",
+              "Klassen": [
+                "6b"
+              ],
+              "VKlassen": [
+                "6b"
+              ],
+              "Lehrer": [
+                "GÜTT"
+              ],
+              "VLehrer": [
+                "GÜTT"
+              ],
+              "Raeume": [
+                "006"
+              ],
+              "VRaeume": [
+                "006"
+              ]
+            },
+            {
+              "Ak_Id": 21103,
+              "Ak_UntNr": 41,
+              "Ak_Art": "Änd.",
+              "Ak_DatumVon": "06.05.2026",
+              "Ak_StundeVon": 2,
+              "Ak_Fach": "REe",
+              "Ak_VFach": "REe",
+              "Klassen": [
+                "6b"
+              ],
+              "VKlassen": [
+                "6b"
+              ],
+              "Lehrer": [
+                "HARM"
+              ],
+              "VLehrer": [
+                "HARM"
+              ],
+              "Raeume": [
+                "119"
+              ],
+              "VRaeume": [
+                "006"
+              ]
+            },
+            {
+              "Ak_Id": 18857,
+              "Ak_UntNr": 164,
+              "Ak_Art": "Änd.",
+              "Ak_DatumVon": "06.05.2026",
+              "Ak_StundeVon": 2,
+              "Ak_Fach": "DE",
+              "Ak_VFach": "GEO",
+              "Klassen": [
+                "9b"
+              ],
+              "VKlassen": [
+                "9b"
+              ],
+              "Lehrer": [
+                "SCHM"
+              ],
+              "VLehrer": [
+                "HAMM"
+              ],
+              "Raeume": [
+                "203"
+              ],
+              "VRaeume": [
+                "203"
+              ],
+              "InfoK": "verlegt von 3.St. nach 2.St."
+            },
+            {
+              "Ak_Id": 18855,
+              "Ak_UntNr": 187,
+              "Ak_Art": "Änd.",
+              "Ak_DatumVon": "06.05.2026",
+              "Ak_StundeVon": 2,
+              "Ak_Fach": "GEO",
+              "Ak_VFach": "DE",
+              "Klassen": [
+                "9c"
+              ],
+              "VKlassen": [
+                "9c"
+              ],
+              "Lehrer": [
+                "HAMM"
+              ],
+              "VLehrer": [
+                "STÜLP"
+              ],
+              "Raeume": [
+                "313"
+              ],
+              "VRaeume": [
+                "313"
+              ],
+              "InfoK": "verlegt von 5.St. nach 2.St."
+            },
+            {
+              "Ak_Id": 21095,
+              "Ak_UntNr": 36,
+              "Ak_Art": "Änd.",
+              "Ak_DatumVon": "06.05.2026",
+              "Ak_StundeVon": 3,
+              "Ak_Fach": "MA",
+              "Ak_VFach": "GEO",
+              "Klassen": [
+                "6a"
+              ],
+              "VKlassen": [
+                "6a"
+              ],
+              "Lehrer": [
+                "REU"
+              ],
+              "VLehrer": [
+                "HAMM"
+              ],
+              "Raeume": [
+                "209"
+              ],
+              "VRaeume": [
+                "313"
+              ],
+              "InfoK": "verlegt von 6.St. nach 3.St."
+            },
+            {
+              "Ak_Id": 21111,
+              "Ak_UntNr": 344,
+              "Ak_Art": "Änd.",
+              "Ak_DatumVon": "06.05.2026",
+              "Ak_StundeVon": 3,
+              "Ak_StundenAnz": 2,
+              "Ak_Fach": "FR",
+              "Ak_VFach": "FR",
+              "Klassen": [
+                "6c"
+              ],
+              "VKlassen": [
+                "6c"
+              ],
+              "Lehrer": [
+                "SCHÖ"
+              ],
+              "VLehrer": [
+                "SCHÖ"
+              ],
+              "Raeume": [
+                "006"
+              ],
+              "VRaeume": [
+                "209"
+              ]
+            },
+            {
+              "Ak_Id": 21159,
+              "Ak_UntNr": 106,
+              "Ak_Art": "Änd.",
+              "Ak_DatumVon": "06.05.2026",
+              "Ak_StundeVon": 3,
+              "Ak_Fach": "ETH",
+              "Ak_VFach": "ETH",
+              "Klassen": [
+                "8a"
+              ],
+              "VKlassen": [
+                "8a"
+              ],
+              "Lehrer": [
+                "GÜTT"
+              ],
+              "VLehrer": [
+                "GÜTT"
+              ],
+              "Raeume": [
+                "102"
+              ],
+              "VRaeume": [
+                "006"
+              ]
+            },
+            {
+              "Ak_Id": 21121,
+              "Ak_UntNr": 105,
+              "Ak_Art": "Änd.",
+              "Ak_DatumVon": "06.05.2026",
+              "Ak_StundeVon": 3,
+              "Ak_Fach": "REe",
+              "Ak_VFach": "REe",
+              "Klassen": [
+                "8a"
+              ],
+              "VKlassen": [
+                "8a"
+              ],
+              "Lehrer": [
+                "HARM"
+              ],
+              "VLehrer": [
+                "HARM"
+              ],
+              "Raeume": [
+                "117"
+              ],
+              "VRaeume": [
+                "006"
+              ]
+            },
+            {
+              "Ak_Id": 18861,
+              "Ak_UntNr": 156,
+              "Ak_Art": "Änd.",
+              "Ak_DatumVon": "06.05.2026",
+              "Ak_StundeVon": 3,
+              "Ak_Fach": "MA",
+              "Ak_VFach": "MA",
+              "Klassen": [
+                "9a"
+              ],
+              "VKlassen": [
+                "9a"
+              ],
+              "Lehrer": [
+                "LÖSC"
+              ],
+              "VLehrer": [
+                "LÖSC"
+              ],
+              "Raeume": [
+                "303"
+              ],
+              "VRaeume": [
+                "315"
+              ]
+            },
+            {
+              "Ak_Id": 18859,
+              "Ak_UntNr": 167,
+              "Ak_Art": "Änd.",
+              "Ak_DatumVon": "06.05.2026",
+              "Ak_StundeVon": 3,
+              "Ak_Fach": "GEO",
+              "Ak_VFach": "DE",
+              "Klassen": [
+                "9b"
+              ],
+              "VKlassen": [
+                "9b"
+              ],
+              "Lehrer": [
+                "HAMM"
+              ],
+              "VLehrer": [
+                "SCHM",
+                "FREI"
+              ],
+              "Raeume": [
+                "315"
+              ],
+              "VRaeume": [
+                "303"
+              ],
+              "InfoK": "verlegt von 1.St. nach 3.St."
+            },
+            {
+              "Ak_Id": 21108,
+              "Ak_UntNr": 189,
+              "Ak_Art": "Änd.",
+              "Ak_DatumVon": "06.05.2026",
+              "Ak_StundeVon": 3,
+              "Ak_StundenAnz": 2,
+              "Ak_Fach": "GRW",
+              "Ak_VFach": "GRW",
+              "Klassen": [
+                "9c"
+              ],
+              "VKlassen": [
+                "9c"
+              ],
+              "Lehrer": [
+                "KREN"
+              ],
+              "VLehrer": [
+                "KREN"
+              ],
+              "Raeume": [
+                "118"
+              ],
+              "VRaeume": [
+                "109"
+              ]
+            },
+            {
+              "Ak_Id": 21160,
+              "Ak_UntNr": 206,
+              "Ak_Art": "Änd.",
+              "Ak_DatumVon": "06.05.2026",
+              "Ak_StundeVon": 3,
+              "Ak_StundenAnz": 2,
+              "Ak_Fach": "ETH",
+              "Ak_VFach": "ETH",
+              "Klassen": [
+                "10a"
+              ],
+              "VKlassen": [
+                "10a"
+              ],
+              "Lehrer": [
+                "KREY"
+              ],
+              "VLehrer": [
+                "KREY"
+              ],
+              "Raeume": [
+                "105"
+              ],
+              "VRaeume": [
+                "118"
+              ]
+            },
+            {
+              "Ak_Id": 21118,
+              "Ak_UntNr": 205,
+              "Ak_Art": "Änd.",
+              "Ak_DatumVon": "06.05.2026",
+              "Ak_StundeVon": 3,
+              "Ak_StundenAnz": 2,
+              "Ak_Fach": "REe",
+              "Ak_VFach": "REe",
+              "Klassen": [
+                "10a"
+              ],
+              "VKlassen": [
+                "10a"
+              ],
+              "Lehrer": [
+                "ADAM"
+              ],
+              "VLehrer": [
+                "ADAM"
+              ],
+              "Raeume": [
+                "119"
+              ],
+              "VRaeume": [
+                "118"
+              ]
+            },
+            {
+              "Ak_Id": 19254,
+              "Ak_UntNr": 333,
+              "Ak_Art": "Ausf.",
+              "Ak_DatumVon": "06.05.2026",
+              "Ak_StundeVon": 3,
+              "Ak_StundenAnz": 2,
+              "Ak_Fach": "BIO",
+              "Ak_Kurs": "Bio2",
+              "Klassen": [
+                "12"
+              ],
+              "Lehrer": [
+                "BUSS"
+              ],
+              "Raeume": [
+                "109"
+              ]
+            },
+            {
+              "Ak_Id": 19255,
+              "Ak_UntNr": 334,
+              "Ak_Art": "Ausf.",
+              "Ak_DatumVon": "06.05.2026",
+              "Ak_StundeVon": 3,
+              "Ak_StundenAnz": 2,
+              "Ak_Fach": "GEO",
+              "Ak_Kurs": "Geo2",
+              "Klassen": [
+                "12"
+              ],
+              "Lehrer": [
+                "EXN"
+              ],
+              "Raeume": [
+                "313"
+              ]
+            },
+            {
+              "Ak_Id": 21096,
+              "Ak_UntNr": 36,
+              "Ak_Art": "Änd.",
+              "Ak_DatumVon": "06.05.2026",
+              "Ak_StundeVon": 4,
+              "Ak_Fach": "MA",
+              "Ak_VFach": "MA",
+              "Klassen": [
+                "6a"
+              ],
+              "VKlassen": [
+                "6a"
+              ],
+              "Lehrer": [
+                "REU"
+              ],
+              "VLehrer": [
+                "SCHA"
+              ],
+              "Raeume": [
+                "209"
+              ],
+              "VRaeume": [
+                "313"
+              ],
+              "InfoK": "Aufsicht Aufgaben Mathematik (Frau Reuther)"
+            },
+            {
+              "Ak_Id": 21163,
+              "Ak_UntNr": 126,
+              "Ak_Art": "Änd.",
+              "Ak_DatumVon": "06.05.2026",
+              "Ak_StundeVon": 4,
+              "Ak_Fach": "ETH",
+              "Ak_VFach": "ETH",
+              "Klassen": [
+                "8b"
+              ],
+              "VKlassen": [
+                "8b"
+              ],
+              "Lehrer": [
+                "GÜTT"
+              ],
+              "VLehrer": [
+                "GÜTT"
+              ],
+              "Raeume": [
+                "103"
+              ],
+              "VRaeume": [
+                "006"
+              ]
+            },
+            {
+              "Ak_Id": 21122,
+              "Ak_UntNr": 125,
+              "Ak_Art": "Änd.",
+              "Ak_DatumVon": "06.05.2026",
+              "Ak_StundeVon": 4,
+              "Ak_Fach": "REe",
+              "Ak_VFach": "REe",
+              "Klassen": [
+                "8b"
+              ],
+              "VKlassen": [
+                "8b"
+              ],
+              "Lehrer": [
+                "HARM"
+              ],
+              "VLehrer": [
+                "HARM"
+              ],
+              "Raeume": [
+                "117"
+              ],
+              "VRaeume": [
+                "006"
+              ]
+            },
+            {
+              "Ak_Id": 18860,
+              "Ak_UntNr": 173,
+              "Ak_Art": "Änd.",
+              "Ak_DatumVon": "06.05.2026",
+              "Ak_StundeVon": 4,
+              "Ak_Fach": "EN",
+              "Ak_VFach": "DE",
+              "Klassen": [
+                "9b"
+              ],
+              "VKlassen": [
+                "9b"
+              ],
+              "Lehrer": [
+                "ASSM"
+              ],
+              "VLehrer": [
+                "SCHM",
+                "FREI"
+              ],
+              "Raeume": [
+                "303"
+              ],
+              "VRaeume": [
+                "303"
+              ],
+              "InfoK": "verlegt von 2.St. nach 4.St."
+            },
+            {
+              "Ak_Id": 21120,
+              "Ak_UntNr": 272,
+              "Ak_Art": "Änd.",
+              "Ak_DatumVon": "06.05.2026",
+              "Ak_StundeVon": 5,
+              "Ak_Fach": "REe",
+              "Ak_VFach": "REe",
+              "Klassen": [
+                "5b"
+              ],
+              "VKlassen": [
+                "5b"
+              ],
+              "Lehrer": [
+                "ADAM"
+              ],
+              "VLehrer": [
+                "ADAM"
+              ],
+              "Raeume": [
+                "109"
+              ],
+              "VRaeume": [
+                "118"
+              ]
+            },
+            {
+              "Ak_Id": 21162,
+              "Ak_UntNr": 273,
+              "Ak_Art": "Änd.",
+              "Ak_DatumVon": "06.05.2026",
+              "Ak_StundeVon": 5,
+              "Ak_Fach": "ETH",
+              "Ak_VFach": "ETH",
+              "Klassen": [
+                "5b"
+              ],
+              "VKlassen": [
+                "5b"
+              ],
+              "Lehrer": [
+                "KREN"
+              ],
+              "VLehrer": [
+                "KREN"
+              ],
+              "Raeume": [
+                "211"
+              ],
+              "VRaeume": [
+                "118"
+              ]
+            },
+            {
+              "Ak_Id": 21107,
+              "Ak_UntNr": 56,
+              "Ak_Art": "Änd.",
+              "Ak_DatumVon": "06.05.2026",
+              "Ak_StundeVon": 5,
+              "Ak_Fach": "REe",
+              "Ak_VFach": "REe",
+              "Klassen": [
+                "6c"
+              ],
+              "VKlassen": [
+                "6c"
+              ],
+              "Lehrer": [
+                "HARM"
+              ],
+              "VLehrer": [
+                "HARM"
+              ],
+              "Raeume": [
+                "119"
+              ],
+              "VRaeume": [
+                "006"
+              ]
+            },
+            {
+              "Ak_Id": 21106,
+              "Ak_UntNr": 57,
+              "Ak_Art": "Änd.",
+              "Ak_DatumVon": "06.05.2026",
+              "Ak_StundeVon": 5,
+              "Ak_Fach": "ETH",
+              "Ak_VFach": "ETH",
+              "Klassen": [
+                "6c"
+              ],
+              "VKlassen": [
+                "6c"
+              ],
+              "Lehrer": [
+                "GÜTT"
+              ],
+              "VLehrer": [
+                "GÜTT"
+              ],
+              "Raeume": [
+                "006"
+              ],
+              "VRaeume": [
+                "006"
+              ]
+            },
+            {
+              "Ak_Id": 21166,
+              "Ak_UntNr": 112,
+              "Ak_Art": "Änd.",
+              "Ak_DatumVon": "06.05.2026",
+              "Ak_StundeVon": 5,
+              "Ak_Fach": "EN",
+              "Ak_VFach": "EN",
+              "Klassen": [
+                "8a"
+              ],
+              "VKlassen": [
+                "8a"
+              ],
+              "Lehrer": [
+                "ASSM"
+              ],
+              "VLehrer": [
+                "SCHÖ"
+              ],
+              "Raeume": [
+                "102"
+              ],
+              "VRaeume": [
+                "102"
+              ],
+              "InfoK": "Aufsicht Aufgaben"
+            },
+            {
+              "Ak_Id": 18856,
+              "Ak_UntNr": 184,
+              "Ak_Art": "Änd.",
+              "Ak_DatumVon": "06.05.2026",
+              "Ak_StundeVon": 5,
+              "Ak_Fach": "DE",
+              "Ak_VFach": "GEO",
+              "Klassen": [
+                "9c"
+              ],
+              "VKlassen": [
+                "9c"
+              ],
+              "Lehrer": [
+                "STÜLP"
+              ],
+              "VLehrer": [
+                "HAMM"
+              ],
+              "Raeume": [
+                "118"
+              ],
+              "VRaeume": [
+                "205"
+              ],
+              "InfoK": "verlegt von 2.St. nach 5.St."
+            },
+            {
+              "Ak_Id": 19260,
+              "Ak_UntNr": 311,
+              "Ak_Art": "Ausf.",
+              "Ak_DatumVon": "06.05.2026",
+              "Ak_StundeVon": 5,
+              "Ak_StundenAnz": 2,
+              "Ak_Fach": "MA",
+              "Ak_Kurs": "Ma1",
+              "Klassen": [
+                "12"
+              ],
+              "Lehrer": [
+                "REU"
+              ],
+              "Raeume": [
+                "115"
+              ]
+            },
+            {
+              "Ak_Id": 19261,
+              "Ak_UntNr": 312,
+              "Ak_Art": "Ausf.",
+              "Ak_DatumVon": "06.05.2026",
+              "Ak_StundeVon": 5,
+              "Ak_StundenAnz": 2,
+              "Ak_Fach": "MA",
+              "Ak_Kurs": "Ma2",
+              "Klassen": [
+                "12"
+              ],
+              "Lehrer": [
+                "KEHR"
+              ],
+              "Raeume": [
+                "205"
+              ]
+            },
+            {
+              "Ak_Id": 19258,
+              "Ak_UntNr": 309,
+              "Ak_Art": "Ausf.",
+              "Ak_DatumVon": "06.05.2026",
+              "Ak_StundeVon": 5,
+              "Ak_StundenAnz": 2,
+              "Ak_Fach": "DE",
+              "Ak_Kurs": "D1",
+              "Klassen": [
+                "12"
+              ],
+              "Lehrer": [
+                "MEHL"
+              ],
+              "Raeume": [
+                "208"
+              ]
+            },
+            {
+              "Ak_Id": 19259,
+              "Ak_UntNr": 310,
+              "Ak_Art": "Ausf.",
+              "Ak_DatumVon": "06.05.2026",
+              "Ak_StundeVon": 5,
+              "Ak_StundenAnz": 2,
+              "Ak_Fach": "DE",
+              "Ak_Kurs": "D2",
+              "Klassen": [
+                "12"
+              ],
+              "Lehrer": [
+                "BUSS"
+              ],
+              "Raeume": [
+                "108"
+              ]
+            },
+            {
+              "Ak_Id": 21097,
+              "Ak_UntNr": 28,
+              "Ak_Art": "Änd.",
+              "Ak_DatumVon": "06.05.2026",
+              "Ak_StundeVon": 6,
+              "Ak_Fach": "GEO",
+              "Ak_VFach": "MA",
+              "Klassen": [
+                "6a"
+              ],
+              "VKlassen": [
+                "6a"
+              ],
+              "Lehrer": [
+                "HAMM"
+              ],
+              "VLehrer": [
+                "?w"
+              ],
+              "Raeume": [
+                "313"
+              ],
+              "InfoK": "MA Frau Reuther Ausfall mit Aufgaben (Aufgaben beenden), MA verlegt von 3.St. nach 6.St."
+            },
+            {
+              "Ak_Id": 21113,
+              "Ak_UntNr": 63,
+              "Ak_Art": "Änd.",
+              "Ak_DatumVon": "06.05.2026",
+              "Ak_StundeVon": 6,
+              "Ak_Fach": "EN",
+              "Ak_VFach": "EN",
+              "Klassen": [
+                "6c"
+              ],
+              "VKlassen": [
+                "6c"
+              ],
+              "Lehrer": [
+                "KREY"
+              ],
+              "VLehrer": [
+                "KREY"
+              ],
+              "Raeume": [
+                "006"
+              ],
+              "VRaeume": [
+                "208"
+              ]
+            },
+            {
+              "Ak_Id": 21114,
+              "Ak_UntNr": 71,
+              "Ak_Art": "Änd.",
+              "Ak_DatumVon": "06.05.2026",
+              "Ak_StundeVon": 6,
+              "Ak_Fach": "REe",
+              "Ak_VFach": "REe",
+              "Klassen": [
+                "7a"
+              ],
+              "VKlassen": [
+                "7a"
+              ],
+              "Lehrer": [
+                "ADAM"
+              ],
+              "VLehrer": [
+                "ADAM"
+              ],
+              "Raeume": [
+                "119"
+              ],
+              "VRaeume": [
+                "118"
+              ]
+            },
+            {
+              "Ak_Id": 21115,
+              "Ak_UntNr": 72,
+              "Ak_Art": "Änd.",
+              "Ak_DatumVon": "06.05.2026",
+              "Ak_StundeVon": 6,
+              "Ak_Fach": "ETH",
+              "Ak_VFach": "ETH",
+              "Klassen": [
+                "7a"
+              ],
+              "VKlassen": [
+                "7a"
+              ],
+              "Lehrer": [
+                "GRUN"
+              ],
+              "VLehrer": [
+                "GRUN"
+              ],
+              "Raeume": [
+                "117"
+              ],
+              "VRaeume": [
+                "118"
+              ]
+            },
+            {
+              "Ak_Id": 21167,
+              "Ak_UntNr": 112,
+              "Ak_Art": "Ausf.",
+              "Ak_DatumVon": "06.05.2026",
+              "Ak_StundeVon": 6,
+              "Ak_Fach": "EN",
+              "Klassen": [
+                "8a"
+              ],
+              "Lehrer": [
+                "ASSM"
+              ],
+              "Raeume": [
+                "102"
+              ]
+            },
+            {
+              "Ak_Id": 21164,
+              "Ak_UntNr": 182,
+              "Ak_Art": "Verl.",
+              "Ak_DatumVon": "06.05.2026",
+              "Ak_DatumNach": "06.05.2026",
+              "Ak_StundeVon": 6,
+              "Ak_StundeNach": 1,
+              "Ak_Fach": "INF",
+              "Ak_VFach": "INF",
+              "Klassen": [
+                "9b"
+              ],
+              "Lehrer": [
+                "KOLD"
+              ],
+              "VLehrer": [
+                "KOLD"
+              ],
+              "Raeume": [
+                "007"
+              ],
+              "VRaeume": [
+                "007"
+              ]
+            },
+            {
+              "Ak_Id": 21105,
+              "Ak_UntNr": 184,
+              "Ak_Art": "Änd.",
+              "Ak_DatumVon": "06.05.2026",
+              "Ak_StundeVon": 6,
+              "Ak_Fach": "DE",
+              "Ak_VFach": "DE",
+              "Klassen": [
+                "9c"
+              ],
+              "VKlassen": [
+                "9c"
+              ],
+              "Lehrer": [
+                "STÜLP"
+              ],
+              "VLehrer": [
+                "STÜLP"
+              ],
+              "Raeume": [
+                "118"
+              ],
+              "VRaeume": [
+                "205"
+              ]
+            }
+          ],
         }
       ]
     }

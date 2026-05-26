@@ -208,7 +208,7 @@ class FrontendPreviewCertificate extends Extension implements IFrontendInterface
             ]),
             new FormRow([
                 new FormColumn(
-                    (new CheckBox('Data[IsCopyStatement]', 'Zweitschrift ohne Namensänderung (Beglaubigungsvermerk)', 1))
+                    (new CheckBox('Data[IsCopyStatement]', 'Zweitschrift mit Namensänderung (mit Beglaubigungsvermerk)', 1))
                         ->ajaxPipelineOnChange([ApiPreviewCertificate::pipelineLoadCertificatePreview(), ApiPreviewCertificate::pipelineLoadDownloadButton()])
                 )
             ]),

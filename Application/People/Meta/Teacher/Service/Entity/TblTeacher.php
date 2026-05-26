@@ -1,11 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: Kauschke
- * Date: 20.05.2016
- * Time: 08:15
- */
-
 namespace SPHERE\Application\People\Meta\Teacher\Service\Entity;
 
 use Doctrine\ORM\Mapping\Cache;
@@ -26,6 +19,8 @@ class TblTeacher extends Element
 
     const SERVICE_TBL_PERSON = 'serviceTblPerson';
     const ATTR_ACRONYM = 'Acronym';
+    const ATTR_EMPLOYMENT_START = 'EmploymentStart';
+    const ATTR_EMPLOYMENT_END = 'EmploymentEnd';
 
     /**
      * @Column(type="bigint")
@@ -36,6 +31,16 @@ class TblTeacher extends Element
      * @Column(type="string")
      */
     protected $Acronym;
+
+    /**
+     * @Column(type="datetime", nullable=true)
+     */
+    protected $EmploymentStart;
+
+    /**
+     * @Column(type="datetime", nullable=true)
+     */
+    protected $EmploymentEnd;
 
     /**
      * @return bool|TblPerson
@@ -73,6 +78,56 @@ class TblTeacher extends Element
     public function setAcronym($Acronym)
     {
         $this->Acronym = $Acronym;
+    }
+
+    /**
+     * @param string $format
+     * @return false|string
+     */
+    public function getEmploymentStart($format = 'd.m.Y')
+    {
+        if (null === $this->EmploymentStart) {
+            return '';
+        }
+        /** @var \DateTime $EmploymentStart */
+        $EmploymentStart = $this->EmploymentStart;
+        if ($EmploymentStart instanceof \DateTime) {
+            return $EmploymentStart->format($format);
+        }
+        return (string)$EmploymentStart;
+    }
+
+    /**
+     * @param \DateTime|null $EmploymentStart
+     */
+    public function setEmploymentStart(\DateTime $EmploymentStart = null)
+    {
+        $this->EmploymentStart = $EmploymentStart;
+    }
+
+    /**
+     * @param string $format
+     * @return false|string
+     */
+    public function getEmploymentEnd($format = 'd.m.Y')
+    {
+        if (null === $this->EmploymentEnd) {
+            return '';
+        }
+        /** @var \DateTime $EmploymentEnd */
+        $EmploymentEnd = $this->EmploymentEnd;
+        if ($EmploymentEnd instanceof \DateTime) {
+            return $EmploymentEnd->format($format);
+        }
+        return (string)$EmploymentEnd;
+    }
+
+    /**
+     * @param \DateTime|null $EmploymentEnd
+     */
+    public function setEmploymentEnd(\DateTime $EmploymentEnd = null)
+    {
+        $this->EmploymentEnd = $EmploymentEnd;
     }
 
 }

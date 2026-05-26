@@ -554,6 +554,7 @@ class Service extends ServiceTabs
     {
         $resultList = array();
         if (($tblPerson = Account::useService()->getPersonByLogin())) {
+            $tblMemberType = DivisionCourse::useService()->getDivisionCourseMemberTypeByIdentifier(TblDivisionCourseMemberType::TYPE_DIVISION_TEACHER);
             $tblDivisionCourseList = array();
             $checkedDivisionCourseList = array();
             // Lehraufträge -> dann alle Schüler des Lehrauftrags -> alle Klassen, Stammgruppen und SekII-Kurse der Schüler
@@ -578,7 +579,15 @@ class Service extends ServiceTabs
                                                 continue;
                                             }
 
-                                            if (!isset($tblDivisionCourseList[$tblDivisionCourseStudent->getId()])) {
+                                            if (!isset($tblDivisionCourseList[$tblDivisionCourseStudent->getId()])
+                                                && ($tblDivisionCourseStudent->getIsDivisionOrCoreGroup()
+                                                    || ($tblDivisionCourseStudent->getIsDigital()
+                                                        && $tblMemberType
+                                                        && DivisionCourse::useService()->getDivisionCourseMemberByPerson(
+                                                            $tblDivisionCourseStudent, $tblMemberType, $tblPerson
+                                                        ))
+                                                )
+                                            ) {
                                                 $tblDivisionCourseList[$tblDivisionCourseStudent->getId()] = $tblDivisionCourseStudent;
                                             }
 
@@ -706,7 +715,7 @@ class Service extends ServiceTabs
             $resultList = $this->getDigitalClassRegisterDataForTeacher();
         }
 
-        if ($resultList) {
+//        if ($resultList) {
             return new Panel(
                 $panelHeader,
                 new TableData(
@@ -736,9 +745,9 @@ class Service extends ServiceTabs
                 ),
                 Panel::PANEL_TYPE_PRIMARY
             );
-        }
-
-        return '';
+//        }
+//
+//        return '';
     }
 
     /**
