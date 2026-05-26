@@ -65,24 +65,8 @@ class FrontendDivisionCourse extends Extension implements IFrontendInterface
      */
     public function frontendDivisionCourse($SelectedYearId = null, $DivisionCourseId = null, $SubjectId = null): Stage
     {
-        $textCourse = "";
-        $textSubject = "";
-        if (($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))
-            && ($tblSubject = Subject::useService()->getSubjectById($SubjectId))
-        ) {
-            $textCourse = new Bold($tblDivisionCourse->getDisplayName());
-            $textSubject = new Bold($tblSubject->getDisplayName());
-        }
-
         $stage = new Stage();
-        $stage->setContent(
-            new Title(
-                new Standard("Zurück", "/Education/Competence/SkillRate", new ChevronLeft(), ['SelectedYearId' => $SelectedYearId])
-                . "&nbsp;&nbsp;&nbsp;Kompetenzbewertung"
-                . new Muted(new Small(" für Kurs: ")) . $textCourse
-                . new Muted(new Small(" im Fach: ")) . $textSubject
-            )
-            . ApiSupportReadOnly::receiverOverViewModal()
+        $stage->setContent(ApiSupportReadOnly::receiverOverViewModal()
             . ApiPersonPicture::receiverModal()
             . ApiSkillRate::receiverBlock($this->loadViewDivisionCourseContent($DivisionCourseId, $SubjectId, $SelectedYearId), 'Content')
         );
@@ -202,7 +186,14 @@ class FrontendDivisionCourse extends Extension implements IFrontendInterface
                     , 3)
             ))));
 
-            return $actions
+            return
+                new Title(
+                    new Standard("Zurück", "/Education/Competence/SkillRate", new ChevronLeft(), ['SelectedYearId' => $SelectedYearId])
+                    . "&nbsp;&nbsp;&nbsp;Kompetenzbewertung"
+                    . new Muted(new Small(" für Kurs: ")) . new Bold($tblDivisionCourse->getDisplayName())
+                    . new Muted(new Small(" im Fach: ")) . new Bold($tblSubject->getDisplayName())
+                )
+                . $actions
                 . ($optionInActive ? '' : new Container('&nbsp;'))
                 . $gradeFrontend->getTableCustom($headerList, $bodyList);
         }
@@ -304,21 +295,29 @@ class FrontendDivisionCourse extends Extension implements IFrontendInterface
             $list[] = new SelectBoxItem($tblSkill->getId(), $tblSkill->getDisplayName());
         }
 
-        return new Well(
-            (new Form(new FormGroup([
-                new FormRow(
-                    new FormColumn(
-                        (new SelectBox("Data[Id]", "Kompetenz wählen", ['{{ Name }}' => $list], null, false, null))
-                            ->ajaxPipelineOnChange(ApiSkillRate::pipelineLoadEditDivisionCourseSkillRateContent($DivisionCourseId, $SubjectId, $SelectedYearId))
+        return
+            new Title(
+                new Standard("Zurück", "/Education/Competence/SkillRate/DivisionCourse", new ChevronLeft(),
+                    ['DivisionCourseId' => $DivisionCourseId, 'SubjectId' => $SubjectId, 'SelectedYearId' => $SelectedYearId])
+                . "&nbsp;&nbsp;&nbsp;Kompetenzbewertung"
+                . new Muted(new Small(" für Kurs: ")) . new Bold($tblDivisionCourse->getDisplayName())
+                . new Muted(new Small(" im Fach: ")) . new Bold($tblSubject?->getDisplayName())
+            )
+            . new Well(
+                (new Form(new FormGroup([
+                    new FormRow(
+                        new FormColumn(
+                            (new SelectBox("Data[Id]", "Kompetenz wählen", ['{{ Name }}' => $list], null, false, null))
+                                ->ajaxPipelineOnChange(ApiSkillRate::pipelineLoadEditDivisionCourseSkillRateContent($DivisionCourseId, $SubjectId, $SelectedYearId))
+                        )
+                    ),
+                    new FormRow(
+                        new FormColumn(
+                            ApiSkillRate::receiverBlock('', 'SkillRateContent')
+                        )
                     )
-                ),
-                new FormRow(
-                    new FormColumn(
-                        ApiSkillRate::receiverBlock('', 'SkillRateContent')
-                    )
-                )
-            ])))->disableSubmitAction()
-        );
+                ])))->disableSubmitAction()
+            );
     }
 
     /**

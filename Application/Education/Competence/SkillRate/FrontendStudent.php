@@ -80,19 +80,12 @@ class FrontendStudent extends FrontendDivisionCourse
     public function frontendStudent($DivisionCourseId, $SubjectId, $PersonId, $SelectedYearId = null): Stage
     {
         $stage = new Stage();
-        $title = new Title(
-            new Standard("Zurück", "/Education/Competence/SkillRate/DivisionCourse", new ChevronLeft(),
-                ['DivisionCourseId' => $DivisionCourseId, 'SubjectId' => $SubjectId, 'SelectedYearId' => $SelectedYearId], 'Zurück zur Kursansicht')
-            . "&nbsp;&nbsp;&nbsp;Kompetenzbewertung"
-            . new Muted(new Small(" Schüleransicht "))
-        );
 
         $stage->setContent(
-            $title
-            . ApiPersonPicture::receiverModal()
+            ApiPersonPicture::receiverModal()
             . ApiSupportReadOnly::receiverOverViewModal()
             . ApiSkillRate::receiverModal()
-            . ApiSkillRate::receiverBlock($this->loadViewStudentContent($DivisionCourseId, $PersonId, $SubjectId), 'Content')
+            . ApiSkillRate::receiverBlock($this->loadViewStudentContent($DivisionCourseId, $PersonId, $SubjectId, $SelectedYearId), 'Content')
         );
 
         return $stage;
@@ -147,11 +140,12 @@ class FrontendStudent extends FrontendDivisionCourse
      * @param $DivisionCourseId
      * @param $PersonId
      * @param $SubjectId
+     * @param $SelectedYearId
      * @param bool $IsOldYears
      *
      * @return string
      */
-    public function loadViewStudentContent($DivisionCourseId, $PersonId, $SubjectId, bool $IsOldYears = false): string
+    public function loadViewStudentContent($DivisionCourseId, $PersonId, $SubjectId, $SelectedYearId, bool $IsOldYears = false): string
     {
         if (!($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
             return new Danger('Kurs wurde nicht gefunden!', new Exclamation());
@@ -180,13 +174,13 @@ class FrontendStudent extends FrontendDivisionCourse
                     $tblStudentEducationTemp->getServiceTblCourse() ?: null, Student::useService()->getPrimarySupportFocusTypeByPerson($tblPerson));
                 foreach ($tblSkillList as $tblSkill) {
                     $tblStudentSkill = $tblStudentSkillList['SkillId_' . $tblSkill->getId()] ?? null;
-                    $this->setViewSkillData($dataList, $tblSkill, $tblStudentSkill, $DivisionCourseId);
+                    $this->setViewSkillData($dataList, $tblSkill, $tblStudentSkill, $DivisionCourseId, $SelectedYearId);
                     $skills[$tblSkill->getId()] = 1;
                 }
                 // individuelle Kompetenzen ohne Kompetenzraster oder von einer anderen Klassenstufe
                 foreach ($tblStudentSkillList as $tblStudentSkill) {
                     if (!$tblStudentSkill->getServiceTblSkill() || !isset($skills[$tblStudentSkill->getServiceTblSkill()->getId()])) {
-                        $this->setViewSkillData($dataList, null, $tblStudentSkill, $DivisionCourseId);
+                        $this->setViewSkillData($dataList, null, $tblStudentSkill, $DivisionCourseId, $SelectedYearId);
                     }
                 }
 
@@ -211,22 +205,29 @@ class FrontendStudent extends FrontendDivisionCourse
         $buttons = '';
         if ($isEdit) {
             $buttons = (new Primary('Kompetenzen bewerten', ApiSkillRate::getEndpoint(), new ClipBoard()))
-                ->ajaxPipelineOnClick(ApiSkillRate::pipelineLoadEditStudentContent($DivisionCourseId, $PersonId, $SubjectId))
+                ->ajaxPipelineOnClick(ApiSkillRate::pipelineLoadEditStudentContent($DivisionCourseId, $PersonId, $SubjectId, $SelectedYearId))
             . (new Primary('Kompetenz umbenennen', ApiSkillRate::getEndpoint(), new Edit()))
-                ->ajaxPipelineOnClick(ApiSkillRate::pipelineOpenRenameStudentSkillModal($DivisionCourseId, $PersonId, $SubjectId))
+                ->ajaxPipelineOnClick(ApiSkillRate::pipelineOpenRenameStudentSkillModal($DivisionCourseId, $PersonId, $SubjectId, $SelectedYearId))
             . (new Primary('Kompetenz auswählen', ApiSkillRate::getEndpoint(), new Select(),
                     [], 'Kompetenz vom Kompetenzraster einer anderen Klassenstufe wählen'))
-                ->ajaxPipelineOnClick(ApiSkillRate::pipelineOpenAddStudentSkillModal($DivisionCourseId, $PersonId, $SubjectId))
+                ->ajaxPipelineOnClick(ApiSkillRate::pipelineOpenAddStudentSkillModal($DivisionCourseId, $PersonId, $SubjectId, $SelectedYearId))
             . (new Primary('Kompetenz hinzufügen', ApiSkillRate::getEndpoint(), new Plus()))
-                ->ajaxPipelineOnClick(ApiSkillRate::pipelineOpenCreateStudentSkillModal($DivisionCourseId, $PersonId, $SubjectId));
+                ->ajaxPipelineOnClick(ApiSkillRate::pipelineOpenCreateStudentSkillModal($DivisionCourseId, $PersonId, $SubjectId, $SelectedYearId));
         }
 
-        return new PullClear($buttons
+        return
+            new Title(
+                new Standard("Zurück", "/Education/Competence/SkillRate/DivisionCourse", new ChevronLeft(),
+                    ['DivisionCourseId' => $DivisionCourseId, 'SubjectId' => $SubjectId, 'SelectedYearId' => $SelectedYearId], 'Zurück zur Kursansicht')
+                . "&nbsp;&nbsp;&nbsp;Kompetenzbewertung"
+                . new Muted(new Small(" Schüleransicht "))
+            )
+            . new PullClear($buttons
             . new PullRight(
                 $support
                     . (new Standard('Alte Schuljahre ' . ($IsOldYears ? 'ausblenden' : 'anzeigen'), ApiSkillRate::getEndpoint()))
                         ->ajaxPipelineOnClick(ApiSkillRate::pipelineLoadViewStudentContent(
-                            $DivisionCourseId, $PersonId, $SubjectId, $IsOldYears ? 'false' : 'true'))
+                            $DivisionCourseId, $PersonId, $SubjectId, $SelectedYearId, $IsOldYears ? 'false' : 'true'))
             ))
             . new Container('&nbsp;')
             . $this->getStudentHead($tblPerson, $tblDivisionCourse, $tblSubject)
@@ -238,10 +239,11 @@ class FrontendStudent extends FrontendDivisionCourse
      * @param TblSkill|null $tblSkill
      * @param TblStudentSkill|null $tblStudentSkill
      * @param $DivisionCourseId
+     * @param $SelectedYearId
      *
      * @return void
      */
-    private function setViewSkillData(array &$dataList, ?TblSkill $tblSkill, ?TblStudentSkill $tblStudentSkill, $DivisionCourseId): void
+    private function setViewSkillData(array &$dataList, ?TblSkill $tblSkill, ?TblStudentSkill $tblStudentSkill, $DivisionCourseId, $SelectedYearId): void
     {
         $skillAreaName = '';
         if ($tblSkill
@@ -270,7 +272,7 @@ class FrontendStudent extends FrontendDivisionCourse
                     $dataList[$skillAreaIdentifier]['isBold'] = true;
                     $isBold = true;
                     $displayLast = (new Link(new Bold($displayLast), ApiSkillRate::getEndpoint(), null, []))
-                        ->ajaxPipelineOnClick(ApiSkillRate::pipelineOpenStudentSkillRateHistoryModal($DivisionCourseId, $tblStudentSkill->getId()));
+                        ->ajaxPipelineOnClick(ApiSkillRate::pipelineOpenStudentSkillRateHistoryModal($DivisionCourseId, $tblStudentSkill->getId(), $SelectedYearId));
                 }
                 $skillLevel = $tblStudentSkill->getSkillLevel();
                 $skill = $tblStudentSkill->getSkill();
@@ -291,10 +293,11 @@ class FrontendStudent extends FrontendDivisionCourse
      * @param $DivisionCourseId
      * @param $PersonId
      * @param $SubjectId
+     * @param $SelectedYearId
      *
      * @return string
      */
-    public function loadEditStudentContent($DivisionCourseId, $PersonId, $SubjectId): string
+    public function loadEditStudentContent($DivisionCourseId, $PersonId, $SubjectId, $SelectedYearId): string
     {
         if (!($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
             return new Danger('Kurs nicht gefunden.', new Exclamation());
@@ -305,19 +308,28 @@ class FrontendStudent extends FrontendDivisionCourse
 
         $tblSubject = Subject::useService()->getSubjectById($SubjectId) ?: null;
 
-        return $this->getStudentHead($tblPerson, $tblDivisionCourse, $tblSubject)
-            . new Well($this->formStudentSkillRateList($tblDivisionCourse, $tblPerson, $tblSubject));
+        return
+            new Title(
+                new Standard("Zurück", "/Education/Competence/SkillRate/Student", new ChevronLeft(),
+                    ['DivisionCourseId' => $DivisionCourseId, 'SubjectId' => $SubjectId, 'PersonId' => $PersonId, 'SelectedYearId' => $SelectedYearId])
+                . "&nbsp;&nbsp;&nbsp;Kompetenzbewertung"
+                . new Muted(new Small(" Schüleransicht "))
+            )
+            . $this->getStudentHead($tblPerson, $tblDivisionCourse, $tblSubject)
+            . new Well($this->formStudentSkillRateList($tblDivisionCourse, $tblPerson, $tblSubject, $SelectedYearId));
     }
 
     /**
      * @param TblDivisionCourse $tblDivisionCourse
      * @param TblPerson $tblPerson
      * @param TblSubject|null $tblSubject
-     * @param $ErrorList
+     * @param $SelectedYearId
+     * @param null $ErrorList
      *
      * @return Form
      */
-    public function formStudentSkillRateList(TblDivisionCourse $tblDivisionCourse, TblPerson $tblPerson, ?TblSubject $tblSubject, $ErrorList = null): Form
+    public function formStudentSkillRateList(TblDivisionCourse $tblDivisionCourse, TblPerson $tblPerson, ?TblSubject $tblSubject, $SelectedYearId,
+        $ErrorList = null): Form
     {
         // aktuelles Datum vorsetzen
         if (!$ErrorList) {
@@ -372,9 +384,11 @@ class FrontendStudent extends FrontendDivisionCourse
             new FormColumn(array(
                 new Container('&nbsp;'),
                 (new Primary('Speichern', ApiSkillRate::getEndpoint(), new Save()))
-                    ->ajaxPipelineOnClick(ApiSkillRate::pipelineSaveEditStudentSkillRate($tblDivisionCourse->getId(), $tblPerson->getId(), $tblSubject?->getId())),
+                    ->ajaxPipelineOnClick(ApiSkillRate::pipelineSaveEditStudentSkillRate(
+                        $tblDivisionCourse->getId(), $tblPerson->getId(), $tblSubject?->getId(), $SelectedYearId)),
                 (new Standard('Abbrechen', '/Education/Competence/SkillRate', new Disable()))
-                    ->ajaxPipelineOnClick(ApiSkillRate::pipelineLoadViewStudentContent($tblDivisionCourse->getId(), $tblPerson->getId(), $tblSubject?->getId())),
+                    ->ajaxPipelineOnClick(ApiSkillRate::pipelineLoadViewStudentContent(
+                        $tblDivisionCourse->getId(), $tblPerson->getId(), $tblSubject?->getId(), $SelectedYearId)),
             ))
         ));
 
@@ -487,10 +501,11 @@ class FrontendStudent extends FrontendDivisionCourse
     /**
      * @param $DivisionCourseId
      * @param $StudentSkillId
+     * @param $SelectedYearId
      *
      * @return string
      */
-    public function openStudentSkillRateHistoryModal($DivisionCourseId, $StudentSkillId): string
+    public function openStudentSkillRateHistoryModal($DivisionCourseId, $StudentSkillId, $SelectedYearId): string
     {
         if (!($tblStudentSkill = SkillRate::useService()->getStudentSkillById($StudentSkillId))) {
             return new Danger('Kompetenz wurde nicht gefunden.', new Exclamation());
@@ -507,16 +522,17 @@ class FrontendStudent extends FrontendDivisionCourse
             . new PullRight(SkillRate::useService()->getDisplayStudentSkillRateLastOrAverage($tblStudentSkill)));
 
         return new Panel('Kompetenz', $panelList, Panel::PANEL_TYPE_INFO)
-            . ApiSkillRate::receiverBlock($this->loadViewStudentSkillRateHistoryContent($DivisionCourseId, $StudentSkillId), 'SkillRateHistoryContent');
+            . ApiSkillRate::receiverBlock($this->loadViewStudentSkillRateHistoryContent($DivisionCourseId, $StudentSkillId, $SelectedYearId), 'SkillRateHistoryContent');
     }
 
     /**
      * @param $DivisionCourseId
      * @param $StudentSkillId
+     * @param $SelectedYearId
      *
      * @return string
      */
-    public function loadViewStudentSkillRateHistoryContent($DivisionCourseId, $StudentSkillId): string
+    public function loadViewStudentSkillRateHistoryContent($DivisionCourseId, $StudentSkillId, $SelectedYearId): string
     {
         if (!($tblStudentSkill = SkillRate::useService()->getStudentSkillById($StudentSkillId))) {
             return new Danger('Kompetenz wurde nicht gefunden.', new Exclamation());
@@ -558,9 +574,11 @@ class FrontendStudent extends FrontendDivisionCourse
             if ($isEdit) {
                 $bodyList[$tblStudentSkillRate->getId()]['Option'] = $gradeFrontend->getTableColumnBody(
                     (new Standard('', ApiSkillRate::getEndpoint(), new Edit(), [], 'Kompetenzbewertung bearbeiten'))
-                        ->ajaxPipelineOnClick(ApiSkillRate::pipelineLoadEditStudentSkillRateHistoryContent($DivisionCourseId, $tblStudentSkillRate->getId()))
+                        ->ajaxPipelineOnClick(ApiSkillRate::pipelineLoadEditStudentSkillRateHistoryContent(
+                            $DivisionCourseId, $tblStudentSkillRate->getId(), $SelectedYearId))
                     . (new Standard('', ApiSkillRate::getEndpoint(), new Remove(), [], 'Kompetenzbewertung löschen'))
-                        ->ajaxPipelineOnClick(ApiSkillRate::pipelineLoadDeleteStudentSkillRateHistoryContent($DivisionCourseId, $tblStudentSkillRate->getId()))
+                        ->ajaxPipelineOnClick(ApiSkillRate::pipelineLoadDeleteStudentSkillRateHistoryContent(
+                            $DivisionCourseId, $tblStudentSkillRate->getId(), $SelectedYearId))
                 );
             }
         }
@@ -572,11 +590,12 @@ class FrontendStudent extends FrontendDivisionCourse
     /**
      * @param $DivisionCourseId
      * @param $StudentSkillRateId
+     * @param $SelectedYearId
      * @param null $ErrorList
      *
      * @return string
      */
-    public function loadEditStudentSkillRateHistoryContent($DivisionCourseId, $StudentSkillRateId, $ErrorList = null): string
+    public function loadEditStudentSkillRateHistoryContent($DivisionCourseId, $StudentSkillRateId, $SelectedYearId, $ErrorList = null): string
     {
         if (!($tblStudentSkillRate = SkillRate::useService()->getStudentSkillRateById($StudentSkillRateId))) {
             return new Danger('Kompetenzbewertung wurde nicht gefunden.', new Exclamation());
@@ -610,9 +629,11 @@ class FrontendStudent extends FrontendDivisionCourse
             new FormColumn(array(
 //                new Container('&nbsp;'),
                 (new Primary('Speichern', ApiSkillRate::getEndpoint(), new Save()))
-                    ->ajaxPipelineOnClick(ApiSkillRate::pipelineSaveEditStudentSkillRateHistoryContent($DivisionCourseId, $tblStudentSkillRate->getId())),
+                    ->ajaxPipelineOnClick(ApiSkillRate::pipelineSaveEditStudentSkillRateHistoryContent(
+                        $DivisionCourseId, $tblStudentSkillRate->getId(), $SelectedYearId)),
                 (new Standard('Abbrechen', ApiSkillRate::getEndpoint(), new Disable()))
-                    ->ajaxPipelineOnClick(ApiSkillRate::pipelineLoadViewStudentSkillRateHistoryContent($DivisionCourseId, $tblStudentSkill->getId())),
+                    ->ajaxPipelineOnClick(ApiSkillRate::pipelineLoadViewStudentSkillRateHistoryContent(
+                        $DivisionCourseId, $tblStudentSkill->getId(), $SelectedYearId)),
             ))
         ));
 
@@ -631,10 +652,11 @@ class FrontendStudent extends FrontendDivisionCourse
     /**
      * @param $DivisionCourseId
      * @param $StudentSkillRateId
+     * @param $SelectedYearId
      *
      * @return string
      */
-    public function loadDeleteStudentSkillRateHistoryContent($DivisionCourseId, $StudentSkillRateId): string
+    public function loadDeleteStudentSkillRateHistoryContent($DivisionCourseId, $StudentSkillRateId, $SelectedYearId): string
     {
         if (!($tblStudentSkillRate = SkillRate::useService()->getStudentSkillRateById($StudentSkillRateId))) {
             return new Danger('Kompetenzbewertung wurde nicht gefunden.', new Exclamation());
@@ -654,9 +676,11 @@ class FrontendStudent extends FrontendDivisionCourse
                             Panel::PANEL_TYPE_DANGER
                         )
                         . (new DangerLink('Ja', ApiSkillRate::getEndpoint(), new Ok()))
-                            ->ajaxPipelineOnClick(ApiSkillRate::pipelineSaveDeleteStudentSkillRateHistoryContent($DivisionCourseId, $tblStudentSkillRate->getId()))
+                            ->ajaxPipelineOnClick(ApiSkillRate::pipelineSaveDeleteStudentSkillRateHistoryContent(
+                                $DivisionCourseId, $tblStudentSkillRate->getId(), $SelectedYearId))
                         . (new Standard('Nein', ApiSkillRate::getEndpoint(), new Remove()))
-                            ->ajaxPipelineOnClick(ApiSkillRate::pipelineLoadViewStudentSkillRateHistoryContent($DivisionCourseId, $tblStudentSkill->getId()))
+                            ->ajaxPipelineOnClick(ApiSkillRate::pipelineLoadViewStudentSkillRateHistoryContent(
+                                $DivisionCourseId, $tblStudentSkill->getId(), $SelectedYearId))
                     )
             )));
     }
@@ -665,10 +689,11 @@ class FrontendStudent extends FrontendDivisionCourse
      * @param $DivisionCourseId
      * @param $PersonId
      * @param $SubjectId
+     * @param $SelectedYearId
      *
      * @return string
      */
-    public function openRenameStudentSkillModal($DivisionCourseId, $PersonId, $SubjectId): string
+    public function openRenameStudentSkillModal($DivisionCourseId, $PersonId, $SubjectId, $SelectedYearId): string
     {
         if (!($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
             return new Danger('Kurs nicht gefunden.', new Exclamation());
@@ -720,7 +745,7 @@ class FrontendStudent extends FrontendDivisionCourse
                 new FormRow(
                     new FormColumn(
                         (new SelectBox("Data[Id]", "Kompetenz wählen", ['{{ Name }}' => $list], null, false, null))
-                            ->ajaxPipelineOnChange(ApiSkillRate::pipelineLoadRenameSkillContent($DivisionCourseId, $PersonId, $SubjectId))
+                            ->ajaxPipelineOnChange(ApiSkillRate::pipelineLoadRenameSkillContent($DivisionCourseId, $PersonId, $SubjectId, $SelectedYearId))
                     )
                 ),
                 new FormRow(
@@ -735,11 +760,12 @@ class FrontendStudent extends FrontendDivisionCourse
      * @param $DivisionCourseId
      * @param $PersonId
      * @param $SubjectId
+     * @param $SelectedYearId
      * @param null $Data
      *
      * @return string
      */
-    public function loadRenameSkillContent($DivisionCourseId, $PersonId, $SubjectId, $Data = null): string
+    public function loadRenameSkillContent($DivisionCourseId, $PersonId, $SubjectId, $SelectedYearId, $Data = null): string
     {
         if ($Data === null || empty($Data['Id'])) {
             return new Warning("Bitte wählen Sie zunächst eine Kompetenz aus.", new Exclamation());
@@ -798,7 +824,7 @@ class FrontendStudent extends FrontendDivisionCourse
         $rows[] = new LayoutRow([
             new LayoutColumn(
                 (new Primary('Speichern', ApiSkillRate::getEndpoint(), new Save()))
-                    ->ajaxPipelineOnClick(ApiSkillRate::pipelineSaveRenameSkill($DivisionCourseId, $PersonId, $SubjectId))
+                    ->ajaxPipelineOnClick(ApiSkillRate::pipelineSaveRenameSkill($DivisionCourseId, $PersonId, $SubjectId, $SelectedYearId))
             )
         ]);
 
@@ -809,11 +835,12 @@ class FrontendStudent extends FrontendDivisionCourse
      * @param $DivisionCourseId
      * @param $PersonId
      * @param $SubjectId
+     * @param $SelectedYearId
      * @param null $ErrorList
      *
      * @return string
      */
-    public function openAddStudentSkillModal($DivisionCourseId, $PersonId, $SubjectId, $ErrorList = null): string
+    public function openAddStudentSkillModal($DivisionCourseId, $PersonId, $SubjectId, $SelectedYearId, $ErrorList = null): string
     {
         if (!($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
             return new Danger('Kurs nicht gefunden.', new Exclamation());
@@ -861,7 +888,7 @@ class FrontendStudent extends FrontendDivisionCourse
             new FormRow(
                 new FormColumn(
                     (new Primary('Speichern', ApiSkillRate::getEndpoint(), new Save()))
-                        ->ajaxPipelineOnClick(ApiSkillRate::pipelineSaveAddStudentSkill($DivisionCourseId, $PersonId, $SubjectId))
+                        ->ajaxPipelineOnClick(ApiSkillRate::pipelineSaveAddStudentSkill($DivisionCourseId, $PersonId, $SubjectId, $SelectedYearId))
                 )
             )
         ])))->disableSubmitAction();
@@ -880,11 +907,12 @@ class FrontendStudent extends FrontendDivisionCourse
      * @param $DivisionCourseId
      * @param $PersonId
      * @param $SubjectId
+     * @param $SelectedYearId
      * @param null $ErrorList
      *
      * @return string
      */
-    public function openCreateStudentSkillModal($DivisionCourseId, $PersonId, $SubjectId, $ErrorList = null): string
+    public function openCreateStudentSkillModal($DivisionCourseId, $PersonId, $SubjectId, $SelectedYearId, $ErrorList = null): string
     {
         if (!($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
             return new Danger('Kurs nicht gefunden.', new Exclamation());
@@ -944,7 +972,7 @@ class FrontendStudent extends FrontendDivisionCourse
             new FormRow(
                 new FormColumn(
                     (new Primary('Speichern', ApiSkillRate::getEndpoint(), new Save()))
-                        ->ajaxPipelineOnClick(ApiSkillRate::pipelineSaveCreateStudentSkill($DivisionCourseId, $PersonId, $SubjectId))
+                        ->ajaxPipelineOnClick(ApiSkillRate::pipelineSaveCreateStudentSkill($DivisionCourseId, $PersonId, $SubjectId, $SelectedYearId))
                 )
             )
         ])))->disableSubmitAction();

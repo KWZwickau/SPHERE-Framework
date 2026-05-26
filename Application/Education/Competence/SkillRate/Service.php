@@ -242,17 +242,18 @@ class Service extends AbstractService
      * @param TblDivisionCourse $tblDivisionCourse
      * @param TblPerson $tblPerson
      * @param TblSubject|null $tblSubject
+     * @param $SelectedYearId
      * @param $Data
      *
      * @return string
      */
-    public function createStudentSkillRateList(TblDivisionCourse $tblDivisionCourse, TblPerson $tblPerson, ?TblSubject $tblSubject, $Data): string
+    public function createStudentSkillRateList(TblDivisionCourse $tblDivisionCourse, TblPerson $tblPerson, ?TblSubject $tblSubject, $SelectedYearId, $Data): string
     {
         list($hasErrors,$ErrorList) = $this->checkStudentSkillRateInput($Data);
 
         if ($hasErrors) {
             return SkillRate::useFrontend()->getStudentHead($tblPerson, $tblDivisionCourse, $tblSubject)
-                . new Well(SkillRate::useFrontend()->formStudentSkillRateList($tblDivisionCourse, $tblPerson, $tblSubject, $ErrorList));
+                . new Well(SkillRate::useFrontend()->formStudentSkillRateList($tblDivisionCourse, $tblPerson, $tblSubject, $SelectedYearId, $ErrorList));
         }
 
         $tblPersonTeacher = Account::useService()->getPersonByLogin() ?: null;
@@ -289,7 +290,7 @@ class Service extends AbstractService
         }
 
         return new Success('Die Daten wurde erfolgreich gespeichert.')
-            . ApiSkillRate::pipelineLoadViewStudentContent($tblDivisionCourse->getId(), $tblPerson->getId(), $tblSubject?->getId());
+            . ApiSkillRate::pipelineLoadViewStudentContent($tblDivisionCourse->getId(), $tblPerson->getId(), $tblSubject?->getId(), $SelectedYearId);
     }
 
     private function getStudentSkillByFrontendKey(string $key, TblPerson $tblPerson, $tblYear, ?TblSubject $tblSubject, ?TblPerson $tblPersonTeacher)
@@ -350,16 +351,17 @@ class Service extends AbstractService
     /**
      * @param $DivisionCourseId
      * @param TblStudentSkillRate $tblStudentSkillRate
+     * @param $SelectedYearId
      * @param $Data
      *
      * @return string
      */
-    public function updateStudentSkillRate($DivisionCourseId, TblStudentSkillRate $tblStudentSkillRate, $Data): string
+    public function updateStudentSkillRate($DivisionCourseId, TblStudentSkillRate $tblStudentSkillRate, $SelectedYearId, $Data): string
     {
         list($hasErrors,$ErrorList) = $this->checkStudentSkillRateInput($Data);
 
         if ($hasErrors) {
-            return SkillRate::useFrontend()->loadEditStudentSkillRateHistoryContent($DivisionCourseId, $tblStudentSkillRate->getId(), $ErrorList);
+            return SkillRate::useFrontend()->loadEditStudentSkillRateHistoryContent($DivisionCourseId, $tblStudentSkillRate->getId(), $SelectedYearId, $ErrorList);
         }
 
         $tblStudentSkill = $tblStudentSkillRate->getTblStudentSkill();
@@ -398,7 +400,7 @@ class Service extends AbstractService
             // Schülerübersicht muss neu geladen werden
             // . ApiSkillRate::pipelineLoadViewStudentSkillRateHistoryContent($DivisionCourseId, $tblStudentSkill->getId());
             . ApiSkillRate::pipelineClose()
-            . ApiSkillRate::pipelineLoadViewStudentContent($DivisionCourseId, $tblPerson?->getId(), $tblSubject?->getId());
+            . ApiSkillRate::pipelineLoadViewStudentContent($DivisionCourseId, $tblPerson?->getId(), $tblSubject?->getId(), $SelectedYearId);
     }
 
     /**
@@ -469,10 +471,11 @@ class Service extends AbstractService
     /**
      * @param $DivisionCourseId
      * @param TblStudentSkillRate $tblStudentSkillRate
+     * @param $SelectedYearId
      *
      * @return string
      */
-    public function deleteStudentSkillRate($DivisionCourseId, TblStudentSkillRate $tblStudentSkillRate): string
+    public function deleteStudentSkillRate($DivisionCourseId, TblStudentSkillRate $tblStudentSkillRate, $SelectedYearId): string
     {
         $tblStudentSkill = $tblStudentSkillRate->getTblStudentSkill();
         $tblPerson = $tblStudentSkill->getServiceTblPerson() ?: null;
@@ -484,18 +487,19 @@ class Service extends AbstractService
             // Schülerübersicht muss neu geladen werden
             // . ApiSkillRate::pipelineLoadViewStudentSkillRateHistoryContent($DivisionCourseId, $tblStudentSkill->getId());
             . ApiSkillRate::pipelineClose()
-            . ApiSkillRate::pipelineLoadViewStudentContent($DivisionCourseId, $tblPerson?->getId(), $tblSubject?->getId());
+            . ApiSkillRate::pipelineLoadViewStudentContent($DivisionCourseId, $tblPerson?->getId(), $tblSubject?->getId(), $SelectedYearId);
     }
 
     /**
      * @param $DivisionCourseId
      * @param $PersonId
      * @param $SubjectId
+     * @param $SelectedYearId
      * @param $Data
      *
      * @return string
      */
-    public function addStudentSkill($DivisionCourseId, $PersonId, $SubjectId, $Data): string {
+    public function addStudentSkill($DivisionCourseId, $PersonId, $SubjectId, $SelectedYearId, $Data): string {
 
         if (!isset($Data['Id']) || !($tblSkill = SkillGrid::useService()->getSkillById($Data['Id']))) {
             $ErrorList[] = [
@@ -503,7 +507,7 @@ class Service extends AbstractService
                 'Message' => 'Bitte wählen Sie eine Kompetenz aus.'
             ];
 
-            return SkillRate::useFrontend()->openAddStudentSkillModal($DivisionCourseId, $PersonId, $SubjectId, $ErrorList);
+            return SkillRate::useFrontend()->openAddStudentSkillModal($DivisionCourseId, $PersonId, $SubjectId, $SelectedYearId, $ErrorList);
         }
 
         if (($tblPerson = Person::useService()->getPersonById($PersonId))
@@ -524,18 +528,19 @@ class Service extends AbstractService
 
         return new Success('Kompetenz wurde erfolgreich hinzugefügt.')
             . ApiSkillRate::pipelineClose()
-            . ApiSkillRate::pipelineLoadViewStudentContent($DivisionCourseId, $PersonId, $SubjectId);
+            . ApiSkillRate::pipelineLoadViewStudentContent($DivisionCourseId, $PersonId, $SubjectId, $SelectedYearId);
     }
 
     /**
      * @param $DivisionCourseId
      * @param $PersonId
      * @param $SubjectId
+     * @param $SelectedYearId
      * @param $Data
      *
      * @return string
      */
-    public function createStudentSkill($DivisionCourseId, $PersonId, $SubjectId, $Data): string {
+    public function createStudentSkill($DivisionCourseId, $PersonId, $SubjectId, $SelectedYearId, $Data): string {
 
         if (empty($Data['Skill'])) {
             $ErrorList[] = [
@@ -543,7 +548,7 @@ class Service extends AbstractService
                 'Message' => 'Bitte geben Sie eine Kompetenz an.'
             ];
 
-            return SkillRate::useFrontend()->openCreateStudentSkillModal($DivisionCourseId, $PersonId, $SubjectId, $ErrorList);
+            return SkillRate::useFrontend()->openCreateStudentSkillModal($DivisionCourseId, $PersonId, $SubjectId, $SelectedYearId, $ErrorList);
         }
 
         if (($tblPerson = Person::useService()->getPersonById($PersonId))
@@ -562,7 +567,7 @@ class Service extends AbstractService
 
         return new Success('Kompetenz wurde erfolgreich hinzugefügt.')
             . ApiSkillRate::pipelineClose()
-            . ApiSkillRate::pipelineLoadViewStudentContent($DivisionCourseId, $PersonId, $SubjectId);
+            . ApiSkillRate::pipelineLoadViewStudentContent($DivisionCourseId, $PersonId, $SubjectId, $SelectedYearId);
     }
 
     /**

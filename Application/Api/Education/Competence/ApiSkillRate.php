@@ -242,11 +242,12 @@ class ApiSkillRate extends Extension implements IApiInterface
      * @param $DivisionCourseId
      * @param $PersonId
      * @param $SubjectId
+     * @param $SelectedYearId
      * @param string $OldYears
      *
      * @return Pipeline
      */
-    public static function pipelineLoadViewStudentContent($DivisionCourseId, $PersonId, $SubjectId, string $OldYears = 'false'): Pipeline
+    public static function pipelineLoadViewStudentContent($DivisionCourseId, $PersonId, $SubjectId, $SelectedYearId, string $OldYears = 'false'): Pipeline
     {
         $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'Content'), self::getEndpoint());
@@ -257,6 +258,7 @@ class ApiSkillRate extends Extension implements IApiInterface
             'DivisionCourseId' => $DivisionCourseId,
             'PersonId' => $PersonId,
             'SubjectId' => $SubjectId,
+            'SelectedYearId' => $SelectedYearId,
             'OldYears' => $OldYears
         ));
         $ModalEmitter->setLoadingMessage("Daten werden geladen");
@@ -269,24 +271,26 @@ class ApiSkillRate extends Extension implements IApiInterface
      * @param $DivisionCourseId
      * @param $PersonId
      * @param $SubjectId
+     * @param $SelectedYearId
      * @param $OldYears
      *
      * @return string
      * @noinspection PhpUnused
      */
-    public function loadViewStudentContent($DivisionCourseId, $PersonId, $SubjectId, $OldYears): string
+    public function loadViewStudentContent($DivisionCourseId, $PersonId, $SubjectId, $SelectedYearId, $OldYears): string
     {
-        return SkillRate::useFrontend()->loadViewStudentContent($DivisionCourseId, $PersonId, $SubjectId, $OldYears === 'true');
+        return SkillRate::useFrontend()->loadViewStudentContent($DivisionCourseId, $PersonId, $SubjectId, $SelectedYearId, $OldYears === 'true');
     }
 
     /**
      * @param $DivisionCourseId
      * @param $PersonId
      * @param $SubjectId
+     * @param $SelectedYearId
      *
      * @return Pipeline
      */
-    public static function pipelineLoadEditStudentContent($DivisionCourseId, $PersonId, $SubjectId): Pipeline
+    public static function pipelineLoadEditStudentContent($DivisionCourseId, $PersonId, $SubjectId, $SelectedYearId): Pipeline
     {
         $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'Content'), self::getEndpoint());
@@ -296,7 +300,8 @@ class ApiSkillRate extends Extension implements IApiInterface
         $ModalEmitter->setPostPayload(array(
             'DivisionCourseId' => $DivisionCourseId,
             'PersonId' => $PersonId,
-            'SubjectId' => $SubjectId
+            'SubjectId' => $SubjectId,
+            'SelectedYearId' => $SelectedYearId
         ));
         $ModalEmitter->setLoadingMessage("Daten werden geladen");
         $Pipeline->appendEmitter($ModalEmitter);
@@ -308,23 +313,25 @@ class ApiSkillRate extends Extension implements IApiInterface
      * @param $DivisionCourseId
      * @param $PersonId
      * @param $SubjectId
+     * @param $SelectedYearId
      *
      * @return string
      * @noinspection PhpUnused
      */
-    public function loadEditStudentContent($DivisionCourseId, $PersonId, $SubjectId): string
+    public function loadEditStudentContent($DivisionCourseId, $PersonId, $SubjectId, $SelectedYearId): string
     {
-        return SkillRate::useFrontend()->loadEditStudentContent($DivisionCourseId, $PersonId, $SubjectId);
+        return SkillRate::useFrontend()->loadEditStudentContent($DivisionCourseId, $PersonId, $SubjectId, $SelectedYearId);
     }
 
     /**
      * @param $DivisionCourseId
      * @param $PersonId
      * @param $SubjectId
+     * @param $SelectedYearId
      *
      * @return Pipeline
      */
-    public static function pipelineSaveEditStudentSkillRate($DivisionCourseId, $PersonId, $SubjectId): Pipeline
+    public static function pipelineSaveEditStudentSkillRate($DivisionCourseId, $PersonId, $SubjectId, $SelectedYearId): Pipeline
     {
         $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'Content'), self::getEndpoint());
@@ -334,7 +341,8 @@ class ApiSkillRate extends Extension implements IApiInterface
         $ModalEmitter->setPostPayload(array(
             'DivisionCourseId' => $DivisionCourseId,
             'PersonId' => $PersonId,
-            'SubjectId' => $SubjectId
+            'SubjectId' => $SubjectId,
+            'SelectedYearId' => $SelectedYearId
         ));
         $ModalEmitter->setLoadingMessage('Daten werden geladen');
         $Pipeline->appendEmitter($ModalEmitter);
@@ -346,12 +354,13 @@ class ApiSkillRate extends Extension implements IApiInterface
      * @param $DivisionCourseId
      * @param $PersonId
      * @param $SubjectId
+     * @param $SelectedYearId
      * @param null $Data
      *
      * @return string
      * @noinspection PhpUnused
      */
-    public function saveEditStudentSkillRate($DivisionCourseId, $PersonId, $SubjectId, $Data = null): string
+    public function saveEditStudentSkillRate($DivisionCourseId, $PersonId, $SubjectId, $SelectedYearId, $Data = null): string
     {
         if (!($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
             return new Danger('Kurs nicht gefunden.', new Exclamation());
@@ -361,16 +370,17 @@ class ApiSkillRate extends Extension implements IApiInterface
         }
         $tblSubject = $SubjectId ? Subject::useService()->getSubjectById($SubjectId) : null;
 
-        return SkillRate::useService()->createStudentSkillRateList($tblDivisionCourse, $tblPerson, $tblSubject ?: null, $Data);
+        return SkillRate::useService()->createStudentSkillRateList($tblDivisionCourse, $tblPerson, $tblSubject ?: null, $SelectedYearId, $Data);
     }
 
     /**
      * @param $DivisionCourseId
      * @param $StudentSkillId
+     * @param $SelectedYearId
      *
      * @return Pipeline
      */
-    public static function pipelineOpenStudentSkillRateHistoryModal($DivisionCourseId, $StudentSkillId): Pipeline
+    public static function pipelineOpenStudentSkillRateHistoryModal($DivisionCourseId, $StudentSkillId, $SelectedYearId): Pipeline
     {
         $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
@@ -379,7 +389,8 @@ class ApiSkillRate extends Extension implements IApiInterface
         ));
         $ModalEmitter->setPostPayload(array(
             'DivisionCourseId' => $DivisionCourseId,
-            'StudentSkillId' => $StudentSkillId
+            'StudentSkillId' => $StudentSkillId,
+            'SelectedYearId' => $SelectedYearId
         ));
         $Pipeline->appendEmitter($ModalEmitter);
 
@@ -389,22 +400,24 @@ class ApiSkillRate extends Extension implements IApiInterface
     /**
      * @param $DivisionCourseId
      * @param $StudentSkillId
+     * @param $SelectedYearId
      *
      * @return string
      * @noinspection PhpUnused
      */
-    public function openStudentSkillRateHistoryModal($DivisionCourseId, $StudentSkillId): string
+    public function openStudentSkillRateHistoryModal($DivisionCourseId, $StudentSkillId, $SelectedYearId): string
     {
-        return SkillRate::useFrontend()->openStudentSkillRateHistoryModal($DivisionCourseId, $StudentSkillId);
+        return SkillRate::useFrontend()->openStudentSkillRateHistoryModal($DivisionCourseId, $StudentSkillId, $SelectedYearId);
     }
 
     /**
      * @param $DivisionCourseId
      * @param $StudentSkillId
+     * @param $SelectedYearId
      *
      * @return Pipeline
      */
-    public static function pipelineLoadViewStudentSkillRateHistoryContent($DivisionCourseId, $StudentSkillId): Pipeline
+    public static function pipelineLoadViewStudentSkillRateHistoryContent($DivisionCourseId, $StudentSkillId, $SelectedYearId): Pipeline
     {
         $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'SkillRateHistoryContent'), self::getEndpoint());
@@ -413,7 +426,8 @@ class ApiSkillRate extends Extension implements IApiInterface
         ));
         $ModalEmitter->setPostPayload(array(
             'DivisionCourseId' => $DivisionCourseId,
-            'StudentSkillId' => $StudentSkillId
+            'StudentSkillId' => $StudentSkillId,
+            'SelectedYearId' => $SelectedYearId
         ));
         $Pipeline->appendEmitter($ModalEmitter);
 
@@ -423,22 +437,24 @@ class ApiSkillRate extends Extension implements IApiInterface
     /**
      * @param $DivisionCourseId
      * @param $StudentSkillId
+     * @param $SelectedYearId
      *
      * @return string
      * @noinspection PhpUnused
      */
-    public function loadViewStudentSkillRateHistoryContent($DivisionCourseId, $StudentSkillId): string
+    public function loadViewStudentSkillRateHistoryContent($DivisionCourseId, $StudentSkillId, $SelectedYearId): string
     {
-        return SkillRate::useFrontend()->loadViewStudentSkillRateHistoryContent($DivisionCourseId, $StudentSkillId);
+        return SkillRate::useFrontend()->loadViewStudentSkillRateHistoryContent($DivisionCourseId, $StudentSkillId, $SelectedYearId);
     }
 
     /**
      * @param $DivisionCourseId
      * @param $StudentSkillRateId
+     * @param $SelectedYearId
      *
      * @return Pipeline
      */
-    public static function pipelineLoadEditStudentSkillRateHistoryContent($DivisionCourseId, $StudentSkillRateId): Pipeline
+    public static function pipelineLoadEditStudentSkillRateHistoryContent($DivisionCourseId, $StudentSkillRateId, $SelectedYearId): Pipeline
     {
         $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'SkillRateHistoryContent'), self::getEndpoint());
@@ -447,7 +463,8 @@ class ApiSkillRate extends Extension implements IApiInterface
         ));
         $ModalEmitter->setPostPayload(array(
             'DivisionCourseId' => $DivisionCourseId,
-            'StudentSkillRateId' => $StudentSkillRateId
+            'StudentSkillRateId' => $StudentSkillRateId,
+            'SelectedYearId' => $SelectedYearId
         ));
         $Pipeline->appendEmitter($ModalEmitter);
 
@@ -457,22 +474,24 @@ class ApiSkillRate extends Extension implements IApiInterface
     /**
      * @param $DivisionCourseId
      * @param $StudentSkillRateId
+     * @param $SelectedYearId
      *
      * @return string
      * @noinspection PhpUnused
      */
-    public function loadEditStudentSkillRateHistoryContent($DivisionCourseId, $StudentSkillRateId): string
+    public function loadEditStudentSkillRateHistoryContent($DivisionCourseId, $StudentSkillRateId, $SelectedYearId): string
     {
-        return SkillRate::useFrontend()->loadEditStudentSkillRateHistoryContent($DivisionCourseId, $StudentSkillRateId);
+        return SkillRate::useFrontend()->loadEditStudentSkillRateHistoryContent($DivisionCourseId, $StudentSkillRateId, $SelectedYearId);
     }
 
     /**
      * @param $DivisionCourseId
      * @param $StudentSkillRateId
+     * @param $SelectedYearId
      *
      * @return Pipeline
      */
-    public static function pipelineSaveEditStudentSkillRateHistoryContent($DivisionCourseId, $StudentSkillRateId): Pipeline
+    public static function pipelineSaveEditStudentSkillRateHistoryContent($DivisionCourseId, $StudentSkillRateId, $SelectedYearId): Pipeline
     {
         $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'SkillRateHistoryContent'), self::getEndpoint());
@@ -481,7 +500,8 @@ class ApiSkillRate extends Extension implements IApiInterface
         ));
         $ModalEmitter->setPostPayload(array(
             'DivisionCourseId' => $DivisionCourseId,
-            'StudentSkillRateId' => $StudentSkillRateId
+            'StudentSkillRateId' => $StudentSkillRateId,
+            'SelectedYearId' => $SelectedYearId
         ));
         $Pipeline->appendEmitter($ModalEmitter);
 
@@ -491,27 +511,29 @@ class ApiSkillRate extends Extension implements IApiInterface
     /**
      * @param $DivisionCourseId
      * @param $StudentSkillRateId
+     * @param $SelectedYearId
      * @param null $Data
      *
      * @return string
      * @noinspection PhpUnused
      */
-    public function saveEditStudentSkillRateHistoryContent($DivisionCourseId, $StudentSkillRateId, $Data = null): string
+    public function saveEditStudentSkillRateHistoryContent($DivisionCourseId, $StudentSkillRateId, $SelectedYearId, $Data = null): string
     {
         if (!($tblStudentSkillRate = SkillRate::useService()->getStudentSkillRateById($StudentSkillRateId))) {
             return new Danger('Kompetenzbewertung wurde nicht gefunden.', new Exclamation());
         }
 
-        return SkillRate::useService()->updateStudentSkillRate($DivisionCourseId, $tblStudentSkillRate, $Data);
+        return SkillRate::useService()->updateStudentSkillRate($DivisionCourseId, $tblStudentSkillRate, $SelectedYearId, $Data);
     }
 
     /**
      * @param $DivisionCourseId
      * @param $StudentSkillRateId
+     * @param $SelectedYearId
      *
      * @return Pipeline
      */
-    public static function pipelineLoadDeleteStudentSkillRateHistoryContent($DivisionCourseId, $StudentSkillRateId): Pipeline
+    public static function pipelineLoadDeleteStudentSkillRateHistoryContent($DivisionCourseId, $StudentSkillRateId, $SelectedYearId): Pipeline
     {
         $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'SkillRateHistoryContent'), self::getEndpoint());
@@ -520,7 +542,8 @@ class ApiSkillRate extends Extension implements IApiInterface
         ));
         $ModalEmitter->setPostPayload(array(
             'DivisionCourseId' => $DivisionCourseId,
-            'StudentSkillRateId' => $StudentSkillRateId
+            'StudentSkillRateId' => $StudentSkillRateId,
+            'SelectedYearId' => $SelectedYearId
         ));
         $Pipeline->appendEmitter($ModalEmitter);
 
@@ -530,22 +553,24 @@ class ApiSkillRate extends Extension implements IApiInterface
     /**
      * @param $DivisionCourseId
      * @param $StudentSkillRateId
+     * @param $SelectedYearId
      *
      * @return string
      * @noinspection PhpUnused
      */
-    public function loadDeleteStudentSkillRateHistoryContent($DivisionCourseId, $StudentSkillRateId): string
+    public function loadDeleteStudentSkillRateHistoryContent($DivisionCourseId, $StudentSkillRateId, $SelectedYearId): string
     {
-        return SkillRate::useFrontend()->loadDeleteStudentSkillRateHistoryContent($DivisionCourseId, $StudentSkillRateId);
+        return SkillRate::useFrontend()->loadDeleteStudentSkillRateHistoryContent($DivisionCourseId, $StudentSkillRateId, $SelectedYearId);
     }
 
     /**
      * @param $DivisionCourseId
      * @param $StudentSkillRateId
+     * @param $SelectedYearId
      *
      * @return Pipeline
      */
-    public static function pipelineSaveDeleteStudentSkillRateHistoryContent($DivisionCourseId, $StudentSkillRateId): Pipeline
+    public static function pipelineSaveDeleteStudentSkillRateHistoryContent($DivisionCourseId, $StudentSkillRateId, $SelectedYearId): Pipeline
     {
         $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'SkillRateHistoryContent'), self::getEndpoint());
@@ -554,7 +579,8 @@ class ApiSkillRate extends Extension implements IApiInterface
         ));
         $ModalEmitter->setPostPayload(array(
             'DivisionCourseId' => $DivisionCourseId,
-            'StudentSkillRateId' => $StudentSkillRateId
+            'StudentSkillRateId' => $StudentSkillRateId,
+            'SelectedYearId' => $SelectedYearId
         ));
         $Pipeline->appendEmitter($ModalEmitter);
 
@@ -564,27 +590,29 @@ class ApiSkillRate extends Extension implements IApiInterface
     /**
      * @param $DivisionCourseId
      * @param $StudentSkillRateId
+     * @param $SelectedYearId
      *
      * @return string
      * @noinspection PhpUnused
      */
-    public function saveDeleteStudentSkillRateHistoryContent($DivisionCourseId, $StudentSkillRateId): string
+    public function saveDeleteStudentSkillRateHistoryContent($DivisionCourseId, $StudentSkillRateId, $SelectedYearId): string
     {
         if (!($tblStudentSkillRate = SkillRate::useService()->getStudentSkillRateById($StudentSkillRateId))) {
             return new Danger('Kompetenzbewertung wurde nicht gefunden.', new Exclamation());
         }
 
-        return SkillRate::useService()->deleteStudentSkillRate($DivisionCourseId, $tblStudentSkillRate);
+        return SkillRate::useService()->deleteStudentSkillRate($DivisionCourseId, $tblStudentSkillRate, $SelectedYearId);
     }
 
     /**
      * @param $DivisionCourseId
      * @param $PersonId
      * @param $SubjectId
+     * @param $SelectedYearId
      *
      * @return Pipeline
      */
-    public static function pipelineOpenRenameStudentSkillModal($DivisionCourseId, $PersonId, $SubjectId): Pipeline
+    public static function pipelineOpenRenameStudentSkillModal($DivisionCourseId, $PersonId, $SubjectId, $SelectedYearId): Pipeline
     {
         $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
@@ -594,7 +622,8 @@ class ApiSkillRate extends Extension implements IApiInterface
         $ModalEmitter->setPostPayload(array(
             'DivisionCourseId' => $DivisionCourseId,
             'PersonId' => $PersonId,
-            'SubjectId' => $SubjectId
+            'SubjectId' => $SubjectId,
+            'SelectedYearId' => $SelectedYearId
         ));
         $Pipeline->appendEmitter($ModalEmitter);
 
@@ -605,23 +634,25 @@ class ApiSkillRate extends Extension implements IApiInterface
      * @param $DivisionCourseId
      * @param $PersonId
      * @param $SubjectId
+     * @param $SelectedYearId
      *
      * @return String
      * @noinspection PhpUnused
      */
-    public function openRenameStudentSkillModal($DivisionCourseId, $PersonId, $SubjectId): string
+    public function openRenameStudentSkillModal($DivisionCourseId, $PersonId, $SubjectId, $SelectedYearId): string
     {
-        return SkillRate::useFrontend()->openRenameStudentSkillModal($DivisionCourseId, $PersonId, $SubjectId);
+        return SkillRate::useFrontend()->openRenameStudentSkillModal($DivisionCourseId, $PersonId, $SubjectId, $SelectedYearId);
     }
 
     /**
      * @param $DivisionCourseId
      * @param $PersonId
      * @param $SubjectId
+     * @param $SelectedYearId
      *
      * @return Pipeline
      */
-    public static function pipelineLoadRenameSkillContent($DivisionCourseId, $PersonId, $SubjectId): Pipeline
+    public static function pipelineLoadRenameSkillContent($DivisionCourseId, $PersonId, $SubjectId, $SelectedYearId): Pipeline
     {
         $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'RenameSkillContent'), self::getEndpoint());
@@ -631,7 +662,8 @@ class ApiSkillRate extends Extension implements IApiInterface
         $ModalEmitter->setPostPayload(array(
             'DivisionCourseId' => $DivisionCourseId,
             'PersonId' => $PersonId,
-            'SubjectId' => $SubjectId
+            'SubjectId' => $SubjectId,
+            'SelectedYearId' => $SelectedYearId
         ));
         $Pipeline->appendEmitter($ModalEmitter);
 
@@ -642,24 +674,26 @@ class ApiSkillRate extends Extension implements IApiInterface
      * @param $DivisionCourseId
      * @param $PersonId
      * @param $SubjectId
+     * @param $SelectedYearId
      * @param null $Data
      *
      * @return string
      * @noinspection PhpUnused
      */
-    public function loadRenameSkillContent($DivisionCourseId, $PersonId, $SubjectId, $Data = null): string
+    public function loadRenameSkillContent($DivisionCourseId, $PersonId, $SubjectId, $SelectedYearId, $Data = null): string
     {
-        return SkillRate::useFrontend()->loadRenameSkillContent($DivisionCourseId, $PersonId, $SubjectId, $Data);
+        return SkillRate::useFrontend()->loadRenameSkillContent($DivisionCourseId, $PersonId, $SubjectId, $SelectedYearId, $Data);
     }
 
     /**
      * @param $DivisionCourseId
      * @param $PersonId
      * @param $SubjectId
+     * @param $SelectedYearId
      *
      * @return Pipeline
      */
-    public static function pipelineSaveRenameSkill($DivisionCourseId, $PersonId, $SubjectId): Pipeline
+    public static function pipelineSaveRenameSkill($DivisionCourseId, $PersonId, $SubjectId, $SelectedYearId): Pipeline
     {
         $Pipeline = new Pipeline();
         $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
@@ -669,7 +703,8 @@ class ApiSkillRate extends Extension implements IApiInterface
         $ModalEmitter->setPostPayload(array(
             'DivisionCourseId' => $DivisionCourseId,
             'PersonId' => $PersonId,
-            'SubjectId' => $SubjectId
+            'SubjectId' => $SubjectId,
+            'SelectedYearId' =>$SelectedYearId
         ));
         $Pipeline->appendEmitter($ModalEmitter);
 
@@ -680,28 +715,30 @@ class ApiSkillRate extends Extension implements IApiInterface
      * @param $DivisionCourseId
      * @param $PersonId
      * @param $SubjectId
-     * @param $Data
+     * @param $SelectedYearId
+     * @param null $Data
      *
      * @return string
      * @noinspection PhpUnused
      */
-    public function saveRenameSkill($DivisionCourseId, $PersonId, $SubjectId, $Data = null): string
+    public function saveRenameSkill($DivisionCourseId, $PersonId, $SubjectId, $SelectedYearId, $Data = null): string
     {
         SkillRate::useService()->updateStudentSkill($DivisionCourseId, $PersonId, $SubjectId, $Data);
 
         return new Success('Kompetenz wurde erfolgreich umbenannt.')
             . self::pipelineClose()
-            . self::pipelineLoadViewStudentContent($DivisionCourseId, $PersonId, $SubjectId);
+            . self::pipelineLoadViewStudentContent($DivisionCourseId, $PersonId, $SubjectId, $SelectedYearId);
     }
 
     /**
      * @param $DivisionCourseId
      * @param $PersonId
      * @param $SubjectId
+     * @param $SelectedYearId
      *
      * @return Pipeline
      */
-    public static function pipelineOpenAddStudentSkillModal($DivisionCourseId, $PersonId, $SubjectId): Pipeline
+    public static function pipelineOpenAddStudentSkillModal($DivisionCourseId, $PersonId, $SubjectId, $SelectedYearId): Pipeline
     {
         $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
@@ -711,7 +748,8 @@ class ApiSkillRate extends Extension implements IApiInterface
         $ModalEmitter->setPostPayload(array(
             'DivisionCourseId' => $DivisionCourseId,
             'PersonId' => $PersonId,
-            'SubjectId' => $SubjectId
+            'SubjectId' => $SubjectId,
+            'SelectedYearId' => $SelectedYearId
         ));
         $Pipeline->appendEmitter($ModalEmitter);
 
@@ -722,23 +760,25 @@ class ApiSkillRate extends Extension implements IApiInterface
      * @param $DivisionCourseId
      * @param $PersonId
      * @param $SubjectId
+     * @param $SelectedYearId
      *
      * @return String
      * @noinspection PhpUnused
      */
-    public function openAddStudentSkillModal($DivisionCourseId, $PersonId, $SubjectId): string
+    public function openAddStudentSkillModal($DivisionCourseId, $PersonId, $SubjectId, $SelectedYearId): string
     {
-        return SkillRate::useFrontend()->openAddStudentSkillModal($DivisionCourseId, $PersonId, $SubjectId);
+        return SkillRate::useFrontend()->openAddStudentSkillModal($DivisionCourseId, $PersonId, $SubjectId, $SelectedYearId);
     }
 
     /**
      * @param $DivisionCourseId
      * @param $PersonId
      * @param $SubjectId
+     * @param $SelectedYearId
      *
      * @return Pipeline
      */
-    public static function pipelineSaveAddStudentSkill($DivisionCourseId, $PersonId, $SubjectId): Pipeline
+    public static function pipelineSaveAddStudentSkill($DivisionCourseId, $PersonId, $SubjectId, $SelectedYearId): Pipeline
     {
         $Pipeline = new Pipeline();
         $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
@@ -748,7 +788,8 @@ class ApiSkillRate extends Extension implements IApiInterface
         $ModalEmitter->setPostPayload(array(
             'DivisionCourseId' => $DivisionCourseId,
             'PersonId' => $PersonId,
-            'SubjectId' => $SubjectId
+            'SubjectId' => $SubjectId,
+            'SelectedYearId' => $SelectedYearId
         ));
         $Pipeline->appendEmitter($ModalEmitter);
 
@@ -759,24 +800,26 @@ class ApiSkillRate extends Extension implements IApiInterface
      * @param $DivisionCourseId
      * @param $PersonId
      * @param $SubjectId
-     * @param $Data
+     * @param $SelectedYearId
+     * @param null $Data
      *
      * @return string
      * @noinspection PhpUnused
      */
-    public function saveAddStudentSkill($DivisionCourseId, $PersonId, $SubjectId, $Data = null): string
+    public function saveAddStudentSkill($DivisionCourseId, $PersonId, $SubjectId, $SelectedYearId, $Data = null): string
     {
-        return SkillRate::useService()->addStudentSkill($DivisionCourseId, $PersonId, $SubjectId, $Data);
+        return SkillRate::useService()->addStudentSkill($DivisionCourseId, $PersonId, $SubjectId, $SelectedYearId, $Data);
     }
 
     /**
      * @param $DivisionCourseId
      * @param $PersonId
      * @param $SubjectId
+     * @param $SelectedYearId
      *
      * @return Pipeline
      */
-    public static function pipelineOpenCreateStudentSkillModal($DivisionCourseId, $PersonId, $SubjectId): Pipeline
+    public static function pipelineOpenCreateStudentSkillModal($DivisionCourseId, $PersonId, $SubjectId, $SelectedYearId): Pipeline
     {
         $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
@@ -786,7 +829,8 @@ class ApiSkillRate extends Extension implements IApiInterface
         $ModalEmitter->setPostPayload(array(
             'DivisionCourseId' => $DivisionCourseId,
             'PersonId' => $PersonId,
-            'SubjectId' => $SubjectId
+            'SubjectId' => $SubjectId,
+            'SelectedYearId' => $SelectedYearId
         ));
         $Pipeline->appendEmitter($ModalEmitter);
 
@@ -797,23 +841,25 @@ class ApiSkillRate extends Extension implements IApiInterface
      * @param $DivisionCourseId
      * @param $PersonId
      * @param $SubjectId
+     * @param $SelectedYearId
      *
      * @return String
      * @noinspection PhpUnused
      */
-    public function openCreateStudentSkillModal($DivisionCourseId, $PersonId, $SubjectId): string
+    public function openCreateStudentSkillModal($DivisionCourseId, $PersonId, $SubjectId, $SelectedYearId): string
     {
-        return SkillRate::useFrontend()->openCreateStudentSkillModal($DivisionCourseId, $PersonId, $SubjectId);
+        return SkillRate::useFrontend()->openCreateStudentSkillModal($DivisionCourseId, $PersonId, $SubjectId, $SelectedYearId);
     }
 
     /**
      * @param $DivisionCourseId
      * @param $PersonId
      * @param $SubjectId
+     * @param $SelectedYearId
      *
      * @return Pipeline
      */
-    public static function pipelineSaveCreateStudentSkill($DivisionCourseId, $PersonId, $SubjectId): Pipeline
+    public static function pipelineSaveCreateStudentSkill($DivisionCourseId, $PersonId, $SubjectId, $SelectedYearId): Pipeline
     {
         $Pipeline = new Pipeline();
         $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
@@ -823,7 +869,8 @@ class ApiSkillRate extends Extension implements IApiInterface
         $ModalEmitter->setPostPayload(array(
             'DivisionCourseId' => $DivisionCourseId,
             'PersonId' => $PersonId,
-            'SubjectId' => $SubjectId
+            'SubjectId' => $SubjectId,
+            'SelectedYearId' => $SelectedYearId
         ));
         $Pipeline->appendEmitter($ModalEmitter);
 
@@ -834,14 +881,15 @@ class ApiSkillRate extends Extension implements IApiInterface
      * @param $DivisionCourseId
      * @param $PersonId
      * @param $SubjectId
-     * @param $Data
+     * @param $SelectedYearId
+     * @param null $Data
      *
      * @return string
      * @noinspection PhpUnused
      */
-    public function saveCreateStudentSkill($DivisionCourseId, $PersonId, $SubjectId, $Data = null): string
+    public function saveCreateStudentSkill($DivisionCourseId, $PersonId, $SubjectId, $SelectedYearId, $Data = null): string
     {
-        return SkillRate::useService()->createStudentSkill($DivisionCourseId, $PersonId, $SubjectId, $Data);
+        return SkillRate::useService()->createStudentSkill($DivisionCourseId, $PersonId, $SubjectId, $SelectedYearId, $Data);
     }
 
     /**
