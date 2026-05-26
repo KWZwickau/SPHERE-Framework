@@ -455,7 +455,9 @@ class Frontend extends FrontendStudent
                     array('type' => 'natural', 'targets' => 1),
                     array('orderable' => false, 'width' => '30px', 'targets' => -1),
                     array('searchable' => false, 'targets' => -1),
-                )
+                ),
+                'responsive' => false,
+                'destroy' => true
             )
         );
     }

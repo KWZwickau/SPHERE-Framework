@@ -262,21 +262,8 @@ class Service extends AbstractService
         if (isset($Data['PercentSkills'])) {
             foreach ($Data['PercentSkills'] as $key => $value) {
                 if ($value !== '') {
-                    $tblStudentSkill = null;
-                    // key: SkillId_$id oder StudentSkillId_$id (individuelle Kompetenz)
-                    $split = explode('_', $key);
-                    if ($split[0] == 'SkillId' && ($tblSkill = SkillGrid::useService()->getSkillById($split[1]))) {
-                        if (!($tblStudentSkill = $this->getStudentSkillBy($tblPerson, $tblYear, $tblSkill))) {
-                            $tblStudentSkill = (new Data($this->getBinding()))->createStudentSkill(
-                                $tblPerson, $tblYear, $tblSubject, $tblSkill, $tblPersonTeacher,
-                                $tblSkill->getTblSkillArea()->getName() ?: null, $tblSkill->getLevel() ?: null, $tblSkill->getSkill());
-                        }
-                    } else {
-                        $tblStudentSkill = $this->getStudentSkillById($split[1]);
-                    }
-
                     $value = trim(str_replace('%', '', $value));
-                    if ($tblStudentSkill) {
+                    if (($tblStudentSkill = $this->getStudentSkillByFrontendKey($key, $tblPerson, $tblYear, $tblSubject, $tblPersonTeacher))) {
                         (new Data($this->getBinding()))->createStudentSkillRate($tblStudentSkill, $tblPersonTeacher,
                             $datetime, $comment, $value, null);
                     }
@@ -291,20 +278,7 @@ class Service extends AbstractService
                         if ($scoreTypeItemId > 0
                             && ($tblScoreTypeItem = ScoreType::useService()->getScoreTypeItemById($scoreTypeItemId))
                         ) {
-                            $tblStudentSkill = null;
-                            // key: SkillId_$id oder StudentSkillId_$id (individuelle Kompetenz)
-                            $split = explode('_', $key);
-                            if ($split[0] == 'SkillId' && ($tblSkill = SkillGrid::useService()->getSkillById($split[1]))) {
-                                if (!($tblStudentSkill = $this->getStudentSkillBy($tblPerson, $tblYear, $tblSkill))) {
-                                    $tblStudentSkill = (new Data($this->getBinding()))->createStudentSkill(
-                                        $tblPerson, $tblYear, $tblSubject, $tblSkill, $tblPersonTeacher,
-                                        $tblSkill->getTblSkillArea()->getName() ?: null, $tblSkill->getLevel() ?: null, $tblSkill->getSkill());
-                                }
-                            } else {
-                                $tblStudentSkill = $this->getStudentSkillById($split[1]);
-                            }
-
-                            if ($tblStudentSkill) {
+                            if (($tblStudentSkill = $this->getStudentSkillByFrontendKey($key, $tblPerson, $tblYear, $tblSubject, $tblPersonTeacher))) {
                                 (new Data($this->getBinding()))->createStudentSkillRate($tblStudentSkill, $tblPersonTeacher,
                                     $datetime, $comment, $tblScoreTypeItem->getValue(), $tblScoreTypeItem);
                             }
@@ -316,6 +290,24 @@ class Service extends AbstractService
 
         return new Success('Die Daten wurde erfolgreich gespeichert.')
             . ApiSkillRate::pipelineLoadViewStudentContent($tblDivisionCourse->getId(), $tblPerson->getId(), $tblSubject?->getId());
+    }
+
+    private function getStudentSkillByFrontendKey(string $key, TblPerson $tblPerson, $tblYear, ?TblSubject $tblSubject, ?TblPerson $tblPersonTeacher)
+        : ?TblStudentSkill
+    {
+        // key: SkillId_$id oder StudentSkillId_$id (individuelle Kompetenz)
+        $split = explode('_', $key);
+        if ($split[0] == 'SkillId' && ($tblSkill = SkillGrid::useService()->getSkillById($split[1]))) {
+            if (!($tblStudentSkill = $this->getStudentSkillBy($tblPerson, $tblYear, $tblSkill))) {
+                $tblStudentSkill = (new Data($this->getBinding()))->createStudentSkill(
+                    $tblPerson, $tblYear, $tblSubject, $tblSkill, $tblPersonTeacher,
+                    $tblSkill->getTblSkillArea()->getName() ?: null, $tblSkill->getLevel() ?: null, $tblSkill->getSkill());
+            }
+        } else {
+            $tblStudentSkill = $this->getStudentSkillById($split[1]);
+        }
+
+        return $tblStudentSkill ?: null;
     }
 
     /**
@@ -629,7 +621,66 @@ class Service extends AbstractService
                 $tblDivisionCourse->getId(), $tblSubject?->getId(), $SelectedYearId, $Data, $ErrorList);
         }
 
-        // Todo speichern
+        $tblPersonTeacher = Account::useService()->getPersonByLogin() ?: null;
+        $tblYear = $tblDivisionCourse->getServiceTblYear();
+        $datetime = new DateTime($Data['Date']);
+        $comment = $Data['Comment'] ?: null;
+        $createTblStudentSkillRateBulkList = [];
+        // "Data[PercentSkills][{$tblPerson->getId()}][$inputKey]";
+        if (isset($Data['PercentSkills'])) {
+            foreach ($Data['PercentSkills'] as $personId => $personArray) {
+                if (($tblPerson = Person::useService()->getPersonById($personId))) {
+                    foreach ($personArray as $key => $value) {
+                        if ($value !== '') {
+                            $value = trim(str_replace('%', '', $value));
+                            if (($tblStudentSkill = $this->getStudentSkillByFrontendKey($key, $tblPerson, $tblYear, $tblSubject, $tblPersonTeacher))) {
+                                $tblStudentSkillRate = new TblStudentSkillRate();
+                                $tblStudentSkillRate->setTblStudentSkill($tblStudentSkill);
+                                $tblStudentSkillRate->setServiceTblPersonTeacher($tblPersonTeacher);
+                                $tblStudentSkillRate->setDate($datetime);
+                                $tblStudentSkillRate->setComment($comment);
+                                $tblStudentSkillRate->setRate($value);
+
+                                $createTblStudentSkillRateBulkList[] = $tblStudentSkillRate;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        // beim Speichern erstmal den Wert mit Speichern, falls das Bewertungssystem nachträglich noch angepasst wird
+        // "Data[ScoreTypeSkills][{$tblScoreType->getId()}][{$tblPerson->getId()}][$inputKey]"
+        if (isset($Data['ScoreTypeSkills'])) {
+            foreach ($Data['ScoreTypeSkills'] as $scoreTypeId => $scoreTypeArray) {
+                if (ScoreType::useService()->getScoreTypeById($scoreTypeId)) {
+                    foreach ($scoreTypeArray as $personId => $personArray) {
+                        if (($tblPerson = Person::useService()->getPersonById($personId))) {
+                            foreach ($personArray as $key => $scoreTypeItemId) {
+                                if ($scoreTypeItemId > 0
+                                    && ($tblScoreTypeItem = ScoreType::useService()->getScoreTypeItemById($scoreTypeItemId))
+                                ) {
+                                    if (($tblStudentSkill = $this->getStudentSkillByFrontendKey($key, $tblPerson, $tblYear, $tblSubject, $tblPersonTeacher))) {
+                                        $tblStudentSkillRate = new TblStudentSkillRate();
+                                        $tblStudentSkillRate->setTblStudentSkill($tblStudentSkill);
+                                        $tblStudentSkillRate->setServiceTblPersonTeacher($tblPersonTeacher);
+                                        $tblStudentSkillRate->setDate($datetime);
+                                        $tblStudentSkillRate->setComment($comment);
+                                        $tblStudentSkillRate->setRate($tblScoreTypeItem->getValue());
+                                        $tblStudentSkillRate->setServiceTblScoreTypeItem($tblScoreTypeItem);
+
+                                        $createTblStudentSkillRateBulkList[] = $tblStudentSkillRate;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if ($createTblStudentSkillRateBulkList) {
+            (new Data($this->getBinding()))->createEntityListBulk($createTblStudentSkillRateBulkList);
+        }
 
         return new Success('Die Daten wurde erfolgreich gespeichert.')
             . new Redirect('/Education/Competence/SkillRate/DivisionCourse', Redirect::TIMEOUT_SUCCESS,
@@ -681,5 +732,4 @@ class Service extends AbstractService
 
         return [$hasErrors, $ErrorList];
     }
-
 }

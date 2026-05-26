@@ -352,7 +352,6 @@ class FrontendDivisionCourse extends Extension implements IFrontendInterface
 
         $tblSubject = Subject::useService()->getSubjectById($SubjectId) ?: null;
 
-        // todo auch bei gleichen Name mit anzeigen -> todo test
         // Herausforderung dann allerdings verschiedene Bewertungssysteme, eventuell bei allen gleich variante mit radio,
         // ansonsten SelectBox statt Radio oder erstmal geht nur bei gleich
 
@@ -392,9 +391,11 @@ class FrontendDivisionCourse extends Extension implements IFrontendInterface
             $headerList = $gradeFrontend->getGradeBookPreHeaderList($hasPicture, $hasIntegration, $hasCourse);
             $headerList['SkillRates'] = $gradeFrontend->getTableColumnHead('Vorherige Bewertung');
 
-            // Todo was passiert bei verschiedenen Bewertungssystem - eventuell dann individuelle eingabe mit SelectBoxen analog Schüler Kompetenzbewertung
             $tblScoreType = null;
-            if (count($scoreTypeList) == 1) {
+            $isDiverseScoreType = false;
+            if (count($scoreTypeList) == 0) {
+                $headerList['Percent'] = $gradeFrontend->getTableColumnHead('Prozent');
+            } elseif (count($scoreTypeList) == 1) {
                 $tblScoreType = current($scoreTypeList);
                 /** @var TblScoreType $tblScoreType */
                 if ($tblScoreType) {
@@ -407,6 +408,7 @@ class FrontendDivisionCourse extends Extension implements IFrontendInterface
                     $headerList['Percent'] = $gradeFrontend->getTableColumnHead('Prozent');
                 }
             } else {
+                $isDiverseScoreType = true;
                 $headerList['Diverse'] = $gradeFrontend->getTableColumnHead('Bewertung');
             }
 
@@ -449,6 +451,14 @@ class FrontendDivisionCourse extends Extension implements IFrontendInterface
                             // erforderlich fürs Entfernen der Radiooption, wenn einmal gesetzt
                             $input = new RadioBox($identifier, '&nbsp;', 0);
                             $bodyList[$tblPerson->getId()]['ScoreTypeId_0'] = $gradeFrontend->getTableColumnBody($input);
+                        } elseif ($isDiverseScoreType
+                            && isset($studentSkillList[$tblPerson->getId()])
+                            && ($tblScoreTypeStudent = $studentSkillList[$tblPerson->getId()]->getServiceTblScoreType())
+                        ) {
+                            // Divers (Schülerabhängig)
+                            $identifier = "Data[ScoreTypeSkills][{$tblScoreTypeStudent->getId()}][{$tblPerson->getId()}][$inputKey]";
+                            $input = new SelectBox($identifier, '', ['{{ Name }}' => $tblScoreTypeStudent->getScoreTypeItems()], null, true, null);
+                            $bodyList[$tblPerson->getId()]['Diverse'] = $gradeFrontend->getTableColumnBody($input);
                         } else {
                             // Prozent
                             $identifier = "Data[PercentSkills][{$tblPerson->getId()}][$inputKey]";
@@ -459,15 +469,8 @@ class FrontendDivisionCourse extends Extension implements IFrontendInterface
                                 $input->setError($ErrorList[$identifier]['Message']);
                             }
 
-                            $bodyList[$tblPerson->getId()]['Percent'] = $gradeFrontend->getTableColumnBody($input);
+                            $bodyList[$tblPerson->getId()][$isDiverseScoreType ? 'Diverse' : 'Percent'] = $gradeFrontend->getTableColumnBody($input);
                         }
-                        // todo Diverse (Schülerabhängig)
-
-//                        if ($ErrorList) {
-//                            Debugger::devDump($ErrorList);
-//                        }
-
-
                     }
                 }
             }
