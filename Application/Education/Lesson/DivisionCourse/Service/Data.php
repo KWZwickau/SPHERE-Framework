@@ -1788,6 +1788,7 @@ class Data extends DataTeacher
                 $queryBuilder->expr()->andX(
                     $queryBuilder->expr()->eq('e.tblDivision', '?1'),
                     $queryBuilder->expr()->isNull('e.EntityRemove'),
+                    $queryBuilder->expr()->isNull('e.LeaveDate'),
                 ),
             )
             ->setParameter(1, $tblDivisionCourse->getId())
@@ -1815,6 +1816,7 @@ class Data extends DataTeacher
                 $queryBuilder->expr()->andX(
                     $queryBuilder->expr()->eq('e.tblCoreGroup', '?1'),
                     $queryBuilder->expr()->isNull('e.EntityRemove'),
+                    $queryBuilder->expr()->isNull('e.LeaveDate'),
                 ),
             )
             ->setParameter(1, $tblDivisionCourse->getId())
@@ -1845,6 +1847,7 @@ class Data extends DataTeacher
                         $queryBuilder->expr()->eq('m.tblLessonDivisionCourse', '?1'),
                         $queryBuilder->expr()->eq('m.tblLessonDivisionCourseMemberType', '?2'),
                         $queryBuilder->expr()->isNull('e.EntityRemove'),
+                        $queryBuilder->expr()->isNull('e.LeaveDate'),
                         $queryBuilder->expr()->eq('e.serviceTblYear', '?3'),
                         $queryBuilder->expr()->eq('e.serviceTblPerson', 'm.serviceTblPerson'),
                     ),
