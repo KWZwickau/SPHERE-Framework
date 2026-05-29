@@ -35,7 +35,16 @@ class DataCacheHandler extends AbstractHandler
     {
 
         $this->Identifier = $Identifier;
-        $this->Handler = (new CacheFactory())->createHandler(new RedisHandler());
+//        $this->Handler = (new CacheFactory())->createHandler(new RedisHandler());
+
+        // DISABLE DATA CACHE
+        $this->Handler = new class {
+            public function isEnabled(): bool
+            {
+                return false;
+            }
+        };
+
         if (!empty( $Dependencies )) {
             foreach ($Dependencies as $Element) {
                 $this->addDependency($Element);
@@ -185,6 +194,7 @@ class DataCacheHandler extends AbstractHandler
 
         if ($this->Handler->isEnabled()) {
             $Pattern = $this->createPattern();
+            (new DebuggerFactory())->createLogger(new CacheLogger())->addLog('Requested DataCache-Clear: ' . $Pattern);
             if (!( $CacheList = $this->Handler->fetchKeys() )) {
                 $CacheList = [];
             }
@@ -213,7 +223,8 @@ class DataCacheHandler extends AbstractHandler
      */
     public function getStatus()
     {
-        return $this->Handler->getStatus();
+        return new CacheStatus();
+        //return $this->Handler->getStatus();
     }
 
 

@@ -231,7 +231,7 @@ class RedisHandler extends AbstractHandler
 
         (new DebuggerFactory())->createLogger(new CacheLogger())->addLog('Requested Redis-Slot-Clear: ' . $Slot);
         $Pattern = '!^' . preg_quote($Slot, '!') . ':!is';
-        $CacheList = $this->fetchKeys();
+        $CacheList = $this->fetchKeys($Slot.'*');
         if (empty($CacheList)) {
             $CacheList = [];
         }
@@ -250,10 +250,10 @@ class RedisHandler extends AbstractHandler
      *
      * @return array
      */
-    public function fetchKeys()
+    public function fetchKeys($Pattern = '*')
     {
 
-        $List = $this->Connection->keys('*');
+        $List = $this->Connection->keys($Pattern);
         (new DebuggerFactory())->createLogger(new CacheLogger())
             ->addLog(__METHOD__ . ' Content: ' . json_encode($List));
 
