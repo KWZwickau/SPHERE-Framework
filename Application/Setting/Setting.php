@@ -8,6 +8,7 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity
 use SPHERE\Application\Setting\Agb\Agb;
 use SPHERE\Application\Setting\Authorization\Authorization;
 use SPHERE\Application\Setting\Consumer\Consumer;
+use SPHERE\Application\Setting\Device\Device;
 use SPHERE\Application\Setting\ItsLearning\ItsLearning;
 use SPHERE\Application\Setting\MyAccount\MyAccount;
 use SPHERE\Application\Setting\Univention\Univention;
@@ -29,6 +30,7 @@ class Setting implements IClusterInterface
     {
 
         MyAccount::registerApplication();
+        Device::registerApplication();
         Consumer::registerApplication();
         Authorization::registerApplication();
         User::registerApplication();

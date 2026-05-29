@@ -9,9 +9,12 @@ use SPHERE\Application\Api\Api;
 use SPHERE\Application\App\App;
 use SPHERE\Application\App\AppException;
 use SPHERE\Application\App\Authentication\Authentication;
+use SPHERE\Application\App\Dispatcher as AppDispatcher;
 use SPHERE\Application\App\Response\AbstractResponse;
+use SPHERE\Application\App\Response\Code\Response201;
 use SPHERE\Application\App\Response\Code\Response401;
 use SPHERE\Application\App\Response\Code\Response500;
+use SPHERE\Application\App\Router as AppRouter;
 use SPHERE\Application\Billing\Billing;
 use SPHERE\Application\Contact\Contact;
 use SPHERE\Application\Corporation\Corporation;
@@ -220,7 +223,7 @@ class Main extends Extension
             $headerArray = self::getRequest()->getHeaderArray();
             try {
                 // Replace "default" dispatcher with app dispatcher
-                self::$Dispatcher = new \SPHERE\Application\App\Dispatcher(new \SPHERE\Application\App\Router());
+                self::$Dispatcher = new AppDispatcher(new AppRouter());
                 // Register app cluster with app dispatcher (to use public authentication routes)
                 App::registerCluster();
                 // Setup
@@ -229,6 +232,9 @@ class Main extends Extension
                     (new Response($Protocol))->send();
                     exit(0);
                 }
+
+//                return (new Response201($pathInfo))->send();
+
                 // Validate/Create/Reject Session
                 if (!preg_match('!^/app/authentication/process!i', $pathInfo)) {
                     // Get Authentication
@@ -245,7 +251,7 @@ class Main extends Extension
                         exit(0);
                     }
                     // Replace dispatcher with new instance of app dispatcher
-                    self::$Dispatcher = new \SPHERE\Application\App\Dispatcher(new \SPHERE\Application\App\Router());
+                    self::$Dispatcher = new AppDispatcher(new AppRouter());
                     // Register app cluster with app dispatcher (to use all routes guarded by session access)
                     App::registerCluster();
                 }

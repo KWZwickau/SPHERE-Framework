@@ -6,6 +6,7 @@ use SPHERE\Application\App\AppException;
 use SPHERE\Application\App\Authentication\Process\Service\Data;
 use SPHERE\Application\App\Authentication\Process\Service\Entity\TblDevice;
 use SPHERE\Application\App\Authentication\Process\Service\Setup;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
 use SPHERE\System\Database\Binding\AbstractService;
 
@@ -47,6 +48,21 @@ class Service extends AbstractService
     public function createDevice(TblAccount $tblAccount, string $deviceIdentifier, string $deviceName): ?TblDevice
     {
         return (new Data($this->getBinding()))->createDevice($tblAccount, $deviceIdentifier, $deviceName);
+    }
+
+    public function updateDevice(TblDevice $tblDevice, string $deviceName, string $isActive = ''): ?TblDevice
+    {
+        return (new Data($this->getBinding()))->updateDevice($tblDevice, $deviceName, $isActive);
+    }
+
+    public function updateDeviceStatus(TblDevice $tblDevice, $isActive = '2'): ?TblDevice
+    {
+        return (new Data($this->getBinding()))->updateDeviceStatus($tblDevice, $isActive);
+    }
+
+    public function destroyDevice(TblDevice $tblDevice): bool
+    {
+        return (new Data($this->getBinding()))->destroyDevice($tblDevice);
     }
 
     public function getDeviceByAuthentication(string $authenticationToken): ?TblDevice

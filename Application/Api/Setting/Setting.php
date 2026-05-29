@@ -2,6 +2,7 @@
 namespace SPHERE\Application\Api\Setting;
 
 use SPHERE\Application\Api\Setting\ApiMyAccount\ApiMyAccount;
+use SPHERE\Application\Api\Setting\Device\ApiDevice;
 use SPHERE\Application\Api\Setting\ItsLearning\ApiItsLearning;
 use SPHERE\Application\Api\Setting\Univention\ApiUnivention;
 use SPHERE\Application\Api\Setting\Authorization\ApiAccount;
@@ -31,5 +32,6 @@ class Setting implements IApplicationInterface
         ApiGroupRole::registerApi();
         ApiAccount::registerApi();
         ApiUserDelete::registerApi();
+        ApiDevice::registerApi();
     }
 }
