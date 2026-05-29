@@ -1079,16 +1079,25 @@ class Data extends AbstractData
     /**
      * @param TblAccount $tblAccount
      * @param string $IdentificationName
+     * @param bool $isForced
      *
      * @return bool
      */
-    public function getHasAuthenticationByAccountAndIdentificationName(TblAccount $tblAccount, string $IdentificationName): bool
+    public function getHasAuthenticationByAccountAndIdentificationName(TblAccount $tblAccount, string $IdentificationName, bool $isForced = false): bool
     {
         if (($tblIdentification = $this->getIdentificationByName($IdentificationName))) {
-            return (bool) $this->getCachedEntityBy(__METHOD__, $this->getEntityManager() , 'TblAuthentication', array(
-                TblAuthentication::ATTR_TBL_ACCOUNT => $tblAccount->getId(),
-                TblAuthentication::ATTR_TBL_IDENTIFICATION => $tblIdentification->getId()
-            ));
+            // Forced Standard -> update Identification war im Cache falsch
+            if($isForced){
+                return (bool) $this->getForceEntityBy(__METHOD__, $this->getEntityManager() , 'TblAuthentication', array(
+                    TblAuthentication::ATTR_TBL_ACCOUNT => $tblAccount->getId(),
+                    TblAuthentication::ATTR_TBL_IDENTIFICATION => $tblIdentification->getId()
+                ));
+            } else {
+                return (bool) $this->getCachedEntityBy(__METHOD__, $this->getEntityManager() , 'TblAuthentication', array(
+                    TblAuthentication::ATTR_TBL_ACCOUNT => $tblAccount->getId(),
+                    TblAuthentication::ATTR_TBL_IDENTIFICATION => $tblIdentification->getId()
+                ));
+            }
         }
 
         return false;

@@ -140,7 +140,7 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
         if ($tblAccount) {
-            if ($tblAccount->getHasAuthentication(TblIdentification::NAME_USER_CREDENTIAL)) {
+            if ($tblAccount->getHasAuthentication(TblIdentification::NAME_USER_CREDENTIAL, true)) {
                 // Alle TblUserAccounts erhalten direktlink Button
                 $IsNavigationAssistance = true;
 
@@ -399,7 +399,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         // Prüfung auf sperre
         if($tblAccount
-        && !$tblAccount->getHasAuthentication(TblIdentification::NAME_SYSTEM)
+        && !$tblAccount->getHasAuthentication(TblIdentification::NAME_SYSTEM, true)
         && ($tblConsumer = $tblAccount->getServiceTblConsumer())
         && (Consumer::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_SSW_STOP))){
             return $View->setContent(new Warning('Ihr Schulträger ist aktuell gesperrt, Bitte wenden Sie sich an Ihren Vertragspartner.'));
@@ -407,12 +407,12 @@ class Frontend extends Extension implements IFrontendInterface
 
         // Matching Account found?
         if ($tblAccount) {
-            if ($tblAccount->getHasAuthentication(TblIdentification::NAME_SYSTEM)
-                || $tblAccount->getHasAuthentication(TblIdentification::NAME_TOKEN)
-                || $tblAccount->getHasAuthentication(TblIdentification::NAME_AUTHENTICATOR_APP)
+            if ($tblAccount->getHasAuthentication(TblIdentification::NAME_SYSTEM, true)
+                || $tblAccount->getHasAuthentication(TblIdentification::NAME_TOKEN, true)
+                || $tblAccount->getHasAuthentication(TblIdentification::NAME_AUTHENTICATOR_APP, true)
             ) {
                 return $this->frontendIdentificationToken($tblAccount->getId());
-            } elseif ($tblAccount->getHasAuthentication(TblIdentification::NAME_CREDENTIAL)) {
+            } elseif ($tblAccount->getHasAuthentication(TblIdentification::NAME_CREDENTIAL, true)) {
                 if(($ChangeTest = $this->getPasswortChangeTest($tblAccount))){
                     return $ChangeTest;
                 }
@@ -423,7 +423,7 @@ class Frontend extends Extension implements IFrontendInterface
                     . new Redirect('/', Redirect::TIMEOUT_SUCCESS)
                 ));
                 return $View;
-            } elseif ($tblAccount->getHasAuthentication(TblIdentification::NAME_USER_CREDENTIAL)
+            } elseif ($tblAccount->getHasAuthentication(TblIdentification::NAME_USER_CREDENTIAL, true)
             ) {
                 // Entscheidung der Weiterleitung (nur bei Initialpasswort)
                 $changeInitialPassword = false;
@@ -595,7 +595,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         // Prüfung auf sperre
         if($tblAccount
-            && !$tblAccount->getHasAuthentication(TblIdentification::NAME_SYSTEM)
+            && !$tblAccount->getHasAuthentication(TblIdentification::NAME_SYSTEM, true)
             && ($tblConsumer = $tblAccount->getServiceTblConsumer())
             && (Consumer::useService()->getConsumerLoginByConsumerAndSystem($tblConsumer, TblConsumerLogin::VALUE_SYSTEM_SSW_STOP))){
                 return $Stage->setContent(new Warning('Ihr Schulträger ist aktuell gesperrt, Bitte wenden Sie sich an Ihren Vertragspartner.'));
@@ -612,7 +612,7 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         // Login block für System Accounts
-        if ($tblAccount && $tblAccount->getHasAuthentication(TblIdentification::NAME_SYSTEM)) {
+        if ($tblAccount && $tblAccount->getHasAuthentication(TblIdentification::NAME_SYSTEM, true)) {
             $Stage->setContent(new Layout(new LayoutGroup(new LayoutRow(
                 new LayoutColumn(new Warning('Systemaccounts dürfen keinen SSO Login erhalten'))
             ))));
@@ -638,13 +638,13 @@ class Frontend extends Extension implements IFrontendInterface
         if ($tblAccount && $LoginOk) {
             // Anfragen von SAML müssen Cookies aktiviert haben
             $isCookieAvailable = true;
-            if ($tblAccount->getHasAuthentication(TblIdentification::NAME_SYSTEM)
-                || $tblAccount->getHasAuthentication(TblIdentification::NAME_TOKEN)
-                || $tblAccount->getHasAuthentication(TblIdentification::NAME_AUTHENTICATOR_APP)
+            if ($tblAccount->getHasAuthentication(TblIdentification::NAME_SYSTEM, true)
+                || $tblAccount->getHasAuthentication(TblIdentification::NAME_TOKEN, true)
+                || $tblAccount->getHasAuthentication(TblIdentification::NAME_AUTHENTICATOR_APP, true)
             ) {
                 return $this->frontendIdentificationToken($tblAccount->getId(), null, $isCookieAvailable, false);
-            } elseif ($tblAccount->getHasAuthentication(TblIdentification::NAME_CREDENTIAL)
-                || $tblAccount->getHasAuthentication(TblIdentification::NAME_USER_CREDENTIAL)
+            } elseif ($tblAccount->getHasAuthentication(TblIdentification::NAME_CREDENTIAL, true)
+                || $tblAccount->getHasAuthentication(TblIdentification::NAME_USER_CREDENTIAL, true)
             ) {
                 return $this->frontendIdentificationAgb($tblAccount->getId(), 0, $isCookieAvailable);
             }
@@ -705,14 +705,14 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         // Token und App gleichzeitig für Benutzer möglich
-        if ($tblAccount->getHasAuthentication(TblIdentification::NAME_AUTHENTICATOR_APP)
-            && ($tblAccount->getHasAuthentication(TblIdentification::NAME_SYSTEM) || $tblAccount->getHasAuthentication(TblIdentification::NAME_TOKEN))
+        if ($tblAccount->getHasAuthentication(TblIdentification::NAME_AUTHENTICATOR_APP, true)
+            && ($tblAccount->getHasAuthentication(TblIdentification::NAME_SYSTEM, true) || $tblAccount->getHasAuthentication(TblIdentification::NAME_TOKEN, true))
         ) {
             // SSW-2129 OTP direkt aus Passwort-Manager funktioniert nicht in diesem Fall (beide Authentifizierungsverfahren aktiv)
             $otpCredentialKeyField = (new PasswordField('otpCredentialKey', '', 'YubiKey oder Authenticator App'))
                 ->setRequired()
                 ->setAutoFocus();
-        } elseif ($tblAccount->getHasAuthentication(TblIdentification::NAME_AUTHENTICATOR_APP)) {
+        } elseif ($tblAccount->getHasAuthentication(TblIdentification::NAME_AUTHENTICATOR_APP, true)) {
             // Field Definition
             // SSW-2129 OTP direkt aus Passwort-Manager
             // Lable, Name und AutoComplete wird von verschiedenen Anwendungen (Browser/Handy) unterschiedlich ausgelesen, deswegen alle 3 Varianten integriert
@@ -730,7 +730,7 @@ class Frontend extends Extension implements IFrontendInterface
         $FormError = new Container('');
         if ($otpCredentialKey) {
             // App ist immer 6-stellig
-            if ($tblAccount->getHasAuthentication(TblIdentification::NAME_AUTHENTICATOR_APP) && strlen($otpCredentialKey) == 6) {
+            if ($tblAccount->getHasAuthentication(TblIdentification::NAME_AUTHENTICATOR_APP, true) && strlen($otpCredentialKey) == 6) {
                 // Credential correct, OTP correct -> LOGIN
                 try {
                     $twoFactorApp = new TwoFactorApp();
@@ -829,7 +829,7 @@ class Frontend extends Extension implements IFrontendInterface
 
             // ist der Mandant gelöscht werden System-Accounts auf den REF-Mandanten umgeleitet
             if (($tblConsumer = Consumer::useService()->getConsumerByAcronym('REF'))
-                && $tblAccount->getHasAuthentication(TblIdentification::NAME_SYSTEM)
+                && $tblAccount->getHasAuthentication(TblIdentification::NAME_SYSTEM, true)
             ) {
                 $FormInformation[] = $tblConsumer->getName();
                 MyAccount::useService()->updateConsumer($tblAccount, $tblConsumer);
