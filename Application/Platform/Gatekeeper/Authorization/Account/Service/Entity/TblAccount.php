@@ -239,8 +239,8 @@ class TblAccount extends Element
      *
      * @return bool
      */
-    public function getHasAuthentication(string $IdentificationName): bool
+    public function getHasAuthentication(string $IdentificationName, $isForced = false): bool
     {
-        return Account::useService()->getHasAuthenticationByAccountAndIdentificationName($this, $IdentificationName);
+        return Account::useService()->getHasAuthenticationByAccountAndIdentificationName($this, $IdentificationName, $isForced);
     }
 }
