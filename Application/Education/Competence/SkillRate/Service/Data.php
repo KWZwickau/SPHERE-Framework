@@ -173,13 +173,17 @@ class Data extends AbstractData
 
     /**
      * @param TblStudentSkill $tblStudentSkill
+     * @param TblSubject|null $tblSubjectForSkillRate
      *
      * @return TblStudentSkillRate[]
      */
-    public function getStudentSkillRateListBy(TblStudentSkill $tblStudentSkill): array
+    public function getStudentSkillRateListBy(TblStudentSkill $tblStudentSkill, ?TblSubject $tblSubjectForSkillRate): array
     {
         return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblStudentSkillRate',
-            [TblStudentSkillRate::TBL_STUDENT_SKILL => $tblStudentSkill->getId()],
+            [
+                TblStudentSkillRate::TBL_STUDENT_SKILL => $tblStudentSkill->getId(),
+                TblStudentSkillRate::SERVICE_TBL_SUBJECT => $tblSubjectForSkillRate?->getId()
+            ],
             [TblStudentSkillRate::ATTR_DATE => self::ORDER_ASC]) ?: [];
     }
 
@@ -190,12 +194,13 @@ class Data extends AbstractData
      * @param string|null $comment
      * @param string $rate
      * @param TblScoreTypeItem|null $tblScoreTypeItem
+     * @param TblSubject|null $tblSubject
      *
      * @return TblStudentSkillRate
      */
     public function createStudentSkillRate(TblStudentSkill $tblStudentSkill,
-        ?TblPerson $tblPersonTeacher, DateTime $dateTime, ?string $comment, string $rate, ?TblScoreTypeItem $tblScoreTypeItem): TblStudentSkillRate
-    {
+        ?TblPerson $tblPersonTeacher, DateTime $dateTime, ?string $comment, string $rate, ?TblScoreTypeItem $tblScoreTypeItem, ?TblSubject $tblSubject = null)
+    : TblStudentSkillRate {
         $manager = $this->getEntityManager();
 
         $entity = new TblStudentSkillRate();
@@ -205,6 +210,7 @@ class Data extends AbstractData
         $entity->setRate($rate);
         $entity->setServiceTblScoreTypeItem($tblScoreTypeItem);
         $entity->setServiceTblPersonTeacher($tblPersonTeacher);
+        $entity->setServiceTblSubject($tblSubject);
 
         $manager->saveEntity($entity);
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $entity);

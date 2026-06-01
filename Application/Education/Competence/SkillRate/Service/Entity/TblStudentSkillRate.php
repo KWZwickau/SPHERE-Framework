@@ -11,6 +11,8 @@ use NumberFormatter;
 use SPHERE\Application\Education\Competence\ScoreType\ScoreType;
 use SPHERE\Application\Education\Competence\ScoreType\Service\Entity\TblScoreTypeItem;
 use SPHERE\Application\Education\Competence\SkillRate\SkillRate;
+use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
+use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\People\Meta\Teacher\Teacher;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -25,6 +27,7 @@ class TblStudentSkillRate extends Element
 {
     const string TBL_STUDENT_SKILL = 'tblCompetenceStudentSkill';
     const string ATTR_DATE = 'Date';
+    const string SERVICE_TBL_SUBJECT = 'serviceTblSubject';
 
     /**
      * @Column(type="bigint")
@@ -50,6 +53,10 @@ class TblStudentSkillRate extends Element
      * @Column(type="bigint")
      */
     protected ?int $serviceTblPersonTeacher = null;
+    /**
+     * @Column(type="bigint")
+     */
+    protected ?int $serviceTblSubject;
 
     /**
      * @return false|TblStudentSkill
@@ -188,6 +195,22 @@ class TblStudentSkillRate extends Element
     public function setServiceTblPersonTeacher(?TblPerson $tblPerson): void
     {
         $this->serviceTblPersonTeacher = $tblPerson?->getId();
+    }
+
+    /**
+     * @return false|TblSubject|null
+     */
+    public function getServiceTblSubject(): false|TblSubject|null
+    {
+        return $this->serviceTblSubject ? Subject::useService()->getSubjectById($this->serviceTblSubject) : null;
+    }
+
+    /**
+     * @param TblSubject|null $tblSubject
+     */
+    public function setServiceTblSubject(?TblSubject $tblSubject): void
+    {
+        $this->serviceTblSubject = $tblSubject?->getId();
     }
 
     /**
