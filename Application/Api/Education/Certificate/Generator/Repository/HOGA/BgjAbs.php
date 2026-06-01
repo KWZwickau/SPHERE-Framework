@@ -97,11 +97,7 @@ class BgjAbs extends Style
                 ->addElement($this->getElement('Berufsgrundbildungsjahr', $textSize2)
                     ->styleAlignCenter()->styleTextBold()->styleMarginTop('20px'))
                 ->addElement($this->getElement(
-                    'im {% if(Content.P' . $personId . '.Input.SubjectArea is not empty) %}
-                        Berufsbereich {{ Content.P' . $personId . '.Input.SubjectArea }}
-                    {% else %}
-                        Berufsbereich &ndash;
-                    {% endif %}'
+                    'im Berufsbereich Wirtschaft und Verwaltung'
                     , $textSize2)->styleAlignCenter()->styleTextBold()->styleMarginTop('-10px'))
                 ->addElement($this->getElement(
                         '{% if(Content.P' . $personId . '.Input.Success is not empty) %}

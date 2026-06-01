@@ -20,7 +20,7 @@ class BgjJahresuebersicht extends Style
 
         return (new Page())
             ->addSlice($this->getHeader($school))
-            ->addSlice($this->getCustomBgjTitle('Jahresübersicht', 'zu den Fächern entsprechend der Fachoberschule'))
+            ->addSlice($this->getCustomBgjTitle('Jahresübersicht', '&nbsp;'))
             ->addSlice($this->getDivisionYearStudentBgj($personId, 'Schuljahr'))
             ->addSlice($this->getCustomSubjectLanesBgj($personId, 'Schuljahr')->styleHeight('450px'))
             ->addSlice($this->getCustomRemarkBgj($personId, '2px'))
