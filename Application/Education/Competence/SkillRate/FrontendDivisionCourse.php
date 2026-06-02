@@ -182,7 +182,7 @@ class FrontendDivisionCourse extends Extension implements IFrontendInterface
             $actions = new Layout(new LayoutGroup(new LayoutRow(array(
                 new LayoutColumn(
                     ($isEdit
-                        ? (new Primary('Kompetenzen bewerten', ApiSkillRate::getEndpoint(), new ClipBoard()))
+                        ? (new Primary('Kompetenz kursweise bewerten', ApiSkillRate::getEndpoint(), new ClipBoard()))
                             ->ajaxPipelineOnClick(ApiSkillRate::pipelineLoadEditDivisionCourseContent(
                                 $DivisionCourseId, $SubjectId, $SelectedYearId, $IsInterdisciplinary ? 'true' : 'false'
                             ))
