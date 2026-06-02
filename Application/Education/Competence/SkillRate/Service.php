@@ -627,18 +627,19 @@ class Service extends AbstractService
      * @param TblDivisionCourse $tblDivisionCourse
      * @param TblSubject|null $tblSubject
      * @param $SelectedYearId
-     *
+     * @param bool $IsInterdisciplinary
      * @param $Data
      *
      * @return string
      */
-    public function createDivisionCourseSkillRateList(TblDivisionCourse $tblDivisionCourse, ?TblSubject $tblSubject, $SelectedYearId, $Data): string
-    {
+    public function createDivisionCourseSkillRateList(
+        TblDivisionCourse $tblDivisionCourse, ?TblSubject $tblSubject, $SelectedYearId, bool $IsInterdisciplinary, $Data
+    ): string {
         list($hasErrors, $ErrorList) = $this->checkDivisionCourseRateInput($Data);
 
         if ($hasErrors) {
             return SkillRate::useFrontend()->loadEditDivisionCourseSkillRateContent(
-                $tblDivisionCourse->getId(), $tblSubject?->getId(), $SelectedYearId, $Data, $ErrorList);
+                $tblDivisionCourse->getId(), $tblSubject?->getId(), $SelectedYearId, $IsInterdisciplinary, $Data, $ErrorList);
         }
 
         $tblPersonTeacher = Account::useService()->getPersonByLogin() ?: null;
@@ -653,13 +654,16 @@ class Service extends AbstractService
                     foreach ($personArray as $key => $value) {
                         if ($value !== '') {
                             $value = trim(str_replace('%', '', $value));
-                            if (($tblStudentSkill = $this->getStudentSkillByFrontendKey($key, $tblPerson, $tblYear, $tblSubject, $tblPersonTeacher))) {
+                            if (($tblStudentSkill = $this->getStudentSkillByFrontendKey(
+                                $key, $tblPerson, $tblYear, $IsInterdisciplinary ? null : $tblSubject, $tblPersonTeacher
+                            ))) {
                                 $tblStudentSkillRate = new TblStudentSkillRate();
                                 $tblStudentSkillRate->setTblStudentSkill($tblStudentSkill);
                                 $tblStudentSkillRate->setServiceTblPersonTeacher($tblPersonTeacher);
                                 $tblStudentSkillRate->setDate($datetime);
                                 $tblStudentSkillRate->setComment($comment);
                                 $tblStudentSkillRate->setRate($value);
+                                $tblStudentSkillRate->setServiceTblSubject($IsInterdisciplinary ? $tblSubject : null);
 
                                 $createTblStudentSkillRateBulkList[] = $tblStudentSkillRate;
                             }
@@ -679,7 +683,9 @@ class Service extends AbstractService
                                 if ($scoreTypeItemId > 0
                                     && ($tblScoreTypeItem = ScoreType::useService()->getScoreTypeItemById($scoreTypeItemId))
                                 ) {
-                                    if (($tblStudentSkill = $this->getStudentSkillByFrontendKey($key, $tblPerson, $tblYear, $tblSubject, $tblPersonTeacher))) {
+                                    if (($tblStudentSkill = $this->getStudentSkillByFrontendKey(
+                                        $key, $tblPerson, $tblYear, $IsInterdisciplinary ? null : $tblSubject, $tblPersonTeacher
+                                    ))) {
                                         $tblStudentSkillRate = new TblStudentSkillRate();
                                         $tblStudentSkillRate->setTblStudentSkill($tblStudentSkill);
                                         $tblStudentSkillRate->setServiceTblPersonTeacher($tblPersonTeacher);
@@ -687,6 +693,7 @@ class Service extends AbstractService
                                         $tblStudentSkillRate->setComment($comment);
                                         $tblStudentSkillRate->setRate($tblScoreTypeItem->getValue());
                                         $tblStudentSkillRate->setServiceTblScoreTypeItem($tblScoreTypeItem);
+                                        $tblStudentSkillRate->setServiceTblSubject($IsInterdisciplinary ? $tblSubject : null);
 
                                         $createTblStudentSkillRateBulkList[] = $tblStudentSkillRate;
                                     }
@@ -704,7 +711,8 @@ class Service extends AbstractService
 
         return new Success('Die Daten wurde erfolgreich gespeichert.')
             . new Redirect('/Education/Competence/SkillRate/DivisionCourse', Redirect::TIMEOUT_SUCCESS,
-                ['DivisionCourseId' => $tblDivisionCourse->getId(), 'SubjectId' => $tblSubject?->getId(), 'SelectedYearId' => $SelectedYearId]);
+                ['DivisionCourseId' => $tblDivisionCourse->getId(), 'SubjectId' => $tblSubject?->getId(), 'SelectedYearId' => $SelectedYearId,
+                    'IsInterdisciplinary' => $IsInterdisciplinary]);
     }
 
     /**

@@ -36,6 +36,7 @@ use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
+use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
@@ -55,20 +56,24 @@ use SPHERE\System\Extension\Extension;
 class FrontendDivisionCourse extends Extension implements IFrontendInterface
 {
     /**
-     * @param $SelectedYearId
-     * @param $DivisionCourseId
-     * @param $SubjectId
+     * @param null $SelectedYearId
+     * @param null $DivisionCourseId
+     * @param null $SubjectId
+     * @param bool $IsInterdisciplinary
      *
      * @return Stage
      *
      * @noinspection PhpUnused
      */
-    public function frontendDivisionCourse($SelectedYearId = null, $DivisionCourseId = null, $SubjectId = null): Stage
+    public function frontendDivisionCourse($SelectedYearId = null, $DivisionCourseId = null, $SubjectId = null, bool $IsInterdisciplinary = false): Stage
     {
         $stage = new Stage();
         $stage->setContent(ApiSupportReadOnly::receiverOverViewModal()
             . ApiPersonPicture::receiverModal()
-            . ApiSkillRate::receiverBlock($this->loadViewDivisionCourseContent($DivisionCourseId, $SubjectId, $SelectedYearId), 'Content')
+            . ApiSkillRate::receiverBlock(
+                $this->loadViewDivisionCourseContent($DivisionCourseId, $SubjectId, $SelectedYearId, false, $IsInterdisciplinary),
+                'Content'
+            )
         );
 
         return $stage;
@@ -79,11 +84,13 @@ class FrontendDivisionCourse extends Extension implements IFrontendInterface
      * @param $SubjectId
      * @param $SelectedYearId
      * @param bool $ShowInActive
+     * @param bool $IsInterdisciplinary
      *
      * @return string
      */
-    public function loadViewDivisionCourseContent($DivisionCourseId, $SubjectId, $SelectedYearId, bool $ShowInActive = false): string
-    {
+    public function loadViewDivisionCourseContent(
+        $DivisionCourseId, $SubjectId, $SelectedYearId, bool $ShowInActive = false, bool $IsInterdisciplinary = false)
+    : string {
         $role = SkillRate::useService()->getRole();
         $isEdit = Grade::useService()->getIsEdit($DivisionCourseId, $SubjectId, $role);
 
@@ -155,7 +162,8 @@ class FrontendDivisionCourse extends Extension implements IFrontendInterface
                             $pictureList, $integrationList, $courseList, isset($inactiveStudentList[$tblPerson->getId()]));
 
                         $bodyList[$tblPerson->getId()]['SkillRates'] = $gradeFrontend->getTableColumnBody(
-                            $this->getDisplayStudentSkills($tblPerson, $tblYear, $tblSubject, $skillList)
+                            $this->getDisplayStudentSkills(
+                                $tblPerson, $tblYear, $IsInterdisciplinary ? null : $tblSubject, $IsInterdisciplinary ? $tblSubject : null, $skillList)
                         );
 
                         $bodyList[$tblPerson->getId()]['Option'] = $gradeFrontend->getTableColumnBody(
@@ -163,7 +171,8 @@ class FrontendDivisionCourse extends Extension implements IFrontendInterface
                                 'DivisionCourseId' => $tblDivisionCourse->getId(),
                                 'SubjectId' => $tblSubject->getId(),
                                 'PersonId' => $tblPerson->getId(),
-                                'SelectedYearId' => $SelectedYearId
+                                'SelectedYearId' => $SelectedYearId,
+                                'IsInterdisciplinary' => $IsInterdisciplinary
                             ])
                         );
                     }
@@ -174,7 +183,9 @@ class FrontendDivisionCourse extends Extension implements IFrontendInterface
                 new LayoutColumn(
                     ($isEdit
                         ? (new Primary('Kompetenzen bewerten', ApiSkillRate::getEndpoint(), new ClipBoard()))
-                            ->ajaxPipelineOnClick(ApiSkillRate::pipelineLoadEditDivisionCourseContent($DivisionCourseId, $SubjectId, $SelectedYearId))
+                            ->ajaxPipelineOnClick(ApiSkillRate::pipelineLoadEditDivisionCourseContent(
+                                $DivisionCourseId, $SubjectId, $SelectedYearId, $IsInterdisciplinary ? 'true' : 'false'
+                            ))
                         : ''
                     )
                     , 6),
@@ -182,7 +193,11 @@ class FrontendDivisionCourse extends Extension implements IFrontendInterface
                     $optionInActive
                     , 3),
                 new LayoutColumn(
-                    ''
+                    new PullRight(
+                        (new Standard($IsInterdisciplinary ? 'Fach' : 'Fächerübergreifend', ApiSkillRate::getEndpoint()))
+                            ->ajaxPipelineOnClick(ApiSkillRate::pipelineLoadViewDivisionCourseContent(
+                                $DivisionCourseId, $SubjectId, $SelectedYearId, $IsInterdisciplinary ? 'false' : 'true'))
+                    )
                     , 3)
             ))));
 
@@ -205,12 +220,14 @@ class FrontendDivisionCourse extends Extension implements IFrontendInterface
      * @param TblPerson $tblPerson
      * @param TblYear $tblYear
      * @param TblSubject|null $tblSubject
+     * @param TblSubject|null $tblSubjectForSkillRate
      * @param $skillList
      *
      * @return string
      */
-    private function getDisplayStudentSkills(TblPerson $tblPerson, TblYear $tblYear, ?TblSubject $tblSubject, &$skillList): string
-    {
+    private function getDisplayStudentSkills(
+        TblPerson $tblPerson, TblYear $tblYear, ?TblSubject $tblSubject, ?TblSubject $tblSubjectForSkillRate, &$skillList
+    ): string {
         $countTotal = 0;
         $countRates = 0;
         if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))
@@ -236,7 +253,7 @@ class FrontendDivisionCourse extends Extension implements IFrontendInterface
             foreach ($tblSkillList as $tblSkill) {
                 $countTotal++;
                 $tblStudentSkill = $tblStudentSkillList['SkillId_' . $tblSkill->getId()] ?? null;
-                if ($tblStudentSkill && SkillRate::useService()->getStudentSkillRateListBy($tblStudentSkill)) {
+                if ($tblStudentSkill && SkillRate::useService()->getStudentSkillRateListBy($tblStudentSkill, $tblSubjectForSkillRate)) {
                     $countRates++;
                 }
 
@@ -260,10 +277,11 @@ class FrontendDivisionCourse extends Extension implements IFrontendInterface
      * @param $DivisionCourseId
      * @param $SubjectId
      * @param $SelectedYearId
+     * @param $IsInterdisciplinary
      *
      * @return string
      */
-    public function loadEditDivisionCourseContent($DivisionCourseId, $SubjectId, $SelectedYearId): string
+    public function loadEditDivisionCourseContent($DivisionCourseId, $SubjectId, $SelectedYearId, $IsInterdisciplinary): string
     {
         if (!($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
             return new Danger('Kurs nicht gefunden.', new Exclamation());
@@ -285,7 +303,8 @@ class FrontendDivisionCourse extends Extension implements IFrontendInterface
                     if (!isset($schoolTypeList[$tblSchoolType->getId()][$level])) {
                         $schoolTypeList[$tblSchoolType->getId()][$level] = 1;
                         // Bildungsgang? Primärer Förderschwerpunkt?
-                        $skillList = array_merge($skillList, SkillGrid::useService()->getSkillListBy($tblSchoolType, $level, $tblSubject));
+                        $skillList = array_merge($skillList, SkillGrid::useService()->getSkillListBy(
+                            $tblSchoolType, $level, $IsInterdisciplinary ? null : $tblSubject));
                     }
                 }
             }
@@ -298,7 +317,8 @@ class FrontendDivisionCourse extends Extension implements IFrontendInterface
         return
             new Title(
                 new Standard("Zurück", "/Education/Competence/SkillRate/DivisionCourse", new ChevronLeft(),
-                    ['DivisionCourseId' => $DivisionCourseId, 'SubjectId' => $SubjectId, 'SelectedYearId' => $SelectedYearId])
+                    ['DivisionCourseId' => $DivisionCourseId, 'SubjectId' => $SubjectId, 'SelectedYearId' => $SelectedYearId,
+                        'IsInterdisciplinary' => $IsInterdisciplinary])
                 . "&nbsp;&nbsp;&nbsp;Kompetenzbewertung"
                 . new Muted(new Small(" für Kurs: ")) . new Bold($tblDivisionCourse->getDisplayName())
                 . new Muted(new Small(" im Fach: ")) . new Bold($tblSubject?->getDisplayName())
@@ -308,7 +328,8 @@ class FrontendDivisionCourse extends Extension implements IFrontendInterface
                     new FormRow(
                         new FormColumn(
                             (new SelectBox("Data[Id]", "Kompetenz wählen", ['{{ Name }}' => $list], null, false, null))
-                                ->ajaxPipelineOnChange(ApiSkillRate::pipelineLoadEditDivisionCourseSkillRateContent($DivisionCourseId, $SubjectId, $SelectedYearId))
+                                ->ajaxPipelineOnChange(ApiSkillRate::pipelineLoadEditDivisionCourseSkillRateContent(
+                                    $DivisionCourseId, $SubjectId, $SelectedYearId, $IsInterdisciplinary ? 'true' : 'false'))
                         )
                     ),
                     new FormRow(
@@ -324,15 +345,18 @@ class FrontendDivisionCourse extends Extension implements IFrontendInterface
      * @param $DivisionCourseId
      * @param $SubjectId
      * @param $SelectedYearId
+     * @param $IsInterdisciplinary
      * @param null $Data
      * @param null $ErrorList
      *
      * @return string
      */
-    public function loadEditDivisionCourseSkillRateContent($DivisionCourseId, $SubjectId, $SelectedYearId, $Data = null, $ErrorList = null): string
-    {
+    public function loadEditDivisionCourseSkillRateContent(
+        $DivisionCourseId, $SubjectId, $SelectedYearId, $IsInterdisciplinary, $Data = null, $ErrorList = null
+    ): string {
         $cancelButton = (new Standard('Abbrechen', '/Education/Competence/SkillRate', new Disable()))
-            ->ajaxPipelineOnClick(ApiSkillRate::pipelineLoadViewDivisionCourseContent($DivisionCourseId, $SubjectId, $SelectedYearId));
+            ->ajaxPipelineOnClick(ApiSkillRate::pipelineLoadViewDivisionCourseContent(
+                $DivisionCourseId, $SubjectId, $SelectedYearId, $IsInterdisciplinary ? 'true' : 'false'));
 
         if ($Data === null || empty($Data['Id'])) {
             return new Warning("Bitte wählen Sie zunächst eine Kompetenz aus.", new Exclamation())
@@ -431,7 +455,7 @@ class FrontendDivisionCourse extends Extension implements IFrontendInterface
                         $virtualStudentSkill = $studentSkillList[$tblPerson->getId()];
                         if ($virtualStudentSkill instanceof TblStudentSkill) {
                             $bodyList[$tblPerson->getId()]['SkillRates'] = $gradeFrontend->getTableColumnBody(
-                                SkillRate::useService()->getDisplayStudentSkillRateLastOrAverage($virtualStudentSkill)
+                                SkillRate::useService()->getDisplayStudentSkillRateLastOrAverage($virtualStudentSkill, $IsInterdisciplinary ? $tblSubject : null)
                             );
 
                             $inputKey = 'StudentSkillId_' . $virtualStudentSkill->getId();
@@ -491,9 +515,11 @@ class FrontendDivisionCourse extends Extension implements IFrontendInterface
                     . $gradeFrontend->getTableCustom($headerList, $bodyList)
                     . ($ErrorList ? new Danger("Die Daten wurden nicht gespeichert. Bitte beachten Sie die Fehlermeldungen weiter oben.") : '')
                     . (new Primary('Speichern', ApiSkillRate::getEndpoint(), new Save()))
-                        ->ajaxPipelineOnClick(ApiSkillRate::pipelineSaveEditDivisionCourseSkillRate($DivisionCourseId, $SubjectId, $SelectedYearId))
+                        ->ajaxPipelineOnClick(ApiSkillRate::pipelineSaveEditDivisionCourseSkillRate(
+                            $DivisionCourseId, $SubjectId, $SelectedYearId, $IsInterdisciplinary ? 'true' : 'false'))
                     . (new Standard('Abbrechen', '/Education/Competence/SkillRate', new Disable()))
-                        ->ajaxPipelineOnClick(ApiSkillRate::pipelineLoadViewDivisionCourseContent($DivisionCourseId, $SubjectId, $SelectedYearId));
+                        ->ajaxPipelineOnClick(ApiSkillRate::pipelineLoadViewDivisionCourseContent(
+                            $DivisionCourseId, $SubjectId, $SelectedYearId, $IsInterdisciplinary ? 'true' : 'false'));
             }
         }
 
