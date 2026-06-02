@@ -47,8 +47,22 @@ class Data extends AbstractData
         if ($level !== null) {
             $parameters[TblSkillGrid::ATTR_LEVEL] = $level;
         }
-        if ($tblSubject !== null) {
-            $parameters[TblSkillGrid::SERVICE_TBL_SUBJECT] = $tblSubject->getId();
+        $parameters[TblSkillGrid::SERVICE_TBL_SUBJECT] = $tblSubject?->getId();
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblSkillGrid', $parameters, [Element::ENTITY_CREATE => self::ORDER_ASC]);
+    }
+
+    /**
+     * @param TblType $tblSchoolType
+     * @param int|null $level
+     *
+     * @return TblSkillGrid[]|false
+     */
+    public function getSkillGridListForFilter(TblType $tblSchoolType, ?int $level = null): array|false
+    {
+        $parameters[TblSkillGrid::SERVICE_TBL_SCHOOL_TYPE] = $tblSchoolType->getId();
+        if ($level !== null) {
+            $parameters[TblSkillGrid::ATTR_LEVEL] = $level;
         }
 
         return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblSkillGrid', $parameters, [Element::ENTITY_CREATE => self::ORDER_ASC]);

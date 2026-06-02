@@ -55,6 +55,24 @@ class Data extends AbstractData
      * @param TblPerson $tblPerson
      * @param TblYear $tblYear
      * @param TblSubject|null $tblSubject
+     * @param string $skillName
+     *
+     * @return false|TblStudentSkill
+     */
+    public function getStudentSkillBySkillName(TblPerson $tblPerson, TblYear $tblYear, ?TblSubject $tblSubject, string $skillName): false|TblStudentSkill
+    {
+        return $this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblStudentSkill', [
+            TblStudentSkill::SERVICE_TBL_PERSON => $tblPerson->getId(),
+            TblStudentSkill::SERVICE_TBL_YEAR => $tblYear->getId(),
+            TblStudentSkill::SERVICE_TBL_SUBJECT => $tblSubject?->getId(),
+            TblStudentSkill::ATTR_SKILL => $skillName,
+        ]);
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     * @param TblSubject|null $tblSubject
      *
      * @return TblStudentSkill[]
      */
@@ -155,13 +173,17 @@ class Data extends AbstractData
 
     /**
      * @param TblStudentSkill $tblStudentSkill
+     * @param TblSubject|null $tblSubjectForSkillRate
      *
      * @return TblStudentSkillRate[]
      */
-    public function getStudentSkillRateListBy(TblStudentSkill $tblStudentSkill): array
+    public function getStudentSkillRateListBy(TblStudentSkill $tblStudentSkill, ?TblSubject $tblSubjectForSkillRate): array
     {
         return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblStudentSkillRate',
-            [TblStudentSkillRate::TBL_STUDENT_SKILL => $tblStudentSkill->getId()],
+            [
+                TblStudentSkillRate::TBL_STUDENT_SKILL => $tblStudentSkill->getId(),
+                TblStudentSkillRate::SERVICE_TBL_SUBJECT => $tblSubjectForSkillRate?->getId()
+            ],
             [TblStudentSkillRate::ATTR_DATE => self::ORDER_ASC]) ?: [];
     }
 
@@ -172,12 +194,13 @@ class Data extends AbstractData
      * @param string|null $comment
      * @param string $rate
      * @param TblScoreTypeItem|null $tblScoreTypeItem
+     * @param TblSubject|null $tblSubject
      *
      * @return TblStudentSkillRate
      */
     public function createStudentSkillRate(TblStudentSkill $tblStudentSkill,
-        ?TblPerson $tblPersonTeacher, DateTime $dateTime, ?string $comment, string $rate, ?TblScoreTypeItem $tblScoreTypeItem): TblStudentSkillRate
-    {
+        ?TblPerson $tblPersonTeacher, DateTime $dateTime, ?string $comment, string $rate, ?TblScoreTypeItem $tblScoreTypeItem, ?TblSubject $tblSubject = null)
+    : TblStudentSkillRate {
         $manager = $this->getEntityManager();
 
         $entity = new TblStudentSkillRate();
@@ -187,6 +210,7 @@ class Data extends AbstractData
         $entity->setRate($rate);
         $entity->setServiceTblScoreTypeItem($tblScoreTypeItem);
         $entity->setServiceTblPersonTeacher($tblPersonTeacher);
+        $entity->setServiceTblSubject($tblSubject);
 
         $manager->saveEntity($entity);
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $entity);
@@ -246,5 +270,25 @@ class Data extends AbstractData
         }
 
         return false;
+    }
+
+    /**
+     * @param array $tblEntityList
+     *
+     * @return bool
+     */
+    public function createEntityListBulk(array $tblEntityList): bool
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+
+        foreach ($tblEntityList as $tblEntity) {
+            $Manager->bulkSaveEntity($tblEntity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $tblEntity, true);
+        }
+
+        $Manager->flushCache();
+        Protocol::useService()->flushBulkEntries();
+
+        return true;
     }
 }

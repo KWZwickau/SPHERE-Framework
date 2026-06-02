@@ -6,7 +6,9 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
+use SPHERE\Application\Education\Competence\ScoreType\Service\Entity\TblScoreType;
 use SPHERE\Application\Education\Competence\SkillGrid\SkillGrid;
+use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -22,7 +24,7 @@ class TblSkill extends Element
     /**
      * @Column(type="bigint")
      */
-    protected int $tblCompetenceSkillArea;
+    protected int $tblCompetenceSkillArea = 0;
     /**
      * @Column(type="string")
      */
@@ -30,11 +32,11 @@ class TblSkill extends Element
     /**
      * @Column(type="string")
      */
-    protected string $Skill;
+    protected string $Skill = '';
     /**
      * @Column(type="bigint")
      */
-    protected int $SortOrder;
+    protected int $SortOrder = 0;
 
     /**
      * @return TblSkillArea|false
@@ -93,5 +95,42 @@ class TblSkill extends Element
         }
 
         return false;
+    }
+
+    /**
+     * @return null|TblSubject
+     */
+    public function getServiceTblSubject(): ?TblSubject
+    {
+        if (($tblSkillGrid = $this->getTblSkillGrid())) {
+            return $tblSkillGrid->getServiceTblSubject() ?: null;
+        }
+
+        return null;
+    }
+
+    /**
+     * @return TblScoreType|null
+     */
+    public function getServiceTblScoreType(): ?TblScoreType
+    {
+        if (($tblSkillGrid = $this->getTblSkillGrid())) {
+            return $tblSkillGrid->getServiceTblScoreType() ?: null;
+        }
+
+        return null;
+    }
+
+    /**
+     * @return string
+     */
+    public function getDisplayName(): string
+    {
+        $skillArea = $this->getTblSkillArea() ? $this->getTblSkillArea()->getName() : '';
+        $skillArea = $skillArea ?: 'Ohne Kompetenzbereich';
+        $skillLevel = $this->getLevel();
+        $skill = $this->getSkill();
+
+        return $skillArea . ' - ' . ($skillLevel ? $skillLevel . ' - ' : '') . $skill;
     }
 }

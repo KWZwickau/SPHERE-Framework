@@ -80,7 +80,11 @@ class Service extends AbstractService
     {
         $tblSkillGridList = [];
         if ($tblSubjectFilter || $this->getIsHeadmaster()) {
-            $tblSkillGridList = $this->getSkillGridListBy($tblSchoolType, $level, $tblSubjectFilter) ?: [];
+            if ($tblSubjectFilter) {
+                $tblSkillGridList = $this->getSkillGridListBy($tblSchoolType, $level, $tblSubjectFilter) ?: [];
+            } else {
+                $tblSkillGridList = (new Data($this->getBinding()))->getSkillGridListForFilter($tblSchoolType, $level) ?: [];
+            }
         } else {
             foreach ($this->getAvailableSubjectList() as $tblSubject) {
                 if (($tblTempList = $this->getSkillGridListBy($tblSchoolType, $level, $tblSubject))) {

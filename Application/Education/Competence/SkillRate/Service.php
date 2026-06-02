@@ -27,6 +27,7 @@ use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
+use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
 use SPHERE\System\Extension\Repository\Sorter;
 
@@ -77,6 +78,60 @@ class Service extends AbstractService
      * @param TblPerson $tblPerson
      * @param TblYear $tblYear
      * @param TblSubject|null $tblSubject
+     * @param string $skillName
+     *
+     * @return false|TblStudentSkill
+     */
+    public function getStudentSkillBySkillName(TblPerson $tblPerson, TblYear $tblYear, ?TblSubject $tblSubject, string $skillName): false|TblStudentSkill
+    {
+        return (new Data($this->getBinding()))->getStudentSkillBySkillName($tblPerson, $tblYear, $tblSubject, $skillName);
+    }
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     * @param TblSkill $tblSkill
+     *
+     * @return TblStudentSkill|TblSkill|false
+     */
+    public function getVirtualStudentSkillBySkillName(TblPerson $tblPerson, TblYear $tblYear, TblSkill $tblSkill)
+    : TblStudentSkill | TblSkill | false
+    {
+        $tblSubject = $tblSkill->getServiceTblSubject();
+
+        // 1. Fall Schüler hat für Kompetenz bereits ein TblStudentSkill (wurde schon einmal bewertet)
+        if (($tblStudentSkill = $this->getStudentSkillBy($tblPerson, $tblYear, $tblSkill))
+            || ($tblStudentSkill = $this->getStudentSkillBySkillName(
+                $tblPerson, $tblYear, $tblSubject, $tblSkill->getSkill()))
+        ) {
+            return $tblStudentSkill;
+        }
+
+        // 2. Fall Schüler hat Kompetenz über Kompetenzraster
+        if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear))
+            && ($tblSchoolType = $tblStudentEducation->getServiceTblSchoolType())
+            && ($level = $tblStudentEducation->getLevel()) !== null
+        ) {
+            // todo check performance optimize
+            if (($tblSkillList = SkillGrid::useService()->getSkillListBy($tblSchoolType, $level, $tblSubject))) {
+                foreach ($tblSkillList as $tblSkillTemp) {
+                    if ($tblSkill->getId() === $tblSkillTemp->getId()) {
+                        return $tblSkillTemp;
+                    }
+                    if ($tblSkill->getSkill() === $tblSkillTemp->getSkill()) {
+                        return $tblSkillTemp;
+                    }
+                }
+            }
+        }
+
+        return false;
+    }
+
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     * @param TblSubject|null $tblSubject
      *
      * @return TblStudentSkill[]
      */
@@ -107,22 +162,24 @@ class Service extends AbstractService
 
     /**
      * @param TblStudentSkill $tblStudentSkill
+     * @param TblSubject|null $tblSubjectForSkillRate
      *
      * @return TblStudentSkillRate[]
      */
-    public function getStudentSkillRateListBy(TblStudentSkill $tblStudentSkill): array
+    public function getStudentSkillRateListBy(TblStudentSkill $tblStudentSkill, ?TblSubject $tblSubjectForSkillRate = null): array
     {
-        return (new Data($this->getBinding()))->getStudentSkillRateListBy($tblStudentSkill);
+        return (new Data($this->getBinding()))->getStudentSkillRateListBy($tblStudentSkill, $tblSubjectForSkillRate);
     }
 
     /**
      * @param TblStudentSkill $tblStudentSkill
+     * @param TblSubject|null $tblSubjectForSkillRate
      *
      * @return TblStudentSkillRate|null
      */
-    public function getLastStudentSkillRateBy(TblStudentSkill $tblStudentSkill): ?TblStudentSkillRate
+    public function getLastStudentSkillRateBy(TblStudentSkill $tblStudentSkill, ?TblSubject $tblSubjectForSkillRate): ?TblStudentSkillRate
     {
-        if (($list = $this->getStudentSkillRateListBy($tblStudentSkill))) {
+        if (($list = $this->getStudentSkillRateListBy($tblStudentSkill, $tblSubjectForSkillRate))) {
             return $list[array_key_last($list)];
         }
 
@@ -131,15 +188,17 @@ class Service extends AbstractService
 
     /**
      * @param TblStudentSkill $tblStudentSkill
+     * @param TblSubject|null $tblSubjectForSkillRate
      * @param string $extraToolTip
      *
      * @return string
      */
-    public function getDisplayStudentSkillRateLastOrAverage(TblStudentSkill $tblStudentSkill, string $extraToolTip = ""): string
-    {
+    public function getDisplayStudentSkillRateLastOrAverage(
+        TblStudentSkill $tblStudentSkill, ?TblSubject $tblSubjectForSkillRate = null, string $extraToolTip = ""
+    ): string {
         $display = '';
         if ($tblStudentSkill->getIsAverage()) {
-            if (($average = $this->getCalcAverageStudentSkillRate($tblStudentSkill)) !== null) {
+            if (($average = $this->getCalcAverageStudentSkillRate($tblStudentSkill, $tblSubjectForSkillRate)) !== null) {
                 // in deutsches Zahlformat umwandeln
                 $formatter = new NumberFormatter('de_DE', NumberFormatter::DECIMAL);
                 $formatter->setAttribute(NumberFormatter::FRACTION_DIGITS, 2);
@@ -150,7 +209,7 @@ class Service extends AbstractService
                 }
             }
         } else {
-            if (($tblStudentSkillRate = $this->getLastStudentSkillRateBy($tblStudentSkill))) {
+            if (($tblStudentSkillRate = $this->getLastStudentSkillRateBy($tblStudentSkill, $tblSubjectForSkillRate))) {
                 $toolTip = "";
                 if ($extraToolTip) {
                     $toolTip .= $extraToolTip . "<br /><br />";
@@ -170,12 +229,13 @@ class Service extends AbstractService
 
     /**
      * @param TblStudentSkill $tblStudentSkill
+     * @param TblSubject|null $tblSubjectForSkillRate
      *
      * @return float|null
      */
-    public function getCalcAverageStudentSkillRate(TblStudentSkill $tblStudentSkill): ?float
+    public function getCalcAverageStudentSkillRate(TblStudentSkill $tblStudentSkill, ?TblSubject $tblSubjectForSkillRate): ?float
     {
-        if (($list = $this->getStudentSkillRateListBy($tblStudentSkill))) {
+        if (($list = $this->getStudentSkillRateListBy($tblStudentSkill, $tblSubjectForSkillRate))) {
             $sum = array_sum(array_map(fn($item) => $item->getRateFloatValue(), $list));
             return round($sum / count($list), 2);
         }
@@ -187,43 +247,35 @@ class Service extends AbstractService
      * @param TblDivisionCourse $tblDivisionCourse
      * @param TblPerson $tblPerson
      * @param TblSubject|null $tblSubject
+     * @param $SelectedYearId
+     * @param $SubjectId
      * @param $Data
      *
      * @return string
      */
-    public function createStudentSkillRateList(TblDivisionCourse $tblDivisionCourse, TblPerson $tblPerson, ?TblSubject $tblSubject, $Data): string
+    public function createStudentSkillRateList(
+        TblDivisionCourse $tblDivisionCourse, TblPerson $tblPerson, ?TblSubject $tblSubject, $SelectedYearId, $SubjectId, $Data): string
     {
         list($hasErrors,$ErrorList) = $this->checkStudentSkillRateInput($Data);
 
         if ($hasErrors) {
             return SkillRate::useFrontend()->getStudentHead($tblPerson, $tblDivisionCourse, $tblSubject)
-                . new Well(SkillRate::useFrontend()->formStudentSkillRateList($tblDivisionCourse, $tblPerson, $tblSubject, $ErrorList));
+                . new Well(SkillRate::useFrontend()->formStudentSkillRateList($tblDivisionCourse, $tblPerson, $tblSubject, $SelectedYearId, $SubjectId, $ErrorList));
         }
 
         $tblPersonTeacher = Account::useService()->getPersonByLogin() ?: null;
         $tblYear = $tblDivisionCourse->getServiceTblYear();
+        // bei fächerübergreifende Kompetenzen das Fach mit an der Bewertung speichern
+        $tblSubjectForSkillRate = $tblSubject ? null : (Subject::useService()->getSubjectById($SubjectId) ?: null);
         $datetime = new DateTime($Data['Date']);
         $comment = $Data['Comment'] ?: null;
         if (isset($Data['PercentSkills'])) {
             foreach ($Data['PercentSkills'] as $key => $value) {
                 if ($value !== '') {
-                    $tblStudentSkill = null;
-                    // key: SkillId_$id oder StudentSkillId_$id (individuelle Kompetenz)
-                    $split = explode('_', $key);
-                    if ($split[0] == 'SkillId' && ($tblSkill = SkillGrid::useService()->getSkillById($split[1]))) {
-                        if (!($tblStudentSkill = $this->getStudentSkillBy($tblPerson, $tblYear, $tblSkill))) {
-                            $tblStudentSkill = (new Data($this->getBinding()))->createStudentSkill(
-                                $tblPerson, $tblYear, $tblSubject, $tblSkill, $tblPersonTeacher,
-                                $tblSkill->getTblSkillArea()->getName() ?: null, $tblSkill->getLevel() ?: null, $tblSkill->getSkill());
-                        }
-                    } else {
-                        $tblStudentSkill = $this->getStudentSkillById($split[1]);
-                    }
-
                     $value = trim(str_replace('%', '', $value));
-                    if ($tblStudentSkill) {
+                    if (($tblStudentSkill = $this->getStudentSkillByFrontendKey($key, $tblPerson, $tblYear, $tblSubject, $tblPersonTeacher))) {
                         (new Data($this->getBinding()))->createStudentSkillRate($tblStudentSkill, $tblPersonTeacher,
-                            $datetime, $comment, $value, null);
+                            $datetime, $comment, $value, null, $tblSubjectForSkillRate);
                     }
                 }
             }
@@ -236,22 +288,9 @@ class Service extends AbstractService
                         if ($scoreTypeItemId > 0
                             && ($tblScoreTypeItem = ScoreType::useService()->getScoreTypeItemById($scoreTypeItemId))
                         ) {
-                            $tblStudentSkill = null;
-                            // key: SkillId_$id oder StudentSkillId_$id (individuelle Kompetenz)
-                            $split = explode('_', $key);
-                            if ($split[0] == 'SkillId' && ($tblSkill = SkillGrid::useService()->getSkillById($split[1]))) {
-                                if (!($tblStudentSkill = $this->getStudentSkillBy($tblPerson, $tblYear, $tblSkill))) {
-                                    $tblStudentSkill = (new Data($this->getBinding()))->createStudentSkill(
-                                        $tblPerson, $tblYear, $tblSubject, $tblSkill, $tblPersonTeacher,
-                                        $tblSkill->getTblSkillArea()->getName() ?: null, $tblSkill->getLevel() ?: null, $tblSkill->getSkill());
-                                }
-                            } else {
-                                $tblStudentSkill = $this->getStudentSkillById($split[1]);
-                            }
-
-                            if ($tblStudentSkill) {
+                            if (($tblStudentSkill = $this->getStudentSkillByFrontendKey($key, $tblPerson, $tblYear, $tblSubject, $tblPersonTeacher))) {
                                 (new Data($this->getBinding()))->createStudentSkillRate($tblStudentSkill, $tblPersonTeacher,
-                                    $datetime, $comment, $tblScoreTypeItem->getValue(), $tblScoreTypeItem);
+                                    $datetime, $comment, $tblScoreTypeItem->getValue(), $tblScoreTypeItem, $tblSubjectForSkillRate);
                             }
                         }
                     }
@@ -260,7 +299,26 @@ class Service extends AbstractService
         }
 
         return new Success('Die Daten wurde erfolgreich gespeichert.')
-            . ApiSkillRate::pipelineLoadViewStudentContent($tblDivisionCourse->getId(), $tblPerson->getId(), $tblSubject?->getId());
+            . ApiSkillRate::pipelineLoadViewStudentContent(
+                $tblDivisionCourse->getId(), $tblPerson->getId(), $SubjectId, $SelectedYearId, 'false', $tblSubject ? 'false' : 'true');
+    }
+
+    private function getStudentSkillByFrontendKey(string $key, TblPerson $tblPerson, $tblYear, ?TblSubject $tblSubject, ?TblPerson $tblPersonTeacher)
+        : ?TblStudentSkill
+    {
+        // key: SkillId_$id oder StudentSkillId_$id (individuelle Kompetenz)
+        $split = explode('_', $key);
+        if ($split[0] == 'SkillId' && ($tblSkill = SkillGrid::useService()->getSkillById($split[1]))) {
+            if (!($tblStudentSkill = $this->getStudentSkillBy($tblPerson, $tblYear, $tblSkill))) {
+                $tblStudentSkill = (new Data($this->getBinding()))->createStudentSkill(
+                    $tblPerson, $tblYear, $tblSubject, $tblSkill, $tblPersonTeacher,
+                    $tblSkill->getTblSkillArea()->getName() ?: null, $tblSkill->getLevel() ?: null, $tblSkill->getSkill());
+            }
+        } else {
+            $tblStudentSkill = $this->getStudentSkillById($split[1]);
+        }
+
+        return $tblStudentSkill ?: null;
     }
 
     /**
@@ -303,16 +361,19 @@ class Service extends AbstractService
     /**
      * @param $DivisionCourseId
      * @param TblStudentSkillRate $tblStudentSkillRate
+     * @param $SelectedYearId
+     * @param $SubjectId
      * @param $Data
      *
      * @return string
      */
-    public function updateStudentSkillRate($DivisionCourseId, TblStudentSkillRate $tblStudentSkillRate, $Data): string
+    public function updateStudentSkillRate($DivisionCourseId, TblStudentSkillRate $tblStudentSkillRate, $SelectedYearId, $SubjectId, $Data): string
     {
         list($hasErrors,$ErrorList) = $this->checkStudentSkillRateInput($Data);
 
         if ($hasErrors) {
-            return SkillRate::useFrontend()->loadEditStudentSkillRateHistoryContent($DivisionCourseId, $tblStudentSkillRate->getId(), $ErrorList);
+            return SkillRate::useFrontend()->loadEditStudentSkillRateHistoryContent(
+                $DivisionCourseId, $tblStudentSkillRate->getId(), $SelectedYearId, $SubjectId, $ErrorList);
         }
 
         $tblStudentSkill = $tblStudentSkillRate->getTblStudentSkill();
@@ -351,7 +412,8 @@ class Service extends AbstractService
             // Schülerübersicht muss neu geladen werden
             // . ApiSkillRate::pipelineLoadViewStudentSkillRateHistoryContent($DivisionCourseId, $tblStudentSkill->getId());
             . ApiSkillRate::pipelineClose()
-            . ApiSkillRate::pipelineLoadViewStudentContent($DivisionCourseId, $tblPerson?->getId(), $tblSubject?->getId());
+            . ApiSkillRate::pipelineLoadViewStudentContent(
+                $DivisionCourseId, $tblPerson?->getId(), $tblSubject ? $tblSubject->getId() : $SubjectId, $SelectedYearId, 'false', $tblSubject ? 'false' : 'true');
     }
 
     /**
@@ -422,10 +484,12 @@ class Service extends AbstractService
     /**
      * @param $DivisionCourseId
      * @param TblStudentSkillRate $tblStudentSkillRate
+     * @param $SelectedYearId
+     * @param $SubjectId
      *
      * @return string
      */
-    public function deleteStudentSkillRate($DivisionCourseId, TblStudentSkillRate $tblStudentSkillRate): string
+    public function deleteStudentSkillRate($DivisionCourseId, TblStudentSkillRate $tblStudentSkillRate, $SelectedYearId, $SubjectId): string
     {
         $tblStudentSkill = $tblStudentSkillRate->getTblStudentSkill();
         $tblPerson = $tblStudentSkill->getServiceTblPerson() ?: null;
@@ -437,18 +501,20 @@ class Service extends AbstractService
             // Schülerübersicht muss neu geladen werden
             // . ApiSkillRate::pipelineLoadViewStudentSkillRateHistoryContent($DivisionCourseId, $tblStudentSkill->getId());
             . ApiSkillRate::pipelineClose()
-            . ApiSkillRate::pipelineLoadViewStudentContent($DivisionCourseId, $tblPerson?->getId(), $tblSubject?->getId());
+            . ApiSkillRate::pipelineLoadViewStudentContent(
+                $DivisionCourseId, $tblPerson?->getId(), $tblSubject ? $tblSubject->getId() : $SubjectId, $SelectedYearId, 'false', $tblSubject ? 'false' : 'true');
     }
 
     /**
      * @param $DivisionCourseId
      * @param $PersonId
      * @param $SubjectId
+     * @param $SelectedYearId
      * @param $Data
      *
      * @return string
      */
-    public function addStudentSkill($DivisionCourseId, $PersonId, $SubjectId, $Data): string {
+    public function addStudentSkill($DivisionCourseId, $PersonId, $SubjectId, $SelectedYearId, $Data): string {
 
         if (!isset($Data['Id']) || !($tblSkill = SkillGrid::useService()->getSkillById($Data['Id']))) {
             $ErrorList[] = [
@@ -456,7 +522,7 @@ class Service extends AbstractService
                 'Message' => 'Bitte wählen Sie eine Kompetenz aus.'
             ];
 
-            return SkillRate::useFrontend()->openAddStudentSkillModal($DivisionCourseId, $PersonId, $SubjectId, $ErrorList);
+            return SkillRate::useFrontend()->openAddStudentSkillModal($DivisionCourseId, $PersonId, $SubjectId, $SelectedYearId, $ErrorList);
         }
 
         if (($tblPerson = Person::useService()->getPersonById($PersonId))
@@ -477,18 +543,19 @@ class Service extends AbstractService
 
         return new Success('Kompetenz wurde erfolgreich hinzugefügt.')
             . ApiSkillRate::pipelineClose()
-            . ApiSkillRate::pipelineLoadViewStudentContent($DivisionCourseId, $PersonId, $SubjectId);
+            . ApiSkillRate::pipelineLoadViewStudentContent($DivisionCourseId, $PersonId, $SubjectId, $SelectedYearId);
     }
 
     /**
      * @param $DivisionCourseId
      * @param $PersonId
      * @param $SubjectId
+     * @param $SelectedYearId
      * @param $Data
      *
      * @return string
      */
-    public function createStudentSkill($DivisionCourseId, $PersonId, $SubjectId, $Data): string {
+    public function createStudentSkill($DivisionCourseId, $PersonId, $SubjectId, $SelectedYearId, $Data): string {
 
         if (empty($Data['Skill'])) {
             $ErrorList[] = [
@@ -496,7 +563,7 @@ class Service extends AbstractService
                 'Message' => 'Bitte geben Sie eine Kompetenz an.'
             ];
 
-            return SkillRate::useFrontend()->openCreateStudentSkillModal($DivisionCourseId, $PersonId, $SubjectId, $ErrorList);
+            return SkillRate::useFrontend()->openCreateStudentSkillModal($DivisionCourseId, $PersonId, $SubjectId, $SelectedYearId, $ErrorList);
         }
 
         if (($tblPerson = Person::useService()->getPersonById($PersonId))
@@ -515,7 +582,7 @@ class Service extends AbstractService
 
         return new Success('Kompetenz wurde erfolgreich hinzugefügt.')
             . ApiSkillRate::pipelineClose()
-            . ApiSkillRate::pipelineLoadViewStudentContent($DivisionCourseId, $PersonId, $SubjectId);
+            . ApiSkillRate::pipelineLoadViewStudentContent($DivisionCourseId, $PersonId, $SubjectId, $SelectedYearId);
     }
 
     /**
@@ -554,5 +621,143 @@ class Service extends AbstractService
         }
 
         return $tblStudentEducationList;
+    }
+
+    /**
+     * @param TblDivisionCourse $tblDivisionCourse
+     * @param TblSubject|null $tblSubject
+     * @param $SelectedYearId
+     * @param bool $IsInterdisciplinary
+     * @param $Data
+     *
+     * @return string
+     */
+    public function createDivisionCourseSkillRateList(
+        TblDivisionCourse $tblDivisionCourse, ?TblSubject $tblSubject, $SelectedYearId, bool $IsInterdisciplinary, $Data
+    ): string {
+        list($hasErrors, $ErrorList) = $this->checkDivisionCourseRateInput($Data);
+
+        if ($hasErrors) {
+            return SkillRate::useFrontend()->loadEditDivisionCourseSkillRateContent(
+                $tblDivisionCourse->getId(), $tblSubject?->getId(), $SelectedYearId, $IsInterdisciplinary, $Data, $ErrorList);
+        }
+
+        $tblPersonTeacher = Account::useService()->getPersonByLogin() ?: null;
+        $tblYear = $tblDivisionCourse->getServiceTblYear();
+        $datetime = new DateTime($Data['Date']);
+        $comment = $Data['Comment'] ?: null;
+        $createTblStudentSkillRateBulkList = [];
+        // "Data[PercentSkills][{$tblPerson->getId()}][$inputKey]";
+        if (isset($Data['PercentSkills'])) {
+            foreach ($Data['PercentSkills'] as $personId => $personArray) {
+                if (($tblPerson = Person::useService()->getPersonById($personId))) {
+                    foreach ($personArray as $key => $value) {
+                        if ($value !== '') {
+                            $value = trim(str_replace('%', '', $value));
+                            if (($tblStudentSkill = $this->getStudentSkillByFrontendKey(
+                                $key, $tblPerson, $tblYear, $IsInterdisciplinary ? null : $tblSubject, $tblPersonTeacher
+                            ))) {
+                                $tblStudentSkillRate = new TblStudentSkillRate();
+                                $tblStudentSkillRate->setTblStudentSkill($tblStudentSkill);
+                                $tblStudentSkillRate->setServiceTblPersonTeacher($tblPersonTeacher);
+                                $tblStudentSkillRate->setDate($datetime);
+                                $tblStudentSkillRate->setComment($comment);
+                                $tblStudentSkillRate->setRate($value);
+                                $tblStudentSkillRate->setServiceTblSubject($IsInterdisciplinary ? $tblSubject : null);
+
+                                $createTblStudentSkillRateBulkList[] = $tblStudentSkillRate;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        // beim Speichern erstmal den Wert mit Speichern, falls das Bewertungssystem nachträglich noch angepasst wird
+        // "Data[ScoreTypeSkills][{$tblScoreType->getId()}][{$tblPerson->getId()}][$inputKey]"
+        if (isset($Data['ScoreTypeSkills'])) {
+            foreach ($Data['ScoreTypeSkills'] as $scoreTypeId => $scoreTypeArray) {
+                if (ScoreType::useService()->getScoreTypeById($scoreTypeId)) {
+                    foreach ($scoreTypeArray as $personId => $personArray) {
+                        if (($tblPerson = Person::useService()->getPersonById($personId))) {
+                            foreach ($personArray as $key => $scoreTypeItemId) {
+                                if ($scoreTypeItemId > 0
+                                    && ($tblScoreTypeItem = ScoreType::useService()->getScoreTypeItemById($scoreTypeItemId))
+                                ) {
+                                    if (($tblStudentSkill = $this->getStudentSkillByFrontendKey(
+                                        $key, $tblPerson, $tblYear, $IsInterdisciplinary ? null : $tblSubject, $tblPersonTeacher
+                                    ))) {
+                                        $tblStudentSkillRate = new TblStudentSkillRate();
+                                        $tblStudentSkillRate->setTblStudentSkill($tblStudentSkill);
+                                        $tblStudentSkillRate->setServiceTblPersonTeacher($tblPersonTeacher);
+                                        $tblStudentSkillRate->setDate($datetime);
+                                        $tblStudentSkillRate->setComment($comment);
+                                        $tblStudentSkillRate->setRate($tblScoreTypeItem->getValue());
+                                        $tblStudentSkillRate->setServiceTblScoreTypeItem($tblScoreTypeItem);
+                                        $tblStudentSkillRate->setServiceTblSubject($IsInterdisciplinary ? $tblSubject : null);
+
+                                        $createTblStudentSkillRateBulkList[] = $tblStudentSkillRate;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if ($createTblStudentSkillRateBulkList) {
+            (new Data($this->getBinding()))->createEntityListBulk($createTblStudentSkillRateBulkList);
+        }
+
+        return new Success('Die Daten wurde erfolgreich gespeichert.')
+            . new Redirect('/Education/Competence/SkillRate/DivisionCourse', Redirect::TIMEOUT_SUCCESS,
+                ['DivisionCourseId' => $tblDivisionCourse->getId(), 'SubjectId' => $tblSubject?->getId(), 'SelectedYearId' => $SelectedYearId,
+                    'IsInterdisciplinary' => $IsInterdisciplinary]);
+    }
+
+    /**
+     * @param $Data
+     *
+     * @return array
+     */
+    public function checkDivisionCourseRateInput($Data): array
+    {
+        $hasErrors = false;
+        $ErrorList = [];
+        if (empty($Data['Id'])) {
+            $ErrorList['Data[Id]'] = [
+                'Name' => 'Data[Id]',
+                'Message' => 'Bitte wählen Sie eine Kompetenz aus.'
+            ];
+            $hasErrors = true;
+        }
+        if (empty($Data['Date'])) {
+            $ErrorList['Data[Date]'] = [
+                'Name' => 'Data[Date]',
+                'Message' => 'Bitte geben Sie ein Datum an.'
+            ];
+            $hasErrors = true;
+        }
+        // Prüfung bei Prozent
+        if (isset($Data['PercentSkills'])) {
+            foreach ($Data['PercentSkills'] as $personId => $personArray) {
+                foreach ($personArray as $key => $value) {
+                    if ($value !== '') {
+                        // Prozent prüfen
+                        $value = trim(str_replace('%', '', $value));
+                        if (!ctype_digit($value) || $value < 0 || $value > 100) {
+                            $name = "Data[PercentSkills][$personId][$key]";
+                            $ErrorList[$name] = [
+                                'Name' => $name,
+                                'Message' => 'Bitte geben eine Zahl zwischen 0 und 100 ein.'
+                            ];
+                            $hasErrors = true;
+                        }
+                    }
+                }
+            }
+        }
+
+        return [$hasErrors, $ErrorList];
     }
 }

@@ -29,6 +29,7 @@ class TblStudentSkill extends Element
     const string SERVICE_TBL_YEAR = 'serviceTblYear';
     const string SERVICE_TBL_SUBJECT = 'serviceTblSubject';
     const string SERVICE_TBL_SKILL = 'serviceTblSkill';
+    const string ATTR_SKILL = 'Skill';
 
     /**
      * @Column(type="bigint")

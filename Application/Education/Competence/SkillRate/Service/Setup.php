@@ -81,5 +81,6 @@ class Setup extends AbstractSetup
         $this->createColumn($table, 'Rate', self::FIELD_TYPE_STRING, true);
         $this->createColumn($table, 'serviceTblScoreTypeItem', self::FIELD_TYPE_BIGINT, true);
         $this->createColumn($table, 'serviceTblPersonTeacher', self::FIELD_TYPE_BIGINT, true);
+        $this->createColumn($table, 'serviceTblSubject', self::FIELD_TYPE_BIGINT, true);
     }
 }
