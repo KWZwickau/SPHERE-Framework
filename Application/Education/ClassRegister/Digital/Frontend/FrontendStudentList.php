@@ -208,7 +208,7 @@ class FrontendStudentList extends FrontendSelectDivisionCourse
                                 || $tblStudentLiberation->getDateTo(true) >= new DateTime('now'))
                             ){
                                 $hasLiberation = true;
-                                $liberation = (new Standard('', ApiLiberation::getEndpoint(), new Extern(), array(), 'Unterrichtsbefreiung'))
+                                $liberation = (new Standard('', ApiLiberation::getEndpoint(), new Extern()))
                                     ->ajaxPipelineOnClick(ApiLiberation::pipelineOpenOverViewModal($tblPerson->getId()));
                             }
                         }
@@ -273,7 +273,7 @@ class FrontendStudentList extends FrontendSelectDivisionCourse
             }
             if ($hasLiberation) {
                 $countDateColumn++;
-                $columns['Liberation'] = 'Befreiung';
+                $columns['Liberation'] = 'Sport&shy;befreiung';
             }
             $columns['Gender'] = 'Ge&shy;schlecht';
             $columns['Birthday'] = 'Geburts&shy;datum';
