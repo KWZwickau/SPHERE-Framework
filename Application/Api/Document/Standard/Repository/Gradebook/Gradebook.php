@@ -352,8 +352,9 @@ class Gradebook extends AbstractDocument
                         if ($dateTime < $tblPeriod->getFromDateTime() || $dateTime > $tblPeriod->getToDateTime()) {
                             continue;
                         }
-
-                        $date = $tblTest->getSortDate()->format('d.m.');
+                        if(($tblTestSortDate = $tblTest->getSortDate())){
+                            $date = $tblTestSortDate->format('d.m.');
+                        }
                     }
 
                     $count++;

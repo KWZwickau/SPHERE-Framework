@@ -164,6 +164,19 @@ class FilePointer extends DummyFile
     }
 
     /**
+     * @param string $From
+     * @param string $To
+     *
+     * @return void
+     */
+    public function setFileContentWithEncodingForExport(string $From = 'UTF-8', string $To = 'Windows-1252'): void
+    {
+        $filePath = $this->getFileLocation();
+        $content = file_get_contents($filePath);
+        file_put_contents($filePath, mb_convert_encoding($content, $To, $From));
+    }
+
+    /**
      * @return bool
      */
     public function getFileExists()

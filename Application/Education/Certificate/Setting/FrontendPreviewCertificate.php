@@ -206,6 +206,12 @@ class FrontendPreviewCertificate extends Extension implements IFrontendInterface
                         ->ajaxPipelineOnChange([ApiPreviewCertificate::pipelineLoadCertificatePreview(), ApiPreviewCertificate::pipelineLoadDownloadButton()])
                 )
             ]),
+            new FormRow([
+                new FormColumn(
+                    (new CheckBox('Data[IsCopyStatement]', 'Zweitschrift mit Namensänderung (mit Beglaubigungsvermerk)', 1))
+                        ->ajaxPipelineOnChange([ApiPreviewCertificate::pipelineLoadCertificatePreview(), ApiPreviewCertificate::pipelineLoadDownloadButton()])
+                )
+            ]),
         ])))->disableSubmitAction();
 
         $container = (new Container(
@@ -266,24 +272,7 @@ class FrontendPreviewCertificate extends Extension implements IFrontendInterface
             return '';
         }
 
-        // Zweitschrift anzeigen (Abschluss- und Abgangszeugnisse)
-        if (isset($Data['IsCopy'])) {
-            $CopyCertificateData = [
-                'Leader' => 'Schmitt',
-                'HeadmasterOriginalName' => 'Meyer',
-                'FirstMember' => 'Schulze',
-                'SecondMember' => 'Fleischer',
-                'DivisionTeacherOriginalName' => 'Weber',
-                'Date' => (new DateTime('today'))->format('d.m.Y'),
-                'City' => 'Zwickau',
-            ];
-
-            /** @var Certificate $Template */
-            $Template = new $CertificateClass(null, null, false, [], $CopyCertificateData);
-        } else {
-            /** @var Certificate $Template */
-            $Template = new $CertificateClass();
-        }
+        $Template = self::getCertificateTemplateForPreview($CertificateClass, $Data);
 
         $tblPerson = new TblPerson();
         $tblPerson->setId(0);
@@ -311,6 +300,41 @@ class FrontendPreviewCertificate extends Extension implements IFrontendInterface
         }
 
         return $display;
+    }
+
+    /**
+     * @param string $CertificateClass
+     * @param $Data
+     *
+     * @return Certificate
+     */
+    public static function getCertificateTemplateForPreview(string $CertificateClass, $Data): Certificate
+    {
+        // Zweitschrift anzeigen (Abschluss- und Abgangszeugnisse)
+        if (isset($Data['IsCopy']) || isset($Data['IsCopyStatement'])) {
+            $CopyCertificateData = [
+                'Leader' => 'Schmitt',
+                'HeadmasterOriginalName' => 'Meyer',
+                'FirstMember' => 'Schulze',
+                'SecondMember' => 'Fleischer',
+                'DivisionTeacherOriginalName' => 'Weber',
+                'SealText' => 'Schulzentrum Leinefelde Original Siegel',
+                'Date' => (new DateTime('today'))->format('d.m.Y'),
+                'City' => 'Zwickau',
+            ];
+
+            if (isset($Data['IsCopyStatement'])) {
+                $CopyCertificateData['IsCopyStatement'] = true;
+            }
+
+            /** @var Certificate $Template */
+            $Template = new $CertificateClass(null, null, false, [], $CopyCertificateData);
+        } else {
+            /** @var Certificate $Template */
+            $Template = new $CertificateClass();
+        }
+
+        return $Template;
     }
 
     /**

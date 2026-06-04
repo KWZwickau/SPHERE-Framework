@@ -22,6 +22,11 @@ class Image extends Element
     private function getPdfImage($Location)
     {
 
+        // Bild direkt von der Platte als Data-URI einbetten (kein HTTP/Auth/SSL nötig)
+        if (($dataUri = $this->getLocalDataUri($Location))) {
+            return $dataUri;
+        }
+
         $ProtocolSecure = 'http://';
         if(strpos($this->getRequest()->getHost(), 'schulsoftware.schule')){
             $ProtocolSecure = 'https://';
@@ -33,5 +38,27 @@ class Image extends Element
         }
 
         return $PathBase.'/'.trim($Location, '/\\');
+    }
+
+    private function getLocalDataUri($Location)
+    {
+
+        // __DIR__ = Application/Document/Generator/Repository/Element → 5 Ebenen bis Projekt-Root
+        $filePath = realpath(__DIR__.'/../../../../../'.trim($Location, '/\\'));
+        if ($filePath === false || !is_readable($filePath)) {
+            return null;
+        }
+
+        $imageInfo = @getimagesize($filePath);
+        if ($imageInfo === false || empty($imageInfo['mime'])) {
+            return null;
+        }
+
+        $content = file_get_contents($filePath);
+        if ($content === false || $content === '') {
+            return null;
+        }
+
+        return 'data:'.$imageInfo['mime'].';base64,'.base64_encode($content);
     }
 }

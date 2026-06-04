@@ -28,13 +28,7 @@ class BgjHjInfo extends Style
                 ->addElement($this->getElement('Halbjahresinformation', '35px')->styleTextBold()->styleAlignCenter())
                 ->addElement($this->getElement('der Berufsschule - Berufsgrundbildungsjahr', '20px')
                     ->styleTextBold()->styleAlignCenter()->styleMarginTop('-8px'))
-                ->addElement($this->getElement('
-                    {% if(Content.P' . $personId . '.Input.SubjectArea is not empty) %}
-                        Berufsbereich - {{ Content.P' . $personId . '.Input.SubjectArea }}
-                    {% else %}
-                        Berufsbereich &ndash;
-                    {% endif %} 
-                    ', '20px')
+                ->addElement($this->getElement('Berufsbereich Wirtschaft und Verwaltung', '20px')
                     ->styleTextBold()->styleAlignCenter()->styleMarginTop('-12px'))
             )
             ->addSlice((new Slice())

@@ -505,9 +505,9 @@ class Service extends AbstractService
      *
      * @return bool
      */
-    public function getHasAuthenticationByAccountAndIdentificationName(TblAccount $tblAccount, string $IdentificationName): bool
+    public function getHasAuthenticationByAccountAndIdentificationName(TblAccount $tblAccount, string $IdentificationName, $isForced = false): bool
     {
-        return (new Data($this->getBinding()))->getHasAuthenticationByAccountAndIdentificationName($tblAccount, $IdentificationName);
+        return (new Data($this->getBinding()))->getHasAuthenticationByAccountAndIdentificationName($tblAccount, $IdentificationName, $isForced);
     }
 
     /**

@@ -526,9 +526,9 @@ class ErrorLog extends Extension implements IModuleInterface
         $Stage = new Stage('Json einspielen');
         $Stage->addButton(new Standard('Zurück', __NAMESPACE__, new ChevronLeft()));
 
-        $Mandant = 'KG';
+        $Mandant = 'REF'; // REF save Einstellung, schickt nichts mit
         if(!($tblMandant = Consumer::useService()->getConsumerByAcronym($Mandant))){
-            return $Stage->setContent(new Danger('Mandant nicht gefunden'));
+            return $Stage->setContent(new Danger('Mandant '.$Mandant.' nicht gefunden'));
         }
 
 //        // entfernen alter Log Daten

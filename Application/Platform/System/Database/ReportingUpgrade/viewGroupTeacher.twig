@@ -3,6 +3,8 @@ SELECT
 -- PersonId to match with all View's // tblTeacher
     tP.Id AS TblPerson_Id,
     tT.Acronym AS TblTeacher_Acronym,
+    DATE_FORMAT( tT.EmploymentStart, '%d.%m.%Y' ) AS TblTeacher_EmploymentStart,
+    DATE_FORMAT( tT.EmploymentEnd, '%d.%m.%Y' ) AS TblTeacher_EmploymentEnd,
     DATE_FORMAT( tPM.MasernDate, '%d.%m.%Y' ) AS TblPersonMasern_MasernDate,
     tSMI.TextShort AS TblStudentMedicalRecord_MasernDocumentType,
     tSMI2.TextShort AS TblStudentMedicalRecord_MasernCreatorType

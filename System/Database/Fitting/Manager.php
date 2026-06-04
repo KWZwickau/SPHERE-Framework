@@ -138,7 +138,7 @@ class Manager extends Extension
         if ($cacheIsActive && $Region !== TblSession::class) {
             if (!preg_match('!'.preg_quote('Platform\\System\\', '!').'(Archive|Protocol)!', $this->Namespace)) {
                 // Clear distributed Cache-System (if possible)
-                $KeyList = $Cache->fetchKeys();
+                $KeyList = $Cache->fetchKeys($Cache->getSlot().'*');
                 if (null === $Region) {
                     $ClearList = preg_grep("/^".preg_quote($Cache->getSlot(), '/').".*/is", $KeyList);
                     $this->getLogger(new CacheLogger())->addLog(
@@ -168,6 +168,7 @@ class Manager extends Extension
                         }
                     }
                 }
+                $KeyList = $Cache->fetchKeys('PUBLIC*');
                 $ClearList = preg_grep("/^".preg_quote('PUBLIC', '/').".*/is", $KeyList);
                 $Cache->removeKeys($ClearList);
             }

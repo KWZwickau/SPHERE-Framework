@@ -485,7 +485,13 @@ abstract class ServiceCertificateContent extends ServiceAbitur
                         $Content['P'.$personId]['DivisionTeacher']['Name'] = $tblPersonSigner->getFullName();
                         break;
                     case 'FES':
-                        $Content['P' . $personId]['DivisionTeacher']['Name'] = trim($tblPersonSigner->getSalutation() . " " . $tblPersonSigner->getFirstName() . " " . $tblPersonSigner->getLastName());
+                        if ($tblSchoolType
+                            && $tblSchoolType->getName() == TblType::IDENT_GRUND_SCHULE
+                        ) {
+                            $Content['P' . $personId]['DivisionTeacher']['Name'] = $tblPersonSigner->getFirstName() . ' ' . $tblPersonSigner->getLastName();
+                        } else {
+                            $Content['P' . $personId]['DivisionTeacher']['Name'] = trim($tblPersonSigner->getSalutation() . " " . $tblPersonSigner->getFirstName() . " " . $tblPersonSigner->getLastName());
+                        }
                         break;
                     default:
                         $Content['P'.$personId]['DivisionTeacher']['Name'] = $tblPersonSigner->getFullName();

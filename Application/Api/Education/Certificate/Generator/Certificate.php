@@ -707,12 +707,12 @@ abstract class Certificate extends Extension
                 ->styleTextSize('30px')
                 ->styleHeight('0px')
                 , '27%');
-        } elseif ($this->CopyCertificateData) {
-            $Section->addElementColumn((new Element())
-                    ->setContent('Zweitschrift')
-                    ->styleTextSize('30px')
-                    ->styleHeight('0px')
-                , '27%');
+//        } elseif ($this->CopyCertificateData) {
+//            $Section->addElementColumn((new Element())
+//                    ->setContent('Zweitschrift')
+//                    ->styleTextSize('30px')
+//                    ->styleHeight('0px')
+//                , '27%');
         } else {
             $Section->addElementColumn((new Element()), '27%');
         }
@@ -1290,18 +1290,30 @@ abstract class Certificate extends Extension
         }
         $headmasterName = $this->CopyCertificateData['HeadmasterName'] ?? '&nbsp;';
 
+        // Sonderfall bei berufsbildenden Schulen nur Beglaubigungsvermerk bei Namensänderung
+        if (isset($this->CopyCertificateData['IsCopyStatement'])) {
+            $slice
+                ->addElement((new Element())
+                    ->setContent('Beglaubigungsvermerk')
+                    ->styleAlignCenter()
+                    ->styleTextBold()
+                    ->styleMarginTop($marginTop)
+                )
+                ->addElement((new Element())
+                    ->styleMarginTop('40px')
+                    ->setContent('Hiermit wird amtlich beglaubigt, dass diese Zweitschrift mit dem Original '
+                        . $diplomaName . ' vom {{ Content.P' . $personId . '.Input.Date }} übereinstimmt.')
+                );
+        } else {
+            $slice
+                ->addElement((new Element())
+                    ->styleMarginTop('40px')
+                    ->setContent('Diese Ausfertigung tritt im Rechtsverkehr an die Stelle der Erstausfertigung vom
+                        {{ Content.P' . $personId . '.Input.Date }}.')
+                );
+        }
+
         $slice
-            ->addElement((new Element())
-                ->setContent('Beglaubigungsvermerk')
-                ->styleAlignCenter()
-                ->styleTextBold()
-                ->styleMarginTop($marginTop)
-            )
-            ->addElement((new Element())
-                ->styleMarginTop('10px')
-                ->setContent('Hiermit wird amtlich beglaubigt, dass diese Zweitschrift mit dem Original '
-                    . $diplomaName . ' vom {{ Content.P' . $personId . '.Input.Date }} übereinstimmt.')
-            )
             ->addSection((new Section())
                 ->addElementColumn((new Element())
                     ->setContent(($this->CopyCertificateData['City'] ?? '&nbsp;') . ' ' . ($this->CopyCertificateData['Date'] ?? '&nbsp;'))
@@ -1349,6 +1361,102 @@ abstract class Certificate extends Extension
                     ->styleMarginTop()
                     , $right)
             );
+    }
+
+    /**
+     * @param $personId
+     * @param $diplomaName
+     * @param string $marginTop
+     * @param bool $hasCertifiedCopyStatement
+     *
+     * @return Slice
+     */
+    protected function getTechnicalSignPartCopy($personId, $diplomaName, string $marginTop, bool $hasCertifiedCopyStatement): Slice
+    {
+        $left = (new Slice())
+            ->addElement((new Element())
+                ->setContent('{% if( Content.P' . $personId . '.Company.Address.City.Name is not empty) %}
+                            {{ Content.P' . $personId . '.Company.Address.City.Name }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}')
+                ->styleAlignCenter()
+                ->styleBorderBottom('0.5px')
+            )
+            ->addElement((new Element())
+                ->setContent('Ort')
+                ->styleAlignCenter()
+                ->styleTextSize('11px')
+            )
+            ->addElement((new Element())
+                ->setContent('gez. ' . ($this->CopyCertificateData['Leader'] ?? ''))
+                ->styleAlignCenter()
+                ->styleMarginTop('40px')
+                ->styleBorderBottom('0.5px')
+            )
+            ->addElement((new Element())
+                ->setContent('Vorsitzende/r des Prüfungsausschusses')
+                ->styleAlignCenter()
+                ->styleTextSize('11px')
+            );
+
+        $center = (new Slice())
+            ->addElement((new Element())
+                ->setContent($this->CopyCertificateData['SealText'] ?? 'Original Siegel')
+                ->styleTextSize('11px')
+                ->styleBorderAll('0.5px')
+                ->stylePaddingTop('5px')
+                ->stylePaddingBottom('5px')
+                ->stylePaddingLeft('5px')
+                ->stylePaddingRight('5px')
+//                ->styleHeight('110px')
+            );
+
+        $right = (new Slice())
+            ->addElement((new Element())
+                ->setContent(
+                    '{% if( Content.P' . $personId . '.Input.Date is not empty) %}
+                        {{ Content.P' . $personId . '.Input.Date }}
+                    {% else %}
+                        &nbsp;
+                    {% endif %}'
+                )
+                ->styleAlignCenter()
+                ->styleBorderBottom('0.5px')
+            )
+            ->addElement((new Element())
+                ->setContent('Datum')
+                ->styleAlignCenter()
+                ->styleTextSize('11px')
+            )
+            ->addElement((new Element())
+                ->setContent('gez. ' . ($this->CopyCertificateData['HeadmasterOriginalName'] ?? ''))
+                ->styleAlignCenter()
+                ->styleMarginTop('40px')
+                ->styleBorderBottom('0.5px')
+            )
+            ->addElement((new Element())
+                ->setContent('Schulleiter/in')
+                ->styleAlignCenter()
+                ->styleTextSize('11px')
+            );
+
+
+        $slice = (new Slice())
+            ->styleMarginTop($marginTop)
+            ->addSection((new Section())
+                ->addSliceColumn($left, '35%')
+                ->addElementColumn((new Element()), '5%')
+                ->addSliceColumn($center, '20%')
+                ->addElementColumn((new Element()), '5%')
+                ->addSliceColumn($right, '35%')
+            );
+
+        if ($hasCertifiedCopyStatement) {
+            $this->setTechnicalCertifiedCopyStatement($slice, $personId, $diplomaName);
+        }
+
+        return $slice;
     }
 
     /**

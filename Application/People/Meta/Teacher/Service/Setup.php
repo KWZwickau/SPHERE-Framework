@@ -64,6 +64,8 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasIndex($Table, array('Acronym', Element::ENTITY_REMOVE))) {
             $Table->addUniqueIndex(array('Acronym', Element::ENTITY_REMOVE));
         }
+        $this->createColumn($Table, 'EmploymentStart', self::FIELD_TYPE_DATETIME, true);
+        $this->createColumn($Table, 'EmploymentEnd', self::FIELD_TYPE_DATETIME, true);
 
         return $Table;
     }
