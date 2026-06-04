@@ -336,6 +336,32 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblRole $tblRole
+     * @param bool $IsIndividual
+     *
+     * @return TblRole
+     */
+    public function updateRoleIndividual(TblRole $tblRole, bool $IsIndividual = false): TblRole
+    {
+
+        return (new Data($this->getBinding()))->updateRoleIndividual($tblRole, $IsIndividual);
+    }
+
+    /**
+     * @param TblRole $tblRole
+     * @param TblConsumer $tblConsumer
+     * @return bool
+     */
+    public function createRoleConsumer(TblRole $tblRole, TblConsumer $tblConsumer): bool
+    {
+
+        if ((new Data($this->getBinding()))->createRoleConsumer($tblRole, $tblConsumer)) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * @param integer $Id
      *
      * @return bool|TblRole
@@ -368,6 +394,15 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getRoleAll();
+    }
+
+    /**
+     * @return bool|TblRole[]
+     */
+    public function getRoleByIsIndividual()
+    {
+
+        return (new Data($this->getBinding()))->getRoleByIsIndividual();
     }
 
     /**
@@ -452,6 +487,17 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->removePrivilegeRight($tblPrivilege, $tblRight);
+    }
+
+    /**
+     * @param TblRoleConsumer $tblRoleConsumer
+     *
+     * @return boolean
+     */
+    public function removeRoleConsumer(TblRoleConsumer $tblRoleConsumer): bool
+    {
+
+        return (new Data($this->getBinding()))->removeRoleConsumer($tblRoleConsumer);
     }
 
     /**
