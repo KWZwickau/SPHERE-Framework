@@ -630,10 +630,10 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage('Mandanten', 'Verwaltung Module');
         $Stage->addButton(new Standard('Zurück', __NAMESPACE__, new ChevronLeft()));
         // Fakturierung individualisieren kann nach durchführung wieder entfernt werden
-        if(($tblRole = Access::useService()->getRoleByName('Fakturierung'))
-        && !$tblRole->isIndividual()){
-            $Stage->addButton(new Standard('Fakturierung Individualisieren', __NAMESPACE__.'/ConsumerLogin/Billing', new Plus()));
-        }
+//        if(($tblRole = Access::useService()->getRoleByName('Fakturierung'))
+//        && !$tblRole->isIndividual()){
+//            $Stage->addButton(new Standard('Fakturierung Individualisieren', __NAMESPACE__.'/ConsumerLogin/Billing', new Plus()));
+//        }
 
         $Stage->setContent(
             ApiConsumerLogin::receiverModal('Modal')
@@ -738,26 +738,27 @@ class Frontend extends Extension implements IFrontendInterface
         );
     }
 
-    public function frontendConsumerLoginBilling()
-    {
-
-        $Stage = new Stage('Mandanten', 'Consumerlogin');
-        $Stage->addButton(new Standard('Zurück', __NAMESPACE__.'/ConsumerLogin', new ChevronLeft()));
-        $tblRole = Access::useService()->getRoleByName('Fakturierung');
-        if($tblConsumerAll = GatekeeperConsumer::useService()->getConsumerAll()){
-            foreach($tblConsumerAll as $tblConsumer){
-                Access::useService()->createRoleConsumer($tblRole, $tblConsumer);
-            }
-        }
-        Access::useService()->updateRoleIndividual($tblRole, true);
-
-        $Stage->setContent(
-            new Success('Benutzerrecht Fakturierung für alle Mandanten individualisiert')
-            .new Redirect('/Platform/System/DataMaintenance/ConsumerLogin', Redirect::TIMEOUT_SUCCESS)
-        );
-
-        return $Stage;
-    }
+    // Beispiel Rechte für alle freischalten
+//    public function frontendConsumerLoginBilling()
+//    {
+//
+//        $Stage = new Stage('Mandanten', 'Consumerlogin');
+//        $Stage->addButton(new Standard('Zurück', __NAMESPACE__.'/ConsumerLogin', new ChevronLeft()));
+//        $tblRole = Access::useService()->getRoleByName('Fakturierung');
+//        if($tblConsumerAll = GatekeeperConsumer::useService()->getConsumerAll()){
+//            foreach($tblConsumerAll as $tblConsumer){
+//                Access::useService()->createRoleConsumer($tblRole, $tblConsumer);
+//            }
+//        }
+//        Access::useService()->updateRoleIndividual($tblRole, true);
+//
+//        $Stage->setContent(
+//            new Success('Benutzerrecht Fakturierung für alle Mandanten individualisiert')
+//            .new Redirect('/Platform/System/DataMaintenance/ConsumerLogin', Redirect::TIMEOUT_SUCCESS)
+//        );
+//
+//        return $Stage;
+//    }
 
     /**
      * @return Stage
