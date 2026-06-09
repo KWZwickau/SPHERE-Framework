@@ -4,6 +4,7 @@ namespace SPHERE\Application\Education\Competence\SkillRate;
 
 use DateTime;
 use NumberFormatter;
+use SPHERE\Application\Api\Education\Competence\ApiOnlineSkillRate;
 use SPHERE\Application\Api\Education\Competence\ApiSkillRate;
 use SPHERE\Application\Education\Competence\ScoreType\ScoreType;
 use SPHERE\Application\Education\Competence\SkillGrid\Service\Entity\TblSkill;
@@ -299,7 +300,7 @@ class Service extends AbstractService
         }
 
         return new Success('Die Daten wurde erfolgreich gespeichert.')
-            . ApiSkillRate::pipelineLoadViewStudentContent(
+            . ApiOnlineSkillRate::pipelineLoadViewStudentContent(
                 $tblDivisionCourse->getId(), $tblPerson->getId(), $SubjectId, $SelectedYearId, 'false', $tblSubject ? 'false' : 'true');
     }
 
@@ -412,7 +413,7 @@ class Service extends AbstractService
             // Schülerübersicht muss neu geladen werden
             // . ApiSkillRate::pipelineLoadViewStudentSkillRateHistoryContent($DivisionCourseId, $tblStudentSkill->getId());
             . ApiSkillRate::pipelineClose()
-            . ApiSkillRate::pipelineLoadViewStudentContent(
+            . ApiOnlineSkillRate::pipelineLoadViewStudentContent(
                 $DivisionCourseId, $tblPerson?->getId(), $tblSubject ? $tblSubject->getId() : $SubjectId, $SelectedYearId, 'false', $tblSubject ? 'false' : 'true');
     }
 
@@ -501,7 +502,7 @@ class Service extends AbstractService
             // Schülerübersicht muss neu geladen werden
             // . ApiSkillRate::pipelineLoadViewStudentSkillRateHistoryContent($DivisionCourseId, $tblStudentSkill->getId());
             . ApiSkillRate::pipelineClose()
-            . ApiSkillRate::pipelineLoadViewStudentContent(
+            . ApiOnlineSkillRate::pipelineLoadViewStudentContent(
                 $DivisionCourseId, $tblPerson?->getId(), $tblSubject ? $tblSubject->getId() : $SubjectId, $SelectedYearId, 'false', $tblSubject ? 'false' : 'true');
     }
 
@@ -543,7 +544,7 @@ class Service extends AbstractService
 
         return new Success('Kompetenz wurde erfolgreich hinzugefügt.')
             . ApiSkillRate::pipelineClose()
-            . ApiSkillRate::pipelineLoadViewStudentContent($DivisionCourseId, $PersonId, $SubjectId, $SelectedYearId);
+            . ApiOnlineSkillRate::pipelineLoadViewStudentContent($DivisionCourseId, $PersonId, $SubjectId, $SelectedYearId);
     }
 
     /**
@@ -582,7 +583,7 @@ class Service extends AbstractService
 
         return new Success('Kompetenz wurde erfolgreich hinzugefügt.')
             . ApiSkillRate::pipelineClose()
-            . ApiSkillRate::pipelineLoadViewStudentContent($DivisionCourseId, $PersonId, $SubjectId, $SelectedYearId);
+            . ApiOnlineSkillRate::pipelineLoadViewStudentContent($DivisionCourseId, $PersonId, $SubjectId, $SelectedYearId);
     }
 
     /**
