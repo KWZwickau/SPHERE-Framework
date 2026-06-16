@@ -224,7 +224,18 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $levelList = DivisionCourse::useService()->getStudentEducationLevelListForSelectbox();
-        $tblDivisionCourseList = DivisionCourse::useService()->getDivisionCourseListByDate();
+
+        // $tblDivisionCourseList = DivisionCourse::useService()->getDivisionCourseListByDate();
+        // Todo Kurse abhängig von ausgewählten Schuljahr laden
+        $tblDivisionCourseList = [];
+        if (($tblYearDivisionCourseList = Term::useService()->getYearAllFutureYears(0))) {
+            foreach ($tblYearDivisionCourseList as $tblYearDivisionCourse) {
+                if (($list = DivisionCourse::useService()->getDivisionCourseListByYear($tblYearDivisionCourse))) {
+                    $tblDivisionCourseList = array_merge($tblDivisionCourseList, $list);
+                }
+            }
+        }
+
         $YearString = '';
         if(($tblYearList = Term::useService()->getYearByNow())){
             $YearString = current($tblYearList)->getYear();
@@ -242,7 +253,7 @@ class Frontend extends Extension implements IFrontendInterface
                     new FormColumn(
                         new Panel('Klasse', array(
                             new SelectBox('Data[Level]', 'Stufe', $levelList),
-                            new SelectBox('Data[DivisionCourse]', 'Klasse '.$YearString, array('Name' => $tblDivisionCourseList))
+                            new SelectBox('Data[DivisionCourse]', 'Klasse '.$YearString, array('{{ Name }} - {{ YearName }}' => $tblDivisionCourseList))
                         ), Panel::PANEL_TYPE_INFO)
                         , 4),
                     new FormColumn(
@@ -378,7 +389,18 @@ class Frontend extends Extension implements IFrontendInterface
 
         $TypeList = Account::useService()->getRelationshipList();
         $levelList = DivisionCourse::useService()->getStudentEducationLevelListForSelectbox();
-        $tblDivisionCourseList = DivisionCourse::useService()->getDivisionCourseListByDate();
+
+        // $tblDivisionCourseList = DivisionCourse::useService()->getDivisionCourseListByDate();
+        // Todo Kurse abhängig von ausgewählten Schuljahr laden
+        $tblDivisionCourseList = [];
+        if (($tblYearDivisionCourseList = Term::useService()->getYearAllFutureYears(0))) {
+            foreach ($tblYearDivisionCourseList as $tblYearDivisionCourse) {
+                if (($list = DivisionCourse::useService()->getDivisionCourseListByYear($tblYearDivisionCourse))) {
+                    $tblDivisionCourseList = array_merge($tblDivisionCourseList, $list);
+                }
+            }
+        }
+
         $YearString = '';
         if(($tblYearList = Term::useService()->getYearByNow())){
             $YearString = current($tblYearList)->getYear();
@@ -396,7 +418,7 @@ class Frontend extends Extension implements IFrontendInterface
                     new FormColumn(
                         new Panel('Klasse', array(
                             new SelectBox('Data[Level]', 'Stufe', $levelList),
-                            new SelectBox('Data[DivisionCourse]', 'Klasse '.$YearString, array('Name' => $tblDivisionCourseList))
+                            new SelectBox('Data[DivisionCourse]', 'Klasse '.$YearString, array('{{ Name }} - {{ YearName }}' => $tblDivisionCourseList))
                         ), Panel::PANEL_TYPE_INFO)
                         , 3),
                     new FormColumn(
