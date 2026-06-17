@@ -50,7 +50,7 @@ class LevelTen extends AbstractBlock
         'KU' => 'Kunst',
         'MU' => 'Musik',
         'GE' => 'Geschichte',
-        'GRW' => 'Gemeinschaftskunde/Rechtserziehung/Wirtschaft',
+        'GRW' => 'Gemeinschaftskunde / Rechtserziehung / Wirtschaft',
         'GEO' => 'Geographie',
 
         'MA' => 'Mathematik',
