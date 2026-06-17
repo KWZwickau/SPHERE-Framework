@@ -10,6 +10,7 @@ use SPHERE\Application\Document\Generator\Repository\Frame;
 use SPHERE\Application\Document\Generator\Repository\Page;
 use SPHERE\Application\Document\Generator\Repository\Section;
 use SPHERE\Application\Document\Generator\Repository\Slice;
+use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Meta\Common\Service\Entity\TblCommonGender;
@@ -131,7 +132,7 @@ class MultiPassword extends AbstractDocument
                         // School choose
                         if(($tblPerson = $tblUserAccount->getServiceTblPerson())){
 
-                            $this->FieldValue['PersonName'][$tblAccount->getId()] = $tblPerson->getFullName();
+                            $this->FieldValue['PersonName'][$tblAccount->getId()] = Prepare::useService()->useLetterFontReplacement($tblPerson->getFullName());
                             //Address
                             $tblAddress = Address::useService()->getAddressByPerson($tblPerson);
                             if($tblAddress){
@@ -454,16 +455,16 @@ class MultiPassword extends AbstractDocument
                 /** @var TblPerson $tblPerson */
                 $tblPerson = current($tblPersonList);
                 if($tblPerson->getSalutation() == TblSalutation::VALUE_MAN || $tblPerson->getSalutation() == TblSalutation::VALUE_STUDENT){
-                    $FirstLine = 'Lieber '.$tblPerson->getFullName().',';
+                    $FirstLine = 'Lieber '. Prepare::useService()->useLetterFontReplacement($tblPerson->getFullName()) .',';
                 } elseif($tblPerson->getSalutation() == TblSalutation::VALUE_WOMAN) {
-                    $FirstLine = 'Liebe '.$tblPerson->getFullName().',';
+                    $FirstLine = 'Liebe '. Prepare::useService()->useLetterFontReplacement($tblPerson->getFullName()) .',';
                 }else {
                     if($tblPerson->getGender() && $tblPerson->getGender()->getId() == TblCommonGender::VALUE_MALE){
-                        $FirstLine = 'Lieber '.$tblPerson->getFullName().',';
+                        $FirstLine = 'Lieber '. Prepare::useService()->useLetterFontReplacement($tblPerson->getFullName()) .',';
                     } elseif($tblPerson->getGender() && $tblPerson->getGender()->getId() == TblCommonGender::VALUE_FEMALE) {
-                        $FirstLine = 'Liebe '.$tblPerson->getFullName().',';
+                        $FirstLine = 'Liebe '. Prepare::useService()->useLetterFontReplacement($tblPerson->getFullName()) .',';
                     } else {
-                        $FirstLine = 'Liebe(r) '.$tblPerson->getFullName().',';
+                        $FirstLine = 'Liebe(r) '. Prepare::useService()->useLetterFontReplacement($tblPerson->getFullName()) .',';
                     }
                 }
             }
@@ -557,7 +558,7 @@ class MultiPassword extends AbstractDocument
         // passord block
         $Slice->addElement($this->getTextElement(''));
         $Slice->addSection($this->getInfoSection('Adresse:', $Live));
-        $Slice->addSection($this->getInfoSection('Benutzername:', $this->FieldValue['UserAccountNameList'][$AccountId]));
+        $Slice->addSection($this->getInfoSection('Benutzername:', Prepare::useService()->useLetterFontReplacement($this->FieldValue['UserAccountNameList'][$AccountId])));
         if ($this->FieldValue['IsParent']) {
             $Slice->addElement($this->getTextElement('Für das erstmalige Login verwenden Sie bitte folgendes'));
         } else {
@@ -684,7 +685,7 @@ class MultiPassword extends AbstractDocument
             $Slice->addElement($this->getTextElement('Falls Sie noch Rückfragen oder Probleme mit der Anwendung haben, können Sie uns gerne kontaktieren.'));
             $Slice->addElement($this->getTextElement(''));
             $Slice->addElement($this->getTextElement('Namen der sorgeberechtigten Kinder:'));
-            $Slice->addElement($this->getTextElement($this->FieldValue['ChildList'][$AccountId]));
+            $Slice->addElement($this->getTextElement(Prepare::useService()->useLetterFontReplacement($this->FieldValue['ChildList'][$AccountId])));
             $Slice->addElement($this->getTextElement('')->styleHeight('675px'));
         } else {
             $Slice->addElement($this->getTextElement('<b>Bewahre den Brief an sicherer Stelle auf</b>, damit Deine Zugangsdaten verfügbar bleiben!
