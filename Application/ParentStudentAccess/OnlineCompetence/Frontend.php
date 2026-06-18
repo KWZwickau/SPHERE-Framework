@@ -162,26 +162,22 @@ class Frontend extends Extension implements IFrontendInterface
                                 $maxCount = count($tblScoreTypeItemList);
                                 $factor = $maxCount > 1 ? 100 / $maxCount : 0;
 
-
-
+                                // step ermitteln kann nicht 1 sein
+                                $step = ($factor * $maxCount) / 100;
                                 if (!$tblStudentSkill->getIsAverage()) {
                                     // Todo berücksichtigung was ist die höchste Stufe
-                                    $percentValue = $factor * ($maxCount - $percentValue + 1);
                                     // Bewertungssystem mit letzter Bewertung
                                     // balken ausmalen auch bei Bewertungssystem und im Header von Kompetenzbereich die Stufen mit anzeigen
-
-
-//                                    $skillAreaList[$skillAreaKey]['ScoreTypeList'][$tblScoreType->getId()]['SkillList'][]
-//                                        = $this->getSkillRowPercent($tblScoreType, $text, $displayRate, $percentValue);
+                                    $percentValue = $factor * ($maxCount - $percentValue + $step);
                                 } else {
-                                    // todo 2,67 ist ja schon ein befriedigend statt gut
+                                    // Todo berücksichtigung was ist die höchste Stufe
                                     // bewertungssystem durchschnitt
                                     // bei durchschnitt versuchen es umzurechnen und mit anzuzeigen
-                                    // Todo berücksichtigung was ist die höchste Stufe
-                                    $percentValue = $factor * ($maxCount - $percentValue + 1);
-//                                    var_dump($displayLast['Value'],  $percentValue, $percentValue2);
-
-
+                                    // offset damit die Komma-Fünf Noten immer auf dem Schritt sind
+                                    $offset = $factor * ($maxCount - $percentValue + $step) == 100
+                                        ? 0
+                                        : ($step / 2);
+                                    $percentValue = $factor * ($maxCount - $percentValue + $step - $offset);
                                 }
                             }
 
@@ -208,7 +204,7 @@ class Frontend extends Extension implements IFrontendInterface
 
             return $content;
         } elseif ($IsInterdisciplinary) {
-            // todo fächerübergreifend? hier den durchschnitt anzeigen?
+            // todo fächerübergreifend? hier den durchschnitt über alle bewerteten Fächer anzeigen anzeigen?
             return 'Fächerübergreifend';
         }
 
