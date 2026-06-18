@@ -390,11 +390,11 @@ abstract class FrontendSetting extends FrontendSelect
                     ),
                     array(
                         "width" => "50px",
-                        "targets" => array(4)
+                        "targets" => -2
                     ),
                     array(
                         "width" => "150px",
-                        "targets" => array(5)
+                        "targets" => -1
                     ),
                 );
 
