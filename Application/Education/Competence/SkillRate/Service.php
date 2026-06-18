@@ -194,16 +194,33 @@ class Service extends AbstractService
      *
      * @return string
      */
-    public function getDisplayStudentSkillRateLastOrAverage(
+    public function getToolTipStudentSkillRateLastOrAverage(
         TblStudentSkill $tblStudentSkill, ?TblSubject $tblSubjectForSkillRate = null, string $extraToolTip = ""
     ): string {
+        return $this->getStudentSkillRateLastOrAverageValue($tblStudentSkill, $tblSubjectForSkillRate, $extraToolTip)['Display'];
+    }
+
+    /**
+     * bei $extraToolTip !== null wird bei Display ein ToolTip zurückgegeben
+     *
+     * @param TblStudentSkill $tblStudentSkill
+     * @param TblSubject|null $tblSubjectForSkillRate
+     * @param string|null $extraToolTip
+     *
+     * @return array
+     */
+    public function getStudentSkillRateLastOrAverageValue(TblStudentSkill $tblStudentSkill, ?TblSubject $tblSubjectForSkillRate = null,
+        ?string $extraToolTip = ""): array
+    {
         $display = '';
+        $value = floatval(0);
         if ($tblStudentSkill->getIsAverage()) {
             if (($average = $this->getCalcAverageStudentSkillRate($tblStudentSkill, $tblSubjectForSkillRate)) !== null) {
                 // in deutsches Zahlformat umwandeln
                 $formatter = new NumberFormatter('de_DE', NumberFormatter::DECIMAL);
                 $formatter->setAttribute(NumberFormatter::FRACTION_DIGITS, 2);
 
+                $value = $average;
                 $display = '&#216; ' . $formatter->format($average) . (!$tblStudentSkill->getServiceTblScoreType() ? '%' : '');
                 if ($extraToolTip) {
                     $display = new ToolTip($display, $extraToolTip);
@@ -212,20 +229,31 @@ class Service extends AbstractService
         } else {
             if (($tblStudentSkillRate = $this->getLastStudentSkillRateBy($tblStudentSkill, $tblSubjectForSkillRate))) {
                 $toolTip = "";
-                if ($extraToolTip) {
-                    $toolTip .= $extraToolTip . "<br /><br />";
+                if ($extraToolTip !== null) {
+                    if ($extraToolTip) {
+                        $toolTip .= $extraToolTip . "<br /><br />";
+                    }
+                    $toolTip .= "Letzte Bewertung am {$tblStudentSkillRate->getDateString()} durch {$tblStudentSkillRate->getDisplayTeacher()}";
                 }
-                $toolTip .= "Letzte Bewertung am {$tblStudentSkillRate->getDateString()} durch {$tblStudentSkillRate->getDisplayTeacher()}";
 
                 if (($tblScoreTypeItem = $tblStudentSkillRate->getServiceTblScoreTypeItem())) {
-                    $display = (new ToolTip($tblScoreTypeItem->getName(), $toolTip))->enableHtml();
+                    $value = $tblScoreTypeItem->getRateFloatValue();
+                    $display = $tblScoreTypeItem->getName();
                 } else {
-                    $display = (new ToolTip($tblStudentSkillRate->getRate() . '%', $toolTip))->enableHtml();
+                    $value = $tblStudentSkillRate->getRateFloatValue();
+                    $display = $value . '%';
+                }
+
+                if ($toolTip) {
+                    $display = (new ToolTip($display, $toolTip))->enableHtml();
                 }
             }
         }
 
-        return $display;
+        return [
+            'Display' => $display,
+            'Value' => $value
+        ];
     }
 
     /**

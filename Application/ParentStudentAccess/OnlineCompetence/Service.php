@@ -42,7 +42,7 @@ class Service
     /**
      * eingeloggte Person ist ein Schüler
      *
-     * @return array|false
+     * @return TblPerson[]|false
      */
     public function getPersonListFromStudentLogin(): bool|array
     {
@@ -65,7 +65,7 @@ class Service
     /**
      * Kinder des Elternteils
      *
-     * @return array|false
+     * @return TblPerson[]|false
      */
     public function getPersonListFromCustodyLogin(): bool|array
     {

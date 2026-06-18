@@ -249,6 +249,16 @@ class TblStudentSkill extends Element
     }
 
     /**
+     * liefert auch das virtuelle Bewertungssystem für Prozent
+     *
+     * @return TblScoreType
+     */
+    public function getVirtualTblScoreType(): TblScoreType
+    {
+        return $this->getServiceTblScoreType() ?: ScoreType::useService()->getScoreTypeById(-1);
+    }
+
+    /**
      * @param TblScoreType|null $tblScoreType
      *
      * @return void

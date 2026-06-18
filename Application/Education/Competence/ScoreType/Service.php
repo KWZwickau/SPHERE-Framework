@@ -196,6 +196,31 @@ class Service extends AbstractService
      */
     public function getScoreTypeItemsByScoreType(TblScoreType $tblScoreType): array
     {
+        // todo stufen für Prozent irgendwohin speichern
+        if ($tblScoreType->getId() == -1) {
+            $item = new TblScoreTypeItem();
+            $item->setId($tblScoreType->getId());
+            $item->setName('wenig');
+            $resultList[] = $item;
+
+            $item = new TblScoreTypeItem();
+            $item->setId($tblScoreType->getId());
+            $item->setName('teilweise');
+            $resultList[] = $item;
+
+            $item = new TblScoreTypeItem();
+            $item->setId($tblScoreType->getId());
+            $item->setName('häufig');
+            $resultList[] = $item;
+
+//            $item = new TblScoreTypeItem();
+//            $item->setId($tblScoreType->getId());
+//            $item->setName('super');
+//            $resultList[] = $item;
+
+            return $resultList;
+        }
+
         return (new Data($this->getBinding()))->getScoreTypeItemListByScoreType($tblScoreType);
     }
 

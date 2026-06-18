@@ -455,7 +455,7 @@ class FrontendDivisionCourse extends Extension implements IFrontendInterface
                         $virtualStudentSkill = $studentSkillList[$tblPerson->getId()];
                         if ($virtualStudentSkill instanceof TblStudentSkill) {
                             $bodyList[$tblPerson->getId()]['SkillRates'] = $gradeFrontend->getTableColumnBody(
-                                SkillRate::useService()->getDisplayStudentSkillRateLastOrAverage($virtualStudentSkill, $IsInterdisciplinary ? $tblSubject : null)
+                                SkillRate::useService()->getToolTipStudentSkillRateLastOrAverage($virtualStudentSkill, $IsInterdisciplinary ? $tblSubject : null)
                             );
 
                             $inputKey = 'StudentSkillId_' . $virtualStudentSkill->getId();

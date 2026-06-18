@@ -6,6 +6,7 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
+use NumberFormatter;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -25,7 +26,7 @@ class TblScoreTypeItem extends Element
     /**
      * @Column(type="string")
      */
-    protected string $Value;
+    protected string $Value = '';
     /**
      * @Column(type="string")
      */
@@ -50,6 +51,20 @@ class TblScoreTypeItem extends Element
     public function getValue(): string
     {
         return $this->Value;
+    }
+
+    /**
+     * @return float|null
+     */
+    public function getRateFloatValue(): ?float
+    {
+        if ($this->getValue() !== null) {
+            $formatter = new NumberFormatter('de_DE', NumberFormatter::DECIMAL);
+
+            return $formatter->parse($this->getValue());
+        }
+
+        return null;
     }
 
     /**
