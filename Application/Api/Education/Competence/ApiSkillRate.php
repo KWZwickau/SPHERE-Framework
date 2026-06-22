@@ -40,6 +40,10 @@ class ApiSkillRate extends Extension implements IApiInterface
         $Dispatcher->registerMethod('loadViewSelect');
         $Dispatcher->registerMethod('changeShowDivisionTeacher');
 
+        $Dispatcher->registerMethod('loadViewStudentContent');
+        $Dispatcher->registerMethod('openStudentSkillRateHistoryModal');
+        $Dispatcher->registerMethod('loadViewStudentSkillRateHistoryContent');
+
         $Dispatcher->registerMethod('loadEditStudentContent');
         $Dispatcher->registerMethod('saveEditStudentSkillRate');
         
@@ -233,6 +237,135 @@ class ApiSkillRate extends Extension implements IApiInterface
         }
 
         return "";
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $PersonId
+     * @param $SubjectId
+     * @param $SelectedYearId
+     * @param string $OldYears
+     * @param string $Interdisciplinary
+     *
+     * @return Pipeline
+     */
+    public static function pipelineLoadViewStudentContent($DivisionCourseId, $PersonId, $SubjectId, $SelectedYearId,
+        string $OldYears = 'false', string $Interdisciplinary = 'false'): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'Content'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'loadViewStudentContent',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'DivisionCourseId' => $DivisionCourseId,
+            'PersonId' => $PersonId,
+            'SubjectId' => $SubjectId,
+            'SelectedYearId' => $SelectedYearId,
+            'OldYears' => $OldYears,
+            'Interdisciplinary' => $Interdisciplinary
+        ));
+        $ModalEmitter->setLoadingMessage("Daten werden geladen");
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $PersonId
+     * @param $SubjectId
+     * @param $SelectedYearId
+     * @param $OldYears
+     * @param $Interdisciplinary
+     *
+     * @return string
+     * @noinspection PhpUnused
+     */
+    public function loadViewStudentContent($DivisionCourseId, $PersonId, $SubjectId, $SelectedYearId, $OldYears, $Interdisciplinary): string
+    {
+        return SkillRate::useFrontend()->loadViewStudentContent(
+            $DivisionCourseId, $PersonId, $SubjectId, $SelectedYearId, $OldYears === 'true', $Interdisciplinary === 'true');
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $StudentSkillId
+     * @param $SelectedYearId
+     * @param $SubjectId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineOpenStudentSkillRateHistoryModal($DivisionCourseId, $StudentSkillId, $SelectedYearId, $SubjectId): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'openStudentSkillRateHistoryModal',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'DivisionCourseId' => $DivisionCourseId,
+            'StudentSkillId' => $StudentSkillId,
+            'SelectedYearId' => $SelectedYearId,
+            'SubjectId' => $SubjectId
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $StudentSkillId
+     * @param $SelectedYearId
+     * @param $SubjectId
+     *
+     * @return string
+     * @noinspection PhpUnused
+     */
+    public function openStudentSkillRateHistoryModal($DivisionCourseId, $StudentSkillId, $SelectedYearId, $SubjectId): string
+    {
+        return SkillRate::useFrontend()->openStudentSkillRateHistoryModal($DivisionCourseId, $StudentSkillId, $SelectedYearId, $SubjectId);
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $StudentSkillId
+     * @param $SelectedYearId
+     * @param $SubjectId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineLoadViewStudentSkillRateHistoryContent($DivisionCourseId, $StudentSkillId, $SelectedYearId, $SubjectId): Pipeline
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'SkillRateHistoryContent'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'loadViewStudentSkillRateHistoryContent',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'DivisionCourseId' => $DivisionCourseId,
+            'StudentSkillId' => $StudentSkillId,
+            'SelectedYearId' => $SelectedYearId,
+            'SubjectId' => $SubjectId
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $DivisionCourseId
+     * @param $StudentSkillId
+     * @param $SelectedYearId
+     * @param $SubjectId
+     *
+     * @return string
+     * @noinspection PhpUnused
+     */
+    public function loadViewStudentSkillRateHistoryContent($DivisionCourseId, $StudentSkillId, $SelectedYearId, $SubjectId): string
+    {
+        return SkillRate::useFrontend()->loadViewStudentSkillRateHistoryContent($DivisionCourseId, $StudentSkillId, $SelectedYearId, $SubjectId);
     }
 
     /**
@@ -629,7 +762,7 @@ class ApiSkillRate extends Extension implements IApiInterface
 
         return new Success('Kompetenz wurde erfolgreich umbenannt.')
             . self::pipelineClose()
-            . ApiOnlineSkillRate::pipelineLoadViewStudentContent($DivisionCourseId, $PersonId, $SubjectId, $SelectedYearId);
+            . ApiSkillRate::pipelineLoadViewStudentContent($DivisionCourseId, $PersonId, $SubjectId, $SelectedYearId);
     }
 
     /**

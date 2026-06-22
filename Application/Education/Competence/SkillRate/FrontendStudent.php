@@ -5,7 +5,6 @@ namespace SPHERE\Application\Education\Competence\SkillRate;
 use DateTime;
 use MOC\V\Core\FileSystem\FileSystem;
 use SPHERE\Application\Api\Document\Storage\ApiPersonPicture;
-use SPHERE\Application\Api\Education\Competence\ApiOnlineSkillRate;
 use SPHERE\Application\Api\Education\Competence\ApiSkillRate;
 use SPHERE\Application\Api\People\Meta\Support\ApiSupportReadOnly;
 use SPHERE\Application\Document\Storage\Storage;
@@ -240,11 +239,11 @@ class FrontendStudent extends FrontendDivisionCourse
             . new PullClear($buttons
             . new PullRight(
                 $support
-                    . (new Standard($IsInterdisciplinary ? 'Fach' : 'Fächerübergreifend', ApiOnlineSkillRate::getEndpoint()))
-                        ->ajaxPipelineOnClick(ApiOnlineSkillRate::pipelineLoadViewStudentContent(
+                    . (new Standard($IsInterdisciplinary ? 'Fach' : 'Fächerübergreifend', ApiSkillRate::getEndpoint()))
+                        ->ajaxPipelineOnClick(ApiSkillRate::pipelineLoadViewStudentContent(
                             $DivisionCourseId, $PersonId, $SubjectId, $SelectedYearId, $IsOldYears, $IsInterdisciplinary ? 'false' : 'true'))
-                    . (new Standard('Alte Schuljahre ' . ($IsOldYears ? 'ausblenden' : 'anzeigen'), ApiOnlineSkillRate::getEndpoint()))
-                        ->ajaxPipelineOnClick(ApiOnlineSkillRate::pipelineLoadViewStudentContent(
+                    . (new Standard('Alte Schuljahre ' . ($IsOldYears ? 'ausblenden' : 'anzeigen'), ApiSkillRate::getEndpoint()))
+                        ->ajaxPipelineOnClick(ApiSkillRate::pipelineLoadViewStudentContent(
                             $DivisionCourseId, $PersonId, $SubjectId, $SelectedYearId, $IsOldYears ? 'false' : 'true', $IsInterdisciplinary))
             ))
             . new Container('&nbsp;')
@@ -295,8 +294,8 @@ class FrontendStudent extends FrontendDivisionCourse
                 ))) {
                     $dataList[$skillAreaIdentifier]['isBold'] = true;
                     $isBold = true;
-                    $displayLast = (new Link(new Bold($displayLast), ApiOnlineSkillRate::getEndpoint(), null, []))
-                        ->ajaxPipelineOnClick(ApiOnlineSkillRate::pipelineOpenStudentSkillRateHistoryModal(
+                    $displayLast = (new Link(new Bold($displayLast), ApiSkillRate::getEndpoint(), null, []))
+                        ->ajaxPipelineOnClick(ApiSkillRate::pipelineOpenStudentSkillRateHistoryModal(
                             $DivisionCourseId, $tblStudentSkill->getId(), $SelectedYearId, $tblSubjectForSkillRate?->getId()));
                 }
                 $skillLevel = $tblStudentSkill->getSkillLevel();
@@ -417,8 +416,8 @@ class FrontendStudent extends FrontendDivisionCourse
                 (new Primary('Speichern', ApiSkillRate::getEndpoint(), new Save()))
                     ->ajaxPipelineOnClick(ApiSkillRate::pipelineSaveEditStudentSkillRate(
                         $tblDivisionCourse->getId(), $tblPerson->getId(), $SubjectId, $SelectedYearId, $tblSubject ? 'false' : 'true')),
-                (new Standard('Abbrechen', ApiOnlineSkillRate::getEndpoint(), new Disable()))
-                    ->ajaxPipelineOnClick(ApiOnlineSkillRate::pipelineLoadViewStudentContent(
+                (new Standard('Abbrechen', ApiSkillRate::getEndpoint(), new Disable()))
+                    ->ajaxPipelineOnClick(ApiSkillRate::pipelineLoadViewStudentContent(
                         $tblDivisionCourse->getId(), $tblPerson->getId(), $SubjectId, $SelectedYearId, 'false', $tblSubject ? 'false' : 'true')),
             ))
         ));
@@ -673,8 +672,8 @@ class FrontendStudent extends FrontendDivisionCourse
                 (new Primary('Speichern', ApiSkillRate::getEndpoint(), new Save()))
                     ->ajaxPipelineOnClick(ApiSkillRate::pipelineSaveEditStudentSkillRateHistoryContent(
                         $DivisionCourseId, $tblStudentSkillRate->getId(), $SelectedYearId, $SubjectId)),
-                (new Standard('Abbrechen', ApiOnlineSkillRate::getEndpoint(), new Disable()))
-                    ->ajaxPipelineOnClick(ApiOnlineSkillRate::pipelineLoadViewStudentSkillRateHistoryContent(
+                (new Standard('Abbrechen', ApiSkillRate::getEndpoint(), new Disable()))
+                    ->ajaxPipelineOnClick(ApiSkillRate::pipelineLoadViewStudentSkillRateHistoryContent(
                         $DivisionCourseId, $tblStudentSkill->getId(), $SelectedYearId, $SubjectId)),
             ))
         ));
@@ -721,8 +720,8 @@ class FrontendStudent extends FrontendDivisionCourse
                         . (new DangerLink('Ja', ApiSkillRate::getEndpoint(), new Ok()))
                             ->ajaxPipelineOnClick(ApiSkillRate::pipelineSaveDeleteStudentSkillRateHistoryContent(
                                 $DivisionCourseId, $tblStudentSkillRate->getId(), $SelectedYearId, $SubjectId))
-                        . (new Standard('Nein', ApiOnlineSkillRate::getEndpoint(), new Remove()))
-                            ->ajaxPipelineOnClick(ApiOnlineSkillRate::pipelineLoadViewStudentSkillRateHistoryContent(
+                        . (new Standard('Nein', ApiSkillRate::getEndpoint(), new Remove()))
+                            ->ajaxPipelineOnClick(ApiSkillRate::pipelineLoadViewStudentSkillRateHistoryContent(
                                 $DivisionCourseId, $tblStudentSkill->getId(), $SelectedYearId, $SubjectId))
                     )
             )));
