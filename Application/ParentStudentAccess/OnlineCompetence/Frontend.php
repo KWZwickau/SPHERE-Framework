@@ -18,7 +18,9 @@ use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Info;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
+use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Window\Stage;
@@ -69,7 +71,6 @@ class Frontend extends Extension implements IFrontendInterface
     public function loadStudentContent(?TblPerson $tblPerson): string
     {
         if ($tblPerson) {
-            // todo deaktivierte ? bzw. SekII
             $subjectList = [];
             if (($tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndDate($tblPerson))
                 && ($tblYear = $tblStudentEducation->getServiceTblYear())
@@ -99,13 +100,13 @@ class Frontend extends Extension implements IFrontendInterface
     /**
      * @param TblPerson $tblPerson
      * @param TblSubject|null $tblSubject
+     * @param bool $IsOldYears
      * @param bool $IsInterdisciplinary
      *
      * @return string
      */
-    public function loadSubjectContent(TblPerson $tblPerson, ?TblSubject $tblSubject, bool $IsInterdisciplinary = false): string
+    public function loadSubjectContent(TblPerson $tblPerson, ?TblSubject $tblSubject, bool $IsOldYears = false, bool $IsInterdisciplinary = false): string
     {
-        $IsOldYears = true;
         $tblStudentEducationList = [];
         if (($tblYearList = Term::useService()->getYearByNow())) {
             foreach ($tblYearList as $tblYearTemp) {
@@ -116,7 +117,8 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
-        if ($tblSubject) {
+        $isFirstYear = true;
+        if ($tblSubject || $IsInterdisciplinary) {
             $content = '';
             // sortierung erstmal nach bewertung
             foreach ($tblStudentEducationList as $tblStudentEducation) {
@@ -125,10 +127,27 @@ class Frontend extends Extension implements IFrontendInterface
                     && ($level = $tblStudentEducation->getLevel()) !== null
                     && ($tblStudentSkillList = SkillRate::useService()->getStudentSkillListByPersonAndYear($tblPerson, $tblYear, $tblSubject))
                 ) {
-                    $content .= new Title('Schuljahr: ' . $tblYear->getName(), 'Klassenstufe: ' . $level . ' Schulart: ' . $tblSchoolType->getName());
+                    $pullRight = '';
+                    if ($isFirstYear) {
+                        $isFirstYear = false;
+
+                        $pullRight = new PullRight(
+                            (new Standard('Alte Schuljahre ' . ($IsOldYears ? 'ausblenden' : 'anzeigen'), ApiOnlineSkillRate::getEndpoint()))
+                                ->ajaxPipelineOnClick(ApiOnlineSkillRate::pipelineLoadSubjectContent(
+                                    $tblPerson->getId(), $IsOldYears ? 'false' : 'true', $IsInterdisciplinary ? -1 : $tblSubject->getId()))
+                        );
+                    }
+
+                    $content .= new Title(
+                        'Schuljahr: ' . $tblYear->getName(), 'Klassenstufe: ' . $level . ' Schulart: ' . $tblSchoolType->getName() . $pullRight
+                    );
                     $skillAreaList = [];
                     foreach ($tblStudentSkillList as $tblStudentSkill) {
-                        if (($displayLast = SkillRate::useService()->getStudentSkillRateLastOrAverageValue($tblStudentSkill, null, null))) {
+                        // bei fächerübergreifenden Kompetenzen wir ein Durchschnitt über alle bewerteten Fächer gebildet (zuvor Durchschnitt für ein Fach)
+                        $displayLast = $IsInterdisciplinary
+                            ? SkillRate::useService()->getStudentSkillRateLastOrAverageValueForInterdisciplinaryOverAllSubjects($tblStudentSkill)
+                            : SkillRate::useService()->getStudentSkillRateLastOrAverageValue($tblStudentSkill, null, null);
+                        if ($displayLast['Value'] !== '') {
                             $skillLevel = $tblStudentSkill->getSkillLevel();
                             $text = ($skillLevel ? new Muted($skillLevel . ' ') : '')
                                 . htmlspecialchars(htmlspecialchars($tblStudentSkill->getSkill()));
@@ -203,9 +222,6 @@ class Frontend extends Extension implements IFrontendInterface
             }
 
             return $content;
-        } elseif ($IsInterdisciplinary) {
-            // todo fächerübergreifend? hier den durchschnitt über alle bewerteten Fächer anzeigen anzeigen?
-            return 'Fächerübergreifend';
         }
 
         return new Warning('Bitte wählen Sie zunächst ein Fach aus.', new Info());

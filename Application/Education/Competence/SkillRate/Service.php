@@ -257,6 +257,43 @@ class Service extends AbstractService
 
     /**
      * @param TblStudentSkill $tblStudentSkill
+     *
+     * @return array
+     */
+    public function getStudentSkillRateLastOrAverageValueForInterdisciplinaryOverAllSubjects(TblStudentSkill $tblStudentSkill): array
+    {
+        $tblSubjetList = [];
+        $sum = floatval(0);
+        $count = 0;
+        if (($tblStudentSkillRateList = (new Data($this->getBinding()))->getStudentSkillRateListByStudentSkill($tblStudentSkill))) {
+            foreach ($tblStudentSkillRateList as $tblStudentSkillRate) {
+
+                if (($tblSubject = $tblStudentSkillRate->getServiceTblSubject())
+                    && !isset($tblSubjetList[$tblSubject->getId()])
+                ) {
+                    $tblSubjetList[$tblSubject->getId()] = $tblSubject;
+                    $sum += $this->getStudentSkillRateLastOrAverageValue($tblStudentSkill, $tblSubject, null)['Value'];
+                    $count++;
+                }
+            }
+        }
+
+        if ($count > 0) {
+            $value = round($sum / $count, 2);
+            $display = '&#216; ' . $value . (!$tblStudentSkill->getServiceTblScoreType() ? '%' : '');
+        } else {
+            $value = floatval(0);
+            $display = '';
+        }
+
+        return [
+            'Display' => $display,
+            'Value' => $value
+        ];
+    }
+
+    /**
+     * @param TblStudentSkill $tblStudentSkill
      * @param TblSubject|null $tblSubjectForSkillRate
      *
      * @return float|null

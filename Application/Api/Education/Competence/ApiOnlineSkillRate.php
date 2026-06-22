@@ -98,10 +98,12 @@ class ApiOnlineSkillRate extends Extension implements IApiInterface
 
     /**
      * @param $PersonId
+     * @param string $OldYears
+     * @param null $SubjectId
      *
      * @return Pipeline
      */
-    public static function pipelineLoadSubjectContent($PersonId): Pipeline
+    public static function pipelineLoadSubjectContent($PersonId, string $OldYears = 'false', $SubjectId = null): Pipeline
     {
         $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'SubjectContent'), self::getEndpoint());
@@ -109,7 +111,9 @@ class ApiOnlineSkillRate extends Extension implements IApiInterface
             self::API_TARGET => 'loadSubjectContent',
         ));
         $ModalEmitter->setPostPayload(array(
-            'PersonId' => $PersonId
+            'PersonId' => $PersonId,
+            'OldYears' => $OldYears,
+            'SubjectId' => $SubjectId
         ));
         $ModalEmitter->setLoadingMessage("Daten werden geladen");
         $Pipeline->appendEmitter($ModalEmitter);
@@ -119,29 +123,30 @@ class ApiOnlineSkillRate extends Extension implements IApiInterface
 
     /**
      * @param $PersonId
+     * @param $OldYears
+     * @param $SubjectId
      * @param null $Data
      *
      * @return string
-     *
      * @noinspection PhpUnused
-     *
      */
-    public function loadSubjectContent($PersonId, $Data = null): string
+    public function loadSubjectContent($PersonId, $OldYears, $SubjectId, $Data = null): string
     {
         if (!($tblPerson = Person::useService()->getPersonById($PersonId))) {
             return new Danger('Person wurde nicht gefunden.', new Exclamation());
         }
 
-        // todo fächerübergreifend
-        $subjectId = $Data['SubjectId'] ?? 0;
+        $subjectId = $Data['SubjectId'] ?? $SubjectId;
         $tblSubject = null;
         $isInterdisciplinary = false;
         if ($subjectId == -1) {
+            // fächerübergreifend
             $isInterdisciplinary = true;
         } else {
+            // ausgewähltes Fach
             $tblSubject = Subject::useService()->getSubjectById($subjectId) ?: null;
         }
 
-        return OnlineCompetence::useFrontend()->loadSubjectContent($tblPerson, $tblSubject, $isInterdisciplinary);
+        return OnlineCompetence::useFrontend()->loadSubjectContent($tblPerson, $tblSubject, $OldYears === 'true', $isInterdisciplinary);
     }
 }

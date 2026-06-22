@@ -55,7 +55,14 @@ class Service
                 && ($tblType = $tblStudentEducation->getServiceTblSchoolType())
                 && isset($tblSchoolTypeAllowedList[$tblType->getId()])
             ) {
-                $tblPersonList[$tblPerson->getId()] = $tblPerson;
+                // SeKII nicht
+                if ($tblType->getShortName() == 'Gy'
+                    && $tblStudentEducation->getLevel() > 10
+                ) {
+
+                } else {
+                    $tblPersonList[$tblPerson->getId()] = $tblPerson;
+                }
             }
         }
 
@@ -88,6 +95,13 @@ class Service
                             && ($tblType = $tblStudentEducation->getServiceTblSchoolType())
                             && isset($tblSchoolTypeAllowedList[$tblType->getId()])
                         ) {
+                            // SeKII nicht
+                            if ($tblType->getShortName() == 'Gy'
+                                && $tblStudentEducation->getLevel() > 10
+                            ) {
+                                continue;
+                            }
+
                             $tblPersonList[$tblPersonTo->getId()] = $tblPersonTo;
                         }
                     }
