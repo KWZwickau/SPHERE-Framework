@@ -431,10 +431,16 @@ class Frontend extends Extension implements IFrontendInterface
 //                )
             ), Panel::PANEL_TYPE_INFO);
         } elseif (isset( $Global->POST['Account']['User'] )) {
-            $tblPerson = \SPHERE\Application\People\Person\Person::useService()->getPersonById($Global->POST['Account']['User']);
+            $fullName = '';
+            $personId = 0;
+            if (($tblPerson = \SPHERE\Application\People\Person\Person::useService()->getPersonById($Global->POST['Account']['User']))) {
+                $fullName = $tblPerson->getFullName();
+                $personId = $tblPerson->getId();
+            }
+
             $PanelPerson = new Panel(new Person().' für folgenden Mitarbeiter', array(
 //                new Warning('AKTUELL selektierte Person, '),
-                new RadioBox('Account[User]', $tblPerson->getFullName(), $tblPerson->getId()),
+                new RadioBox('Account[User]', $fullName, $personId),
 //                new Danger('ODER eine andere Person wählen: '),
 //                new TableData(
 //                    $tblPersonAll,
