@@ -270,11 +270,10 @@ abstract class DataTask extends DataScore
         $query = $queryBuilder->select('g')
             ->from(TblTaskGrade::class, 'g')
             ->join(TblTask::class, 't')
-            ->join(TblGradeType::class, 'gt')
+            ->leftJoin(TblGradeType::class, 'gt', 'WITH', 'g.tblGraduationGradeType = gt.Id')
             ->where(
                 $queryBuilder->expr()->andX(
                     $queryBuilder->expr()->eq('g.tblGraduationTask', 't.Id'),
-                    $queryBuilder->expr()->eq('g.tblGraduationGradeType', 'gt.Id'),
                     $queryBuilder->expr()->eq('g.serviceTblPerson', '?1'),
                     $queryBuilder->expr()->eq('t.serviceTblYear', '?2'),
                     $queryBuilder->expr()->eq('g.serviceTblSubject', '?3'),
