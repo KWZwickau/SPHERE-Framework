@@ -21,6 +21,7 @@ use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Tag;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
@@ -40,20 +41,21 @@ class FrontendStudentOverview extends FrontendStudent
      * @param $DivisionCourseId
      * @param $SubjectId
      * @param $PersonId
+     * @param $BackRoute
      * @param null $SelectedYearId
      *
      * @return Stage
      *
      * @noinspection PhpUnused
      */
-    public function frontendStudentOverview($DivisionCourseId, $SubjectId, $PersonId, $SelectedYearId = null): Stage
+    public function frontendStudentOverview($DivisionCourseId, $SubjectId, $PersonId, $BackRoute, $SelectedYearId = null): Stage
     {
         $stage = new Stage();
 
         $stage->setContent(
             ApiPersonPicture::receiverModal()
             . ApiSupportReadOnly::receiverOverViewModal()
-            . $this->loadViewStudentOverview($DivisionCourseId, $SubjectId, $PersonId, $SelectedYearId)
+            . $this->loadViewStudentOverview($DivisionCourseId, $SubjectId, $PersonId, $BackRoute, $SelectedYearId)
         );
 
         return $stage;
@@ -63,11 +65,12 @@ class FrontendStudentOverview extends FrontendStudent
      * @param $DivisionCourseId
      * @param $SubjectId
      * @param $PersonId
-     * @param $SelectedYearId
+     * @param $BackRoute
+     * @param null $SelectedYearId
      *
      * @return string
      */
-    public function loadViewStudentOverview($DivisionCourseId, $SubjectId, $PersonId, $SelectedYearId = null): string
+    public function loadViewStudentOverview($DivisionCourseId, $SubjectId, $PersonId, $BackRoute, $SelectedYearId = null): string
     {
         if (!($tblDivisionCourse = DivisionCourse::useService()->getDivisionCourseById($DivisionCourseId))) {
             return new Danger('Kurs wurde nicht gefunden!', new Exclamation());
@@ -105,13 +108,13 @@ class FrontendStudentOverview extends FrontendStudent
 
         return
             new Title(
-                new Standard("Zurück", "/Education/Competence/SkillRate/Student", new ChevronLeft(),
+                new Standard("Zurück", $BackRoute, new ChevronLeft(),
                     ['DivisionCourseId' => $DivisionCourseId, 'SubjectId' => $SubjectId, 'PersonId' => $PersonId, 'SelectedYearId' => $SelectedYearId],
                     'Zurück zur Schüleransicht')
                 . "&nbsp;&nbsp;&nbsp;Kompetenzbewertung"
                 . new Muted(new Small(" Schülerübersicht "))
+                . new PullRight($support)
             )
-//            . new PullClear(new PullRight($support))
 //            . (new Container('&nbsp;'))->setStyle(['height: 8px;'])
             . new Layout(new LayoutGroup(
                 new LayoutRow(array(
@@ -133,7 +136,6 @@ class FrontendStudentOverview extends FrontendStudent
                     new LayoutColumn(new Center($PersonPicture), 2),
                 ))
             ))
-            // todo inklusion anzeigen mit bei loadSubjectContent über parameter, beachte pipeline bzw. nochmal schauen ob mit in den header anordnung etwas anders
             . ApiOnlineSkillRate::receiverBlock(OnlineCompetence::useFrontend()->loadSubjectContent($tblPerson, null), 'SubjectContent');
     }
 }

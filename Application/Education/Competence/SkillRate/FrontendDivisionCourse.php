@@ -98,6 +98,9 @@ class FrontendDivisionCourse extends Extension implements IFrontendInterface
             && ($tblSubject = Subject::useService()->getSubjectById($SubjectId))
             && ($tblYear = $tblDivisionCourse->getServiceTblYear())
         ) {
+            // nur für SL, KL oder Alle-Readonly
+            $hasStudentOverview = SkillRate::useService()->hasStudentOverview($role, $tblDivisionCourse);
+
             $optionInActive = '';
             $inactiveStudentList = array();
             if ($ShowInActive) {
@@ -167,13 +170,18 @@ class FrontendDivisionCourse extends Extension implements IFrontendInterface
                         );
 
                         $bodyList[$tblPerson->getId()]['Option'] = $gradeFrontend->getTableColumnBody(
-                            new Standard('', '/Education/Competence/SkillRate/Student', new EyeOpen(), [
+                            new Standard('', '/Education/Competence/SkillRate/Student', new ClipBoard(), [
                                 'DivisionCourseId' => $tblDivisionCourse->getId(),
                                 'SubjectId' => $tblSubject->getId(),
                                 'PersonId' => $tblPerson->getId(),
                                 'SelectedYearId' => $SelectedYearId,
                                 'IsInterdisciplinary' => $IsInterdisciplinary
-                            ])
+                            ], 'Kompetenzbewertung')
+                            . ($hasStudentOverview
+                                ? new Standard('', '/Education/Competence/SkillRate/Student/Overview', new EyeOpen(),
+                                    ['DivisionCourseId' => $DivisionCourseId, 'SubjectId' => $SubjectId, 'PersonId' => $tblPerson->getId(),
+                                        'BackRoute' => '/Education/Competence/SkillRate/DivisionCourse', 'SelectedYearId' => $SelectedYearId], 'Schülerübersicht')
+                                : '')
                         );
                     }
                 }

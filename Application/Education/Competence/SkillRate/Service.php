@@ -14,6 +14,7 @@ use SPHERE\Application\Education\Competence\SkillRate\Service\Entity\TblStudentS
 use SPHERE\Application\Education\Competence\SkillRate\Service\Setup;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseMemberType;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblStudentEducation;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
@@ -498,6 +499,21 @@ class Service extends AbstractService
         }
 
         return "Teacher";
+    }
+
+    /**
+     * @param string $role
+     * @param TblDivisionCourse $tblDivisionCourse
+     *
+     * @return bool
+     */
+    public function hasStudentOverview(string $role, TblDivisionCourse $tblDivisionCourse): bool
+    {
+        // nur für SL, KL oder Alle-Readonly
+        return $role !== 'Teacher'
+            || (($tblDivisionCourseMemberType = DivisionCourse::useService()->getDivisionCourseMemberTypeByIdentifier(TblDivisionCourseMemberType::TYPE_DIVISION_TEACHER))
+                && ($tblPersonLogin = Account::useService()->getPersonByLogin())
+                && DivisionCourse::useService()->getDivisionCourseMemberByPerson($tblDivisionCourse, $tblDivisionCourseMemberType, $tblPersonLogin));
     }
 
     /**

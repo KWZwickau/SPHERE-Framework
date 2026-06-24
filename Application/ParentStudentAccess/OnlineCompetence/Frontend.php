@@ -18,12 +18,14 @@ use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Info;
 use SPHERE\Common\Frontend\IFrontendInterface;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
+use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 use SPHERE\System\Extension\Repository\Sorter;
@@ -140,7 +142,11 @@ class Frontend extends Extension implements IFrontendInterface
                     }
 
                     $content .= new Title(
-                        'Schuljahr: ' . $tblYear->getName(), 'Klassenstufe: ' . $level . ' Schulart: ' . $tblSchoolType->getName() . $pullRight
+                        (new Container(
+                            'Schuljahr: ' . $tblYear->getName()
+                            . new Muted(new Small(' Klassenstufe: ' . $level . ' Schulart: ' . $tblSchoolType->getName()))
+                            . $pullRight
+                        ))->setStyle(['height: 28px;'])
                     );
                     $skillAreaList = [];
                     foreach ($tblStudentSkillList as $tblStudentSkill) {
