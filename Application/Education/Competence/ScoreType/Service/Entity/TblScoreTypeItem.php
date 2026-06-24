@@ -22,7 +22,7 @@ class TblScoreTypeItem extends Element
     /**
      * @Column(type="bigint")
      */
-    protected int $tblCompetenceScoreType;
+    protected ?int $tblCompetenceScoreType = null;
     /**
      * @Column(type="string")
      */
@@ -37,12 +37,12 @@ class TblScoreTypeItem extends Element
     protected ?string $Description = null;
 
     /**
-     * @param TblScoreType $tblScoreType
+     * @param TblScoreType|null $tblScoreType
      * @return void
      */
-    public function setTblScoreType(TblScoreType $tblScoreType): void
+    public function setTblScoreType(?TblScoreType $tblScoreType): void
     {
-        $this->tblCompetenceScoreType = $tblScoreType->getId();
+        $this->tblCompetenceScoreType = $tblScoreType?->getId();
     }
     
     /**

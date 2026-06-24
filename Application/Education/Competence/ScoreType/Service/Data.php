@@ -104,14 +104,14 @@ class Data extends AbstractData
     }
 
     /**
-     * @param TblScoreType $tblScoreType
+     * @param TblScoreType|null $tblScoreType
      * @param string $value
      * @param string $name
      * @param string|null $description
      *
      * @return TblScoreTypeItem
      */
-    public function createScoreTypeItem(TblScoreType $tblScoreType, string $value, string $name, ?string $description): TblScoreTypeItem
+    public function createScoreTypeItem(?TblScoreType $tblScoreType, string $value, string $name, ?string $description): TblScoreTypeItem
     {
         $manager = $this->getEntityManager();
 
@@ -190,14 +190,14 @@ class Data extends AbstractData
     }
 
     /**
-     * @param TblScoreType $tblScoreType
+     * @param TblScoreType|null $tblScoreType
      *
      * @return TblScoreTypeItem[]
      */
-    public function getScoreTypeItemListByScoreType(TblScoreType $tblScoreType): array
+    public function getScoreTypeItemListByScoreType(?TblScoreType $tblScoreType): array
     {
         return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblScoreTypeItem',
-            [TblScoreTypeItem::TBL_SCORE_TYPE => $tblScoreType->getId()], [TblScoreTypeItem::ATTR_VALUE => self::ORDER_ASC]) ?: [];
+            [TblScoreTypeItem::TBL_SCORE_TYPE => $tblScoreType?->getId()], [TblScoreTypeItem::ATTR_VALUE => self::ORDER_ASC]) ?: [];
     }
 
     /**

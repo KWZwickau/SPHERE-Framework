@@ -65,7 +65,7 @@ class TblScoreType extends Element
      */
     public function getScoreTypeItems(): array
     {
-        return ScoreType::useService()->getScoreTypeItemsByScoreType($this);
+        return ScoreType::useService()->getScoreTypeItemsByScoreType($this->getId() < 0 ? null : $this);
     }
 
     /**

@@ -83,9 +83,10 @@ class Service extends AbstractService
      */
     public function updateScoreType($Data, ?TblScoreType $tblScoreType): IFormInterface|string
     {
+        $isPercent = $tblScoreType?->getId() == -1;
         $hasErrors = false;
         $ErrorList = [];
-        if (empty($Data['Name'])) {
+        if (!$isPercent && empty($Data['Name'])) {
             $ErrorList[] = [
                 'Name' => 'Data[Name]',
                 'Message' => 'Bitte geben Sie einen Namen an'
@@ -95,27 +96,32 @@ class Service extends AbstractService
         if (isset($Data['ScoreTypeItems'])) {
             foreach ($Data['ScoreTypeItems'] as $ranking => $itemArray) {
                 // empty geht nicht da sonst Wert 0 nicht zulässig
-                if ($itemArray['Value'] !== '' || !empty($itemArray['Name']) || !empty($itemArray['Description'])) {
-                    if ($itemArray['Value'] === '') {
-                        $name = "Data[ScoreTypeItems][$ranking][Value]";
-                        $ErrorList[$name] = [
-                            'Name' => $name,
-                            'Message' => 'Bitte geben Sie einen Wert an'
-                        ];
-                        $hasErrors = true;
-                    // Prüfung ob Zahl
-                    } else {
-                        // Tausenderpunkte entfernen, Komma → Punkt
-                        $normalized = str_replace(['.', ','], ['', '.'], $itemArray['Value']);
-                        if (!is_numeric($normalized)) {
+                if ((isset($itemArray['Value']) && $itemArray['Value'] !== '') || !empty($itemArray['Name']) || !empty($itemArray['Description'])) {
+                    // Wert prüfen
+                    if (!$isPercent) {
+                        if ($itemArray['Value'] === '') {
                             $name = "Data[ScoreTypeItems][$ranking][Value]";
                             $ErrorList[$name] = [
                                 'Name' => $name,
-                                'Message' => 'Bitte geben Sie eine Zahl an'
+                                'Message' => 'Bitte geben Sie einen Wert an'
                             ];
                             $hasErrors = true;
+                            // Prüfung ob Zahl
+                        } else {
+                            // Tausenderpunkte entfernen, Komma → Punkt
+                            $normalized = str_replace(['.', ','], ['', '.'], $itemArray['Value']);
+                            if (!is_numeric($normalized)) {
+                                $name = "Data[ScoreTypeItems][$ranking][Value]";
+                                $ErrorList[$name] = [
+                                    'Name' => $name,
+                                    'Message' => 'Bitte geben Sie eine Zahl an'
+                                ];
+                                $hasErrors = true;
+                            }
                         }
                     }
+
+                    // Kurztext prüfen
                     if (empty($itemArray['Name'])) {
                         $name = "Data[ScoreTypeItems][$ranking][Name]";
                         $ErrorList[$name] = [
@@ -134,7 +140,9 @@ class Service extends AbstractService
 
         $tblScoreTypeItemListExists = [];
         if ($tblScoreType) {
-            (new Data($this->getBinding()))->updateScoreType($tblScoreType, $Data['Name'], $Data['Description']);
+            if (!$isPercent) {
+                (new Data($this->getBinding()))->updateScoreType($tblScoreType, $Data['Name'], $Data['Description']);
+            }
 
 //            Debugger::devDump($Data);
 //            return '';
@@ -151,15 +159,17 @@ class Service extends AbstractService
         if (isset($Data['ScoreTypeItems'])) {
             foreach ($Data['ScoreTypeItems'] as $array) {
                 // empty geht nicht da sonst Wert 0 nicht zulässig
-                if ($array['Value'] !== '') {
+                if ($array['Name'] !== '' || (isset($array['Value']) && $array['Value'] !== '')) {
                     if (isset($array['ScoreTypeItemId'])
                         && ($tblScoreTypeItem = $this->getScoreTypeItemById($array['ScoreTypeItemId']))
                     ) {
-                        (new Data($this->getBinding()))->updateScoreTypeItem($tblScoreTypeItem, $array['Value'], $array['Name'], $array['Description'] ?: null);
+                        (new Data($this->getBinding()))->updateScoreTypeItem(
+                            $tblScoreTypeItem, $array['Value'] ?? '', $array['Name'], $array['Description'] ?: null);
 
                         $scoreTypeItemIdList[$tblScoreTypeItem->getId()] = 1;
                     } else {
-                        (new Data($this->getBinding()))->createScoreTypeItem($tblScoreTypeNew, $array['Value'], $array['Name'], $array['Description'] ?: null);
+                        (new Data($this->getBinding()))->createScoreTypeItem(
+                            $isPercent ? null : $tblScoreTypeNew, $array['Value'] ?? '', $array['Name'], $array['Description'] ?: null);
                     }
                 }
             }
@@ -190,37 +200,12 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblScoreType $tblScoreType
+     * @param TblScoreType|null $tblScoreType
      *
      * @return TblScoreTypeItem[]
      */
-    public function getScoreTypeItemsByScoreType(TblScoreType $tblScoreType): array
+    public function getScoreTypeItemsByScoreType(?TblScoreType $tblScoreType): array
     {
-        // todo stufen für Prozent irgendwohin speichern
-        if ($tblScoreType->getId() == -1) {
-            $item = new TblScoreTypeItem();
-            $item->setId($tblScoreType->getId());
-            $item->setName('wenig');
-            $resultList[] = $item;
-
-            $item = new TblScoreTypeItem();
-            $item->setId($tblScoreType->getId());
-            $item->setName('teilweise');
-            $resultList[] = $item;
-
-            $item = new TblScoreTypeItem();
-            $item->setId($tblScoreType->getId());
-            $item->setName('häufig');
-            $resultList[] = $item;
-
-//            $item = new TblScoreTypeItem();
-//            $item->setId($tblScoreType->getId());
-//            $item->setName('super');
-//            $resultList[] = $item;
-
-            return $resultList;
-        }
-
         return (new Data($this->getBinding()))->getScoreTypeItemListByScoreType($tblScoreType);
     }
 

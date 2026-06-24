@@ -75,11 +75,9 @@ class Frontend extends Extension implements IFrontendInterface
                     $delete = (new Standard('', ApiScoreType::getEndpoint(), new Remove(), array(), 'Bewertungssystem löschen'))
                         ->ajaxPipelineOnClick(ApiScoreType::pipelineOpenDeleteScoreTypeModal($tblScoreType->getId()));
                 }
-                $edit = '';
-                if ($tblScoreType->getId() > 0) {
-                    $edit = new Standard('', '/Education/Competence/ScoreType/Edit', new Edit(), ['ScoreTypeId' => $tblScoreType->getId()],
-                        'Bewertungssystem bearbeiten');
-                }
+
+                $edit = new Standard('', '/Education/Competence/ScoreType/Edit', new Edit(), ['ScoreTypeId' => $tblScoreType->getId()],
+                    'Bewertungssystem bearbeiten');
 
                 if ($tblScoreType->getScoreTypeConversions()) {
                     $conversion = new Success(new Check() . ' Umrechnung in Zensuren hinterlegt');
@@ -215,8 +213,16 @@ class Frontend extends Extension implements IFrontendInterface
             $count = 0;
             for ($ranking = 1; $ranking < 4; $ranking++) {
                 $items[] = ApiScoreType::receiverBlock(
-                    $this->loadScoreTypeItemContent($ScoreTypeId, $ranking, ++$count == $countItems, $Data), "ScoreTypeItem_$ranking");
+                    $this->loadScoreTypeItemContent($ScoreTypeId, $ranking, ++$count == $countItems, $Data, null, $ranking == 1), "ScoreTypeItem_$ranking");
             }
+        }
+
+        $nameInput = new TextField('Data[Name]', '', 'Name ' . new Danger('*'));
+        $descriptionInput = new TextField('Data[Description]', '', 'Beschreibung');
+        // Prozent
+        if ($ScoreTypeId == -1) {
+            $nameInput->setDisabled();
+            $descriptionInput->setDisabled();
         }
 
         $form = (new Form(array(
@@ -228,10 +234,10 @@ class Frontend extends Extension implements IFrontendInterface
                             new Layout(new LayoutGroup(array(
                                 new LayoutRow(array(
                                     new LayoutColumn(
-                                        new TextField('Data[Name]', '', 'Name ' . new Danger('*'))
+                                        $nameInput
                                     , 6),
                                     new LayoutColumn(
-                                        new TextField('Data[Description]', '', 'Beschreibung')
+                                        $descriptionInput
                                     , 6),
                                 )),
                             ))),
@@ -278,14 +284,15 @@ class Frontend extends Extension implements IFrontendInterface
      * @param bool $hasAddButton
      * @param null $Data
      * @param null $ErrorList
+     * @param bool $hasPlaceholder
      *
      * @return string
      */
-    public function loadScoreTypeItemContent($ScoreTypeId, $ranking, bool $hasAddButton = true, $Data = null, $ErrorList = null): string
+    public function loadScoreTypeItemContent($ScoreTypeId, $ranking, bool $hasAddButton = true, $Data = null, $ErrorList = null, bool $hasPlaceholder = false): string
     {
-        $valuePlaceholder = $ranking == 1 ? '1' : '';
-        $namePlaceholder = $ranking == 1 ? 'übertrifft die Anforderung' : '';
-        $descriptionPlaceholder = $ranking == 1 ? 'liegt deutlich über den Regelanforderungen und jahrgangsgemäßen Erwartungen' : '';
+        $valuePlaceholder = $hasPlaceholder ? '1' : '';
+        $namePlaceholder = $hasPlaceholder ? 'übertrifft die Anforderung' : '';
+        $descriptionPlaceholder = $hasPlaceholder ? 'liegt deutlich über den Regelanforderungen und jahrgangsgemäßen Erwartungen' : '';
 
         $valueInput = new TextField("Data[ScoreTypeItems][$ranking][Value]", $valuePlaceholder, 'Wert (Zahl) ' . new Danger('*'));
         if (isset($ErrorList["Data[ScoreTypeItems][$ranking][Value]"])) {
@@ -294,6 +301,12 @@ class Frontend extends Extension implements IFrontendInterface
         $nameInput = new TextField("Data[ScoreTypeItems][$ranking][Name]", $namePlaceholder, 'Kurztext ' . new Danger('*'));
         if (isset($ErrorList["Data[ScoreTypeItems][$ranking][Name]"])) {
             $nameInput->setError($ErrorList["Data[ScoreTypeItems][$ranking][Name]"]['Message']);
+        }
+        $descriptionInput = new TextField("Data[ScoreTypeItems][$ranking][Description]", $descriptionPlaceholder, 'Beschreibung');
+
+        // Prozent
+        if ($ScoreTypeId == -1) {
+            $valueInput->setDisabled();
         }
 
         $layout = new Layout(new LayoutGroup(array(
@@ -305,7 +318,7 @@ class Frontend extends Extension implements IFrontendInterface
                     $nameInput
                 , 3),
                 new LayoutColumn(
-                    new TextField("Data[ScoreTypeItems][$ranking][Description]", $descriptionPlaceholder, 'Beschreibung')
+                    $descriptionInput
                 , 6),
                 new LayoutColumn(array(
                     (new Container('&nbsp;'))->setStyle(['height: 22px;']),
