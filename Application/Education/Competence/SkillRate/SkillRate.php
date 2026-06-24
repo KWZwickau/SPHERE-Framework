@@ -47,6 +47,9 @@ class SkillRate implements IModuleInterface
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__ . '\Student', __NAMESPACE__ . '\Frontend::frontendStudent')
         );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__ . '\Student\Overview', __NAMESPACE__ . '\Frontend::frontendStudentOverview')
+        );
     }
 
     /**

@@ -17,11 +17,13 @@ use SPHERE\Application\Education\Graduation\Grade\Grade;
 use SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount\SelectBoxItem;
 use SPHERE\Application\Education\Lesson\DivisionCourse\DivisionCourse;
 use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourse;
+use SPHERE\Application\Education\Lesson\DivisionCourse\Service\Entity\TblDivisionCourseMemberType;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
@@ -171,6 +173,20 @@ class FrontendStudent extends FrontendDivisionCourse
         $role = SkillRate::useService()->getRole();
         $isEdit = Grade::useService()->getIsEdit($DivisionCourseId, $SubjectId, $role);
 
+        $buttonStudenOverview = '';
+        // nur für SL, KL oder Alle-Readonly
+        if ($role !== 'Teacher'
+            || (($tblDivisionCourseMemberType = DivisionCourse::useService()->getDivisionCourseMemberTypeByIdentifier(TblDivisionCourseMemberType::TYPE_DIVISION_TEACHER))
+                && ($tblPersonLogin = Account::useService()->getPersonByLogin())
+                && DivisionCourse::useService()->getDivisionCourseMemberByPerson($tblDivisionCourse, $tblDivisionCourseMemberType, $tblPersonLogin))
+        ) {
+            $buttonStudenOverview = new PullRight(
+                new Standard('Schülerübersicht', '/Education/Competence/SkillRate/Student/Overview', null,
+                    ['DivisionCourseId' => $DivisionCourseId, 'SubjectId' => $SubjectId, 'PersonId' => $PersonId, 'SelectedYearId' => $SelectedYearId]
+                )
+            );
+        }
+
         $content = '';
         foreach (SkillRate::useService()->getStudentEducationList($tblPerson, $tblYear, $IsOldYears) as $tblStudentEducationTemp) {
             if (($tblYearTemp = $tblStudentEducationTemp->getServiceTblYear())
@@ -235,6 +251,7 @@ class FrontendStudent extends FrontendDivisionCourse
                     ['DivisionCourseId' => $DivisionCourseId, 'SubjectId' => $SubjectId, 'SelectedYearId' => $SelectedYearId], 'Zurück zur Kursansicht')
                 . "&nbsp;&nbsp;&nbsp;Kompetenzbewertung"
                 . new Muted(new Small(" Schüleransicht "))
+                . $buttonStudenOverview
             )
             . new PullClear($buttons
             . new PullRight(
@@ -246,7 +263,7 @@ class FrontendStudent extends FrontendDivisionCourse
                         ->ajaxPipelineOnClick(ApiSkillRate::pipelineLoadViewStudentContent(
                             $DivisionCourseId, $PersonId, $SubjectId, $SelectedYearId, $IsOldYears ? 'false' : 'true', $IsInterdisciplinary))
             ))
-            . new Container('&nbsp;')
+            . (new Container('&nbsp;'))->setStyle(['height: 8px;'])
             . $this->getStudentHead($tblPerson, $tblDivisionCourse, $tblSubject)
             . $content;
     }

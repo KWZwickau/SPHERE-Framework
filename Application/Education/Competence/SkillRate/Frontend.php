@@ -40,7 +40,7 @@ use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Info;
 use SPHERE\Common\Window\Stage;
 
-class Frontend extends FrontendStudent
+class Frontend extends FrontendStudentOverview
 {
     /** @noinspection PhpUnused */
     public function frontendSkillRateSelect($SelectedYearId = null, $SchoolTypeId = null): Stage

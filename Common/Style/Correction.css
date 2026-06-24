@@ -527,7 +527,8 @@ a.type-success-link:focus {
     position: relative;
     height: 42px;
     margin-bottom: 4px;
-    background-color: #e9ecef;
+    /*background-color: #e9ecef;*/
+    background-color: #F5F5F5;
     border-radius: 4px;
     overflow: hidden;
 }

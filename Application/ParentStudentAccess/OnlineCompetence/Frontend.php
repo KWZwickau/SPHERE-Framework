@@ -15,6 +15,7 @@ use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
+use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Info;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
@@ -221,7 +222,7 @@ class Frontend extends Extension implements IFrontendInterface
                 }
             }
 
-            return $content;
+            return $content ?: new Warning('Es sind noch keine Kompetenzbewertungen erfolgt.', new Exclamation());
         }
 
         return new Warning('Bitte wählen Sie zunächst ein Fach aus.', new Info());
