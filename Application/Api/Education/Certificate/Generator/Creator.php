@@ -536,7 +536,7 @@ class Creator extends Extension
                     }
 
                     if ($isApproved) {
-                        ini_set('memory_limit', '1G');
+                        ini_set('memory_limit', '2G');
                         $CertificateClass = '\SPHERE\Application\Api\Education\Certificate\Generator\Repository\\' . $tblCertificate->getCertificate();
                         if (class_exists($CertificateClass)) {
                             $tblStudentEducation = DivisionCourse::useService()->getStudentEducationByPersonAndYear($tblPerson, $tblYear);
