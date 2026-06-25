@@ -154,8 +154,8 @@ class Service
             // contact
             'Notfall_Festnetz'    => null,
             'Notfall_Mobil'       => null,
-            'Geschäftlich_Festnetz' => null,
-            'Geschäftlich_Mobil'    => null,
+//            'Geschäftlich_Festnetz' => null,
+//            'Geschäftlich_Mobil'    => null,
             'Privat_Festnetz'     => null,
             'Privat_Mobil'        => null,
             'E_Mail_Privat'       => null,
@@ -250,8 +250,8 @@ class Service
             'Medikamente'           => null,
             'Krankenkasse'          => null,
             'Schulaufnahme_Datum'   => null,
-            'Schulaufnahme_Bemerkung_1' => null,
-            'Schulaufnahme_Bemerkung_2' => null,
+//            'Schulaufnahme_Bemerkung_1' => null,
+//            'Schulaufnahme_Bemerkung_2' => null,
             'Förderschule_Stufe'    => null,
             'Hort'                  => null,
             'Abholberechtigte'      => null,
@@ -380,21 +380,22 @@ class Service
                 $tblCompanyStammschule = $this->setInsertCompany($arriveSchool, '', '', '', '', 'X');
             }
             $arriveDate = $this->getValue('Schulaufnahme_Datum');
-            if(($arriveRemark = $this->getValue('Schulaufnahme_Bemerkung_1'))){
-                if($MandantAcronym == 'FSZ'){
-                    $arriveRemark = 'vorherige Klasse: '.$arriveRemark;
-                }
-            }
-            if(($arriveRemark2 = $this->getValue('Schulaufnahme_Bemerkung_2'))){
-                if($arriveRemark){
-                    $arriveRemark .= ', ';
-                }
-                if($MandantAcronym == 'FSZ'){
-                    $arriveRemark .= 'vorherige Schule: '.$arriveRemark2;
-                } else {
-                    $arriveRemark .= $arriveRemark2;
-                }
-            }
+            $arriveRemark = '';
+//            if(($arriveRemark = $this->getValue('Schulaufnahme_Bemerkung_1'))){
+//                if($MandantAcronym == 'FSZ'){
+//                    $arriveRemark = 'vorherige Klasse: '.$arriveRemark;
+//                }
+//            }
+//            if(($arriveRemark2 = $this->getValue('Schulaufnahme_Bemerkung_2'))){
+//                if($arriveRemark){
+//                    $arriveRemark .= ', ';
+//                }
+//                if($MandantAcronym == 'FSZ'){
+//                    $arriveRemark .= 'vorherige Schule: '.$arriveRemark2;
+//                } else {
+//                    $arriveRemark .= $arriveRemark2;
+//                }
+//            }
 
             $schoolEnrollmentType = $this->getValue('Einschulungsart');
 
@@ -431,8 +432,10 @@ class Service
             // contact
             $emergencyPhone = $this->getValue('Notfall_Festnetz');
             $emergencyMobile = $this->getValue('Notfall_Mobil');
-            $businessPhone = $this->getValue('Geschäftlich_Festnetz');
-            $businessMobile = $this->getValue('Geschäftlich_Mobil');
+//            $businessPhone = $this->getValue('Geschäftlich_Festnetz');
+//            $businessMobile = $this->getValue('Geschäftlich_Mobil');
+            $businessPhone = '';
+            $businessMobile = '';
             $privatePhone = $this->getValue('Privat_Festnetz');
             $privateMobile = $this->getValue('Privat_Mobil');
             $privateMail = $this->getValue('E_Mail_Privat');
@@ -816,13 +819,13 @@ class Service
 //                        $ImportId = trim($Document->getValue($Document->getCell($Location['ImportId'], $RunY)));
 
                         $isProspect = true;// true => Prospect, false => Student, null => Individuelle Gruppe
-                        // Abgesagte Interessenten
-                        if($MandantAcronym == "FSZ"){
-                            $nation = trim($Document->getValue($Document->getCell($Location['Land'], $RunY)));
-                            if($nation == 'Abgesagt'){
-                                $isProspect = null; // setzt individuelle Gruppe
-                            }
-                        }
+                        // Abgesagte Interessenten beispiel information in anderer Spalte (Land)
+//                        if($MandantAcronym == "FSZ"){
+//                            $nation = trim($Document->getValue($Document->getCell($Location['Land'], $RunY)));
+//                            if($nation == 'Abgesagt'){
+//                                $isProspect = null; // setzt individuelle Gruppe
+//                            }
+//                        }
 
                         //
                         $tblPerson = $this->setPersonStudent($firstName, $secondName, $callName, $lastName, $Hort, $studentGender, $isProspect, ''); // $ImportId
@@ -845,9 +848,9 @@ class Service
                         $district = trim($Document->getValue($Document->getCell($Location['Ortsteil'], $RunY)));
                         $nation = trim($Document->getValue($Document->getCell($Location['Land'], $RunY)));
                         $country = '';
-                        if($MandantAcronym == "FSZ"){
-                            $nation = ''; // falsche Werte in der Spalte
-                        }
+//                        if($MandantAcronym == "FSZ"){
+//                            $nation = ''; // falsche Werte in der Spalte
+//                        }
                         $this->setPersonAddress($tblPerson, $streetName, $streetNumber, $city, $cityCode, $district, $country, $nation, $RunY, $Nr, $error);
 
                         // contact
