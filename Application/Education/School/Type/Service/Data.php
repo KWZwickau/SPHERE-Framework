@@ -48,6 +48,9 @@ class Data extends AbstractData
         // Thüringen
         $this->createType('Regelschule', 'RS', $tblCategoryCommon, true);
 
+        // Baden-Württemberg
+        $this->createType('Werkrealschule', 'WRS', $tblCategoryCommon, true);
+
         // Berufsbildend
         $this->createType('Berufliches Gymnasium', 'BGy', $tblCategoryTechnical, true);
         $this->createType('Berufsfachschule', 'BFS', $tblCategoryTechnical, true);
