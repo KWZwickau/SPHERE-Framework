@@ -572,7 +572,7 @@ class Service extends AbstractService
             'Content.Input.Deepening'           => 'Vertiefungsrichtung',
             'Content.Input.SchoolType'          => 'Ausbildung fortsetzen',
             'Content.Input.Type'                => 'Bezieht sich auf',
-            'Content.Input.DateCertifcate'      => 'Datum des Zeugnisses',
+            'Content.Input.DateCertifcate'      => 'Datum der Halbjahresinformation',
             'Content.Input.DateConference'      => 'Datum der Klassenkonferenz',
             'Content.Input.DateConsulting'      => 'Datum der Bildungsberatung',
             'Content.Input.Transfer'            => 'Versetzungsvermerk',
