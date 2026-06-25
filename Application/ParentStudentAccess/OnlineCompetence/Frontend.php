@@ -191,19 +191,27 @@ class Frontend extends Extension implements IFrontendInterface
                                 // step ermitteln kann nicht 1 sein
                                 $step = ($factor * $maxCount) / 100;
                                 if (!$tblStudentSkill->getIsAverage()) {
-                                    // Todo berücksichtigung was ist die höchste Stufe
                                     // Bewertungssystem mit letzter Bewertung
                                     // balken ausmalen auch bei Bewertungssystem und im Header von Kompetenzbereich die Stufen mit anzeigen
-                                    $percentValue = $factor * ($maxCount - $percentValue + $step);
+                                    if ($tblScoreType->getSortOrder() == 'desc') {
+                                        // Berücksichtigung was ist die höchste Stufe
+                                        $percentValue = 100 - ($factor * ($maxCount - $percentValue));
+                                    } else {
+                                        $percentValue = $factor * ($maxCount - $percentValue + $step);
+                                    }
                                 } else {
-                                    // Todo berücksichtigung was ist die höchste Stufe
                                     // bewertungssystem durchschnitt
-                                    // bei durchschnitt versuchen es umzurechnen und mit anzuzeigen
+                                    // bei einem Durchschnitt versuchen es umzurechnen und mit anzuzeigen
                                     // offset damit die Komma-Fünf Noten immer auf dem Schritt sind
                                     $offset = $factor * ($maxCount - $percentValue + $step) == 100
                                         ? 0
                                         : ($step / 2);
-                                    $percentValue = $factor * ($maxCount - $percentValue + $step - $offset);
+                                    if ($tblScoreType->getSortOrder() == 'desc') {
+                                        // Berücksichtigung was ist die höchste Stufe
+                                        $percentValue = 100 - ($factor * ($maxCount - $percentValue + $offset));
+                                    } else {
+                                        $percentValue = $factor * ($maxCount - $percentValue + $step - $offset);
+                                    }
                                 }
                             }
 
@@ -299,7 +307,8 @@ class Frontend extends Extension implements IFrontendInterface
             // vertikale Linie
             $steps .= "<div class='competence-divider'></div>";
             $steps .= "<div class='competence-area-sublabel'>";
-            $tblScoreTypeItemList = $this->getSorter($tblScoreTypeItemList)->sortObjectBy('Value', new Sorter\StringNaturalOrderSorter(), Sorter::ORDER_DESC);
+            $tblScoreTypeItemList = $this->getSorter($tblScoreTypeItemList)->sortObjectBy('Value', new Sorter\StringNaturalOrderSorter(),
+                $tblScoreType->getSortOrder() == 'desc' ? Sorter::ORDER_ASC : Sorter::ORDER_DESC);
             foreach ($tblScoreTypeItemList as $tblScoreTypeItem) {
                 $steps .= "<span>{$tblScoreTypeItem->getName()}</span>";
             }

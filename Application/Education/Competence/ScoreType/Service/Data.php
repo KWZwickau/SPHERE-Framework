@@ -40,16 +40,18 @@ class Data extends AbstractData
     /**
      * @param string $name
      * @param string $description
-     * 
+     * @param string $sortOrder
+     *
      * @return TblScoreType
      */
-    public function createScoreType(string $name, string $description): TblScoreType 
+    public function createScoreType(string $name, string $description, string $sortOrder): TblScoreType
     {
         $manager = $this->getEntityManager();
 
         $entity = new TblScoreType();
         $entity->setName($name);
         $entity->setDescription($description);
+        $entity->setSortOrder($sortOrder);
 
         $manager->saveEntity($entity);
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $entity);
@@ -61,10 +63,11 @@ class Data extends AbstractData
      * @param TblScoreType $tblScoreType
      * @param string $name
      * @param string $description
-     * 
+     * @param string $sortOrder
+     *
      * @return bool
      */
-    public function updateScoreType(TblScoreType $tblScoreType, string $name, string $description): bool 
+    public function updateScoreType(TblScoreType $tblScoreType, string $name, string $description, string $sortOrder): bool
     {
         $manager = $this->getEntityManager();
         /** @var TblScoreType $entity */
@@ -73,6 +76,7 @@ class Data extends AbstractData
         if (null !== $entity) {
             $entity->setName($name);
             $entity->setDescription($description);
+            $entity->setSortOrder($sortOrder);
 
             $manager->saveEntity($entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $protocol, $entity);
@@ -197,7 +201,8 @@ class Data extends AbstractData
     public function getScoreTypeItemListByScoreType(?TblScoreType $tblScoreType): array
     {
         return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblScoreTypeItem',
-            [TblScoreTypeItem::TBL_SCORE_TYPE => $tblScoreType?->getId()], [TblScoreTypeItem::ATTR_VALUE => self::ORDER_ASC]) ?: [];
+            [TblScoreTypeItem::TBL_SCORE_TYPE => $tblScoreType?->getId()],
+            [TblScoreTypeItem::ATTR_VALUE => $tblScoreType ? $tblScoreType->getSortOrder() : 'desc']) ?: [];
     }
 
     /**

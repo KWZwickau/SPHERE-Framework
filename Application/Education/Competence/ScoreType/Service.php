@@ -58,6 +58,7 @@ class Service extends AbstractService
         $tblScoreType->setId(-1);
         $tblScoreType->setName('Prozent');
         $tblScoreType->setDescription('0% - 100%');
+        $tblScoreType->setSortOrder('desc');
 
         return $tblScoreType;
     }
@@ -141,7 +142,8 @@ class Service extends AbstractService
         $tblScoreTypeItemListExists = [];
         if ($tblScoreType) {
             if (!$isPercent) {
-                (new Data($this->getBinding()))->updateScoreType($tblScoreType, $Data['Name'], $Data['Description']);
+                (new Data($this->getBinding()))->updateScoreType($tblScoreType, $Data['Name'], $Data['Description'],
+                    isset($Data['SortOrder']) ? 'desc' : 'asc');
             }
 
 //            Debugger::devDump($Data);
@@ -152,7 +154,8 @@ class Service extends AbstractService
 
             $tblScoreTypeNew = $tblScoreType;
         } else {
-            $tblScoreTypeNew = (new Data($this->getBinding()))->createScoreType($Data['Name'], $Data['Description']);
+            $tblScoreTypeNew = (new Data($this->getBinding()))->createScoreType($Data['Name'], $Data['Description'],
+                isset($Data['SortOrder']) ? 'desc' : 'asc');
         }
 
         $scoreTypeItemIdList = [];

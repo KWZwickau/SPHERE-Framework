@@ -5,6 +5,7 @@ namespace SPHERE\Application\Education\Competence\ScoreType;
 use SPHERE\Application\Api\Education\Competence\ApiScoreType;
 use SPHERE\Application\Education\Competence\ScoreType\Service\Entity\TblScoreType;
 use SPHERE\Application\Education\Competence\SkillGrid\SkillGrid;
+use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Repository\Title;
 use SPHERE\Common\Frontend\Form\Structure\Form;
@@ -180,6 +181,7 @@ class Frontend extends Extension implements IFrontendInterface
             $Global = $this->getGlobal();
             $Global->POST['Data']['Name'] = $tblScoreType->getName();
             $Global->POST['Data']['Description'] = $tblScoreType->getDescription() ?: '';
+            $Global->POST['Data']['SortOrder'] = $tblScoreType->getSortOrder() == 'desc';
 
             $ranking = 1;
             foreach ($tblScoreType->getScoreTypeItems() as $tblScoreTypeItem) {
@@ -219,10 +221,12 @@ class Frontend extends Extension implements IFrontendInterface
 
         $nameInput = new TextField('Data[Name]', '', 'Name ' . new Danger('*'));
         $descriptionInput = new TextField('Data[Description]', '', 'Beschreibung');
+        $sortOrderCheckbox = new CheckBox('Data[SortOrder]', 'Höchster Wert (Zahl) ist die beste Bewertung', 1);
         // Prozent
         if ($ScoreTypeId == -1) {
             $nameInput->setDisabled();
             $descriptionInput->setDisabled();
+            $sortOrderCheckbox->setDisabled();
         }
 
         $form = (new Form(array(
@@ -239,6 +243,11 @@ class Frontend extends Extension implements IFrontendInterface
                                     new LayoutColumn(
                                         $descriptionInput
                                     , 6),
+                                )),
+                                new LayoutRow(array(
+                                    new LayoutColumn(
+                                        $sortOrderCheckbox
+                                    ),
                                 )),
                             ))),
                             Panel::PANEL_TYPE_INFO
@@ -371,7 +380,7 @@ class Frontend extends Extension implements IFrontendInterface
                 new FormColumn(
                     $i == 6
                         ? new Container($isPercent ? 'Alle weiteren Prozente' : 'Alle weiteren Bewertungsdurchschnitte')
-                        : new TextField("Data[$i]", $placeholder, "", $isPercent ? new ChevronRight() : new ChevronLeft())
+                        : new TextField("Data[$i]", $placeholder, "", $tblScoreType->getSortOrder() == 'desc' ? new ChevronRight() : new ChevronLeft())
                 , 6),
             ));
         }

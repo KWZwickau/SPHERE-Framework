@@ -46,6 +46,7 @@ class Setup extends AbstractSetup
         $table = $this->createTable($schema, 'tblCompetenceScoreType');
         $this->createColumn($table, 'Name');
         $this->createColumn($table, 'Description');
+        $this->createColumn($table, 'SortOrder', self::FIELD_TYPE_STRING, false, 'asc');
 
         return $table;
     }
