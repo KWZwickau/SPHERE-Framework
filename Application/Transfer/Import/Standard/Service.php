@@ -42,6 +42,7 @@ use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\People\Relationship\Service\Entity\TblType as TblTypeRelationship;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
+use SPHERE\Application\Setting\Authorization\Account\Account;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
@@ -97,6 +98,7 @@ class Service
 
             return $Form;
         }
+        $MandantAcronym = Account::useService()->getMandantAcronym();
         if(isset($Data['Year']) && !empty($Data['Year'])){
             $YearString = substr($Data['Year'], 0, 4);
         } else {
@@ -142,15 +144,18 @@ class Service
             'Staatsangehörigkeit' => null,
             'Konfession'          => null,
             // address
-            'PLZ'      => null,
-            'Ort'      => null,
-            'Ortsteil' => null,
-            'Straße'   => null,
-            'HNR'      => null,
-            'Land'     => null,
+            'PLZ'       => null,
+            'Ort'       => null,
+            'Ortsteil'  => null,
+            'Straße'    => null,
+            'HNR'       => null,
+            'Landkreis' => null,
+            'Land'      => null,
             // contact
             'Notfall_Festnetz'    => null,
             'Notfall_Mobil'       => null,
+            'Geschäftlich_Festnetz' => null,
+            'Geschäftlich_Mobil'    => null,
             'Privat_Festnetz'     => null,
             'Privat_Mobil'        => null,
             'E_Mail_Privat'       => null,
@@ -162,12 +167,13 @@ class Service
             'S1_Name'    => null,
             'S1_Vorname' => null,
             // adress
-            'S1_PLZ'      => null,
-            'S1_Ort'      => null,
-            'S1_Ortsteil' => null,
-            'S1_Straße'   => null,
-            'S1_HNR'      => null,
-            'S1_Land'     => null,
+            'S1_PLZ'       => null,
+            'S1_Ort'       => null,
+            'S1_Ortsteil'  => null,
+            'S1_Straße'    => null,
+            'S1_HNR'       => null,
+            'S1_Landkreis' => null,
+            'S1_Land'      => null,
             // contact
             'S1_Geschäftlich_Festnetz' => null,
             'S1_Geschäftlich_Mobil'    => null,
@@ -198,12 +204,13 @@ class Service
             'S2_Name'    => null,
             'S2_Vorname' => null,
             // adress
-            'S2_PLZ'      => null,
-            'S2_Ort'      => null,
-            'S2_Ortsteil' => null,
-            'S2_Straße'   => null,
-            'S2_HNR'      => null,
-            'S2_Land'     => null,
+            'S2_PLZ'       => null,
+            'S2_Ort'       => null,
+            'S2_Ortsteil'  => null,
+            'S2_Straße'    => null,
+            'S2_HNR'       => null,
+            'S2_Landkreis' => null,
+            'S2_Land'      => null,
             // contact
             'S2_Geschäftlich_Festnetz' => null,
             'S2_Geschäftlich_Mobil'    => null,
@@ -243,6 +250,8 @@ class Service
             'Medikamente'           => null,
             'Krankenkasse'          => null,
             'Schulaufnahme_Datum'   => null,
+            'Schulaufnahme_Bemerkung_1' => null,
+            'Schulaufnahme_Bemerkung_2' => null,
             'Förderschule_Stufe'    => null,
             'Hort'                  => null,
             'Abholberechtigte'      => null,
@@ -371,6 +380,22 @@ class Service
                 $tblCompanyStammschule = $this->setInsertCompany($arriveSchool, '', '', '', '', 'X');
             }
             $arriveDate = $this->getValue('Schulaufnahme_Datum');
+            if(($arriveRemark = $this->getValue('Schulaufnahme_Bemerkung_1'))){
+                if($MandantAcronym == 'FSZ'){
+                    $arriveRemark = 'vorherige Klasse: '.$arriveRemark;
+                }
+            }
+            if(($arriveRemark2 = $this->getValue('Schulaufnahme_Bemerkung_2'))){
+                if($arriveRemark){
+                    $arriveRemark .= ', ';
+                }
+                if($MandantAcronym == 'FSZ'){
+                    $arriveRemark .= 'vorherige Schule: '.$arriveRemark2;
+                } else {
+                    $arriveRemark .= $arriveRemark2;
+                }
+            }
+
             $schoolEnrollmentType = $this->getValue('Einschulungsart');
 
             // medicine
@@ -380,7 +405,7 @@ class Service
             $insurance = $this->getValue('Krankenkasse');
             $religion = $this->getValue('Fach_Religion');
             $specialNeedsLevel = $this->getValue('Förderschule_Stufe');
-            $this->setPersonTblStudent($tblPerson, $Identification, $schoolAttendanceStartDate, $arriveDate, $disease, $medication,
+            $this->setPersonTblStudent($tblPerson, $Identification, $schoolAttendanceStartDate, $arriveDate, $arriveRemark, $disease, $medication,
                 $insurance, $religion, $enrollmentDate, $tblCompanyStammschule, $schoolEnrollmentType, $specialNeedsLevel,
                 $this->RunY, $Nr, $error);
 
@@ -399,17 +424,20 @@ class Service
             $city = $this->getValue('Ort');
             $cityCode = $this->getValue('PLZ');
             $district = $this->getValue('Ortsteil');
+            $country = $this->getValue('Landkreis');
             $nation = $this->getValue('Land');
-            $this->setPersonAddress($tblPerson, $streetName, $streetNumber, $city, $cityCode, $district, $nation, $this->RunY, $Nr, $error);
+            $this->setPersonAddress($tblPerson, $streetName, $streetNumber, $city, $cityCode, $district, $country, $nation, $this->RunY, $Nr, $error);
 
             // contact
             $emergencyPhone = $this->getValue('Notfall_Festnetz');
             $emergencyMobile = $this->getValue('Notfall_Mobil');
+            $businessPhone = $this->getValue('Geschäftlich_Festnetz');
+            $businessMobile = $this->getValue('Geschäftlich_Mobil');
             $privatePhone = $this->getValue('Privat_Festnetz');
             $privateMobile = $this->getValue('Privat_Mobil');
             $privateMail = $this->getValue('E_Mail_Privat');
             $businessMail = $this->getValue('E_Mail_Geschäftlich');
-            $this->setPersonContact($tblPerson, $emergencyPhone, $emergencyMobile, $privatePhone, $privateMobile, '', '', $privateMail, $businessMail);
+            $this->setPersonContact($tblPerson, $emergencyPhone, $emergencyMobile, $privatePhone, $privateMobile, $businessPhone, $businessMobile, $privateMail, $businessMail);
 
             // S1 --------------------------------------------------------------------------------------------------
             $firstName_S1 = $this->getValue('S1_Vorname');
@@ -449,8 +477,9 @@ class Service
                     $city_S1 = $this->getValue('S1_Ort');
                     $cityCode_S1 = $this->getValue('S1_PLZ');
                     $district_S1 = $this->getValue('S1_Ortsteil');
-                    $nation = $this->getValue('S1_Land');
-                    $this->setPersonAddress($tblPerson_S1, $streetName_S1, $streetNumber_S1, $city_S1, $cityCode_S1, $district_S1, $nation, $this->RunY, $Nr, $error);
+                    $country_S1 = $this->getValue('Landkreis');
+                    $nation_S1 = $this->getValue('S1_Land');
+                    $this->setPersonAddress($tblPerson_S1, $streetName_S1, $streetNumber_S1, $city_S1, $cityCode_S1, $district_S1, $country_S1, $nation_S1, $this->RunY, $Nr, $error);
 
                     // S1 contact
                     $emergencyPhone_S1 = $this->getValue('S1_Notfall_Festnetz');
@@ -527,8 +556,9 @@ class Service
                     $city_S2 = $this->getValue('S2_Ort');
                     $cityCode_S2 = $this->getValue('S2_PLZ');
                     $district_S2 = $this->getValue('S2_Ortsteil');
-                    $nation = $this->getValue('S2_Land');
-                    $this->setPersonAddress($tblPerson_S2, $streetName_S2, $streetNumber_S2, $city_S2, $cityCode_S2, $district_S2, $nation, $this->RunY, $Nr, $error);
+                    $country_S2 = $this->getValue('Landkreis');
+                    $nation_S2 = $this->getValue('S2_Land');
+                    $this->setPersonAddress($tblPerson_S2, $streetName_S2, $streetNumber_S2, $city_S2, $cityCode_S2, $district_S2, $country_S2, $nation_S2, $this->RunY, $Nr, $error);
 
                     // S2 contact
                     $emergencyPhone_S2 = $this->getValue('S2_Notfall_Festnetz');
@@ -649,6 +679,8 @@ class Service
                 $Form->setError('File', 'Fehler');
             } else {
 
+                $MandantAcronym = Account::useService()->getMandantAcronym();
+
                 /**
                  * Prepare
                  */
@@ -674,7 +706,7 @@ class Service
                  */
                 $Location = array(
                     'Nr'           => null,
-                    'ImportId'     => null,
+//                    'ImportId'     => null,
                     'Geschlecht'   => null,
                     'Name'         => null,
                     'Vorname'      => null,
@@ -781,9 +813,19 @@ class Service
 //                        $Hort = trim($Document->getValue($Document->getCell($Location['Hort'], $RunY)));
                         $Hort = '';
                         $studentGender = trim($Document->getValue($Document->getCell($Location['Geschlecht'], $RunY)));
-                        $ImportId = trim($Document->getValue($Document->getCell($Location['ImportId'], $RunY)));
+//                        $ImportId = trim($Document->getValue($Document->getCell($Location['ImportId'], $RunY)));
+
+                        $isProspect = true;// true => Prospect, false => Student, null => Individuelle Gruppe
+                        // Abgesagte Interessenten
+                        if($MandantAcronym == "FSZ"){
+                            $nation = trim($Document->getValue($Document->getCell($Location['Land'], $RunY)));
+                            if($nation == 'Abgesagt'){
+                                $isProspect = null; // setzt individuelle Gruppe
+                            }
+                        }
+
                         //
-                        $tblPerson = $this->setPersonStudent($firstName, $secondName, $callName, $lastName, $Hort, $studentGender, true, $ImportId);
+                        $tblPerson = $this->setPersonStudent($firstName, $secondName, $callName, $lastName, $Hort, $studentGender, $isProspect, ''); // $ImportId
                         $countProspect++;
 
                         // common & birthday
@@ -802,7 +844,11 @@ class Service
                         $cityCode = trim($Document->getValue($Document->getCell($Location['PLZ'], $RunY)));
                         $district = trim($Document->getValue($Document->getCell($Location['Ortsteil'], $RunY)));
                         $nation = trim($Document->getValue($Document->getCell($Location['Land'], $RunY)));
-                        $this->setPersonAddress($tblPerson, $streetName, $streetNumber, $city, $cityCode, $district, $nation, $RunY, $Nr, $error);
+                        $country = '';
+                        if($MandantAcronym == "FSZ"){
+                            $nation = ''; // falsche Werte in der Spalte
+                        }
+                        $this->setPersonAddress($tblPerson, $streetName, $streetNumber, $city, $cityCode, $district, $country, $nation, $RunY, $Nr, $error);
 
                         // contact
                         $emergencyPhone = trim($Document->getValue($Document->getCell($Location['Notfall_Festnetz'], $RunY)));
@@ -851,7 +897,7 @@ class Service
                                 $cityCode_S1 = trim($Document->getValue($Document->getCell($Location['S1_PLZ'], $RunY)));
                                 $district_S1 = trim($Document->getValue($Document->getCell($Location['S1_Ortsteil'], $RunY)));
                                 $nation = trim($Document->getValue($Document->getCell($Location['S1_Land'], $RunY)));
-                                $this->setPersonAddress($tblPerson_S1, $streetName_S1, $streetNumber_S1, $city_S1, $cityCode_S1, $district_S1, $nation, $RunY, $Nr, $error);
+                                $this->setPersonAddress($tblPerson_S1, $streetName_S1, $streetNumber_S1, $city_S1, $cityCode_S1, $district_S1, '', $nation, $RunY, $Nr, $error);
                             }
                             $S1_Alleinerziehend = trim($Document->getValue($Document->getCell($Location['S1_Alleinerziehend'], $RunY)));
                             $isSingleParent = false;
@@ -892,7 +938,7 @@ class Service
                                 $cityCode_S2 = trim($Document->getValue($Document->getCell($Location['S2_PLZ'], $RunY)));
                                 $district_S2 = trim($Document->getValue($Document->getCell($Location['S2_Ortsteil'], $RunY)));
                                 $nation = trim($Document->getValue($Document->getCell($Location['S2_Land'], $RunY)));
-                                $this->setPersonAddress($tblPerson_S2, $streetName_S2, $streetNumber_S2, $city_S2, $cityCode_S2, $district_S2, $nation, $RunY, $Nr, $error);
+                                $this->setPersonAddress($tblPerson_S2, $streetName_S2, $streetNumber_S2, $city_S2, $cityCode_S2, $district_S2, '', $nation, $RunY, $Nr, $error);
                             }
 
                             $S2_Alleinerziehend = trim($Document->getValue($Document->getCell($Location['S2_Alleinerziehend'], $RunY)));
@@ -1119,7 +1165,7 @@ class Service
                             $cityCode = trim($Document->getValue($Document->getCell($Location['PLZ'], $RunY)));
                             $district = trim($Document->getValue($Document->getCell($Location['Ortsteil'], $RunY)));
                             $nation = trim($Document->getValue($Document->getCell($Location['Land'], $RunY)));
-                            $this->setPersonAddress($tblPerson, $streetName, $streetNumber, $city, $cityCode, $district, $nation, $RunY, $Nr, $error);
+                            $this->setPersonAddress($tblPerson, $streetName, $streetNumber, $city, $cityCode, $district, '', $nation, $RunY, $Nr, $error);
                             $countStaff++;
                         }
 
@@ -1509,7 +1555,7 @@ class Service
      * @param string $callName
      * @param string $lastName
      * @param string $Hort
-     * @param bool $isProspect
+     * @param null|bool $isProspect
      * @param string $ImportId
      *
      * @return bool|TblPerson
@@ -1518,9 +1564,12 @@ class Service
     {
 
         $GroupList = array();
-        if($isProspect){
+        if($isProspect === true) {
             $GroupList[] = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_COMMON);
             $GroupList[] = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_PROSPECT);
+        } elseif($isProspect === null) {
+            $GroupList[] = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_COMMON);
+            $GroupList[] = Group::useService()->createGroupFromImport('Interessenten abgesagt');
         } else {
             $GroupList[] = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_COMMON);
             $GroupList[] = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_STUDENT);
@@ -1533,7 +1582,11 @@ class Service
 
         $Salutation = Person::useService()->getSalutationByName(TblSalutation::VALUE_STUDENT);
         if($studentGender){
-            if(strtolower($studentGender) == 'w') {
+            $studentGender = strtolower($studentGender);
+            if(strlen($studentGender) > 1){
+                $studentGender = substr($studentGender, 0, 1);
+            }
+            if($studentGender == 'w') {
                 $Salutation = Person::useService()->getSalutationByName(TblSalutation::VALUE_STUDENT_FEMALE);
             }
         }
@@ -1799,6 +1852,10 @@ class Service
                 case 'mittelschule/oberschule':
                 $tblSchoolType = Type::useService()->getTypeByName(TblType::IDENT_OBER_SCHULE);
                 break;
+                case 'wrs':
+                case 'werkrealschule':
+                $tblSchoolType = Type::useService()->getTypeByName(TblType::IDENT_WERK_REAL_SCHULE);
+                break;
                 case 'gym':
                 case 'gymnasium':
                 $tblSchoolType = Type::useService()->getTypeByName(TblType::IDENT_GYMNASIUM);
@@ -1864,12 +1921,13 @@ class Service
      * @param string    $city
      * @param string    $cityCode
      * @param string    $district
+     * @param string    $country
      * @param string    $nation
      * @param int       $RunY
      * @param string    $Nr
      * @param array     $error
      */
-    private function setPersonAddress(TblPerson $tblPerson, $streetName, $streetNumber, $city, $cityCode, $district, $nation, $RunY, $Nr, &$error)
+    private function setPersonAddress(TblPerson $tblPerson, $streetName, $streetNumber, $city, $cityCode, $district, $country, $nation, $RunY, $Nr, &$error)
     {
 
         if($district == ''){
@@ -1895,7 +1953,7 @@ class Service
         ) {
                 Address::useService()->insertAddressToPerson(
                     $tblPerson, $streetName, $streetNumber, $cityCode, $city,
-                    $district, '', '', $nation, null
+                    $district, '', $country, $nation, null
                 );
         } else {
             $error[] = new DangerText(($Nr ? 'Nr.: '.$Nr : 'Zeile: '.($RunY + 1))).' '.$tblPerson->getLastFirstName().' Adresse konnte nicht angelegt werden.';
@@ -1986,6 +2044,7 @@ class Service
      * @param string          $Identification
      * @param string          $schoolAttendanceStartDate
      * @param string          $arriveDate
+     * @param string          $arriveRemark
      * @param string          $disease
      * @param string          $medication
      * @param string          $insurance
@@ -2000,7 +2059,7 @@ class Service
      *
      * @return void
      */
-    private function setPersonTblStudent(TblPerson $tblPerson, $Identification, $schoolAttendanceStartDate, $arriveDate,
+    private function setPersonTblStudent(TblPerson $tblPerson, $Identification, $schoolAttendanceStartDate, $arriveDate, $arriveRemark,
         $disease, $medication, $insurance, $religion, $enrollmentDate, $tblCompanyStammschule,
         $schoolEnrollmentType, $specialNeedsLevel, $RunY, $Nr, &$error)
     {
@@ -2042,7 +2101,7 @@ class Service
                 $tblStudentSchoolEnrollmentType = null;
             }
             Student::useService()->insertStudentTransfer($tblStudent, $tblStudentTransferType, null,
-                null, null, $arriveDate, '', $tblCompanyStammschule, $tblStudentSchoolEnrollmentType);
+                null, null, $arriveDate, $arriveRemark, $tblCompanyStammschule, $tblStudentSchoolEnrollmentType);
         }
     }
 
